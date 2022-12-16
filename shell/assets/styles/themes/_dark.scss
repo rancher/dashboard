@@ -29,6 +29,7 @@
   $contrasted-dark: $lightest !default;
   $contrasted-light: $darkest !default;
 
+  $drag-over: #DCDEE7;
 
   --default                    : #{$dark};
   --default-text               : #{$light};
@@ -91,16 +92,20 @@
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : var(--primary);
 
+  --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
+  --drag-over-outer-bg         : #{rgba($drag-over, 0)};
+
   --dropdown-bg                : #{mix($medium, $dark, 10%)};
   --dropdown-border            : #{$light};
   --dropdown-divider           : #{$light};
-  --dropdown-text              : #{$link};
+  --dropdown-text              : #{$lightest};
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$selected};
   --dropdown-hover-text        : #{$lightest};
   --dropdown-hover-bg          : #{$link};
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
+  --dropdown-highlight-text     : #{$link};
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};

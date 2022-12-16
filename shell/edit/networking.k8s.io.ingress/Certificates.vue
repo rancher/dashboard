@@ -9,7 +9,7 @@ export default {
   components: {
     ArrayListGrouped, Certificate, SortableTable
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -32,8 +32,8 @@ export default {
   data() {
     return {
       defaultAddValue: {
-        secretName:  null,
-        hosts:       ['']
+        secretName: null,
+        hosts:      ['']
       }
     };
   },
@@ -91,7 +91,12 @@ export default {
     :row-actions="false"
   />
   <div v-else>
-    <ArrayListGrouped v-model="value.spec.tls" :add-label="t('ingress.certificates.addCertificate')" :default-add-value="defaultAddValue" :mode="mode">
+    <ArrayListGrouped
+      v-model="value.spec.tls"
+      :add-label="t('ingress.certificates.addCertificate')"
+      :default-add-value="defaultAddValue"
+      :mode="mode"
+    >
       <template #default="props">
         <Certificate
           v-model="props.row.value"

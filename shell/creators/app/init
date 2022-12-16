@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
-const fs = require('fs-extra');
 const path = require('path');
-const exec = require('child_process').exec;
+const fs = require('fs-extra');
 
 const targets = {
-  'dev': './node_modules/.bin/nuxt dev',
-  'nuxt': './node_modules/.bin/nuxt',
-  'build': './node_modules/.bin/nuxt build'
+  dev:   './node_modules/.bin/nuxt dev',
+  nuxt:  './node_modules/.bin/nuxt',
+  build: './node_modules/.bin/nuxt build'
 };
 
 const files = [
@@ -30,8 +29,8 @@ if (args.length == 3) {
   const folder = path.resolve('.');
 
   appFolder = path.join(folder, name);
-  console.log(`  Creating application folder: ${ appFolder}`);
-  fs.ensureDirSync(appFolder);  
+  console.log(`  Creating application folder: ${ appFolder }`);
+  fs.ensureDirSync(appFolder);
 }
 
 // Check that there is a package file
@@ -71,18 +70,23 @@ const creatorPkgData = fs.readFileSync(path.join(__dirname, 'package.json'));
 const creatorPkg = JSON.parse(creatorPkgData);
 
 pkg.dependencies['@rancher/shell'] = `^${ creatorPkg.version }`;
-pkg.dependencies['core-js'] = '^3.20.3';
-pkg.dependencies['css-loader'] = '4.3.0';
+
+// Rest of dependencies are in the _pkgs property of package.json - copy then across
+if (creatorPkg._pkgs) {
+  Object.keys(creatorPkg._pkgs).forEach((pkgName) => {
+    pkg.dependencies[pkgName] = creatorPkg._pkgs[pkgName];
+  });
+}
 
 fs.writeFileSync(path.join(appFolder, 'package.json'), JSON.stringify(pkg, null, 2));
 
 // Copy base files
 files.forEach((file) => {
-  const src = path.join(__dirname, file);
+  const src = path.join(__dirname, 'files', file);
   const dest = path.join(appFolder, file);
 
   if (!fs.existsSync(dest)) {
-    console.log('  Adding file: ' + file);
+    console.log(`  Adding file: ${ file }`);
 
     const folder = path.dirname(file);
 
@@ -92,10 +96,5 @@ files.forEach((file) => {
     fs.copySync(src, dest);
   }
 });
-
-// require("child_process").spawn('yarn', ['install'], {
-//   cwd: process.cwd(),
-//   stdio: "inherit"
-// });
 
 console.log('');

@@ -34,6 +34,10 @@ export default {
       type:     Object,
       required: true,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
@@ -116,7 +120,7 @@ export default {
 
   },
 
-  methods:  {
+  methods: {
     async loadMetrics() {
       const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
 
@@ -151,21 +155,34 @@ export default {
       :rows="rows"
       :sub-rows="true"
       :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       v-on="$listeners"
     >
-      <template #sub-row="{fullColspan, row}">
-        <tr class="taints sub-row" :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}">
+      <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
+        <tr
+          class="taints sub-row"
+          :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}"
+          @mouseenter="onRowMouseEnter"
+          @mouseleave="onRowMouseLeave"
+        >
           <template v-if="row.spec.taints && row.spec.taints.length">
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
               {{ t('node.list.nodeTaint') }}:
-              <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+              <Tag
+                v-for="taint in row.spec.taints"
+                :key="taint.key + taint.value + taint.effect"
+                class="mr-5"
+              >
                 {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
               </Tag>
             </td>
           </template>
-          <td v-else :colspan="fullColspan">
+          <td
+            v-else
+            :colspan="fullColspan"
+          >
 &nbsp;
           </td>
         </tr>

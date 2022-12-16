@@ -27,7 +27,7 @@ export default {
     SimpleSecretSelector,
     TLS,
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -37,8 +37,8 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data(props) {
@@ -50,7 +50,7 @@ export default {
     return {
       showNamespaceBanner:  isDriverUrl && this.mode !== _VIEW,
       view:                 _VIEW,
-      initialUrlSecretName:  this.value?.urlSecret?.name ? this.value.urlSecret.name : '',
+      initialUrlSecretName: this.value?.urlSecret?.name ? this.value.urlSecret.name : '',
       initialUrlSecretKey:  this.value?.urlSecret?.key ? this.value.urlSecret.key : '',
       webhookOptons:        [
         {
@@ -141,7 +141,11 @@ export default {
 
 <template>
   <div>
-    <Banner v-if="mode !== view" color="info" v-html="t('monitoringReceiver.webhook.banner', {}, raw=true)" />
+    <Banner
+      v-if="mode !== view"
+      color="info"
+      v-html="t('monitoringReceiver.webhook.banner', {}, raw=true)"
+    />
     <div class="row mb-20">
       <LabeledSelect
         v-model="selectedWebhookType"
@@ -160,7 +164,11 @@ export default {
         </h3>
       </div>
     </div>
-    <Banner v-if="showNamespaceBanner" color="info" v-html="t('monitoringReceiver.webhook.modifyNamespace', {}, raw=true)" />
+    <Banner
+      v-if="showNamespaceBanner"
+      color="info"
+      v-html="t('monitoringReceiver.webhook.modifyNamespace', {}, raw=true)"
+    />
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
@@ -183,19 +191,40 @@ export default {
         @updateSecretName="updateUrlSecretName"
         @updateSecretKey="updateUrlSecretKey"
       />
-      <Banner v-else color="error">
+      <Banner
+        v-else
+        color="error"
+      >
         {{ t('alertmanagerConfigReceiver.namespaceWarning') }}
       </Banner>
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.httpConfig.proxyURL" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
+        <LabeledInput
+          v-model="value.httpConfig.proxyURL"
+          :mode="mode"
+          :label="t('monitoringReceiver.shared.proxyUrl.label')"
+          :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.sendResolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
+      <Checkbox
+        v-model="value.sendResolved"
+        :mode="mode"
+        :label="t('monitoringReceiver.shared.sendResolved.label')"
+      />
     </div>
-    <TLS v-model="value.httpConfig" class="mb-20" :mode="mode" :namespace="namespace" />
-    <Auth v-model="value.httpConfig" :mode="mode" :namespace="namespace" />
+    <TLS
+      v-model="value.httpConfig"
+      class="mb-20"
+      :mode="mode"
+      :namespace="namespace"
+    />
+    <Auth
+      v-model="value.httpConfig"
+      :mode="mode"
+      :namespace="namespace"
+    />
   </div>
 </template>

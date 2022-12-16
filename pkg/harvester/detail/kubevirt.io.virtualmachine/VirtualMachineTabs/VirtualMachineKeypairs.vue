@@ -22,8 +22,8 @@ export default {
 
   data() {
     return {
-      allSSHs:  [],
-      sshKeys:  []
+      allSSHs: [],
+      sshKeys: []
     };
   },
 
@@ -52,9 +52,9 @@ export default {
     allSSHs(neu) {
       const out = this.getKeys().map((ssh) => {
         return {
-          id:          ssh.id,
-          publicKey:   isString(ssh.data) ? ssh.data : ssh.data?.spec?.publicKey,
-          showKey:     this.isShow(ssh.id)
+          id:        ssh.id,
+          publicKey: isString(ssh.data) ? ssh.data : ssh.data?.spec?.publicKey,
+          showKey:   this.isShow(ssh.id)
         };
       });
 

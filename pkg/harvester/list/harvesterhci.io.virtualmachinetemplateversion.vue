@@ -22,8 +22,8 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      template:           this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
-      templateVersion:    this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
+      template:        this.$store.dispatch('harvester/findAll', { type: HCI.VM_TEMPLATE }),
+      templateVersion: this.$store.dispatch('harvester/findAll', { type: HCI.VM_VERSION }),
     });
 
     this.template = hash.template;
@@ -44,9 +44,9 @@ export default {
         NAME,
         NAMESPACE,
         {
-          name:           'defaultVersion',
-          value:          'id',
-          labelKey:       'tableHeaders.defaultVersion'
+          name:     'defaultVersion',
+          value:    'id',
+          labelKey: 'tableHeaders.defaultVersion'
         },
         AGE
       ];

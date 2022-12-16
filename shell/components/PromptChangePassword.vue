@@ -11,7 +11,7 @@ export default {
   data() {
     return { valid: false, password: '' };
   },
-  computed:   { ...mapGetters({ t: 'i18n/t' }) },
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
   methods:  {
     show(show) {
       if (show) {
@@ -40,19 +40,32 @@ export default {
     :width="500"
     :height="465"
   >
-    <Card class="prompt-password" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text">
+    <Card
+      class="prompt-password"
+      :show-highlight-border="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text"
+      >
         {{ t("changePassword.title") }}
       </h4>
       <div slot="body">
         <form @submit.prevent>
-          <ChangePassword ref="changePassword" @valid="valid = $event" />
+          <ChangePassword
+            ref="changePassword"
+            @valid="valid = $event"
+          />
         </form>
       </div>
 
       <template #actions>
         <!-- type reset is required by lastpass -->
-        <button class="btn role-secondary" type="reset" @click="show(false)">
+        <button
+          class="btn role-secondary"
+          type="reset"
+          @click="show(false)"
+        >
           {{ t("changePassword.cancel") }}
         </button>
         <AsyncButton

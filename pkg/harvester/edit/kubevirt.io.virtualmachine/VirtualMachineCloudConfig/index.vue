@@ -6,7 +6,7 @@ import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import ModalWithCard from '@shell/components/ModalWithCard';
 
 import { CONFIG_MAP } from '@shell/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import { _VIEW } from '@shell/config/query-params';
 import DataTemplate from './DataTemplate';
 
@@ -82,8 +82,8 @@ export default {
     });
 
     optionUser.unshift({
-      label:    this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
-      value:    _NONE,
+      label: this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
+      value: _NONE,
     });
 
     optionNetwork.unshift({
@@ -92,8 +92,8 @@ export default {
     });
 
     optionNetwork.unshift({
-      label:    this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
-      value:    _NONE,
+      label: this.t('harvester.virtualMachine.cloudConfig.cloudInit.placeholder'),
+      value: _NONE,
     });
 
     this.optionUser = optionUser;
@@ -144,7 +144,7 @@ export default {
 
     async save(buttonCb) {
       const templateValue = await this.$store.dispatch('harvester/create', {
-        type:       CONFIG_MAP,
+        type:     CONFIG_MAP,
         metadata: {
           labels:    { [HCI_ANNOTATIONS.CLOUD_INIT]: this.templateType },
           name:      this.cloudTemplateName,

@@ -69,8 +69,8 @@ export default {
       reclaimPolicyOptions,
       allowVolumeExpansionOptions,
       volumeBindingModeOptions,
-      mountOptions:           [],
-      provisioner:            PROVISIONER_OPTIONS[0].value,
+      mountOptions: [],
+      provisioner:  PROVISIONER_OPTIONS[0].value,
     };
   },
 
@@ -156,10 +156,22 @@ export default {
       @input="updateProvisioner($event)"
     />
     <Tabbed :side-tabs="true">
-      <Tab name="parameters" :label="t('storageClass.parameters.label')" :weight="2">
-        <component :is="getComponent(value.provisioner)" :key="value.provisioner" :value="value" :mode="modeOverride" />
+      <Tab
+        name="parameters"
+        :label="t('storageClass.parameters.label')"
+        :weight="2"
+      >
+        <component
+          :is="getComponent(value.provisioner)"
+          :key="value.provisioner"
+          :value="value"
+          :mode="modeOverride"
+        />
       </Tab>
-      <Tab name="customize" :label="t('storageClass.customize.label')">
+      <Tab
+        name="customize"
+        :label="t('storageClass.customize.label')"
+      >
         <div class="row mt-20">
           <div class="col span-6">
             <div class="row mb-20">

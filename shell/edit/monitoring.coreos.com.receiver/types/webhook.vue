@@ -19,7 +19,7 @@ export default {
   components: {
     Auth, Banner, Checkbox, LabeledInput, TLS
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -48,21 +48,46 @@ export default {
         </h3>
       </div>
     </div>
-    <Banner v-if="showNamespaceBanner" color="info" v-html="t('monitoringReceiver.webhook.modifyNamespace', {}, raw=true)" />
+    <Banner
+      v-if="showNamespaceBanner"
+      color="info"
+      v-html="t('monitoringReceiver.webhook.modifyNamespace', {}, raw=true)"
+    />
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.url" :mode="mode" label="URL" :tooltip="t('monitoringReceiver.webhook.urlTooltip')" />
+        <LabeledInput
+          v-model="value.url"
+          :mode="mode"
+          label="URL"
+          :tooltip="t('monitoringReceiver.webhook.urlTooltip')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" :label="t('monitoringReceiver.shared.proxyUrl.label')" :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')" />
+        <LabeledInput
+          v-model="value.http_config.proxy_url"
+          :mode="mode"
+          :label="t('monitoringReceiver.shared.proxyUrl.label')"
+          :placeholder="t('monitoringReceiver.shared.proxyUrl.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
-      <Checkbox v-model="value.send_resolved" :mode="mode" :label="t('monitoringReceiver.shared.sendResolved.label')" />
+      <Checkbox
+        v-model="value.send_resolved"
+        :mode="mode"
+        :label="t('monitoringReceiver.shared.sendResolved.label')"
+      />
     </div>
-    <TLS v-model="value.http_config" class="mb-20" :mode="mode" />
-    <Auth v-model="value.http_config" :mode="mode" />
+    <TLS
+      v-model="value.http_config"
+      class="mb-20"
+      :mode="mode"
+    />
+    <Auth
+      v-model="value.http_config"
+      :mode="mode"
+    />
   </div>
 </template>

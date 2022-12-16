@@ -77,7 +77,10 @@ export default {
       </div>
       <div class="col span-6">
         <h4 v-if="accessMode!=='unrestricted'">
-          <t k="authConfig.allowedPrincipalIds.title" :raw="true" />
+          <t
+            k="authConfig.allowedPrincipalIds.title"
+            :raw="true"
+          />
         </h4>
         <ArrayList
           v-if="accessMode!=='unrestricted'"
@@ -88,17 +91,30 @@ export default {
           :protip="false"
         >
           <template #value="{row}">
-            <Principal :key="row.value" :value="row.value" />
+            <Principal
+              :key="row.value"
+              :value="row.value"
+            />
           </template>
 
-          <template v-if="authConfig.allowedPrincipalIds.length <= 1" #remove-button>
-            <button type="button" disabled class="btn role-link bg-transparent">
+          <template
+            v-if="authConfig.allowedPrincipalIds.length <= 1"
+            #remove-button
+          >
+            <button
+              type="button"
+              disabled
+              class="btn role-link bg-transparent"
+            >
               {{ t('generic.remove') }}
             </button>
           </template>
 
           <template #add>
-            <SelectPrincipal :mode="mode" @add="addPrincipal" />
+            <SelectPrincipal
+              :mode="mode"
+              @add="addPrincipal"
+            />
           </template>
         </ArrayList>
       </div>

@@ -11,7 +11,7 @@ export default {
     RadioGroup,
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {

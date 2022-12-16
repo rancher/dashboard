@@ -52,7 +52,7 @@ export const CLUSTER = create('cluster', '');
 export const LAST_NAMESPACE = create('last-namespace', '');
 export const NAMESPACE_FILTERS = create('ns-by-cluster', {}, { parseJSON });
 export const WORKSPACE = create('workspace', '');
-export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
+export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'policy', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
@@ -470,8 +470,16 @@ export const actions = {
     return server;
   },
 
-  setLastVisited({ state, dispatch }, route) {
+  setLastVisited({ state, dispatch, getters }, route) {
     if (!route) {
+      return;
+    }
+
+    // Only save the last visited page if the user has that set as the login route preference
+    const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
+    const doNotTrackLastVisited = typeof afterLoginRoutePref !== 'string' || afterLoginRoutePref !== 'last-visited';
+
+    if (doNotTrackLastVisited) {
       return;
     }
 

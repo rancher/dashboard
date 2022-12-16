@@ -36,7 +36,7 @@ export default {
 
     return {
       allPSPs:                          [],
-      projectRoleTemplateBindingSchema:         this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
+      projectRoleTemplateBindingSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
       createLocation:                   {
         name:   'c-cluster-product-resource-create',
         params: {
@@ -47,11 +47,11 @@ export default {
       },
       resource:           MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
       saveBindings:       null,
-      membershipHasOwner:         false,
+      membershipHasOwner: false,
       membershipUpdate:   {},
       HARVESTER_TYPES,
       RANCHER_TYPES,
-      fvFormRuleSets:       [{ path: 'spec.displayName', rules: ['required'] }],
+      fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
     };
   },
   computed: {
@@ -201,6 +201,7 @@ export default {
   >
     <NameNsDescription
       v-model="value"
+      :name-editable="true"
       :mode="mode"
       :namespaced="false"
       description-key="spec.description"
@@ -257,7 +258,12 @@ export default {
         :label="resourceQuotaLabel"
         :weight="8"
       >
-        <ContainerResourceLimit v-model="value.spec.containerDefaultResourceLimit" :mode="canEditTabElements" :show-tip="false" :register-before-hook="registerBeforeHook" />
+        <ContainerResourceLimit
+          v-model="value.spec.containerDefaultResourceLimit"
+          :mode="canEditTabElements"
+          :show-tip="false"
+          :register-before-hook="registerBeforeHook"
+        />
       </Tab>
       <Tab
         name="labels-and-annotations"

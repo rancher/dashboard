@@ -7,7 +7,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SecretSelector
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -42,13 +42,24 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.url" :mode="mode" :disabled="disabled" class="url" :label="t('logging.loki.url')" />
+        <LabeledInput
+          v-model="value.url"
+          :mode="mode"
+          :disabled="disabled"
+          class="url"
+          :label="t('logging.loki.url')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.tenant" :mode="mode" :disabled="disabled" :label="t('logging.loki.tenant')" />
+        <LabeledInput
+          v-model="value.tenant"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.tenant')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -76,7 +87,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.certificate') }}</h3>
@@ -119,7 +130,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.labels') }}</h3>
@@ -127,17 +138,32 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-12">
-        <Checkbox v-model="value.configure_kubernetes_labels" :mode="mode" :disabled="disabled" :label="t('logging.loki.configureKubernetesLabels')" />
+        <Checkbox
+          v-model="value.configure_kubernetes_labels"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.configureKubernetesLabels')"
+        />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-12">
-        <Checkbox v-model="value.extract_kubernetes_labels" :mode="mode" :disabled="disabled" :label="t('logging.loki.extractKubernetesLabels')" />
+        <Checkbox
+          v-model="value.extract_kubernetes_labels"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.extractKubernetesLabels')"
+        />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-12">
-        <Checkbox v-model="value.drop_single_key" :mode="mode" :disabled="disabled" :label="t('logging.loki.dropSingleKey')" />
+        <Checkbox
+          v-model="value.drop_single_key"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.dropSingleKey')"
+        />
       </div>
     </div>
   </div>

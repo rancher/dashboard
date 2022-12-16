@@ -9,7 +9,7 @@ export default {
   components: {
     ArrayListGrouped, PolicyRulePort, PolicyRuleTarget
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -53,9 +53,17 @@ export default {
       <div class="col span-12">
         <h2>
           {{ t(`networkpolicy.${type}.ruleLabel`) }}
-          <i v-tooltip="t(`networkpolicy.${type}.ruleHint`)" class="icon icon-info" />
+          <i
+            v-tooltip="t(`networkpolicy.${type}.ruleHint`)"
+            class="icon icon-info"
+          />
         </h2>
-        <ArrayListGrouped v-model="value[targetKey]" :add-label="t(`networkpolicy.rules.${type}.add`)" :default-add-value="{}" :mode="mode">
+        <ArrayListGrouped
+          v-model="value[targetKey]"
+          :add-label="t(`networkpolicy.rules.${type}.add`)"
+          :default-add-value="{}"
+          :mode="mode"
+        >
           <template #default="props">
             <PolicyRuleTarget
               ref="lastTarget"
@@ -74,9 +82,17 @@ export default {
       <div class="col span-12">
         <h2>
           {{ t('networkpolicy.rules.ports.label') }}
-          <i v-tooltip="t(`networkpolicy.${type}.portHint`)" class="icon icon-info" />
+          <i
+            v-tooltip="t(`networkpolicy.${type}.portHint`)"
+            class="icon icon-info"
+          />
         </h2>
-        <ArrayListGrouped v-model="value.ports" :add-label="t('networkpolicy.rules.addPort')" :default-add-value="{}" :mode="mode">
+        <ArrayListGrouped
+          v-model="value.ports"
+          :add-label="t('networkpolicy.rules.addPort')"
+          :default-add-value="{}"
+          :mode="mode"
+        >
           <template #default="props">
             <PolicyRulePort
               ref="lastPort"

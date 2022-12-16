@@ -43,24 +43,54 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-4">
-        <LabeledSelect v-model="value.parameters.diskformat" :options="diskFormatOptions" :label="t('storageClass.vsphere-volume.diskFormat.label')" :mode="mode" />
+        <LabeledSelect
+          v-model="value.parameters.diskformat"
+          :options="diskFormatOptions"
+          :label="t('storageClass.vsphere-volume.diskFormat.label')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-4">
-        <LabeledInput v-model="value.parameters.storagePolicyName" :placeholder="t('storageClass.vsphere-volume.storagePolicyName.placeholder')" :label="t('storageClass.vsphere-volume.storagePolicyName.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.storagePolicyName"
+          :placeholder="t('storageClass.vsphere-volume.storagePolicyName.placeholder')"
+          :label="t('storageClass.vsphere-volume.storagePolicyName.label')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-4">
-        <LabeledInput v-model="value.parameters.datastore" :placeholder="t('storageClass.vsphere-volume.datastore.placeholder')" :label="t('storageClass.vsphere-volume.datastore.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.datastore"
+          :placeholder="t('storageClass.vsphere-volume.datastore.placeholder')"
+          :label="t('storageClass.vsphere-volume.datastore.label')"
+          :mode="mode"
+        />
       </div>
     </div>
     <div class="row">
       <div class="col span-4">
-        <LabeledInput v-model="value.parameters.hostFailuresToTolerate" :placeholder="t('storageClass.vsphere-volume.hostFailuresToTolerate.placeholder')" :label="t('storageClass.vsphere-volume.hostFailuresToTolerate.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.hostFailuresToTolerate"
+          :placeholder="t('storageClass.vsphere-volume.hostFailuresToTolerate.placeholder')"
+          :label="t('storageClass.vsphere-volume.hostFailuresToTolerate.label')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-4">
-        <LabeledInput v-model="value.parameters.cachereservation" :placeholder="t('storageClass.vsphere-volume.cacheReservation.placeholder')" :label="t('storageClass.vsphere-volume.cacheReservation.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.cachereservation"
+          :placeholder="t('storageClass.vsphere-volume.cacheReservation.placeholder')"
+          :label="t('storageClass.vsphere-volume.cacheReservation.label')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-4">
-        <LabeledInput v-model="value.parameters.fstype" :placeholder="t('storageClass.vsphere-volume.filesystemType.placeholder')" :label="t('storageClass.vsphere-volume.filesystemType.label')" :mode="mode" />
+        <LabeledInput
+          v-model="value.parameters.fstype"
+          :placeholder="t('storageClass.vsphere-volume.filesystemType.placeholder')"
+          :label="t('storageClass.vsphere-volume.filesystemType.label')"
+          :mode="mode"
+        />
       </div>
     </div>
   </div>

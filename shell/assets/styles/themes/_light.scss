@@ -40,6 +40,8 @@ $contrasted-light: $lightest !default;
 // The terminal alway uses a light background, so okay to use a fixed color
 $selected: rgba(#3D98D3, .5);
 
+$drag-over: #DCDEE7;
+
 BODY, .theme-light {
 
   --primary                    : #{$primary};
@@ -359,16 +361,20 @@ BODY, .theme-light {
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : #{$link};
 
+  --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
+  --drag-over-outer-bg         : #{rgba($drag-over, 0)};
+
   --dropdown-bg                : #{$lightest};
   --dropdown-border            : #{$medium};
   --dropdown-divider           : #{$medium};
-  --dropdown-text              : #{$link};
+  --dropdown-text              : #{$darkest};
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$dark};
   --dropdown-hover-text        : #{$lightest};
   --dropdown-hover-bg          : var(--primary);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
+  --dropdown-highlight-text     : #{$link};
 
   --card-badge-text            : #ffffff;
 

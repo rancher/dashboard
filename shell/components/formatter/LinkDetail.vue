@@ -4,7 +4,7 @@ import { get } from '@shell/utils/object';
 export default {
   props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {
@@ -12,8 +12,8 @@ export default {
       required: true
     },
     col: {
-      type:     Object,
-      default:  () => {}
+      type:    Object,
+      default: () => {}
     },
     reference: {
       type:    String,
@@ -42,7 +42,10 @@ export default {
 
 <template>
   <span>
-    <n-link v-if="to" :to="to">
+    <n-link
+      v-if="to"
+      :to="to"
+    >
       {{ value }}
     </n-link>
     <span v-else>

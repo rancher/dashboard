@@ -134,7 +134,10 @@ export default {
 
 <template>
   <div class="tolerations">
-    <div v-if="rules.length" class="toleration-headers">
+    <div
+      v-if="rules.length"
+      class="toleration-headers"
+    >
       <span>{{ t('workload.scheduling.tolerations.labelKey') }}</span>
       <span>{{ t('workload.scheduling.tolerations.operator') }}</span>
       <span>{{ t('workload.scheduling.tolerations.value') }}</span>
@@ -142,9 +145,16 @@ export default {
       <span>{{ t('workload.scheduling.tolerations.tolerationSeconds') }}</span>
       <span />
     </div>
-    <div v-for="rule in rules" :key="rule.vKey" class="rule">
+    <div
+      v-for="rule in rules"
+      :key="rule.vKey"
+      class="rule"
+    >
       <div class="col">
-        <LabeledInput v-model="rule.key" :mode="mode" />
+        <LabeledInput
+          v-model="rule.key"
+          :mode="mode"
+        />
       </div>
       <div class="col">
         <Select
@@ -157,12 +167,19 @@ export default {
       </div>
       <template v-if="rule.operator==='Exists'">
         <div class="col">
-          <LabeledInput value="n/a" :mode="mode" disabled />
+          <LabeledInput
+            value="n/a"
+            :mode="mode"
+            disabled
+          />
         </div>
       </template>
       <template v-else>
         <div class="col">
-          <LabeledInput v-model="rule.value" :mode="mode" />
+          <LabeledInput
+            v-model="rule.value"
+            :mode="mode"
+          />
         </div>
       </template>
       <div class="col">
@@ -174,7 +191,12 @@ export default {
         />
       </div>
       <div class="col">
-        <UnitInput v-model="rule.tolerationSeconds" :disabled="rule.effect !== 'NoExecute'" :mode="mode" suffix="Seconds" />
+        <UnitInput
+          v-model="rule.tolerationSeconds"
+          :disabled="rule.effect !== 'NoExecute'"
+          :mode="mode"
+          suffix="Seconds"
+        />
       </div>
       <div class="col">
         <button
@@ -188,7 +210,12 @@ export default {
         </button>
       </div>
     </div>
-    <button v-if="!isView" type="button" class="btn role-tertiary" @click="addToleration">
+    <button
+      v-if="!isView"
+      type="button"
+      class="btn role-tertiary"
+      @click="addToleration"
+    >
       <t k="workload.scheduling.tolerations.addToleration" />
     </button>
   </div>

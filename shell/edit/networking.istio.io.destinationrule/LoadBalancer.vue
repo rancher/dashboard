@@ -20,7 +20,7 @@ export default {
 
     // destinationrule.spec.trafficPolicy.loadBalancer
     value: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     }
   },
@@ -114,7 +114,10 @@ export default {
         :options="modeOptions"
       />
     </div>
-    <div v-if="useSimple" class="row">
+    <div
+      v-if="useSimple"
+      class="row"
+    >
       <div class="col span-6">
         <LabeledSelect
           v-model="value.simple"
@@ -145,7 +148,10 @@ export default {
           />
         </div>
       </div>
-      <div v-if="hashMode === 'useHeader'" class="row">
+      <div
+        v-if="hashMode === 'useHeader'"
+        class="row"
+      >
         <div class="col span-6">
           <LabeledInput
             v-model="value.consistentHash.httpHeaderName"
@@ -155,7 +161,10 @@ export default {
         </div>
       </div>
 
-      <div v-if="hashMode === 'useCookie'" class="row">
+      <div
+        v-if="hashMode === 'useCookie'"
+        class="row"
+      >
         <div class="col span-4">
           <LabeledInput
             v-model="value.consistentHash.httpCookie.name"

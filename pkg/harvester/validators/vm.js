@@ -1,6 +1,6 @@
 import { PVC } from '@shell/config/types';
 import { SOURCE_TYPE } from '../config/harvester-map';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 
 export function vmNetworks(spec, getters, errors, validatorArgs) {
   const { domain: { devices: { interfaces } }, networks } = spec;

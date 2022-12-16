@@ -89,13 +89,13 @@ export default {
     }
 
     const stepRepoInfo = {
-      name:             'stepRepoInfo',
-      title:            this.t('fleet.gitRepo.add.steps.repoInfo.title'),
-      label:            this.t('fleet.gitRepo.add.steps.repoInfo.label'),
-      subtext:          this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
-      descriptionKey:   'fleet.gitRepo.add.steps.repoInfo.description',
-      ready:            false,
-      weight:           30
+      name:           'stepRepoInfo',
+      title:          this.t('fleet.gitRepo.add.steps.repoInfo.title'),
+      label:          this.t('fleet.gitRepo.add.steps.repoInfo.label'),
+      subtext:        this.t('fleet.gitRepo.add.steps.repoInfo.subtext'),
+      descriptionKey: 'fleet.gitRepo.add.steps.repoInfo.description',
+      ready:          false,
+      weight:         30
     };
 
     const stepTargetInfo = {
@@ -243,8 +243,8 @@ export default {
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
 
-    tlsMode:    'updateTls',
-    caBundle:   'updateTls',
+    tlsMode:  'updateTls',
+    caBundle: 'updateTls',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -489,9 +489,18 @@ export default {
       </Banner>
     </template>
     <template #stepRepoInfo>
-      <NameNsDescription v-if="!isView" v-model="value" :namespaced="false" :mode="mode" @change="onUpdateRepoName" />
+      <NameNsDescription
+        v-if="!isView"
+        v-model="value"
+        :namespaced="false"
+        :mode="mode"
+        @change="onUpdateRepoName"
+      />
 
-      <div class="row" :class="{'mt-20': isView}">
+      <div
+        class="row"
+        :class="{'mt-20': isView}"
+      >
         <div class="col span-6">
           <LabeledInput
             v-model="value.spec.repo"
@@ -555,7 +564,10 @@ export default {
               @input="updateTlsMode($event)"
             />
           </div>
-          <div v-if="tlsMode === _SPECIFY" class="col span-6">
+          <div
+            v-if="tlsMode === _SPECIFY"
+            class="col span-6"
+          >
             <LabeledInput
               v-model="caBundle"
               :mode="mode"
@@ -608,13 +620,21 @@ export default {
           </div>
         </div>
 
-        <div v-if="targetMode === 'advanced'" class="row mt-10">
+        <div
+          v-if="targetMode === 'advanced'"
+          class="row mt-10"
+        >
           <div class="col span-12">
             <YamlEditor v-model="targetAdvanced" />
           </div>
         </div>
 
-        <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+        <Banner
+          v-for="(err, i) in targetAdvancedErrors"
+          :key="i"
+          color="error"
+          :label="err"
+        />
       </template>
 
       <div class="row mt-20">

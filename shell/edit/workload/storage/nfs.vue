@@ -9,7 +9,7 @@ export default {
     Checkbox,
   },
 
-  props:  {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {

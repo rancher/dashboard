@@ -155,6 +155,27 @@ export function findBy<T, K, V>(
   return findOrFilterBy('find', ary, keyOrObj, val);
 }
 
+export function findStringIndex(items: string[], item: string, trim = true): number {
+  return items.indexOf(trim ? item?.trim() : item);
+}
+
+export function hasDuplicatedStrings(items: string[], caseSensitive = true): boolean {
+  const normalizedItems = items.map(i => (caseSensitive ? i : i.toLowerCase()).trim());
+
+  for (let i = 0; i < items.length; i++) {
+    const index = findStringIndex(
+      normalizedItems,
+      (caseSensitive ? items[i] : items[i].toLowerCase()),
+    );
+
+    if (i !== index) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function sameContents<T>(aryA: T[], aryB: T[]): boolean {
   return xor(aryA, aryB).length === 0;
 }

@@ -1,5 +1,5 @@
 <script>
-import { CAPI } from '@shell/config/types';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 import AsyncButton from '@shell/components/AsyncButton';
 import PromptModal from '@shell/components/PromptModal';
 import { downloadFile } from '@shell/utils/download';
@@ -21,9 +21,12 @@ export default {
     let topTenForResponseTime = [];
 
     clusterForCounts.forEach((cluster, i) => {
+      // Necessary to retrieve the proper display name of the cluster
+      const mgmtCluster = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, cluster.metadata.name);
+
       finalCounts.push({
         id:             cluster.id,
-        name:           cluster.metadata?.name,
+        name:           mgmtCluster?.spec?.displayName || cluster.metadata?.name,
         namespace:      cluster.metadata?.namespace,
         capiId:         cluster.mgmt?.id,
         counts:         null,
@@ -327,7 +330,10 @@ export default {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, objKey) in systemInformation" :key="objKey">
+          <tr
+            v-for="(item, objKey) in systemInformation"
+            :key="objKey"
+          >
             <template v-if="item.value.length">
               <td>{{ item.label }}</td>
               <td>{{ item.value }}</td>
@@ -361,7 +367,7 @@ export default {
                     'icon-chevron-down': !cluster.isTableVisible,
                     'icon-chevron-up': cluster.isTableVisible
                   }"
-                ></i>
+                />
               </div>
             </th>
           </thead>
@@ -378,7 +384,10 @@ export default {
               </th>
             </tr>
 
-            <tr v-for="item in cluster.counts" :key="item.resource">
+            <tr
+              v-for="item in cluster.counts"
+              :key="item.resource"
+            >
               <template v-if="item.count > 0">
                 <td scope="row">
                   {{ item.resource }}

@@ -8,7 +8,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SecretSelector
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -44,13 +44,23 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.brokers" :mode="mode" :disabled="disabled" :label="t('logging.kafka.brokers')" />
+        <LabeledInput
+          v-model="value.brokers"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.kafka.brokers')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.default_topic" :mode="mode" :disabled="disabled" :label="t('logging.kafka.defaultTopic')" />
+        <LabeledInput
+          v-model="value.default_topic"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.kafka.defaultTopic')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -80,10 +90,15 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.scram_mechanism" :mode="mode" :disabled="disabled" :label="t('logging.kafka.scramMechanism')" />
+        <LabeledInput
+          v-model="value.scram_mechanism"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.kafka.scramMechanism')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.certificate') }}</h3>
@@ -91,7 +106,12 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <Checkbox v-model="value.sasl_over_ssl" :mode="mode" :disabled="disabled" :label="t('logging.kafka.saslOverSsl')" />
+        <Checkbox
+          v-model="value.sasl_over_ssl"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.kafka.saslOverSsl')"
+        />
       </div>
     </div>
     <div class="row mb-10">

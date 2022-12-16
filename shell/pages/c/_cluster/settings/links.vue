@@ -3,13 +3,14 @@ import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import { MANAGEMENT } from '@shell/config/types';
+import { fetchOrCreateSetting } from '@shell/utils/settings';
+import { SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import KeyValue from '@shell/components/form/KeyValue';
 import { mapGetters } from 'vuex';
 import { isRancherPrime } from '@shell/config/version';
 import DefaultLinksEditor from './DefaultLinksEditor';
 import { CUSTOM_LINKS_VERSION, fetchLinks } from '@shell/config/home-links';
-import { SETTING, fetchOrCreateSetting } from '@shell/config/settings';
 
 export default {
   layout:     'authenticated',
@@ -26,12 +27,12 @@ export default {
 
   data() {
     return {
-      defaultsDisabled:    true,
-      isRancherPrime:     isRancherPrime(),
-      uiCustomLinks:      {},
-      bannerVal:          {},
-      value:              [],
-      errors:             [],
+      defaultsDisabled: true,
+      isRancherPrime:   isRancherPrime(),
+      uiCustomLinks:    {},
+      bannerVal:        {},
+      value:            [],
+      errors:           [],
     };
   },
   computed: {
@@ -116,10 +117,21 @@ export default {
       />
     </div>
     <template v-for="err in errors">
-      <Banner :key="err" color="error" :label="err" />
+      <Banner
+        :key="err"
+        color="error"
+        :label="err"
+      />
     </template>
-    <div v-if="mode === 'edit'" class="mt-20">
-      <AsyncButton class="pull-right" mode="apply" @click="save" />
+    <div
+      v-if="mode === 'edit'"
+      class="mt-20"
+    >
+      <AsyncButton
+        class="pull-right"
+        mode="apply"
+        @click="save"
+      />
     </div>
   </div>
 </template>

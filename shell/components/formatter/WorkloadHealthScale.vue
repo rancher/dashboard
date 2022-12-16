@@ -52,7 +52,7 @@ export default {
     },
   },
 
-  methods:  {
+  methods: {
     liveUpdate() {
       if (this.loading) {
         return 5;
@@ -144,7 +144,7 @@ export default {
           top:    0,
           left:   0,
           right:  window.innerWidth || document.documentElement.clientWidth,
-          bottom:  window.innerHeight || document.documentElement.clientHeight,
+          bottom: window.innerHeight || document.documentElement.clientHeight,
         });
 
         if (insideWindow) {
@@ -162,23 +162,57 @@ export default {
 </script>
 
 <template>
-  <div v-if="loading" class="hs-popover__loader">
+  <div
+    v-if="loading"
+    class="hs-popover__loader"
+  >
     <i class="icon icon-spinner" />
   </div>
-  <div v-else :id="`root-${id}`" :ref="`root-${id}`" class="hs-popover">
-    <div id="trigger" class="hs-popover__trigger" :class="{expanded}" @click="expanded = !expanded">
-      <ProgressBarMulti v-if="parts" class="health" :values="parts" :show-zeros="true" />
+  <div
+    v-else
+    :id="`root-${id}`"
+    :ref="`root-${id}`"
+    class="hs-popover"
+  >
+    <div
+      id="trigger"
+      class="hs-popover__trigger"
+      :class="{expanded}"
+      @click="expanded = !expanded"
+    >
+      <ProgressBarMulti
+        v-if="parts"
+        class="health"
+        :values="parts"
+        :show-zeros="true"
+      />
       <i :class="{icon: true, 'icon-chevron-up': expanded, 'icon-chevron-down': !expanded}" />
     </div>
-    <div :id="id" class="hs-popover__content" :class="{expanded, [id]:true}">
+    <div
+      :id="id"
+      class="hs-popover__content"
+      :class="{expanded, [id]:true}"
+    >
       <div>
-        <div v-for="obj in parts" :key="obj.label" class="counts">
+        <div
+          v-for="obj in parts"
+          :key="obj.label"
+          class="counts"
+        >
           <span class="counts-label">{{ obj.label }}</span>
           <span>{{ obj.value }}</span>
         </div>
-        <div v-if="canScale" class="text-center scale">
+        <div
+          v-if="canScale"
+          class="text-center scale"
+        >
           <span>{{ t('tableHeaders.scale') }} </span>
-          <PlusMinus :value="row.spec.replicas" :disabled="disabled" @minus="scaleDown" @plus="scaleUp" />
+          <PlusMinus
+            :value="row.spec.replicas"
+            :disabled="disabled"
+            @minus="scaleDown"
+            @plus="scaleUp"
+          />
         </div>
       </div>
     </div>

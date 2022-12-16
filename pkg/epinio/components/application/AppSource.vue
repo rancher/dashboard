@@ -95,11 +95,11 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
     source: {
-      type:     Object as PropType<EpinioAppSource>,
+      type:    Object as PropType<EpinioAppSource>,
       default: null
     },
     info: {
-      type:     Object as PropType<EpinioInfo>,
+      type:    Object as PropType<EpinioInfo>,
       default: null
     },
     mode: {
@@ -117,20 +117,21 @@ export default Vue.extend<Data, any, any, any>({
       defaultBuilderImage,
 
       archive: {
-        tarball:             this.source?.archive.tarball || '',
-        fileName:            this.source?.archive.fileName || '',
+        tarball:  this.source?.archive.tarball || '',
+        fileName: this.source?.archive.fileName || '',
       },
 
       container: { url: this.source?.container.url },
 
       gitUrl: {
-        url:    this.source?.gitUrl.url || '',
-        branch: this.source?.gitUrl.branch || '',
+        url:         this.source?.gitUrl.url || '',
+        branch:      this.source?.gitUrl.branch || '',
+        validGitUrl: false,
       },
 
       github: {
         usernameOrOrg: this.source?.github.usernameOrOrg || '',
-        repo:           this.source?.github.repo || '',
+        repo:          this.source?.github.repo || '',
         commit:        this.source?.github.commit || '',
         branch:        this.source?.github.branch || '',
         url:           this.source?.github.url || '',
@@ -143,12 +144,12 @@ export default Vue.extend<Data, any, any, any>({
 
       builderImage: {
         value:   builderImage,
-        default:  builderImage === defaultBuilderImage,
+        default: builderImage === defaultBuilderImage,
       },
 
       appChart: this.source?.appChart,
 
-      types:        [{
+      types: [{
         label: this.t('epinio.applications.steps.source.archive.label'),
         value: APPLICATION_SOURCE_TYPE.ARCHIVE
       }, {
@@ -178,6 +179,27 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   methods: {
+    urlRule() {
+      const gitRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gm;
+
+      if (!this.gitUrl.url) {
+        return;
+      }
+
+      const evalUrl = () => {
+        const result = gitRegex.exec(this.gitUrl.url);
+
+        if (result && this.gitUrl.url === result[0]) {
+          this.gitUrl.validGitUrl = true;
+        } else {
+          this.gitUrl.validGitUrl = false;
+
+          return this.t('epinio.applications.steps.source.gitUrl.error.label');
+        }
+      };
+
+      return evalUrl();
+    },
     onFileSelected(file: File) {
       this.archive.tarball = file;
       this.archive.fileName = file.name;
@@ -343,7 +365,7 @@ export default Vue.extend<Data, any, any, any>({
       case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
         return !!this.container.url;
       case APPLICATION_SOURCE_TYPE.GIT_URL:
-        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value;
+        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value && !!this.gitUrl.validGitUrl;
       case APPLICATION_SOURCE_TYPE.GIT_HUB:
         return !!this.github.usernameOrOrg && !!this.github.url && !!this.github.commit;
       }
@@ -469,10 +491,14 @@ export default Vue.extend<Data, any, any, any>({
         <h3>{{ t('epinio.applications.steps.source.gitUrl.url.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.url"
+          v-focus
           data-testid="epinio_app-source_git-url"
           :tooltip="t('epinio.applications.steps.source.gitUrl.url.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.url.inputLabel')"
+          :placeholder="'https://github.com/{user or org}/{repository}'"
           :required="true"
+          :rules="[urlRule]"
+          @delay="100"
           @input="update"
         />
       </div>
@@ -484,16 +510,24 @@ export default Vue.extend<Data, any, any, any>({
           :tooltip="t('epinio.applications.steps.source.gitUrl.branch.tooltip')"
           :label="t('epinio.applications.steps.source.gitUrl.branch.inputLabel')"
           :required="true"
+          :disabled="!gitUrl.validGitUrl"
           @input="update"
         />
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
       <KeepAlive>
-        <GithubPicker :selection="source.github" @githubData="githubData" />
+        <GithubPicker
+          :selection="source.github"
+          @githubData="githubData"
+        />
       </KeepAlive>
     </template>
-    <Collapse :open.sync="open" :title="'Advanced Settings'" class="mt-30 mb-30 source">
+    <Collapse
+      :open.sync="open"
+      :title="'Advanced Settings'"
+      class="mt-30 mb-30 source"
+    >
       <template>
         <LabeledSelect
           v-model="appChart"

@@ -7,7 +7,7 @@ export default {
   components: {
     Checkbox, LabeledInput, LabeledSelect
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -73,7 +73,13 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.host" :mode="mode" :disabled="disabled" class="host" :label="t('logging.gelf.host')" />
+        <LabeledInput
+          v-model="value.host"
+          :mode="mode"
+          :disabled="disabled"
+          class="host"
+          :label="t('logging.gelf.host')"
+        />
       </div>
       <div class="col span-3">
         <LabeledInput
@@ -95,7 +101,7 @@ export default {
         />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.certificate') }}</h3>
@@ -103,26 +109,58 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <Checkbox v-model="value.tls" :mode="mode" :disabled="disabled" :label="t('logging.gelf.tls')" />
+        <Checkbox
+          v-model="value.tls"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.gelf.tls')"
+        />
       </div>
       <div class="col span-6">
-        <Checkbox v-model="no_verify" :mode="mode" :disabled="disabled" :label="t('logging.gelf.tlsOptions.noVerify')" />
+        <Checkbox
+          v-model="no_verify"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.gelf.tlsOptions.noVerify')"
+        />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.tls_options.cert" type="multiline" :mode="mode" :disabled="disabled" :label="t('logging.gelf.tlsOptions.clientCert')" />
+        <LabeledInput
+          v-model="value.tls_options.cert"
+          type="multiline"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.gelf.tlsOptions.clientCert')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.tls_options.key" type="multiline" :mode="mode" :disabled="disabled" :label="t('logging.gelf.tlsOptions.clientKey')" />
+        <LabeledInput
+          v-model="value.tls_options.key"
+          type="multiline"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.gelf.tlsOptions.clientKey')"
+        />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.tls_options.tls_version" :mode="mode" :disabled="disabled" :label="t('logging.gelf.tlsOptions.tlsVersion')" />
+        <LabeledInput
+          v-model="value.tls_options.tls_version"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.gelf.tlsOptions.tlsVersion')"
+        />
       </div>
       <div class="col span-6">
-        <Checkbox v-model="all_ciphers" :mode="mode" :disabled="disabled" :label="t('logging.gelf.tlsOptions.allCiphers')" />
+        <Checkbox
+          v-model="all_ciphers"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.gelf.tlsOptions.allCiphers')"
+        />
       </div>
     </div>
   </div>

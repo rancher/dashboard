@@ -36,10 +36,15 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.stream_name" :mode="mode" :disabled="disabled" :label="t('logging.kinesisStream.streamName')" />
+        <LabeledInput
+          v-model="value.stream_name"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.kinesisStream.streamName')"
+        />
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="row">
       <div class="col span-6">
         <h3>{{ t('logging.output.sections.access') }}</h3>

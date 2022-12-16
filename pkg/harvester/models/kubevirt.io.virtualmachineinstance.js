@@ -1,7 +1,7 @@
 import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { NODE } from '@shell/config/types';
 import { HCI } from '../types';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
 import HarvesterResource from './harvester';
 
 const PAUSED = 'Paused';

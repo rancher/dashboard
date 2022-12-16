@@ -1,6 +1,6 @@
 <script>
 export default {
-  props:      {
+  props: {
     value: {
       type:     Object,
       required: true

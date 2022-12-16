@@ -16,7 +16,11 @@ export default {
 </script>
 
 <template>
-  <div v-if="hasBadge" :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }" class="cluster-badge">
+  <div
+    v-if="hasBadge"
+    :style="{ backgroundColor: cluster.badge.color, color: cluster.badge.textColor }"
+    class="cluster-badge"
+  >
     {{ cluster.badge.text }}
   </div>
 </template>

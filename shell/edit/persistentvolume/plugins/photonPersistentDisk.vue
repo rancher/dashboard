@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 export default {
   components: { LabeledInput },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -38,10 +38,20 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.photonPersistentDisk.pdID" :mode="mode" :label="t('persistentVolume.photonPersistentDisk.pdId.label')" :placeholder="t('persistentVolume.photonPersistentDisk.pdId.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.photonPersistentDisk.pdID"
+          :mode="mode"
+          :label="t('persistentVolume.photonPersistentDisk.pdId.label')"
+          :placeholder="t('persistentVolume.photonPersistentDisk.pdId.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.photonPersistentDisk.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.photonPersistentDisk.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
     </div>
   </div>

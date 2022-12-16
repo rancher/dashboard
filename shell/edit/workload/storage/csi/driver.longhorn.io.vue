@@ -35,7 +35,12 @@ export default {
 <template>
   <div class="row">
     <div class="col span-12">
-      <KeyValue v-model="value" :mode="mode" :as-map="true" @input="$emit('input', value)" />
+      <KeyValue
+        v-model="value"
+        :mode="mode"
+        :as-map="true"
+        @input="$emit('input', value)"
+      />
     </div>
   </div>
 </template>

@@ -16,7 +16,7 @@ export default {
     LabeledSelect, UnitInput, RadioGroup, Checkbox, LabeledInput
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'
@@ -193,16 +193,37 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <div class="access-modes">
-          <t class="text-label" k="persistentVolumeClaim.accessModes" />
+          <t
+            class="text-label"
+            k="persistentVolumeClaim.accessModes"
+          />
           <span class="text-error">*</span>
         </div>
         <div class="access-modes">
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" :label="t('persistentVolumeClaim.accessModesOptions.singleNodeRW')" @input="e=>updateMode('ReadWriteOnce', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadOnlyMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeR')" @input="e=>updateMode('ReadOnlyMany', e)" />
-          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" :label="t('persistentVolumeClaim.accessModesOptions.manyNodeRW')" @input="e=>updateMode('ReadWriteMany', e)" />
+          <Checkbox
+            :mode="mode"
+            :value="value.spec.accessModes.includes('ReadWriteOnce')"
+            :label="t('persistentVolumeClaim.accessModesOptions.singleNodeRW')"
+            @input="e=>updateMode('ReadWriteOnce', e)"
+          />
+          <Checkbox
+            :mode="mode"
+            :value="value.spec.accessModes.includes('ReadOnlyMany')"
+            :label="t('persistentVolumeClaim.accessModesOptions.manyNodeR')"
+            @input="e=>updateMode('ReadOnlyMany', e)"
+          />
+          <Checkbox
+            :mode="mode"
+            :value="value.spec.accessModes.includes('ReadWriteMany')"
+            :label="t('persistentVolumeClaim.accessModesOptions.manyNodeRW')"
+            @input="e=>updateMode('ReadWriteMany', e)"
+          />
         </div>
       </div>
-      <div v-if="createPV" class="col span-6">
+      <div
+        v-if="createPV"
+        class="col span-6"
+      >
         <UnitInput
           v-model="spec.resources.requests.storage"
           :mode="mode"

@@ -12,8 +12,8 @@ export const DEFAULT_POD_METRIC = {
     },
   },
   target: {
-    type:               'AverageValue',
-    averageValue:       '80',
+    type:         'AverageValue',
+    averageValue: '80',
   },
 };
 
@@ -42,10 +42,17 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <MetricTarget v-model="value.target" :mode="mode" metric-resource="pods" />
+      <MetricTarget
+        v-model="value.target"
+        :mode="mode"
+        metric-resource="pods"
+      />
     </div>
     <div class="row">
-      <MetricIdentifier v-model="value.metric" :mode="mode" />
+      <MetricIdentifier
+        v-model="value.metric"
+        :mode="mode"
+      />
     </div>
   </div>
 </template>

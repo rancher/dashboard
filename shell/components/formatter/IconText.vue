@@ -2,14 +2,14 @@
 import { get } from '@shell/utils/object';
 
 export default {
-  props:      {
+  props: {
     row: {
-      type:     Object,
-      default:  null,
+      type:    Object,
+      default: null,
     },
 
     value: {
-      type:     String,
+      type:    String,
       default: '',
     },
 
@@ -42,5 +42,8 @@ export default {
 </script>
 
 <template>
-  <span><i v-if="displayClass" :class="{'icon': true, [displayClass]: true, [iconSize]: true}" /> {{ value }}</span>
+  <span><i
+    v-if="displayClass"
+    :class="{'icon': true, [displayClass]: true, [iconSize]: true}"
+  /> {{ value }}</span>
 </template>

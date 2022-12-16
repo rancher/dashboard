@@ -5,7 +5,7 @@ import { RadioGroup } from '@components/Form/Radio';
 export default {
   components: { LabeledInput, RadioGroup },
   props:      {
-    value:      {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -38,15 +38,30 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.shareName" :mode="mode" :label="t('persistentVolume.azureFile.shareName.label')" :placeholder="t('persistentVolume.azureFile.shareName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.azureFile.shareName"
+          :mode="mode"
+          :label="t('persistentVolume.azureFile.shareName.label')"
+          :placeholder="t('persistentVolume.azureFile.shareName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretName" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.azureFile.secretName"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretName.label')"
+          :placeholder="t('persistentVolume.shared.secretName.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretNamespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.azureFile.secretNamespace"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretNamespace.label')"
+          :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup

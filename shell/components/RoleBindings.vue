@@ -131,18 +131,18 @@ export default {
           search:   'subjectKind',
         },
         {
-          name:      'subject',
-          labelKey:  'tableHeaders.subject',
-          value:     'userObj.labelForSelect',
-          sort:      'userObj.labelForSelect',
-          search:    'userObj.labelForSelect',
+          name:     'subject',
+          labelKey: 'tableHeaders.subject',
+          value:    'userObj.labelForSelect',
+          sort:     'userObj.labelForSelect',
+          search:   'userObj.labelForSelect',
         },
         {
-          name:      'role',
-          labelKey:  'tableHeaders.role',
-          value:     'roleObj.nameWithinProduct',
-          sort:      'roleObj.nameWithinProduct',
-          search:    'roleObj.nameWithinProduct',
+          name:     'role',
+          labelKey: 'tableHeaders.role',
+          value:    'roleObj.nameWithinProduct',
+          sort:     'roleObj.nameWithinProduct',
+          search:   'roleObj.nameWithinProduct',
         },
       ];
     },
@@ -219,15 +219,15 @@ export default {
           }
 
           return {
-            subjectKind:      subject.kind,
-            subject:          subject.name,
-            userObj:          findBy(this.allUsers, 'id', subject.name),
-            roleKind:         binding.roleRef.kind,
-            role:             binding.roleRef.name,
-            roleObj:          findBy(this.allRoles, 'id', binding.roleRef.name),
-            existing:         binding,
-            existingIdx:      i,
-            remove:           false,
+            subjectKind: subject.kind,
+            subject:     subject.name,
+            userObj:     findBy(this.allUsers, 'id', subject.name),
+            roleKind:    binding.roleRef.kind,
+            role:        binding.roleRef.name,
+            roleObj:     findBy(this.allRoles, 'id', binding.roleRef.name),
+            existing:    binding,
+            existingIdx: i,
+            remove:      false,
           };
         }
       });
@@ -381,7 +381,12 @@ export default {
     />
   </div>
   <div v-else>
-    <div v-for="(row, idx) in unremovedRows" :key="idx" class="role-row" :class="{[mode]: true}">
+    <div
+      v-for="(row, idx) in unremovedRows"
+      :key="idx"
+      class="role-row"
+      :class="{[mode]: true}"
+    >
       <div class="subject">
         <LabeledSelect
           v-model="row.subject"
@@ -403,11 +408,23 @@ export default {
         />
       </div>
       <div class="remove">
-        <button v-t="'generic.remove'" :disabled="isView" type="button" class="btn role-link" @click="remove(row)" />
+        <button
+          v-t="'generic.remove'"
+          :disabled="isView"
+          type="button"
+          class="btn role-link"
+          @click="remove(row)"
+        />
       </div>
     </div>
     <div>
-      <button v-t="'rbac.roleBinding.add'" :disabled="isView" type="button" class="btn role-tertiary add" @click="add()" />
+      <button
+        v-t="'rbac.roleBinding.add'"
+        :disabled="isView"
+        type="button"
+        class="btn role-tertiary add"
+        @click="add()"
+      />
     </div>
   </div>
 </template>

@@ -3,8 +3,8 @@ import EpinioMetaResource from '~/pkg/epinio/models/epinio-namespaced-resource';
 export default class EpinioAppChartModel extends EpinioMetaResource {
   get links() {
     return {
-      update:      this.getUrl(),
-      self:        this.getUrl(),
+      update: this.getUrl(),
+      self:   this.getUrl(),
     };
   }
 

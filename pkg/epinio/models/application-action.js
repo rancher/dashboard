@@ -156,17 +156,17 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_SOURCE_TYPE.GIT_URL:
       return {
         kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT,
-        git:       {
+        git:  {
           revision:   source.gitUrl.branch,
-          repository:      source.gitUrl.url
+          repository: source.gitUrl.url
         },
       };
     case APPLICATION_SOURCE_TYPE.GIT_HUB:
       return {
         kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB,
-        git:       {
+        git:  {
           revision:   source.github.commit,
-          repository:      source.github.url
+          repository: source.github.url
         },
       };
     }
