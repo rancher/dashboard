@@ -14,7 +14,6 @@ import { addParam, addParams } from '@shell/utils/url';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE } from '@shell/config/query-params';
-import { truncate } from 'lodash';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
