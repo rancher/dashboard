@@ -667,6 +667,7 @@ export default {
       <div class="row mt-20">
         <Checkbox
           v-model="value.acceleratedNetworking"
+          :disabled="(!value.acceleratedNetworking && !selectedVmSizeSupportsAN)"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
         />
@@ -715,15 +716,6 @@ export default {
             :disabled="!value.usePrivateIp"
           />
         </div>
-      </div>
-      <div class="row mt-20">
-        <Checkbox
-          v-model="value.acceleratedNetworking"
-          :disabled="(!value.acceleratedNetworking && !selectedVmSizeSupportsAN)"
-          :mode="mode"
-          :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
-          :tooltip="vmSizeAcceleratedNetworkingWarning"
-        />
       </div>
       <div class="row mt-20">
         <div class="col span-6">
