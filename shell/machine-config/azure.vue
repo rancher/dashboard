@@ -443,9 +443,12 @@ export default {
             option-key="value"
             option-label="name"
           />
+          <Banner
+            v-if="value.storageType === 'StandardSSD_LRS' && !value.managedDisks"
+            color="error"
+            :label="t('cluster.machineConfig.azure.storageType.warning')"
+          />
         </div>
-      </div>
-      <div class="row mt-20">
         <div class="col span-6">
           <Checkbox
             v-model="value.managedDisks"
@@ -453,16 +456,17 @@ export default {
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
           />
+        </div>
+      </div>
+      <div class="row mt-20">
+        <div class="col span-6">
           <LabeledInput
             v-model="value.diskSize"
             :mode="mode"
-            class="mt-10"
             :label="t('cluster.machineConfig.azure.managedDisksSize.label')"
             :disabled="disabled"
           />
         </div>
-      </div>
-      <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
             v-model="value.sshUser"

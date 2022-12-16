@@ -1344,6 +1344,7 @@ cluster:
         label: SSH Username
       storageType:
         label: Storage Type
+        warning: StandardSSD_LRS requires managed disks. Please select Use Managed Disks or select another storage type.
       subnet:
         label: Subnet
       subnetPrefix:
