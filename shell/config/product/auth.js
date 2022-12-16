@@ -9,7 +9,7 @@ import { MULTI_CLUSTER } from '@shell/store/features';
 
 export const NAME = 'auth';
 
-const USERS_VIRTUAL_TYPE = 'Users';
+const USERS_VIRTUAL_TYPE = 'users';
 const ROLES_VIRTUAL_TYPE = 'roles';
 
 export function init(store) {
@@ -47,10 +47,10 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:   'typeLabel.management.cattle.io.user',
+    labelKey:   'typeLabel."management.cattle.io.user"',
     name:       USERS_VIRTUAL_TYPE,
     namespaced: false,
-    weight:     102,
+    weight:     103,
     icon:       'user',
     route:      {
       name:   'c-cluster-product-resource',
@@ -64,9 +64,9 @@ export function init(store) {
   configureType(MANAGEMENT.USER, { showListMasthead: false });
 
   spoofedType({
-    labelKey:          'typeLabel.group.principal',
-    name:              NORMAN.SPOOFED.GROUP_PRINCIPAL,
-    namespaced:        false,
+    labelKey:          'typeLabel."group.principal"',
+    type:              NORMAN.SPOOFED.GROUP_PRINCIPAL,
+    weight:            101,
     ifHaveType:        MANAGEMENT.GLOBAL_ROLE_BINDING,
     collectionMethods: [],
     schemas:           [
@@ -147,7 +147,7 @@ export function init(store) {
     icon:       'user',
     namespaced: false,
     name:       ROLES_VIRTUAL_TYPE,
-    weight:     101,
+    weight:     102,
     route:      { name: 'c-cluster-auth-roles' },
     // There are two resource types shown on this page, MANAGEMENT.GLOBAL_ROLE and MANAGEMENT.ROLE_TEMPLATE
     // If there user can't see ROLE_TEMPLATE, they definitely can't see GLOBAL_ROLE
@@ -178,7 +178,7 @@ export function init(store) {
     'config',
     USERS_VIRTUAL_TYPE,
     NORMAN.SPOOFED.GROUP_PRINCIPAL,
-    ROLES_VIRTUAL_TYPE,
+    ROLES_VIRTUAL_TYPE
   ]);
 
   headers(NORMAN.SPOOFED.GROUP_PRINCIPAL, [

@@ -914,7 +914,15 @@ export const getters = {
 
           item.mode = mode;
           item.weight = weight;
-          item.label = item.label || item.name;
+
+          // Ensure labelKey is taken into account... with a mock count
+          // This is harmless if the translation doesn't require count
+          if (item.labelKey && rootGetters['i18n/exists'](item.labelKey)) {
+            item.label = rootGetters['i18n/t'](item.labelKey, { count: 2 }).trim();
+            delete item.labelKey; // Label should really take precedence over labelKey, but it doesn't, so remove it
+          } else {
+            item.label = item.label || item.name;
+          }
 
           out[id] = item;
         }
