@@ -165,7 +165,7 @@ export default {
       }
 
       this.vmSizes = await this.$store.dispatch('management/request', {
-        url: addParams('/meta/aksVMSizes', {
+        url: addParams('/meta/aksVMSizesV2', {
           cloudCredentialId: this.credentialId,
           region:            this.value.location
         }),
@@ -359,7 +359,7 @@ export default {
       // VMs are supported in different regions.
       try {
         this.vmSizes = await this.$store.dispatch('management/request', {
-          url: addParams('/meta/aksVMSizes', {
+          url: addParams('/meta/aksVMSizesV2', {
             cloudCredentialId: this.credentialId,
             region:            this.value.location
           }),
