@@ -177,15 +177,23 @@ export default {
   },
 
   data() {
+    let useAvailabilitySet = false;
+
+    if (this.mode === _CREATE) {
+      useAvailabilitySet = true;
+    } else {
+      useAvailabilitySet = !!this.value.availabilitySet;
+    }
+
     return {
       azureEnvironments,
       defaultConfig,
       storageTypes,
-      credential:         null,
-      locationOptions:    [],
-      useAvailabilitySet: !!this.value.availabilitySet,
-      vmSizes:            [],
-      valueCopy:          this.value
+      credential:      null,
+      locationOptions: [],
+      useAvailabilitySet,
+      vmSizes:         [],
+      valueCopy:       this.value
     };
   },
 
