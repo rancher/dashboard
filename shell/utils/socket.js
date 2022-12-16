@@ -87,7 +87,7 @@ export default class Socket extends EventTarget {
     const id = sockId++;
     const url = addParam(this.url, 'sockId', id);
 
-    console.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`); // eslint-disable-line no-console
+    this._baseLog('connecting', { id, url: url.replace(/\?.*/, '') });
 
     let socket;
 
@@ -208,7 +208,7 @@ export default class Socket extends EventTarget {
       socket.onmessage = null;
       socket.close();
     } catch (e) {
-      this._log('Socket exception', e);
+      this._log('exception', { e: e.toString() });
       // Continue anyway...
     }
 
@@ -256,7 +256,7 @@ export default class Socket extends EventTarget {
 
     if ( timeout && this.state === STATE_CONNECTED) {
       this.frameTimer = setTimeout(() => {
-        this._log('Socket watchdog expired after', timeout, 'closing');
+        this._log(`watchdog expired after${ timeout }. Closing`);
         this._close();
         this.dispatchEvent(new CustomEvent(EVENT_FRAME_TIMEOUT));
       }, timeout);
@@ -268,8 +268,13 @@ export default class Socket extends EventTarget {
     this._log('error');
   }
 
-  _closed() {
-    console.log(`Socket ${ this.closingId } closed`); // eslint-disable-line no-console
+  _closed(event) {
+    const { code, reason, wasClean } = event;
+
+    this._baseLog('closed', {
+      id: this.closingId || this.socket?.sockId || 'unknown', code, reason, clean: wasClean
+    });
+
     this.closingId = 0;
     this.socket = null;
     clearTimeout(this.reconnectTimer);
@@ -333,13 +338,37 @@ export default class Socket extends EventTarget {
     }
   }
 
-  _log(...args) {
-    const message = JSON.parse(JSON.stringify([...args]));
+  /**
+   * `console.log` the provided summary statement, with default information to identify the socket and the provided props
+   */
+  _log(summary, props) {
+    this._baseLog(summary, {
+      state: this.state, id: this.socket?.sockId || 0, ...props
+    });
+  }
 
-    message.unshift('Socket');
+  /**
+   * `console.log` the provided summary statement and props
+   *
+   * This does not contain information to identify the socket and can be used in scenarios where it's not known or default
+   */
+  _baseLog(summary, props) {
+    const message = [summary];
+    const values = Object.entries(props || {});
 
-    message.push(`(state=${ this.state }, id=${ this.socket ? this.socket.sockId : 0 })`);
+    message.unshift('Socket ');
 
-    console.log(message.join(' ')); // eslint-disable-line no-console
+    if (values.length) {
+      message.push(' (');
+      values.forEach(([key, value], index) => {
+        if (index !== 0) {
+          message.push(`, `);
+        }
+        message.push(`${ key }=${ value }`);
+      });
+      message.push(')');
+    }
+
+    console.log(message.join('')); // eslint-disable-line no-console
   }
 }
