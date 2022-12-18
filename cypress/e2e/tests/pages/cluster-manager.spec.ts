@@ -21,7 +21,7 @@ const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
 
-const downloadsFolder = Cypress.config('downloadsFolder')
+const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Cluster Manager', () => {
   const clusterList = new ClusterManagerListPagePo();
