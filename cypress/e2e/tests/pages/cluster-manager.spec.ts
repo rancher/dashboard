@@ -87,7 +87,7 @@ describe('Cluster Manager', () => {
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
-        cy.readFile(downloadedFilename).then(buffer => {
+        cy.readFile(downloadedFilename).then((buffer) => {
           // This will throw an exception which will fail the test if not valid yaml
           const obj = jsyaml.load(buffer);
 
