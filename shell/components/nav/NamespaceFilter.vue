@@ -444,7 +444,7 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         this.up();
-      } else if (e.keyCode === KEY.SPACE) {
+      } else if (e.keyCode === KEY.SPACE || e.keyCode === KEY.CR) {
         if (this.namespaceFilterMode && !opt.enabled) {
           return;
         }
