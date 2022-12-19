@@ -412,6 +412,10 @@ export default {
             this.add(key, value);
           }
         });
+
+        if (lines.length > 0) {
+          this.removeEmptyRows();
+        }
       }
     },
     download(idx, ev) {
