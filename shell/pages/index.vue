@@ -7,7 +7,9 @@ const validRoute = (route, router) => {
 };
 
 export default {
-  middleware({ redirect, store, app } ) {
+  middleware({
+    redirect, store, app, route
+  } ) {
     const seenWhatsNew = store.getters['prefs/get'](SEEN_WHATS_NEW);
     const versionInfo = getVersionInfo(store);
     const isSingleProduct = store.getters['isSingleProduct'];
@@ -19,6 +21,11 @@ export default {
     }
 
     const afterLoginRouteObject = store.getters['prefs/afterLoginRoute'];
+    const targetRoute = app.router.resolve(afterLoginRouteObject);
+
+    if (targetRoute?.route?.fullPath === route.fullPath) {
+      return redirect(dashboardHome);
+    }
 
     // Confirm this is a valid route (it could have come from an uninstalled plugin)
     if (validRoute(afterLoginRouteObject, app.router)) {
