@@ -914,7 +914,15 @@ export const getters = {
 
           item.mode = mode;
           item.weight = weight;
-          item.label = item.label || item.name;
+
+          // Ensure labelKey is taken into account... with a mock count
+          // This is harmless if the translation doesn't require count
+          if (item.labelKey && rootGetters['i18n/exists'](item.labelKey)) {
+            item.label = rootGetters['i18n/t'](item.labelKey, { count: 2 }).trim();
+            delete item.labelKey; // Label should really take precedence over labelKey, but it doesn't, so remove it
+          } else {
+            item.label = item.label || item.name;
+          }
 
           out[id] = item;
         }
@@ -1010,9 +1018,11 @@ export const getters = {
           formatter = 'Number';
         }
 
+        const colName = col.name.includes(' ') ? col.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
+
         const exists = rootGetters['i18n/exists'];
         const t = rootGetters['i18n/t'];
-        const labelKey = `tableHeaders.${ col.name }`;
+        const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
         const description = col.description || '';
         const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
 

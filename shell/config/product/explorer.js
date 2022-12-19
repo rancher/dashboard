@@ -17,8 +17,8 @@ import {
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
-  ACCESS_KEY, DESCRIPTION, DURATION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN,
-  PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS
+  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
+  DURATION,
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
@@ -278,7 +278,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:            store.getters['i18n/t']('projectNamespaces.label'),
+    labelKey:         'projectNamespaces.label',
     group:            'cluster',
     icon:             'globe',
     namespaced:       false,

@@ -52,6 +52,7 @@ generic:
   reload: Reload
   register: Register
   remove: Remove
+  addCatalog: Add Catalog
   resource: |-
     {count, plural,
     one  {resource}
@@ -135,7 +136,7 @@ nav:
   group:
     cluster: Cluster
     inUse: More Resources
-    policy: Policy
+    Policy: Policy
     rbac: RBAC
     serviceDiscovery: Service Discovery
     starred: Starred
@@ -148,6 +149,17 @@ nav:
     apps: Apps
     clusterProvisioning: Cluster Provisioning
     core: Core
+    legacy: Legacy
+    API: API
+    Coordination: Coordination
+    Discovery: Discovery
+    Fleet: Fleet
+    K3s: K3s
+    Networking: Networking
+    Rancher: Rancher
+    RBAC: RBAC
+    Scheduling: Scheduling
+    Storage: Storage
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -201,8 +213,10 @@ product:
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
+  legacy: Legacy
   uiplugins: Extensions
   elemental: OS Management
+  plugins: Plugins
 
 suffix:
   percent: "%"
@@ -1090,7 +1104,7 @@ cluster:
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
-      nodeName: Node Name
+      NodeName: Node Name
       publicIp: Node Public IP
       privateIp: Node Private IP
       nodeLabel:
@@ -1268,7 +1282,6 @@ cluster:
     commandInstructionsInsecure: 'If you get a &quot;certificate signed by unknown authority&quot; error, your {vendor} installation has a self-signed or untrusted SSL certificate.  Run the command below instead to bypass the certificate verification:'
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
-  explore: Explore
   exploreHarvester: Explore
   importAction: Import Existing
   manageAction: Manage
@@ -4971,47 +4984,80 @@ storageClass:
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
 
 tableHeaders:
+  assuredConcurrencyShares: Assured Concurrency Shares
   accessKey: Access Key
+  addressType: Address Type
+  accessModes: Access Modes
   address: Address
   age: Age
   apiGroup: API Groups
+  apikey: API Key
+  available: Available
+  attachedVM: Attached VM
+
   authRoles:
     globalDefault: New User Default
     clusterDefault: Cluster Creator Default
     projectDefault: Project Creator Default
   branch: Branch
+  backupTarget: Backup Target
   builtIn: Built In
   bundlesReady: Bundles Ready
   bundleDeploymentsReady: Deployments
   builtin: Built-In
   chart: Chart
+  capacity: Capacity
+  current: Current
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
   cluster: Cluster
   clusters: Clusters
+  cluster-Name: Cluster
   clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
+  completions: Completions
+  count: Count
+  createdAt: Created At
   customVerbs: Custom Verbs
   description: Description
-  duration: Duration
   expires: Expires
-  providers: Providers
   cpu: CPU
+  currentReplicas: Current Replicas
   date: Date
+  data: Data
   default: Default
+  desired: Desired
+  defaultVersion: Default version
   destination: Target
+  deployed: Deployed
   download: Download
+  duration: Duration
+  diskState: Disk State
+  drivers: Drivers
+  distinguisherMethod: Distinguisher Method
   effect: Effect
   endpoints: Endpoints
+  firstSeen: First Seen
   fleetBundleType: Type
   flow: Flow
+  fingerprint: Fingerprint
   gitRepos: Git Repos
+  groups: Groups
+  groupName: Group Name
+  groupRoleNames: Group Role Names
+  global-Default: Global-Default
   host: Host
+  hostIp: Host IP
+  holder: Holder
+  hpaReference: Workload
   health: Health
+  handSize: Hand Size
+  ipAddress: IP Address
   id: ID
+  iP: IP
   image: Image
   imageSize: Size
   ingressClass: Ingress Class
@@ -5023,25 +5069,34 @@ tableHeaders:
   jobs: Jobs
   key: Key
   keys: Data
+  labels: Labels
   lastUpdated: Last Updated
+  lastSchedule: Last Schedule
   lastSeen: Last Seen
   loggingOutputProviders: Provider
   machines: Machines
   machineNodeName: Node
   manual: Manual
   matches: Matches
+  matchingPrecedence: Matching Precedence
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
   minKubernetesVersion: Min Kubernetes Version
+  minReplicas: Minimum Replicas
+  maxReplicas: Maximum Replicas
+  missingPL: MissingPL
   memory: Memory
+  monitored: Monitored
   name: Name
   nameDisplay: Display Name
   nameUnlinked: Name
   namespace: Namespace
   namespaceName: Name
   namespaceNameUnlinked: Name
+  networkType: Type
+  networkVlan: Vlan ID
   node: Node
-  nodeName: Name
+  nodeName: Node Name
   nodesReady: Nodes Ready
   nodePort: Node Port
   object: Object
@@ -5050,14 +5105,23 @@ tableHeaders:
   p95: 95%tile
   persistentVolumeClaim: Persistent Volume Claim
   persistentVolumeSource: Source
+  phase: Phase
+  progress: Progress
   podImages: Image
   podRestarts: Restarts
   pods: Pods
+  pod-Selector: Pod-Selector
+  providers: Providers
+  providerID: Provider ID
   port: Port
+  ports: Ports
   project: Project
   protocol: Protocol
   provider: Provider
+  priorityLevel: Priority Level
   publicPorts: Public Ports
+  queues: Queues
+  queueLengthLimit: Queue Length Limit
   ram: RAM
   rbac:
     create: Create
@@ -5083,12 +5147,20 @@ tableHeaders:
   resources: Resources
   resourcesReady: Resources Ready
   restarts: Restarts
+  restart: Restart Required
   role: Role
   roles: Roles
   routes: Routes
+  routeConnectivity: Route Connectivity
+  readyToUse: Ready To Use
   scale: Scale
   scope: Scope
   selector: Selector
+  secrets: Secrets
+  schedule: Schedule
+  service: Service
+  serviceAccounts: Service Accounts
+  secret-Name: Secret-Name
   simpleName: Name
   simpleScale: Scale
   simpleType: Type
@@ -5096,51 +5168,35 @@ tableHeaders:
   started: Started
   state: State
   status: Status
+  targetVm: Target VM
   storage_class_provisioner: Provisioner
+  storage: Storage Size
+  storageClass: Storage Class
+  source: Source
   subject: Subject
   subType: Kind
   success: Success
   summary: Summary
+  subobject: Subobject
   taints: Taints
   target: Target
   targetKind: Target Type
   targetPort: Target
   type: Type
   updated: Updated
+  up-to-date: Up To Date
   upgrade: Upgradable
   url: URL
+  users: Users
   userDisplayName: Display Name
   userId: ID
   userStatus: Status
   username: Local Username
   value: Value
   version: Version
+  volume: Volume
+  volumeMode: Volume Mode
   weight: Weight
-  progress: Progress
-  fingerprint: Fingerprint
-  networkType: Type
-  networkVlan: Vlan ID
-  readyToUse: Ready To Use
-  backupTarget: Backup Target
-  targetVm: Target VM
-  phase: Phase
-  attachedVM: Attached VM
-  hostIp: Host IP
-  storage: Storage Size
-  defaultVersion: Default version
-  ipAddress: IP Address
-  diskState: Disk State
-  routeConnectivity: Route Connectivity
-  hpaReference: Workload
-  minReplicas: Minimum Replicas
-  maxReplicas: Maximum Replicas
-  currentReplicas: Current Replicas
-  data: Data
-  apikey: API Key
-  groupName: Group Name
-  groupRoleNames: Group Role Names
-  restart: Restart Required
-
 target:
   router:
     label: Router
@@ -6076,6 +6132,21 @@ typeLabel:
       one { Workspace }
       other { Workspaces }
     }
+  policy.poddisruptionbudget: |-
+    {count, plural,
+      one { Pod Disruption Budget }
+      other { Pod Disruption Budgets }
+    }
+  limitrange: |-
+    {count, plural,
+      one { Limit Range }
+      other { Limit Ranges }
+    }
+  resourcequota: |-
+    {count, plural,
+      one { Resource Quota }
+      other { Resource Quotas }
+    }
   # pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
   monitoring.coreos.com.prometheus: |-
     {count, plural,
@@ -6142,10 +6213,10 @@ typeLabel:
       one { Cluster }
       other { Clusters }
     }
-  'management.cattle.io.user': |-
+  management.cattle.io.user: |-
     {count, plural,
       one { User }
-      other { Users }
+      other { Users}
     }
   namespace: |-
     {count, plural,
@@ -6156,6 +6227,136 @@ typeLabel:
     {count, plural,
       one { Node }
       other { Nodes }
+    }
+  event: |-
+    {count, plural,
+      one { Event }
+      other { Events }
+    }
+  apps.deployment: |-
+    {count, plural,
+      one { Deployment }
+      other { Deployments }
+    }
+  batch.cronjob: |-
+    {count, plural,
+      one { CronJob }
+      other { CronJobs }
+    }
+  apps.daemonset: |-
+    {count, plural,
+      one { DaemonSet }
+      other { DaemonSets }
+    }
+  batch.job: |-
+    {count, plural,
+      one { Job }
+      other { Jobs }
+    }
+  apps.statefulset: |-
+    {count, plural,
+      one { StatefulSet }
+      other { StatefulSets }
+    }
+  pod: |-
+    {count, plural,
+      one { Pod }
+      other { Pods }
+    }
+  autoscaling.horizontalpodautoscaler: |-
+    {count, plural,
+      one { HorizontalPodAutoscaler }
+      other { HorizontalPodAutoscalers }
+    }
+  networking.k8s.io.ingress: |-
+    {count, plural,
+      one { Ingress }
+      other { Ingresses }
+    }
+  networking.k8s.io.networkpolicy: |-
+    {count, plural,
+      one { Network Policies }
+      other { Network Policies }
+    }
+  service: |-
+    {count, plural,
+      one { Service }
+      other { Services }
+    }
+  persistentvolume: |-
+    {count, plural,
+      one { PersistentVolume }
+      other { PersistentVolumes }
+    }
+  storage.k8s.io.storageclass: |-
+    {count, plural,
+      one { StorageClass }
+      other { StorageClasses }
+    }
+  configmap: |-
+    {count, plural,
+      one { ConfigMap }
+      other { ConfigMaps }
+    }
+  persistentvolumeclaim: |-
+    {count, plural,
+      one { PersistentVolumeClaim }
+      other { PersistentVolumeClaims }
+    }
+  secret: |-
+    {count, plural,
+      one { Secret }
+      other { Secrets }
+    }
+  apiregistration.k8s.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  apiextensions.k8s.io.customresourcedefinition: |-
+    {count, plural,
+      one { CustomResourceDefinition }
+      other { CustomResourceDefinitions }
+    }
+  flowcontrol.apiserver.k8s.io.flowschema: |-
+    {count, plural,
+      one { FlowSchema }
+      other { FlowSchemas }
+    }
+  flowcontrol.apiserver.k8s.io.prioritylevelconfiguration: |-
+    {count, plural,
+      one { PriorityLevelConfiguration }
+      other { PriorityLevelConfigurations }
+    }
+  apps.replicaset: |-
+    {count, plural,
+      one { ReplicaSet }
+      other { ReplicaSets }
+    }
+  coordination.k8s.io.lease: |-
+    {count, plural,
+      one { Lease }
+      other { Leases }
+    }
+  serviceaccount: |-
+    {count, plural,
+      one { ServiceAccount }
+      other { ServiceAccounts }
+    }
+  discovery.k8s.io.endpointslice: |-
+    {count, plural,
+      one { EndpointSlice }
+      other { EndpointSlices }
+    }
+  admissionregistration.k8s.io.mutatingwebhookconfiguration: |-
+    {count, plural,
+      one { MutatingWebhookConfiguration }
+      other { MutatingWebhookConfigurations }
+    }
+  admissionregistration.k8s.io.validatingwebhookconfiguration: |-
+    {count, plural,
+      one { ValidatingWebhookConfiguration }
+      other { ValidatingWebhookConfigurations }
     }
   group.principal: |-
     {count, plural,
@@ -6177,10 +6378,185 @@ typeLabel:
       one { Harvester Cluster }
       other { Harvester Clusters }
     }
+  harvesterhci.io.cloudtemplate: |-
+    {count, plural,
+      one { Cloud Config Template }
+      other { Cloud Config Templates }
+    }
+  fleet.cattle.io.content: |-
+    {count, plural,
+      one { Content }
+      other { Contents }
+    }
   fleet.cattle.io.bundle: |-
     {count, plural,
       one { Bundle }
       other { Bundles }
+    }
+  fleet.cattle.io.bundledeployment: |-
+    {count, plural,
+      one { ClusterRegistration }
+      other { ClusterRegistrations }
+    }
+  k3s.cattle.io.addon: |-
+    {count, plural,
+      one { Addon }
+      other { Addons }
+    }
+  management.cattle.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  management.cattle.io.catalog: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  fleet.cattle.io.clusterregistration: |-
+    {count, plural,
+      one { Catalog }
+      other { Catalogs }
+    }
+  management.cattle.io.dynamicschema: |-
+    {count, plural,
+      one { DynamicSchema }
+      other { DynamicSchemas }
+    }
+  management.cattle.io.globalrolebinding: |-
+    {count, plural,
+      one { GlobalRoleBinding }
+      other { GlobalRoleBindings }
+    }
+  management.cattle.io.kontainerdriver: |-
+    {count, plural,
+      one { KontainerDriver }
+      other { KontainerDrivers }
+    }
+  management.cattle.io.nodedriver: |-
+    {count, plural,
+      one { NodeDriver }
+      other { NodeDrivers }
+    }
+  management.cattle.io.podsecuritypolicytemplate: |-
+    {count, plural,
+      one { PodSecurityPolicyTemplate }
+      other { PodSecurityPolicyTemplates }
+    }
+  management.cattle.io.userattribute: |-
+    {count, plural,
+      one { UserAttribute }
+      other { UserAttributes }
+    }
+  management.cattle.io.catalogtemplate: |-
+    {count, plural,
+      one { CatalogTemplate }
+      other { CatalogTemplates }
+    }
+  management.cattle.io.catalogtemplateversion: |-
+    {count, plural,
+      one { CatalogTemplateVersion }
+      other { CatalogTemplateVersions }
+    }
+  management.cattle.io.cisbenchmarkversion: |-
+    {count, plural,
+      one { CisBenchmarkVersion }
+      other { CisBenchmarkVersions }
+    }
+  management.cattle.io.cisconfig: |-
+    {count, plural,
+      one { CisConfig }
+      other { CisConfigs }
+    }
+  management.cattle.io.clusteralertgroup: |-
+    {count, plural,
+      one { ClusterAlertGroup }
+      other { ClusterAlertGroups }
+    }
+  management.cattle.io.clusteralertrule: |-
+    {count, plural,
+      one { ClusterAlertRule }
+      other { ClusterAlertRules }
+    }
+  management.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { ClusterRegistrationTokens }
+      other { ClusterRegistrationTokens }
+    }
+  management.cattle.io.node: |-
+    {count, plural,
+      one { Node }
+      other { Nodes }
+    }
+  management.cattle.io.projectalertgroup: |-
+    {count, plural,
+      one { ProjectAlertGroup }
+      other { ProjectAlertGroups }
+    }
+  management.cattle.io.projectalertrule: |-
+    {count, plural,
+      one { ProjectAlertRule }
+      other { ProjectAlertRules }
+    }
+  management.cattle.io.rkeaddon: |-
+    {count, plural,
+      one { RkeAddon }
+      other { RkeAddons }
+    }
+  management.cattle.io.rkek8sserviceoption: |-
+    {count, plural,
+      one { RkeK8sServiceOption }
+      other { RkeK8sServiceOptions }
+    }
+  management.cattle.io.rkek8ssystemimage: |-
+    {count, plural,
+      one { RkeK8sSystemImage }
+      other { RkeK8sSystemImages }
+    }
+  rbac.authorization.k8s.io.clusterrolebinding: |-
+    {count, plural,
+      one { ClusterRoleBinding }
+      other { ClusterRoleBindings }
+    }
+  rbac.authorization.k8s.io.clusterrole: |-
+    {count, plural,
+      one { ClusterRole }
+      other { ClusterRoles }
+    }
+  rbac.authorization.k8s.io.rolebinding: |-
+    {count, plural,
+      one { RoleBinding }
+      other { RoleBindings }
+    }
+  rbac.authorization.k8s.io.role: |-
+    {count, plural,
+      one { Role }
+      other { Roles }
+    }
+  scheduling.k8s.io.priorityclass: |-
+    {count, plural,
+      one { PriorityClasse }
+      other { PriorityClasses }
+    }
+  storage.k8s.io.csinode: |-
+    {count, plural,
+      one { CSINode }
+      other { CSINodes }
+    }
+  cluster.x-k8s.io.machinedeployment: |-
+    {count, plural,
+      one { MachineDeployment }
+      other { MachineDeployments }
+    }
+  cluster.x-k8s.io.machineset: |-
+    {count, plural,
+      one { MachineSet }
+      other { MachineSets }
+    }
+  cluster.x-k8s.io.machine: |-
+    {count, plural,
+      one { Machine }
+      other { Machines }
     }
   fleet.cattle.io.clusterregistrationtoken: |-
     {count, plural,
@@ -6264,6 +6640,7 @@ advancedSettings:
   show: Show
   hide: Hide
   none: None
+  modified: Modified
   edit:
     label: Edit Setting
     changeSetting: "Change Setting:"
