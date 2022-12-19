@@ -288,6 +288,7 @@ export default {
 
     <Tabbed
       :side-tabs="true"
+      :use-hash="true"
     >
       <Tab
         name="link"

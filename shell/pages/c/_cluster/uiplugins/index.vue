@@ -546,6 +546,7 @@ export default {
       <Tabbed
         ref="tabs"
         :tabs-only="true"
+        :use-hash="true"
         @changed="filterChanged"
       >
         <Tab

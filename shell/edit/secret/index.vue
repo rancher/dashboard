@@ -374,6 +374,7 @@ export default {
       <Tabbed
         v-else
         :side-tabs="true"
+        :use-hash="true"
         default-tab="data"
       >
         <Tab

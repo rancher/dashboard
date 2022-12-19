@@ -179,7 +179,10 @@ export default {
       </template>
     </NameNsDescription>
 
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="true"
+    >
       <Tab
         v-if="showResourceQuota"
         :weight="1"

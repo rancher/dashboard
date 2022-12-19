@@ -166,6 +166,7 @@ export default {
   <Tabbed
     v-bind="$attrs"
     :default-tab="defaultTab"
+    :use-hash="true"
     @changed="tabChange"
   >
     <slot />

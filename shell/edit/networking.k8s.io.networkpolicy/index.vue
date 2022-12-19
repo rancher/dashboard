@@ -183,7 +183,10 @@ export default {
 
     <div class="row mb-40">
       <div class="col span-12">
-        <Tabbed :side-tabs="true">
+        <Tabbed
+          :side-tabs="true"
+          :use-hash="true"
+        >
           <Tab
             name="ingress"
             label-key="networkpolicy.ingress.label"

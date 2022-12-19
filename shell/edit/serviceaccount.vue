@@ -101,7 +101,10 @@ export default {
       :mode="mode"
     />
 
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="true"
+    >
       <Tab
         name="data"
         :label="t('serviceAccount.tabs.serviceAccount.label')"

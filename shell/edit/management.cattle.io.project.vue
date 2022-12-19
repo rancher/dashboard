@@ -222,7 +222,10 @@ export default {
         />
       </div>
     </div>
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="true"
+    >
       <Tab
         v-if="canViewMembers"
         name="members"

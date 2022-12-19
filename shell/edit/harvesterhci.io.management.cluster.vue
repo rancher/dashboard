@@ -122,7 +122,10 @@ export default {
       />
     </div>
 
-    <Tabbed :side-tabs="true">
+    <Tabbed
+      :side-tabs="true"
+      :use-hash="true"
+    >
       <Tab
         name="memberRoles"
         label-key="cluster.tabs.memberRoles"

@@ -128,6 +128,7 @@ export default {
   <div>
     <Tabbed
       v-if="value.status.dashboardValues"
+      :use-hash="true"
       class="mt-30"
     >
       <Tab

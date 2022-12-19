@@ -112,6 +112,7 @@ export default {
         class="deployment-tabs"
         :show-tabs-add-remove="true"
         :default-tab="defaultTab"
+        :use-hash="true"
         :flat="true"
         @changed="changed"
       >
@@ -125,6 +126,7 @@ export default {
         >
           <Tabbed
             :side-tabs="true"
+            :use-hash="true"
             :weight="99"
           >
             <Tab
@@ -307,7 +309,10 @@ export default {
           :name="nameDisplayFor(type)"
           :weight="99"
         >
-          <Tabbed :side-tabs="true">
+          <Tabbed
+            :side-tabs="true"
+            :use-hash="true"
+          >
             <Tab
               name="labels"
               label-key="generic.labelsAndAnnotations"
@@ -344,7 +349,10 @@ export default {
           :name="'pod'"
           :weight="98"
         >
-          <Tabbed :side-tabs="true">
+          <Tabbed
+            :side-tabs="true"
+            :use-hash="true"
+          >
             <Tab
               :label="t('workload.storage.title')"
               name="storage"

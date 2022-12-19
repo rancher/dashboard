@@ -64,6 +64,7 @@ export default {
       <div class="col span-12">
         <Tabbed
           :side-tabs="true"
+          :use-hash="true"
           :show-tabs-add-remove="mode !== 'view'"
           @addTab="addPolicyRule"
           @removeTab="removePolicyRule"

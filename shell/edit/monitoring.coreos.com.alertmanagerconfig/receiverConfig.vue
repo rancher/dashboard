@@ -266,6 +266,7 @@ export default {
     <Tabbed
       ref="tabbed"
       :side-tabs="true"
+      :use-hash="true"
       default-tab="overview"
       @changed="tabChanged"
     >

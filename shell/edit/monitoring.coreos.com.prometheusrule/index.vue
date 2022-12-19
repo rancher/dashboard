@@ -143,6 +143,7 @@ export default {
       <Tabbed
         v-if="filteredGroups.length > 0"
         :side-tabs="true"
+        :use-hash="true"
         :show-tabs-add-remove="mode !== 'view'"
         @addTab="addRuleGroup"
         @removeTab="removeGroupRule"

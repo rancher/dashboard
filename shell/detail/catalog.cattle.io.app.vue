@@ -111,6 +111,7 @@ export default {
     <Tabbed
       class="mt-20"
       default-tab="resources"
+      :use-hash="true"
       @changed="tabChanged($event)"
     >
       <Tab

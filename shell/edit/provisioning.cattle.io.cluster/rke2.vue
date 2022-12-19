@@ -1759,6 +1759,7 @@ export default {
         <Tabbed
           ref="pools"
           :side-tabs="true"
+          :use-hash="true"
           :show-tabs-add-remove="!isView"
           @addTab="addMachinePool($event)"
           @removeTab="removeMachinePool($event)"
@@ -1794,6 +1795,7 @@ export default {
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed
         :side-tabs="true"
+        :use-hash="true"
         class="min-height"
       >
         <Tab

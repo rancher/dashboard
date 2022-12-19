@@ -64,6 +64,7 @@ export default {
     <Tabbed
       ref="tabs"
       :default-tab="initTab"
+      :use-hash="true"
     >
       <Tab
         :name="podMonitorSchema.id"

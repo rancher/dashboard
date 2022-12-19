@@ -174,7 +174,7 @@ export default {
         </div>
       </div>
     </header>
-    <Tabbed>
+    <Tabbed :use-hash="true">
       <Tab
         v-if="tabs[GLOBAL].canFetch"
         :name="GLOBAL"

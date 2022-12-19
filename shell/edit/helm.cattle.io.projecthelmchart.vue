@@ -126,6 +126,7 @@ export default {
           v-if="!!currentNamespace && selectedNamespaceQuestions"
           ref="tabs"
           :side-tabs="true"
+          :use-hash="true"
         >
           <Questions
             v-model="value"

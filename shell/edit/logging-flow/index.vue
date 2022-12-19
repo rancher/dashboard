@@ -339,6 +339,7 @@ export default {
 
     <Tabbed
       :side-tabs="true"
+      :use-hash="true"
       @changed="tabChanged($event)"
     >
       <Tab

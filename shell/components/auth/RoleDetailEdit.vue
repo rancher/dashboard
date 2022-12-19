@@ -583,7 +583,10 @@ export default {
         </div>
       </div>
       <div class="spacer" />
-      <Tabbed :side-tabs="true">
+      <Tabbed
+        :side-tabs="true"
+        :use-hash="true"
+      >
         <Tab
           name="grant-resources"
           :label="t('rbac.roletemplate.tabs.grantResources.label')"

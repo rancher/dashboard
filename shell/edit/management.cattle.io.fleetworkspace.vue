@@ -76,6 +76,7 @@ export default {
 
     <Tabbed
       :side-tabs="true"
+      :use-hash="true"
       default-tab="members"
     >
       <!-- <Tab name="members" label-key="generic.members" :weight="2">

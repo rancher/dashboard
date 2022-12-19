@@ -197,7 +197,7 @@ export default {
       :namespaced="isNamespaced"
     />
 
-    <Tabbed>
+    <Tabbed :use-hash="true">
       <Tab
         :label="t('monitoring.route.label')"
         :weight="1"
