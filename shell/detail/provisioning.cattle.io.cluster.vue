@@ -693,7 +693,7 @@ export default {
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.scalePool(-1)"
+                    @click="group.ref.toggleScaleDownModal()"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>

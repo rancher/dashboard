@@ -100,13 +100,29 @@ export default class CapiMachineDeployment extends SteveModel {
     return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
   }
 
+  toggleScaleDownModal(resources = this) {
+    console.log(resources);
+    this.$dispatch('promptModal', {
+      component:  'ScalePoolDownDialog',
+      resources,
+      modalWidth: '750px'
+    });
+  }
+
   scalePool(delta, save = true, depth = 0) {
+    console.log(delta);
     // This is used in different places with different scaling rules, so don't check if we can/cannot scale
     if (!this.inClusterSpec) {
       return;
     }
 
     const initialValue = this.cluster.toJSON();
+
+    if (delta === -1) {
+      console.log('machine -1');
+
+      return;
+    }
 
     this.inClusterSpec.quantity += delta;
 
