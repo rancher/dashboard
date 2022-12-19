@@ -2,7 +2,7 @@
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
-import { Banner, LabeledInput, Checkbox } from '@rancher/components';
+import { Banner, LabeledInput, Checkbox, RadioGroup } from '@rancher/components';
 import merge from 'lodash/merge';
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -11,7 +11,6 @@ import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
 import KeyValue from '@shell/components/form/KeyValue';
-import { RadioGroup } from '@components/Form/Radio';
 import { _CREATE } from '@shell/config/query-params';
 
 export const azureEnvironments = [
