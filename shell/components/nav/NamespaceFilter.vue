@@ -832,7 +832,7 @@ export default {
 
     .ns-clear {
       &:hover {
-        color: var(--link);
+        color: var(--primary);
         cursor: pointer;
       }
     }
@@ -867,7 +867,7 @@ export default {
 
     .ns-dropdown-menu {
       background-color: var(--header-bg);
-      border: 1px solid var(--link-border);
+      border: 1px solid var(--primary-border);
       border-bottom-left-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
       color: var(--header-btn-text);
@@ -983,7 +983,7 @@ export default {
       &.ns-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
-        border-color: var(--link-border);
+        border-color: var(--primary-border);
       }
 
       > .ns-values {
@@ -992,7 +992,7 @@ export default {
 
       &:hover {
         > i {
-          color: var(--link);
+          color: var(--primary);
         }
       }
 
@@ -1030,7 +1030,7 @@ export default {
             margin-left: 5px;
 
             &:hover {
-              color: var(--link);
+              color: var(--primary);
             };
           }
 
