@@ -97,25 +97,6 @@ export function init($plugin, store) {
     to:                  harvesterClustersLocation,
   });
 
-  configureType(HCI.CLUSTER, { showListMasthead: false });
-  headers(HCI.CLUSTER, [
-    STATE,
-    NAME_COL,
-    {
-      ...VERSION,
-      value:    'kubernetesVersion',
-      getValue: row => row.kubernetesVersion
-    },
-    MACHINE_POOLS,
-    AGE,
-    {
-      name:  'harvester',
-      label: ' ',
-      align: 'right',
-      width: 65,
-    },
-  ]);
-  basicType([HCI.CLUSTER]);
   spoofedType({
     labelKey:   'harvesterManager.cluster.label',
     name:       HCI.CLUSTER,
@@ -160,4 +141,24 @@ export function init($plugin, store) {
       });
     },
   });
+
+  configureType(HCI.CLUSTER, { showListMasthead: false });
+  headers(HCI.CLUSTER, [
+    STATE,
+    NAME_COL,
+    {
+      ...VERSION,
+      value:    'kubernetesVersion',
+      getValue: row => row.kubernetesVersion
+    },
+    MACHINE_POOLS,
+    AGE,
+    {
+      name:  'harvester',
+      label: ' ',
+      align: 'right',
+      width: 65,
+    },
+  ]);
+  basicType([HCI.CLUSTER]);
 }

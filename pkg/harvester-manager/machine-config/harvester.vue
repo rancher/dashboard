@@ -30,7 +30,7 @@ import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 
-export function isReady() {
+function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
     const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
 
