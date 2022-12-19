@@ -3,6 +3,7 @@ import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import EpinioMetaResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
+import { waitFor } from '@shell/utils/async';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -577,7 +578,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
   async waitForPseudoDeploy(origError) {
     this.trace('Wait for deploy might have timed out, give the app more time');
-    await this.waitForTestFn(() => {
+    await waitFor(() => {
       // Looking at their code the deploy request waits for the helm install command to return so we'd need something like the helm apps
       // 'deployed' status. Unfortunately we don't have that... so wait for ready === desired replica sets instead
       const fresh = this.$getters['byId'](EPINIO_TYPES.APP, `${ this.meta.namespace }/${ this.meta.name }`);
@@ -587,7 +588,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       }
       // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
       fresh.forceFetch();
-    }, `app ready replicas = desired`, 20000, 2000).catch((err) => {
+    }, `app ready replicas = desired`, 20000, 2000, true).catch((err) => {
       console.warn('Original timeout request failed, also failed to wait for pseudo deployed state', err); // eslint-disable-line no-console
       throw origError;
     });

@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
-import { SCHEMA } from '@shell/config/types';
-import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import { SCHEMA, COUNT } from '@shell/config/types';
+import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
+import { addSchemaIndexFields } from '@shell/models/schema';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import garbageCollect from '@shell/utils/gc/gc';
 
@@ -165,6 +166,85 @@ export function remove(state, obj, getters) {
   }
 }
 
+export function batchChanges(state, { ctx, batch }) {
+  const types = Object.keys(batch);
+
+  types.forEach((type) => {
+    const normalizedType = normalizeType(type === 'counts' ? COUNT : type);
+    const keyField = keyFieldFor(normalizedType);
+    const typeCache = registerType(state, normalizedType);
+    const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+    const limit = opts?.limit;
+
+    const createdResources = [];
+    const batchActionMap = {};
+
+    Object.keys(batch[normalizedType]).map((id) => {
+      const index = typeCache.list.findIndex((resource) => {
+        return resource[keyField] === id;
+      });
+      let resource = batch[normalizedType][id];
+
+      resource = normalizedType === SCHEMA ? addSchemaIndexFields(resource) : resource;
+      let action = 'change';
+
+      if (resource.remove) {
+        action = 'remove';
+      } else if (index === -1) {
+        action = 'create';
+        createdResources.push(classify(ctx, resource));
+      } else if (action === 'change') {
+        return {
+          id,
+          index,
+          resource,
+          action
+        };
+      }
+
+      return {
+        id,
+        index,
+        resource: undefined,
+        action
+      };
+    }).forEach((batchIdMap) => {
+      batchActionMap[batchIdMap[keyField]] = batchIdMap;
+    });
+
+    typeCache.map.clear();
+
+    const newCache = typeCache.list.reduce((acc, resource) => {
+      const resourceId = resource[keyField];
+      const batchAction = batchActionMap[resourceId];
+
+      if (!batchAction) { // use the unchanged resource from the cache
+        typeCache.map.set(resourceId, resource);
+
+        return acc.concat(resource);
+      }
+
+      if (batchAction.action === 'change') { // use the changed resource from the map
+        const classyResource = classify(ctx, batchAction.resource);
+
+        typeCache.map.set(resourceId, classyResource);
+
+        return acc.concat(classyResource);
+      }
+
+      // if we're here then then the action was "remove" so we just don't add the resource to the newCache
+      return acc;
+    }, [])
+      .concat(createdResources)
+      .slice(limit ? -limit : undefined);
+
+    clear(typeCache.list);
+    typeCache.map.clear();
+    typeCache.generation++;
+    typeCache.list.push(...newCache);
+  });
+}
+
 export function loadAll(state, {
   type,
   data,
@@ -241,6 +321,8 @@ export default {
   },
 
   loadAll,
+
+  batchChanges,
 
   loadMerge(state, { type, data: allLatest, ctx }) {
     const { commit, getters } = ctx;

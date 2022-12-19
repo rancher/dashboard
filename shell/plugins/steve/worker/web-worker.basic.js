@@ -1,4 +1,5 @@
 import { SCHEMA } from '@shell/config/types';
+import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
@@ -8,25 +9,6 @@ const state = {
   queue:      [], // Schema change queue
   schemas:    {} // Map of schema id to hash to track when a schema actually changes
 };
-
-// Quick, simple hash function
-function hash(str) {
-  let hash = 0;
-
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-
-    hash = (hash << 5) - hash + char;
-    hash &= hash;
-  }
-
-  return new Uint32Array([hash])[0].toString(36);
-}
-
-// Quick, simple hash function to generate hash for an object
-function hashObj(obj) {
-  return hash(JSON.stringify(obj, null, 2));
-}
 
 function flush() {
   state.queue.forEach((schema) => {

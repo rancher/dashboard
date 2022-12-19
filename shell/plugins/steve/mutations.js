@@ -7,7 +7,7 @@ import {
   load,
   remove
 } from '@shell/plugins/dashboard-store/mutations';
-import { keyForSubscribe } from '@shell/plugins/steve/subscribe';
+import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 

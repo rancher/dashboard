@@ -1,6 +1,7 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
@@ -8,25 +9,32 @@ import Socket, {
   EVENT_MESSAGE,
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
-  EVENT_DISCONNECT_ERROR
+  EVENT_DISCONNECT_ERROR,
+  NO_WATCH,
+  NO_SCHEMA,
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
+import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
+import { waitFor } from '@shell/utils/async';
 
 // eslint-disable-next-line
-import webworker from './web-worker.steve-sub-worker.js';
-
-export const NO_WATCH = 'NO_WATCH';
-export const NO_SCHEMA = 'NO_SCHEMA';
+import storeWorker from './worker/index.js';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
+const waitForManagement = (store) => {
+  const managementReady = () => store.state?.managementReady;
+
+  return waitFor(managementReady, 'Management');
+};
+
 // We only create a worker for the cluster store
-export function createWorker(store, ctx) {
-  const { getters } = ctx;
+export async function createWorker(store, ctx) {
+  const { getters, rootGetters, dispatch } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
@@ -34,6 +42,11 @@ export function createWorker(store, ctx) {
   if (storeName !== 'cluster') {
     return;
   }
+
+  await waitForManagement(store);
+  // getting perf setting in a seperate constant here because it'll provide other values we'll want later.
+  const perfSetting = JSON.parse(rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE)?.value || '{}');
+  const advancedWorker = perfSetting.advancedWorker !== false;
 
   const workerActions = {
     load: (resource) => {
@@ -43,11 +56,18 @@ export function createWorker(store, ctx) {
       if (store.$workers) {
         delete store.$workers[storeName];
       }
+    },
+    batchChanges: (batch) => {
+      dispatch('batchChanges', batch);
+    },
+    dispatch: (msg) => {
+      dispatch(`ws.${ msg.name }`, msg);
     }
   };
 
   if (!store.$workers[storeName]) {
-    const worker = new webworker();
+    const workerMode = advancedWorker ? 'advanced' : 'basic';
+    const worker = storeWorker(workerMode);
 
     store.$workers[storeName] = worker;
 
@@ -65,14 +85,11 @@ export function createWorker(store, ctx) {
   }
 }
 
-export function keyForSubscribe({
-  resourceType, type, namespace, id, selector
-} = {}) {
-  return `${ resourceType || type || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
-}
-
 export function equivalentWatch(a, b) {
-  if ( a.type !== b.type ) {
+  const aresourceType = a.resourceType || a.type;
+  const bresourceType = b.resourceType || b.type;
+
+  if ( aresourceType !== bresourceType ) {
     return false;
   }
 
@@ -142,6 +159,10 @@ export const actions = {
       state, commit, dispatch, getters, rootGetters
     } = ctx;
 
+    // ToDo: need to keep the worker up to date on CSRF cookie
+
+    const worker = this.$workers[getters.storeName];
+
     if (rootGetters['isSingleProduct']?.disableSteveSockets) {
       return;
     }
@@ -157,13 +178,23 @@ export const actions = {
     state.debugSocket && console.info(`Subscribe [${ getters.storeName }]`); // eslint-disable-line no-console
 
     const url = `${ state.config.baseUrl }/subscribe`;
+    const maxTries = growlsDisabled(rootGetters) ? null : 3;
+    const connectionMetadata = get(opt, 'metadata');
 
     if ( socket ) {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
+      socket.connect(connectionMetadata);
+    } else if (worker?.mode === 'advanced') {
+      // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
+      worker.postMessage({
+        createWatcher: {
+          connectionMetadata,
+          url: `${ state.config.baseUrl }/subscribe`,
+          maxTries
+        }
+      });
     } else {
-      const maxTries = growlsDisabled(rootGetters) ? null : 3;
-
       socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
       commit('setSocket', socket);
@@ -194,9 +225,8 @@ export const actions = {
           }
         }
       });
+      socket.connect(connectionMetadata);
     }
-
-    socket.connect(get(opt, 'metadata') );
   },
 
   unsubscribe({ commit, getters, state }) {
@@ -204,14 +234,18 @@ export const actions = {
     const worker = (this.$workers || {})[getters.storeName];
 
     commit('setWantSocket', false);
+    const cleanupTasks = [];
 
     if (worker) {
       worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
+      cleanupTasks.push(waitFor(() => !worker, 'Worker is destroyed'));
     }
 
     if ( socket ) {
-      return socket.disconnect();
+      cleanupTasks.push(socket.disconnect());
     }
+
+    return Promise.all();
   },
 
   async flush({
@@ -323,6 +357,14 @@ export const actions = {
       msg.selector = selector;
     }
 
+    const worker = this.$workers[getters.storeName] || {};
+
+    if (worker.mode === 'advanced') {
+      worker.postMessage({ watch: msg });
+
+      return;
+    }
+
     return dispatch('send', msg);
   },
 
@@ -346,7 +388,7 @@ export const actions = {
 
   async resyncWatch({
     state, getters, dispatch, commit
-  }, params) {
+  }, params, skipApi = false) {
     const {
       resourceType, namespace, id, selector
     } = params;
@@ -580,6 +622,7 @@ export const actions = {
    */
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
+    const fromWorker = msg.fromWorker;
     const obj = {
       type,
       id:        msg.id,
@@ -591,9 +634,11 @@ export const actions = {
 
     // If we're trying to watch this event, attempt to re-watch
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
-      // Try reconnecting once
-
       commit('setWatchStopped', obj);
+      // the resourceWatcher in the worker has it's own logic for reconnecting watches otherwise try reconnecting once
+      if (fromWorker) {
+        return;
+      }
 
       // In summary, we need to re-watch but with a reliable `revision` (to avoid `too old` message kicking off a full re-fetch of all
       // resources). To get a reliable `revision` go out and fetch the latest for that resource type, in theory our local cache should be

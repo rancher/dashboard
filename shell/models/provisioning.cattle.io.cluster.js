@@ -6,6 +6,7 @@ import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
+import { waitFor } from '@shell/utils/async';
 
 /**
  * Class representing Cluster resource.
@@ -296,20 +297,20 @@ export default class ProvCluster extends SteveModel {
   }
 
   waitForProvisioner(timeout, interval) {
-    return this.waitForTestFn(() => {
+    return waitFor(() => {
       return !!this.provisioner;
-    }, `set provisioner`, timeout, interval);
+    }, `set provisioner`, timeout, interval, true);
   }
 
   waitForMgmt(timeout = 60000, interval) {
-    return this.waitForTestFn(() => {
+    return waitFor(() => {
       // `this` instance isn't getting updated with `status.clusterName`
       // Workaround - Get fresh copy from the store
       const pCluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, this.id);
       const name = this.status?.clusterName || pCluster?.status?.clusterName;
 
       return name && !!this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval);
+    }, this.$rootGetters['i18n/t']('cluster.managementTimeout'), timeout, interval, true);
   }
 
   get provisioner() {

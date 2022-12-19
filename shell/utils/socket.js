@@ -10,8 +10,9 @@ const INSECURE = 'ws://';
 const SECURE = 'wss://';
 
 const STATE_DISCONNECTED = 'disconnected';
-const STATE_CONNECTING = 'connecting';
-const STATE_CONNECTED = 'connected';
+
+export const STATE_CONNECTING = 'connecting';
+export const STATE_CONNECTED = 'connected';
 const STATE_CLOSING = 'closing';
 const STATE_RECONNECTING = 'reconnecting';
 
@@ -22,6 +23,9 @@ export const EVENT_MESSAGE = 'message';
 export const EVENT_FRAME_TIMEOUT = 'frame_timeout';
 export const EVENT_CONNECT_ERROR = 'connect_error';
 export const EVENT_DISCONNECT_ERROR = 'disconnect_error';
+
+export const NO_WATCH = 'NO_WATCH';
+export const NO_SCHEMA = 'NO_SCHEMA';
 
 export default class Socket extends EventTarget {
   url;
@@ -40,7 +44,7 @@ export default class Socket extends EventTarget {
   framesReceived = 0;
   frameTimer;
   reconnectTimer;
-  disconnectCbs = [];
+  disconnectCallBacks = [];
   disconnectedAt = 0;
   closingId = 0;
 
@@ -122,9 +126,9 @@ export default class Socket extends EventTarget {
     return false;
   }
 
-  disconnect(cb) {
-    if ( cb ) {
-      this.disconnectCbs.push(cb);
+  disconnect(callBack) {
+    if ( callBack ) {
+      this.disconnectCallBacks.push(callBack);
     }
 
     const self = this;
@@ -140,7 +144,7 @@ export default class Socket extends EventTarget {
 
       this.addEventListener(EVENT_CONNECT_ERROR, onError);
 
-      this.disconnectCbs.push(() => {
+      this.disconnectCallBacks.push(() => {
         this.removeEventListener(EVENT_CONNECT_ERROR, onError);
         resolve();
       });
@@ -280,10 +284,10 @@ export default class Socket extends EventTarget {
     clearTimeout(this.reconnectTimer);
     clearTimeout(this.frameTimer);
 
-    const cbs = this.disconnectCbs;
+    const callBacks = this.disconnectCallBacks;
 
-    while ( cbs.length ) {
-      const fn = cbs.pop();
+    while ( callBacks.length ) {
+      const fn = callBacks.pop();
 
       if ( fn ) {
         fn.apply(this);

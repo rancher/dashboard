@@ -25,6 +25,7 @@ import {
   validateLength,
 } from '@shell/utils/validators';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { waitFor } from '@shell/utils/async';
 import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
 import forIn from 'lodash/forIn';
@@ -751,66 +752,28 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
-  waitForTestFn(fn, msg, timeoutMs, intervalMs) {
-    console.log('Starting wait for', msg); // eslint-disable-line no-console
-
-    if ( !timeoutMs ) {
-      timeoutMs = DEFAULT_WAIT_TMIMEOUT;
-    }
-
-    if ( !intervalMs ) {
-      intervalMs = DEFAULT_WAIT_INTERVAL;
-    }
-
-    return new Promise((resolve, reject) => {
-      // Do a first check immediately
-      if ( fn.apply(this) ) {
-        console.log('Wait for', msg, 'done immediately'); // eslint-disable-line no-console
-        resolve(this);
-      }
-
-      const timeout = setTimeout(() => {
-        console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
-        clearInterval(interval);
-        clearTimeout(timeout);
-        reject(new Error(`Failed waiting for: ${ msg }`));
-      }, timeoutMs);
-
-      const interval = setInterval(() => {
-        if ( fn.apply(this) ) {
-          console.log('Wait for', msg, 'done'); // eslint-disable-line no-console
-          clearInterval(interval);
-          clearTimeout(timeout);
-          resolve(this);
-        } else {
-          console.log('Wait for', msg, 'not done yet'); // eslint-disable-line no-console
-        }
-      }, intervalMs);
-    });
-  }
-
   waitForState(state, timeout, interval) {
-    return this.waitForTestFn(() => {
+    return waitFor(() => {
       return (this.state || '').toLowerCase() === state.toLowerCase();
-    }, `state=${ state }`, timeout, interval);
+    }, `state=${ state }`, timeout, interval, true);
   }
 
   waitForTransition() {
-    return this.waitForTestFn(() => {
+    return waitFor(() => {
       return !this.transitioning;
-    }, 'transition completion');
+    }, 'transition completion', undefined, undefined, true);
   }
 
   waitForAction(name) {
-    return this.waitForTestFn(() => {
+    return waitFor(() => {
       return this.hasAction(name);
-    }, `action=${ name }`);
+    }, `action=${ name }`, undefined, undefined, true);
   }
 
   waitForLink(name) {
-    return this.waitForTestFn(() => {
+    return waitFor(() => {
       return this.hasLink(name);
-    }, `link=${ name }`);
+    }, `link=${ name }`, undefined, undefined, true);
   }
 
   hasCondition(condition) {
@@ -836,7 +799,7 @@ export default class Resource {
   }
 
   waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
-    return this.waitForTestFn(() => {
+    return waitFor(() => {
       return this.isCondition(name, withStatus);
     }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
   }
