@@ -1,6 +1,12 @@
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
-import { CoreStoreInit, IPlugin } from './types';
+import {
+  CoreStoreInit,
+  IAction,
+  IPlugin,
+  UI_CONFIG_HEADER_ACTION,
+  UI_CONFIG_TAB
+} from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
   PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
@@ -19,6 +25,11 @@ export class Plugin implements IPlugin {
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
+
+  public uiConfig: { [key: string]: { [key: string]: any[] } } = {
+    [UI_CONFIG_HEADER_ACTION]: {},
+    [UI_CONFIG_TAB]:           {},
+  };
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
@@ -106,6 +117,17 @@ export class Plugin implements IPlugin {
     };
 
     this.routes.push({ parent, route });
+  }
+
+  addUIAction(type: string, location: string, action: IAction): void {
+    this.uiConfig[type][location] = this.uiConfig[type][location] || [];
+    this.uiConfig[type][location].push(action);
+  }
+
+  // Note: we can factor these two to use a common method for adding to the UI configuration
+  addTab(location: string, tab: any): void {
+    this.uiConfig[UI_CONFIG_TAB][location] = this.uiConfig[UI_CONFIG_TAB][location] || [];
+    this.uiConfig[UI_CONFIG_TAB][location].push(tab);
   }
 
   setHomePage(component: any) {

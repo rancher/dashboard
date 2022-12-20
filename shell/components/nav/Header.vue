@@ -15,6 +15,7 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
+import { UI_CONFIG_HEADER_ACTION } from '@shell/core/types';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -163,6 +164,28 @@ export default {
       };
     },
 
+    productAction() {
+      const product = this.currentProduct?.name || '';
+
+      if (product === 'explorer') {
+        if (!this.$route.name.startsWith('c-')) {
+          return '';
+        }
+      }
+
+      return product;
+    },
+
+    extensionActions() {
+      const globalActions = this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION, 'global');
+      const productActions = this.productAction.length ? this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION, `${ this.productAction }`) : [];
+
+      return [
+        ...productActions,
+        ...globalActions,
+      ];
+    },
+
   },
 
   watch: {
@@ -288,6 +311,25 @@ export default {
           button.classList.remove('header-btn-active');
         }
       });
+    },
+
+    invokeExtensionAction(action, event) {
+      const fn = action.execute;
+
+      if (fn) {
+        fn.apply(this, [event]);
+      }
+    },
+
+    handleExtensionTooltip(action) {
+      if (action.tooltipKey || action.tooltip) {
+        const tooltip = action.tooltipKey ? this.t(action.tooltipKey) : action.tooltip;
+        const shortcut = action.shortcutLabel ? action.shortcutLabel() : '';
+
+        return `${ tooltip } ${ shortcut }`;
+      }
+
+      return null;
     }
   }
 };
@@ -500,6 +542,29 @@ export default {
         >
           <Jump @closeSearch="hideSearch()" />
         </modal>
+      </div>
+
+      <!-- Extension header actions -->
+      <div
+        v-if="extensionActions.length"
+        class="header-buttons"
+      >
+        <button
+          v-for="action, i in extensionActions"
+          :key="`${action.label}${i}`"
+          v-tooltip="handleExtensionTooltip(action)"
+          v-shortkey="action.shortcutKey"
+          :disabled="action.enabled ? !action.enabled() : false"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @shortkey="invokeExtensionAction(action, $event)"
+          @click="invokeExtensionAction(action, $event)"
+        >
+          <i
+            class="icon icon-lg"
+            :class="action.icon"
+          />
+        </button>
       </div>
 
       <div

@@ -3,6 +3,7 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
+import { UI_CONFIG_HEADER_ACTION, UI_CONFIG_TAB } from './types';
 
 const MODEL_TYPE = 'models';
 
@@ -20,6 +21,11 @@ export default function({
   const plugins = {};
 
   const pluginRoutes = new PluginRoutes(app.router);
+
+  const uiConfig = {
+    [UI_CONFIG_HEADER_ACTION]: {},
+    [UI_CONFIG_TAB]:           {},
+  };
 
   inject('plugin', {
     // Plugins should not use these - but we will pass them in for now as a 2nd argument
@@ -251,6 +257,14 @@ export default function({
         });
       });
 
+      // UI Configuration - copy UI config from a plugin into the global uiConfig object
+      Object.keys(plugin.uiConfig).forEach((type) => {
+        Object.keys(plugin.uiConfig[type]).forEach((location) => {
+          uiConfig[type][location] = uiConfig[type][location] || [];
+          uiConfig[type][location].push(...plugin.uiConfig[type][location]);
+        });
+      });
+
       // l10n
       Object.keys(plugin.l10n).forEach((name) => {
         plugin.l10n[name].forEach((fn) => {
@@ -332,6 +346,22 @@ export default function({
 
     getValidator(name) {
       return validators[name];
+    },
+
+    /**
+     * Return the UI configuration for the given type and location
+     */
+    getUIConfig(typeName, location) {
+      const uc = uiConfig[typeName] || {};
+
+      return uc[location] || [];
+    },
+
+    /**
+     * Returns all UI Configuration (useful for debugging)
+     */
+    getAllUIConfig() {
+      return uiConfig;
     },
 
     // Timestamp that a UI package was last loaded
