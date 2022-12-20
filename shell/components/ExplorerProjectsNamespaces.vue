@@ -11,7 +11,6 @@ import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { hasPSALabels, getPSATooltipsDescription } from '@shell/utils/pod-security-admission';
 import { values } from 'lodash';
 
 export default {
@@ -237,16 +236,8 @@ export default {
     }
   },
   methods: {
-    /**
-     * Check if resource contains PSA labels
-     * @param {*} row HciNamespace
-     */
-    hasPSA(row) {
-      return hasPSALabels(row);
-    },
-
     getPSA(row) {
-      const dictionary = getPSATooltipsDescription(row);
+      const dictionary = row.getPSATooltipsDescription();
       const list = values(dictionary).map(text => `<li>${ text }</li>`).join('');
 
       return `<ul class="mr-30">${ list }</ul>`;
@@ -411,7 +402,7 @@ export default {
           {{ row.name }}
         </n-link>
         <i
-          v-if="hasPSA(row)"
+          v-if="row.hasPSALabels"
           v-tooltip="getPSA(row)"
           class="icon icon-lock"
         />

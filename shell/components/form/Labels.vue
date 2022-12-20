@@ -1,7 +1,6 @@
 <script>
 import KeyValue from '@shell/components/form/KeyValue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { getPSALabels } from '@shell/utils/pod-security-admission';
 
 export default {
   components: {
@@ -59,12 +58,6 @@ export default {
       return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
     },
 
-    /**
-     * Generate list of present keys which can be filtered based on existing label keys and system keys
-     */
-    protectedKeys() {
-      return getPSALabels(this.value);
-    },
   }
 };
 </script>
@@ -76,7 +69,7 @@ export default {
           <t k="labels.labels.title" />
         </h2>
         <ToggleSwitch
-          v-if="protectedKeys.length"
+          v-if="value.getPSALabels.length"
           v-model="toggler"
           name="label-system-toggle"
           :on-label="t('labels.labels.show')"
@@ -89,7 +82,7 @@ export default {
         <KeyValue
           key="labels"
           :value="value.labels"
-          :protected-keys="protectedKeys"
+          :protected-keys="value.getPSALabels"
           :toggle-filter="toggler"
           :add-label="t('labels.addLabel')"
           :mode="mode"

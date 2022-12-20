@@ -14,7 +14,6 @@ import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
 import { PSAIconsDisplay } from '@shell/config/pod-security-admission';
-import { getPSATooltipsDescription } from '@shell/utils/pod-security-admission';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -226,13 +225,13 @@ export default {
     if ( this.mode === _CREATE ) {
       this.value.applyDefaults(this, realMode);
     }
-    this.tooltipsDescription = getPSATooltipsDescription(this.liveModel);
+    this.tooltipsDescription = this.value.getPSATooltipsDescription(this.liveModel);
   },
   data() {
     return {
       chartData:           null,
       resourceSubtype:     null,
-      tooltipsDescription: getPSATooltipsDescription(this.value),
+      tooltipsDescription: null,
       iconsDisplay:        PSAIconsDisplay,
 
       // Set by fetch

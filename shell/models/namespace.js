@@ -10,6 +10,8 @@ import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import Vue from 'vue';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
+import { PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
@@ -209,6 +211,28 @@ export default class Namespace extends SteveModel {
 
   set resourceQuota(value) {
     Vue.set(this.metadata.annotations, RESOURCE_QUOTA, JSON.stringify(value));
+  }
+
+  /**
+   * Check if resource contains PSA labels
+   */
+  get hasPSALabels() {
+    return hasPSALabels(this);
+  }
+
+  get getPSALabelsNamespaceVersion() {
+    return PSALabelsNamespaceVersion;
+  }
+
+  /**
+     * Generate list of present keys which can be filtered based on existing label keys and system keys
+     */
+  get getPSALabels() {
+    return getPSALabels(this);
+  }
+
+  getPSATooltipsDescription(value = this) {
+    return getPSATooltipsDescription(value);
   }
 
   // Preserve the project label - ensures we preserve project when cloning a namespace

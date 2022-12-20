@@ -3,7 +3,6 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
-import { PSALabelsNamespaceVersion } from '~/shell/config/pod-security-admission';
 import { pickBy } from 'lodash';
 
 export const SEPARATOR = { separator: true };
@@ -100,7 +99,7 @@ export default {
     },
 
     filteredLabels() {
-      return pickBy(this.labels, (_, key) => !PSALabelsNamespaceVersion.includes(key));
+      return pickBy(this.labels, (_, key) => !this.value.getPSALabelsNamespaceVersion.includes(key));
     },
 
     annotations() {
