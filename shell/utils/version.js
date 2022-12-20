@@ -4,7 +4,6 @@ import { MANAGEMENT } from '@shell/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@shell/store/prefs';
 
 const DOCS_BASE = 'https://docs.ranchermanager.rancher.io';
-const LATEST_DOCS_VERSION = 'v2.7'; // this is the doc version used when none is specified in the url
 
 export function parse(str) {
   str = `${ str }`;
@@ -104,10 +103,12 @@ export function getVersionInfo(store) {
 export function getDocsBase(store) {
   const version = getVersionInfo(store)?.displayVersion;
 
+  const latestDocsVersion = store.getters['management/latestDocsVersion'] || version;
+
   let docsVersion = '';
 
   // -head and rc builds should just link to the latest docs
-  if (version && (!version.match(/v([0-9]|\.)+$/) || semver.gte(version, semver.coerce(LATEST_DOCS_VERSION)))) {
+  if (version && (!version.match(/v([0-9]|\.)+$/) || semver.gte(version, semver.coerce(latestDocsVersion)))) {
     return DOCS_BASE;
   }
 

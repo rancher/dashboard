@@ -610,6 +610,7 @@ export const actions = {
     } catch (e) {
       // Maybe not Rancher
     }
+    dispatch('management/findLatestVersion');
 
     let res = await allHashSettled({
       mgmtSubscribe:  dispatch('management/subscribe'),

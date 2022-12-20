@@ -11,7 +11,7 @@ export const coreStoreModule = {
   namespaced: true,
 
   state() {
-    return { ...coreStoreState() };
+    return { ...coreStoreState(), latestDocsVersion: '' };
   },
 
   getters: { ...getters },

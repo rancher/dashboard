@@ -615,5 +615,26 @@ export default {
 
   gcResetStore({ state }) {
     garbageCollect.gcResetStore(state);
-  }
+  },
+
+  // the doc url for the latest rancher version does not have a hardcoded version: check if this is the latest major/minor version and set the rancher doc url accordingly
+  async findLatestVersion({ commit, dispatch }) {
+    try {
+      const res = await dispatch('request', {
+        url:                  `https://api.github.com/repos/rancher/rancher/releases/latest`,
+        method:               'GET',
+        headers:              { accept: 'application/json' },
+        redirectUnauthorized: false,
+        withCredentials:      false,
+        excludeCookies:       true
+      });
+
+      const version = res.tag_name;
+
+      commit('setDocsBase', version );
+    } catch {
+      // eslint-disable-next-line no-console
+      console.log('unable to determine latest rancher version...using default documentation versioning');
+    }
+  },
 };
