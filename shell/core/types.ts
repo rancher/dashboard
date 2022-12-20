@@ -35,6 +35,11 @@ export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => 
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
 
+export const UI_CONFIG_HEADER_ACTION = 'header-action';
+export const UI_CONFIG_TAB = 'tab';
+
+export type IAction = any;
+
 /**
  * Interface for a Dashboard plugin
  */
@@ -72,6 +77,11 @@ export interface IPlugin {
    */
   addRoute(route: RouteConfig): void;
   addRoute(parent: string, route: RouteConfig): void;
+
+  /**
+   * Adds a UI action for an extension to a particular area of the UI
+   */
+  addUIAction(type: string, location: string, action: IAction): void;
 
   /**
    * Set the component to use for the landing home page
