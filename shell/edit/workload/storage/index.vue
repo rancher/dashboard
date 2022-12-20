@@ -8,6 +8,8 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { randomStr } from '@shell/utils/string';
 
 export default {
+  name: 'Storage',
+
   components: {
     ArrayListGrouped, ButtonDropdown, Mount, CodeMirror
   },
