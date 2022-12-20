@@ -452,6 +452,7 @@ export default {
               :value="!!hideSensitiveData"
               icon-size="lg"
               :options="sensitiveOptions"
+              class="mr-10"
               @input="toggleSensitiveData"
             />
 
@@ -459,6 +460,7 @@ export default {
               v-if="viewOptions && isView"
               v-model="currentView"
               :options="viewOptions"
+              class="mr-10"
             />
 
             <button
@@ -466,7 +468,7 @@ export default {
               ref="actions"
               aria-haspopup="true"
               type="button"
-              class="btn role-multi-action actions ml-10"
+              class="btn role-multi-action actions"
               @click="showActions"
             >
               <i class="icon icon-actions" />
