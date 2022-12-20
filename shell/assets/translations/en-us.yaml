@@ -7,6 +7,7 @@ generic:
   and: ' and '
   back: Back
   cancel: Cancel
+  confirm: Confirm
   clear: Clear
   clearAll: Clear All
   close: Close
@@ -4125,7 +4126,7 @@ promptRemove:
   deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
   willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
   confirmRelatedResource: "Deleting the {type} will remove all the resources on this particular {type} and this is not revertable, are you sure you want to continue deleting {names}?"
-  promptConfirmation: "Don't prompt again for confirmation when scaling down"
+  promptConfirmation: "Do not prompt again for confirmation when scaling down."
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"

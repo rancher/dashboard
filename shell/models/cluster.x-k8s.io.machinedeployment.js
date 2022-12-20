@@ -6,6 +6,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
+import { isAlternate } from '@shell/utils/platform';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
@@ -100,29 +101,28 @@ export default class CapiMachineDeployment extends SteveModel {
     return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
   }
 
-  toggleScaleDownModal(resources = this) {
-    console.log(resources);
-    this.$dispatch('promptModal', {
-      component:  'ScalePoolDownDialog',
-      resources,
-      modalWidth: '750px'
-    });
+  toggleScaleDownModal( event, showScalePoolPrompt, resources = this ) {
+    const alt = isAlternate(event);
+
+    if (!alt && !showScalePoolPrompt) {
+      this.$dispatch('promptModal', {
+        component:  'ScalePoolDownDialog',
+        resources,
+        modalWidth: '750px'
+      });
+    } else {
+      // User held alt key, so don't prompt
+      this.scalePool(-1);
+    }
   }
 
   scalePool(delta, save = true, depth = 0) {
-    console.log(delta);
     // This is used in different places with different scaling rules, so don't check if we can/cannot scale
     if (!this.inClusterSpec) {
       return;
     }
 
     const initialValue = this.cluster.toJSON();
-
-    if (delta === -1) {
-      console.log('machine -1');
-
-      return;
-    }
 
     this.inClusterSpec.quantity += delta;
 

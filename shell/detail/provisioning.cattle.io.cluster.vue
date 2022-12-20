@@ -180,7 +180,9 @@ export default {
     }
   },
 
-  data() {
+  data( { $cookies } ) {
+    const scalePoolPrompt = $cookies.get('scalePoolPrompt');
+
     return {
 
       allMachines:           [],
@@ -204,7 +206,8 @@ export default {
       logSocket: null,
       logs:      [],
 
-      showWindowsWarning: false
+      showWindowsWarning:  false,
+      showScalePoolPrompt: scalePoolPrompt
     };
   },
 
@@ -693,7 +696,7 @@ export default {
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.toggleScaleDownModal()"
+                    @click="group.ref.toggleScaleDownModal($event, showScalePoolPrompt)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
