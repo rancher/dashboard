@@ -82,6 +82,10 @@ export default {
     },
   },
 
+  data() {
+    return { DETAIL_VIEW: _DETAIL };
+  },
+
   computed: {
     schema() {
       const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
@@ -435,7 +439,7 @@ export default {
         <div class="actions-container">
           <div class="actions">
             <button
-              v-if="detailsAction && currentView === 'detail' && isView"
+              v-if="detailsAction && currentView === DETAIL_VIEW && isView"
               type="button"
               class="btn role-primary actions mr-10"
               :disabled="!detailsAction.enabled"
@@ -462,7 +466,7 @@ export default {
               ref="actions"
               aria-haspopup="true"
               type="button"
-              class="btn role-multi-action actions"
+              class="btn role-multi-action actions ml-10"
               @click="showActions"
             >
               <i class="icon icon-actions" />
@@ -545,6 +549,12 @@ export default {
     .right-half {
       grid-column: 2;
     }
+  }
+
+  div.actions-container > div.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
   }
 
 </style>
