@@ -3,7 +3,7 @@ import semver from 'semver';
 import { MANAGEMENT } from '@shell/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@shell/store/prefs';
 
-const DOCS_BASE = 'https://docs.ranchermanager.rancher.io';
+const DOCS_BASE = 'https://ranchermanager.docs.rancher.com';
 
 export function parse(str) {
   str = `${ str }`;
