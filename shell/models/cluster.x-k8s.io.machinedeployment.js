@@ -108,7 +108,7 @@ export default class CapiMachineDeployment extends SteveModel {
       this.$dispatch('promptModal', {
         component:  'ScalePoolDownDialog',
         resources,
-        modalWidth: '750px'
+        modalWidth: '450px'
       });
     } else {
       // User held alt key, so don't prompt
