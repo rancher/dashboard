@@ -15,5 +15,7 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '14.x'
+    - name: Install packages
+      run: yarn install
     - name: script
       run: .github/workflows/scripts/publish-storybook
