@@ -4,8 +4,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@shell/store/prefs';
 
 const DOCS_BASE = 'https://docs.ranchermanager.rancher.io';
-// TODO update once 2.7 docs are available
-const LATEST_DOCS_VERSION = 'v2.6'; // this is the doc version used when none is specified in the url
+const LATEST_DOCS_VERSION = 'v2.7'; // this is the doc version used when none is specified in the url
 
 export function parse(str) {
   str = `${ str }`;
