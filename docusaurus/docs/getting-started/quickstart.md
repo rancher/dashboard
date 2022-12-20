@@ -2,7 +2,7 @@
 
 ## Running for Development
 
-To get started running the UI fro development:
+To get started running the UI for development:
 
 Run:
 
