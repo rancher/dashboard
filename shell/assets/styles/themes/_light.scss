@@ -315,6 +315,7 @@ BODY, .theme-light {
   --header-bg                  : #{$lightest};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$darkest};
+  --header-btn-text-hover      : #{$lightest};
   --header-input-text          : #{$darkest};
   --header-height              : 55px;
   --header-border              : #{$medium};

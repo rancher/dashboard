@@ -63,6 +63,11 @@ const DARK_CONTRAST_COLORS = {
 
 };
 
+const STANDARD_COLORS = {
+  black: '#000000',
+  white: '#ffffff',
+};
+
 // contrastColor(color, {light, dark}) returns which of 2 options is higher contrast with color
 export function contrastColor(color, contrastOptions = LIGHT_CONTRAST_COLORS) {
   let out = contrastOptions.light;
@@ -89,4 +94,18 @@ export function textColor(color) {
                       (parseInt(rgb[2]) * 114)) / 1000);
 
   return (brightness > 125) ? 'black' : 'white';
+}
+
+export function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+export function mapStandardColors(color) {
+  return STANDARD_COLORS[color] || color;
 }
