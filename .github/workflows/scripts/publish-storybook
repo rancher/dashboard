@@ -1,13 +1,7 @@
 #!/bin/bash
 DIST=publish-storybook
-DIR=${GITHUB_WORKSPACE}
 
 echo "Building and publishing Storybook"
-
-if [ -z "${GITHUB_WORKSPACE}" ]; then
-  echo "Missing environment variable GITHUB_WORKSPACE"
-  exit 1
-fi
 
 if [ -z "${STORYBOOK_TOKEN}" ]; then
   echo "Missing environment variable STORYBOOK_TOKEN"
@@ -34,7 +28,7 @@ rm *.txt
 rm *.map
 popd
 
-cp -R ${DIR}/storybook-static/* ${DIST}/docs
+cp -R ./storybook-static/* ${DIST}/docs
 
 MSG=$(git log -1  --pretty='%s')
 echo $MSG
@@ -48,8 +42,6 @@ cd ${DIST}
 git add -A
 git commit -m "Storybook Update: ${MSG}"
 git push origin
-
-popd > /dev/null
 
 rm -rf ~/.ssh/id_rsa_storybook.github
 
