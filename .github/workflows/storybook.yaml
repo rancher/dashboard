@@ -11,7 +11,6 @@ on:
       - 'release-*'      
 jobs:
   storybook:
-    if: github.repository_owner == 'rancher'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -25,5 +24,5 @@ jobs:
       run: |
         yarn build-storybook
     - name: Publish Storybook
-      if: ${{ github.event_name == 'push' }}     
+      if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher'}}
       run: .github/workflows/scripts/publish-storybook
