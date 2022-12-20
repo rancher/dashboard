@@ -351,7 +351,7 @@ export default {
                   :icon="a.icon"
                   :src="a.svg"
                 />
-                <div>{{ a.label }}</div>                
+                <div>{{ a.label }}</div>
               </nuxt-link>
             </div>
           </template>
@@ -372,7 +372,7 @@ export default {
                   :icon="a.icon"
                   :src="a.svg"
                 />
-                <div>{{ a.label }}</div>                
+                <div>{{ a.label }}</div>
               </nuxt-link>
             </div>
           </template>
@@ -393,7 +393,7 @@ export default {
                   :icon="a.icon"
                   :src="a.svg"
                 />
-                <div>{{ a.label }}</div>                
+                <div>{{ a.label }}</div>
               </nuxt-link>
             </div>
           </template>
