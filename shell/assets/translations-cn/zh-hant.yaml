@@ -3242,7 +3242,7 @@ monitoringReceiver:
       signatureNamePlaceholder: 簽名管理中配置的簽名名稱
       templateCodeLabel: 模版 CODE
       templateCodePlaceholder: 模版管理中配置的模版對應的 CODE
-    banner: 要使用Ding Talk、阿里雲短信或MS Teams，你需要先安裝<pre class="inline-block m-0 p-0 vertical-middle">pandaria-alerting-drivers</pre>。
+    banner: 要使用 Ding Talk 或阿里雲短信，你需要先安裝 <pre class="inline-block m-0 p-0 vertical-middle">pandaria-alerting-drivers</pre> 实例。
     dingTalk:
       secretLabel: 密鑰
       secretPlaceholder: 僅在選擇“加簽”時需要填寫

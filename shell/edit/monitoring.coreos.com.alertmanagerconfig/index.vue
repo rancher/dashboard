@@ -52,6 +52,14 @@ export default {
     const routeSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_ROUTE_SPEC);
     const receiverOptions = (this.value?.spec?.receivers || []).map(receiver => receiver.name);
 
+    receiverSchema.resourceFields.pandariaWebhookConfigs = {
+      type:        'array[monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers.webhookConfigs]',
+      nullable:    true,
+      create:      true,
+      update:      true,
+      description: 'List of pandaria webhook configurations.'
+    };
+
     return {
       actionMenuTargetElement:  null,
       actionMenuTargetEvent:    null,

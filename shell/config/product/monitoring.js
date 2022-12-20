@@ -69,7 +69,9 @@ export function init(store) {
           slack_configs:     { type: `array[${ RECEIVER_SLACK }]` },
           pagerduty_configs: { type: `array[${ RECEIVER_PAGERDUTY }]` },
           opsgenie_configs:  { type: `array[${ RECEIVER_OPSGENIE }]` },
-          webhook_configs:   { type: `array[${ RECEIVER_WEBHOOK }]` }
+          webhook_configs:   { type: `array[${ RECEIVER_WEBHOOK }]` },
+
+          pandaria_webhook_configs: { type: `array[${ RECEIVER_WEBHOOK }]` }
         }
       },
       {

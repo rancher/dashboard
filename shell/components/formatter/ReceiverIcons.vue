@@ -1,6 +1,8 @@
 <script>
 import { RECEIVERS_TYPES } from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/receiverConfig.vue';
 import { MONITORING } from '@shell/config/types';
+import { PANDARIA_WEBHOOK_URL } from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/types/pandariaWebhook.vue';
+
 export default {
   props:      {
     value: {
@@ -48,6 +50,22 @@ export default {
   methods: {
     // get count and logo for each type configured in a given receiver
     getReceiverTypes(receiver) {
+      receiver = JSON.parse(JSON.stringify(receiver));
+      if (receiver.webhookConfigs && receiver.webhookConfigs.length) {
+        const webhookConfigs = [];
+        const pandariaWebhookConfigs = receiver.pandariaWebhookConfigs || [];
+
+        receiver.webhookConfigs.forEach((i) => {
+          if (i?.url.startsWith(PANDARIA_WEBHOOK_URL)) {
+            pandariaWebhookConfigs.push(i);
+          } else {
+            webhookConfigs.push(i);
+          }
+        });
+
+        receiver.webhookConfigs = webhookConfigs;
+        receiver.pandariaWebhookConfigs = pandariaWebhookConfigs;
+      }
       // iterate through predefined types and sum the number configured in this receiver
       const types = RECEIVERS_TYPES
         .reduce((types, type) => {

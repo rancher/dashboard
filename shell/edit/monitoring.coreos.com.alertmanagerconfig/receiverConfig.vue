@@ -50,6 +50,15 @@ export const RECEIVERS_TYPES = [
     title:        'monitoringReceiver.webhook.title',
     key:          'webhookConfigs',
     logo:         require(`@shell/assets/images/vendor/webhook.svg`),
+
+    pandariaLabel: 'monitoringReceiver.pandariaWebhook.label',
+  },
+  {
+    name:         'pandariaWebhook',
+    label:        'monitoringReceiver.pandariaWebhook.label',
+    title:        'monitoringReceiver.pandariaWebhook.title',
+    key:          'pandariaWebhookConfigs',
+    logo:         require(`@shell/assets/images/vendor/webhook.svg`),
   },
   {
     name:  'custom',
@@ -120,6 +129,14 @@ export default {
      * }
      */
     const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
+
+    receiverSchema.resourceFields.pandariaWebhookConfigs = {
+      type:        'array[monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers.webhookConfigs]',
+      nullable:    true,
+      create:      true,
+      update:      true,
+      description: 'List of pandaria webhook configurations.'
+    };
 
     // debugger;
 
@@ -247,10 +264,10 @@ export default {
     :resource="alertmanagerConfigResource"
     :subtypes="[]"
     :can-yaml="true"
-    :errors="errors"
+    :errors="alertmanagerConfigResource.errors"
     :cancel-event="true"
     @error="e=>errors = e"
-    @finish="saveOverride()"
+    @finish="saveOverride"
     @cancel="redirectAfterCancel"
   >
     <div class="row mb-10">

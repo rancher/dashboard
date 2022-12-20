@@ -109,16 +109,18 @@ export default {
     // Pandaria extra webhook
     Object.keys(this.value.spec).forEach((key) => {
       if (key === WEBHOOKKEY && this.value.spec[key]?.length > 0) {
-        const newData = [];
+        const webhookConfigs = [];
+        const pandariaWebhookConfigs = [];
 
         this.value.spec[key].forEach((item) => {
           if (item?.url?.startsWith(PANDARIAWEBHOOKURL)) {
-            suffix[PANDARIAWEBHOOKKEY]?.push(item);
+            pandariaWebhookConfigs.push(item);
           } else {
-            newData.push(item);
+            webhookConfigs.push(item);
           }
         });
-        this.value.spec[key] = newData;
+        this.value.spec[key] = webhookConfigs;
+        this.value.spec.pandaria_webhook_configs = pandariaWebhookConfigs;
       }
     });
 

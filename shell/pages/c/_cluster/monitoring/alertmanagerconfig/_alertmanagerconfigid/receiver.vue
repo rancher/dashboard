@@ -11,6 +11,8 @@ import {
 } from '@shell/config/query-params';
 
 import { clone } from '@shell/utils/object';
+import { loadAlertingConfig, updateDriverV2 } from '@shell/utils/alertmanagerconfig';
+import { PANDARIA_WEBHOOK_URL } from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/types/pandariaWebhook.vue';
 
 export default {
   name:       'AlertmanagerConfigReceiverCreateEdit',
@@ -22,6 +24,7 @@ export default {
   },
 
   async fetch() {
+    this.alertingDrivers = await loadAlertingConfig(this.$store.dispatch);
     const inStore = this.$store.getters['currentProduct'].inStore;
 
     this.receiverName = this.$route.query.receiverName;
@@ -37,6 +40,8 @@ export default {
       });
 
       if (existingReceiverData) {
+        this.initPandariaReceivers(existingReceiverData);
+
         this.receiverValue = existingReceiverData;
       }
     }
@@ -157,6 +162,43 @@ export default {
     // AlertmanagerConfig resource and pass it into the
     // receiver config form.
     saveOverride(buttonDone) {
+      const receivers = this.alertmanagerConfigResource?.spec?.receivers || [];
+      const errors = [];
+
+      if (receivers.find(item => !item.name)) {
+        errors.push(this.t('validation.required', { key: this.t('generic.name') }, true));
+      }
+
+      receivers.forEach((receiver) => {
+        if (receiver.pandariaWebhookConfigs?.length) {
+          receiver.pandariaWebhookConfigs.forEach((c) => {
+            if (c.type === 'ALIYUN_SMS') {
+              if (!c.http_config.access_key_id) {
+                errors.push(this.t('validation.required', { key: this.t('monitoringReceiver.pandariaWebhook.aliyunSMS.accessKeyIdLabel') }, true));
+              }
+              if (!c.http_config.access_key_secret) {
+                errors.push(this.t('validation.required', { key: this.t('monitoringReceiver.pandariaWebhook.aliyunSMS.accessKeySecretLabel') }, true));
+              }
+              if (!c.http_config.template_code) {
+                errors.push(this.t('validation.required', { key: this.t('monitoringReceiver.pandariaWebhook.aliyunSMS.templateCodeLabel') }, true));
+              }
+              if (!c.http_config.sign_name) {
+                errors.push(this.t('validation.required', { key: this.t('monitoringReceiver.pandariaWebhook.aliyunSMS.signatureNameLabel') }, true));
+              }
+            } else if (!c.webhook_url) {
+              errors.push(this.t('validation.required', { key: 'URL' }, true));
+            }
+          });
+        }
+      });
+
+      this.$set(this.alertmanagerConfigResource, 'errors', errors);
+
+      if (this.alertmanagerConfigResource.errors.length) {
+        buttonDone(false);
+
+        return;
+      }
       if (this.alertmanagerConfigResource.yamlError) {
         this.alertmanagerConfigResource.errors = this.alertmanagerConfigResource.errors || [];
         this.alertmanagerConfigResource.errors.push(this.alertmanagerConfigResource.yamlError);
@@ -166,8 +208,82 @@ export default {
         return;
       }
 
+      this.updatePandariaWebhookConfigs();
       this.alertmanagerConfigResource.save(...arguments);
       this.redirectToAlertmanagerConfigDetail();
+    },
+    updatePandariaWebhookConfigs() {
+      const alertmanagerConfigResource = this.alertmanagerConfigResource;
+      const receivers = alertmanagerConfigResource?.spec?.receivers || [];
+
+      updateDriverV2(receivers, this.$store.dispatch);
+
+      receivers.forEach((r) => {
+        if (r.pandariaWebhookConfigs && r.pandariaWebhookConfigs.length) {
+          const config = r.pandariaWebhookConfigs.map((c, index) => {
+            const nameKey = `${ r.name }-${ index }`;
+
+            return {
+              url:          `${ PANDARIA_WEBHOOK_URL }${ nameKey }`,
+              sendResolved: c.sendResolved,
+            };
+          });
+
+          if (!r.webhookConfigs) {
+            r.webhookConfigs = config;
+          } else {
+            r.webhookConfigs = r.webhookConfigs.concat(config);
+          }
+        }
+      });
+    },
+    initPandariaReceivers(receiver = {}) {
+      const { config: alertingSecretConfig } = this.alertingDrivers;
+
+      if (receiver.webhookConfigs && receiver.webhookConfigs.length) {
+        const webhookConfigs = [];
+        const pandariaWebhookConfigs = receiver.pandariaWebhookConfigs || [];
+
+        receiver.webhookConfigs.forEach((i) => {
+          if (i?.url.startsWith(PANDARIA_WEBHOOK_URL)) {
+            const nameKey = i.url.replace(PANDARIA_WEBHOOK_URL, '');
+            const provider = alertingSecretConfig.providers[nameKey] || {};
+            const receiver = alertingSecretConfig.receivers[nameKey] || {};
+            let config = {};
+
+            if (provider.type === 'DINGTALK') {
+              config = {
+                http_config: {
+                  proxy_url: provider.proxy_url,
+                  secret:    provider.secret,
+                },
+                webhook_url:   provider.webhook_url,
+                sendResolved: i.sendResolved || false,
+                type:         'DINGTALK',
+              };
+            } else if (provider.type === 'ALIYUN_SMS') {
+              config = {
+                http_config: {
+                  access_key_id:     provider.access_key_id,
+                  access_key_secret: provider.access_key_secret,
+                  template_code:     provider.template_code,
+                  sign_name:         provider.sign_name,
+                  phone:             receiver.to || [],
+                },
+                sendResolved: i.sendResolved || false,
+                type:         'ALIYUN_SMS',
+              };
+            }
+
+            pandariaWebhookConfigs.push(config);
+          } else {
+            webhookConfigs.push(i);
+          }
+        });
+
+        receiver.webhookConfigs = webhookConfigs;
+        receiver.pandariaWebhookConfigs = pandariaWebhookConfigs;
+      }
     },
     handleButtonGroupClick(event) {
       if (event === this.yaml) {

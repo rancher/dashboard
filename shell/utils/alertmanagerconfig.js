@@ -257,8 +257,8 @@ function extractAlertingConfig(secret) {
 }
 
 function getAlertingDrivers(data, alertingSecretConfig) {
-  const receivers = {};
-  const providers = {};
+  const receivers = alertingSecretConfig.receivers || {};
+  const providers = alertingSecretConfig.providers || {};
   let enableUpdate = false;
 
   if (data?.length > 0) {
@@ -312,6 +312,103 @@ function getAlertingDrivers(data, alertingSecretConfig) {
     providers
   });
   const encodedFile = base64Encode(newFile);
+
+  return {
+    encodedFile,
+    enableUpdate
+  };
+}
+
+export async function updateDriverV2(receivers, dispatch) {
+  const { secret: alertingSecret, config: alertingSecretConfig } = await loadAlertingConfig(dispatch);
+  const { encodedFile: alertingDriversFile, enableUpdate } = getAlertingDriversV2(receivers, alertingSecretConfig);
+
+  if (alertingSecret) {
+    if (enableUpdate) {
+      alertingSecret.data[ALERTINGSECRETFILENAME] = alertingDriversFile;
+      alertingSecret.data[NOTIFICATIONTMPLKEY] = base64Encode(NOTIFICATIONTMPLVALUE);
+    } else {
+      const emptyFile = jsyaml.dump({
+        receivers: {},
+        providers: {}
+      });
+      const encodedEmptyFileFile = base64Encode(emptyFile);
+
+      alertingSecret.data[ALERTINGSECRETFILENAME] = encodedEmptyFileFile;
+    }
+  }
+
+  await alertingSecret.save();
+}
+
+function getAlertingDriversV2(data = [], alertingSecretConfig) {
+  const receivers = alertingSecretConfig.receivers || {};
+  const providers = alertingSecretConfig.providers || {};
+  let enableUpdate = false;
+
+  data.forEach((r) => {
+    if (r.webhookConfigs) {
+      enableUpdate = true;
+      r.webhookConfigs.forEach((c, index) => {
+        if (c.url?.startsWith(PANDARIAWEBHOOKURL)) {
+          enableUpdate = true;
+          const key = c.url.replace(PANDARIAWEBHOOKURL, '');
+
+          receivers[key] = alertingSecretConfig.receivers[key];
+          providers[key] = alertingSecretConfig.providers[key];
+        }
+      });
+    }
+    if (r.pandariaWebhookConfigs && r.pandariaWebhookConfigs.length) {
+      enableUpdate = true;
+      r.pandariaWebhookConfigs.forEach((c, index) => {
+        const nameKey = `${ r.name }-${ index }`;
+        const phone = c?.http_config?.phone || [];
+        let receiver = {};
+        let provider = {};
+
+        if (c.type === 'ALIYUN_SMS') {
+          receiver = { provider: nameKey };
+          const to = [];
+
+          if (phone.length) {
+            to.push(...phone);
+            delete c.http_config.phone;
+          }
+
+          receiver = {
+            provider: nameKey,
+            to:       to.length ? to : undefined,
+          };
+
+          provider = {
+            type:              'ALIYUN_SMS',
+            access_key_id:     c.http_config.access_key_id,
+            access_key_secret: c.http_config.access_key_secret,
+            template_code:     c.http_config.template_code,
+            sign_name:         c.http_config.sign_name,
+          };
+        } else {
+          receiver = { provider: nameKey };
+
+          provider = {
+            type:        'DINGTALK',
+            webhook_url: c.webhook_url,
+            proxy_url:   c.http_config.proxy_url,
+            secret:      c.http_config.secret,
+          };
+        }
+
+        receivers[nameKey] = receiver;
+        providers[nameKey] = provider;
+      });
+    }
+  });
+
+  const encodedFile = base64Encode(jsyaml.dump({
+    receivers,
+    providers,
+  }));
 
   return {
     encodedFile,
