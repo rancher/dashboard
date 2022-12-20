@@ -25,7 +25,12 @@ const sidebars = {
     {
       type:  'category',
       label: 'Getting Started',
-      items: ['getting-started/concepts', 'getting-started/development_environment', 'getting-started/ui-walkthrough'],
+      items: [
+        'getting-started/quickstart',
+        'getting-started/concepts',
+        'getting-started/development_environment',
+        'getting-started/ui-walkthrough'
+      ],
     },
     {
       type:  'category',
