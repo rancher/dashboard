@@ -1563,6 +1563,7 @@ cluster:
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
+    haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
 
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
@@ -1731,8 +1732,9 @@ cluster:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
-    defaultPodSecurityAdmissionTemplateName:
+    defaultPodSecurityAdmissionConfigurationTemplateId:
       label: Default Pod Security Admission
+      option: RKE2 Default
     enableNetworkPolicy:
       label: Project Network Isolation
       warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.

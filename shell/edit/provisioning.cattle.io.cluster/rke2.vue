@@ -138,6 +138,10 @@ export default {
         hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
       }
 
+      if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
+        hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+      }
+
       // Get the latest versions from the global settings if possible
       const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
       const defaultRke2Setting = globalSettings.find(setting => setting.id === 'rke2-default-version') || {};
@@ -158,7 +162,7 @@ export default {
 
       const res = await allHash(hash);
 
-      this.allPSPs = res.allPSPs || [];
+      this.allPSAs = res.allPSAs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
 
@@ -232,6 +236,11 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
+    // TODO: Check if conditionally required to set empty value
+    if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateId === undefined ) {
+      set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateId', '');
+    }
+
     await this.initAddons();
     await this.initRegistry();
 
@@ -272,6 +281,7 @@ export default {
       loadedOnce:                      false,
       lastIdx:                         0,
       allPSPs:                         null,
+      allPSAs:                         null,
       nodeComponent:                   null,
       credentialId:                    null,
       credential:                      null,
@@ -330,9 +340,21 @@ export default {
       return this.value.agentConfig;
     },
 
+    needsPSA() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const isRKE2 = release.includes('rke2');
+      const version = release.match(/\d+/g);
+      const needsPSA = version ? version[0] > +1 || version[1] >= +25 : false;
+
+      return isRKE2 && needsPSA;
+    },
+
     // kubeletConfigs() {
     //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
     // },
+    /**
+     * Check if k8s release version used is RKE2 ^1.25
+     */
 
     unsupportedSelectorConfig() {
       let global = 0;
@@ -397,6 +419,14 @@ export default {
           out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
         }
 
+        // TODO: Remove this after fetching real value
+        out.push({
+          label:      'v1.25.7+rke2r1',
+          value:      'v1.25.7+rke2r1',
+          serverArgs: {},
+          agentArgs:  {}
+        });
+
         out.push(...allValidK3sVersions);
       }
 
@@ -444,6 +474,33 @@ export default {
       }
 
       const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
+    /**
+     * Convert PSA templates into options, sorting and flagging if any selected
+     */
+    psaOptions() {
+      if ( !this.needsPSA ) {
+        return null;
+      }
+      const out = [{ label: this.t(`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateId.option`), value: '' }];
+
+      if ( this.allPSAs ) {
+        for ( const psa of this.allPSAs ) {
+          out.push({
+            label: psa.nameDisplay,
+            value: psa.id,
+          });
+        }
+      }
+      // TODO: Check if spec key is correct
+      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateId;
 
       if ( cur && !out.find(x => x.value === cur) ) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
@@ -512,11 +569,7 @@ export default {
     },
 
     haveArgInfo() {
-      if ( this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs ) {
-        return true;
-      }
-
-      return false;
+      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
     },
 
     serverArgs() {
@@ -1748,6 +1801,7 @@ export default {
         {{ appsOSWarning }}
       </Banner>
 
+      <!-- Pools Extras -->
       <template v-if="hasMachinePools">
         <div class="clearfix">
           <h2
@@ -1781,6 +1835,7 @@ export default {
           </div>
         </div>
 
+        <!-- Extra Tabs for Machine Pool -->
         <Tabbed
           ref="pools"
           :side-tabs="true"
@@ -1816,11 +1871,13 @@ export default {
         <div class="spacer" />
       </template>
 
+      <!-- Cluster Tabs -->
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed
         :side-tabs="true"
         class="min-height"
       >
+        <!-- Basic -->
         <Tab
           name="basic"
           label-key="cluster.tabs.basic"
@@ -1830,7 +1887,7 @@ export default {
           <Banner
             v-if="!haveArgInfo"
             color="warning"
-            label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor."
+            :label="t('cluster.banner.haveArgInfo')"
           />
           <Banner
             v-if="showk8s21LegacyWarning"
@@ -1928,14 +1985,26 @@ export default {
           </h3>
           <div class="row">
             <div class="col span-6">
+              <!-- PSP template selector -->
               <LabeledSelect
-                v-if="pspOptions"
+                v-if="pspOptions && !needsPSA"
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+                data-testid="rke2-custom-edit-psa"
                 :mode="mode"
                 :options="pspOptions"
                 :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
               />
+
+              <!-- PSA template selector -->
+              <LabeledSelect
+                v-if="psaOptions && needsPSA"
+                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateId"
+                :mode="mode"
+                :options="psaOptions"
+                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateId.label')"
+              />
             </div>
+
             <div
               v-if="showCisProfile"
               class="col span-6"
@@ -2010,6 +2079,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Member Roles -->
         <Tab
           v-if="canManageMembers"
           name="memberRoles"
@@ -2029,6 +2099,7 @@ export default {
           />
         </Tab>
 
+        <!-- etcd -->
         <Tab
           name="etcd"
           label-key="cluster.tabs.etcd"
@@ -2106,6 +2177,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Networking -->
         <Tab
           v-if="haveArgInfo"
           name="networking"
@@ -2207,6 +2279,7 @@ export default {
           />
         </Tab>
 
+        <!-- Upgrade -->
         <Tab
           name="upgrade"
           label-key="cluster.tabs.upgrade"
@@ -2251,6 +2324,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Registries -->
         <Tab
           name="registry"
           label-key="cluster.tabs.registry"
@@ -2334,6 +2408,7 @@ export default {
           </template>
         </Tab>
 
+        <!-- Add-on Config -->
         <Tab
           name="addons"
           label-key="cluster.tabs.addons"
@@ -2397,6 +2472,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Advanced -->
         <Tab
           v-if="haveArgInfo || agentArgs['protect-kernel-defaults']"
           name="advanced"
