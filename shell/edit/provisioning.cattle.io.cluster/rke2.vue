@@ -281,7 +281,7 @@ export default {
       loadedOnce:                      false,
       lastIdx:                         0,
       allPSPs:                         null,
-      allPSAs:                         null,
+      allPSAs:                         [],
       nodeComponent:                   null,
       credentialId:                    null,
       credential:                      null,
@@ -344,7 +344,7 @@ export default {
       const release = this.value?.spec?.kubernetesVersion || '';
       const isRKE2 = release.includes('rke2');
       const version = release.match(/\d+/g);
-      const needsPSA = version ? version[0] > +1 || version[1] >= +25 : false;
+      const needsPSA = version && version.length ? version[0] > +1 || version[1] >= +25 : false;
 
       return isRKE2 && needsPSA;
     },
@@ -487,7 +487,7 @@ export default {
      */
     psaOptions() {
       if ( !this.needsPSA ) {
-        return null;
+        return [];
       }
       const out = [{ label: this.t(`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateId.option`), value: '' }];
 
@@ -1989,7 +1989,7 @@ export default {
               <LabeledSelect
                 v-if="pspOptions && !needsPSA"
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
-                data-testid="rke2-custom-edit-psa"
+                data-testid="rke2-custom-edit-psp"
                 :mode="mode"
                 :options="pspOptions"
                 :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
@@ -2000,6 +2000,7 @@ export default {
                 v-if="psaOptions && needsPSA"
                 v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateId"
                 :mode="mode"
+                data-testid="rke2-custom-edit-psa"
                 :options="psaOptions"
                 :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateId.label')"
               />
