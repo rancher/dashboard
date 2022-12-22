@@ -82,6 +82,10 @@ export default {
     },
   },
 
+  data() {
+    return { DETAIL_VIEW: _DETAIL };
+  },
+
   computed: {
     schema() {
       const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
@@ -435,7 +439,7 @@ export default {
         <div class="actions-container">
           <div class="actions">
             <button
-              v-if="detailsAction"
+              v-if="detailsAction && currentView === DETAIL_VIEW && isView"
               type="button"
               class="btn role-primary actions mr-10"
               :disabled="!detailsAction.enabled"
@@ -448,6 +452,7 @@ export default {
               :value="!!hideSensitiveData"
               icon-size="lg"
               :options="sensitiveOptions"
+              class="mr-10"
               @input="toggleSensitiveData"
             />
 
@@ -455,6 +460,7 @@ export default {
               v-if="viewOptions && isView"
               v-model="currentView"
               :options="viewOptions"
+              class="mr-10"
             />
 
             <button
@@ -545,6 +551,12 @@ export default {
     .right-half {
       grid-column: 2;
     }
+  }
+
+  div.actions-container > div.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
   }
 
 </style>
