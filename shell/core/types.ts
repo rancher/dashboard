@@ -81,7 +81,7 @@ export interface IPlugin {
   /**
    * Adds a UI action for an extension to a particular area of the UI
    */
-  addUIAction(type: string, location: string, action: IAction): void;
+  addUIAction(type: string, locationConfig: object, action: IAction): void;
 
   /**
    * Set the component to use for the landing home page

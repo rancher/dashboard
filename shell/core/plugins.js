@@ -23,8 +23,8 @@ export default function({
   const pluginRoutes = new PluginRoutes(app.router);
 
   const uiConfig = {
-    [UI_CONFIG_HEADER_ACTION]: {},
-    [UI_CONFIG_TAB]:           {},
+    [UI_CONFIG_HEADER_ACTION]: [],
+    [UI_CONFIG_TAB]:           [],
   };
 
   inject('plugin', {
@@ -259,11 +259,12 @@ export default function({
 
       // UI Configuration - copy UI config from a plugin into the global uiConfig object
       Object.keys(plugin.uiConfig).forEach((type) => {
-        Object.keys(plugin.uiConfig[type]).forEach((location) => {
-          uiConfig[type][location] = uiConfig[type][location] || [];
-          uiConfig[type][location].push(...plugin.uiConfig[type][location]);
+        plugin.uiConfig[type].forEach((action) => {
+          uiConfig[type].push(action);
         });
       });
+
+      console.log('uiConfig', uiConfig[UI_CONFIG_HEADER_ACTION]);
 
       // l10n
       Object.keys(plugin.l10n).forEach((name) => {
@@ -351,10 +352,8 @@ export default function({
     /**
      * Return the UI configuration for the given type and location
      */
-    getUIConfig(typeName, location) {
-      const uc = uiConfig[typeName] || {};
-
-      return uc[location] || [];
+    getUIConfig(typeName) {
+      return uiConfig[typeName] || {};
     },
 
     /**
