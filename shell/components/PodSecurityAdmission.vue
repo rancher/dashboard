@@ -139,7 +139,7 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div>
+  <div class="psa">
     <!-- PSA -->
     <p class="helper-text mb-30">
       <t k="podSecurityAdmission.description" />
@@ -150,7 +150,7 @@ export default Vue.extend({
       :key="'control-' + i"
       class="row row--y-center mb-20"
     >
-      <span class="col span-2">
+      <span class="col span-2 psa-checkbox">
         <Checkbox
           v-model="control.active"
           :data-testid="componentTestid + '--' + i + '-active'"
@@ -224,3 +224,12 @@ export default Vue.extend({
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.psa .row {
+    .psa-checkbox {
+      display: flex;
+      align-items: center;
+    }
+}
+</style>

@@ -13,7 +13,6 @@ import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
-import { PSAIconsDisplay } from '@shell/config/pod-security-admission';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -225,14 +224,11 @@ export default {
     if ( this.mode === _CREATE ) {
       this.value.applyDefaults(this, realMode);
     }
-    this.tooltipsDescription = this.value.getPSATooltipsDescription(this.liveModel);
   },
   data() {
     return {
-      chartData:           null,
-      resourceSubtype:     null,
-      tooltipsDescription: null,
-      iconsDisplay:        PSAIconsDisplay,
+      chartData:       null,
+      resourceSubtype: null,
 
       // Set by fetch
       hasGraph:        null,
@@ -380,8 +376,6 @@ export default {
       <DetailTop
         v-if="isView && isDetail"
         :value="liveModel"
-        :tooltips="tooltipsDescription"
-        :icons="iconsDisplay"
       />
     </Masthead>
 

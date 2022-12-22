@@ -11,7 +11,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import Vue from 'vue';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
-import { PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
+import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
@@ -213,26 +213,40 @@ export default class Namespace extends SteveModel {
     Vue.set(this.metadata.annotations, RESOURCE_QUOTA, JSON.stringify(value));
   }
 
+  get detailTopTooltips() {
+    return this.psaTooltipsDescription;
+  }
+
+  get detailTopIcons() {
+    return PSAIconsDisplay;
+  }
+
   /**
    * Check if resource contains PSA labels
    */
-  get hasPSALabels() {
+  get hasSystemLabels() {
     return hasPSALabels(this);
   }
 
-  get getPSALabelsNamespaceVersion() {
-    return PSALabelsNamespaceVersion;
+  get filteredSystemLabels() {
+    return Object.entries(this.labels).reduce((res, [key, value]) => {
+      if (!PSALabelsNamespaceVersion.includes(key)) {
+        res[key] = value;
+      }
+
+      return res;
+    }, {});
   }
 
   /**
-     * Generate list of present keys which can be filtered based on existing label keys and system keys
-     */
-  get getPSALabels() {
+   * Generate list of present keys which can be filtered based on existing label keys and system keys
+   */
+  get systemLabels() {
     return getPSALabels(this);
   }
 
-  getPSATooltipsDescription(value = this) {
-    return getPSATooltipsDescription(value);
+  get psaTooltipsDescription() {
+    return getPSATooltipsDescription(this);
   }
 
   // Preserve the project label - ensures we preserve project when cloning a namespace
