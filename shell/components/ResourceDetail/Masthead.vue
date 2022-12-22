@@ -556,7 +556,7 @@ export default {
   div.actions-container > div.actions {
     display: flex;
     flex-direction: row;
-    justify-content: end;
+    justify-content: flex-end;
   }
 
 </style>
