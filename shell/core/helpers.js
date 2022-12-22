@@ -1,6 +1,5 @@
 export function checkExtensionRouteBinding({ name, params }, locationConfig) {
-  console.log('name', name);
-  console.log('params', params);
+  console.log('name && params', name, params);
   console.log('locationConfig', locationConfig);
 
   // if no configuration is passed, consider it as global
@@ -8,41 +7,39 @@ export function checkExtensionRouteBinding({ name, params }, locationConfig) {
     return true;
   }
 
-  // matches route "name" pattern
-  if (locationConfig.name && name.includes(locationConfig.name)) {
+  // matches route "name" pattern (if only the "name" is provided)
+  if (Object.keys(locationConfig).length === 1 && locationConfig.name && name.includes(locationConfig.name)) {
     return true;
   }
 
-  // matches "product" param on route
-  if (locationConfig.product) {
-    if (locationConfig.product === 'explorer' && !name.startsWith('c-')) {
-      return false;
+  // "params" to be checked based on the locationConfig
+  const paramsToCheck = [
+    'product',
+    'resource',
+    'namespace',
+    'cluster',
+    'id'
+  ];
+
+  let res = false;
+
+  paramsToCheck.forEach((param) => {
+    if (param === 'product') {
+      if (locationConfig[param] === 'explorer' && !name.startsWith('c-')) {
+        res = false;
+      }
+
+      if (locationConfig[param] === params[param]) {
+        res = true;
+      }
+    } else if (locationConfig[param] && locationConfig[param] === params[param]) {
+      if (locationConfig.name && name.includes(locationConfig.name)) {
+        res = true;
+      } else if (!locationConfig.name) {
+        res = true;
+      }
     }
+  });
 
-    if (locationConfig.product === params.product) {
-      return true;
-    }
-  }
-
-  // matches "resource" param on route
-  if (locationConfig.resource && locationConfig.resource === params.resource) {
-    return true;
-  }
-
-  // matches "namespace" param on route
-  if (locationConfig.namespace && locationConfig.namespace === params.namespace) {
-    return true;
-  }
-
-  // matches "cluster" param on route
-  if (locationConfig.cluster && locationConfig.cluster === params.cluster) {
-    return true;
-  }
-
-  // matches "id" param on route
-  if (locationConfig.id && locationConfig.id === params.id) {
-    return true;
-  }
-
-  return false;
+  return res;
 }

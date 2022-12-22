@@ -165,17 +165,17 @@ export default {
       };
     },
 
-    extensionActions() {
-      const extensionActions = [];
+    extensionHeaderActions() {
+      const extensionHeaderActions = [];
       const actions = this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION);
 
       actions.forEach((action) => {
         if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
-          extensionActions.push(action);
+          extensionHeaderActions.push(action);
         }
       });
 
-      return extensionActions;
+      return extensionHeaderActions;
     },
 
   },
@@ -308,7 +308,7 @@ export default {
     handleExtensionAction(action, event) {
       const fn = action.clicked;
 
-      if (fn) {
+      if (fn && action.enabled()) {
         fn.apply(this, [event]);
       }
     },
@@ -538,11 +538,11 @@ export default {
 
       <!-- Extension header actions -->
       <div
-        v-if="extensionActions.length"
+        v-if="extensionHeaderActions.length"
         class="header-buttons"
       >
         <button
-          v-for="action, i in extensionActions"
+          v-for="action, i in extensionHeaderActions"
           :key="`${action.label}${i}`"
           v-tooltip="handleExtensionTooltip(action)"
           v-shortkey="action.shortcutKey"

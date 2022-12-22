@@ -3,6 +3,8 @@ import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import { isAlternate } from '@shell/utils/platform';
+import { UI_CONFIG_TABLE_ACTION } from '@shell/core/types';
+import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 const HIDDEN = 'hide';
 const CALC = 'calculate';
@@ -71,6 +73,14 @@ export default {
     componentTestid: {
       type:    String,
       default: 'action-menu'
+    },
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    extensionComponentTestid: {
+      type:    String,
+      default: 'extension-action-menu'
     }
   },
 
@@ -98,6 +108,19 @@ export default {
       }
 
       return this.options;
+    },
+
+    extensionMenuActions() {
+      const extensionMenuActions = [];
+      const actions = this.$plugin.getUIConfig(UI_CONFIG_TABLE_ACTION);
+
+      actions.forEach((action) => {
+        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
+          extensionMenuActions.push(action);
+        }
+      });
+
+      return extensionMenuActions;
     },
   },
 
@@ -221,6 +244,14 @@ export default {
       this.hide();
     },
 
+    handleExtensionAction(action, event) {
+      const fn = action.clicked;
+
+      if (fn && action.enabled()) {
+        fn.apply(this, [event]);
+      }
+    },
+
     hasOptions(options) {
       return options.length !== undefined ? options.length : Object.keys(options).length > 0;
     }
@@ -253,6 +284,23 @@ export default {
         />
         <span v-html="opt.label" />
       </li>
+
+      <!-- Extension menu actions -->
+      <li
+        v-for="(opt, i) in extensionMenuActions"
+        :key="`${opt.label}${i}`"
+        :disabled="opt.enabled ? !opt.enabled() : false"
+        :class="{divider: opt.divider}"
+        :data-testid="extensionComponentTestid + '-' + i + '-item'"
+        @click="handleExtensionAction(opt, $event)"
+      >
+        <i
+          v-if="opt.icon"
+          :class="{icon: true, [opt.icon]: true}"
+        />
+        <span v-html="opt.label" />
+      </li>
+
       <li
         v-if="!hasOptions(menuOptions)"
         class="no-actions"
