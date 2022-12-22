@@ -3,7 +3,11 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
-import { UI_CONFIG_HEADER_ACTION, UI_CONFIG_TAB } from './types';
+import {
+  UI_CONFIG_HEADER_ACTION,
+  UI_CONFIG_TAB,
+  UI_CONFIG_TABLE_ACTION,
+} from './types';
 
 const MODEL_TYPE = 'models';
 
@@ -25,6 +29,7 @@ export default function({
   const uiConfig = {
     [UI_CONFIG_HEADER_ACTION]: [],
     [UI_CONFIG_TAB]:           [],
+    [UI_CONFIG_TABLE_ACTION]:  [],
   };
 
   inject('plugin', {
@@ -264,7 +269,7 @@ export default function({
         });
       });
 
-      console.log('uiConfig', uiConfig[UI_CONFIG_HEADER_ACTION]);
+      console.log('uiConfig GLOBAL OBJECT', uiConfig);
 
       // l10n
       Object.keys(plugin.l10n).forEach((name) => {

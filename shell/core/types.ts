@@ -37,6 +37,7 @@ export type OnLogOut = (store: any) => Promise<void>;
 
 export const UI_CONFIG_HEADER_ACTION = 'header-action';
 export const UI_CONFIG_TAB = 'tab';
+export const UI_CONFIG_TABLE_ACTION = 'table-action';
 
 export type IAction = any;
 
