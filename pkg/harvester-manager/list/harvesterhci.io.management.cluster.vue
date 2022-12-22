@@ -62,9 +62,7 @@ export default {
         name:   'c-cluster-product-resource-create',
         params: {
           product:  this.$store.getters['currentProduct'].name,
-          // TODO nb why is this necessary
-          // resource: this.schema.id,
-          resource: HCI.CLUSTER,
+          resource: this.schema.id,
         },
       };
     },
