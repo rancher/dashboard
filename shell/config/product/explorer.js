@@ -140,7 +140,7 @@ export function init(store) {
   mapGroup('logging.banzaicloud.io', 'Logging');
   mapGroup(/^(.*\.)?resources\.cattle\.io$/, 'Backup-Restore');
   mapGroup(/^(.*\.)?cluster\.x-k8s\.io$/, 'clusterProvisioning');
-  mapGroup(/^(aks|eks|gke|rke|rke-machine-config|provisioning)\.cattle\.io$/, 'clusterProvisioning');
+  mapGroup(/^(aks|eks|gke|rke|rke-machine-config|rke-machine|provisioning)\.cattle\.io$/, 'clusterProvisioning');
 
   configureType(NODE, { isCreatable: false, isEditable: true });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
