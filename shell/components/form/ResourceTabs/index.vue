@@ -11,6 +11,8 @@ import { EVENT } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
+import { UI_CONFIG_TAB } from '@shell/core/types';
+import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 export default {
 
@@ -77,6 +79,19 @@ export default {
   },
 
   computed: {
+    extensionTabs() {
+      const extensionTabs = [];
+      const actions = this.$plugin.getUIConfig(UI_CONFIG_TAB);
+
+      actions.forEach((action) => {
+        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
+          extensionTabs.push(action);
+        }
+      });
+
+      return extensionTabs;
+    },
+
     showConditions() {
       const inStore = this.$store.getters['currentStore'](this.value.type);
 
@@ -219,6 +234,26 @@ export default {
         :ignore-types="[value.type]"
         :value="value"
         direction="to"
+      />
+    </Tab>
+
+    <!-- Extension tabs -->
+    <Tab
+      v-for="tab, i in extensionTabs"
+      :key="`${tab.name}${i}`"
+      :name="tab.name"
+      :label="tab.label"
+      :label-key="tab.labelKey"
+      :weight="tab.weight"
+      :tooltip="tab.tooltip"
+      :show-header="tab.showHeader"
+      :display-alert-icon="tab.displayAlertIcon"
+      :error="tab.error"
+      :badge="tab.badge"
+    >
+      <component
+        :is="tab.component"
+        :resource="value"
       />
     </Tab>
   </Tabbed>

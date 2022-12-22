@@ -26,9 +26,9 @@ export class Plugin implements IPlugin {
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
 
-  public uiConfig: { [key: string]: { [key: string]: any[] } } = {
-    [UI_CONFIG_HEADER_ACTION]: {},
-    [UI_CONFIG_TAB]:           {},
+  public uiConfig: { [key: string]: any[] } = {
+    [UI_CONFIG_HEADER_ACTION]: [],
+    [UI_CONFIG_TAB]:           [],
   };
 
   // Plugin metadata (plugin package.json)
@@ -119,15 +119,10 @@ export class Plugin implements IPlugin {
     this.routes.push({ parent, route });
   }
 
-  addUIAction(type: string, location: string, action: IAction): void {
-    this.uiConfig[type][location] = this.uiConfig[type][location] || [];
-    this.uiConfig[type][location].push(action);
-  }
-
-  // Note: we can factor these two to use a common method for adding to the UI configuration
-  addTab(location: string, tab: any): void {
-    this.uiConfig[UI_CONFIG_TAB][location] = this.uiConfig[UI_CONFIG_TAB][location] || [];
-    this.uiConfig[UI_CONFIG_TAB][location].push(tab);
+  // add extension UI action
+  addUIAction(type: string, locationConfig: object, action: IAction): void {
+    this.uiConfig[type] = this.uiConfig[type] || [];
+    this.uiConfig[type].push({ ...action, locationConfig });
   }
 
   setHomePage(component: any) {

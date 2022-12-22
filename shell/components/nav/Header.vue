@@ -16,6 +16,7 @@ import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
 import { UI_CONFIG_HEADER_ACTION } from '@shell/core/types';
+import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -164,26 +165,17 @@ export default {
       };
     },
 
-    productAction() {
-      const product = this.currentProduct?.name || '';
-
-      if (product === 'explorer') {
-        if (!this.$route.name.startsWith('c-')) {
-          return '';
-        }
-      }
-
-      return product;
-    },
-
     extensionActions() {
-      const globalActions = this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION, 'global');
-      const productActions = this.productAction.length ? this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION, `${ this.productAction }`) : [];
+      const extensionActions = [];
+      const actions = this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION);
 
-      return [
-        ...productActions,
-        ...globalActions,
-      ];
+      actions.forEach((action) => {
+        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
+          extensionActions.push(action);
+        }
+      });
+
+      return extensionActions;
     },
 
   },
@@ -313,8 +305,8 @@ export default {
       });
     },
 
-    invokeExtensionAction(action, event) {
-      const fn = action.execute;
+    handleExtensionAction(action, event) {
+      const fn = action.clicked;
 
       if (fn) {
         fn.apply(this, [event]);
@@ -557,8 +549,8 @@ export default {
           :disabled="action.enabled ? !action.enabled() : false"
           type="button"
           class="btn header-btn role-tertiary"
-          @shortkey="invokeExtensionAction(action, $event)"
-          @click="invokeExtensionAction(action, $event)"
+          @shortkey="handleExtensionAction(action, $event)"
+          @click="handleExtensionAction(action, $event)"
         >
           <i
             class="icon icon-lg"
