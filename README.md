@@ -14,13 +14,12 @@ Rancher Dashboard provides a sophisticated UI for managing Kubernetes clusters a
 
 <img src="docusaurus/docs/getting-started/screenshots/home.png" />
 
-For more information, see our [UI Walk-through documentation](http://localhost:3000/dashboard/getting-started/ui-walkthrough
-).
+For more information, see our [UI Walk-through documentation](https://rancher.github.io/dashboard/getting-started/ui-walkthrough).
 
 ## Developer Docs
 
 - [Rancher UI Devkit](https://rancher.github.io/dashboard/) - for our documentation home
-- [Developer Quick Start documentation]((https://rancher.github.io/dashboard/getting-started/quickstart)) - to get started
+- [Developer Quick Start documentation](https://rancher.github.io/dashboard/getting-started/quickstart) - to get the Rancher Dashboard running
 - [Rancher Extensions Docs](https://rancher.github.io/dashboard/plugins/introduction) - to get started with Rancher Extensions 
 
 ## Contributing
