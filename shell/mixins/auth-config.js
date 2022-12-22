@@ -238,10 +238,6 @@ export default {
       }
     },
 
-    showDisableModal() {
-      this.$refs.disableAuthProviderModal.show();
-    },
-
     async reloadModel() {
       this.originalModel = await this.$store.dispatch('rancher/find', {
         type: NORMAN.AUTH_CONFIG,

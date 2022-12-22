@@ -1,8 +1,7 @@
 <script>
 import { Card } from '@components/Card';
 export default {
-  name: 'PromptRemove',
-
+  name:       'PromptRemove',
   components: { Card },
   props:      {
     /**
@@ -14,10 +13,6 @@ export default {
       default: 'disable-auth-provider'
     }
   },
-  computed: {},
-
-  watch: {},
-
   methods: {
     show() {
       this.$modal.show('disableAuthProviderModal');
