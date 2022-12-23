@@ -861,6 +861,10 @@ export default class Resource {
 
     actions.forEach((action) => {
       if (checkExtensionRouteBinding(currentRoute, action.locationConfig)) {
+        if (action.labelKey) {
+          action.label = this.t(action.labelKey);
+        }
+
         extensionMenuActions.push(action);
       }
     });
