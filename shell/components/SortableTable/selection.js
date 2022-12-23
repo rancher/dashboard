@@ -513,7 +513,7 @@ export default {
         return matchingResourceAction?.enabled;
       });
 
-      _execute(executableSelection, action, args, opts);
+      _execute(executableSelection, action, args, opts, this);
 
       this.actionOfInterest = null;
     },
@@ -575,13 +575,23 @@ function _filter(map, disableAll = false) {
   return out;
 }
 
-function _execute(resources, action, args, opts = {}) {
+function _execute(resources, action, args, opts = {}, ctx) {
   args = args || [];
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
-    const fn = resources[0][action.bulkAction];
+    // this means it's an action coming from an extension
+    if (action.clicked) {
+      const fn = action.bulkAction;
 
-    if ( fn ) {
-      return fn.call(resources[0], resources, ...args);
+      if ( fn ) {
+        return fn.call(ctx, resources, ...args);
+      }
+    // regular flow for bulk actions
+    } else {
+      const fn = resources[0][action.bulkAction];
+
+      if ( fn ) {
+        return fn.call(resources[0], resources, ...args);
+      }
     }
   }
 
@@ -590,13 +600,17 @@ function _execute(resources, action, args, opts = {}) {
   for ( const resource of resources ) {
     let fn;
 
-    if (opts.alt && action.altAction) {
+    if (action.clicked) {
+      fn = action.clicked;
+    } else if (opts.alt && action.altAction) {
       fn = resource[action.altAction];
     } else {
       fn = resource[action.action];
     }
 
-    if ( fn ) {
+    if (fn && action.clicked) {
+      promises.push(fn.apply(ctx, [args]));
+    } else if (fn) {
       promises.push(fn.apply(resource, args));
     }
   }

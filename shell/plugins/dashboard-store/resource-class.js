@@ -37,6 +37,9 @@ import Vue from 'vue';
 
 import { normalizeType } from './normalize';
 
+import { UI_CONFIG_TABLE_ACTION } from '@shell/core/types';
+import { checkExtensionRouteBinding } from '@shell/core/helpers';
+
 const STRING_LIKE_TYPES = [
   'string',
   'date',
@@ -851,7 +854,18 @@ export default class Resource {
 
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
-    const all = [
+    // get menu actions available by plugins configuration
+    const extensionMenuActions = [];
+    const actions = this.$rootGetters['uiplugins/uiConfig'][UI_CONFIG_TABLE_ACTION];
+    const currentRoute = this.currentRouter().app._route;
+
+    actions.forEach((action) => {
+      if (checkExtensionRouteBinding(currentRoute, action.locationConfig)) {
+        extensionMenuActions.push(action);
+      }
+    });
+
+    let all = [
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -898,6 +912,10 @@ export default class Resource {
         weight:     -10, // Delete always goes last
       },
     ];
+
+    if (extensionMenuActions.length) {
+      all = all.concat(extensionMenuActions);
+    }
 
     return all;
   }

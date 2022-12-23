@@ -3,8 +3,6 @@ import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import { isAlternate } from '@shell/utils/platform';
-import { UI_CONFIG_TABLE_ACTION } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 const HIDDEN = 'hide';
 const CALC = 'calculate';
@@ -109,19 +107,6 @@ export default {
 
       return this.options;
     },
-
-    extensionMenuActions() {
-      const extensionMenuActions = [];
-      const actions = this.$plugin.getUIConfig(UI_CONFIG_TABLE_ACTION);
-
-      actions.forEach((action) => {
-        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
-          extensionMenuActions.push(action);
-        }
-      });
-
-      return extensionMenuActions;
-    },
   },
 
   watch: {
@@ -217,7 +202,14 @@ export default {
         return;
       }
 
-      if (this.useCustomTargetElement) {
+      // this will come from extensions...
+      if (action.clicked) {
+        const fn = action.clicked;
+
+        if (fn && action.enabled) {
+          fn.apply(this, [event]);
+        }
+      } else if (this.useCustomTargetElement) {
         // If the state of this component is controlled
         // by props instead of Vuex, we assume you wouldn't want
         // the mutation to have a dependency on Vuex either.
@@ -242,14 +234,6 @@ export default {
       }
 
       this.hide();
-    },
-
-    handleExtensionAction(action, event) {
-      const fn = action.clicked;
-
-      if (fn && action.enabled()) {
-        fn.apply(this, [event]);
-      }
     },
 
     hasOptions(options) {
@@ -277,22 +261,6 @@ export default {
         :class="{divider: opt.divider}"
         :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"
-      >
-        <i
-          v-if="opt.icon"
-          :class="{icon: true, [opt.icon]: true}"
-        />
-        <span v-html="opt.label" />
-      </li>
-
-      <!-- Extension menu actions -->
-      <li
-        v-for="(opt, i) in extensionMenuActions"
-        :key="`${opt.label}${i}`"
-        :disabled="opt.enabled ? !opt.enabled() : false"
-        :class="{divider: opt.divider}"
-        :data-testid="extensionComponentTestid + '-' + i + '-item'"
-        @click="handleExtensionAction(opt, $event)"
       >
         <i
           v-if="opt.icon"
