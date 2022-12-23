@@ -71,14 +71,6 @@ export default {
     componentTestid: {
       type:    String,
       default: 'action-menu'
-    },
-    /**
-     * Inherited global identifier prefix for tests
-     * Define a term based on the parent component to avoid conflicts on multiple components
-     */
-    extensionComponentTestid: {
-      type:    String,
-      default: 'extension-action-menu'
     }
   },
 
