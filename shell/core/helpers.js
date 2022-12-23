@@ -1,6 +1,6 @@
 export function checkExtensionRouteBinding({ name, params }, locationConfig) {
-  console.log('name && params', name, params);
-  console.log('locationConfig', locationConfig);
+  // console.log('name && params', name, params);
+  // console.log('locationConfig', locationConfig);
 
   // if no configuration is passed, consider it as global
   if (!Object.keys(locationConfig).length) {

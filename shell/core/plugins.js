@@ -269,7 +269,10 @@ export default function({
         });
       });
 
-      console.log('uiConfig GLOBAL OBJECT', uiConfig);
+      // Add the global plugin to the store
+      store.dispatch('uiplugins/addPluginsUiConfig', uiConfig);
+
+      console.log('UICONFIG GLOBAL OBJECT', uiConfig);
 
       // l10n
       Object.keys(plugin.l10n).forEach((name) => {
