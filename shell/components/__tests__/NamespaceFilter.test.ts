@@ -157,7 +157,7 @@ describe('component: NamespaceFilter', () => {
         directives: { shortkey: () => jest.fn() }
       });
 
-      wrapper.vm.cachedFiltered = [
+      (wrapper.vm as any).cachedFiltered = [
         {
           kind:  'namespace',
           label: `default-${ text }`,
@@ -199,7 +199,7 @@ describe('component: NamespaceFilter', () => {
         directives: { shortkey: () => jest.fn() }
       });
 
-      wrapper.vm.cachedFiltered = [
+      (wrapper.vm as any).cachedFiltered = [
         {
           label:     text,
           key,
