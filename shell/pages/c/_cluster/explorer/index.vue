@@ -40,6 +40,8 @@ import { isEmpty } from '@shell/utils/object';
 import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
 import { fetchClusterResources } from './explorer-utils';
+import SimpleBox from '@shell/components/SimpleBox';
+import { UI_CONFIG_CLUSTER_DASHBOARD_CARD } from '@shell/core/types';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -71,6 +73,7 @@ export default {
     EmberPage,
     ConfigBadge,
     EventsTable,
+    SimpleBox,
   },
 
   mixins: [metricPoller],
@@ -142,6 +145,18 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
+
+    extensionCards() {
+      const cards = this.$plugin.getUIConfig(UI_CONFIG_CLUSTER_DASHBOARD_CARD);
+
+      cards.forEach((card, i) => {
+        if (card.labelKey) {
+          cards[i].label = this.t(card.labelKey);
+        }
+      });
+
+      return cards;
+    },
 
     displayPspDeprecationBanner() {
       const cluster = this.currentCluster;
@@ -492,6 +507,27 @@ export default {
       />
     </div>
 
+    <!-- extension cards -->
+    <div
+      v-if="extensionCards.length"
+      class="extension-card-container mt-20"
+    >
+      <SimpleBox
+        v-for="item, i in extensionCards"
+        :key="`extensionCards${i}`"
+        class="extension-card"
+        :style="item.style"
+      >
+        <h3>
+          {{ item.label }}
+        </h3>
+        <component
+          :is="item.component"
+          :resource="currentCluster"
+        />
+      </SimpleBox>
+    </div>
+
     <h3
       v-if="!hasV1Monitoring && hasStats"
       class="mt-40"
@@ -631,6 +667,19 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.extension-card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc((100%/3) - 40px), 1fr));
+  grid-column-gap: 15px;
+  grid-row-gap: 20px;
+}
+
+@media only screen and (max-width: map-get($breakpoints, "--viewport-9")) {
+  .extension-card-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .cluster-dashboard-glance {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);

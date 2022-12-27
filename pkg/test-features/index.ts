@@ -8,6 +8,7 @@ import {
   UI_CONFIG_DETAIL_TOP,
   UI_CONFIG_RESOURCE_LIST,
   UI_CONFIG_GLOBAL_SETTING,
+  UI_CONFIG_CLUSTER_DASHBOARD_CARD,
 } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 import { MANAGEMENT } from '@shell/config/types';
@@ -148,5 +149,30 @@ export default function(plugin: IPlugin) {
         canYaml:     false,
       }
     }
+  });
+
+  // adds cards to the cluster dashboard screen
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
+    label:     'some-label',
+    labelKey:  'generic.comingSoon',
+    component: () => import('./MastheadDetailsComponent.vue')
+  });
+
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
+    label:     'some-label1',
+    labelKey:  'generic.comingSoon',
+    component: () => import('./MastheadDetailsComponent.vue')
+  });
+
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
+    label:     'some-label2',
+    labelKey:  'generic.comingSoon',
+    component: () => import('./MastheadDetailsComponent.vue')
+  });
+
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
+    label:     'some-label3',
+    labelKey:  'generic.comingSoon',
+    component: () => import('./MastheadDetailsComponent.vue')
   });
 }

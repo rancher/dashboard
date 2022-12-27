@@ -42,6 +42,7 @@ export const UI_CONFIG_DETAILS_MASTHEAD = 'details-masthead';
 export const UI_CONFIG_DETAIL_TOP = 'detail-top';
 export const UI_CONFIG_RESOURCE_LIST = 'resource-list';
 export const UI_CONFIG_GLOBAL_SETTING = 'global-setting';
+export const UI_CONFIG_CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card';
 
 export type IAction = any;
 
