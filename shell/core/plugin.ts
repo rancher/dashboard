@@ -10,6 +10,7 @@ import {
   UI_CONFIG_DETAILS_MASTHEAD,
   UI_CONFIG_DETAIL_TOP,
   UI_CONFIG_RESOURCE_LIST,
+  UI_CONFIG_GLOBAL_SETTING,
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
@@ -37,6 +38,7 @@ export class Plugin implements IPlugin {
     [UI_CONFIG_DETAILS_MASTHEAD]: [],
     [UI_CONFIG_DETAIL_TOP]:       [],
     [UI_CONFIG_RESOURCE_LIST]:    [],
+    [UI_CONFIG_GLOBAL_SETTING]:   [],
   };
 
   // Plugin metadata (plugin package.json)

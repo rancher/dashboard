@@ -6,6 +6,7 @@ import {
   RESTART,
   NAME_UNLINKED,
 } from '@shell/config/table-headers';
+import { UI_CONFIG_GLOBAL_SETTING } from '@shell/core/types';
 
 export const NAME = 'settings';
 
@@ -19,6 +20,17 @@ export function init(store) {
     hideBulkActions,
   } = DSL(store, NAME);
 
+  const extensionSettings = store.getters['uiplugins/uiConfig'][UI_CONFIG_GLOBAL_SETTING];
+
+  const basicTypeArray = [
+    'settings',
+    'features',
+    'brand',
+    'banners',
+    'performance',
+    'links'
+  ];
+
   product({
     ifHaveType:          new RegExp(`${ MANAGEMENT.SETTING }|${ MANAGEMENT.FEATURE }`, 'i'),
     inStore:             'management',
@@ -28,6 +40,31 @@ export function init(store) {
     category:            'configuration',
     weight:              100,
   });
+
+  // handle extension-defined settings
+  if (extensionSettings.length) {
+    extensionSettings.forEach((setting) => {
+      if (setting.virtualType) {
+        virtualType(setting.virtualType);
+      }
+
+      if (setting.basicType) {
+        basicTypeArray.push(setting.virtualType.name);
+      }
+
+      if (setting.configureType && setting.configureType.type && setting.configureType.options) {
+        configureType(setting.configureType.type, setting.configureType.options);
+      }
+
+      if (setting.headers && setting.headers.type && setting.headers.options) {
+        headers(setting.headers.type, setting.headers.options);
+      }
+
+      if (setting.hideBulkActions && setting.hideBulkActions.type) {
+        hideBulkActions(setting.hideBulkActions.type, setting.hideBulkActions.value);
+      }
+    });
+  }
 
   virtualType({
     ifHaveType: MANAGEMENT.SETTING,
@@ -101,14 +138,7 @@ export function init(store) {
     route:      { name: 'c-cluster-settings-links' }
   });
 
-  basicType([
-    'settings',
-    'features',
-    'brand',
-    'banners',
-    'performance',
-    'links'
-  ]);
+  basicType(basicTypeArray);
 
   configureType(MANAGEMENT.SETTING, {
     isCreatable: false,

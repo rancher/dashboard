@@ -7,8 +7,10 @@ import {
   UI_CONFIG_DETAILS_MASTHEAD,
   UI_CONFIG_DETAIL_TOP,
   UI_CONFIG_RESOURCE_LIST,
+  UI_CONFIG_GLOBAL_SETTING,
 } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
+import { MANAGEMENT } from '@shell/config/types';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -123,4 +125,28 @@ export default function(plugin: IPlugin) {
   plugin.addUIAction(UI_CONFIG_RESOURCE_LIST,
     { resource: 'catalog.cattle.io.app' },
     { component: () => import('./BannerComponent.vue') });
+
+  // setting up a Global Settings page
+  plugin.addUIAction(UI_CONFIG_GLOBAL_SETTING, {}, {
+    virtualType: {
+      ifHaveType: MANAGEMENT.SETTING,
+      labelKey:   'generic.comingSoon',
+      name:       'dummy',
+      namespaced: false,
+      weight:     91,
+      icon:       'folder',
+      route:      { name: 'c-cluster-settings-dummy' }
+    },
+    basicType:     true,
+    configureType: {
+      type:    MANAGEMENT.SETTING,
+      options: {
+        isCreatable: false,
+        isRemovable: false,
+        showAge:     false,
+        showState:   false,
+        canYaml:     false,
+      }
+    }
+  });
 }
