@@ -35,7 +35,7 @@ export function checkExtensionRouteBinding({
         res = false;
       }
 
-      if (locationConfig[param] === params[param]) {
+      if (locationConfig[param] && params[param] && locationConfig[param] === params[param]) {
         res = true;
       }
     // handle multiple locationConfig definitions at the same time "param" + "name" + "query"

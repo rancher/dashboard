@@ -41,6 +41,7 @@ export const UI_CONFIG_TABLE_ACTION = 'table-action';
 export const UI_CONFIG_DETAILS_MASTHEAD = 'details-masthead';
 export const UI_CONFIG_DETAIL_TOP = 'detail-top';
 export const UI_CONFIG_RESOURCE_LIST = 'resource-list';
+export const UI_CONFIG_GLOBAL_SETTING = 'global-setting';
 
 export type IAction = any;
 

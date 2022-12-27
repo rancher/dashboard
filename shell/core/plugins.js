@@ -10,6 +10,7 @@ import {
   UI_CONFIG_DETAILS_MASTHEAD,
   UI_CONFIG_DETAIL_TOP,
   UI_CONFIG_RESOURCE_LIST,
+  UI_CONFIG_GLOBAL_SETTING,
 } from './types';
 
 const MODEL_TYPE = 'models';
@@ -36,6 +37,7 @@ export default function({
     [UI_CONFIG_DETAILS_MASTHEAD]: [],
     [UI_CONFIG_DETAIL_TOP]:       [],
     [UI_CONFIG_RESOURCE_LIST]:    [],
+    [UI_CONFIG_GLOBAL_SETTING]:   [],
   };
 
   inject('plugin', {
