@@ -3228,7 +3228,6 @@ monitoringReceiver:
     add:
       aliyunSMS: 阿里雲短信
       dingTalk: 釘釘
-      msTeams: MS Teams
       serviceNow: Service Now
     aliyunSMS:
       accessKeyIdLabel: 訪問秘鑰

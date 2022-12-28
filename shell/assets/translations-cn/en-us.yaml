@@ -3209,7 +3209,6 @@ monitoringReceiver:
     add:
       aliyunSMS: Aliyun SMS
       dingTalk: Ding Talk
-      msTeams: MS Teams
       serviceNow: Service Now
     aliyunSMS:
       accessKeyIdLabel: Access Key

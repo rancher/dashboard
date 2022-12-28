@@ -23,10 +23,6 @@ export default {
           value: 'DINGTALK'
         },
         {
-          label: this.t('monitoringReceiver.pandariaWebhook.add.msTeams'),
-          value: 'MICROSOFT_TEAMS'
-        },
-        {
           label: this.t('monitoringReceiver.pandariaWebhook.add.aliyunSMS'),
           value: 'ALIYUN_SMS'
         },
