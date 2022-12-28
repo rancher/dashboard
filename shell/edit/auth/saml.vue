@@ -241,7 +241,7 @@ export default {
               :label="t('authConfig.saml.showLdap')"
             />
           </div>
-          <div class="row mt-20 mb-20">
+          <div class="mt-20 mb-20">
             <config
               v-if="showLdap"
               v-model="model.openLdapConfig"
