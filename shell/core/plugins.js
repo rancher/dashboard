@@ -12,6 +12,7 @@ import {
   UI_CONFIG_RESOURCE_LIST,
   UI_CONFIG_GLOBAL_SETTING,
   UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+  UI_CONFIG_TABLE_COL,
 } from './types';
 
 const MODEL_TYPE = 'models';
@@ -40,6 +41,7 @@ export default function({
     [UI_CONFIG_RESOURCE_LIST]:          [],
     [UI_CONFIG_GLOBAL_SETTING]:         [],
     [UI_CONFIG_CLUSTER_DASHBOARD_CARD]: [],
+    [UI_CONFIG_TABLE_COL]:              [],
   };
 
   inject('plugin', {

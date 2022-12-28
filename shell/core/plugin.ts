@@ -12,6 +12,7 @@ import {
   UI_CONFIG_RESOURCE_LIST,
   UI_CONFIG_GLOBAL_SETTING,
   UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+  UI_CONFIG_TABLE_COL,
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
@@ -41,6 +42,7 @@ export class Plugin implements IPlugin {
     [UI_CONFIG_RESOURCE_LIST]:          [],
     [UI_CONFIG_GLOBAL_SETTING]:         [],
     [UI_CONFIG_CLUSTER_DASHBOARD_CARD]: [],
+    [UI_CONFIG_TABLE_COL]:              [],
   };
 
   // Plugin metadata (plugin package.json)

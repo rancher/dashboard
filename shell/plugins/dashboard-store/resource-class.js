@@ -36,7 +36,7 @@ import Vue from 'vue';
 
 import { normalizeType } from './normalize';
 
-import { UI_CONFIG_TABLE_ACTION } from '@shell/core/types';
+import { UI_CONFIG_TABLE_ACTION, UI_CONFIG_TABLE_COL } from '@shell/core/types';
 import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 const STRING_LIKE_TYPES = [
@@ -551,6 +551,31 @@ export default class Resource {
         configurable: true,
         writable:     true
       });
+    }
+
+    // adds user defined props on the extensions
+    if (data.type !== 'schema') {
+      const extensionCols = ctx.rootGetters['uiplugins/uiConfig'][UI_CONFIG_TABLE_COL];
+
+      if (extensionCols.length) {
+        const applicableCols = extensionCols.filter(col => (col.type === data.type) && col.classProp);
+
+        if (applicableCols.length) {
+          this.extensionProps = {};
+          Object.defineProperty(this, 'extensionProps', {
+            value:        {},
+            enumerable:   false,
+            configurable: false,
+            writable:     false
+          });
+
+          applicableCols.forEach((col) => {
+            if (col.classProp.propName && col.classProp.value) {
+              this.extensionProps[col.classProp.propName] = col.classProp.value(data);
+            }
+          });
+        }
+      }
     }
   }
 
@@ -1100,6 +1125,12 @@ export default class Resource {
   async _save(opt = {}) {
     delete this.__rehydrate;
     delete this.__clone;
+
+    // delete the extension defined "extensionProps" prop
+    if (this.extensionProps) {
+      delete this.extensionProps;
+    }
+
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);

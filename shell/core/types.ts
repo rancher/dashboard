@@ -43,6 +43,7 @@ export const UI_CONFIG_DETAIL_TOP = 'detail-top';
 export const UI_CONFIG_RESOURCE_LIST = 'resource-list';
 export const UI_CONFIG_GLOBAL_SETTING = 'global-setting';
 export const UI_CONFIG_CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card';
+export const UI_CONFIG_TABLE_COL = 'table-col';
 
 export type IAction = any;
 

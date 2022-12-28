@@ -147,6 +147,8 @@ import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
+import { UI_CONFIG_TABLE_COL } from '@shell/core/types';
+
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
 export const BOTH = 'both';
@@ -221,6 +223,15 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
+      const extensionCols = store.getters['uiplugins/uiConfig'][UI_CONFIG_TABLE_COL];
+
+      // adding extension defined cols to the correct header config
+      extensionCols.forEach((col) => {
+        if (type === col.type) {
+          headers = headers.concat(col.config);
+        }
+      });
+
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
         if (header.getValue) {
