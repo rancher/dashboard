@@ -360,7 +360,10 @@ export default {
             :label="t('authConfig.ldap.disabledStatusBitmask')"
           />
         </div>
-        <div class="col span-6">
+        <div
+          v-if="type!=='shibboleth'"
+          class="col span-6"
+        >
           <LabeledInput
             v-model="model.groupUniqueIdAttribute"
             :mode="mode"
@@ -370,7 +373,10 @@ export default {
         </div>
       </div>
       <div class="row mb-20">
-        <div class="col span-6">
+        <div
+          v-if="type!=='shibboleth'"
+          class="col span-6"
+        >
           <LabeledInput
             v-model="model.userUniqueIdAttribute"
             :mode="mode"
