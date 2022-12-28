@@ -165,6 +165,10 @@ export default {
       };
     },
 
+    ctx() {
+      return this;
+    },
+
     extensionHeaderActions() {
       const extensionHeaderActions = [];
       const actions = this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION);
@@ -546,7 +550,7 @@ export default {
           :key="`${action.label}${i}`"
           v-tooltip="handleExtensionTooltip(action)"
           v-shortkey="action.shortcutKey"
-          :disabled="action.enabled ? !action.enabled() : false"
+          :disabled="action.enabled ? !action.enabled(ctx) : false"
           type="button"
           class="btn header-btn role-tertiary"
           @shortkey="handleExtensionAction(action, $event)"

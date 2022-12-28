@@ -9,6 +9,7 @@ import {
   UI_CONFIG_RESOURCE_LIST,
   UI_CONFIG_GLOBAL_SETTING,
   UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+  UI_CONFIG_TABLE_COL,
 } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 import { MANAGEMENT } from '@shell/config/types';
@@ -24,7 +25,7 @@ export default function(plugin: IPlugin) {
   // Load a product
   // plugin.addProduct(require('./product'));
 
-  // header menu action global - example
+  // HEADER ACTION (button)
   plugin.addUIAction(UI_CONFIG_HEADER_ACTION, {}, {
     tooltipKey: 'generic.customize',
     tooltip:    'Test Action1',
@@ -33,7 +34,7 @@ export default function(plugin: IPlugin) {
     },
     shortcutKey: { windows: ['ctrl', 'm'], mac: ['meta', 'm'] },
     icon:        'icon-pipeline',
-    enabled() {
+    enabled(ctx: any) {
       return true;
     },
     clicked() {
@@ -41,7 +42,7 @@ export default function(plugin: IPlugin) {
     }
   });
 
-  // header menu action per route name - example
+  // HEADER ACTION (button)
   plugin.addUIAction(UI_CONFIG_HEADER_ACTION, { name: 'c-cluster-explorer' }, {
     tooltipKey: 'generic.comingSoon',
     tooltip:    'Test Action2',
@@ -50,7 +51,7 @@ export default function(plugin: IPlugin) {
     },
     shortcutKey: { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
     icon:        'icon-spinner',
-    enabled() {
+    enabled(ctx: any) {
       return true;
     },
     clicked() {
@@ -58,7 +59,7 @@ export default function(plugin: IPlugin) {
     }
   });
 
-  // tab in resourceTabs per resource - example
+  // ADDS TAB TO "ResourceTabs" COMPONENT
   plugin.addUIAction(UI_CONFIG_TAB, { resource: 'pod' }, {
     name:       'some-name',
     labelKey:   'generic.comingSoon',
@@ -70,21 +71,22 @@ export default function(plugin: IPlugin) {
     component:  () => import('./MyTabComponent.vue')
   });
 
-  // action in table per resource - example
-  plugin.addUIAction(UI_CONFIG_TABLE_ACTION, { resource: 'catalog.cattle.io.clusterrepo' }, { divider: true });
+  // TABLE ACTIONS - divider
+  plugin.addUIAction(UI_CONFIG_TABLE_ACTION, { resource: 'catalog.cattle.io.clusterrepo' }, { divider: true }); // renders a divider instead of an actual action
 
-  // action in table per resource - example
+  // TABLE ACTIONS
   plugin.addUIAction(UI_CONFIG_TABLE_ACTION, { resource: 'catalog.cattle.io.clusterrepo' }, {
-    action:  'some-extension-action',
-    label:   'some-extension-action',
-    icon:    'icon-pipeline',
-    enabled: true,
+    action:   'some-extension-action',
+    label:    'some-extension-action',
+    labelKey: 'generic.customize',
+    icon:     'icon-pipeline',
+    enabled:  true,
     clicked() {
       console.log('table action executed1', this); // eslint-disable-line no-console
     }
   });
 
-  // action in table per resource - example
+  // TABLE ACTIONS
   plugin.addUIAction(UI_CONFIG_TABLE_ACTION, { resource: 'catalog.cattle.io.clusterrepo' }, {
     action:   'some-bulkable-action',
     label:    'some-bulkable-action',
@@ -100,34 +102,34 @@ export default function(plugin: IPlugin) {
     }
   });
 
-  // information in Details Masthead - example
+  // DETAILS VIEW MASTHEAD DATA
   plugin.addUIAction(UI_CONFIG_DETAILS_MASTHEAD,
     {
       resource: 'catalog.cattle.io.clusterrepo',
       name:     'c-cluster-product-resource-id'
     },
-    { component: () => import('./MastheadDetailsComponent.vue') });
+    { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
-  // information in Details Masthead - example
+  // DETAILS VIEW MASTHEAD DATA
   plugin.addUIAction(UI_CONFIG_DETAILS_MASTHEAD,
     {
       resource: 'catalog.cattle.io.clusterrepo',
       name:     'c-cluster-product-resource-id',
       query:    { as: 'config' }
     },
-    { component: () => import('./MastheadDetailsComponent.vue') });
+    { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
-  // information in DetailTop - example
+  // DETAILS VIEW "DetailTop" DATA
   plugin.addUIAction(UI_CONFIG_DETAIL_TOP,
     { resource: 'catalog.cattle.io.clusterrepo' },
-    { component: () => import('./MastheadDetailsComponent.vue') });
+    { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
-  // information in ResourceList - example
+  // DATA ABOVE LIST VIEW
   plugin.addUIAction(UI_CONFIG_RESOURCE_LIST,
     { resource: 'catalog.cattle.io.app' },
-    { component: () => import('./BannerComponent.vue') });
+    { component: () => import('./BannerComponent.vue') }); // component to be rendered
 
-  // setting up a Global Settings page
+  // GLOBAL SETTINGS PAGE (not working yet...)
   plugin.addUIAction(UI_CONFIG_GLOBAL_SETTING, {}, {
     virtualType: {
       ifHaveType: MANAGEMENT.SETTING,
@@ -151,28 +153,71 @@ export default function(plugin: IPlugin) {
     }
   });
 
-  // adds cards to the cluster dashboard screen
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
-    label:     'some-label',
-    labelKey:  'generic.comingSoon',
-    component: () => import('./MastheadDetailsComponent.vue')
+  // CLUSTER DASHBOARD CARD
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
+    label:     'some-label', // title for card
+    labelKey:  'generic.comingSoon', // Same as "label" but allows for translation. Will superseed "label"
+    component: () => import('./MastheadDetailsComponent.vue') // component to be rendered
   });
 
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
+  // CLUSTER DASHBOARD CARD
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
     label:     'some-label1',
     labelKey:  'generic.comingSoon',
     component: () => import('./MastheadDetailsComponent.vue')
   });
 
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
+  // CLUSTER DASHBOARD CARD
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
     label:     'some-label2',
     labelKey:  'generic.comingSoon',
     component: () => import('./MastheadDetailsComponent.vue')
   });
 
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, {}, {
+  // CLUSTER DASHBOARD CARD
+  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
     label:     'some-label3',
     labelKey:  'generic.comingSoon',
     component: () => import('./MastheadDetailsComponent.vue')
+  });
+
+  // ADD A COL TO A TABLE
+  plugin.addUIAction(UI_CONFIG_TABLE_COL, { resource: 'configmap' }, {
+    type:      'configmap', // resource type to apply the col to (required)
+    classProp: { // defining a custom prop which can later be applied as a col (optional)
+      propName: 'some-prop',
+      value:    (data: any) => {
+        return `${ data.id }-some-string`;
+      }
+    },
+    config: { // col configuration (required)
+      // A USER DEFINED PROP! check "classProp" above
+      name:     'some-prop-col',
+      labelKey: 'generic.comingSoon',
+      getValue: (row: any) => row.extensionProps['some-prop'],
+
+      // SIMPLE STATE EXAMPLE
+      // name:      'state', // label for col
+      // labelKey:  'tableHeaders.state', // Same as "name" but allows for translation. Will superseed "name"
+      // sort:      ['stateSort', 'nameSort'], // prop(s) to be bound to the table sorting
+      // search:    ['stateSort', 'nameSort'], // prop(s) to be bound to the table search
+      // value:     'stateDisplay', // col prop to obtain the value from
+      // getValue:  (row: any) => row.stateDisplay, // same as "value", but it can be a function. Will superseed "value"
+      // width:     100, // col width
+      // default:   'unknown', // col default value
+      // formatter: 'BadgeStateFormatter', // col formatter if needed
+
+      // OTHER OPTIONS
+      // formatterOpts: { reference: 'claim.detailLocation' }, // passing options to formatter
+      // canBeVariable: true, // col can have variable with
+      // dashIfEmpty:   true, // display dash if there's no value for this prop
+      // width:         120, // col width
+      // align:         'center', // col alignment
+      // liveUpdates:   true,
+      // breakpoint:    COLUMN_BREAKPOINTS.DESKTOP,
+      // maxPageSize:   25, // Hide this column when the page size is bigger than 25
+      // skipSelect:    true,
+      // delayLoading:  true, // col data will only load after data is loaded or scroll is done
+    }
   });
 }
