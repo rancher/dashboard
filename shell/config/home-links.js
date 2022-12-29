@@ -1,4 +1,3 @@
-import { DOCS_BASE } from '@shell/config/private-label';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { allHash } from '@shell/utils/promise';
@@ -6,7 +5,7 @@ import { allHash } from '@shell/utils/promise';
 const DEFAULT_LINKS = [
   {
     key:     'docs',
-    value:   DOCS_BASE,
+    value:   'https://ee.docs.rancher.cn/',
     enabled: true,
   },
   {
