@@ -1166,7 +1166,6 @@ cluster:
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
       import: Imported Harvester
-      external: External Harvester (Experimental)
       namespace: Namespace
       cpu: CPUs
       memory: Memory
