@@ -25,10 +25,10 @@ export default {
     redirectAsUrl.searchParams.delete('scope');
 
     this.redirectOpts = {
-      provider:        this.name,
-      redirectUrl:     redirectAsUrl.toString(),
+      provider:    this.name,
+      redirectUrl: redirectAsUrl.toString(),
 
-      scopes:          scopes.split(' '), // Put it in the format expcted by the `redirectTo` action
+      scopes:         scopes.split(' '), // Put it in the format expcted by the `redirectTo` action
       scopesJoinChar: ' ',
 
       nonce:        baseNonce,
@@ -53,7 +53,13 @@ export default {
 
 <template>
   <div class="text-center">
-    <button ref="btn" class="btn bg-primary" style="font-size: 18px;" :disabled="$fetchState.pending" @click="login">
+    <button
+      ref="btn"
+      class="btn bg-primary"
+      style="font-size: 18px;"
+      :disabled="$fetchState.pending"
+      @click="login"
+    >
       {{ t('login.loginWithProvider', {provider: displayName}) }}
     </button>
   </div>
