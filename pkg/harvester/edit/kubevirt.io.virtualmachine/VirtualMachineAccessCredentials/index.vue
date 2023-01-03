@@ -8,7 +8,7 @@ import { randomStr } from '@shell/utils/string';
 import { removeObject } from '@shell/utils/array';
 import { ACCESS_CREDENTIALS } from '../../../config/harvester-map';
 import { _EDIT } from '@shell/config/query-params';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 
 const _NEW = '_NEW';
 
