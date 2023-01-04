@@ -8,7 +8,7 @@ import ServerPodTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWor
 import ServerServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ServerServiceTab';
 import TabDeleteButton from '@pkg/components/TabDeleteButton';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
-import WeblogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
+import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 export default {
   name:       'AdminServerTab',
@@ -22,7 +22,7 @@ export default {
     TabDeleteButton,
     TreeTab
   },
-  mixins: [WeblogicWorkloadHelper],
+  mixins: [WebLogicWorkloadHelper],
   props:  {
     value: {
       type:    Object,

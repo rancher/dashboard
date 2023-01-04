@@ -1,7 +1,7 @@
 <script>
 // Added by Verrazzano
 import Checkbox from '@components/Form/Checkbox/Checkbox';
-import ClusterServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ClustersTab/ClusterServiceTab';
+import ClusterServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ClustersTab/ClusterServiceTab';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ServerPodTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ServerPodTab';
@@ -33,10 +33,6 @@ export default {
       default: 'create'
     },
     namespacedObject: {
-      type:     Object,
-      required: true
-    },
-    templateObject: {
       type:     Object,
       required: true
     },

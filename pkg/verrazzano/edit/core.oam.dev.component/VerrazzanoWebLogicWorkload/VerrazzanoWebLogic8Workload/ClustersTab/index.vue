@@ -1,19 +1,19 @@
 <script>
 // Added by Verrazzano
 import AddNamedElement from '@pkg/components/AddNamedElement';
+import ClusterTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ClustersTab/ClusterTab';
 import DynamicListHelper from '@pkg/mixins/dynamic-list-helper';
-import ManagedServerTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ManagedServersTab/ManagedServerTab';
 import TabDeleteButton from '@pkg/components/TabDeleteButton';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
 import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 export default {
-  name:       'ManagedServersTab',
+  name:       'ClustersTab',
   components: {
     AddNamedElement,
-    ManagedServerTab,
+    ClusterTab,
     TabDeleteButton,
-    TreeTab,
+    TreeTab
   },
   mixins: [WebLogicWorkloadHelper, DynamicListHelper],
   props:  {
@@ -46,12 +46,12 @@ export default {
   },
   methods: {
     getDynamicListTabName(child) {
-      return this.createTabName(this.tabName, child?.serverName);
+      return this.createTabName(this.treeTabName, child?.clusterName);
     },
   },
   created() {
     if (!this.treeTabLabel) {
-      this.treeTabLabel = this.t('verrazzano.weblogic.tabs.managedServers');
+      this.treeTabLabel = this.t('verrazzano.weblogic.tabs.clusters');
     }
   },
 };
@@ -69,20 +69,20 @@ export default {
     <template #default>
       <AddNamedElement
         :value="dynamicListChildren"
-        :add-type="t('verrazzano.weblogic.tabs.managedServer')"
-        key-field-name="serverName"
         :mode="mode"
-        @input="dynamicListAddChild({ serverName: $event })"
+        key-field-name="clusterName"
+        :add-type="t('verrazzano.weblogic.tabs.cluster')"
+        @input="dynamicListAddChild({ clusterName: $event })"
       />
     </template>
     <template #nestedTabs>
-      <ManagedServerTab
-        v-for="(server, idx) in dynamicListChildren"
-        :key="server._id"
-        :value="server"
+      <ClusterTab
+        v-for="(cluster, idx) in dynamicListChildren"
+        :key="cluster._id"
+        :value="cluster"
         :mode="mode"
         :namespaced-object="namespacedObject"
-        :tab-name="createTabName(treeTabName, server.serverName)"
+        :tab-name="getDynamicListTabName(cluster)"
         @input="dynamicListUpdate"
         @delete="dynamicListDeleteChildByIndex(idx)"
       />

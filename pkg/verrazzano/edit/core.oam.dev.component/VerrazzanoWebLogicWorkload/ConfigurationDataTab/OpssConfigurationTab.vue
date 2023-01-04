@@ -3,7 +3,7 @@
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import TabDeleteButton from '@pkg/components/TabDeleteButton';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
-import WeblogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
+import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 import { SECRET } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
@@ -15,7 +15,7 @@ export default {
     TabDeleteButton,
     TreeTab,
   },
-  mixins:     [WeblogicWorkloadHelper],
+  mixins:     [WebLogicWorkloadHelper],
   props:      {
     value: {
       type:    Object,
@@ -36,6 +36,10 @@ export default {
     tabLabel: {
       type:    String,
       default: ''
+    },
+    weight: {
+      type:    Number,
+      default: 0,
     },
   },
   data() {
@@ -85,7 +89,7 @@ export default {
 </script>
 
 <template>
-  <TreeTab :name="treeTabName" :label="treeTabLabel">
+  <TreeTab :name="treeTabName" :label="treeTabLabel" :weight="weight">
     <template #beside-header>
       <TabDeleteButton
         :element-name="treeTabLabel"

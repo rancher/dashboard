@@ -6,7 +6,7 @@ import Labels from '@pkg/components/LabelsTab/Labels';
 import TabDeleteButton from '@pkg/components/TabDeleteButton';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
 import WebLogicChannel from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/AdminServerTab/WebLogicChannel';
-import WeblogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
+import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 export default {
   name:       'AdminServiceTab',
@@ -17,7 +17,7 @@ export default {
     TreeTab,
     WebLogicChannel,
   },
-  mixins: [WeblogicWorkloadHelper, DynamicListHelper],
+  mixins: [WebLogicWorkloadHelper, DynamicListHelper],
   props:  {
     value: {
       type:    Object,

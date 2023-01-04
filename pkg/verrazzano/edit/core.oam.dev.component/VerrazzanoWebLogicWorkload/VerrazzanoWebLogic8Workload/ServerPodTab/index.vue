@@ -1,6 +1,7 @@
 <script>
 // Added by Verrazzano
 import AffinityTab from '@pkg/components/AffinityTab';
+import AuxiliaryImagesTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/AuxiliaryImagesTab';
 import ContainerResourcesTab from '@pkg/components/ContainerResourcesTab';
 import ContainersTab from '@pkg/components/ContainersTab';
 import ContainerSecurityContextTab from '@pkg/components/ContainerSecurityContextTab';
@@ -28,6 +29,7 @@ export default {
   name:       'ServerPodTab',
   components: {
     AffinityTab,
+    AuxiliaryImagesTab,
     ContainerResourcesTab,
     ContainersTab,
     ContainerSecurityContextTab,
@@ -221,6 +223,14 @@ export default {
           @input="$emit('input', value)"
         />
       </TreeTab>
+
+      <AuxiliaryImagesTab
+        :value="getListField('auxiliaryImages')"
+        :mode="mode"
+        :namespaced-object="namespacedObject"
+        :tab-name="createTabName(treeTabName, 'auxiliaryImages')"
+        @input="setFieldIfNotEmpty('auxiliaryImages', $event)"
+      />
 
       <ProbeTuningTab
         :value="getField('livenessProbe')"

@@ -2,11 +2,11 @@
 // Added by Verrazzano
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import AuxiliaryImageVolume
-  from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/AuxiliaryImageVolumesTab/AuxiliaryImageVolume';
+  from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/AuxiliaryImageVolumesTab/AuxiliaryImageVolume';
 import DynamicListHelper from '@pkg/mixins/dynamic-list-helper';
 import TabDeleteButton from '@pkg/components/TabDeleteButton';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
-import WeblogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
+import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 export default {
   name:       'AuxiliaryImageVolumesTab',
@@ -16,7 +16,7 @@ export default {
     TabDeleteButton,
     TreeTab,
   },
-  mixins: [WeblogicWorkloadHelper, DynamicListHelper],
+  mixins: [WebLogicWorkloadHelper, DynamicListHelper],
   props:  {
     value: {
       type:    Array,

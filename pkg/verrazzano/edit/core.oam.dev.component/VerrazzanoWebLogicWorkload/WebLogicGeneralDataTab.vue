@@ -5,7 +5,7 @@ import ImagePullSecrets from '@pkg/components/ImagePullSecrets';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
-import WeblogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
+import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 import { NAMESPACE, SECRET } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
@@ -19,7 +19,7 @@ export default {
     LabeledSelect,
     TreeTab,
   },
-  mixins: [WeblogicWorkloadHelper],
+  mixins: [WebLogicWorkloadHelper],
   props:  {
     value: {
       // the root VerrazzanoWebLogicWorkload template object

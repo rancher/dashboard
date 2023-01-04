@@ -1,11 +1,11 @@
 <script>
 // Added by Verrazzano
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import OnlineUpdatesTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ConfigurationDataTab/OnlineUpdatesTab';
 import TabDeleteButton from '@pkg/components/TabDeleteButton';
 import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
 import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
-import AuxiliaryImagesTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ConfigurationDataTab/AuxiliaryImagesTab';
 
 import { CONFIG_MAP, SECRET } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
@@ -13,11 +13,11 @@ import { allHash } from '@shell/utils/promise';
 export default {
   name:       'ConfigurationModel',
   components: {
+    LabeledInput,
     LabeledSelect,
     OnlineUpdatesTab,
     TabDeleteButton,
     TreeTab,
-    AuxiliaryImagesTab,
   },
   mixins: [WebLogicWorkloadHelper],
   props:  {
@@ -123,6 +123,24 @@ export default {
       <div>
         <div class="row">
           <div class="col span-4">
+            <LabeledInput
+              :value="getField('wdtInstallHome')"
+              :mode="mode"
+              :placeholder="getNotSetPlaceholder(value, 'wdtInstallHome')"
+              :label="t('verrazzano.weblogic.fields.configuration.model.wdtInstallHome')"
+              @input="setFieldIfNotEmpty('wdtInstallHome', $event)"
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledInput
+              :value="getField('modelHome')"
+              :mode="mode"
+              :placeholder="getNotSetPlaceholder(value, 'modelHome')"
+              :label="t('verrazzano.weblogic.fields.configuration.model.modelHome')"
+              @input="setFieldIfNotEmpty('modelHome', $event)"
+            />
+          </div>
+          <div class="col span-4">
             <LabeledSelect
               :value="getField('domainType')"
               :mode="mode"
@@ -172,14 +190,6 @@ export default {
         :tab-name="createTabName(treeTabName, 'onlineUpdate')"
         @input="setFieldIfNotEmpty('onlineUpdate', $event)"
         @delete="setField('onlineUpdate', undefined)"
-      />
-
-      <AuxiliaryImagesTab
-        :value="getListField('auxiliaryImages')"
-        :mode="mode"
-        :namespaced-object="namespacedObject"
-        :tab-name="createTabName(treeTabName, 'auxiliaryImages')"
-        @input="setFieldIfNotEmpty('auxiliaryImages', $event)"
       />
     </template>
   </TreeTab>

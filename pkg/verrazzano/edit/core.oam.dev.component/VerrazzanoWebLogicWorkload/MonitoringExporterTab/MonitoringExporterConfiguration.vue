@@ -1,12 +1,12 @@
 <script>
 // Added by Verrazzano
 import Checkbox from '@components/Form/Checkbox/Checkbox';
-import WeblogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
+import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 export default {
   name:       'MonitoringExporterConfiguration',
   components: { Checkbox },
-  mixins:     [WeblogicWorkloadHelper],
+  mixins:     [WebLogicWorkloadHelper],
   props:      {
     value: {
       type:    Object,

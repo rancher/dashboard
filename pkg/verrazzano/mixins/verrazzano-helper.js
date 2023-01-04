@@ -46,6 +46,11 @@ export default {
 
       return this.getListField(pathName);
     },
+    getWorkloadListField(fieldName) {
+      const pathName = fieldName ? `spec.workload.spec.${ fieldName }` : 'spec.workload.spec';
+
+      return this.getListField(pathName);
+    },
     getTemplateMetadataField(fieldName) {
       const pathName = fieldName ? `spec.template.metadata.${ fieldName }` : 'spec.template.metadata';
 
@@ -108,6 +113,12 @@ export default {
     },
     setWorkloadSpecFieldIfNotEmpty(fieldName, neu) {
       const pathName = fieldName ? `spec.workload.spec.template.spec.${ fieldName }` : 'spec.workload.spec.template.spec';
+
+      this.setFieldIfNotEmpty(pathName, neu);
+      this.$emit('input', this.value);
+    },
+    setWorkloadFieldIfNotEmpty(fieldName, neu) {
+      const pathName = fieldName ? `spec.workload.spec.${ fieldName }` : 'spec.workload.spec';
 
       this.setFieldIfNotEmpty(pathName, neu);
       this.$emit('input', this.value);
