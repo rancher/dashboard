@@ -4,11 +4,12 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title:       'Developer Documentation',
-    link:        'home',
-    target:      '',
-    Svg:         require('@site/static/img/documentation.svg').default,
-    description: (
+    featureClass:   'developer-section',
+    title:          'Developer Documentation',
+    link:           'home',
+    target:         '',
+    Svg:            require('@site/static/img/documentation.svg').default,
+    description:    (
       <>
         This section covers the basics of working with the Rancher UI. It will familiarize you with the development
         environment, concepts, extensions and new Rancher UI.
@@ -16,11 +17,12 @@ const FeatureList = [
     ),
   },
   {
-    title:       'Components & Design kit',
-    link:        'https://rancher.github.io/storybook/',
-    target:      '_blank',
-    Svg:         require('@site/static/img/storybook.svg').default,
-    description: (
+    featureClass:   'components-section',
+    title:          'Components & Design kit',
+    link:           'https://rancher.github.io/storybook/',
+    target:         '_blank',
+    Svg:            require('@site/static/img/storybook.svg').default,
+    description:    (
       <>
         Rancher storybook is a collection of pre-built, reusable assets—components, patterns, and documentation guidance, to help
         developers to build consistent UI experiences faster.
@@ -30,33 +32,25 @@ const FeatureList = [
 ];
 
 function Feature( {
-  Svg, title, description, link, target
+  Svg, title, description, link, target, featureClass
 } ) {
   return (
-    <div className={clsx('col col--6')}>
-      <a className="featureLink" href={link} target={target}>
-        <div className="text--center">
-          <Svg className={styles.featureSvg} role="img" />
-        </div>
-        <div className="text--center padding-horiz--md">
-          <h3>{title}</h3>
-          <p>{description}</p>
-        </div>
-      </a>
+    <div className= {`col col--6 featureSection ${ featureClass }`}>
+       <h3>{title}</h3>
+      <div className="featureDetails">
+        <p>{description}</p>
+        <a href={link} target={target}>Go</a>
+      </div>
     </div>
   );
 }
 
 export default function HomepageFeatures() {
   return (
-    <section className={styles.features}>
-      <div className="container">
-        <div className="row">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
-          ))}
-        </div>
-      </div>
-    </section>
+    <div className="row">
+      {FeatureList.map((props, idx) => (
+        <Feature key={idx} {...props} />
+      ))}
+    </div>
   );
 }
