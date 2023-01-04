@@ -3,6 +3,7 @@
 import { haveV1Monitoring, haveV1MonitoringWorkloads } from '@shell/utils/monitoring';
 import AsyncButton from '@shell/components/AsyncButton';
 import IconMessage from '@shell/components/IconMessage';
+import { mapGetters } from 'vuex';
 
 function delay(t, v) {
   return new Promise((resolve) => {
@@ -36,6 +37,8 @@ export default {
       hidden:  !this.haveV1Monitoring,
     });
   },
+
+  computed: { ...mapGetters({ rancherDocsBase: 'rancherDocsBase' }) },
 
   methods: {
     uninstall(buttonCb) {
@@ -89,7 +92,7 @@ export default {
           </p>
           <p
             class="mt-10"
-            v-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)"
+            v-html="t('monitoring.installSteps.uninstallV1.warning2', {docsBase: rancherDocsBase}, true)"
           />
         </template>
       </IconMessage>
