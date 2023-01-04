@@ -54,6 +54,7 @@ const config = {
         logo:  {
           alt: 'Rancher Logo',
           src: 'img/rancher-logo.svg',
+          srcDark: 'img/rancher-logo-dark.svg',
         },
         items: [
           {
