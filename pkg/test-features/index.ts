@@ -41,7 +41,7 @@ export default function(plugin: IPlugin) {
   });
 
   // HEADER ACTION (button)
-  plugin.addHeaderAction( { name: 'c-cluster-explorer' }, {
+  plugin.addHeaderAction( { product: 'explorer' }, {
     tooltipKey: 'generic.comingSoon',
     tooltip:    'Test Action2',
     shortcutLabel() {
@@ -127,20 +127,18 @@ export default function(plugin: IPlugin) {
    * @param {function} component - component to be displayed on details view masthead
    */
   plugin.addToDetailsMasthead(
-    {
-      resource: 'catalog.cattle.io.clusterrepo',
-      name:     'c-cluster-product-resource-id'
-    },
+    { resource: 'catalog.cattle.io.clusterrepo' },
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA
   plugin.addToDetailsMasthead(
-    {
-      resource: 'catalog.cattle.io.clusterrepo',
-      name:     'c-cluster-product-resource-id',
-      query:    { as: 'config' }
-    },
+    { resource: 'catalog.cattle.io.clusterrepo', mode: 'config' },
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
+
+  // DETAILS VIEW MASTHEAD DATA
+  plugin.addToDetailsMasthead(
+    { resource: 'catalog.cattle.io.clusterrepo', mode: 'edit' },
+    { component: () => import('./BannerComponent.vue') }); // component to be rendered
 
   // DETAILS VIEW "DetailTop" DATA
   /**

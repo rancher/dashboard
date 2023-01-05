@@ -4,6 +4,7 @@ import {
   CoreStoreInit,
   IAction,
   IPlugin,
+  LocationConfig,
   UI_CONFIG_HEADER_ACTION,
   UI_CONFIG_TAB,
   UI_CONFIG_TABLE_ACTION,
@@ -134,7 +135,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds an action/button to Header component
    */
-  addHeaderAction(locationConfig: object, action: IAction): void {
+  addHeaderAction(locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_HEADER_ACTION] = this.uiConfig[UI_CONFIG_HEADER_ACTION] || [];
     this.uiConfig[UI_CONFIG_HEADER_ACTION].push({ ...action, locationConfig });
   }
@@ -142,7 +143,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds a tab to the ResourceTabs component
    */
-  addTab(locationConfig: object, action: IAction): void {
+  addTab(locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_TAB] = this.uiConfig[UI_CONFIG_TAB] || [];
     this.uiConfig[UI_CONFIG_TAB].push({ ...action, locationConfig });
   }
@@ -150,7 +151,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds an action to the SortableTable component
    */
-  addTableAction(locationConfig: object, action: IAction): void {
+  addTableAction(locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_TABLE_ACTION] = this.uiConfig[UI_CONFIG_TABLE_ACTION] || [];
     this.uiConfig[UI_CONFIG_TABLE_ACTION].push({ ...action, locationConfig });
   }
@@ -158,7 +159,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds a component to the Details Masthead component
    */
-  addToDetailsMasthead( locationConfig: object, action: IAction): void {
+  addToDetailsMasthead( locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD] = this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD] || [];
     this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD].push({ ...action, locationConfig });
   }
@@ -166,7 +167,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds a component to the DetailTop component
    */
-  addToDetailTop( locationConfig: object, action: IAction): void {
+  addToDetailTop( locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_DETAIL_TOP] = this.uiConfig[UI_CONFIG_DETAIL_TOP] || [];
     this.uiConfig[UI_CONFIG_DETAIL_TOP].push({ ...action, locationConfig });
   }
@@ -174,7 +175,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds a component to the list view page
    */
-  addToListView( locationConfig: object, action: IAction): void {
+  addToListView( locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_RESOURCE_LIST] = this.uiConfig[UI_CONFIG_RESOURCE_LIST] || [];
     this.uiConfig[UI_CONFIG_RESOURCE_LIST].push({ ...action, locationConfig });
   }
@@ -182,7 +183,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds a card to the cluster dashboard view
    */
-  addClusterDashboardCard( locationConfig: object, action: IAction): void {
+  addClusterDashboardCard( locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD] = this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD] || [];
     this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD].push({ ...action, locationConfig });
   }
@@ -190,7 +191,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds a new column to the SortableTable  component
    */
-  addTableCol(locationConfig: object, action: IAction): void {
+  addTableCol(locationConfig: LocationConfig, action: IAction): void {
     this.uiConfig[UI_CONFIG_TABLE_COL] = this.uiConfig[UI_CONFIG_TABLE_COL] || [];
     this.uiConfig[UI_CONFIG_TABLE_COL].push({ ...action, locationConfig });
   }
