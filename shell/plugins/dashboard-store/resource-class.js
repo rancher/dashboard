@@ -856,7 +856,8 @@ export default class Resource {
   get _availableActions() {
     // get menu actions available by plugins configuration
     const extensionMenuActions = [];
-    const actions = this.$rootGetters['uiplugins/uiConfig'][UI_CONFIG_TABLE_ACTION];
+
+    const actions = this.$rootState.$plugin.getUIConfig(UI_CONFIG_TABLE_ACTION);
     const currentRoute = this.currentRouter().app._route;
 
     actions.forEach((action) => {

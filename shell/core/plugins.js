@@ -279,9 +279,6 @@ export default function({
         });
       });
 
-      // Add the global plugin to the store
-      store.dispatch('uiplugins/addPluginsUiConfig', uiConfig);
-
       console.log('UICONFIG GLOBAL OBJECT', uiConfig); // eslint-disable-line no-console
 
       // l10n

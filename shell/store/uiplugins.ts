@@ -7,7 +7,6 @@ import { Plugin } from '@shell/core/plugin';
 
 interface UIPluginState {
   plugins: Plugin[],
-  uiConfig: any,
   errors: any,
 }
 
@@ -18,17 +17,12 @@ interface LoadError {
 
 export const state = function(): UIPluginState {
   return {
-    uiConfig: null,
-    plugins:  [],
-    errors:   {},
+    plugins: [],
+    errors:  {},
   };
 };
 
 export const getters = {
-  uiConfig: (state: any) => {
-    return state.uiConfig;
-  },
-
   plugins: (state: any) => {
     return state.plugins;
   },
@@ -41,10 +35,6 @@ export const getters = {
 export const mutations = {
   setError(state: UIPluginState, error: LoadError) {
     state.errors[error.name] = error.error;
-  },
-
-  addPluginsUiConfig(state: UIPluginState, uiConfig: any) {
-    state.uiConfig = uiConfig;
   },
 
   addPlugin(state: UIPluginState, plugin: Plugin) {
@@ -64,10 +54,6 @@ export const mutations = {
 export const actions = {
   setError( { commit }: any, error: LoadError ) {
     commit('setError', error);
-  },
-
-  addPluginsUiConfig({ commit }: any, uiConfig: any) {
-    commit('addPluginsUiConfig', uiConfig);
   },
 
   addPlugin({ commit }: any, plugin: Plugin) {
