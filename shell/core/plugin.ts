@@ -10,7 +10,6 @@ import {
   UI_CONFIG_DETAILS_MASTHEAD,
   UI_CONFIG_DETAIL_TOP,
   UI_CONFIG_RESOURCE_LIST,
-  UI_CONFIG_GLOBAL_SETTING,
   UI_CONFIG_CLUSTER_DASHBOARD_CARD,
   UI_CONFIG_TABLE_COL,
 } from './types';
@@ -40,7 +39,6 @@ export class Plugin implements IPlugin {
     [UI_CONFIG_DETAILS_MASTHEAD]:       [],
     [UI_CONFIG_DETAIL_TOP]:             [],
     [UI_CONFIG_RESOURCE_LIST]:          [],
-    [UI_CONFIG_GLOBAL_SETTING]:         [],
     [UI_CONFIG_CLUSTER_DASHBOARD_CARD]: [],
     [UI_CONFIG_TABLE_COL]:              [],
   };
