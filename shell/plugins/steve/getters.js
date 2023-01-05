@@ -130,6 +130,12 @@ export default {
 
       return data;
     }
+
+    // If the existing model has a cleanResource method, use it
+    if (existing?.cleanResource && typeof existing.cleanResource === 'function') {
+      return existing.cleanResource(data);
+    }
+
     const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing))?.constructor;
 
     return typeSuperClass === HybridModel ? cleanHybridResources(data) : data;
