@@ -3,7 +3,6 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
-import { pickBy } from 'lodash';
 
 export const SEPARATOR = { separator: true };
 
@@ -98,8 +97,12 @@ export default {
       return this.value?.filteredSystemLabels;
     },
 
-    filteredLabels() {
-      return pickBy(this.labels, (_, key) => !this.value.getPSALabelsNamespaceVersion.includes(key));
+    internalTooltips() {
+      return this.value?.detailTopTooltips || this.tooltips;
+    },
+
+    internalIcons() {
+      return this.value?.detailTopIcons || this.icons;
     },
 
     annotations() {
@@ -224,19 +227,19 @@ export default {
           {{ t('resourceDetail.detailTop.labels') }}:
         </span>
         <Tag
-          v-for="(prop, key) in filteredLabels"
+          v-for="(prop, key) in labels"
           :key="key + prop"
         >
           <i
-            v-if="icons[key]"
+            v-if="internalIcons[key]"
             class="icon"
-            :class="icons[key]"
+            :class="internalIcons[key]"
           />
           <span
-            v-if="tooltips[key]"
+            v-if="internalTooltips[key]"
             v-tooltip="prop ? `${key} : ${prop}` : key"
           >
-            <span>{{ tooltips[key] ? tooltips[key] : key }}</span>
+            <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
           </span>
           <span v-else>{{ prop ? `${key} : ${prop}` : key }}</span>
         </Tag>

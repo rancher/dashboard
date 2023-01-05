@@ -105,9 +105,6 @@ export default {
       return !this.isSingleHarvester;
     },
 
-    labels() {
-      return this.value?.metadata?.labels || {};
-    },
   },
 
   watch: {
@@ -228,7 +225,6 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="!isView"
         name="labels-and-annotations"
         label-key="generic.labelsAndAnnotations"
         :weight="-1"
@@ -246,7 +242,7 @@ export default {
         :label="t('podSecurityAdmission.label')"
       >
         <PodSecurityAdmission
-          :labels="labels"
+          :labels="value.labels"
           :mode="mode"
           @updateLabels="value.setLabels($event)"
         />
