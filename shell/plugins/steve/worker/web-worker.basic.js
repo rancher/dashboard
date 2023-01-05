@@ -63,9 +63,6 @@ const workerActions = {
     clearTimeout(state.flushTimer);
 
     self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-
-    // Web worker global function to terminate the web worker
-    close();
   },
 
   // Called to load schema

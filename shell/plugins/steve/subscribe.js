@@ -54,6 +54,7 @@ export async function createWorker(store, ctx) {
     },
     destroyWorker: () => {
       if (store.$workers) {
+        store.$workers[storeName].terminate();
         delete store.$workers[storeName];
       }
     },
@@ -231,21 +232,23 @@ export const actions = {
 
   unsubscribe({ commit, getters, state }) {
     const socket = state.socket;
-    const worker = (this.$workers || {})[getters.storeName];
 
     commit('setWantSocket', false);
     const cleanupTasks = [];
 
-    if (worker) {
-      worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-      cleanupTasks.push(waitFor(() => !worker, 'Worker is destroyed'));
+    if ((this.$workers || {})[getters.storeName]) {
+      (this.$workers || {})[getters.storeName].postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
+      cleanupTasks.push(waitFor(
+        () => !(this.$workers || {})[getters.storeName],
+        'Worker is destroyed'
+      ));
     }
 
     if ( socket ) {
       cleanupTasks.push(socket.disconnect());
     }
 
-    return Promise.all();
+    return Promise.all(cleanupTasks);
   },
 
   async flush({

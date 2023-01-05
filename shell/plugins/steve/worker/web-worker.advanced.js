@@ -115,7 +115,10 @@ const workerActions = {
     waitFor(watchesEmpty, 'Closing Watcher')
       .finally(() => {
         // disconnect takes a callback which we'll use to close the webworker
-        state.watcher.disconnect(close);
+        state.watcher.disconnect(close).then(() => {
+          delete self.onmessage;
+          self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
+        });
       });
   },
 };
