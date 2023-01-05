@@ -481,7 +481,7 @@ export default {
         </div>
       </div>
       <slot name="right">
-        <div class="actions-container">
+        <div class="actions-container align-start">
           <div class="actions">
             <button
               v-if="detailsAction && currentView === DETAIL_VIEW && isView"
