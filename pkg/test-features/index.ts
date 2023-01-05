@@ -76,7 +76,6 @@ export default function(plugin: IPlugin) {
    * @param {int} weight - defines the order on which the tabs are displayed
    * @param {boolean} showHeader - whether the tab header is displayed or not
    * @param {string} tooltip - tooltip message (on tab header)
-   * @param {int} badge - badge count indicator to be displayed on tab (on top)
    * @param {function} component - component to be displayed as tab content
    */
   plugin.addUIAction(UI_CONFIG_TAB, { resource: 'pod' }, {
@@ -86,7 +85,6 @@ export default function(plugin: IPlugin) {
     weight:     -5,
     showHeader: true,
     tooltip:    'this is a tooltip message',
-    badge:      3,
     component:  () => import('./MyTabComponent.vue')
   });
 
