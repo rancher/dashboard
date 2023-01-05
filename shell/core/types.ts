@@ -85,9 +85,44 @@ export interface IPlugin {
   addRoute(parent: string, route: RouteConfig): void;
 
   /**
-   * Adds a UI action for an extension to a particular area of the UI
+   * Adds an action/button to Header component
    */
-  addUIAction(type: string, locationConfig: object, action: IAction): void;
+   addHeaderAction(locationConfig: object, action: IAction): void;
+
+  /**
+   * Adds a tab to the ResourceTabs component
+   */
+   addTab( locationConfig: object, action: IAction): void;
+
+  /**
+   * Adds an action to the SortableTable component
+   */
+   addTableAction( locationConfig: object, action: IAction): void;
+
+  /**
+   * Adds a component to the Details Masthead component
+   */
+   addToDetailsMasthead( locationConfig: object, action: IAction): void;
+
+  /**
+   * Adds a component to the DetailTop component
+   */
+  addToDetailTop( locationConfig: object, action: IAction): void;
+
+  /**
+   * Adds a component to the list view page
+   */
+   addToListView( locationConfig: object, action: IAction): void;
+
+  /**
+   * Adds a card to the cluster dashboard view
+   */
+   addClusterDashboardCard( locationConfig: object, action: IAction): void;
+
+  /**
+   * Adds a new column to the SortableTable  component
+   */
+   addTableCol(locationConfig: object, action: IAction): void;
 
   /**
    * Set the component to use for the landing home page

@@ -1,15 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
-import {
-  IPlugin,
-  UI_CONFIG_HEADER_ACTION,
-  UI_CONFIG_TAB,
-  UI_CONFIG_TABLE_ACTION,
-  UI_CONFIG_DETAILS_MASTHEAD,
-  UI_CONFIG_DETAIL_TOP,
-  UI_CONFIG_RESOURCE_LIST,
-  UI_CONFIG_CLUSTER_DASHBOARD_CARD,
-  UI_CONFIG_TABLE_COL,
-} from '@shell/core/types';
+import { IPlugin } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 
 // Init the package
@@ -34,7 +24,7 @@ export default function(plugin: IPlugin) {
    * @param {function} enabled - whether the action/button is enabled or not
    * @param {function} clicked - function performed when action/button is clicked
    */
-  plugin.addUIAction(UI_CONFIG_HEADER_ACTION, {}, {
+  plugin.addHeaderAction( {}, {
     tooltipKey: 'generic.customize',
     tooltip:    'Test Action1',
     shortcutLabel() {
@@ -51,7 +41,7 @@ export default function(plugin: IPlugin) {
   });
 
   // HEADER ACTION (button)
-  plugin.addUIAction(UI_CONFIG_HEADER_ACTION, { name: 'c-cluster-explorer' }, {
+  plugin.addHeaderAction( { name: 'c-cluster-explorer' }, {
     tooltipKey: 'generic.comingSoon',
     tooltip:    'Test Action2',
     shortcutLabel() {
@@ -78,7 +68,7 @@ export default function(plugin: IPlugin) {
    * @param {string} tooltip - tooltip message (on tab header)
    * @param {function} component - component to be displayed as tab content
    */
-  plugin.addUIAction(UI_CONFIG_TAB, { resource: 'pod' }, {
+  plugin.addTab( { resource: 'pod' }, {
     name:       'some-name',
     labelKey:   'generic.comingSoon',
     label:      'some-label',
@@ -89,7 +79,7 @@ export default function(plugin: IPlugin) {
   });
 
   // TABLE ACTIONS - divider
-  plugin.addUIAction(UI_CONFIG_TABLE_ACTION, { resource: 'catalog.cattle.io.clusterrepo' }, { divider: true }); // renders a divider instead of an actual action
+  plugin.addTableAction( { resource: 'catalog.cattle.io.clusterrepo' }, { divider: true }); // renders a divider instead of an actual action
 
   // TABLE ACTIONS
   /**
@@ -104,7 +94,7 @@ export default function(plugin: IPlugin) {
    * @param {boolean} bulkable - whether the action/button is bulkable (can be performed on multiple list items)
    * @param {function} bulkAction - function performed when bulklable action/button is clicked (only bulkable mode)
    */
-  plugin.addUIAction(UI_CONFIG_TABLE_ACTION, { resource: 'catalog.cattle.io.clusterrepo' }, {
+  plugin.addTableAction( { resource: 'catalog.cattle.io.clusterrepo' }, {
     action:   'some-extension-action',
     label:    'some-extension-action',
     labelKey: 'generic.customize',
@@ -116,7 +106,7 @@ export default function(plugin: IPlugin) {
   });
 
   // TABLE ACTIONS
-  plugin.addUIAction(UI_CONFIG_TABLE_ACTION, { resource: 'catalog.cattle.io.clusterrepo' }, {
+  plugin.addTableAction( { resource: 'catalog.cattle.io.clusterrepo' }, {
     action:   'some-bulkable-action',
     label:    'some-bulkable-action',
     labelKey: 'generic.comingSoon',
@@ -136,7 +126,7 @@ export default function(plugin: IPlugin) {
    * Config options
    * @param {function} component - component to be displayed on details view masthead
    */
-  plugin.addUIAction(UI_CONFIG_DETAILS_MASTHEAD,
+  plugin.addToDetailsMasthead(
     {
       resource: 'catalog.cattle.io.clusterrepo',
       name:     'c-cluster-product-resource-id'
@@ -144,7 +134,7 @@ export default function(plugin: IPlugin) {
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA
-  plugin.addUIAction(UI_CONFIG_DETAILS_MASTHEAD,
+  plugin.addToDetailsMasthead(
     {
       resource: 'catalog.cattle.io.clusterrepo',
       name:     'c-cluster-product-resource-id',
@@ -157,7 +147,7 @@ export default function(plugin: IPlugin) {
    * Config options
    * @param {function} component - component to be displayed on details view "detailsTop" area
    */
-  plugin.addUIAction(UI_CONFIG_DETAIL_TOP,
+  plugin.addToDetailTop(
     { resource: 'catalog.cattle.io.clusterrepo' },
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
@@ -166,7 +156,7 @@ export default function(plugin: IPlugin) {
    * Config options
    * @param {function} component - component to be displayed before a list view (ResourceList component)
    */
-  plugin.addUIAction(UI_CONFIG_RESOURCE_LIST,
+  plugin.addToListView(
     { resource: 'catalog.cattle.io.app' },
     { component: () => import('./BannerComponent.vue') }); // component to be rendered
 
@@ -177,28 +167,28 @@ export default function(plugin: IPlugin) {
    * @param {string} labelKey - same as "label" but allows for translation. Will superseed "label"
    * @param {function} component - component to be displayed inside card
    */
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
+  plugin.addClusterDashboardCard( { cluster: 'local' }, {
     label:     'some-label',
     labelKey:  'generic.comingSoon',
     component: () => import('./MastheadDetailsComponent.vue')
   });
 
   // CLUSTER DASHBOARD CARD
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
+  plugin.addClusterDashboardCard( { cluster: 'local' }, {
     label:     'some-label1',
     labelKey:  'generic.comingSoon',
     component: () => import('./MastheadDetailsComponent.vue')
   });
 
   // CLUSTER DASHBOARD CARD
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
+  plugin.addClusterDashboardCard( { cluster: 'local' }, {
     label:     'some-label2',
     labelKey:  'generic.comingSoon',
     component: () => import('./MastheadDetailsComponent.vue')
   });
 
   // CLUSTER DASHBOARD CARD
-  plugin.addUIAction(UI_CONFIG_CLUSTER_DASHBOARD_CARD, { cluster: 'local' }, {
+  plugin.addClusterDashboardCard( { cluster: 'local' }, {
     label:     'some-label3',
     labelKey:  'generic.comingSoon',
     component: () => import('./MastheadDetailsComponent.vue')
@@ -211,7 +201,7 @@ export default function(plugin: IPlugin) {
    * @param {object} classProp - defines a new prop for a given resource in it's class/model
    * @param {object} config - col configuration object (required)
    */
-  plugin.addUIAction(UI_CONFIG_TABLE_COL, { resource: 'configmap' }, {
+  plugin.addTableCol( { resource: 'configmap' }, {
     type:   'configmap',
     config: {
       name:     'some-prop-col',
