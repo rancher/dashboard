@@ -28,21 +28,21 @@ export default class Pod extends WorkloadService {
 
   get openShellMenuItem() {
     return {
-      action:     'openShell',
-      enabled:    !!this.links.view && this.isRunning,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'Execute Shell',
-      total:      1,
+      action:  'openShell',
+      enabled: !!this.links.view && this.isRunning,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   'Execute Shell',
+      total:   1,
     };
   }
 
   get openLogsMenuItem() {
     return {
-      action:     'openLogs',
-      enabled:    !!this.links.view,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'View Logs',
-      total:      1,
+      action:  'openLogs',
+      enabled: !!this.links.view,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   'View Logs',
+      total:   1,
     };
   }
 
@@ -70,10 +70,10 @@ export default class Pod extends WorkloadService {
 
   get downloadFileMenuItem() {
     return {
-      action:     'downloadFile',
-      enabled:    !!this.actions?.download,
-      icon:       'icon icon-download',
-      label:      this.t('action.downloadFile'),
+      action:  'downloadFile',
+      enabled: !!this.actions?.download,
+      icon:    'icon icon-download',
+      label:   this.t('action.downloadFile'),
     };
   }
 
@@ -221,8 +221,8 @@ export default class Pod extends WorkloadService {
     }
 
     out.push({
-      label:         'Macvlan IP',
-      content:       this.displayMacvlanIp,
+      label:   'Macvlan IP',
+      content: this.displayMacvlanIp,
     });
 
     return out;

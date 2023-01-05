@@ -5,7 +5,7 @@ export default {
   components: { PrincipalComponent },
   props:      {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
   },

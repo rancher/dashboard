@@ -12,8 +12,15 @@ export default Vue.extend<any, any, any, any>({
       type:    [String, Object, Number, Array]
     },
     rules: {
-      default:   () => [],
-      type:       Array as PropType<Rule[]>,
+      default: () => [],
+      type:    Array as PropType<Rule[]>,
+    },
+    /**
+     * Add icon for the banner
+     */
+    icon: {
+      type:    String,
+      default: null
     },
     asBanner: {
       default: false,
@@ -49,6 +56,7 @@ export default Vue.extend<any, any, any, any>({
     v-if="!!asBanner && !!validationMessage"
     color="error"
     :label="validationMessage"
+    :icon="icon"
   />
   <span
     v-else-if="!!validationMessage"

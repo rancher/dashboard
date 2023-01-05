@@ -20,6 +20,10 @@ export function matchRuleIsPopulated(rule) {
     return true;
   }
 
+  if ( rule.namespaces?.length ) {
+    return true;
+  }
+
   return false;
 }
 
@@ -102,8 +106,8 @@ export default class LogFlow extends SteveModel {
   get customValidationRules() {
     return [
       {
-        path:           'spec',
-        validators:     ['flowOutput:verifyLocal'],
+        path:       'spec',
+        validators: ['flowOutput:verifyLocal'],
       },
     ];
   }

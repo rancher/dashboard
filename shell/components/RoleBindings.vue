@@ -131,18 +131,18 @@ export default {
           search:   'subjectKind',
         },
         {
-          name:      'subject',
-          labelKey:  'tableHeaders.subject',
-          value:     'userObj.labelForSelect',
-          sort:      'userObj.labelForSelect',
-          search:    'userObj.labelForSelect',
+          name:     'subject',
+          labelKey: 'tableHeaders.subject',
+          value:    'userObj.labelForSelect',
+          sort:     'userObj.labelForSelect',
+          search:   'userObj.labelForSelect',
         },
         {
-          name:      'role',
-          labelKey:  'tableHeaders.role',
-          value:     'roleObj.nameWithinProduct',
-          sort:      'roleObj.nameWithinProduct',
-          search:    'roleObj.nameWithinProduct',
+          name:     'role',
+          labelKey: 'tableHeaders.role',
+          value:    'roleObj.nameWithinProduct',
+          sort:     'roleObj.nameWithinProduct',
+          search:   'roleObj.nameWithinProduct',
         },
       ];
     },
@@ -219,15 +219,15 @@ export default {
           }
 
           return {
-            subjectKind:      subject.kind,
-            subject:          subject.name,
-            userObj:          findBy(this.allUsers, 'id', subject.name),
-            roleKind:         binding.roleRef.kind,
-            role:             binding.roleRef.name,
-            roleObj:          findBy(this.allRoles, 'id', binding.roleRef.name),
-            existing:         binding,
-            existingIdx:      i,
-            remove:           false,
+            subjectKind: subject.kind,
+            subject:     subject.name,
+            userObj:     findBy(this.allUsers, 'id', subject.name),
+            roleKind:    binding.roleRef.kind,
+            role:        binding.roleRef.name,
+            roleObj:     findBy(this.allRoles, 'id', binding.roleRef.name),
+            existing:    binding,
+            existingIdx: i,
+            remove:      false,
           };
         }
       });

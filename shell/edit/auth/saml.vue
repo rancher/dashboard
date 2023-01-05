@@ -32,9 +32,9 @@ export default {
   computed: {
     tArgs() {
       return {
-        baseUrl:   this.serverSetting,
-        provider:  this.displayName,
-        username:  this.principal.loginName || this.principal.name,
+        baseUrl:  this.serverSetting,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name,
       };
     },
 
@@ -59,7 +59,7 @@ export default {
           servers:                      [],
           starttls:                     false,
           tls:                          false,
-          disabledStatusBitmask:          0,
+          disabledStatusBitmask:        0,
           userLoginAttribute:           'uid',
           userMemberAttribute:          'memberOf',
           userNameAttribute:            'cn',

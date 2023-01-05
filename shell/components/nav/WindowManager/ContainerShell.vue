@@ -44,6 +44,12 @@ export default {
       required: true,
     },
 
+    // The width of the window
+    width: {
+      type:    Number,
+      default: undefined,
+    },
+
     // The pod to connect to
     pod: {
       type:     Object,
@@ -76,9 +82,10 @@ export default {
   computed: {
     xtermConfig() {
       return {
-        cursorBlink: true,
-        useStyle:    true,
-        fontSize:    12,
+        allowProposedApi: true,
+        cursorBlink:      true,
+        useStyle:         true,
+        fontSize:         12,
       };
     },
 
@@ -93,6 +100,10 @@ export default {
     },
 
     height() {
+      this.fit();
+    },
+
+    width() {
       this.fit();
     },
   },
@@ -392,6 +403,12 @@ export default {
   </Window>
 </template>
 
+<style lang="scss">
+  .xterm-char-measure-element {
+    position: static;
+  }
+</style>
+
 <style lang="scss" scoped>
 .text-warning {
   animation: flasher 2.5s linear infinite;
@@ -406,6 +423,9 @@ export default {
 .shell-container {
   height: 100%;
   overflow: hidden;
+  .resize-observer {
+    display: none;
+  }
 }
 
 .shell-body {

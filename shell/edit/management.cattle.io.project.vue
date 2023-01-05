@@ -37,7 +37,7 @@ export default {
 
     return {
       allPSPs:                          [],
-      projectRoleTemplateBindingSchema:         this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
+      projectRoleTemplateBindingSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING),
       createLocation:                   {
         name:   'c-cluster-product-resource-create',
         params: {
@@ -48,11 +48,11 @@ export default {
       },
       resource:           MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
       saveBindings:       null,
-      membershipHasOwner:         false,
+      membershipHasOwner: false,
       membershipUpdate:   {},
       HARVESTER_TYPES,
       RANCHER_TYPES,
-      fvFormRuleSets:       [{ path: 'spec.displayName', rules: ['required'] }],
+      fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
 
       storageClasses: [],
     };
@@ -149,6 +149,13 @@ export default {
         } else if (this.mode === _EDIT) {
           if (this.canEditProject) {
             await this.value.save(true);
+
+            // We updated the Norman resource - re-fetch the Steve resource so we know it is definitely updated in the store
+            await this.$store.dispatch('management/find', {
+              type: MANAGEMENT.PROJECT,
+              id:   this.value.id,
+              opt:  { force: true }
+            });
           }
 
           // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects
@@ -204,6 +211,7 @@ export default {
   >
     <NameNsDescription
       v-model="value"
+      :name-editable="true"
       :mode="mode"
       :namespaced="false"
       description-key="spec.description"

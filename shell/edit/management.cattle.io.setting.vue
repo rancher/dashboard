@@ -4,10 +4,13 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
+import formRulesGenerator from '@shell/utils/validators/formRules/index';
 
 import { ALLOWED_SETTINGS, SETTING } from '@shell/config/settings';
 import { RadioGroup } from '@components/Form/Radio';
+import FormValidation from '@shell/mixins/form-validation';
 import { setBrand } from '@shell/config/private-label';
+import { keyBy, mapValues } from 'lodash';
 import { MANAGEMENT } from '@shell/config/types';
 
 const URL_DOMAIN_REG = /[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+\.?/;
@@ -21,50 +24,55 @@ export default {
     TextAreaAutoGrow
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   data() {
     const t = this.$store.getters['i18n/t'];
-    const setting = ALLOWED_SETTINGS[this.value.id];
-
-    let enumOptions = [];
-
-    if (setting.kind === 'enum' ) {
-      enumOptions = setting.options.map(id => ({
-        label: `advancedSettings.enum.${ this.value.id }.${ id }`,
-        value: id,
-      }));
-    } else if (setting.kind === 'enum-map') {
-      enumOptions = Object.entries(setting.options).map(e => ({
-        label: e[1],
-        value: e[0],
-      }));
-    }
-
-    const canReset = setting.canReset || !!this.value.default;
-
-    this.value.value = this.value.value || this.value.default;
     const originValue = this.value.value;
 
     return {
-      setting,
-      description: t(`advancedSettings.descriptions.${ this.value.id }`),
-      editHelp:    t(`advancedSettings.editHelp.${ this.value.id }`),
-      enumOptions,
-      canReset,
-      errors:      [],
+      setting:        ALLOWED_SETTINGS[this.value.id],
+      description:    t(`advancedSettings.descriptions.${ this.value.id }`),
+      editHelp:       t(`advancedSettings.editHelp.${ this.value.id }`),
+      enumOptions:    [],
+      canReset:       false,
+      errors:         [],
+      fvFormRuleSets: [],
       originValue
     };
   },
 
   created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
+    this.value.value = this.value.value || this.value.default;
+    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map(id => ({
+      label: `advancedSettings.enum.${ this.value.id }.${ id }`,
+      value: id,
+    })) : [];
+    this.canReset = this.setting?.canReset || !!this.value.default;
+    this.fvFormRuleSets = this.setting?.ruleSet ? [{
+      path:  'value',
+      rules: this.setting.ruleSet.map(({ name }) => name)
+    }] : [];
+  },
+
+  computed: {
+    fvExtraRules() {
+      const t = this.$store.getters['i18n/t'];
+
+      // We map the setting rulesets to use values to define validation from factory
+      return this.setting?.ruleSet ? mapValues(
+        keyBy(this.setting.ruleSet, 'name'),
+        ({ key, name, arg }) => {
+          return formRulesGenerator(t, key ? { key } : {})[name](arg);
+        }) : {};
+    }
   },
 
   methods: {
     convertToString(event) {
       this.value.value = `${ event.target.value }`;
     },
+
     saveSettings(done) {
       const t = this.$store.getters['i18n/t'];
 
@@ -138,11 +146,12 @@ export default {
   <CruResource
     class="route"
     :done-route="'c-cluster-product-resource'"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
     :mode="mode"
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
+    :validation-passed="fvFormIsValid"
     @error="e=>errors = e"
     @finish="saveSettings"
     @cancel="done"
@@ -171,9 +180,12 @@ export default {
       <div v-if="setting.kind === 'enum'">
         <LabeledSelect
           v-model="value.value"
+          data-testid="input-setting-enum"
           :label="t('advancedSettings.edit.value')"
+          :rules="fvGetAndReportPathRules('value')"
           :localized-label="true"
           :mode="mode"
+          :required="true"
           :options="enumOptions"
         />
       </div>
@@ -188,7 +200,9 @@ export default {
       <div v-else-if="setting.kind === 'boolean'">
         <RadioGroup
           v-model="value.value"
+          data-testid="input-setting-boolean"
           name="settings_value"
+          :rules="fvGetAndReportPathRules('value')"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
         />
@@ -196,22 +210,31 @@ export default {
       <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
         <TextAreaAutoGrow
           v-model="value.value"
-          v-focus
+          data-testid="input-setting-json"
+          :required="true"
+          :rules="fvGetAndReportPathRules('value')"
           :min-height="254"
         />
       </div>
       <div v-else-if="setting.kind === 'integer'">
-        <input
-          :value="parseInt(value.value, 10)"
+        <LabeledInput
+          v-model="value.value"
+          data-testid="input-setting-integer"
+          :label="t('advancedSettings.edit.value')"
+          :mode="mode"
           type="number"
-          min="0"
-          @input="convertToString($event)"
-        >
+          :rules="fvGetAndReportPathRules('value')"
+          :required="true"
+        />
       </div>
       <div v-else>
         <LabeledInput
           v-model="value.value"
-          v-focus
+          data-testid="input-setting-generic"
+          :localized-label="true"
+          :required="true"
+          :mode="mode"
+          :rules="fvGetAndReportPathRules('value')"
           :label="t('advancedSettings.edit.value')"
         />
       </div>

@@ -37,7 +37,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapState('action-menu', ['toRemove']),
     ...mapGetters({ t: 'i18n/t' }),
     ...mapGetters(['currentCluster']),

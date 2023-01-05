@@ -16,7 +16,7 @@ export default {
     LabeledSelect, UnitInput, RadioGroup, Checkbox, LabeledInput
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'

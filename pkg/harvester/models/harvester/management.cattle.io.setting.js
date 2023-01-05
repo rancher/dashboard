@@ -37,9 +37,9 @@ export default class HciSetting extends HarvesterResource {
 
   get doneParams() {
     return {
-      product:   this.$rootGetters['productId'],
-      cluster:   this.$rootGetters['clusterId'],
-      resource:  HCI.SETTING,
+      product:  this.$rootGetters['productId'],
+      cluster:  this.$rootGetters['clusterId'],
+      resource: HCI.SETTING,
     };
   }
 }

@@ -4,7 +4,7 @@ export default {
   components: { DateComponent },
   props:      {
     value: {
-      type:     [Object, String],
+      type:    [Object, String],
       default: null,
     },
     row: {

@@ -257,7 +257,7 @@ export default {
                   proxy_url: provider.proxy_url,
                   secret:    provider.secret,
                 },
-                webhook_url:   provider.webhook_url,
+                webhook_url:  provider.webhook_url,
                 sendResolved: i.sendResolved || false,
                 type:         'DINGTALK',
               };
@@ -342,7 +342,7 @@ export default {
 
 <template>
   <div>
-    <header class="header">
+    <header class="header-layout header">
       <div class="title">
         <div class="primaryheader">
           <h1>

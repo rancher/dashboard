@@ -44,8 +44,8 @@ export default {
 
   data() {
     return {
-      id:          '',
-      yamlScript:  this.value,
+      id:         '',
+      yamlScript: this.value,
     };
   },
 

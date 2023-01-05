@@ -6,17 +6,17 @@ export default {
 
   props: {
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT,
     },
 
     realMode: {
-      type:     String,
+      type:    String,
       default: _EDIT,
     },
 
     as: {
-      type:     String,
+      type:    String,
       default: _YAML,
     },
 
@@ -28,13 +28,13 @@ export default {
 
     // A clone of the model before it's been changed, for conflict resolution
     initialValue: {
-      type:     Object,
+      type:    Object,
       default: null,
     },
 
     // The 'live' equivalent of this model in the store
     liveValue: {
-      type:     Object,
+      type:    Object,
       default: null,
     },
 

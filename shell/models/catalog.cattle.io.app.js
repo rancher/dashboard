@@ -28,10 +28,10 @@ export default class CatalogApp extends SteveModel {
     const out = super._availableActions;
 
     const upgrade = {
-      action:     'goToUpgrade',
-      enabled:    true,
-      icon:       'icon icon-fw icon-edit',
-      label:      this.t('catalog.install.action.goToUpgrade'),
+      action:  'goToUpgrade',
+      enabled: true,
+      icon:    'icon icon-fw icon-edit',
+      label:   this.t('catalog.install.action.goToUpgrade'),
     };
 
     out.unshift(upgrade);
@@ -173,8 +173,8 @@ export default class CatalogApp extends SteveModel {
     this.currentRouter().push({
       name:   'c-cluster-apps-charts-install',
       params: {
-        product:   this.$rootGetters['productId'],
-        cluster:   this.$rootGetters['clusterId'],
+        product: this.$rootGetters['productId'],
+        cluster: this.$rootGetters['clusterId'],
       },
       query,
     });

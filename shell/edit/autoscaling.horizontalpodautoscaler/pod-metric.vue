@@ -12,8 +12,8 @@ export const DEFAULT_POD_METRIC = {
     },
   },
   target: {
-    type:               'AverageValue',
-    averageValue:       '80',
+    type:         'AverageValue',
+    averageValue: '80',
   },
 };
 

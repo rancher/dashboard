@@ -23,6 +23,8 @@ export const DOWNLOAD = {
   align:         'right',
 };
 
+// This header is used for nodes in
+// both Cluster Explorer and Cluster Management.
 export const INTERNAL_EXTERNAL_IP = {
   // @TODO this is called internal/external but displays external/internal (╯°□°)╯︵ ┻━┻
   name:      'internal-external-ip',
@@ -43,11 +45,11 @@ export const NAME = {
 };
 
 export const LOGGING_OUTPUT_PROVIDERS = {
-  name:          'logging-output-providers',
-  labelKey:      'tableHeaders.loggingOutputProviders',
-  value:         'providersDisplay',
-  sort:          ['providersSortable'],
-  formatter:     'List',
+  name:      'logging-output-providers',
+  labelKey:  'tableHeaders.loggingOutputProviders',
+  value:     'providersDisplay',
+  sort:      ['providersSortable'],
+  formatter: 'List',
 };
 
 export const SIMPLE_NAME = {
@@ -228,14 +230,14 @@ export const AGE = {
   search:    false,
   formatter: 'LiveDate',
   width:     100,
-  align:     'right'
+  align:     'left'
 };
 
 export const AGE_NORMAN = {
   ...AGE,
-  getValue:  row => row.created,
-  value:     'created',
-  sort:      'created:desc',
+  getValue: row => row.created,
+  value:    'created',
+  sort:     'created:desc',
 };
 
 export const CREATION_DATE = {
@@ -252,6 +254,14 @@ export const DESCRIPTION = {
   align:    'left',
   sort:     ['description'],
   width:    300,
+};
+
+export const DURATION = {
+  name:      'duration',
+  labelKey:  'tableHeaders.duration',
+  value:     'duration.value',
+  sort:      'duration.seconds',
+  formatter: 'LiveDuration',
 };
 
 export const IMAGE = {
@@ -372,11 +382,11 @@ export const USERNAME = {
 };
 
 export const USER_DISPLAY_NAME = {
-  name:          'name',
-  labelKey:      'tableHeaders.name',
-  value:         'nameDisplay',
-  sort:          ['nameSort'],
-  dashIfEmpty:   true,
+  name:        'name',
+  labelKey:    'tableHeaders.name',
+  value:       'nameDisplay',
+  sort:        ['nameSort'],
+  dashIfEmpty: true,
 };
 
 export const USER_PROVIDER = {
@@ -538,10 +548,10 @@ export const API_GROUP = {
 };
 
 export const INGRESS_CLASS = {
-  name:      'ingressClassName',
-  labelKey:  'tableHeaders.ingressClass',
-  value:     `$['spec']['ingressClassName']`,
-  sort:      `$['spec']['ingressClassName']`,
+  name:     'ingressClassName',
+  labelKey: 'tableHeaders.ingressClass',
+  value:    `$['spec']['ingressClassName']`,
+  sort:     `$['spec']['ingressClassName']`,
 };
 
 export const INGRESS_DEFAULT_BACKEND = {
@@ -781,31 +791,31 @@ export const GROUP_ROLE_NAME = {
 };
 
 export const HPA_REFERENCE = {
-  name:      'reference',
-  labelKey:  'tableHeaders.hpaReference',
-  value:     'spec.scaleTargetRef.name',
-  sort:      'spec.scaleTargetRef.name',
+  name:     'reference',
+  labelKey: 'tableHeaders.hpaReference',
+  value:    'spec.scaleTargetRef.name',
+  sort:     'spec.scaleTargetRef.name',
 };
 
 export const MIN_REPLICA = {
-  name:      'minimum-replica',
-  labelKey:  'tableHeaders.minReplicas',
-  value:     'spec.minReplicas',
-  sort:      'spec.minReplicas',
+  name:     'minimum-replica',
+  labelKey: 'tableHeaders.minReplicas',
+  value:    'spec.minReplicas',
+  sort:     'spec.minReplicas',
 };
 
 export const MAX_REPLICA = {
-  name:      'maximum-replica',
-  labelKey:  'tableHeaders.maxReplicas',
-  value:     'spec.maxReplicas',
-  sort:      'spec.maxReplicas',
+  name:     'maximum-replica',
+  labelKey: 'tableHeaders.maxReplicas',
+  value:    'spec.maxReplicas',
+  sort:     'spec.maxReplicas',
 };
 
 export const CURRENT_REPLICA = {
-  name:      'current-replica',
-  labelKey:  'tableHeaders.currentReplicas',
-  value:     'status.currentReplicas',
-  sort:      'status.currentReplicas',
+  name:     'current-replica',
+  labelKey: 'tableHeaders.currentReplicas',
+  value:    'status.currentReplicas',
+  sort:     'status.currentReplicas',
 };
 
 export const EXPIRY_STATE = {
@@ -834,18 +844,18 @@ export const SCOPE = {
 
 export const SCOPE_NORMAN = {
   ...SCOPE,
-  value:       'clusterId',
-  sort:        ['clusterId'],
+  value: 'clusterId',
+  sort:  ['clusterId'],
 };
 
 export const EXPIRES = {
-  name:          'expires',
-  value:         'expiresAt',
-  labelKey:      'tableHeaders.expires',
-  align:         'left',
-  sort:          ['expiresAt'],
-  width:         200,
-  formatter:     'LiveExpiryDate'
+  name:      'expires',
+  value:     'expiresAt',
+  labelKey:  'tableHeaders.expires',
+  align:     'left',
+  sort:      ['expiresAt'],
+  width:     200,
+  formatter: 'LiveExpiryDate'
 };
 
 export const RESTART = {
@@ -859,9 +869,9 @@ export const RESTART = {
 };
 
 export const ROLE = {
-  name:          'role',
-  value:         'roleDisplay',
-  labelKey:      'tableHeaders.role',
+  name:     'role',
+  value:    'roleDisplay',
+  labelKey: 'tableHeaders.role',
 };
 
 export const FEATURE_DESCRIPTION = {
@@ -927,10 +937,4 @@ export const FLEET_BUNDLE_TYPE = {
   value:    'bundleType',
   sort:     ['bundleType'],
   width:    100,
-};
-
-export const IP_ADDRESS = {
-  name:          'ipaddress',
-  value:         'ipaddress',
-  labelKey:      'tableHeaders.ipaddress',
 };

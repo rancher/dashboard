@@ -16,11 +16,6 @@ export default {
   },
   mixins: [ResourceFetch],
   props:  {
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -46,6 +41,10 @@ export default {
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
       hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+    }
+
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
+      hash.capiMachines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
@@ -77,9 +76,9 @@ export default {
 
   data() {
     return {
-      resource:        CAPI.RANCHER_CLUSTER,
-      schema:          this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
-      mgmtClusters:    [],
+      resource:     CAPI.RANCHER_CLUSTER,
+      schema:       this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER),
+      mgmtClusters: [],
     };
   },
 
@@ -137,10 +136,8 @@ export default {
   },
 
   $loadingResources() {
-    return {
-      loadResources:     [CAPI.RANCHER_CLUSTER],
-      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
-    };
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
   },
 
   mounted() {
@@ -172,7 +169,7 @@ export default {
       >
         <n-link
           :to="importLocation"
-          class="btn role-primary"
+          class="btn role-primary mr-10"
           data-testid="cluster-manager-list-import"
         >
           {{ t('cluster.importAction') }}
@@ -187,6 +184,7 @@ export default {
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
@@ -199,7 +197,7 @@ export default {
           class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
         >
-          {{ t('cluster.exploreHarvester') }}
+          {{ t('cluster.explore') }}
         </n-link>
         <button
           v-else

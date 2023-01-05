@@ -4,9 +4,9 @@ import { MONITORING } from '@shell/config/types';
 import { PANDARIA_WEBHOOK_URL } from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/types/pandariaWebhook.vue';
 
 export default {
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {

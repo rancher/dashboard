@@ -19,25 +19,23 @@ export default {
   },
 
   props: {
-    resources: {
-      type:     Array,
-      required: true
+    cluster: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
   data() {
     return {
       selectedService:   '',
-      rotateAllServices:     true,
+      rotateAllServices: true,
       errors:            []
     };
   },
 
-  computed:   {
-    cluster() {
-      return this.resources?.[0];
-    },
-
+  computed: {
     serviceOptions() {
       if (this.cluster.isRke2) {
         const options = [
@@ -105,8 +103,8 @@ export default {
           const currentGeneration = this.cluster.spec?.rkeConfig?.rotateCertificates?.generation || 0;
 
           set(this.cluster, 'spec.rkeConfig.rotateCertificates', {
-            generation:     currentGeneration + 1,
-            services:       (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : []
+            generation: currentGeneration + 1,
+            services:   (this.selectedService && !this.rotateAllServices) ? [this.selectedService] : []
           });
 
           await this.cluster.save();

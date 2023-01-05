@@ -11,7 +11,7 @@ import Socket, {
 } from '@shell/utils/socket';
 
 export default {
-  props:      {
+  props: {
     value: {
       type:     Object,
       required: true,
@@ -36,9 +36,10 @@ export default {
   computed: {
     xtermConfig() {
       return {
-        cursorBlink:  true,
-        useStyle:     true,
-        fontSize:     12,
+        allowProposedApi: true,
+        cursorBlink:      true,
+        useStyle:         true,
+        fontSize:         12,
       };
     },
   },

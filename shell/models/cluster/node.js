@@ -14,26 +14,26 @@ export default class ClusterNode extends SteveModel {
     const normanAction = this.norman?.actions || {};
 
     const cordon = {
-      action:     'cordon',
-      enabled:    !!normanAction.cordon,
-      icon:       'icon icon-fw icon-pause',
-      label:      'Cordon',
-      total:      1,
-      bulkable:   true
+      action:   'cordon',
+      enabled:  !!normanAction.cordon,
+      icon:     'icon icon-fw icon-pause',
+      label:    'Cordon',
+      total:    1,
+      bulkable: true
     };
 
     const uncordon = {
-      action:     'uncordon',
-      enabled:    !!normanAction.uncordon,
-      icon:       'icon icon-fw icon-play',
-      label:      'Uncordon',
-      total:      1,
-      bulkable:   true
+      action:   'uncordon',
+      enabled:  !!normanAction.uncordon,
+      icon:     'icon icon-fw icon-play',
+      label:    'Uncordon',
+      total:    1,
+      bulkable: true
     };
 
     const drain = {
       action:     'drain',
-      enabled:     !!normanAction.drain,
+      enabled:    !!normanAction.drain,
       icon:       'icon icon-fw icon-dot-open',
       label:      this.t('drainNode.action'),
       bulkable:   true,
@@ -41,25 +41,25 @@ export default class ClusterNode extends SteveModel {
     };
 
     const stopDrain = {
-      action:     'stopDrain',
-      enabled:    !!normanAction.stopDrain,
-      icon:       'icon icon-fw icon-x',
-      label:      this.t('drainNode.actionStop'),
-      bulkable:   true,
+      action:   'stopDrain',
+      enabled:  !!normanAction.stopDrain,
+      icon:     'icon icon-fw icon-x',
+      label:    this.t('drainNode.actionStop'),
+      bulkable: true,
     };
 
     const openSsh = {
-      action:     'openSsh',
-      enabled:    !!this.provisionedMachine?.links?.shell,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'SSH Shell',
+      action:  'openSsh',
+      enabled: !!this.provisionedMachine?.links?.shell,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   'SSH Shell',
     };
 
     const downloadKeys = {
-      action:     'downloadKeys',
-      enabled:    !!this.provisionedMachine?.links?.sshkeys,
-      icon:       'icon icon-fw icon-download',
-      label:      this.t('node.actions.downloadSSHKey'),
+      action:  'downloadKeys',
+      enabled: !!this.provisionedMachine?.links?.sshkeys,
+      icon:    'icon icon-fw icon-download',
+      label:   this.t('node.actions.downloadSSHKey'),
     };
 
     const editGpuDevicePluginConfig = {
@@ -92,7 +92,7 @@ export default class ClusterNode extends SteveModel {
 
   editGpuDevicePluginConfig() {
     this.$dispatch('promptModal', {
-      resources:  [this],
+      resources: [this],
       component: 'EditGpuDevicePluginConfigDialog'
     });
   }
@@ -215,7 +215,9 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podConsumed() {
-    return this.pods.length;
+    const runningPods = this.pods.filter(pod => pod.state === 'running');
+
+    return runningPods.length || 0;
   }
 
   get podRequests() {
@@ -324,7 +326,13 @@ export default class ClusterNode extends SteveModel {
   }
 
   drain(resources) {
-    this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
+    this.$dispatch('promptModal', {
+      component:      'DrainNode',
+      componentProps: {
+        kubeNodes:    resources || [this],
+        normanNodeId: this.normanNodeId
+      }
+    });
   }
 
   async stopDrain(resources) {
@@ -350,12 +358,12 @@ export default class ClusterNode extends SteveModel {
   get details() {
     const details = [
       {
-        label:    this.t('node.detail.detailTop.version'),
-        content:  this.version
+        label:   this.t('node.detail.detailTop.version'),
+        content: this.version
       },
       {
-        label:    this.t('node.detail.detailTop.os'),
-        content:  this.status.nodeInfo.osImage
+        label:   this.t('node.detail.detailTop.os'),
+        content: this.status.nodeInfo.osImage
       },
       {
         label:         this.t('node.detail.detailTop.containerRuntime'),
@@ -366,17 +374,17 @@ export default class ClusterNode extends SteveModel {
 
     if (this.internalIp) {
       details.unshift({
-        label:         this.t('node.detail.detailTop.internalIP'),
-        formatter:     'CopyToClipboard',
-        content:       this.internalIp
+        label:     this.t('node.detail.detailTop.internalIP'),
+        formatter: 'CopyToClipboard',
+        content:   this.internalIp
       });
     }
 
     if (this.externalIp) {
       details.unshift({
-        label:         this.t('node.detail.detailTop.externalIP'),
-        formatter:     'CopyToClipboard',
-        content:       this.externalIp
+        label:     this.t('node.detail.detailTop.externalIP'),
+        formatter: 'CopyToClipboard',
+        content:   this.externalIp
       });
     }
 

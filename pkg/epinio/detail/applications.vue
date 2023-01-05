@@ -52,7 +52,7 @@ export default Vue.extend<Data, any, any, any>({
     const configsHeaders: [] = this.$store.getters['type-map/headersFor'](configsSchema);
 
     return {
-      saving:            false,
+      saving:      false,
       appInstance: {
         schema:  appInstanceSchema,
         headers: this.$store.getters['type-map/headersFor'](appInstanceSchema),

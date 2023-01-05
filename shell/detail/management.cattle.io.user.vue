@@ -14,7 +14,7 @@ export default {
     SortableTable,
     Loading
   },
-  mixins:     [
+  mixins: [
     CreateEditView
   ],
   async fetch() {
@@ -69,8 +69,8 @@ export default {
           NAME,
           {
             ...since,
-            value:     'bound',
-            sort:      'bound',
+            value: 'bound',
+            sort:  'bound',
           }
         ],
         cr: [

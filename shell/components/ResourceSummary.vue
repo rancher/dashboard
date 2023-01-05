@@ -42,9 +42,9 @@ export function resourceCounts(store, resource) {
 export default {
   components: { SimpleBox },
 
-  props:      {
+  props: {
     resource: {
-      type:     String,
+      type:    String,
       default: ''
     },
 
@@ -74,8 +74,8 @@ export default {
       }
 
       const route = {
-        name:     'c-cluster-product-resource',
-        params:   {
+        name:   'c-cluster-product-resource',
+        params: {
           product:  this.$store.getters['currentProduct'].name,
           resource: this.resource,
         }

@@ -7,9 +7,9 @@ export default {
   name:       'HarvesterStorageUsed',
   components: { ConsumptionGauge },
 
-  props:      {
+  props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
 
@@ -19,7 +19,7 @@ export default {
     },
 
     resourceName: {
-      type:     String,
+      type:    String,
       default: ''
     },
 
@@ -120,8 +120,8 @@ export default {
     formatter(value, format) {
       const minExponent = exponentNeeded(this.total, 1024);
       const formatOptions = {
-        addSuffix:   false,
-        increment:   1024,
+        addSuffix: false,
+        increment: 1024,
         minExponent,
       };
 

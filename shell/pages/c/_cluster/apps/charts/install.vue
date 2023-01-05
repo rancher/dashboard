@@ -318,13 +318,13 @@ export default {
     /* Helm CLI options that are not persisted on the back end,
     but are used for the final install/upgrade operation. */
     const defaultCmdOpts = {
-      cleanupOnFail:       false,
-      crds:                true,
-      hooks:               true,
-      force:               false,
-      resetValues:         false,
-      openApi:             true,
-      wait:                true,
+      cleanupOnFail: false,
+      crds:          true,
+      hooks:         true,
+      force:         false,
+      resetValues:   false,
+      openApi:       true,
+      wait:          true,
       timeout:       600,
       historyMax:    5,
     };
@@ -523,6 +523,10 @@ export default {
 
     showingYaml() {
       return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent && !this.hasQuestions );
+    },
+
+    showingYamlDiff() {
+      return this.formYamlOption === VALUES_STATE.DIFF;
     },
 
     formYamlOptions() {
@@ -859,13 +863,13 @@ export default {
       const withFallBack = this.$store.getters['i18n/withFallback'];
 
       return {
-        name:        customStep.name,
-        label:       withFallBack(loaded?.default?.label, null, customStep.name),
-        subtext:     withFallBack(loaded?.default?.subtext, null, ''),
-        weight:      loaded?.default?.weight,
-        ready:       false,
-        hidden:      true,
-        loading:    true,
+        name:      customStep.name,
+        label:     withFallBack(loaded?.default?.label, null, customStep.name),
+        subtext:   withFallBack(loaded?.default?.subtext, null, ''),
+        weight:    loaded?.default?.weight,
+        ready:     false,
+        hidden:    true,
+        loading:   true,
         component: customStep.component,
       };
     },
@@ -1065,7 +1069,7 @@ export default {
 
       const errors = [];
 
-      if ( this.showingYaml ) {
+      if ( this.showingYaml || this.showingYamlDiff ) {
         const { errors: yamlErrors } = this.applyYamlToValues();
 
         errors.push(...yamlErrors);

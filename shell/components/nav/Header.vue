@@ -49,7 +49,7 @@ export default {
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:         null
+      navHeaderRight:    null
     };
   },
 
@@ -294,7 +294,9 @@ export default {
 </script>
 
 <template>
-  <header ref="header">
+  <header
+    ref="header"
+  >
     <div>
       <TopLevelMenu v-if="isMultiCluster || !isSingleProduct" />
     </div>
@@ -669,8 +671,6 @@ export default {
 
         .vs__dropdown-toggle .vs__actions:after {
           color: var(--body-text) !important;
-          font-size: 1.5rem;
-          padding-right: 4px;
         }
 
         .vs__dropdown-toggle {

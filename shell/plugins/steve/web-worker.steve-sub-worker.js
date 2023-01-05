@@ -1,12 +1,9 @@
 import { SCHEMA } from '@shell/config/types';
 
-const COUNTS_FLUSH_TIMEOUT = 5000;
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
   store:      '', // Store name
-  counts:     [], // Buffer of count resources recieved in a given window
-  countTimer: undefined, // Tiemr to flush the count buffer
   flushTimer: undefined, // Timer to flush the schema chaneg queue
   queue:      [], // Schema change queue
   schemas:    {} // Map of schema id to hash to track when a schema actually changes
@@ -41,9 +38,9 @@ function flush() {
       state.schemas[schema.id] = hash;
 
       const msg = {
-        data:          schema,
-        resourceType:  SCHEMA,
-        type:          'resource.change'
+        data:         schema,
+        resourceType: SCHEMA,
+        type:         'resource.change'
       };
 
       load(msg);
@@ -81,29 +78,12 @@ const workerActions = {
   },
 
   destroyWorker: () => {
-    clearTimeout(state.countTimer);
     clearTimeout(state.flushTimer);
 
     self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
 
     // Web worker global function to terminate the web worker
     close();
-  },
-
-  // Debounce counts messages so we only process at most 1 every 5 seconds
-  countsUpdate(resource) {
-    state.counts.push(resource);
-
-    if (!state.countTimer) {
-      state.countTimer = setTimeout(() => {
-        const last = state.counts.pop();
-
-        state.counts = [];
-        state.countTimer = null;
-
-        load(last);
-      }, COUNTS_FLUSH_TIMEOUT);
-    }
   },
 
   // Called to load schema

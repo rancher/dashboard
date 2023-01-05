@@ -14,10 +14,6 @@ import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { isRancherPrime } from '@shell/config/version';
 
-const UNKNOWN = 'unknown';
-const UI_VERSION = process.env.VERSION || UNKNOWN;
-const UI_COMMIT = process.env.COMMIT || UNKNOWN;
-
 export default {
 
   components: { BrandImage, ClusterProviderIcon },
@@ -27,12 +23,10 @@ export default {
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
-      shown:          false,
+      shown:         false,
       displayVersion,
       fullVersion,
-      uiCommit:       UI_COMMIT,
-      uiVersion:      UI_VERSION,
-      clusterFilter:  '',
+      clusterFilter: '',
       hasProvCluster,
     };
   },
@@ -426,11 +420,11 @@ export default {
           </div>
           <div @click="hide()">
             <nuxt-link
-              v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }"
               :to="{ name: 'about' }"
               class="version"
-              v-html="displayVersion"
-            />
+            >
+              {{ t('about.title') }}
+            </nuxt-link>
           </div>
         </div>
         <div

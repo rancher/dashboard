@@ -76,8 +76,8 @@ export default {
       return this.isCreate && !this.hideDescriptions.includes(HARVESTER_HIDE_KEY) && this.harvesterEnabled ? {
         name:   `c-cluster-product-resource`,
         params: {
-          product:   HARVESTER_MANAGER,
-          resource:  HCI.CLUSTER,
+          product:  HARVESTER_MANAGER,
+          resource: HCI.CLUSTER,
         }
       } : null;
     }

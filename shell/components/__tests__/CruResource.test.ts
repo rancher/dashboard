@@ -30,7 +30,7 @@ describe('component: CruResource', () => {
     expect(element).toBeDefined();
   });
 
-  it('should display errors', () => {
+  it('should display multiple errors', () => {
     const errors = ['mistake!', 'BiG MiStAke11'];
     const wrapper = mount(CruResource, {
       propsData: {
@@ -40,10 +40,10 @@ describe('component: CruResource', () => {
         errors
       },
       components: {
-        ResourceYaml:               { template: '<div></div> ' },
-        ResourceCancelModal:        { template: '<div></div> ' },
+        ResourceYaml:        { template: '<div></div> ' },
+        ResourceCancelModal: { template: '<div></div> ' },
       },
-      mocks:      {
+      mocks: {
         $store: {
           getters: {
             currentStore:              () => 'current_store',
@@ -61,6 +61,7 @@ describe('component: CruResource', () => {
     const node = wrapper.find('#cru-errors');
 
     expect(node.element.childElementCount).toBe(errors.length);
-    expect(node.text()).toBe(`${ errors[0] } ${ errors[1] }`);
+    expect(node.text()).toContain(errors[0]);
+    expect(node.text()).toContain(errors[1]);
   });
 });

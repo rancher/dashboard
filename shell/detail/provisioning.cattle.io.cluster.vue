@@ -9,7 +9,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME, IP_ADDRESS
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
 } from '@shell/config/table-headers';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@shell/components/AsyncButton.vue';
@@ -97,10 +97,14 @@ export default {
       fetchOne.clusterToken = this.value.getOrCreateToken();
     }
 
+    // Need to get Norman clusters so that we can check if user has permissions to access the local cluster
+    if ( this.$store.getters['rancher/canList'](NORMAN.CLUSTER) ) {
+      fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
+    }
+
     if ( this.value.isRke1 && this.$store.getters['isRancher'] ) {
       fetchOne.etcdBackups = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP });
 
-      fetchOne.normanClusters = this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER });
       fetchOne.normanNodePools = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE_POOL });
     }
 
@@ -112,6 +116,11 @@ export default {
     this.haveDeployments = !!fetchOneRes.machineDeployments;
     this.clusterToken = fetchOneRes.clusterToken;
     this.etcdBackups = fetchOneRes.etcdBackups;
+
+    if (fetchOneRes.normanClusters) {
+      // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
+      this.hasLocalAccess = !!fetchOneRes.normanClusters.find(c => c.internal);
+    }
 
     const fetchTwo = {};
 
@@ -183,6 +192,7 @@ export default {
       haveDeployments: false,
       haveNodes:       false,
       haveNodePools:   false,
+      hasLocalAccess:  false,
 
       mgmtNodeSchema: this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE),
       machineSchema:  this.$store.getters[`management/schemaFor`](CAPI.MACHINE),
@@ -346,7 +356,7 @@ export default {
           formatterOpts: { reference: 'kubeNodeDetailLocation' },
           dashIfEmpty:   true,
         },
-        IP_ADDRESS,
+        INTERNAL_EXTERNAL_IP,
         MACHINE_NODE_OS,
         ROLES,
         AGE,
@@ -365,7 +375,7 @@ export default {
           formatterOpts: { reference: 'kubeNodeDetailLocation' },
           dashIfEmpty:   true,
         },
-        IP_ADDRESS,
+        INTERNAL_EXTERNAL_IP,
         MANAGEMENT_NODE_OS,
         ROLES,
         AGE
@@ -615,6 +625,7 @@ export default {
     <ResourceTabs
       v-model="value"
       :default-tab="defaultTab"
+      :need-related="hasLocalAccess"
     >
       <Tab
         v-if="showMachines"
@@ -669,8 +680,13 @@ export default {
               </div>
               <div
                 v-if="group.ref"
-                class="right mr-45"
+                class="right group-header-buttons mr-20"
               >
+                <MachineSummaryGraph
+                  :row="poolSummaryInfo[group.ref]"
+                  :horizontal="true"
+                  class="mr-20"
+                />
                 <template v-if="value.hasLink('update') && group.ref.showScalePool">
                   <button
                     v-tooltip="t('node.list.scaleDown')"

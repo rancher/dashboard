@@ -58,11 +58,6 @@ export default {
     needRelated: {
       type:    Boolean,
       default: true
-    },
-
-    alwaysShowEvents: {
-      type:    Boolean,
-      default: false
     }
   },
 
@@ -92,7 +87,7 @@ export default {
       return false;
     },
     showEvents() {
-      return this.isView && this.needEvents && this.hasEvents && (this.events.length || this.alwaysShowEvents);
+      return this.isView && this.needEvents && this.hasEvents;
     },
     showRelated() {
       return this.isView && this.needRelated;

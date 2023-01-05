@@ -61,7 +61,7 @@ export default {
         :simple="true"
       />
 
-      <main>
+      <main class="main-layout">
         <nuxt class="outlet" />
       </main>
     </div>

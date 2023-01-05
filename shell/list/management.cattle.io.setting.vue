@@ -106,9 +106,9 @@ export default {
             <span
               v-else-if="setting.customized"
               class="modified"
-            >Modified</span>
+            >{{ t('advancedSettings.modified') }}</span>
           </h1>
-          <h2 v-html="setting.description" />
+          <h2>{{ t(`advancedSettings.descriptions.${setting.id}`) }}</h2>
         </div>
         <div
           v-if="setting.hasActions"

@@ -27,7 +27,7 @@ export default {
         enabled:     true,
         iconSrc:     this.longhornImgSrc,
         label:       'longhorn.overview.linkedList.longhorn.label',
-        description:   'longhorn.overview.linkedList.longhorn.description',
+        description: 'longhorn.overview.linkedList.longhorn.description',
         link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/`
       },
     ];
@@ -39,7 +39,7 @@ export default {
 
 <template>
   <section>
-    <header class="row">
+    <header class="header-layout row">
       <div class="col span-12">
         <h1>
           <t k="longhorn.overview.title" />

@@ -53,7 +53,7 @@ const THANOS_COMPACT = 'Thanos Compact';
 export default {
   props: {
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT
     },
     value: {

@@ -16,11 +16,12 @@ export default {
   },
   data() {
     return {
-      settings: null,
+      dashboardVersion: this.$config.dashboardVersion,
+      settings:         null,
       SETTING
     };
   },
-  computed:   {
+  computed: {
     rancherVersion() {
       return this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
     },
@@ -117,9 +118,20 @@ export default {
             target="_blank"
             rel="nofollow noopener noreferrer"
           >
-            {{ appName }}
+            {{ t("about.versions.rancher") }}
           </a>
         </td><td>{{ rancherVersion.value }}</td>
+      </tr>
+      <tr v-if="dashboardVersion">
+        <td>
+          <a
+            href="https://github.com/rancher/dashboard"
+            target="_blank"
+            rel="nofollow noopener noreferrer"
+          >
+            {{ t("generic.dashboard") }}
+          </a>
+        </td><td>{{ dashboardVersion }}</td>
       </tr>
       <tr v-if="cliVersion">
         <td>

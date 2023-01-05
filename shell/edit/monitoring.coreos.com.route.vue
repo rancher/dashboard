@@ -53,7 +53,7 @@ export default {
 
     return {
       receiverOptions:      [],
-      doneLocationOverride:      {
+      doneLocationOverride: {
         name:   'c-cluster-monitoring-route-receiver',
         params: { cluster: this.$store.getters['clusterId'] },
         query:  { resource: MONITORING.SPOOFED.ROUTE }

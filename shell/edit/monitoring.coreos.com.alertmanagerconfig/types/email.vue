@@ -9,7 +9,7 @@ export default {
   components: {
     Checkbox, LabeledInput, SimpleSecretSelector, TLS
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -19,17 +19,17 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data() {
     this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
-    this.$set(this.value, 'requireTls', this.value.requireTls || false);
+    this.$set(this.value, 'requireTLS', this.value.requireTLS || false);
 
     return {
       view:                          _VIEW,
-      initialAuthPasswordSecretName:  this.value?.authPassword?.name ? this.value.authPassword.name : '',
+      initialAuthPasswordSecretName: this.value?.authPassword?.name ? this.value.authPassword.name : '',
       initialAuthPasswordSecretKey:  this.value.authPassword?.key ? this.value.authPassword.key : '',
       none:                          '__[[NONE]]__',
     };
@@ -123,7 +123,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="value.requireTls"
+          v-model="value.requireTLS"
           :mode="mode"
           class="mt-20"
           label="Use TLS"

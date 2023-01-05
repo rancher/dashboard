@@ -4,14 +4,13 @@ import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
-import { LabeledInput } from '@components/Form/LabeledInput';
 import ArrayList from '@shell/components/form/ArrayList';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
-import { _DETAIL } from '@shell/config/query-params';
+import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES } from '@shell/config/roles';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
@@ -52,7 +51,6 @@ export default {
   components: {
     ArrayList,
     CruResource,
-    LabeledInput,
     RadioGroup,
     Select,
     NameNsDescription,
@@ -89,6 +87,10 @@ export default {
       });
       this.templateOptions = Object.values(this.keyedTemplateOptions);
     }
+    if (this.realMode === _CLONE) {
+      this.value.displayName = '';
+      this.value.builtin = false;
+    }
   },
 
   data() {
@@ -112,7 +114,6 @@ export default {
 
   created() {
     this.$set(this.value, 'rules', this.value.rules || []);
-
     this.value.rules.forEach((rule) => {
       if (rule.verbs[0] === '*') {
         this.$set(rule, 'verbs', [...VERBS]);
@@ -379,28 +380,27 @@ export default {
       // - resourceNames
       // - resources
       // - verbs
-      const value = event.label ? event.label : event;
 
       switch (key) {
       case 'apiGroups':
 
-        if (value || (value === '')) {
-          this.$set(rule, 'apiGroups', [value]);
+        if (event || (event === '')) {
+          this.$set(rule, 'apiGroups', [event]);
         }
 
         break;
 
       case 'verbs':
 
-        if (value) {
-          this.$set(rule, 'verbs', [value]);
+        if (event) {
+          this.$set(rule, 'verbs', [event]);
         } else {
           this.$set(rule, 'verbs', []);
         }
         break;
 
       case 'resources':
-        if (event.resourceName) {
+        if (event?.resourceName) {
           // If we are updating the resources defined in a rule,
           // the event will be an object with the
           // properties apiGroupValue and resourceName.
@@ -408,7 +408,7 @@ export default {
           // Automatically fill in the API group of the
           // selected resource.
           this.$set(rule, 'apiGroups', [event.apiGroupValue]);
-        } else if (event.label) {
+        } else if (event?.label) {
           // When the user creates a new resource name in the resource
           // field instead of selecting an existing one,
           // we have to treat that differently because the incoming event
@@ -423,8 +423,8 @@ export default {
         break;
 
       case 'nonResourceURLs':
-        if (value) {
-          this.$set(rule, 'nonResourceURLs', [value]);
+        if (event) {
+          this.$set(rule, 'nonResourceURLs', [event]);
         } else {
           this.$set(rule, 'nonResourceURLs', []);
         }
@@ -446,6 +446,21 @@ export default {
       this.done();
     },
     async actuallySave(url) {
+      // Go through all of the grules and replace double quote apiGroups
+      // k8S documentation shows using empty rules as "" - we change this to empty string when used
+      this.value.rules?.forEach((rule) => {
+        if (rule.apiGroups) {
+          rule.apiGroups = rule.apiGroups.map((group) => {
+            // If the group is two double quotes ("") replace if with empty string
+            if (group.trim() === '\"\"') {
+              group = '';
+            }
+
+            return group;
+          });
+        }
+      });
+
       if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
         await this.value.save({ url, redirectUnauthorized: false });
@@ -604,12 +619,12 @@ export default {
             <template #column-headers>
               <div class="column-headers row">
                 <div :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
                     <span class="required">*</span>
-                  </label>
+                  </span>
                 </div>
                 <div :class="ruleClass">
-                  <label class="text-label">
+                  <span class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
                     <i
                       v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
@@ -619,21 +634,16 @@ export default {
                       v-if="isNamespaced"
                       class="required"
                     >*</span>
-                  </label>
+                  </span>
                 </div>
                 <div :class="ruleClass">
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
-                    <span
-                      v-if="isNamespaced"
-                      class="required"
-                    >*</span>
-                  </label>
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}</span>
                 </div>
                 <div
                   v-if="!isNamespaced"
                   :class="ruleClass"
                 >
-                  <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</span>
                 </div>
               </div>
             </template>
@@ -665,23 +675,23 @@ export default {
                   />
                 </div>
                 <div :class="ruleClass">
-                  <LabeledInput
+                  <input
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
-                    @input="setRule('apiGroups', props.row.value, $event)"
-                  />
+                    @input="setRule('apiGroups', props.row.value, $event.target.value)"
+                  >
                 </div>
                 <div
                   v-if="!isNamespaced"
                   :class="ruleClass"
                 >
-                  <LabeledInput
+                  <input
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
-                    @input="setRule('nonResourceURLs', props.row.value, $event)"
-                  />
+                    @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
+                  >
                 </div>
               </div>
             </template>
@@ -736,6 +746,7 @@ export default {
   ::v-deep {
     .column-headers {
       margin-right: 75px;
+      margin-bottom: 5px;
     }
 
     .box {

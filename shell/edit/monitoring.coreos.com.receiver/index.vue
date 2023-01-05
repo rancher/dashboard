@@ -138,7 +138,7 @@ export default {
       suffixYaml,
       EDITOR_MODES,
       yamlError:            '',
-      doneLocationOverride:      {
+      doneLocationOverride: {
         name:   'c-cluster-monitoring-route-receiver',
         params: { cluster: this.$store.getters['clusterId'] },
         query:  { resource: MONITORING.SPOOFED.RECEIVER }

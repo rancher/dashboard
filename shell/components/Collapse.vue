@@ -8,8 +8,8 @@ export default {
     },
 
     title: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
 
@@ -26,15 +26,18 @@ export default {
     <slot name="title">
       <div
         class="advanced text-link"
+        data-testid="collapse-div"
         @click="showAdvanced"
       >
         <i
           v-if="open"
           class="icon icon-chevron-down"
+          data-testid="collapse-icon-down"
         />
         <i
           v-else
           class="icon icon-chevron-right"
+          data-testid="collapse-icon-right"
         />
         {{ title }}
       </div>
@@ -43,6 +46,7 @@ export default {
     <div
       v-if="open"
       class="content"
+      data-testid="collapse-content"
     >
       <slot />
     </div>

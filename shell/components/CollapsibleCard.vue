@@ -1,7 +1,7 @@
 <script>
 export default {
-  name:       'CollapsibleCard',
-  props:      {
+  name:  'CollapsibleCard',
+  props: {
     isCollapsed: {
       type:    Boolean,
       default: false
@@ -105,7 +105,6 @@ export default {
   }
 
   &-collapse-icon {
-    font-size: 24px;
     color: #B7B8BB;
   }
 

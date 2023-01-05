@@ -27,7 +27,7 @@ export default {
     SimpleSecretSelector,
     TLS,
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -37,8 +37,8 @@ export default {
       required: true
     },
     namespace: {
-      type:     String,
-      default:  ''
+      type:    String,
+      default: ''
     }
   },
   data(props) {
@@ -50,7 +50,7 @@ export default {
     return {
       showNamespaceBanner:  isDriverUrl && this.mode !== _VIEW,
       view:                 _VIEW,
-      initialUrlSecretName:  this.value?.urlSecret?.name ? this.value.urlSecret.name : '',
+      initialUrlSecretName: this.value?.urlSecret?.name ? this.value.urlSecret.name : '',
       initialUrlSecretKey:  this.value?.urlSecret?.key ? this.value.urlSecret.key : '',
       webhookOptons:        [
         {

@@ -8,11 +8,11 @@ const STATUS_CLASS_MAP = {
   },
   warning: {
     color: 'bg-warning',
-    icon:  'icon-error'
+    icon:  'icon-warning'
   },
   info: {
     color: 'bg-info',
-    icon:  'icon-error'
+    icon:  'icon-info'
   },
   error: {
     color: 'bg-error',

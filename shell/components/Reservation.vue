@@ -13,7 +13,7 @@ export const answers = {
 export default {
   props: {
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT
     },
     value: {

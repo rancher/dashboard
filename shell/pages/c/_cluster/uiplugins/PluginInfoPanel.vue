@@ -1,9 +1,22 @@
 <script>
+import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 export default {
+  async fetch() {
+    const bannerSetting = await this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
+    const { showHeader, bannerHeader } = JSON.parse(bannerSetting.value);
+
+    if (showHeader === 'true') {
+      const headerBannerFontSize = Number(bannerHeader?.fontSize?.split('px')[0] ?? 0);
+
+      this.headerBannerSize = headerBannerFontSize * 2;
+    }
+  },
   components: {
     Banner,
     ChartReadme,
@@ -12,13 +25,26 @@ export default {
 
   data() {
     return {
-      showSlideIn:  false,
-      info:         undefined,
-      infoVersion:  undefined,
-      versionInfo:  undefined,
-      versionError: undefined,
-      defaultIcon:  require('~shell/assets/images/generic-plugin.svg'),
+      showSlideIn:      false,
+      info:             undefined,
+      infoVersion:      undefined,
+      versionInfo:      undefined,
+      versionError:     undefined,
+      defaultIcon:      require('~shell/assets/images/generic-plugin.svg'),
+      headerBannerSize: 0,
     };
+  },
+
+  computed: {
+    ...mapGetters({ theme: 'prefs/theme' }),
+
+    applyDarkModeBg() {
+      if (this.theme === 'dark') {
+        return { 'dark-mode': true };
+      }
+
+      return {};
+    },
   },
 
   methods: {
@@ -80,7 +106,10 @@ export default {
 };
 </script>
 <template>
-  <div class="plugin-info-panel">
+  <div
+    class="plugin-info-panel"
+    :style="`--banner-top-offset: ${headerBannerSize}px`"
+  >
     <div
       v-if="showSlideIn"
       class="glass"
@@ -95,7 +124,10 @@ export default {
         class="plugin-info-content"
       >
         <div class="plugin-header">
-          <div class="plugin-icon">
+          <div
+            class="plugin-icon"
+            :class="applyDarkModeBg"
+          >
             <LazyImage
               v-if="info.icon"
               :initial-src="defaultIcon"
@@ -209,7 +241,8 @@ export default {
     $title-height: 50px;
     $padding: 5px;
     $slideout-width: 35%;
-    $header-height: 54px;
+    --banner-top-offset: 0;
+    $header-height: calc(54px + var(--banner-top-offset));
 
     .glass {
       z-index: 9;
@@ -236,6 +269,10 @@ export default {
       padding: 10px;
 
       transition: right .5s ease;
+
+      &__header {
+        text-transform: capitalize;
+      }
 
       .plugin-info-content {
         display: flex;
@@ -268,10 +305,23 @@ export default {
         font-size: 40px;
         margin-right:10px;
         color: #888;
+        width: 44px;
+        height: 44px;
+
+        &.dark-mode {
+          border-radius: calc(2 * var(--border-radius));
+          overflow: hidden;
+          background-color: white;
+        }
 
         .plugin-icon-img {
           height: 40px;
           width: 40px;
+          -o-object-fit: contain;
+          object-fit: contain;
+          position: relative;
+          top: 2px;
+          left: 2px;
         }
       }
 

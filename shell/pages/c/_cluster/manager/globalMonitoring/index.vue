@@ -15,12 +15,13 @@ import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@shell/mixins/ch
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 import { diff, get, set } from '@shell/utils/object';
-import { SETTING, setSetting, getGlobalMonitoringV2Setting, DEFAULT_GMV2_SETTING } from '@shell/config/settings';
+import { SETTING, getGlobalMonitoringV2Setting, DEFAULT_GMV2_SETTING } from '@shell/config/settings';
 import { delay, mergeWith, isArray, throttle } from 'lodash';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { base64Encode } from '@shell/utils/crypto';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { monitoringStatus } from '@shell/utils/global-monitoring';
+import { setSetting } from '@shell/utils/settings';
 
 const GLOBAL_MONITORING_TOKEN = 'Global Monitoring Token';
 const APP_NAME = 'global-monitoring';
@@ -63,10 +64,10 @@ export default {
         }
 
         this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-          repoType:      this.chart.repoType,
-          repoName:      this.chart.repoName,
-          chartName:     this.chart.chartName,
-          versionName:   this.version.version || '',
+          repoType:    this.chart.repoType,
+          repoName:    this.chart.repoName,
+          chartName:   this.chart.chartName,
+          versionName: this.version.version || '',
         });
       }
     } catch (e) {
@@ -97,13 +98,13 @@ export default {
     };
 
     return {
-      chartVersion:                    '',
-      errors:                          [],
-      warnings:                        [],
-      currentCluster:                  {},
-      version:                         {},
-      monitoringSettings:              {},
-      disabledV1Done:                  false,
+      chartVersion:       '',
+      errors:             [],
+      warnings:           [],
+      currentCluster:     {},
+      version:            {},
+      monitoringSettings: {},
+      disabledV1Done:     false,
 
       formYamlOption:      VALUES_STATE.FORM,
       showDiff:            false,
@@ -479,8 +480,8 @@ export default {
     async disableMonitoring() {
       try {
         const app = await this.$store.dispatch(`${ this.inStore }/find`, {
-          type:      CATALOG.APP,
-          id:        `${ this.value.metadata.namespace }/${ this.value.metadata.name }`,
+          type: CATALOG.APP,
+          id:   `${ this.value.metadata.namespace }/${ this.value.metadata.name }`,
         });
 
         const res = await app.doAction('uninstall', {});

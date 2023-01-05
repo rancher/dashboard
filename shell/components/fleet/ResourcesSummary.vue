@@ -32,7 +32,7 @@ export default {
         obj[state] = {
           count: 0,
           color: state,
-          label:  this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ state }`, null, state)
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ state }`, null, state)
         };
 
         return obj;

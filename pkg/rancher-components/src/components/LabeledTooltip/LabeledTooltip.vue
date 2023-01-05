@@ -37,13 +37,28 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div ref="container" class="labeled-tooltip" :class="{[status]: true, hoverable: hover}">
+  <div
+    ref="container"
+    class="labeled-tooltip"
+    :class="{[status]: true, hoverable: hover}"
+  >
     <template v-if="hover">
-      <i v-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value" :class="{'hover':!value, [iconClass]: true}" class="icon status-icon" />
+      <i
+        v-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value"
+        :class="{'hover':!value, [iconClass]: true}"
+        class="icon status-icon"
+      />
     </template>
     <template v-else>
-      <i :class="{'hover':!value}" class="icon status-icon" />
-      <div v-if="value" class="tooltip" x-placement="bottom">
+      <i
+        :class="{'hover':!value}"
+        class="icon status-icon"
+      />
+      <div
+        v-if="value"
+        class="tooltip"
+        x-placement="bottom"
+      >
         <div class="tooltip-arrow" />
         <div class="tooltip-inner">
           {{ value }}
@@ -69,7 +84,6 @@ export default Vue.extend({
         position:  absolute;
         right: 30px;
         top: $input-padding-lg;
-        font-size: 20px;
         z-index: z-index(hoverOverContent);
      }
 

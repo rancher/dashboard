@@ -21,7 +21,7 @@ const defaultConfig = {
   },
   flags: {
     migStrategy:      'none', // none,single,mixed
-    failOnInitError:   true,
+    failOnInitError:  true,
     nvidiaDriverRoot: '/',
     plugin:           {
       passDeviceSpecs:    false,

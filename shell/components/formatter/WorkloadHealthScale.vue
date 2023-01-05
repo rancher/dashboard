@@ -52,7 +52,7 @@ export default {
     },
   },
 
-  methods:  {
+  methods: {
     liveUpdate() {
       if (this.loading) {
         return 5;
@@ -144,7 +144,7 @@ export default {
           top:    0,
           left:   0,
           right:  window.innerWidth || document.documentElement.clientWidth,
-          bottom:  window.innerHeight || document.documentElement.clientHeight,
+          bottom: window.innerHeight || document.documentElement.clientHeight,
         });
 
         if (insideWindow) {
@@ -266,7 +266,6 @@ $width: 150px;
       margin-left: 5px;
     }
     .icon {
-      font-size: $height;
       width: $height;
       color: var(--primary);
       margin-top: 1px;

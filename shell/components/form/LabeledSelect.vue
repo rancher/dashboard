@@ -150,10 +150,15 @@ export default {
       this.resizeHandler();
     },
 
+    onClose() {
+      this.$emit('on-close');
+    },
+
     getOptionLabel(option) {
       if (!option) {
         return;
       }
+
       if (this.$attrs['get-option-label']) {
         return this.$attrs['get-option-label'](option);
       }
@@ -276,6 +281,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
+      @close="onClose"
       @option:selected="$emit('selecting', $event)"
     >
       <template #option="option">
@@ -289,6 +295,11 @@ export default {
         </template>
         <template v-else-if="option.kind === 'divider'">
           <hr>
+        </template>
+        <template v-else-if="option.kind === 'highlighted'">
+          <div class="option-kind-highlighted">
+            {{ option.label }}
+          </div>
         </template>
         <div
           v-else
@@ -450,9 +461,7 @@ export default {
 
   ::v-deep .vs__actions {
     &:after {
-      line-height: 1.85rem;
       position: relative;
-      right: 3px;
       top: -10px;
     }
   }
@@ -508,4 +517,23 @@ export default {
     padding: 0 10px;
   }
 }
+
+// Styling for option highlighted
+.vs__dropdown-option {
+  > .option-kind-highlighted {
+    color: var(--dropdown-highlight-text);
+
+    &:hover {
+      color: var(--dropdown-hover-text);
+    }
+  }
+
+  &.vs__dropdown-option--selected,
+  &.vs__dropdown-option--highlight {
+    > .option-kind-highlighted {
+      color: var(--dropdown-hover-text);
+    }
+  }
+}
+
 </style>

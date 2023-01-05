@@ -71,8 +71,8 @@ export default {
       }
       if (s === 1) {
         return {
-          labelKey:  'changePassword.strength.weak',
-          state:     'weak'
+          labelKey: 'changePassword.strength.weak',
+          state:    'weak'
         };
       }
 

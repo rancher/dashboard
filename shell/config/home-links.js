@@ -52,7 +52,10 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
   try {
     const uiLinksSetting = await store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_CUSTOM_LINKS });
 
-    uiLinks = JSON.parse(uiLinksSetting.value);
+    // Don't try and parse empty string
+    if (uiLinksSetting.value) {
+      uiLinks = JSON.parse(uiLinksSetting.value);
+    }
   } catch (e) {
     console.warn('Could not parse custom link settings', e); // eslint-disable-line no-console
   }

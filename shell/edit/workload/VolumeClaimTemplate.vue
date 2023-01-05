@@ -13,7 +13,7 @@ export default {
     PersistentVolumeClaim
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'

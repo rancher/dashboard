@@ -9,7 +9,8 @@ import { findBy } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import { getVendor, getProduct, setVendor } from '@shell/config/private-label';
 import { RadioGroup } from '@components/Form/Radio';
-import { setSetting, SETTING } from '@shell/config/settings';
+import { setSetting } from '@shell/utils/settings';
+import { SETTING } from '@shell/config/settings';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -146,18 +147,18 @@ export default {
 
     return {
       productName,
-      vendor:            getVendor(),
-      product:           getProduct(),
-      step:              parseInt(route.query.step, 10) || 1,
+      vendor:  getVendor(),
+      product: getProduct(),
+      step:    parseInt(route.query.step, 10) || 1,
 
-      useRandom:          true,
-      haveCurrent:        !!current,
-      username:           me?.loginName || 'admin',
+      useRandom:   true,
+      haveCurrent: !!current,
+      username:    me?.loginName || 'admin',
       isFirstLogin,
       mustChangePassword,
       current,
-      password:           randomStr(),
-      confirm:            '',
+      password:    randomStr(),
+      confirm:     '',
 
       v3User,
 
@@ -233,9 +234,9 @@ export default {
 
         if ( this.mustChangePassword ) {
           await this.$store.dispatch('rancher/request', {
-            url:           '/v3/users?action=changepassword',
-            method:        'post',
-            data:          {
+            url:    '/v3/users?action=changepassword',
+            method: 'post',
+            data:   {
               currentPassword: this.encryptPassword(this.current),
               newPassword:     this.encryptPassword(this.password)
             },

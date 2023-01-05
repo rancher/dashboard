@@ -40,7 +40,7 @@ export default {
     project: {
       type:    Boolean,
       default: false
-    },
+    }
   },
 
   async fetch() {
@@ -54,10 +54,11 @@ export default {
 
   data() {
     return {
-      principals: null,
-      searchStr:  '',
-      options:    [],
-      newValue:   '',
+      principals:     null,
+      searchStr:      '',
+      options:        [],
+      newValue:       '',
+      tooltipContent: null,
     };
   },
 
@@ -94,6 +95,24 @@ export default {
   },
 
   methods: {
+    setTooltipContent() {
+      if (!this.retainSelection) {
+        return;
+      }
+      if (this.principals) {
+        const selected = this.principals.find(p => p.id === this.newValue);
+
+        this.tooltipContent = selected?.name;
+      } else {
+        this.tooltipContent = null;
+      }
+    },
+    resetTooltipContent() {
+      if (!this.retainSelection) {
+        return;
+      }
+      this.tooltipContent = null;
+    },
     add(id) {
       if (!id) {
         // Ignore attempts to select an invalid principal
@@ -156,6 +175,11 @@ export default {
   <LabeledSelect
     ref="labeled-select"
     v-model="newValue"
+    v-tooltip="{
+      content: tooltipContent,
+      placement: 'bottom',
+      classes: ['select-principal-tooltip']
+    }"
     :mode="mode"
     :label="label"
     :placeholder="placeholder"
@@ -166,6 +190,8 @@ export default {
     :class="{'retain-selection': retainSelection}"
     @input="add"
     @search="onSearch"
+    @on-open="resetTooltipContent()"
+    @on-close="setTooltipContent()"
   >
     <template v-slot:no-options="{ searching }">
       <template v-if="searching">
@@ -216,5 +242,19 @@ export default {
         }
       }
     }
+  }
+</style>
+<style lang="scss">
+  .vs__dropdown-menu {
+    width: 0%;
+    * {
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .select-principal-tooltip {
+    max-width: 580px;
+    word-wrap: break-word;
   }
 </style>

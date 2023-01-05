@@ -249,12 +249,20 @@ export default class Secret extends SteveModel {
   get certInfo() {
     const pem = base64Decode(this.data['tls.crt']);
     let issuer, notAfter, cn, sans, x;
+    const END_MARKER = '-----END CERTIFICATE-----';
 
     if (pem) {
+      const certs = pem.split(END_MARKER);
+      let first = pem;
+
+      if (certs.length > 1) {
+        first = `${ certs[0] }${ END_MARKER }`;
+      }
+
       try {
         x = new r.X509();
 
-        x.readCertPEM(pem);
+        x.readCertPEM(first);
         const issuerString = x.getIssuerString();
 
         issuer = issuerString.slice(issuerString.indexOf('CN=') + 3);

@@ -13,7 +13,7 @@ export default {
     KeyToPath
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {

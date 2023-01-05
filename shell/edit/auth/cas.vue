@@ -35,9 +35,9 @@ export default {
   computed: {
     tArgs() {
       return {
-        baseUrl:   this.serverSetting,
-        provider:  this.displayName,
-        username:  this.principal.loginName || this.principal.name,
+        baseUrl:  this.serverSetting,
+        provider: this.displayName,
+        username: this.principal.loginName || this.principal.name,
       };
     },
 

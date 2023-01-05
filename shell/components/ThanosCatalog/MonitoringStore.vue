@@ -11,7 +11,7 @@ import { difference } from 'lodash';
 export default {
   props: {
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT
     },
     value: {
@@ -113,9 +113,9 @@ export default {
         otherClusterStores,
         enabledClusters: enabledClusters.map((c) => {
           return {
-            address:      c.clusterStore || c.monitoringNodeIp,
-            id:           c.id,
-            customStore:  !!c.clusterStore
+            address:     c.clusterStore || c.monitoringNodeIp,
+            id:          c.id,
+            customStore: !!c.clusterStore
           };
         })
       });

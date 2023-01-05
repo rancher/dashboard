@@ -56,7 +56,7 @@ export default class GateKeeperConstraint extends SteveModel {
     return violations.map((violation) => {
       return {
         ...violation,
-        resourceLink:     {
+        resourceLink: {
           text: violation.name,
           to:   {
             name:   'c-cluster-product-resource-id',

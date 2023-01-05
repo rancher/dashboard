@@ -150,7 +150,7 @@ export default {
     },
     emptyDefaults() {
       return {
-        type:  this.templateOptions[0].value,
+        type: this.templateOptions[0].value,
         spec: this.emptySpec
       };
     },

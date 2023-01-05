@@ -22,9 +22,9 @@ export const state = function() {
 };
 
 export const getters = {
-  showing:       state => state.show,
-  elem:          state => state.elem,
-  event:         state => state.event,
+  showing: state => state.show,
+  elem:    state => state.elem,
+  event:   state => state.event,
 
   options(state) {
     let selected = state.resources;

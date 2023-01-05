@@ -13,7 +13,7 @@ export default {
     return { opened: false, backgroundClosing: null };
   },
 
-  computed:   {
+  computed: {
     ...mapState('action-menu', ['showModal', 'modalData']),
 
     resources() {
@@ -88,6 +88,7 @@ export default {
     @closed="close()"
   >
     <component
+      v-bind="modalData.componentProps || {}"
       :is="component"
       v-if="opened && component"
       :resources="resources"

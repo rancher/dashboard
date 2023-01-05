@@ -55,8 +55,8 @@ export default {
       required: true,
     },
     chart: {
-      type:     Object,
-      default:  () => ({}),
+      type:    Object,
+      default: () => ({}),
     },
     optionLabel: {
       type:    String,

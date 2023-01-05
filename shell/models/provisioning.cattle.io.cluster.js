@@ -72,6 +72,17 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
+  // Models can specify a single action that will be shown as a button in the details masthead
+  get detailsAction() {
+    const canExplore = this.mgmt?.isReady && !this.hasError;
+
+    return {
+      action:  'explore',
+      label:   this.$rootGetters['i18n/t']('cluster.explore'),
+      enabled: canExplore,
+    };
+  }
+
   get _availableActions() {
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
@@ -107,36 +118,36 @@ export default class ProvCluster extends SteveModel {
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
       {
-        action:     'editConnectMode',
-        label:      this.$rootGetters['i18n/t']('clusterConnectMode.connectMode.label'),
-        icon:       'icon icon-edit',
-        enabled:    !isLocal && this.mgmt,
+        action:  'editConnectMode',
+        label:   this.$rootGetters['i18n/t']('clusterConnectMode.connectMode.label'),
+        icon:    'icon icon-edit',
+        enabled: !isLocal && this.mgmt,
       },
       {
-        action:     'viewK8sAuditLog',
-        label:      this.t('cluster.k8sAuditLog'),
-        bulkable:   false,
-        enabled:    !!auditLogServerUrl,
-        icon:       'icon icon-file',
+        action:   'viewK8sAuditLog',
+        label:    this.t('cluster.k8sAuditLog'),
+        bulkable: false,
+        enabled:  !!auditLogServerUrl,
+        icon:     'icon icon-file',
       },
       {
-        action:     'openShell',
-        label:      this.$rootGetters['i18n/t']('nav.shell'),
-        icon:       'icon icon-terminal',
-        enabled:    !!this.mgmt?.links.shell && ready,
+        action:  'openShell',
+        label:   this.$rootGetters['i18n/t']('nav.shell'),
+        icon:    'icon icon-terminal',
+        enabled: !!this.mgmt?.links.shell && ready,
       }, {
         action:     'downloadKubeConfig',
         bulkAction: 'downloadKubeConfigBulk',
         label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),
         icon:       'icon icon-download',
         bulkable:   true,
-        enabled:    this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:    this.mgmt?.hasAction('generateKubeconfig'),
       }, {
-        action:     'copyKubeConfig',
-        label:      this.t('cluster.copyConfig'),
-        bulkable:   false,
-        enabled:    this.mgmt?.hasAction('generateKubeconfig') && ready,
-        icon:       'icon icon-copy',
+        action:   'copyKubeConfig',
+        label:    this.t('cluster.copyConfig'),
+        bulkable: false,
+        enabled:  this.mgmt?.hasAction('generateKubeconfig'),
+        icon:     'icon icon-copy',
       }, {
         action:     'snapshotAction',
         label:      this.$rootGetters['i18n/t']('nav.takeSnapshot'),
@@ -145,25 +156,25 @@ export default class ProvCluster extends SteveModel {
         bulkable:   true,
         enabled:    canSnapshot,
       }, {
-        action:     'restoreSnapshotAction',
-        label:      this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
-        icon:       'icon icon-fw icon-backup-restore',
-        enabled:    canSnapshot,
+        action:  'restoreSnapshotAction',
+        label:   this.$rootGetters['i18n/t']('nav.restoreSnapshot'),
+        icon:    'icon icon-fw icon-backup-restore',
+        enabled: canSnapshot,
       }, {
-        action:     'rotateCertificates',
-        label:      this.$rootGetters['i18n/t']('nav.rotateCertificates'),
-        icon:       'icon icon-backup',
-        enabled:    canEditRKE2cluster || (this.mgmt?.hasAction('rotateCertificates') && ready),
+        action:  'rotateCertificates',
+        label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
+        icon:    'icon icon-backup',
+        enabled: canEditRKE2cluster || (this.mgmt?.hasAction('rotateCertificates') && ready),
       }, {
-        action:     'rotateEncryptionKey',
-        label:      this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
-        icon:       'icon icon-refresh',
-        enabled:    canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
+        action:  'rotateEncryptionKey',
+        label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
+        icon:    'icon icon-refresh',
+        enabled: canEditRKE2cluster || (this.isRke1 && this.mgmt?.hasAction('rotateEncryptionKey') && ready)
       }, {
-        action:     'saveAsRKETemplate',
-        label:      this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
-        icon:       'icon icon-folder',
-        enabled:    canSaveRKETemplate,
+        action:  'saveAsRKETemplate',
+        label:   this.$rootGetters['i18n/t']('nav.saveAsRKETemplate'),
+        icon:    'icon icon-folder',
+        enabled: canSaveRKETemplate,
       }, { divider: true }];
 
     return actions.concat(out);
@@ -179,6 +190,15 @@ export default class ProvCluster extends SteveModel {
     const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
 
     return out;
+  }
+
+  explore() {
+    const location = {
+      name:   'c-cluster',
+      params: { cluster: this.mgmt.id }
+    };
+
+    this.currentRouter().push(location);
   }
 
   goToViewYaml() {
@@ -439,6 +459,36 @@ export default class ProvCluster extends SteveModel {
     return this.pools.reduce((acc, pool) => acc + (pool.unavailable || 0), 0);
   }
 
+  get unavailableMachines() {
+    if (this.isReady) {
+      if (this.isRke1) {
+        const names = this.nodes.filter((node) => {
+          return node.status.conditions.find(c => c.error && c.type === 'Ready');
+        }).map((node) => {
+          const name = node.status.nodeName || node.metadata.name;
+
+          return this.t('cluster.availabilityWarnings.node', { name });
+        });
+
+        return names.join('<br>');
+      } else {
+        const names = this.machines.filter((machine) => {
+          return machine.status.conditions.find(c => c.error && c.type === 'NodeHealthy');
+        }).map((machine) => {
+          if (machine.status.nodeRef?.name) {
+            return this.t('cluster.availabilityWarnings.node', { name: machine.status.nodeRef.name });
+          }
+
+          return this.t('cluster.availabilityWarnings.machine', { name: machine.metadata.name });
+        });
+
+        return names.join('<br>');
+      }
+    }
+
+    return '';
+  }
+
   get stateParts() {
     const out = [
       {
@@ -568,8 +618,8 @@ export default class ProvCluster extends SteveModel {
   takeSnapshot() {
     if ( this.isRke1 ) {
       return this.$dispatch('rancher/request', {
-        url:           `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
-        method:        'post',
+        url:    `/v3/clusters/${ escape(this.mgmt.id) }?action=backupEtcd`,
+        method: 'post',
       }, { root: true });
     } else {
       const now = this.spec?.rkeConfig?.etcdSnapshotCreate?.generation || 0;
@@ -596,24 +646,25 @@ export default class ProvCluster extends SteveModel {
     this.$dispatch('promptRestore', [resource]);
   }
 
-  saveAsRKETemplate(resources = this) {
+  saveAsRKETemplate(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'SaveAsRKETemplateDialog'
+      componentProps: { cluster },
+      component:      'SaveAsRKETemplateDialog'
     });
   }
 
-  rotateCertificates(resources = this) {
+  rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
+      componentProps: { cluster },
+
       component: 'RotateCertificatesDialog'
     });
   }
 
-  rotateEncryptionKey(resources = this) {
+  rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'RotateEncryptionKeyDialog'
+      componentProps: { cluster },
+      component:      'RotateEncryptionKeyDialog'
     });
   }
 
@@ -773,8 +824,8 @@ export default class ProvCluster extends SteveModel {
           }, { root: true });
 
           await this.$dispatch('management/request', {
-            url:                  `/k8s/clusters/${ harvesterClusterId }/v1/harvester/serviceaccounts/${ poolConfig.vmNamespace }/${ this.metadata.name }`,
-            method:               'DELETE',
+            url:    `/k8s/clusters/${ harvesterClusterId }/v1/harvester/serviceaccounts/${ poolConfig.vmNamespace }/${ this.metadata.name }`,
+            method: 'DELETE',
           }, { root: true });
         } catch (e) {
           console.error(e); // eslint-disable-line no-console
@@ -789,7 +840,7 @@ export default class ProvCluster extends SteveModel {
 
   editConnectMode() {
     this.$dispatch('promptModal', {
-      resources:  [this.mgmt],
+      resources: [this.mgmt],
       component: 'EditConnectModeDialog'
     });
   }

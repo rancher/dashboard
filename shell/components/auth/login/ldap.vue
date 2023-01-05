@@ -43,6 +43,9 @@ export default {
         this.$router.replace('/');
       } catch (err) {
         this.err = err;
+
+        // emit error to parent so that it can displayed on the error Banner
+        this.$emit('error', err);
         buttonCb(false);
       }
     },

@@ -6,7 +6,7 @@ export default {
 
   data: () => ({ loading: false }),
 
-  methods:    {
+  methods: {
     start() {
       this.loading = true;
     },

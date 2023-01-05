@@ -58,13 +58,13 @@ export function init(store) {
         .flat()
         .map((constraint) => {
           return {
-            id:          constraint.id,
-            kind:        constraint.kind,
-            type:        GATEKEEPER.SPOOFED.CONSTRAINT,
-            spec:        constraint.spec,
-            metadata:    constraint.metadata,
-            status:      constraint.status,
-            links:       {
+            id:       constraint.id,
+            kind:     constraint.kind,
+            type:     GATEKEEPER.SPOOFED.CONSTRAINT,
+            spec:     constraint.spec,
+            metadata: constraint.metadata,
+            status:   constraint.status,
+            links:    {
               self: constraint.links.self,
               view: constraint.links.view
             },

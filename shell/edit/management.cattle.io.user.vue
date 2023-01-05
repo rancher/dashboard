@@ -15,7 +15,7 @@ export default {
   components: {
     ChangePassword, GlobalRoleBindings, CruResource, LabeledInput, Loading
   },
-  mixins:     [
+  mixins: [
     CreateEditView
   ],
 
@@ -26,7 +26,7 @@ export default {
 
     return {
       showGlobalRoles,
-      form:             {
+      form: {
         username:    this.value.username,
         description: this.value.description,
         displayName: this.value.displayName,
@@ -38,7 +38,7 @@ export default {
       validation: {
         password:     false,
         roles:        !showGlobalRoles,
-        rolesChanged:     false,
+        rolesChanged: false,
       },
       disabledEncryption,
       passwordStrength: 0
@@ -154,7 +154,7 @@ export default {
       }
 
       const normanUser = await this.$store.dispatch('rancher/find', {
-        type:       NORMAN.USER,
+        type: NORMAN.USER,
         id:   this.value.id,
       });
 

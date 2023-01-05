@@ -52,6 +52,7 @@ import LabeledInputSugget from '@shell/components/form/LabeledInputSugget';
 import debounce from 'lodash/debounce';
 import GpuResourceLimit from '@shell/components/GpuResourceLimit';
 import { SETTING } from '@shell/config/settings';
+import { defaultContainer } from '@shell/models/workload';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -229,73 +230,32 @@ export default {
     this.selectContainer(container);
 
     return {
-      secondaryResourceData:       {
-        namespace: this.value?.metadata?.namespace || null,
-        data:      {
-          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
-          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
-          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
-          [SECRET]:          {
-            applyTo: [
-              { var: 'namespacedSecrets' },
-              {
-                var:         'imagePullNamespacedSecrets',
-                parsingFunc: (data) => {
-                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
-                }
-              }
-            ]
-          },
-          [NODE]:            {
-            applyTo: [
-              { var: 'allNodeObjects' },
-              {
-                var:         'allNodes',
-                parsingFunc: (data) => {
-                  return data.map(node => node.id);
-                }
-              }
-            ]
-          },
-          [SERVICE]: {
-            applyTo: [
-              { var: 'allServices' },
-              {
-                var:         'headlessServices',
-                parsingFunc: (data) => {
-                  return data.filter(service => service.spec.clusterIP === 'None');
-                }
-              }
-            ]
-          },
-          [POD]: { applyTo: [{ var: 'allPods' }] },
-        }
-      },
-      namespacedConfigMaps:        [],
-      allNodes:                    null,
-      allNodeObjects:              [],
-      namespacedSecrets:           [],
-      imagePullNamespacedSecrets:  [],
-      allServices:                 [],
-      headlessServices:            [],
-      name:                        this.value?.metadata?.name || null,
-      pvcs:                        [],
-      namespacedServiceNames:      [],
-      showTabs:                    false,
-      pullPolicyOptions:           ['Always', 'IfNotPresent', 'Never'],
+      secondaryResourceData:      this.secondaryResourceDataConfig(),
+      namespacedConfigMaps:       [],
+      allNodes:                   null,
+      allNodeObjects:             [],
+      namespacedSecrets:          [],
+      imagePullNamespacedSecrets: [],
+      allServices:                [],
+      headlessServices:           [],
+      name:                       this.value?.metadata?.name || null,
+      pvcs:                       [],
+      namespacedServiceNames:     [],
+      showTabs:                   false,
+      pullPolicyOptions:          ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesOwned:               [],
-      servicesToRemove:            [],
-      portsForServices:            [],
+      servicesOwned:              [],
+      servicesToRemove:           [],
+      portsForServices:           [],
       isInitContainer,
       container,
-      containerChange:             0,
-      tabChange:                   0,
-      podFsGroup:                  podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:             'savePvcHook',
-      tabWeightMap:                TAB_WEIGHT_MAP,
-      fvFormRuleSets:              [{
+      containerChange:            0,
+      tabChange:                  0,
+      podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:            'savePvcHook',
+      tabWeightMap:               TAB_WEIGHT_MAP,
+      fvFormRuleSets:             [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
@@ -314,7 +274,9 @@ export default {
 
     defaultTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
-        return 'container-0';
+        const container = this.allContainers.find(c => c.__active);
+
+        return container?.name ?? 'container-0';
       }
 
       return this.allContainers.length ? this.allContainers[0].name : '';
@@ -474,8 +436,8 @@ export default {
             memory: requestsMemory,
           },
           limits: {
-            cpu:       limitsCpu,
-            memory:    limitsMemory,
+            cpu:    limitsCpu,
+            memory: limitsMemory,
             // [GPU_KEY]: limitsGpu,
           },
         };
@@ -765,6 +727,50 @@ export default {
   },
 
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
+          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
+          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
+          [SECRET]:          {
+            applyTo: [
+              { var: 'namespacedSecrets' },
+              {
+                var:         'imagePullNamespacedSecrets',
+                parsingFunc: (data) => {
+                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                }
+              }
+            ]
+          },
+          [NODE]: {
+            applyTo: [
+              { var: 'allNodeObjects' },
+              {
+                var:         'allNodes',
+                parsingFunc: (data) => {
+                  return data.map(node => node.id);
+                }
+              }
+            ]
+          },
+          [SERVICE]: {
+            applyTo: [
+              { var: 'allServices' },
+              {
+                var:         'headlessServices',
+                parsingFunc: (data) => {
+                  return data.filter(service => service.spec.clusterIP === 'None');
+                }
+              }
+            ]
+          },
+          [POD]: { applyTo: [{ var: 'allPods' }] },
+        }
+      };
+    },
     addContainerBtn() {
       this.selectContainer({ name: 'Add Container', __add: true });
     },
@@ -1035,6 +1041,7 @@ export default {
         nameNumber++;
       }
       const container = {
+        ...defaultContainer,
         imagePullPolicy: 'IfNotPresent',
         name:            `container-${ nameNumber }`,
         active:          true
@@ -1042,6 +1049,9 @@ export default {
 
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);
+      this.$nextTick(() => {
+        this.$refs.containersTabbed?.select(container.name);
+      });
     },
 
     removeContainer(container) {

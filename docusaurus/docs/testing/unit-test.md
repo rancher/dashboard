@@ -1,4 +1,4 @@
-# Unit test
+# Unit Tests
 
 The dashboard is configured to run unit tests with Jest in combination of vue-test-utils, for Vue scoped cases.
 
@@ -22,6 +22,17 @@ It is possible to use debugging tools within Jest via VSCode. To do so, open the
 ## Style guide
 
 On top of the recommendation provided by the [Vue documentation](https://vuejs.org/guide/scaling-up/testing.html), it is also encouraged to follow these patterns to create readable and aimed tests.
+
+## Jest global configuration
+
+Some of the global configuration for Jest can be found in the `jest.setup.js` file, mainly to avoid repetitions. This will include:
+
+- Global Vue mounted
+  - Components
+  - Modules
+  - Directives
+  - Getters (e.g., i18n/t)
+- Global hooks, e.g. `afterEach()` with mocks resets
 
 ### Describe and test/it statement
 

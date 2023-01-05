@@ -13,7 +13,7 @@ export default {
      * KV Pair containing the key to reference in the row
      */
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
   },
@@ -23,12 +23,12 @@ export default {
 <template>
   <span v-if="row[col.value]">
     <span>
-      <i class="icon icon-2x icon-checkmark" />
+      <i class="icon icon-checkmark" />
     </span>
   </span>
   <span v-else>
     <span>
-      <i class="icon icon-2x icon-x" />
+      <i class="icon icon-x" />
     </span>
   </span>
 </template>

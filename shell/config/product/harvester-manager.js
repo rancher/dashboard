@@ -58,13 +58,13 @@ export const NAME = 'harvesterManager';
 export const HARVESTER_NAME = 'harvester';
 
 const MACHINE_POOLS = {
-  name:      'summary',
-  labelKey:  'tableHeaders.machines',
-  sort:      false,
-  search:    false,
+  name:     'summary',
+  labelKey: 'tableHeaders.machines',
+  sort:     false,
+  search:   false,
   value:    'nodes.length',
-  align:     'center',
-  width:     100,
+  align:    'center',
+  width:    100,
 };
 
 const harvesterClustersLocation = {
@@ -116,14 +116,14 @@ export function init(store) {
   ]);
   basicType([HCI.CLUSTER]);
   spoofedType({
-    label:      store.getters['i18n/t']('harvesterManager.cluster.label'),
+    labelKey:   'harvesterManager.cluster.label',
     name:       HCI.CLUSTER,
     type:       HCI.CLUSTER,
     namespaced: false,
     weight:     -1,
     route:      {
-      name:     'c-cluster-product-resource',
-      params:   {
+      name:   'c-cluster-product-resource',
+      params: {
         product:  NAME,
         resource: HCI.CLUSTER,
       }

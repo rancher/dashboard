@@ -93,7 +93,7 @@ export default {
 
       if (row.isIframe) {
         this.$router.push({
-          page:    'iframe',
+          page:   'iframe',
           name:   'c-cluster-explorer-navLinks-page',
           params: { cluster: this.$route.params.cluster },
           query:  { link: row.iframeSrc }

@@ -30,7 +30,7 @@ const SERVICE_TYPES = [
 export default {
   props: {
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT
     },
     value: {
@@ -62,7 +62,7 @@ export default {
 
     storageClassesOptions.unshift({
       label: this.t('globalMonitoringPage.grafana.storageClass.placeholder'),
-      value:    '',
+      value: '',
     });
 
     this.storageClassesOptions = storageClassesOptions;

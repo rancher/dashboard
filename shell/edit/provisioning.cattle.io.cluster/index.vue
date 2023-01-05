@@ -79,8 +79,8 @@ export default {
   async fetch() {
     const hash = {
       // These aren't explicitly used, but need to be listening for change events
-      mgmtClusters:     this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
 
       catalog: this.$store.dispatch('catalog/load'),
     };
@@ -223,10 +223,6 @@ export default {
     },
 
     rke2Enabled: mapFeature(RKE2_FEATURE),
-
-    showRkeToggle() {
-      return this.rke2Enabled && !this.isImport;
-    },
 
     provisioner: {
       get() {
@@ -379,9 +375,29 @@ export default {
 
       return sortBy(Object.values(out), 'sort');
     },
+
+    firstNodeDriverItem() {
+      return this.groupedSubTypes.findIndex(obj => [_RKE1, _RKE2].includes(obj.name));
+    },
+
+    firstCustomClusterItem() {
+      return this.groupedSubTypes.findIndex(obj => ['custom', 'custom1', 'custom2'].includes(obj.name));
+    },
   },
 
   methods: {
+    showRkeToggle(i) {
+      if (this.isImport || !this.rke2Enabled) {
+        return false;
+      }
+
+      if (this.firstNodeDriverItem >= 0) {
+        return i === this.firstNodeDriverItem;
+      }
+
+      return i === this.firstCustomClusterItem;
+    },
+
     loadStylesheet(url, id) {
       if ( !id ) {
         console.error('loadStylesheet called without an id'); // eslint-disable-line no-console
@@ -496,7 +512,7 @@ export default {
       >
         <h4>
           <div
-            v-if="showRkeToggle && [_RKE1,_RKE2].includes(obj.name)"
+            v-if="showRkeToggle(i)"
             class="grouped-type"
           >
             <ToggleSwitch

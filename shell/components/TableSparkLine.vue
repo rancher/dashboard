@@ -11,7 +11,7 @@ export default {
       type:    Number,
       default: 20
     },
-    inputDatum:  {
+    inputDatum: {
       type:    Number,
       default: 0
     },

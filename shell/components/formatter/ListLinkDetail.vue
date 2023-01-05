@@ -5,7 +5,7 @@ export default {
   components: { LinkDetail },
   props:      {
     value: {
-      type:     Array,
+      type:    Array,
       default: () => []
     },
     row: {

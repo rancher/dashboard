@@ -9,7 +9,7 @@ import { base64Encode, base64Decode } from '@shell/utils/crypto';
 export default {
   props: {
     mode: {
-      type:     String,
+      type:    String,
       default: _EDIT
     },
     value: {

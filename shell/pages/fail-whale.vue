@@ -49,7 +49,7 @@ export default {
 
 <template>
   <div v-if="error">
-    <main class="error">
+    <main class="main-layout error">
       <div class="text-center">
         <BrandImage
           file-name="error-desert-landscape.svg"
@@ -95,6 +95,10 @@ export default {
 
 <style lang="scss" scoped>
   .error {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: center;
     overflow: hidden;
 
     .row {

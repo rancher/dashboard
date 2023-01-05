@@ -1,62 +1,18 @@
 # Getting Started
 
-## Use Case: Rancher Dashboard Development
+This guide will walk through creating a new extension from scratch.
 
-The goal is to not complicate the development process for Rancher. Although the code has moved around and even once we pull out code into the `pkg` folder, the development
-process for Rancher will be the same as it is.
+## Prerequisites
 
-You should be able to use `yarn dev` as before - the UI will build and run just as it did pre-2.6.5.
+You will need a recent version of nodejs installed.
 
-You should be able to make changes to code and the UI should hot-reload in the browser.
+You'll also need the yarn package manage installed, which can be done with `npm install -g yarn`.
 
-The development workflow for Rancher Dashboard remains unchanged.
+## Creating a Skeleton Application
 
-## Use Case: Develop a new UI
+In order to develop a new Extension, you need an application UI to host it in during development.
 
-This use case covers our need to build separate UIs for [Harvester](https://harvesterhci.io/), [Epinio](https://epinio.io/) etc - but wanting to leverage the core of the Rancher Dashboard UI.
-
-For this, we would publish the `shell` as an NPM package and leverage it in a new UI project.
-
-To help with this, we created an NPM package to help bootstrap a new UI.
-
-To demonstrate this use case:
-
-In a new console window, install and run [Verdaccio](https://verdaccio.org) (this is a local NPM registry that will allow us to publish and use NPM packages locally without having to push them to the NPM registry):
-
-```
-yarn global add verdaccio
-verdaccio
-```
-
-Now, back in the original console window, run:
-
-```
-npm adduser --registry http://localhost:4873  (just add a user with username/password: admin/admin)
-yarn publish ./shell/creators/app --patch --registry http://localhost:4873/
-yarn publish ./shell/creators/pkg --patch --registry http://localhost:4873/
-```
-
-These steps will publish the two [creator](https://classic.yarnpkg.com/en/docs/cli/create) packages to the local npm registry. If you open a browser to `http://127.0.0.1:4873` you'll see the two packages there.
-
-Now we'll publish the `shell` package.
-
-```
-PUBLISH_ARGS="--registry http://localhost:4873/" yarn publish-shell 
-```
-
-At this point, we've published 3 NPM packages:
-
-- `@rancher/shell` - the core shell UI that can be incorporated into a new UI to give core functionality
-- `@rancher/create-app` - a simple package that can be used with the `yarn create` command to create a new UI
-- `@rancher/create-pkg` - a simple package that can be used with the `yarn create` command to create a new UI Package
-
-Now we can create a new UI. First we need to set the environment variable so that yarn will look for packages in our local registry:
-
-```
-export YARN_REGISTRY=http://127.0.0.1:4873
-```
-
-Now we can go ahead and create a new UI.
+Rancher provides a helper to create a skeleton application for you.
 
 `cd` to a folder not within the checkout and run:
 
@@ -65,39 +21,39 @@ yarn create @rancher/app my-app
 cd my-app
 ```
 
-This will create a new folder `my-app` and populate it with the miniumum files needed.
+This will create a new folder `my-app` and populate it with the minimum files needed.
+
+> Note: If you don't want to create a new folder, but instead when the files created in an existing folder, use `yarn create @rancher/app .`
+
+> Note: The skeleton application references the Rancher dashboard code via the `@rancher/shell` npm module.
 
 You can run the app with:
 
 ```
 yarn install
-yarn dev
+API=<Rancher Backend URL> yarn dev
 ```
 
-You should be able to open a browser at `https://127.0.0.1:8005` and you'll get the Rancher Dashboard UI.
+> Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it.
 
-This illustrates being able to share the `shell` across UIs - in practice, we would extract the Rancher code from the shell, so instead of getting the Rancher
-functionality in this example, you'd get an empty shell application with the side menu, UI chrome, avatar menu etc.
+You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI.
 
-You would now add new functionality to this application by adding new UI Packages.
+You're skeleton application is a full Rancher UI - but referenced via `npm`.
 
-## Use Case: Develop a UI Package
+The next step is to create an extension.
 
-So far, we've show that we can re-use the Rancher Shell to support multiple UIs.
+Once again, Rancher provides a helper to add an extension. You can choose to have multiple extensions or a single extension within
+the parent folder.
 
-Next up is the ability to add functionality to a UI. We do this through UI packages.
-
-We have a simple `yarn create` helper to do this.
-
-Run:
+Go ahead and run the following command to create a new extension:
 
 ```
-yarn create @rancher/pkg testplugin
+yarn create @rancher/pkg test
 ```
 
-This will create a new UI Package in the `pkg/testplugin` folder.
+This will create a new UI Package in the `pkg/test` folder.
 
-Replace the contents of the file `pkg/testplugin/index.js` with:
+Replace the contents of the file `pkg/test/index.js` with:
 
 ```
 import { importTypes } from '@rancher/auto-import';
@@ -112,7 +68,7 @@ export default function($plugin) {
 
 ```
 
-Next, create a new file `pkg/testplugin/product.js` with this content:
+Next, create a new file `pkg/test/product.js` with this content:
 
 ```
 export function init($plugin, store) {
@@ -125,8 +81,10 @@ export function init($plugin, store) {
     showClusterSwitcher:   false,
   });
 }
-
 ```
+
+We've created a bare bones extension and exposed a new 'product' that will appear in the top-level slide-in menu. At this stage, it does
+nothing other than that!
 
 You should now be able to run the UI again with:
 
@@ -136,134 +94,91 @@ yarn dev
 
 Open a web browser to https://127.0.0.1:8005 and you'll see a new 'Example' nav item in the top-level slide-in menu.
 
-The `testplugin` package created here doesn't do much other than add a new product to the UI, which results in the new navigation item.
+Note, that you should be able to make changes to the extension and the UI will hot-reload and update in the browser.
 
-The developer experience is still the same - you can edit the code in `pkg/testplugin` and the UI will hot-reload to reflect the updates you make.
+## Building the Extension
 
-## Use Case: Dynamically loading a UI Plugin
+Up until now, we've run the extension inside of the skeleton application - this is the developer workload.
 
-In the previous use case, the UI package we created was statically built into the UI - this works great for the developer use case where we want to be able to iterate, make changes and see those via hot-reload as we do with Rancher Dashboard today.
-
-This use case illustrates being able to build a UI plugin as a package and then be able to load that into the UI, dynamically at run-time.
-
-First thing to do is to build the UI package for the `testplugin` plugin that we created previously. Run:
+To build the extension so we can use it independently, run:
 
 ```
-yarn build-pkg testplugin
+yarn build-pkg test
 ```
 
-The `testplugin` plugin will be built and the output placed in `dist-pkg\testplugin`.
+This will build the extension as a Vue library and the built extension will be placed in the `dist-pkg` folder.
 
-Next, edit the `nuxt.config.js` file in the root folder and replace it with this:
+## Loading the Extension
 
-```
-import config from './shell/nuxt.config';
+When we run `yarn dev` at the moment, our test extension will be automatically loaded in the application - this allows us to develop
+the extension with hot-reload.
 
-// Excludes the following plugins if there's no .env file.
-const excludes = process.env.EXCLUDES_PKG || 'epinio, rancher-components, testplugin';
+To test loading the extension dynamically, we can update configuration to tell Rancher not to include our extension.
 
-export default config(__dirname, {
-  excludes: excludes.replace(/\s/g, '').split(','),
-  // excludes: ['fleet', 'example']
-  // autoLoad: ['fleet', 'example']
-});
-```
-
-**NOTE**: If you're actively working with Plugins, we can make use of the `.env` file instead of hardcoded the excludes in the `nuxt.config.js` file so your changes on the file won't be tracked by Git.
+To do this, create a new `.env` file in the root `test-app` folder, and add these contents:
 
 ```
-# First, create the .env file from template
-cp env.example .env
-
-# Then, add the following to the .env file
-EXCLUDES_PKG='epinio, rancher-components, testplugin'
+EXCLUDES_PKG='test'
 ```
 
-What we have done here is add the `testplugin` plugin to the `excludes` configuration - this means that when we build and run the UI, we won't include the `testplugin` plugin.
+If necessary, bring in the environment variables by running `source .env`.
 
-Run the UI with:
+Now, run the UI with:
 
 ```
 yarn dev
 ```
 
-Open a web browser to `https://127.0.0.1:8005` and you'll see that the Example nav item is not present - since the plugin was not loaded.
+Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav item is not present - since the extension was not loaded.
 
-Bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Plugins'.
+> Note: You need to be an admin user to test Extensions in the Rancher UI
 
-In the top input box, enter `testplugin` as the Plugin name and click 'Load Plugin' - you should see a notification telling you the plugin was loaded and if you bring in the side menu again, you should see the Example nav item there now.
+Go to the user avatar in the top-right and go to 'Preferences'. Under 'Advanced Features', check the `Enable Extension developer features' checkbox.
 
-This illustrates dynamically loading a Plugin. Note that when we started the UI, it serves up any plugins in the `dist-pkg` folder under the `/pkg` route of the app - so when we entered the name `testplugin` as the plugin, the UI loaded the plugin from:
+Now, bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Extensions'.
+
+Go to the three dot menu and select 'Developer load' - you'll get a dialog allowing you to load the extension into the UI.
+
+In the top input box `Extension URL`, enter:
 
 ```
-https://127.0.0.1:8005/pkg/testplugin/testplugin.umd.min.js
+https://127.0.0.1:8005/pkg/test-0.1.0/test-0.1.0.umd.min.js
 ```
 
-If you copy and paste this URL into a browser, you'll see the Javascript for the plugin.
+Press 'Load' and the extension will be loaded and you should see a notification telling you the extension was loaded and if you bring in the side menu again, you should see the Example nav item there now.
 
-To really convince yourself that the plugin is being dynamically loaded, reload the app in the browser window (the `testplugin` plugin will no longer be loaded). Go to Plugins and in the `Plugin URL` enter the URL above and click `Load Plugin` - the plugin will load again - if you look in the browser developer tools under the network tab, you'll see the plugin being dynamically loaded.
+This illustrates dynamically loading an extension.
 
-If you want to, you can run:
+> Note that when we started the UI, it serves up any extensions in the `dist-pkg` folder under the `/pkg` route of the app. Also note that when we build extensions they are versioned, so you'll see that reflected in the URL we used.
+
+## Loading the Extension into another Rancher
+
+In the steps above, we were able to load the extension into our test application.
+
+We can load the extension into any running Rancher.
+
+Run the following:
 
 ```
 yarn serve-pkgs
 ```
 
-This will start a web server on port `4500` that is serving up the plugins in the `dist-pkg` folder - it shows the URLs to use for each of the available packages. You can then load these dynamically into any UI that you have running.
-
-## Use Case: Publish a package to NPM
-
-Building on from the previous use case, we can publish a plugin to NPM.
-
-From the top-level folder:
+This will start a small web server (on port 4500) that serves up the contents of the `dist-pkg` folder. It will output which extensions are being served up - in our case you should see output like that below - it shows the URLs to use for each of the available extensions.
 
 ```
-yarn build-pkg testplugin
-cd dist-pkg/testplugin
-yarn publish --patch
+Serving catalog on http://127.0.0.1:4500
+
+Serving packages:
+
+  test-0.1.0 available at: http://127.0.0.1:4500/test-0.1.0/test-0.1.0.umd.min.js
 ```
 
-Open a web browser and view the Verdaccio UI at http://127.0.0.1:4873 - you'll see we've published our plugin as a package to the registry.
+In a different Rancher UI, you should be able to follow the steps in the previous section, but instead use the URL from the output above in the Developer Load dialog.
 
-In a new folder, run:
+You'll note that if you reload the Rancher UI, the extension is not persistent and will need to be added again. You can make it persistent by checking the `Persist extension by creating custom resource` checkbox in the Developer Load dialog.
 
-```
-yarn create @rancher/app test2
-cd test2
-yarn install
-```
+## Wrap-up
 
-This will give us a new UI - we can run `yarn dev` and see the UI in the browser - with no plugins.
+This guide has showed you how to create a skeleton application that helps you develop and test one or more extensions.
 
-Now we can add our UI package that we published to the local registry with:
-
-```
-yarn add testplugin
-```
-
-Now when we run the app with `yarn dev` and browse to https://127.0.0.1:8005 you'll see that our `testplugin` plugin has been included in the UI.
-
-This supports the use case where we may be developing a UI Package that relies on another UI package - so we can create a skeleton app, add the dependencies we need via NPM and then develop our own plugin in the repository - so the only code we have is the code for out plugin, but we are able to test and run it in a UI locally with the other plugins that it needs.
-
-## Use Case: Using Yarn link
-
-Suppose we are creating a new UI - it will include the Rancher Shell code via its npm package, so if we needed to make changes to the shell, we'd have to make those changes, publish them as a new version of the package and update our UI to use it.
-
-We can `yarn link` to improve this workflow.
-
-With the Dashboard repository checked out, we can:
-
-```
-cd shell
-yarn link
-```
-
-Then, in our other app's folder, we can:
-
-```
-yarn link @rancher/shell
-```
-
-This link the package used by the app to the dashboard source code. We can make changes to the shell code in the Rancher Dashboard repository and the separate app will hot-reload.
-
-This allows us to develop a new UI Application and be able to make changes to the Shell - in this use case, we're working against two git repositories, so we need to ensure we commit changes accordingly.
+We showed how we can develop and test those with hot-reload in the browser and how we can build our extensions into a package that we can dynamically load into Rancher at runtime.

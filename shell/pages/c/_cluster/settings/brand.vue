@@ -12,7 +12,8 @@ import { Banner } from '@components/Banner';
 import { allHash } from '@shell/utils/promise';
 import { MANAGEMENT } from '@shell/config/types';
 import { getVendor, setVendor } from '@shell/config/private-label';
-import { SETTING, fetchOrCreateSetting } from '@shell/config/settings';
+import { fetchOrCreateSetting } from '@shell/utils/settings';
+import { SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { setFavIcon } from '@shell/utils/favicon';
 import { mapGetters } from 'vuex';
@@ -28,12 +29,12 @@ export default {
 
   async fetch() {
     const hash = await allHash({
-      uiPLSetting:            this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
-      uiLogoDarkSetting:      fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
-      uiLogoLightSetting:     fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
-      uiColorSetting:         fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
-      uiLinkColorSetting:     fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
-      uiFaviconSetting:       fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
+      uiPLSetting:        this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.PL }),
+      uiLogoDarkSetting:  fetchOrCreateSetting(this.$store, SETTING.LOGO_DARK, ''),
+      uiLogoLightSetting: fetchOrCreateSetting(this.$store, SETTING.LOGO_LIGHT, ''),
+      uiColorSetting:     fetchOrCreateSetting(this.$store, SETTING.PRIMARY_COLOR, ''),
+      uiLinkColorSetting: fetchOrCreateSetting(this.$store, SETTING.LINK_COLOR, ''),
+      uiFaviconSetting:   fetchOrCreateSetting(this.$store, SETTING.FAVICON, ''),
 
       uiLoginLandscapeSetting: fetchOrCreateSetting(this.$store, SETTING.UI_LOGIN_LANDSCAPE, ''),
     });
@@ -88,9 +89,9 @@ export default {
       uiLogoLight:        '',
       customizeLogo:      false,
 
-      uiFaviconSetting:   {},
-      uiFavicon:          '',
-      customizeFavicon:   false,
+      uiFaviconSetting: {},
+      uiFavicon:        '',
+      customizeFavicon: false,
 
       uiColorSetting:     {},
       uiColor:            null,

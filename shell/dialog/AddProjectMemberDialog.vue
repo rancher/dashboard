@@ -1,38 +1,53 @@
 <script>
 import { Card } from '@components/Card';
 import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor';
+import AsyncButton from '@shell/components/AsyncButton';
+import Banner from '@components/Banner/Banner.vue';
 import { NORMAN } from '@shell/config/types';
 
 export default {
   components: {
     Card,
-    ProjectMemberEditor
+    ProjectMemberEditor,
+    AsyncButton,
+    Banner
   },
 
-  props:      {
+  props: {
     resources: {
       type:     Array,
       required: true
+    },
+
+    onAdd: {
+      type:    Function,
+      default: () => {}
+    },
+
+    projectId: {
+      type:    String,
+      default: null
+    },
+
+    saveInModal: {
+      type:    Boolean,
+      default: false
     }
   },
 
   data() {
     return {
-      member:       {
+      member: {
         permissionGroup: 'member',
         custom:          {},
         principalId:     '',
-        projectId:       null,
         roleTemplateIds: []
-      }
+      },
+      error: null
     };
   },
 
   computed: {
-    onAdd() {
-      return this.resources[0];
-    },
-
     principal() {
       const principalId = this.member.principalId.replace(/\//g, '%2F');
 
@@ -66,10 +81,26 @@ export default {
         type:                NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateId,
         [principalProperty]: this.member.principalId,
-        projectId:           this.member.projectId,
+        projectId:           this.projectId,
       }));
 
       return Promise.all(promises);
+    },
+
+    saveBindings(btnCB) {
+      this.error = null;
+      this.createBindings()
+        .then((bindings) => {
+          return Promise.all(bindings.map(b => b.save()));
+        })
+        .then(() => {
+          btnCB(true);
+          setTimeout(this.close, 500);
+        })
+        .catch((err) => {
+          this.error = err;
+          btnCB(false);
+        });
     }
   }
 };
@@ -91,6 +122,12 @@ export default {
       slot="body"
       class="pl-10 pr-10"
     >
+      <Banner
+        v-if="error"
+        color="error"
+      >
+        {{ error }}
+      </Banner>
       <ProjectMemberEditor
         v-model="member"
         :use-two-columns-for-custom="true"
@@ -108,7 +145,14 @@ export default {
         {{ t('generic.cancel') }}
       </button>
 
+      <AsyncButton
+        v-if="saveInModal"
+        mode="create"
+        @click="cb=>saveBindings(cb)"
+      />
+
       <button
+        v-else
         class="btn role-primary"
         @click="apply"
       >
@@ -125,5 +169,12 @@ export default {
     display: flex;
     justify-content: flex-end;
     width: 100%;
+  }
+</style>
+
+<style lang="scss">
+  .card-container {
+    border: 1px solid var(--border);
+    box-shadow: none;
   }
 </style>

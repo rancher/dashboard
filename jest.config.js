@@ -1,7 +1,7 @@
 module.exports = {
-  testEnvironment:              'jsdom',
+  testEnvironment:    'jsdom',
   setupFilesAfterEnv: ['./jest.setup.js'],
-  modulePaths:                  [
+  modulePaths:        [
     '<rootDir>'
   ],
   // tell Jest to handle `*.vue` files
@@ -12,7 +12,7 @@ module.exports = {
     '^~~/(.*)$':        '<rootDir>/$1',
     '^@/(.*)$':         '<rootDir>/$1',
     '@shell/(.*)':      '<rootDir>/shell/$1',
-    '@pkg/(.*)':        '<rootDir>/shell/pkg/$1',
+    '@pkg/(.*)':        '<rootDir>/pkg/$1',
     '@components/(.*)': '<rootDir>/pkg/rancher-components/src/components/$1',
   },
   transform: {
@@ -34,8 +34,8 @@ module.exports = {
     '<rootDir>/stories/',
     '<rootDir>/shell/scripts/',
   ],
-  coverageDirectory:        '<rootDir>/coverage/unit',
-  coverageReporters:        ['json', 'text-summary'],
-  globals:                  { 'ts-jest': { isolatedModules: true } },
-  preset:                   'ts-jest'
+  coverageDirectory: '<rootDir>/coverage/unit',
+  coverageReporters: ['json', 'text-summary'],
+  globals:           { 'ts-jest': { isolatedModules: true } },
+  preset:            'ts-jest'
 };

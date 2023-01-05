@@ -8,7 +8,7 @@ import DingTalk from './dingTalk';
 import AliyunSms from './aliyunSms';
 
 export const WEBHOOK_TYPES = {
-  DING_TALK:   'DINGTALK',
+  DING_TALK:  'DINGTALK',
   ALIYUN_SMS: 'ALIYUN_SMS',
 };
 
@@ -18,7 +18,7 @@ export default {
   components: {
     Banner, LabeledInput, DingTalk, AliyunSms, LabeledSelect
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -35,8 +35,8 @@ export default {
 
     return {
       showNamespaceBanner: isDriverUrl && this.mode !== _VIEW,
-      view:                 _VIEW,
-      webhookOptons:        [
+      view:                _VIEW,
+      webhookOptons:       [
         {
           label: this.t('monitoringReceiver.pandariaWebhook.add.dingTalk'),
           value: WEBHOOK_TYPES.DING_TALK

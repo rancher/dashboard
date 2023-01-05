@@ -20,14 +20,14 @@ export function init(store) {
   });
 
   virtualType({
-    label:       'Overview',
+    label:      'Overview',
     group:      'Root',
-    namespaced:  false,
-    name:        'istio-overview',
-    weight:      100,
-    route:       { name: 'c-cluster-istio' },
-    exact:       true,
-    overview:    true,
+    namespaced: false,
+    name:       'istio-overview',
+    weight:     100,
+    route:      { name: 'c-cluster-istio' },
+    exact:      true,
+    overview:   true,
   });
 
   basicType('istio-overview');

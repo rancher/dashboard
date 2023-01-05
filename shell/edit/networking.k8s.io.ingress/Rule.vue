@@ -22,7 +22,7 @@ export default {
     },
     rules: {
       default: () => ({
-        requestHost:   [],
+        requestHost: [],
         path:        [],
         port:        [],
         target:      []

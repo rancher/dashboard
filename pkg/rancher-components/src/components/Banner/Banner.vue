@@ -28,6 +28,13 @@ export default Vue.extend({
       default: null
     },
     /**
+     * Add icon for the banner
+     */
+    icon: {
+      type:    String,
+      default: null
+    },
+    /**
      * Toggles the banner's close button.
      */
     closable: {
@@ -58,31 +65,134 @@ export default Vue.extend({
     class="banner"
     :class="{
       [color]: true,
-      closable,
-      stacked
     }"
   >
-    <slot>
-      <t v-if="labelKey" :k="labelKey" :raw="true" />
-      <span v-else-if="messageLabel">{{ messageLabel }}</span>
-      <span v-else v-html="nlToBr(label)" />
-    </slot>
-    <div v-if="closable" class="closer" @click="$emit('close')">
-      <i class="icon icon-2x icon-close closer-icon" />
+    <div
+      v-if="icon"
+      class="banner__icon"
+      data-testid="banner-icon"
+    >
+      <i
+        class="icon icon-2x"
+        :class="icon"
+      />
+    </div>
+    <div
+      class="banner__content"
+      data-testid="banner-content"
+      :class="{
+        closable,
+        stacked,
+        icon
+      }"
+    >
+      <slot>
+        <t
+          v-if="labelKey"
+          :k="labelKey"
+          :raw="true"
+        />
+        <span v-else-if="messageLabel">{{ messageLabel }}</span>
+        <span
+          v-else
+          v-html="nlToBr(label)"
+        />
+      </slot>
+      <div
+        v-if="closable"
+        class="banner__content__closer"
+        @click="$emit('close')"
+      >
+        <i
+          data-testid="banner-close"
+          class="icon icon-close closer-icon"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  $left-border-size: 4px;
+$left-border-size: 4px;
+$icon-size: 24px;
 
-  .banner {
+.banner {
+  display: flex;
+  margin: 15px 0;
+  position: relative;
+  width: 100%;
+
+  &__icon {
+    width: $icon-size * 2;
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: content-box;
+
+    .primary & {
+      background: var(--primary);
+    }
+
+    .secondary & {
+      background: var(--default);
+    }
+
+    .success & {
+      background: var(--success);
+    }
+
+    .info & {
+      background: var(--info);
+    }
+
+    .warning & {
+      background: var(--warning);
+    }
+
+    .error & {
+      background: var(--error);
+      color: var(--primary-text);
+    }
+  }
+
+  &__content {
     padding: 10px;
-    margin: 15px 0;
-    width: 100%;
     transition: all 0.2s ease;
-    position: relative;
     line-height: 20px;
+    width: 100%;
+    border-left: solid $left-border-size transparent;
+
+    .primary & {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .secondary & {
+      background: var(--default-banner-bg);
+      border-color: var(--default);
+    }
+
+    .success & {
+      background: var(--success-banner-bg);
+      border-color: var(--success);
+    }
+
+    .info & {
+      background: var(--info-banner-bg);
+      border-color: var(--info);
+    }
+
+    .warning & {
+      background: var(--warning-banner-bg);
+      border-color: var(--warning);
+    }
+
+    .error & {
+      background: var(--error-banner-bg);
+      border-color: var(--error);
+      color: var(--error);
+    }
 
     &.stacked {
       padding: 0 10px;
@@ -97,10 +207,10 @@ export default Vue.extend({
     }
 
     &.closable {
-      padding-right: 40px;
+      padding-right: $icon-size * 2;
     }
 
-    .closer {
+    &__closer {
       display: flex;
       align-items: center;
 
@@ -109,12 +219,11 @@ export default Vue.extend({
       top: 0;
       right: 0;
       bottom: 0;
-      width: 40px;
-      line-height: 42px;
+      width: $icon-size;
+      line-height: $icon-size;
       text-align: center;
 
       .closer-icon {
-        font-size: 22px;
         opacity: 0.7;
 
         &:hover {
@@ -124,40 +233,9 @@ export default Vue.extend({
       }
     }
 
-    &.primary {
-      background: var(--primary);
-      border-left: solid $left-border-size var(--primary);
-      color: var(--body-text);
-    }
-
-    &.secondary {
-      background: var(--default-banner-bg);
-      border-left: solid $left-border-size var(--default);
-      color: var(--body-text);
-    }
-
-    &.success {
-      background: var(--success-banner-bg);
-      border-left: solid $left-border-size var(--success);
-      color: var(--body-text);
-    }
-
-    &.info {
-      background: var(--info-banner-bg);
-      border-left: solid $left-border-size var(--info);
-      color: var(--body-text);
-    }
-
-    &.warning {
-      background: var(--warning-banner-bg);
-      border-left: solid $left-border-size var(--warning);
-      color: var(--body-text);
-    }
-
-    &.error {
-      background: var(--error-banner-bg);
-      border-left: solid $left-border-size var(--error);
-      color: var(--error);
+    &.icon {
+      border-left: none;
     }
   }
+}
 </style>

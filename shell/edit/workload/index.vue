@@ -4,9 +4,9 @@ import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 
 export default {
-  name:       'Workload',
-  mixins:     [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
-  props:      {
+  name:   'Workload',
+  mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
+  props:  {
     value: {
       type:     Object,
       required: true,
@@ -108,6 +108,7 @@ export default {
         </div>
       </div>
       <Tabbed
+        ref="containersTabbed"
         class="deployment-tabs"
         :show-tabs-add-remove="true"
         :default-tab="defaultTab"
@@ -554,7 +555,7 @@ export default {
               class="btn-sm role-link"
               @click="addContainerBtn"
             >
-              <i class="icon icon-plus icon-lg" /> {{ t('workload.container.addContainer') }}
+              <i class="icon icon-plus" /> {{ t('workload.container.addContainer') }}
             </button>
           </li>
         </template>

@@ -19,7 +19,7 @@ export default {
   components: {
     ArrayList, Banner, LabeledInput, LabeledSelect, MatchExpressions
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -65,8 +65,8 @@ export default {
       portOptions:   ['TCP', 'UDP'],
       matchingPods,
       matchingNamespaces,
-      invalidCidr:    null,
-      invalidCidrs:    [],
+      invalidCidr:   null,
+      invalidCidrs:  [],
       TARGET_OPTION_IP_BLOCK,
       TARGET_OPTION_NAMESPACE_SELECTOR,
       TARGET_OPTION_POD_SELECTOR,

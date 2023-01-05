@@ -85,11 +85,11 @@ export default Vue.extend({
   },
   data() {
     return {
-      value:             null as string | null,
-      selected:          null as string | null,
-      editedItem:        null as string | null,
-      isCreateItem:      false,
-      errors:            { duplicate: false } as Record<Error, boolean>
+      value:        null as string | null,
+      selected:     null as string | null,
+      editedItem:   null as string | null,
+      isCreateItem: false,
+      errors:       { duplicate: false } as Record<Error, boolean>
     };
   },
 
@@ -112,6 +112,9 @@ export default Vue.extend({
     readonly() {
       this.toggleEditMode(false);
       this.toggleCreateMode(false);
+    },
+    value(val) {
+      this.$emit('type:item', val);
     },
     errors: {
       handler(val) {
@@ -186,37 +189,42 @@ export default Vue.extend({
         return;
       }
       if (this.editedItem) {
+        this.deleteAndSelectNext(this.editedItem);
         this.toggleEditMode(false);
 
         return;
       }
       if (this.selected) {
-        const index = findStringIndex(this.items, this.selected, false);
+        this.deleteAndSelectNext(this.selected);
+      }
+    },
 
-        if (index !== -1) {
-          /**
-           * Select the next item in the list when an item is to be deleted.
-           */
-          const item = (this.items[index + 1] || this.items[index - 1]);
+    deleteAndSelectNext(currItem: string) {
+      const index = findStringIndex(this.items, currItem, false);
 
-          this.onSelect(item);
-          this.setFocus(item);
+      if (index !== -1) {
+        /**
+         * Select the next item in the list.
+         */
+        const item = (this.items[index + 1] || this.items[index - 1]);
 
-          this.deleteItem(this.items[index]);
-        }
+        this.onSelect(item);
+        this.setFocus(item);
+
+        this.deleteItem(this.items[index]);
       }
     },
 
     setFocus(refId: string) {
-      this.$nextTick(() => this.getElemByRef(refId)?.focus());
+      this.$nextTick(() => (this.getElemByRef(refId) as Vue & HTMLElement)?.focus());
     },
 
     /**
      * Move scrollbar when the selected item is over the top or bottom side of the box
      */
     moveScrollbar(arrow: Arrow, value?: number) {
-      const box = this.getElemByRef(BOX);
-      const item = this.getElemByRef(this.selected || '');
+      const box = this.getElemByRef(BOX) as HTMLElement;
+      const item = this.getElemByRef(this.selected || '') as HTMLElement;
 
       if (box && item && item.className.includes(CLASS.item)) {
         const boxRect = box.getClientRects()[0];
@@ -245,7 +253,7 @@ export default Vue.extend({
     },
 
     toggleErrorClass(refId: string, val: boolean) {
-      const input = this.getElemByRef(refId)?.$el;
+      const input = (this.getElemByRef(refId) as Vue)?.$el;
 
       if (input) {
         if (val) {
@@ -303,7 +311,7 @@ export default Vue.extend({
     getElemByRef(id: string) {
       const ref = this.$refs[id];
 
-      return (Array.isArray(ref) ? ref[0] : ref) as any;
+      return Array.isArray(ref) ? ref[0] : ref;
     },
 
     /**
@@ -410,6 +418,7 @@ export default Vue.extend({
         <LabeledInput
           v-if="editedItem && editedItem === item"
           ref="item-edit"
+          :data-testid="`item-edit-${item}`"
           class="edit-input static"
           :value="value != null ? value : item"
           @input="onChange($event)"
@@ -423,6 +432,7 @@ export default Vue.extend({
       >
         <LabeledInput
           ref="item-create"
+          data-testid="item-create"
           class="create-input static"
           type="text"
           :value="value"
@@ -443,6 +453,7 @@ export default Vue.extend({
         class="action-buttons"
       >
         <button
+          data-testid="button-remove"
           class="btn btn-sm role-tertiary remove-button"
           :disabled="!selected && !isCreateItem && !editedItem"
           @mousedown.prevent="onClickMinusButton"
@@ -450,6 +461,7 @@ export default Vue.extend({
           <span class="icon icon-minus icon-sm" />
         </button>
         <button
+          data-testid="button-add"
           class="btn btn-sm role-tertiary add-button"
           :disabled="isCreateItem || editedItem"
           @click.prevent="onClickPlusButton"
@@ -458,10 +470,15 @@ export default Vue.extend({
         </button>
       </div>
       <div class="messages">
-        <i v-if="errorMessagesArray.length > 0" class="icon icon-warning icon-lg" />
+        <i
+          v-if="errorMessagesArray.length > 0"
+          data-testid="i-warning-icon"
+          class="icon icon-warning icon-lg"
+        />
         <span
           v-for="(msg, idx) in errorMessagesArray"
           :key="idx"
+          :data-testid="`span-error-message-${msg}`"
           class="error"
         >
           {{ idx > 0 ? '; ' : '' }}
@@ -515,6 +532,7 @@ export default Vue.extend({
         width: auto;
         user-select: none;
         overflow: hidden;
+        white-space: no-wrap;
         text-overflow: ellipsis;
         padding-top: 1px;
       }

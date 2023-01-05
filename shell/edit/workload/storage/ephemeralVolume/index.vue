@@ -10,7 +10,7 @@ export default {
     LabeledSelect, LabeledInput, Checkbox, Mount
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {
@@ -54,7 +54,7 @@ export default {
       class="role-link btn btn-lg remove-vol"
       @click="$emit('remove')"
     >
-      <i class="icon icon-2x icon-x" />
+      <i class="icon icon-x" />
     </button>
     <div>
       <h3>{{ t('workload.storage.subtypes.csi') }}</h3>

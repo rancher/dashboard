@@ -72,7 +72,7 @@ export default {
     },
 
     cluster: {
-      type:     Object,
+      type:    Object,
       default: () => ({})
     },
 

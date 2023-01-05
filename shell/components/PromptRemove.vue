@@ -43,7 +43,7 @@ export default {
       chartsDeleteCrd:     false
     };
   },
-  computed:   {
+  computed: {
     hasTerminatingState() {
       return !!this.toRemove.find(item => item.state === 'terminating');
     },
@@ -159,7 +159,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
   },
 
-  watch:    {
+  watch: {
     showPromptRemove(show) {
       if (show) {
         const selected = this.toRemove[0];

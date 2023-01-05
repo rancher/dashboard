@@ -5,7 +5,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 export default {
   props: {
     value: {
-      type:     Array,
+      type:    Array,
       default: null,
     },
     mode: {

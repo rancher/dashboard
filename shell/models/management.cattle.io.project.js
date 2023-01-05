@@ -46,17 +46,17 @@ export default class Project extends HybridModel {
     const out = super._availableActions;
 
     const auditLog = {
-      action:     'auditLog',
-      enabled:    !!this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value,
-      icon:       'icon icon-fw icon-globe',
-      label:      this.t('nav.auditLog'),
+      action:  'auditLog',
+      enabled: !!this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value,
+      icon:    'icon icon-fw icon-globe',
+      label:   this.t('nav.auditLog'),
     };
 
     const resourceQuota = {
-      action:     'resourceQuota',
-      enabled:    true,
-      icon:       'icon icon-fw icon-globe',
-      label:      this.t('nav.quotas'),
+      action:  'resourceQuota',
+      enabled: true,
+      icon:    'icon icon-fw icon-globe',
+      label:   this.t('nav.quotas'),
     };
 
     insertAt(out, 0, { divider: true });
@@ -180,8 +180,8 @@ export default class Project extends HybridModel {
   get normanEditProject() {
     return (async() => {
       const normanProject = await this.$dispatch('rancher/find', {
-        type:       NORMAN.PROJECT,
-        id:         this.id.replace('/', ':'),
+        type: NORMAN.PROJECT,
+        id:   this.id.replace('/', ':'),
       }, { root: true });
 
       const clearedResourceQuotas = clearUnusedResourceQuotas(this.spec, ['resourceQuota', 'namespaceDefaultResourceQuota']);
@@ -190,6 +190,7 @@ export default class Project extends HybridModel {
       normanProject.setLabels(this.metadata.labels);
       normanProject.setResourceQuotas(clearedResourceQuotas);
       normanProject.description = this.spec.description;
+      normanProject.name = this.spec.displayName;
       normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
 
       return normanProject;
@@ -220,7 +221,7 @@ export default class Project extends HybridModel {
       this.currentRouter().push({
         name:   'c-cluster-legacy-auditLog-page',
         params: {
-          cluster:  this.$rootGetters['currentCluster'].id,
+          cluster: this.$rootGetters['currentCluster'].id,
           page:    'project-audit-log'
         },
         query: { [PROJECT_ID]: this.id.replace('/', ':') }
@@ -233,7 +234,7 @@ export default class Project extends HybridModel {
       this.currentRouter().push({
         name:   'c-cluster-legacy-resourceQuota-page',
         params: {
-          cluster:  this.$rootGetters['currentCluster'].id,
+          cluster: this.$rootGetters['currentCluster'].id,
           page:    'project-resource-quota'
         },
         query: { [PROJECT_ID]: this.id.replace('/', ':') }

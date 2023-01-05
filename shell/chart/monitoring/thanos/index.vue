@@ -157,7 +157,7 @@ export default {
 
     tlsYaml() {
       return {
-        on:  {
+        on: {
           'prometheus.prometheusSpec.thanos.grpcServerTlsConfig': this.thanos.grpcServerTlsConfig,
           'prometheus.prometheusSpec.containers':                 `${ !this.value.prometheus.prometheusSpec.containers.includes(this.containers) ? this.containers : '' }${ this.value.prometheus.prometheusSpec.containers }`,
           'prometheus.prometheusSpec.volumes':                    [
@@ -175,7 +175,7 @@ export default {
 
     sidecarYaml() {
       return {
-        on:  {
+        on: {
           'prometheus.prometheusSpec.thanos': {
             ...this.value.prometheus.prometheusSpec.thanos,
             image:   this.thanos.image,
@@ -206,7 +206,7 @@ export default {
 
     initYaml() {
       return {
-        on:  {
+        on: {
           'prometheus.prometheusSpec.externalLabels.prometheus_from': this.currentCluster.spec.displayName,
           'nodeExporter.serviceMonitor.metricRelabelings':            this.getInitYaml('nodeExporter.serviceMonitor.metricRelabelings', this.nodeExporterMetricRelabelings),
           'nodeExporter.serviceMonitor.relabelings':                  this.getInitYaml('nodeExporter.serviceMonitor.relabelings', this.nodeExporterRelabelings),
@@ -219,7 +219,7 @@ export default {
       };
     }
   },
-  watch:    {
+  watch: {
     sidecar: 'changeSidecar',
     tls:     'changeTls',
   },

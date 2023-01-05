@@ -37,22 +37,22 @@ export const RECEIVERS_TYPES = [
     logo:  require(`~shell/assets/images/vendor/email.svg`)
   },
   {
-    name:         'webhook',
-    label:        'monitoringReceiver.webhook.label',
-    title:        'monitoringReceiver.webhook.title',
-    key:          'webhook_configs',
-    logo:         require(`~shell/assets/images/vendor/webhook.svg`),
-    banner:       'webhook.banner',
-    addButton:    'webhook.add'
+    name:      'webhook',
+    label:     'monitoringReceiver.webhook.label',
+    title:     'monitoringReceiver.webhook.title',
+    key:       'webhook_configs',
+    logo:      require(`~shell/assets/images/vendor/webhook.svg`),
+    banner:    'webhook.banner',
+    addButton: 'webhook.add'
   },
   {
-    name:         'pandariaWebhook',
-    label:        'monitoringReceiver.pandariaWebhook.label',
-    title:        'monitoringReceiver.pandariaWebhook.title',
-    key:          'pandaria_webhook_configs',
-    logo:         require(`~shell/assets/images/vendor/webhook.svg`),
-    banner:       'pandariaWebhook.banner',
-    addButton:    'pandariaWebhook.add'
+    name:      'pandariaWebhook',
+    label:     'monitoringReceiver.pandariaWebhook.label',
+    title:     'monitoringReceiver.pandariaWebhook.title',
+    key:       'pandaria_webhook_configs',
+    logo:      require(`~shell/assets/images/vendor/webhook.svg`),
+    banner:    'pandariaWebhook.banner',
+    addButton: 'pandariaWebhook.add'
   },
   {
     name:  'custom',

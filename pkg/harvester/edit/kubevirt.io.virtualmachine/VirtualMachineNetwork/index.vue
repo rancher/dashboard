@@ -12,7 +12,7 @@ import { _VIEW } from '@shell/config/query-params';
 export default {
   components: { InfoBox, Base },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'
@@ -67,10 +67,10 @@ export default {
 
       const neu = {
         name,
-        networkName:  '',
-        model:        'virtio',
-        type:         'bridge',
-        newCreateId:  randomStr(10),
+        networkName: '',
+        model:       'virtio',
+        type:        'bridge',
+        newCreateId: randomStr(10),
       };
 
       this.rows.push(neu);
@@ -106,7 +106,7 @@ export default {
   <div>
     <InfoBox v-for="(row, i) in rows" :key="i" class="infoBox">
       <button v-if="!isView" type="button" class="role-link remove-vol" @click="remove(row)">
-        <i class="icon icon-2x icon-x" />
+        <i class="icon icon-x" />
       </button>
 
       <h3> {{ t('harvester.virtualMachine.network.title') }} </h3>

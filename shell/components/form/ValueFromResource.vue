@@ -11,7 +11,7 @@ export default {
     LabeledInput
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'

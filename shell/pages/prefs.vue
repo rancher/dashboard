@@ -25,17 +25,17 @@ export default {
     return { admin: isAdminUser(this.$store.getters) };
   },
   computed: {
-    keymap:           mapPref(KEYMAP),
-    viewInApi:        mapPref(VIEW_IN_API),
-    allNamespaces:    mapPref(ALL_NAMESPACES),
-    themeShortcut:    mapPref(THEME_SHORTCUT),
-    dateFormat:       mapPref(DATE_FORMAT),
-    timeFormat:       mapPref(TIME_FORMAT),
-    perPage:          mapPref(ROWS_PER_PAGE),
-    hideDesc:         mapPref(HIDE_DESC),
-    showPreRelease:   mapPref(SHOW_PRE_RELEASE),
-    menuMaxClusters:  mapPref(MENU_MAX_CLUSTERS),
-    pluginDeveloper:  mapPref(PLUGIN_DEVELOPER),
+    keymap:          mapPref(KEYMAP),
+    viewInApi:       mapPref(VIEW_IN_API),
+    allNamespaces:   mapPref(ALL_NAMESPACES),
+    themeShortcut:   mapPref(THEME_SHORTCUT),
+    dateFormat:      mapPref(DATE_FORMAT),
+    timeFormat:      mapPref(TIME_FORMAT),
+    perPage:         mapPref(ROWS_PER_PAGE),
+    hideDesc:        mapPref(HIDE_DESC),
+    showPreRelease:  mapPref(SHOW_PRE_RELEASE),
+    menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
+    pluginDeveloper: mapPref(PLUGIN_DEVELOPER),
 
     ...mapGetters(['isSingleProduct']),
 

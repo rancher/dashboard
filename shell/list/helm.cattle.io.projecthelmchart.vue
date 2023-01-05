@@ -16,11 +16,6 @@ export default {
       required: true,
     },
 
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -77,7 +72,7 @@ export default {
       :show-incremental-loading-indicator="incrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
-      is-creatable
+      :is-creatable="canCreateProjectHelmChart"
     />
     <Banner
       color="info"
@@ -116,6 +111,7 @@ export default {
         :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
         key-field="_key"
         :groupable="false"
+        :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       />
     </div>
   </div>

@@ -150,9 +150,9 @@ export default {
           value: 'true',
         }
       ],
-      loading:        false,
-      testSuccess:    false,
-      errors:         [],
+      loading:     false,
+      testSuccess: false,
+      errors:      [],
 
       connectModeLoading: true,
       showConfirm:        false,
@@ -214,7 +214,7 @@ export default {
         });
         await this.$store.dispatch('rancher/request', {
           url:    `/mcm/restart/${ this.cluster?.id }`,
-          method:  'get',
+          method: 'get',
         });
         buttonDone(true);
         this.close();

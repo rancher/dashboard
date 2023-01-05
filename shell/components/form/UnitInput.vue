@@ -91,12 +91,12 @@ export default {
     },
 
     label: {
-      type:     String,
+      type:    String,
       default: null
     },
 
     labelKey: {
-      type:     String,
+      type:    String,
       default: null
     },
 
@@ -106,7 +106,7 @@ export default {
     },
 
     tooltipKey: {
-      type:     String,
+      type:    String,
       default: null
     },
 
@@ -165,11 +165,11 @@ export default {
 
       if ( this.parsedValue || this.parsedValue === 0) {
         displayValue = formatSi(this.parsedValue, {
-          increment:        this.increment,
-          addSuffix:        false,
-          maxExponent:      this.inputExponent,
-          minExponent:      this.inputExponent,
-          maxPrecision:     this.maxPrecision,
+          increment:    this.increment,
+          addSuffix:    false,
+          maxExponent:  this.inputExponent,
+          minExponent:  this.inputExponent,
+          maxPrecision: this.maxPrecision,
         });
       }
 

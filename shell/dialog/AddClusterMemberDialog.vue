@@ -8,21 +8,15 @@ export default {
     ClusterPermissionsEditor
   },
 
-  props:      {
-    resources: {
-      type:     Array,
-      required: true
+  props: {
+    onAdd: {
+      type:    Function,
+      default: () => {}
     }
   },
 
   data() {
     return { bindings: [] };
-  },
-
-  computed: {
-    onAdd() {
-      return this.resources[0];
-    },
   },
 
   methods: {

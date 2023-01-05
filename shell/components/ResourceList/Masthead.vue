@@ -24,7 +24,7 @@ export default {
       required: true,
     },
     favoriteResource: {
-      type:     String,
+      type:    String,
       default: null
     },
     schema: {
@@ -63,6 +63,11 @@ export default {
     loadIndeterminate: {
       type:    Boolean,
       default: false
+    },
+
+    loadNamespace: {
+      type:    String,
+      default: null
     },
 
     showIncrementalLoadingIndicator: {
@@ -163,7 +168,7 @@ export default {
 </script>
 
 <template>
-  <header>
+  <header class="header-layout">
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>
@@ -178,6 +183,7 @@ export default {
         v-if="showIncrementalLoadingIndicator"
         :resources="loadResources"
         :indeterminate="loadIndeterminate"
+        :namespace="loadNamespace"
       />
     </div>
     <div class="actions-container">

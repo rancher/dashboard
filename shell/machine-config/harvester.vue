@@ -18,8 +18,10 @@ import {
   MANAGEMENT,
   CONFIG_MAP,
   NORMAN,
-  NODE
+  NODE,
 } from '@shell/config/types';
+
+import { SETTING } from '@shell/config/settings';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { allHashSettled } from '@shell/utils/promise';
 import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod-affinity';
@@ -101,10 +103,11 @@ export default {
 
       if (clusterId && isImportCluster) {
         const res = await allHashSettled({
-          namespaces:   this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
-          images:       this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
-          configMaps:   this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
-          networks:     this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          namespaces: this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
+          images:     this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
+          configMaps: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
+          networks:   this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          settings:   this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` })
         });
 
         for (const key of Object.keys(res)) {
@@ -172,10 +175,20 @@ export default {
           };
         });
 
+        let systemNamespaces = (res.settings.value?.data || []).filter(x => x.id === SETTING.SYSTEM_NAMESPACES);
+
+        if (systemNamespaces) {
+          systemNamespaces = (systemNamespaces[0]?.value || systemNamespaces[0]?.default)?.split(',') || [];
+        }
+
         (res.namespaces.value.data || []).forEach(async(namespace) => {
           const proxyNamespace = await this.$store.dispatch('cluster/create', namespace);
 
-          if (!proxyNamespace.isSystem && namespace.links.update) {
+          const isSettingSystemNamespace = systemNamespaces.includes(namespace.metadata.name);
+
+          const systemNS = proxyNamespace.isSystem || proxyNamespace.isFleetManaged || isSettingSystemNamespace || proxyNamespace.isObscure;
+
+          if (!systemNS && namespace.links.update) {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 

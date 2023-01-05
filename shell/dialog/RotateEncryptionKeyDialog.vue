@@ -18,10 +18,12 @@ export default {
     Banner,
   },
 
-  props:      {
-    resources: {
-      type:     Array,
-      required: true
+  props: {
+    cluster: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -49,12 +51,6 @@ export default {
 
   data() {
     return { errors: [], latestBackup: null };
-  },
-
-  computed: {
-    cluster() {
-      return this.resources?.[0];
-    },
   },
 
   methods: {

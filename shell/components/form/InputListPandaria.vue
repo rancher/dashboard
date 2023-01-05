@@ -2,7 +2,7 @@
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
-  props:      {
+  props: {
     // LabeledInput props
     mode: {
       type:    String,

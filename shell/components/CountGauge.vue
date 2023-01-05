@@ -18,7 +18,7 @@ export default {
       required: true
     },
     primaryColorVar: {
-      type:     String,
+      type:    String,
       default: null,
     },
     warningCount: {

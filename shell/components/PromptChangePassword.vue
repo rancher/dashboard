@@ -11,7 +11,7 @@ export default {
   data() {
     return { valid: false, password: '' };
   },
-  computed:   { ...mapGetters({ t: 'i18n/t' }) },
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
   methods:  {
     show(show) {
       if (show) {

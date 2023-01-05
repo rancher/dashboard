@@ -7,7 +7,7 @@ export default {
   components: {
     Checkbox, LabeledInput, InputListPandaria
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,

@@ -9,14 +9,14 @@ export default {
   components: {
     InputWithSelect, LabeledInput, Select
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-    serviceTargets:  {
+    serviceTargets: {
       type:    Array,
       default: () => []
     },
@@ -26,9 +26,9 @@ export default {
     },
     rules: {
       default: () => ({
-        path:        [],
-        port:        [],
-        target:      []
+        path:   [],
+        port:   [],
+        target: []
       }),
       type: Object,
     }
@@ -178,17 +178,19 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+$row-height: 40px;
+
 .labeled-input ::v-deep, ::v-deep .labeled-input {
   padding: 0 !important;
   height: 100%;
   input.no-label {
-    height: calc($input-height - 2px);
+    height: calc($row-height - 2px);
     padding: 10px;
   }
 }
 .rule-path ::v-deep {
-  .col {
-    height: $input-height;
+  .col, INPUT {
+    height: $row-height;
   }
 
   .unlabeled-select {
@@ -202,7 +204,7 @@ export default {
   }
 
   &, .input-container {
-    height: $input-height;
+    height: $row-height;
   }
 
   .input-container .in-input.unlabeled-select {
@@ -210,7 +212,7 @@ export default {
   }
 
   button {
-    line-height: 40px;
+    line-height: $row-height;
   }
 
   .v-select INPUT {

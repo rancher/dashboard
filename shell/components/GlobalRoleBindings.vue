@@ -17,7 +17,7 @@ export default {
     Loading,
     Card
   },
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: _VIEW,
@@ -38,11 +38,11 @@ export default {
       }
     },
     groupPrincipalId: {
-      type:     String,
+      type:    String,
       default: ''
     },
     userId: {
-      type:     String,
+      type:    String,
       default: ''
     }
   },
@@ -105,7 +105,7 @@ export default {
       return this.type === 'user';
     }
   },
-  watch:    {
+  watch: {
     groupPrincipalId(groupPrincipalId, oldGroupPrincipalId) {
       if (groupPrincipalId === oldGroupPrincipalId) {
         return;
@@ -202,8 +202,8 @@ export default {
     },
     async saveAddedRoles(userId) {
       const requestOptions = {
-        type:               MANAGEMENT.GLOBAL_ROLE_BINDING,
-        metadata:           { generateName: `grb-` },
+        type:     MANAGEMENT.GLOBAL_ROLE_BINDING,
+        metadata: { generateName: `grb-` },
       };
 
       if (this.groupPrincipalId) {

@@ -37,38 +37,28 @@ export default {
     },
 
     prometheusPods: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
 
     storageClasses: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
 
     value: {
-      type:     Object,
+      type:    Object,
       default: () => ({}),
     },
 
     workloads: {
-      type:     Array,
+      type:    Array,
       default: () => ([]),
     },
   },
 
   data() {
     return {
-      volumeModes: [
-        {
-          id:    'Filesystem',
-          label: 'monitoring.volume.modes.file',
-        },
-        {
-          id:    'Block',
-          label: 'monitoring.volume.modes.block',
-        },
-      ],
       enablePersistentStorage: !!this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec,
       warnUser:                false,
     };
@@ -165,7 +155,6 @@ export default {
               accessModes: ['ReadWriteOnce'],
               resources:   { requests: { storage: '50Gi' } },
               selector:    { matchExpressions: [], matchLabels: {} },
-              volumeMode:  'Filesystem',
             }
           }
         );
@@ -356,16 +345,6 @@ export default {
               :mode="mode"
               :multiple="true"
               :options="accessModes"
-              :reduce="({id})=> id"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.volumeMode"
-              :label="t('monitoring.prometheus.storage.volumeMode')"
-              :localized-label="true"
-              :mode="mode"
-              :options="volumeModes"
               :reduce="({id})=> id"
             />
           </div>

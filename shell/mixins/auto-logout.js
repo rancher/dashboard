@@ -8,8 +8,8 @@ const defaultEvents = ['mousemove', 'mousedown', 'resize', 'keydown', 'touchstar
 export default {
   data() {
     return {
-      lastActive:             new Date().getTime(),
-      autoLogoutTimer:        null,
+      lastActive:      new Date().getTime(),
+      autoLogoutTimer: null,
     };
   },
 

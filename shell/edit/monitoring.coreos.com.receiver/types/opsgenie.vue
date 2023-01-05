@@ -52,7 +52,7 @@ export default {
   components: {
     ArrayList, Checkbox, InputWithSelect, LabeledInput, Select
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,

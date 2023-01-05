@@ -8,7 +8,7 @@ import { randomStr } from '@shell/utils/string';
 import { removeObject } from '@shell/utils/array';
 import { ACCESS_CREDENTIALS } from '../../../config/harvester-map';
 import { _EDIT } from '@shell/config/query-params';
-import { HCI as HCI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 
 const _NEW = '_NEW';
 
@@ -34,8 +34,8 @@ export default {
     },
 
     mode: {
-      type:     String,
-      default:  'create',
+      type:    String,
+      default: 'create',
     },
 
     disableCreate: {
@@ -155,7 +155,7 @@ export default {
     <div v-for="(row, i) in rows" :key="row.id">
       <InfoBox class="volume-source">
         <button v-if="isEdit" type="button" class="role-link btn btn-sm remove-vol" @click="remove(row)">
-          <i class="icon icon-2x icon-x" />
+          <i class="icon icon-x" />
         </button>
         <h3>
           <span>

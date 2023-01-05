@@ -38,13 +38,17 @@ export default {
       class="top"
     >
       <slot name="title">
-        <h2 v-if="title">
+        <h2
+          v-if="title"
+          data-testid="simple-box-title"
+        >
           {{ title }}
         </h2>
       </slot>
       <div
         v-if="canClose || pref"
         class="close-button"
+        data-testid="simple-box-close"
         @click="closeBox($event)"
       >
         <i class="icon icon-close" />
@@ -70,7 +74,7 @@ export default {
   justify-content: center;
   padding: 2px;
   > i {
-    font-size: 20px;
+    font-size: 14px;
     opacity: 0.5;
   }
   &:hover {

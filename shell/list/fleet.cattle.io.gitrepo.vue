@@ -10,7 +10,7 @@ export default {
     FleetRepos,
     Masthead,
   },
-  mixins:     [ResourceFetch],
+  mixins: [ResourceFetch],
   props:  {
     schema: {
       type:     Object,
@@ -20,11 +20,6 @@ export default {
     resource: {
       type:     String,
       required: true,
-    },
-
-    loadResources: {
-      type:    Array,
-      default: () => []
     },
 
     loadIndeterminate: {
@@ -69,6 +64,7 @@ export default {
       :schema="schema"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
   </div>
 </template>

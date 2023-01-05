@@ -12,7 +12,7 @@ export default {
         return {};
       }
     },
-    ingressClasses:  {
+    ingressClasses: {
       type:    Array,
       default: () => []
     },
@@ -37,12 +37,13 @@ export default {
   },
   methods: {
     update(e) {
-      this.ingressClassName = e && typeof e === 'object' ? e.value : e;
-
-      if (this.ingressClassName) {
-        set(this.value, 'spec.ingressClassName', this.ingressClassName);
-      } else {
+      if (!e || e.label === this.t('generic.none')) {
         remove(this.value, 'spec.ingressClassName');
+        this.ingressClassName = '';
+      } else {
+        // when a user manually types an ingress class name, the event emitted has a 'label' but no 'value'
+        this.ingressClassName = e.value ? e.value : e.label;
+        set(this.value, 'spec.ingressClassName', this.ingressClassName);
       }
     }
   }
@@ -53,11 +54,12 @@ export default {
     <LabeledSelect
       v-model="ingressClassName"
       :taggable="true"
+      :searchable="true"
       :mode="mode"
       :label="t('ingress.ingressClass.label')"
       :options="ingressClassOptions"
       option-label="label"
-      @input="update"
+      @selecting="update"
     />
   </div>
 </template>

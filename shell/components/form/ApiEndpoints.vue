@@ -61,8 +61,8 @@ export default {
       }
     },
     mode: {
-      type:     String,
-      default:  'view'
+      type:    String,
+      default: 'view'
     },
   },
   data() {

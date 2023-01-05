@@ -3,7 +3,7 @@
 export default {
   props: {
     value: {
-      type:     String,
+      type:    String,
       default: ''
     },
     row: {
@@ -11,7 +11,7 @@ export default {
       required: true
     },
     col: {
-      type:     Object,
+      type:    Object,
       default: () => {}
     },
   },

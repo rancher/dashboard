@@ -68,11 +68,11 @@ export const getters = {
         Max: 500,
         Min: 20,
       },
-      dataDiskSize:       {
+      dataDiskSize: {
         Max: 32768,
         Min: 20,
       },
-      openPort:               [
+      openPort: [
         '6443/tcp',
         '2379/tcp',
         '2380/tcp',
@@ -133,8 +133,8 @@ export const actions = {
     });
 
     const req = {
-      url:     `${ url }?${ getQueryParamsString(query) }`,
-      method:  'GET',
+      url:    `${ url }?${ getQueryParamsString(query) }`,
+      method: 'GET',
     };
 
     const res = await dispatch('rancher/request', req, { root: true });
@@ -183,8 +183,8 @@ export const actions = {
   },
   async zones({ dispatch }, params) {
     const data = await dispatch('fetchALY', {
-      resource:       'Zone',
-      plural:         'Zones',
+      resource: 'Zone',
+      plural:   'Zones',
       params,
     });
 
@@ -192,8 +192,8 @@ export const actions = {
   },
   async vpcs({ dispatch }, params) {
     const data = await dispatch('fetchALY', {
-      resource:       'Vpc',
-      plural:         'Vpcs',
+      resource: 'Vpc',
+      plural:   'Vpcs',
       params,
     });
 
@@ -201,8 +201,8 @@ export const actions = {
   },
   async vSwitches({ dispatch }, params) {
     const data = await dispatch('fetchALY', {
-      resource:       'VSwitch',
-      plural:         'VSwitches',
+      resource: 'VSwitch',
+      plural:   'VSwitches',
       params,
     });
 
@@ -210,8 +210,8 @@ export const actions = {
   },
   async securityGroups({ dispatch }, params) {
     const data = await dispatch('fetchALY', {
-      resource:       'SecurityGroup',
-      plural:         'SecurityGroups',
+      resource: 'SecurityGroup',
+      plural:   'SecurityGroups',
       params,
     });
 
@@ -220,8 +220,8 @@ export const actions = {
 
   async instanceTypes({ dispatch, state, commit }, params) {
     const data = await dispatch('fetchALY', {
-      resource:       'InstanceType',
-      plural:         'InstanceTypes',
+      resource: 'InstanceType',
+      plural:   'InstanceTypes',
       params,
     });
 
@@ -240,8 +240,8 @@ export const actions = {
   },
   async images({ dispatch }, params) {
     const data = await dispatch('fetchALY', {
-      resource:       'Image',
-      plural:         'Images',
+      resource: 'Image',
+      plural:   'Images',
       params,
     });
 
@@ -249,8 +249,8 @@ export const actions = {
   },
   async systemDiskCategories({ dispatch }, params) {
     const data = await dispatch('fetchAvailableResource', {
-      resource:       '',
-      plural:         'AvailableResource',
+      resource: '',
+      plural:   'AvailableResource',
       params,
     });
 
@@ -258,8 +258,8 @@ export const actions = {
   },
   async dataDiskCategories({ dispatch }, params) {
     const data = await dispatch('fetchAvailableResource', {
-      resource:       '',
-      plural:         'AvailableResource',
+      resource: '',
+      plural:   'AvailableResource',
       params,
     });
 

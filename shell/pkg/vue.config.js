@@ -11,6 +11,15 @@ module.exports = function(dir) {
   const SHELL = path.join(dir, '.shell');
   let COMPONENTS_DIR = path.join(SHELL, 'rancher-components');
 
+  const stat = fs.lstatSync(SHELL);
+
+  // If @rancher/shell is a symlink, then use the components folder for it
+  if (stat.isSymbolicLink() && !fs.existsSync(COMPONENTS_DIR)) {
+    const REAL_SHELL = fs.realpathSync(SHELL);
+
+    COMPONENTS_DIR = path.join(REAL_SHELL, '..', 'pkg', 'rancher-components', 'src', 'components');
+  }
+
   if (fs.existsSync(path.join(maindir, 'shell'))) {
     COMPONENTS_DIR = path.join(maindir, 'pkg', 'rancher-components', 'src', 'components');
   }
@@ -36,14 +45,18 @@ module.exports = function(dir) {
     },
 
     configureWebpack: (config) => {
+      const pkgName = dir.replace(`${ path.dirname(dir) }/`, '');
+
       // Alias updates
       config.resolve.alias['@shell'] = path.join(dir, '.shell');
       config.resolve.alias['~shell'] = path.join(dir, '.shell');
       // This should be udpated once we move to rancher-components as a dependency
       config.resolve.alias['@components'] = COMPONENTS_DIR;
       config.resolve.alias['./node_modules'] = path.join(maindir, 'node_modules');
+      config.resolve.alias[`@pkg/${ pkgName }`] = dir;
       config.resolve.alias['@pkg'] = dir;
       config.resolve.alias['~pkg'] = dir;
+      config.resolve.alias['~'] = maindir;
       delete config.resolve.alias['@'];
 
       // Prevent the dynamic importer and the model-loader-require from importing anything dynamically - we don't want all of the
@@ -76,7 +89,7 @@ module.exports = function(dir) {
 
       // Prevent warning in log with the md files in the content folder
       config.module.rules.push({
-        test:    /\.md$/,
+        test: /\.md$/,
         use:  [
           {
             loader:  'url-loader',

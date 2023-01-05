@@ -89,7 +89,7 @@ export default {
     },
     keyField: {
       // Field that is unique for each row.
-      type:     String,
+      type:    String,
       default: '_key',
     },
 
@@ -304,6 +304,13 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    /**
+     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     */
+    forceUpdateLiveAndDelayed: {
+      type:    Number,
+      default: 0
     }
   },
 
@@ -318,12 +325,12 @@ export default {
     }
 
     return {
-      currentPhase:        ASYNC_BUTTON_STATES.WAITING,
-      expanded:            {},
+      currentPhase:     ASYNC_BUTTON_STATES.WAITING,
+      expanded:         {},
       searchQuery,
       eventualSearchQuery,
-      actionOfInterest:    null,
-      loadingDelay:        false,
+      actionOfInterest: null,
+      loadingDelay:     false,
     };
   },
 
@@ -387,6 +394,9 @@ export default {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
     page(neu, old) {
+      this.watcherUpdateLiveAndDelayed(neu, old);
+    },
+    forceUpdateLiveAndDelayed(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
 
@@ -525,10 +535,10 @@ export default {
 
     classObject() {
       return {
-        'top-divider':     this.topDivider,
-        'body-dividers':   this.bodyDividers,
-        'overflow-y':      this.overflowY,
-        'overflow-x':      this.overflowX,
+        'top-divider':   this.topDivider,
+        'body-dividers': this.bodyDividers,
+        'overflow-y':    this.overflowY,
+        'overflow-x':    this.overflowX,
       };
     },
 
@@ -1530,7 +1540,6 @@ export default {
     .actions.role-multi-action {
       background-color: transparent;
       border: none;
-      font-size: 18px;
       &:hover, &:focus {
         background-color: var(--accent-btn);
         box-shadow: none;

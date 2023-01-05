@@ -1,13 +1,16 @@
-name: publish-storybook
+name: storybook
 env: 
     STORYBOOK_TOKEN: ${{ secrets.STORYBOOK_TOKEN }}
 on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
+      - 'release-*'      
 jobs:
-  publish:
-    if: github.repository_owner == 'rancher'
+  storybook:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -15,5 +18,11 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '14.x'
-    - name: script
+    - name: Install packages
+      run: yarn install
+    - name: Build Storybook
+      run: |
+        yarn build-storybook
+    - name: Publish Storybook
+      if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher'}}
       run: .github/workflows/scripts/publish-storybook

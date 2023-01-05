@@ -8,7 +8,7 @@ import { _VIEW } from '@shell/config/query-params';
 export default {
   components: { UnitInput },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'
