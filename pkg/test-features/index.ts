@@ -214,18 +214,13 @@ export default function(plugin: IPlugin) {
    * @param {object} config - col configuration object (required)
    */
   plugin.addUIAction(UI_CONFIG_TABLE_COL, { resource: 'configmap' }, {
-    type:      'configmap',
-    classProp: {
-      propName: 'some-prop',
-      value:    (data: any) => {
-        return `${ data.id }-some-string`;
-      }
-    },
+    type:   'configmap',
     config: {
-      // A USER DEFINED PROP! check "classProp" above
       name:     'some-prop-col',
       labelKey: 'generic.comingSoon',
-      getValue: (row: any) => row.extensionProps['some-prop'],
+      getValue: (row: any) => {
+        return `${ row.id }-some-string`;
+      }
 
       // SIMPLE STATE EXAMPLE
       // name:      'state', // label for col
