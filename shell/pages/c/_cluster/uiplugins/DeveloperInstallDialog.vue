@@ -181,12 +181,14 @@ export default {
         <div class="dialog-buttons mt-20">
           <button
             class="btn role-secondary"
+            data-testid="dev-install-ext-modal-cancel-btn"
             @click="closeDialog()"
           >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             mode="load"
+            data-testid="dev-install-ext-modal-install-btn"
             @click="loadPlugin"
           />
         </div>
