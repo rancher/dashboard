@@ -154,11 +154,6 @@ export default {
         );
 
         // Added by Verrazzano Start
-        const vzAlertmanager = findBy(
-          hash.endpoints,
-          'id',
-          `${ VERRAZZANO_MONITORING_NAMESPACE }/alertmanager`
-        );
         const vzGrafana = findBy(
           hash.endpoints,
           'id',
