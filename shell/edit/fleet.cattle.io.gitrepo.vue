@@ -235,16 +235,18 @@ export default {
     },
 
     repoUrlPlaceholder() {
-      const protocol = this.repoUrl.protocol || 'https'
-      return this.t(`fleet.gitRepo.repo.placeholder.${protocol}`)
+      const protocol = this.repoUrl.protocol || 'https';
+
+      return this.t(`fleet.gitRepo.repo.placeholder.${ protocol }`);
     },
 
     repoUrl() {
       const [protocol, url] = this.value.spec.repo.split('://');
+
       return {
         protocol,
         url
-      }
+      };
     }
 
   },
@@ -348,8 +350,7 @@ export default {
     },
 
     changeProtocol({ text, selected }) {
-
-      this.value.spec.repo = `${selected}://${text}`;
+      this.value.spec.repo = `${ selected }://${ text }`;
 
       this.stepOneReady();
     },
