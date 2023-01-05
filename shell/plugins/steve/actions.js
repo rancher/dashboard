@@ -116,8 +116,23 @@ export default {
       }
     }
 
+    function newCancelToken(cancelToken, timeout = 0) {
+      const source = cancelToken.source();
+
+      if (timeout) {
+        setTimeout(() => source.cancel('Operation cancelled by user'), timeout);
+      }
+
+      return source.token;
+    }
+
     function makeRequest(that, opt) {
-      return that.$axios(opt).then((res) => {
+      return that.$axios(
+        {
+          ...opt,
+          cancelToken: newCancelToken(that.$axios.CancelToken, that.$config.rancherEnv === 'desktop' ? 5000 : 0)
+        }
+      ).then((res) => {
         let out;
 
         if ( opt.responseType ) {
