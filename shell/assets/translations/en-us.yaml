@@ -2983,6 +2983,8 @@ monitoring:
       new: Create default config
       radio:
         label: Config Secret
+    validation:
+      duplicatedReceiverName: 'Duplicate name of receiver'
     templates:
       keyLabel: File Name
       label: Template Files
