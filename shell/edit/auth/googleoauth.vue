@@ -44,7 +44,6 @@ export default {
         serverUrl: this.serverUrl,
         provider:  this.displayName,
         username:  this.principal.loginName || this.principal.name,
-        docsBase:  this.$store.getters['rancherDocsBase']
       };
     },
 
