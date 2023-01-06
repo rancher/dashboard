@@ -28,6 +28,38 @@ export default {
       if ( container ) {
         this.selectContainer(container);
       }
+    },
+
+    /**
+     * Find error exceptions to be mapped for each case
+     */
+    mapError(error) {
+      switch (true) {
+      case error.includes('violates PodSecurity'): {
+        const [name, _, policy] = error.match(/(?<=\")(.*?)(?=\")/gi);
+
+        return {
+          message: `Pod "${ name }" Security Policy Violation "${ policy }"`,
+          icon:    'icon-pod_security'
+        };
+      }
+
+      default:
+        break;
+      }
+    },
+
+    /**
+     * Map all the error texts to a message and icon object
+     */
+    getErrorsMap(errors) {
+      return !errors ? {} : errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: this.mapError(error) || {
+          message: error,
+          icon:    null
+        }
+      }), {});
     }
   }
 };
@@ -49,6 +81,7 @@ export default {
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
       :value="value"
+      :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
       @error="e=>errors = e"
