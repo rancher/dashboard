@@ -236,7 +236,6 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
-    // TODO: Check if conditionally required to set empty value
     if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateId === undefined ) {
       set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateId', '');
     }
@@ -419,14 +418,6 @@ export default {
           out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
         }
 
-        // TODO: Remove this after fetching real value
-        out.push({
-          label:      'v1.25.7+rke2r1',
-          value:      'v1.25.7+rke2r1',
-          serverArgs: {},
-          agentArgs:  {}
-        });
-
         out.push(...allValidK3sVersions);
       }
 
@@ -499,7 +490,6 @@ export default {
           });
         }
       }
-      // TODO: Check if spec key is correct
       const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateId;
 
       if ( cur && !out.find(x => x.value === cur) ) {
