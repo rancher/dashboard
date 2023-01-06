@@ -94,6 +94,17 @@ generic:
   moreInfo: More Info
   ok: OK
   reload: Reload
+  addCatalog: Add Catalog
+  dashboard: Dashboard
+  selectors:
+    label: Selector
+    matchingResources:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number}}
+          =1 {Matches 1 of {total, number}: "{sample}"}
+          other {Matches {matched, number} of {total, number}, including "{sample}"}
+        }
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -128,7 +139,7 @@ nav:
     serviceDiscovery: Service Discovery
     starred: Starred
     storage: Storage
-    workload: Workload
+    workload: Workloads
     monitoring: Monitoring
     advanced: Advanced
     RKE1Configuration: RKE1 Configuration
@@ -138,6 +149,18 @@ nav:
     core: Core
     imageRepo: Image Repo
     globalMonitoring: Global Monitoring
+    API: API
+    Coordination: Coordination
+    Discovery: Discovery
+    Fleet: Fleet
+    K3s: K3s
+    Networking: Networking
+    Policy: Policy
+    RBAC: RBAC
+    Rancher: Rancher
+    Scheduling: Scheduling
+    Storage: Storage
+    legacy: Legacy
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -178,7 +201,7 @@ nav:
     projects: Image Management
   auditLog: Audit Log
   quotas: Quotas
-  globalMonitoring: 
+  globalMonitoring:
     label: Global Monitoring
     dashboard: Dashboard
 product:
@@ -203,6 +226,8 @@ product:
   rancher: Rancher
   elemental: OS Management
   uiplugins: Extensions
+  legacy: Legacy
+  plugins: Plugins
 suffix:
   percent: "%"
   milliCpus: milli CPUs
@@ -241,6 +266,7 @@ about:
     helm: Helm
     machine: Machine
     releaseNotes: 'View release notes'
+    rancher: Rancher
   os:
     mac: macOS
     windows: Windows
@@ -903,7 +929,7 @@ catalog:
       valuesYaml: Edit YAML
       diff: Compare Changes
     slideIn:
-      dock: Dock to bottom
+      dock: Dock to shell
     steps:
       basics:
         label: Metadata
@@ -1070,6 +1096,7 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
+  workerProfile: CIS Worker Profile
 cluster:
   addonChart:
     rancher-vsphere-cpi: vSphere CPI Configuration
@@ -1116,6 +1143,7 @@ cluster:
       nodeLabel:
         title: Node Labels
         label: Add Label
+      NodeName: Node Name
     registrationCommand:
       label: Registration Command
       linuxDetail: Run this command on each of the existing Linux machines you want to register.
@@ -1428,6 +1456,7 @@ cluster:
     azure:
       availabilitySet:
         label: Availability Set (unmanaged)
+        description: Availability sets are used to protect applications from hardware failures within an Azure data center.
       dns:
         help: A unique DNS label for the public IP address.
         label: DNS Label
@@ -1467,10 +1496,18 @@ cluster:
         label: Resource Group
       size:
         label: VM Size
+        availabilityWarning: The selected VM size is not available in the selected region.
+        doesNotSupportAcceleratedNetworking: Sizes Without Accelerated Networking
+        regionDoesNotSupportAzs: Availability zones are not supported in the selected region. Please select a different region or use an availability set instead.
+        regionSupportsAzsButNotThisSize: The selected region does not support availability zones for the selected VM size. Please select a different region or VM size.
+        selectedSizeAcceleratedNetworkingWarning: The selected VM size does not support accelerated networking. Please select another VM size or disable accelerated networking.
+        supportsAcceleratedNetworking: Sizes that Support Accelerated Networking
+        tooltip: When accelerated networking is enabled, not all sizes are available.
       sshUser:
         label: SSH Username
       storageType:
         label: Storage Type
+        warning: StandardSSD_LRS requires managed disks. Please select Use Managed Disks or select another storage type.
       subnet:
         label: Subnet
       subnetPrefix:
@@ -1483,6 +1520,13 @@ cluster:
       vnet:
         label: Virtual Network
         placeholder: '[resourcegroup:]name'
+      acceleratedNetworking:
+        label: Accelerated Networking
+      availabilityZone:
+        description: Availability zones protect applications from complete Azure data center failures.
+        label: Availability Zone
+      tags:
+        label: Tags
     digitalocean:
       sizeLabel: |-
         {plan, select,
@@ -1736,6 +1780,10 @@ cluster:
       public: Use default global registry for Rancher System Container Images
       private: Use specified private registry for Rancher System Container Images
       advanced: Configure advanced containerd mirroring and registry authentication options
+    description: If enabled, Rancher will pull container images from this registry during cluster provisioning. By default, Rancher will also use this registry when installing Rancher's official Helm chart apps. If the cluster scoped registry is disabled, system images are pulled from the System Default Registry in the global settings.
+    docsLinkK3s: For help configuring private registry mirrors, see the K3s <a href="https://docs.k3s.io/installation/private-registry" target="_blank">documentation.</a>
+    docsLinkRke2: For help configuring private registry mirrors, see the RKE2 <a href="https://docs.rke2.io/install/containerd_registry_configuration/" target="_blank">documentation.</a>
+    label: Enable cluster scoped container registry for Rancher system container images
   provider:
     ackoperatorsetting: Alibaba ACK
     alibaba: Alibaba
@@ -1927,10 +1975,14 @@ cluster:
   validation:
     iamInstanceProfileName: If the Amazon cloud provider is selected the "IAM Instance Profile Name" must be defined for each Machine Pool
   k8sAuditLog: View API Server Audit Log
+  availabilityWarnings:
+    machine: Machine {name} is inactive
+    node: Node {name} is inactive
+  manageAction: Manage
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
-    cores: Cores
+    cores: CPU
     pods: Pods
     ram: Memory
     used: Used
@@ -2645,11 +2697,36 @@ logging:
       label: Matches
       addSelect: Add Include Rule
       addExclude: Add Exclude Rule
+      banner: Configure which container logs will be pulled from
+      containerNames:
+        placeholder: 'Default: Any container'
+        title:
+          exclude: Exclude specific container names
+          include: Limit to specific container names
+      namespaces:
+        placeholder: 'Default: Any namespace'
+        title:
+          exclude: Exclude specific namespaces
+          include: Limit to specific namespaces
+      nodes:
+        placeholder: 'Default: Any node'
+        title:
+          exclude: Exclude specific nodes
+          include: Limit to specific nodes
+      pods:
+        addLabel: Add Pod
+        keyLabel: Pod Label Key
+        title:
+          exclude: Exclude Pods
+          include: Include Pods
+        valueLabel: Pod Label Value
+      unsupportedConfig: This resource contains a match configuration that the form editor does not support. Please use YAML edit.
     filters:
       label: Filters
     outputs:
       doesntExistTooltip: This output doesn't exist
       label: Outputs
+      sameNamespaceError: Output must reside in same namespace as the flow.
   install:
     k3sContainerEngine: K3S Container Engine
     enableAdditionalLoggingSources: Enable enhanced cloud provider logging
@@ -2825,6 +2902,8 @@ logging:
     syslog: Syslog
     s3: S3
     unknown: Unknown
+    opensearch: OpenSearch
+    redis: Redis
   overview:
     poweredBy: Banzai Cloud
     clusterLevel: Cluster-Level
@@ -2852,6 +2931,15 @@ logging:
     clientCertPath: Client Cert Path from Secret
     clientPrivateKeyPath: Client Private Key Path from Secret
     clientPrivateKeyPassphrase: Client Private Key Passphrase from Secret
+  redis:
+    dbNumber: Redis database number
+    format:
+      title: Format
+      type: Type
+    host: Host
+    password: Password from Secret
+    port: Port
+    ttl: TTL for each key
 longhorn:
   overview:
     title: Overview
@@ -2924,6 +3012,8 @@ members:
       label: Custom
       description: Choose individual roles for this user.
   localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any part of this installation."
+  clusterAndProject: Cluster and Project Members
+  noRolesAssigned: There are no users assigned to this project.
 membershipEditor:
   label: Members
   user: User
@@ -3491,6 +3581,8 @@ persistentVolume:
     label: Plugin configuration
   plugin:
     label: Volume Plugin
+    inTree: in-tree plugin
+    unsupported: (Unsupported)
   capacity:
     label: Capacity
   customize:
@@ -3570,6 +3662,22 @@ persistentVolume:
     controllerPublishSecretNamespace:
       label: Controller Publish Secret Namespace
       placeholder: e.g. default
+    drivers:
+      cinder-csi-openstack-org: Cinder (CSI)
+      csi-vsphere-vmware-com: vSphere (CSI)
+      disk-csi-azure-com: Azure Disk (CSI)
+      driver-harvesterhci-io: Harvester (CSI)
+      driver-longhorn-io: Longhorn (CSI)
+      ebs-csi-aws-com: AWS Elastic Block Store (CSI)
+      file-csi-azure-com: Azure File (CSI)
+      nfs-csi-k8s-io: NFS (CSI)
+      org-gluster-glusterfs: GlusterFS (CSI)
+      pd-csi-storage-gke-io: GCE Persistent Disk (CSI)
+      pxd-portworx-com: Portworx (CSI)
+      quobyte-csi: Quobyte (CSI)
+      rbd-csi-ceph-com: Ceph RBD (CSI)
+      storageos: StorageOS (CSI)
+    suffix: (CSI)
   cephfs:
     label: Ceph Filesystem (Unsupported)
     path:
@@ -4043,6 +4151,7 @@ promptRemove:
   deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
   willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
   confirmRelatedResource: "Deleting the {type} will remove all the resources on this particular {type} and this is not revertable, are you sure you want to continue deleting {names}?"
+  attemptingToRemoveAuthConfig: You are attempting to disable this Auth Provider. <br><br> Be aware that cluster role template bindings, project role template bindings, global role bindings, users, tokens will be all deleted. <br><br> Are you sure you want to proceed?
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
 promptRestore:
@@ -4292,6 +4401,8 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
+  nsFilterToolTip: There are too many resources, filtering is restricted to a single {mode}.
+  nsFiltering: There are too many {resource}.<br>Please filter them by selecting a Namespace above.
 resourceLoadingIndicator:
   loading: Loading
 resourceTable:
@@ -4701,7 +4812,7 @@ storageClass:
       zonal: Zonal
       regional: Regional
   longhorn:
-    title: Longhorn
+    title: Longhorn (CSI)
     addLabel: Add Parameter
   vsphere-volume:
     title: VMWare vSphere Volume
@@ -4728,7 +4839,7 @@ storageClass:
   custom:
     addLabel: Add Parameter
   glusterfs:
-    title: Gluster Volume (Unsupported)
+    title: Gluster Volume
     restUrl:
       label: REST URL
       placeholder: e.g. http://127.0.0.1:8081
@@ -4757,7 +4868,7 @@ storageClass:
       label: Volume Type
       placeholder: "e.g. replicate:3"
   cinder:
-    title: Openstack Cinder Volume (Unsupported)
+    title: Openstack Cinder Volume
     volumeType:
       label: Volume Type
       placeholder: e.g. fast
@@ -4768,7 +4879,7 @@ storageClass:
         label: "Manual: Choose specific zones"
         placeholder: e.g. nova
   rbd:
-    title: Ceph RBD (Unsupported)
+    title: Ceph RBD
     monitors:
       label: Monitors
       placeholder: e.g. 10.16.153.105:6789
@@ -4803,7 +4914,7 @@ storageClass:
       label: Image Features
       placeholder: e.g. layering
   quobyte:
-    title: Quobyte Volume (Unsupported)
+    title: Quobyte Volume
     quobyteApiServer:
       label: Quobyte API Server
       placeholder: "e.g. http://138.68.74.142:7860"
@@ -4829,7 +4940,7 @@ storageClass:
       label: Quobyte Tenant
       placeholder: e.g. DEFAULT
   portworx-volume:
-    title: Portworx Volume (Unsupported)
+    title: Portworx Volume
     filesystem:
       label: Filesystem
       placeholder: e.g. ext4
@@ -4852,7 +4963,7 @@ storageClass:
       label: Ephemeral
       placeholder: e.g. true
   scaleio:
-    title: ScaleIO Volume (Unsupported)
+    title: ScaleIO Volume
     gateway:
       label: Gateway
       placeholder: e.g. https://192.168.99.200:443/api
@@ -4878,7 +4989,7 @@ storageClass:
       label: Filesystem Type
       placeholder: e.g. xfs
   storageos:
-    title: StorageOS (Unsupported)
+    title: StorageOS
     pool:
       label: Pool
       placeholder: e.g. default
@@ -4895,7 +5006,10 @@ storageClass:
       label: Admin Secret Name
       placeholder: e.g. storageos-secret
   no-provisioner:
-    title: Local Storage (Unsupported)
+    title: Local Storage
+  deprecated:
+    title: (Deprecated)
+    warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
 tableHeaders:
   accessKey: Access Key
   address: Address
@@ -4964,7 +5078,7 @@ tableHeaders:
   namespaceName: Name
   namespaceNameUnlinked: Name
   node: Node
-  nodeName: Name
+  nodeName: Node Name
   nodesReady: Nodes Ready
   nodePort: Node Port
   object: Object
@@ -5064,6 +5178,51 @@ tableHeaders:
   groupRoleNames: Group Role Names
   restart: Restart Required
   cluster: Cluster
+  accessModes: Access Modes
+  addressType: Address Type
+  assuredConcurrencyShares: Assured Concurrency Shares
+  available: Available
+  capacity: Capacity
+  cluster-Name: Cluster
+  completions: Completions
+  count: Count
+  createdAt: Created At
+  current: Current
+  deployed: Deployed
+  desired: Desired
+  distinguisherMethod: Distinguisher Method
+  drivers: Drivers
+  duration: Duration
+  firstSeen: First Seen
+  global-Default: Global-Default
+  groups: Groups
+  handSize: Hand Size
+  holder: Holder
+  iP: IP
+  internalIpSameAsExternal: Same as External
+  labels: Labels
+  lastSchedule: Last Schedule
+  matchingPrecedence: Matching Precedence
+  missingPL: MissingPL
+  monitored: Monitored
+  pod-Selector: Pod-Selector
+  ports: Ports
+  priorityLevel: Priority Level
+  providerID: Provider ID
+  queueLengthLimit: Queue Length Limit
+  queues: Queues
+  schedule: Schedule
+  secret-Name: Secret-Name
+  secrets: Secrets
+  service: Service
+  serviceAccounts: Service Accounts
+  source: Source
+  storageClass: Storage Class
+  subobject: Subobject
+  up-to-date: Up To Date
+  users: Users
+  volume: Volume
+  volumeMode: Volume Mode
 target:
   router:
     label: Router
@@ -5242,6 +5401,12 @@ validation:
       match: At least one Match or Match Regex must be selected
       interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
   tab: "One or more fields in this tab contain a form validation error"
+  betweenLengths: '"{key}" must contain between {min} and {max} characters'
+  betweenValues: '"{key}" must be between {min} and {max}'
+  maxLength: '"{key}" must contain less than {max} characters'
+  maxValue: '"{key}" must be lower than {max}'
+  minLength: '"{key}" must contain more than {min} characters'
+  minValue: '"{key}" must be higher than {min}'
 wizard:
   previous: Previous
   finish: Finish
@@ -5673,6 +5838,7 @@ workload:
       gcePersistentDisk: Google Persistent Disk
       driver.longhorn.io: Longhorn
       vsphereVolume: VMWare vSphere Volume
+      emptyDir: Empty Dir
     addClaim: Add Claim
     addMount: Add Mount
     addVolume: Add Volume
@@ -5745,6 +5911,14 @@ workload:
         label: Path
         placeholder: e.g. my-group/my-username
       specific: Select Specific Keys
+    emptyDir:
+      medium:
+        default: Node's Default Medium
+        label: Medium
+        memory: Memory
+      sizeLimit:
+        label: Size Limit
+        placeholder: e.g. 300
   typeDescriptions:
     apps.daemonset: DaemonSets run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.
     apps.deployment: Deployments run a scalable number of replicas of a pod distributed among the eligible nodes. Changes are rolled out incrementally and can be rolled back to the previous revision when needed. Recommended for stateless & horizontally-scalable workloads.
@@ -6117,6 +6291,326 @@ typeLabel:
       other { Bundles }
     }
   fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { Cluster Registration Token }\n  other { Cluster Registration Tokens }\n} "
+  admissionregistration.k8s.io.mutatingwebhookconfiguration: |-
+    {count, plural,
+      one { MutatingWebhookConfiguration }
+      other { MutatingWebhookConfigurations }
+    }
+  admissionregistration.k8s.io.validatingwebhookconfiguration: |-
+    {count, plural,
+      one { ValidatingWebhookConfiguration }
+      other { ValidatingWebhookConfigurations }
+    }
+  apiextensions.k8s.io.customresourcedefinition: |-
+    {count, plural,
+      one { CustomResourceDefinition }
+      other { CustomResourceDefinitions }
+    }
+  apiregistration.k8s.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  apps.daemonset: |-
+    {count, plural,
+      one { DaemonSet }
+      other { DaemonSets }
+    }
+  apps.deployment: |-
+    {count, plural,
+      one { Deployment }
+      other { Deployments }
+    }
+  apps.replicaset: |-
+    {count, plural,
+      one { ReplicaSet }
+      other { ReplicaSets }
+    }
+  apps.statefulset: |-
+    {count, plural,
+      one { StatefulSet }
+      other { StatefulSets }
+    }
+  autoscaling.horizontalpodautoscaler: |-
+    {count, plural,
+      one { HorizontalPodAutoscaler }
+      other { HorizontalPodAutoscalers }
+    }
+  batch.cronjob: |-
+    {count, plural,
+      one { CronJob }
+      other { CronJobs }
+    }
+  batch.job: |-
+    {count, plural,
+      one { Job }
+      other { Jobs }
+    }
+  cluster.x-k8s.io.machine: |-
+    {count, plural,
+      one { Machine }
+      other { Machines }
+    }
+  cluster.x-k8s.io.machinedeployment: |-
+    {count, plural,
+      one { MachineDeployment }
+      other { MachineDeployments }
+    }
+  cluster.x-k8s.io.machineset: |-
+    {count, plural,
+      one { MachineSet }
+      other { MachineSets }
+    }
+  configmap: |-
+    {count, plural,
+      one { ConfigMap }
+      other { ConfigMaps }
+    }
+  coordination.k8s.io.lease: |-
+    {count, plural,
+      one { Lease }
+      other { Leases }
+    }
+  discovery.k8s.io.endpointslice: |-
+    {count, plural,
+      one { EndpointSlice }
+      other { EndpointSlices }
+    }
+  event: |-
+    {count, plural,
+      one { Event }
+      other { Events }
+    }
+  fleet.cattle.io.bundledeployment: |-
+    {count, plural,
+      one { ClusterRegistration }
+      other { ClusterRegistrations }
+    }
+  fleet.cattle.io.clusterregistration: |-
+    {count, plural,
+      one { Catalog }
+      other { Catalogs }
+    }
+  fleet.cattle.io.content: |-
+    {count, plural,
+      one { Content }
+      other { Contents }
+    }
+  flowcontrol.apiserver.k8s.io.flowschema: |-
+    {count, plural,
+      one { FlowSchema }
+      other { FlowSchemas }
+    }
+  flowcontrol.apiserver.k8s.io.prioritylevelconfiguration: |-
+    {count, plural,
+      one { PriorityLevelConfiguration }
+      other { PriorityLevelConfigurations }
+    }
+  harvesterhci.io.cloudtemplate: |-
+    {count, plural,
+      one { Cloud Config Template }
+      other { Cloud Config Templates }
+    }
+  k3s.cattle.io.addon: |-
+    {count, plural,
+      one { Addon }
+      other { Addons }
+    }
+  limitrange: |-
+    {count, plural,
+      one { Limit Range }
+      other { Limit Ranges }
+    }
+  management.cattle.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  management.cattle.io.catalog: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  management.cattle.io.catalogtemplate: |-
+    {count, plural,
+      one { CatalogTemplate }
+      other { CatalogTemplates }
+    }
+  management.cattle.io.catalogtemplateversion: |-
+    {count, plural,
+      one { CatalogTemplateVersion }
+      other { CatalogTemplateVersions }
+    }
+  management.cattle.io.cisbenchmarkversion: |-
+    {count, plural,
+      one { CisBenchmarkVersion }
+      other { CisBenchmarkVersions }
+    }
+  management.cattle.io.cisconfig: |-
+    {count, plural,
+      one { CisConfig }
+      other { CisConfigs }
+    }
+  management.cattle.io.clusteralertgroup: |-
+    {count, plural,
+      one { ClusterAlertGroup }
+      other { ClusterAlertGroups }
+    }
+  management.cattle.io.clusteralertrule: |-
+    {count, plural,
+      one { ClusterAlertRule }
+      other { ClusterAlertRules }
+    }
+  management.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { ClusterRegistrationTokens }
+      other { ClusterRegistrationTokens }
+    }
+  management.cattle.io.dynamicschema: |-
+    {count, plural,
+      one { DynamicSchema }
+      other { DynamicSchemas }
+    }
+  management.cattle.io.globalrolebinding: |-
+    {count, plural,
+      one { GlobalRoleBinding }
+      other { GlobalRoleBindings }
+    }
+  management.cattle.io.kontainerdriver: |-
+    {count, plural,
+      one { KontainerDriver }
+      other { KontainerDrivers }
+    }
+  management.cattle.io.node: |-
+    {count, plural,
+      one { Node }
+      other { Nodes }
+    }
+  management.cattle.io.nodedriver: |-
+    {count, plural,
+      one { NodeDriver }
+      other { NodeDrivers }
+    }
+  management.cattle.io.podsecuritypolicytemplate: |-
+    {count, plural,
+      one { PodSecurityPolicyTemplate }
+      other { PodSecurityPolicyTemplates }
+    }
+  management.cattle.io.projectalertgroup: |-
+    {count, plural,
+      one { ProjectAlertGroup }
+      other { ProjectAlertGroups }
+    }
+  management.cattle.io.projectalertrule: |-
+    {count, plural,
+      one { ProjectAlertRule }
+      other { ProjectAlertRules }
+    }
+  management.cattle.io.rkeaddon: |-
+    {count, plural,
+      one { RkeAddon }
+      other { RkeAddons }
+    }
+  management.cattle.io.rkek8sserviceoption: |-
+    {count, plural,
+      one { RkeK8sServiceOption }
+      other { RkeK8sServiceOptions }
+    }
+  management.cattle.io.rkek8ssystemimage: |-
+    {count, plural,
+      one { RkeK8sSystemImage }
+      other { RkeK8sSystemImages }
+    }
+  management.cattle.io.userattribute: |-
+    {count, plural,
+      one { UserAttribute }
+      other { UserAttributes }
+    }
+  networking.k8s.io.ingress: |-
+    {count, plural,
+      one { Ingress }
+      other { Ingresses }
+    }
+  networking.k8s.io.networkpolicy: |-
+    {count, plural,
+      one { Network Policies }
+      other { Network Policies }
+    }
+  persistentvolume: |-
+    {count, plural,
+      one { PersistentVolume }
+      other { PersistentVolumes }
+    }
+  persistentvolumeclaim: |-
+    {count, plural,
+      one { PersistentVolumeClaim }
+      other { PersistentVolumeClaims }
+    }
+  pod: |-
+    {count, plural,
+      one { Pod }
+      other { Pods }
+    }
+  policy.poddisruptionbudget: |-
+    {count, plural,
+      one { Pod Disruption Budget }
+      other { Pod Disruption Budgets }
+    }
+  rbac.authorization.k8s.io.clusterrole: |-
+    {count, plural,
+      one { ClusterRole }
+      other { ClusterRoles }
+    }
+  rbac.authorization.k8s.io.clusterrolebinding: |-
+    {count, plural,
+      one { ClusterRoleBinding }
+      other { ClusterRoleBindings }
+    }
+  rbac.authorization.k8s.io.role: |-
+    {count, plural,
+      one { Role }
+      other { Roles }
+    }
+  rbac.authorization.k8s.io.rolebinding: |-
+    {count, plural,
+      one { RoleBinding }
+      other { RoleBindings }
+    }
+  resourcequota: |-
+    {count, plural,
+      one { Resource Quota }
+      other { Resource Quotas }
+    }
+  scheduling.k8s.io.priorityclass: |-
+    {count, plural,
+      one { PriorityClasse }
+      other { PriorityClasses }
+    }
+  secret: |-
+    {count, plural,
+      one { Secret }
+      other { Secrets }
+    }
+  service: |-
+    {count, plural,
+      one { Service }
+      other { Services }
+    }
+  serviceaccount: |-
+    {count, plural,
+      one { ServiceAccount }
+      other { ServiceAccounts }
+    }
+  storage.k8s.io.csinode: |-
+    {count, plural,
+      one { CSINode }
+      other { CSINodes }
+    }
+  storage.k8s.io.storageclass: |-
+    {count, plural,
+      one { StorageClass }
+      other { StorageClasses }
+    }
 action:
   clone: Clone
   disable: Disable
@@ -6171,15 +6665,17 @@ keyValue:
   protip: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry'
 registryMirror:
   header: Mirrors
-  toolTip: 'Mirrors can be used to redirect requests for images from one registry to actually come from a list of endpoints you specify instead.  For example you could point docker.io to always talk to your internal registry and instead of ever going to the actual DockerHub on the internet.'
+  toolTip: 'Mirrors can be used to redirect requests for images from one registry to come from a list of endpoints you specify instead.  For example docker.io could redirect to your internal registry instead of ever going to DockerHub.'
   addLabel: Add Mirror
   valueProtip: Mirror endpoints should contain protocol headers
   valuePlaceholder: e.g. https://a.registry.com:5000, https://b.registry.com:5000
   keyPlaceholder: e.g. docker.io or *
+  description: Mirrors define the names and endpoints for private registries. The endpoints are tried one by one, and the first working one is used.
 registryConfig:
   header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
   addLabel: Add Registry
+  description: Define the TLS and credential configuration for each registry hostname and mirror.
 modalDownLoadFileComponent:
   title: Container file download
   container: Container
@@ -6273,6 +6769,7 @@ advancedSettings:
     'system-catalog':
       bundled: 'Bundled'
       external: 'External'
+  modified: Modified
 featureFlags:
   label: Feature Flags
   warning: |-
@@ -6332,6 +6829,14 @@ performance:
       route:
         description: Run garbage collection on page change
         inputLabel: Page Change
+  experimental: This setting is experimental and may be removed or updated in future versions.
+  nsFiltering:
+    checkboxLabel: Enable Required Namespace Filtering
+    count:
+      description: The threshold above which filtering by a namespace is required
+      inputLabel: Resource Threshold
+    description: When there are too many resources to show in a list, require the user to select a single namespace and only fetch resources from within it.
+    label: Require Namespace Filtering
 banner:
   label: Fixed Banners
   settingName: Banners
@@ -6368,7 +6873,7 @@ branding:
   directoryName: Brand Asset Directory Name
   logos:
     label: Logo
-    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB'
+    tip: 'Upload a logo to replace the Rancher logo in the top-level navigation header. Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
     lightPreview: Light Theme Preview
     darkPreview: Dark Theme Preview
     uploadLight: Upload Light Logo
@@ -6797,13 +7302,13 @@ formReservation:
     label: '{component} Memory Reservation'
     placeholder: e.g. 1000
 globalMonitoringDashboard:
-  globalMonitoring: 
+  globalMonitoring:
     label: Global Monitoring
     description: Global Monitoring
-  grafana: 
+  grafana:
     label: Grafana
     description: Metrics Dashboards
-  thanos: 
+  thanos:
     label: Prometheus Thanos
     description: Cluster Component System
 globalMonitoringPage:
@@ -6811,10 +7316,10 @@ globalMonitoringPage:
   cluster: Global Monitoring Cluster
   token:
     label: Use default token
-    custom: 
+    custom:
       label: Custom token
       placeholder: Please configure a custom token
-  customAddress: 
+  customAddress:
     add: Add Address
     otherHeader: Customize other addresses
     header: Custom Address
@@ -6838,7 +7343,7 @@ globalMonitoringPage:
   customAnswers:
     title: Custom Answers
     detail: Configure custom answers.
-    answer: 
+    answer:
       label: Answers
     addAnswerLabel: Add Answer
   nodeSelector:
@@ -6955,19 +7460,19 @@ globalMonitoringPage:
         placeholder: "e.g. 0"
   grafana:
     header: Global Dashboard
-    title: 
+    title:
       label: Title
       placeholder: e.g. grafana
-    tabTitle: 
+    tabTitle:
       label: Tab Title
       placeholder: e.g. grafana
-    logo: 
+    logo:
       label: logo
       placeholder: Please enter the logo address
-    favicon: 
+    favicon:
       label: favicon
       placeholder: Please enter the favicon address
-    serverUrl: 
+    serverUrl:
       label: serverUrl
       placeholder: e.g. http://rancher.cattle-system
     detail: Global Grafana and {appName} Global Dashboard configuration.
@@ -6996,7 +7501,7 @@ globalMonitoringPage:
       placeholder: 'Paste in the certificate, starting with -----BEGIN CERTIFICATE-----'
     key:
       label: Private Key
-      placeholder:  Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----
+      placeholder: Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----
     ca:
       label: CA Certificate
       placeholder: 'Paste in the certificate, starting with -----BEGIN CERTIFICATE-----'
@@ -7015,3 +7520,10 @@ formScheduling:
 forceUpdateMachinePlan:
   attemptingToUpdate: "You are attempting to force the update of the machine-plan"
   error: Error in force updating machine plan
+podDisruptionBudget:
+  budget:
+    label: Budget
+  maxUnavailable:
+    label: Max. unavailable Pods
+  minAvailable:
+    label: Min. available Pods

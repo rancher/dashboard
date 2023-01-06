@@ -94,6 +94,16 @@ generic:
   moreInfo: 更多信息
   ok: OK
   reload: 重新加載
+  dashboard: 儀表板
+  selectors:
+    label: 選擇器
+    matchingResources:
+      matchesSome: |-
+        {matched, plural,
+          =0 {匹配 {total, number} 箇中的 0 個}
+          =1 {匹配 {total, number} 箇中的 1 個："{sample}"}
+          other {匹配 {total, number} 中的 {matched, number} 個，包括 "{sample}"}
+        }
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -142,6 +152,7 @@ nav:
     Storage: 存儲
     imageRepo: 鏡像倉庫
     globalMonitoring: 全局監控
+    policy: 策略
   ns:
     all: 所有命名空間
     clusterLevel: 集群資源
@@ -182,7 +193,7 @@ nav:
     projects: 鏡像管理
   auditLog: 審計日誌
   quotas: 配額
-  globalMonitoring: 
+  globalMonitoring:
     label: 全局監控
     dashboard: Dashboard
 product:
@@ -247,6 +258,7 @@ about:
     helm: Helm
     machine: Machine
     releaseNotes: '查看發行說明'
+    rancher: Rancher
   os:
     mac: macOS
     windows: Windows
@@ -506,7 +518,7 @@ authConfig:
         linkText: '在此處進行更新。'
       modal:
         title: 是否確認？此更新是不可逆的。
-        body: '<p><b>你可能需要進行額外的更改</b>。請確保 Azure AD 應用對 Microsoft Graph 具有以下應用權限：User.Read.All、Group.Read.All<br> 如果在 Rancher 中配置 Azure AD 身份驗證時自定義了端點，這些端點將不會自動更新。</p>'
+        body: '<p><b>你可能需要進行額外的更改</b>。請確保 Azure AD 應用已將 Directory.Read.All <b>Application</b> 權限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Azure AD 身份驗證時自定義了端點，這些端點將不會自動更新。</p>'
   oidc:
     oidc: 配置 OIDC 賬號
     keycloakoidc: 配置 Keycloak OIDC 賬號
@@ -828,7 +840,7 @@ catalog:
         inputLabel: 容器鏡像倉庫
         placeholder: 鏡像倉庫域名和端口，例如：registry.io:5000
       label: 容器鏡像倉庫
-      tooltip: 容器鏡像是從 Cluster Container 中拉取的，如果拉取失敗，則從系統容器鏡像倉庫中拉取。要更改默認行為，請在此處輸入或更新鏡像倉庫。
+      tooltip: 容器鏡像是從 Cluster Container Registry 中拉取的，如果拉取失敗，則從系統容器鏡像倉庫中拉取。要更改默認行為，請在此處輸入或更新鏡像倉庫。
   charts:
     all: 全部
     categories:
@@ -856,6 +868,7 @@ catalog:
       linux: Linux
       windows: Windows
     search: 篩選
+    featuredCharts: 精選 Chart
   install:
     action:
       goToUpgrade: 編輯/升級
@@ -1082,6 +1095,7 @@ cis:
   testID: 測試 ID
   testsSkipped: 已跳過的測試
   testsToSkip: 要跳過的測試
+  workerProfile: CIS Worker 配置文件
 cluster:
   addonChart:
     rancher-vsphere-cpi: vSphere CPI 配置
@@ -1441,6 +1455,7 @@ cluster:
     azure:
       availabilitySet:
         label: 可用性集（非託管）
+        description: 可用性集用於讓應用程序免受 Azure 數據中心內硬件故障的影響。
       dns:
         help: 公共 IP 地址的唯一 DNS 標籤。
         label: DNS 標籤
@@ -1480,10 +1495,18 @@ cluster:
         label: 資源組
       size:
         label: 虛擬機大小
+        availabilityWarning: VM 大小在所選區域中不可用。
+        doesNotSupportAcceleratedNetworking: 沒有加速網絡的大小
+        regionDoesNotSupportAzs: 所選區域不支持可用區。請選擇其他區域或改用可用性集。
+        regionSupportsAzsButNotThisSize: 所選區域的可用區不支持該 VM 大小。請選擇不同的區域或 VM 大小。
+        selectedSizeAcceleratedNetworkingWarning: 所選 VM 大小不支持加速網絡。請選擇其他 VM 大小或禁用加速網絡。
+        supportsAcceleratedNetworking: 支持加速網絡的大小
+        tooltip: 啟用加速網絡後，並非所有大小都可用。
       sshUser:
         label: SSH 用戶名
       storageType:
         label: 儲存類型
+        warning: StandardSSD_LRS 需要託管磁盤。請使用託管磁盤或選擇其他存儲類型。
       subnet:
         label: 子網
       subnetPrefix:
@@ -1496,6 +1519,13 @@ cluster:
       vnet:
         label: 虛擬網絡
         placeholder: '[resourcegroup:]name'
+      acceleratedNetworking:
+        label: 加速網絡
+      availabilityZone:
+        description: 可用區用於讓應用程序免受 Azure 數據中心全面故障的影響。
+        label: 可用區
+      tags:
+        label: 標籤
     digitalocean:
       sizeLabel: |-
         {plan, select,
@@ -1749,6 +1779,10 @@ cluster:
       public: 用於 Rancher 系統容器鏡像的默認全局鏡像倉庫
       private: 為 Rancher 系統容器鏡像使用指定的私有鏡像倉庫
       advanced: 配置高級容器 Mirror 和倉庫驗證選項
+    description: 如果啟用，Rancher 將在集群配置期間從該鏡像倉庫中拉取容器鏡像。默認情況下，Rancher 在安裝 Rancher 的官方 Helm Chart 應用程序時也會使用此鏡像倉庫。如果集群級別的鏡像倉庫被禁用，將從全局設置中的系統默認鏡像倉庫中拉取系統鏡像。
+    docsLinkK3s: 如需配置私有鏡像倉庫 mirror 的幫助，請參閱 K3s <a href="https://docs.k3s.io/installation/private-registry" target="_blank">文檔</a>。
+    docsLinkRke2: 如需配置私有鏡像倉庫 mirror 的幫助，請參閱 RKE2 <a href="https://docs.rke2.io/install/containerd_registry_configuration/" target="_blank">文檔</a>。
+    label: 為 Rancher 系統容器鏡像啟用集群級別的容器鏡像倉庫
   provider:
     ackoperatorsetting: Alibaba ACK
     alibaba: Alibaba
@@ -1940,6 +1974,10 @@ cluster:
   validation:
     iamInstanceProfileName: 如果選擇了 Amazon 雲提供商，則必須為每個主機池定義“IAM 實例配置文件名稱”。
   k8sAuditLog: 查看 API Server 審計日誌
+  availabilityWarnings:
+    machine: 主機 {name} 處於非活動狀態
+    node: 節點 {name} 處於非活動狀態
+  manageAction: 管理
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"
@@ -2629,7 +2667,7 @@ landing:
     cpuUsed: 已用 CPU
     memoryUsed: 已用內存
   seeWhatsNew: 點擊右側鏈接，瞭解此版本的新功能和優化。
-  whatsNewLink: "2.6 的新功能"
+  whatsNewLink: "2.7 的新功能"
   learnMore: 瞭解更多
   gettingStarted:
     title: 快速入門
@@ -2664,11 +2702,36 @@ logging:
       label: 匹配
       addSelect: 添加包含規則
       addExclude: 添加排除規則
+      banner: 配置要拉取哪些容器日誌
+      containerNames:
+        placeholder: 默認值：任何容器
+        title:
+          exclude: 排除特定的容器名稱
+          include: 僅限特定的容器名稱
+      namespaces:
+        placeholder: 默認值：任何命名空間
+        title:
+          exclude: 排除特定的命名空間
+          include: 僅限特定的命名空間
+      nodes:
+        placeholder: 默認值：任何節點
+        title:
+          exclude: 排除特定節點
+          include: 僅限特定節點
+      pods:
+        addLabel: 添加 Pod
+        keyLabel: Pod 標籤鍵
+        title:
+          exclude: 排除 Pod
+          include: 包括 Pod
+        valueLabel: Pod 標籤值
+      unsupportedConfig: 此資源包含表單編輯器不支持的匹配配置。請使用 YAML 進行編輯。
     filters:
       label: 篩選
     outputs:
       doesntExistTooltip: 該集群輸出不存在
       label: 輸出
+      sameNamespaceError: 輸出必須位於與流相同的命名空間中。
   install:
     k3sContainerEngine: K3S 容器引擎
     enableAdditionalLoggingSources: 啟用加強版雲日誌服務
@@ -2844,6 +2907,8 @@ logging:
     syslog: Syslog
     s3: S3
     unknown: 未知
+    opensearch: OpenSearch
+    redis: Redis
   overview:
     poweredBy: Banzai Cloud
     clusterLevel: 集群級別
@@ -2871,6 +2936,15 @@ logging:
     clientCertPath: 客戶端證書路徑
     clientPrivateKeyPath: 客戶端私鑰路徑
     clientPrivateKeyPassphrase: 客戶端私鑰密碼
+  redis:
+    dbNumber: Redis 數據庫編號
+    format:
+      title: 格式
+      type: 類型
+    host: 主機
+    password: 密碼
+    port: 端口
+    ttl: 每個鍵的 TTL
 longhorn:
   overview:
     title: 概述
@@ -2942,7 +3016,9 @@ members:
     custom:
       label: 自定義
       description: 為該用戶自定義角色。
-  localClusterWarning: "注意：這是 Rancher 用來存儲數據的集群。只有管​​理員才應該對該集群有寫權限。能夠寫入此集群的用戶可以授權自己訪問該安裝的任何內容。"
+  localClusterWarning: "注意：這是 Rancher 用來存儲數據的集群。只有管理員才應該對該集群有寫權限。能夠寫入此集群的用戶可以授權自己訪問該安裝的任何內容。"
+  clusterAndProject: 集群和項目成員
+  noRolesAssigned: 沒有分配給該項目的用戶。
 membershipEditor:
   label: 成員
   user: 用戶名
@@ -3510,6 +3586,8 @@ persistentVolume:
     label: 插件配置
   plugin:
     label: 卷插件
+    inTree: 樹內插件
+    unsupported: （不支持）
   capacity:
     label: 容量
   customize:
@@ -3589,6 +3667,22 @@ persistentVolume:
     controllerPublishSecretNamespace:
       label: Controller 發佈密文命名空間
       placeholder: 例如：default
+    drivers:
+      cinder-csi-openstack-org: Cinder (CSI)
+      csi-vsphere-vmware-com: vSphere (CSI)
+      disk-csi-azure-com: Azure 磁盤 (CSI)
+      driver-harvesterhci-io: Harvester (CSI)
+      driver-longhorn-io: Longhorn (CSI)
+      ebs-csi-aws-com: AWS Elastic Block Store (CSI)
+      file-csi-azure-com: Azure 文件 (CSI)
+      nfs-csi-k8s-io: NFS (CSI)
+      org-gluster-glusterfs: GlusterFS (CSI)
+      pd-csi-storage-gke-io: GCE 持久磁盤 (CSI)
+      pxd-portworx-com: Portworx (CSI)
+      quobyte-csi: Quobyte (CSI)
+      rbd-csi-ceph-com: Ceph RBD (CSI)
+      storageos: StorageOS (CSI)
+    suffix: (CSI)
   cephfs:
     label: Ceph 文件系統（不支持）
     path:
@@ -4312,6 +4406,8 @@ resourceList:
     create: 創建
     createFromYaml: 使用 YAML 文件創建
     createResource: "創建 {resourceName}"
+  nsFilterToolTip: 資源太多，過濾僅限於單一 {mode}。
+  nsFiltering: '{resource} 太多。<br>請通過選擇上面的命名空間進行過濾。'
 resourceLoadingIndicator:
   loading: 正在加載
 resourceTable:
@@ -4721,7 +4817,7 @@ storageClass:
       zonal: 可用區
       regional: 區域
   longhorn:
-    title: Longhorn
+    title: Longhorn (CSI)
     addLabel: 添加參數
   vsphere-volume:
     title: VMWare vSphere 卷
@@ -4748,7 +4844,7 @@ storageClass:
   custom:
     addLabel: 添加參數
   glusterfs:
-    title: Gluster 卷（不支持）
+    title: Gluster 卷
     restUrl:
       label: REST URL
       placeholder: 例如：http://127.0.0.1:8081
@@ -4777,7 +4873,7 @@ storageClass:
       label: 卷類型
       placeholder: "例如：replicate:3"
   cinder:
-    title: Openstack Cinder 卷（不支持）
+    title: Openstack Cinder 卷
     volumeType:
       label: 卷類型
       placeholder: 例如：fast
@@ -4788,7 +4884,7 @@ storageClass:
         label: "手動：自行指定可用區"
         placeholder: 例如：nova
   rbd:
-    title: Ceph RBD（不支持）
+    title: Ceph RBD
     monitors:
       label: 監控
       placeholder: 例如：10.16.153.105:6789
@@ -4823,7 +4919,7 @@ storageClass:
       label: 鏡像功能
       placeholder: 例如：layering
   quobyte:
-    title: Quobyte 卷（不支持）
+    title: Quobyte 卷
     quobyteApiServer:
       label: Quobyte API server
       placeholder: "例如：http://138.68.74.142:7860"
@@ -4849,7 +4945,7 @@ storageClass:
       label: Quobyte 租戶
       placeholder: 例如：DEFAULT
   portworx-volume:
-    title: Portworx 卷（不支持）
+    title: Portworx 卷
     filesystem:
       label: 文件系統
       placeholder: 例如：ext4
@@ -4872,7 +4968,7 @@ storageClass:
       label: 是否臨時
       placeholder: 例如：true
   scaleio:
-    title: ScaleIO 卷（不支持）
+    title: ScaleIO 卷
     gateway:
       label: 網關
       placeholder: 例如：https://192.168.99.200:443/api
@@ -4898,7 +4994,7 @@ storageClass:
       label: 文件系統類型
       placeholder: 例如：xfs
   storageos:
-    title: StorageOS（不支持）
+    title: StorageOS
     pool:
       label: 池
       placeholder: 例如：default
@@ -4915,7 +5011,10 @@ storageClass:
       label: Admin 密文名稱
       placeholder: 例如：storageos-secret
   no-provisioner:
-    title: 本地存儲（不支持）
+    title: 本地存儲
+  deprecated:
+    title: （已棄用）
+    warning: '{provisioner} 樹內插件已棄用。你可以在<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">這裡</a>查找 CSI 驅動。'
 tableHeaders:
   accessKey: Access Key
   address: 地址
@@ -5113,6 +5212,8 @@ tableHeaders:
   Secret-Name: 密文名稱
   restart: 要求重啟
   cluster: 集群
+  duration: 持續時間
+  internalIpSameAsExternal: 與外網 IP 相同
 target:
   router:
     label: 路由
@@ -5291,6 +5392,12 @@ validation:
       match: 必須選擇至少一個匹配或匹配正則表達式。
       interval: '"{key}" 必須是以數字後跟單位（如 1h, 2m, 30s）的格式。'
   tab: "此選項卡中的一個或多個字段包含表單驗證錯誤"
+  betweenLengths: '"{key}" 必須包含 {min} 到 {max} 個字符'
+  betweenValues: '"{key}" 必須介於 {min} 和 {max} 之間'
+  maxLength: '"{key}" 必須少於 {max} 個字符'
+  maxValue: '"{key}" 必須小於 {max}'
+  minLength: '"{key}" 必須多於 {min} 個字符'
+  minValue: '"{key}" 必須多於 {min}'
 wizard:
   previous: 上一步
   finish: 完成
@@ -5722,6 +5829,7 @@ workload:
       gcePersistentDisk: Google 持久磁盤
       driver.longhorn.io: Longhorn
       vsphereVolume: VMWare vSphere 卷
+      emptyDir: 空目錄
     addClaim: 添加聲明
     addMount: 添加掛載
     addVolume: 添加捲
@@ -5794,6 +5902,14 @@ workload:
         label: 路徑
         placeholder: '例如: my-group/my-username'
       specific: 選擇特定的鍵
+    emptyDir:
+      medium:
+        default: 主機的默認存儲
+        label: 存儲介質
+        memory: 內存
+      sizeLimit:
+        label: 大小限制
+        placeholder: 例如：300
   typeDescriptions:
     apps.daemonset: DaemonSet 在每個符合條件的節點上僅運行一個 Pod。當新節點添加到集群時，DaemonSet 會自動部署新節點。推薦用於全系統或可垂直擴展，且每個節點永遠不需要超過一個 pod 的工作負載。
     apps.deployment: Deployment 運行分佈在符合條件的節點中的可擴展數量的 Pod 副本。變更會逐步推出，並可回滾到之前的版本。推薦用於無狀態和水平可擴展的工作負載。
@@ -6305,10 +6421,12 @@ registryMirror:
   valueProtip: 鏡像端點應該包含協議頭
   valuePlaceholder: 例如：https://a.registry.com:5000, https://b.registry.com:5000
   keyPlaceholder: 例如：docker.io 或 *
+  description: Mirror 定義了私有鏡像倉庫的名稱和端點。將會逐個嘗試端點，並使用第一個可工作的端點。
 registryConfig:
   header: 倉庫驗證
   toolTip: '當需要從給定的鏡像倉庫主機名中拉取鏡像時，此信息將用於識別並驗證倉庫。'
   addLabel: 添加鏡像倉庫
+  description: 為每個鏡像倉庫主機名和 Mirror 定義 TLS 和憑證配置。
 modalDownLoadFileComponent:
   title: 容器文件下載
   container: 容器
@@ -6473,6 +6591,14 @@ performance:
     checkboxLabel: 禁用 WebSocket 通知
     description: 啟用後，UI 檢測到斷開連接時不會出現 WebSocket 通知。
     label: WebSocket 通知
+  experimental: 此設置是實驗性的，可能會在後續版本中刪除或更新。
+  nsFiltering:
+    checkboxLabel: 啟用命名空間過濾
+    count:
+      description: 需要按命名空間過濾的閾值
+      inputLabel: 資源閾值
+    description: 當列表無法顯示太多資源時，用戶需要選擇一個命名空間並僅提取該命名空間中的資源。
+    label: 命名空間過濾
 banner:
   label: 固定橫幅
   settingName: 橫幅
@@ -6509,7 +6635,7 @@ branding:
   directoryName: 品牌資產目錄名稱
   logos:
     label: Logo
-    tip: '上傳 Logo 以替換頂層導航標題中的 Rancher logo。圖片的高度應為 21 像素，最大寬度為 200 像素。最大文件大小為 20KB'
+    tip: '上傳 Logo 以替換頂層導航標題中的 Rancher logo。圖片的高度應為 21 像素，最大寬度為 200 像素。最大文件大小為 20KB。支持的格式：JPEG、PNG、SVG。'
     lightPreview: 淺色主題預覽
     darkPreview: 深色主題預覽
     uploadLight: 上傳淺色 Logo
@@ -7019,6 +7145,9 @@ plugins:
         prompt: Rancher Extensions 倉庫提供了由 Rancher 發佈的擴展。
         title: 刪除 Rancher Rancher Extensions 倉庫
       title: 禁用擴展支持？
+      crd:
+        prompt: 目前已安裝了一個或多個擴展 - 如果你後續需要重新啟用擴展支持，刪除 CRD 後你需要手動重新安裝這些擴展。
+        title: 刪除 Rancher Extensions CRD
     title: 未啟用擴展支持
   success:
     message: 擴展加載成功
@@ -7168,13 +7297,13 @@ formReservation:
     label: "{component} Memory 預留"
     placeholder: "例如: 1000"
 globalMonitoringDashboard:
-  globalMonitoring: 
+  globalMonitoring:
     label: 全局監控
     description: 多叢集監控
-  grafana: 
+  grafana:
     label: Grafana
     description: Metrics 儀表盤
-  thanos: 
+  thanos:
     label: Prometheus Thanos
     description: 叢集組件系統
 globalMonitoringPage:
@@ -7182,10 +7311,10 @@ globalMonitoringPage:
   confirmDisable: 你確定嗎? 再次單擊將禁用全局監控
   token:
     label: 使用默認 token
-    custom: 
+    custom:
       label: 自定義 token
       placeholder: 請配置自定義 token
-  customAddress: 
+  customAddress:
     add: 添加地址
     otherHeader: 自定義其他地址
     header: 自定義地址
@@ -7197,7 +7326,7 @@ globalMonitoringPage:
   customAnswers:
     detail: 配置自定義的應答。
     title: 自定義應答
-    answer: 
+    answer:
       label: 應答
     addAnswerLabel: 添加應答
   disable: 禁用
@@ -7208,19 +7337,19 @@ globalMonitoringPage:
   grafana:
     header: 監控大屏
     detail: 全局 Grafana 和{appName}監控大屏的配置。
-    title: 
+    title:
       label: 標題
       placeholder: 例如 grafana
-    tabTitle: 
+    tabTitle:
       label: 選項卡標題
       placeholder: 例如 grafana
-    logo: 
+    logo:
       label: logo
       placeholder: 請輸入 logo 地址
-    favicon: 
+    favicon:
       label: favicon
       placeholder: 請輸入 favicon 地址
-    serverUrl: 
+    serverUrl:
       label: serverUrl
       placeholder: 例如 http://rancher.cattle-system
     enableGrafanaSidecar:
@@ -7360,7 +7489,7 @@ globalMonitoringPage:
   version: 全局監控版本
   tls:
     header: 證書
-    serverName: 
+    serverName:
       label: Server Name
     ca:
       label: CA 證書
@@ -7386,3 +7515,10 @@ formScheduling:
 forceUpdateMachinePlan:
   attemptingToUpdate: "你正在試圖強制更新 machine-plan"
   error: 強制更新 machine-plan 時出錯
+podDisruptionBudget:
+  budget:
+    label: 預算
+  maxUnavailable:
+    label: 最大不可用 Pod
+  minAvailable:
+    label: 最小可用 Pod
