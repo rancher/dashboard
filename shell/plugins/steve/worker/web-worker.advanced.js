@@ -7,7 +7,6 @@ import { SCHEMA, COUNT } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
 import { EVENT_MESSAGE } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import { waitFor } from '@shell/utils/async';
 
 // import { CSRF } from '@shell/config/cookies';
 

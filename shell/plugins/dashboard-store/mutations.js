@@ -224,7 +224,9 @@ export function batchChanges(state, { ctx, batch }) {
       }
 
       if (batchAction.action === 'change') { // use the changed resource from the map
-        const classyResource = classify(ctx, batchAction.resource);
+        // TODO: RC TEST the old load has a `replace` that retains the reference. This does not.
+        const cleanedResource = ctx.getters.cleanResource(resource, batchAction.resource);
+        const classyResource = classify(ctx, cleanedResource);
 
         typeCache.map.set(resourceId, classyResource);
 
