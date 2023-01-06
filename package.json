@@ -37,6 +37,7 @@
     "start:prod": "DEV_PORTS=true NODE_ENV=production yarn start",
     "generate": "./node_modules/.bin/nuxt generate",
     "dev-debug": "node --inspect ./node_modules/.bin/nuxt",
+    "cy:e2e": "cypress open --e2e --browser chrome",
     "cy:open": "cypress open",
     "cy:run": "cypress run --browser chrome",
     "cy:run:sorry": "./scripts/e2e",
