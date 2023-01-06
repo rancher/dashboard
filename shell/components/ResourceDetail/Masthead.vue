@@ -10,6 +10,8 @@ import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
+import { UI_CONFIG_DETAILS_MASTHEAD } from '@shell/core/types';
+import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 /**
  * Resource Detail Masthead component.
@@ -366,6 +368,19 @@ export default {
     hideNamespaceLocation() {
       return this.$store.getters['currentProduct'].hideNamespaceLocation;
     },
+
+    extensionDetailsMasthead() {
+      const extensionDetailsMasthead = [];
+      const actions = this.$plugin.getUIConfig(UI_CONFIG_DETAILS_MASTHEAD);
+
+      actions.forEach((action) => {
+        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
+          extensionDetailsMasthead.push(action);
+        }
+      });
+
+      return extensionDetailsMasthead;
+    },
   },
 
   methods: {
@@ -448,6 +463,21 @@ export default {
             :value="value.creationTimestamp"
           /></span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
+        </div>
+        <!-- Extension Masthead Details -->
+        <div
+          v-if="extensionDetailsMasthead.length"
+        >
+          <div
+            v-for="item, i in extensionDetailsMasthead"
+            :key="`extensionDetailsMasthead${i}`"
+            class="subheader"
+          >
+            <component
+              :is="item.component"
+              :resource="value"
+            />
+          </div>
         </div>
       </div>
       <slot name="right">

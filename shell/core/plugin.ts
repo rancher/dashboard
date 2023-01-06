@@ -5,7 +5,11 @@ import {
   IAction,
   IPlugin,
   UI_CONFIG_HEADER_ACTION,
-  UI_CONFIG_TAB
+  UI_CONFIG_TAB,
+  UI_CONFIG_TABLE_ACTION,
+  UI_CONFIG_DETAILS_MASTHEAD,
+  UI_CONFIG_DETAIL_TOP,
+  UI_CONFIG_RESOURCE_LIST,
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
@@ -27,8 +31,12 @@ export class Plugin implements IPlugin {
   public _onLogOut: OnLogOut = () => Promise.resolve();
 
   public uiConfig: { [key: string]: any[] } = {
-    [UI_CONFIG_HEADER_ACTION]: [],
-    [UI_CONFIG_TAB]:           [],
+    [UI_CONFIG_HEADER_ACTION]:    [],
+    [UI_CONFIG_TAB]:              [],
+    [UI_CONFIG_TABLE_ACTION]:     [],
+    [UI_CONFIG_DETAILS_MASTHEAD]: [],
+    [UI_CONFIG_DETAIL_TOP]:       [],
+    [UI_CONFIG_RESOURCE_LIST]:    [],
   };
 
   // Plugin metadata (plugin package.json)
