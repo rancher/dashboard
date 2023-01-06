@@ -88,7 +88,7 @@ export default class Socket extends EventTarget {
 
     Object.assign(this.metadata, metadata);
 
-    const id = sockId++;
+    const id = metadata.idAsTimestamp ? new Date().getTime() : sockId++;
     const url = addParam(this.url, 'sockId', id);
 
     this._baseLog('connecting', { id, url: url.replace(/\?.*/, '') });

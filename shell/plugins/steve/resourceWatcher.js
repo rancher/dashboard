@@ -67,9 +67,13 @@ export default class ResourceWatcher extends Socket {
   }
 
   setConnectionMetadata(connectionMetadata) {
-    if (!!this.connectionMetadata) {
-      this.connectionMetadata = connectionMetadata;
+    if (!this.connectionMetadata) {
+      this.connectionMetadata = {};
     }
+    this.connectionMetadata = {
+      ...connectionMetadata,
+      idAsTimestamp: true
+    };
   }
 
   watchExists(watchKey) {
