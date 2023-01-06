@@ -42,8 +42,7 @@ export function load(state, { data, ctx, existing }) {
 
   // Inject special fields for indexing schemas
   if ( type === SCHEMA ) {
-    data._id = normalizeType(data.id);
-    data._group = normalizeType(data.attributes?.group);
+    data = addSchemaIndexFields(data);
   }
 
   const id = data[keyField];

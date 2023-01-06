@@ -1,3 +1,12 @@
+/**
+ * Handles subscriptions to websockets which receive updates to resources
+ *
+ * Covers three use cases
+ * 1) Handles subscription within this file
+ * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false)
+ * 2) Handles `cluster` subscriptions and optimisations in an advanced worker (SETTING.UI_PERFORMANCE advancedWorker = true)
+ */
+
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { SCHEMA, MANAGEMENT } from '@shell/config/types';
@@ -32,9 +41,16 @@ const waitForManagement = (store) => {
   return waitFor(managementReady, 'Management');
 };
 
+const isAdvancedWorker = (ctx) => {
+  const { rootGetters } = ctx;
+  const perfSetting = getPerformanceSetting(rootGetters);
+
+  return perfSetting?.advancedWorker === 'true';
+};
+
 // We only create a worker for the cluster store
 export async function createWorker(store, ctx) {
-  const { getters, rootGetters, dispatch } = ctx;
+  const { getters, dispatch } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
@@ -44,9 +60,8 @@ export async function createWorker(store, ctx) {
   }
 
   await waitForManagement(store);
-  // getting perf setting in a seperate constant here because it'll provide other values we'll want later.
-  const perfSetting = JSON.parse(rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE)?.value || '{}');
-  const advancedWorker = perfSetting.advancedWorker !== false;
+  // getting perf setting in a separate constant here because it'll provide other values we'll want later.
+  const advancedWorker = isAdvancedWorker(ctx);
 
   const workerActions = {
     load: (resource) => {
@@ -74,6 +89,9 @@ export async function createWorker(store, ctx) {
 
     worker.postMessage({ initWorker: { storeName } });
 
+    /**
+     * Covers message from Worker to UI thread
+     */
     store.$workers[storeName].onmessage = (e) => {
       /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
       // good enough for now considering that we never send more than one message action at a time right now */
@@ -155,14 +173,12 @@ function growlsDisabled(rootGetters) {
 }
 
 export const actions = {
-  subscribe(ctx, opt) {
+  async subscribe(ctx, opt) {
     const {
       state, commit, dispatch, getters, rootGetters
     } = ctx;
 
     // ToDo: need to keep the worker up to date on CSRF cookie
-
-    const worker = this.$workers[getters.storeName];
 
     if (rootGetters['isSingleProduct']?.disableSteveSockets) {
       return;
@@ -182,11 +198,13 @@ export const actions = {
     const maxTries = growlsDisabled(rootGetters) ? null : 3;
     const connectionMetadata = get(opt, 'metadata');
 
-    if ( socket ) {
-      socket.setAutoReconnect(true);
-      socket.setUrl(url);
-      socket.connect(connectionMetadata);
-    } else if (worker?.mode === 'advanced') {
+    if (isAdvancedWorker(ctx)) {
+      const worker = this.$workers[getters.storeName];
+
+      if (!worker) {
+        await createWorker(this, ctx);
+      }
+
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       worker.postMessage({
         createWatcher: {
@@ -195,6 +213,10 @@ export const actions = {
           maxTries
         }
       });
+    } else if ( socket ) {
+      socket.setAutoReconnect(true); // TODO: RC Q this is lost
+      socket.setUrl(url);
+      socket.connect(connectionMetadata);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
@@ -236,12 +258,11 @@ export const actions = {
     commit('setWantSocket', false);
     const cleanupTasks = [];
 
-    if ((this.$workers || {})[getters.storeName]) {
-      (this.$workers || {})[getters.storeName].postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-      cleanupTasks.push(waitFor(
-        () => !(this.$workers || {})[getters.storeName],
-        'Worker is destroyed'
-      ));
+    const worker = (this.$workers || {})[getters.storeName];
+
+    if (worker) {
+      worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
+      cleanupTasks.push(waitFor(() => !this.$workers[getters.storeName], 'Worker is destroyed'));
     }
 
     if ( socket ) {
@@ -296,6 +317,9 @@ export const actions = {
     state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }] finished`, (new Date().getTime()) - started, 'ms'); // eslint-disable-line no-console
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   rehydrateSubscribe({ state, dispatch }) {
     if ( process.client && state.wantSocket && !state.socket ) {
       dispatch('subscribe');
@@ -371,6 +395,9 @@ export const actions = {
     return dispatch('send', msg);
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   reconnectWatches({
     state, getters, commit, dispatch
   }) {
@@ -391,7 +418,8 @@ export const actions = {
 
   async resyncWatch({
     state, getters, dispatch, commit
-  }, params, skipApi = false) {
+  }, params) {
+    // TODO: RC CHECK if this is needed/used, need to wire in clearInError to resourceWatcher (or ensure state is updated after resourceWatcher calls this)
     const {
       resourceType, namespace, id, selector
     } = params;
@@ -449,6 +477,9 @@ export const actions = {
     }
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   async opened({
     commit, dispatch, state, getters, rootGetters
   }, event) {
@@ -501,12 +532,18 @@ export const actions = {
     }
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   closed({ state, getters }) {
     state.debugSocket && console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   error({
     getters, state, dispatch, rootGetters
   }, e) {
@@ -562,6 +599,9 @@ export const actions = {
     }
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   send({ state, commit }, obj) {
     if ( state.socket ) {
       const ok = state.socket.send(JSON.stringify(obj));
@@ -574,6 +614,9 @@ export const actions = {
     commit('enqueuePendingFrame', obj);
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   sendImmediate({ state }, obj) {
     if ( state.socket ) {
       return state.socket.send(JSON.stringify(obj));
@@ -602,6 +645,9 @@ export const actions = {
     });
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   'ws.resource.error'({ getters, commit, dispatch }, msg) {
     console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
 
@@ -622,6 +668,8 @@ export const actions = {
    * Steve only seems to send out `resource.stop` messages for two reasons
    * - We have requested that the resource watch should be stopped and we receive this event as confirmation
    * - Steve tells us that the resource is no longer watched
+   *
+   * Covers 1 & 2 - Handles subscription within this file
    */
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
@@ -681,10 +729,16 @@ export const actions = {
     }
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   'ws.resource.create'(ctx, msg) {
     queueChange(ctx, msg, true, 'Create');
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   'ws.resource.change'(ctx, msg) {
     const data = msg.data;
     const type = data.type;
@@ -722,6 +776,9 @@ export const actions = {
     }
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   'ws.resource.remove'(ctx, msg) {
     const data = msg.data;
     const type = data.type;
@@ -782,6 +839,7 @@ export const mutations = {
   },
 
   setWatchStopped(state, obj) {
+    // TODO: RC CHANGE this will be a no-op
     const existing = state.started.find(entry => equivalentWatch(obj, entry));
 
     if ( existing ) {
@@ -808,6 +866,7 @@ export const mutations = {
   },
 
   resetSubscriptions(state) {
+    // TODO: RC needs wiring in (recreate advanced worker obj. recreate just resourceWatcher??)
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
@@ -819,10 +878,12 @@ export const mutations = {
 
 export const getters = {
   canWatch: state => (obj) => {
+    // TODO: RC wire in to a-w. NEEDS TO BE ASYNC
     return !state.inError[keyForSubscribe(obj)];
   },
 
   watchStarted: state => (obj) => {
+    // TODO: RC wire in to a-w. NEEDS TO BE ASYNC
     return !!state.started.find(entry => equivalentWatch(obj, entry));
   },
 

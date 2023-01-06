@@ -1,10 +1,13 @@
+/**
+ * Imports in a worker cannot include exports from the file invoking the worker or from files importing the invoking file.
+ */
+
 import Socket, {
   NO_WATCH,
   NO_SCHEMA,
   EVENT_MESSAGE
 } from '@shell/utils/socket';
 import { addParam } from '@shell/utils/url';
-// Imports in a worker cannot include exports from the file invoking the worker or from files importing the invoking file.
 
 export const WATCH_STATUSES = {
   PENDING:    'pending', // created but not requested of the socket yet
@@ -41,8 +44,12 @@ export const watchKeyFromMessage = (msg) => {
   return keyForSubscribe(watchObject);
 };
 
+const {
+  PENDING, REQUESTED, WATCHING, REFRESHING, STOPPED, REMOVED
+} = WATCH_STATUSES;
+
 export default class ResourceWatcher extends Socket {
-  watches = {};
+  watches = {}; // TODO: RC Ensure these are wired in to canWatch and watchStarted sub getters
   maintenanceInterval;
   connectionMetadata;
   status = ''
@@ -71,9 +78,6 @@ export default class ResourceWatcher extends Socket {
 
   async watch(watchKey, providedResourceVersion, providedResourceVersionTime, providedKeyParts = {}, providedSkipResourceVersion) {
     const {
-      PENDING, REQUESTED, WATCHING, REFRESHING
-    } = WATCH_STATUSES;
-    const {
       resourceType: providedResourceType,
       id: providedId,
       namespace: providedNamespace,
@@ -83,15 +87,8 @@ export default class ResourceWatcher extends Socket {
     const id = providedId || this.watches?.[watchKey]?.id;
     const namespace = providedNamespace || this.watches?.[watchKey]?.namespace;
     const selector = providedSelector || this.watches?.[watchKey]?.selector;
-    const resourceStatus = this.watches?.[watchKey]?.status;
     let skipResourceVersion = this.watches?.[watchKey]?.skipResourceVersion || providedSkipResourceVersion;
-    const resourceUrl = this.baseUrl + resourceType;
-    const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
-    const opt = {
-      method:      'get',
-      headers:     { accept: 'application/json' },
-      credentials: 'same-origin'
-    };
+
     const watchObject = {
       resourceType,
       id,
@@ -103,6 +100,14 @@ export default class ResourceWatcher extends Socket {
     let resourceVersion = providedResourceVersion || this.watches?.[watchKey]?.resourceVersion;
 
     if (!skipResourceVersion && (!resourceVersion || Date.now() - resourceVersionTime > 300000)) { // 300000ms is 5minutes
+      const resourceUrl = this.baseUrl + resourceType;
+      const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
+      const opt = {
+        method:      'get',
+        headers:     { accept: 'application/json' },
+        credentials: 'same-origin'
+      };
+
       // ToDo: need to find a way to sync the csrf header into the worker since it can't directly access the cookies...
       await fetch(limitedResourceUrl, opt)
         .then((res) => {
@@ -127,7 +132,7 @@ export default class ResourceWatcher extends Socket {
         });
     }
 
-    if (![PENDING, REQUESTED, WATCHING, REFRESHING].includes(resourceStatus)) {
+    if (![PENDING, REQUESTED, WATCHING, REFRESHING].includes(this.watches?.[watchKey]?.status)) {
       this.watches[watchKey] = {
         ...watchObject,
         status: WATCH_STATUSES.PENDING,
@@ -139,7 +144,6 @@ export default class ResourceWatcher extends Socket {
   }
 
   unwatch(watchKey) {
-    const { REMOVED } = WATCH_STATUSES;
     const watch = this.watches?.[watchKey] || {};
     const {
       resourceType, id, namespace, selector
@@ -151,7 +155,8 @@ export default class ResourceWatcher extends Socket {
       selector
     };
 
-    if (resourceType) {
+    // TODO: RC TEST come back and ensure forgetType calls from explorer cluster dashboard page  --> other cluster page all work fine
+    if (resourceType && this.watches[watchKey].status !== REMOVED) {
       this.send(JSON.stringify({
         ...watchObject,
         stop: true
@@ -160,11 +165,9 @@ export default class ResourceWatcher extends Socket {
     }
   }
 
+  // TODO: RC why can't we just watch/unwatch on demand?
   syncWatches() {
     const watchesArray = Object.values(this.watches); // convert to array
-    const {
-      PENDING, REQUESTED, WATCHING, REFRESHING
-    } = WATCH_STATUSES;
 
     if (this.isConnected()) {
       if (watchesArray.length > 0) {
@@ -207,11 +210,10 @@ export default class ResourceWatcher extends Socket {
     }
   }
 
+  /**
+   * Handles message from Backend to UI
+   */
   _onmessage(event) {
-    const {
-      REQUESTED, WATCHING, STOPPED, REMOVED
-    } = WATCH_STATUSES;
-
     const {
       name: eventName, resourceType, data: { type }, id, namespace, selector, data
     } = JSON.parse(event.data);

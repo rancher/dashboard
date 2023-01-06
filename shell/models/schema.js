@@ -7,9 +7,12 @@ export default class Schema extends Resource {
   }
 }
 
+/**
+ * Inject special fields for indexing schemas
+ */
 export function addSchemaIndexFields(data) {
   return {
-    ...data,
+    ...data, // TODO: RC Q why spread and not just set?
     _id:    normalizeType(data.id),
     _group: normalizeType(data.attributes?.group)
   };

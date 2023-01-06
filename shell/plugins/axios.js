@@ -13,7 +13,7 @@ export default function({
     const csrf = $cookies.get(CSRF, { parseJSON: false });
 
     if ( csrf ) {
-      config.headers['x-api-csrf'] = csrf;
+      config.headers['x-api-csrf'] = csrf;// TODO: RC TEST how await fetch works (where's the x-api-csrf header given CSRF cookie)
     }
 
     if ( process.server ) {

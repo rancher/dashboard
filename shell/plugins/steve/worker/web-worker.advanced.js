@@ -2,6 +2,7 @@
  * Advanced Worker is enabled by performance setting
  * relocates cluster resource sockets off the UI thread and into a webworker
  */
+
 import { SCHEMA, COUNT } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
 import { EVENT_MESSAGE } from '@shell/utils/socket';
@@ -25,9 +26,11 @@ const maintenanceInterval = setInterval(() => {
   }
 }, 5000); // 5 seconds
 
-// These are things that we do when we get a message from the UI thread
+/**
+ * These are things that we do when we get a message from the UI thread
+ */
 const workerActions = {
-  loadSchemas:   () => {},
+  loadSchemas:   () => {}, // TODO: RC handle schemas
   createWatcher: (metadata) => {
     const { connectionMetadata, maxTries, url } = metadata;
 
@@ -69,6 +72,7 @@ const workerActions = {
 
       return;
     }
+
     const watchKey = watchKeyFromMessage(msg);
 
     const {
@@ -78,6 +82,13 @@ const workerActions = {
       selector,
       resourceVersion
     } = msg;
+
+    if (msg.stop) {
+      state.watcher.unwatch(watchKey);
+
+      return;
+    }
+
     const resourceVersionTime = resourceVersion ? Date.now() : undefined;
     const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType);
 
@@ -101,29 +112,19 @@ const workerActions = {
     state.store = storeName;
   },
   destroyWorker: () => {
-    const watchesEmpty = () => {
-      return Object.keys(state.watcher?.watches || {})?.length === 0;
-    };
-    const watches = Object.keys(state.watcher?.watches || {});
-
     clearInterval(maintenanceInterval);
 
-    watches.forEach((watchKey) => {
-      state.watcher.unwatch(watchKey);
+    // disconnect takes a callback which we'll use to close the webworker
+    state.watcher.disconnect().then(() => {
+      delete self.onmessage;
+      self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
     });
-
-    waitFor(watchesEmpty, 'Closing Watcher')
-      .finally(() => {
-        // disconnect takes a callback which we'll use to close the webworker
-        state.watcher.disconnect(close).then(() => {
-          delete self.onmessage;
-          self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-        });
-      });
   },
 };
 
-// These are things that we do when we get a message from the resourceWatcher
+/**
+ * These are things that we do when we get a message from the resourceWatcher
+ */
 const resourceWatcherActions = {
   'resource.change': (msg) => {
     const { resourceType, data: { type, id }, data } = msg;
@@ -153,12 +154,21 @@ const resourceWatcherActions = {
     if (!state.batchChanges[normalizedType]) {
       state.batchChanges[normalizedType] = {};
     }
-    state.batchChanges[normalizedType][id] = { remove: true };
+    state.batchChanges[normalizedType][id] = { remove: true }; // TODO: RC Q possibly overwrite of resource field?
   },
   'resource.stop': (msg) => {
     const watchKey = watchKeyFromMessage(msg);
 
-    if (state?.watcher?.watchExists(watchKey)) {
+    console.error('RC: w-w.a: resource.stop: 2', watchKey, state.watcher.watches, Object.keys(state.watcher.watches), state.watcher.watches[watchKey]);
+
+    // TODO: RC Q bug
+    // forgetType --> watch(stop) --> advanced worker --> watcher --> rancher stop
+    // rancher --> watcher stop
+    // - watcher[key] deleted
+    // rancher --> advanced worker stop (here)
+    // - no watcher[key] so ui thread watcher state isn't udpated
+    if (state?.watcher?.watchExists(watchKey) && state.watcher.watches[watchKey].status !== 'removed') {
+      console.error('RC: w-w.a: resource.stop: 3', state.watcher[watchKey]);
       resourceWatcherActions.dispatch({ ...msg, fromWorker: true });
     }
   },
@@ -170,6 +180,9 @@ const resourceWatcherActions = {
   }
 };
 
+/**
+ * Covers message from UI Thread to Worker
+ */
 onmessage = (e) => {
   /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
   // good enough for now considering that we never send more than one message action at a time right now */
