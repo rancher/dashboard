@@ -1,6 +1,7 @@
 // Settings
 import { GC_DEFAULTS } from '../utils/gc/gc-types';
 import { MANAGEMENT } from './types';
+import { Store } from 'vuex';
 
 interface GlobalSettingRuleset {
   name: string,
@@ -189,17 +190,17 @@ export const DEFAULT_GMV2_SETTING = {
   useDefaultToken:    'true'
 };
 
-export const removeSetting = async(store, id) => {
+export const removeSetting = async(store: Store<any>, id: string) => {
   const setting = store.getters['management/byId'](MANAGEMENT.SETTING, id);
 
   await setting.remove();
 };
 
-export const getGlobalMonitoringV2Setting = (getters) => {
+export const getGlobalMonitoringV2Setting = (getters: any) => {
   // Compatible with older versions
   let legacyEnabled = 'false';
   let legacyClusterId = 'local';
-  let setting = '';
+  let setting: any = '';
 
   try {
     setting = getters['management/byId'](MANAGEMENT.SETTING, SETTING.GLOBAL_MONITORING_V2);
