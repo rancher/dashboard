@@ -228,8 +228,8 @@ export function DSL(store, product, module = 'type-map') {
 
       // adding extension defined cols to the correct header config
       extensionCols.forEach((col) => {
-        if (type === col.type) {
-          headers = headers.concat(col.config);
+        if (col.locationConfig.resource && type === col.locationConfig.resource) {
+          headers = headers.concat(col);
         }
       });
 

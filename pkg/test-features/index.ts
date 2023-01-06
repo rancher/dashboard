@@ -193,43 +193,36 @@ export default function(plugin: IPlugin) {
   });
 
   // ADD A COL TO A TABLE
+  // NOTE: this will only work for a locationConfig bound to a resource. Ex: { resource: 'configmap' }
   /**
    * Config options
-   * @param {string} type - resource type to apply the col to (required)
-   * @param {object} classProp - defines a new prop for a given resource in it's class/model
-   * @param {object} config - col configuration object (required)
+   * @param {string} name - label for col
+   * @param {string} labelKey - Same as "name" but allows for translation. Will superseed "name"
+   * @param {string} value - // col prop to obtain the value from
+   * @param {function} getValue - same as "value", but it can be a function. Will superseed "value"
+   * @param {number} width - col width (optional)
    */
   plugin.addTableCol( { resource: 'configmap' }, {
-    type:   'configmap',
-    config: {
-      name:     'some-prop-col',
-      labelKey: 'generic.comingSoon',
-      getValue: (row: any) => {
-        return `${ row.id }-some-string`;
-      }
+    name:     'some-prop-col',
+    labelKey: 'generic.comingSoon',
+    getValue: (row: any) => {
+      return `${ row.id }-some-string`;
+    },
 
-      // SIMPLE STATE EXAMPLE
-      // name:      'state', // label for col
-      // labelKey:  'tableHeaders.state', // Same as "name" but allows for translation. Will superseed "name"
-      // sort:      ['stateSort', 'nameSort'], // prop(s) to be bound to the table sorting
-      // search:    ['stateSort', 'nameSort'], // prop(s) to be bound to the table search
-      // value:     'stateDisplay', // col prop to obtain the value from
-      // getValue:  (row: any) => row.stateDisplay, // same as "value", but it can be a function. Will superseed "value"
-      // width:     100, // col width
-      // default:   'unknown', // col default value
-      // formatter: 'BadgeStateFormatter', // col formatter if needed
-
-      // OTHER OPTIONS
-      // formatterOpts: { reference: 'claim.detailLocation' }, // passing options to formatter
-      // canBeVariable: true, // col can have variable with
-      // dashIfEmpty:   true, // display dash if there's no value for this prop
-      // width:         120, // col width
-      // align:         'center', // col alignment
-      // liveUpdates:   true,
-      // breakpoint:    COLUMN_BREAKPOINTS.DESKTOP,
-      // maxPageSize:   25, // Hide this column when the page size is bigger than 25
-      // skipSelect:    true,
-      // delayLoading:  true, // col data will only load after data is loaded or scroll is done
-    }
+    // OTHER OPTIONS
+    // width:     100, // col width
+    // sort:      ['stateSort', 'nameSort'], // prop(s) to be bound to the table sorting
+    // search:    ['stateSort', 'nameSort'], // prop(s) to be bound to the table search
+    // default:   'unknown', // col default value
+    // formatter: 'BadgeStateFormatter', // col formatter if needed
+    // formatterOpts: { reference: 'claim.detailLocation' }, // passing options to formatter
+    // canBeVariable: true, // col can have variable with
+    // dashIfEmpty:   true, // display dash if there's no value for this prop
+    // align:         'center', // col alignment
+    // liveUpdates:   true,
+    // breakpoint:    COLUMN_BREAKPOINTS.DESKTOP,
+    // maxPageSize:   25, // Hide this column when the page size is bigger than 25
+    // skipSelect:    true,
+    // delayLoading:  true, // col data will only load after data is loaded or scroll is done
   });
 }
