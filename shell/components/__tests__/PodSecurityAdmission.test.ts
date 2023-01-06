@@ -66,7 +66,7 @@ describe('component: PodSecurityAdmission', () => {
       }
     });
 
-    const input = wrapper.find(`[data-testid="pod-security-admission--0-${ inputId }"]`).find('input').element as HTMLInputElement;
+    const input = wrapper.find(`[data-testid="pod-security-admission--1-${ inputId }"]`).find('input').element as HTMLInputElement;
 
     expect(input.value).toStrictEqual(value);
   });
@@ -89,7 +89,7 @@ describe('component: PodSecurityAdmission', () => {
       }
     });
 
-    const input = wrapper.find(`[data-testid="pod-security-admission--0-${ inputId }"]`).find('input').element as HTMLInputElement;
+    const input = wrapper.find(`[data-testid="pod-security-admission--1-${ inputId }"]`).find('input').element as HTMLInputElement;
 
     expect(input.value).toStrictEqual(value);
   });
@@ -119,7 +119,7 @@ describe('component: PodSecurityAdmission', () => {
       });
 
       // Unable to toggle the checkbox, so we use the input
-      wrapper.find(`[data-testid="pod-security-admission--0-version"]`).find('input').setValue(version);
+      wrapper.find(`[data-testid="pod-security-admission--1-version"]`).find('input').setValue(version);
 
       expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
     });
@@ -162,7 +162,7 @@ describe('component: PodSecurityAdmission', () => {
       });
 
       // Unable to toggle the checkbox, so we use the input
-      wrapper.find(`[data-testid="pod-security-admission--0-version"]`).find('input').setValue('');
+      wrapper.find(`[data-testid="pod-security-admission--1-version"]`).find('input').setValue('');
 
       expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
     });
@@ -190,7 +190,7 @@ describe('component: PodSecurityAdmission', () => {
       };
 
       // Unable to toggle the checkbox, so we use the input
-      wrapper.find(`[data-testid="pod-security-admission--0-version"]`).find('input').setValue('');
+      wrapper.find(`[data-testid="pod-security-admission--1-version"]`).find('input').setValue('');
 
       expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
     });
