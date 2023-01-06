@@ -1,6 +1,5 @@
 import { sortBy } from '@shell/utils/sort';
 import { EPINIO_TYPES } from '../types';
-import { waitFor } from '@shell/utils/async';
 
 export default {
   name: 'EpinioBindAppsMixin',
@@ -31,7 +30,7 @@ export default {
 
     async waitForServiceInstanceDeployed(serviceInstance) {
       // It would be nice to use waitForState here, but we need to manually update until Epinio pumps out updates via socket
-      await waitFor(() => {
+      await serviceInstance.waitForTestFn(() => {
         const freshServiceInstance = this.$store.getters['epinio/byId'](EPINIO_TYPES.SERVICE_INSTANCE, `${ serviceInstance.meta.namespace }/${ serviceInstance.meta.name }`);
 
         if (freshServiceInstance?.state === 'deployed') {
@@ -39,7 +38,7 @@ export default {
         }
         // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
         serviceInstance.forceFetch();
-      }, `service instance state = "deployed"`, 30000, 2000, true).catch((err) => {
+      }, `service instance state = "deployed"`, 30000, 2000).catch((err) => {
         console.warn(err); // eslint-disable-line no-console
         throw new Error('waitingForDeploy');
       });

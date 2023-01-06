@@ -3,7 +3,6 @@ import { parse } from '@shell/utils/url';
 import { CATALOG } from '@shell/config/labels-annotations';
 import { insertAt } from '@shell/utils/array';
 import { CATALOG as CATALOG_TYPE } from '@shell/config/types';
-import { waitFor } from '@shell/utils/async';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 
@@ -148,7 +147,7 @@ export default class ClusterRepo extends SteveModel {
   }
 
   waitForOperation(operationId, timeout, interval = 2000) {
-    return waitFor(() => {
+    return this.waitForTestFn(() => {
       if (!this.$getters['schemaFor'](CATALOG_TYPE.OPERATION)) {
         return false;
       }
@@ -159,6 +158,6 @@ export default class ClusterRepo extends SteveModel {
         type: CATALOG_TYPE.OPERATION,
         id:   operationId
       });
-    }, `catalog operation fetch`, timeout, interval, true);
+    }, `catalog operation fetch`, timeout, interval);
   }
 }

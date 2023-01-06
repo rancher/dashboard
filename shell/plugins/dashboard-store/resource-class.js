@@ -752,28 +752,32 @@ export default class Resource {
 
   // ------------------------------------------------------------------
 
+  waitForTestFn(fn, msg, timeoutMs, intervalMs) {
+    return waitFor(fn.apply(this), msg, timeoutMs || DEFAULT_WAIT_TMIMEOUT, intervalMs || DEFAULT_WAIT_INTERVAL, true);
+  }
+
   waitForState(state, timeout, interval) {
-    return waitFor(() => {
+    return this.waitForTestFn(() => {
       return (this.state || '').toLowerCase() === state.toLowerCase();
-    }, `state=${ state }`, timeout, interval, true);
+    }, `state=${ state }`, timeout, interval);
   }
 
   waitForTransition() {
-    return waitFor(() => {
+    return this.waitForTestFn(() => {
       return !this.transitioning;
-    }, 'transition completion', undefined, undefined, true);
+    }, 'transition completion', undefined, undefined);
   }
 
   waitForAction(name) {
-    return waitFor(() => {
+    return this.waitForTestFn(() => {
       return this.hasAction(name);
-    }, `action=${ name }`, undefined, undefined, true);
+    }, `action=${ name }`, undefined, undefined);
   }
 
   waitForLink(name) {
-    return waitFor(() => {
+    return this.waitForTestFn(() => {
       return this.hasLink(name);
-    }, `link=${ name }`, undefined, undefined, true);
+    }, `link=${ name }`, undefined, undefined);
   }
 
   hasCondition(condition) {
@@ -799,7 +803,7 @@ export default class Resource {
   }
 
   waitForCondition(name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) {
-    return waitFor(() => {
+    return this.waitForTestFn(() => {
       return this.isCondition(name, withStatus);
     }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
   }
