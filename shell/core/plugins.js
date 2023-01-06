@@ -10,7 +10,6 @@ import {
   UI_CONFIG_DETAILS_MASTHEAD,
   UI_CONFIG_DETAIL_TOP,
   UI_CONFIG_RESOURCE_LIST,
-  UI_CONFIG_GLOBAL_SETTING,
   UI_CONFIG_CLUSTER_DASHBOARD_CARD,
   UI_CONFIG_TABLE_COL,
 } from './types';
@@ -39,7 +38,6 @@ export default function({
     [UI_CONFIG_DETAILS_MASTHEAD]:       [],
     [UI_CONFIG_DETAIL_TOP]:             [],
     [UI_CONFIG_RESOURCE_LIST]:          [],
-    [UI_CONFIG_GLOBAL_SETTING]:         [],
     [UI_CONFIG_CLUSTER_DASHBOARD_CARD]: [],
     [UI_CONFIG_TABLE_COL]:              [],
   };
@@ -280,9 +278,6 @@ export default function({
           uiConfig[type].push(action);
         });
       });
-
-      // Add the global plugin to the store
-      store.dispatch('uiplugins/addPluginsUiConfig', uiConfig);
 
       console.log('UICONFIG GLOBAL OBJECT', uiConfig); // eslint-disable-line no-console
 

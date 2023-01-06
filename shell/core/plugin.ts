@@ -4,13 +4,13 @@ import {
   CoreStoreInit,
   IAction,
   IPlugin,
+  LocationConfig,
   UI_CONFIG_HEADER_ACTION,
   UI_CONFIG_TAB,
   UI_CONFIG_TABLE_ACTION,
   UI_CONFIG_DETAILS_MASTHEAD,
   UI_CONFIG_DETAIL_TOP,
   UI_CONFIG_RESOURCE_LIST,
-  UI_CONFIG_GLOBAL_SETTING,
   UI_CONFIG_CLUSTER_DASHBOARD_CARD,
   UI_CONFIG_TABLE_COL,
 } from './types';
@@ -40,7 +40,6 @@ export class Plugin implements IPlugin {
     [UI_CONFIG_DETAILS_MASTHEAD]:       [],
     [UI_CONFIG_DETAIL_TOP]:             [],
     [UI_CONFIG_RESOURCE_LIST]:          [],
-    [UI_CONFIG_GLOBAL_SETTING]:         [],
     [UI_CONFIG_CLUSTER_DASHBOARD_CARD]: [],
     [UI_CONFIG_TABLE_COL]:              [],
   };
@@ -133,10 +132,68 @@ export class Plugin implements IPlugin {
     this.routes.push({ parent, route });
   }
 
-  // add extension UI action
-  addUIAction(type: string, locationConfig: object, action: IAction): void {
-    this.uiConfig[type] = this.uiConfig[type] || [];
-    this.uiConfig[type].push({ ...action, locationConfig });
+  /**
+   * Adds an action/button to Header component
+   */
+  addHeaderAction(locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_HEADER_ACTION] = this.uiConfig[UI_CONFIG_HEADER_ACTION] || [];
+    this.uiConfig[UI_CONFIG_HEADER_ACTION].push({ ...action, locationConfig });
+  }
+
+  /**
+   * Adds a tab to the ResourceTabs component
+   */
+  addTab(locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_TAB] = this.uiConfig[UI_CONFIG_TAB] || [];
+    this.uiConfig[UI_CONFIG_TAB].push({ ...action, locationConfig });
+  }
+
+  /**
+   * Adds an action to the SortableTable component
+   */
+  addTableAction(locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_TABLE_ACTION] = this.uiConfig[UI_CONFIG_TABLE_ACTION] || [];
+    this.uiConfig[UI_CONFIG_TABLE_ACTION].push({ ...action, locationConfig });
+  }
+
+  /**
+   * Adds a component to the Details Masthead component
+   */
+  addToDetailsMasthead( locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD] = this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD] || [];
+    this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD].push({ ...action, locationConfig });
+  }
+
+  /**
+   * Adds a component to the DetailTop component
+   */
+  addToDetailTop( locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_DETAIL_TOP] = this.uiConfig[UI_CONFIG_DETAIL_TOP] || [];
+    this.uiConfig[UI_CONFIG_DETAIL_TOP].push({ ...action, locationConfig });
+  }
+
+  /**
+   * Adds a component to the list view page
+   */
+  addToListView( locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_RESOURCE_LIST] = this.uiConfig[UI_CONFIG_RESOURCE_LIST] || [];
+    this.uiConfig[UI_CONFIG_RESOURCE_LIST].push({ ...action, locationConfig });
+  }
+
+  /**
+   * Adds a card to the cluster dashboard view
+   */
+  addClusterDashboardCard( locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD] = this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD] || [];
+    this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD].push({ ...action, locationConfig });
+  }
+
+  /**
+   * Adds a new column to the SortableTable  component
+   */
+  addTableCol(locationConfig: LocationConfig, action: IAction): void {
+    this.uiConfig[UI_CONFIG_TABLE_COL] = this.uiConfig[UI_CONFIG_TABLE_COL] || [];
+    this.uiConfig[UI_CONFIG_TABLE_COL].push({ ...action, locationConfig });
   }
 
   setHomePage(component: any) {

@@ -41,11 +41,19 @@ export const UI_CONFIG_TABLE_ACTION = 'table-action';
 export const UI_CONFIG_DETAILS_MASTHEAD = 'details-masthead';
 export const UI_CONFIG_DETAIL_TOP = 'detail-top';
 export const UI_CONFIG_RESOURCE_LIST = 'resource-list';
-export const UI_CONFIG_GLOBAL_SETTING = 'global-setting';
 export const UI_CONFIG_CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card';
 export const UI_CONFIG_TABLE_COL = 'table-col';
 
 export type IAction = any;
+
+export type LocationConfig = {
+  product?: string,
+  resource?: string,
+  namespace?: string,
+  cluster?: string,
+  id?: string,
+  mode?: string
+};
 
 /**
  * Interface for a Dashboard plugin
@@ -86,9 +94,44 @@ export interface IPlugin {
   addRoute(parent: string, route: RouteConfig): void;
 
   /**
-   * Adds a UI action for an extension to a particular area of the UI
+   * Adds an action/button to Header component
    */
-  addUIAction(type: string, locationConfig: object, action: IAction): void;
+   addHeaderAction(locationConfig: LocationConfig, action: IAction): void;
+
+  /**
+   * Adds a tab to the ResourceTabs component
+   */
+   addTab( locationConfig: LocationConfig, action: IAction): void;
+
+  /**
+   * Adds an action to the SortableTable component
+   */
+   addTableAction( locationConfig: LocationConfig, action: IAction): void;
+
+  /**
+   * Adds a component to the Details Masthead component
+   */
+   addToDetailsMasthead( locationConfig: LocationConfig, action: IAction): void;
+
+  /**
+   * Adds a component to the DetailTop component
+   */
+  addToDetailTop( locationConfig: LocationConfig, action: IAction): void;
+
+  /**
+   * Adds a component to the list view page
+   */
+   addToListView( locationConfig: LocationConfig, action: IAction): void;
+
+  /**
+   * Adds a card to the cluster dashboard view
+   */
+   addClusterDashboardCard( locationConfig: LocationConfig, action: IAction): void;
+
+  /**
+   * Adds a new column to the SortableTable  component
+   */
+   addTableCol(locationConfig: LocationConfig, action: IAction): void;
 
   /**
    * Set the component to use for the landing home page
