@@ -7,6 +7,9 @@ import {
   UI_CONFIG_HEADER_ACTION,
   UI_CONFIG_TAB,
   UI_CONFIG_TABLE_ACTION,
+  UI_CONFIG_DETAILS_MASTHEAD,
+  UI_CONFIG_DETAIL_TOP,
+  UI_CONFIG_RESOURCE_LIST,
 } from './types';
 
 const MODEL_TYPE = 'models';
@@ -27,9 +30,12 @@ export default function({
   const pluginRoutes = new PluginRoutes(app.router);
 
   const uiConfig = {
-    [UI_CONFIG_HEADER_ACTION]: [],
-    [UI_CONFIG_TAB]:           [],
-    [UI_CONFIG_TABLE_ACTION]:  [],
+    [UI_CONFIG_HEADER_ACTION]:    [],
+    [UI_CONFIG_TAB]:              [],
+    [UI_CONFIG_TABLE_ACTION]:     [],
+    [UI_CONFIG_DETAILS_MASTHEAD]: [],
+    [UI_CONFIG_DETAIL_TOP]:       [],
+    [UI_CONFIG_RESOURCE_LIST]:    [],
   };
 
   inject('plugin', {

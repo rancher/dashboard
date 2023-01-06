@@ -6,6 +6,8 @@ import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
+import { UI_CONFIG_RESOURCE_LIST } from '@shell/core/types';
+import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 export default {
   name: ResourceListComponentName,
@@ -127,7 +129,20 @@ export default {
 
     showIncrementalLoadingIndicator() {
       return this.perfConfig?.incrementalLoading?.enabled;
-    }
+    },
+
+    extensionResourceList() {
+      const extensionResourceList = [];
+      const actions = this.$plugin.getUIConfig(UI_CONFIG_RESOURCE_LIST);
+
+      actions.forEach((action) => {
+        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
+          extensionResourceList.push(action);
+        }
+      });
+
+      return extensionResourceList;
+    },
   },
 
   watch: {
@@ -191,6 +206,19 @@ export default {
         <slot name="extraActions" />
       </template>
     </Masthead>
+    <!-- Extensions Detail Top -->
+    <div v-if="extensionResourceList">
+      <div
+        v-for="item, i in extensionResourceList"
+        :key="`extensionResourceList${i}`"
+      >
+        <component
+          :is="item.component"
+          :resource="resource"
+        />
+      </div>
+    </div>
+
     <div v-if="hasListComponent">
       <component
         :is="listComponent"

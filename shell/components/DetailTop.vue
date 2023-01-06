@@ -3,6 +3,8 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
+import { UI_CONFIG_DETAIL_TOP } from '@shell/core/types';
+import { checkExtensionRouteBinding } from '@shell/core/helpers';
 
 export const SEPARATOR = { separator: true };
 
@@ -155,6 +157,19 @@ export default {
 
       return false;
     },
+
+    extensionDetailTop() {
+      const extensionDetailTop = [];
+      const actions = this.$plugin.getUIConfig(UI_CONFIG_DETAIL_TOP);
+
+      actions.forEach((action) => {
+        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
+          extensionDetailTop.push(action);
+        }
+      });
+
+      return extensionDetailTop;
+    },
   },
   methods: {
     toggleLabels() {
@@ -283,6 +298,19 @@ export default {
           class="annotation"
           :value="val"
           :label="key"
+        />
+      </div>
+    </div>
+
+    <!-- Extensions Detail Top -->
+    <div v-if="extensionDetailTop">
+      <div
+        v-for="item, i in extensionDetailTop"
+        :key="`extensionDetailTop${i}`"
+      >
+        <component
+          :is="item.component"
+          :resource="value"
         />
       </div>
     </div>
