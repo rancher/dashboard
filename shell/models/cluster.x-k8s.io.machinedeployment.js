@@ -102,8 +102,10 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   toggleScaleDownModal( event, showScalePoolPrompt, resources = this ) {
+    // Check if the user held alt key when an action is clicked.
     const alt = isAlternate(event);
 
+    // Prompt if showScalePoolPrompt cookies not store and user did not held alt key
     if (!alt && !showScalePoolPrompt) {
       this.$dispatch('promptModal', {
         component:  'ScalePoolDownDialog',

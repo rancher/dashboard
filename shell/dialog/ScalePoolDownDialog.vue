@@ -30,9 +30,11 @@ export default {
       return this.t('promptRemove.protip', { alternateLabel });
     },
   },
-  mounted() {
+  created() {
     const showScalePoolPrompt = this.$cookies.get('scalePoolPrompt');
 
+    // Check for showScalePoolPrompt cookies
+    // If undefined set cookies and update promt checkbox
     if ( showScalePoolPrompt === undefined ) {
       this.promptConfirmation = true;
       this.$cookies.set('scalePoolPrompt', true);
@@ -46,17 +48,15 @@ export default {
       this.$emit('close');
     },
 
-    update(e) {
-      if (this.promptConfirmation) {
-        this.$cookies.set('scalePoolPrompt', true);
-      } else {
-        this.$cookies.set('scalePoolPrompt', false);
-      }
+    update() {
+      this.$cookies.set('scalePoolPrompt', !!this.promptConfirmation);
     },
 
     remove() {
       // Delete pool
-      this.resources[0].scalePool(-1);
+      if (this.resources.length > 0 ) {
+        this.resources[0].scalePool(-1);
+      }
       this.close();
     }
   }
@@ -86,7 +86,7 @@ export default {
           v-model="promptConfirmation"
           :label="t('promptRemove.promptConfirmation')"
           class="mt-10"
-          @input="update($event)"
+          @input="update()"
         />
       </div>
       <div class="text-info mt-20">
