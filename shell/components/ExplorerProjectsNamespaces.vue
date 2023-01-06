@@ -11,7 +11,6 @@ import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { values } from 'lodash';
 
 export default {
   name:       'ListProjectNamespace',
@@ -238,7 +237,9 @@ export default {
   methods: {
     getPSA(row) {
       const dictionary = row.psaTooltipsDescription;
-      const list = values(dictionary).map(text => `<li>${ text }</li>`).join('');
+      const list = Object.values(dictionary)
+        .sort()
+        .map(text => `<li>${ text }</li>`).join('');
 
       return `<ul class="psa-tooltip">${ list }</ul>`;
     },

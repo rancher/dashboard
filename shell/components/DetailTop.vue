@@ -144,7 +144,16 @@ export default {
     },
 
     showFilteredSystemLabels() {
-      return !!this.value.filteredSystemLabels;
+      // It would be nicer to use hasSystemLabels here, but not all places have implemented it
+      // Instead check that there's a discrepancy between all labels and all labels without system ones
+      if (this.value?.labels && this.value?.filteredSystemLabels) {
+        const labelCount = Object.keys(this.value.labels).length;
+        const filteredSystemLabelsCount = Object.keys(this.value.filteredSystemLabels).length;
+
+        return labelCount !== filteredSystemLabelsCount;
+      }
+
+      return false;
     },
   },
   methods: {

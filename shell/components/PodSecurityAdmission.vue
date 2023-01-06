@@ -9,7 +9,7 @@ import {
   PSADefaultLevel,
   PSADefaultVersion, PSADimensions, PSALabelPrefix, PSALevels, PSAModes
 } from '@shell/config/pod-security-admission';
-import { pickBy } from 'lodash';
+import { pickBy } from '@shell/utils/object';
 
 interface PSAControl { active: boolean, level: string, version: string }
 const control = (): PSAControl => ({
@@ -85,10 +85,18 @@ export default Vue.extend({
 
   created() {
     // Assign values to the form, overriding existing values
-    this.controls = {
+    const controls = {
       ...this.controls,
       ...this.getControls()
     };
+
+    this.controls = Object.keys(controls)
+      .sort()
+      .reduce((res, key) => {
+        res[key] = controls[key];
+
+        return res;
+      }, {} as any);
   },
 
   methods: {
