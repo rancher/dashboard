@@ -6,14 +6,18 @@ describe('Extensions page', () => {
   before(() => {
     cy.login();
 
-    // install the rancher plugin examples
     ExtensionsPo.goTo();
     const extensionsPo = new ExtensionsPo();
 
+    // install extensions operator if it's not installed
+    extensionsPo.installExtensionsOperatorIfNeeded();
+
+    // install the rancher plugin examples
     extensionsPo.installRancherPluginExamples();
   });
 
   beforeEach(() => {
+    cy.login();
     ExtensionsPo.goTo();
   });
 
@@ -80,14 +84,6 @@ describe('Extensions page', () => {
   //   extensionsPo.extensionCardInstallClick(extensionName);
   //   extensionsPo.extensionInstallModal().should('be.visible');
 
-  //   // let's just make sure dialog disappears when we cancel
-  //   extensionsPo.installModalCancelClick();
-  //   extensionsPo.extensionInstallModal().should('not.exist');
-
-  //   // all good, let's install it then
-  //   extensionsPo.extensionCardInstallClick(extensionName);
-  //   extensionsPo.extensionInstallModal().should('be.visible');
-
   //   // select version and click install
   //   extensionsPo.installModalSelectVersionClick(2);
   //   extensionsPo.installModalInstallClick();
@@ -147,14 +143,6 @@ describe('Extensions page', () => {
   //   extensionsPo.extensionTabInstalledClick();
 
   //   // click on uninstall button on card
-  //   extensionsPo.extensionCardUninstallClick(extensionName);
-  //   extensionsPo.extensionUninstallModal().should('be.visible');
-
-  //   // let's just make sure dialog disappears when we cancel
-  //   extensionsPo.uninstallModalCancelClick();
-  //   extensionsPo.extensionUninstallModal().should('not.exist');
-
-  //   // all good, let's uninstall it then
   //   extensionsPo.extensionCardUninstallClick(extensionName);
   //   extensionsPo.extensionUninstallModal().should('be.visible');
   //   extensionsPo.uninstallModaluninstallClick();

@@ -15,6 +15,25 @@ export default class ExtensionsPo extends PagePo {
     return this.self().getId('extensions-page-title').invoke('text');
   }
 
+  // install extensions operator
+  installExtensionsOperatorIfNeeded(attempt = 0) {
+    // this will make sure we wait for the page to render first content
+    // so that the attemps aren't on a blank page
+    this.title();
+
+    if (attempt > 20) {
+      return;
+    }
+    if (Cypress.$('[data-testid="extension-enable-operator"]').length > 0) {
+      cy.get('[data-testid="extension-enable-operator"]').click();
+      this.enableExtensionModalEnableClick();
+    } else {
+      cy.wait(250).then(() => { // eslint-disable-line
+        this.installExtensionsOperatorIfNeeded(++attempt); // next attempt
+      });
+    }
+  }
+
   // install rancher-plugin-examples
   installRancherPluginExamples() {
     // we should be on the extensions page
