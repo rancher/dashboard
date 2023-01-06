@@ -225,7 +225,6 @@ export default {
       this.value.applyDefaults(this, realMode);
     }
   },
-
   data() {
     return {
       chartData:       null,
