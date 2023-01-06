@@ -84,13 +84,6 @@ export default {
     state.podsByNamespace = {};
   },
 
-  clearFromQueue(state, type) {
-    // Remove anything in the queue that is a resource update for the given type
-    state.queue = state.queue.filter((item) => {
-      return item.body?.type !== type;
-    });
-  },
-
   loadMulti(state, { data, ctx }) {
     for (const entry of data) {
       const resource = load(state, { data: entry, ctx });

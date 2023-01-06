@@ -66,13 +66,27 @@ const workerActions = {
     }
   },
   watch: (msg) => {
+    // TODO: RC TEST - backend unreachable --> backend reachable (stop --> start mem-dev)
+
+    const watchKey = watchKeyFromMessage(msg);
+
+    if (msg.stop) {
+      state.watcher.unwatch(watchKey);
+
+      return;
+    }
+
+    // If socket is in error don't try to watch.... unless we `force` it
+    if (!msg.force && !!state.watcher?.watches[watchKey]?.error) {
+      // TODO: RC TEST the use case this covers
+      return;
+    }
+
     if (!state.watcher) {
       state.workerQueue.push({ watch: msg });
 
       return;
     }
-
-    const watchKey = watchKeyFromMessage(msg);
 
     const {
       resourceType,
@@ -81,12 +95,6 @@ const workerActions = {
       selector,
       resourceVersion
     } = msg;
-
-    if (msg.stop) {
-      state.watcher.unwatch(watchKey);
-
-      return;
-    }
 
     const resourceVersionTime = resourceVersion ? Date.now() : undefined;
     const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType);
@@ -145,6 +153,9 @@ const resourceWatcherActions = {
     }
     state.batchChanges[normalizedType][id] = data;
   },
+  'ws.resource.start': (msg) => {
+    // State is handled in the resourceWatcher, no need to bubble out to UI thread
+  },
   'resource.remove': (msg) => {
     const { resourceType, data: { type, id } } = msg;
     const rawType = resourceType || type;
@@ -156,9 +167,10 @@ const resourceWatcherActions = {
     state.batchChanges[normalizedType][id] = { remove: true }; // TODO: RC Q possibly overwrite of resource field?
   },
   'resource.stop': (msg) => {
-    const watchKey = watchKeyFromMessage(msg);
+    // State is handled in the resourceWatcher, no need to bubble out to UI thread
 
-    console.error('RC: w-w.a: resource.stop: 2', watchKey, state.watcher.watches, Object.keys(state.watcher.watches), state.watcher.watches[watchKey]);
+    // -----
+    // const watchKey = watchKeyFromMessage(msg);
 
     // TODO: RC Q bug
     // forgetType --> watch(stop) --> advanced worker --> watcher --> rancher stop
@@ -166,10 +178,10 @@ const resourceWatcherActions = {
     // - watcher[key] deleted
     // rancher --> advanced worker stop (here)
     // - no watcher[key] so ui thread watcher state isn't udpated
-    if (state?.watcher?.watchExists(watchKey) && state.watcher.watches[watchKey].status !== 'removed') {
-      console.error('RC: w-w.a: resource.stop: 3', state.watcher[watchKey]);
-      resourceWatcherActions.dispatch({ ...msg, fromWorker: true });
-    }
+    // if (state?.watcher?.watchExists(watchKey) && state.watcher.watches[watchKey].status !== 'removed') {
+    //   console.error('RC: w-w.a: resource.stop: 3', state.watcher[watchKey]);
+    //   // resourceWatcherActions.dispatch({ ...msg, fromWorker: true });
+    // }
   },
   'resource.error': (msg) => {
     console.warn(`Resource error [${ state.store }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console

@@ -49,7 +49,7 @@ const {
 } = WATCH_STATUSES;
 
 export default class ResourceWatcher extends Socket {
-  watches = {}; // TODO: RC Ensure these are wired in to canWatch and watchStarted sub getters
+  watches = {};
   maintenanceInterval;
   connectionMetadata;
   status = ''
@@ -134,6 +134,7 @@ export default class ResourceWatcher extends Socket {
             skipResourceVersion = true;
           }
         });
+      // TODO: RC Q if this fails we still go on and try and watch with whatever resourceVersion we have. For those cases we should `resyncWatch`
     }
 
     if (![PENDING, REQUESTED, WATCHING, REFRESHING].includes(this.watches?.[watchKey]?.status)) {
@@ -161,6 +162,7 @@ export default class ResourceWatcher extends Socket {
 
     // TODO: RC TEST come back and ensure forgetType calls from explorer cluster dashboard page  --> other cluster page all work fine
     if (resourceType && this.watches[watchKey].status !== REMOVED) {
+      // TODO: RC clear from queue? See https://github.com/rancher/dashboard/pull/6432#issuecomment-1192973157
       this.send(JSON.stringify({
         ...watchObject,
         stop: true
@@ -233,8 +235,10 @@ export default class ResourceWatcher extends Socket {
       this.watches[watchKey].status = WATCHING;
     } else if (eventName === 'resource.stop' && this.watches?.[watchKey]) {
       if (this.watches?.[watchKey]?.status === REMOVED) {
+        // TODO: RC clear from queue? see dashboard store action forgetType
         delete this.watches[watchKey];
       } else {
+        // TODO: RC Test with steve socket timing out and 'stop'ing resources
         this.watches[watchKey].status = STOPPED;
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;

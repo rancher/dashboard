@@ -218,7 +218,7 @@ export const actions = {
         }
       });
     } else if ( socket ) {
-      socket.setAutoReconnect(true); // TODO: RC Q this is lost
+      socket.setAutoReconnect(true);
       socket.setUrl(url);
       socket.connect(connectionMetadata);
     } else {
@@ -348,6 +348,7 @@ export const actions = {
       return;
     }
 
+    // If socket is in error don't try to watch.... unless we `force` it
     if ( !stop && !force && !getters.canWatch(params) ) {
       console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
@@ -391,12 +392,39 @@ export const actions = {
     const worker = this.$workers[getters.storeName] || {};
 
     if (worker.mode === 'advanced') {
+      if ( force ) {
+        msg.force = true;
+      }
+
       worker.postMessage({ watch: msg });
 
       return;
     }
 
     return dispatch('send', msg);
+  },
+
+  unwatch(ctx, type) {
+    const { commit, getters, dispatch } = ctx;
+
+    if (getters['schemaFor'](type)) {
+      const obj = {
+        type,
+        stop: true, // Stops the watch on a type
+      };
+
+      if (isAdvancedWorker(ctx)) {
+        dispatch('watch', obj); // Ask the backend to stop watching the type
+      } else if (getters['watchStarted'](obj)) {
+        // Set that we don't want to watch this type
+        // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
+        // detect the stop message from the backend over the web socket
+        commit('setWatchStopped', obj);
+        dispatch('watch', obj); // Ask the backend to stop watching the type
+        // Make sure anything in the pending queue for the type is removed, since we've now removed the type
+        commit('clearFromQueue', type);
+      }
+    }
   },
 
   /**
@@ -677,7 +705,6 @@ export const actions = {
    */
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
-    const fromWorker = msg.fromWorker;
     const obj = {
       type,
       id:        msg.id,
@@ -690,10 +717,6 @@ export const actions = {
     // If we're trying to watch this event, attempt to re-watch
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       commit('setWatchStopped', obj);
-      // the resourceWatcher in the worker has it's own logic for reconnecting watches otherwise try reconnecting once
-      if (fromWorker) {
-        return;
-      }
 
       // In summary, we need to re-watch but with a reliable `revision` (to avoid `too old` message kicking off a full re-fetch of all
       // resources). To get a reliable `revision` go out and fetch the latest for that resource type, in theory our local cache should be
@@ -832,6 +855,9 @@ export const mutations = {
     removeObject(state.pendingFrames, obj);
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   setWatchStarted(state, obj) {
     const existing = state.started.find(entry => equivalentWatch(obj, entry));
 
@@ -842,8 +868,10 @@ export const mutations = {
     delete state.inError[keyForSubscribe(obj)];
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   setWatchStopped(state, obj) {
-    // TODO: RC CHANGE this will be a no-op
     const existing = state.started.find(entry => equivalentWatch(obj, entry));
 
     if ( existing ) {
@@ -853,6 +881,9 @@ export const mutations = {
     }
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   setInError(state, msg) {
     const key = keyForSubscribe(msg);
 
@@ -869,25 +900,44 @@ export const mutations = {
     state.debugSocket = on !== false;
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   * // TODO: RC go through mutations and getters and add covers
+   */
   resetSubscriptions(state) {
-    // TODO: RC needs wiring in (recreate advanced worker obj. recreate just resourceWatcher??)
+    // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
+    // This could probably be folded in to there
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
     clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
-  }
+  },
+
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
+  clearFromQueue(state, type) {
+    // Remove anything in the queue that is a resource update for the given type
+    state.queue = state.queue.filter((item) => {
+      return item.body?.type !== type;
+    });
+  },
 };
 
 export const getters = {
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   canWatch: state => (obj) => {
-    // TODO: RC wire in to a-w. NEEDS TO BE ASYNC
     return !state.inError[keyForSubscribe(obj)];
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   watchStarted: state => (obj) => {
-    // TODO: RC wire in to a-w. NEEDS TO BE ASYNC
     return !!state.started.find(entry => equivalentWatch(obj, entry));
   },
 
