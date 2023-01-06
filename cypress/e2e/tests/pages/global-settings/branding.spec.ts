@@ -63,8 +63,17 @@ describe('Branding', () => {
     // brandingPage.privateLabel().value().should(`eq ${ settings.privateLabel.original }`);
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
-    // brandingPage.privateLabel().value().should(`eq ${ settings.privateLabel.new }`);
-    brandingPage.applyButton().click();
+    brandingPage.applyButton().apply();
+
+    // Visit the Home Page
+    BurgerMenuPo.toggle();
+    const burgerMenuPo = new BurgerMenuPo();
+
+    burgerMenuPo.home().click();
+
+    const homePage = new HomePagePo();
+
+    homePage.title().should('eq', `Welcome to ${ settings.privateLabel.new }`);
 
     // Check in session
     cy.title().should('eq', settings.privateLabel.new);
@@ -73,9 +82,11 @@ describe('Branding', () => {
     cy.reload();
     cy.title().should('eq', settings.privateLabel.new);
 
+    brandingPage.goTo();
+
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
-    brandingPage.applyButton().click();
+    brandingPage.applyButton().apply();
     cy.title().should('eq', settings.privateLabel.original);
   });
 
