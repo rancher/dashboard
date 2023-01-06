@@ -9,8 +9,7 @@
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { SCHEMA, MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { SCHEMA } from '@shell/config/types';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
@@ -42,10 +41,17 @@ const waitForManagement = (store) => {
 };
 
 const isAdvancedWorker = (ctx) => {
-  const { rootGetters } = ctx;
+  const { rootGetters, getters } = ctx;
+  const storeName = getters.storeName;
+
+  if (storeName !== 'cluster') {
+    return false;
+  }
+
   const perfSetting = getPerformanceSetting(rootGetters);
 
-  return perfSetting?.advancedWorker === 'true';
+  // return perfSetting?.advancedWorker === 'true'; // TODO: RC `advancedWorker` needs implementing (UI perf page)
+  return true;
 };
 
 // We only create a worker for the cluster store
@@ -199,14 +205,12 @@ export const actions = {
     const connectionMetadata = get(opt, 'metadata');
 
     if (isAdvancedWorker(ctx)) {
-      const worker = this.$workers[getters.storeName];
-
-      if (!worker) {
+      if (!this.$workers[getters.storeName]) {
         await createWorker(this, ctx);
       }
 
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
-      worker.postMessage({
+      this.$workers[getters.storeName].postMessage({
         createWatcher: {
           connectionMetadata,
           url: `${ state.config.baseUrl }/subscribe`,
