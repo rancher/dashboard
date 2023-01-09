@@ -31,6 +31,7 @@ import { waitFor } from '@shell/utils/async';
 
 // eslint-disable-next-line
 import storeWorker from './worker/index.js';
+import { BLANK_CLUSTER } from '@shell/store/index.js';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
@@ -44,8 +45,9 @@ const waitForManagement = (store) => {
 const isAdvancedWorker = (ctx) => {
   const { rootGetters, getters } = ctx;
   const storeName = getters.storeName;
+  const clusterId = rootGetters.clusterId;
 
-  if (storeName !== 'cluster') {
+  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
     return false;
   }
 
