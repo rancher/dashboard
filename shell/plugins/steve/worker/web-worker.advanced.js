@@ -186,7 +186,7 @@ const resourceWatcherActions = {
     }
     state.batchChanges[normalizedType][id] = data;
   },
-  'ws.resource.start': (msg) => {
+  'resource.start': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
   },
   'resource.remove': (msg) => {
