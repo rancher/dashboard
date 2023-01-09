@@ -242,6 +242,7 @@ export default {
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 1;
 
     $slideout-width: 35%;
     $title-height: 50px;
