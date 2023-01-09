@@ -56,9 +56,7 @@ export function load(state, { data, ctx, existing }) {
 
   // Inject special fields for indexing schemas
   if ( type === SCHEMA ) {
-    // TODO: SM In most places I've worked, it's always been considered best practice to avoid mutating function
-    // arguments so as to avoid unintentional side-effects, it's better practice to declare a new block-scope variable and then mutate that as needed
-    data = addSchemaIndexFields(data);
+    addSchemaIndexFields(data);
   }
 
   const id = data[keyField];
@@ -195,8 +193,10 @@ export function batchChanges(state, { ctx, batch }) {
         typeCache.map.delete(id);
         removeAtIndexes.push(index);
       } else {
-        const indexedResource = normalizedType === SCHEMA ? addSchemaIndexFields(resource) : resource;
-        const classyResource = classify(ctx, indexedResource);
+        if (normalizedType === SCHEMA) {
+          addSchemaIndexFields(resource);
+        }
+        const classyResource = classify(ctx, resource);
 
         if (!index) {
           typeCache.list.push(classyResource);
@@ -214,6 +214,7 @@ export function batchChanges(state, { ctx, batch }) {
     });
 
     // concat the createdResources onto the list after everything and slice off anything over the limit
+    // TODO: RC TEST - Think this is applied to the events list on the cluster dashboard
     typeCache.list = typeCache.list
       .slice(limit ? -limit : undefined);
 
@@ -298,6 +299,9 @@ export default {
 
   loadAll,
 
+  /**
+   * Handles changes (add, update, remove) to multiple resources for multiple types
+   */
   batchChanges,
 
   loadMerge(state, { type, data: allLatest, ctx }) {

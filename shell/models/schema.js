@@ -9,13 +9,14 @@ export default class Schema extends Resource {
 
 /**
  * Inject special fields for indexing schemas
+ *
+ * Note
+ * This mutates input in a function, which is bad...
+ * but ensures the reference isn't broken, which is needed to maintain similar functionality as before
  */
 export function addSchemaIndexFields(data) {
-  return {
-    ...data, // TODO: RC Q why spread and not just set? SM A ideally the return on a function like this wouldn't mutate it's input parameter
-    _id:    normalizeType(data.id),
-    _group: normalizeType(data.attributes?.group)
-  };
+  data._id = normalizeType(data.id);
+  data._group = normalizeType(data.attributes?.group);
 }
 
 export function parseType(str) {
