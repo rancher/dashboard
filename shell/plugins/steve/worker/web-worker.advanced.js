@@ -10,6 +10,12 @@ import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 
 // import { CSRF } from '@shell/config/cookies';
 
+const debugWorker = true; // TODO: RC toggle
+
+const trace = (...args) => {
+  debugWorker && console.info('Advanced Worker:', ...args);
+};
+
 const state = {
   watcher:      undefined,
   store:        '', // Store name
@@ -31,6 +37,8 @@ const maintenanceInterval = setInterval(() => {
 const workerActions = {
   loadSchemas:   () => {}, // TODO: RC handle schemas
   createWatcher: (metadata) => {
+    trace('createWatcher', metadata);
+
     const {
       connectionMetadata, maxTries, url, csrf
     } = metadata;
@@ -71,12 +79,14 @@ const workerActions = {
     }
   },
   watch: (msg) => {
+    trace('watch', msg);
+
     // TODO: RC TEST - backend unreachable --> backend reachable (stop --> start mem-dev)
 
     const watchKey = watchKeyFromMessage(msg);
 
     if (msg.stop) {
-      state.watcher.unwatch(watchKey);
+      workerActions.unwatch(watchKey);
 
       return;
     }
@@ -102,7 +112,7 @@ const workerActions = {
     } = msg;
 
     const resourceVersionTime = resourceVersion ? Date.now() : undefined;
-    const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType);
+    const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType); // TODO: RC there's more no resource versions types, check where this is used
 
     const watchObject = {
       resourceType,
@@ -114,6 +124,16 @@ const workerActions = {
     state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
   },
   unwatch: (watchKey) => {
+    trace('unwatch', watchKey);
+
+    // Remove any pending messages in the queue for this watcher
+    state.workerQueue = state.workerQueue.filter((workerMessage) => {
+      const [, msg] = Object.entries(workerMessage)[0];
+      const workerMessageWatchKey = watchKeyFromMessage(msg);
+
+      return watchKey !== workerMessageWatchKey;
+    });
+
     if (!state.watcher) {
       return;
     }
