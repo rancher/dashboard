@@ -201,20 +201,6 @@ const resourceWatcherActions = {
   },
   'resource.stop': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
-
-    // -----
-    // const watchKey = watchKeyFromMessage(msg);
-
-    // TODO: RC Q bug
-    // forgetType --> watch(stop) --> advanced worker --> watcher --> rancher stop
-    // rancher --> watcher stop
-    // - watcher[key] deleted
-    // rancher --> advanced worker stop (here)
-    // - no watcher[key] so ui thread watcher state isn't udpated
-    // if (state?.watcher?.watchExists(watchKey) && state.watcher.watches[watchKey].status !== 'removed') {
-    //   console.error('RC: w-w.a: resource.stop: 3', state.watcher[watchKey]);
-    //   // resourceWatcherActions.dispatch({ ...msg, fromWorker: true });
-    // }
   },
   'resource.error': (msg) => {
     console.warn(`Resource error [${ state.store }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console

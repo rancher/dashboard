@@ -151,9 +151,7 @@ export default {
         namespace: opt.watchNamespace
       };
 
-      // if we are coming from a resource that wasn't watched
-      // but for which we have results already, just return the results but start watching it
-      if (opt.watch !== false ) { // && !getters.watchStarted(args) // TODO: RC removing this creates extra work on every find
+      if (opt.watch !== false ) {
         dispatch('watch', args);
       }
 

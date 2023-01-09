@@ -166,7 +166,6 @@ export default class ResourceWatcher extends Socket {
 
     // TODO: RC TEST come back and ensure forgetType calls from explorer cluster dashboard page  --> other cluster page all work fine
     if (resourceType && this.watches[watchKey].status !== REMOVED) {
-      // TODO: RC clear from queue? See https://github.com/rancher/dashboard/pull/6432#issuecomment-1192973157
       this.send(JSON.stringify({
         ...watchObject,
         stop: true
@@ -175,7 +174,7 @@ export default class ResourceWatcher extends Socket {
     }
   }
 
-  // TODO: RC why can't we just watch/unwatch on demand?
+  // TODO: RC Q why can't we just watch/unwatch on demand?
   syncWatches() {
     const watchesArray = Object.values(this.watches); // convert to array
 
@@ -239,10 +238,9 @@ export default class ResourceWatcher extends Socket {
       this.watches[watchKey].status = WATCHING;
     } else if (eventName === 'resource.stop' && this.watches?.[watchKey]) {
       if (this.watches?.[watchKey]?.status === REMOVED) {
-        // TODO: RC clear from queue? see dashboard store action forgetType
         delete this.watches[watchKey];
       } else {
-        // TODO: RC Test with steve socket timing out and 'stop'ing resources
+        // TODO: RC TEST with steve socket timing out and 'stop'ing resources
         this.watches[watchKey].status = STOPPED;
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;
