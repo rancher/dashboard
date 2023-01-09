@@ -11,10 +11,6 @@ export default {
     Banner,
   },
   props: {
-    resources: {
-      type:     Array,
-      required: true
-    },
     applyAction: {
       type:    Function,
       default: () => {}
