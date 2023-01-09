@@ -90,10 +90,10 @@ export default {
 
       const terminal = new xterm.Terminal({
         theme: {
-          background: docStyle.getPropertyValue('--terminal-bg').trim(),
-          cursor:     docStyle.getPropertyValue('--terminal-cursor').trim(),
-          selection:  docStyle.getPropertyValue('--terminal-selection').trim(),
-          foreground: docStyle.getPropertyValue('--terminal-text').trim(),
+          background:          docStyle.getPropertyValue('--terminal-bg').trim(),
+          foreground:          docStyle.getPropertyValue('--terminal-text').trim(),
+          cursor:              docStyle.getPropertyValue('--terminal-cursor').trim(),
+          selectionBackground: docStyle.getPropertyValue('--terminal-selection').trim(),
         },
         ...this.xtermConfig,
       });
