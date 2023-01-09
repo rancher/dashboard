@@ -214,7 +214,6 @@ export function batchChanges(state, { ctx, batch }) {
     });
 
     // concat the createdResources onto the list after everything and slice off anything over the limit
-    // TODO: RC TEST - Think this is applied to the events list on the cluster dashboard
     typeCache.list = typeCache.list
       .slice(limit ? -limit : undefined);
 

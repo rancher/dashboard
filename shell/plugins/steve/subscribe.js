@@ -47,7 +47,7 @@ const isAdvancedWorker = (ctx) => {
   const storeName = getters.storeName;
   const clusterId = rootGetters.clusterId;
 
-  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
+  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) { // TODO: RC Q would clusteId === blank be better below?
     return false;
   }
 
@@ -790,6 +790,7 @@ export const actions = {
 
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
+    // TODO: RC Q this is lost? should be handled also in batchChanges
     if (typeOption?.alias?.length > 0) {
       const alias = typeOption?.alias || [];
 

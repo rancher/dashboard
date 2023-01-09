@@ -54,6 +54,7 @@ export default class ResourceWatcher extends Socket {
   connectionMetadata;
   status = '';
 
+  // TODO: RC Q csrf not used here. references in `this.csrf` though
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, csrf) {
     super(url, autoReconnect, frameTimeout, protocol, maxTries);
     this.baseUrl = self.location.origin + url.replace('subscribe', '');
@@ -164,7 +165,6 @@ export default class ResourceWatcher extends Socket {
       selector
     };
 
-    // TODO: RC TEST come back and ensure forgetType calls from explorer cluster dashboard page  --> other cluster page all work fine
     if (resourceType && this.watches[watchKey].status !== REMOVED) {
       this.send(JSON.stringify({
         ...watchObject,

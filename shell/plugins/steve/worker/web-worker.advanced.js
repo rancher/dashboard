@@ -13,7 +13,7 @@ import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 const debugWorker = true; // TODO: RC toggle
 
 const trace = (...args) => {
-  debugWorker && console.info('Advanced Worker:', ...args);
+  debugWorker && console.info('Advanced Worker:', ...args); // eslint-disable-line no-console
 };
 
 trace('created');
@@ -67,6 +67,12 @@ const workerActions = {
           }
         }
       });
+
+      // TODO: RC Q need to handle
+      // EVENT_CONNECTED --> opened. restart timers. await dispatch('reconnectWatches');
+      // EVENT_DISCONNECTED --> closed. stop timers
+      // EVENT_CONNECT_ERROR --> error. growls
+      // EVENT_DISCONNECT_ERROR --> error. growls
 
       while (state.workerQueue.length > 0) {
         const workerMessage = state.workerQueue.shift();
