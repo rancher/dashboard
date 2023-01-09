@@ -93,7 +93,7 @@ const storageTypes = [
     value: 'StandardSSD_LRS'
   }
 ];
-const DEFAULT_REGION = 'westus';
+// const DEFAULT_REGION = 'westus';
 
 export default {
   components: {
@@ -176,9 +176,9 @@ export default {
         this.locationOptions?.length && this.setLocation(this.locationOptions[this.locationOptions.length - 1]);
       }
 
-      if (this.mode === _CREATE) {
-        this.value.location = DEFAULT_REGION;
-      }
+      // if (this.mode === _CREATE) {
+      //   this.value.location = DEFAULT_REGION;
+      // }
 
       this.vmSizes = await this.$store.dispatch('management/request', {
         url: addParams('/meta/aksVMSizesV2', {
