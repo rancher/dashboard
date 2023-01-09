@@ -53,8 +53,7 @@ const isAdvancedWorker = (ctx) => {
 
   const perfSetting = getPerformanceSetting(rootGetters);
 
-  // return perfSetting?.advancedWorker === 'true'; // TODO: RC `advancedWorker` needs implementing (UI perf page)
-  return true;
+  return perfSetting?.advancedWorker.enabled;
 };
 
 // We only create a worker for the cluster store
