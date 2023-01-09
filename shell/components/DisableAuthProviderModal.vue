@@ -1,5 +1,5 @@
 <script>
-import { Card } from '@components/Card';
+import { Card } from '@rancher/components';
 export default {
   name:       'PromptRemove',
   components: { Card },

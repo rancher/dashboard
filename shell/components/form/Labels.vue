@@ -1,6 +1,6 @@
 <script>
 import KeyValue from '@shell/components/form/KeyValue';
-import { ToggleSwitch } from '@components/Form/ToggleSwitch';
+import { ToggleSwitch } from '@rancher/components';
 
 export default {
   components: {

@@ -2,8 +2,7 @@
 import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import { Checkbox, LabeledInput } from '@rancher/components';
 import { PSAMode } from '@shell/types/pod-security-admission';
 import {
   PSADefaultLevel,
