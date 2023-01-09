@@ -33,6 +33,20 @@ function registerType(state, type) {
   return cache;
 }
 
+function replace(existing, data, getters) {
+  data = getters.cleanResource(existing, data);
+
+  for ( const k of Object.keys(existing) ) {
+    delete existing[k];
+  }
+
+  for ( const k of Object.keys(data) ) {
+    Vue.set(existing, k, data[k]);
+  }
+
+  return existing;
+}
+
 export function load(state, { data, ctx, existing }) {
   const { getters } = ctx;
   let type = normalizeType(data.type);
@@ -42,6 +56,8 @@ export function load(state, { data, ctx, existing }) {
 
   // Inject special fields for indexing schemas
   if ( type === SCHEMA ) {
+    // TODO: SM In most places I've worked, it's always been considered best practice to avoid mutating function
+    // arguments so as to avoid unintentional side-effects, it's better practice to declare a new block-scope variable and then mutate that as needed
     data = addSchemaIndexFields(data);
   }
 
@@ -53,24 +69,10 @@ export function load(state, { data, ctx, existing }) {
 
   let entry;
 
-  function replace(existing, data) {
-    data = getters.cleanResource(existing, data);
-
-    for ( const k of Object.keys(existing) ) {
-      delete existing[k];
-    }
-
-    for ( const k of Object.keys(data) ) {
-      Vue.set(existing, k, data[k]);
-    }
-
-    return existing;
-  }
-
   if ( existing && !existing.id ) {
     // A specific proxy instance to used was passed in (for create -> save),
     // use it instead of making a new proxy
-    entry = replace(existing, data);
+    entry = replace(existing, data, getters);
     addObject(cache.list, entry);
     cache.map.set(id, entry);
     // console.log('### Mutation added from existing proxy', type, id);
@@ -79,7 +81,7 @@ export function load(state, { data, ctx, existing }) {
 
     if ( entry ) {
       // There's already an entry in the store, update it
-      replace(entry, data);
+      replace(entry, data, getters);
       // console.log('### Mutation Updated', type, id);
     } else {
       // There's no entry, make a new proxy
@@ -175,74 +177,47 @@ export function batchChanges(state, { ctx, batch }) {
     const opts = ctx.rootGetters[`type-map/optionsFor`](type);
     const limit = opts?.limit;
 
-    const createdResources = [];
-    const batchActionMap = {};
+    // making a map for every resource's location in the list is gonna ensure we only have to loop through the big list once.
+    const typeCacheIndexMap = {};
 
-    Object.keys(batch[normalizedType]).map((id) => {
-      const index = typeCache.list.findIndex((resource) => {
-        return resource[keyField] === id;
-      });
-      let resource = batch[normalizedType][id];
-
-      resource = normalizedType === SCHEMA ? addSchemaIndexFields(resource) : resource;
-      let action = 'change';
-
-      if (resource.remove) {
-        action = 'remove';
-      } else if (index === -1) {
-        action = 'create';
-        createdResources.push(classify(ctx, resource));
-      } else if (action === 'change') {
-        return {
-          id,
-          index,
-          resource,
-          action
-        };
-      }
-
-      return {
-        id,
-        index,
-        resource: undefined,
-        action
-      };
-    }).forEach((batchIdMap) => {
-      batchActionMap[batchIdMap[keyField]] = batchIdMap;
+    typeCache.list.forEach((resource, index) => {
+      typeCacheIndexMap[resource[keyField]] = index;
     });
 
-    typeCache.map.clear();
+    const removeAtIndexes = [];
 
-    const newCache = typeCache.list.reduce((acc, resource) => {
-      const resourceId = resource[keyField];
-      const batchAction = batchActionMap[resourceId];
+    // looping through the batch, executing changes, deferring creates and removes since they change the array length
+    Object.keys(batch[normalizedType]).forEach((id) => {
+      const index = typeCacheIndexMap[id];
+      const resource = batch[normalizedType][id];
 
-      if (!batchAction) { // use the unchanged resource from the cache
-        typeCache.map.set(resourceId, resource);
+      if (resource.remove && !!index) {
+        typeCache.map.delete(id);
+        removeAtIndexes.push(index);
+      } else {
+        const indexedResource = normalizedType === SCHEMA ? addSchemaIndexFields(resource) : resource;
+        const classyResource = classify(ctx, indexedResource);
 
-        return acc.concat(resource);
+        if (!index) {
+          typeCache.list.push(classyResource);
+          typeCacheIndexMap[classyResource[keyField]] = typeCache.list.length + 1;
+        } else {
+          replace(typeCache.list[index], classyResource, ctx.getters);
+        }
+        typeCache.map.set(id, classyResource);
       }
+    });
 
-      if (batchAction.action === 'change') { // use the changed resource from the map
-        // TODO: RC TEST the old load has a `replace` that retains the reference. This does not.
-        const cleanedResource = ctx.getters.cleanResource(resource, batchAction.resource);
-        const classyResource = classify(ctx, cleanedResource);
+    // looping through the removeAtIndexes, making sure to offset by iteration so the array changing doesn't mess us up
+    removeAtIndexes.sort().forEach((cacheIndex, loopIndex) => {
+      typeCache.list.splice(cacheIndex - loopIndex, 1);
+    });
 
-        typeCache.map.set(resourceId, classyResource);
-
-        return acc.concat(classyResource);
-      }
-
-      // if we're here then then the action was "remove" so we just don't add the resource to the newCache
-      return acc;
-    }, [])
-      .concat(createdResources)
+    // concat the createdResources onto the list after everything and slice off anything over the limit
+    typeCache.list = typeCache.list
       .slice(limit ? -limit : undefined);
 
-    clear(typeCache.list);
-    typeCache.map.clear();
     typeCache.generation++;
-    typeCache.list.push(...newCache);
   });
 }
 
