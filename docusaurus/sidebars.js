@@ -69,6 +69,7 @@ const sidebars = {
         'plugins/introduction',
         'plugins/plugins-getting-started',
         'plugins/initializing-plugins',
+        'plugins/extensions-api',
         'plugins/advanced',
       ]
     },
