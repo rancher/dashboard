@@ -31,10 +31,15 @@ const maintenanceInterval = setInterval(() => {
 const workerActions = {
   loadSchemas:   () => {}, // TODO: RC handle schemas
   createWatcher: (metadata) => {
-    const { connectionMetadata, maxTries, url } = metadata;
+    const {
+      connectionMetadata, maxTries, url, csrf
+    } = metadata;
+
+    state.fetchConfig.url = url;
+    state.fetchConfig.csrf = csrf;
 
     if (!state.watcher) {
-      state.watcher = new ResourceWatcher(url, true, null, null, maxTries);
+      state.watcher = new ResourceWatcher(url, true, null, null, maxTries, csrf);
       state.watcher.setConnectionMetadata(connectionMetadata);
 
       state.watcher.addEventListener(EVENT_MESSAGE, (e) => {

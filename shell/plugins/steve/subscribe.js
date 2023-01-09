@@ -10,6 +10,7 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { SCHEMA } from '@shell/config/types';
+import { CSRF } from '@shell/config/cookies';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
@@ -213,7 +214,8 @@ export const actions = {
       this.$workers[getters.storeName].postMessage({
         createWatcher: {
           connectionMetadata,
-          url: `${ state.config.baseUrl }/subscribe`,
+          url:  `${ state.config.baseUrl }/subscribe`,
+          csrf: this.$cookies.get(CSRF, { parseJSON: false }),
           maxTries
         }
       });

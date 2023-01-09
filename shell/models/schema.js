@@ -12,7 +12,7 @@ export default class Schema extends Resource {
  */
 export function addSchemaIndexFields(data) {
   return {
-    ...data, // TODO: RC Q why spread and not just set?
+    ...data, // TODO: RC Q why spread and not just set? SM A ideally the return on a function like this wouldn't mutate it's input parameter
     _id:    normalizeType(data.id),
     _group: normalizeType(data.attributes?.group)
   };

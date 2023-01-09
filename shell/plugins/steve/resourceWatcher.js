@@ -52,9 +52,9 @@ export default class ResourceWatcher extends Socket {
   watches = {};
   maintenanceInterval;
   connectionMetadata;
-  status = ''
+  status = '';
 
-  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null) {
+  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, csrf) {
     super(url, autoReconnect, frameTimeout, protocol, maxTries);
     this.baseUrl = self.location.origin + url.replace('subscribe', '');
 
@@ -111,6 +111,10 @@ export default class ResourceWatcher extends Socket {
         headers:     { accept: 'application/json' },
         credentials: 'same-origin'
       };
+
+      if (this.csrf) {
+        opt.headers['x-api-csrf'] = this.csrf;
+      }
 
       // ToDo: need to find a way to sync the csrf header into the worker since it can't directly access the cookies...
       await fetch(limitedResourceUrl, opt)
