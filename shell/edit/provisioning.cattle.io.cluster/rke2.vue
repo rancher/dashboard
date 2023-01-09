@@ -842,6 +842,14 @@ export default {
         return false;
       }
     },
+
+    generateName() {
+      if (this.registryHost) {
+        return `${ this.registryHost }-`;
+      } else {
+        return 'registryconfig-auth-';
+      }
+    },
   },
 
   watch: {
@@ -1655,7 +1663,7 @@ export default {
       } else {
         set(this.agentConfig, 'protect-kernel-defaults', false);
       }
-    }
+    },
   },
 };
 </script>
@@ -2272,7 +2280,7 @@ export default {
                 :allow-rke="true"
                 :vertical="true"
                 :namespace="value.metadata.namespace"
-                generate-name="registryconfig-auth-"
+                :generate-name="generateName"
               />
             </div>
           </div>
@@ -2302,6 +2310,7 @@ export default {
                   class="mt-20"
                   :mode="mode"
                   :cluster-register-before-hook="registerBeforeHook"
+                  :registry-host="registryHost"
                   @updateConfigs="updateConfigs"
                 />
               </AdvancedSection>
