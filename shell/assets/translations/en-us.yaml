@@ -1105,7 +1105,7 @@ cluster:
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
-      NodeName: Node Name
+      nodeName: Node Name
       publicIp: Node Public IP
       privateIp: Node Private IP
       nodeLabel:
