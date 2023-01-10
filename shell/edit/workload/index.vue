@@ -36,7 +36,9 @@ export default {
     mapError(error) {
       switch (true) {
       case error.includes('violates PodSecurity'): {
-        const [name, _, policy] = error.match(/(?<=\")(.*?)(?=\")/gi);
+        const match = error.match(/(?<=\")(.*?)(?=\")/gi);
+        const name = match[0];
+        const policy = match[2];
 
         return {
           message: `Pod "${ name }" Security Policy Violation "${ policy }"`,
