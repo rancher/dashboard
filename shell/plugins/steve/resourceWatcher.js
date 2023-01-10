@@ -250,15 +250,14 @@ export default class ResourceWatcher extends Socket {
 
       if ( this.watches[watchKey] && err.includes('watch not allowed') ) {
         this.watches[watchKey].error = { type: resourceType, reason: NO_WATCH };
-        this.unwatch(watchKey);// TODO: RC Q shouldn't we not unwatch... because any attempt to then
+        this.unwatch(watchKey); // Note - applying anything to the `error` here is cleared when the entry is wiped on successful resource.stop
       } else if ( this.watches[watchKey] && err.includes('failed to find schema') ) {
         // This can happen when the cattle-cluster-agent goes down (redeploy deployment, kill pod, etc)
         // The previous method was just to track the error and block any further attempts to watch (canWatch)
         // This method means we can retry on the next findX (should be safe, unless there are other use cases...)
 
-        // Note - applying anything to the `error` here is cleared when the entry is wiped on successful resource.stop
         this.watches[watchKey].error = { type: resourceType, reason: NO_SCHEMA };
-        this.unwatch(watchKey);
+        this.unwatch(watchKey); // Note - applying anything to the `error` here is cleared when the entry is wiped on successful resource.stop
       } else if ( err.includes('too old') ) {
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;

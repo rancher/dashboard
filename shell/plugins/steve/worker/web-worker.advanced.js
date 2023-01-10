@@ -30,7 +30,6 @@ const state = {
    */
   workerQueue:  [],
   batchChanges: {},
-  fetchConfig:  {} // TODO: RC Q not used any more?
 };
 
 const maintenanceInterval = setInterval(() => {
@@ -57,6 +56,9 @@ const makeResourceProps = (msg) => {
   };
 };
 
+/**
+ * Pass the EVENT_CONNECT_ERROR / EVENT_DISCONNECT_ERROR back to the UI thread
+ */
 const handleConnectionError = (eventType, event, watcher) => {
   trace('createWatcher', eventType, event);
   self.postMessage({
@@ -68,6 +70,18 @@ const handleConnectionError = (eventType, event, watcher) => {
         url:            watcher.url,
       }
     }
+  });
+};
+
+/**
+ * Remove any pending messages related to this resource from the queue
+ */
+const removeFromWorkerQueue = (watchKey) => {
+  state.workerQueue = state.workerQueue.filter((workerMessage) => {
+    const [, msg] = Object.entries(workerMessage)[0];
+    const workerMessageWatchKey = watchKeyFromMessage(msg);
+
+    return watchKey !== workerMessageWatchKey;
   });
 };
 
@@ -88,9 +102,6 @@ const workerActions = {
     const {
       connectionMetadata, maxTries, url, csrf
     } = metadata;
-
-    state.fetchConfig.url = url;
-    state.fetchConfig.csrf = csrf;
 
     if (!state.watcher) {
       state.watcher = new ResourceWatcher(url, true, null, null, maxTries, csrf);
@@ -121,7 +132,10 @@ const workerActions = {
 
       state.watcher.connect(connectionMetadata);
 
+      // Flush the workerQueue
       while (state.workerQueue.length > 0) {
+        trace('createWatcher', 'flushing workerQueue', state.workerQueue);
+
         const workerMessage = state.workerQueue.shift();
         const [action, msg] = Object.entries(workerMessage)[0];
 
@@ -178,13 +192,7 @@ const workerActions = {
   unwatch: (watchKey) => {
     trace('unwatch', watchKey);
 
-    // Remove any pending messages related to this resource from the queue
-    state.workerQueue = state.workerQueue.filter((workerMessage) => {
-      const [, msg] = Object.entries(workerMessage)[0];
-      const workerMessageWatchKey = watchKeyFromMessage(msg);
-
-      return watchKey !== workerMessageWatchKey;
-    });
+    removeFromWorkerQueue(watchKey);
 
     if (!state.watcher) {
       return;
@@ -259,7 +267,9 @@ const resourceWatcherActions = {
   },
   'resource.stop': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
-    // TODO: RC unwatch --> workerQueue updated --> resource.stop all good, but general resource.stop resource should also be removed from workerQueue?
+    const watchKey = watchKeyFromMessage(msg);
+
+    removeFromWorkerQueue(watchKey);
   },
   'resource.error': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread

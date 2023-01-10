@@ -186,6 +186,8 @@ function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
 
+// TODO: RC move `Covers 1 & 2 - Handles subscription within this file` out into own getters, etc objs
+
 export const actions = {
   async subscribe(ctx, opt) {
     const {
@@ -285,6 +287,9 @@ export const actions = {
     return Promise.all(cleanupTasks);
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   async flush({
     state, commit, dispatch, getters
   }) {
@@ -851,18 +856,30 @@ export const actions = {
 };
 
 export const mutations = {
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   setSocket(state, socket) {
     state.socket = socket;
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   setWantSocket(state, want) {
     state.wantSocket = want;
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   enqueuePendingFrame(state, obj) {
     state.pendingFrames.push(obj);
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   dequeuePendingFrame(state, obj) {
     removeObject(state.pendingFrames, obj);
   },
@@ -914,7 +931,7 @@ export const mutations = {
 
   /**
    * Covers 1 & 2 - Handles subscription within this file
-   * // TODO: RC go through mutations and getters and add covers
+   *
    */
   resetSubscriptions(state) {
     // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
@@ -953,6 +970,9 @@ export const getters = {
     return !!state.started.find(entry => equivalentWatch(obj, entry));
   },
 
+  /**
+   * Covers 1 & 2 - Handles subscription within this file
+   */
   nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
     let revision = 0;
