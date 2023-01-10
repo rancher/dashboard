@@ -5,8 +5,11 @@
 
 import { SCHEMA, COUNT } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
+import ResourceCache from '@shell/plugins/steve/caches/resourceCache';
 import { EVENT_MESSAGE } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import { keyFieldFor } from '@shell/plugins/dashboard-store/normalize'; // ToDo: SM we need to use this...
+import { addSchemaIndexFields } from '@shell/models/schema';
 
 // import { CSRF } from '@shell/config/cookies';
 
@@ -17,6 +20,8 @@ const trace = (...args) => {
 };
 
 trace('created');
+
+const caches = {};
 
 const state = {
   watcher:      undefined,
@@ -33,11 +38,34 @@ const maintenanceInterval = setInterval(() => {
   }
 }, 5000); // 5 seconds
 
+const makeResourceProps = (msg) => {
+  const { resourceType, data: { type }, data } = msg;
+  const rawType = resourceType || type;
+  const normalizedType = normalizeType(rawType === 'counts' ? COUNT : rawType);
+  const keyField = keyFieldFor(normalizedType);
+
+  if ( normalizedType === SCHEMA ) {
+    addSchemaIndexFields(data);
+  }
+
+  return {
+    type: normalizedType,
+    id:   data[keyField],
+    data
+  };
+};
+
 /**
  * These are things that we do when we get a message from the UI thread
  */
 const workerActions = {
-  loadSchemas:   () => {}, // TODO: RC handle schemas
+  // ToDo: SM we'll make a generic loader for all resource types when we need it but it'll be pretty similar to this
+  loadSchemas: (collection) => {
+    if (!caches[SCHEMA]) {
+      caches[SCHEMA] = new ResourceCache(SCHEMA);
+    }
+    caches[SCHEMA].load(collection);
+  },
   createWatcher: (metadata) => {
     trace('createWatcher', metadata);
 
@@ -166,6 +194,12 @@ const workerActions = {
       destroyWorkerComplete();
     }
   },
+  updateBatch(type, id, change) {
+    if (!state.batchChanges[type]) {
+      state.batchChanges[type] = {};
+    }
+    state.batchChanges[type][id] = change;
+  }
 };
 
 /**
@@ -173,37 +207,35 @@ const workerActions = {
  */
 const resourceWatcherActions = {
   'resource.change': (msg) => {
-    const { resourceType, data: { type, id }, data } = msg;
-    const rawType = resourceType || type;
-    const normalizedType = normalizeType(rawType === 'counts' ? COUNT : rawType);
+    const { type, id, data } = makeResourceProps(msg);
 
-    if (!state.batchChanges[normalizedType]) {
-      state.batchChanges[normalizedType] = {};
+    if (caches[type]) {
+      caches[type].change(data, () => workerActions.updateBatch(type, id, data));
+    } else {
+      workerActions.updateBatch(type, id, data);
     }
-    state.batchChanges[normalizedType][id] = data;
   },
+  // ToDo: SM create is functionally identical to change in the cache but the worker isn't supposed to know that hence the near-duplicate code
   'resource.create': (msg) => {
-    const { resourceType, data: { type, id }, data } = msg;
-    const rawType = resourceType || type;
-    const normalizedType = normalizeType(rawType === 'counts' ? COUNT : rawType);
+    const { type, id, data } = makeResourceProps(msg);
 
-    if (!state.batchChanges[normalizedType]) {
-      state.batchChanges[normalizedType] = {};
+    if (caches[type]) {
+      caches[type].create(data, () => workerActions.updateBatch(type, id, data));
+    } else {
+      workerActions.updateBatch(type, id, data);
     }
-    state.batchChanges[normalizedType][id] = data;
   },
   'resource.start': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
   },
   'resource.remove': (msg) => {
-    const { resourceType, data: { type, id } } = msg;
-    const rawType = resourceType || type;
-    const normalizedType = normalizeType(rawType === 'counts' ? COUNT : rawType);
+    const { type, id } = makeResourceProps(msg);
 
-    if (!state.batchChanges[normalizedType]) {
-      state.batchChanges[normalizedType] = {};
+    if (caches[type]) {
+      caches[type].remove(id, () => workerActions.updateBatch(type, id, { remove: true }));
+    } else {
+      workerActions.updateBatch(type, id, { remove: true }); // ToDo: SM passing an empty object could be an effective way of signalling that a resource was removed
     }
-    state.batchChanges[normalizedType][id] = { remove: true }; // TODO: RC Q possibly overwrite of resource field?
   },
   'resource.stop': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
