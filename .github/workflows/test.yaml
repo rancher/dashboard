@@ -141,6 +141,7 @@ jobs:
       - name: Merge coverage files
         run: |
           ls
+          yarn install
           yarn coverage
           ls coverage
 
