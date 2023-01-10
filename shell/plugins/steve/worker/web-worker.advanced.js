@@ -6,7 +6,7 @@
 import { SCHEMA, COUNT } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
 import ResourceCache from '@shell/plugins/steve/caches/resourceCache';
-import { EVENT_MESSAGE } from '@shell/utils/socket';
+import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@shell/utils/socket';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
@@ -25,9 +25,12 @@ const caches = {};
 const state = {
   watcher:      undefined,
   store:        '', // Store name
+  /**
+   * Store `watch`/`unwatch` events to process when the socket is created
+   */
   workerQueue:  [],
   batchChanges: {},
-  fetchConfig:  {} // TODO: RC Q not used anymore?
+  fetchConfig:  {} // TODO: RC Q not used any more?
 };
 
 const maintenanceInterval = setInterval(() => {
@@ -54,6 +57,20 @@ const makeResourceProps = (msg) => {
   };
 };
 
+const handleConnectionError = (eventType, event, watcher) => {
+  trace('createWatcher', eventType, event);
+  self.postMessage({
+    [eventType]: {
+      type:       event.type,
+      detail:     event.detail,
+      srcElement: {
+        disconnectedAt: watcher.disconnectedAt,
+        url:            watcher.url,
+      }
+    }
+  });
+};
+
 /**
  * These are things that we do when we get a message from the UI thread
  */
@@ -77,7 +94,6 @@ const workerActions = {
 
     if (!state.watcher) {
       state.watcher = new ResourceWatcher(url, true, null, null, maxTries, csrf);
-      state.watcher.setConnectionMetadata(connectionMetadata);
 
       state.watcher.addEventListener(EVENT_MESSAGE, (e) => {
         const event = e.detail;
@@ -95,11 +111,15 @@ const workerActions = {
         }
       });
 
-      // TODO: RC Q need to handle
-      // EVENT_CONNECTED --> opened. restart timers. await dispatch('reconnectWatches');
-      // EVENT_DISCONNECTED --> closed. stop timers
-      // EVENT_CONNECT_ERROR --> error. growls
-      // EVENT_DISCONNECT_ERROR --> error. growls
+      state.watcher.addEventListener(EVENT_CONNECT_ERROR, (e) => {
+        handleConnectionError(EVENT_CONNECT_ERROR, e, state.watcher);
+      });
+
+      state.watcher.addEventListener(EVENT_DISCONNECT_ERROR, (e) => {
+        handleConnectionError(EVENT_DISCONNECT_ERROR, e, state.watcher);
+      });
+
+      state.watcher.connect(connectionMetadata);
 
       while (state.workerQueue.length > 0) {
         const workerMessage = state.workerQueue.shift();
@@ -116,8 +136,6 @@ const workerActions = {
   watch: (msg) => {
     trace('watch', msg);
 
-    // TODO: RC TEST - backend unreachable --> backend reachable (stop --> start mem-dev)
-
     const watchKey = watchKeyFromMessage(msg);
 
     if (msg.stop) {
@@ -128,7 +146,6 @@ const workerActions = {
 
     // If socket is in error don't try to watch.... unless we `force` it
     if (!msg.force && !!state.watcher?.watches[watchKey]?.error) {
-      // TODO: RC TEST the use case this covers
       return;
     }
 
@@ -147,7 +164,7 @@ const workerActions = {
     } = msg;
 
     const resourceVersionTime = resourceVersion ? Date.now() : undefined;
-    const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType); // TODO: RC there's more no resource versions types, check where this is used
+    const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType);
 
     const watchObject = {
       resourceType,
@@ -161,7 +178,7 @@ const workerActions = {
   unwatch: (watchKey) => {
     trace('unwatch', watchKey);
 
-    // Remove any pending messages in the queue for this watcher
+    // Remove any pending messages related to this resource from the queue
     state.workerQueue = state.workerQueue.filter((workerMessage) => {
       const [, msg] = Object.entries(workerMessage)[0];
       const workerMessageWatchKey = watchKeyFromMessage(msg);
@@ -176,9 +193,13 @@ const workerActions = {
     state.watcher.unwatch(watchKey);
   },
   initWorker: ({ storeName }) => {
+    trace('initWorker', storeName);
+
     state.store = storeName;
   },
   destroyWorker: () => {
+    trace('destroyWorker');
+
     clearInterval(maintenanceInterval);
 
     function destroyWorkerComplete() {
@@ -241,6 +262,7 @@ const resourceWatcherActions = {
     // TODO: RC unwatch --> workerQueue updated --> resource.stop all good, but general resource.stop resource should also be removed from workerQueue?
   },
   'resource.error': (msg) => {
+    // State is handled in the resourceWatcher, no need to bubble out to UI thread
     console.warn(`Resource error [${ state.store }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
   },
   dispatch: (msg) => {

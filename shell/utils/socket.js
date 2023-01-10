@@ -37,6 +37,7 @@ export default class Socket extends EventTarget {
   protocol = null;
   maxTries = null;
   tries = 0;
+  idAsTimestamp = false;
 
   // "Private"
   socket = null;
@@ -48,7 +49,7 @@ export default class Socket extends EventTarget {
   disconnectedAt = 0;
   closingId = 0;
 
-  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null) {
+  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, idAsTimestamp = false) {
     super();
 
     this.setUrl(url);
@@ -57,6 +58,7 @@ export default class Socket extends EventTarget {
     // maxTries = null === never stop trying to reconnect
     // allow maxTries to be defined on individual sockets bc not all will clearly warn the user that we've stopped trying
     this.maxTries = maxTries;
+    this.idAsTimestamp = idAsTimestamp;
 
     if ( frameTimeout !== null ) {
       this.frameTimeout = frameTimeout;
@@ -88,7 +90,7 @@ export default class Socket extends EventTarget {
 
     Object.assign(this.metadata, metadata);
 
-    const id = metadata.idAsTimestamp ? new Date().getTime() : sockId++;
+    const id = this.idAsTimestamp ? new Date().getTime() : sockId++;
     const url = addParam(this.url, 'sockId', id);
 
     this._baseLog('connecting', { id, url: url.replace(/\?.*/, '') });
@@ -314,17 +316,19 @@ export default class Socket extends EventTarget {
       this.state = STATE_RECONNECTING;
 
       if (this.maxTries && this.tries > 1 && this.tries <= this.maxTries) {
-        // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've lost connection and are attemping to reconnect
+        // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've lost connection and are attempting to reconnect
         const e = new CustomEvent(EVENT_CONNECT_ERROR);
 
         this.dispatchEvent(e);
       }
 
       if (this.maxTries && this.tries > this.maxTries) {
+        this._log('closed. Will not reconnect (hit max attempts)');
         this.state = STATE_DISCONNECTED;
         // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've given up trying to reconnect
         this.dispatchEvent(new CustomEvent(EVENT_DISCONNECT_ERROR));
       } else {
+        this._log('closed. Attempting to reconnect');
         const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
 
         this.reconnectTimer = setTimeout(() => {

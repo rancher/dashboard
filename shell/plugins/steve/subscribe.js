@@ -86,6 +86,12 @@ export async function createWorker(store, ctx) {
     },
     dispatch: (msg) => {
       dispatch(`ws.${ msg.name }`, msg);
+    },
+    [EVENT_CONNECT_ERROR]: (e) => {
+      dispatch('error', e );
+    },
+    [EVENT_DISCONNECT_ERROR]: (e) => {
+      dispatch('error', e );
     }
   };
 
@@ -454,7 +460,9 @@ export const actions = {
   async resyncWatch({
     state, getters, dispatch, commit
   }, params) {
-    // TODO: RC CHECK if this is needed/used, need to wire in clearInError to resourceWatcher (or ensure state is updated after resourceWatcher calls this)
+    // TODO: RC TEST if this is needed/used, need to wire in clearInError to resourceWatcher (or ensure state is updated after resourceWatcher calls this)
+    // TODO: RC TEST with steve socket timing out and 'stop'ing resources
+    // TODO: RC TEST this is the only place where forceWatch is used (handled in advanced worker `watch` to override early exit if socket is in error)
     const {
       resourceType, namespace, id, selector
     } = params;

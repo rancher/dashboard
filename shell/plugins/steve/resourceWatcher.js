@@ -5,17 +5,36 @@
 import Socket, {
   NO_WATCH,
   NO_SCHEMA,
-  EVENT_MESSAGE
+  EVENT_MESSAGE,
+  EVENT_CONNECTED,
 } from '@shell/utils/socket';
 import { addParam } from '@shell/utils/url';
 
 export const WATCH_STATUSES = {
-  PENDING:    'pending', // created but not requested of the socket yet
-  REQUESTED:  'requested', // requested but not confirmed by the socket yet
-  WATCHING:   'watching', // confirmed as active by the socket
-  REFRESHING: 'refreshing', // temporarily stopped while we make a full request to the API, will be rewatched afterwards
-  STOPPED:    'stopped', // temporarily stopped via message from the socket, a watch should immediately be triggered but the maintenance cycle will pick it up if that doesn't happen.
-  REMOVED:    'removed' // stop request has been sent to the socket or it's been stopped by the socket itself and is now awaiting a resource.stop message
+  /**
+   * watch has been asked for this resource but not request has not successfully been sent
+   */
+  WATCH_PENDING:    'pending',
+  /**
+   * requested but not confirmed by the socket yet
+   */
+  WATCH_REQUESTED:  'requested',
+  /**
+   * confirmed as active by the socket
+   */
+  WATCHING:         'watching',
+  /**
+   * temporarily stopped via message from the socket, a watch should immediately be triggered but the maintenance cycle will pick it up if that doesn't happen.
+   */
+  STOPPED:          'stopped',
+  /**
+   * stop has been asked for this resource, but request has not successfully been sent
+   */
+  REMOVE_PENDING:   'removed_pending',
+  /**
+   * stop request has been sent to the socket or it's been stopped by the socket itself and is now awaiting a resource.stop message
+   */
+  REMOVE_REQUESTED: 'removed_requested'
 };
 
 export const keyForSubscribe = ({
@@ -45,37 +64,45 @@ export const watchKeyFromMessage = (msg) => {
 };
 
 const {
-  PENDING, REQUESTED, WATCHING, REFRESHING, STOPPED, REMOVED
+  WATCH_PENDING, WATCH_REQUESTED, WATCHING, STOPPED, REMOVE_PENDING, REQUESTED_REMOVE
 } = WATCH_STATUSES;
+
+const debugWorker = true; // TODO: RC toggle
+
+const trace = (...args) => {
+  debugWorker && console.info('Resource Watcher:', ...args); // eslint-disable-line no-console
+};
 
 export default class ResourceWatcher extends Socket {
   watches = {};
-  maintenanceInterval;
-  connectionMetadata;
   status = '';
   csrf;
 
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, csrf) {
-    super(url, autoReconnect, frameTimeout, protocol, maxTries);
+    super(url, autoReconnect, frameTimeout, protocol, maxTries, true);
     this.baseUrl = self.location.origin + url.replace('subscribe', '');
     this.csrf = csrf;
 
-    this.maintenanceInterval = setInterval(() => {
-      // Every 1 second we:
-      if (this.baseUrl) {
-        this.syncWatches();
-      }
-    }, 1000);
-  }
+    this.addEventListener(EVENT_CONNECTED, (e) => {
+      trace(EVENT_CONNECTED, ': processing previously requested or watched resources');
 
-  setConnectionMetadata(connectionMetadata) {
-    if (!this.connectionMetadata) {
-      this.connectionMetadata = {};
-    }
-    this.connectionMetadata = {
-      ...connectionMetadata,
-      idAsTimestamp: true
-    };
+      Object.values(this.watches).forEach((watch) => {
+        const { status } = watch;
+        const watchKey = keyForSubscribe(watch);
+
+        // TODO: RC if a watch is in error, we shouldn't try to re-watch it until we've forced an updated list via resyncWatches
+        // Note - Error state is currently cleared on resource.error --> unwatch --> resource.stop
+        if ([WATCH_PENDING, WATCH_REQUESTED, WATCHING].includes(status)) {
+          trace(EVENT_CONNECTED, ': re-watching previously required resource', watchKey, status);
+          this.watches[watchKey].status = WATCH_PENDING;
+          this.watch(watchKey);
+        } else if ([REMOVE_PENDING].includes(status)) {
+          trace(EVENT_CONNECTED, ': un-watching previously watched resource', watchKey, status);
+          this.watches[watchKey].status = REMOVE_PENDING;
+          this.unwatch(watchKey);
+        }
+      });
+    });
   }
 
   watchExists(watchKey) {
@@ -89,6 +116,15 @@ export default class ResourceWatcher extends Socket {
       namespace: providedNamespace,
       selector: providedSelector
     } = providedKeyParts;
+
+    trace('watch:', 'requested', watchKey);
+
+    if ([WATCH_REQUESTED, WATCHING].includes(this.watches?.[watchKey]?.status)) {
+      trace('watch:', 'already requested or watching', watchKey);
+
+      return;
+    }
+
     const resourceType = providedResourceType || this.watches?.[watchKey]?.resourceType;
     const id = providedId || this.watches?.[watchKey]?.id;
     const namespace = providedNamespace || this.watches?.[watchKey]?.namespace;
@@ -106,6 +142,8 @@ export default class ResourceWatcher extends Socket {
     let resourceVersion = providedResourceVersion || this.watches?.[watchKey]?.resourceVersion;
 
     if (!skipResourceVersion && (!resourceVersion || Date.now() - resourceVersionTime > 300000)) { // 300000ms is 5minutes
+      trace('watch:', 'revision update required', watchKey);
+
       const resourceUrl = this.baseUrl + resourceType;
       const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
       const opt = {
@@ -142,15 +180,18 @@ export default class ResourceWatcher extends Socket {
       // TODO: RC Q if this fails we still go on and try and watch with whatever resourceVersion we have. For those cases we should `resyncWatch`
     }
 
-    if (![PENDING, REQUESTED, WATCHING, REFRESHING].includes(this.watches?.[watchKey]?.status)) {
-      this.watches[watchKey] = {
-        ...watchObject,
-        status: WATCH_STATUSES.PENDING,
-        resourceVersion,
-        resourceVersionTime,
-        skipResourceVersion
-      };
-    }
+    const success = this.send(JSON.stringify({
+      ...watchObject,
+      resourceVersion: !skipResourceVersion ? resourceVersion : undefined
+    }));
+
+    this.watches[watchKey] = {
+      ...watchObject,
+      status: success ? WATCH_STATUSES.WATCH_REQUESTED : WATCH_STATUSES.WATCH_PENDING,
+      resourceVersion,
+      resourceVersionTime,
+      skipResourceVersion
+    };
   }
 
   unwatch(watchKey) {
@@ -165,57 +206,13 @@ export default class ResourceWatcher extends Socket {
       selector
     };
 
-    if (resourceType && this.watches[watchKey].status !== REMOVED) {
-      this.send(JSON.stringify({
+    if (resourceType && this.watches[watchKey].status !== REQUESTED_REMOVE) {
+      const success = this.send(JSON.stringify({
         ...watchObject,
         stop: true
       }));
-      this.watches[watchKey].status = REMOVED;
-    }
-  }
 
-  // TODO: RC Q why can't we just watch/unwatch on demand?
-  syncWatches() {
-    const watchesArray = Object.values(this.watches); // convert to array
-
-    if (this.isConnected()) {
-      if (watchesArray.length > 0) {
-        watchesArray
-          .forEach((watch) => {
-            const {
-              resourceType, id, namespace, selector, resourceVersion, status, skipResourceVersion
-            } = watch;
-            const watchObject = {
-              resourceType,
-              id,
-              namespace,
-              selector
-            };
-            const watchKey = keyForSubscribe(watchObject);
-
-            if (status === PENDING) {
-              this.send(JSON.stringify({
-                ...watchObject,
-                resourceVersion: !skipResourceVersion ? resourceVersion : undefined
-              }));
-              this.watches[watchKey].status = REQUESTED;
-            }
-          });
-      }
-    } else if (watchesArray.length > 0) {
-      watchesArray
-        .forEach((watch) => {
-          const { status } = watch;
-          const watchKey = keyForSubscribe(watch);
-
-          if ([PENDING, REQUESTED, WATCHING, REFRESHING].includes(status)) {
-            this.watch(watchKey);
-          } else {
-            delete this.watches[watchKey];
-          }
-        });
-
-      this.connect(this.connectionMetadata);
+      this.watches[watchKey].status = success ? REQUESTED_REMOVE : REMOVE_PENDING;
     }
   }
 
@@ -234,10 +231,11 @@ export default class ResourceWatcher extends Socket {
       selector
     });
 
-    if (eventName === 'resource.start' && this.watches?.[watchKey]?.status === REQUESTED) {
+    if (eventName === 'resource.start' && this.watches?.[watchKey]?.status === WATCH_REQUESTED) {
+      // TODO: RC Q whenever we receive this start event... we'll be getting updates for it... and should be tracking (regardless of if the current status is requested?)
       this.watches[watchKey].status = WATCHING;
     } else if (eventName === 'resource.stop' && this.watches?.[watchKey]) {
-      if (this.watches?.[watchKey]?.status === REMOVED) {
+      if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
         delete this.watches[watchKey];
       } else {
         // TODO: RC TEST with steve socket timing out and 'stop'ing resources
@@ -252,8 +250,13 @@ export default class ResourceWatcher extends Socket {
 
       if ( this.watches[watchKey] && err.includes('watch not allowed') ) {
         this.watches[watchKey].error = { type: resourceType, reason: NO_WATCH };
-        this.unwatch(watchKey);
+        this.unwatch(watchKey);// TODO: RC Q shouldn't we not unwatch... because any attempt to then
       } else if ( this.watches[watchKey] && err.includes('failed to find schema') ) {
+        // This can happen when the cattle-cluster-agent goes down (redeploy deployment, kill pod, etc)
+        // The previous method was just to track the error and block any further attempts to watch (canWatch)
+        // This method means we can retry on the next findX (should be safe, unless there are other use cases...)
+
+        // Note - applying anything to the `error` here is cleared when the entry is wiped on successful resource.stop
         this.watches[watchKey].error = { type: resourceType, reason: NO_SCHEMA };
         this.unwatch(watchKey);
       } else if ( err.includes('too old') ) {
