@@ -1,4 +1,5 @@
 {
-  "reporter": [ "json", "text-summary"],
+  "extension": [ "js", "ts", "vue"],
+  "reporter": [ "json", "text-summary", "html"],
   "report-dir": "coverage/e2e"
 }

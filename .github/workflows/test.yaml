@@ -47,7 +47,7 @@ jobs:
         run: |
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3
@@ -56,7 +56,7 @@ jobs:
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
@@ -79,7 +79,7 @@ jobs:
         run: |
           yarn test:ci
           mkdir -p coverage-artifacts/coverage
-          cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
+          cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3
@@ -134,7 +134,7 @@ jobs:
           node-version: '14.x'
 
       - name: Download Coverage Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 
@@ -150,7 +150,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit
-          files: ./coverage/coverage-unit.json
+          files: ./coverage/unit/coverage-final.json
           fail_ci_if_error: false
 
       - name: Upload e2e test coverage to Codecov
@@ -158,7 +158,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: e2e
-          files: ./coverage/coverage-e2e.json
+          files: ./coverage/e2e/coverage-final.json
           fail_ci_if_error: false
 
       - name: Upload merged coverage to Codecov
@@ -166,5 +166,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: merged
-          files: ./coverage/coverage.json
+          files: ./coverage/combined/coverage-final.json
           fail_ci_if_error: false
