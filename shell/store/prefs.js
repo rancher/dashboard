@@ -120,6 +120,8 @@ export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', fals
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
 
+// Prompt for confirm node deletion when scaling down node pool in GUI
+export const SCALE_POOL_PROMPT = create('scalePoolPrompt', '', { parseJSON });
 // --------------------
 
 const cookiePrefix = 'R_';

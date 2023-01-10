@@ -7,6 +7,7 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { isAlternate } from '@shell/utils/platform';
+import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
@@ -101,11 +102,12 @@ export default class CapiMachineDeployment extends SteveModel {
     return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
   }
 
-  toggleScaleDownModal( event, showScalePoolPrompt, resources = this ) {
+  toggleScaleDownModal( event, resources = this ) {
     // Check if the user held alt key when an action is clicked.
     const alt = isAlternate(event);
+    const showScalePoolPrompt = this.$rootGetters['prefs/get'](SCALE_POOL_PROMPT);
 
-    // Prompt if showScalePoolPrompt cookies not store and user did not held alt key
+    // Prompt if showScalePoolPrompt pref not store and user did not held alt key
     if (!alt && !showScalePoolPrompt) {
       this.$dispatch('promptModal', {
         component:  'ScalePoolDownDialog',

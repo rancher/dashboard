@@ -2,6 +2,7 @@
 import { Card } from '@components/Card';
 import { alternateLabel } from '@shell/utils/platform';
 import { Checkbox } from '@components/Form/Checkbox';
+import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
 
 export default {
   components: { Card, Checkbox },
@@ -33,13 +34,13 @@ export default {
     },
   },
   created() {
-    const showScalePoolPrompt = this.$cookies.get('scalePoolPrompt');
+    const showScalePoolPrompt = this.$store.getters['prefs/get'](SCALE_POOL_PROMPT);
 
-    // Check for showScalePoolPrompt cookies
-    // If undefined set cookies and update promt checkbox
-    if ( showScalePoolPrompt === undefined ) {
+    // Check for showScalePoolPrompt pref
+    // If it is not set, set it to true and update promt checkbox
+    if ( showScalePoolPrompt === '' ) {
       this.promptConfirmation = true;
-      this.$cookies.set('scalePoolPrompt', true);
+      this.$store.dispatch('prefs/set', { key: SCALE_POOL_PROMPT, value: true });
     } else {
       this.promptConfirmation = showScalePoolPrompt;
     }
@@ -51,7 +52,7 @@ export default {
     },
 
     update() {
-      this.$cookies.set('scalePoolPrompt', !!this.promptConfirmation);
+      this.$store.dispatch('prefs/set', { key: SCALE_POOL_PROMPT, value: !!this.promptConfirmation });
     },
 
     remove() {
