@@ -53,11 +53,12 @@ export default class ResourceWatcher extends Socket {
   maintenanceInterval;
   connectionMetadata;
   status = '';
+  csrf;
 
-  // TODO: RC Q csrf not used here. references in `this.csrf` though
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, csrf) {
     super(url, autoReconnect, frameTimeout, protocol, maxTries);
     this.baseUrl = self.location.origin + url.replace('subscribe', '');
+    this.csrf = csrf;
 
     this.maintenanceInterval = setInterval(() => {
       // Every 1 second we:
@@ -117,7 +118,6 @@ export default class ResourceWatcher extends Socket {
         opt.headers['x-api-csrf'] = this.csrf;
       }
 
-      // ToDo: need to find a way to sync the csrf header into the worker since it can't directly access the cookies...
       await fetch(limitedResourceUrl, opt)
         .then((res) => {
           this.watches[watchKey] = { ...watchObject };
