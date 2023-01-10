@@ -12,11 +12,4 @@ export default config(__dirname, {
   excludes: excludes.replace(/\s/g, '').split(','),
   // excludes: ['fleet', 'example']
   // autoLoad: ['fleet', 'example']
-  build:    {
-    extend(config, ctx) {
-      if (ctx.isDev) {
-        config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map';
-      }
-    }
-  }
 });
