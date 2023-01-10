@@ -162,8 +162,6 @@ $icon-size: 24px;
     line-height: 20px;
     width: 100%;
     border-left: solid $left-border-size transparent;
-    align-items: center;
-    flex-direction: row;
     display: flex;
 
     .primary & {
