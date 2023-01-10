@@ -165,11 +165,13 @@ export default {
           width: 10px;
           margin: 0 0 0 10px;
           flex: 0 0 auto;
+          align-items: center;
         }
 
         .fold-button svg {
           display: block;
           fill: var(--input-label);
+          height: 10px;
         }
 
         .fold-button.open svg {

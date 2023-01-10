@@ -70,11 +70,19 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="if-wrapper">
     <VerrazzanoWebLogic8Workload v-if="isV8Domain" :value="value" :mode="mode" />
     <VerrazzanoWebLogic9Workload v-else :value="value" :mode="mode" />
   </div>
 </template>
 
+<style lang='scss' scoped src="@pkg/assets/styles/verrazzano.scss">
+</style>
+
 <style scoped>
+.if-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
 </style>

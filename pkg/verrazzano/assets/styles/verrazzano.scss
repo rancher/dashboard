@@ -8,11 +8,12 @@
 // surround the form content so that
 // tree nav and content will scroll independently
 .tree-tabbed-form {
+    display: flex;
     height: 10px;
     flex: 1 1 auto;
 
     .cru {
-        height: 100%;
+        flex: 1 1 auto;
     }
 
     .tree-tabbed {
