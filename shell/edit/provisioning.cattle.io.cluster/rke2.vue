@@ -303,7 +303,6 @@ export default {
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
     ...mapGetters({ features: 'features/get' }),
-    ...mapGetters({ rancherDocsBase: 'rancherDocsBase' }),
 
     PUBLIC:   () => PUBLIC,
     PRIVATE:  () => PRIVATE,
@@ -1705,7 +1704,7 @@ export default {
         v-if="isEdit"
         color="warning"
       >
-        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {docsBase: rancherDocsBase}, true)" />
+        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', true)" />
       </Banner>
       <Banner
         v-if="isEdit && displayInvalidPspsBanner"

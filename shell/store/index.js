@@ -11,7 +11,6 @@ import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@shell/config/query-params';
 import { setBrand, setVendor } from '@shell/config/private-label';
-import { getDocsBase } from '@shell/utils/version';
 import { addParam } from '@shell/utils/url';
 import { SETTING } from '@shell/config/settings';
 import semver from 'semver';
@@ -504,10 +503,6 @@ export const getters = {
     return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
   },
 
-  rancherDocsBase(state, getters) {
-    return getDocsBase({ getters });
-  },
-
   ...gcGetters
 };
 
@@ -616,7 +611,6 @@ export const actions = {
     } catch (e) {
       // Maybe not Rancher
     }
-    dispatch('management/findLatestVersion');
 
     let res = await allHashSettled({
       mgmtSubscribe:  dispatch('management/subscribe'),

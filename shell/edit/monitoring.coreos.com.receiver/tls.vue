@@ -9,7 +9,6 @@
  */
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
-import { mapGetters } from 'vuex';
 
 export default {
   components: { Banner, LabeledInput },
@@ -28,7 +27,6 @@ export default {
 
     return {};
   },
-  computed: { ...mapGetters({ rancherDocsBase: 'rancherDocsBase' }) }
 };
 </script>
 
@@ -39,7 +37,7 @@ export default {
         <h3>{{ t('monitoring.receiver.tls.label') }}</h3>
         <Banner
           color="info"
-          v-html="t('monitoring.receiver.tls.secretsBanner', {docsBase: rancherDocsBase}, true)"
+          v-html="t('monitoring.receiver.tls.secretsBanner', {}, true)"
         />
       </div>
     </div>

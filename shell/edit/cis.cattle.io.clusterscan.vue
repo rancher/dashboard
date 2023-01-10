@@ -84,9 +84,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters({
-      currentCluster: 'currentCluster', t: 'i18n/t', rancherDocsBase: 'rancherDocsBase'
-    }),
+    ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
 
     canBeScheduled() {
       // check if scan was created and run with an older cis install that doesn't support scheduling/alerting/warn state
@@ -176,6 +174,7 @@ export default {
 
       return !!this.value.spec.scanProfileName;
     }
+
   },
 
   watch: {
@@ -323,7 +322,7 @@ export default {
                 class="mt-0"
                 :color="hasAlertManager ? 'info' : 'warning'"
               >
-                <span v-html="t('cis.alertNeeded', {link: monitoringUrl, docsBase: rancherDocsBase}, true)" />
+                <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
               </banner>
               <Checkbox
                 v-model="scanAlertRule.alertOnComplete"
