@@ -1,5 +1,6 @@
 import { SCHEMA } from '@shell/config/types';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
+import { removeSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
@@ -70,8 +71,7 @@ const workerActions = {
     schemas.forEach((schema) => {
       // These properties are added to the object, but aren't on the raw object, so remove them
       // otherwise our comparison will show changes when there aren't any
-      delete schema._id;
-      delete schema._group;
+      removeSchemaIndexFields(schema);
 
       state.schemas[schema.id] = hashObj(schema);
     });

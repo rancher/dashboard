@@ -6,6 +6,7 @@ import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
+import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -48,10 +49,7 @@ export async function loadSchemas(ctx, watch = true) {
     res.data = res.concat(spoofedTypes);
   }
 
-  res.data.forEach((schema) => {
-    schema._id = normalizeType(schema.id);
-    schema._group = normalizeType(schema.attributes?.group);
-  });
+  res.data.forEach(addSchemaIndexFields);
 
   commit('loadAll', {
     ctx,

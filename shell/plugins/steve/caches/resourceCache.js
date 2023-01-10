@@ -1,6 +1,6 @@
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { keyFieldFor, normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import { addSchemaIndexFields } from '@shell/models/schema';
+import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 
 export default class ResourceCache {

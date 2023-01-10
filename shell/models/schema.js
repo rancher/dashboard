@@ -1,22 +1,9 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
-import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 
 export default class Schema extends Resource {
   get groupName() {
     return this.attributes.namespaced ? 'ns' : 'cluster';
   }
-}
-
-/**
- * Inject special fields for indexing schemas
- *
- * Note
- * This mutates input in a function, which is bad...
- * but ensures the reference isn't broken, which is needed to maintain similar functionality as before
- */
-export function addSchemaIndexFields(data) {
-  data._id = normalizeType(data.id);
-  data._group = normalizeType(data.attributes?.group);
 }
 
 export function parseType(str) {

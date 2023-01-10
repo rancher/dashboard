@@ -8,7 +8,7 @@ import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resou
 import ResourceCache from '@shell/plugins/steve/caches/resourceCache';
 import { EVENT_MESSAGE } from '@shell/utils/socket';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
-import { addSchemaIndexFields } from '@shell/models/schema';
+import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
 // import { CSRF } from '@shell/config/cookies';
 
@@ -27,7 +27,7 @@ const state = {
   store:        '', // Store name
   workerQueue:  [],
   batchChanges: {},
-  fetchConfig:  {}
+  fetchConfig:  {} // TODO: RC Q not used anymore?
 };
 
 const maintenanceInterval = setInterval(() => {
@@ -238,6 +238,7 @@ const resourceWatcherActions = {
   },
   'resource.stop': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
+    // TODO: RC unwatch --> workerQueue updated --> resource.stop all good, but general resource.stop resource should also be removed from workerQueue?
   },
   'resource.error': (msg) => {
     console.warn(`Resource error [${ state.store }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
