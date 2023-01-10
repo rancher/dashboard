@@ -7,8 +7,7 @@ import { SCHEMA, COUNT } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
 import ResourceCache from '@shell/plugins/steve/caches/resourceCache';
 import { EVENT_MESSAGE } from '@shell/utils/socket';
-import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import { keyFieldFor } from '@shell/plugins/dashboard-store/normalize'; // ToDo: SM we need to use this...
+import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/models/schema';
 
 // import { CSRF } from '@shell/config/cookies';
@@ -232,9 +231,9 @@ const resourceWatcherActions = {
     const { type, id } = makeResourceProps(msg);
 
     if (caches[type]) {
-      caches[type].remove(id, () => workerActions.updateBatch(type, id, { remove: true }));
+      caches[type].remove(id, () => workerActions.updateBatch(type, id, {}));
     } else {
-      workerActions.updateBatch(type, id, { remove: true }); // ToDo: SM passing an empty object could be an effective way of signalling that a resource was removed
+      workerActions.updateBatch(type, id, {});
     }
   },
   'resource.stop': (msg) => {

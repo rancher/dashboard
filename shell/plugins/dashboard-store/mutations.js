@@ -189,7 +189,8 @@ export function batchChanges(state, { ctx, batch }) {
       const index = typeCacheIndexMap[id];
       const resource = batch[normalizedType][id];
 
-      if (resource.remove && !!index) {
+      // an empty resource passed into batch changes is how we'll signal which ones to delete
+      if (Object.keys(resource).length === 0 && !!index) {
         typeCache.map.delete(id);
         removeAtIndexes.push(index);
       } else {
