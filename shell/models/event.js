@@ -24,4 +24,11 @@ export default class K8sEvent extends SteveModel {
   get eventType() {
     return this._type;
   }
+
+  get lastSeen() {
+    const schema = this.$getters['schemaFor'](this.type);
+    const rowValueGetter = this.$rootGetters['type-map/rowValueGetter'];
+
+    return schema && rowValueGetter ? rowValueGetter(schema, 'Last Seen')(this) : null;
+  }
 }
