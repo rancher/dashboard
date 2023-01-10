@@ -109,3 +109,29 @@ export function hexToRgb(hex) {
 export function mapStandardColors(color) {
   return STANDARD_COLORS[color] || color;
 }
+
+export function rgbToRgb(rgb) {
+  const result = /^rgb\(([0-9]{1,3}),\s*([0-9]{1,3}),\s*([0-9]{1,3})\)$/i.exec(rgb);
+
+  return result ? {
+    r: parseInt(result[1], 10),
+    g: parseInt(result[2], 10),
+    b: parseInt(result[3], 10)
+  } : null;
+}
+
+export function colorToRgb(color) {
+  let value;
+
+  if (color.startsWith('rgb(')) {
+    value = rgbToRgb(color);
+  } else if (color.startsWith('#')) {
+    value = hexToRgb(color);
+  } else {
+    console.warn(`Unable to parse color: ${ color }`); // eslint-disable-line no-console
+  }
+
+  return value || {
+    r: 0, g: 0, b: 0
+  };
+}

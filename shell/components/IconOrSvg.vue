@@ -16,8 +16,9 @@
  * and then injecting custom css into the document so that any icons included via svg will
  * show with the desired colors for the theme.
  */
+import Vue from 'vue';
 import { Solver } from '@shell/utils/svg-filter';
-import { hexToRgb, mapStandardColors } from '@shell/utils/color';
+import { colorToRgb, mapStandardColors } from '@shell/utils/color';
 
 const filterCache = {};
 const cssCache = {};
@@ -51,56 +52,74 @@ export default {
   },
 
   data() {
-    const uiColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].color).trim());
-    const hoverColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].hover).trim());
-    const className = `svg-icon-${ uiColor.substr(1) }-${ hoverColor.substr(1) }`;
-
-    if (!cssCache[className]) {
-      let hoverFilter = filterCache[hoverColor];
-
-      if (!hoverFilter) {
-        const solver = new Solver(hexToRgb(hoverColor));
-        const res = solver.solve();
-
-        hoverFilter = res?.filter;
-        filterCache[hoverColor] = hoverFilter;
-      }
-
-      let mainFilter = filterCache[uiColor];
-
-      if (!mainFilter) {
-        const solver = new Solver(hexToRgb(uiColor));
-        const res = solver.solve();
-
-        mainFilter = res?.filter;
-        filterCache[uiColor] = mainFilter;
-      }
-
-      // Add stylesheet (added as global styles)
-      const styles = `
-        img.${ className } {
-          ${ mainFilter };
-        }
-        img.${ className }:hover {
-          ${ hoverFilter };
-        }
-        button:hover > img.${ className } {
-          ${ hoverFilter };
-        }
-        a.option:hover > img.${ className } {
-          ${ hoverFilter };
-        }      `;
-
-      const styleSheet = document.createElement('style');
-
-      styleSheet.innerText = styles;
-      document.head.appendChild(styleSheet);
-
-      cssCache[className] = true;
-    }
-
-    return { className };
+    return { className: '' };
   },
+
+  created() {
+    if (this.src) {
+      this.setColor();
+    }
+  },
+
+  methods: {
+    setColor() {
+      const uiColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].color).trim());
+      const hoverColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].hover).trim());
+
+      const uiColorRGB = colorToRgb(uiColor);
+      const hoverColorRGB = colorToRgb(hoverColor);
+      const uiColorStr = `${ uiColorRGB.r }-${ uiColorRGB.g }-${ uiColorRGB.b }`;
+      const hoverColorStr = `${ hoverColorRGB.r }-${ hoverColorRGB.g }-${ hoverColorRGB.b }`;
+
+      const className = `svg-icon-${ uiColorStr }-${ hoverColorStr }`;
+
+      if (!cssCache[className]) {
+        let hoverFilter = filterCache[hoverColor];
+
+        if (!hoverFilter) {
+          const solver = new Solver(hoverColorRGB);
+          const res = solver.solve();
+
+          hoverFilter = res?.filter;
+          filterCache[hoverColor] = hoverFilter;
+        }
+
+        let mainFilter = filterCache[uiColor];
+
+        if (!mainFilter) {
+          const solver = new Solver(uiColorRGB);
+          const res = solver.solve();
+
+          mainFilter = res?.filter;
+          filterCache[uiColor] = mainFilter;
+        }
+
+        // Add stylesheet (added as global styles)
+        const styles = `
+          img.${ className } {
+            ${ mainFilter };
+          }
+          img.${ className }:hover {
+            ${ hoverFilter };
+          }
+          button:hover > img.${ className } {
+            ${ hoverFilter };
+          }
+          a.option:hover > img.${ className } {
+            ${ hoverFilter };
+          }      `;
+
+        const styleSheet = document.createElement('style');
+
+        styleSheet.innerText = styles;
+        document.head.appendChild(styleSheet);
+
+        cssCache[className] = true;
+      }
+
+      Vue.set(this, 'className', className);
+    }
+  }
 };
 </script>
 
