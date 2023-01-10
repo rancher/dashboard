@@ -216,7 +216,12 @@ export default {
       const text = event.clipboardData.getData('text/plain');
       const split = text.split('\n').map(value => ({ value }));
 
-      this.rows.splice(index, 1, ...split);
+      if (split.length > 1) {
+        this.rows.splice(index, 1, ...split);
+      } else {
+        this.rows[index].value = `${ this.rows[index].value }${ text }`;
+      }
+
       this.update();
     }
   },
