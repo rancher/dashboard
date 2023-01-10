@@ -94,6 +94,7 @@ sw.*
 # Cypress e2e testing
 cypress/videos
 cypress/screenshots
+cypress/downloads
 
 # Storybook
 storybook-static/

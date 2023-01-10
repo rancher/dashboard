@@ -45,7 +45,7 @@
     "e2e:dev": "START_SERVER_AND_TEST_INSECURE=1 server-test start:dev https-get://localhost:8005 cy:run:sorry",
     "e2e:pre-prod": "yarn docker:local:stop && yarn docker:local:start && DEV_PORTS=true TEST_INSTRUMENT=true yarn build",
     "e2e:prod": "START_SERVER_AND_TEST_INSECURE=1 server-test start:prod https-get://localhost:8005 cy:run:sorry",
-    "coverage": "npx nyc merge coverage coverage/coverage.json",
+    "coverage": "node ./scripts/e2e-coverage",
     "storybook": "cd storybook && yarn install && yarn storybook",
     "build-storybook": "cd storybook && yarn install && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
     "docs:install": "cd docusaurus/ && yarn install",
@@ -153,7 +153,7 @@
     "@vue/cli-service": "4.5.18",
     "@vue/eslint-config-standard": "5.1.2",
     "@vue/test-utils": "1.2.1",
-    "@vue/vue2-jest": "27.0.0",
+    "@vue/vue2-jest": "29",
     "add": "2.0.6",
     "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "10.1.0",
@@ -197,11 +197,5 @@
   },
   "resolutions": {
     "**/webpack": "4"
-  },
-  "nyc": {
-    "reporter": [
-      "json"
-    ],
-    "report-dir": "coverage/e2e"
   }
 }

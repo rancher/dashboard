@@ -18,7 +18,7 @@ module.exports = {
   transform: {
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
     '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue2-jest', // process `*.vue` files with `vue-jest`
-    '^.+\\.tsx?$': 'ts-jest' // process `*.ts` files with `ts-jest`
+    '^.+\\.tsx?$': '<rootDir>/node_modules/babel-jest', // process ts with `babel-jest`
   },
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
   collectCoverage:     false,
@@ -39,7 +39,7 @@ module.exports = {
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
   coverageDirectory: '<rootDir>/coverage/unit',
-  coverageReporters: ['json', 'text-summary'],
+  coverageReporters: ['json', 'text-summary', 'html'],
   globals:           { 'ts-jest': { isolatedModules: true } },
   preset:            'ts-jest'
 };

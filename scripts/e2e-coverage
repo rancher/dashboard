@@ -1,0 +1,148 @@
+#!/usr/bin/env node
+
+/**
+ * This script will process the coverage reports and generate a combined coverage report
+ * 
+ * It ensures that both unit and e2e reports report over the same set of files. To do this, it reads
+ * in both the unit and e2e test report JSON files and generates blank coverage reports for the set of files in each.
+ * In then goes through each report and merges in the blank coverage foe any files that are not in the report already.
+ */
+
+const libReport = require('istanbul-lib-report');
+const reports = require('istanbul-reports');
+const libCoverage = require('istanbul-lib-coverage');
+const fs = require('fs');
+const path = require('path');
+
+const rootDir = path.resolve(__dirname, '..');
+
+const emptyCoverages = [];
+const inputJSONs = [];
+
+const toProcess = [
+  'coverage/unit/coverage-final.json',
+  'coverage/e2e/coverage-final.json'
+];
+
+console.log('Test Report Coverage post-processor');
+console.log('===================================');
+
+function readReport(fp) {
+  const raw = fs.readFileSync(fp);
+  const data = JSON.parse(raw);
+
+  const nuxtDir = path.join(rootDir, '.nuxt');
+  // const utilsDir = path.join(rootDir, 'shell/utils');
+
+  Object.keys(data).forEach((key) => {
+    if (key.startsWith(nuxtDir)) {
+      delete data[key];
+    }
+  });
+
+  return data;
+}
+
+toProcess.forEach((file) => {
+  const fp = path.join(rootDir, file);
+
+  if (fs.existsSync(fp)) {
+    inputJSONs.push({
+      path: fp,
+      data: readReport(fp)
+    });
+  }
+});
+
+function blankReport(src) {
+  const dest = JSON.parse(JSON.stringify(src));
+
+  Object.values(dest).forEach((obj) => {
+    Object.keys(obj.s).forEach(i => obj.s[i] = 0);
+    Object.keys(obj.f).forEach(i => obj.f[i] = 0);
+    Object.keys(obj.b).forEach(i => {
+      const count = obj.b[i].length;
+
+      const array = [];
+      for(a=0;a<count;a++) {
+        array.push(0);
+      }
+      
+      obj.b[i] = array;
+    });
+  });
+
+  return dest;
+}
+
+function addEmpty(report, empty) {
+  Object.keys(empty).forEach((key) => {
+    if (!report[key]) {
+      report[key] = empty[key];
+    };
+  });
+}
+
+function generateHTMLReport(inputs, outFile) {
+  const map = libCoverage.createCoverageMap();
+  const summary = libCoverage.createCoverageSummary();
+  const coverageJSONs = inputs.map((d) => d.data);
+
+  coverageJSONs.forEach((json) => {
+    const jsonCoverageMap = libCoverage.createCoverageMap(json);
+  
+    map.merge(jsonCoverageMap);
+  });
+
+  // inspect and summarize all file coverage objects in the map
+  map.files().forEach(function(f) {
+    const fc = map.fileCoverageFor(f);
+    const s = fc.toSummary();
+
+    summary.merge(s);
+  });
+
+  // create a context for report generation
+  const context = libReport.createContext({
+    dir: path.dirname(outFile),
+    defaultSummarizer: 'nested',
+    coverageMap: map,
+  });
+
+  // create an instance of the relevant report class, passing the
+  // report name e.g. json/html/html-spa/text
+  const html = reports.create('html');
+
+  // call execute to synchronously create and write the report to disk
+  html.execute(context);
+
+  // Write out the updated JSON
+  fs.writeFileSync(outFile, JSON.stringify(map));
+}
+
+inputJSONs.forEach((report) => {
+  const blank = blankReport(report.data);
+
+  emptyCoverages.push(blank);
+});
+
+// Update the reports to have the same set of file data
+inputJSONs.forEach((report) => {
+  console.log('Processing ' + report.path);
+  emptyCoverages.forEach((empty) => {
+    addEmpty(report.data, empty);
+  });
+
+  // Generate the HTML Report again
+  console.log('  + Generating HTML report');
+  generateHTMLReport([report], report.path);
+});
+
+console.log('Combining unit and E2E reports');
+
+const fp = path.join(rootDir, 'coverage/combined') ;
+
+fs.rmSync(fp, { recursive: true, force: true });
+fs.mkdirSync(fp);
+
+generateHTMLReport(inputJSONs, path.join(fp, 'coverage-final.json'));
