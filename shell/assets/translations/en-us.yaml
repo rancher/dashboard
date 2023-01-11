@@ -1725,6 +1725,8 @@ cluster:
     cloudProvider:
       label: Cloud Provider
       header: Cloud Provider Config
+      defaultValue:
+        label: Default - RKE2 Embedded
     security:
       header: Security
     defaultPodSecurityPolicyTemplateName:
