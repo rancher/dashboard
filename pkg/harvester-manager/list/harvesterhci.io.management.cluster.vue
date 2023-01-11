@@ -4,7 +4,7 @@ import TypeDescription from '@shell/components/TypeDescription';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import Loading from '@shell/components/Loading';
-import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { CAPI, HCI, MANAGEMENT } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { allHash } from '@shell/utils/promise';
