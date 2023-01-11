@@ -1,4 +1,4 @@
-import { addObject, removeObject } from '@shell/utils/array';
+import { addObject } from '@shell/utils/array';
 import { NAMESPACE, POD, SCHEMA } from '@shell/config/types';
 import {
   forgetType,
@@ -12,7 +12,6 @@ import {
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
-import { classify } from '@shell/plugins/dashboard-store/classify';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -49,9 +48,8 @@ function updatePodsByNamespaceCache(state, pods, loadAll) {
       replace(existing, entry);
     } else {
       addObject(cache.list, entry);
+      cache.map.set(entry.id, entry);
     }
-
-    cache.map.set(entry.id, entry);
   });
 }
 
@@ -64,27 +62,35 @@ function cleanPodsByNamespaceCache(state, resource) {
 
     // Extra defensive check that the cache exists for the namespace being removed
     if (cache) {
-      removeObject(cache.list, cache.map.get(resource.id));
+      const inList = cache.list.findIndex(p => p.id === resource.id);
+
+      if ( inList >= 0 ) {
+        cache.list.splice(inList, 1);
+      }
       cache.map.delete(resource.id);
     }
   } else if (resource && resource.type === NAMESPACE) {
     // Namespace deleted
-    delete state.podsByNamespace[resource.namespace];
+    delete state.podsByNamespace[resource.id];
   }
 }
 
 export default {
   batchChanges(state, { ctx, batch }) {
+    batchChanges(state, { ctx, batch });
+
     if (batch[POD]) {
       const newAndChangedPods = Object.entries(batch[POD]).reduce((pods, [id, pod]) => {
-        // resource.remove & resource.change will already exist in store, resource.create will need classifying
-        const classyResource = state.types[POD].map.get(id) || classify(ctx, pod);
-
         if (pod.id) {
-          pods.push(classyResource);// get classified version
+          // resource.create and resource.change
+          pods.push(state.types[POD].map.get(id));// get classified version
         } else {
-          // remove empty objects (meant for remove)
-          cleanPodsByNamespaceCache(state, classyResource);
+          // resource.remove (note - we've already lost the resource in the store, so pass through mocked one)
+          cleanPodsByNamespaceCache(state, {
+            id,
+            type:      POD,
+            namespace: id.substring(0, id.indexOf('/'))
+          });
         }
 
         return pods;
@@ -95,19 +101,15 @@ export default {
 
     if (batch[NAMESPACE]) {
       Object.entries(batch[NAMESPACE]).forEach(([id, namespace]) => {
-        // resource.remove & resource.change will already exist in store, resource.create will need classifying
-        const classyResource = state.types[NAMESPACE].map.get(id) || classify(ctx, namespace);
-
         if (!namespace.id) {
-          // get classified version
-          // const classyResource = state.types[NAMESPACE].list.forEach(ns => console.warn(ns.id, ns.namespace));
-
-          cleanPodsByNamespaceCache(state, classyResource);
+          // resource.remove (note - we've already lost the resource in the store, so pass through mocked one)
+          cleanPodsByNamespaceCache(state, {
+            id,
+            type: NAMESPACE,
+          });
         }
       });
     }
-
-    batchChanges(state, { ctx, batch });
   },
 
   loadAll(state, {
@@ -172,6 +174,6 @@ export default {
   remove(state, obj) {
     remove(state, obj, this.getters);
 
-    cleanPodsByNamespaceCache(obj);
+    cleanPodsByNamespaceCache(state, obj);
   }
 };
