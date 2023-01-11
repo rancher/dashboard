@@ -186,9 +186,10 @@ function growlsDisabled(rootGetters) {
   return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
 }
 
-// TODO: RC move `Covers 1 & 2 - Handles subscription within this file` out into own getters, etc objs
-
-export const actions = {
+/**
+ * Actions that cover all cases (see file description)
+ */
+const sharedActions = {
   async subscribe(ctx, opt) {
     const {
       state, commit, dispatch, getters, rootGetters
@@ -285,63 +286,6 @@ export const actions = {
     }
 
     return Promise.all(cleanupTasks);
-  },
-
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
-  async flush({
-    state, commit, dispatch, getters
-  }) {
-    const queue = state.queue;
-    let toLoad = [];
-
-    if ( !queue.length ) {
-      return;
-    }
-
-    const started = new Date().getTime();
-
-    state.queue = [];
-
-    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length, 'items'); // eslint-disable-line no-console
-
-    for ( const { action, event, body } of queue ) {
-      if ( action === 'dispatch' && event === 'load' ) {
-        // Group loads into one loadMulti when possible
-        toLoad.push(body);
-      } else {
-        // When we hit a different kind of event, process all the previous loads, then the other event.
-        if ( toLoad.length ) {
-          await dispatch('loadMulti', toLoad);
-          toLoad = [];
-        }
-
-        if ( action === 'dispatch' ) {
-          await dispatch(event, body);
-        } else if ( action === 'commit' ) {
-          commit(event, body);
-        } else {
-          throw new Error('Invalid queued action');
-        }
-      }
-    }
-
-    // Process any remaining loads
-    if ( toLoad.length ) {
-      await dispatch('loadMulti', toLoad);
-    }
-
-    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }] finished`, (new Date().getTime()) - started, 'ms'); // eslint-disable-line no-console
-  },
-
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
-  rehydrateSubscribe({ state, dispatch }) {
-    if ( process.client && state.wantSocket && !state.socket ) {
-      dispatch('subscribe');
-    }
   },
 
   watch({
@@ -441,27 +385,7 @@ export const actions = {
     }
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
-  reconnectWatches({
-    state, getters, commit, dispatch
-  }) {
-    const promises = [];
-
-    for ( const entry of state.started.slice() ) {
-      console.info(`Reconnect [${ getters.storeName }]`, JSON.stringify(entry)); // eslint-disable-line no-console
-
-      if ( getters.schemaFor(entry.type) ) {
-        commit('setWatchStopped', entry);
-        delete entry.revision;
-        promises.push(dispatch('watch', entry));
-      }
-    }
-
-    return Promise.all(promises);
-  },
-
+  // TODO: RC resyncWatches / #5997 move out if not needed
   async resyncWatch({
     state, getters, dispatch, commit
   }, params) {
@@ -525,9 +449,106 @@ export const actions = {
     }
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
+  'ws.ping'({ getters, dispatch }, msg) {
+    if ( getters.storeName === 'management' ) {
+      const version = msg?.data?.version || null;
+
+      dispatch('updateServerVersion', version, { root: true });
+      console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
+    }
+  },
+};
+
+/**
+ * Mutations that cover all cases (both subscriptions here and in advanced worker)
+ */
+const sharedMutations = {
+  // TODO: RC resyncWatches / #5997 move out if not needed
+  clearInError(state, msg) {
+    const key = keyForSubscribe(msg);
+
+    delete state.inError[key];
+  },
+
+  debug(state, on) {
+    state.debugSocket = on !== false;
+  },
+};
+
+/**
+ * Actions that cover cases 1 & 2 (see file description)
+ */
+const defaultActions = {
+
+  async flush({
+    state, commit, dispatch, getters
+  }) {
+    const queue = state.queue;
+    let toLoad = [];
+
+    if ( !queue.length ) {
+      return;
+    }
+
+    const started = new Date().getTime();
+
+    state.queue = [];
+
+    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }]`, queue.length, 'items'); // eslint-disable-line no-console
+
+    for ( const { action, event, body } of queue ) {
+      if ( action === 'dispatch' && event === 'load' ) {
+        // Group loads into one loadMulti when possible
+        toLoad.push(body);
+      } else {
+        // When we hit a different kind of event, process all the previous loads, then the other event.
+        if ( toLoad.length ) {
+          await dispatch('loadMulti', toLoad);
+          toLoad = [];
+        }
+
+        if ( action === 'dispatch' ) {
+          await dispatch(event, body);
+        } else if ( action === 'commit' ) {
+          commit(event, body);
+        } else {
+          throw new Error('Invalid queued action');
+        }
+      }
+    }
+
+    // Process any remaining loads
+    if ( toLoad.length ) {
+      await dispatch('loadMulti', toLoad);
+    }
+
+    state.debugSocket && console.debug(`Subscribe Flush [${ getters.storeName }] finished`, (new Date().getTime()) - started, 'ms'); // eslint-disable-line no-console
+  },
+
+  rehydrateSubscribe({ state, dispatch }) {
+    if ( process.client && state.wantSocket && !state.socket ) {
+      dispatch('subscribe');
+    }
+  },
+
+  reconnectWatches({
+    state, getters, commit, dispatch
+  }) {
+    const promises = [];
+
+    for ( const entry of state.started.slice() ) {
+      console.info(`Reconnect [${ getters.storeName }]`, JSON.stringify(entry)); // eslint-disable-line no-console
+
+      if ( getters.schemaFor(entry.type) ) {
+        commit('setWatchStopped', entry);
+        delete entry.revision;
+        promises.push(dispatch('watch', entry));
+      }
+    }
+
+    return Promise.all(promises);
+  },
+
   async opened({
     commit, dispatch, state, getters, rootGetters
   }, event) {
@@ -580,18 +601,12 @@ export const actions = {
     }
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   closed({ state, getters }) {
     state.debugSocket && console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   error({
     getters, state, dispatch, rootGetters
   }, e) {
@@ -647,9 +662,6 @@ export const actions = {
     }
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   send({ state, commit }, obj) {
     if ( state.socket ) {
       const ok = state.socket.send(JSON.stringify(obj));
@@ -662,21 +674,9 @@ export const actions = {
     commit('enqueuePendingFrame', obj);
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   sendImmediate({ state }, obj) {
     if ( state.socket ) {
       return state.socket.send(JSON.stringify(obj));
-    }
-  },
-
-  'ws.ping'({ getters, dispatch }, msg) {
-    if ( getters.storeName === 'management' ) {
-      const version = msg?.data?.version || null;
-
-      dispatch('updateServerVersion', version, { root: true });
-      console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
     }
   },
 
@@ -693,9 +693,6 @@ export const actions = {
     });
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   'ws.resource.error'({ getters, commit, dispatch }, msg) {
     console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
 
@@ -717,7 +714,6 @@ export const actions = {
    * - We have requested that the resource watch should be stopped and we receive this event as confirmation
    * - Steve tells us that the resource is no longer watched
    *
-   * Covers 1 & 2 - Handles subscription within this file
    */
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
@@ -772,16 +768,10 @@ export const actions = {
     }
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   'ws.resource.create'(ctx, msg) {
     queueChange(ctx, msg, true, 'Create');
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   'ws.resource.change'(ctx, msg) {
     const data = msg.data;
     const type = data.type;
@@ -825,9 +815,6 @@ export const actions = {
     }
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   'ws.resource.remove'(ctx, msg) {
     const data = msg.data;
     const type = data.type;
@@ -860,38 +847,26 @@ export const actions = {
   },
 };
 
-export const mutations = {
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
+/**
+ * Mutations that cover cases 1 & 2 (see file description)
+ */
+const defaultMutations = {
   setSocket(state, socket) {
     state.socket = socket;
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   setWantSocket(state, want) {
     state.wantSocket = want;
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   enqueuePendingFrame(state, obj) {
     state.pendingFrames.push(obj);
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   dequeuePendingFrame(state, obj) {
     removeObject(state.pendingFrames, obj);
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   setWatchStarted(state, obj) {
     const existing = state.started.find(entry => equivalentWatch(obj, entry));
 
@@ -902,9 +877,6 @@ export const mutations = {
     delete state.inError[keyForSubscribe(obj)];
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   setWatchStopped(state, obj) {
     const existing = state.started.find(entry => equivalentWatch(obj, entry));
 
@@ -915,29 +887,12 @@ export const mutations = {
     }
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   setInError(state, msg) {
     const key = keyForSubscribe(msg);
 
     state.inError[key] = msg.reason;
   },
 
-  clearInError(state, msg) {
-    const key = keyForSubscribe(msg);
-
-    delete state.inError[key];
-  },
-
-  debug(state, on) {
-    state.debugSocket = on !== false;
-  },
-
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   *
-   */
   resetSubscriptions(state) {
     // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
     // This could probably be folded in to there
@@ -949,9 +904,6 @@ export const mutations = {
     state.queueTimer = null;
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   clearFromQueue(state, type) {
     // Remove anything in the queue that is a resource update for the given type
     state.queue = state.queue.filter((item) => {
@@ -960,24 +912,18 @@ export const mutations = {
   },
 };
 
-export const getters = {
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
+/**
+ * Getters that cover cases 1 & 2 (see file description)
+ */
+const defaultGetters = {
   canWatch: state => (obj) => {
     return !state.inError[keyForSubscribe(obj)];
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   watchStarted: state => (obj) => {
     return !!state.started.find(entry => equivalentWatch(obj, entry));
   },
 
-  /**
-   * Covers 1 & 2 - Handles subscription within this file
-   */
   nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
     let revision = 0;
@@ -1012,16 +958,16 @@ export const getters = {
 
     return null;
   },
-
-  currentGeneration: state => (type) => {
-    type = normalizeType(type);
-
-    const cache = state.types[type];
-
-    if ( !cache ) {
-      return null;
-    }
-
-    return cache.generation;
-  },
 };
+
+export const actions = {
+  ...sharedActions,
+  ...defaultActions,
+};
+
+export const mutations = {
+  ...sharedMutations,
+  ...defaultMutations,
+};
+
+export const getters = { ...defaultGetters };

@@ -7,6 +7,7 @@ import SteveModel from './steve-class';
 import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -144,6 +145,18 @@ export default {
 
   gcIgnoreTypes: () => {
     return GC_IGNORE_TYPES;
-  }
+  },
+
+  currentGeneration: state => (type) => {
+    type = normalizeType(type);
+
+    const cache = state.types[type];
+
+    if ( !cache ) {
+      return null;
+    }
+
+    return cache.generation;
+  },
 
 };
