@@ -3942,6 +3942,9 @@ prefs:
     'true': Include Prerelease Versions
     'false': Show Releases Only
     label: Helm Charts
+  confirmationSetting:
+    title: Confirmation Setting
+    scalingDownPrompt: Enable confirmation prompt for scaling down node pool.
 
 principal:
   loading: Loading&hellip;
