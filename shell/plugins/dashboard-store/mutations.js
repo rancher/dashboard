@@ -33,9 +33,7 @@ function registerType(state, type) {
   return cache;
 }
 
-function replace(existing, data, getters) {
-  data = getters.cleanResource(existing, data);
-
+export function replace(existing, data) {
   for ( const k of Object.keys(existing) ) {
     delete existing[k];
   }
@@ -45,6 +43,12 @@ function replace(existing, data, getters) {
   }
 
   return existing;
+}
+
+function replaceResource(existing, data, getters) {
+  data = getters.cleanResource(existing, data);
+
+  return replace(existing, data);
 }
 
 export function load(state, { data, ctx, existing }) {
@@ -70,7 +74,7 @@ export function load(state, { data, ctx, existing }) {
   if ( existing && !existing.id ) {
     // A specific proxy instance to used was passed in (for create -> save),
     // use it instead of making a new proxy
-    entry = replace(existing, data, getters);
+    entry = replaceResource(existing, data, getters);
     addObject(cache.list, entry);
     cache.map.set(id, entry);
     // console.log('### Mutation added from existing proxy', type, id);
@@ -79,7 +83,7 @@ export function load(state, { data, ctx, existing }) {
 
     if ( entry ) {
       // There's already an entry in the store, update it
-      replace(entry, data, getters);
+      replaceResource(entry, data, getters);
       // console.log('### Mutation Updated', type, id);
     } else {
       // There's no entry, make a new proxy
@@ -177,6 +181,7 @@ export function batchChanges(state, { ctx, batch }) {
       const alias = typeOption?.alias || [];
 
       alias.forEach((aliasType) => {
+        // TODO: BUG: Each resource's `type` also needs updating to the new alias type
         combinedBatch[aliasType] = batch[batchType];
       });
     }
@@ -219,7 +224,7 @@ export function batchChanges(state, { ctx, batch }) {
           typeCache.list.push(classyResource);
           typeCacheIndexMap[classyResource[keyField]] = typeCache.list.length + 1;
         } else {
-          replace(typeCache.list[index], classyResource, ctx.getters);
+          replaceResource(typeCache.list[index], classyResource, ctx.getters);
         }
         typeCache.map.set(id, classyResource);
       }
