@@ -5,6 +5,7 @@ import Select from '@shell/components/form/Select';
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 
 export default {
+  name:       'WorkspaceSwitcher',
   components: { Select },
 
   computed: {

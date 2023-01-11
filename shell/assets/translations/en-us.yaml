@@ -2064,6 +2064,9 @@ fleet:
   workspaces: 
     tabs:
       restrictions: Allowed Target Namespaces
+  restrictions: 
+    addTitle: 'allowedTargetNamespaces'
+    addLabel: Add
 footer:
   docs: Docs
   download: Download CLI
