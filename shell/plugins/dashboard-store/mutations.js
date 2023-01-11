@@ -181,7 +181,7 @@ export function batchChanges(state, { ctx, batch }) {
       const alias = typeOption?.alias || [];
 
       alias.forEach((aliasType) => {
-        // TODO: BUG: Each resource's `type` also needs updating to the new alias type
+        // TODO: RC BUG: Each resource's `type` also needs updating to the new alias type
         combinedBatch[aliasType] = batch[batchType];
       });
     }
