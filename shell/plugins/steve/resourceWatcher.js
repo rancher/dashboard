@@ -147,9 +147,8 @@ export default class ResourceWatcher extends Socket {
       const resourceUrl = this.baseUrl + resourceType;
       const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
       const opt = {
-        method:      'get',
-        headers:     { accept: 'application/json' },
-        credentials: 'same-origin'
+        method:  'get',
+        headers: { accept: 'application/json' },
       };
 
       if (this.csrf) {
