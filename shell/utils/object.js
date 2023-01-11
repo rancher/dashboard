@@ -353,3 +353,17 @@ export function applyChangeset(obj, changeset) {
 
   return obj;
 }
+
+/**
+ * Creates an object composed of the `object` properties `predicate` returns
+ */
+export function pickBy(obj = {}, predicate = (value, key) => false) {
+  return Object.entries(obj)
+    .reduce((res, [key, value]) => {
+      if (predicate(value, key)) {
+        res[key] = value;
+      }
+
+      return res;
+    }, {});
+}

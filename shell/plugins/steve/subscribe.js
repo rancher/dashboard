@@ -786,6 +786,12 @@ export const actions = {
     const data = msg.data;
     const type = data.type;
 
+    // Work-around for ws.error messages being sent as change events
+    // These have no id (or other metadata) which breaks lots if they are processed as change events
+    if (data.message && !data.id) {
+      return;
+    }
+
     // Web worker can process schemas to check that they are actually changing and
     // only load updates if the schema did actually change
     if (type === SCHEMA) {
