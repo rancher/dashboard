@@ -162,6 +162,7 @@ export default {
 
       const res = await allHash(hash);
 
+      this.allPSPs = res.allPSPs || [];
       this.allPSAs = res.allPSAs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
@@ -339,13 +340,27 @@ export default {
       return this.value.agentConfig;
     },
 
+    /**
+     * Return need of PSA if RKE and min k8s version
+     */
     needsPSA() {
       const release = this.value?.spec?.kubernetesVersion || '';
       const isRKE2 = release.includes('rke2');
       const version = release.match(/\d+/g);
-      const needsPSA = version && version.length ? version[0] > +1 || version[1] >= +25 : false;
+      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
 
-      return isRKE2 && needsPSA;
+      return isRKE2 && isRequiredVersion;
+    },
+
+    /**
+     * Restrict use of PSP based on min k8s version
+     */
+    needsPSP() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return isRequiredVersion;
     },
 
     // kubeletConfigs() {
@@ -1715,7 +1730,36 @@ export default {
       } else {
         set(this.agentConfig, 'protect-kernel-defaults', false);
       }
-    }
+    },
+
+    /**
+     * Handle k8s changes side effects, like PSP and PSA resets
+     */
+    handleKubernetesChange(value) {
+      if (value) {
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateId', '');
+        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+      }
+    },
+
+    /**
+     * Handle PSA changes side effects, like PSP resets
+     */
+    handlePsaChange(value) {
+      if (value) {
+        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+      }
+    },
+
+    /**
+     * Handle PSP changes side effects, like PSA resets
+     */
+    handlePspChange(value) {
+      if (value) {
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateId', '');
+      }
+    },
+
   },
 };
 </script>
@@ -1899,6 +1943,7 @@ export default {
                 :mode="mode"
                 :options="versionOptions"
                 label-key="cluster.kubernetesVersion.label"
+                @input="handleKubernetesChange($event)"
               />
               <Checkbox
                 v-model="showDeprecatedPatchVersions"
@@ -1973,26 +2018,37 @@ export default {
           <h3>
             {{ t('cluster.rke2.security.header') }}
           </h3>
-          <div class="row">
-            <div class="col span-6">
-              <!-- PSP template selector -->
-              <LabeledSelect
-                v-if="pspOptions && !needsPSA"
-                v-model="value.spec.defaultPodSecurityPolicyTemplateName"
-                data-testid="rke2-custom-edit-psp"
-                :mode="mode"
-                :options="pspOptions"
-                :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
-              />
 
+          <div
+            v-if="psaOptions && needsPSA"
+            class="row mb-10"
+          >
+            <div class="col span-6">
               <!-- PSA template selector -->
               <LabeledSelect
-                v-if="psaOptions && needsPSA"
                 v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateId"
                 :mode="mode"
                 data-testid="rke2-custom-edit-psa"
                 :options="psaOptions"
                 :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateId.label')"
+                @input="handlePsaChange($event)"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div
+              v-if="pspOptions && needsPSP"
+              class="col span-6"
+            >
+              <!-- PSP template selector -->
+              <LabeledSelect
+                v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+                data-testid="rke2-custom-edit-psp"
+                :mode="mode"
+                :options="pspOptions"
+                :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
+                @input="handlePspChange($event)"
               />
             </div>
 

@@ -2,7 +2,11 @@ import { mount } from '@vue/test-utils';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 
 describe('component: rke2', () => {
-  it('should display PSA option', () => {
+  it.each([
+    'v1.25.0+rke2r1',
+    'v1.24.0+rke2r1',
+    'v1.23.0+rke2r1',
+  ])('should display PSA option', () => {
     const label = 'whatever';
     const option = { label, value: label };
     const wrapper = mount(rke2, {
