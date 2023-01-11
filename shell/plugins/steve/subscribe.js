@@ -803,7 +803,6 @@ export const actions = {
 
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
-    // TODO: RC Q this is lost? should be handled also in batchChanges
     if (typeOption?.alias?.length > 0) {
       const alias = typeOption?.alias || [];
 

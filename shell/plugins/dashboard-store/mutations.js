@@ -166,9 +166,25 @@ export function remove(state, obj, getters) {
 }
 
 export function batchChanges(state, { ctx, batch }) {
-  const types = Object.keys(batch);
+  const batchTypes = Object.keys(batch);
+  const combinedBatch = {};
 
-  types.forEach((type) => {
+  batchTypes.forEach((batchType) => {
+    combinedBatch[batchType] = batch[batchType];
+    const typeOption = ctx.rootGetters['type-map/optionsFor'](batchType);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.forEach((aliasType) => {
+        combinedBatch[aliasType] = batch[batchType];
+      });
+    }
+  });
+
+  const combinedBatchTypes = Object.keys(combinedBatch);
+
+  combinedBatchTypes.forEach((type) => {
     const normalizedType = normalizeType(type === 'counts' ? COUNT : type);
     const keyField = keyFieldFor(normalizedType);
     const typeCache = registerType(state, normalizedType);
