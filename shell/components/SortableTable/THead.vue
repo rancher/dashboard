@@ -409,7 +409,7 @@ export default {
         align-items: center;
 
         > span {
-          display: contents;
+          display: initial;
         }
 
         &.not-filterable {
