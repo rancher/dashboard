@@ -90,7 +90,7 @@ export default class ResourceWatcher extends Socket {
         const { status } = watch;
         const watchKey = keyForSubscribe(watch);
 
-        // TODO: RC if a watch is in error, we shouldn't try to re-watch it until we've forced an updated list via resyncWatches
+        // TODO: RC resyncWatches / #5997. if a watch is in error, we shouldn't try to re-watch it until we've forced an updated list via resyncWatches
         // Note - Error state is currently cleared on resource.error --> unwatch --> resource.stop
         if ([WATCH_PENDING, WATCH_REQUESTED, WATCHING].includes(status)) {
           trace(EVENT_CONNECTED, ': re-watching previously required resource', watchKey, status);
@@ -238,7 +238,7 @@ export default class ResourceWatcher extends Socket {
       if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
         delete this.watches[watchKey];
       } else {
-        // TODO: RC TEST with steve socket timing out and 'stop'ing resources
+        // TODO: RC resyncWatches / #5997. with steve socket timing out and 'stop'ing resources
         this.watches[watchKey].status = STOPPED;
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;

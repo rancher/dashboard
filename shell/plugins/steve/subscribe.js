@@ -47,7 +47,7 @@ const isAdvancedWorker = (ctx) => {
   const storeName = getters.storeName;
   const clusterId = rootGetters.clusterId;
 
-  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) { // TODO: RC Q would clusteId === blank be better below?
+  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
     return false;
   }
 
@@ -465,9 +465,9 @@ export const actions = {
   async resyncWatch({
     state, getters, dispatch, commit
   }, params) {
-    // TODO: RC TEST if this is needed/used, need to wire in clearInError to resourceWatcher (or ensure state is updated after resourceWatcher calls this)
-    // TODO: RC TEST with steve socket timing out and 'stop'ing resources
-    // TODO: RC TEST this is the only place where forceWatch is used (handled in advanced worker `watch` to override early exit if socket is in error)
+    // TODO: RC resyncWatches / #5997. TEST if this is needed/used, need to wire in clearInError to resourceWatcher (or ensure state is updated after resourceWatcher calls this)
+    // TODO: RC resyncWatches / #5997. TEST with steve socket timing out and 'stop'ing resources
+    // TODO: RC resyncWatches / #5997. TEST this is the only place where forceWatch is used (handled in advanced worker `watch` to override early exit if socket is in error)
     const {
       resourceType, namespace, id, selector
     } = params;
