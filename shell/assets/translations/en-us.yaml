@@ -7,6 +7,7 @@ generic:
   and: ' and '
   back: Back
   cancel: Cancel
+  confirm: Confirm
   clear: Clear
   clearAll: Clear All
   close: Close
@@ -3941,6 +3942,9 @@ prefs:
     'true': Include Prerelease Versions
     'false': Show Releases Only
     label: Helm Charts
+  confirmationSetting:
+    title: Confirmation Setting
+    scalingDownPrompt: Enable confirmation prompt for scaling down node pool.
 
 principal:
   loading: Loading&hellip;
@@ -4125,6 +4129,7 @@ promptRemove:
   deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
   willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
   confirmRelatedResource: "Deleting the {type} will remove all the resources on this particular {type} and this is not revertable, are you sure you want to continue deleting {names}?"
+  promptConfirmation: "Do not prompt again for confirmation when scaling down."
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
