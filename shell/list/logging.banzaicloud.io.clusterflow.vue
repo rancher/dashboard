@@ -25,7 +25,9 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
+    this.$initializeFetchData(this.resource);
+    this.$fetchType(LOGGING.CLUSTER_OUTPUT);
+
     await this.$fetchType(this.resource);
   }
 };

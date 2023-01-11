@@ -420,7 +420,7 @@ export default {
         if (old && !neu) {
           this.manualRefreshTimer = setTimeout(() => {
             this.watcherUpdateLiveAndDelayed(neu, old);
-          }, 1000);
+          }, 2000);
         }
       },
       immediate: true

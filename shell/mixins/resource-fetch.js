@@ -79,7 +79,11 @@ export default {
     }
   },
   methods: {
-    $fetchType(type, multipleResources = []) {
+    // this defines all the flags needed for the mechanism
+    // to work. They should be defined based on the main list view
+    // resource that is to be displayed. The sencondary resources
+    // fetched should follow what was defined (if it is manual and/or incremental)
+    $initializeFetchData(type, multipleResources = []) {
       if (!this.init) {
         this.__gatherResourceFetchData(type, multipleResources);
 
@@ -92,20 +96,26 @@ export default {
           this.hasManualRefresh = true;
         }
       }
+    },
+    // data fetching for the mechanism
+    $fetchType(type, multipleResources = []) {
+      this.$initializeFetchData(type, multipleResources);
 
       if (!this.fetchedResourceType.includes(type)) {
         this.fetchedResourceType.push(type);
       }
 
+      const opt = {
+        namespaced:       this.namespaceFilter,
+        incremental:      this.incremental,
+        watch:            this.watch,
+        force:            this.force,
+        hasManualRefresh: this.hasManualRefresh
+      };
+
       return this.$store.dispatch(`${ this.inStore }/findAll`, {
         type,
-        opt: {
-          namespaced:       this.namespaceFilter,
-          incremental:      this.incremental,
-          watch:            this.watch,
-          force:            this.force,
-          hasManualRefresh: this.hasManualRefresh
-        }
+        opt
       });
     },
 
@@ -153,7 +163,7 @@ export default {
         watch = false;
         isTooManyItemsToAutoUpdate = true;
       }
-      // manual refresh check
+      // incremental loading check
       if (incrementalLoadingEnabled && incrementalLoadingThreshold > 0 && resourceCount >= incrementalLoadingThreshold) {
         incremental = Math.ceil(resourceCount / PAGES);
       }
