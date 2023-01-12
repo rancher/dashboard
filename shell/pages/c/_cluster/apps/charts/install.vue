@@ -95,9 +95,11 @@ export default {
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
-    this.clusterRegistry = await this.getClusterRegistry();
-    this.globalRegistry = await this.getGlobalRegistry();
-    this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
+    if (this.showCustomRegistry) {
+      this.clusterRegistry = await this.getClusterRegistry();
+      this.globalRegistry = await this.getGlobalRegistry();
+      this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
+    }
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -282,13 +284,20 @@ export default {
       */
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
 
-      const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
+      if (this.showCustomRegistry) {
+        /**
+         * The input to configure the registry should never be
+         * shown for third-party charts, which don't have Rancher
+         * global values.
+         */
+        const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-      delete this.chartValues?.global?.systemDefaultRegistry;
-      delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
+        delete this.chartValues?.global?.systemDefaultRegistry;
+        delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-      this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
-      this.showCustomRegistryInput = !!this.customRegistrySetting;
+        this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+        this.showCustomRegistryInput = !!this.customRegistrySetting;
+      }
 
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
@@ -664,6 +673,22 @@ export default {
       return null;
     },
 
+    /**
+     * Check if the chart contains `systemDefaultRegistry` properties.
+     * If not we shouldn't apply the setting, because if the option
+     * is exposed for third-party Helm charts, it confuses users because
+     * it shows a private registry setting that is never used
+     * by the chart they are installing. If not hidden, the setting
+     * does nothing, and if the user changes it, it will look like
+     * there is a bug in the UI when it doesn't work, because UI is
+     * exposing a feature that the chart does not have.
+     */
+    showCustomRegistry() {
+      const global = this.versionInfo?.values?.global || {};
+
+      return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
+    },
+
   },
 
   watch: {
@@ -980,8 +1005,11 @@ export default {
 
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
-      set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
-      set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+
+      if (this.showCustomRegistry) {
+        set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
+        set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+      }
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
@@ -1421,6 +1449,7 @@ export default {
           />
 
           <Checkbox
+            v-if="showCustomRegistry"
             v-model="showCustomRegistryInput"
             class="mb-20"
             :label="t('catalog.chart.registry.custom.checkBoxLabel')"
