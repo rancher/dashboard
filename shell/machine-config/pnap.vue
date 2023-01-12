@@ -20,12 +20,12 @@ export default {
 
   props: {
     credentialId: {
-      type:      String,
-      required:  true,
+      type:     String,
+      required: true,
     },
     disabled: {
-      type:     Boolean,
-      default:  false,
+      type:    Boolean,
+      default: false,
     },
   },
 
@@ -68,9 +68,9 @@ export default {
 
   data() {
     return {
-      credential:      null,
-      allProducts:     null,
-      osChoices:       null,
+      credential:  null,
+      allProducts: null,
+      osChoices:   null,
     };
   },
 
@@ -173,10 +173,19 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
+  <Loading
+    v-if="$fetchState.pending"
+    :delayed="true"
+  />
   <div v-else-if="errors.length">
-    <div v-for="(err, idx) in errors" :key="idx">
-      <Banner color="error" :label="stringify(err)" />
+    <div
+      v-for="(err, idx) in errors"
+      :key="idx"
+    >
+      <Banner
+        color="error"
+        :label="stringify(err)"
+      />
     </div>
   </div>
   <div v-else>

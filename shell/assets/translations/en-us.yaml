@@ -6216,7 +6216,7 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanagerconfig: |-
     {count, plural,
-      one { AlertmanagerConfigs }
+      one { AlertmanagerConfig }
       other { AlertmanagerConfigs }
     }
   monitoring.coreos.com.podmonitor: |-
@@ -6321,7 +6321,7 @@ typeLabel:
     }
   networking.k8s.io.networkpolicy: |-
     {count, plural,
-      one { Network Policies }
+      one { Network Policy }
       other { Network Policies }
     }
   service: |-
@@ -6441,8 +6441,8 @@ typeLabel:
     }
   fleet.cattle.io.bundledeployment: |-
     {count, plural,
-      one { ClusterRegistration }
-      other { ClusterRegistrations }
+      one { BundleDeployment }
+      other { BundleDeployments }
     }
   k3s.cattle.io.addon: |-
     {count, plural,
@@ -6456,13 +6456,13 @@ typeLabel:
     }
   management.cattle.io.catalog: |-
     {count, plural,
-      one { APIService }
-      other { APIServices }
+      one { Catalog }
+      other { Catalogs }
     }
   fleet.cattle.io.clusterregistration: |-
     {count, plural,
-      one { Catalog }
-      other { Catalogs }
+      one { ClusterRegistration }
+      other { ClusterRegistrations }
     }
   management.cattle.io.dynamicschema: |-
     {count, plural,
@@ -6526,7 +6526,7 @@ typeLabel:
     }
   management.cattle.io.clusterregistrationtoken: |-
     {count, plural,
-      one { ClusterRegistrationTokens }
+      one { ClusterRegistrationToken }
       other { ClusterRegistrationTokens }
     }
   management.cattle.io.node: |-
@@ -6581,7 +6581,7 @@ typeLabel:
     }
   scheduling.k8s.io.priorityclass: |-
     {count, plural,
-      one { PriorityClasse }
+      one { PriorityClass }
       other { PriorityClasses }
     }
   storage.k8s.io.csinode: |-
