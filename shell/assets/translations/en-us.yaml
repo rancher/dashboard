@@ -1165,6 +1165,14 @@ cluster:
         help: Paste in a Personal Access Token from the Linode <a href="https://cloud.linode.com/profile/tokens" target="_blank" rel="noopener noreferrer nofollow">API Tokens</a> screen.
         label: Access Token
         placeholder: Your Linode API Access Token
+    pnap:
+      clientIdentifier:
+        label: Client ID
+        placeholder: Your Client ID
+      clientSecret:
+        help: From <a href="https://bmc.phoenixnap.com/credentials/" target="_blank" rel="nofollow noreferrer noopener">phoenixNAP BMC Portal</a> API Credentials
+        label: Client Secret
+        placeholder: Your Client Secret
     name:
       label: Credential Name
       placeholder: Name for this credential (optional)
@@ -1534,6 +1542,27 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+    pnap:
+      serverLocation:
+        label: Location
+      serverType:
+        label: Type
+      serverCpu:
+        label: CPU
+      serverCoresPerCpu:
+        label: Cores per CPU
+      serverCpuCount:
+        label: CPU Count
+      serverCpuFrequency:
+        label: CPU Frequency [GHz]
+      serverRam:
+        label: RAM [GB]
+      serverStorage:
+        label: Storage
+      serverNetwork:
+        label: Network
+      serverOs:
+        label: OS
   addOns:
     dependencyBanner: Add-On Configurations can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
