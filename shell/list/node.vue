@@ -11,7 +11,6 @@ import {
   CAPI,
   MANAGEMENT, METRIC, NODE, NORMAN, POD
 } from '@shell/config/types';
-import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
@@ -41,30 +40,30 @@ export default {
   },
 
   async fetch() {
-    const hash = { kubeNodes: this.$fetchType(NODE) };
+    this.$initializeFetchData(this.resource);
 
     this.canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
 
     if (this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE)) {
       // Required for Drain/Cordon action
-      hash.normanNodes = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
+      this.$fetchType(NORMAN.NODE, [], 'rancher');
     }
 
     if (this.$store.getters[`rancher/schemaFor`](NORMAN.NODE)) {
-      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      this.$fetchType(MANAGEMENT.NODE, [], 'management');
     }
 
     if (this.$store.getters[`management/schemaFor`](CAPI.MACHINE)) {
       // Required for ssh / download key actions
-      hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      this.$fetchType(CAPI.MACHINE, [], 'management');
     }
 
     if (this.canViewPods) {
-      // Used for running pods metrics - we don't need to block on this to show the list of nodes
-      this.$store.dispatch('cluster/findAll', { type: POD });
+      // Used for running pods metrics
+      this.$fetchType(POD);
     }
 
-    await allHash(hash);
+    await this.$fetchType(this.resource);
   },
 
   data() {

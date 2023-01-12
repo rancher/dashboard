@@ -2,7 +2,6 @@
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, SNAPSHOT, NORMAN } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
@@ -33,45 +32,42 @@ export default {
   },
 
   async fetch() {
-    const hash = {
-      rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER),
-      normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
-      mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-    };
+    this.$initializeFetchData(CAPI.RANCHER_CLUSTER);
+
+    this.$fetchType(NORMAN.CLUSTER, [], 'rancher');
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+      this.$fetchType(SNAPSHOT);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-      hash.capiMachines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      this.$fetchType(CAPI.MACHINE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      this.$fetchType(MANAGEMENT.NODE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      this.$fetchType(MANAGEMENT.NODE_POOL);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      this.$fetchType(MANAGEMENT.NODE_TEMPLATE);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      this.$fetchType(CAPI.MACHINE_DEPLOYMENT);
     }
 
     // Fetch RKE template revisions so we can show when an updated template is available
     // This request does not need to be blocking
     if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+      this.$fetchType(MANAGEMENT.RKE_TEMPLATE_REVISION);
     }
 
-    const res = await allHash(hash);
-
-    this.mgmtClusters = res.mgmtClusters;
+    this.mgmtClusters = await this.$fetchType(MANAGEMENT.CLUSTER);
+    await this.$fetchType(CAPI.RANCHER_CLUSTER);
   },
 
   data() {
