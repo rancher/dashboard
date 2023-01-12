@@ -74,7 +74,7 @@ export const HIDE_REPOS = create('hide-repos', [], { parseJSON });
 export const HIDE_DESC = create('hide-desc', [], { parseJSON });
 export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false], parseJSON });
 export const SHOW_PRE_RELEASE = create('show-pre-release', false, { options: [false, true], parseJSON });
-export const SHOW_CHART_MODE = create('chartMode', 'featured', { parseJSON });
+export const SHOW_CHART_MODE = create('chart-mode', 'featured', { parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [
@@ -109,7 +109,7 @@ export const PLUGIN_DEVELOPER = create('plugin-developer', false, { parseJSON, i
 
 export const _RKE1 = 'rke1';
 export const _RKE2 = 'rke2';
-export const PROVISIONER = create('provisioner', _RKE1, { options: [_RKE1, _RKE2] });
+export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2] });
 
 // Promo for Cluster Tools feature on Cluster Dashboard page
 export const CLUSTER_TOOLS_TIP = create('hide-cluster-tools-tip', false, { parseJSON });
@@ -120,6 +120,8 @@ export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', fals
 // Maximum number of clusters to show in the slide-in menu
 export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
 
+// Prompt for confirm when scaling down node pool in GUI and save the pref
+export const SCALE_POOL_PROMPT = create('scale-pool-prompt', '', { parseJSON });
 // --------------------
 
 const cookiePrefix = 'R_';

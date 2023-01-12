@@ -97,6 +97,14 @@ export default {
       return this.value?.filteredSystemLabels;
     },
 
+    internalTooltips() {
+      return this.value?.detailTopTooltips || this.tooltips;
+    },
+
+    internalIcons() {
+      return this.value?.detailTopIcons || this.icons;
+    },
+
     annotations() {
       return this.value?.annotations || {};
     },
@@ -136,7 +144,16 @@ export default {
     },
 
     showFilteredSystemLabels() {
-      return !!this.value.filteredSystemLabels;
+      // It would be nicer to use hasSystemLabels here, but not all places have implemented it
+      // Instead check that there's a discrepancy between all labels and all labels without system ones
+      if (this.value?.labels && this.value?.filteredSystemLabels) {
+        const labelCount = Object.keys(this.value.labels).length;
+        const filteredSystemLabelsCount = Object.keys(this.value.filteredSystemLabels).length;
+
+        return labelCount !== filteredSystemLabelsCount;
+      }
+
+      return false;
     },
   },
   methods: {
@@ -223,15 +240,15 @@ export default {
           :key="key + prop"
         >
           <i
-            v-if="icons[key]"
+            v-if="internalIcons[key]"
             class="icon"
-            :class="icons[key]"
+            :class="internalIcons[key]"
           />
           <span
-            v-if="tooltips[key]"
+            v-if="internalTooltips[key]"
             v-tooltip="prop ? `${key} : ${prop}` : key"
           >
-            <span>{{ tooltips[key] ? tooltips[key] : key }}</span>
+            <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
           </span>
           <span v-else>{{ prop ? `${key} : ${prop}` : key }}</span>
         </Tag>
@@ -336,6 +353,10 @@ export default {
       &:not(:last-of-type) {
         margin-bottom: $spacing;
       }
+    }
+
+    .icon {
+      vertical-align: top;
     }
   }
 </style>

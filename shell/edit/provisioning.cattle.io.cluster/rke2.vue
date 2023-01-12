@@ -28,6 +28,7 @@ import { sortBy } from '@shell/utils/sort';
 import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import * as VERSION from '@shell/utils/version';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -515,7 +516,10 @@ export default {
     },
 
     cloudProviderOptions() {
-      const out = [{ label: '(None)', value: '' }];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
+      }];
 
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
@@ -896,6 +900,19 @@ export default {
         return false;
       }
     },
+
+    displayInvalidPspsBanner() {
+      const version = VERSION.parse(this.value.spec.kubernetesVersion);
+
+      const major = parseInt(version?.[0] || 0);
+      const minor = parseInt(version?.[1] || 0);
+
+      if (major === 1 && minor >= 25) {
+        return this.allPSPs?.length > 0;
+      }
+
+      return false;
+    }
   },
 
   watch: {
@@ -1739,12 +1756,20 @@ export default {
     @cancel="cancel"
     @error="fvUnreportedValidationErrors"
   >
-    <Banner
-      v-if="isEdit"
-      color="warning"
-    >
-      <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
-    </Banner>
+    <div class="header-warnings">
+      <Banner
+        v-if="isEdit"
+        color="warning"
+      >
+        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', true)" />
+      </Banner>
+      <Banner
+        v-if="isEdit && displayInvalidPspsBanner"
+        color="warning"
+      >
+        <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
+      </Banner>
+    </div>
     <SelectCredential
       v-if="needCredential"
       v-model="credentialId"
@@ -2559,5 +2584,8 @@ export default {
   }
   .patch-version {
     margin-top: 5px;
+  }
+  .header-warnings .banner {
+    margin-bottom: 0;
   }
 </style>

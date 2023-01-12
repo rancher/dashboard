@@ -16,7 +16,7 @@ import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
 import ProjectMembershipEditor from '@shell/components/form/Members/ProjectMembershipEditor';
 import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
 
 export default {
@@ -146,6 +146,13 @@ export default {
         } else if (this.mode === _EDIT) {
           if (this.canEditProject) {
             await this.value.save(true);
+
+            // We updated the Norman resource - re-fetch the Steve resource so we know it is definitely updated in the store
+            await this.$store.dispatch('management/find', {
+              type: MANAGEMENT.PROJECT,
+              id:   this.value.id,
+              opt:  { force: true }
+            });
           }
 
           // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects

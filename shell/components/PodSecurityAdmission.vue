@@ -9,9 +9,8 @@ import {
   PSADefaultLevel,
   PSADefaultVersion, PSADimensions, PSALevels, PSAModes
 } from '@shell/config/pod-security-admission';
-import { pickBy } from 'lodash';
+import { pickBy } from '@shell/utils/object';
 
-// Type and function for controls form builder
 interface PSAControl { active: boolean, level: string, version: string }
 const control = (): PSAControl => ({
   active:  false,
@@ -99,10 +98,19 @@ export default Vue.extend({
 
   created() {
     // Assign values to the form, overriding existing values
-    this.controls = {
+    const controls = {
       ...this.controls,
       ...this.getControls()
     };
+
+    this.controls = Object.keys(controls)
+      .sort()
+      .reduce((res, key) => {
+        res[key] = controls[key];
+
+        return res;
+      }, {} as any);
+
     this.exceptions = this.getExceptions();
   },
 
@@ -180,7 +188,7 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div>
+  <div class="psa">
     <!-- PSA -->
     <p class="helper-text mb-30">
       <t k="podSecurityAdmission.description" />
@@ -191,7 +199,7 @@ export default Vue.extend({
       :key="'control-' + i"
       class="row row--y-center mb-20"
     >
-      <span class="col span-2">
+      <span class="col span-2 psa-checkbox">
         <Checkbox
           v-model="control.active"
           :data-testid="componentTestid + '--control-' + i + '-active'"
@@ -265,3 +273,12 @@ export default Vue.extend({
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.psa .row {
+    .psa-checkbox {
+      display: flex;
+      align-items: center;
+    }
+}
+</style>

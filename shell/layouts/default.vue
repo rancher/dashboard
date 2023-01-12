@@ -27,7 +27,7 @@ import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
@@ -69,6 +69,7 @@ export default {
       wantNavSync:      false,
       unwatchPin:       undefined,
       wmPin:            null,
+      draggable:        false,
     };
   },
 
@@ -751,11 +752,11 @@ export default {
           'drag-end': !$refs.draggableZone.drag.active,
           'drag-start': $refs.draggableZone.drag.active,
         }"
-        draggable="true"
+        :draggable="draggable"
         @dragstart="$refs.draggableZone.onDragStart($event)"
         @dragend="$refs.draggableZone.onDragEnd($event)"
       >
-        <WindowManager />
+        <WindowManager @draggable="draggable=$event" />
       </div>
     </div>
     <FixedBanner :footer="true" />

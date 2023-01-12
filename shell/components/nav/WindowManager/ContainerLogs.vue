@@ -12,7 +12,7 @@ import VirtualList from 'vue-virtual-scroll-list';
 import LogItem from '@shell/components/LogItem';
 
 import { escapeRegex } from '@shell/utils/string';
-import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -463,7 +463,7 @@ export default {
             />
           </template>
         </Select>
-        <div class="log-action ml-5">
+        <div class="log-action log-action-group ml-5">
           <button
             class="btn bg-primary wm-btn"
             :disabled="isFollowing"
@@ -503,7 +503,7 @@ export default {
           </div>
         </div>
 
-        <div class="log-action ml-5">
+        <div class="log-action log-action-group ml-5">
           <v-popover
             trigger="click"
             placement="top"
@@ -543,7 +543,7 @@ export default {
           </v-popover>
         </div>
 
-        <div class="log-action ml-5">
+        <div class="log-action log-action-group ml-5">
           <input
             v-model="search"
             class="input-sm"
@@ -654,10 +654,23 @@ export default {
     }
   }
 
+  .log-action-group {
+    display: flex;
+    gap: 3px;
+
+    .input-sm {
+      min-width: 180px;
+    }
+  }
+
   .log-previous {
     align-items: center;
     display: flex;
+    min-width: 175px;
     height: 30px;
+    text-overflow : ellipsis;
+    overflow      : hidden;
+    white-space   : nowrap;
   }
 
   .status {

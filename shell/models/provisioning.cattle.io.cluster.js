@@ -71,6 +71,17 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
+  // Models can specify a single action that will be shown as a button in the details masthead
+  get detailsAction() {
+    const canExplore = this.mgmt?.isReady && !this.hasError;
+
+    return {
+      action:  'explore',
+      label:   this.$rootGetters['i18n/t']('cluster.explore'),
+      enabled: canExplore,
+    };
+  }
+
   get _availableActions() {
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
@@ -114,12 +125,12 @@ export default class ProvCluster extends SteveModel {
         label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),
         icon:       'icon icon-download',
         bulkable:   true,
-        enabled:    this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:    this.mgmt?.hasAction('generateKubeconfig'),
       }, {
         action:   'copyKubeConfig',
         label:    this.t('cluster.copyConfig'),
         bulkable: false,
-        enabled:  this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:  this.mgmt?.hasAction('generateKubeconfig'),
         icon:     'icon icon-copy',
       }, {
         action:     'snapshotAction',
@@ -163,6 +174,15 @@ export default class ProvCluster extends SteveModel {
     const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
 
     return out;
+  }
+
+  explore() {
+    const location = {
+      name:   'c-cluster',
+      params: { cluster: this.mgmt.id }
+    };
+
+    this.currentRouter().push(location);
   }
 
   goToViewYaml() {

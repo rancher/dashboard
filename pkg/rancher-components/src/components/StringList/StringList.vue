@@ -532,6 +532,7 @@ export default Vue.extend({
         width: auto;
         user-select: none;
         overflow: hidden;
+        white-space: no-wrap;
         text-overflow: ellipsis;
         padding-top: 1px;
       }

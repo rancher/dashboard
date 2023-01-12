@@ -4,6 +4,7 @@ import InfoBox from '@shell/components/InfoBox';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
+  name:       'ArrayListGrouped',
   components: { ArrayList, InfoBox },
   props:      {
     /**
@@ -26,7 +27,7 @@ export default {
      */
     initialEmptyRow: {
       type:    Boolean,
-      default: true,
+      default: false,
     },
 
     /**

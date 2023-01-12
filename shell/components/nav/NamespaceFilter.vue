@@ -19,11 +19,12 @@ import { KEY } from '@shell/utils/platform';
 export default {
   data() {
     return {
-      isOpen:        false,
-      filter:        '',
-      hidden:        0,
-      total:         0,
-      activeElement: null,
+      isOpen:         false,
+      filter:         '',
+      hidden:         0,
+      total:          0,
+      activeElement:  null,
+      cachedFiltered: [],
     };
   },
 
@@ -343,6 +344,21 @@ export default {
   watch: {
     value(neu) {
       this.layout();
+    },
+
+    /**
+     * When there are thousands of entries certain actions (drop down opened, selection changed, etc) take a long time to complete (upwards
+     * of 5 seconds)
+     *
+     * This is caused by churn of the filtered and options computed properties causing multiple renders for each action.
+     *
+     * To break this multiple-render per cycle behaviour detatch `filtered` from the value used in `v-for`.
+     *
+     */
+    filtered(neu) {
+      if (!!neu) {
+        this.cachedFiltered = neu;
+      }
     }
   },
 
@@ -444,7 +460,7 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         this.up();
-      } else if (e.keyCode === KEY.SPACE) {
+      } else if (e.keyCode === KEY.SPACE || e.keyCode === KEY.CR) {
         if (this.namespaceFilterMode && !opt.enabled) {
           return;
         }
@@ -755,7 +771,7 @@ export default {
         role="list"
       >
         <div
-          v-for="(opt, i) in filtered"
+          v-for="(opt, i) in cachedFiltered"
           :id="opt.elementId"
           :key="opt.id"
           tabindex="0"
@@ -763,7 +779,7 @@ export default {
           :disabled="!opt.enabled"
           :class="{
             'ns-selected': opt.selected,
-            'ns-single-match': filtered.length === 1 && !opt.selected,
+            'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
           }"
           :data-testid="`namespaces-option-${i}`"
           @click="opt.enabled && selectOption(opt)"
@@ -790,7 +806,7 @@ export default {
           </div>
         </div>
         <div
-          v-if="filtered.length === 0"
+          v-if="cachedFiltered.length === 0"
           class="ns-none"
           data-testid="namespaces-option-none"
         >
@@ -832,7 +848,7 @@ export default {
 
     .ns-clear {
       &:hover {
-        color: var(--link);
+        color: var(--primary);
         cursor: pointer;
       }
     }
@@ -867,7 +883,7 @@ export default {
 
     .ns-dropdown-menu {
       background-color: var(--header-bg);
-      border: 1px solid var(--link-border);
+      border: 1px solid var(--primary-border);
       border-bottom-left-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
       color: var(--header-btn-text);
@@ -983,7 +999,7 @@ export default {
       &.ns-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
-        border-color: var(--link-border);
+        border-color: var(--primary-border);
       }
 
       > .ns-values {
@@ -992,7 +1008,7 @@ export default {
 
       &:hover {
         > i {
-          color: var(--link);
+          color: var(--primary);
         }
       }
 
@@ -1030,7 +1046,7 @@ export default {
             margin-left: 5px;
 
             &:hover {
-              color: var(--link);
+              color: var(--primary);
             };
           }
 

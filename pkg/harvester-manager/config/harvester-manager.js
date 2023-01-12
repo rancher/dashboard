@@ -1,11 +1,14 @@
 import { HCI, MANAGEMENT, CAPI } from '@shell/config/types';
 import { HARVESTER, MULTI_CLUSTER } from '@shell/store/features';
-import { DSL } from '@shell/store/type-map';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@shell/config/table-headers';
 import { allHash } from '@shell/utils/promise';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { BLANK_CLUSTER } from '@shell/store';
+import { HARVESTER_NAME } from '@shell/config/features';
 
+export const PRODUCT_NAME = 'harvester-manager';
+
+// Load a harvester plugin when navigating into a harvester cluster
 dynamicPluginLoader.register({
   load: async({ route, store }) => {
     // Check that we've either got here either
@@ -55,8 +58,6 @@ dynamicPluginLoader.register({
 
 export const NAME = 'harvesterManager';
 
-export const HARVESTER_NAME = 'harvester';
-
 const MACHINE_POOLS = {
   name:     'summary',
   labelKey: 'tableHeaders.machines',
@@ -76,14 +77,14 @@ const harvesterClustersLocation = {
   }
 };
 
-export function init(store) {
+export function init($plugin, store) {
   const {
     product,
     basicType,
     headers,
     spoofedType,
     configureType
-  } = DSL(store, NAME);
+  } = $plugin.DSL(store, NAME);
 
   product({
     ifHaveType:          CAPI.RANCHER_CLUSTER,
@@ -116,7 +117,7 @@ export function init(store) {
   ]);
   basicType([HCI.CLUSTER]);
   spoofedType({
-    label:      store.getters['i18n/t']('harvesterManager.cluster.label'),
+    labelKey:   'harvesterManager.cluster.label',
     name:       HCI.CLUSTER,
     type:       HCI.CLUSTER,
     namespaced: false,

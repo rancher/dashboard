@@ -81,7 +81,13 @@ const getActiveNamespaces = (state, getters) => {
     return out;
   }
 
-  const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+  let namespaces = [];
+
+  if (Array.isArray(state.allNamespaces) && state.allNamespaces.length > 0) {
+    namespaces = state.allNamespaces;
+  } else {
+    namespaces = getters[`${ inStore }/all`](NAMESPACE);
+  }
 
   const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
   const includeAll = getters.isAllNamespaces;
@@ -850,7 +856,6 @@ export const actions = {
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
       all:     res.namespaces,
-      ...getters
     });
 
     commit('clusterReady', true);
@@ -868,7 +873,7 @@ export const actions = {
         [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: ids, ...getters });
+    commit('updateNamespaces', { filters: ids });
   },
 
   setNamespaceFilterMode({ commit }, mode) {

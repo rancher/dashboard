@@ -97,7 +97,7 @@ export default {
 
 <template>
   <GenericPrompt
-    :resources="[config]"
+    v-bind="config"
     @close="$emit('close')"
   >
     <template slot="body">
