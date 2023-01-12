@@ -98,18 +98,10 @@ export default Vue.extend({
 
   created() {
     // Assign values to the form, overriding existing values
-    const controls = {
+    this.controls = {
       ...this.controls,
       ...this.getControls()
     };
-
-    this.controls = Object.keys(controls)
-      .sort()
-      .reduce((res, key) => {
-        res[key] = controls[key];
-
-        return res;
-      }, {} as any);
 
     this.exceptions = this.getExceptions();
   },
