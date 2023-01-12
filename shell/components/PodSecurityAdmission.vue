@@ -191,7 +191,7 @@ export default Vue.extend({
       :key="'control-' + i"
       class="row row--y-center mb-20"
     >
-      <span class="col span-2 psa-checkbox">
+      <span class="col span-2">
         <Checkbox
           v-model="control.active"
           :data-testid="componentTestid + '--control-' + i + '-active'"
@@ -265,12 +265,3 @@ export default Vue.extend({
     </template>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.psa .row {
-    .psa-checkbox {
-      display: flex;
-      align-items: center;
-    }
-}
-</style>
