@@ -631,6 +631,7 @@ export default {
       display: inline-block;
       min-width: 200px;
       height: 30px;
+      min-height: 30px;
       width: initial;
     }
   }
