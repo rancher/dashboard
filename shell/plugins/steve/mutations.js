@@ -12,6 +12,7 @@ import {
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
+import { classify } from '@shell/plugins/dashboard-store/classify';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -31,7 +32,7 @@ function registerNamespace(state, namespace) {
 /**
  * update the podsByNamespace cache with new or changed pods
  */
-function updatePodsByNamespaceCache(state, pods, loadAll) {
+function updatePodsByNamespaceCache(state, ctx, pods, loadAll) {
   if (loadAll) {
     // Clear the entire cache - this is a fresh load
     Object.keys(state.podsByNamespace).forEach((ns) => {
@@ -41,14 +42,17 @@ function updatePodsByNamespaceCache(state, pods, loadAll) {
 
   // Go through all of the pods and populate cache by namespace
   pods.forEach((entry) => {
-    const cache = registerNamespace(state, entry.namespace);
+    const classyResource = state.types[POD].map.get(entry.id) || classify(ctx, entry);
+
+    const cache = registerNamespace(state, classyResource.namespace); // Raw entry.namespace doesn't exist, so use classy
     const existing = cache.map.get(entry.id);
 
     if (existing) {
+      // CANNOT BE THE SAME REFERENCE
       replace(existing, entry);
     } else {
-      addObject(cache.list, entry);
-      cache.map.set(entry.id, entry);
+      addObject(cache.list, classyResource);
+      cache.map.set(entry.id, classyResource);
     }
   });
 }
@@ -83,7 +87,7 @@ export default {
       const newAndChangedPods = Object.entries(batch[POD]).reduce((pods, [id, pod]) => {
         if (pod.id) {
           // resource.create and resource.change
-          pods.push(state.types[POD].map.get(id));// get classified version
+          pods.push(pod);// must NOT be same reference from store
         } else {
           // resource.remove (note - we've already lost the resource in the store, so pass through mocked one)
           cleanPodsByNamespaceCache(state, {
@@ -96,7 +100,7 @@ export default {
         return pods;
       }, []);
 
-      updatePodsByNamespaceCache(state, newAndChangedPods, false);
+      updatePodsByNamespaceCache(state, ctx, newAndChangedPods, false);
     }
 
     if (batch[NAMESPACE]) {
@@ -130,7 +134,7 @@ export default {
 
     // If we loaded a set of pods, then update the podsByNamespace cache
     if (type === POD) {
-      updatePodsByNamespaceCache(state, proxies, true);
+      updatePodsByNamespaceCache(state, ctx, proxies, true);
     }
 
     // Notify the web worker of the initial load of schemas

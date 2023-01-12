@@ -11,7 +11,6 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { KEY, VALUE } from '@shell/config/table-headers';
 import { POD } from '@shell/config/types';
-import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
 
 export default {
@@ -36,13 +35,7 @@ export default {
   },
 
   async fetch() {
-    const hash = { pods: this.value.pods() };
-
-    const res = await allHash(hash);
-
-    for (const k in res) {
-      this[k] = res[k];
-    }
+    await this.value.fetchPods();
   },
 
   data() {
@@ -159,7 +152,7 @@ export default {
       :weight="4"
     >
       <ResourceTable
-        :rows="pods"
+        :rows="value.pods"
         :headers="podTableHeaders"
         key-field="id"
         :table-actions="false"

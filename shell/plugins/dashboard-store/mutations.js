@@ -193,8 +193,6 @@ export function batchChanges(state, { ctx, batch }) {
     const normalizedType = normalizeType(type === 'counts' ? COUNT : type);
     const keyField = keyFieldFor(normalizedType);
     const typeCache = registerType(state, normalizedType);
-    const opts = ctx.rootGetters[`type-map/optionsFor`](type);
-    const limit = opts?.limit;
 
     // making a map for every resource's location in the list is gonna ensure we only have to loop through the big list once.
     const typeCacheIndexMap = {};
@@ -211,7 +209,7 @@ export function batchChanges(state, { ctx, batch }) {
       const resource = batch[normalizedType][id];
 
       // an empty resource passed into batch changes is how we'll signal which ones to delete
-      if (Object.keys(resource).length === 0 && !!index) {
+      if (Object.keys(resource).length === 0 && index !== undefined) {
         typeCache.map.delete(id);
         removeAtIndexes.push(index);
       } else {
@@ -220,13 +218,14 @@ export function batchChanges(state, { ctx, batch }) {
         }
         const classyResource = classify(ctx, resource);
 
-        if (!index) {
+        if (index === undefined) {
           typeCache.list.push(classyResource);
-          typeCacheIndexMap[classyResource[keyField]] = typeCache.list.length + 1;
+          typeCache.map.set(id, classyResource);
+
+          typeCacheIndexMap[classyResource[keyField]] = typeCache.list.length - 1;
         } else {
-          replaceResource(typeCache.list[index], classyResource, ctx.getters);
+          replaceResource(typeCache.list[index], resource, ctx.getters);
         }
-        typeCache.map.set(id, classyResource);
       }
     });
 
@@ -235,9 +234,16 @@ export function batchChanges(state, { ctx, batch }) {
       typeCache.list.splice(cacheIndex - loopIndex, 1);
     });
 
-    // concat the createdResources onto the list after everything and slice off anything over the limit
-    typeCache.list = typeCache.list
-      .slice(limit ? -limit : undefined);
+    const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+    const limit = opts?.limit;
+
+    // If there is a limit to the number of resources we can store for this type then
+    // remove the first one to keep the list size to that limit
+    if (limit && typeCache.list.length > limit) {
+      const rm = typeCache.list.shift();
+
+      typeCache.map.delete(rm.id);
+    }
 
     typeCache.generation++;
   });
