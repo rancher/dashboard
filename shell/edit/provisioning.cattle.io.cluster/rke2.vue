@@ -75,6 +75,8 @@ const ADVANCED = 'advanced';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
+const noneOption = { label: '(None)', value: '' };
+
 export default {
   components: {
     ACE,
@@ -458,7 +460,7 @@ export default {
         return { label: x, value: x };
       });
 
-      out.unshift({ label: '(None)', value: '' });
+      out.unshift(noneOption);
 
       return out;
     },
@@ -468,7 +470,7 @@ export default {
         return null;
       }
 
-      const out = [{ label: 'RKE2 Default', value: '' }];
+      const out = [noneOption];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
@@ -495,7 +497,7 @@ export default {
       if ( !this.needsPSA ) {
         return [];
       }
-      const out = [{ label: this.t(`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateId.option`), value: '' }];
+      const out = [noneOption];
 
       if ( this.allPSAs ) {
         for ( const psa of this.allPSAs ) {
