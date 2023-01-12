@@ -1226,7 +1226,6 @@ cluster:
           </ul>
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
-      import: Imported Harvester
       namespace: Namespace
       cpu: CPUs
       memory: Memory
@@ -1243,7 +1242,7 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
-      cluster: Cluster
+      cluster: Imported Harvester Cluster
       affinity:
         namespaces:
           placeholder: e.g. default,system,base
