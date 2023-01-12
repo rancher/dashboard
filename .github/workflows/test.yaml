@@ -145,6 +145,12 @@ jobs:
           yarn coverage
           ls coverage
 
+      - name: Upload updated coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          path: ./coverage/**/*
+
       # Job is flaky now and then, but we do not want to interrupt the development flow
       - name: Upload unit test coverage to Codecov
         uses: codecov/codecov-action@v3
