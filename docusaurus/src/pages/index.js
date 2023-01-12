@@ -8,9 +8,10 @@ export default function Home() {
   const { siteConfig } = useDocusaurusContext();
 
   return (
-    <Layout
+    <div
       title={`${ siteConfig.title }`}
       description="Description will go into a meta tag in <head />">
+      <div>header</div>
       <div className="row homepage-banner">
         <div className="container">
           <div className="row">
@@ -26,9 +27,14 @@ export default function Home() {
       </div>
       <main>
         <div className="container featuresContainer">
-          <HomepageFeatures />
+          <div className="row">
+            <div className="col col--8">
+              <HomepageFeatures />
+            </div>
+            <div className="col col--4 homepageFooter"></div>
+          </div>
         </div>
       </main>
-    </Layout>
+    </div>
   );
 }

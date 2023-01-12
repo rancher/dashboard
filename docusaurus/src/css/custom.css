@@ -46,7 +46,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .navbar {
-  padding: 20px;
   height: auto;
 }
 
@@ -60,13 +59,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .homepage-banner {
-  background-color: #192072;
+  background-color: #2453FF;
   margin: 0;
 }
 
 .homepage-banner-img {
   padding: 0;
-  max-height: 450px;
+  max-height: 400px;
   overflow: hidden;
 }
 
@@ -76,8 +75,9 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
 }
 
+.homepage-banner > .container,
+.featuresContainer,
 .featureSection {
-  margin: 30px 0;
   padding: 0;
 }
 
@@ -110,23 +110,23 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration: none;
 }
 
-.developer-section {
+/* .developer-section {
   padding-right: 15px;
-}
+} */
 
 .developer-section h3 {
   background-color: #192072;
 }
 
-.components-section {
+/* .components-section {
   padding-left: 15px;
-}
+} */
 .components-section h3 {
   background-color: #2453FF;
 }
 
 
-.footer {
+.homepageFooter {
   background-color: #192072;
 }
 
@@ -136,7 +136,6 @@ h1, h2, h3, h4, h5, h6 {
     background-size: 100%;
   }
 
-  .developer-section,
   .components-section {
     padding: 0;
     margin: 0;
