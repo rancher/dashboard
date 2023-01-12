@@ -51,8 +51,8 @@ export default Vue.extend({
      * List of exemptions used for the resource
      */
     exemptions: {
-      type:    Object as () => Record<string, string[]>,
-      default: () => ({})
+      type:    Object as () => Record<PSADimension, string[]>,
+      default: () => ({} as Record<PSADimension, string[]>)
     },
 
     /**
