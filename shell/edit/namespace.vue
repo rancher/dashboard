@@ -244,6 +244,7 @@ export default {
         <PodSecurityAdmission
           :labels="value.labels"
           :mode="mode"
+          labels-prefix="pod-security.kubernetes.io/"
           @updateLabels="value.setLabels($event)"
         />
       </Tab>
