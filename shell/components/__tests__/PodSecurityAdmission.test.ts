@@ -208,7 +208,7 @@ describe('component: PodSecurityAdmission', () => {
 
   describe('handling exceptions', () => {
     it('should map exemptions to the form exceptions', () => {
-      const exemptions = { runtimeClasses: ['123'] };
+      const exemptions = { runtimeClasses: ['my class'] };
       const exceptions = {
         usernames: {
           active: false,
@@ -216,7 +216,7 @@ describe('component: PodSecurityAdmission', () => {
         },
         runtimeClasses: {
           active: true,
-          value:  '123'
+          value:  'my class'
         },
         namespaces: {
           active: false,
@@ -236,7 +236,7 @@ describe('component: PodSecurityAdmission', () => {
 
     it.each([
       // ['true', 'active'],
-      ['123', 'value'],
+      ['username', 'value'],
     ])('should map exemption to the form, with value %p for input %p', (value, inputId) => {
       const exemptions = { usernames: [value] };
       const wrapper = mount(PodSecurityAdmission, {
@@ -253,10 +253,10 @@ describe('component: PodSecurityAdmission', () => {
 
     describe('changing input values', () => {
       it.each([
-        ['123', ['123']],
-        ['123, 456', ['123', '456']],
+        ['username1', ['username1']],
+        ['username1, username2', ['username1', 'username2']],
         ['', []],
-      ])('should update exemption value', (value, exemption) => {
+      ])('should update exemption value %p', (value, exemption) => {
         const exemptions = {
           usernames:      exemption,
           namespaces:     [],
