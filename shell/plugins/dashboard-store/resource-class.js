@@ -1075,6 +1075,12 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  /**
+   * Allow to handle the response of the save request
+   * @param {*} res Full request response
+   */
+  processSaveResponse(res) { }
+
   async _save(opt = {}) {
     delete this.__rehydrate;
     delete this.__clone;
@@ -1150,6 +1156,9 @@ export default class Resource {
 
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
+
+      // Allow to process response independently from the related models
+      this.processSaveResponse(res);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
