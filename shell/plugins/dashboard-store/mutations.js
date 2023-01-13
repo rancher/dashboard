@@ -217,6 +217,8 @@ export function batchChanges(state, { ctx, batch }) {
       if (Object.keys(resource).length === 0 && index !== undefined) {
         typeCache.map.delete(id);
         removeAtIndexes.push(index);
+      } else if (Object.keys(resource).length === 0) {
+        // No op. We're removing it... but we don't have it in the cache
       } else {
         if (normalizedType === SCHEMA) {
           addSchemaIndexFields(resource);
