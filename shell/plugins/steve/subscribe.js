@@ -385,70 +385,6 @@ const sharedActions = {
     }
   },
 
-  // TODO: RC resyncWatches / #5997 move out if not needed
-  async resyncWatch({
-    state, getters, dispatch, commit
-  }, params) {
-    // TODO: RC resyncWatches / #5997. TEST if this is needed/used, need to wire in clearInError to resourceWatcher (or ensure state is updated after resourceWatcher calls this)
-    // TODO: RC resyncWatches / #5997. TEST with steve socket timing out and 'stop'ing resources
-    // TODO: RC resyncWatches / #5997. TEST this is the only place where forceWatch is used (handled in advanced worker `watch` to override early exit if socket is in error)
-    const {
-      resourceType, namespace, id, selector
-    } = params;
-
-    console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
-
-    const opt = { force: true, forceWatch: true };
-
-    if ( id ) {
-      await dispatch('find', {
-        type: resourceType,
-        id,
-        opt,
-      });
-      commit('clearInError', params);
-
-      return;
-    }
-
-    let have, want;
-
-    if ( selector ) {
-      have = getters['matching'](resourceType, selector).slice();
-      want = await dispatch('findMatching', {
-        type: resourceType,
-        selector,
-        opt,
-      });
-    } else {
-      have = getters['all'](resourceType).slice();
-
-      if ( namespace ) {
-        have = have.filter(x => x.metadata?.namespace === namespace);
-      }
-
-      want = await dispatch('findAll', {
-        type:           resourceType,
-        watchNamespace: namespace,
-        opt
-      });
-    }
-
-    const wantMap = {};
-
-    for ( const obj of want ) {
-      wantMap[obj.id] = true;
-    }
-
-    for ( const obj of have ) {
-      if ( !wantMap[obj.id] ) {
-        state.debugSocket && console.info(`Remove stale [${ getters.storeName }]`, resourceType, obj.id); // eslint-disable-line no-console
-
-        commit('remove', obj);
-      }
-    }
-  },
-
   'ws.ping'({ getters, dispatch }, msg) {
     if ( getters.storeName === 'management' ) {
       const version = msg?.data?.version || null;
@@ -463,13 +399,6 @@ const sharedActions = {
  * Mutations that cover all cases (both subscriptions here and in advanced worker)
  */
 const sharedMutations = {
-  // TODO: RC resyncWatches / #5997 move out if not needed
-  clearInError(state, msg) {
-    const key = keyForSubscribe(msg);
-
-    delete state.inError[key];
-  },
-
   debug(state, on) {
     state.debugSocket = on !== false;
   },
@@ -547,6 +476,66 @@ const defaultActions = {
     }
 
     return Promise.all(promises);
+  },
+
+  async resyncWatch({
+    state, getters, dispatch, commit
+  }, params) {
+    const {
+      resourceType, namespace, id, selector
+    } = params;
+
+    console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
+
+    const opt = { force: true, forceWatch: true };
+
+    if ( id ) {
+      await dispatch('find', {
+        type: resourceType,
+        id,
+        opt,
+      });
+      commit('clearInError', params);
+
+      return;
+    }
+
+    let have, want;
+
+    if ( selector ) {
+      have = getters['matching'](resourceType, selector).slice();
+      want = await dispatch('findMatching', {
+        type: resourceType,
+        selector,
+        opt,
+      });
+    } else {
+      have = getters['all'](resourceType).slice();
+
+      if ( namespace ) {
+        have = have.filter(x => x.metadata?.namespace === namespace);
+      }
+
+      want = await dispatch('findAll', {
+        type:           resourceType,
+        watchNamespace: namespace,
+        opt
+      });
+    }
+
+    const wantMap = {};
+
+    for ( const obj of want ) {
+      wantMap[obj.id] = true;
+    }
+
+    for ( const obj of have ) {
+      if ( !wantMap[obj.id] ) {
+        state.debugSocket && console.info(`Remove stale [${ getters.storeName }]`, resourceType, obj.id); // eslint-disable-line no-console
+
+        commit('remove', obj);
+      }
+    }
   },
 
   async opened({
@@ -891,6 +880,12 @@ const defaultMutations = {
     const key = keyForSubscribe(msg);
 
     state.inError[key] = msg.reason;
+  },
+
+  clearInError(state, msg) {
+    const key = keyForSubscribe(msg);
+
+    delete state.inError[key];
   },
 
   resetSubscriptions(state) {

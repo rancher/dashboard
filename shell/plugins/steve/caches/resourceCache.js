@@ -23,7 +23,8 @@ export default class ResourceCache {
       }
       const id = resource[this.keyField];
 
-      this.resources[id] = resource;
+      // Store the hash instead of the whole object. This means longer load time be reduces memory footprint
+      this.resources[id] = hashObj(resource);
     }
     // console.timeEnd('startSchemaLoads!!!');
 
@@ -35,7 +36,7 @@ export default class ResourceCache {
       addSchemaIndexFields(resource);
     }
 
-    const existingResourceHash = hashObj(this.resources[resource[this.keyField]] || {});
+    const existingResourceHash = this.resources[resource[this.keyField]] || {};
     const newResourceHash = hashObj(resource);
 
     if (existingResourceHash !== newResourceHash) {

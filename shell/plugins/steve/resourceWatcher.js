@@ -87,12 +87,10 @@ export default class ResourceWatcher extends Socket {
       trace(EVENT_CONNECTED, ': processing previously requested or watched resources');
 
       Object.values(this.watches).forEach((watch) => {
-        const { status } = watch;
+        const { status, error } = watch;
         const watchKey = keyForSubscribe(watch);
 
-        // TODO: RC resyncWatches / #5997. if a watch is in error, we shouldn't try to re-watch it until we've forced an updated list via resyncWatches
-        // Note - Error state is currently cleared on resource.error --> unwatch --> resource.stop
-        if ([WATCH_PENDING, WATCH_REQUESTED, WATCHING].includes(status)) {
+        if ([WATCH_PENDING, WATCH_REQUESTED, WATCHING].includes(status) && !error) {
           trace(EVENT_CONNECTED, ': re-watching previously required resource', watchKey, status);
           this.watches[watchKey].status = WATCH_PENDING;
           this.watch(watchKey);
@@ -120,7 +118,13 @@ export default class ResourceWatcher extends Socket {
     trace('watch:', 'requested', watchKey);
 
     if ([WATCH_REQUESTED, WATCHING].includes(this.watches?.[watchKey]?.status)) {
-      trace('watch:', 'already requested or watching', watchKey);
+      trace('watch:', 'already requested or watching, aborting', watchKey);
+
+      return;
+    }
+
+    if (this.watches?.[watchKey]?.error) {
+      trace('watch:', 'in error, aborting', watchKey);
 
       return;
     }
@@ -176,7 +180,8 @@ export default class ResourceWatcher extends Socket {
             skipResourceVersion = true;
           }
         });
-      // TODO: RC Q if this fails we still go on and try and watch with whatever resourceVersion we have. For those cases we should `resyncWatch`
+      // When this fails we should re-fetch all resources (aka same as resyncWatch, or we actually call it). #7917
+      // This would match the old approach
     }
 
     const success = this.send(JSON.stringify({
@@ -231,13 +236,11 @@ export default class ResourceWatcher extends Socket {
     });
 
     if (eventName === 'resource.start' && this.watches?.[watchKey]?.status === WATCH_REQUESTED) {
-      // TODO: RC Q whenever we receive this start event... we'll be getting updates for it... and should be tracking (regardless of if the current status is requested?)
       this.watches[watchKey].status = WATCHING;
     } else if (eventName === 'resource.stop' && this.watches?.[watchKey]) {
       if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
         delete this.watches[watchKey];
       } else {
-        // TODO: RC resyncWatches / #5997. with steve socket timing out and 'stop'ing resources
         this.watches[watchKey].status = STOPPED;
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;
@@ -249,15 +252,16 @@ export default class ResourceWatcher extends Socket {
 
       if ( this.watches[watchKey] && err.includes('watch not allowed') ) {
         this.watches[watchKey].error = { type: resourceType, reason: NO_WATCH };
-        this.unwatch(watchKey); // Note - applying anything to the `error` here is cleared when the entry is wiped on successful resource.stop
       } else if ( this.watches[watchKey] && err.includes('failed to find schema') ) {
         // This can happen when the cattle-cluster-agent goes down (redeploy deployment, kill pod, etc)
         // The previous method was just to track the error and block any further attempts to watch (canWatch)
         // This method means we can retry on the next findX (should be safe, unless there are other use cases...)
 
         this.watches[watchKey].error = { type: resourceType, reason: NO_SCHEMA };
-        this.unwatch(watchKey); // Note - applying anything to the `error` here is cleared when the entry is wiped on successful resource.stop
       } else if ( err.includes('too old') ) {
+        // We don't actually know the gap between the requested revision and the oldest available revision.
+        // For this case we should re-fetch all resources (aka same as resyncWatch, or we actually call it). #7917
+        // This would match the old approach
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;
         delete this.watches[watchKey].skipResourceVersion;
