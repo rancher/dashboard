@@ -6813,6 +6813,10 @@ performance:
     count:
       inputLabel: Resource Threshold
       description: The threshold above which filtering by a namespace is required
+  advancedWorker:
+    label: Websocket Web Worker
+    description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
+    checkboxLabel: Enable Advanced Websocket Web Worker
 
 banner:
   label: Fixed Banners

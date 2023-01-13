@@ -141,5 +141,6 @@ export const DEFAULT_PERF_SETTING = {
   forceNsFilter:                {
     enabled:   false,
     threshold: 1500,
-  }
+  },
+  advancedWorker: { enabled: false },
 };

@@ -1,7 +1,8 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
-import { SCHEMA } from '@shell/config/types';
-import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import { SCHEMA, COUNT } from '@shell/config/types';
+import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
+import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import garbageCollect from '@shell/utils/gc/gc';
 
@@ -32,6 +33,24 @@ function registerType(state, type) {
   return cache;
 }
 
+export function replace(existing, data) {
+  for ( const k of Object.keys(existing) ) {
+    delete existing[k];
+  }
+
+  for ( const k of Object.keys(data) ) {
+    Vue.set(existing, k, data[k]);
+  }
+
+  return existing;
+}
+
+function replaceResource(existing, data, getters) {
+  data = getters.cleanResource(existing, data);
+
+  return replace(existing, data);
+}
+
 export function load(state, { data, ctx, existing }) {
   const { getters } = ctx;
   let type = normalizeType(data.type);
@@ -41,8 +60,7 @@ export function load(state, { data, ctx, existing }) {
 
   // Inject special fields for indexing schemas
   if ( type === SCHEMA ) {
-    data._id = normalizeType(data.id);
-    data._group = normalizeType(data.attributes?.group);
+    addSchemaIndexFields(data);
   }
 
   const id = data[keyField];
@@ -53,24 +71,10 @@ export function load(state, { data, ctx, existing }) {
 
   let entry;
 
-  function replace(existing, data) {
-    data = getters.cleanResource(existing, data);
-
-    for ( const k of Object.keys(existing) ) {
-      delete existing[k];
-    }
-
-    for ( const k of Object.keys(data) ) {
-      Vue.set(existing, k, data[k]);
-    }
-
-    return existing;
-  }
-
   if ( existing && !existing.id ) {
     // A specific proxy instance to used was passed in (for create -> save),
     // use it instead of making a new proxy
-    entry = replace(existing, data);
+    entry = replaceResource(existing, data, getters);
     addObject(cache.list, entry);
     cache.map.set(id, entry);
     // console.log('### Mutation added from existing proxy', type, id);
@@ -79,7 +83,7 @@ export function load(state, { data, ctx, existing }) {
 
     if ( entry ) {
       // There's already an entry in the store, update it
-      replace(entry, data);
+      replaceResource(entry, data, getters);
       // console.log('### Mutation Updated', type, id);
     } else {
       // There's no entry, make a new proxy
@@ -165,6 +169,93 @@ export function remove(state, obj, getters) {
   }
 }
 
+export function batchChanges(state, { ctx, batch }) {
+  const batchTypes = Object.keys(batch);
+  const combinedBatch = {};
+
+  batchTypes.forEach((batchType) => {
+    combinedBatch[batchType] = batch[batchType];
+    const typeOption = ctx.rootGetters['type-map/optionsFor'](batchType);
+
+    if (typeOption?.alias?.length > 0) {
+      const alias = typeOption?.alias || [];
+
+      alias.forEach((aliasType) => {
+        combinedBatch[aliasType] = {};
+        for (const [key, value] of Object.entries(batch[batchType])) {
+          combinedBatch[aliasType][key] = {
+            ...value,
+            type: aliasType
+          };
+        }
+      });
+    }
+  });
+
+  const combinedBatchTypes = Object.keys(combinedBatch);
+
+  combinedBatchTypes.forEach((type) => {
+    const normalizedType = normalizeType(type === 'counts' ? COUNT : type);
+    const keyField = keyFieldFor(normalizedType);
+    const typeCache = registerType(state, normalizedType);
+
+    // making a map for every resource's location in the list is gonna ensure we only have to loop through the big list once.
+    const typeCacheIndexMap = {};
+
+    typeCache.list.forEach((resource, index) => {
+      typeCacheIndexMap[resource[keyField]] = index;
+    });
+
+    const removeAtIndexes = [];
+
+    // looping through the batch, executing changes, deferring creates and removes since they change the array length
+    Object.keys(batch[normalizedType]).forEach((id) => {
+      const index = typeCacheIndexMap[id];
+      const resource = batch[normalizedType][id];
+
+      // an empty resource passed into batch changes is how we'll signal which ones to delete
+      if (Object.keys(resource).length === 0 && index !== undefined) {
+        typeCache.map.delete(id);
+        removeAtIndexes.push(index);
+      } else if (Object.keys(resource).length === 0) {
+        // No op. We're removing it... but we don't have it in the cache
+      } else {
+        if (normalizedType === SCHEMA) {
+          addSchemaIndexFields(resource);
+        }
+        const classyResource = classify(ctx, resource);
+
+        if (index === undefined) {
+          typeCache.list.push(classyResource);
+          typeCache.map.set(id, classyResource);
+
+          typeCacheIndexMap[classyResource[keyField]] = typeCache.list.length - 1;
+        } else {
+          replaceResource(typeCache.list[index], resource, ctx.getters);
+        }
+      }
+    });
+
+    // looping through the removeAtIndexes, making sure to offset by iteration so the array changing doesn't mess us up
+    removeAtIndexes.sort().forEach((cacheIndex, loopIndex) => {
+      typeCache.list.splice(cacheIndex - loopIndex, 1);
+    });
+
+    const opts = ctx.rootGetters[`type-map/optionsFor`](type);
+    const limit = opts?.limit;
+
+    // If there is a limit to the number of resources we can store for this type then
+    // remove the first one to keep the list size to that limit
+    if (limit && typeCache.list.length > limit) {
+      const rm = typeCache.list.shift();
+
+      typeCache.map.delete(rm.id);
+    }
+
+    typeCache.generation++;
+  });
+}
+
 export function loadAll(state, {
   type,
   data,
@@ -241,6 +332,11 @@ export default {
   },
 
   loadAll,
+
+  /**
+   * Handles changes (add, update, remove) to multiple resources for multiple types
+   */
+  batchChanges,
 
   loadMerge(state, { type, data: allLatest, ctx }) {
     const { commit, getters } = ctx;
