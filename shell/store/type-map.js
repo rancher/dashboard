@@ -42,6 +42,7 @@
 //   category,                -- Group to show the product in for the nav hamburger menu
 //   typeStoreMap,            -- An object mapping types to the store that should be used to retrieve information about the type
 //   hideSystemResources      -- Hide resources in namespaces where namespace.isSystem === true, or a namespace managed by fleet (per its annotation) and hide those namespaces from ns/project list and nsfilter (default false)
+//   hideNamespaceLocation    -- Hide the namespace link in the ResourceDetail masthead of namespaced resources and hide the ExplorerProjectsNamespaces namespace link (default false)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object

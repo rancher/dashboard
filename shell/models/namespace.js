@@ -187,11 +187,10 @@ export default class Namespace extends SteveModel {
   }
 
   get _detailLocation() {
-    const _detailLocation = super._detailLocation;
+    let _detailLocation = super._detailLocation;
 
-    // Harvester uses these resource directly... but has different routes. detailLocation covers routes leading to resource (like edit)
-    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
-      _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
+    if (this.$rootGetters['currentProduct'].hideNamespaceLocation) {
+      _detailLocation = false;
     }
 
     return _detailLocation;
