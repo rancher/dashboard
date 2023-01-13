@@ -399,10 +399,14 @@ export default {
       <template #cell:name="{row}">
         <div class="namespace-name">
           <n-link
+            v-if="row.detailLocation"
             :to="row.detailLocation"
           >
             {{ row.name }}
           </n-link>
+          <span v-else>
+            {{ row.name }}
+          </span>
           <i
             v-if="row.hasSystemLabels"
             v-tooltip="getPSA(row)"
