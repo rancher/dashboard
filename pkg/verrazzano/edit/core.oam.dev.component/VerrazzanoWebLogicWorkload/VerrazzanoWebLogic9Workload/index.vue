@@ -128,8 +128,8 @@ export default {
         :mode="mode"
         :namespaced-object="value"
         tab-name="adminServer"
-        @input="setWorkloadSpecFieldIfNotEmpty('serverService', $event)"
-        @delete="setWorkloadSpecField('serverService', undefined)"
+        @input="setWorkloadSpecFieldIfNotEmpty('adminServer', $event)"
+        @delete="setWorkloadSpecField('adminServer', undefined)"
       />
 
       <!-------------------------------------------------------------------------------------------------------
