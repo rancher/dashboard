@@ -15,7 +15,7 @@ export default {
     <Banner
       color="info"
     >
-      Just a sample banner
+      Just a sample banner to show that we can render anything here
     </Banner>
   </div>
 </template>

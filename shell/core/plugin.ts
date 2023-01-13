@@ -133,67 +133,111 @@ export class Plugin implements IPlugin {
   }
 
   /**
-   * Adds an action/button to Header component
+   * Adds an action/button to the UI
    */
-  addHeaderAction(locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_HEADER_ACTION] = this.uiConfig[UI_CONFIG_HEADER_ACTION] || [];
-    this.uiConfig[UI_CONFIG_HEADER_ACTION].push({ ...action, locationConfig });
+  addAction(locationConfig: LocationConfig, action: IAction): void {
+    let type: string;
+
+    switch (locationConfig.where) {
+    case 'table':
+      type = UI_CONFIG_TABLE_ACTION;
+      break;
+    case 'header':
+      type = UI_CONFIG_HEADER_ACTION;
+      break;
+    default:
+      console.error(`Unknown addAction type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    this.uiConfig[type] = this.uiConfig[type] || [];
+    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
   }
 
   /**
-   * Adds a tab to the ResourceTabs component
+   * Adds a tab to the UI
    */
   addTab(locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_TAB] = this.uiConfig[UI_CONFIG_TAB] || [];
-    this.uiConfig[UI_CONFIG_TAB].push({ ...action, locationConfig });
+    let type: string;
+
+    switch (locationConfig.where) {
+    case 'resourceTabs':
+      type = UI_CONFIG_TAB;
+      break;
+    default:
+      console.error(`Unknown addTab type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+
+      return;
+    }
+    this.uiConfig[type] = this.uiConfig[type] || [];
+    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
   }
 
   /**
-   * Adds an action to the SortableTable component
+   * Adds a panel/component to the UI
    */
-  addTableAction(locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_TABLE_ACTION] = this.uiConfig[UI_CONFIG_TABLE_ACTION] || [];
-    this.uiConfig[UI_CONFIG_TABLE_ACTION].push({ ...action, locationConfig });
+  addPanel(locationConfig: LocationConfig, action: IAction): void {
+    let type: string;
+
+    switch (locationConfig.where) {
+    case 'detailsMasthead':
+      type = UI_CONFIG_DETAILS_MASTHEAD;
+      break;
+    case 'detailTop':
+      type = UI_CONFIG_DETAIL_TOP;
+      break;
+    case 'listView':
+      type = UI_CONFIG_RESOURCE_LIST;
+      break;
+    default:
+      console.error(`Unknown addPanel type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    this.uiConfig[type] = this.uiConfig[type] || [];
+    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
   }
 
   /**
-   * Adds a component to the Details Masthead component
+   * Adds a card to the to the UI
    */
-  addToDetailsMasthead( locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD] = this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD] || [];
-    this.uiConfig[UI_CONFIG_DETAILS_MASTHEAD].push({ ...action, locationConfig });
+  addCard( locationConfig: LocationConfig, action: IAction): void {
+    let type: string;
+
+    switch (locationConfig.where) {
+    case 'clusterDashboard':
+      type = UI_CONFIG_CLUSTER_DASHBOARD_CARD;
+      break;
+    default:
+      console.error(`Unknown addCard type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+
+      return;
+    }
+
+    this.uiConfig[type] = this.uiConfig[type] || [];
+    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
   }
 
   /**
-   * Adds a component to the DetailTop component
+   * Adds a new column to a table on the UI
    */
-  addToDetailTop( locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_DETAIL_TOP] = this.uiConfig[UI_CONFIG_DETAIL_TOP] || [];
-    this.uiConfig[UI_CONFIG_DETAIL_TOP].push({ ...action, locationConfig });
-  }
+  addTableColumn(locationConfig: LocationConfig, action: IAction): void {
+    let type: string;
 
-  /**
-   * Adds a component to the list view page
-   */
-  addToListView( locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_RESOURCE_LIST] = this.uiConfig[UI_CONFIG_RESOURCE_LIST] || [];
-    this.uiConfig[UI_CONFIG_RESOURCE_LIST].push({ ...action, locationConfig });
-  }
+    switch (locationConfig.where) {
+    case 'listView':
+      type = UI_CONFIG_TABLE_COL;
+      break;
+    default:
+      console.error(`Unknown addTableColumn type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
 
-  /**
-   * Adds a card to the cluster dashboard view
-   */
-  addClusterDashboardCard( locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD] = this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD] || [];
-    this.uiConfig[UI_CONFIG_CLUSTER_DASHBOARD_CARD].push({ ...action, locationConfig });
-  }
+      return;
+    }
 
-  /**
-   * Adds a new column to the SortableTable  component
-   */
-  addTableCol(locationConfig: LocationConfig, action: IAction): void {
-    this.uiConfig[UI_CONFIG_TABLE_COL] = this.uiConfig[UI_CONFIG_TABLE_COL] || [];
-    this.uiConfig[UI_CONFIG_TABLE_COL].push({ ...action, locationConfig });
+    this.uiConfig[type] = this.uiConfig[type] || [];
+    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
   }
 
   setHomePage(component: any) {

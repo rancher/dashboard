@@ -2,7 +2,7 @@
 import Banner from '@components/Banner/Banner.vue';
 
 export default {
-  name:       'MastheadDetailsComponent',
+  name:       'DetailTopComponent',
   components: { Banner },
   data() {
     return { key: 'asdasd' };
@@ -12,10 +12,11 @@ export default {
 
 <template>
   <div>
+    <br>
     <Banner
       color="warning"
     >
-      This is a generic masthead component example...
+      This is an example on DetailTop
     </Banner>
   </div>
 </template>

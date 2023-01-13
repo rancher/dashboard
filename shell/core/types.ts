@@ -47,12 +47,15 @@ export const UI_CONFIG_TABLE_COL = 'table-col';
 export type IAction = any;
 
 export type LocationConfig = {
-  product?: string,
-  resource?: string,
-  namespace?: string,
-  cluster?: string,
-  id?: string,
-  mode?: string
+  where?: string,
+  when: {
+    product?: string,
+    resource?: string,
+    namespace?: string,
+    cluster?: string,
+    id?: string,
+    mode?: string
+  }
 };
 
 /**
@@ -94,44 +97,29 @@ export interface IPlugin {
   addRoute(parent: string, route: RouteConfig): void;
 
   /**
-   * Adds an action/button to Header component
+   * Adds an action/button to the UI
    */
-   addHeaderAction(locationConfig: LocationConfig, action: IAction): void;
+   addAction(locationConfig: LocationConfig, action: IAction): void;
 
   /**
-   * Adds a tab to the ResourceTabs component
+   * Adds a tab to the UI (ResourceTabs component)
    */
    addTab( locationConfig: LocationConfig, action: IAction): void;
 
   /**
-   * Adds an action to the SortableTable component
+   * Adds a panel/component to the UI
    */
-   addTableAction( locationConfig: LocationConfig, action: IAction): void;
+   addPanel( locationConfig: LocationConfig, action: IAction): void;
 
   /**
-   * Adds a component to the Details Masthead component
+   * Adds a card to the UI
    */
-   addToDetailsMasthead( locationConfig: LocationConfig, action: IAction): void;
-
-  /**
-   * Adds a component to the DetailTop component
-   */
-  addToDetailTop( locationConfig: LocationConfig, action: IAction): void;
-
-  /**
-   * Adds a component to the list view page
-   */
-   addToListView( locationConfig: LocationConfig, action: IAction): void;
-
-  /**
-   * Adds a card to the cluster dashboard view
-   */
-   addClusterDashboardCard( locationConfig: LocationConfig, action: IAction): void;
+   addCard( locationConfig: LocationConfig, action: IAction): void;
 
   /**
    * Adds a new column to the SortableTable  component
    */
-   addTableCol(locationConfig: LocationConfig, action: IAction): void;
+   addTableColumn(locationConfig: LocationConfig, action: IAction): void;
 
   /**
    * Set the component to use for the landing home page
