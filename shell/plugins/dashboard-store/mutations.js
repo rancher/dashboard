@@ -325,4 +325,9 @@ export default {
     }
   },
 
+  setDocsBase(state, version) {
+    const parsedVersion = version.match(/v?[0-9]+\.[0-9]+/)[0];
+
+    state.latestDocsVersion = parsedVersion;
+  }
 };

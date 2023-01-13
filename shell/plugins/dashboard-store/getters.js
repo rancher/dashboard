@@ -334,5 +334,9 @@ export default {
 
   gcIgnoreTypes: () => {
     return {};
+  },
+
+  latestDocsVersion: (state) => {
+    return state.latestDocsVersion;
   }
 };

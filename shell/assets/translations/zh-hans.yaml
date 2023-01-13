@@ -16,6 +16,7 @@ generic:
   create: 创建
   created: 创建时间
   customize: 自定义
+  dashboard: 仪表板
   default: 默认
   disabled: 禁用
   done: 完成
@@ -406,7 +407,7 @@ authConfig:
           5: '在 OAuth 凭证框中，上传下载的 JSON 文件。'
       3:
         title: '创建 Service Account 凭证'
-        introduction: '参照本<a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">指南</a>：'
+        introduction: '参照本<a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">指南</a>：'
         body:
           1: 创建一个 Service Account。
           2: 为这个 Service Account 生成密钥。
@@ -1008,7 +1009,7 @@ cis:
   alertNeeded: |-
     必须在 CIS Chart values.yaml 中开启告警。
     这要求<a tabindex="0" href="{link}"> {vendor} 的 Monitoring 与 Alerting 应用</a>已经安装
-    ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'>已配置告警发送</a>。
+    ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'>已配置告警发送</a>。
   alertOnComplete: 扫描完成告警
   alertOnFailure: 扫描失败告警
   benchmarkVersion: Benchmark 版本
@@ -1059,6 +1060,7 @@ cis:
   testID: 测试 ID
   testsSkipped: 已跳过的测试
   testsToSkip: 要跳过的测试
+  workerProfile: CIS Worker 配置文件
 
 cluster:
   addonChart:
@@ -1309,8 +1311,14 @@ cluster:
           other {{storageSize, number} {storageUnit} {storageType}}
         }
     azure:
+      acceleratedNetworking:
+        label: 加速网络
       availabilitySet:
         label: 可用性集（非托管）
+        description: 可用性集用于让应用程序免受 Azure 数据中心内硬件故障的影响。
+      availabilityZone:
+        label: 可用区
+        description: 可用区用于让应用程序免受 Azure 数据中心全面故障的影响。
       dns:
         help: 公共 IP 地址的唯一 DNS 标签。
         label: DNS 标签
@@ -1350,10 +1358,18 @@ cluster:
         label: 资源组
       size:
         label: 虚拟机大小
+        tooltip: 启用加速网络后，并非所有大小都可用。
+        supportsAcceleratedNetworking: 支持加速网络的大小
+        doesNotSupportAcceleratedNetworking: 没有加速网络的大小
+        availabilityWarning: VM 大小在所选区域中不可用。
+        regionDoesNotSupportAzs: 所选区域不支持可用区。请选择其他区域或改用可用性集。
+        regionSupportsAzsButNotThisSize: 所选区域的可用区不支持该 VM 大小。请选择不同的区域或 VM 大小。
+        selectedSizeAcceleratedNetworkingWarning: 所选 VM 大小不支持加速网络。请选择其他 VM 大小或禁用加速网络。
       sshUser:
         label: SSH 用户名
       storageType:
         label: 储存类型
+        warning: StandardSSD_LRS 需要托管磁盘。请使用托管磁盘或选择其他存储类型。
       subnet:
         label: 子网
       subnetPrefix:
@@ -1366,6 +1382,8 @@ cluster:
       vnet:
         label: 虚拟网络
         placeholder: '[resourcegroup:]name'
+      tags:
+        label: 标签
     digitalocean:
       sizeLabel: |-
         {plan, select,
@@ -1541,7 +1559,7 @@ cluster:
   banner:
     warning: '此集群包含此表单不完全支持的 machineSelectorConfig。使用 YAML 编辑器管理完整配置。'
     os: '你正在将 {newOS} worker 节点添加到具有一个或多个 {existingOS} worker 节点的集群。你可能需要升级或删除某些已安装的应用。'
-    rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">文档</a>。'
+    rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences" target="_blank" rel="noopener nofollow">文档</a>。'
     desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
 
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
@@ -1618,12 +1636,10 @@ cluster:
       searchPlaceholder: 请输入搜索
       noResults: 没有匹配的结果
   privateRegistry:
-    systemDefaultRegistry:
-      label: 用于 Rancher 系统容器镜像的仓库主机名
-    mode:
-      public: 用于 Rancher 系统容器镜像的默认全局镜像仓库
-      private: 为 Rancher 系统容器镜像使用指定的私有镜像仓库
-      advanced: 配置高级容器 Mirror 和仓库验证选项
+    label: 为 Rancher 系统容器镜像启用集群级别的容器镜像仓库
+    description: "如果启用，Rancher 将在集群配置期间从该镜像仓库中拉取容器镜像。默认情况下，Rancher 在安装 Rancher 的官方 Helm Chart 应用程序时也会使用此镜像仓库。如果集群级别的镜像仓库被禁用，将从全局设置中的系统默认镜像仓库中拉取系统镜像。"
+    docsLinkRke2: "如需配置私有镜像仓库 mirror 的帮助，请参阅 RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration/\" target=\"_blank\">文档</a>。"
+    docsLinkK3s: "如需配置私有镜像仓库 mirror 的帮助，请参阅 K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">文档</a>。"
   provider:
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
@@ -2548,13 +2564,39 @@ logging:
       doesntExistTooltip: 该集群输出不存在
       label: 集群输出
     matches:
+      banner: 配置要拉取哪些容器日志
+      unsupportedConfig: 此资源包含表单编辑器不支持的匹配配置。请使用 YAML 进行编辑。
       label: 匹配
       addSelect: 添加包含规则
       addExclude: 添加排除规则
+      pods:
+        title:
+          include: 包括 Pod
+          exclude: 排除 Pod
+        keyLabel: Pod 标签键
+        valueLabel: Pod 标签值
+        addLabel: 添加 Pod
+      nodes:
+        title:
+          include: 仅限特定节点
+          exclude: 排除特定节点
+        placeholder: "默认值：任何节点"
+      containerNames:
+        title:
+          include: 仅限特定的容器名称
+          exclude: 排除特定的容器名称
+        placeholder: "默认值：任何容器"
+      namespaces:
+        title:
+          include: 仅限特定的命名空间
+          exclude: 排除特定的命名空间
+        placeholder: "默认值：任何命名空间"
+
     filters:
       label: 筛选
     outputs:
       doesntExistTooltip: 该集群输出不存在
+      sameNamespaceError: 输出必须位于与流相同的命名空间中。
       label: 输出
   install:
     k3sContainerEngine: K3S 容器引擎
@@ -2820,6 +2862,7 @@ managementNode:
 
 members:
   clusterMembers: 集群成员
+  clusterAndProject: 集群和项目成员
   createActionLabel: 添加
   clusterPermissions:
     noDescription: 已创建用户 - 没有描述
@@ -2845,7 +2888,8 @@ members:
     custom:
       label: 自定义
       description: 为该用户自定义角色。
-  localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管​​理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
+  localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
+  noRolesAssigned: 没有分配给该项目的用户。
 
 membershipEditor:
   label: 成员
@@ -2990,7 +3034,7 @@ monitoring:
       keyFilePath:
         label: 密钥文件路径
         placeholder: 例如：./key-file.pfx
-      secretsBanner: 部署 Monitoring Chart 时，必须在<<pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre>中引用以下文件路径。详情请查看<a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">官方文档</a>。
+      secretsBanner: 部署 Monitoring Chart 时，必须在<<pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre>中引用以下文件路径。详情请查看<a href="{docsBase}/pages-for-subheaders/monitoring-v2-configuration" target="_blank" rel="noopener noreferrer nofollow">官方文档</a>。
   projectMonitoring:
     detail:
       error: "无法获取具有状态的仪表板值： "
@@ -3047,7 +3091,7 @@ monitoring:
       stepTitle: 卸载 V1
       stepSubtext: 卸载旧版 Monitoring
       warning1: 已部署 Monitoring V1。你需要先卸载 Monitoring V1 才能安装 Monitoring V2。
-      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>了解迁移到 Monitoring V2 的步骤</a>。
+      warning2: <a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/how-to-guides/advanced-user-guides/monitoring-alerting-guides/migrate-to-rancher-v2.5+-monitoring#migrating-from-monitoring-v1-to-monitoring-v2" target='_blank' rel='noopener nofollow'>了解迁移到 Monitoring V2 的步骤</a>。
       promptDescription: <div class="mt-20 mb-20">你正在尝试卸载 Monitoring V1。请确保你已阅读迁移步骤。</div>
       success1:  Monitoring V1 已成功卸载。
       success2: 点击下一步继续
@@ -4990,6 +5034,7 @@ tableHeaders:
   ingressTarget: 目标
   internalExternalIp: 外网 IP/内网 IP
   ipaddress: IP 地址
+  internalIpSameAsExternal: 与外网 IP 相同
   jobs: Job
   key: 键
   keys: 数据
@@ -6325,11 +6370,13 @@ registryMirror:
   header: Mirror
   toolTip: 'Mirror 可用来重定向来自一个仓库的镜像请求，使其来自你指定的端点列表。例如，你可以把 docker.io 指向到只和你的内部仓库通信，而不是通过互联网访问实际的 DockerHub。'
   addLabel: 添加 Mirror
+  description: Mirror 定义了私有镜像仓库的名称和端点。将会逐个尝试端点，并使用第一个可工作的端点。
 
 registryConfig:
   header: 仓库验证
   toolTip: '当需要从给定的镜像仓库主机名中拉取镜像时，此信息将用于识别并验证仓库。'
   addLabel: 添加镜像仓库
+  description: "为每个镜像仓库主机名和 Mirror 定义 TLS 和凭证配置。"
 
 ##############################
 ### Advanced Settings
@@ -6668,13 +6715,13 @@ embedding:
 v1ClusterTools:
   monitoring:
     label: Monitoring（旧版）
-    description: '旧版 Monitoring V1。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到 Monitoring V2 的步骤</a>。'
+    description: '旧版 Monitoring V1。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/how-to-guides/advanced-user-guides/monitoring-alerting-guides/migrate-to-rancher-v2.5+-monitoring#migrating-from-monitoring-v1-to-monitoring-v2">迁移到 Monitoring V2 的步骤</a>。'
   logging:
     label: Logging（旧版）
-    description: '旧版 Logging V1。自 Rancher 2.5.0 起，我们已弃用 Logging V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到 Logging V2 的步骤</a>。'
+    description: '旧版 Logging V1。自 Rancher 2.5.0 起，我们已弃用 Logging V1。了解<a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/integrations-in-rancher/logging/migrate-to-rancher-v2.5+-logging">迁移到 Logging V2 的步骤</a>。'
   istio:
     label: Istio（旧版）
-    description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们已弃用 Istio V1.5。了解<a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
+    description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们已弃用 Istio V1.5。了解<a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/pages-for-subheaders/istio#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
 
 legacy:
   alerts: 告警

@@ -242,7 +242,29 @@ export default class CapiMachine extends SteveModel {
     return this.status?.phase === 'Running';
   }
 
-  get ipaddress() {
-    return this.status?.addresses?.find(({ type }) => type === ADDRESSES.INTERNAL_IP)?.address || '-';
+  get internalIp() {
+    // This shows in the IP address column for RKE2 nodes in the
+    // list of nodes in the cluster detail page of Cluster Management.
+    const internal = this.status?.addresses?.find(({ type }) => {
+      return type === ADDRESSES.INTERNAL_IP;
+    })?.address;
+
+    if (internal) {
+      return internal;
+    }
+
+    return this.t('generic.none');
+  }
+
+  get externalIp() {
+    const external = this.status?.addresses?.find(({ type }) => {
+      return type === ADDRESSES.EXTERNAL_IP;
+    })?.address;
+
+    if (external) {
+      return external;
+    }
+
+    return this.t('generic.none');
   }
 }

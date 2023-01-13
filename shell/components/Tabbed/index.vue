@@ -256,7 +256,7 @@ export default {
           <i
             v-if="hasIcon(tab)"
             v-tooltip="t('validation.tab')"
-            class="conditions-alert-icon icon-error icon-lg"
+            class="conditions-alert-icon icon-error"
           />
         </a>
       </li>
@@ -279,7 +279,7 @@ export default {
             class="btn bg-transparent"
             @click="tabAddClicked"
           >
-            <i class="icon icon-plus icon-lg" />
+            <i class="icon icon-plus" />
           </button>
           <button
             type="button"
@@ -287,7 +287,7 @@ export default {
             :disabled="!sortedTabs.length"
             @click="tabRemoveClicked"
           >
-            <i class="icon icon-minus icon-lg" />
+            <i class="icon icon-minus" />
           </button>
         </li>
       </ul>

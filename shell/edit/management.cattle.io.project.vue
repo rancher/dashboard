@@ -146,6 +146,13 @@ export default {
         } else if (this.mode === _EDIT) {
           if (this.canEditProject) {
             await this.value.save(true);
+
+            // We updated the Norman resource - re-fetch the Steve resource so we know it is definitely updated in the store
+            await this.$store.dispatch('management/find', {
+              type: MANAGEMENT.PROJECT,
+              id:   this.value.id,
+              opt:  { force: true }
+            });
           }
 
           // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects

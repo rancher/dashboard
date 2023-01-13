@@ -90,7 +90,7 @@
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : var(--primary);
+  --checkbox-ticked-bg         : var(--link);
 
   --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
   --drag-over-outer-bg         : #{rgba($drag-over, 0)};
@@ -100,12 +100,12 @@
   --dropdown-divider           : #{$light};
   --dropdown-text              : #{$lightest};
   --dropdown-active-text       : #{$lightest};
-  --dropdown-active-bg         : #{$selected};
+  --dropdown-active-bg         : #{$light};
   --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : #{$link};
+  --dropdown-hover-bg          : var(--link);
   --dropdown-disabled-bg       : #{$disabled};
   --dropdown-disabled-text     : #{$disabled};
-  --dropdown-highlight-text     : #{$link};
+  --dropdown-highlight-text     : var(--link);
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};

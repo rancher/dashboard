@@ -27,7 +27,8 @@ function modeFor(route) {
   }
 }
 
-async function getYaml(model) {
+async function getYaml(store, model) {
+  const inStore = store.getters['currentStore'](model.type);
   let yaml;
   const opt = { headers: { accept: 'application/yaml' } };
 
@@ -35,7 +36,9 @@ async function getYaml(model) {
     yaml = (await model.followLink('view', opt)).data;
   }
 
-  return yaml;
+  const cleanedYaml = await store.dispatch(`${ inStore }/cleanForDownload`, yaml);
+
+  return cleanedYaml;
 }
 
 export default {
@@ -199,7 +202,7 @@ export default {
       initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
       if ( as === _YAML ) {
-        yaml = await getYaml(liveModel);
+        yaml = await getYaml(this.$store, liveModel);
       }
 
       if ( as === _GRAPH ) {
@@ -324,7 +327,7 @@ export default {
     // Auto refresh YAML when the model changes
     async 'value.metadata.resourceVersion'(a, b) {
       if ( this.mode === _VIEW && this.as === _YAML && a && b && a !== b) {
-        this.yaml = await getYaml(this.liveModel);
+        this.yaml = await getYaml(this.$store, this.liveModel);
       }
     }
   },

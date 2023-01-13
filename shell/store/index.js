@@ -11,6 +11,7 @@ import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@shell/config/query-params';
 import { setBrand, setVendor } from '@shell/config/private-label';
+import { getDocsBase } from '@shell/utils/version';
 import { addParam } from '@shell/utils/url';
 import { SETTING } from '@shell/config/settings';
 import semver from 'semver';
@@ -81,7 +82,13 @@ const getActiveNamespaces = (state, getters) => {
     return out;
   }
 
-  const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+  let namespaces = [];
+
+  if (Array.isArray(state.allNamespaces) && state.allNamespaces.length > 0) {
+    namespaces = state.allNamespaces;
+  } else {
+    namespaces = getters[`${ inStore }/all`](NAMESPACE);
+  }
 
   const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
   const includeAll = getters.isAllNamespaces;
@@ -497,6 +504,10 @@ export const getters = {
     return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
   },
 
+  rancherDocsBase(state, getters) {
+    return getDocsBase({ getters });
+  },
+
   ...gcGetters
 };
 
@@ -604,6 +615,7 @@ export const actions = {
     } catch (e) {
       // Maybe not Rancher
     }
+    dispatch('management/findLatestVersion');
 
     let res = await allHashSettled({
       mgmtSubscribe:  dispatch('management/subscribe'),
@@ -849,7 +861,6 @@ export const actions = {
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
       all:     res.namespaces,
-      ...getters
     });
 
     commit('clusterReady', true);
@@ -867,7 +878,7 @@ export const actions = {
         [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: ids, ...getters });
+    commit('updateNamespaces', { filters: ids });
   },
 
   setNamespaceFilterMode({ commit }, mode) {

@@ -725,7 +725,6 @@ export default {
 
   > I {
     text-align: center;
-    font-size: 20px;
     padding: 5px 10px;
     border-right: 1px solid var(--border);
   }

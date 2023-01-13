@@ -76,6 +76,7 @@ export default {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
     ...mapGetters({ t: 'i18n/t' }),
+    ...mapGetters({ rancherDocsBase: 'rancherDocsBase' }),
 
     v1Apps() {
       return this.$store.getters['rancher/all'](NORMAN.APP);
@@ -177,7 +178,7 @@ export default {
       return {
         certifiedSort:    1,
         chartNameDisplay: this.t(`v1ClusterTools.${ id }.label`),
-        chartDescription: this.t(`v1ClusterTools.${ id }.description`),
+        chartDescription: this.t(`v1ClusterTools.${ id }.description`, { docsBase: this.rancherDocsBase }),
         id:               `v1-${ id }`,
         chartName:        `v1-${ id }`,
         key:              `v1-${ id }`,

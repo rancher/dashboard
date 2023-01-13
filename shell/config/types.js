@@ -286,7 +286,8 @@ export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
 
 export const ADDRESSES = {
   HOSTNAME:    'Hostname',
-  INTERNAL_IP: 'InternalIP'
+  INTERNAL_IP: 'InternalIP',
+  EXTERNAL_IP: 'ExternalIP'
 };
 
 export const DEFAULT_WORKSPACE = 'fleet-default';

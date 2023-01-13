@@ -75,6 +75,10 @@ export default {
     window.z = this;
   },
 
+  // created() {
+  //   set(this.value, 'spec.rkeConfig.registries.configs', {});
+  // },
+
   methods: {
     update() {
       const configs = {};
@@ -91,6 +95,7 @@ export default {
       }
 
       set(this.value, 'spec.rkeConfig.registries.configs', configs);
+      this.$emit('updateConfigs', configs);
     },
 
     wrapRegisterBeforeHook(fn, ...args) {
@@ -118,12 +123,16 @@ export default {
         class="icon icon-info"
       />
     </h3>
+    <p class="mb-20">
+      {{ t('registryConfig.description') }}
+    </p>
     <ArrayListGrouped
       v-model="entries"
       :add-label="t('registryConfig.addLabel')"
       :default-add-value="defaultAddValue"
+      :initial-empty-row="true"
       :mode="mode"
-      @input="update()"
+      @input="update"
     >
       <template #default="{row}">
         <div class="row">

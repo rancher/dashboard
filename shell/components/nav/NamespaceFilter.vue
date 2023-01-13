@@ -444,7 +444,7 @@ export default {
         e.preventDefault();
         e.stopPropagation();
         this.up();
-      } else if (e.keyCode === KEY.SPACE) {
+      } else if (e.keyCode === KEY.SPACE || e.keyCode === KEY.CR) {
         if (this.namespaceFilterMode && !opt.enabled) {
           return;
         }
@@ -832,7 +832,7 @@ export default {
 
     .ns-clear {
       &:hover {
-        color: var(--link);
+        color: var(--primary);
         cursor: pointer;
       }
     }
@@ -860,7 +860,6 @@ export default {
       position: absolute;
       right: 10px;
       top: 5px;
-      font-size: 16px;
       line-height: 24px;
       text-align: center;
       width: 24px;
@@ -868,7 +867,7 @@ export default {
 
     .ns-dropdown-menu {
       background-color: var(--header-bg);
-      border: 1px solid var(--link-border);
+      border: 1px solid var(--primary-border);
       border-bottom-left-radius: var(--border-radius);
       border-bottom-right-radius: var(--border-radius);
       color: var(--header-btn-text);
@@ -984,7 +983,7 @@ export default {
       &.ns-open {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
-        border-color: var(--link-border);
+        border-color: var(--primary-border);
       }
 
       > .ns-values {
@@ -993,14 +992,13 @@ export default {
 
       &:hover {
         > i {
-          color: var(--link);
+          color: var(--primary);
         }
       }
 
       > i {
         height: $ns_dropdown_size;
         width: $ns_dropdown_size;
-        font-size: 20px;
         cursor: pointer;
         text-align: center;
         line-height: $ns_dropdown_size;
@@ -1032,7 +1030,7 @@ export default {
             margin-left: 5px;
 
             &:hover {
-              color: var(--link);
+              color: var(--primary);
             };
           }
 

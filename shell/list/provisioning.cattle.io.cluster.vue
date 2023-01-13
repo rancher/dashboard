@@ -197,7 +197,7 @@ export default {
           class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"
         >
-          {{ t('cluster.exploreHarvester') }}
+          {{ t('cluster.explore') }}
         </n-link>
         <button
           v-else

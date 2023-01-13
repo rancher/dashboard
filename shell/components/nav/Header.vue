@@ -671,8 +671,6 @@ export default {
 
         .vs__dropdown-toggle .vs__actions:after {
           color: var(--body-text) !important;
-          font-size: 1.5rem;
-          padding-right: 4px;
         }
 
         .vs__dropdown-toggle {

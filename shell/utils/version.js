@@ -3,6 +3,8 @@ import semver from 'semver';
 import { MANAGEMENT } from '@shell/config/types';
 import { READ_WHATS_NEW, SEEN_WHATS_NEW } from '@shell/store/prefs';
 
+const DOCS_BASE = 'https://ranchermanager.docs.rancher.com';
+
 export function parse(str) {
   str = `${ str }`;
 
@@ -96,6 +98,27 @@ export function getVersionInfo(store) {
     displayVersion,
     fullVersion
   };
+}
+
+export function getDocsBase(store) {
+  const version = getVersionInfo(store)?.displayVersion;
+
+  const latestDocsVersion = store.getters['management/latestDocsVersion'] || version;
+
+  let docsVersion = '';
+
+  // -head and rc builds should just link to the latest docs
+  if (version && (!version.match(/v([0-9]|\.)+$/) || semver.gte(version, semver.coerce(latestDocsVersion)))) {
+    return DOCS_BASE;
+  }
+
+  // create a doc path with only major and minor version
+  docsVersion = version.match(/v?[0-9]+\.[0-9]+/)[0];
+  if (!docsVersion.startsWith('v')) {
+    docsVersion = `v${ docsVersion }`;
+  }
+
+  return `${ DOCS_BASE }/${ docsVersion }`;
 }
 
 export function seenReleaseNotes(store) {

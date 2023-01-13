@@ -529,7 +529,7 @@ export default {
               class="btn-sm role-link"
               @click="addContainerBtn"
             >
-              <i class="icon icon-plus icon-lg" /> {{ t('workload.container.addContainer') }}
+              <i class="icon icon-plus" /> {{ t('workload.container.addContainer') }}
             </button>
           </li>
         </template>

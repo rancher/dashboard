@@ -12,7 +12,7 @@ export default function({
   $axios.onRequest((config) => {
     const csrf = $cookies.get(CSRF, { parseJSON: false });
 
-    if ( csrf ) {
+    if ( csrf && !config.excludeCookies ) {
       config.headers['x-api-csrf'] = csrf;
     }
 

@@ -152,7 +152,6 @@ export default {
 
     .close {
       padding: 5px;
-      font-size: 24px;
     }
 
     .icon-container {

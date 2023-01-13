@@ -42,9 +42,10 @@ export default {
   computed: {
     xtermConfig() {
       return {
-        cursorBlink: true,
-        useStyle:    true,
-        fontSize:    12,
+        allowProposedApi: true,
+        cursorBlink:      true,
+        useStyle:         true,
+        fontSize:         12,
       };
     },
 

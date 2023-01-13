@@ -34,7 +34,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
+    await this.$store.dispatch('catalog/load', { force: true });
 
     const query = this.$route.query;
 
@@ -53,7 +53,6 @@ export default {
       searchQuery:     null,
       showDeprecated:  null,
       showHidden:      null,
-      chartMode:       this.$store.getters['prefs/get'](SHOW_CHART_MODE),
       chartOptions:    [
         {
           label: 'Browse',
@@ -70,6 +69,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
+
+    chartMode: mapPref(SHOW_CHART_MODE),
 
     hideRepos: mapPref(HIDE_REPOS),
 
