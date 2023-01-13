@@ -404,6 +404,10 @@ export const getters = {
     return state.namespaceFilters;
   },
 
+  allNamespaces(state) {
+    return state.allNamespaces;
+  },
+
   namespaces(state, getters) {
     // Call this getter if you want to recompute the active namespaces
     // by looping over all namespaces in a cluster. Otherwise call activeNamespaceCache,
@@ -527,6 +531,10 @@ export const mutations = {
     // Create map that can be used to efficiently check if a
     // resource should be displayed
     getActiveNamespaces(state, getters);
+  },
+
+  changeAllNamespaces(state, namespace) {
+    state.allNamespaces = namespace;
   },
 
   setNamespaceFilterMode(state, mode) {
