@@ -98,10 +98,12 @@ export default class CapiMachine extends SteveModel {
     return false;
   }
 
-  openSsh() {
+  openSsh(name) {
+    const label = name || this.nameDisplay;
+
     this.$dispatch('wm/open', {
       id:        `${ this.id }-ssh`,
-      label:     this.nameDisplay,
+      label,
       icon:      'terminal',
       component: 'MachineSsh',
       attrs:     { machine: this, pod: {} }
