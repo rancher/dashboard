@@ -167,7 +167,13 @@ export default {
       normanUser._name = this.form.displayName;
       normanUser.mustChangePassword = this.form.password.userChangeOnLogin;
 
-      return normanUser.save();
+      await normanUser.save();
+
+      return await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.USER,
+        id:   this.value.id,
+        opt:  { force: true }
+      });
     },
 
     async updateRoles(userId) {
