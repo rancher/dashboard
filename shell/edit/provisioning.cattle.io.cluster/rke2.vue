@@ -239,8 +239,8 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
-    if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateId === undefined ) {
-      set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateId', '');
+    if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
+      set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
     }
 
     await this.initAddons();
@@ -507,7 +507,7 @@ export default {
           });
         }
       }
-      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateId;
+      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName;
 
       if ( cur && !out.find(x => x.value === cur) ) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
@@ -1739,7 +1739,7 @@ export default {
      */
     handleKubernetesChange(value) {
       if (value) {
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateId', '');
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
         set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
       }
     },
@@ -1758,7 +1758,7 @@ export default {
      */
     handlePspChange(value) {
       if (value) {
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateId', '');
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
       }
     },
 
@@ -2028,11 +2028,11 @@ export default {
             <div class="col span-6">
               <!-- PSA template selector -->
               <LabeledSelect
-                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateId"
+                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
                 :mode="mode"
                 data-testid="rke2-custom-edit-psa"
                 :options="psaOptions"
-                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateId.label')"
+                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
                 @input="handlePsaChange($event)"
               />
             </div>

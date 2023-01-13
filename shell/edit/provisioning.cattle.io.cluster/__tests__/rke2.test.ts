@@ -14,10 +14,10 @@ describe('component: rke2', () => {
         mode:  'create',
         value: {
           spec: {
-            rkeConfig:                                          { etcd: { disableSnapshots: false } },
-            chartValues:                                        {},
-            defaultPodSecurityAdmissionConfigurationTemplateId: label,
-            kubernetesVersion:                                  'v1.25.0+rke2r1'
+            rkeConfig:                                            { etcd: { disableSnapshots: false } },
+            chartValues:                                          {},
+            defaultPodSecurityAdmissionConfigurationTemplateName: label,
+            kubernetesVersion:                                    'v1.25.0+rke2r1'
           }
         },
         provider: 'whatever',

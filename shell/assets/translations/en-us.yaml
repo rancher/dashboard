@@ -1732,7 +1732,7 @@ cluster:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
-    defaultPodSecurityAdmissionConfigurationTemplateId:
+    defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
       option: RKE2 Default
     enableNetworkPolicy:
