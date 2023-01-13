@@ -67,15 +67,10 @@ const {
   WATCH_PENDING, WATCH_REQUESTED, WATCHING, STOPPED, REMOVE_PENDING, REQUESTED_REMOVE
 } = WATCH_STATUSES;
 
-const debugWorker = true; // TODO: RC toggle
-
-const trace = (...args) => {
-  debugWorker && console.info('Resource Watcher:', ...args); // eslint-disable-line no-console
-};
-
 export default class ResourceWatcher extends Socket {
   watches = {};
   status = '';
+  debugWatcher = true;
   csrf;
 
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, csrf) {
@@ -84,23 +79,31 @@ export default class ResourceWatcher extends Socket {
     this.csrf = csrf;
 
     this.addEventListener(EVENT_CONNECTED, (e) => {
-      trace(EVENT_CONNECTED, ': processing previously requested or watched resources');
+      this.trace(EVENT_CONNECTED, ': processing previously requested or watched resources');
 
       Object.values(this.watches).forEach((watch) => {
         const { status, error } = watch;
         const watchKey = keyForSubscribe(watch);
 
         if ([WATCH_PENDING, WATCH_REQUESTED, WATCHING].includes(status) && !error) {
-          trace(EVENT_CONNECTED, ': re-watching previously required resource', watchKey, status);
+          this.trace(EVENT_CONNECTED, ': re-watching previously required resource', watchKey, status);
           this.watches[watchKey].status = WATCH_PENDING;
           this.watch(watchKey);
         } else if ([REMOVE_PENDING].includes(status)) {
-          trace(EVENT_CONNECTED, ': un-watching previously watched resource', watchKey, status);
+          this.trace(EVENT_CONNECTED, ': un-watching previously watched resource', watchKey, status);
           this.watches[watchKey].status = REMOVE_PENDING;
           this.unwatch(watchKey);
         }
       });
     });
+  }
+
+  trace(...args) {
+    this.debugWatcher && console.info('Resource Watcher:', ...args); // eslint-disable-line no-console
+  }
+
+  setDebug(on) {
+    this.debugWatcher = !!on;
   }
 
   watchExists(watchKey) {
@@ -115,16 +118,16 @@ export default class ResourceWatcher extends Socket {
       selector: providedSelector
     } = providedKeyParts;
 
-    trace('watch:', 'requested', watchKey);
+    this.trace('watch:', 'requested', watchKey);
 
     if ([WATCH_REQUESTED, WATCHING].includes(this.watches?.[watchKey]?.status)) {
-      trace('watch:', 'already requested or watching, aborting', watchKey);
+      this.trace('watch:', 'already requested or watching, aborting', watchKey);
 
       return;
     }
 
     if (this.watches?.[watchKey]?.error) {
-      trace('watch:', 'in error, aborting', watchKey);
+      this.trace('watch:', 'in error, aborting', watchKey);
 
       return;
     }
@@ -146,7 +149,7 @@ export default class ResourceWatcher extends Socket {
     let resourceVersion = providedResourceVersion || this.watches?.[watchKey]?.resourceVersion;
 
     if (!skipResourceVersion && (!resourceVersion || Date.now() - resourceVersionTime > 300000)) { // 300000ms is 5minutes
-      trace('watch:', 'revision update required', watchKey);
+      this.trace('watch:', 'revision update required', watchKey);
 
       const resourceUrl = this.baseUrl + resourceType;
       const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);

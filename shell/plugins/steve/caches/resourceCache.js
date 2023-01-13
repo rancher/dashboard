@@ -14,7 +14,6 @@ export default class ResourceCache {
 
   load(collection = []) {
     // console.time('startSchemaLoads!!!');
-    // ToDo: SM 3.328125 ms to load ~2500 schemas on my machine
     for (let i = 0; i < collection.length; i++) {
       const resource = collection[i];
 
@@ -24,6 +23,8 @@ export default class ResourceCache {
       const id = resource[this.keyField];
 
       // Store the hash instead of the whole object. This means longer load time be reduces memory footprint
+      // Perf Note: 3.328125 ms to load ~2500 schemas as objects into cache
+      // Perf Note: 67.450927734375 ms to load ~2500 schemas as hashes into cache
       this.resources[id] = hashObj(resource);
     }
     // console.timeEnd('startSchemaLoads!!!');

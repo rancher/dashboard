@@ -399,8 +399,11 @@ const sharedActions = {
  * Mutations that cover all cases (both subscriptions here and in advanced worker)
  */
 const sharedMutations = {
-  debug(state, on) {
+  debug(state, on, store) {
     state.debugSocket = on !== false;
+    if (store && this.$workers[store]) {
+      this.$workers[store].postMessage({ toggleDebug: on !== false });
+    }
   },
 };
 

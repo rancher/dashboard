@@ -10,16 +10,6 @@ import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@she
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
-// import { CSRF } from '@shell/config/cookies';
-
-const debugWorker = true; // TODO: RC toggle
-
-const trace = (...args) => {
-  debugWorker && console.info('Advanced Worker:', ...args); // eslint-disable-line no-console
-};
-
-trace('created');
-
 const caches = {};
 
 const state = {
@@ -30,7 +20,14 @@ const state = {
    */
   workerQueue:  [],
   batchChanges: {},
+  debugWorker:  true
 };
+
+const trace = (...args) => {
+  state.debugWorker && console.info('Advanced Worker:', ...args); // eslint-disable-line no-console
+};
+
+trace('created');
 
 const maintenanceInterval = setInterval(() => {
   if (Object.keys(state.batchChanges).length) {
@@ -130,6 +127,8 @@ const workerActions = {
         handleConnectionError(EVENT_DISCONNECT_ERROR, e, state.watcher);
       });
 
+      state.watcher.setDebug(state.debugWorker);
+
       state.watcher.connect(connectionMetadata);
 
       // Flush the workerQueue
@@ -200,10 +199,11 @@ const workerActions = {
 
     state.watcher.unwatch(watchKey);
   },
-  initWorker: ({ storeName }) => {
+  initWorker: ({ storeName, debug }) => {
     trace('initWorker', storeName);
 
     state.store = storeName;
+    state.debugWorker = debug;
   },
   destroyWorker: () => {
     trace('destroyWorker');
@@ -221,6 +221,11 @@ const workerActions = {
     } else {
       destroyWorkerComplete();
     }
+  },
+
+  toggleDebug: ({ on }) => {
+    state.debugWorker = !!on;
+    state.watcher.setDebug(!!on);
   },
   updateBatch(type, id, change) {
     if (!state.batchChanges[type]) {
