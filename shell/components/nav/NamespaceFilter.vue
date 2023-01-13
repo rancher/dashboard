@@ -116,9 +116,11 @@ export default {
         // than caching it in the `fetch`
 
         // The namespace display on the list and edit pages should be the same as in the namespaceFilter component
-        const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
+        if (this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`]) {
+          const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
 
-        this.$store.commit('changeAllNamespaces', allNamespaces);
+          this.$store.commit('changeAllNamespaces', allNamespaces);
+        }
 
         return this.$store.getters[`${ this.currentProduct.inStore }/namespaceFilterOptions`]({
           addNamespace,
