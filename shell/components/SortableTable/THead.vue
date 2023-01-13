@@ -405,11 +405,11 @@ export default {
       color: var(--body-text);
 
       .table-header-container {
-        display: flex;
-        align-items: center;
+        display: inherit;
 
         > span {
-          display: initial;
+          display: flex;
+          align-items: center;
         }
 
         &.not-filterable {
