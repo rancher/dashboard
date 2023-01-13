@@ -49,7 +49,7 @@ export default {
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:    null
+      navHeaderRight:    null,
     };
   },
 
@@ -813,6 +813,11 @@ export default {
           &.header-btn-active, &.header-btn-active:hover {
             background-color: var(--success);
             color: var(--success-text);
+          }
+
+          img {
+            height: 20px;
+            width: 20px;
           }
         }
       }
