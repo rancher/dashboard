@@ -83,7 +83,7 @@ export default {
   methods: {
     // this defines all the flags needed for the mechanism
     // to work. They should be defined based on the main list view
-    // resource that is to be displayed. The sencondary resources
+    // resource that is to be displayed. The secondary resources
     // fetched should follow what was defined (if it is manual and/or incremental)
     $initializeFetchData(type, multipleResources = [], storeType) {
       if (!this.init) {
