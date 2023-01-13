@@ -20,7 +20,7 @@ const state = {
    */
   workerQueue:  [],
   batchChanges: {},
-  debugWorker:  true
+  debugWorker:  false
 };
 
 const trace = (...args) => {
@@ -199,11 +199,10 @@ const workerActions = {
 
     state.watcher.unwatch(watchKey);
   },
-  initWorker: ({ storeName, debug }) => {
+  initWorker: ({ storeName }) => {
     trace('initWorker', storeName);
 
     state.store = storeName;
-    state.debugWorker = debug;
   },
   destroyWorker: () => {
     trace('destroyWorker');

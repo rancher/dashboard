@@ -70,7 +70,7 @@ const {
 export default class ResourceWatcher extends Socket {
   watches = {};
   status = '';
-  debugWatcher = true;
+  debugWatcher = false;
   csrf;
 
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, csrf) {
