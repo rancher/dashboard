@@ -8,7 +8,7 @@ if [ -z "${STORYBOOK_TOKEN}" ]; then
   exit 1
 fi
 
-if [ ! -d "${DIR}/storybook-static" ]; then
+if [ ! -d "storybook-static" ]; then
   echo "Storybook has not been built"
   exit 1
 fi
