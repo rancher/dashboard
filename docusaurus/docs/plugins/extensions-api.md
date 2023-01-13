@@ -8,7 +8,7 @@ In order understand how these methods work, there are some key concepts that sho
 
 ## `locationConfig` object definition
 
-The `locationConfig` object defines where these UI enhancement methods are applied on the UI. They are based on the current routing system employed on Rancher Dashboard. Let's take on a simple example to try and understand the routing structure.
+The `locationConfig` object defines **where** (which area of the UI) and **when** (product, resource, cluster...) these UI enhancement methods are applied on the UI. The **when** is based on the current routing system employed on Rancher Dashboard. Let's take on a simple example to try and understand the routing structure.
 
 Example URL:
 ```
@@ -43,6 +43,13 @@ With this it's then possible to easily identify the parameters needed to populat
 
 
 The admissable parameters for the `locationConfig` object are:
+| Key | Type | Description |
+|---|---|---|
+|`where`| String | The identifier of the UI area where to apply the given enhancement |
+|`when`| Object | the `locationObject` which is based on the Vue router experience above described |
+
+
+The admissable parameters for the `locationObject` object are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -57,31 +64,43 @@ The admissable parameters for the `locationConfig` object are:
 
 Example 1:
 ```
-{}
+{
+  where: '...',
+  when: {}
+}
 ```
 
-Passing an empty object as a `locationConfig` will apply a given extension enhancement to all locations where it can be apllied.
+Passing an empty object as a `locationObject` will apply a given extension enhancement to all locations where it can be apllied.
 
 Example 2:
 ```
-{ product: 'home' }
+{
+  where: '...',
+  when: { product: 'home' }
+}
 ```
 
 Extension enhancement will be applied on the homepage of rancher dashboard (if applicable).
 
 Example 3:
 ```
-{ resource: 'pod', id: 'pod-nxr5vm' }
+{
+  where: '...',
+  when: { resource: 'pod', id: 'pod-nxr5vm' }
+}
 ```
 
 Extension enhancement will be applied on the resource `pod` with id `pod-nxr5vm` (if applicable).
 
 Example 4:
 ```
-{ 
-  cluster:  'local', 
-  resource: 'catalog.cattle.io.clusterrepo', 
-  mode:     'edit' 
+{
+  where: '...',
+  when: { 
+    cluster:  'local', 
+    resource: 'catalog.cattle.io.clusterrepo', 
+    mode:     'edit' 
+  }
 }
 ```
 
@@ -90,22 +109,30 @@ Extension enhancement will be applied on the `edit` view/mode of the resource `c
 
 ## Extension API methods
 
-### `addHeaderAction`
-This method adds a button/action to the `Header` component of Rancher Dashboard.
-
-![Header Actions](./screenshots/header-actions.png)
+### `addAction`
+This method adds a button/action to the UI.
 
 Method:
 
 ```
-plugin.addHeaderAction(locationConfig: Object, options: Object)
+plugin.addAction(locationConfig: Object, options: Object)
 ```
 
 _Arguments_
 
 `locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
-`options` config object. Admissable parameters are:
+`locationConfig.where` string parameter admissable values:
+| Key | Type | Description |
+|---|---|---|
+|`header`| String | Add a button to the Header component |
+|`table`| String | Add a button/action to any `SortableTable`/table |
+
+#### `where: 'header'` option
+
+![Header Actions](./screenshots/header-actions.png)
+
+`options` config object. Admissable parameters for the `options` with `where: 'header'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -117,30 +144,119 @@ _Arguments_
 |`enabled`| Function | Whether the action/button is enabled or not |
 |`clicked`| Function | function executed when action/button is clicked |
 
-Usage example:
+Usage example for `where: 'header'`:
 
 ```
-plugin.addHeaderAction( {}, {
-  tooltipKey: 'generic.customize',
-  tooltip:    'Test Action1',
-  shortcutLabel() {
-    return isMac ? '(\u2318-M)' : '(Ctrl+M)';
+plugin.addAction(
+  {
+    where: 'header',
+    when:  {}
   },
-  shortcutKey: { windows: ['ctrl', 'm'], mac: ['meta', 'm'] },
-  icon:        'icon-pipeline',
-  enabled(ctx: any) {
-    return true;
-  },
-  clicked() {
-    console.log('action executed 1', this);
+  {
+    tooltipKey: 'generic.customize',
+    tooltip:    'Test Action1',
+    shortcutLabel() {
+      return isMac ? '(\u2318-M)' : '(Ctrl+M)';
+    },
+    shortcutKey: { windows: ['ctrl', 'm'], mac: ['meta', 'm'] },
+    icon:        'icon-pipeline',
+    enabled(ctx: any) {
+      return true;
+    },
+    clicked() {
+      console.log('action executed 1', this.$route); // eslint-disable-line no-console
+    }
   }
-});
+);
+```
+#### `where: 'table'` option
+
+_INLINE TABLE ACTION_
+
+![inline table action](./screenshots/inline-table-action.png)
+
+_BULKABLE/GLOBAL TABLE ACTION_
+
+![bulkable table action](./screenshots/inline-and-bulkable.png)
+
+`options` config object. Admissable parameters for the `options` with `where: 'table'` are:
+
+| Key | Type | Description |
+|---|---|---|
+|`action`| String | Unique identifier for the action |
+|`label`| String | Action label |
+|`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
+|`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
+|`enabled`| Boolean | Whether the action/button is enabled or not |
+|`clicked`| Function | function executed when action/button is clicked (non-bulkable mode) |
+|`divider`| Boolean | Shows a line separator (divider) in actions menu |
+|`bulkable`| Boolean | Whether the action/button is bulkable (can be performed on multiple list items) |
+|`bulkAction`| Function | Function exectued when bulklable action/button is clicked (only bulkable mode) |
+
+
+Usage example for `where: 'table'`:
+
+_RENDERING A SIMPLE DIVIDER_
+
+```
+plugin.addAction( 
+  { 
+    where: 'table',
+    when: { resource: 'catalog.cattle.io.clusterrepo' }
+  }, 
+  { divider: true });
+```
+
+
+_CONFIGURING A NON-BULKABLE ACTION (inline action)_
+
+```
+plugin.addAction(
+  { 
+    where: 'table',
+    when: { resource: 'catalog.cattle.io.clusterrepo' }
+  }, 
+  {
+    action:   'some-extension-action',
+    label:    'some-extension-action',
+    labelKey: 'generic.customize',
+    icon:     'icon-pipeline',
+    enabled:  true,
+    clicked() {
+      console.log('table action executed1', this);
+    }
+  }
+);
+```
+
+
+_CONFIGURING AN INLINE AND BULKABLE ACTION_
+
+```
+plugin.addAction(
+  { 
+    where: 'table',
+    when: { resource: 'catalog.cattle.io.clusterrepo' }
+  }, 
+  {
+    action:   'some-bulkable-action',
+    label:    'some-bulkable-action',
+    labelKey: 'generic.comingSoon',
+    icon:     'icon-pipeline',
+    bulkable: true,
+    enabled:  true,
+    clicked() {
+      console.log('table action executed2', this);
+    },
+    bulkAction(args: any) {
+      console.log('bulk table action executed', this, args);
+    }
+  }
+);
 ```
 
 ### `addTab`
-This method adds a tab to the `ResourceTabs` component of Rancher Dashboard.
-
-![Tabs](./screenshots/add-tab.png)
+This method adds a tab to the UI.
 
 Method:
 
@@ -152,7 +268,16 @@ _Arguments_
 
 `locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
-`options` config object. Admissable parameters are:
+`locationConfig.where` string parameter admissable values:
+| Key | Type | Description |
+|---|---|---|
+|`resourceTabs`| String | Adds a tab to the `ResourceTabs` component |
+
+#### `where: 'resourceTabs'` option
+
+![Tabs](./screenshots/add-tab.png)
+
+`options` config object. Admissable parameters for the `options` with `where: 'resourceTabs'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -167,96 +292,22 @@ _Arguments_
 Usage example:
 
 ```
-plugin.addTab( { resource: 'pod' }, {
-  name:       'some-name',
-  labelKey:   'generic.comingSoon',
-  label:      'some-label',
-  weight:     -5,
-  showHeader: true,
-  tooltip:    'this is a tooltip message',
-  component:  () => import('./MyTabComponent.vue')
-});
+plugin.addTab( 
+  { 
+    where: 'resourceTabs',
+    when: { resource: 'pod' }
+  }, 
+  {
+    name:       'some-name',
+    labelKey:   'generic.comingSoon',
+    label:      'some-label',
+    weight:     -5,
+    showHeader: true,
+    tooltip:    'this is a tooltip message',
+    component:  () => import('./MyTabComponent.vue')
+  }
+);
 ```
-
-### `addTableAction`
-This method adds an action/button to any `SortableTable`/table on Rancher Dashboard.
-
-_INLINE TABLE ACTION_
-
-![inline table action](./screenshots/inline-table-action.png)
-
-_BULKABLE/GLOBAL TABLE ACTION_
-
-![bulkable table action](./screenshots/inline-and-bulkable.png)
-
-Method:
-
-```
-plugin.addTableAction(locationConfig: Object, options: Object)
-```
-
-_Arguments_
-
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`options` config object. Admissable parameters are:
-
-| Key | Type | Description |
-|---|---|---|
-|`action`| String | Unique identifier for the action |
-|`label`| String | Action label |
-|`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
-|`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
-|`enabled`| Boolean | Whether the action/button is enabled or not |
-|`clicked`| Function | function executed when action/button is clicked (non-bulkable mode) |
-|`divider`| Boolean | Shows a line separator (divider) in actions menu |
-|`bulkable`| Boolean | Whether the action/button is bulkable (can be performed on multiple list items) |
-|`bulkAction`| Function | Function exectued when bulklable action/button is clicked (only bulkable mode) |
-
-Usage example:
-
-_RENDERING A SIMPLE DIVIDER_
-
-```
-plugin.addTableAction( { resource: 'catalog.cattle.io.clusterrepo' }, { divider: true });
-```
-
-
-_CONFIGURING A NON-BULKABLE ACTION (inline action)_
-
-```
-plugin.addTableAction( { resource: 'catalog.cattle.io.clusterrepo' }, {
-    action:   'some-extension-action',
-    label:    'some-extension-action',
-    labelKey: 'generic.customize',
-    icon:     'icon-pipeline',
-    enabled:  true,
-    clicked() {
-      console.log('table action executed1', this);
-    }
-  });
-```
-
-
-_CONFIGURING AN INLINE AND BULKABLE ACTION_
-
-```
-plugin.addTableAction( { resource: 'catalog.cattle.io.clusterrepo' }, {
-    action:   'some-bulkable-action',
-    label:    'some-bulkable-action',
-    labelKey: 'generic.comingSoon',
-    icon:     'icon-pipeline',
-    bulkable: true,
-    enabled:  true,
-    clicked() {
-      console.log('table action executed2', this);
-    },
-    bulkAction(args: any) {
-      console.log('bulk table action executed', this, args);
-    }
-  });
-```
-
 
 ### `addToDetailsMasthead`
 This method adds a component to be displayed on the "details view masthead" on Rancher Dashboard.
