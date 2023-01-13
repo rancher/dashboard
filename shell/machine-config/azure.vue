@@ -313,11 +313,10 @@ export default {
       // }
 
       const out = [
-        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.doesNotSupportAcceleratedNetworking') },
-        ...this.vmsWithoutAcceleratedNetworking,
         { kind: 'group', label: this.t('cluster.machineConfig.azure.size.supportsAcceleratedNetworking') },
         ...this.vmsWithAcceleratedNetworking,
-
+        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.doesNotSupportAcceleratedNetworking') },
+        ...this.vmsWithoutAcceleratedNetworking,
       ];
 
       if (!this.selectedVmSizeExistsInSelectedRegion) {
