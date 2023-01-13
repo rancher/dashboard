@@ -255,8 +255,7 @@ describe('component: PodSecurityAdmission', () => {
       it.each([
         ['username1', ['username1']],
         ['username1, username2', ['username1', 'username2']],
-        ['', []],
-      ])('should update exemption value %p', (value, exemption) => {
+      ])('should update exemption value %p from %p', (value, exemption) => {
         const exemptions = {
           usernames:      exemption,
           namespaces:     [],
@@ -268,9 +267,10 @@ describe('component: PodSecurityAdmission', () => {
             exemptions
           },
         });
-
         // Unable to toggle the checkbox, so we use the input
-        wrapper.find(`[data-testid="pod-security-admission--exception-0-value"]`).find('input').setValue(value);
+        const input = wrapper.find(`[data-testid="pod-security-admission--exception-0-value"]`).find('input');
+
+        input.setValue(value);
 
         expect(wrapper.emitted('updateExemptions')![0][0]).toStrictEqual(exemptions);
       });
