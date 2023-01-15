@@ -777,7 +777,7 @@ export default {
                     :disabled="group.ref.spec.quantity < 2"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.scalePool(-1)"
+                    @click="group.ref.toggleScaleDownModal($event)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>

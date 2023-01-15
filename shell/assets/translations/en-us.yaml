@@ -3973,7 +3973,7 @@ prefs:
     label: Helm Charts
   confirmationSetting:
     title: Confirmation Setting
-    scalingDownPrompt: Enable confirmation prompt for scaling down node pool.
+    scalingDownPrompt: Do not ask for confirmation when scaling down node pools.
 
 principal:
   loading: Loading&hellip;

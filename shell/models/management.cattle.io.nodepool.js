@@ -1,6 +1,8 @@
 import { CAPI, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { isAlternate } from '@shell/utils/platform';
+import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
 
 export default class MgmtNodePool extends HybridModel {
   get nodeTemplate() {
@@ -47,6 +49,24 @@ export default class MgmtNodePool extends HybridModel {
 
   get scale() {
     return this.norman.quantity;
+  }
+
+  toggleScaleDownModal( event, resources = this ) {
+    // Check if the user held alt key when an action is clicked.
+    const alt = isAlternate(event);
+    const showScalePoolPrompt = this.$rootGetters['prefs/get'](SCALE_POOL_PROMPT);
+
+    // Prompt if showScalePoolPrompt pref not store and user did not held alt key
+    if (!alt && !showScalePoolPrompt) {
+      this.$dispatch('promptModal', {
+        component:  'ScalePoolDownDialog',
+        resources,
+        modalWidth: '450px'
+      });
+    } else {
+      // User held alt key, so don't prompt
+      this.scalePool(-1);
+    }
   }
 
   scalePool(delta) {

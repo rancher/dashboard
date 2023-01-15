@@ -126,6 +126,12 @@ export default class CapiMachineDeployment extends SteveModel {
       return;
     }
 
+    if (delta === -1) {
+      console.log('-1');
+
+      return;
+    }
+
     const initialValue = this.cluster.toJSON();
 
     this.inClusterSpec.quantity += delta;
