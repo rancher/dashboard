@@ -1041,15 +1041,32 @@ describe('formRules', () => {
     ['minLength', 2, ['test'], ['x']],
     ['maxLength', 10, ['x'], ['wrong value']],
     ['betweenLengths', [2, 10], ['test'], ['x', 'wrong value']],
-  ])('%p with parameter %p should', (rule, argument, correctValues, wrongValues) => {
-    it.each(wrongValues as [])('return error for value %p', (wrong) => {
+  ])('given factory validator %p with parameter %p', (rule, argument, correctValues, wrongValues) => {
+    it.each(wrongValues as [])('should return error for value %p', (wrong) => {
       const formRuleResult = (formRules as any)[rule](argument)(wrong);
 
       expect(formRuleResult).not.toBeUndefined();
     });
 
-    it.each(correctValues as [])('return valid for value %p', (correct) => {
+    it.each(correctValues as [])('should return valid for value %p', (correct) => {
       const formRuleResult = (formRules as any)[rule](argument)(correct);
+
+      expect(formRuleResult).toBeUndefined();
+    });
+  });
+
+  describe.each([
+    ['requiredInt', [2, 2.2], ['e']],
+    ['isInteger', [2], [2.2, 'e']],
+  ])('given validator %p', (rule, correctValues, wrongValues) => {
+    it.each(wrongValues as [])('should return error for value %p', (wrong) => {
+      const formRuleResult = (formRules as any)[rule](wrong);
+
+      expect(formRuleResult).not.toBeUndefined();
+    });
+
+    it.each(correctValues as [])('should return valid for value %p', (correct) => {
+      const formRuleResult = (formRules as any)[rule](correct);
 
       expect(formRuleResult).toBeUndefined();
     });
