@@ -83,6 +83,8 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
   const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key }) : undefined;
 
+  const isInteger: Validator = (val: string) => !Number.isInteger(val) ? t('validation.number.requiredInt', { key }) : undefined;
+
   const portNumber: Validator = (val: string) => parseInt(val, 10) < 1 || parseInt(val, 10) > 65535 ? t('validation.number.between', {
     key, min: '1', max: '65535'
   }) : undefined;
@@ -470,6 +472,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
     portNumber,
     required,
     requiredInt,
+    isInteger,
     roleTemplateRules,
     ruleGroups,
     servicePort,
