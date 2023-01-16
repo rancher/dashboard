@@ -2,46 +2,47 @@ import Vue from 'vue';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
+import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 export const CATTLE_API_GROUP = '.cattle.io';
 
 export const SUBTYPE_MAPPING = {
-  GLOBAL:    {
-    key:            'GLOBAL',
-    type:           'management.cattle.io.globalrole',
-    defaultKey:     'newUserDefault',
-    id:             'GLOBAL',
-    labelKey:          'rbac.roletemplate.subtypes.GLOBAL.label',
+  GLOBAL: {
+    key:        'GLOBAL',
+    type:       'management.cattle.io.globalrole',
+    defaultKey: 'newUserDefault',
+    id:         'GLOBAL',
+    labelKey:   'rbac.roletemplate.subtypes.GLOBAL.label',
   },
-  CLUSTER:   {
-    key:            'CLUSTER',
-    type:           'management.cattle.io.roletemplate',
-    context:        'cluster',
-    defaultKey:     'clusterCreatorDefault',
-    id:             'CLUSTER',
-    labelKey:          'rbac.roletemplate.subtypes.CLUSTER.label',
+  CLUSTER: {
+    key:        'CLUSTER',
+    type:       'management.cattle.io.roletemplate',
+    context:    'cluster',
+    defaultKey: 'clusterCreatorDefault',
+    id:         'CLUSTER',
+    labelKey:   'rbac.roletemplate.subtypes.CLUSTER.label',
   },
   NAMESPACE: {
-    key:            'NAMESPACE',
-    type:           'management.cattle.io.roletemplate',
-    context:        'project',
-    defaultKey:     'projectCreatorDefault',
-    id:             'NAMESPACE',
-    labelKey:          'rbac.roletemplate.subtypes.NAMESPACE.label',
+    key:        'NAMESPACE',
+    type:       'management.cattle.io.roletemplate',
+    context:    'project',
+    defaultKey: 'projectCreatorDefault',
+    id:         'NAMESPACE',
+    labelKey:   'rbac.roletemplate.subtypes.NAMESPACE.label',
   },
   RBAC_ROLE: {
-    key:            'RBAC_ROLE',
-    type:           'rbac.authorization.k8s.io.role',
-    id:             'RBAC_ROLE',
-    labelKey:          'rbac.roletemplate.subtypes.RBAC_ROLE.label',
+    key:      'RBAC_ROLE',
+    type:     'rbac.authorization.k8s.io.role',
+    id:       'RBAC_ROLE',
+    labelKey: 'rbac.roletemplate.subtypes.RBAC_ROLE.label',
   },
   RBAC_CLUSTER_ROLE: {
-    key:            'RBAC_CLUSTER_ROLE',
-    type:           'rbac.authorization.k8s.io.clusterrole',
-    id:             'RBAC_CLUSTER_ROLE',
-    labelKey:          'rbac.roletemplate.subtypes.RBAC_CLUSTER_ROLE.label',
+    key:      'RBAC_CLUSTER_ROLE',
+    type:     'rbac.authorization.k8s.io.clusterrole',
+    id:       'RBAC_CLUSTER_ROLE',
+    labelKey: 'rbac.roletemplate.subtypes.RBAC_CLUSTER_ROLE.label',
   }
 };
 
@@ -55,26 +56,9 @@ export const VERBS = [
   'watch',
 ];
 
-export default class RoleTemplate extends SteveModel {
-  get availableActions() {
-    const out = super._availableActions;
+export const CREATE_VERBS = new Set(['PUT', 'blocked-PUT']);
 
-    const toFilter = ['goToEdit', 'promptRemove'];
-    const editActions = out.filter((a) => {
-      if ( toFilter.includes(a.action) ) {
-        return a;
-      }
-    });
-
-    if ( editActions.length > 0 ) {
-      editActions.forEach((a) => {
-        a.enabled = !this.builtin;
-      });
-    }
-
-    return out;
-  }
-
+export default class RoleTemplate extends SteveDescriptionModel {
   get customValidationRules() {
     return Role.customValidationRules();
   }
@@ -83,13 +67,13 @@ export default class RoleTemplate extends SteveModel {
     const out = this._details;
 
     out.unshift({
-      label:         this.t('resourceDetail.detailTop.name'),
-      content:       get(this, 'name')
+      label:   this.t('resourceDetail.detailTop.name'),
+      content: get(this, 'name')
     },
     // API returns a blank description property, this overrides our own link to the description
     {
-      label:         this.t('resourceDetail.detailTop.description'),
-      content:       this.metadata?.annotations?.[DESCRIPTION]
+      label:   this.t('resourceDetail.detailTop.description'),
+      content: this.metadata?.annotations?.[DESCRIPTION]
     });
 
     return out;
@@ -176,6 +160,26 @@ export default class RoleTemplate extends SteveModel {
 
       return norman;
     })();
+  }
+
+  get canCreate() {
+    const schema = this.$getters['schemaFor'](this.type);
+
+    return schema?.resourceMethods.find(verb => CREATE_VERBS.has(verb));
+  }
+
+  goToClone(moreQuery = {}) {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]:      _CLONE,
+      [AS]:        _UNFLAG,
+      roleContext: this.subtype,
+      ...moreQuery
+    };
+
+    this.currentRouter().push(location);
   }
 
   async save() {

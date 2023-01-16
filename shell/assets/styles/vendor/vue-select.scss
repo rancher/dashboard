@@ -105,11 +105,6 @@
   &.vs__dropdown-option--highlight {
     color: var(--dropdown-hover-text);
     background: var(--dropdown-hover-bg);
-
-    a {
-      color: var(--dropdown-hover-text);
-      text-decoration: none;
-    }
   }
 }
 
@@ -142,7 +137,7 @@
   position: relative;
   width: 100%;
   justify-content: flex-end;
-  flex-shrink: 8;
+  flex-shrink: 8; 
 
   svg {
     display: none;
@@ -151,10 +146,10 @@
   &:after {
     content: $icon-chevron-down;
     font-family: 'icons';
-    font-size: 24px;
     height: 32px;
-    padding-top: 3px;
+    padding-top: 8px;
     color: var(--secondary);
+    margin-right: 3px;
   }
 }
 
@@ -284,6 +279,7 @@ $transition-duration: 150ms;
     content: $icon-close;
     font-family: 'icons';
     color: var(--link);
+    font-size: 10px;
   }
 }
 

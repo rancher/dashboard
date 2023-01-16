@@ -1,10 +1,11 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { SCHEMA, NORMAN } from '@shell/config/types';
-import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
+import { CATTLE_API_GROUP, SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
+import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 const BASE = 'user-base';
 const USER = 'user';
@@ -13,26 +14,7 @@ const SPECIAL = [BASE, ADMIN, USER];
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
-export default class GlobalRole extends SteveModel {
-  get availableActions() {
-    const out = super._availableActions;
-
-    const toFilter = ['goToEdit', 'promptRemove'];
-    const editActions = out.filter((a) => {
-      if ( toFilter.includes(a.action) ) {
-        return a;
-      }
-    });
-
-    if ( editActions.length > 0 ) {
-      editActions.forEach((a) => {
-        a.enabled = !this.builtin;
-      });
-    }
-
-    return out;
-  }
-
+export default class GlobalRole extends SteveDescriptionModel {
   get customValidationRules() {
     return Role.customValidationRules();
   }
@@ -41,8 +23,8 @@ export default class GlobalRole extends SteveModel {
     const out = this._details;
 
     out.unshift({
-      label:         this.t('resourceDetail.detailTop.name'),
-      content:       get(this, 'name')
+      label:   this.t('resourceDetail.detailTop.name'),
+      content: get(this, 'name')
     });
 
     return out;
@@ -130,6 +112,26 @@ export default class GlobalRole extends SteveModel {
 
       return norman;
     })();
+  }
+
+  get canCreate() {
+    const schema = this.$getters['schemaFor'](this.type);
+
+    return schema?.resourceMethods.find(verb => CREATE_VERBS.has(verb));
+  }
+
+  goToClone(moreQuery = {}) {
+    const location = this.detailLocation;
+
+    location.query = {
+      ...location.query,
+      [MODE]:      _CLONE,
+      [AS]:        _UNFLAG,
+      roleContext: GLOBAL,
+      ...moreQuery
+    };
+
+    this.currentRouter().push(location);
   }
 
   async save() {

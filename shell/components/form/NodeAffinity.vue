@@ -14,7 +14,7 @@ export default {
     ArrayListGrouped, MatchExpressions, LabeledSelect
   },
 
-  props:      {
+  props: {
     // value should be NodeAffinity or VolumeNodeAffinity
     value: {
       type:    Object,
@@ -133,7 +133,10 @@ export default {
 </script>
 
 <template>
-  <div class="row" @input="queueUpdate">
+  <div
+    class="row"
+    @input="queueUpdate"
+  >
     <div class="col span-12">
       <ArrayListGrouped
         v-model="allSelectorTerms"

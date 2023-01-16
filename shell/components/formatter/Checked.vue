@@ -1,7 +1,7 @@
 <script>
 
 export default {
-  props:      {
+  props: {
     value: {
       type:    Boolean,
       default: true
@@ -12,9 +12,12 @@ export default {
 
 <template>
   <span v-if="value">
-    <i class="icon icon-lg icon-checkmark" />
+    <i class="icon icon-checkmark" />
   </span>
-  <span v-else class="text-muted">
+  <span
+    v-else
+    class="text-muted"
+  >
     &mdash;
   </span>
 </template>

@@ -7,8 +7,8 @@ export default {
   components: {
     ArrayList, LabeledInput, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -42,31 +42,66 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.rbd.user" :mode="mode" :label="t('persistentVolume.rbd.user.label')" :placeholder="t('persistentVolume.rbd.user.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.rbd.user"
+          :mode="mode"
+          :label="t('persistentVolume.rbd.user.label')"
+          :placeholder="t('persistentVolume.rbd.user.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.rbd.keyring" :mode="mode" :label="t('persistentVolume.rbd.keyRing.label')" :placeholder="t('persistentVolume.rbd.keyRing.placeholder')" />
-      </div>
-    </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.rbd.pool" :mode="mode" :label="t('persistentVolume.rbd.pool.label')" :placeholder="t('persistentVolume.rbd.pool.placeholder')" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.rbd.image" :mode="mode" :label="t('persistentVolume.rbd.image.label')" :placeholder="t('persistentVolume.rbd.image.placeholder')" />
-      </div>
-    </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.rbd.secretRef.name" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.rbd.secretRef.namespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.rbd.keyring"
+          :mode="mode"
+          :label="t('persistentVolume.rbd.keyRing.label')"
+          :placeholder="t('persistentVolume.rbd.keyRing.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.rbd.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.rbd.pool"
+          :mode="mode"
+          :label="t('persistentVolume.rbd.pool.label')"
+          :placeholder="t('persistentVolume.rbd.pool.placeholder')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.rbd.image"
+          :mode="mode"
+          :label="t('persistentVolume.rbd.image.label')"
+          :placeholder="t('persistentVolume.rbd.image.placeholder')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.rbd.secretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretName.label')"
+          :placeholder="t('persistentVolume.shared.secretName.placeholder')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.rbd.secretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretNamespace.label')"
+          :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.rbd.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup
@@ -81,7 +116,11 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <ArrayList v-model="value.spec.rbd.monitors" :add-label="t('persistentVolume.shared.monitors.add')" :mode="mode" />
+        <ArrayList
+          v-model="value.spec.rbd.monitors"
+          :add-label="t('persistentVolume.shared.monitors.add')"
+          :mode="mode"
+        />
       </div>
     </div>
   </div>

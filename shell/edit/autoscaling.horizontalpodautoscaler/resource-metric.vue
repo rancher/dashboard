@@ -54,7 +54,12 @@ export default {
       </div>
     </div>
     <div class="row">
-      <MetricTarget v-model="value.target" :mode="mode" metric-resource="resource" :resource-name="value.name" />
+      <MetricTarget
+        v-model="value.target"
+        :mode="mode"
+        metric-resource="resource"
+        :resource-name="value.name"
+      />
     </div>
   </div>
 </template>

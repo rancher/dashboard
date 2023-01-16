@@ -15,6 +15,16 @@ export default {
   components: {
     Card, Checkbox, AsyncButton
   },
+  props: {
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'prompt-remove'
+    }
+  },
   data() {
     const { resource } = this.$route.params;
 
@@ -30,7 +40,7 @@ export default {
       chartsDeleteCrd:     false
     };
   },
-  computed:   {
+  computed: {
     names() {
       return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
     },
@@ -143,7 +153,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
   },
 
-  watch:    {
+  watch: {
     showPromptRemove(show) {
       if (show) {
         const selected = this.toRemove[0];
@@ -256,7 +266,7 @@ export default {
         await this.refreshSpoofedTypes(spoofedTypes);
         this.done();
       } catch (err) {
-        this.error = err;
+        this.error = err.message || err;
         btnCB(false);
       }
     },
@@ -268,7 +278,7 @@ export default {
         await this.refreshSpoofedTypes(spoofedTypes);
         this.done();
       } catch (err) {
-        this.error = err;
+        this.error = err.message || err;
         btnCB(false);
       }
     },
@@ -319,8 +329,14 @@ export default {
     styles="max-height: 100vh;"
     @closed="close"
   >
-    <Card class="prompt-remove" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text">
+    <Card
+      class="prompt-remove"
+      :show-highlight-border="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text"
+      >
         {{ t('promptRemove.title') }}
       </h4>
       <div slot="body">
@@ -328,7 +344,7 @@ export default {
           <template v-if="!hasCustomRemove">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <span
               v-html="resourceNames(names, plusMore, t)"
-            ></span>
+            />
           </template>
 
           <template>
@@ -346,31 +362,58 @@ export default {
               @errors="e => error = e"
               @done="done"
             />
-            <div v-if="needsConfirm" class="mt-10">
+            <div
+              v-if="needsConfirm"
+              class="mt-10"
+            >
               <span
                 v-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
-              ></span>
+              />
             </div>
           </template>
         </div>
-        <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
+        <input
+          v-if="needsConfirm"
+          id="confirm"
+          v-model="confirmName"
+          :data-testid="componentTestid + '-input'"
+          type="text"
+        >
         <div class="text-warning mb-10 mt-10">
           {{ warning }}
         </div>
         <div class="text-error mb-10 mt-10">
           {{ error }}
         </div>
-        <div v-if="!needsConfirm" class="text-info mt-20">
+        <div
+          v-if="!needsConfirm"
+          class="text-info mt-20"
+        >
           {{ protip }}
         </div>
-        <Checkbox v-if="chartsToRemoveIsApp" v-model="chartsDeleteCrd" label-key="promptRemoveApp.removeCrd" class="mt-10 type" @input="chartAddCrdToRemove" />
+        <Checkbox
+          v-if="chartsToRemoveIsApp"
+          v-model="chartsDeleteCrd"
+          label-key="promptRemoveApp.removeCrd"
+          class="mt-10 type"
+          @input="chartAddCrdToRemove"
+        />
       </div>
       <template #actions>
-        <button class="btn role-secondary" @click="close">
+        <button
+          class="btn role-secondary"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
-        <div class="spacer"></div>
-        <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="deleteDisabled" @click="remove" />
+        <div class="spacer" />
+        <AsyncButton
+          mode="delete"
+          class="btn bg-error ml-10"
+          :disabled="deleteDisabled"
+          :data-testid="componentTestid + '-confirm-button'"
+          @click="remove"
+        />
       </template>
     </Card>
   </modal>

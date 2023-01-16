@@ -36,6 +36,11 @@ export default {
       type:    Boolean,
       default: false
     },
+    badge: {
+      default:  0,
+      required: false,
+      type:     Number
+    },
   },
 
   data() {
@@ -89,10 +94,17 @@ export default {
     :aria-hidden="!active"
     role="tabpanel"
   >
-    <div v-if="shouldShowHeader" class="tab-header">
+    <div
+      v-if="shouldShowHeader"
+      class="tab-header"
+    >
       <h2>
         {{ label }}
-        <i v-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
+        <i
+          v-if="tooltip"
+          v-tooltip="tooltip"
+          class="icon icon-info icon-lg"
+        />
       </h2>
       <slot name="tab-header-right" />
     </div>

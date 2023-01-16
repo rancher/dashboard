@@ -5,13 +5,11 @@ import { removeAt } from '@shell/utils/array';
 import { TextAreaAutoGrow } from '@components/Form/TextArea';
 import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
-
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
   components: { TextAreaAutoGrow, LabeledInput },
-
-  props: {
+  props:      {
     value: {
       type:    Array,
       default: null,
@@ -24,7 +22,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     title: {
       type:    String,
       default: ''
@@ -37,7 +34,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     valueLabel: {
       type:    String,
       default: 'Value',
@@ -50,7 +46,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     addLabel: {
       type: String,
       default() {
@@ -61,7 +56,6 @@ export default {
       type:    Boolean,
       default: true,
     },
-
     removeLabel: {
       type: String,
       default() {
@@ -72,22 +66,18 @@ export default {
       type:    Boolean,
       default: true,
     },
-
     defaultAddValue: {
       type:    [String, Number, Object, Array],
       default: ''
     },
-
     loading: {
       type:    Boolean,
       default: false
     },
-
     disabled: {
       type:    Boolean,
       default: false,
     },
-
     rules: {
       default:   () => [],
       type:      Array,
@@ -95,7 +85,6 @@ export default {
       validator: rules => rules.every(rule => ['function'].includes(typeof rule))
     }
   },
-
   data() {
     const input = (this.value || []).slice();
     const rows = [];
@@ -103,7 +92,6 @@ export default {
     for ( const value of input ) {
       rows.push({ value });
     }
-
     if ( !rows.length && this.initialEmptyRow ) {
       const value = this.defaultAddValue ? clone(this.defaultAddValue) : '';
 
@@ -112,24 +100,19 @@ export default {
 
     return { rows, lastUpdateWasFromValue: false };
   },
-
   computed: {
     isView() {
       return this.mode === _VIEW;
     },
-
     showAdd() {
       return this.addAllowed;
     },
-
     showRemove() {
       return this.removeAllowed;
     },
-
     isDefaultProtip() {
       return this.protip === DEFAULT_PROTIP;
     },
-
     showProtip() {
       if (this.protip && !this.isDefaultProtip) {
         return true;
@@ -138,7 +121,6 @@ export default {
       return !this.valueMultiline && this.protip;
     }
   },
-
   watch: {
     value() {
       this.lastUpdateWasFromValue = true;
@@ -156,29 +138,24 @@ export default {
       }
     }
   },
-
   created() {
     this.queueUpdate = debounce(this.update, 50);
   },
-
   methods: {
     add() {
       this.rows.push({ value: clone(this.defaultAddValue) });
       if (this.defaultAddValue) {
         this.queueUpdate();
       }
-
       this.$nextTick(() => {
         const inputs = this.$refs.value;
 
         if ( inputs && inputs.length > 0 ) {
           inputs[inputs.length - 1].focus();
         }
-
         this.$emit('add');
       });
     },
-
     /**
      * Remove item and emits removed row and its own index value
      */
@@ -187,12 +164,10 @@ export default {
       removeAt(this.rows, index);
       this.queueUpdate();
     },
-
     update() {
       if ( this.isView ) {
         return;
       }
-
       const out = [];
 
       for ( const row of this.rows ) {
@@ -203,15 +178,12 @@ export default {
           out.push(value);
         }
       }
-
       this.$emit('input', out);
     },
-
     onPaste(index, event) {
       if (this.valueMultiline) {
         return;
       }
-
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
       const split = text.split('\n').map(value => ({ value }));
@@ -225,11 +197,18 @@ export default {
 
 <template>
   <div>
-    <div v-if="title" class="clearfix">
+    <div
+      v-if="title"
+      class="clearfix"
+    >
       <slot name="title">
         <h3>
           {{ title }}
-          <i v-if="showProtip" v-tooltip="protip" class="icon icon-info" />
+          <i
+            v-if="showProtip"
+            v-tooltip="protip"
+            class="icon icon-info"
+          />
         </h3>
       </slot>
     </div>
@@ -245,6 +224,7 @@ export default {
       <div
         v-for="(row, idx) in rows"
         :key="idx"
+        data-testid="array-list-box"
         class="box"
       >
         <slot
@@ -293,11 +273,14 @@ export default {
                 :disabled="isView || disabled"
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
-              />
+              >
             </slot>
           </div>
         </slot>
-        <div v-if="showRemove" class="remove">
+        <div
+          v-if="showRemove"
+          class="remove"
+        >
           <slot
             name="remove-button"
             :remove="() => remove(row, idx)"
@@ -317,22 +300,35 @@ export default {
         </div>
       </div>
     </template>
-    <div v-else-if="mode==='view'" class="text-muted">
+    <div
+      v-else-if="mode==='view'"
+      class="text-muted"
+    >
       &mdash;
     </div>
     <div v-else>
       <slot name="empty" />
     </div>
-    <div v-if="showAdd && !isView" class="footer">
-      <slot v-if="showAdd" name="add" :add="add">
+    <div
+      v-if="showAdd && !isView"
+      class="footer"
+    >
+      <slot
+        v-if="showAdd"
+        name="add"
+        :add="add"
+      >
         <button
           type="button"
           class="btn role-tertiary add"
           :disabled="loading"
-          data-testid="add-item"
+          data-testid="array-list-button"
           @click="add()"
         >
-          <i v-if="loading" class="mr-5 icon icon-spinner icon-spin icon-lg" />
+          <i
+            v-if="loading"
+            class="mr-5 icon icon-spinner icon-spin icon-lg"
+          />
           {{ addLabel }}
         </button>
       </slot>
@@ -343,14 +339,11 @@ export default {
 <style lang="scss" scoped>
   .title {
     margin-bottom: 10px;
-
   }
-
   .box {
     display: grid;
     grid-template-columns: auto $array-list-remove-margin;
     align-items: center;
-
     margin-bottom: 10px;
     .value {
       flex: 1;
@@ -359,11 +352,9 @@ export default {
       }
     }
   }
-
   .remove {
     text-align: right;
   }
-
   .footer {
     .protip {
       float: right;

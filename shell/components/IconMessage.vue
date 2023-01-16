@@ -1,8 +1,8 @@
 <script>
 export default {
-  props:      {
+  props: {
     vertical: {
-      type:     Boolean,
+      type:    Boolean,
       default: false,
     },
     icon: {
@@ -10,7 +10,7 @@ export default {
       required: true,
     },
     iconState: {
-      type:     String,
+      type:    String,
       default: null
     },
     message: {
@@ -21,13 +21,23 @@ export default {
       type:    String,
       default: null
     },
+    subtle: {
+      type:    Boolean,
+      default: false,
+    }
   },
 };
 </script>
 
 <template>
-  <div class="message-icon" :class="{'vertical': vertical}">
-    <i class="icon" :class="{ [icon]: true, [iconState]: !!iconState}" />
+  <div
+    class="message-icon"
+    :class="{'vertical': vertical, 'subtle': subtle}"
+  >
+    <i
+      class="icon"
+      :class="{ [icon]: true, [iconState]: !!iconState}"
+    />
     <div class="message">
       <slot name="message">
         <template v-if="messageKey">
@@ -45,6 +55,10 @@ export default {
   .vertical {
     flex-direction: column;
     width: 100%;
+  }
+
+  .subtle {
+    opacity: 0.7;
   }
 
   .message-icon {

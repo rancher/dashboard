@@ -47,10 +47,13 @@ export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
 export const INGRESS = 'networking.k8s.io.ingress';
 export const INGRESS_CLASS = 'networking.k8s.io.ingressclass';
+export const LIMIT_RANGE = 'limitrange';
 export const NAMESPACE = 'namespace';
 export const NODE = 'node';
 export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
 export const POD = 'pod';
+export const POD_DISRUPTION_BUDGET = 'policy.poddisruptionbudget';
+export const PSP = 'policy.podsecuritypolicy';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
@@ -59,6 +62,7 @@ export const SERVICE = 'service';
 export const SECRET = 'secret';
 export const SERVICE_ACCOUNT = 'serviceaccount';
 export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
+export const CSI_DRIVER = 'storage.k8s.io.csidriver';
 export const OBJECT_META = 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta';
 export const NETWORK_ATTACHMENT = 'k8s.cni.cncf.io.networkattachmentdefinition';
 
@@ -79,7 +83,7 @@ export const WORKLOAD_TYPES = {
   JOB:                    'batch.job',
   STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
-  REPLICATION_CONTROLLER: 'replicationcontroller'
+  REPLICATION_CONTROLLER: 'replicationcontroller',
 };
 
 const {
@@ -94,11 +98,14 @@ export const METRIC = {
 };
 
 export const CATALOG = {
-  CLUSTER_REPO:   'catalog.cattle.io.clusterrepo',
-  OPERATION:      'catalog.cattle.io.operation',
-  APP:            'catalog.cattle.io.app',
-  REPO:           'catalog.cattle.io.repo',
+  CLUSTER_REPO: 'catalog.cattle.io.clusterrepo',
+  OPERATION:    'catalog.cattle.io.operation',
+  APP:          'catalog.cattle.io.app',
+  REPO:         'catalog.cattle.io.repo',
 };
+
+// UI Plugin type
+export const UI_PLUGIN = 'catalog.cattle.io.uiplugin';
 
 export const HELM = { PROJECTHELMCHART: 'helm.cattle.io.projecthelmchart' };
 
@@ -122,8 +129,8 @@ export const MONITORING = {
     RESPONDER:                        'monitoring.coreos.com.receiver.responder',
     ROUTE:                            'monitoring.coreos.com.route',
     ROUTE_SPEC:                       'monitoring.coreos.com.route.spec',
-    ALERTMANAGERCONFIG_RECEIVER_SPEC:       'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
-    ALERTMANAGERCONFIG_ROUTE_SPEC:          'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
+    ALERTMANAGERCONFIG_RECEIVER_SPEC: 'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.receivers',
+    ALERTMANAGERCONFIG_ROUTE_SPEC:    'monitoring.coreos.com.v1alpha1.alertmanagerconfig.spec.route'
   }
 };
 
@@ -169,7 +176,9 @@ export const MANAGEMENT = {
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
-  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider'
+  GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
+  RKE_TEMPLATE:                  'management.cattle.io.clustertemplate',
+  RKE_TEMPLATE_REVISION:         'management.cattle.io.clustertemplaterevision',
 };
 
 export const CAPI = {
@@ -204,7 +213,7 @@ export const GATEKEEPER = {
 
 export const ISTIO = {
   VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
-  DESTINATION_RULE:  'networking.istio.io.destinationrule',
+  DESTINATION_RULE: 'networking.istio.io.destinationrule',
   GATEWAY:          'networking.istio.io.gateway'
 };
 
@@ -265,37 +274,18 @@ export const VIRTUAL_TYPES = {
 
 // harvester
 export const HCI = {
-  VM:                 'kubevirt.io.virtualmachine',
-  VMI:                'kubevirt.io.virtualmachineinstance',
-  VMIM:               'kubevirt.io.virtualmachineinstancemigration',
-  VM_TEMPLATE:        'harvesterhci.io.virtualmachinetemplate',
-  VM_VERSION:         'harvesterhci.io.virtualmachinetemplateversion',
-  IMAGE:              'harvesterhci.io.virtualmachineimage',
-  SSH:                'harvesterhci.io.keypair',
-  VOLUME:             'harvesterhci.io.volume',
-  USER:               'harvesterhci.io.user',
-  SETTING:            'harvesterhci.io.setting',
-  UPGRADE:            'harvesterhci.io.upgrade',
-  BACKUP:             'harvesterhci.io.virtualmachinebackup',
-  RESTORE:            'harvesterhci.io.virtualmachinerestore',
-  NODE_NETWORK:       'network.harvesterhci.io.nodenetwork',
-  CLUSTER_NETWORK:    'network.harvesterhci.io.clusternetwork',
-  SUPPORT_BUNDLE:     'harvesterhci.io.supportbundle',
-  NETWORK_ATTACHMENT: 'harvesterhci.io.networkattachmentdefinition',
-  CLUSTER:            'harvesterhci.io.management.cluster',
-  DASHBOARD:          'harvesterhci.io.dashboard',
-  BLOCK_DEVICE:       'harvesterhci.io.blockdevice',
-  CLOUD_TEMPLATE:     'harvesterhci.io.cloudtemplate',
-  HOST:               'harvesterhci.io.host',
-  VERSION:            'harvesterhci.io.version',
-  MANAGED_CHART:      'harvesterhci.io.managedchart',
+  CLUSTER:   'harvesterhci.io.management.cluster',
+  DASHBOARD: 'harvesterhci.io.dashboard',
+  IMAGE:     'harvesterhci.io.virtualmachineimage',
+  SETTING:   'harvesterhci.io.setting',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
 
 export const ADDRESSES = {
   HOSTNAME:    'Hostname',
-  INTERNAL_IP: 'InternalIP'
+  INTERNAL_IP: 'InternalIP',
+  EXTERNAL_IP: 'ExternalIP'
 };
 
 export const DEFAULT_WORKSPACE = 'fleet-default';

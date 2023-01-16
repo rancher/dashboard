@@ -7,8 +7,8 @@ export default {
       name:   'c-cluster-mcapps-pages-page',
       params: {
         ...route.params,
-        product:  NAME,
-        page:    'apps'
+        product: NAME,
+        page:    'catalogs'
       }
     });
   }

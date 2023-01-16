@@ -8,7 +8,7 @@ import { _VIEW } from '@shell/config/query-params';
 export default {
   components: { UnitInput },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'
@@ -45,6 +45,20 @@ export default {
     return {
       limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu, viewMode: _VIEW
     };
+  },
+
+  watch: {
+    value() {
+      const {
+        limitsCpu, limitsMemory, requestsCpu, requestsMemory, limitsGpu
+      } = this.value;
+
+      this.limitsCpu = limitsCpu;
+      this.limitsMemory = limitsMemory;
+      this.requestsCpu = requestsCpu;
+      this.requestsMemory = requestsMemory;
+      this.limitsGpu = limitsGpu;
+    }
   },
 
   computed: {
@@ -139,10 +153,19 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div v-if="showTip" class="col span-12">
+      <div
+        v-if="showTip"
+        class="col span-12"
+      >
         <p class="helper-text mb-10">
-          <t v-if="mode === viewMode" k="containerResourceLimit.helpTextDetail" />
-          <t v-else k="containerResourceLimit.helpText" />
+          <t
+            v-if="mode === viewMode"
+            k="containerResourceLimit.helpTextDetail"
+          />
+          <t
+            v-else
+            k="containerResourceLimit.helpText"
+          />
         </p>
       </div>
     </div>

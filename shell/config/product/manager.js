@@ -7,6 +7,7 @@ import {
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
+import { BLANK_CLUSTER } from '@shell/store';
 
 export const NAME = 'manager';
 
@@ -28,34 +29,41 @@ export function init(store) {
     icon:                'cluster-management',
     removable:           false,
     showClusterSwitcher: false,
+    to:                  {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster:  BLANK_CLUSTER,
+        product:  NAME,
+        resource: CAPI.RANCHER_CLUSTER
+      }
+    },
   });
 
   virtualType({
-    name:        'cloud-credentials',
-    labelKey:    'manager.cloudCredentials.label',
+    name:       'cloud-credentials',
+    labelKey:   'manager.cloudCredentials.label',
     group:      'Root',
-    namespaced:  false,
+    namespaced: false,
     icon:       'globe',
-    weight:      99,
-    route:       { name: 'c-cluster-manager-cloudCredential' },
+    weight:     99,
+    route:      { name: 'c-cluster-manager-cloudCredential' },
   });
 
   virtualType({
-    labelKey:       'legacy.psps',
-    name:           'pod-security-policies',
-    group:          'Root',
-    namespaced:     false,
-    weight:         0,
-    icon:           'folder',
-    route:          { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
-    exact:          true
+    labelKey:   'legacy.psps',
+    name:       'pod-security-policies',
+    group:      'Root',
+    namespaced: false,
+    weight:     5,
+    icon:       'folder',
+    route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
+    exact:      true
   });
 
   basicType([
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    'pod-security-policies',
   ]);
 
   configureType(CAPI.RANCHER_CLUSTER, {
@@ -111,13 +119,12 @@ export function init(store) {
   weightType(CAPI.MACHINE, 1, true);
   weightType(CATALOG.CLUSTER_REPO, 0, true);
 
-  configureType(CATALOG.CLUSTER_REPO, { showListMasthead: false });
-
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
+    'pod-security-policies',
   ], 'advanced');
 
   weightGroup('advanced', -1, true);

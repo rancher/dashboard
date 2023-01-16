@@ -6,7 +6,6 @@ import IndentedPanel from '@shell/components/IndentedPanel';
 import SortableTable from '@shell/components/SortableTable';
 import { BadgeState } from '@components/BadgeState';
 import CommunityLinks from '@shell/components/CommunityLinks';
-import SimpleBox from '@shell/components/SimpleBox';
 import SingleClusterInfo from '@shell/components/SingleClusterInfo';
 import { mapGetters, mapState } from 'vuex';
 import { MANAGEMENT, CAPI } from '@shell/config/types';
@@ -18,10 +17,8 @@ import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenRelease
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
-import { SETTING } from '@shell/config/settings';
 import { BLANK_CLUSTER } from '@shell/store';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
-import { allHash } from '@shell/utils/promise';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
 
@@ -35,23 +32,22 @@ export default {
     SortableTable,
     BadgeState,
     CommunityLinks,
-    SimpleBox,
     SingleClusterInfo,
   },
 
   mixins: [PageHeaderActions],
 
-  async fetch() {
-    const requests = {
-      rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-      clusters:        this.$store.dispatch('management/findAll', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  { url: MANAGEMENT.CLUSTER }
-      })
-    };
-    const hash = await allHash(requests);
+  fetch() {
+    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
 
-    this.clusters = hash.rancherClusters;
+    if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
+      this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+    }
+
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+    }
   },
 
   data() {
@@ -70,7 +66,7 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, clusters: [], fullVersion, pageActions, vendor: getVendor(),
+      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
     };
   },
 
@@ -79,10 +75,32 @@ export default {
     ...mapGetters(['currentCluster']),
     mcm: mapFeature(MULTI_CLUSTER),
 
+    provClusters() {
+      return this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+    },
+
+    // User can go to Cluster Management if they can see the cluster schema
+    canManageClusters() {
+      const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+
+      return !!schema;
+    },
+
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
       return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
+
+    manageLocation() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  MANAGER,
+          cluster:  BLANK_CLUSTER,
+          resource: CAPI.RANCHER_CLUSTER
+        },
+      };
     },
 
     createLocation() {
@@ -117,10 +135,6 @@ export default {
 
     showSetLoginBanner() {
       return this.homePageCards?.setLoginPage;
-    },
-
-    showSidePanel() {
-      return this.showCommercialSupport || this.showCommunityLinks;
     },
 
     clusterHeaders() {
@@ -175,28 +189,10 @@ export default {
       ];
     },
 
-    showCommercialSupport() {
-      const canEditSettings = (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
-
-      const hasSupport = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED) || {};
-
-      return !this.homePageCards.commercialSupportTip && hasSupport.value !== 'true' && canEditSettings;
-    },
-
-    showCommunityLinks() {
-      const uiIssuesSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_ISSUES) || {};
-      const communityLinksSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.COMMUNITY_LINKS) || {};
-
-      const hasSomethingToShow = communityLinksSetting?.value !== 'false' || !!( uiIssuesSetting.value && uiIssuesSetting.value !== '');
-      const hiddenByPreference = this.homePageCards.communitySupportTip === true;
-
-      return hasSomethingToShow && !hiddenByPreference;
-    },
-
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.clusters), this.$store);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || []), this.$store);
     }
   },
 
@@ -204,6 +200,12 @@ export default {
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
     markSeenReleaseNotes(this.$store);
+  },
+
+  // Forget the types when we leave the page
+  beforeDestroy() {
+    this.$store.dispatch('management/forgetType', CAPI.MACHINE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
   },
 
   methods: {
@@ -279,69 +281,105 @@ export default {
 
 </script>
 <template>
-  <div v-if="managementReady" class="home-page">
-    <BannerGraphic :small="true" :title="t('landing.welcomeToRancher', {vendor})" :pref="HIDE_HOME_PAGE_CARDS" pref-key="welcomeBanner" />
+  <div
+    v-if="managementReady"
+    class="home-page"
+  >
+    <BannerGraphic
+      :small="true"
+      :title="t('landing.welcomeToRancher', {vendor})"
+      :pref="HIDE_HOME_PAGE_CARDS"
+      pref-key="welcomeBanner"
+    />
     <IndentedPanel class="mt-20 mb-20">
-      <div v-if="!readWhatsNewAlready" class="row">
+      <div
+        v-if="!readWhatsNewAlready"
+        class="row"
+      >
         <div class="col span-12">
           <Banner
             data-testid="changelog-banner"
             color="info whats-new"
           >
-            <div>{{ t('landing.seeWhatsNew') }}</div>
-            <a class="hand" @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
+            <div class="message">
+              {{ t('landing.seeWhatsNew') }}
+            </div>
+            <a
+              class="hand"
+              @click.prevent.stop="showWhatsNew"
+            ><span v-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
       </div>
 
-      <div class="row">
-        <div :class="{'span-9': showSidePanel, 'span-12': !showSidePanel }" class="col">
-          <SimpleBox
-            id="migration"
-            class="panel"
-            :title="t('landing.gettingStarted.title')"
-            :pref="HIDE_HOME_PAGE_CARDS"
-            pref-key="migrationTip"
+      <div class="row home-panels">
+        <div class="col main-panel">
+          <div
+            v-if="!showSetLoginBanner"
+            class="mb-10 row"
           >
-            <div class="getting-started">
-              <span>
-                {{ t('landing.gettingStarted.body') }}
-              </span>
-              <nuxt-link :to="{name: 'docs-doc', params: {doc: 'getting-started'}}" class="getting-started-btn">
-                {{ t('landing.learnMore') }}
-              </nuxt-link>
-            </div>
-          </SimpleBox>
-
-          <div v-if="!showSetLoginBanner" class="mt-5 mb-10 row">
             <div class="col span-12">
-              <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
-                <div>{{ t('landing.landingPrefs.title') }}</div>
-                <a class="hand mr-20" @click.prevent.stop="showUserPrefs"><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
+              <Banner
+                color="set-login-page"
+                :closable="true"
+                @close="closeSetLoginBanner()"
+              >
+                <div class="message">
+                  {{ t('landing.landingPrefs.title') }}
+                </div>
+                <a
+                  class="hand mr-20"
+                  @click.prevent.stop="showUserPrefs"
+                ><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
             </div>
           </div>
-
           <div class="row panel">
-            <div v-if="mcm" class="col span-12">
-              <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="kubeClusters" :headers="clusterHeaders">
+            <div
+              v-if="mcm"
+              class="col span-12"
+            >
+              <SortableTable
+                :table-actions="false"
+                :row-actions="false"
+                key-field="id"
+                :rows="kubeClusters"
+                :headers="clusterHeaders"
+                :loading="!kubeClusters"
+              >
                 <template #header-left>
                   <div class="row table-heading">
                     <h2 class="mb-0">
                       {{ t('landing.clusters.title') }}
                     </h2>
-                    <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
+                    <BadgeState
+                      v-if="kubeClusters"
+                      :label="kubeClusters.length.toString()"
+                      color="role-tertiary ml-20 mr-20"
+                    />
                   </div>
                 </template>
-                <template v-if="canCreateCluster" #header-middle>
+                <template
+                  v-if="canCreateCluster || canManageClusters"
+                  #header-middle
+                >
                   <div class="table-heading">
                     <n-link
+                      v-if="canManageClusters"
+                      :to="manageLocation"
+                      class="btn btn-sm role-secondary"
+                    >
+                      {{ t('cluster.manageAction') }}
+                    </n-link>
+                    <n-link
+                      v-if="canCreateCluster"
                       :to="importLocation"
                       class="btn btn-sm role-primary"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
                     <n-link
+                      v-if="canCreateCluster"
                       :to="createLocation"
                       class="btn btn-sm role-primary"
                     >
@@ -351,12 +389,22 @@ export default {
                 </template>
                 <template #col:name="{row}">
                   <td>
-                    <span v-if="row.mgmt">
-                      <n-link v-if="row.mgmt.isReady" :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}">
-                        {{ row.nameDisplay }}
-                      </n-link>
-                      <span v-else>{{ row.nameDisplay }}</span>
-                    </span>
+                    <div class="list-cluster-name">
+                      <span v-if="row.mgmt">
+                        <n-link
+                          v-if="row.mgmt.isReady && !row.hasError"
+                          :to="{ name: 'c-cluster-explorer', params: { cluster: row.mgmt.id }}"
+                        >
+                          {{ row.nameDisplay }}
+                        </n-link>
+                        <span v-else>{{ row.nameDisplay }}</span>
+                      </span>
+                      <i
+                        v-if="row.unavailableMachines"
+                        v-tooltip="row.unavailableMachines"
+                        class="conditions-alert-icon icon-alert icon"
+                      />
+                    </div>
                   </td>
                 </template>
                 <template #col:cpu="{row}">
@@ -385,37 +433,38 @@ export default {
                 </template> -->
               </SortableTable>
             </div>
-            <div v-else class="col span-12">
+            <div
+              v-else
+              class="col span-12"
+            >
               <SingleClusterInfo />
             </div>
           </div>
         </div>
-        <div v-if="showSidePanel" class="col span-3">
-          <CommunityLinks v-if="showCommunityLinks" :pref="HIDE_HOME_PAGE_CARDS" pref-key="communitySupportTip" class="mb-20" />
-          <SimpleBox v-if="showCommercialSupport" :pref="HIDE_HOME_PAGE_CARDS" pref-key="commercialSupportTip" :title="t('landing.commercial.title')">
-            <nuxt-link :to="{ path: 'support'}">
-              {{ t('landing.commercial.body') }}
-            </nuxt-link>
-          </SimpleBox>
-        </div>
+        <CommunityLinks class="col span-3 side-panel" />
       </div>
     </IndentedPanel>
   </div>
 </template>
 <style lang='scss' scoped>
-  .banner.info.whats-new, .banner.set-login-page {
-    border: 0;
-    margin-top: 10px;
+  .home-panels {
     display: flex;
-    align-items: center;
-    flex-direction: row;
-    > div {
-      flex: 1;
+    align-items: stretch;
+    .col {
+      margin: 0
     }
-    > a {
-      align-self: flex-end;
+    .main-panel {
+      flex: auto;
+    }
+
+    .side-panel {
+      margin-left: 1.75%;
     }
   }
+  .banner.set-login-page .message, .whats-new .message  {
+    flex: 1;
+  }
+
   .banner.set-login-page {
     border: 1px solid var(--border);
   }
@@ -425,7 +474,7 @@ export default {
     height: 39px;
 
     & > a {
-      margin-left: 5px;
+      margin-left: 10px;
     }
   }
   .panel:not(:first-child) {
@@ -444,12 +493,35 @@ export default {
     display: contents;
     white-space: nowrap;
   }
+
+  .list-cluster-name {
+    align-items: center;
+    display: flex;
+
+    .conditions-alert-icon {
+      color: var(--error);
+      margin-left: 4px;
+    }
+  }
+
+  // Hide the side-panel showing links when the screen is small
+  @media screen and (max-width: 996px) {
+    .side-panel {
+      display: none;
+    }
+  }
 </style>
 <style lang="scss">
 .home-page {
-  .search > INPUT {
-    background-color: transparent;
-    padding: 8px;
+  .search {
+    align-items: center;
+    display: flex;
+
+    > INPUT {
+      background-color: transparent;
+      height: 30px;
+      padding: 8px;
+    }
   }
 
   h2 {

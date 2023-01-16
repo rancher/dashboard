@@ -2,8 +2,6 @@
 import BrandImage from '@shell/components/BrandImage';
 import { mapGetters, mapState } from 'vuex';
 import { stringify } from '@shell/utils/error';
-import { getVendor } from '@shell/config/private-label';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
 
 export default {
   layout: 'home',
@@ -13,7 +11,7 @@ export default {
   data() {
     const store = this.$store;
 
-    if ( process.client && !store.state.error && !store.state.cameFromError) {
+    if (!store.state.error && !store.state.cameFromError) {
       store.commit('cameFromError');
       this.$router.replace('/');
     }
@@ -29,13 +27,6 @@ export default {
     ...mapGetters(['isSingleProduct']),
 
     home() {
-      const isOnlyHarvester = getVendor() === HARVESTER;
-
-      if (isOnlyHarvester) {
-        // This looks like it's covered by `isSingleProduct?.afterLoginRoute` too
-        return 'c/local/harvester/harvesterhci.io.dashboard';
-      }
-
       if (this.isSingleProduct?.afterLoginRoute) {
         return this.$router.resolve(this.isSingleProduct.afterLoginRoute).href;
       }
@@ -58,26 +49,42 @@ export default {
 
 <template>
   <div v-if="error">
-    <main class="error">
+    <main class="main-layout error">
       <div class="text-center">
-        <BrandImage file-name="error-desert-landscape.svg" width="900" height="300" />
+        <BrandImage
+          file-name="error-desert-landscape.svg"
+          width="900"
+          height="300"
+        />
         <h1 v-if="error.status">
           HTTP Error {{ error.status }}: {{ error.statusText }}
         </h1>
         <h1 v-else>
           Error
         </h1>
-        <h2 v-if="error" class="text-secondary mt-20">
+        <h2
+          v-if="error"
+          class="text-secondary mt-20"
+        >
           {{ displayError }}
         </h2>
         <p class="mt-20">
-          <a :href="home" class="btn role-primary">
+          <a
+            :href="home"
+            class="btn role-primary"
+          >
             {{ t('nav.home') }}
           </a>
         </p>
-        <hr class="custom-content" :style="styles">
+        <hr
+          class="custom-content"
+          :style="styles"
+        >
         <p class="mt-20">
-          <a class="btn role-secondary" @click="$router.push(previousRoute.fullPath)">
+          <a
+            class="btn role-secondary"
+            @click="$router.push(previousRoute.fullPath)"
+          >
             {{ t('nav.failWhale.reload') }}
           </a>
         </p>
@@ -88,6 +95,10 @@ export default {
 
 <style lang="scss" scoped>
   .error {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: center;
     overflow: hidden;
 
     .row {

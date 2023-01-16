@@ -73,11 +73,6 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td colspan="3">Global</td>
     </tr>
     <tr>
-      <td>Apps</td>
-      <td>Global → Apps</td>
-      <td>Menu → Multi-cluster Apps → Apps</td>
-    </tr>
-    <tr>
       <td>Settings</td>
       <td>Global → Settings</td>
       <td>Menu → Global Settings</td>
@@ -85,22 +80,22 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
     <tr>
       <td>Catalogs</td>
       <td>Global → Tools → Catalogs</td>
-      <td>Menu → Multi-cluster Apps → Catalogs</td>
+      <td>Menu → Global Configuration → Catalogs</td>
     </tr>
     <tr>
       <td>Global DNS Entries</td>
       <td>Global → Tools → Global DNS Entries</td>
-      <td>Menu → Multi-cluster Apps → Global DNS Entries</td>
+      <td>Menu → Global Configuration → Global DNS Entries</td>
     </tr>
     <tr>
       <td>Global DNS Providers</td>
       <td>Global → Tools → Global DNS Providers</td>
-      <td>Menu → Multi-cluster Apps → Global DNS Providers</td>
+      <td>Menu → Global Configuration → Global DNS Providers</td>
     </tr>
     <tr>
       <td>Pod Security Policies</td>
       <td>Global → Security → Pod Security Policies</td>
-      <td>Menu → Cluster Management → Advanced → Pod Security Policies</td>
+      <td>Menu → Cluster Management → Pod Security Policies</td>
     </tr>
     <!-- -->
     <tr class="table-group">
@@ -137,24 +132,9 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Menu → (Cluster) → Legacy -> Notifiers</td>
     </tr>
     <tr>
-      <td>Logging (V1)</td>
-      <td>(Cluster) → Tools → Logging</td>
-      <td>Menu → (Cluster) → Cluster Tools -> Logging (Legacy)</td>
-    </tr>
-    <tr>
       <td>Monitoring (V1)</td>
       <td>(Cluster) → Tools → Monitoring</td>
       <td>Menu → (Cluster) → Cluster Tools -> Monitoring (Legacy)</td>
-    </tr>
-    <tr>
-      <td>Istio (V1)</td>
-      <td>(Cluster) → Tools → Istio</td>
-      <td>Menu → (Cluster) → Cluster Tools -> Istio (Legacy)</td>
-    </tr>
-    <tr>
-      <td>CIS Scans (V1)</td>
-      <td>(Cluster) → Tools → CIS Scans</td>
-      <td>Menu → (Cluster) → Legacy -> CIS Scans</td>
     </tr>
     <tr class="table-group">
       <td colspan="3">V1 Monitoring</td>
@@ -211,11 +191,6 @@ As of version 2.6, Cluster Manager is no longer provided as a separate UI. The d
       <td>Monitoring</td>
       <td>(Cluster) → (Project) → Tools → Monitoring</td>
       <td>Menu → (Cluster) → Legacy → Project → (Project) → Monitoring</td>
-    </tr>
-    <tr>
-      <td>Pipeline</td>
-      <td>(Cluster) → (Project) → Tools → Pipeline</td>
-      <td>Menu → (Cluster) → Legacy → Project → (Project) → Pipelines → Configuration</td>
     </tr>
     <tr class="table-group">
       <td colspan="3">Other</td>

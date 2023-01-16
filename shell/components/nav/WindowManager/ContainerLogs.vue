@@ -3,17 +3,16 @@ import { saveAs } from 'file-saver';
 import AnsiUp from 'ansi_up';
 import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
-import {
-  LOGS_RANGE, LOGS_TIME, LOGS_WRAP, DATE_FORMAT, TIME_FORMAT
-} from '@shell/store/prefs';
+import { LOGS_RANGE, LOGS_TIME, LOGS_WRAP } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton from '@shell/components/AsyncButton';
 import Select from '@shell/components/form/Select';
-import day from 'dayjs';
+import VirtualList from 'vue-virtual-scroll-list';
+import LogItem from '@shell/components/LogItem';
 
-import { escapeHtml, escapeRegex } from '@shell/utils/string';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
+import { escapeRegex } from '@shell/utils/string';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -29,10 +28,15 @@ const ansiup = new AnsiUp();
 
 export default {
   components: {
-    Window, Select, LabeledSelect, Checkbox, AsyncButton
+    Window,
+    Select,
+    LabeledSelect,
+    Checkbox,
+    AsyncButton,
+    VirtualList,
   },
 
-  props:      {
+  props: {
     // The definition of the tab itself
     tab: {
       type:     Object,
@@ -82,6 +86,7 @@ export default {
       backlog:     [],
       lines:       [],
       now:         new Date(),
+      logItem:     LogItem
     };
   },
 
@@ -207,13 +212,6 @@ export default {
       }
 
       return out;
-    },
-
-    timeFormatStr() {
-      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
-      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
-
-      return `${ dateFormat } ${ timeFormat }`;
     }
   },
 
@@ -221,17 +219,15 @@ export default {
     container() {
       this.connect();
     },
+
   },
 
   beforeDestroy() {
-    this.$refs.body.removeEventListener('scroll', this.boundUpdateFollowing);
     this.cleanup();
   },
 
   async mounted() {
     await this.connect();
-    this.boundUpdateFollowing = this.updateFollowing.bind(this);
-    this.$refs.body.addEventListener('scroll', this.boundUpdateFollowing);
     this.boundFlush = this.flush.bind(this);
     this.timerFlush = setInterval(this.boundFlush, 100);
   },
@@ -244,7 +240,7 @@ export default {
         this.lines = [];
       }
 
-      const params = {
+      let params = {
         previous:   this.previous,
         follow:     true,
         timestamps: true,
@@ -255,36 +251,9 @@ export default {
         params.container = this.container;
       }
 
-      const range = `${ this.range }`.trim().toLowerCase();
-      const match = range.match(/^(\d+)?\s*(.*?)s?$/);
+      const rangeParams = this.parseRange(this.range);
 
-      if ( match ) {
-        const count = parseInt(match[1], 10) || 1;
-        const unit = match[2];
-
-        switch ( unit ) {
-        case 'all':
-          // Do nothing
-          break;
-        case 'line':
-          params.tailLines = count;
-          break;
-        case 'second':
-          params.sinceSeconds = count;
-          break;
-        case 'minute':
-          params.sinceSeconds = count * 60;
-          break;
-        case 'hour':
-          params.sinceSeconds = count * 60 * 60;
-          break;
-        case 'day':
-          params.sinceSeconds = count * 60 * 60 * 24;
-          break;
-        }
-      } else {
-        params.tailLines = 100;
-      }
+      params = { ...params, ...rangeParams };
 
       let url = this.url || `${ this.pod.links.view }/log`;
 
@@ -322,12 +291,16 @@ export default {
           }
         }
 
-        this.backlog.push({
+        const parsedLine = {
           id:     lastId++,
           msg:    ansiup.ansi_to_html(msg),
           rawMsg: msg,
           time,
-        });
+        };
+
+        Object.freeze(parsedLine);
+
+        this.backlog.push(parsedLine);
       });
 
       this.socket.connect();
@@ -337,6 +310,11 @@ export default {
       if ( this.backlog.length ) {
         this.lines.push(...this.backlog);
         this.backlog = [];
+        const maxLines = this.parseRange(this.range)?.tailLines;
+
+        if (maxLines && this.lines.length > maxLines) {
+          this.lines = this.lines.slice(-maxLines);
+        }
       }
 
       if ( this.isFollowing ) {
@@ -347,14 +325,17 @@ export default {
     },
 
     updateFollowing() {
-      const el = this.$refs.body;
+      const virtualList = this.$refs.virtualList;
 
-      this.isFollowing = el.scrollTop + el.clientHeight + 2 >= el.scrollHeight;
+      if (virtualList) {
+        this.isFollowing = virtualList.getScrollSize() - virtualList.getClientSize() === virtualList.getOffset();
+      }
     },
 
     parseRange(range) {
-      range = `${ range }`.toLowerCase();
-      const match = range.match(/^(\d+)?\s*(.*)s?$/);
+      range = `${ range }`.trim().toLowerCase();
+      const match = range.match(/^(\d+)?\s*(.*?)s?$/);
+
       const out = {};
 
       if ( match ) {
@@ -363,7 +344,6 @@ export default {
 
         switch ( unit ) {
         case 'all':
-          out.tailLines = -1;
           break;
         case 'line':
           out.tailLines = count;
@@ -419,9 +399,11 @@ export default {
     },
 
     follow() {
-      const el = this.$refs.body;
+      const virtualList = this.$refs.virtualList;
 
-      el.scrollTop = el.scrollHeight;
+      if (virtualList) {
+        virtualList.$el.scrollTop = virtualList.getScrollSize();
+      }
     },
 
     toggleWrap(on) {
@@ -446,20 +428,11 @@ export default {
       this.connect();
     },
 
-    format(time) {
-      if ( !time ) {
-        return '';
-      }
-
-      return day(time).format(this.timeFormatStr);
-    },
-
     cleanup() {
       if ( this.socket ) {
         this.socket.disconnect();
         this.socket = null;
       }
-
       clearInterval(this.timerFlush);
     },
   },
@@ -467,7 +440,10 @@ export default {
 </script>
 
 <template>
-  <Window :active="active" :before-close="cleanup">
+  <Window
+    :active="active"
+    :before-close="cleanup"
+  >
     <template #title>
       <div class="wm-button-bar">
         <Select
@@ -480,28 +456,54 @@ export default {
           placement="top"
         >
           <template #selected-option="option">
-            <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
+            <t
+              v-if="option"
+              k="wm.containerLogs.containerName"
+              :label="option.label"
+            />
           </template>
         </Select>
-        <div class="log-action ml-5">
-          <button class="btn bg-primary wm-btn" :disabled="isFollowing" @click="follow">
-            <t class="wm-btn-large" k="wm.containerLogs.follow" />
+        <div class="log-action log-action-group ml-5">
+          <button
+            class="btn bg-primary wm-btn"
+            :disabled="isFollowing"
+            @click="follow"
+          >
+            <t
+              class="wm-btn-large"
+              k="wm.containerLogs.follow"
+            />
             <i class="wm-btn-small icon icon-chevron-end" />
           </button>
-          <button class="btn bg-primary wm-btn" @click="clear">
-            <t class="wm-btn-large" k="wm.containerLogs.clear" />
+          <button
+            class="btn bg-primary wm-btn"
+            @click="clear"
+          >
+            <t
+              class="wm-btn-large"
+              k="wm.containerLogs.clear"
+            />
             <i class="wm-btn-small icon icon-close" />
           </button>
-          <AsyncButton mode="download" @click="download" />
+          <AsyncButton
+            mode="download"
+            @click="download"
+          />
         </div>
 
-        <div class="wm-seperator"></div>
+        <div class="wm-seperator" />
 
         <div class="log-action log-previous ml-5">
-          <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>
+          <div>
+            <Checkbox
+              :label="t('wm.containerLogs.previous')"
+              :value="previous"
+              @input="togglePrevious"
+            />
+          </div>
         </div>
 
-        <div class="log-action ml-5">
+        <div class="log-action log-action-group ml-5">
           <v-popover
             trigger="click"
             placement="top"
@@ -522,19 +524,39 @@ export default {
                   placement="top"
                   @input="toggleRange($event)"
                 />
-                <div><Checkbox :label="t('wm.containerLogs.wrap')" :value="wrap" @input="toggleWrap " /></div>
-                <div><Checkbox :label="t('wm.containerLogs.timestamps')" :value="timestamps" @input="toggleTimestamps" /></div>
+                <div>
+                  <Checkbox
+                    :label="t('wm.containerLogs.wrap')"
+                    :value="wrap"
+                    @input="toggleWrap "
+                  />
+                </div>
+                <div>
+                  <Checkbox
+                    :label="t('wm.containerLogs.timestamps')"
+                    :value="timestamps"
+                    @input="toggleTimestamps"
+                  />
+                </div>
               </div>
             </template>
           </v-popover>
         </div>
 
-        <div class="log-action ml-5">
-          <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
+        <div class="log-action log-action-group ml-5">
+          <input
+            v-model="search"
+            class="input-sm"
+            type="search"
+            :placeholder="t('wm.containerLogs.search')"
+          >
         </div>
 
         <div class="status log-action p-10">
-          <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+          <t
+            :class="{'text-success': isOpen, 'text-error': !isOpen}"
+            :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'"
+          />
         </div>
       </div>
     </template>
@@ -543,20 +565,25 @@ export default {
         ref="body"
         :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
       >
-        <table class="fixed" cellpadding="0" cellspacing="0">
-          <tbody class="logs-body">
-            <template v-if="filtered.length">
-              <tr v-for="line in filtered" :key="line.id">
-                <td :key="line.id + '-time'" class="time" v-html="format(line.time)" />
-                <td :key="line.id + '-msg'" class="msg" v-html="line.msg" />
-              </tr>
-            </template>
-            <tr v-else-if="search">
-              <td v-t="'wm.containerLogs.noMatch'" colspan="2" class="msg text-muted" />
-            </tr>
-            <tr v-else v-t="'wm.containerLogs.noData'" colspan="2" class="msg text-muted" />
-          </tbody>
-        </table>
+        <VirtualList
+          v-show="filtered.length"
+          ref="virtualList"
+          data-key="id"
+          :data-sources="filtered"
+          :data-component="logItem"
+          direction="vertical"
+          class="virtual-list"
+          :keeps="200"
+          @scroll="updateFollowing"
+        />
+        <template v-if="!filtered.length">
+          <div v-if="search">
+            <span class="msg text-muted">{{ t('wm.containerLogs.noMatch') }}</span>
+          </div>
+          <div v-else>
+            <span class="msg text-muted">{{ t('wm.containerLogs.noData') }}</span>
+          </div>
+        </template>
       </div>
     </template>
   </Window>
@@ -576,7 +603,7 @@ export default {
     }
   }
 
-  .logs-container {
+  .logs-container{
     height: 100%;
     overflow: auto;
     padding: 5px;
@@ -588,31 +615,15 @@ export default {
       opacity: 0.25;
     }
 
-    .time {
-      white-space: nowrap;
-      display: none;
-      width: 0;
-      padding-right: 15px;
-      user-select: none;
+    &.wrap-lines ::v-deep .msg {
+      white-space: pre-wrap;
     }
 
-    &.show-times .time {
+    &.show-times ::v-deep .time {
       display: initial;
       width: auto;
     }
 
-    .msg {
-      white-space: nowrap;
-
-      .highlight {
-        color: var(--logs-highlight);
-        background-color: var(--logs-highlight-bg);
-      }
-    }
-
-    &.wrap-lines .msg {
-      white-space: normal;
-    }
   }
 
   .containerPicker {
@@ -620,6 +631,7 @@ export default {
       display: inline-block;
       min-width: 200px;
       height: 30px;
+      min-height: 30px;
       width: initial;
     }
   }
@@ -643,10 +655,23 @@ export default {
     }
   }
 
+  .log-action-group {
+    display: flex;
+    gap: 3px;
+
+    .input-sm {
+      min-width: 180px;
+    }
+  }
+
   .log-previous {
     align-items: center;
     display: flex;
+    min-width: 175px;
     height: 30px;
+    text-overflow : ellipsis;
+    overflow      : hidden;
+    white-space   : nowrap;
   }
 
   .status {
@@ -661,6 +686,11 @@ export default {
     > * {
       margin-bottom: 10px;
     }
+  }
+
+  .virtual-list {
+    overflow-y: auto;
+    height:100%;
   }
 
   @media only screen and (max-width: 1060px) {

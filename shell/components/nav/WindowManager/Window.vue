@@ -54,8 +54,14 @@ export default {
 </script>
 
 <template>
-  <div class="window" :class="{'show-grid': $slots.title && $slots.body}">
-    <div v-if="$slots.title" class="title clearfix">
+  <div
+    class="window"
+    :class="{'show-grid': $slots.title && $slots.body}"
+  >
+    <div
+      v-if="$slots.title"
+      class="title clearfix"
+    >
       <slot name="title" />
     </div>
     <div class="body clearfix">
@@ -87,6 +93,8 @@ export default {
     vertical-align: middle;
     // line-height: $title-height - 4px;
     padding: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .body {

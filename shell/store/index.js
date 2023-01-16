@@ -1,6 +1,6 @@
 import Steve from '@shell/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, HCI, DEFAULT_WORKSPACE
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, DEFAULT_WORKSPACE
 } from '@shell/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { allHash, allHashSettled } from '@shell/utils/promise';
@@ -14,7 +14,6 @@ import { setBrand, setVendor } from '@shell/config/private-label';
 import { addParam } from '@shell/utils/url';
 import { SETTING } from '@shell/config/settings';
 import semver from 'semver';
-import { NAME as VIRTUAL } from '@shell/config/product/harvester';
 import { BACK_TO } from '@shell/config/local-storage';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
 import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
@@ -27,6 +26,7 @@ import {
   NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
   splitNamespaceFilterKey,
 } from '@shell/utils/namespace-filter';
+import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -45,6 +45,7 @@ export const plugins = [
     namespace:      'cluster',
     baseUrl:        '', // URL is dynamically set for the selected cluster
     supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
+    supportsGc:     true, // Enable garbage collection for this store only
   }),
   Steve({
     namespace:      'rancher',
@@ -52,12 +53,6 @@ export const plugins = [
     supportsStream: false, // The norman API doesn't support streaming
     modelBaseClass: STEVE_MODEL_TYPES.NORMAN,
   }),
-  Steve({
-    namespace:      'harvester',
-    baseUrl:        '', // URL is dynamically set for the selected cluster
-    supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
-  }),
-
 ];
 
 const getActiveNamespaces = (state, getters) => {
@@ -70,17 +65,29 @@ const getActiveNamespaces = (state, getters) => {
   }
 
   if ( product.showWorkspaceSwitcher ) {
-    return { [workspace]: true };
+    const fleetOut = { [workspace]: true };
+
+    updateActiveNamespaceCache(state, fleetOut);
+
+    return fleetOut;
   }
 
   const inStore = product?.inStore;
   const clusterId = getters['currentCluster']?.id;
 
   if ( !clusterId || !inStore ) {
+    updateActiveNamespaceCache(state, out);
+
     return out;
   }
 
-  const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+  let namespaces = [];
+
+  if (Array.isArray(state.allNamespaces) && state.allNamespaces.length > 0) {
+    namespaces = state.allNamespaces;
+  } else {
+    namespaces = getters[`${ inStore }/all`](NAMESPACE);
+  }
 
   const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
   const includeAll = getters.isAllNamespaces;
@@ -124,20 +131,28 @@ const getActiveNamespaces = (state, getters) => {
       }
     }
   }
+  // Create map that can be used to efficiently check if a
+  // resource should be displayed
+  updateActiveNamespaceCache(state, out);
 
   return out;
 };
 
-const updateActiveNamespaceCache = (state, getters) => {
-  state.activeNamespaceCache = getActiveNamespaces(state, getters);
-
+const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
   // This is going to run a lot, so keep it optimised
   let cacheKey = '';
 
-  for (const key in state.activeNamespaceCache) {
-    cacheKey += key + state.activeNamespaceCache[key];
+  for (const key in activeNamespaceCache) {
+    // I though array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
+    // slower.
+    cacheKey += key + activeNamespaceCache[key];
   }
-  state.activeNamespaceCacheKey = cacheKey;
+
+  // Only update `activeNamespaceCache` if there have been changes. This reduces a lot of churn
+  if (state.activeNamespaceCacheKey !== cacheKey) {
+    state.activeNamespaceCacheKey = cacheKey;
+    state.activeNamespaceCache = activeNamespaceCache;
+  }
 };
 
 export const state = () => {
@@ -160,6 +175,7 @@ export const state = () => {
     serverVersion:           null,
     systemNamespaces:        [],
     isSingleProduct:         undefined,
+    namespaceFilterMode:     null,
   };
 };
 
@@ -194,6 +210,15 @@ export const getters = {
 
   systemNamespaces(state) {
     return state.systemNamespaces;
+  },
+
+  /**
+   * Namespace Filter Mode supplies a resource type to the NamespaceFilter.
+   *
+   * Only one of the resource type is allowed to be selected
+   */
+  namespaceFilterMode(state) {
+    return state.namespaceFilterMode;
   },
 
   currentCluster(state, getters) {
@@ -273,6 +298,34 @@ export const getters = {
     }
 
     return state.namespaceFilters.filter(x => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
+  },
+
+  isSingleNamespace(state, getters) {
+    const product = getters['currentProduct'];
+
+    if ( !product ) {
+      return false;
+    }
+
+    if ( product.showWorkspaceSwitcher ) {
+      return false;
+    }
+
+    if ( getters.isAllNamespaces ) {
+      return false;
+    }
+
+    const filters = state.namespaceFilters;
+
+    if ( filters.length !== 1 ) {
+      return false;
+    }
+
+    if (filters[0].startsWith('ns://')) {
+      return filters[0];
+    }
+
+    return false;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -436,52 +489,21 @@ export const getters = {
     return '/';
   },
 
-  isSingleProduct(state, rootGetters) {
+  isSingleProduct(state) {
     if (state.isSingleProduct !== undefined) {
       return state.isSingleProduct;
     }
 
-    if (rootGetters.isSingleVirtualCluster) {
-      return {
-        logo:            require('~shell/assets/images/providers/harvester.svg'),
-        productNameKey:  'product.harvester',
-        version:         rootGetters['harvester/byId'](HCI.SETTING, 'server-version')?.value,
-        afterLoginRoute: {
-          name:   'c-cluster-product',
-          params: { product: VIRTUAL },
-        },
-        logoRoute: {
-          name:   'c-cluster-product-resource',
-          params: {
-            product:  VIRTUAL,
-            resource: HCI.DASHBOARD,
-          }
-        },
-        enableSessionCheck: true
-      };
-    }
-
     return false;
-  },
-
-  isSingleVirtualCluster(state, getters, rootState, rootGetters) {
-    const clusterId = getters.defaultClusterId;
-    const cluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, clusterId);
-
-    return !getters.isMultiCluster && cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
-  },
-
-  isMultiVirtualCluster(state, getters, rootState, rootGetters) {
-    const localCluster = rootGetters['management/byId'](MANAGEMENT.CLUSTER, 'local');
-
-    return getters.isMultiCluster && localCluster?.status?.provider !== VIRTUAL_HARVESTER_PROVIDER;
   },
 
   isVirtualCluster(state, getters) {
     const cluster = getters['currentCluster'];
 
     return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
-  }
+  },
+
+  ...gcGetters
 };
 
 export const mutations = {
@@ -495,9 +517,7 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, getters) {
-    const { filters, all } = getters;
-
+  updateNamespaces(state, { filters, all }) {
     state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {
@@ -506,7 +526,11 @@ export const mutations = {
 
     // Create map that can be used to efficiently check if a
     // resource should be displayed
-    updateActiveNamespaceCache(state, getters);
+    getActiveNamespaces(state, getters);
+  },
+
+  setNamespaceFilterMode(state, mode) {
+    state.namespaceFilterMode = mode;
   },
 
   pageActions(state, pageActions) {
@@ -529,7 +553,7 @@ export const mutations = {
 
     state.workspace = value;
 
-    updateActiveNamespaceCache(state, getters);
+    getActiveNamespaces(state, getters);
   },
 
   clusterId(state, neu) {
@@ -567,7 +591,8 @@ export const mutations = {
 
   setIsSingleProduct(state, isSingleProduct) {
     state.isSingleProduct = isSingleProduct;
-  }
+  },
+
 };
 
 export const actions = {
@@ -630,7 +655,7 @@ export const actions = {
     }
 
     res = await allHash(promises);
-
+    dispatch('i18n/init');
     let isMultiCluster = true;
 
     if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {
@@ -685,11 +710,6 @@ export const actions = {
     if ( sameCluster && samePackage) {
       // Do nothing, we're already connected/connecting to this cluster
       return;
-    }
-
-    if (oldProduct === VIRTUAL) {
-      await dispatch('harvester/unsubscribe');
-      commit('harvester/reset');
     }
 
     const oldPkgClusterStore = oldPkg?.stores.find(
@@ -753,7 +773,6 @@ export const actions = {
     // If we've entered a new store ensure everything has loaded correctly
     if (newPkgClusterStore) {
       // Mirror actions on the 'cluster' store for our specific pkg `cluster` store
-      dispatch(`${ newPkgClusterStore }/loadSchemas`, true);
       await dispatch(`${ newPkgClusterStore }/loadCluster`, { id });
 
       commit('clusterReady', true);
@@ -824,10 +843,10 @@ export const actions = {
     };
 
     const res = await allHash({
-      projects:          fetchProjects(),
-      counts:            dispatch('cluster/findAll', { type: COUNT }),
-      namespaces:        dispatch('cluster/findAll', { type: NAMESPACE }),
-      navLinks:          !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
+      projects:   fetchProjects(),
+      counts:     dispatch('cluster/findAll', { type: COUNT }),
+      namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
+      navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
     });
 
     await dispatch('cleanNamespaces');
@@ -837,7 +856,6 @@ export const actions = {
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
       all:     res.namespaces,
-      ...getters
     });
 
     commit('clusterReady', true);
@@ -855,136 +873,11 @@ export const actions = {
         [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: ids, ...getters });
+    commit('updateNamespaces', { filters: ids });
   },
 
-  async loadVirtual({
-    state, commit, dispatch, getters
-  }, { id, oldProduct }) {
-    const isMultiCluster = getters['isMultiCluster'];
-
-    if (isMultiCluster && id === 'local') {
-      return;
-    }
-
-    if ( state.clusterId && state.clusterId === id && oldProduct === VIRTUAL) {
-      // Do nothing, we're already connected/connecting to this cluster
-      return;
-    }
-
-    if (oldProduct !== VIRTUAL) {
-      await dispatch('cluster/unsubscribe');
-      commit('cluster/reset');
-    }
-
-    if ( state.clusterId && id ) {
-      commit('clusterReady', false);
-
-      await dispatch('harvester/unsubscribe');
-      commit('harvester/reset');
-
-      await dispatch('management/watch', {
-        type:      MANAGEMENT.PROJECT,
-        namespace: state.clusterId,
-        stop:      true
-      });
-
-      commit('management/forgetType', MANAGEMENT.PROJECT);
-    }
-
-    if (id) {
-      commit('clusterId', id);
-    }
-
-    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
-
-    // This is a workaround for a timing issue where the mgmt cluster schema may not be available
-    // Try and wait until the schema exists before proceeding
-    await dispatch('management/waitForSchema', { type: MANAGEMENT.CLUSTER });
-
-    // See if it really exists
-    const cluster = await dispatch('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id,
-      opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
-    });
-
-    let virtualBase = `/k8s/clusters/${ escape(id) }/v1/harvester`;
-
-    if (id === 'local') {
-      virtualBase = `/v1/harvester`;
-    }
-
-    if ( !cluster ) {
-      commit('clusterId', null);
-      commit('harvester/applyConfig', { baseUrl: null });
-      throw new ClusterNotFoundError(id);
-    }
-
-    // Update the Steve client URLs
-    commit('harvester/applyConfig', { baseUrl: virtualBase });
-
-    await Promise.all([
-      dispatch('harvester/loadSchemas', true),
-    ]);
-
-    dispatch('harvester/subscribe');
-
-    let isRancher = false;
-    const projectArgs = {
-      type: MANAGEMENT.PROJECT,
-      opt:  {
-        url:            `${ MANAGEMENT.PROJECT }/${ escape(id) }`,
-        watchNamespace: id
-      }
-    };
-
-    if (getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
-      isRancher = true;
-    }
-
-    if (id !== 'local' && getters['harvester/schemaFor'](MANAGEMENT.SETTING)) { // multi-cluster
-      const settings = await dispatch('harvester/findAll', {
-        type: MANAGEMENT.SETTING,
-        id:   SETTING.SYSTEM_NAMESPACES,
-        opt:  { url: `${ virtualBase }/${ MANAGEMENT.SETTING }s/`, force: true }
-      });
-
-      const systemNamespaces = settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
-
-      if (systemNamespaces) {
-        const namespace = (systemNamespaces.value || systemNamespaces.default)?.split(',');
-
-        commit('setSystemNamespaces', namespace);
-      }
-    }
-
-    const hash = {
-      projects:          isRancher && dispatch('management/findAll', projectArgs),
-      virtualCount:      dispatch('harvester/findAll', { type: COUNT }),
-      virtualNamespaces: dispatch('harvester/findAll', { type: NAMESPACE }),
-      settings:          dispatch('harvester/findAll', { type: HCI.SETTING }),
-    };
-
-    if (getters['harvester/schemaFor'](HCI.UPGRADE)) {
-      hash.upgrades = dispatch('harvester/findAll', { type: HCI.UPGRADE });
-    }
-
-    const res = await allHash(hash);
-
-    await dispatch('cleanNamespaces');
-
-    const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
-
-    commit('updateNamespaces', {
-      filters: filters || [ALL_USER],
-      all:     res.virtualNamespaces,
-      ...getters
-    });
-
-    commit('clusterReady', true);
-
-    console.log('Done loading virtual cluster.'); // eslint-disable-line no-console
+  setNamespaceFilterMode({ commit }, mode) {
+    commit('setNamespaceFilterMode', mode);
   },
 
   async cleanNamespaces({ getters, dispatch }) {
@@ -1023,6 +916,8 @@ export const actions = {
 
   async onLogout(store) {
     const { dispatch, commit, state } = store;
+
+    store.dispatch('gcStopIntervals');
 
     Object.values(this.$plugin.getPlugins()).forEach((p) => {
       if (p.onLogOut) {
@@ -1138,5 +1033,7 @@ export const actions = {
 
   setIsSingleProduct({ commit }, isSingleProduct) {
     commit(`setIsSingleProduct`, isSingleProduct);
-  }
+  },
+
+  ...gcActions
 };

@@ -6,7 +6,6 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { Banner } from '@components/Banner';
-import { importCloudCredential } from '@shell/utils/dynamic-importer';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear } from '@shell/utils/array';
 
@@ -132,13 +131,11 @@ export default {
     },
 
     createComponent() {
-      const haveDrivers = this.$store.getters['plugins/credentialDrivers'];
-
-      if ( haveDrivers.includes(this.driverName) ) {
-        return importCloudCredential(this.driverName);
+      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
+        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
       }
 
-      return importCloudCredential('generic');
+      return this.$store.getters['type-map/importCloudCredential']('generic');
     },
 
     validationPassed() {
@@ -232,7 +229,10 @@ export default {
     @error="e=>errors = e"
   >
     <div v-if="isNew">
-      <Banner :label="t('cluster.credential.banner.createCredential', {length: options.length}, true)" color="info" />
+      <Banner
+        :label="t('cluster.credential.banner.createCredential', {length: options.length}, true)"
+        color="info"
+      />
 
       <NameNsDescription
         v-model="newCredential"
@@ -255,7 +255,11 @@ export default {
       />
     </div>
     <div v-else>
-      <Banner v-if="!credentialId" label="First you need to pick or create the cloud credential that will be used to create the nodes for the cluster..." color="info" />
+      <Banner
+        v-if="!credentialId"
+        label="First you need to pick or create the cloud credential that will be used to create the nodes for the cluster..."
+        color="info"
+      />
 
       <LabeledSelect
         v-model="credentialId"
@@ -266,13 +270,22 @@ export default {
       />
     </div>
 
-    <template v-if="isNew && options.length" #footer-prefix>
-      <button class="btn role-secondary" @click="backToExisting()">
+    <template
+      v-if="isNew && options.length"
+      #footer-prefix
+    >
+      <button
+        class="btn role-secondary"
+        @click="backToExisting()"
+      >
         {{ t('cluster.credential.selectExisting.label') }}
       </button>
     </template>
 
-    <template v-if="isPicked" #form-footer>
+    <template
+      v-if="isPicked"
+      #form-footer
+    >
       <div><!-- Hide the outer footer --></div>
     </template>
   </CruResource>

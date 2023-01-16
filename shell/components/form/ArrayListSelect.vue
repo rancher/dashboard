@@ -10,8 +10,8 @@ export default {
       required: true
     },
     options: {
-      default:   null,
-      type:      Array
+      default: null,
+      type:    Array
     },
     selectProps: {
       type:    Object,
@@ -26,7 +26,7 @@ export default {
       default: false
     }
   },
-  computed:   {
+  computed: {
     filteredOptions() {
       return this.options
         .filter(option => !this.value.includes(option.value));
@@ -65,7 +65,12 @@ export default {
     @input="$emit('input', $event)"
   >
     <template v-slot:columns="scope">
-      <Select :value="scope.row.value" v-bind="selectProps" :options="calculateOptions(scope.row.value)" @input="updateRow(scope.i, $event)" />
+      <Select
+        :value="scope.row.value"
+        v-bind="selectProps"
+        :options="calculateOptions(scope.row.value)"
+        @input="updateRow(scope.i, $event)"
+      />
     </template>
   </ArrayList>
 </template>

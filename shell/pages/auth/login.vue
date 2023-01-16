@@ -3,6 +3,7 @@ import { removeObject } from '@shell/utils/array';
 import { USERNAME } from '@shell/config/cookies';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AsyncButton from '@shell/components/AsyncButton';
+import LocaleSelector from '@shell/components/LocaleSelector';
 import BrandImage from '@shell/components/BrandImage';
 import InfoBox from '@shell/components/InfoBox';
 import CopyCode from '@shell/components/CopyCode';
@@ -25,12 +26,13 @@ import {
   setBrand,
   setVendor
 } from '@shell/config/private-label';
+import loadPlugins from '@shell/plugins/plugin';
 
 export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
-    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password
+    LabeledInput, AsyncButton, Checkbox, BrandImage, Banner, InfoBox, CopyCode, Password, LocaleSelector
   },
 
   async asyncData({ route, redirect, store }) {
@@ -114,8 +116,8 @@ export default {
       product: getProduct(),
 
       username,
-      remember:  !!username,
-      password:  '',
+      remember: !!username,
+      password: '',
 
       timedOut:  this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
@@ -123,7 +125,7 @@ export default {
 
       providers:          [],
       providerComponents: [],
-      customLoginError:    {}
+      customLoginError:   {}
     };
   },
 
@@ -164,6 +166,10 @@ export default {
 
     kubectlCmd() {
       return "kubectl get secret --namespace cattle-system bootstrap-secret -o go-template='{{.data.bootstrapPassword|base64decode}}{{\"\\n\"}}'";
+    },
+
+    hasLoginMessage() {
+      return this.errorToDisplay || this.loggedOut || this.timedOut;
     }
 
   },
@@ -223,6 +229,10 @@ export default {
       }
     },
 
+    handleProviderError(err) {
+      this.err = err;
+    },
+
     async loginLocal(buttonCb) {
       try {
         await this.$store.dispatch('auth/login', {
@@ -254,6 +264,15 @@ export default {
           this.$cookies.remove(USERNAME);
         }
 
+        // User logged with local login - we don't do any redirect/reload, so the boot-time plugin will not run again to laod the plugins
+        // so we manually load them here - other SSO auth providers bounce out and back to the Dashboard, so on the bounce-back
+        // the plugins will load via the boot-time plugin
+        await loadPlugins({
+          app:     this.$store.app,
+          store:   this.$store,
+          $plugin: this.$store.$plugin
+        });
+
         if (this.firstLogin || user[0]?.mustChangePassword) {
           this.$store.dispatch('auth/setInitialPass', this.password);
           this.$router.push({ name: 'auth-setup' });
@@ -273,21 +292,34 @@ export default {
 </script>
 
 <template>
-  <main class="login">
+  <main class="main-layout login">
     <div class="row gutless mb-20">
       <div class="col span-6 p-20">
         <p class="text-center">
           {{ t('login.howdy') }}
         </p>
-        <h1 class="text-center">
+        <h1 class="text-center login-welcome">
           {{ t('login.welcome', {vendor}) }}
         </h1>
-        <div class="login-messages">
-          <Banner v-if="errorToDisplay" :label="errorToDisplay" color="error" />
-          <h4 v-else-if="loggedOut" class="text-success text-center">
+        <div
+          class="login-messages"
+          :class="{'login-messages--hasContent': hasLoginMessage}"
+        >
+          <Banner
+            v-if="errorToDisplay"
+            :label="errorToDisplay"
+            color="error"
+          />
+          <h4
+            v-else-if="loggedOut"
+            class="text-success text-center"
+          >
             {{ t('login.loggedOut') }}
           </h4>
-          <h4 v-else-if="timedOut" class="text-error text-center">
+          <h4
+            v-else-if="timedOut"
+            class="text-error text-center"
+          >
             {{ t('login.loginAgain') }}
           </h4>
         </div>
@@ -297,12 +329,23 @@ export default {
           data-testid="first-login-message"
         >
           <InfoBox color="info">
-            <t k="setup.defaultPassword.intro" :raw="true" />
+            <t
+              k="setup.defaultPassword.intro"
+              :raw="true"
+            />
 
-            <div><t k="setup.defaultPassword.dockerPrefix" :raw="true" /></div>
+            <div>
+              <t
+                k="setup.defaultPassword.dockerPrefix"
+                :raw="true"
+              />
+            </div>
             <ul>
               <li>
-                <t k="setup.defaultPassword.dockerPs" :raw="true" />
+                <t
+                  k="setup.defaultPassword.dockerPs"
+                  :raw="true"
+                />
               </li>
               <li>
                 <CopyCode>
@@ -310,20 +353,38 @@ export default {
                 </CopyCode>
               </li>
             </ul>
-            <div><t k="setup.defaultPassword.dockerSuffix" :raw="true" /></div>
+            <div>
+              <t
+                k="setup.defaultPassword.dockerSuffix"
+                :raw="true"
+              />
+            </div>
 
-            <br />
-            <div><t k="setup.defaultPassword.helmPrefix" :raw="true" /></div>
-            <br />
+            <br>
+            <div>
+              <t
+                k="setup.defaultPassword.helmPrefix"
+                :raw="true"
+              />
+            </div>
+            <br>
             <CopyCode>
               {{ kubectlCmd }}
             </CopyCode>
-            <br />
-            <div><t k="setup.defaultPassword.helmSuffix" :raw="true" /></div>
+            <br>
+            <div>
+              <t
+                k="setup.defaultPassword.helmSuffix"
+                :raw="true"
+              />
+            </div>
           </InfoBox>
         </div>
 
-        <div v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length" class="mt-30">
+        <div
+          v-if="(!hasLocal || (hasLocal && !showLocal)) && providers.length"
+          :class="{'mt-30': !hasLoginMessage}"
+        >
           <component
             :is="providerComponents[idx]"
             v-for="(name, idx) in providers"
@@ -333,10 +394,14 @@ export default {
             :name="name"
             :open="!showLocal"
             @showInputs="showLocal = false"
+            @error="handleProviderError"
           />
         </div>
         <template v-if="hasLocal">
-          <form v-if="showLocal" class="mt-40">
+          <form
+            v-if="showLocal"
+            :class="{'mt-30': !hasLoginMessage}"
+          >
             <div class="span-6 offset-3">
               <div class="mb-20">
                 <LabeledInput
@@ -372,13 +437,23 @@ export default {
                   :error-label="t('asyncButton.default.error')"
                   @click="loginLocal"
                 />
-                <div v-if="!firstLogin" class="mt-20">
-                  <Checkbox v-model="remember" :label="t('login.remember.label')" type="checkbox" />
+                <div
+                  v-if="!firstLogin"
+                  class="mt-20"
+                >
+                  <Checkbox
+                    v-model="remember"
+                    :label="t('login.remember.label')"
+                    type="checkbox"
+                  />
                 </div>
               </div>
             </div>
           </form>
-          <div v-if="hasLocal && !showLocal" class="mt-20 text-center">
+          <div
+            v-if="hasLocal && !showLocal"
+            class="mt-20 text-center"
+          >
             <a
               id="login-useLocal"
               data-testid="login-useLocal"
@@ -388,15 +463,27 @@ export default {
               {{ t('login.useLocal') }}
             </a>
           </div>
-          <div v-if="hasLocal && showLocal && providers.length" class="mt-20 text-center">
-            <a role="button" @click="toggleLocal">
+          <div
+            v-if="hasLocal && showLocal && providers.length"
+            class="mt-20 text-center"
+          >
+            <a
+              role="button"
+              @click="toggleLocal"
+            >
               {{ nonLocalPrompt }}
             </a>
+          </div>
+          <div class="locale-elector">
+            <LocaleSelector mode="login" />
           </div>
         </template>
       </div>
 
-      <BrandImage class="col span-6 landscape" file-name="login-landscape.svg" />
+      <BrandImage
+        class="col span-6 landscape"
+        file-name="login-landscape.svg"
+      />
     </div>
   </main>
 </template>
@@ -413,6 +500,24 @@ export default {
       height: 100vh;
       margin: 0;
       object-fit: cover;
+    }
+
+    .login-welcome {
+      margin: 0
+    }
+
+    .login-messages {
+      align-items: center;
+
+      .banner {
+        margin: 5px;
+      }
+      h4 {
+        margin: 0;
+      }
+      &--hasContent {
+        min-height: 70px;
+      }
     }
 
     .login-messages, .first-login-message {
@@ -434,5 +539,10 @@ export default {
         }
       }
     }
+  }
+
+  .locale-elector {
+    position: absolute;
+    bottom: 30px;
   }
 </style>

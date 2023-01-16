@@ -1,8 +1,7 @@
 <script>
-import Loading from '@shell/components/Loading';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import { allHash } from '@shell/utils/promise';
+import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
@@ -25,9 +24,9 @@ import {
   COUNT,
   CATALOG,
   POD,
+  PSP,
 } from '@shell/config/types';
-import { findBy } from '@shell/utils/array';
-import { mapPref, CLUSTER_TOOLS_TIP } from '@shell/store/prefs';
+import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -64,7 +63,6 @@ export default {
     EtcdInfoBanner,
     DashboardMetrics,
     HardwareResourceGauge,
-    Loading,
     ResourceSummary,
     Tab,
     Tabbed,
@@ -77,25 +75,30 @@ export default {
 
   mixins: [metricPoller],
 
-  async fetch() {
-    const hash = { nodes: fetchClusterResources(this.$store, NODE) };
+  fetch() {
+    fetchClusterResources(this.$store, NODE);
 
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-    }
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
+      this,
+      'showClusterMetrics',
+      `Determine cluster metrics`
+    );
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
+      this,
+      'showK8sMetrics',
+      `Determine k8s metrics`
+    );
+    setPromiseResult(
+      allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
+      this,
+      'showEtcdMetrics',
+      `Determine etcd metrics`
+    );
 
-    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      hash.rke1NodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-    }
-
-    this.showClusterMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]);
-    this.showK8sMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]);
-    this.showEtcdMetrics = this.isRKE && await allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]);
-
-    const res = await allHash(hash);
-
-    for ( const k in res ) {
-      this[k] = res[k];
+    if (this.currentCluster.isLocal) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
     }
   },
 
@@ -109,11 +112,9 @@ export default {
 
     return {
       nodeHeaders,
-      constraints:         [],
-      events:              [],
-      nodeMetrics:         [],
-      nodeTemplates:       [],
-      nodes:               [],
+      constraints:        [],
+      events:             [],
+      nodeMetrics:        [],
       showClusterMetrics: false,
       showK8sMetrics:     false,
       showEtcdMetrics:    false,
@@ -124,23 +125,48 @@ export default {
       ETCD_METRICS_DETAIL_URL,
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
-      selectedTab:         'cluster-events',
+      selectedTab:        'cluster-events',
     };
   },
 
   beforeDestroy() {
-    // Remove the data and stop watching events and nodes
+    // Remove the data and stop watching resources that were fetched in this page
     // Events in particular can lead to change messages having to be processed when we are no longer interested in events
     this.$store.dispatch('cluster/forgetType', EVENT);
     this.$store.dispatch('cluster/forgetType', NODE);
     this.$store.dispatch('cluster/forgetType', ENDPOINTS); // Used by AlertTable to get alerts when v2 monitoring is installed
+    this.$store.dispatch('cluster/forgetType', METRIC.NODE);
+    this.$store.dispatch('cluster/forgetType', MANAGEMENT.NODE);
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
 
-    hideClusterToolsTip: mapPref(CLUSTER_TOOLS_TIP),
+    displayPspDeprecationBanner() {
+      const cluster = this.currentCluster;
+      const major = cluster.status?.version?.major ? parseInt(cluster.status?.version?.major) : 0;
+      const minor = cluster.status?.version?.minor ? parseInt(cluster.status?.version?.minor) : 0;
+
+      if (major === 1 && minor >= 21 && minor < 25) {
+        const clusterCounts = this.$store.getters[`cluster/all`](COUNT)?.[0]?.counts;
+
+        return !!clusterCounts?.[PSP]?.summary?.count;
+      }
+
+      return false;
+    },
+
+    nodes() {
+      return this.$store.getters['cluster/all'](NODE);
+    },
+
+    mgmtNodes() {
+      return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+    },
+
+    hideClusterToolsTip:      mapPref(CLUSTER_TOOLS_TIP),
+    hidePspDeprecationBanner: mapPref(PSP_DEPRECATION_BANNER),
 
     hasV1Monitoring() {
       return haveV1Monitoring(this.$store.getters);
@@ -187,8 +213,8 @@ export default {
 
       COMPONENT_STATUS.forEach((cs) => {
         status.push({
-          name:      cs,
-          healthy:   this.isComponentStatusHealthy(cs),
+          name:     cs,
+          healthy:  this.isComponentStatusHealthy(cs),
           labelKey: `clusterIndexPage.sections.componentStatus.${ cs }`,
         });
       });
@@ -198,11 +224,11 @@ export default {
 
     totalCountGaugeInput() {
       const totalInput = {
-        name:            this.t('clusterIndexPage.resourceGauge.totalResources'),
-        total:           0,
-        useful:          0,
-        warningCount:    0,
-        errorCount:      0
+        name:         this.t('clusterIndexPage.resourceGauge.totalResources'),
+        total:        0,
+        useful:       0,
+        warningCount: 0,
+        errorCount:   0
       };
 
       this.accessibleResources.forEach((resource) => {
@@ -221,9 +247,12 @@ export default {
     },
 
     cpuReserved() {
+      const total = parseSi(this.currentCluster?.status?.allocatable?.cpu);
+
       return {
-        total:  parseSi(this.currentCluster?.status?.allocatable?.cpu),
-        useful: parseSi(this.currentCluster?.status?.requested?.cpu)
+        total,
+        useful: parseSi(this.currentCluster?.status?.requested?.cpu),
+        units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
@@ -250,9 +279,8 @@ export default {
 
           return acc;
         }, {});
-        const managementNodes = this.$store.getters['management/all'](MANAGEMENT.NODE);
 
-        checkNodes = managementNodes.filter((n) => {
+        checkNodes = this.mgmtNodes.filter((n) => {
           const nodeName = n.metadata?.labels?.['management.cattle.io/nodename'] || n.id;
 
           return !!nodeNames[nodeName];
@@ -283,9 +311,12 @@ export default {
     },
 
     cpuUsed() {
+      const total = parseSi(this.currentCluster?.status?.capacity?.cpu);
+
       return {
-        total:  parseSi(this.currentCluster?.status?.capacity?.cpu),
-        useful: this.metricAggregations?.cpu
+        total,
+        useful: this.metricAggregations?.cpu,
+        units:  this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
     },
 
@@ -315,6 +346,16 @@ export default {
 
     hasDescription() {
       return !!this.currentCluster?.spec?.description;
+    },
+
+    allEventsLink() {
+      return {
+        name:   'c-cluster-product-resource',
+        params: {
+          product:  'explorer',
+          resource: 'event',
+        }
+      };
     }
   },
 
@@ -344,10 +385,10 @@ export default {
       });
     },
 
+    // Used by metric-poller mixin
     async loadMetrics() {
       this.nodeMetrics = await fetchClusterResources(this.$store, METRIC.NODE, { force: true } );
     },
-    findBy,
 
     // Events/Alerts tab changed
     tabChange(neu) {
@@ -358,9 +399,8 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <section v-else class="dashboard">
-    <header>
+  <section class="dashboard">
+    <header class="header-layout">
       <div class="title">
         <h1>
           <t k="clusterIndexPage.header" />
@@ -370,6 +410,17 @@ export default {
         </div>
       </div>
     </header>
+    <Banner
+      v-if="displayPspDeprecationBanner && !hidePspDeprecationBanner"
+      :closable="true"
+      color="warning"
+      @close="hidePspDeprecationBanner = true"
+    >
+      <t
+        k="landing.deprecatedPsp"
+        :raw="true"
+      />
+    </Banner>
     <Banner
       v-if="!hideClusterToolsTip"
       :closable="true"
@@ -388,16 +439,34 @@ export default {
       </div>
       <div>
         <label>{{ t('glance.version') }}: </label>
-        <span v-if="currentCluster.kubernetesVersionExtension" style="font-size: 0.5em">{{ currentCluster.kubernetesVersionExtension }}</span>
+        <span
+          v-if="currentCluster.kubernetesVersionExtension"
+          style="font-size: 0.5em"
+        >{{ currentCluster.kubernetesVersionExtension }}</span>
         <span>{{ currentCluster.kubernetesVersionBase }}</span>
       </div>
       <div>
         <label>{{ t('glance.created') }}: </label>
-        <span><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></span>
+        <span><LiveDate
+          :value="currentCluster.metadata.creationTimestamp"
+          :add-suffix="true"
+          :show-tooltip="true"
+        /></span>
       </div>
+      <p
+        v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
+        v-tooltip="t('landing.deprecatedPsp')"
+        class="alt-psp-deprecation-info"
+      >
+        <span>{{ t('landing.psps') }}</span>
+        <i class="icon icon-warning" />
+      </p>
       <div :style="{'flex':1}" />
       <div v-if="!monitoringStatus.v2 && !monitoringStatus.v1">
-        <n-link :to="{name: 'c-cluster-explorer-tools'}" class="monitoring-install">
+        <n-link
+          :to="{name: 'c-cluster-explorer-tools'}"
+          class="monitoring-install"
+        >
           <i class="icon icon-gear" />
           <span>{{ t('glance.installMonitoring') }}</span>
         </n-link>
@@ -405,48 +474,116 @@ export default {
       <div v-if="monitoringStatus.v1">
         <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
-      <ConfigBadge v-if="currentCluster.canUpdate" :cluster="currentCluster" />
+      <ConfigBadge
+        v-if="currentCluster.canUpdate"
+        :cluster="currentCluster"
+      />
     </div>
 
     <div class="resource-gauges">
       <ResourceSummary :spoofed-counts="totalCountGaugeInput" />
-      <ResourceSummary v-if="canAccessNodes" resource="node" />
-      <ResourceSummary v-if="canAccessDeployments" resource="apps.deployment" />
+      <ResourceSummary
+        v-if="canAccessNodes"
+        resource="node"
+      />
+      <ResourceSummary
+        v-if="canAccessDeployments"
+        resource="apps.deployment"
+      />
     </div>
 
-    <h3 v-if="!hasV1Monitoring && hasStats" class="mt-40">
+    <h3
+      v-if="!hasV1Monitoring && hasStats"
+      class="mt-40"
+    >
       {{ t('clusterIndexPage.sections.capacity.label') }}
     </h3>
-    <div v-if="!hasV1Monitoring && hasStats" class="hardware-resource-gauges">
-      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.pods')" :used="podsUsed" />
-      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.cores')" :reserved="cpuReserved" :used="cpuUsed" />
-      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ram')" :reserved="ramReserved" :used="ramUsed" :units="ramReserved.units" />
+    <div
+      v-if="!hasV1Monitoring && hasStats"
+      class="hardware-resource-gauges"
+    >
+      <HardwareResourceGauge
+        :name="t('clusterIndexPage.hardwareResourceGauge.pods')"
+        :used="podsUsed"
+      />
+      <HardwareResourceGauge
+        :name="t('clusterIndexPage.hardwareResourceGauge.cores')"
+        :reserved="cpuReserved"
+        :used="cpuUsed"
+        :units="cpuReserved.units"
+      />
+      <HardwareResourceGauge
+        :name="t('clusterIndexPage.hardwareResourceGauge.ram')"
+        :reserved="ramReserved"
+        :used="ramUsed"
+        :units="ramReserved.units"
+      />
     </div>
 
     <div v-if="!hasV1Monitoring && componentServices">
-      <div v-for="status in componentServices" :key="status.name" class="k8s-component-status" :class="{'k8s-component-status-healthy': status.healthy, 'k8s-component-status-unhealthy': !status.healthy}">
-        <i v-if="status.healthy" class="icon icon-checkmark" />
-        <i v-else class="icon icon-warning" />
+      <div
+        v-for="status in componentServices"
+        :key="status.name"
+        class="k8s-component-status"
+        :class="{'k8s-component-status-healthy': status.healthy, 'k8s-component-status-unhealthy': !status.healthy}"
+      >
+        <i
+          v-if="status.healthy"
+          class="icon icon-checkmark"
+        />
+        <i
+          v-else
+          class="icon icon-warning"
+        />
         <div>{{ t(status.labelKey) }}</div>
       </div>
     </div>
 
-    <div v-if="hasV1Monitoring" id="ember-anchor" class="mt-20">
-      <EmberPage inline="ember-anchor" :src="v1MonitoringURL" />
+    <div
+      v-if="hasV1Monitoring"
+      id="ember-anchor"
+      class="mt-20"
+    >
+      <EmberPage
+        inline="ember-anchor"
+        :src="v1MonitoringURL"
+      />
     </div>
 
     <div class="mt-30">
       <Tabbed @changed="tabChange">
-        <Tab name="cluster-events" :label="t('clusterIndexPage.sections.events.label')" :weight="2">
+        <Tab
+          name="cluster-events"
+          :label="t('clusterIndexPage.sections.events.label')"
+          :weight="2"
+        >
+          <span class="events-table-link">
+            <n-link :to="allEventsLink">
+              <span>{{ t('glance.eventsTable') }}</span>
+            </n-link>
+          </span>
           <EventsTable />
         </Tab>
-        <Tab v-if="hasMonitoring" name="cluster-alerts" :label="t('clusterIndexPage.sections.alerts.label')" :weight="1">
+        <Tab
+          v-if="hasMonitoring"
+          name="cluster-alerts"
+          :label="t('clusterIndexPage.sections.alerts.label')"
+          :weight="1"
+        >
           <AlertTable v-if="selectedTab === 'cluster-alerts'" />
         </Tab>
       </Tabbed>
     </div>
-    <Tabbed v-if="hasMetricsTabs" class="mt-30">
-      <Tab v-if="showClusterMetrics" name="cluster-metrics" :label="t('clusterIndexPage.sections.clusterMetrics.label')" :weight="2">
+    <Tabbed
+      v-if="hasMetricsTabs"
+      class="mt-30"
+    >
+      <Tab
+        v-if="showClusterMetrics"
+        name="cluster-metrics"
+        :label="t('clusterIndexPage.sections.clusterMetrics.label')"
+        :weight="2"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -456,7 +593,12 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="showK8sMetrics" name="k8s-metrics" :label="t('clusterIndexPage.sections.k8sMetrics.label')" :weight="1">
+      <Tab
+        v-if="showK8sMetrics"
+        name="k8s-metrics"
+        :label="t('clusterIndexPage.sections.k8sMetrics.label')"
+        :weight="1"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -466,7 +608,12 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="showEtcdMetrics" name="etcd-metrics" :label="t('clusterIndexPage.sections.etcdMetrics.label')" :weight="0">
+      <Tab
+        v-if="showEtcdMetrics"
+        name="etcd-metrics"
+        :label="t('clusterIndexPage.sections.etcdMetrics.label')"
+        :weight="0"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -526,6 +673,16 @@ export default {
   margin-top: 0;
 }
 
+.alt-psp-deprecation-info {
+  display: flex;
+  align-items: center;
+  color: var(--warning);
+
+  span {
+    margin-right: 4px;
+  }
+}
+
 .monitoring-install {
   display: flex;
   margin-left: 10px;
@@ -538,6 +695,12 @@ export default {
   &:focus {
     outline: 0;
   }
+}
+
+.events-table-link {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
 }
 
 .k8s-component-status {
@@ -556,7 +719,6 @@ export default {
 
   > I {
     text-align: center;
-    font-size: 20px;
     padding: 5px 10px;
     border-right: 1px solid var(--border);
   }

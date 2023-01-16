@@ -23,7 +23,7 @@ export default Vue.extend<Data, any, any, any>({
 
   props: {
     initialApplication: {
-      type:     Object as PropType<Application>,
+      type:    Object as PropType<Application>,
       default: () => ({}),
     },
     application: {
@@ -156,7 +156,7 @@ export default Vue.extend<Data, any, any, any>({
         :placeholder="noConfigs ? t('epinio.applications.steps.configurations.configurations.select.placeholderNoOptions') : t('epinio.applications.steps.configurations.configurations.select.placeholderWithOptions')"
       />
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
     <div class="col span-6">
       <LabeledSelect
         v-model="values.services"

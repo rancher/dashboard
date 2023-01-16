@@ -1,35 +1,128 @@
+/**
+ * Handles subscriptions to websockets which receive updates to resources
+ *
+ * Covers three use cases
+ * 1) Handles subscription within this file
+ * 2) Handles `cluster` subscriptions for some basic types in a web worker (SETTING.UI_PERFORMANCE advancedWorker = false)
+ * 2) Handles `cluster` subscriptions and optimisations in an advanced worker (SETTING.UI_PERFORMANCE advancedWorker = true)
+ */
+
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
+import { SCHEMA } from '@shell/config/types';
+import { CSRF } from '@shell/config/cookies';
+import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
   EVENT_DISCONNECTED,
   EVENT_MESSAGE,
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR,
-  EVENT_DISCONNECT_ERROR
+  EVENT_DISCONNECT_ERROR,
+  NO_WATCH,
+  NO_SCHEMA,
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
+import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
+import { waitFor } from '@shell/utils/async';
 
-export const NO_WATCH = 'NO_WATCH';
-export const NO_SCHEMA = 'NO_SCHEMA';
+// eslint-disable-next-line
+import storeWorker from './worker/index.js';
+import { BLANK_CLUSTER } from '@shell/store/index.js';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
-// minimum time a socket must be disconnected for before sending a growl
-const MINIMUM_TIME_DISCONNECTED = 10000;
+const waitForManagement = (store) => {
+  const managementReady = () => store.state?.managementReady;
 
-export function keyForSubscribe({
-  resourceType, type, namespace, id, selector
-} = {}) {
-  return `${ resourceType || type || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
+  return waitFor(managementReady, 'Management');
+};
+
+const isAdvancedWorker = (ctx) => {
+  const { rootGetters, getters } = ctx;
+  const storeName = getters.storeName;
+  const clusterId = rootGetters.clusterId;
+
+  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
+    return false;
+  }
+
+  const perfSetting = getPerformanceSetting(rootGetters);
+
+  return perfSetting?.advancedWorker.enabled;
+};
+
+// We only create a worker for the cluster store
+export async function createWorker(store, ctx) {
+  const { getters, dispatch } = ctx;
+  const storeName = getters.storeName;
+
+  store.$workers = store.$workers || {};
+
+  if (storeName !== 'cluster') {
+    return;
+  }
+
+  await waitForManagement(store);
+  // getting perf setting in a separate constant here because it'll provide other values we'll want later.
+  const advancedWorker = isAdvancedWorker(ctx);
+
+  const workerActions = {
+    load: (resource) => {
+      queueChange(ctx, resource, true, 'Change');
+    },
+    destroyWorker: () => {
+      if (store.$workers) {
+        store.$workers[storeName].terminate();
+        delete store.$workers[storeName];
+      }
+    },
+    batchChanges: (batch) => {
+      dispatch('batchChanges', batch);
+    },
+    dispatch: (msg) => {
+      dispatch(`ws.${ msg.name }`, msg);
+    },
+    [EVENT_CONNECT_ERROR]: (e) => {
+      dispatch('error', e );
+    },
+    [EVENT_DISCONNECT_ERROR]: (e) => {
+      dispatch('error', e );
+    }
+  };
+
+  if (!store.$workers[storeName]) {
+    const workerMode = advancedWorker ? 'advanced' : 'basic';
+    const worker = storeWorker(workerMode);
+
+    store.$workers[storeName] = worker;
+
+    worker.postMessage({ initWorker: { storeName } });
+
+    /**
+     * Covers message from Worker to UI thread
+     */
+    store.$workers[storeName].onmessage = (e) => {
+      /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
+      // good enough for now considering that we never send more than one message action at a time right now */
+      const messageActions = Object.keys(e?.data);
+
+      messageActions.forEach((action) => {
+        workerActions[action](e?.data[action]);
+      });
+    };
+  }
 }
 
 export function equivalentWatch(a, b) {
-  if ( a.type !== b.type ) {
+  const aresourceType = a.resourceType || a.type;
+  const bresourceType = b.resourceType || b.type;
+
+  if ( aresourceType !== bresourceType ) {
     return false;
   }
 
@@ -78,7 +171,7 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
       });
     }
 
-    if ( type === 'schema' ) {
+    if ( type === SCHEMA ) {
       // Clear the current records in the store when a type disappears
       state.queue.push({
         action: 'commit',
@@ -89,11 +182,20 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
   }
 }
 
-export const actions = {
-  subscribe(ctx, opt) {
+function growlsDisabled(rootGetters) {
+  return getPerformanceSetting(rootGetters)?.disableWebsocketNotification;
+}
+
+/**
+ * Actions that cover all cases (see file description)
+ */
+const sharedActions = {
+  async subscribe(ctx, opt) {
     const {
       state, commit, dispatch, getters, rootGetters
     } = ctx;
+
+    // ToDo: need to keep the worker up to date on CSRF cookie
 
     if (rootGetters['isSingleProduct']?.disableSteveSockets) {
       return;
@@ -110,12 +212,29 @@ export const actions = {
     state.debugSocket && console.info(`Subscribe [${ getters.storeName }]`); // eslint-disable-line no-console
 
     const url = `${ state.config.baseUrl }/subscribe`;
+    const maxTries = growlsDisabled(rootGetters) ? null : 3;
+    const connectionMetadata = get(opt, 'metadata');
 
-    if ( socket ) {
+    if (isAdvancedWorker(ctx)) {
+      if (!this.$workers[getters.storeName]) {
+        await createWorker(this, ctx);
+      }
+
+      // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
+      this.$workers[getters.storeName].postMessage({
+        createWatcher: {
+          connectionMetadata,
+          url:  `${ state.config.baseUrl }/subscribe`,
+          csrf: this.$cookies.get(CSRF, { parseJSON: false }),
+          maxTries
+        }
+      });
+    } else if ( socket ) {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
+      socket.connect(connectionMetadata);
     } else {
-      socket = new Socket(`${ state.config.baseUrl }/subscribe`);
+      socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
       commit('setSocket', socket);
       socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -145,20 +264,153 @@ export const actions = {
           }
         }
       });
+      socket.connect(connectionMetadata);
     }
-
-    socket.connect(get(opt, 'metadata'));
   },
 
-  unsubscribe({ state, commit }) {
+  unsubscribe({ commit, getters, state }) {
     const socket = state.socket;
 
     commit('setWantSocket', false);
+    const cleanupTasks = [];
+
+    const worker = (this.$workers || {})[getters.storeName];
+
+    if (worker) {
+      worker.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
+      cleanupTasks.push(waitFor(() => !this.$workers[getters.storeName], 'Worker is destroyed'));
+    }
 
     if ( socket ) {
-      return socket.disconnect();
+      cleanupTasks.push(socket.disconnect());
+    }
+
+    return Promise.all(cleanupTasks);
+  },
+
+  watch({
+    state, dispatch, getters, rootGetters
+  }, params) {
+    state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+
+    let {
+      // eslint-disable-next-line prefer-const
+      type, selector, id, revision, namespace, stop, force
+    } = params;
+
+    type = getters.normalizeType(type);
+
+    if (rootGetters['type-map/isSpoofed'](type)) {
+      state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
+
+      return;
+    }
+
+    // If socket is in error don't try to watch.... unless we `force` it
+    if ( !stop && !force && !getters.canWatch(params) ) {
+      console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+
+      return;
+    }
+
+    if ( !stop && getters.watchStarted({
+      type, id, selector, namespace
+    }) ) {
+      state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+
+      return;
+    }
+
+    if ( typeof revision === 'undefined' ) {
+      revision = getters.nextResourceVersion(type, id);
+    }
+
+    const msg = { resourceType: type };
+
+    if ( revision ) {
+      msg.resourceVersion = `${ revision }`;
+    }
+
+    if ( namespace ) {
+      msg.namespace = namespace;
+    }
+
+    if ( stop ) {
+      msg.stop = true;
+    }
+
+    if ( id ) {
+      msg.id = id;
+    }
+
+    if ( selector ) {
+      msg.selector = selector;
+    }
+
+    const worker = this.$workers[getters.storeName] || {};
+
+    if (worker.mode === 'advanced') {
+      if ( force ) {
+        msg.force = true;
+      }
+
+      worker.postMessage({ watch: msg });
+
+      return;
+    }
+
+    return dispatch('send', msg);
+  },
+
+  unwatch(ctx, type) {
+    const { commit, getters, dispatch } = ctx;
+
+    if (getters['schemaFor'](type)) {
+      const obj = {
+        type,
+        stop: true, // Stops the watch on a type
+      };
+
+      if (isAdvancedWorker(ctx)) {
+        dispatch('watch', obj); // Ask the backend to stop watching the type
+      } else if (getters['watchStarted'](obj)) {
+        // Set that we don't want to watch this type
+        // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
+        // detect the stop message from the backend over the web socket
+        commit('setWatchStopped', obj);
+        dispatch('watch', obj); // Ask the backend to stop watching the type
+        // Make sure anything in the pending queue for the type is removed, since we've now removed the type
+        commit('clearFromQueue', type);
+      }
     }
   },
+
+  'ws.ping'({ getters, dispatch }, msg) {
+    if ( getters.storeName === 'management' ) {
+      const version = msg?.data?.version || null;
+
+      dispatch('updateServerVersion', version, { root: true });
+      console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
+    }
+  },
+};
+
+/**
+ * Mutations that cover all cases (both subscriptions here and in advanced worker)
+ */
+const sharedMutations = {
+  debug(state, on, store) {
+    state.debugSocket = on !== false;
+    if (store && this.$workers[store]) {
+      this.$workers[store].postMessage({ toggleDebug: on !== false });
+    }
+  },
+};
+
+/**
+ * Actions that cover cases 1 & 2 (see file description)
+ */
+const defaultActions = {
 
   async flush({
     state, commit, dispatch, getters
@@ -209,67 +461,6 @@ export const actions = {
     if ( process.client && state.wantSocket && !state.socket ) {
       dispatch('subscribe');
     }
-  },
-
-  watch({
-    state, dispatch, getters, rootGetters
-  }, params) {
-    state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
-
-    let {
-      // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force
-    } = params;
-
-    type = getters.normalizeType(type);
-
-    if (rootGetters['type-map/isSpoofed'](type)) {
-      state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
-
-      return;
-    }
-
-    if ( !stop && !force && !getters.canWatch(params) ) {
-      console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
-
-      return;
-    }
-
-    if ( !stop && getters.watchStarted({
-      type, id, selector, namespace
-    }) ) {
-      state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
-
-      return;
-    }
-
-    if ( typeof revision === 'undefined' ) {
-      revision = getters.nextResourceVersion(type, id);
-    }
-
-    const msg = { resourceType: type };
-
-    if ( revision ) {
-      msg.resourceVersion = `${ revision }`;
-    }
-
-    if ( namespace ) {
-      msg.namespace = namespace;
-    }
-
-    if ( stop ) {
-      msg.stop = true;
-    }
-
-    if ( id ) {
-      msg.id = id;
-    }
-
-    if ( selector ) {
-      msg.selector = selector;
-    }
-
-    return dispatch('send', msg);
   },
 
   reconnectWatches({
@@ -354,8 +545,10 @@ export const actions = {
     commit, dispatch, state, getters, rootGetters
   }, event) {
     state.debugSocket && console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
-
     const socket = event.currentTarget;
+    const tries = event?.detail?.tries; // have to pull it off of the event because the socket's tries is already reset to 0
+    const t = rootGetters['i18n/t'];
+    const disableGrowl = growlsDisabled(rootGetters);
 
     this.$socket = socket;
 
@@ -378,19 +571,16 @@ export const actions = {
     if ( socket.hasReconnected ) {
       await dispatch('reconnectWatches');
       // Check for disconnect notifications and clear them
-      const growlErr = rootGetters['growl/find']({ key: 'url', val: this.$socket.url });
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: socket.url });
 
       if (growlErr) {
-        const now = Date.now();
-
-        // even if the socket reconnected, keep the error growl for at least a few seconds to ensure its readable
-        if (now >= growlErr.earliestClose) {
-          dispatch('growl/remove', growlErr.id, { root: true });
-        } else {
-          setTimeout(() => {
-            dispatch('growl/remove', growlErr.id, { root: true });
-          }, growlErr.earliestClose - now);
-        }
+        dispatch('growl/remove', growlErr.id, { root: true });
+      }
+      if (tries > 1 && !disableGrowl) {
+        dispatch('growl/success', {
+          title:   t('growl.reconnected.title'),
+          message: t('growl.reconnected.message', { url: this.$socket.url, tries }),
+        }, { root: true });
       }
     }
 
@@ -414,32 +604,53 @@ export const actions = {
   }, e) {
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
-    if (e.type === EVENT_DISCONNECT_ERROR) {
-      // do not send a growl notification unless the socket stays disconnected for more than MINIMUM_TIME_DISCONNECTED
-      setTimeout(() => {
-        if (state.socket.isConnected()) {
-          return;
+
+    // determine if websocket notifications are disabled
+    const disableGrowl = growlsDisabled(rootGetters);
+
+    if (!disableGrowl) {
+      const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( rootGetters['prefs/get'](TIME_FORMAT));
+      const time = e?.srcElement?.disconnectedAt || Date.now();
+
+      const timeFormatted = `${ day(time).format(`${ dateFormat } ${ timeFormat }`) }`;
+      const url = e?.srcElement?.url;
+      const tries = state?.socket?.tries;
+
+      const t = rootGetters['i18n/t'];
+
+      const growlErr = rootGetters['growl/find']({ key: 'url', val: url });
+
+      if (e.type === EVENT_CONNECT_ERROR) { // if this occurs, then we're at least retrying to connect
+        if (growlErr) {
+          dispatch('growl/remove', growlErr.id, { root: true });
         }
-        const dateFormat = escapeHtml( rootGetters['prefs/get'](DATE_FORMAT));
-        const timeFormat = escapeHtml( rootGetters['prefs/get'](TIME_FORMAT));
-        const time = e?.srcElement?.disconnectedAt || Date.now();
-
-        const timeFormatted = `${ day(time).format(`${ dateFormat } ${ timeFormat }`) }`;
-        const url = e?.srcElement?.url;
-
-        const t = rootGetters['i18n/t'];
-
         dispatch('growl/error', {
-          title:         t('growl.disconnected.title'),
-          message:       t('growl.disconnected.message', { url, time: timeFormatted }, { raw: true }),
+          title:   t('growl.connectError.title'),
+          message: t('growl.connectError.message', {
+            url, time: timeFormatted, tries
+          }, { raw: true }),
           icon:          'error',
-          earliestClose: time + MINIMUM_TIME_NOTIFIED + MINIMUM_TIME_DISCONNECTED,
+          earliestClose: time + MINIMUM_TIME_NOTIFIED,
           url
         }, { root: true });
-      }, MINIMUM_TIME_DISCONNECTED);
-    } else {
-      // if the error is not a disconnect error, the socket never worked: log whether the current browser is safari
-      console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
+      } else if (e.type === EVENT_DISCONNECT_ERROR) { // if this occurs, we've given up on trying to reconnect
+        if (growlErr) {
+          dispatch('growl/remove', growlErr.id, { root: true });
+        }
+        dispatch('growl/error', {
+          title:   t('growl.disconnectError.title'),
+          message: t('growl.disconnectError.message', {
+            url, time: timeFormatted, tries
+          }, { raw: true }),
+          icon:          'error',
+          earliestClose: time + MINIMUM_TIME_NOTIFIED,
+          url
+        }, { root: true });
+      } else {
+        // if the error is not a connect error or disconnect error, the socket never worked: log whether the current browser is safari
+        console.error(`WebSocket Connection Error [${ getters.storeName }]`, e.detail); // eslint-disable-line no-console
+      }
     }
   },
 
@@ -461,15 +672,9 @@ export const actions = {
     }
   },
 
-  'ws.ping'({ getters, dispatch }, msg) {
-    if ( getters.storeName === 'management' ) {
-      const version = msg?.data?.version || null;
-
-      dispatch('updateServerVersion', version, { root: true });
-      console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
-    }
-  },
-
+  /**
+   * Steve only event
+   */
   'ws.resource.start'({ state, getters, commit }, msg) {
     state.debugSocket && console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
     commit('setWatchStarted', {
@@ -494,6 +699,14 @@ export const actions = {
     }
   },
 
+  /**
+   * Steve only event
+   *
+   * Steve only seems to send out `resource.stop` messages for two reasons
+   * - We have requested that the resource watch should be stopped and we receive this event as confirmation
+   * - Steve tells us that the resource is no longer watched
+   *
+   */
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
     const obj = {
@@ -505,15 +718,44 @@ export const actions = {
 
     // console.warn(`Resource stop: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
 
+    // If we're trying to watch this event, attempt to re-watch
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
-      // Try reconnecting once
-
       commit('setWatchStopped', obj);
+
+      // In summary, we need to re-watch but with a reliable `revision` (to avoid `too old` message kicking off a full re-fetch of all
+      // resources). To get a reliable `revision` go out and fetch the latest for that resource type, in theory our local cache should be
+      // up to date with that revision.
+
+      const revisionExisting = getters.nextResourceVersion(type, obj.id);
+
+      let revisionLatest;
+
+      if (revisionExisting) {
+        // Attempt to fetch the latest revision at the time the resource watch was stopped, in theory our local cache should be up to
+        // date with this
+        // Ideally we shouldn't need to fetch here and supply `0`, `-1` or `null` to start watching from the latest revision, however steve
+        // will send the current state of each resource via a `resource.created` event.
+        const opt = { limit: 1 };
+
+        opt.url = getters.urlFor(type, null, opt);
+        revisionLatest = dispatch('request', { opt, type } )
+          .then(res => res.revision)
+          .catch((err) => {
+            // For some reason we can't fetch a reasonable revision, so force a re-fetch
+            console.warn(`Resource error retrieving resourceVersion, forcing re-fetch`, type, ':', err); // eslint-disable-line no-console
+            dispatch('resyncWatch', msg);
+            throw err;
+          });
+      } else {
+        // Some v1 resource types don't have revisions (either at the collection or resource level), so we avoided making an API request
+        // for them
+        revisionLatest = Promise.resolve(null); // Null to ensure we don't go through `nextResourceVersion` again
+      }
 
       setTimeout(() => {
         // Delay a bit so that immediate start/error/stop causes
         // only a slow infinite loop instead of a tight one.
-        dispatch('watch', obj);
+        revisionLatest.then(revision => dispatch('watch', { ...obj, revision }));
       }, 5000);
     }
   },
@@ -523,10 +765,30 @@ export const actions = {
   },
 
   'ws.resource.change'(ctx, msg) {
-    queueChange(ctx, msg, true, 'Change');
-
     const data = msg.data;
     const type = data.type;
+
+    // Work-around for ws.error messages being sent as change events
+    // These have no id (or other metadata) which breaks lots if they are processed as change events
+    if (data.message && !data.id) {
+      return;
+    }
+
+    // Web worker can process schemas to check that they are actually changing and
+    // only load updates if the schema did actually change
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.postMessage({ updateSchema: data });
+
+        // No further processing - let the web worker check the schema updates
+        return;
+      }
+    }
+
+    queueChange(ctx, msg, true, 'Change');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {
@@ -546,10 +808,19 @@ export const actions = {
   },
 
   'ws.resource.remove'(ctx, msg) {
-    queueChange(ctx, msg, false, 'Remove');
-
     const data = msg.data;
     const type = data.type;
+
+    if (type === SCHEMA) {
+      const worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (worker) {
+        worker.postMessage({ removeSchema: data.id });
+      }
+    }
+
+    queueChange(ctx, msg, false, 'Remove');
+
     const typeOption = ctx.rootGetters['type-map/optionsFor'](type);
 
     if (typeOption?.alias?.length > 0) {
@@ -568,7 +839,10 @@ export const actions = {
   },
 };
 
-export const mutations = {
+/**
+ * Mutations that cover cases 1 & 2 (see file description)
+ */
+const defaultMutations = {
   setSocket(state, socket) {
     state.socket = socket;
   },
@@ -617,21 +891,29 @@ export const mutations = {
     delete state.inError[key];
   },
 
-  debug(state, on) {
-    state.debugSocket = on !== false;
-  },
-
   resetSubscriptions(state) {
+    // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
+    // This could probably be folded in to there
     clear(state.started);
     clear(state.pendingFrames);
     clear(state.queue);
-    clearInterval(state.queueTimer);
+    clearTimeout(state.queueTimer);
     state.deferredRequests = {};
     state.queueTimer = null;
-  }
+  },
+
+  clearFromQueue(state, type) {
+    // Remove anything in the queue that is a resource update for the given type
+    state.queue = state.queue.filter((item) => {
+      return item.body?.type !== type;
+    });
+  },
 };
 
-export const getters = {
+/**
+ * Getters that cover cases 1 & 2 (see file description)
+ */
+const defaultGetters = {
   canWatch: state => (obj) => {
     return !state.inError[keyForSubscribe(obj)];
   },
@@ -657,7 +939,7 @@ export const getters = {
         return null;
       }
 
-      revision = cache.revision;
+      revision = cache.revision; // This is always zero.....
 
       for ( const obj of cache.list ) {
         if ( obj && obj.metadata ) {
@@ -674,16 +956,16 @@ export const getters = {
 
     return null;
   },
-
-  currentGeneration: state => (type) => {
-    type = normalizeType(type);
-
-    const cache = state.types[type];
-
-    if ( !cache ) {
-      return null;
-    }
-
-    return cache.generation;
-  },
 };
+
+export const actions = {
+  ...sharedActions,
+  ...defaultActions,
+};
+
+export const mutations = {
+  ...sharedMutations,
+  ...defaultMutations,
+};
+
+export const getters = { ...defaultGetters };

@@ -11,6 +11,9 @@ import { Checkbox } from '@components/Form/Checkbox';
 import ArrayList from '@shell/components/form/ArrayList';
 import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
+import KeyValue from '@shell/components/form/KeyValue';
+import { RadioGroup } from '@components/Form/Radio';
+import { _CREATE } from '@shell/config/query-params';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -20,33 +23,34 @@ export const azureEnvironments = [
 ];
 
 const defaultConfig = {
-  availabilitySet:   'docker-machine',
-  clientId:          '',
-  clientSecret:      '',
-  customData:        '',
-  diskSize:          '30',
-  dns:               '',
-  environment:       'AzurePublicCloud',
-  faultDomainCount:  '3',
-  image:             'canonical:UbuntuServer:18.04-LTS:latest',
-  location:          'westus',
-  managedDisks:      false,
-  noPublicIp:        false,
-  nsg:               null,
-  privateIpAddress:  null,
-  resourceGroup:     'docker-machine',
-  size:              'Standard_D2_v2',
-  sshUser:           'docker-user',
-  staticPublicIp:    false,
-  storageType:       'Standard_LRS',
-  subnet:            'docker-machine',
-  subnetPrefix:      '192.168.0.0/16',
-  subscriptionId:    '',
-  tenantId:          '',
-  updateDomainCount: '5',
-  usePrivateIp:      false,
-  vnet:              'docker-machine-vnet',
-  openPort:          [
+  acceleratedNetworking: false,
+  availabilitySet:       'docker-machine',
+  clientId:              '',
+  clientSecret:          '',
+  customData:            '',
+  diskSize:              '30',
+  dns:                   '',
+  environment:           'AzurePublicCloud',
+  faultDomainCount:      '3',
+  image:                 'canonical:UbuntuServer:18.04-LTS:latest',
+  location:              'westus',
+  managedDisks:          false,
+  noPublicIp:            false,
+  nsg:                   null,
+  privateIpAddress:      null,
+  resourceGroup:         'docker-machine',
+  size:                  'Standard_D2_v2',
+  sshUser:               'docker-user',
+  staticPublicIp:        false,
+  storageType:           'Standard_LRS',
+  subnet:                'docker-machine',
+  subnetPrefix:          '192.168.0.0/16',
+  subscriptionId:        '',
+  tenantId:              '',
+  updateDomainCount:     '5',
+  usePrivateIp:          false,
+  vnet:                  'docker-machine-vnet',
+  openPort:              [
     '6443/tcp',
     '2379/tcp',
     '2380/tcp',
@@ -58,6 +62,7 @@ const defaultConfig = {
     '10251/tcp',
     '10252/tcp',
   ],
+  tags: null
 };
 
 const storageTypes = [
@@ -81,16 +86,23 @@ const storageTypes = [
     name:  'Premium LRS',
     value: 'Premium_LRS',
   },
+  {
+    name:  'Standard SSD LRS',
+    value: 'StandardSSD_LRS'
+  }
 ];
+const DEFAULT_REGION = 'westus';
 
 export default {
   components: {
     ArrayList,
     Banner,
     Checkbox,
+    KeyValue,
     LabeledInput,
     LabeledSelect,
     Loading,
+    RadioGroup
   },
 
   mixins: [CreateEditView],
@@ -116,6 +128,7 @@ export default {
 
   async fetch() {
     this.errors = [];
+    this.initTags();
 
     try {
       const {
@@ -147,8 +160,15 @@ export default {
         method: 'GET',
       });
 
+      if (this.mode === _CREATE) {
+        this.value.location = DEFAULT_REGION;
+      }
+
       this.vmSizes = await this.$store.dispatch('management/request', {
-        url:    addParams('/meta/aksVMSizes', { cloudCredentialId: this.credentialId, region: 'westus' }),
+        url: addParams('/meta/aksVMSizesV2', {
+          cloudCredentialId: this.credentialId,
+          region:            this.value.location
+        }),
         method: 'GET',
       });
     } catch (e) {
@@ -157,13 +177,24 @@ export default {
   },
 
   data() {
+    let useAvailabilitySet = false;
+
+    if (this.mode === _CREATE) {
+      useAvailabilitySet = true;
+    } else {
+      useAvailabilitySet = !!this.value.availabilitySet;
+    }
+
     return {
       azureEnvironments,
       defaultConfig,
       storageTypes,
       credential:      null,
-      locationOptions: null,
-      vmSizes:         null,
+      locationOptions: [],
+      loading:         false,
+      useAvailabilitySet,
+      vmSizes:         [],
+      valueCopy:       this.value
     };
   },
 
@@ -173,8 +204,179 @@ export default {
     },
   },
 
+  computed: {
+    locationOptionsInDropdown() {
+      const locationOptionsCopy = [...this.locationOptions];
+
+      return locationOptionsCopy.sort((a, b) => {
+        // Hopefully it's easier to find a region if the list is in
+        // alphabetical order.
+        if (a.name > b.name) {
+          return 1;
+        }
+        if (a.name < b.name) {
+          return -1;
+        }
+
+        return 0;
+      } )
+        .map((option) => {
+          return {
+            displayName: `${ option.displayName } (${ option.name })`,
+            name:        option.name,
+          };
+        });
+    },
+    vmsWithAcceleratedNetworking() {
+      return this.vmSizes.filter((vmData) => {
+        return vmData.AcceleratedNetworkingSupported;
+      });
+    },
+    vmsWithoutAcceleratedNetworking() {
+      return this.vmSizes.filter((vmData) => {
+        return !vmData.AcceleratedNetworkingSupported;
+      });
+    },
+    selectedVmSizeSupportsAN() {
+      const selectedSizeIsValid = !!this.vmsWithAcceleratedNetworking.find((vmData) => {
+        return this.value.size === vmData.Name;
+      });
+
+      return selectedSizeIsValid;
+    },
+    vmSizeAcceleratedNetworkingWarning() {
+      if (!this.selectedVmSizeSupportsAN && this.value.acceleratedNetworking) {
+        return this.t('cluster.machineConfig.azure.size.selectedSizeAcceleratedNetworkingWarning');
+      }
+
+      return '';
+    },
+    vmsWithAvailabilityZones() {
+      return this.vmSizes.filter((vmData) => {
+        return vmData.AvailabilityZones.length > 0;
+      });
+    },
+    vmSizeAvailabilityWarning() {
+      const selectedVmIsAvailableInSelectedRegion = this.vmSizes.filter((vmData) => {
+        return vmData.Name === this.value.size;
+      }).length > 0;
+
+      if (!selectedVmIsAvailableInSelectedRegion) {
+        return this.t('cluster.machineConfig.azure.size.availabilityWarning');
+      }
+
+      return '';
+    },
+    selectedVmSizeHasZones() {
+      const dataForSelectedSize = this.vmsWithAvailabilityZones.filter((vmData) => {
+        const { Name } = vmData;
+
+        return Name === this.value.size;
+      });
+
+      if (dataForSelectedSize.length > 0) {
+        return dataForSelectedSize[0].AvailabilityZones.length > 0;
+      }
+
+      return false;
+    },
+    vmAvailabilityZoneWarning() {
+      if (this.useAvailabilitySet) {
+        return '';
+      }
+      if (this.vmsWithAvailabilityZones.length === 0) {
+        /**
+         * Show UI warning: Availability zones are not supported in the selected
+         * region. Please select a different region or use an
+         * availability set instead.
+         */
+        return this.t('cluster.machineConfig.azure.size.regionDoesNotSupportAzs');
+      }
+
+      if (this.vmsWithAvailabilityZones.length > 0 && !this.selectedVmSizeHasZones) {
+        /**
+         * Show UI warning: The selected region does not support availability
+         * zones for the selected VM size. Please select a
+         * different region or VM size.
+         */
+        return this.t('cluster.machineConfig.azure.size.regionSupportsAzsButNotThisSize');
+      }
+
+      return '';
+    },
+    vmSizeOptionsForDropdown() {
+      // example vmSize option from backend:
+      // {
+      //   AcceleratedNetworkingSupported: false,
+      //   AvailabilityZones: [],
+      //   Name: "Basic_A0"
+      // }
+
+      const out = [
+        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.doesNotSupportAcceleratedNetworking') },
+        ...this.vmsWithoutAcceleratedNetworking,
+        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.supportsAcceleratedNetworking') },
+        ...this.vmsWithAcceleratedNetworking,
+
+      ];
+
+      if (!this.selectedVmSizeExistsInSelectedRegion) {
+        out.push({
+          Name:     this.value.size,
+          disabled: true
+        });
+      }
+
+      return out.map((vmData) => {
+        const { Name } = vmData;
+
+        if (vmData.kind === 'group') {
+          return vmData;
+        }
+
+        return {
+          label:    Name,
+          value:    Name,
+          disabled: vmData.disabled || false,
+        };
+      });
+    },
+    selectedVmSizeExistsInSelectedRegion() {
+      // If the user selects a region and then a VM size
+      // that does not exist in the region, the list of VM
+      // sizes will update, causing the selected VM size
+      // to disappear. A disappearing VM size seems like a
+      // bad UX, so this value allows the value to be
+      // added to the VM size dropdown, while an error message
+      // indicates that the size is invalid.
+      if (this.vmSizes.find((size) => {
+        return size.Name === this.value.size;
+      })) {
+        return true;
+      }
+
+      return false;
+    },
+    availableZones() {
+      const data = this.vmSizes.filter((vmData) => {
+        return vmData.Name === this.value.size;
+      });
+
+      if (data.length > 0) {
+        return data[0].AvailabilityZones;
+      }
+
+      return [];
+    }
+  },
+
   created() {
     if (this.mode === 'create') {
+      for (const key in this.defaultConfig) {
+        if (this.value[key] === undefined) {
+          this.$set(this.value, key, this.defaultConfig[key]);
+        }
+      }
       merge(this.value, this.defaultConfig);
 
       this.value.nsg = `rancher-managed-${ randomStr(8) }`;
@@ -182,19 +384,99 @@ export default {
   },
 
   methods: {
+    getVmSizeOptionLabel(vmData) {
+      return vmData.label;
+    },
+    handleVmSizeInput($event) {
+      if (this.vmSizeAcceleratedNetworkingWarning) {
+        this.$emit('error', this.vmSizeAcceleratedNetworkingWarning);
+      }
+    },
     stringify,
+    async getVmSizes() {
+      this.loading = true;
+      // The list of VM sizes should update when the
+      // selected region is changed because different
+      // VMs are supported in different regions.
+
+      // Example vmSize option from backend:
+      // {
+      //   AcceleratedNetworkingSupported: false,
+      //   AvailabilityZones: [],
+      //   Name: "Basic_A0"
+      // }
+      try {
+        this.vmSizes = await this.$store.dispatch('management/request', {
+          url: addParams('/meta/aksVMSizesV2', {
+            cloudCredentialId: this.credentialId,
+            region:            this.value.location
+          }),
+          method: 'GET',
+        });
+      } catch (e) {
+        this.errors = exceptionToErrorsArray(e);
+      }
+      this.loading = false;
+    },
     setLocation(location) {
       this.value.location = location?.name;
+      this.getVmSizes();
     },
+    initTags() {
+      const parts = (this.value.tags || '').split(/,/);
+      const out = {};
+
+      let i = 0;
+
+      while ( i + 1 < parts.length ) {
+        const key = `${ parts[i] }`.trim();
+        const value = `${ parts[i + 1] }`.trim();
+
+        if ( key ) {
+          out[key] = value;
+        }
+
+        i += 2;
+      }
+
+      this.tags = out;
+    },
+
+    updateTags(tags) {
+      const ary = [];
+
+      for ( const k in tags ) {
+        ary.push(k, tags[k]);
+      }
+
+      this.$set(this.value, 'tags', ary.join(','));
+    },
+    handleAzChange() {
+      if (this.value.availabilitySet) {
+      // If an availability set exists, clear it out when
+      // an availability zone is selected. Otherwise the
+      // set will take precedent and the zone will not be saved.
+        this.value.availabilitySet = null;
+      }
+    }
   },
 };
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" :delayed="true" />
+  <Loading
+    v-if="$fetchState.pending"
+    :delayed="true"
+  />
   <div v-else-if="errors.length">
-    <div v-for="(err, idx) in errors" :key="idx">
-      <Banner color="error" :label="stringify(err)" />
+    <div
+      v-for="(err, idx) in errors"
+      :key="idx"
+    >
+      <Banner
+        color="error"
+        :label="stringify(err)"
+      />
     </div>
   </div>
   <div v-else>
@@ -216,7 +498,7 @@ export default {
         <LabeledSelect
           :value="value.location"
           :mode="mode"
-          :options="locationOptions"
+          :options="locationOptionsInDropdown"
           option-key="name"
           option-label="displayName"
           :searchable="true"
@@ -228,7 +510,7 @@ export default {
       </div>
     </div>
     <div class="row mt-20">
-      <div class="col span-6">
+      <div class="col span-4">
         <LabeledInput
           v-model="value.resourceGroup"
           :mode="mode"
@@ -236,16 +518,54 @@ export default {
           :disabled="disabled"
         />
       </div>
-      <div class="col span-6">
+
+      <div
+        v-if="useAvailabilitySet"
+        class="col span-4"
+      >
         <LabeledInput
           v-model="value.availabilitySet"
           :mode="mode"
           :label="t('cluster.machineConfig.azure.availabilitySet.label')"
+          :tooltip="t('cluster.machineConfig.azure.availabilitySet.description')"
           :disabled="disabled"
         />
       </div>
+      <div
+        v-if="!useAvailabilitySet"
+        class="col span-4"
+      >
+        <i
+          v-if="loading"
+          class="icon icon-spinner delayed-loader"
+        />
+        <LabeledSelect
+          v-else
+          v-model="value.availabilityZone"
+          :mode="mode"
+          :options="availableZones"
+          :label="t('cluster.machineConfig.azure.availabilityZone.label')"
+          :tooltip="t('cluster.machineConfig.azure.availabilityZone.description')"
+          :disabled="disabled || !!vmAvailabilityZoneWarning"
+          @input="handleAzChange"
+        />
+        <Banner
+          v-if="vmAvailabilityZoneWarning"
+          color="error"
+          :label="vmAvailabilityZoneWarning"
+        />
+      </div>
+      <div class="col span-4">
+        <RadioGroup
+          v-model="useAvailabilitySet"
+          name="etcd-s3"
+          :options="[true, false]"
+          :labels="[t('cluster.machineConfig.azure.availabilitySet.label'),t('cluster.machineConfig.azure.availabilityZone.label')]"
+          :mode="mode"
+        />
+      </div>
     </div>
-    <hr class="mt-20" />
+    <hr class="mt-20">
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledInput
@@ -257,40 +577,62 @@ export default {
         />
       </div>
       <div class="col span-6">
+        <i
+          v-if="loading"
+          class="icon icon-spinner delayed-loader"
+        />
         <LabeledSelect
+          v-else
           v-model="value.size"
           :mode="mode"
-          :options="vmSizes"
+          :options="vmSizeOptionsForDropdown"
+          :get-option-label="getVmSizeOptionLabel"
           :searchable="true"
           :required="true"
           :label="t('cluster.machineConfig.azure.size.label')"
+          :tooltip="value.acceleratedNetworking ? t('cluster.machineConfig.azure.size.tooltip') : ''"
           :disabled="disabled"
+          @selecting="handleVmSizeInput"
+        />
+        <Banner
+          v-if="vmSizeAcceleratedNetworkingWarning"
+          color="error"
+          :label="vmSizeAcceleratedNetworkingWarning"
+        />
+        <Banner
+          v-else-if="vmSizeAvailabilityWarning"
+          color="error"
+          :label="vmSizeAvailabilityWarning"
         />
       </div>
     </div>
 
     <portal :to="'advanced-' + uuid">
-      <div class="row mt-20">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.faultDomainCount"
-            :mode="mode"
-            :label="t('cluster.machineConfig.azure.faultDomainCount.label')"
-            :tooltip="t('cluster.machineConfig.azure.faultDomainCount.help')"
-            :disabled="disabled"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.updateDomainCount"
-            :mode="mode"
-            :label="t('cluster.machineConfig.azure.updateDomainCount.label')"
-            :tooltip="t('cluster.machineConfig.azure.updateDomainCount.help')"
-            :disabled="disabled"
-          />
+      <div v-if="useAvailabilitySet">
+        <h2>Availability Set Configuration</h2>
+        <div class="row mt-20">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.faultDomainCount"
+              :mode="mode"
+              :label="t('cluster.machineConfig.azure.faultDomainCount.label')"
+              :tooltip="t('cluster.machineConfig.azure.faultDomainCount.help')"
+              :disabled="disabled"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.updateDomainCount"
+              :mode="mode"
+              :label="t('cluster.machineConfig.azure.updateDomainCount.label')"
+              :tooltip="t('cluster.machineConfig.azure.updateDomainCount.help')"
+              :disabled="disabled"
+            />
+          </div>
         </div>
       </div>
-      <hr class="mt-20" />
+      <hr class="mt-20 mb-20">
+      <h2>Purchase Plan</h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -302,7 +644,8 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20" />
+      <hr class="mt-20 mb-20">
+      <h2>Network</h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -321,6 +664,19 @@ export default {
           />
         </div>
       </div>
+      <div class="row mt-20">
+        <Checkbox
+          v-model="value.acceleratedNetworking"
+          :disabled="(!value.acceleratedNetworking && !selectedVmSizeSupportsAN)"
+          :mode="mode"
+          :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
+        />
+      </div>
+      <Banner
+        v-if="!selectedVmSizeSupportsAN && value.acceleratedNetworking"
+        color="error"
+        :label="t('cluster.machineConfig.azure.size.selectedSizeAcceleratedNetworkingWarning')"
+      />
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -383,7 +739,8 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20" />
+      <hr class="mt-20 mb-20">
+      <h2>Disks</h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledSelect
@@ -397,9 +754,12 @@ export default {
             option-key="value"
             option-label="name"
           />
+          <Banner
+            v-if="value.storageType === 'StandardSSD_LRS' && !value.managedDisks"
+            color="error"
+            :label="t('cluster.machineConfig.azure.storageType.warning')"
+          />
         </div>
-      </div>
-      <div class="row mt-20">
         <div class="col span-6">
           <Checkbox
             v-model="value.managedDisks"
@@ -407,16 +767,17 @@ export default {
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
           />
+        </div>
+      </div>
+      <div class="row mt-20">
+        <div class="col span-6">
           <LabeledInput
             v-model="value.diskSize"
             :mode="mode"
-            class="mt-10"
             :label="t('cluster.machineConfig.azure.managedDisksSize.label')"
             :disabled="disabled"
           />
         </div>
-      </div>
-      <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
             v-model="value.sshUser"
@@ -437,6 +798,22 @@ export default {
             :show-protip="true"
             :protip="t('cluster.machineConfig.azure.openPort.help')"
             :disabled="disabled"
+          />
+        </div>
+      </div>
+
+      <div class="row mt-20">
+        <div class="col span-12">
+          <h3><t k="cluster.machineConfig.azure.tags.label" /></h3>
+          <KeyValue
+            :value="tags"
+            :mode="mode"
+            :read-allowed="false"
+            :label="t('cluster.machineConfig.amazonEc2.tagTitle')"
+            :add-label="t('labels.addTag')"
+            :initial-empty-row="true"
+            :disabled="disabled"
+            @input="updateTags"
           />
         </div>
       </div>

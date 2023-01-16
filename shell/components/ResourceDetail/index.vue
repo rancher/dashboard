@@ -26,7 +26,8 @@ function modeFor(route) {
   }
 }
 
-async function getYaml(model) {
+async function getYaml(store, model) {
+  const inStore = store.getters['currentStore'](model.type);
   let yaml;
   const opt = { headers: { accept: 'application/yaml' } };
 
@@ -34,7 +35,9 @@ async function getYaml(model) {
     yaml = (await model.followLink('view', opt)).data;
   }
 
-  return yaml;
+  const cleanedYaml = await store.dispatch(`${ inStore }/cleanForDownload`, yaml);
+
+  return cleanedYaml;
 }
 
 export default {
@@ -68,6 +71,15 @@ export default {
     flexContent: {
       type:    Boolean,
       default: false,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'resource-details'
     }
   },
   async fetch() {
@@ -173,7 +185,7 @@ export default {
       initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
       if ( as === _YAML ) {
-        yaml = await getYaml(liveModel);
+        yaml = await getYaml(this.$store, liveModel);
       }
 
       if ( as === _GRAPH ) {
@@ -213,7 +225,6 @@ export default {
       this.value.applyDefaults(this, realMode);
     }
   },
-
   data() {
     return {
       chartData:       null,
@@ -297,7 +308,7 @@ export default {
     // Auto refresh YAML when the model changes
     async 'value.metadata.resourceVersion'(a, b) {
       if ( this.mode === _VIEW && this.as === _YAML && a && b && a !== b) {
-        this.yaml = await getYaml(this.liveModel);
+        this.yaml = await getYaml(this.$store, this.liveModel);
       }
     }
   },
@@ -402,10 +413,34 @@ export default {
       @set-subtype="setSubtype"
     />
 
-    <button v-if="isView" v-shortkey.once="['shift','d']" class="hide" @shortkey="keyAction('goToDetail')" />
-    <button v-if="isView" v-shortkey.once="['shift','c']" class="hide" @shortkey="keyAction('goToViewConfig')" />
-    <button v-if="isView" v-shortkey.once="['shift','y']" class="hide" @shortkey="keyAction('goToViewYaml')" />
-    <button v-if="isView" v-shortkey.once="['shift','e']" class="hide" @shortkey="keyAction('goToEdit')" />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','d']"
+      :data-testid="componentTestid + '-detail'"
+      class="hide"
+      @shortkey="keyAction('goToDetail')"
+    />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','c']"
+      :data-testid="componentTestid + '-config'"
+      class="hide"
+      @shortkey="keyAction('goToViewConfig')"
+    />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','y']"
+      :data-testid="componentTestid + '-yaml'"
+      class="hide"
+      @shortkey="keyAction('goToViewYaml')"
+    />
+    <button
+      v-if="isView"
+      v-shortkey.once="['shift','e']"
+      :data-testid="componentTestid + '-edit'"
+      class="hide"
+      @shortkey="keyAction('goToEdit')"
+    />
   </div>
 </template>
 

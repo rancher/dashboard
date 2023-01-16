@@ -1,19 +1,13 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { RadioGroup } from '@components/Form/Radio';
 
 import { get, set } from '@shell/utils/object';
 import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 
-const IMPORTED = 'imported';
-
 export default {
-  components: {
-    LabeledInput, LabeledSelect, RadioGroup
-  },
-  mixins: [CreateEditView],
+  components: { LabeledSelect },
+  mixins:     [CreateEditView],
 
   async fetch() {
     this.clusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
@@ -22,16 +16,11 @@ export default {
   data() {
     this.$emit('validationChanged', true);
 
-    if (!this.value.decodedData.clusterType) {
-      this.value.setData('clusterType', IMPORTED);
-    }
-
     const cluster = get(this.value, 'harvestercredentialConfig.clusterId') || '';
 
     return {
       clusters: [],
       cluster,
-      IMPORTED,
     };
   },
 
@@ -44,22 +33,9 @@ export default {
         };
       });
     },
-
-    isImportCluster() {
-      return this.value.decodedData.clusterType === IMPORTED;
-    }
   },
 
   watch: {
-    'value.decodedData.clusterType': {
-      handler(neu) {
-        if (this.isCreate) {
-          this.value.setData('kubeconfigContent', '');
-          this.cluster = '';
-        }
-      },
-    },
-
     async cluster(neu) {
       if (!neu) {
         return;
@@ -78,50 +54,53 @@ export default {
       this.$nuxt.$loading.finish();
 
       this.value.setData('kubeconfigContent', kubeconfigContent);
-    }
+    },
+
+    'value.decodedData.clusterId': {
+      handler() {
+        this.emitValidation();
+      },
+      immediate: true,
+    },
+    'value.decodedData.kubeconfigContent': {
+      handler() {
+        this.emitValidation();
+      },
+      immediate: true,
+    },
   },
 
   methods: {
     test() {
       const t = this.$store.getters['i18n/t'];
 
-      if (!this.cluster && this.isImportCluster) {
+      if (!this.cluster) {
         const cluster = t('cluster.credential.harvester.cluster');
         const errors = [t('validation.required', { key: cluster })];
-
-        return { errors };
-      }
-
-      if (!this.value.decodedData.kubeconfigContent) {
-        const kubeconfigContent = t('cluster.credential.harvester.kubeconfigContent.label');
-
-        const errors = [t('validation.required', { key: kubeconfigContent })];
 
         return { errors };
       } else {
         return true;
       }
     },
-  }
+
+    emitValidation() {
+      if (this.test() === true) {
+        this.$emit('validationChanged', true);
+      } else {
+        this.$emit('validationChanged', false);
+      }
+    },
+  },
 };
 </script>
 
 <template>
   <div>
     <div class="row mb-10">
-      <RadioGroup
-        v-model="value.decodedData.clusterType"
-        :mode="mode"
-        :disabled="isEdit"
-        name="clusterType"
-        :labels="[t('cluster.credential.harvester.import'),t('cluster.credential.harvester.external')]"
-        :options="[IMPORTED, 'external']"
-        @input="value.setData('clusterType', $event);"
-      />
-    </div>
-
-    <div class="row mb-10">
-      <div v-if="isImportCluster" class="col span-6">
+      <div
+        class="col span-6"
+      >
         <LabeledSelect
           v-model="cluster"
           :mode="mode"
@@ -129,19 +108,6 @@ export default {
           :options="clusterOptions"
           :required="true"
           :label="t('cluster.credential.harvester.cluster')"
-        />
-      </div>
-
-      <div class="col span-6">
-        <LabeledInput
-          v-if="!isImportCluster"
-          :value="value.decodedData.kubeconfigContent"
-          label-key="cluster.credential.harvester.kubeconfigContent.label"
-          :required="true"
-          type="multiline"
-          :min-height="160"
-          :mode="mode"
-          @input="value.setData('kubeconfigContent', $event);"
         />
       </div>
     </div>

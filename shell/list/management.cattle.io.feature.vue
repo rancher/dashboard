@@ -3,23 +3,22 @@ import { mapState, mapGetters } from 'vuex';
 import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 export default {
   components: {
     AsyncButton,
     Banner,
     Card,
-    Loading,
     ResourceTable,
     LabeledInput
   },
-
-  props: {
+  mixins: [ResourceFetch],
+  props:  {
     resource: {
       type:     String,
       required: true,
@@ -29,10 +28,15 @@ export default {
       type:     Object,
       required: true,
     },
+
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('management/findAll', { type: this.resource });
+    await this.$fetchType(this.resource);
 
     this.serverUrlSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SERVER_URL);
 
@@ -52,7 +56,6 @@ export default {
 
   data() {
     return {
-      rows:             null,
       update:           [],
       updateMode:       'activate',
       error:            null,
@@ -83,6 +86,11 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT');
     },
+  },
+
+  $loadingResources() {
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
   },
 
   watch: {
@@ -184,17 +192,25 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
       :row-actions="enableRowActions"
+      :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
-      <template slot="cell:name" slot-scope="scope">
+      <template
+        slot="cell:name"
+        slot-scope="scope"
+      >
         <div class="feature-name">
           <div>{{ scope.row.nameDisplay }}</div>
-          <i v-if="scope.row.status.lockedValue !== null" class="icon icon-lock" />
+          <i
+            v-if="scope.row.status.lockedValue !== null"
+            class="icon icon-lock"
+          />
         </div>
       </template>
     </ResourceTable>
@@ -207,20 +223,39 @@ export default {
       :click-to-close="!restart || !waiting"
       @closed="close"
     >
-      <Card v-if="!waiting" class="prompt-update" :show-highlight-border="false">
-        <h4 slot="title" class="text-default-text">
+      <Card
+        v-if="!waiting"
+        class="prompt-update"
+        :show-highlight-border="false"
+      >
+        <h4
+          slot="title"
+          class="text-default-text"
+        >
           Are you sure?
         </h4>
         <div slot="body">
-          <div v-if="update" class="mb-10">
+          <div
+            v-if="update"
+            class="mb-10"
+          >
             <div v-if="enabling">
               <span>
                 {{ t('featureFlags.promptActivate', {flag: update.id}) }}
               </span>
-              <div v-if="promptForUrl" class="mt-10">
+              <div
+                v-if="promptForUrl"
+                class="mt-10"
+              >
                 <span> {{ t('featureFlags.requiresSetting') }}</span>
-                <div :style="{'align-items':'center'}" class="row mt-10">
-                  <LabeledInput v-model="serverUrl" :label="t('setup.serverUrl.label')" />
+                <div
+                  :style="{'align-items':'center'}"
+                  class="row mt-10"
+                >
+                  <LabeledInput
+                    v-model="serverUrl"
+                    :label="t('setup.serverUrl.label')"
+                  />
                   <div class="col pl-5">
                     <AsyncButton @click="saveUrl" />
                   </div>
@@ -230,31 +265,56 @@ export default {
             <span v-else>
               {{ t('featureFlags.promptDeactivate', {flag: update.id}) }}
             </span>
-            <Banner v-if="restart" color="warning" :label="t('featureFlags.restartRequired')" />
+            <Banner
+              v-if="restart"
+              color="warning"
+              :label="t('featureFlags.restartRequired')"
+            />
           </div>
           <div class="text-error mb-10">
             {{ error }}
           </div>
         </div>
         <template #actions>
-          <button class="btn role-secondary" @click="close">
+          <button
+            class="btn role-secondary"
+            @click="close"
+          >
             {{ t('generic.cancel') }}
           </button>
-          <AsyncButton :disabled="promptForUrl && !serverUrlSetting.value" :mode="updateMode" class="btn bg-error ml-10" @click="toggleFlag" />
+          <AsyncButton
+            :disabled="promptForUrl && !serverUrlSetting.value"
+            :mode="updateMode"
+            class="btn bg-error ml-10"
+            @click="toggleFlag"
+          />
         </template>
       </Card>
-      <Card v-else class="prompt-update" :show-highlight-border="false">
-        <h4 slot="title" class="text-default-text">
+      <Card
+        v-else
+        class="prompt-update"
+        :show-highlight-border="false"
+      >
+        <h4
+          slot="title"
+          class="text-default-text"
+        >
           {{ t('featureFlags.restart.title') }}
         </h4>
-        <div slot="body" class="waiting">
+        <div
+          slot="body"
+          class="waiting"
+        >
           <p>{{ t('featureFlags.restart.wait') }}</p>
           <span class="restarting-icon">
             <i class=" icon icon-spinner icon-spin" />
           </span>
         </div>
         <template #actions>
-          <button class="btn role-secondary" @click="close">
+          <button
+            class="btn role-secondary"
+            @click="close"
+          >
             {{ t('generic.cancel') }}
           </button>
         </template>

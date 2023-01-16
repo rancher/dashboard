@@ -2,6 +2,7 @@ import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotation
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import isEmpty from 'lodash/isEmpty';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 function clearUnusedResourceQuotas(spec, types) {
   types.forEach((type) => {
@@ -61,8 +62,28 @@ export default class Project extends HybridModel {
     });
   }
 
+  get doneOverride() {
+    return this.listLocation;
+  }
+
   get listLocation() {
+    // Harvester uses these resource directly... but has different routes. listLocation covers routes leading back to route
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      return { name: `${ HARVESTER }-c-cluster-projectsnamespaces` };
+    }
+
     return { name: 'c-cluster-product-projectsnamespaces' };
+  }
+
+  get _detailLocation() {
+    // Harvester uses these resource directly... but has different routes. detailLocation covers routes leading to resource (like edit)
+    const _detailLocation = super._detailLocation;
+
+    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
+      _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
+    }
+
+    return _detailLocation;
   }
 
   get parentLocationOverride() {
@@ -81,17 +102,15 @@ export default class Project extends HybridModel {
     try {
       await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
     } catch (err) {
-      if (err.status === 409) {
+      if ( err.status === 409 || err.status === 403 ) {
         // The backend updates each new project soon after it is created,
-        // so there is a chance of a resource conflict error. If that happens,
+        // so there is a chance of a resource conflict or forbidden error. If that happens,
         // retry the action.
         await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
       } else {
         throw err;
       }
     }
-
-    await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
 
     return newValue;
   }
@@ -100,7 +119,6 @@ export default class Project extends HybridModel {
     const norman = await this.norman;
 
     await norman.remove(...arguments);
-    await this.$dispatch('management/remove', this, { root: true });
     await this.$dispatch('management/findAll', { type: MANAGEMENT.PROJECT, opt: { force: true } }, { root: true });
   }
 
@@ -135,8 +153,8 @@ export default class Project extends HybridModel {
   get normanEditProject() {
     return (async() => {
       const normanProject = await this.$dispatch('rancher/find', {
-        type:       NORMAN.PROJECT,
-        id:         this.id.replace('/', ':'),
+        type: NORMAN.PROJECT,
+        id:   this.id.replace('/', ':'),
       }, { root: true });
 
       const clearedResourceQuotas = clearUnusedResourceQuotas(this.spec, ['resourceQuota', 'namespaceDefaultResourceQuota']);
@@ -145,6 +163,7 @@ export default class Project extends HybridModel {
       normanProject.setLabels(this.metadata.labels);
       normanProject.setResourceQuotas(clearedResourceQuotas);
       normanProject.description = this.spec.description;
+      normanProject.name = this.spec.displayName;
       normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
 
       return normanProject;

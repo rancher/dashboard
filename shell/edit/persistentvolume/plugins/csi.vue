@@ -2,13 +2,19 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import KeyValue from '@shell/components/form/KeyValue';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { CSI_DRIVER } from '@shell/config/types';
+import { set } from '@shell/utils/object';
 
 export default {
   components: {
-    KeyValue, LabeledInput, RadioGroup
+    KeyValue,
+    LabeledInput,
+    RadioGroup,
+    LabeledSelect
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -17,6 +23,18 @@ export default {
       required: true,
     },
   },
+
+  fetch() {
+    if (this.$store.getters['cluster/schemaFor'](CSI_DRIVER)) {
+      this.$store.dispatch('cluster/findAll', { type: CSI_DRIVER }).then((drivers) => {
+        this.csiDrivers = drivers;
+        this.loadingDrivers = false;
+      });
+    } else {
+      this.loadingDrivers = false;
+    }
+  },
+
   data() {
     const readOnlyOptions = [
       {
@@ -36,8 +54,25 @@ export default {
     this.$set(this.value.spec.csi, 'controllerExpandSecretRef', this.value.spec.csi.controllerExpandSecretRef || {});
     this.$set(this.value.spec.csi, 'controllerPublishSecretRef', this.value.spec.csi.controllerPublishSecretRef || {});
 
-    return { readOnlyOptions };
+    return {
+      readOnlyOptions,
+      loadingDrivers: true,
+      csiDrivers:     [],
+    };
   },
+
+  computed: {
+    driverOptions() {
+      return this.csiDrivers.map((driver) => {
+        return driver.metadata.name;
+      });
+    }
+  },
+  methods: {
+    selectDriver(e) {
+      set(this.value, 'spec.csi.driver', e.value ? e.value : e.label);
+    }
+  }
 };
 </script>
 
@@ -45,15 +80,35 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.driver" :mode="mode" :label="t('persistentVolume.csi.driver.label')" :placeholder="t('persistentVolume.csi.driver.placeholder')" />
+        <LabeledSelect
+          :value="value.spec.csi.driver"
+          :loading="loadingDrivers"
+          :options="driverOptions"
+          :mode="mode"
+          :label="t('persistentVolume.csi.driver.label')"
+          :placeholder="t('persistentVolume.csi.driver.placeholder')"
+          searchable
+          taggable
+          @selecting="selectDriver"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.csi.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.volumeHandle" :mode="mode" :label="t('persistentVolume.csi.volumeHandle.label')" :placeholder="t('persistentVolume.csi.volumeHandle.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.csi.volumeHandle"
+          :mode="mode"
+          :label="t('persistentVolume.csi.volumeHandle.label')"
+          :placeholder="t('persistentVolume.csi.volumeHandle.placeholder')"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup
@@ -68,39 +123,84 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <KeyValue v-model="value.spec.csi.volumeAttributes" :add-label="t('persistentVolume.csi.volumeAttributes.add')" :mode="mode" :read-allowed="false" />
+        <KeyValue
+          v-model="value.spec.csi.volumeAttributes"
+          :add-label="t('persistentVolume.csi.volumeAttributes.add')"
+          :mode="mode"
+          :read-allowed="false"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.nodePublishSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.nodePublishSecretName.label')" :placeholder="t('persistentVolume.csi.nodePublishSecretName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.csi.nodePublishSecretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.csi.nodePublishSecretName.label')"
+          :placeholder="t('persistentVolume.csi.nodePublishSecretName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.nodePublishSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.nodePublishSecretNamespace.label')" :placeholder="t('persistentVolume.csi.nodePublishSecretNamespace.placeholder')" />
-      </div>
-    </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.nodeStageSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.nodeStageSecretName.label')" :placeholder="t('persistentVolume.csi.nodeStageSecretName.placeholder')" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.nodeStageSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.nodeStageSecretNamespace.label')" :placeholder="t('persistentVolume.csi.nodeStageSecretNamespace.placeholder')" />
-      </div>
-    </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.controllerExpandSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.controllerExpandSecretName.label')" :placeholder="t('persistentVolume.csi.controllerExpandSecretName.placeholder')" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.controllerExpandSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.controllerExpandSecretNamespace.label')" :placeholder="t('persistentVolume.csi.controllerExpandSecretNamespace.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.csi.nodePublishSecretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.csi.nodePublishSecretNamespace.label')"
+          :placeholder="t('persistentVolume.csi.nodePublishSecretNamespace.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.controllerPublishSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.controllerPublishSecretName.label')" :placeholder="t('persistentVolume.csi.controllerPublishSecretName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.csi.nodeStageSecretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.csi.nodeStageSecretName.label')"
+          :placeholder="t('persistentVolume.csi.nodeStageSecretName.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.controllerPublishSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.controllerPublishSecretNamespace.label')" :placeholder="t('persistentVolume.csi.controllerPublishSecretNamespace.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.csi.nodeStageSecretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.csi.nodeStageSecretNamespace.label')"
+          :placeholder="t('persistentVolume.csi.nodeStageSecretNamespace.placeholder')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.csi.controllerExpandSecretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.csi.controllerExpandSecretName.label')"
+          :placeholder="t('persistentVolume.csi.controllerExpandSecretName.placeholder')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.csi.controllerExpandSecretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.csi.controllerExpandSecretNamespace.label')"
+          :placeholder="t('persistentVolume.csi.controllerExpandSecretNamespace.placeholder')"
+        />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.csi.controllerPublishSecretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.csi.controllerPublishSecretName.label')"
+          :placeholder="t('persistentVolume.csi.controllerPublishSecretName.placeholder')"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.csi.controllerPublishSecretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.csi.controllerPublishSecretNamespace.label')"
+          :placeholder="t('persistentVolume.csi.controllerPublishSecretNamespace.placeholder')"
+        />
       </div>
     </div>
   </div>

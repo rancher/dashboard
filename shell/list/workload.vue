@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
+import ResourceFetch from '@shell/mixins/resource-fetch';
 
 const schema = {
   id:         'workload',
@@ -12,9 +13,35 @@ const schema = {
   metadata: { name: 'workload' },
 };
 
+const $loadingResources = ($route, $store) => {
+  const allowedResources = [];
+
+  Object.values(WORKLOAD_TYPES).forEach((type) => {
+    // You may not have RBAC to see some of the types
+    if ($store.getters['cluster/schemaFor'](type) ) {
+      allowedResources.push(type);
+    }
+  });
+
+  const allTypes = $route.params.resource === schema.id;
+
+  return {
+    loadResources:     allTypes ? allowedResources : [$route.params.resource],
+    loadIndeterminate: allTypes,
+  };
+};
+
 export default {
   name:       'ListWorkload',
   components: { ResourceTable },
+  mixins:     [ResourceFetch],
+
+  props: {
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
+  },
 
   async fetch() {
     try {
@@ -25,34 +52,32 @@ export default {
       }
     } catch {}
 
-    let resources;
-
     this.loadHeathResources();
 
     if ( this.allTypes ) {
-      resources = await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => {
-      // You may not have RBAC to see some of the types
-        if ( !this.$store.getters['cluster/schemaFor'](type) ) {
-          return null;
-        }
-
-        return this.$store.dispatch('cluster/findAll', { type });
+      this.resources = await Promise.all(this.loadResources.map((allowed) => {
+        return this.$fetchType(allowed, this.loadResources);
       }));
     } else {
       const type = this.$route.params.resource;
 
       if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type });
+        const resource = await this.$fetchType(type);
 
-        resources = [resource];
+        this.resources = [resource];
       }
     }
-
-    this.resources = resources;
   },
 
   data() {
-    return { resources: [] };
+    // Ensure these are set on load (to determine if the NS filter is required) rather than too late on `fetch`
+    const { loadResources, loadIndeterminate } = $loadingResources(this.$route, this.$store);
+
+    return {
+      resources: [],
+      loadResources,
+      loadIndeterminate
+    };
   },
 
   computed: {
@@ -70,7 +95,7 @@ export default {
       return schema;
     },
 
-    rows() {
+    filteredRows() {
       const out = [];
 
       for ( const typeRows of this.resources ) {
@@ -79,7 +104,7 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if (!this.allTypes || row.showAsWorkload) {
+          if (!this.allTypes || !row.ownedByWorkload) {
             out.push(row);
           }
         }
@@ -89,12 +114,17 @@ export default {
     },
   },
 
+  // All of the resources that we will load that we need for the loading indicator
+  $loadingResources($route, $store) {
+    return $loadingResources($route, $store);
+  },
+
   methods: {
     loadHeathResources() {
       // Fetch these in the background to populate workload health
       if ( this.allTypes ) {
-        this.$store.dispatch('cluster/findAll', { type: POD });
-        this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+        this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: this.namespaceFilter } });
+        this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB, opt: { namespaced: this.namespaceFilter } });
       } else {
         const type = this.$route.params.resource;
 
@@ -104,9 +134,9 @@ export default {
         }
 
         if (type === WORKLOAD_TYPES.CRON_JOB) {
-          this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+          this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB, opt: { namespaced: this.namespaceFilter } });
         } else {
-          this.$store.dispatch('cluster/findAll', { type: POD });
+          this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: this.namespaceFilter } });
         }
       }
     }
@@ -126,5 +156,12 @@ export default {
 </script>
 
 <template>
-  <ResourceTable :loading="$fetchState.pending" :schema="schema" :rows="rows" :overflow-y="true" />
+  <ResourceTable
+    :loading="$fetchState.pending"
+    :schema="schema"
+    :rows="filteredRows"
+    :overflow-y="true"
+    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+  />
 </template>

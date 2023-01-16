@@ -1,12 +1,15 @@
 <script>
-import { options } from '@shell/config/footer';
 import SimpleBox from '@shell/components/SimpleBox';
 import Closeable from '@shell/mixins/closeable';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { mapGetters } from 'vuex';
+import { isRancherPrime } from '@shell/config/version';
+import { fetchLinks } from '@shell/config/home-links';
 
 export default {
+  name: 'CommunityLinks',
+
   components: { SimpleBox },
 
   props: {
@@ -16,41 +19,63 @@ export default {
         return {};
       },
     },
+    isSupportPage: {
+      type:    Boolean,
+      default: false,
+    },
   },
 
   mixins: [Closeable],
 
   async fetch() {
-    this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
-    this.communitySetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.COMMUNITY_LINKS });
+    this.links = await fetchLinks(this.$store, this.hasSupport, this.isSupportPage, str => this.t(str));
   },
 
   data() {
-    return { uiIssuesSetting: null, communitySetting: null };
+    return { links: {} };
   },
 
   computed: {
-
     ...mapGetters('i18n', [
       'selectedLocaleLabel'
     ]),
 
-    options() {
-      if (Object.keys(this.linkOptions).length > 0) {
-        return this.linkOptions;
-      }
-
-      if (this.communitySetting?.value === 'false') {
-        return options(this.uiIssuesSetting?.value, true);
-      }
-
-      return options(this.uiIssuesSetting?.value);
+    hasOptions() {
+      return !!Object.keys(this.options).length || !!Object.keys(this.$slots).length;
     },
 
-    title() {
-      const hasCustomizedFileIssueLink = this.uiIssuesSetting?.value;
+    hasSupport() {
+      return isRancherPrime() || this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.SUPPORTED )?.value === 'true';
+    },
 
-      return hasCustomizedFileIssueLink ? 'landing.support' : 'landing.community.title';
+    options() {
+      // Use linkOptions if provided - used by Harvester
+      if (this.linkOptions && Object.keys(this.linkOptions).length) {
+        const options = [];
+
+        Object.keys(this.linkOptions).forEach((key) => {
+          options.push({
+            key,
+            label: this.t(key),
+            value: this.linkOptions[key]
+          });
+        });
+
+        return options;
+      }
+
+      // Combine the links
+      const all = [];
+
+      if (this.links.custom) {
+        all.push(...this.links.custom);
+      }
+
+      if (this.links.defaults) {
+        all.push(...this.links.defaults.filter(link => link.enabled));
+      }
+
+      return all;
     }
   },
   methods: {
@@ -65,14 +90,43 @@ export default {
 </script>
 
 <template>
-  <div>
-    <SimpleBox :title="t(title)" :pref="pref" :pref-key="prefKey">
-      <div v-for="(value, name) in options" :key="name" class="support-link">
-        <a v-t="name" :href="value" target="_blank" rel="noopener noreferrer nofollow" />
+  <div v-if="hasOptions">
+    <SimpleBox
+      :pref="pref"
+      :pref-key="prefKey"
+    >
+      <template #title>
+        <h2>
+          {{ t('customLinks.displayTitle') }}
+        </h2>
+      </template>
+      <div
+        v-for="link in options"
+        :key="link.label"
+        class="support-link"
+      >
+        <n-link
+          v-if="link.value.startsWith('/') "
+          :to="link.value"
+        >
+          {{ link.label }}
+        </n-link>
+        <a
+          v-else
+          :href="link.value"
+          rel="noopener noreferrer nofollow"
+          target="_blank"
+        > {{ link.label }} </a>
       </div>
-
-      <div v-if="selectedLocaleLabel === t('locale.zh-hans')" class="support-link">
-        <a class="link" @click="show">
+      <slot />
+      <div
+        v-if="selectedLocaleLabel === t('locale.zh-hans')"
+        class="support-link"
+      >
+        <a
+          class="link"
+          @click="show"
+        >
           {{ t('footer.wechat.title') }}
         </a>
       </div>
@@ -84,10 +138,12 @@ export default {
     >
       <div class="wechat-modal">
         <h1>{{ t('footer.wechat.modalText') }}</h1>
-        <div class="qr-img">
-        </div>
+        <div class="qr-img" />
         <div>
-          <button class="btn role-primary" @click="close">
+          <button
+            class="btn role-primary"
+            @click="close"
+          >
             {{ t('generic.close') }}
           </button>
         </div>
@@ -97,8 +153,17 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-  .support-link:not(:first-child) {
-    margin-top: 15px;
+  h2 {
+    display: flex;
+    align-items: center;
+
+    i {
+      font-size: 12px;
+      margin-left: 5px;
+    }
+  }
+  .support-link:not(:last-child) {
+    margin-bottom: 15px;
   }
 
   .wechat-modal {
@@ -117,7 +182,7 @@ export default {
   }
 
   .qr-img {
-    background-image: url('~shell/assets/images/wechat-qr-code.jpg');
+    background-image: url('../assets/images/wechat-qr-code.jpg');
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center center;

@@ -8,11 +8,11 @@ const STATUS_CLASS_MAP = {
   },
   warning: {
     color: 'bg-warning',
-    icon:  'icon-error'
+    icon:  'icon-warning'
   },
   info: {
     color: 'bg-info',
-    icon:  'icon-error'
+    icon:  'icon-info'
   },
   error: {
     color: 'bg-error',
@@ -47,5 +47,9 @@ export default {
 </script>
 
 <template>
-  <BadgeState :label="message" :color="color" :icon="icon" />
+  <BadgeState
+    :label="message"
+    :color="color"
+    :icon="icon"
+  />
 </template>

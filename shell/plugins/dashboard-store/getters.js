@@ -9,10 +9,45 @@ import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
+import garbageCollect from '@shell/utils/gc/gc';
+
+export const urlFor = (state, getters) => (type, id, opt) => {
+  opt = opt || {};
+  type = getters.normalizeType(type);
+  let url = opt.url;
+
+  if ( !url ) {
+    const schema = getters.schemaFor(type);
+
+    if ( !schema ) {
+      throw new Error(`Unknown schema for type: ${ type }`);
+    }
+
+    url = schema.links.collection;
+
+    if ( !url ) {
+      throw new Error(`You don't have permission to list this type: ${ type }`);
+    }
+
+    if ( id ) {
+      url += `/${ id }`;
+    }
+  }
+
+  if ( !url.startsWith('/') && !url.startsWith('http') ) {
+    const baseUrl = state.config.baseUrl.replace(/\/$/, '');
+
+    url = `${ baseUrl }/${ url }`;
+  }
+
+  url = getters.urlOptions(url, opt);
+
+  return url;
+};
 
 export default {
 
-  all: (state, getters) => (type) => {
+  all: (state, getters, rootState) => (type) => {
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -22,22 +57,39 @@ export default {
       mutations.registerType(state, type);
     }
 
+    garbageCollect.gcUpdateLastAccessed({
+      state, getters, rootState
+    }, type);
+
     return state.types[type].list;
   },
 
-  matching: (state, getters) => (type, selector) => {
-    const all = getters['all'](type);
+  matching: (state, getters, rootState) => (type, selector, namespace) => {
+    let all = getters['all'](type);
+
+    // Filter first by namespace if one is provided, since this is efficient
+    if (namespace) {
+      all = all.filter(obj => obj.namespace === namespace);
+    }
+
+    garbageCollect.gcUpdateLastAccessed({
+      state, getters, rootState
+    }, type);
 
     return all.filter((obj) => {
       return matches(obj, selector);
     });
   },
 
-  byId: (state, getters) => (type, id) => {
+  byId: (state, getters, rootState) => (type, id) => {
     type = getters.normalizeType(type);
     const entry = state.types[type];
 
     if ( entry ) {
+      garbageCollect.gcUpdateLastAccessed({
+        state, getters, rootState
+      }, type);
+
       return entry.map.get(id);
     }
   },
@@ -207,6 +259,21 @@ export default {
     return false;
   },
 
+  haveAllNamespace: (state, getters) => (type, namespace) => {
+    if (!namespace) {
+      return false;
+    }
+
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.haveNamespace === namespace;
+    }
+
+    return false;
+  },
+
   haveSelector: (state, getters) => (type, selector) => {
     type = getters.normalizeType(type);
     const entry = state.types[type];
@@ -226,39 +293,7 @@ export default {
     return keyFieldFor(type);
   },
 
-  urlFor: (state, getters) => (type, id, opt) => {
-    opt = opt || {};
-    type = getters.normalizeType(type);
-    let url = opt.url;
-
-    if ( !url ) {
-      const schema = getters.schemaFor(type);
-
-      if ( !schema ) {
-        throw new Error(`Unknown schema for type: ${ type }`);
-      }
-
-      url = schema.links.collection;
-
-      if ( !url ) {
-        throw new Error(`You don't have permission to list this type: ${ type }`);
-      }
-
-      if ( id ) {
-        url += `/${ id }`;
-      }
-    }
-
-    if ( !url.startsWith('/') && !url.startsWith('http') ) {
-      const baseUrl = state.config.baseUrl.replace(/\/$/, '');
-
-      url = `${ baseUrl }/${ url }`;
-    }
-
-    url = getters.urlOptions(url, opt);
-
-    return url;
-  },
+  urlFor,
 
   urlOptions: () => (url, opt) => {
     return url;
@@ -282,6 +317,22 @@ export default {
 
   isClusterStore: (state) => {
     return state.config.isClusterStore;
-  }
+  },
 
+  // Increment the load counter for a resource type
+  // This is used for incremental loading do detect when a page changes occur of the a reload happend
+  // While a previous incremental loading operation is still in progress
+  loadCounter: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    if (!!state.types[type]) {
+      return state.types[type].loadCounter;
+    }
+
+    return 0;
+  },
+
+  gcIgnoreTypes: () => {
+    return {};
+  }
 };

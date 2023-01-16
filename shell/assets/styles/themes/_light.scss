@@ -40,6 +40,8 @@ $contrasted-light: $lightest !default;
 // The terminal alway uses a light background, so okay to use a fixed color
 $selected: rgba(#3D98D3, .5);
 
+$drag-over: #DCDEE7;
+
 BODY, .theme-light {
 
   --primary                    : #{$primary};
@@ -82,6 +84,7 @@ BODY, .theme-light {
   --link-border             : #{$link};
   --link-banner-bg          : #{rgba($link, 0.15)};
   --link-light-bg           : #{rgba($link, 0.05)};
+ 
 
   
   .text-link {
@@ -113,6 +116,8 @@ BODY, .theme-light {
   --default-border             : #{$light};
   --default-banner-bg          : #{rgba($light, 0.15)};
   --default-light-bg           : #{rgba($light, 0.05)};
+  --slider-light-bg            : #{rgba($lightest, 1)};
+  --slider-light-bg-right      : #{rgba($lightest, 0)};
 
 
   .text-default {
@@ -310,6 +315,7 @@ BODY, .theme-light {
   --header-bg                  : #{$lightest};
   --header-btn-bg              : transparent;
   --header-btn-text            : #{$darkest};
+  --header-btn-text-hover      : #{$lightest};
   --header-input-text          : #{$darkest};
   --header-height              : 55px;
   --header-border              : #{$medium};
@@ -354,18 +360,22 @@ BODY, .theme-light {
   --checkbox-border            : #{$medium};
   --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
-  --checkbox-ticked-bg         : #{$link};
+  --checkbox-ticked-bg         : var(--link);
+
+  --drag-over-inner-bg         : #{rgba($drag-over, 0.9)};
+  --drag-over-outer-bg         : #{rgba($drag-over, 0)};
 
   --dropdown-bg                : #{$lightest};
   --dropdown-border            : #{$medium};
   --dropdown-divider           : #{$medium};
-  --dropdown-text              : #{$link};
+  --dropdown-text              : #{$darkest};
   --dropdown-active-text       : #{$lightest};
   --dropdown-active-bg         : #{$dark};
   --dropdown-hover-text        : #{$lightest};
-  --dropdown-hover-bg          : var(--primary);
+  --dropdown-hover-bg          : var(--link);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
+  --dropdown-highlight-text    : var(--link);
 
   --card-badge-text            : #ffffff;
 

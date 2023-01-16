@@ -1,3 +1,4 @@
+import { mapGetters } from 'vuex';
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@shell/utils/object';
 import {
@@ -9,10 +10,11 @@ import {
   PVC,
   SERVICE_ACCOUNT,
   CAPI,
+  POD,
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { allHash } from '@shell/utils/promise';
+import ResourceManager from '@shell/mixins/resource-manager';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import ServiceNameSelect from '@shell/components/form/ServiceNameSelect';
@@ -28,7 +30,7 @@ import WorkloadPorts from '@shell/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import KeyValue from '@shell/components/form/KeyValue';
 import Tabbed from '@shell/components/Tabbed';
-import { mapGetters } from 'vuex';
+
 import NodeScheduling from '@shell/components/form/NodeScheduling';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import Tolerations from '@shell/components/form/Tolerations';
@@ -36,6 +38,7 @@ import CruResource from '@shell/components/CruResource';
 import Command from '@shell/components/form/Command';
 import LifecycleHooks from '@shell/components/form/LifecycleHooks';
 import Storage from '@shell/edit/workload/storage';
+import ContainerMountPaths from '@shell/edit/workload/storage/ContainerMountPaths.vue';
 import Labels from '@shell/components/form/Labels';
 import { RadioGroup } from '@components/Form/Radio';
 import { UI_MANAGED } from '@shell/config/labels-annotations';
@@ -43,6 +46,8 @@ import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import formRulesGenerator from '@shell/utils/validators/formRules';
+import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import { defaultContainer } from '@shell/models/workload';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -59,6 +64,28 @@ const TAB_WEIGHT_MAP = {
 };
 
 const GPU_KEY = 'nvidia.com/gpu';
+const ID_KEY = Symbol('container-id');
+
+const serialMaker = function() {
+  let prefix = '';
+  let seq = 0;
+
+  return {
+    setPrefix(p) {
+      prefix = p;
+    },
+    setSeq(s) {
+      seq = s;
+    },
+    genSym() {
+      const result = prefix + seq;
+
+      seq += 1;
+
+      return result;
+    }
+  };
+}();
 
 export default {
   name:       'CruWorkload',
@@ -88,9 +115,10 @@ export default {
     Upgrading,
     VolumeClaimTemplate,
     WorkloadPorts,
+    ContainerMountPaths
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, ResourceManager],
 
   props: {
     value: {
@@ -102,45 +130,30 @@ export default {
       type:    String,
       default: 'create',
     },
+
+    createOption: {
+      default: (text) => {
+        if (text) {
+          return { metadata: { name: text } };
+        }
+      },
+      type: Function
+    },
   },
 
   async fetch() {
-    const requests = { rancherClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }) };
-    const needed = {
-      configMaps: CONFIG_MAP,
-      nodes:      NODE,
-      services:   SERVICE,
-      pvcs:       PVC,
-      sas:        SERVICE_ACCOUNT,
-      secrets:    SECRET,
-    };
+    await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
 
-    // Only fetch types if the user can see them
-    Object.keys(needed).forEach((key) => {
-      const type = needed[key];
-
-      if (this.$store.getters['cluster/schemaFor'](type)) {
-        requests[key] = this.$store.dispatch('cluster/findAll', { type });
-      }
-    });
-
-    const hash = await allHash(requests);
-
-    this.servicesOwned = hash.services ? await this.value.getServicesOwned() : [];
-
-    this.allSecrets = hash.secrets || [];
-    this.allConfigMaps = hash.configMaps || [];
-    this.allNodeObjects = hash.nodes || [];
-    this.allNodes = this.allNodeObjects.map(node => node.id);
-    this.allServices = hash.services || [];
-    this.pvcs = hash.pvcs || [];
-    this.sas = hash.sas || [];
+    // don't block UI for these resources
+    this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+    this.servicesOwned = await this.value.getServicesOwned();
   },
 
   data() {
+    serialMaker.setPrefix('container-');
+    serialMaker.setSeq(0);
     let type = this.$route.params.resource;
     const createSidecar = !!this.$route.query.sidecar;
-    const isInitContainer = !!this.$route.query.init;
 
     if (type === 'workload') {
       type = null;
@@ -148,21 +161,47 @@ export default {
 
     if (!this.value.spec) {
       this.value.spec = {};
+      if (this.value.type === POD) {
+        const podContainers = [{
+          imagePullPolicy: 'Always',
+          name:            `container-0`,
+        }];
+
+        const metadata = { ...this.value.metadata };
+
+        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
+
+        this.$set(this.value, 'spec', podSpec);
+      }
+    }
+
+    // EDIT view for POD
+    // Transform it from POD world to workload
+    if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
+      const podSpec = { ...this.value.spec };
+      const metadata = { ...this.value.metadata };
+
+      this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
     }
 
     const spec = this.value.spec;
+    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+
+    let containers = podTemplateSpec.containers || [];
     let container;
-    const podTemplateSpec =
-      type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
-    let containers = podTemplateSpec.containers;
+
+    if (this.mode === _VIEW && this.value.type === 'pod' ) {
+      podTemplateSpec = spec;
+    }
 
     if (
       this.mode === _CREATE ||
       this.mode === _VIEW ||
-      (!createSidecar && !this.value.hasSidecars)
+      (!createSidecar && !this.value.hasSidecars) // hasSideCars = containers.length > 1 || initContainers.length;
     ) {
       container = containers[0];
     } else {
+      // This means that there are no containers.
       if (!podTemplateSpec.initContainers) {
         podTemplateSpec.initContainers = [];
       }
@@ -175,14 +214,18 @@ export default {
         podTemplateSpec.initContainers.push({
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
+          _init:           true,
         });
+
         containers = podTemplateSpec.initContainers;
       }
-      if (createSidecar) {
+      if (createSidecar || this.value.type === 'pod') {
         container = {
           imagePullPolicy: 'Always',
           name:            `container-${ allContainers.length }`,
+          _init:           false,
         };
+
         containers.push(container);
       } else {
         container = containers[0];
@@ -192,38 +235,53 @@ export default {
     this.selectContainer(container);
 
     return {
-      allConfigMaps:     [],
-      allNodes:          null,
-      allNodeObjects:    [],
-      allSecrets:        [],
-      allServices:       [],
-      name:              this.value?.metadata?.name || null,
-      pvcs:              [],
-      sas:               [],
-      showTabs:          false,
-      pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
+      secondaryResourceData:      this.secondaryResourceDataConfig(),
+      namespacedConfigMaps:       [],
+      allNodes:                   null,
+      allNodeObjects:             [],
+      namespacedSecrets:          [],
+      imagePullNamespacedSecrets: [],
+      allServices:                [],
+      headlessServices:           [],
+      name:                       this.value?.metadata?.name || null,
+      pvcs:                       [],
+      namespacedServiceNames:     [],
+      showTabs:                   false,
+      pullPolicyOptions:          ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesOwned:     [],
-      servicesToRemove:  [],
-      portsForServices:  [],
-      isInitContainer,
+      servicesOwned:              [],
+      servicesToRemove:           [],
+      portsForServices:           [],
       container,
-      containerChange:   0,
-      tabChange:         0,
-      podFsGroup:        podTemplateSpec.securityContext?.fsGroup,
-      savePvcHookName:   'savePvcHook',
-      tabWeightMap:      TAB_WEIGHT_MAP,
-      fvFormRuleSets:      [{
+      containerChange:            0,
+      tabChange:                  0,
+      podFsGroup:                 podTemplateSpec.securityContext?.fsGroup,
+      savePvcHookName:            'savePvcHook',
+      tabWeightMap:               TAB_WEIGHT_MAP,
+      fvFormRuleSets:             [{
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
-      fvReportedValidationPaths: ['spec']
+      fvReportedValidationPaths: ['spec'],
+      isNamespaceNew:            false,
+      idKey:                     ID_KEY
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     tabErrors() {
       return { general: this.fvGetPathErrors(['image'])?.length > 0 };
+    },
+
+    defaultTab() {
+      if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
+        const container = this.allContainers.find(c => c.__active);
+
+        return container?.name ?? 'container-0';
+      }
+
+      return this.allContainers.length ? this.allContainers[0][this.idKey] : '';
     },
 
     isEdit() {
@@ -249,6 +307,10 @@ export default {
 
     isDeployment() {
       return this.type === WORKLOAD_TYPES.DEPLOYMENT;
+    },
+
+    isPod() {
+      return this.value.type === POD;
     },
 
     isStatefulSet() {
@@ -277,13 +339,13 @@ export default {
           }
 
           return this.spec.jobTemplate.metadata.labels;
-        } else {
-          if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', { labels: {} });
-          }
-
-          return this.spec.template.metadata.labels;
         }
+
+        if (!this.spec.template.metadata) {
+          this.$set(this.spec.template, 'metadata', { labels: {} });
+        }
+
+        return this.spec.template.metadata.labels;
       },
       set(neu) {
         if (this.isCronJob) {
@@ -302,13 +364,12 @@ export default {
           }
 
           return this.spec.jobTemplate.metadata.annotations;
-        } else {
-          if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', { annotations: {} });
-          }
-
-          return this.spec.template.metadata.annotations;
         }
+        if (!this.spec.template.metadata) {
+          this.$set(this.spec.template, 'metadata', { annotations: {} });
+        }
+
+        return this.spec.template.metadata.annotations;
       },
       set(neu) {
         if (this.isCronJob) {
@@ -322,11 +383,22 @@ export default {
     allContainers() {
       const containers = this.podTemplateSpec?.containers || [];
       const initContainers = this.podTemplateSpec?.initContainers || [];
+      const key = this.idKey;
 
       return [
-        ...containers,
+        ...containers.map((each) => {
+          each._init = false;
+          if (!each[key]) {
+            each[key] = serialMaker.genSym();
+          }
+
+          return each;
+        }),
         ...initContainers.map((each) => {
           each._init = true;
+          if (!each[key]) {
+            each[key] = serialMaker.genSym();
+          }
 
           return each;
         }),
@@ -418,49 +490,6 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
 
-    namespacedSecrets() {
-      const namespace = this.value?.metadata?.namespace;
-
-      if (namespace) {
-        return this.allSecrets.filter(
-          secret => secret.metadata.namespace === namespace
-        );
-      } else {
-        return this.allSecrets;
-      }
-    },
-
-    namespacedConfigMaps() {
-      const namespace = this.value?.metadata?.namespace;
-
-      if (namespace) {
-        return this.allConfigMaps.filter(
-          configMap => configMap.metadata.namespace === namespace
-        );
-      } else {
-        return this.allConfigMaps;
-      }
-    },
-
-    namespacedServiceNames() {
-      const { namespace } = this.value?.metadata;
-
-      if (namespace) {
-        return this.sas.filter(
-          serviceName => serviceName.metadata.namespace === namespace
-        );
-      } else {
-        return this.sas;
-      }
-    },
-
-    headlessServices() {
-      return this.allServices.filter(
-        service => service.spec.clusterIP === 'None' &&
-          service.metadata.namespace === this.value.metadata.namespace
-      );
-    },
-
     workloadTypes() {
       return omitBy(WORKLOAD_TYPES, (type) => {
         return (
@@ -503,6 +532,25 @@ export default {
   },
 
   watch: {
+    async 'value.metadata.namespace'(neu) {
+      if (this.isNamespaceNew) {
+        // we don't need to re-fetch namespace specific (or non-namespace specific) resources when the namespace hasn't been created yet
+        return;
+      }
+      this.secondaryResourceData.namespace = neu;
+      // Fetch resources that are namespace specific, we don't need to re-fetch non-namespaced resources on namespace change
+      this.resourceManagerFetchSecondaryResources(this.secondaryResourceData, true);
+
+      this.servicesOwned = await this.value.getServicesOwned();
+    },
+
+    isNamespaceNew(neu, old) {
+      if (!old && neu) {
+        // As the namespace is new any resource that's been fetched with a namespace is now invalid
+        this.resourceManagerClearSecondaryResources(this.secondaryResourceData, true);
+      }
+    },
+
     type(neu, old) {
       const template =
         old === WORKLOAD_TYPES.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
@@ -538,13 +586,6 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
-
-    container(neu) {
-      const containers = this.isInitContainer ? this.podTemplateSpec.initContainers : this.podTemplateSpec.containers;
-      const existing = containers.find(container => container.__active) || {};
-
-      Object.assign(existing, neu);
-    },
   },
 
   created() {
@@ -555,6 +596,49 @@ export default {
   },
 
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [CONFIG_MAP]:      { applyTo: [{ var: 'namespacedConfigMaps' }] },
+          [PVC]:             { applyTo: [{ var: 'pvcs' }] },
+          [SERVICE_ACCOUNT]: { applyTo: [{ var: 'namespacedServiceNames' }] },
+          [SECRET]:          {
+            applyTo: [
+              { var: 'namespacedSecrets' },
+              {
+                var:         'imagePullNamespacedSecrets',
+                parsingFunc: (data) => {
+                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                }
+              }
+            ]
+          },
+          [NODE]: {
+            applyTo: [
+              { var: 'allNodeObjects' },
+              {
+                var:         'allNodes',
+                parsingFunc: (data) => {
+                  return data.map(node => node.id);
+                }
+              }
+            ]
+          },
+          [SERVICE]: {
+            applyTo: [
+              { var: 'allServices' },
+              {
+                var:         'headlessServices',
+                parsingFunc: (data) => {
+                  return data.filter(service => service.spec.clusterIP === 'None');
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
     addContainerBtn() {
       this.selectContainer({ name: 'Add Container', __add: true });
     },
@@ -634,6 +718,7 @@ export default {
         template = this.spec.template;
       }
 
+      // WORKLOADS
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
@@ -805,7 +890,6 @@ export default {
       });
       container.__active = true;
       this.container = container;
-      this.isInitContainer = !!container._init;
       this.containerChange++;
     },
 
@@ -821,13 +905,16 @@ export default {
         nameNumber++;
       }
       const container = {
-        imagePullPolicy: 'Always',
-        name:            `container-${ nameNumber }`,
-        active:          true
+        ...defaultContainer,
+        name:   `container-${ nameNumber }`,
+        active: true
       };
 
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);
+      this.$nextTick(() => {
+        this.$refs.containersTabbed?.select(container.name);
+      });
     },
 
     removeContainer(container) {
@@ -839,27 +926,27 @@ export default {
       this.selectContainer(this.allContainers[0]);
     },
 
-    updateInitContainer(neu) {
-      if (!this.container) {
+    updateInitContainer(neu, container) {
+      if (!container) {
         return;
       }
       const containers = this.podTemplateSpec.containers;
+      const initContainers = this.podTemplateSpec.initContainers ?? [];
 
       if (neu) {
-        if (!this.podTemplateSpec.initContainers) {
-          this.podTemplateSpec.initContainers = [];
+        this.podTemplateSpec.initContainers = initContainers;
+        container._init = true;
+        if (!initContainers.includes(container)) {
+          initContainers.push(container);
         }
-        this.podTemplateSpec.initContainers.push(this.container);
-
-        removeObject(containers, this.container);
+        removeObject(containers, container);
       } else {
-        delete this.container._init;
-        const initContainers = this.podTemplateSpec.initContainers;
-
-        removeObject(initContainers, this.container);
-        containers.push(this.container);
+        container._init = false;
+        removeObject(initContainers, container);
+        if (!containers.includes(container)) {
+          containers.push(container);
+        }
       }
-      this.isInitContainer = neu;
     },
     clearPvcFormState(hookName) {
       // On the `closePvcForm` event, remove the
@@ -882,7 +969,7 @@ export default {
       }
     },
     nvidiaIsValid(nvidiaGpuLimit) {
-      if (!Number.isInteger(nvidiaGpuLimit)) {
+      if ( !Number.isInteger(parseInt(nvidiaGpuLimit)) ) {
         return false;
       }
       if (nvidiaGpuLimit === undefined) {

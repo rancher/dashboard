@@ -1,6 +1,5 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import Loading from '@shell/components/Loading';
 import Tag from '@shell/components/Tag';
 import { Banner } from '@components/Banner';
 import {
@@ -16,26 +15,33 @@ import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
-
+import ResourceFetch from '@shell/mixins/resource-fetch';
 export default {
   name:       'ListNode',
   components: {
-    Loading,
     ResourceTable,
     Tag,
     Banner
   },
-  mixins: [metricPoller],
+  mixins: [metricPoller, ResourceFetch],
 
   props: {
+    resource: {
+      type:     String,
+      required: true,
+    },
     schema: {
       type:     Object,
       required: true,
     },
+    useQueryParamsForSimpleFiltering: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   async fetch() {
-    const hash = { kubeNodes: this.$store.dispatch('cluster/findAll', { type: NODE }) };
+    const hash = { kubeNodes: this.$fetchType(NODE) };
 
     this.canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
 
@@ -58,16 +64,11 @@ export default {
       this.$store.dispatch('cluster/findAll', { type: POD });
     }
 
-    const res = await allHash(hash);
-
-    this.kubeNodes = res.kubeNodes;
+    await allHash(hash);
   },
 
   data() {
-    return {
-      kubeNodes:   null,
-      canViewPods: false,
-    };
+    return { canViewPods: false };
   },
 
   beforeDestroy() {
@@ -79,7 +80,7 @@ export default {
 
   computed: {
     hasWindowsNodes() {
-      return (this.kubeNodes || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
+      return (this.rows || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
     tableGroup: mapPref(GROUP_RESOURCES),
 
@@ -119,7 +120,7 @@ export default {
 
   },
 
-  methods:  {
+  methods: {
     async loadMetrics() {
       const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
 
@@ -141,8 +142,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else>
+  <div>
     <Banner
       v-if="hasWindowsNodes"
       color="info"
@@ -152,23 +152,38 @@ export default {
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
-      :rows="kubeNodes"
+      :rows="rows"
       :sub-rows="true"
+      :loading="loading"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       v-on="$listeners"
     >
-      <template #sub-row="{fullColspan, row}">
-        <tr class="taints sub-row" :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}">
+      <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
+        <tr
+          class="taints sub-row"
+          :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}"
+          @mouseenter="onRowMouseEnter"
+          @mouseleave="onRowMouseLeave"
+        >
           <template v-if="row.spec.taints && row.spec.taints.length">
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
               {{ t('node.list.nodeTaint') }}:
-              <Tag v-for="taint in row.spec.taints" :key="taint.key + taint.value + taint.effect" class="mr-5">
+              <Tag
+                v-for="taint in row.spec.taints"
+                :key="taint.key + taint.value + taint.effect"
+                class="mr-5"
+              >
                 {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
               </Tag>
             </td>
           </template>
-          <td v-else :colspan="fullColspan">
+          <td
+            v-else
+            :colspan="fullColspan"
+          >
 &nbsp;
           </td>
         </tr>

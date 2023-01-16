@@ -19,8 +19,8 @@ export default {
   },
   props: {
     editorMode: {
-      type:      String,
-      default:  EDITOR_MODES.EDIT_CODE,
+      type:    String,
+      default: EDITOR_MODES.EDIT_CODE,
       validator(value) {
         return Object.values(EDITOR_MODES).includes(value);
       }
@@ -42,13 +42,22 @@ export default {
     },
 
     value: {
-      type:     [String, Object],
-      default:  '',
+      type:    [String, Object],
+      default: '',
     },
 
     hidePreviewButtons: {
-      type:     Boolean,
-      default:  false,
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'yaml-editor'
     }
   },
 
@@ -195,7 +204,11 @@ export default {
 <template>
   <div class="yaml-editor">
     <div class="text-right">
-      <span v-if="isPreview && !hidePreviewButtons" v-trim-whitespace class="btn-group btn-sm diff-mode">
+      <span
+        v-if="isPreview && !hidePreviewButtons"
+        v-trim-whitespace
+        class="btn-group btn-sm diff-mode"
+      >
         <button
           type="button"
           class="btn btn-sm bg-default"
@@ -216,6 +229,7 @@ export default {
       :class="{fill: true, scrolling: scrolling}"
       :value="curValue"
       :options="cmOptions"
+      :data-testid="componentTestid + '-code-mirror'"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"

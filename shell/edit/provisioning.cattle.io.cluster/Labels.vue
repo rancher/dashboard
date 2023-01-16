@@ -20,7 +20,10 @@ export default {
 </script>
 
 <template>
-  <Tab name="labels" label-key="generic.labelsAndAnnotations">
+  <Tab
+    name="labels"
+    label-key="generic.labelsAndAnnotations"
+  >
     <Labels
       v-model="value"
       :mode="mode"

@@ -5,10 +5,17 @@ export default {
       type:     String,
       required: true,
     },
+    isOpenByDefault: {
+      // It may be useful to keep the advanced options open
+      // if the form is in edit mode and it has non-default
+      // advanced options configured.
+      type:    Boolean,
+      default: false
+    }
   },
 
-  data() {
-    return { show: false };
+  data(props) {
+    return { show: props.isOpenByDefault };
   },
 
   methods: {
@@ -21,7 +28,12 @@ export default {
 
 <template>
   <div class="mt-20">
-    <a v-t="show ? 'generic.hideAdvanced' : 'generic.showAdvanced'" class="hand block" :class="{'mb-10': show}" @click="toggle" />
+    <a
+      v-t="show ? 'generic.hideAdvanced' : 'generic.showAdvanced'"
+      class="hand block"
+      :class="{'mb-10': show}"
+      @click="toggle"
+    />
 
     <slot v-if="show" />
   </div>

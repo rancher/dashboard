@@ -1,0 +1,53 @@
+// This file encapsulates all the layout styles for some native HTML elements.
+.main-layout {
+  grid-area: main;
+  overflow: auto;
+
+  .outlet {
+    display: flex;
+    flex-direction: column;
+    padding: $space-m;
+    min-height: 100%;
+  }
+}
+
+.header-layout {
+  display: grid;
+  grid-template-areas:
+    'type-banner type-banner'
+    'title actions'
+    'state-banner state-banner';
+  grid-template-columns: auto auto;
+  margin-bottom: 20px;
+  align-content: center;
+  min-height: 48px;
+
+  .type-banner {
+    grid-area: type-banner;
+  }
+
+  .state-banner {
+    grid-area: state-banner;
+  }
+
+  .title {
+    grid-area: title;
+    align-self: center;
+  }
+
+  .actions-container {
+    grid-area: actions;
+    margin-left: 8px;
+    align-self: center;
+    text-align: right;
+  }
+
+  .role-multi-action {
+    padding: 0 $input-padding-sm;
+  }
+}
+
+.footer-layout {
+  background-color: var(--nav-bg);
+  height: var(--footer-height);
+}

@@ -10,7 +10,7 @@ export default {
     Card, Banner, AsyncButton
   },
 
-  props:      {
+  props: {
     name: {
       type:     String,
       required: true
@@ -67,25 +67,41 @@ export default {
     v-bind="$attrs"
     class="modal"
   >
-    <Card class="modal" :show-highlight-border="false">
+    <Card
+      class="modal"
+      :show-highlight-border="false"
+    >
       <template #title>
-        <h4 slot="title" class="text-default-text">
-          <slot name="title"></slot>
+        <h4
+          slot="title"
+          class="text-default-text"
+        >
+          <slot name="title" />
         </h4>
       </template>
 
       <template #body>
-        <slot name="content"></slot>
+        <slot name="content" />
 
-        <div v-for="(err,idx) in errors" :key="idx">
-          <Banner class="banner" color="error" :label="err" />
+        <div
+          v-for="(err,idx) in errors"
+          :key="idx"
+        >
+          <Banner
+            class="banner"
+            color="error"
+            :label="err"
+          />
         </div>
       </template>
 
       <template #actions>
         <slot name="footer">
           <div class="footer">
-            <button class="btn role-secondary mr-20" @click.prevent="hide">
+            <button
+              class="btn role-secondary mr-20"
+              @click.prevent="hide"
+            >
               {{ closeText }}
             </button>
 

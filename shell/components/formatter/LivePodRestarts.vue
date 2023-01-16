@@ -15,7 +15,7 @@ export default {
     return { loading: true, restarts: 0 };
   },
 
-  methods:  {
+  methods: {
     startDelayedLoading() {
       this.loading = false;
     },
@@ -34,7 +34,10 @@ export default {
 </script>
 
 <template>
-  <i v-if="loading" class="icon icon-spinner delayed-loader" />
+  <i
+    v-if="loading"
+    class="icon icon-spinner delayed-loader"
+  />
   <span v-else>{{ restarts }}</span>
 </template>
 

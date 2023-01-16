@@ -4,8 +4,8 @@ import { MANAGEMENT } from '@shell/config/types';
 import { authProvidersInfo } from '@shell/utils/auth';
 
 export default {
-  name:        'AuthConfigDetail',
-  components:  { ResourceDetail },
+  name:       'AuthConfigDetail',
+  components: { ResourceDetail },
   computed:   {
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
@@ -19,6 +19,12 @@ export default {
       // Ensure we re-evaluate the redirect in case this auth provider has been disabled
       const authProvs = await authProvidersInfo(this.$store);
 
+      // Nuxt does not remove it's loading indicator - if we are not changing route, then hide it
+      // https://nuxtjs.org/docs/features/loading/
+      if (authProvs.enabledLocation) {
+        this.$nuxt.$loading.finish();
+      }
+
       next(!authProvs.enabledLocation);
     } else {
       next();
@@ -28,5 +34,8 @@ export default {
 </script>
 
 <template>
-  <ResourceDetail :resource-override="AUTH_CONFIG" :flex-content="true" />
+  <ResourceDetail
+    :resource-override="AUTH_CONFIG"
+    :flex-content="true"
+  />
 </template>

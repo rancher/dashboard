@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
@@ -19,6 +20,7 @@ import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { clone } from '@shell/utils/object';
 import InfoBox from '@shell/components/InfoBox';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
+import ResourceManager from '@shell/mixins/resource-manager';
 
 export default {
   name: 'PersistentVolume',
@@ -39,18 +41,26 @@ export default {
     UnitInput
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, ResourceManager],
 
-  async fetch() {
-    const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
+  fetch() {
+    if (this.mode !== _CREATE) {
+      this.secondaryResourceData.namespace = this.value?.spec?.claimRef?.namespace || null;
 
-    await this.$store.dispatch('cluster/findAll', { type: PVC });
+      this.secondaryResourceData.data[PVC] = {
+        applyTo: [
+          {
+            var:         'currentClaim',
+            classify:    true,
+            parsingFunc: (data) => {
+              return data.find(claim => claim.spec.volumeName === this.value.name);
+            }
+          }
+        ]
+      };
+    }
 
-    this.storageClassOptions = storageClasses.map(s => ({
-      label: s.name,
-      value: s.name
-    }));
-    this.storageClassOptions.unshift(this.NONE_OPTION);
+    this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
   },
 
   data() {
@@ -70,16 +80,19 @@ export default {
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
-      storageClassOptions: [],
+      secondaryResourceData: this.secondaryResourceDataConfig(),
+      storageClassOptions:   [],
+      currentClaim:          null,
       plugin,
       NONE_OPTION,
       NODE,
-      initialNodeAffinity: clone(this.value.spec.nodeAffinity),
+      initialNodeAffinity:   clone(this.value.spec.nodeAffinity),
     };
   },
 
   computed: {
     showUnsupportedStorage: mapFeature(UNSUPPORTED_STORAGE_DRIVERS),
+    ...mapGetters(['currentProduct', 'currentCluster']),
 
     readWriteOnce: {
       get() {
@@ -141,6 +154,30 @@ export default {
   },
 
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: null,
+        data:      {
+          [STORAGE_CLASS]: {
+            applyTo: [
+              {
+                var:         'storageClassOptions',
+                parsingFunc: (data) => {
+                  const storageClassOptions = data.map(s => ({
+                    label: s.metadata.name,
+                    value: s.metadata.name
+                  }));
+
+                  storageClassOptions.unshift(this.NONE_OPTION);
+
+                  return storageClassOptions;
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);
@@ -196,17 +233,20 @@ export default {
       :namespaced="false"
     />
 
-    <InfoBox v-if="value.claim">
+    <InfoBox v-if="currentClaim">
       <div class="row">
         <div class="col span-6 text-center">
           <label class="text-muted">Persistent Volume Claim:</label>&nbsp;
-          <n-link :to="value.claim.detailLocation">
-            {{ value.claim.namespacedName }}
+          <n-link :to="currentClaim.detailLocation">
+            {{ currentClaim.namespacedName }}
           </n-link>
         </div>
         <div class="col span-6 text-center">
           <label class="text-muted">Age:</label>&nbsp;
-          <LiveDate class="live-date" :value="value.metadata.creationTimestamp" />
+          <LiveDate
+            class="live-date"
+            :value="value.metadata.creationTimestamp"
+          />
         </div>
       </div>
     </InfoBox>
@@ -237,8 +277,17 @@ export default {
       </div>
     </div>
     <Tabbed :side-tabs="true">
-      <Tab name="plugin-configuration" :label="t('persistentVolume.pluginConfiguration.label')" :weight="1">
-        <component :is="getComponent(plugin)" :key="plugin" :value="value" :mode="modeOverride" />
+      <Tab
+        name="plugin-configuration"
+        :label="t('persistentVolume.pluginConfiguration.label')"
+        :weight="1"
+      >
+        <component
+          :is="getComponent(plugin)"
+          :key="plugin"
+          :value="value"
+          :mode="modeOverride"
+        />
       </Tab>
       <Tab
         name="customize"
@@ -248,9 +297,27 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <h3>{{ t('persistentVolume.customize.accessModes.label') }}</h3>
-            <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolume.customize.accessModes.readWriteOnce')" :mode="mode" /></div>
-            <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolume.customize.accessModes.readOnlyMany')" :mode="mode" /></div>
-            <div><Checkbox v-model="readWriteMany" :label="t('persistentVolume.customize.accessModes.readWriteMany')" :mode="mode" /></div>
+            <div>
+              <Checkbox
+                v-model="readWriteOnce"
+                :label="t('persistentVolume.customize.accessModes.readWriteOnce')"
+                :mode="mode"
+              />
+            </div>
+            <div>
+              <Checkbox
+                v-model="readOnlyMany"
+                :label="t('persistentVolume.customize.accessModes.readOnlyMany')"
+                :mode="mode"
+              />
+            </div>
+            <div>
+              <Checkbox
+                v-model="readWriteMany"
+                :label="t('persistentVolume.customize.accessModes.readWriteMany')"
+                :mode="mode"
+              />
+            </div>
           </div>
           <div class="col span-6">
             <ArrayList
@@ -267,13 +334,24 @@ export default {
               v-model="value.spec.storageClassName"
               :label="t('persistentVolume.customize.assignToStorageClass.label')"
               :options="storageClassOptions"
+              :loading="isLoadingSecondaryResources"
             />
           </div>
         </div>
         <div class="row">
           <div class="col span-12">
-            <h3>{{ t('persistentVolume.customize.affinity.label') }} <span v-if="areNodeSelectorsRequired" class="required text-small">*</span></h3>
-            <ArrayListGrouped v-model="nodeSelectorTerms" :mode="modeOverride" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
+            <h3>
+              {{ t('persistentVolume.customize.affinity.label') }} <span
+                v-if="areNodeSelectorsRequired"
+                class="required text-small"
+              >*</span>
+            </h3>
+            <ArrayListGrouped
+              v-model="nodeSelectorTerms"
+              :mode="modeOverride"
+              :default-add-value="{matchExpressions:[]}"
+              :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+            >
               <template #default="props">
                 <MatchExpressions
                   v-model="props.row.value.matchExpressions"
@@ -294,5 +372,8 @@ export default {
 .top-level .col > .labeled-select:not(.taggable) {
   max-height: 100%;
   height: 100%;
+}
+.info-box {
+  flex-grow: 0;
 }
 </style>

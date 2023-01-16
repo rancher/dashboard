@@ -11,7 +11,7 @@ export default {
     RadioGroup,
   },
 
-  props:      {
+  props: {
     podSpec: {
       type:    Object,
       default: () => {
@@ -43,7 +43,10 @@ export default {
         return {};
       }
     },
-
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   computed: {
@@ -154,6 +157,7 @@ export default {
             :mode="mode"
             :required="true"
             :label="t('workload.storage.subtypes.secret')"
+            :loading="loading"
           />
           <LabeledSelect
             v-else-if="type==='configMap'"
@@ -162,6 +166,7 @@ export default {
             :required="true"
             :mode="mode"
             :label="t('workload.storage.subtypes.configMap')"
+            :loading="loading"
           />
         </div>
         <div class="col span-6">

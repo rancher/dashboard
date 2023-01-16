@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import CruResource from '@shell/components/CruResource';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import EmberPage from '@shell/components/EmberPage';
-import ToggleSwitch from '@shell/components/form/ToggleSwitch';
+import { ToggleSwitch } from '@components/Form/ToggleSwitch';
 import {
   CHART, FROM_CLUSTER, SUB_TYPE, _EDIT, _IMPORT, _CONFIG, _VIEW
 } from '@shell/config/query-params';
@@ -64,14 +64,23 @@ export default {
     value: {
       type:    Object,
       default: null,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'cluster-manager-create'
     }
   },
 
   async fetch() {
     const hash = {
       // These aren't explicitly used, but need to be listening for change events
-      mgmtClusters:     this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-      provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
 
       catalog: this.$store.dispatch('catalog/load'),
     };
@@ -195,10 +204,6 @@ export default {
     },
 
     rke2Enabled: mapFeature(RKE2_FEATURE),
-
-    showRkeToggle() {
-      return this.rke2Enabled && !this.isImport;
-    },
 
     provisioner: {
       get() {
@@ -343,9 +348,29 @@ export default {
 
       return sortBy(Object.values(out), 'sort');
     },
+
+    firstNodeDriverItem() {
+      return this.groupedSubTypes.findIndex(obj => [_RKE1, _RKE2].includes(obj.name));
+    },
+
+    firstCustomClusterItem() {
+      return this.groupedSubTypes.findIndex(obj => ['custom', 'custom1', 'custom2'].includes(obj.name));
+    },
   },
 
   methods: {
+    showRkeToggle(i) {
+      if (this.isImport || !this.rke2Enabled) {
+        return false;
+      }
+
+      if (this.firstNodeDriverItem >= 0) {
+        return i === this.firstNodeDriverItem;
+      }
+
+      return i === this.firstCustomClusterItem;
+    },
+
     loadStylesheet(url, id) {
       if ( !id ) {
         console.error('loadStylesheet called without an id'); // eslint-disable-line no-console
@@ -427,8 +452,14 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="emberLink" class="embed">
-    <EmberPage :force-new="true" :src="emberLink" />
+  <div
+    v-else-if="emberLink"
+    class="embed"
+  >
+    <EmberPage
+      :force-new="true"
+      :src="emberLink"
+    />
   </div>
   <CruResource
     v-else
@@ -446,11 +477,20 @@ export default {
     @error="e=>errors = e"
   >
     <template #subtypes>
-      <div v-for="obj in groupedSubTypes" :key="obj.id" class="mb-20" style="width: 100%;">
+      <div
+        v-for="(obj, i) in groupedSubTypes"
+        :key="obj.id"
+        class="mb-20"
+        style="width: 100%;"
+      >
         <h4>
-          <div v-if="showRkeToggle && [_RKE1,_RKE2].includes(obj.name)" class="grouped-type">
+          <div
+            v-if="showRkeToggle(i)"
+            class="grouped-type"
+          >
             <ToggleSwitch
               v-model="provisioner"
+              data-testid="cluster-manager-create-rke-switch"
               class="rke-switch"
               off-value="rke1"
               :off-label="t('cluster.toggle.v1')"
@@ -466,6 +506,7 @@ export default {
           name-field="label"
           side-label-field="tag"
           :color-for="colorFor"
+          :component-testid="'cluster-manager-create-grid-' + i"
           @clicked="clickedType"
         />
       </div>
@@ -486,7 +527,10 @@ export default {
       :provider="subType"
     />
 
-    <template v-if="subType" #form-footer>
+    <template
+      v-if="subType"
+      #form-footer
+    >
       <div><!-- Hide the outer footer --></div>
     </template>
   </CruResource>

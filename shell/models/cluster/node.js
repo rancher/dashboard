@@ -7,32 +7,33 @@ import { parseSi } from '@shell/utils/units';
 import findLast from 'lodash/findLast';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { LOCAL } from '@shell/config/query-params';
 
 export default class ClusterNode extends SteveModel {
   get _availableActions() {
     const normanAction = this.norman?.actions || {};
 
     const cordon = {
-      action:     'cordon',
-      enabled:    !!normanAction.cordon,
-      icon:       'icon icon-fw icon-pause',
-      label:      'Cordon',
-      total:      1,
-      bulkable:   true
+      action:   'cordon',
+      enabled:  !!normanAction.cordon,
+      icon:     'icon icon-fw icon-pause',
+      label:    'Cordon',
+      total:    1,
+      bulkable: true
     };
 
     const uncordon = {
-      action:     'uncordon',
-      enabled:    !!normanAction.uncordon,
-      icon:       'icon icon-fw icon-play',
-      label:      'Uncordon',
-      total:      1,
-      bulkable:   true
+      action:   'uncordon',
+      enabled:  !!normanAction.uncordon,
+      icon:     'icon icon-fw icon-play',
+      label:    'Uncordon',
+      total:    1,
+      bulkable: true
     };
 
     const drain = {
       action:     'drain',
-      enabled:     !!normanAction.drain,
+      enabled:    !!normanAction.drain,
       icon:       'icon icon-fw icon-dot-open',
       label:      this.t('drainNode.action'),
       bulkable:   true,
@@ -40,25 +41,25 @@ export default class ClusterNode extends SteveModel {
     };
 
     const stopDrain = {
-      action:     'stopDrain',
-      enabled:    !!normanAction.stopDrain,
-      icon:       'icon icon-fw icon-x',
-      label:      this.t('drainNode.actionStop'),
-      bulkable:   true,
+      action:   'stopDrain',
+      enabled:  !!normanAction.stopDrain,
+      icon:     'icon icon-fw icon-x',
+      label:    this.t('drainNode.actionStop'),
+      bulkable: true,
     };
 
     const openSsh = {
-      action:     'openSsh',
-      enabled:    !!this.provisionedMachine?.links?.shell,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'SSH Shell',
+      action:  'openSsh',
+      enabled: !!this.provisionedMachine?.links?.shell,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   'SSH Shell',
     };
 
     const downloadKeys = {
-      action:     'downloadKeys',
-      enabled:    !!this.provisionedMachine?.links?.sshkeys,
-      icon:       'icon icon-fw icon-download',
-      label:      this.t('node.actions.downloadSSHKey'),
+      action:  'downloadKeys',
+      enabled: !!this.provisionedMachine?.links?.sshkeys,
+      icon:    'icon icon-fw icon-download',
+      label:   this.t('node.actions.downloadSSHKey'),
     };
 
     return [
@@ -152,6 +153,14 @@ export default class ClusterNode extends SteveModel {
   }
 
   get cpuUsage() {
+    /*
+      With EKS nodes that have been migrated from norman,
+      cpu/memory usage is by the annotation `management.cattle.io/pod-requests`
+    */
+    if ( this.isFromNorman && this.provider === 'eks' ) {
+      return parseSi(this.podRequests.cpu || '0');
+    }
+
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.cpu || '0');
   }
 
@@ -164,6 +173,10 @@ export default class ClusterNode extends SteveModel {
   }
 
   get ramUsage() {
+    if ( this.isFromNorman && this.provider === 'eks' ) {
+      return parseSi(this.podRequests.memory || '0');
+    }
+
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.memory || '0');
   }
 
@@ -188,7 +201,13 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podConsumed() {
-    return this.pods.length;
+    const runningPods = this.pods.filter(pod => pod.state === 'running');
+
+    return runningPods.length || 0;
+  }
+
+  get podRequests() {
+    return JSON.parse(this.metadata.annotations['management.cattle.io/pod-requests'] || '{}');
   }
 
   get isPidPressureOk() {
@@ -254,10 +273,20 @@ export default class ClusterNode extends SteveModel {
     }));
   }
 
+  /**
+   *Find the node's cluster id from it's url
+   */
   get clusterId() {
     const parts = this.links.self.split('/');
 
-    return parts[parts.length - 4];
+    // Local cluster url links omit `/k8s/clusters/<cluster id>`
+    // `/v1/nodes` vs `k8s/clusters/c-m-274kcrc4/v1/nodes`
+    // Be safe when determining this, so work back through the url from a known point
+    if (parts.length > 6 && parts[parts.length - 6] === 'k8s' && parts[parts.length - 5] === 'clusters') {
+      return parts[parts.length - 4];
+    }
+
+    return LOCAL;
   }
 
   get normanNodeId() {
@@ -283,7 +312,13 @@ export default class ClusterNode extends SteveModel {
   }
 
   drain(resources) {
-    this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
+    this.$dispatch('promptModal', {
+      component:      'DrainNode',
+      componentProps: {
+        kubeNodes:    resources || [this],
+        normanNodeId: this.normanNodeId
+      }
+    });
   }
 
   async stopDrain(resources) {
@@ -309,12 +344,12 @@ export default class ClusterNode extends SteveModel {
   get details() {
     const details = [
       {
-        label:    this.t('node.detail.detailTop.version'),
-        content:  this.version
+        label:   this.t('node.detail.detailTop.version'),
+        content: this.version
       },
       {
-        label:    this.t('node.detail.detailTop.os'),
-        content:  this.status.nodeInfo.osImage
+        label:   this.t('node.detail.detailTop.os'),
+        content: this.status.nodeInfo.osImage
       },
       {
         label:         this.t('node.detail.detailTop.containerRuntime'),
@@ -325,17 +360,17 @@ export default class ClusterNode extends SteveModel {
 
     if (this.internalIp) {
       details.unshift({
-        label:         this.t('node.detail.detailTop.internalIP'),
-        formatter:     'CopyToClipboard',
-        content:       this.internalIp
+        label:     this.t('node.detail.detailTop.internalIP'),
+        formatter: 'CopyToClipboard',
+        content:   this.internalIp
       });
     }
 
     if (this.externalIp) {
       details.unshift({
-        label:         this.t('node.detail.detailTop.externalIP'),
-        formatter:     'CopyToClipboard',
-        content:       this.externalIp
+        label:     this.t('node.detail.detailTop.externalIP'),
+        formatter: 'CopyToClipboard',
+        content:   this.externalIp
       });
     }
 
@@ -357,14 +392,13 @@ export default class ClusterNode extends SteveModel {
   }
 
   get canDelete() {
-    const provider = this.$rootGetters['currentCluster'].provisioner.toLowerCase();
     const cloudProviders = [
       'aks', 'azureaks', 'azurekubernetesservice',
       'eks', 'amazoneks',
       'gke', 'googlegke'
     ];
 
-    return !cloudProviders.includes(provider);
+    return !cloudProviders.includes(this.provider);
   }
 
   // You need to preload CAPI.MACHINEs to use this
@@ -377,6 +411,14 @@ export default class ClusterNode extends SteveModel {
     }
 
     return null;
+  }
+
+  get isFromNorman() {
+    return (this.$rootGetters['currentCluster'].metadata.labels || {})['cattle.io/creator'] === 'norman';
+  }
+
+  get provider() {
+    return this.$rootGetters['currentCluster'].provisioner.toLowerCase();
   }
 }
 

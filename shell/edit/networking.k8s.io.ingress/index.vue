@@ -44,10 +44,11 @@ export default {
     }
   },
   async fetch() {
+    this.ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
     const hash = await allHash({
       secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
       services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      ingressClasses: this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }),
+      ingressClasses: this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
     });
 
     this.allServices = hash.services;
@@ -56,15 +57,16 @@ export default {
   },
   data() {
     return {
-      allSecrets:        [],
-      allServices:       [],
-      allIngressClasses: [],
-      fvFormRuleSets:    [
+      ingressClassSchema: null,
+      allSecrets:         [],
+      allServices:        [],
+      allIngressClasses:  [],
+      fvFormRuleSets:     [
         {
           path: 'metadata.name', rules: ['required', 'hostname'], translationKey: 'nameNsDescription.name.label'
         },
         {
-          path: 'spec.rules.host', rules: ['hostname'], translationKey: 'ingress.rules.requestHost.label'
+          path: 'spec.rules.host', rules: ['wildcardHostname'], translationKey: 'ingress.rules.requestHost.label'
         },
         {
           path: 'spec.rules.http.paths.path', rules: ['absolutePath'], translationKey: 'ingress.rules.path.label'
@@ -82,7 +84,7 @@ export default {
         {
           path: 'spec.defaultBackend.service.port.number', rules: ['required', 'requiredInt', 'portNumber'], translationKey: 'ingress.defaultBackend.port.label'
         },
-        { path: 'spec.tls.hosts', rules: ['required', 'hostname'] }
+        { path: 'spec.tls.hosts', rules: ['required', 'wildcardHostname'] }
       ],
       fvReportedValidationPaths: ['spec.rules.http.paths.backend.service.port.number', 'spec.rules.http.paths.path', 'spec.rules.http.paths.backend.service.name']
     };
@@ -207,19 +209,62 @@ export default {
       :mode="mode"
       :register-before-hook="registerBeforeHook"
     />
-    <Error :value="value.spec" :rules="fvGetAndReportPathRules('spec')" as-banner />
+    <Error
+      :value="value.spec"
+      :rules="fvGetAndReportPathRules('spec')"
+      as-banner
+    />
     <Tabbed :side-tabs="true">
-      <Tab :label="firstTabLabel" name="rules" :weight="4" :error="tabErrors.rules">
-        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" :rules="rulesPathRules" />
+      <Tab
+        :label="firstTabLabel"
+        name="rules"
+        :weight="4"
+        :error="tabErrors.rules"
+      >
+        <Rules
+          v-model="value"
+          :mode="mode"
+          :service-targets="serviceTargets"
+          :certificates="certificates"
+          :rules="rulesPathRules"
+        />
       </Tab>
-      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="3" :error="tabErrors.defaultBackend">
-        <DefaultBackend v-model="value" :service-targets="serviceTargets" :mode="mode" :rules="defaultBackendPathRules" />
+      <Tab
+        :label="t('ingress.defaultBackend.label')"
+        name="default-backend"
+        :weight="3"
+        :error="tabErrors.defaultBackend"
+      >
+        <DefaultBackend
+          v-model="value"
+          :service-targets="serviceTargets"
+          :mode="mode"
+          :rules="defaultBackendPathRules"
+        />
       </Tab>
-      <Tab v-if="!isView" :label="t('ingress.certificates.label')" name="certificates" :weight="2">
-        <Certificates v-model="value" :mode="mode" :certificates="certificates" :rules="{host: fvGetAndReportPathRules('spec.tls.hosts')}" />
+      <Tab
+        v-if="!isView"
+        :label="t('ingress.certificates.label')"
+        name="certificates"
+        :weight="2"
+      >
+        <Certificates
+          v-model="value"
+          :mode="mode"
+          :certificates="certificates"
+          :rules="{host: fvGetAndReportPathRules('spec.tls.hosts')}"
+        />
       </Tab>
-      <Tab :label="t('ingress.ingressClass.label')" name="ingress-class" :weight="1">
-        <IngressClass v-model="value" :mode="mode" :ingress-classes="ingressClasses" />
+      <Tab
+        :label="t('ingress.ingressClass.label')"
+        name="ingress-class"
+        :weight="1"
+      >
+        <IngressClass
+          v-model="value"
+          :mode="mode"
+          :ingress-classes="ingressClasses"
+        />
       </Tab>
       <Tab
         v-if="!isView"

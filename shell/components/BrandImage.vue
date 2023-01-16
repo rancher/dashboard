@@ -4,7 +4,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 
 export default {
-  props:      {
+  props: {
     fileName: {
       type:     String,
       required: true
@@ -81,5 +81,8 @@ export default {
 };
 </script>
 <template>
-  <img v-bind="$attrs" :src="pathToBrandedImage" />
+  <img
+    v-bind="$attrs"
+    :src="pathToBrandedImage"
+  >
 </template>

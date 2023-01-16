@@ -5,14 +5,15 @@ import { mapGetters } from 'vuex';
 import { isArray, removeObject } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
 import { convert, simplify } from '@shell/utils/selector';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  components: { Select },
+  components: { Select, LabeledSelect },
   props:      {
     // Array of actual match expressions
     // or k8s selector Object of {matchExpressions, matchLabels}
     value: {
-      type:     [Array, Object],
+      type:    [Array, Object],
       default: () => []
     },
 
@@ -38,6 +39,12 @@ export default {
     showRemove: {
       type:    Boolean,
       default: true
+    },
+
+    // if options are passed for keys, then the key's input will become a select
+    keysSelectOptions: {
+      type:    Array,
+      default: () => []
     }
   },
 
@@ -106,6 +113,10 @@ export default {
 
     pod() {
       return POD;
+    },
+
+    hasKeySelectOptions() {
+      return !!this.keysSelectOptions?.length;
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -195,10 +206,16 @@ export default {
           {{ row.key }}
         </div>
         <input
-          v-else
+          v-else-if="!hasKeySelectOptions"
           v-model="row.key"
           :mode="mode"
           @input="update"
+        >
+        <LabeledSelect
+          v-else
+          v-model="row.key"
+          :mode="mode"
+          :options="keysSelectOptions"
         />
       </div>
       <div
@@ -238,7 +255,7 @@ export default {
           :mode="mode"
           :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'"
           @input="update"
-        />
+        >
       </div>
       <div class="remove-container">
         <button
@@ -254,7 +271,10 @@ export default {
         </button>
       </div>
     </div>
-    <div v-if="!isView" class="mt-20">
+    <div
+      v-if="!isView"
+      class="mt-20"
+    >
       <button
         type="button"
         class="btn role-tertiary add"

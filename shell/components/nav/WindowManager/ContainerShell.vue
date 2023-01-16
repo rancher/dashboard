@@ -44,6 +44,12 @@ export default {
       required: true,
     },
 
+    // The width of the window
+    width: {
+      type:    Number,
+      default: undefined,
+    },
+
     // The pod to connect to
     pod: {
       type:     Object,
@@ -76,9 +82,10 @@ export default {
   computed: {
     xtermConfig() {
       return {
-        cursorBlink: true,
-        useStyle:    true,
-        fontSize:    12,
+        allowProposedApi: true,
+        cursorBlink:      true,
+        useStyle:         true,
+        fontSize:         12,
       };
     },
 
@@ -93,6 +100,10 @@ export default {
     },
 
     height() {
+      this.fit();
+    },
+
+    width() {
       this.fit();
     },
   },
@@ -147,10 +158,10 @@ export default {
 
       const terminal = new xterm.Terminal({
         theme: {
-          background: docStyle.getPropertyValue('--terminal-bg').trim(),
-          cursor:     docStyle.getPropertyValue('--terminal-cursor').trim(),
-          selection:  docStyle.getPropertyValue('--terminal-selection').trim(),
-          foreground: docStyle.getPropertyValue('--terminal-text').trim(),
+          background:          docStyle.getPropertyValue('--terminal-bg').trim(),
+          foreground:          docStyle.getPropertyValue('--terminal-text').trim(),
+          cursor:              docStyle.getPropertyValue('--terminal-cursor').trim(),
+          selectionBackground: docStyle.getPropertyValue('--terminal-selection').trim(),
         },
         ...this.xtermConfig,
       });
@@ -327,7 +338,10 @@ export default {
 </script>
 
 <template>
-  <Window :active="active" :before-close="cleanup">
+  <Window
+    :active="active"
+    :before-close="cleanup"
+  >
     <template #title>
       <Select
         v-if="containerChoices.length > 0"
@@ -347,29 +361,52 @@ export default {
         </template>
       </Select>
       <div class="pull-left ml-5">
-        <button class="btn btn-sm bg-primary" @click="clear">
+        <button
+          class="btn btn-sm bg-primary"
+          @click="clear"
+        >
           <t k="wm.containerShell.clear" />
         </button>
       </div>
       <div class="status pull-left">
-        <t v-if="isOpen" k="wm.connection.connected" class="text-success" />
+        <t
+          v-if="isOpen"
+          k="wm.connection.connected"
+          class="text-success"
+        />
         <t
           v-else-if="isOpening"
           k="wm.connection.connecting"
           class="text-warning"
           :raw="true"
         />
-        <t v-else k="wm.connection.disconnected" class="text-error" />
+        <t
+          v-else
+          k="wm.connection.disconnected"
+          class="text-error"
+        />
       </div>
     </template>
     <template #body>
-      <div class="shell-container" :class="{ open: isOpen, closed: !isOpen }">
-        <div ref="xterm" class="shell-body" />
+      <div
+        class="shell-container"
+        :class="{ open: isOpen, closed: !isOpen }"
+      >
+        <div
+          ref="xterm"
+          class="shell-body"
+        />
         <resize-observer @notify="fit" />
       </div>
     </template>
   </Window>
 </template>
+
+<style lang="scss">
+  .xterm-char-measure-element {
+    position: static;
+  }
+</style>
 
 <style lang="scss" scoped>
 .text-warning {
@@ -385,6 +422,9 @@ export default {
 .shell-container {
   height: 100%;
   overflow: hidden;
+  .resize-observer {
+    display: none;
+  }
 }
 
 .shell-body {
@@ -401,6 +441,7 @@ export default {
     display: inline-block;
     min-width: 200px;
     height: 30px;
+    min-height: 30px;
     width: initial;
   }
 }

@@ -105,7 +105,7 @@ export default {
     };
   },
 
-  computed:   {
+  computed: {
     ...mapGetters(['currentCluster']),
 
     isActive() {
@@ -118,6 +118,10 @@ export default {
 
     isCronJob() {
       return this.value.type === WORKLOAD_TYPES.CRON_JOB;
+    },
+
+    isPod() {
+      return this.value.type === POD;
     },
 
     podSchema() {
@@ -133,13 +137,16 @@ export default {
     },
 
     podTemplateSpec() {
-      const isCronJob = this.value.type === WORKLOAD_TYPES.CRON_JOB;
-
-      if ( isCronJob ) {
+      if ( this.value.type === WORKLOAD_TYPES.CRON_JOB ) {
         return this.value.spec.jobTemplate.spec.template.spec;
-      } else {
-        return this.value.spec?.template?.spec;
       }
+
+      // This is for viewing
+      if ( this.value.type === POD ) {
+        return this.value;
+      }
+
+      return this.value.spec?.template?.spec;
     },
 
     container() {
@@ -320,7 +327,10 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <div v-if="canScale" class="right-align flex">
+    <div
+      v-if="canScale"
+      class="right-align flex"
+    >
       <PlusMinus
         class="text-right"
         :label="t('tableHeaders.scale')"
@@ -333,7 +343,11 @@ export default {
     <h3>
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
-    <div v-if="value.pods || value.jobGauges" class="gauges mb-20" :class="{'gauges__pods': !!value.pods}">
+    <div
+      v-if="value.pods || value.jobGauges"
+      class="gauges mb-20"
+      :class="{'gauges__pods': !!value.pods}"
+    >
       <template v-if="value.jobGauges">
         <CountGauge
           v-for="(group, key) in value.jobGauges"
@@ -357,8 +371,15 @@ export default {
         />
       </template>
     </div>
-    <ResourceTabs :value="value" :always-show-events="true">
-      <Tab v-if="isCronJob" name="jobs" :label="t('tableHeaders.jobs')" :weight="4">
+    <ResourceTabs
+      :value="value"
+    >
+      <Tab
+        v-if="isCronJob"
+        name="jobs"
+        :label="t('tableHeaders.jobs')"
+        :weight="4"
+      >
         <SortableTable
           :rows="value.jobs"
           :headers="jobHeaders"
@@ -368,7 +389,12 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-else name="pods" :label="t('tableHeaders.pods')" :weight="4">
+      <Tab
+        v-else
+        name="pods"
+        :label="t('tableHeaders.pods')"
+        :weight="4"
+      >
         <SortableTable
           v-if="value.pods"
           :rows="value.pods"
@@ -379,7 +405,12 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-if="showMetrics" :label="t('workload.container.titles.metrics')" name="workload-metrics" :weight="3">
+      <Tab
+        v-if="showMetrics"
+        :label="t('workload.container.titles.metrics')"
+        name="workload-metrics"
+        :weight="3"
+      >
         <template #default="props">
           <DashboardMetrics
             v-if="props.active"
@@ -390,19 +421,41 @@ export default {
           />
         </template>
       </Tab>
-      <Tab v-if="v1MonitoringUrl" name="v1Metrics" :label="t('node.detail.tab.metrics')" :weight="10">
+      <Tab
+        v-if="v1MonitoringUrl"
+        name="v1Metrics"
+        :label="t('node.detail.tab.metrics')"
+        :weight="10"
+      >
         <div id="ember-anchor">
-          <EmberPage inline="ember-anchor" :src="v1MonitoringUrl" />
+          <EmberPage
+            inline="ember-anchor"
+            :src="v1MonitoringUrl"
+          />
         </div>
       </Tab>
-      <Tab v-if="!isJob && !isCronJob" name="services" :label="t('workload.detail.services')" :weight="3">
-        <p v-if="!serviceSchema" class="caption">
+      <Tab
+        v-if="!isJob && !isCronJob"
+        name="services"
+        :label="t('workload.detail.services')"
+        :weight="3"
+      >
+        <p
+          v-if="!serviceSchema"
+          class="caption"
+        >
           {{ t('workload.detail.cannotViewServices') }}
         </p>
-        <p v-else-if="matchingServices.length === 0" class="caption">
+        <p
+          v-else-if="matchingServices.length === 0"
+          class="caption"
+        >
           {{ t('workload.detail.cannotFindServices') }}
         </p>
-        <p v-else class="caption">
+        <p
+          v-else
+          class="caption"
+        >
           {{ t('workload.detail.serviceListCaption') }}
         </p>
         <SortableTable
@@ -416,17 +469,34 @@ export default {
           :table-actions="false"
         />
       </Tab>
-      <Tab v-if="!isJob && !isCronJob" name="ingresses" :label="t('workload.detail.ingresses')" :weight="2">
-        <p v-if="!serviceSchema" class="caption">
+      <Tab
+        v-if="!isJob && !isCronJob"
+        name="ingresses"
+        :label="t('workload.detail.ingresses')"
+        :weight="2"
+      >
+        <p
+          v-if="!serviceSchema"
+          class="caption"
+        >
           {{ t('workload.detail.cannotViewIngressesBecauseCannotViewServices') }}
         </p>
-        <p v-else-if="!ingressSchema" class="caption">
+        <p
+          v-else-if="!ingressSchema"
+          class="caption"
+        >
           {{ t('workload.detail.cannotViewIngresses') }}
         </p>
-        <p v-else-if="matchingIngresses.length === 0" class="caption">
+        <p
+          v-else-if="matchingIngresses.length === 0"
+          class="caption"
+        >
           {{ t('workload.detail.cannotFindIngresses') }}
         </p>
-        <p v-else class="caption">
+        <p
+          v-else
+          class="caption"
+        >
           {{ t('workload.detail.ingressListCaption') }}
         </p>
         <SortableTable

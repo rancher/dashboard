@@ -1,11 +1,14 @@
 <script>
+import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
-import { mapGetters } from 'vuex';
+import { Checkbox } from '@components/Form/Checkbox';
 
 export default {
-  components: { LabeledInput, RadioGroup },
-  props:      {
+  components: {
+    LabeledInput, RadioGroup, Checkbox
+  },
+  props: {
     // volumeAttributes object
     value: {
       type:    Object,
@@ -31,6 +34,23 @@ export default {
 
 <template>
   <div>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.name"
+          :required="true"
+          :mode="mode"
+          :label="t('workload.storage.volumeName')"
+        />
+      </div>
+      <div class="col span-6">
+        <Checkbox
+          v-model="value.azureDisk.readOnly"
+          :mode="mode"
+          :label="t('workload.storage.readOnly')"
+        />
+      </div>
+    </div>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput
@@ -73,7 +93,11 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.azureDisk.fsType" :mode="mode" :label="t('workload.storage.csi.fsType')" />
+        <LabeledInput
+          v-model="value.azureDisk.fsType"
+          :mode="mode"
+          :label="t('workload.storage.csi.fsType')"
+        />
       </div>
     </div>
   </div>

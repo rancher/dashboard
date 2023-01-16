@@ -135,7 +135,7 @@ export default {
       return true;
     },
     getOptionKey(opt) {
-      if (opt.optionKey) {
+      if (opt?.optionKey) {
         return get(opt, opt.optionKey);
       }
 
@@ -223,7 +223,6 @@ export default {
       :selectable="selectable"
       :value="value != null ? value : ''"
       v-on="$listeners"
-      @input="(e) => $emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"
       @open="resizeHandler"
@@ -235,8 +234,14 @@ export default {
         </div>
       </template>
       <!-- Pass down templates provided by the caller -->
-      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-        <slot :name="slot" v-bind="scope" />
+      <template
+        v-for="(_, slot) of $scopedSlots"
+        v-slot:[slot]="scope"
+      >
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
       </template>
     </v-select>
     <LabeledTooltip
@@ -263,6 +268,10 @@ export default {
       }
     }
 
+    & .vs--multiple ::v-deep .vs__selected-options .vs__selected {
+      width: auto;
+    }
+
     ::v-deep .labeled-tooltip.error .status-icon {
       top: 7px;
       right: 2px;
@@ -270,9 +279,10 @@ export default {
 
     ::v-deep .vs__selected-options {
       display: flex;
+      margin: 3px;
 
       .vs__selected {
-          width: 100%;
+          width: initial;
       }
     }
 

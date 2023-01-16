@@ -7,56 +7,56 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:           'limitsCpu',
+    value:          'limitsCpu',
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.limitsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    value:           'limitsMemory',
+    value:          'limitsMemory',
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.limitsMemory',
     placeholderKey: 'resourceQuota.projectLimit.memoryPlaceholder'
   },
   {
-    value:           'persistentVolumeClaims',
+    value:          'persistentVolumeClaims',
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.persistentVolumeClaims',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:           'pods',
+    value:          'pods',
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.pods',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:           'replicationControllers',
+    value:          'replicationControllers',
     inputExponent:  0,
     baseUnit:       '',
     labelKey:       'resourceQuota.replicationControllers',
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:           'requestsCpu',
+    value:          'requestsCpu',
     inputExponent:  -1,
     baseUnitKey:    'suffix.cpus',
     labelKey:       'resourceQuota.requestsCpu',
     placeholderKey: 'resourceQuota.projectLimit.cpuPlaceholder'
   },
   {
-    value:           'requestsMemory',
+    value:          'requestsMemory',
     inputExponent:  2,
     increment:      1024,
     labelKey:       'resourceQuota.requestsMemory',
     placeholderKey: 'resourceQuota.projectLimit.memoryPlaceholder'
   },
   {
-    value:           'requestsStorage',
+    value:          'requestsStorage',
     units:          'storage',
     inputExponent:  2,
     increment:      1024,
@@ -64,7 +64,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.storagePlaceholder'
   },
   {
-    value:           'secrets',
+    value:          'secrets',
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',
@@ -72,7 +72,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:           'services',
+    value:          'services',
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',
@@ -80,7 +80,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:           'servicesLoadBalancers',
+    value:          'servicesLoadBalancers',
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',
@@ -88,7 +88,7 @@ export const RANCHER_TYPES = [
     placeholderKey: 'resourceQuota.projectLimit.unitlessPlaceholder'
   },
   {
-    value:           'servicesNodePorts',
+    value:          'servicesNodePorts',
     units:          'unitless',
     inputExponent:  0,
     baseUnit:       '',

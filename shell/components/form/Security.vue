@@ -12,7 +12,7 @@ export default {
     LabeledSelect
   },
 
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -63,10 +63,10 @@ export default {
 
     const {
       capabilities = {},
-      runAsRoot = true,
+      runAsNonRoot = false,
       readOnlyRootFilesystem = false,
       privileged = false,
-      allowPrivilegeEscalation = true,
+      allowPrivilegeEscalation = false,
       runAsUser
     } = this.value;
     const {
@@ -78,7 +78,7 @@ export default {
       privileged,
       allowPrivilegeEscalation,
       allCapabilities,
-      runAsRoot,
+      runAsNonRoot,
       readOnlyRootFilesystem,
       add,
       drop,
@@ -105,7 +105,7 @@ export default {
   methods: {
     update() {
       const securityContext = {
-        runAsRoot:                this.runAsRoot,
+        runAsNonRoot:             this.runAsNonRoot,
         readOnlyRootFilesystem:   this.readOnlyRootFilesystem,
         capabilities:             { add: this.add, drop: this.drop },
         privileged:               this.privileged,
@@ -115,6 +115,7 @@ export default {
 
       this.$emit('input', securityContext);
     }
+
   }
 };
 </script>
@@ -155,7 +156,7 @@ export default {
         </div>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div>
       <div class="row">
@@ -164,13 +165,13 @@ export default {
           class="col span-6"
         >
           <RadioGroup
+            v-model="runAsNonRoot"
             name="runasNonRoot"
             :label="t('workload.container.security.runAsNonRoot.label')"
-            :value="!runAsRoot"
             :options="[false, true]"
             :labels="[t('workload.container.security.runAsNonRoot.false'), t('workload.container.security.runAsNonRoot.true')]"
             :mode="mode"
-            @input="e=>{runAsRoot = !e; update()}"
+            @input="update"
           />
         </div>
         <div
@@ -189,7 +190,7 @@ export default {
         </div>
       </div>
     </div>
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div
       data-testid="input-security-runAsUser"

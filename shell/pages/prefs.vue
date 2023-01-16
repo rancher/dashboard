@@ -1,32 +1,42 @@
 <script>
 import day from 'dayjs';
 import { mapGetters } from 'vuex';
+import { isAdminUser } from '@shell/store/type-map';
 import BackLink from '@shell/components/BackLink';
 import BackRoute from '@shell/mixins/back-link';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import { Checkbox } from '@components/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
-  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS
+  mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS,
+  VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT, PLUGIN_DEVELOPER, SCALE_POOL_PROMPT
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
+import LocaleSelector from '@shell/components/LocaleSelector';
 
 export default {
   layout:     'plain',
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector
   },
-  mixins:     [BackRoute],
-  computed:   {
-    keymap:          mapPref(KEYMAP),
-    dev:             mapPref(DEV),
-    dateFormat:      mapPref(DATE_FORMAT),
-    timeFormat:      mapPref(TIME_FORMAT),
-    perPage:         mapPref(ROWS_PER_PAGE),
-    hideDesc:        mapPref(HIDE_DESC),
-    showPreRelease:  mapPref(SHOW_PRE_RELEASE),
-    menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
+  mixins: [BackRoute],
+  data() {
+    return { admin: isAdminUser(this.$store.getters) };
+  },
+  computed: {
+    keymap:            mapPref(KEYMAP),
+    viewInApi:         mapPref(VIEW_IN_API),
+    allNamespaces:     mapPref(ALL_NAMESPACES),
+    themeShortcut:     mapPref(THEME_SHORTCUT),
+    dateFormat:        mapPref(DATE_FORMAT),
+    timeFormat:        mapPref(TIME_FORMAT),
+    perPage:           mapPref(ROWS_PER_PAGE),
+    hideDesc:          mapPref(HIDE_DESC),
+    showPreRelease:    mapPref(SHOW_PRE_RELEASE),
+    menuMaxClusters:   mapPref(MENU_MAX_CLUSTERS),
+    pluginDeveloper:   mapPref(PLUGIN_DEVELOPER),
+    scalingDownPrompt: mapPref(SCALE_POOL_PROMPT),
 
     ...mapGetters(['isSingleProduct']),
 
@@ -137,99 +147,165 @@ export default {
         this.hideDesc = val;
       }
     },
-  },
+  }
 };
 </script>
 
 <template>
   <div>
     <BackLink :link="backLink" />
-    <h1 v-t="'prefs.title'" />
-
-    <h4 v-t="'prefs.theme.label'" />
-    <div>
-      <ButtonGroup v-model="theme" :options="themeOptions" />
+    <h1
+      v-t="'prefs.title'"
+      class="mb-20"
+    />
+    <!-- Language -->
+    <div class="mt-10 mb-10">
+      <h4 v-t="'prefs.language'" />
+      <div class="row">
+        <div class="col span-4">
+          <LocaleSelector />
+        </div>
+      </div>
     </div>
-    <div class="mt-10">
-      <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
+    <!-- Theme -->
+    <div class="mt-10 mb-10">
+      <hr>
+      <h4 v-t="'prefs.theme.label'" />
+      <ButtonGroup
+        v-model="theme"
+        :options="themeOptions"
+      />
+      <div class="mt-10">
+        <t
+          k="prefs.theme.autoDetail"
+          :pm="pm"
+          :am="am"
+        />
+      </div>
     </div>
-    <div v-if="!isSingleProduct">
-      <hr />
+    <!-- Login landing page -->
+    <div
+      v-if="!isSingleProduct"
+      class="mt-10 mb-10"
+    >
+      <hr>
       <h4 v-t="'prefs.landing.label'" />
       <LandingPagePreference />
     </div>
-    <hr />
-    <h4 v-t="'prefs.formatting'" />
-    <div class="row">
-      <div class="col span-4">
-        <LabeledSelect
-          v-model="dateFormat"
-          :label="t('prefs.dateFormat.label')"
-          :options="dateOptions"
-        />
-      </div>
-      <div class="col span-4">
-        <LabeledSelect
-          v-model="timeFormat"
-          :label="t('prefs.timeFormat.label')"
-          :options="timeOptions"
-        />
-      </div>
-
-      <div class="col span-4">
-        <LabeledSelect
-          v-model.number="perPage"
-          :label="t('prefs.perPage.label')"
-          :options="perPageOptions"
-          option-key="value"
-          option-label="label"
-          placeholder="Select a row count"
-        />
-      </div>
-    </div>
-
-    <div class="row mt-20">
-      <div class="col span-4">
-        <LabeledSelect
-          v-model.number="menuMaxClusters"
-          :label="t('prefs.clusterToShow.label')"
-          :options="menuClusterOptions"
-          option-key="value"
-          option-label="label"
-          placeholder="Select a row count"
-        />
-      </div>
-    </div>
-
-    <hr />
-    <div class="row">
-      <div class="col prefs-advanced">
-        <h4 v-t="'prefs.advanced'" />
-        <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
-        <p class="wrap-text">
-          {{ t('prefs.advancedTooltip', {}, raw=true) }}
-        </p>
-        <br>
-        <Checkbox v-if="!isSingleProduct" v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" class="mt-10" />
-      </div>
-    </div>
-
-    <hr />
-    <div class="row">
-      <div class="col span-12">
-        <h4 v-t="'prefs.keymap.label'" />
-        <ButtonGroup v-model="keymap" :options="keymapOptions" />
-      </div>
-    </div>
-
-    <div v-if="!isSingleProduct">
-      <hr />
-      <div class="row mb-20">
-        <div class="col span-12">
-          <h4 v-t="'prefs.helm.label'" />
-          <ButtonGroup v-model="showPreRelease" :options="helmOptions" />
+    <!-- Display Settings -->
+    <div class="mt-10 mb-10">
+      <hr>
+      <h4 v-t="'prefs.displaySettings.title'" />
+      <p class="set-landing-leadin">
+        {{ t('prefs.displaySettings.detail', {}, raw=true) }}
+      </p>
+      <div class="row mt-20">
+        <div class="col span-4">
+          <LabeledSelect
+            v-model="dateFormat"
+            :label="t('prefs.dateFormat.label')"
+            :options="dateOptions"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledSelect
+            v-model="timeFormat"
+            :label="t('prefs.timeFormat.label')"
+            :options="timeOptions"
+          />
         </div>
       </div>
+
+      <div class="row mt-20">
+        <div class="col span-4">
+          <LabeledSelect
+            v-model.number="perPage"
+            :label="t('prefs.perPage.label')"
+            :options="perPageOptions"
+            option-key="value"
+            option-label="label"
+            placeholder="Select a row count"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledSelect
+            v-model.number="menuMaxClusters"
+            :label="t('prefs.clusterToShow.label')"
+            :options="menuClusterOptions"
+            option-key="value"
+            option-label="label"
+            placeholder="Select a row count"
+          />
+        </div>
+      </div>
+    </div>
+    <!-- Confirmation setting -->
+    <div class="col adv-features mt-10 mb-10">
+      <hr>
+      <h4 v-t="'prefs.confirmationSetting.title'" />
+      <Checkbox
+        v-model="scalingDownPrompt"
+        :label="t('prefs.confirmationSetting.scalingDownPrompt')"
+        class="mt-10"
+      />
+    </div>
+    <!-- Advanced Features -->
+    <div class="col adv-features mt-10 mb-10">
+      <hr>
+      <h4 v-t="'prefs.advFeatures.title'" />
+      <Checkbox
+        v-model="viewInApi"
+        :label="t('prefs.advFeatures.viewInApi', {}, true)"
+        class="mt-10"
+      />
+      <br>
+      <Checkbox
+        v-model="allNamespaces"
+        :label="t('prefs.advFeatures.allNamespaces', {}, true)"
+        class="mt-20"
+      />
+      <br>
+      <Checkbox
+        v-model="themeShortcut"
+        :label="t('prefs.advFeatures.themeShortcut', {}, true)"
+        class="mt-20"
+      />
+      <br>
+      <Checkbox
+        v-if="!isSingleProduct"
+        v-model="hideDescriptions"
+        :label="t('prefs.hideDesc.label')"
+        class="mt-20"
+      />
+      <template v-if="admin">
+        <br>
+        <Checkbox
+          v-model="pluginDeveloper"
+          :label="t('prefs.advFeatures.pluginDeveloper', {}, true)"
+          class="mt-20"
+        />
+      </template>
+    </div>
+    <!-- YAML editor key mapping -->
+    <div class="col mt-10 mb-10">
+      <hr>
+      <h4 v-t="'prefs.keymap.label'" />
+      <ButtonGroup
+        v-model="keymap"
+        :options="keymapOptions"
+      />
+    </div>
+    <!-- Helm Charts -->
+    <div
+      v-if="!isSingleProduct"
+      class="col mt-10 mb-40"
+    >
+      <hr>
+      <h4 v-t="'prefs.helm.label'" />
+      <ButtonGroup
+        v-model="showPreRelease"
+        :options="helmOptions"
+      />
     </div>
   </div>
 </template>

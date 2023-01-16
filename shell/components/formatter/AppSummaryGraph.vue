@@ -41,11 +41,11 @@ export default {
         } else {
           out[key] = {
             key,
-            label:     state,
-            color:     textColor.replace(/text-/, 'bg-'),
+            label: state,
+            color: textColor.replace(/text-/, 'bg-'),
             textColor,
-            value:     1,
-            sort:      stateSort(textColor, state),
+            value: 1,
+            sort:  stateSort(textColor, state),
           };
         }
       }
@@ -93,17 +93,32 @@ export default {
     :trigger="show ? 'click' : 'manual'"
     offset="1"
   >
-    <ProgressBarMulti :values="colorParts" class="mb-5" />
-    <n-link v-if="linkTo" :to="linkTo">
+    <ProgressBarMulti
+      :values="colorParts"
+      class="mb-5"
+    />
+    <n-link
+      v-if="linkTo"
+      :to="linkTo"
+    >
       {{ displayLabel }}
     </n-link>
     <span v-else>{{ displayLabel }}</span>
 
     <template #popover>
-      <table v-if="show" class="fixed">
+      <table
+        v-if="show"
+        class="fixed"
+      >
         <tbody>
-          <tr v-for="obj in stateParts" :key="obj.key">
-            <td class="text-left pr-20" :class="{[obj.textColor]: true}">
+          <tr
+            v-for="obj in stateParts"
+            :key="obj.key"
+          >
+            <td
+              class="text-left pr-20"
+              :class="{[obj.textColor]: true}"
+            >
               {{ obj.label }}
             </td>
             <td class="text-right">
@@ -114,7 +129,10 @@ export default {
       </table>
     </template>
   </v-popover>
-  <div v-else class="text-center text-muted">
+  <div
+    v-else
+    class="text-center text-muted"
+  >
     &mdash;
   </div>
 </template>

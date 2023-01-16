@@ -19,7 +19,7 @@ export default {
   components: {
     ArrayList, Banner, LabeledInput, LabeledSelect, MatchExpressions
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -65,8 +65,8 @@ export default {
       portOptions:   ['TCP', 'UDP'],
       matchingPods,
       matchingNamespaces,
-      invalidCidr:    null,
-      invalidCidrs:    [],
+      invalidCidr:   null,
+      invalidCidrs:  [],
       TARGET_OPTION_IP_BLOCK,
       TARGET_OPTION_NAMESPACE_SELECTOR,
       TARGET_OPTION_POD_SELECTOR,
@@ -216,7 +216,10 @@ export default {
           />
         </div>
       </div>
-      <div v-if="invalidCidr" class="row">
+      <div
+        v-if="invalidCidr"
+        class="row"
+      >
         <div class="col span-12">
           <Banner color="error">
             <t k="networkpolicy.rules.ipBlock.invalidCidr" />
@@ -235,7 +238,10 @@ export default {
           />
         </div>
       </div>
-      <div v-if="invalidCidrs.length" class="row mb-10">
+      <div
+        v-if="invalidCidrs.length"
+        class="row mb-10"
+      >
         <div class="col span-12">
           <Banner color="error">
             <t k="networkpolicy.rules.ipBlock.invalidExceptionCidrs" />{{ invalidCidrs.join(', ') }}

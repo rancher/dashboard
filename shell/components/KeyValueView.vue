@@ -8,7 +8,7 @@ export default {
 
   props: {
     value: {
-      type:     [Array, Object],
+      type:    [Array, Object],
       default: null,
     },
 
@@ -141,7 +141,10 @@ export default {
 
 <template>
   <div class="key-value">
-    <div v-if="title" class="clearfix">
+    <div
+      v-if="title"
+      class="clearfix"
+    >
       <slot name="title">
         <h3>
           {{ title }}
@@ -149,7 +152,10 @@ export default {
       </slot>
     </div>
 
-    <div class="kv-container" :class="{'extra-column':threeColumns}">
+    <div
+      class="kv-container"
+      :class="{'extra-column':threeColumns}"
+    >
       <label class="text-label">
         {{ keyLabel }}
       </label>
@@ -158,20 +164,30 @@ export default {
       </label>
       <span v-if="threeColumns" />
 
-      <div v-if="!rows.length" class="kv-row last" :class="{'extra-column':threeColumns}">
+      <div
+        v-if="!rows.length"
+        class="kv-row last"
+        :class="{'extra-column':threeColumns}"
+      >
         <div class="text-muted">
           &mdash;
         </div>
         <div class="text-muted">
           &mdash;
         </div>
-        <div v-if="threeColumns" class="text-muted">
+        <div
+          v-if="threeColumns"
+          class="text-muted"
+        >
           &mdash;
         </div>
       </div>
 
       <template v-for="(row,i) in rows">
-        <div :key="i+'key'" class="kv-item key">
+        <div
+          :key="i+'key'"
+          class="kv-item key"
+        >
           <slot
             name="key"
             :row="row"
@@ -181,8 +197,14 @@ export default {
           </slot>
         </div>
 
-        <div :key="i+'value'" class="kv-item value">
-          <slot name="value" :row="row">
+        <div
+          :key="i+'value'"
+          class="kv-item value"
+        >
+          <slot
+            name="value"
+            :row="row"
+          >
             <span v-if="row.binary">{{ t('detailText.binary', {n: row.byteSize}) }}</span>
             <span v-else-if="row.empty">{{ t('detailText.empty') }}</span>
             <span v-else>{{ row.value }}</span>

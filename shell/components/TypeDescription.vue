@@ -1,12 +1,14 @@
 <script>
+import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
 import { addObject } from '@shell/utils/array';
+import { CATALOG } from '@shell/config/types';
 
 export default {
   components: { Banner },
 
-  props:      {
+  props: {
     resource: {
       type:     String,
       required: true
@@ -14,10 +16,17 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     hideDescriptions: mapPref(HIDE_DESC),
 
     typeDescriptionKey() {
-      const key = `typeDescription."${ this.resource }"`;
+      let key;
+
+      if (this.resource === CATALOG.CLUSTER_REPO) {
+        key = !this.currentCluster || this.currentCluster.isLocal ? 'typeDescription."catalog.cattle.io.clusterrepo.local"' : 'typeDescription."catalog.cattle.io.clusterrepo"';
+      } else {
+        key = `typeDescription."${ this.resource }"`;
+      }
 
       if ( this.hideDescriptions.includes(this.resource) || this.hideDescriptions.includes('ALL') ) {
         return false;

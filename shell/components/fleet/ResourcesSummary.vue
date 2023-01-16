@@ -32,7 +32,7 @@ export default {
         obj[state] = {
           count: 0,
           color: state,
-          label:  this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ state }`, null, state)
+          label: this.$store.getters['i18n/withFallback'](`${ this.stateKey }.${ state }`, null, state)
         };
 
         return obj;
@@ -67,7 +67,11 @@ export default {
 
 <template>
   <div class="row flexwrap">
-    <div v-for="(v, k) in counts" :key="k" class="col countbox">
+    <div
+      v-for="(v, k) in counts"
+      :key="k"
+      class="col countbox"
+    >
       <CountBox
         :compact="true"
         :count="v['count']"

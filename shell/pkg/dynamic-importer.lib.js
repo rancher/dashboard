@@ -53,6 +53,10 @@ export function resolveList(key) {
   return undefined;
 }
 
+export function resolveChart(key) {
+  return undefined;
+}
+
 export function resolveEdit(key) {
   return undefined;
 }
@@ -66,5 +70,13 @@ export function importWindowComponent(name) {
 }
 
 export function resolveWindowComponent(key) {
+  return undefined;
+}
+
+export function resolveMachineConfigComponent(key) {
+  return undefined;
+}
+
+export function resolveCloudCredentialComponent(key) {
   return undefined;
 }

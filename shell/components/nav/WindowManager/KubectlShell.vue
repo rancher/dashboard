@@ -5,7 +5,7 @@ import ContainerShell from './ContainerShell';
 export default {
   extends: ContainerShell,
 
-  props:      {
+  props: {
     // The definition of the tab itself
     cluster: {
       type:     Object,
@@ -28,11 +28,11 @@ export default {
       }
 
       const url = addParams(`${ this.cluster.links.shell.replace(/^http/, 'ws') }`, {
-        stdout:    1,
-        stdin:     1,
-        stderr:    1,
-        tty:       1,
-        command:   cmd
+        stdout:  1,
+        stdin:   1,
+        stderr:  1,
+        tty:     1,
+        command: cmd
       });
 
       return url;

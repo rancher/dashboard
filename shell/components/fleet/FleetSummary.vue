@@ -10,7 +10,7 @@ const getResourceDefaultState = (labelGetter, stateKey) => {
       color: STATES[STATES_ENUM.READY].color,
       label: labelGetter(`${ stateKey }.${ STATES_ENUM.READY }`, null, STATES[STATES_ENUM.READY].label )
     },
-    info:    {
+    info: {
       count: 0,
       color: STATES[STATES_ENUM.INFO].color,
       label: labelGetter(`${ stateKey }.${ STATES_ENUM.INFO }`, null, STATES[STATES_ENUM.INFO].label )
@@ -25,19 +25,19 @@ const getResourceDefaultState = (labelGetter, stateKey) => {
       color: STATES[STATES_ENUM.NOT_READY].color,
       label: labelGetter(`${ stateKey }.${ STATES_ENUM.NOT_READY }`, null, STATES[STATES_ENUM.NOT_READY].label )
     },
-    error:   {
+    error: {
       count: 0,
       color: STATES[STATES_ENUM.ERROR].color,
       label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERROR }`, null, STATES[STATES_ENUM.ERROR].label )
 
     },
-    errapplied:   {
+    errapplied: {
       count: 0,
       color: STATES[STATES_ENUM.ERR_APPLIED].color,
       label: labelGetter(`${ stateKey }.${ STATES_ENUM.ERR_APPLIED }`, null, STATES[STATES_ENUM.ERR_APPLIED].label )
 
     },
-    waitapplied:   {
+    waitapplied: {
       count: 0,
       color: STATES[STATES_ENUM.WAIT_APPLIED].color,
       label: labelGetter(`${ stateKey }.${ STATES_ENUM.WAIT_APPLIED }`, null, STATES[STATES_ENUM.WAIT_APPLIED].label )
@@ -62,7 +62,7 @@ export default {
       type:    Array,
       default: () => [],
     },
-    value:   {
+    value: {
       type:     Object,
       required: true,
     },
@@ -84,6 +84,12 @@ export default {
       const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
       resources.forEach(({ status, metadata }) => {
+        if (!status) {
+          out[STATES_ENUM.UNKNOWN].count += 1;
+
+          return;
+        }
+
         const k = status?.summary.ready > 0 && status?.summary.desiredReady === status.summary.ready;
 
         if (k) {
@@ -169,8 +175,16 @@ export default {
 
 <template>
   <div class="row flexwrap">
-    <FleetStatus title="Bundles" :values="bundleCounts" value-key="count" />
-    <FleetStatus title="Resources" :values="resourceCounts" value-key="count" />
+    <FleetStatus
+      title="Bundles"
+      :values="bundleCounts"
+      value-key="count"
+    />
+    <FleetStatus
+      title="Resources"
+      :values="resourceCounts"
+      value-key="count"
+    />
   </div>
 </template>
 <style lang="scss" scoped>

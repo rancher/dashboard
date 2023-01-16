@@ -30,8 +30,8 @@ export default {
 
   data() {
     return {
-      showLastVersions:  10,
-      showMoreVersions:  false,
+      showLastVersions: 10,
+      showMoreVersions: false,
     };
   },
 
@@ -96,8 +96,8 @@ export default {
       this.$router.push({
         name:   'c-cluster-apps-charts-install',
         params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
+          cluster: this.$route.params.cluster,
+          product: this.$store.getters['productId'],
         },
         query: {
           [REPO_TYPE]: this.query.repoType,
@@ -117,11 +117,17 @@ export default {
   <div v-else>
     <TypeDescription resource="chart" />
 
-    <div v-if="chart" class="chart-header">
+    <div
+      v-if="chart"
+      class="chart-header"
+    >
       <div class="name-logo-install">
         <div class="name-logo">
           <div class="logo-bg">
-            <LazyImage :src="chart.icon" class="logo" />
+            <LazyImage
+              :src="chart.icon"
+              class="logo"
+            />
           </div>
           <h1>
             <nuxt-link :to="{ name: 'c-cluster-apps-charts' }">
@@ -130,57 +136,111 @@ export default {
             {{ chart.chartNameDisplay }} ({{ targetVersion }})
           </h1>
         </div>
-        <button v-if="!requires.length" type="button" class="btn role-primary" @click.prevent="install">
+        <button
+          v-if="!requires.length"
+          type="button"
+          class="btn role-primary"
+          @click.prevent="install"
+        >
           {{ t(`asyncButton.${action}.action` ) }}
         </button>
       </div>
-      <div v-if="chart.windowsIncompatible" class="mt-5">
+      <div
+        v-if="chart.windowsIncompatible"
+        class="mt-5"
+      >
         <label class="os-label">{{ t('catalog.charts.windowsIncompatible') }}</label>
       </div>
-      <div v-if="requires.length || warnings.length || targetedAppWarning || osWarning" class="mt-20">
-        <Banner v-if="osWarning" color="error">
+      <div
+        v-if="requires.length || warnings.length || targetedAppWarning || osWarning"
+        class="mt-20"
+      >
+        <Banner
+          v-if="osWarning"
+          color="error"
+        >
           <span v-html="osWarning" />
         </Banner>
-        <Banner v-for="msg in requires" :key="msg" color="error">
+        <Banner
+          v-for="msg in requires"
+          :key="msg"
+          color="error"
+        >
           <span v-html="msg" />
         </Banner>
 
-        <Banner v-for="msg in warnings" :key="msg" color="warning">
+        <Banner
+          v-for="msg in warnings"
+          :key="msg"
+          color="warning"
+        >
           <span v-html="msg" />
         </Banner>
 
-        <Banner v-if="targetedAppWarning" color="warning">
+        <Banner
+          v-if="targetedAppWarning"
+          color="warning"
+        >
           <span v-html="targetedAppWarning" />
         </Banner>
       </div>
-      <div v-else-if="version && version.description" class="description mt-10">
+      <div
+        v-else-if="version && version.description"
+        class="description mt-10"
+      >
         <p>
           {{ version.description }}
         </p>
       </div>
     </div>
 
-    <div class="spacer"></div>
+    <div class="spacer" />
 
     <div class="chart-content">
-      <ChartReadme v-if="hasReadme" :version-info="versionInfo" class="chart-content__tabs" />
-      <div v-else class="chart-content__tabs">
+      <ChartReadme
+        v-if="hasReadme"
+        :version-info="versionInfo"
+        class="chart-content__tabs"
+      />
+      <div
+        v-else
+        class="chart-content__tabs"
+      >
         {{ t('catalog.install.appReadmeMissing', {}, true) }}
       </div>
-      <div v-if="version" class="chart-content__right-bar ml-20">
+      <div
+        v-if="version"
+        class="chart-content__right-bar ml-20"
+      >
         <div class="chart-content__right-bar__section">
           <h3>
             {{ t('catalog.chart.info.chartVersions.label') }}
           </h3>
-          <div v-for="vers of versions" :key="vers.id" class="chart-content__right-bar__section--cVersion">
+          <div
+            v-for="vers of versions"
+            :key="vers.id"
+            class="chart-content__right-bar__section--cVersion"
+          >
             <b v-if="vers.originalVersion === version.version">{{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}</b>
-            <a v-else v-tooltip="vers.label.length > 16 ? vers.label : null" @click.prevent="selectVersion(vers)">
+            <a
+              v-else
+              v-tooltip="vers.label.length > 16 ? vers.label : null"
+              @click.prevent="selectVersion(vers)"
+            >
               {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}
             </a>
-            <DateFormatter :value="vers.created" :show-time="false" />
+            <DateFormatter
+              :value="vers.created"
+              :show-time="false"
+            />
           </div>
           <div class="mt-10 chart-content__right-bar__section--showMore">
-            <button v-if="mappedVersions.length > showLastVersions" type="button" class="btn btn-sm role-link" @click="showMoreVersions = !showMoreVersions">
+            <button
+              v-if="mappedVersions.length > showLastVersions"
+              type="button"
+              class="btn btn-sm role-link"
+              @click="showMoreVersions = !showMoreVersions"
+            >
               {{ t(`catalog.chart.info.chartVersions.${showMoreVersions ? 'showLess' : 'showMore'}`) }}
             </button>
           </div>
@@ -191,23 +251,60 @@ export default {
           </h3>
           {{ version.appVersion }}
         </div>
-        <div v-if="version.home" class="chart-content__right-bar__section">
+        <div
+          v-if="version.home"
+          class="chart-content__right-bar__section"
+        >
           <h3>{{ t('catalog.chart.info.home') }}</h3>
-          <a :href="version.home" rel="nofollow noopener noreferrer" target="_blank">{{ version.home }}</a>
+          <a
+            :href="version.home"
+            rel="nofollow noopener noreferrer"
+            target="_blank"
+          >{{ version.home }}</a>
         </div>
-        <div v-if="version.maintainers" class="chart-content__right-bar__section">
+        <div
+          v-if="version.maintainers"
+          class="chart-content__right-bar__section"
+        >
           <h3>{{ t('catalog.chart.info.maintainers') }}</h3>
-          <a v-for="m of maintainers" :key="m.id" :href="m.url" rel="nofollow noopener noreferrer" target="_blank">{{ m.text }}</a>
+          <a
+            v-for="m of maintainers"
+            :key="m.id"
+            :href="m.url"
+            rel="nofollow noopener noreferrer"
+            target="_blank"
+          >{{ m.text }}</a>
         </div>
-        <div v-if="version.sources" class="chart-content__right-bar__section">
+        <div
+          v-if="version.sources"
+          class="chart-content__right-bar__section"
+        >
           <h3>{{ t('catalog.chart.info.related') }}</h3>
-          <a v-for="s of version.sources" :key="s" :href="s" rel="nofollow noopener noreferrer" target="_blank">{{ s }}</a>
+          <a
+            v-for="s of version.sources"
+            :key="s"
+            :href="s"
+            rel="nofollow noopener noreferrer"
+            target="_blank"
+          >{{ s }}</a>
         </div>
-        <div v-if="version.urls" class="chart-content__right-bar__section">
+        <div
+          v-if="version.urls"
+          class="chart-content__right-bar__section"
+        >
           <h3>{{ t('catalog.chart.info.chartUrls') }}</h3>
-          <a v-for="url of version.urls" :key="url" :href="url" rel="nofollow noopener noreferrer" target="_blank">{{ version.urls.length === 1 ? 'Download': url }}</a>
+          <a
+            v-for="url of version.urls"
+            :key="url"
+            :href="url"
+            rel="nofollow noopener noreferrer"
+            target="_blank"
+          >{{ version.urls.length === 1 ? 'Download': url }}</a>
         </div>
-        <div v-if="version.keywords" class="chart-content__right-bar__section chart-content__right-bar__section--keywords">
+        <div
+          v-if="version.keywords"
+          class="chart-content__right-bar__section chart-content__right-bar__section--keywords"
+        >
           <h3>{{ t('catalog.chart.info.keywords') }}</h3>
           {{ version.keywords.join(', ') }}
         </div>

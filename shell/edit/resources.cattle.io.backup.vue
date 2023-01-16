@@ -48,9 +48,9 @@ export default {
     await this.$store.dispatch('catalog/load');
 
     const hash = await allHash({
-      secrets:      this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      secrets:     this.$store.dispatch('cluster/findAll', { type: SECRET }),
       resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
-      apps:         this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      apps:        this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
 
     });
 
@@ -187,7 +187,13 @@ export default {
       @finish="save"
     >
       <template>
-        <NameNsDescription :mode="mode" :value="value" :namespaced="false" :rules="{name: fvGetAndReportPathRules('metadata.name')}" @change="name=value.metadata.name" />
+        <NameNsDescription
+          :mode="mode"
+          :value="value"
+          :namespaced="false"
+          :rules="{name: fvGetAndReportPathRules('metadata.name')}"
+          @change="name=value.metadata.name"
+        />
         <template v-if="!!resourceSet">
           <div class="bordered-section">
             <RadioGroup
@@ -198,12 +204,26 @@ export default {
               :options="[false, true]"
               :labels="[t('backupRestoreOperator.schedule.options.disabled'), t('backupRestoreOperator.schedule.options.enabled')]"
             />
-            <div v-if="setSchedule" class="row mt-10 mb-10">
+            <div
+              v-if="setSchedule"
+              class="row mt-10 mb-10"
+            >
               <div class="col span-6">
-                <LabeledInput v-model="value.spec.schedule" type="cron" :mode="mode" :label="t('backupRestoreOperator.schedule.label')" :placeholder="t('backupRestoreOperator.schedule.placeholder')" />
+                <LabeledInput
+                  v-model="value.spec.schedule"
+                  type="cron"
+                  :mode="mode"
+                  :label="t('backupRestoreOperator.schedule.label')"
+                  :placeholder="t('backupRestoreOperator.schedule.placeholder')"
+                />
               </div>
               <div class="col span-6">
-                <UnitInput v-model="value.spec.retentionCount" :suffix="t('backupRestoreOperator.retentionCount.units', {count: value.spec.retentionCount || 0})" :mode="mode" :label="t('backupRestoreOperator.retentionCount.label')" />
+                <UnitInput
+                  v-model="value.spec.retentionCount"
+                  :suffix="t('backupRestoreOperator.retentionCount.units', {count: value.spec.retentionCount || 0})"
+                  :mode="mode"
+                  :label="t('backupRestoreOperator.retentionCount.label')"
+                />
               </div>
             </div>
           </div>
@@ -221,7 +241,11 @@ export default {
                 />
               </div>
             </div>
-            <div v-if="useEncryption" :style="{'align-items':'center'}" class="row mt-10">
+            <div
+              v-if="useEncryption"
+              :style="{'align-items':'center'}"
+              class="row mt-10"
+            >
               <div class="col span-6">
                 <LabeledSelect
                   v-model="value.spec.encryptionConfigSecretName"
@@ -237,7 +261,10 @@ export default {
 
           <div class="row">
             <div class="col span-12">
-              <span v-if="isView" class="text-label">{{ t('backupRestoreOperator.s3.titles.location') }}</span>
+              <span
+                v-if="isView"
+                class="text-label"
+              >{{ t('backupRestoreOperator.s3.titles.location') }}</span>
               <RadioGroup
                 v-else
                 v-model="storageSource"
@@ -253,7 +280,11 @@ export default {
           <template v-if="storageSource !== 'useDefault'">
             <div class="row mt-10">
               <div class="col span-12">
-                <S3 :value="s3" :secrets="allSecrets" :mode="mode" />
+                <S3
+                  :value="s3"
+                  :secrets="allSecrets"
+                  :mode="mode"
+                />
               </div>
             </div>
           </template>
@@ -261,7 +292,10 @@ export default {
             <span>{{ t('generic.default') }}</span>
           </template>
         </template>
-        <Banner v-else color="error">
+        <Banner
+          v-else
+          color="error"
+        >
           <span v-html="t('backupRestoreOperator.noResourceSet')" />
         </Banner>
       </template>

@@ -63,7 +63,7 @@ export function importDialog(name) {
     throw new Error('Name required');
   }
 
-  return () => import(/* webpackChunkName: "dialog" */ `@shell/components/dialog/${name}`);
+  return () => import(/* webpackChunkName: "dialog" */ `@shell/dialog/${name}`);
 }
 
 export function importWindowComponent(name) {
@@ -107,6 +107,10 @@ export function resolveList(key) {
   return require.resolve(`@shell/list/${ key }`);
 }
 
+export function resolveChart(key) {
+  return require.resolve(`@shell/chart/${ key }`);
+}
+
 export function resolveEdit(key) {
   return require.resolve(`@shell/edit/${ key }`);
 }
@@ -117,4 +121,12 @@ export function resolveDetail(key) {
 
 export function resolveWindowComponent(key) {
   return require.resolve(`@shell/components/nav/WindowManager/${ key }`);
+}
+
+export function resolveMachineConfigComponent(key) {
+  return require.resolve(`@shell/machine-config/${ key }`);
+}
+
+export function resolveCloudCredentialComponent(key) {
+  return require.resolve(`@shell/cloud-credential/${ key }`);
 }

@@ -33,7 +33,7 @@ export default {
   },
   data() {
     return {
-      loading: false, error: false, interval: null, initialUrl: this.computeUrl()
+      loading: false, error: false, interval: null, initialUrl: this.computeUrl(), errorTimer: null
     };
   },
   computed: {
@@ -63,6 +63,17 @@ export default {
         injector.get('$route').updateParams(this.computeParams());
         injector.get('$route').reload();
       }
+    },
+
+    error(neu) {
+      if (neu) {
+        this.errorTimer = setInterval(() => {
+          this.reload();
+        }, 45000);
+      } else {
+        clearInterval(this.errorTimer);
+        this.errorTimer = null;
+      }
     }
   },
   mounted() {
@@ -72,6 +83,10 @@ export default {
   beforeDestroy() {
     if (this.interval) {
       clearInterval(this.interval);
+    }
+
+    if (this.errorTimer) {
+      clearInterval(this.errorTimer);
     }
   },
   methods: {
@@ -150,7 +165,7 @@ export default {
       return params;
     },
     reload(ev) {
-      ev.preventDefault();
+      ev && ev.preventDefault();
       this.$refs.frame.contentWindow.location.reload();
       this.poll();
     },
@@ -207,9 +222,16 @@ export default {
 
 <template>
   <div class="grafana-graph">
-    <Banner v-if="error" color="error" style="z-index: 1000">
+    <Banner
+      v-if="error"
+      color="error"
+      style="z-index: 1000"
+    >
       <div class="text-center">
-        {{ t('grafanaDashboard.failedToLoad') }} <a href="#" @click="reload">{{ t('grafanaDashboard.reload') }}</a>
+        {{ t('grafanaDashboard.failedToLoad') }} <a
+          href="#"
+          @click="reload"
+        >{{ t('grafanaDashboard.reload') }}</a>
       </div>
     </Banner>
     <iframe
@@ -219,12 +241,19 @@ export default {
       :src="initialUrl"
       frameborder="0"
       scrolling="no"
-    ></iframe>
+    />
     <div v-if="loading">
       <Loading />
     </div>
-    <div v-if="!loading && !error" class="external-link">
-      <a :href="grafanaUrl" target="_blank" rel="noopener noreferrer nofollow">{{ t('grafanaDashboard.grafana') }} <i class="icon icon-external-link" /></a>
+    <div
+      v-if="!loading && !error"
+      class="external-link"
+    >
+      <a
+        :href="grafanaUrl"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      >{{ t('grafanaDashboard.grafana') }} <i class="icon icon-external-link" /></a>
     </div>
   </div>
 </template>

@@ -7,8 +7,8 @@ export default {
   components: {
     ArrayList, LabeledInput, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -42,23 +42,48 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.cephfs.path" :mode="mode" :label="t('persistentVolume.cephfs.path.label')" :placeholder="t('persistentVolume.cephfs.path.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.cephfs.path"
+          :mode="mode"
+          :label="t('persistentVolume.cephfs.path.label')"
+          :placeholder="t('persistentVolume.cephfs.path.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.cephfs.user" :mode="mode" :label="t('persistentVolume.cephfs.user.label')" :placeholder="t('persistentVolume.cephfs.user.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.cephfs.user"
+          :mode="mode"
+          :label="t('persistentVolume.cephfs.user.label')"
+          :placeholder="t('persistentVolume.cephfs.user.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.cephfs.secretFile" :mode="mode" :label="t('persistentVolume.cephfs.secretFile.label')" :placeholder="t('persistentVolume.cephfs.secretFile.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.cephfs.secretFile"
+          :mode="mode"
+          :label="t('persistentVolume.cephfs.secretFile.label')"
+          :placeholder="t('persistentVolume.cephfs.secretFile.placeholder')"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.cephfs.secretRef.name" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.cephfs.secretRef.name"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretName.label')"
+          :placeholder="t('persistentVolume.shared.secretName.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.cephfs.secretRef.namespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.cephfs.secretRef.namespace"
+          :mode="mode"
+          :label="t('persistentVolume.shared.secretNamespace.label')"
+          :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">
@@ -73,7 +98,11 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <ArrayList v-model="value.spec.cephfs.monitors" :add-label="t('persistentVolume.shared.monitors.add')" :mode="mode" />
+        <ArrayList
+          v-model="value.spec.cephfs.monitors"
+          :add-label="t('persistentVolume.shared.monitors.add')"
+          :mode="mode"
+        />
       </div>
     </div>
   </div>

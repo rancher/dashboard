@@ -4,6 +4,7 @@ import Favorite from '@shell/components/nav/Favorite';
 import TypeDescription from '@shell/components/TypeDescription';
 import { get } from '@shell/utils/object';
 import { AS, _YAML } from '@shell/config/query-params';
+import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 
 /**
  * Resource List Masthead component.
@@ -15,6 +16,7 @@ export default {
   components: {
     Favorite,
     TypeDescription,
+    ResourceLoadingIndicator,
   },
   props: {
     resource: {
@@ -22,7 +24,7 @@ export default {
       required: true,
     },
     favoriteResource: {
-      type:     String,
+      type:    String,
       default: null
     },
     schema: {
@@ -52,6 +54,34 @@ export default {
     createButtonLabel: {
       type:    String,
       default: null
+    },
+    loadResources: {
+      type:    Array,
+      default: () => []
+    },
+
+    loadIndeterminate: {
+      type:    Boolean,
+      default: false
+    },
+
+    loadNamespace: {
+      type:    String,
+      default: null
+    },
+
+    showIncrementalLoadingIndicator: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'masthead'
     }
   },
 
@@ -138,26 +168,35 @@ export default {
 </script>
 
 <template>
-  <header>
+  <header class="header-layout">
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>
     <div class="title">
       <h1 class="m-0">
-        {{ _typeDisplay }} <Favorite v-if="isExplorer" :resource="favoriteResource || resource" />
+        {{ _typeDisplay }} <Favorite
+          v-if="isExplorer"
+          :resource="favoriteResource || resource"
+        />
       </h1>
+      <ResourceLoadingIndicator
+        v-if="showIncrementalLoadingIndicator"
+        :resources="loadResources"
+        :indeterminate="loadIndeterminate"
+        :namespace="loadNamespace"
+      />
     </div>
     <div class="actions-container">
       <slot name="actions">
         <div class="actions">
-          <slot name="extraActions">
-          </slot>
+          <slot name="extraActions" />
 
           <slot name="createButton">
             <n-link
               v-if="hasEditComponent && _isCreatable"
               :to="_createLocation"
               class="btn role-primary"
+              :data-testid="componentTestid+'-create'"
             >
               {{ _createButtonlabel }}
             </n-link>
@@ -165,6 +204,7 @@ export default {
               v-else-if="_isYamlCreatable"
               :to="_yamlCreateLocation"
               class="btn role-primary"
+              :data-testid="componentTestid+'-create-yaml'"
             >
               {{ t("resourceList.head.createFromYaml") }}
             </n-link>
@@ -174,3 +214,13 @@ export default {
     </div>
   </header>
 </template>
+
+<style lang="scss" scoped>
+  .title {
+    align-items: center;
+    display: flex;
+    h1 {
+      margin: 0;
+    }
+  }
+</style>

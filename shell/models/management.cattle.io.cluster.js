@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
-import { NODE, FLEET, MANAGEMENT } from '@shell/config/types';
+import { NODE, FLEET, MANAGEMENT, CAPI } from '@shell/config/types';
 import { insertAt } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
@@ -9,7 +9,7 @@ import jsyaml from 'js-yaml';
 import { eachLimit } from '@shell/utils/promise';
 import { addParams } from '@shell/utils/url';
 import { isEmpty } from '@shell/utils/object';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
@@ -43,10 +43,10 @@ export default class MgmtCluster extends HybridModel {
     const out = super._availableActions;
 
     insertAt(out, 0, {
-      action:     'openShell',
-      label:      this.t('nav.shell'),
-      icon:       'icon icon-terminal',
-      enabled:    !!this.links.shell,
+      action:  'openShell',
+      label:   this.t('nav.shell'),
+      icon:    'icon icon-terminal',
+      enabled: !!this.links.shell,
     });
 
     insertAt(out, 1, {
@@ -59,11 +59,11 @@ export default class MgmtCluster extends HybridModel {
     });
 
     insertAt(out, 2, {
-      action:     'copyKubeConfig',
-      label:      this.t('cluster.copyConfig'),
-      bulkable:   false,
-      enabled:    this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
-      icon:       'icon icon-copy',
+      action:   'copyKubeConfig',
+      label:    this.t('cluster.copyConfig'),
+      bulkable: false,
+      enabled:  this.$rootGetters['isRancher'] && this.hasAction('generateKubeconfig'),
+      icon:     'icon icon-copy',
     });
 
     return out;
@@ -245,6 +245,12 @@ export default class MgmtCluster extends HybridModel {
 
   get isHarvester() {
     return isHarvesterCluster(this);
+  }
+
+  get isHostedKubernetesProvider() {
+    const providers = ['AKS', 'EKS', 'GKE'];
+
+    return providers.includes(this.provisioner);
   }
 
   get providerLogo() {
@@ -429,5 +435,18 @@ export default class MgmtCluster extends HybridModel {
 
   get nodes() {
     return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+  }
+
+  get provClusterId() {
+    const isRKE1 = !!this.spec?.rancherKubernetesEngineConfig;
+    // Note: RKE1 provisioning cluster IDs are in a different format. For example,
+    // RKE2 cluster IDs include the name - fleet-default/cluster-name - whereas an RKE1
+    // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
+
+    const verb = this.isLocal || isRKE1 || this.isHostedKubernetesProvider ? 'to' : 'from';
+    const from = `${ verb }Type`;
+    const id = `${ verb }Id`;
+
+    return this.metadata.relationships.find(r => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
   }
 }

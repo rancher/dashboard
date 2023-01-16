@@ -1,14 +1,21 @@
 import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
-import { handleSpoofedRequest } from '@shell/plugins/dashboard-store/actions';
+import { handleSpoofedRequest, loadSchemas } from '@shell/plugins/dashboard-store/actions';
 import { set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';
 import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
+import jsyaml from 'js-yaml';
 
 export default {
+
+  // Need to override this, so that thhe 'this' context is correct (this class not the base class)
+  async loadSchemas(ctx, watch = true) {
+    return await loadSchemas(ctx, watch);
+  },
+
   async request({ state, dispatch, rootGetters }, pOpt ) {
     const opt = pOpt.opt || pOpt;
 
@@ -172,7 +179,7 @@ export default {
         const res = err.response;
 
         // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
-        if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
+        if ( opt.redirectUnauthorized !== false && res.status === 401 ) {
           dispatch('auth/logout', opt.logoutOnError, { root: true });
         }
 
@@ -317,6 +324,35 @@ export default {
 
     return resource;
   },
+
+  // remove fields added by steve before showing/downloading yamls
+  cleanForDownload(ctx, yaml) {
+    if (!yaml) {
+      return;
+    }
+    const rootKeys = [
+      'id',
+      'links',
+      'type',
+      'actions'
+    ];
+    const metadataKeys = [
+      'fields',
+      'relationships',
+      'state',
+    ];
+    const conditionKeys = [
+      'error',
+      'transitioning',
+    ];
+    const obj = jsyaml.load(yaml);
+
+    dropKeys(obj, rootKeys);
+    dropKeys(obj?.metadata, metadataKeys);
+    (obj?.status?.conditions || []).forEach(condition => dropKeys(condition, conditionKeys));
+
+    return jsyaml.dump(obj);
+  }
 };
 
 const diffRootKeys = [

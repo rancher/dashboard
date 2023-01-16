@@ -5,6 +5,7 @@ import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import { RadioGroup } from '@components/Form/Radio';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import UnitInput from '@shell/components/form/UnitInput';
 import uniq from 'lodash/uniq';
@@ -14,6 +15,7 @@ import StatusTable from '@shell/components/StatusTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import Labels from '@shell/components/form/Labels';
 import { Banner } from '@components/Banner';
+import ResourceManager from '@shell/mixins/resource-manager';
 
 const DEFAULT_STORAGE = '10Gi';
 
@@ -24,6 +26,7 @@ export default {
     Banner,
     Checkbox,
     CruResource,
+    LabeledInput,
     LabeledSelect,
     Labels,
     NameNsDescription,
@@ -34,27 +37,22 @@ export default {
     UnitInput,
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, ResourceManager],
   async fetch() {
     const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
 
-    this.persistentVolumes = await this.$store.dispatch('cluster/findAll', { type: PV });
+    if (this.$store.getters['cluster/canList'](PV)) {
+      this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
+    }
 
     this.storageClassOptions = storageClasses.map(s => s.name).sort();
     this.storageClassOptions.unshift(this.t('persistentVolumeClaim.useDefault'));
-    this.persistentVolumeOptions = this.persistentVolumes
-      .map((s) => {
-        const status = s.status.phase === 'Available' ? '' : ` (${ s.status.phase })`;
 
-        return {
-          label:  `${ s.name }${ status }`,
-          value: s.name
-        };
-      })
-      .sort((l, r) => l.label.localeCompare(r.label));
     this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || this.storageClassOptions[0]);
   },
   data() {
+    const canListPersistentVolumes = this.$store.getters['cluster/canList'](PV);
+    const canListStorageClasses = this.$store.getters['cluster/canList'](STORAGE_CLASS);
     const sourceOptions = [
       {
         label: this.t('persistentVolumeClaim.source.options.new'),
@@ -65,6 +63,7 @@ export default {
         value: 'existing'
       }
     ];
+
     const defaultAccessModes = ['ReadWriteOnce'];
 
     this.$set(this.value, 'spec', this.value.spec || {});
@@ -78,6 +77,7 @@ export default {
     const defaultTab = this.$route.query[FOCUS] || null;
 
     return {
+      secondaryResourceData:   this.secondaryResourceDataConfig(),
       sourceOptions,
       source:                  this.value.spec.volumeName ? sourceOptions[1].value : sourceOptions[0].value,
       immutableMode:           this.realMode === _CREATE ? _CREATE : _VIEW,
@@ -85,6 +85,8 @@ export default {
       persistentVolumes:       [],
       storageClassOptions:     [],
       defaultTab,
+      canListPersistentVolumes,
+      canListStorageClasses,
     };
   },
   computed: {
@@ -117,14 +119,18 @@ export default {
         return this.value.spec.volumeName;
       },
       set(value) {
-        const persistentVolume = this.persistentVolumes.find(pv => pv.name === value);
+        const persistentVolume = this.persistentVolumes.find(pv => pv.metadata.name === value);
+
+        this.$set(this.value.spec, 'storageClassName', '');
 
         if (persistentVolume) {
           this.$set(this.value.spec.resources.requests, 'storage', persistentVolume.spec.capacity?.storage);
+          if (persistentVolume.spec?.storageClassName) {
+            this.$set(this.value.spec, 'storageClassName', persistentVolume.spec?.storageClassName );
+          }
         }
 
         this.$set(this.value.spec, 'volumeName', value);
-        this.$set(this.value.spec, 'storageClassName', '');
       }
     },
     storageAmountMode() {
@@ -148,6 +154,33 @@ export default {
     }
   },
   methods: {
+    secondaryResourceDataConfig() {
+      return {
+        namespace: this.value?.metadata?.namespace || null,
+        data:      {
+          [PV]: {
+            applyTo: [
+              { var: 'persistentVolumes' },
+              {
+                var:         'persistentVolumeOptions',
+                parsingFunc: (data) => {
+                  return data
+                    .map((s) => {
+                      const status = s.status.phase === 'Available' ? '' : ` (${ s.status.phase })`;
+
+                      return {
+                        label: `${ s.metadata.name }${ status }`,
+                        value: s.metadata.name
+                      };
+                    })
+                    .sort((l, r) => l.label.localeCompare(r.label));
+                }
+              }
+            ]
+          },
+        }
+      };
+    },
     checkboxSetter(key, value) {
       if (value) {
         this.value.spec.accessModes.push(key);
@@ -161,7 +194,7 @@ export default {
       }
     },
     isPersistentVolumeSelectable(option) {
-      const persistentVolume = this.persistentVolumes.find(pv => pv.name === option.value);
+      const persistentVolume = this.persistentVolumes.find(pv => pv.metadata.name === option.value);
 
       return persistentVolume.status.phase === 'Available';
     },
@@ -200,8 +233,17 @@ export default {
       :namespaced="true"
     />
 
-    <ResourceTabs v-model="value" :mode="mode" :side-tabs="true" :default-tab="defaultTab">
-      <Tab name="volumeclaim" :label="t('persistentVolumeClaim.volumeClaim.label')" :weight="4">
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+      :side-tabs="true"
+      :default-tab="defaultTab"
+    >
+      <Tab
+        name="volumeclaim"
+        :label="t('persistentVolumeClaim.volumeClaim.label')"
+        :weight="4"
+      >
         <div class="row">
           <div class="col span-6">
             <RadioGroup
@@ -215,16 +257,44 @@ export default {
           </div>
           <div class="col span-6">
             <div class="row">
-              <div v-if="source === 'new'" class="col span-12">
-                <LabeledSelect v-model="value.spec.storageClassName" :options="storageClassOptions" :label="t('persistentVolumeClaim.volumeClaim.storageClass')" :mode="immutableMode" />
-              </div>
-              <div v-else class="col span-12">
+              <div
+                v-if="source === 'new'"
+                class="col span-12"
+              >
                 <LabeledSelect
+                  v-if="canListStorageClasses"
+                  v-model="value.spec.storageClassName"
+                  :options="storageClassOptions"
+                  :label="t('persistentVolumeClaim.volumeClaim.storageClass')"
+                  :mode="immutableMode"
+                />
+                <LabeledInput
+                  v-else
+                  v-model="value.spec.storageClassName"
+                  :label="t('persistentVolumeClaim.volumeClaim.storageClass')"
+                  :mode="immutableMode"
+                  :tooltip="t('persistentVolumeClaim.volumeClaim.tooltips.noStorageClass')"
+                />
+              </div>
+              <div
+                v-else
+                class="col span-12"
+              >
+                <LabeledSelect
+                  v-if="canListPersistentVolumes"
                   v-model="persistentVolume"
                   :options="persistentVolumeOptions"
                   :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
                   :selectable="isPersistentVolumeSelectable"
                   :mode="immutableMode"
+                  :loading="isLoadingSecondaryResources"
+                />
+                <LabeledInput
+                  v-else
+                  v-model="persistentVolume"
+                  :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
+                  :mode="immutableMode"
+                  :tooltip="t('persistentVolumeClaim.volumeClaim.tooltips.noPersistentVolume')"
                 />
               </div>
             </div>
@@ -239,11 +309,20 @@ export default {
                   :output-modifier="true"
                   :increment="1024"
                   :min="1"
+                  :required="true"
                 />
-                <Banner v-if="isEdit && !value.expandable" color="info" class="mt-10">
+                <Banner
+                  v-if="isEdit && !value.expandable"
+                  color="info"
+                  class="mt-10"
+                >
                   {{ t('persistentVolumeClaim.expand.notSupported') }}
                 </Banner>
-                <Banner v-else-if="isEdit && !value.bound" color="info" class="mt-10">
+                <Banner
+                  v-else-if="isEdit && !value.bound"
+                  color="info"
+                  class="mt-10"
+                >
                   {{ t('persistentVolumeClaim.expand.notBound') }}
                 </Banner>
               </div>
@@ -251,16 +330,43 @@ export default {
           </div>
         </div>
       </Tab>
-      <Tab name="customize" :label="t('persistentVolumeClaim.customize.label')" :weight="3">
+      <Tab
+        name="customize"
+        :label="t('persistentVolumeClaim.customize.label')"
+        :weight="3"
+      >
         <div class="access">
           <h3>{{ t('persistentVolumeClaim.accessModes') }}</h3>
           <span class="text-error">*</span>
         </div>
-        <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolumeClaim.customize.accessModes.readWriteOnce')" :mode="immutableMode" /></div>
-        <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')" :mode="immutableMode" /></div>
-        <div><Checkbox v-model="readWriteMany" :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')" :mode="immutableMode" /></div>
+        <div>
+          <Checkbox
+            v-model="readWriteOnce"
+            :label="t('persistentVolumeClaim.customize.accessModes.readWriteOnce')"
+            :mode="immutableMode"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-model="readOnlyMany"
+            :label="t('persistentVolumeClaim.customize.accessModes.readOnlyMany')"
+            :mode="immutableMode"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-model="readWriteMany"
+            :label="t('persistentVolumeClaim.customize.accessModes.readWriteMany')"
+            :mode="immutableMode"
+          />
+        </div>
       </Tab>
-      <Tab v-if="isView" name="status" :label="t('persistentVolumeClaim.status.label')" :weight="2">
+      <Tab
+        v-if="isView"
+        name="status"
+        :label="t('persistentVolumeClaim.status.label')"
+        :weight="2"
+      >
         <StatusTable :resource="value" />
       </Tab>
       <Tab

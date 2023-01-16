@@ -12,10 +12,10 @@ export default class EtcdBackup extends NormanModel {
    */
   get _availableActions() {
     return [{
-      action:     'promptRestore',
-      enabled:    true,
-      icon:       'icon icon-fw icon-backup-restore',
-      label:      'Restore'
+      action:  'promptRestore',
+      enabled: true,
+      icon:    'icon icon-fw icon-backup-restore',
+      label:   'Restore'
     }];
   }
 

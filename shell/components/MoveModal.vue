@@ -44,7 +44,7 @@ export default {
     }
   },
 
-  watch:    {
+  watch: {
     showPromptMove(show) {
       if (show) {
         this.$modal.show(this.modalName);
@@ -84,28 +84,56 @@ export default {
 };
 </script>
 <template>
-  <modal class="move-modal" :name="modalName" :width="440" height="auto" @closed="close">
+  <modal
+    class="move-modal"
+    :name="modalName"
+    :width="440"
+    height="auto"
+    @closed="close"
+  >
     <Loading v-if="$fetchState.pending" />
-    <Card v-else class="move-modal-card" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text">
+    <Card
+      v-else
+      class="move-modal-card"
+      :show-highlight-border="false"
+    >
+      <h4
+        slot="title"
+        class="text-default-text"
+      >
         {{ t('moveModal.title') }}
       </h4>
       <div slot="body">
         <div>
           {{ t('moveModal.description') }}
           <ul class="namespaces">
-            <li v-for="namespace in toMove" :key="namespace.id">
+            <li
+              v-for="namespace in toMove"
+              :key="namespace.id"
+            >
               {{ namespace.nameDisplay }}
             </li>
           </ul>
         </div>
-        <LabeledSelect v-model="targetProject" :options="projectOptions" :label="t('moveModal.targetProject')" />
+        <LabeledSelect
+          v-model="targetProject"
+          :options="projectOptions"
+          :label="t('moveModal.targetProject')"
+        />
       </div>
       <template #actions>
-        <button class="btn role-secondary" @click="close">
+        <button
+          class="btn role-secondary"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
-        <AsyncButton :action-label="t('moveModal.moveButtonLabel')" class="btn bg-primary ml-10" :disabled="!targetProject" @click="move" />
+        <AsyncButton
+          :action-label="t('moveModal.moveButtonLabel')"
+          class="btn bg-primary ml-10"
+          :disabled="!targetProject"
+          @click="move"
+        />
       </template>
     </Card>
   </modal>

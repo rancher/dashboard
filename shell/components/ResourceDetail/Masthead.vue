@@ -23,7 +23,7 @@ export default {
   components: {
     BadgeState, Banner, ButtonGroup
   },
-  props:      {
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -82,6 +82,10 @@ export default {
     },
   },
 
+  data() {
+    return { DETAIL_VIEW: _DETAIL };
+  },
+
   computed: {
     schema() {
       const inStore = this.storeOverride || this.$store.getters['currentStore'](this.resource);
@@ -123,6 +127,10 @@ export default {
       }
 
       return null;
+    },
+
+    detailsAction() {
+      return this.value?.detailsAction;
     },
 
     shouldHifenize() {
@@ -354,6 +362,10 @@ export default {
 
       return parent?.location;
     },
+
+    hideNamespaceLocation() {
+      return this.$store.getters['currentProduct'].hideNamespaceLocation;
+    },
   },
 
   methods: {
@@ -368,6 +380,18 @@ export default {
 
     toggleSensitiveData(e) {
       this.$store.dispatch('prefs/set', { key: HIDE_SENSITIVE, value: !!e });
+    },
+
+    invokeDetailsAction() {
+      const action = this.detailsAction;
+
+      if (action) {
+        const fn = this.value[action.action];
+
+        if (fn) {
+          fn.apply(this.value, []);
+        }
+      }
     }
   }
 };
@@ -375,35 +399,75 @@ export default {
 
 <template>
   <div class="masthead">
-    <header>
+    <header class="header-layout">
       <div class="title">
         <div class="primaryheader">
           <h1>
-            <nuxt-link v-if="location" :to="location">
+            <nuxt-link
+              v-if="location"
+              :to="location"
+            >
               {{ parent.displayName }}:
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
             <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
-            <t v-else :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="displayName" :escapehtml="false" />
-            <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
+            <t
+              v-else
+              :k="'resourceDetail.header.' + realMode"
+              :subtype="resourceSubtype"
+              :name="displayName"
+              :escapehtml="false"
+            />
+            <BadgeState
+              v-if="!isCreate && parent.showState"
+              class="masthead-state"
+              :value="value"
+            />
           </h1>
         </div>
-        <div v-if="!isCreate" class="subheader">
+        <div
+          v-if="!isCreate"
+          class="subheader"
+        >
           <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <nuxt-link :to="project.detailLocation">{{ project.nameDisplay }}</nuxt-link></span>
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-else-if="namespace && !hasMultipleNamespaces">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="value.creationTimestamp" /></span>
+          <span v-else-if="namespace && !hasMultipleNamespaces">
+            {{ t("resourceDetail.masthead.namespace") }}:
+            <nuxt-link
+              v-if="!hideNamespaceLocation"
+              :to="namespaceLocation"
+            >
+              {{ namespace }}
+            </nuxt-link>
+            <span v-else>
+              {{ namespace }}
+            </span>
+          </span>
+          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate
+            class="live-date"
+            :value="value.creationTimestamp"
+          /></span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
       </div>
       <slot name="right">
         <div class="actions-container">
           <div class="actions">
+            <button
+              v-if="detailsAction && currentView === DETAIL_VIEW && isView"
+              type="button"
+              class="btn role-primary actions mr-10"
+              :disabled="!detailsAction.enabled"
+              @click="invokeDetailsAction"
+            >
+              {{ detailsAction.label }}
+            </button>
             <ButtonGroup
               v-if="showSensitiveToggle"
               :value="!!hideSensitiveData"
               icon-size="lg"
               :options="sensitiveOptions"
+              class="mr-10"
               @input="toggleSensitiveData"
             />
 
@@ -411,6 +475,7 @@ export default {
               v-if="viewOptions && isView"
               v-model="currentView"
               :options="viewOptions"
+              class="mr-10"
             />
 
             <button
@@ -428,7 +493,12 @@ export default {
       </slot>
     </header>
 
-    <Banner v-if="banner && isView && !parent.hideBanner" class="state-banner mb-10" :color="banner.color" :label="banner.message" />
+    <Banner
+      v-if="banner && isView && !parent.hideBanner"
+      class="state-banner mb-10"
+      :color="banner.color"
+      :label="banner.message"
+    />
     <Banner
       v-if="managedWarning.show"
       color="warning"
@@ -496,6 +566,12 @@ export default {
     .right-half {
       grid-column: 2;
     }
+  }
+
+  div.actions-container > div.actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
   }
 
 </style>

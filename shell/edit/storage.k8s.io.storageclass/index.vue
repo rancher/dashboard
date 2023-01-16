@@ -5,11 +5,14 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import ArrayList from '@shell/components/form/ArrayList';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
+import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
+import { CSI_DRIVER } from '@shell/config/types';
+import { LONGHORN_DRIVER } from '@shell/models/persistentvolume';
 
 export default {
   name: 'StorageClass',
@@ -22,9 +25,16 @@ export default {
     RadioGroup,
     Tab,
     Tabbed,
+    Banner
   },
 
   mixins: [CreateEditView],
+
+  async fetch() {
+    if (this.$store.getters['cluster/schemaFor'](CSI_DRIVER)) {
+      this.csiDrivers = await this.$store.dispatch('cluster/findAll', { type: CSI_DRIVER });
+    }
+  },
 
   data() {
     const reclaimPolicyOptions = [
@@ -69,8 +79,8 @@ export default {
       reclaimPolicyOptions,
       allowVolumeExpansionOptions,
       volumeBindingModeOptions,
-      mountOptions:           [],
-      provisioner:            PROVISIONER_OPTIONS[0].value,
+      mountOptions: [],
+      csiDrivers:   [],
     };
   },
 
@@ -85,9 +95,54 @@ export default {
       return this.value.provisioner;
     },
 
+    // PROVISIONER_OPTIONS are provs with custom components: all the in-tree types + longhorn and harvester
+    // CSI drivers are third party provisioner options - this.csiDrivers is a list of the ones that are currently installed on this cluster
     provisioners() {
-      return PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported);
+      const dropdownOptions = [];
+      const provisionerOptionsDrivers = [];
+
+      PROVISIONER_OPTIONS.forEach((opt) => {
+        provisionerOptionsDrivers.push(opt.value);
+        if (this.showUnsupportedStorage || opt.supported) {
+          let label = this.t(opt.labelKey);
+
+          if (opt.value.includes('kubernetes')) {
+            label += ` ${ this.t('persistentVolume.plugin.inTree') }`;
+          }
+          if (!opt.supported) {
+            label += ` ${ this.t('persistentVolume.plugin.unsupported') }`;
+          }
+          dropdownOptions.push({
+            value:      opt.value,
+            label,
+            deprecated: opt.deprecated
+          });
+        }
+      });
+
+      this.csiDrivers.forEach((driver) => {
+        // if a csiDriver is in PROVISIONER_OPTIONS, it's already in the dropdown list; dont add again
+        if (driver.metadata.name === LONGHORN_DRIVER || provisionerOptionsDrivers.includes(driver.metadata.name)) {
+          return;
+        }
+        const fallback = `${ driver.metadata.name }  ${ this.t('persistentVolume.csi.drivers.suffix') }`;
+
+        dropdownOptions.push({
+          value: driver.metadata.name,
+          label: this.$store.getters['i18n/withFallback'](`persistentVolume.csi.drivers.${ driver.metadata.name.replaceAll('.', '-') }`, null, fallback)
+        });
+      });
+      const out = dropdownOptions.sort((a, b) => a.label.toLowerCase() > b.label.toLowerCase() ? 1 : -1);
+
+      return out;
+    },
+
+    provisionerIsDeprecated() {
+      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
+
+      return provisionerOpt && provisionerOpt.deprecated !== undefined;
     }
+
   },
 
   watch: {
@@ -120,6 +175,18 @@ export default {
           delete this.value.parameters[key];
         }
       });
+    },
+    provisionerLabel(provisioner) {
+      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === provisioner);
+
+      return provisionerOpt?.labelKey ? this.t(provisionerOpt.labelKey) : provisioner;
+    },
+    getOptionLabel(opt) {
+      if (opt.deprecated) {
+        return `${ opt.label } ${ this.t('storageClass.deprecated.title') }`;
+      }
+
+      return opt.label;
     }
   }
 };
@@ -143,23 +210,46 @@ export default {
       :mode="modeOverride"
       :register-before-hook="registerBeforeHook"
     />
+
     <LabeledSelect
       :value="value.provisioner"
       label="Provisioner"
       :options="provisioners"
       :localized-label="true"
-      option-label="labelKey"
+      :get-option-label="getOptionLabel"
       :mode="modeOverride"
       :searchable="true"
       :taggable="true"
       class="mb-20"
       @input="updateProvisioner($event)"
     />
+    <Banner
+      v-if="provisionerIsDeprecated"
+      color="warning"
+    >
+      <t
+        k="storageClass.deprecated.warning"
+        raw
+        :provisioner="provisionerLabel(value.provisioner)"
+      />
+    </Banner>
     <Tabbed :side-tabs="true">
-      <Tab name="parameters" :label="t('storageClass.parameters.label')" :weight="2">
-        <component :is="getComponent(value.provisioner)" :key="value.provisioner" :value="value" :mode="modeOverride" />
+      <Tab
+        name="parameters"
+        :label="t('storageClass.parameters.label')"
+        :weight="2"
+      >
+        <component
+          :is="getComponent(value.provisioner)"
+          :key="value.provisioner"
+          :value="value"
+          :mode="modeOverride"
+        />
       </Tab>
-      <Tab name="customize" :label="t('storageClass.customize.label')">
+      <Tab
+        name="customize"
+        :label="t('storageClass.customize.label')"
+      >
         <div class="row mt-20">
           <div class="col span-6">
             <div class="row mb-20">

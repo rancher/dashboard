@@ -3,6 +3,7 @@ import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
+import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 
 export default {
   async fetch() {
@@ -12,16 +13,23 @@ export default {
         this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
       }
     } catch (e) {}
+
+    // Ensure we read the settings even when we are not authenticated
+    try {
+      this.globalSettings = await this.$store.dispatch('management/findAll', {
+        type: MANAGEMENT.SETTING,
+        opt:  {
+          load: _ALL_IF_AUTHED, url: `/v1/${ MANAGEMENT.SETTING }`, redirectUnauthorized: false
+        }
+      });
+    } catch (e) {}
   },
 
   data() {
-    return { apps: [] };
+    return { apps: [], globalSettings: [] };
   },
 
   computed: {
-    globalSettings() {
-      return this.$store.getters['management/all'](MANAGEMENT.SETTING);
-    },
 
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
@@ -86,7 +94,7 @@ export default {
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
         if (brandSetting) {
-          brandSetting.value = 'suse';
+          brandSetting.value = 'csp';
           brandSetting.save();
         } else {
           const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
@@ -94,7 +102,7 @@ export default {
 
           if (url) {
             this.$store.dispatch('management/create', {
-              type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'suse', default: ''
+              type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'csp', default: ''
             }).then(setting => setting.save());
           }
         }

@@ -27,7 +27,7 @@ export default (
 
     /**
      * The status class of the Labeled Input and tooltip.
-     * @values info, success, warning, error 
+     * @values info, success, warning, error
      */
     status: {
       type:    String,
@@ -59,7 +59,7 @@ export default (
     },
 
     /**
-     * Disables the password manager prompt to save the contents of the Labeled 
+     * Disables the password manager prompt to save the contents of the Labeled
      * Input.
      */
     ignorePasswordManagers: {
@@ -124,8 +124,10 @@ export default (
 
     tooltipValue(): string | undefined {
       if (this.hasTooltip) {
-        return this.tooltipKey ? this.t(this.tooltipKey) : this.tooltip
+        return this.tooltipKey ? this.t(this.tooltipKey) : this.tooltip;
       }
+
+      return undefined;
     },
 
     /**
@@ -205,7 +207,7 @@ export default (
     },
 
     /**
-     * Emit on input with delay. Note: Arrow function is avoided due context 
+     * Emit on input with delay. Note: Arrow function is avoided due context
      * binding.
      */
     delayInput(value: string): void {
@@ -221,7 +223,7 @@ export default (
     },
 
     /**
-     * Handles the behavior of the Labeled Input when blurred and emits the blur 
+     * Handles the behavior of the Labeled Input when blurred and emits the blur
      * event.
      * @see labeled-form-element.ts mixin for onBlurLabeled()
      */
@@ -251,10 +253,16 @@ export default (
   >
     <slot name="label">
       <label v-if="hasLabel">
-        <t v-if="labelKey" :k="labelKey" />
+        <t
+          v-if="labelKey"
+          :k="labelKey"
+        />
         <template v-else-if="label">{{ label }}</template>
 
-        <span v-if="requiredField" class="required">*</span>
+        <span
+          v-if="requiredField"
+          class="required"
+        >*</span>
       </label>
     </slot>
 
@@ -291,7 +299,7 @@ export default (
         @input="onInput($event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
-      />
+      >
     </slot>
 
     <slot name="suffix" />
@@ -306,8 +314,14 @@ export default (
       :hover="hoverTooltip"
       :value="validationMessage"
     />
-    <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
-    <label v-if="subLabel" class="sub-label">{{ subLabel }}</label>
+    <label
+      v-if="cronHint"
+      class="cron-label"
+    >{{ cronHint }}</label>
+    <label
+      v-if="subLabel"
+      class="sub-label"
+    >{{ subLabel }}</label>
   </div>
 </template>
 <style scoped lang="scss">

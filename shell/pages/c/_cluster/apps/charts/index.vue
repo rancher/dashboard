@@ -2,6 +2,8 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
+import Carousel from '@shell/components/Carousel';
+import ButtonGroup from '@shell/components/ButtonGroup';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import TypeDescription from '@shell/components/TypeDescription';
 import {
@@ -12,15 +14,18 @@ import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { Checkbox } from '@components/Form/Checkbox';
 import Select from '@shell/components/form/Select';
-import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@shell/store/prefs';
+import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE, SHOW_CHART_MODE } from '@shell/store/prefs';
 import { removeObject, addObject, findBy } from '@shell/utils/array';
 import { compatibleVersionsFor, filterAndArrangeCharts } from '@shell/store/catalog';
 import { CATALOG } from '@shell/config/labels-annotations';
+import { isUIPlugin } from '@shell/config/uiplugins';
 
 export default {
   components: {
     AsyncButton,
     Banner,
+    Carousel,
+    ButtonGroup,
     Loading,
     Checkbox,
     Select,
@@ -29,7 +34,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
+    await this.$store.dispatch('catalog/load', { force: true });
 
     const query = this.$route.query;
 
@@ -42,18 +47,30 @@ export default {
 
   data() {
     return {
-      allRepos:            null,
-      category:            null,
-      operatingSystem:     null,
-      searchQuery:         null,
-      showDeprecated:      null,
-      showHidden:          null,
+      allRepos:        null,
+      category:        null,
+      operatingSystem: null,
+      searchQuery:     null,
+      showDeprecated:  null,
+      showHidden:      null,
+      chartOptions:    [
+        {
+          label: 'Browse',
+          value: 'browse',
+        },
+        {
+          label: 'Featured',
+          value: 'featured'
+        }
+      ]
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
+
+    chartMode: mapPref(SHOW_CHART_MODE),
 
     hideRepos: mapPref(HIDE_REPOS),
 
@@ -134,6 +151,10 @@ export default {
           return false;
         }
 
+        if (isUIPlugin(c)) {
+          return false;
+        }
+
         return true;
       });
     },
@@ -144,14 +165,22 @@ export default {
 
       return filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
-        category:         this.category,
-        searchQuery:      this.searchQuery,
-        showDeprecated:   this.showDeprecated,
-        showHidden:       this.showHidden,
-        hideRepos:        this.hideRepos,
-        hideTypes:        [CATALOG._CLUSTER_TPL],
-        showPrerelease:   this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
+        category:       this.category,
+        searchQuery:    this.searchQuery,
+        showDeprecated: this.showDeprecated,
+        showHidden:     this.showHidden,
+        hideRepos:      this.hideRepos,
+        hideTypes:      [CATALOG._CLUSTER_TPL],
+        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
+    },
+
+    getFeaturedCharts() {
+      const allCharts = (this.filteredCharts || []);
+
+      const featuredCharts = allCharts.filter(value => value.featured).sort((a, b) => a.featured - b.featured);
+
+      return featuredCharts.slice(0, 5);
     },
 
     categories() {
@@ -183,6 +212,10 @@ export default {
 
       return out;
     },
+
+    showCarousel() {
+      return this.chartMode === 'featured' && this.getFeaturedCharts.length;
+    }
 
   },
 
@@ -272,8 +305,8 @@ export default {
       this.$router.push({
         name:   'c-cluster-apps-charts-chart',
         params: {
-          cluster:  this.$route.params.cluster,
-          product:  this.$store.getters['productId'],
+          cluster: this.$route.params.cluster,
+          product: this.$store.getters['productId'],
         },
         query: {
           [REPO_TYPE]: chart.repoType,
@@ -307,13 +340,29 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header>
+    <header class="header-layout">
       <div class="title">
         <h1 class="m-0">
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
+      <div
+        v-if="getFeaturedCharts.length > 0"
+        class="actions-container"
+      >
+        <ButtonGroup
+          v-model="chartMode"
+          :options="chartOptions"
+        />
+      </div>
     </header>
+    <div v-if="showCarousel">
+      <h3>{{ t('catalog.charts.featuredCharts') }}</h3>
+      <Carousel
+        :sliders="getFeaturedCharts"
+        @clicked="(row) => selectChart(row)"
+      />
+    </div>
     <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select
@@ -336,7 +385,11 @@ export default {
             :color="repo.color"
           >
             <template #label>
-              <span>{{ repo.label }}</span><i v-if="!repo.all" class=" pl-5 icon icon-dot icon-sm" :class="{[repo.color]: true}" />
+              <span>{{ repo.label }}</span><i
+                v-if="!repo.all"
+                class=" pl-5 icon icon-dot icon-sm"
+                :class="{[repo.color]: true}"
+              />
             </template>
           </Checkbox>
         </template>
@@ -366,15 +419,32 @@ export default {
           :placeholder="t('catalog.charts.search')"
         >
 
-        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-        <AsyncButton class="refresh-btn" mode="refresh" size="sm" @click="refresh" />
+        <button
+          v-shortkey.once="['/']"
+          class="hide"
+          @shortkey="focusSearch()"
+        />
+        <AsyncButton
+          class="refresh-btn"
+          mode="refresh"
+          size="sm"
+          @click="refresh"
+        />
       </div>
     </div>
 
-    <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
+    <Banner
+      v-for="err in loadingErrors"
+      :key="err"
+      color="error"
+      :label="err"
+    />
 
     <div v-if="allCharts.length">
-      <div v-if="filteredCharts.length === 0" style="width: 100%;">
+      <div
+        v-if="filteredCharts.length === 0"
+        style="width: 100%;"
+      >
         <div class="m-50 text-center">
           <h1>{{ t('catalog.charts.noCharts') }}</h1>
         </div>
@@ -388,7 +458,10 @@ export default {
         @clicked="(row) => selectChart(row)"
       />
     </div>
-    <div v-else class="m-50 text-center">
+    <div
+      v-else
+      class="m-50 text-center"
+    >
       <h1>{{ t('catalog.charts.noCharts') }}</h1>
     </div>
   </div>

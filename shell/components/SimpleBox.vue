@@ -28,12 +28,29 @@ export default {
 </script>
 
 <template>
-  <div v-if="shown" class="simple-box" v-on="$listeners">
-    <div v-if="title || canClose" class="top">
-      <h2 v-if="title">
-        {{ title }}
-      </h2>
-      <div v-if="canClose || pref" class="close-button" @click="closeBox($event)">
+  <div
+    v-if="shown"
+    class="simple-box"
+    v-on="$listeners"
+  >
+    <div
+      v-if="title || canClose || $slots.title"
+      class="top"
+    >
+      <slot name="title">
+        <h2
+          v-if="title"
+          data-testid="simple-box-title"
+        >
+          {{ title }}
+        </h2>
+      </slot>
+      <div
+        v-if="canClose || pref"
+        class="close-button"
+        data-testid="simple-box-close"
+        @click="closeBox($event)"
+      >
         <i class="icon icon-close" />
       </div>
     </div>
@@ -57,7 +74,7 @@ export default {
   justify-content: center;
   padding: 2px;
   > i {
-    font-size: 20px;
+    font-size: 14px;
     opacity: 0.5;
   }
   &:hover {

@@ -75,6 +75,10 @@ export default {
     window.z = this;
   },
 
+  // created() {
+  //   set(this.value, 'spec.rkeConfig.registries.configs', {});
+  // },
+
   methods: {
     update() {
       const configs = {};
@@ -91,6 +95,7 @@ export default {
       }
 
       set(this.value, 'spec.rkeConfig.registries.configs', configs);
+      this.$emit('updateConfigs', configs);
     },
 
     wrapRegisterBeforeHook(fn, ...args) {
@@ -113,19 +118,30 @@ export default {
   <div>
     <h3>
       {{ t('registryConfig.header') }}
-      <i v-tooltip="t('registryConfig.toolTip')" class="icon icon-info" />
+      <i
+        v-tooltip="t('registryConfig.toolTip')"
+        class="icon icon-info"
+      />
     </h3>
+    <p class="mb-20">
+      {{ t('registryConfig.description') }}
+    </p>
     <ArrayListGrouped
       v-model="entries"
       :add-label="t('registryConfig.addLabel')"
       :default-add-value="defaultAddValue"
+      :initial-empty-row="true"
       :mode="mode"
-      @input="update()"
+      @input="update"
     >
       <template #default="{row}">
         <div class="row">
           <div class="col span-6">
-            <LabeledInput v-model="row.value.hostname" label="Registry Hostname" :mode="mode" />
+            <LabeledInput
+              v-model="row.value.hostname"
+              label="Registry Hostname"
+              :mode="mode"
+            />
 
             <SelectOrCreateAuthSecret
               v-model="row.value.authConfigSecretName"
@@ -149,7 +165,13 @@ export default {
               secret-name-label="TLS Secret"
             />
 
-            <LabeledInput v-model="row.value.caBundle" class="mt-20" type="multiline" label="CA Cert Bundle" :mode="mode" />
+            <LabeledInput
+              v-model="row.value.caBundle"
+              class="mt-20"
+              type="multiline"
+              label="CA Cert Bundle"
+              :mode="mode"
+            />
 
             <div>
               <Checkbox

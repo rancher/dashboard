@@ -29,13 +29,13 @@ export function init(store) {
   });
 
   virtualType({
-    label:        store.getters['i18n/t']('fleet.dashboard.menuLabel'),
-    icon:         'folder',
-    group:        'Root',
-    namespaced:   false,
-    name:         FLEET.DASHBOARD,
-    weight:       110,
-    route:        {
+    labelKey:   'fleet.dashboard.menuLabel',
+    icon:       'folder',
+    group:      'Root',
+    namespaced: false,
+    name:       FLEET.DASHBOARD,
+    weight:     110,
+    route:      {
       name:   'c-cluster-fleet',
       params: { resource: FLEET.DASHBOARD }
     },

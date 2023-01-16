@@ -28,6 +28,24 @@ export default {
     },
   },
 
+  data(props) {
+    const defaultAlert = {
+      alert:  '',
+      expr:   '',
+      for:    '0s',
+      labels: {
+        severity:  'none',
+        namespace: 'default'
+      },
+    };
+
+    if (!this.value.rules) {
+      this.value['rules'] = [defaultAlert];
+    }
+
+    return { defaultAlert };
+  },
+
   computed: {
     recordingRules() {
       const { value: rules } = this;
@@ -76,12 +94,7 @@ export default {
         value.push({ record: '', expr: '' });
         break;
       case 'alert':
-        value.push({
-          alert:  '',
-          expr:   '',
-          for:    '0s',
-          labels: { severity: 'none' },
-        });
+        value.push(this.defaultAlert);
         break;
       default:
         break;
@@ -123,13 +136,18 @@ export default {
           >
             <t k="prometheusRule.recordingRules.addLabel" />
           </button>
-          <span v-else></span>
+          <span v-else />
         </template>
         <template v-slot:remove-button="props">
-          <button v-if="!isView" type="button" class="btn role-link close btn-sm" @click="removeRule(props.i)">
-            <i class="icon icon-2x icon-x" />
+          <button
+            v-if="!isView"
+            type="button"
+            class="btn role-link close btn-sm"
+            @click="removeRule(props.i)"
+          >
+            <i class="icon icon-x" />
           </button>
-          <span v-else></span>
+          <span v-else />
         </template>
       </ArrayListGrouped>
     </div>
@@ -167,13 +185,18 @@ export default {
           >
             <t k="prometheusRule.alertingRules.addLabel" />
           </button>
-          <span v-else></span>
+          <span v-else />
         </template>
         <template v-slot:remove-button="props">
-          <button v-if="!isView" type="button" class="btn role-link close btn-sm" @click="removeRule(props.i)">
-            <i class="icon icon-2x icon-x" />
+          <button
+            v-if="!isView"
+            type="button"
+            class="btn role-link close btn-sm"
+            @click="removeRule(props.i)"
+          >
+            <i class="icon icon-x" />
           </button>
-          <span v-else></span>
+          <span v-else />
         </template>
       </ArrayListGrouped>
     </div>

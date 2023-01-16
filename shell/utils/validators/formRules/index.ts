@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
 // import uniq from 'lodash/uniq';
 import cronstrue from 'cronstrue';
+import { Translation } from '@shell/types/t';
 
 // import uniq from 'lodash/uniq';
 export type Validator = (val: any, arg?: any) => undefined | string;
@@ -47,25 +48,43 @@ const runValidators = (val: any, validators: Validator[]) => {
   }
 };
 
+export interface ValidationOptions {
+  key?: string,
+}
+
 // "t" is the function name we use for getting a translated string
-export default function(t: (key: string, options?: any) => string, opt: {displayKey?: string} = {}) {
-  const { displayKey = 'Value' } = opt;
-
+export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
   // utility validators these validators only get used by other validators
-  const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key: displayKey }) : undefined;
+  const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
 
-  const endDot = (label: string): Validator => (val: string) => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key: displayKey }) : undefined;
+  const endDot = (label: string): Validator => (val: string) => val?.slice(-1) === '.' ? t(`validation.dns.${ label }.endDot`, { key }) : undefined;
 
-  const startNumber: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1)?.match(/[0-9]/) ? t(`validation.dns.${ label }.startNumber`, { key: displayKey }) : undefined;
+  const startNumber: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1)?.match(/[0-9]/) ? t(`validation.dns.${ label }.startNumber`, { key }) : undefined;
 
-  const startHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '-' ? t(`validation.dns.${ label }.startHyphen`, { key: displayKey }) : undefined;
+  const startHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '-' ? t(`validation.dns.${ label }.startHyphen`, { key }) : undefined;
 
-  const endHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(-1) === '-' ? t(`validation.dns.${ label }.endHyphen`, { key: displayKey }) : undefined;
+  const endHyphen: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(-1) === '-' ? t(`validation.dns.${ label }.endHyphen`, { key }) : undefined;
 
-  const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key: displayKey }) : undefined;
+  const minValue: ValidatorFactory = (min: string) => (val: string | number) => Number(val) < Number(min) ? t('validation.minValue', { key, min }) : undefined;
+
+  const maxValue: ValidatorFactory = (max: string) => (val: string | number) => Number(val) > Number(max) ? t('validation.maxValue', { key, max }) : undefined;
+
+  const betweenValues: ValidatorFactory = ([min, max]: string[]) => (val: string | number) => minValue(min)(val) || maxValue(max)(val) ? t('validation.betweenValues', {
+    key, min, max
+  }) : undefined;
+
+  const minLength: ValidatorFactory = (min: string) => (val: string) => val.length < Number(min) ? t('validation.minLength', { key, min }) : undefined;
+
+  const maxLength: ValidatorFactory = (max: string) => (val: string) => val.length > Number(max) ? t('validation.maxLength', { key, max }) : undefined;
+
+  const betweenLengths: ValidatorFactory = ([min, max]: string[]) => (val: string) => minLength(min)(val) || maxLength(max)(val) ? t('validation.betweenLengths', {
+    key, min, max
+  }) : undefined;
+
+  const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key }) : undefined;
 
   const portNumber: Validator = (val: string) => parseInt(val, 10) < 1 || parseInt(val, 10) > 65535 ? t('validation.number.between', {
-    key: displayKey, min: '1', max: '65535'
+    key, min: '1', max: '65535'
   }) : undefined;
 
   const dnsChars: Validator = (val: string) => {
@@ -73,7 +92,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
     if (matchedChars) {
       return t('validation.chars', {
-        key: displayKey, count: matchedChars.length, chars: matchedChars.map(char => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
+        key, count: matchedChars.length, chars: matchedChars.map(char => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
       });
     }
 
@@ -82,24 +101,24 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
   // the weird edge case here deals with internationalized domain names which are prepended with 'xn--'
   // https://datatracker.ietf.org/doc/html/rfc5891#section-4.2.3.1
-  const dnsDoubleDash: Validator = (val: string) => (val?.substr(2, 2) === '--' && val?.substr(0, 2) !== 'xn') ? t(`validation.dns.doubleHyphen`, { key: displayKey }) : undefined;
+  const dnsDoubleDash: Validator = (val: string) => (val?.substr(2, 2) === '--' && val?.substr(0, 2) !== 'xn') ? t(`validation.dns.doubleHyphen`, { key }) : undefined;
 
-  const dnsIanaServiceNameDoubleDash: Validator = (val: string) => (val?.substr(2, 2) === '--' && val?.substr(0, 2) !== 'xn') ? t(`validation.dns.doubleHyphen`, { key: displayKey }) : undefined;
+  const dnsIanaServiceNameDoubleDash: Validator = (val: string) => (val?.substr(2, 2) === '--' && val?.substr(0, 2) !== 'xn') ? t(`validation.dns.doubleHyphen`, { key }) : undefined;
 
-  const dnsEmpty: ValidatorFactory = (label: string): Validator => (val = '') => val.length === 0 ? t(`validation.dns.${ label }.emptyLabel`, { key: displayKey, min: 1 }) : undefined;
+  const dnsEmpty: ValidatorFactory = (label: string): Validator => (val = '') => val.length === 0 ? t(`validation.dns.${ label }.emptyLabel`, { key, min: 1 }) : undefined;
 
-  const dnsTooLong: ValidatorFactory = (label: string, length = 63): Validator => (val = '') => val.length > length ? t(`validation.dns.${ label }.tooLongLabel`, { key: displayKey, max: length }) : undefined;
+  const dnsTooLong: ValidatorFactory = (label: string, length = 63): Validator => (val = '') => val.length > length ? t(`validation.dns.${ label }.tooLongLabel`, { key, max: length }) : undefined;
 
   // eslint-disable-next-line no-unused-vars
-  const hostnameEmpty: Validator = (val = '') => val.length === 0 ? t('validation.dns.hostname.empty', { key: displayKey }) : undefined;
+  const hostnameEmpty: Validator = (val = '') => val.length === 0 ? t('validation.dns.hostname.empty', { key }) : undefined;
 
-  const hostnameTooLong: Validator = (val = '') => val.length > 253 ? t('validation.dns.hostname.tooLong', { key: displayKey, max: 253 }) : undefined;
+  const hostnameTooLong: Validator = (val = '') => val.length > 253 ? t('validation.dns.hostname.tooLong', { key, max: 253 }) : undefined;
 
-  const absolutePath: Validator = (val = '') => val[0] !== '/' && val.length > 0 ? t('validation.path', { key: displayKey }) : undefined;
+  const absolutePath: Validator = (val = '') => val[0] !== '/' && val.length > 0 ? t('validation.path', { key }) : undefined;
 
-  const required: Validator = (val: any) => !val && val !== false ? t('validation.required', { key: displayKey }) : undefined;
+  const required: Validator = (val: any) => !val && val !== false ? t('validation.required', { key }) : undefined;
 
-  const noUpperCase: Validator = (val = '') => val.toLowerCase() !== val ? t('validation.noUpperCase', { key: displayKey }) : undefined;
+  const noUpperCase: Validator = (val = '') => val.toLowerCase() !== val ? t('validation.noUpperCase', { key }) : undefined;
 
   const cronSchedule: Validator = (val: string) => {
     try {
@@ -115,7 +134,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
     return isHttps;
   };
 
-  const interval: Validator = (val: string) => !/^\d+[hms]$/.test(val) ? t('validation.monitoring.route.interval', { key: displayKey }) : undefined;
+  const interval: Validator = (val: string) => !/^\d+[hms]$/.test(val) ? t('validation.monitoring.route.interval', { key }) : undefined;
 
   const containerImage: Validator = (val: any) => !val?.image ? t('workload.validation.containerImage', { name: val.name }) : undefined;
 
@@ -126,7 +145,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
       return t('validation.required', { key: t('workload.container.titles.containers') });
     }
 
-    // making sure each container has an imagename
+    // making sure each container has an image name
     return containers.map((container: any) => containerImage(container)).find((containerError: string) => containerError);
   };
 
@@ -202,6 +221,13 @@ export default function(t: (key: string, options?: any) => string, opt: {display
         }
       }
     }
+  };
+
+  const wildcardHostname: Validator = (val: string) => {
+    // allow wildcard in first part of hostname
+    val = val ? val.replace(/^\*\./, '') : val;
+
+    return hostname(val);
   };
 
   const externalName: Validator = (val: string) => {
@@ -408,7 +434,7 @@ export default function(t: (key: string, options?: any) => string, opt: {display
 
     if (matchedChars) {
       return t('validation.chars', {
-        key: displayKey, count: matchedChars.length, chars: matchedChars.map((char: string) => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
+        key, count: matchedChars.length, chars: matchedChars.map((char: string) => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
       });
     }
 
@@ -416,32 +442,39 @@ export default function(t: (key: string, options?: any) => string, opt: {display
   };
 
   return {
-    noUpperCase,
-    required,
-    requiredInt,
-    portNumber,
-    cronSchedule,
-    isHttps,
-    interval,
+    absolutePath,
+    backupTarget,
+    betweenLengths,
+    betweenValues,
+    clusterIp,
+    clusterName,
     containerImage,
     containerImages,
-    ruleGroups,
-    groupsAreValid,
-    matching,
-    clusterName,
-    roleTemplateRules,
-    servicePort,
-    clusterIp,
-    externalName,
-    backupTarget,
-    imageUrl,
-    fileRequired,
+    cronSchedule,
     dnsLabel,
     dnsLabelIanaServiceName,
     dnsLabelRestricted,
+    externalName,
+    fileRequired,
+    groupsAreValid,
     hostname,
-    testRule,
+    imageUrl,
+    interval,
+    isHttps,
+    matching,
+    maxLength,
+    maxValue,
+    minLength,
+    minValue,
+    noUpperCase,
+    portNumber,
+    required,
+    requiredInt,
+    roleTemplateRules,
+    ruleGroups,
+    servicePort,
     subDomain,
-    absolutePath
+    testRule,
+    wildcardHostname,
   };
 }

@@ -12,17 +12,17 @@ export default Vue.extend({
       default: ''
     },
 
-    /** 
+    /**
      * The value for this option.
-     */ 
+     */
     val: {
       required:  true,
       validator: x => true
     },
 
-    /** 
+    /**
      * The selected value.
-     */ 
+     */
     value: {
       required:  true,
       validator: x => true
@@ -30,7 +30,7 @@ export default Vue.extend({
 
     /**
      * The label shown next to the radio.
-     */ 
+     */
     label: {
       type:    String,
       default: ''
@@ -88,7 +88,14 @@ export default Vue.extend({
     muteLabel(): boolean {
       // Don't mute the label if the mode is view and the button is checked
       return this.disabled && !(this.mode === _VIEW && this.isChecked);
-    }
+    },
+
+    /**
+     * Determines if the description slot is in use.
+     */
+    hasDescriptionSlot(): boolean {
+      return !!this.$slots.description;
+    },
   },
 
   watch: {
@@ -131,7 +138,7 @@ export default Vue.extend({
       type="radio"
       :tabindex="-1"
       @click.stop.prevent
-    />
+    >
     <span
       ref="custom"
       :class="[ isDisabled ? 'text-muted' : '', 'radio-custom']"
@@ -149,11 +156,23 @@ export default Vue.extend({
       >
         <slot name="label">{{ label }}</slot>
       </label>
-      <div v-if="descriptionKey || description" class="radio-button-outer-container-description">
-        <t v-if="descriptionKey" :k="descriptionKey" />
+      <div
+        v-if="descriptionKey || description"
+        class="radio-button-outer-container-description"
+      >
+        <t
+          v-if="descriptionKey"
+          :k="descriptionKey"
+        />
         <template v-else-if="description">
           {{ description }}
         </template>
+      </div>
+      <div
+        v-else-if="hasDescriptionSlot"
+        class="radio-button-outer-container-description"
+      >
+        <slot name="description" />
       </div>
     </div>
   </label>

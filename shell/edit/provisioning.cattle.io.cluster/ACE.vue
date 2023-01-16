@@ -74,7 +74,12 @@ export default {
             type="multiline"
             :tooltip="t('cluster.rke2.address.caCerts.toolTip')"
           />
-          <FileSelector :mode="mode" class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCertSelected" />
+          <FileSelector
+            :mode="mode"
+            class="btn btn-sm bg-primary mt-10"
+            :label="t('generic.readFromFile')"
+            @selected="onCertSelected"
+          />
         </div>
       </div>
     </template>

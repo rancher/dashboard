@@ -32,8 +32,8 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
     if (this.state === !!this.deployment) {
       res.push({
-        label:     'Last Deployed By',
-        content:     this.deployment.username,
+        label:   'Last Deployed By',
+        content: this.deployment.username,
       });
     }
 
@@ -89,24 +89,24 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
     if (showAppShell) {
       res.push({
-        action:     'showAppShell',
-        label:      this.t('epinio.applications.actions.shell.label'),
-        icon:       'icon icon-fw icon-chevron-right',
-        enabled:    showAppShell,
+        action:  'showAppShell',
+        label:   this.t('epinio.applications.actions.shell.label'),
+        icon:    'icon icon-fw icon-chevron-right',
+        enabled: showAppShell,
       });
     }
     res.push(
       {
-        action:     'showAppLog',
-        label:      this.t('epinio.applications.actions.viewAppLogs.label'),
-        icon:       'icon icon-fw icon-file',
-        enabled:    showAppLog,
+        action:  'showAppLog',
+        label:   this.t('epinio.applications.actions.viewAppLogs.label'),
+        icon:    'icon icon-fw icon-file',
+        enabled: showAppLog,
       },
       {
-        action:     'showStagingLog',
-        label:      this.t('epinio.applications.actions.viewStagingLogs.label'),
-        icon:       'icon icon-fw icon-file',
-        enabled:    showStagingLog,
+        action:  'showStagingLog',
+        label:   this.t('epinio.applications.actions.viewStagingLogs.label'),
+        icon:    'icon icon-fw icon-file',
+        enabled: showStagingLog,
       },
     );
 
@@ -115,22 +115,22 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     }
 
     res.push( {
-      action:     'restage',
-      label:      this.t('epinio.applications.actions.restage.label'),
-      icon:       'icon icon-fw icon-backup',
-      enabled:    !!this.deployment?.stage_id
+      action:  'restage',
+      label:   this.t('epinio.applications.actions.restage.label'),
+      icon:    'icon icon-fw icon-backup',
+      enabled: !!this.deployment?.stage_id
     },
     {
-      action:     'restart',
-      label:      this.t('epinio.applications.actions.restart.label'),
-      icon:       'icon icon-fw icon-refresh',
-      enabled:    isRunning
+      action:  'restart',
+      label:   this.t('epinio.applications.actions.restart.label'),
+      icon:    'icon icon-fw icon-refresh',
+      enabled: isRunning
     },
     { divider: true },
     {
-      action:     'createManifest',
-      label:      this.t('epinio.applications.actions.createManifest.label'),
-      icon:       'icon icon-fw icon-download',
+      action: 'createManifest',
+      label:  this.t('epinio.applications.actions.createManifest.label'),
+      icon:   'icon icon-fw icon-download',
     },
     { divider: true },
 
@@ -414,7 +414,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     formData.append('file', data);
 
     const res = await this.followLink('store', {
-      method:         'post',
+      method:  'post',
       headers: {
         'content-type': 'multipart/form-data',
         'File-Size':    data.size,
@@ -519,7 +519,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
     const opt = {
       url:     this.$getters['urlFor'](this.type, this.id, { url: `/api/v1/namespaces/${ this.meta.namespace }/staging/${ stageId }/complete` }),
-      method:         'get',
+      method:  'get',
       headers: {
         'content-type': 'application/json',
         accept:         'application/json'
@@ -550,7 +550,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
     try {
       const res = await this.followLink('deploy', {
-        method:         'post',
+        method:  'post',
         headers: { 'content-type': 'application/json' },
         data:    {
           app: {
@@ -632,7 +632,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
     const opt = {
       url:    `${ this.linkFor('configBinding') }`,
-      method:         'post',
+      method: 'post',
       data:   { names: configurations }
     };
 
@@ -647,7 +647,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     const promises = configurations.map((c) => {
       const opt = {
         url:    `${ this.linkFor('configBinding') }/${ c }`,
-        method:         'delete',
+        method: 'delete',
       };
 
       return this.$dispatch('request', { opt, type: this.type } );

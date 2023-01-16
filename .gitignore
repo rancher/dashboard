@@ -100,13 +100,16 @@ storybook-static/
 
 # Packages
 dist-pkg
+tmp
 
 # Others
 .todo
 
 # Plugins - temporary
 shell/rancher-components
+shell/types/shell
 
 # standalone script
 scripts/standalone/ui
 scripts/standalone/cert
+scripts/standalone/node

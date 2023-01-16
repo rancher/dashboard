@@ -16,7 +16,6 @@ import Labels from '@shell/components/form/Labels';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear, uniq } from '@shell/utils/array';
-import { importCloudCredential } from '@shell/utils/dynamic-importer';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
@@ -128,14 +127,11 @@ export default {
     },
 
     cloudComponent() {
-      const driver = this.driverName;
-      const haveProviders = this.$store.getters['plugins/credentialDrivers'];
-
-      if ( haveProviders.includes(driver) ) {
-        return importCloudCredential(driver);
+      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
+        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
       }
 
-      return importCloudCredential('generic');
+      return this.$store.getters['type-map/importCloudCredential']('generic');
     },
 
     // array of id, label, description, initials for type selection step
@@ -324,9 +320,16 @@ export default {
       @select-type="selectType"
       @error="e=>errors = e"
     >
-      <NameNsDescription v-model="value" :mode="mode" :namespaced="!isCloud" />
+      <NameNsDescription
+        v-model="value"
+        :mode="mode"
+        :namespaced="!isCloud"
+      />
 
-      <div v-if="isCustomSecretCreate" class="row">
+      <div
+        v-if="isCustomSecretCreate"
+        class="row"
+      >
         <div class="col span-3">
           <LabeledSelect
             v-model="secretType"
@@ -354,7 +357,7 @@ export default {
         </div>
       </div>
 
-      <div class="spacer"></div>
+      <div class="spacer" />
       <component
         :is="cloudComponent"
         v-if="isCloud"
@@ -364,8 +367,16 @@ export default {
         :mode="mode"
         :hide-sensitive-data="hideSensitiveData"
       />
-      <Tabbed v-else :side-tabs="true" default-tab="data">
-        <Tab name="data" :label="dataLabel" :weight="99">
+      <Tabbed
+        v-else
+        :side-tabs="true"
+        default-tab="data"
+      >
+        <Tab
+          name="data"
+          :label="dataLabel"
+          :weight="99"
+        >
           <component
             :is="dataComponent"
             :value="value"
@@ -373,8 +384,15 @@ export default {
             :hide-sensitive-data="hideSensitiveData"
           />
         </Tab>
-        <Tab name="labels" label-key="generic.labelsAndAnnotations" :weight="-1">
-          <Labels v-model="value" :mode="mode" />
+        <Tab
+          name="labels"
+          label-key="generic.labelsAndAnnotations"
+          :weight="-1"
+        >
+          <Labels
+            v-model="value"
+            :mode="mode"
+          />
         </Tab>
       </Tabbed>
     </CruResource>

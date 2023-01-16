@@ -22,6 +22,28 @@ export default {
       default: () => {
         return [];
       }
+    },
+
+    /**
+     * Optionally replace key/value and display tooltips for the tab
+     * Dictionary key based
+     */
+    tooltips: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
+
+    /**
+     * Optionally display icons next to the tab
+     * Dictionary key based
+     */
+    icons: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -75,6 +97,14 @@ export default {
       return this.value?.filteredSystemLabels;
     },
 
+    internalTooltips() {
+      return this.value?.detailTopTooltips || this.tooltips;
+    },
+
+    internalIcons() {
+      return this.value?.detailTopIcons || this.icons;
+    },
+
     annotations() {
       return this.value?.annotations || {};
     },
@@ -114,7 +144,16 @@ export default {
     },
 
     showFilteredSystemLabels() {
-      return !!this.value.filteredSystemLabels;
+      // It would be nicer to use hasSystemLabels here, but not all places have implemented it
+      // Instead check that there's a discrepancy between all labels and all labels without system ones
+      if (this.value?.labels && this.value?.filteredSystemLabels) {
+        const labelCount = Object.keys(this.value.labels).length;
+        const filteredSystemLabelsCount = Object.keys(this.value.filteredSystemLabels).length;
+
+        return labelCount !== filteredSystemLabelsCount;
+      }
+
+      return false;
     },
   },
   methods: {
@@ -130,19 +169,33 @@ export default {
 </script>
 
 <template>
-  <div class="detail-top" :class="{empty: isEmpty}">
-    <div v-if="hasNamespaces" class="labels">
+  <div
+    class="detail-top"
+    :class="{empty: isEmpty}"
+  >
+    <div
+      v-if="hasNamespaces"
+      class="labels"
+    >
       <span class="label">
         {{ t('resourceDetail.detailTop.namespaces') }}:
       </span>
       <span>
-        <nuxt-link v-for="namespace in namespaces" :key="namespace.name" :to="namespace.detailLocation" class="namespaceLinkList">
+        <nuxt-link
+          v-for="namespace in namespaces"
+          :key="namespace.name"
+          :to="namespace.detailLocation"
+          class="namespaceLinkList"
+        >
           {{ namespace.name }}
         </nuxt-link>
       </span>
     </div>
 
-    <div v-if="description" class="description">
+    <div
+      v-if="description"
+      class="description"
+    >
       <span class="label">
         {{ t('resourceDetail.detailTop.description') }}:
       </span>
@@ -150,8 +203,16 @@ export default {
     </div>
 
     <div v-if="hasDetails">
-      <div v-for="group, index in details" :key="index" class="details">
-        <div v-for="detail in group" :key="detail.label || detail.slotName" class="detail">
+      <div
+        v-for="group, index in details"
+        :key="index"
+        class="details"
+      >
+        <div
+          v-for="detail in group"
+          :key="detail.label || detail.slotName"
+          class="detail"
+        >
           <span class="label">
             {{ detail.label }}:
           </span>
@@ -166,29 +227,63 @@ export default {
       </div>
     </div>
 
-    <div v-if="hasLabels" class="labels">
+    <div
+      v-if="hasLabels"
+      class="labels"
+    >
       <div class="tags">
         <span class="label">
           {{ t('resourceDetail.detailTop.labels') }}:
         </span>
-        <Tag v-for="(prop, key) in labels" :key="key + prop">
-          {{ key }}<span v-if="prop">: </span>{{ prop }}
+        <Tag
+          v-for="(prop, key) in labels"
+          :key="key + prop"
+        >
+          <i
+            v-if="internalIcons[key]"
+            class="icon"
+            :class="internalIcons[key]"
+          />
+          <span
+            v-if="internalTooltips[key]"
+            v-tooltip="prop ? `${key} : ${prop}` : key"
+          >
+            <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
+          </span>
+          <span v-else>{{ prop ? `${key} : ${prop}` : key }}</span>
         </Tag>
-        <a v-if="showFilteredSystemLabels" href="#" class="detail-top__label-button" @click.prevent="toggleLabels">
+        <a
+          v-if="showFilteredSystemLabels"
+          href="#"
+          class="detail-top__label-button"
+          @click.prevent="toggleLabels"
+        >
           {{ t(`resourceDetail.detailTop.${showAllLabels? 'hideLabels' : 'showLabels'}`) }}
         </a>
       </div>
     </div>
 
-    <div v-if="hasAnnotations" class="annotations">
+    <div
+      v-if="hasAnnotations"
+      class="annotations"
+    >
       <span class="label">
         {{ t('resourceDetail.detailTop.annotations') }}:
       </span>
-      <a href="#" @click.prevent="toggleAnnotations">
+      <a
+        href="#"
+        @click.prevent="toggleAnnotations"
+      >
         {{ t(`resourceDetail.detailTop.${annotationsVisible? 'hideAnnotations' : 'showAnnotations'}`, {annotations: annotationCount}) }}
       </a>
       <div v-if="annotationsVisible">
-        <DetailText v-for="(val, key) in annotations" :key="key" class="annotation" :value="val" :label="key" />
+        <DetailText
+          v-for="(val, key) in annotations"
+          :key="key"
+          class="annotation"
+          :value="val"
+          :label="key"
+        />
       </div>
     </div>
   </div>
@@ -258,6 +353,10 @@ export default {
       &:not(:last-of-type) {
         margin-bottom: $spacing;
       }
+    }
+
+    .icon {
+      vertical-align: top;
     }
   }
 </style>

@@ -78,7 +78,10 @@ export default {
 </script>
 
 <template>
-  <div class="cert row" @input="update">
+  <div
+    class="cert row"
+    @input="update"
+  >
     <div class="col span-6">
       <LabeledSelect
         v-model="secretName"
@@ -95,7 +98,13 @@ export default {
       />
     </div>
     <div class="col span-6">
-      <ArrayList :value="hosts" :add-label="t('ingress.certificates.addHost')" :rules="rules.host" @input="onHostsInput" />
+      <ArrayList
+        :value="hosts"
+        :add-label="t('ingress.certificates.addHost')"
+        :rules="rules.host"
+        :initial-empty-row="true"
+        @input="onHostsInput"
+      />
     </div>
   </div>
 </template>

@@ -1,22 +1,14 @@
 
 import { mount } from '@vue/test-utils';
 import { LabeledInput } from './index';
-import Vue from 'vue';
-import Vuex from 'vuex';
 
 describe('component: LabeledInput', () => {
   it('should emit input only once', () => {
     const value = '2';
     const delay = 1;
-    const wrapper = mount(LabeledInput, { 
+    const wrapper = mount(LabeledInput, {
       propsData: { delay },
-      mocks:      {
-        $store: {
-          getters: {
-            'i18n/t': jest.fn()
-          }
-        }
-      }
+      mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
     });
 
     jest.useFakeTimers();

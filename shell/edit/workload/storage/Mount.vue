@@ -4,6 +4,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { mapGetters } from 'vuex';
 import { removeObject } from '@shell/utils/array';
 export default {
+  name:       'Mount',
   components: { LabeledInput, Checkbox },
   props:      {
     mode: {
@@ -13,7 +14,7 @@ export default {
 
     // volume name
     name: {
-      type:     String,
+      type:    String,
       default: ''
     },
 

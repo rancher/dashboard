@@ -1,16 +1,5 @@
-
+import '@cypress/code-coverage/support';
 import './commands';
-
-declare global {
-  // eslint-disable-next-line no-unused-vars
-  namespace Cypress {
-    interface Chainable {
-      login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
-      byLabel(label: string,): Chainable<Element>;
-      getId(id: string,): Chainable<Element>;
-    }
-  }
-}
 
 // TODO handle redirection errors better?
 // we see a lot of 'error navigation cancelled' uncaught exceptions that don't actually break anything; ignore them here

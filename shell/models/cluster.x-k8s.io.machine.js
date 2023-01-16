@@ -58,23 +58,23 @@ export default class CapiMachine extends SteveModel {
     const out = super._availableActions;
 
     const openSsh = {
-      action:     'openSsh',
-      enabled:    !!this.links.shell && this.isRunning,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'SSH Shell',
+      action:  'openSsh',
+      enabled: !!this.links.shell && this.isRunning,
+      icon:    'icon icon-fw icon-chevron-right',
+      label:   'SSH Shell',
     };
     const downloadKeys = {
-      action:     'downloadKeys',
-      enabled:    !!this.links.sshkeys,
-      icon:       'icon icon-fw icon-download',
-      label:      this.t('node.actions.downloadSSHKey'),
+      action:  'downloadKeys',
+      enabled: !!this.links.sshkeys,
+      icon:    'icon icon-fw icon-download',
+      label:   this.t('node.actions.downloadSSHKey'),
     };
     const forceRemove = {
-      action:     'toggleForceRemoveModal',
-      altAction:  'forceMachineRemove',
-      enabled:    !!this.isRemoveForceable,
-      label:      this.t('node.actions.forceDelete'),
-      icon:       'icon icon-trash',
+      action:    'toggleForceRemoveModal',
+      altAction: 'forceMachineRemove',
+      enabled:   !!this.isRemoveForceable,
+      label:     this.t('node.actions.forceDelete'),
+      icon:      'icon icon-trash',
     };
     const scaleDown = {
       action:     'toggleScaleDownModal',
@@ -114,8 +114,8 @@ export default class CapiMachine extends SteveModel {
 
   toggleForceRemoveModal(resources = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'ForceMachineRemoveDialog'
+      componentProps: { machine: resources },
+      component:      'ForceMachineRemoveDialog'
     });
   }
 
@@ -242,7 +242,29 @@ export default class CapiMachine extends SteveModel {
     return this.status?.phase === 'Running';
   }
 
-  get ipaddress() {
-    return this.status?.addresses?.find(({ type }) => type === ADDRESSES.INTERNAL_IP)?.address || '-';
+  get internalIp() {
+    // This shows in the IP address column for RKE2 nodes in the
+    // list of nodes in the cluster detail page of Cluster Management.
+    const internal = this.status?.addresses?.find(({ type }) => {
+      return type === ADDRESSES.INTERNAL_IP;
+    })?.address;
+
+    if (internal) {
+      return internal;
+    }
+
+    return this.t('generic.none');
+  }
+
+  get externalIp() {
+    const external = this.status?.addresses?.find(({ type }) => {
+      return type === ADDRESSES.EXTERNAL_IP;
+    })?.address;
+
+    if (external) {
+      return external;
+    }
+
+    return this.t('generic.none');
   }
 }

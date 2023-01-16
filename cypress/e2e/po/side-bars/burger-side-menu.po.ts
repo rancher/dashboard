@@ -60,10 +60,10 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   /**
-   * Get i18n menu
+   * Get the Home link
    * @returns {Cypress.Chainable}
    */
-  localization(): Cypress.Chainable {
-    return this.self().getId('locale-selector');
+  home(): Cypress.Chainable {
+    return this.self().find('.body > div > a').first();
   }
 }

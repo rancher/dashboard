@@ -30,11 +30,11 @@ export default {
         const textColor = colorForState(key);
 
         return {
-          label:     ucFirst(key),
-          color:     textColor.replace(/text-/, 'bg-'),
+          label: ucFirst(key),
+          color: textColor.replace(/text-/, 'bg-'),
           textColor,
-          value:     this.summary[key],
-          sort:      stateSort(textColor, key),
+          value: this.summary[key],
+          sort:  stateSort(textColor, key),
         };
       }).filter(x => x.value > 0);
 
@@ -54,15 +54,27 @@ export default {
     :trigger="show ? 'click' : 'manual'"
     offset="1"
   >
-    <ProgressBarMulti :values="stateParts" class="mb-5" />
+    <ProgressBarMulti
+      :values="stateParts"
+      class="mb-5"
+    />
     <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
     <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
 
     <template #popover>
-      <table v-if="show" class="fixed">
+      <table
+        v-if="show"
+        class="fixed"
+      >
         <tbody>
-          <tr v-for="obj in stateParts" :key="obj.label">
-            <td class="text-left pr-20" :class="{[obj.textColor]: true}">
+          <tr
+            v-for="obj in stateParts"
+            :key="obj.label"
+          >
+            <td
+              class="text-left pr-20"
+              :class="{[obj.textColor]: true}"
+            >
               {{ obj.label }}
             </td>
             <td class="text-right">
@@ -73,7 +85,10 @@ export default {
       </table>
     </template>
   </v-popover>
-  <div v-else class="text-center text-muted">
+  <div
+    v-else
+    class="text-center text-muted"
+  >
     &mdash;
   </div>
 </template>

@@ -2,6 +2,7 @@
 import Vue, { PropType } from 'vue';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { addObject, removeObject } from '@shell/utils/array';
+import cloneDeep from 'lodash/cloneDeep';
 
 export default Vue.extend({
   props: {
@@ -9,7 +10,7 @@ export default Vue.extend({
      * The checkbox value.
      */
     value: {
-      type:    [Boolean, Array] as PropType<boolean | boolean[]>,
+      type:    [Boolean, Array, String] as PropType<boolean | boolean[] | string>,
       default: false
     },
 
@@ -46,8 +47,8 @@ export default Vue.extend({
     },
 
     /**
-     * Display an indeterminate state. Useful for cases where a checkbox might 
-     * be the parent to child checkboxes, and we need to show that a subset of 
+     * Display an indeterminate state. Useful for cases where a checkbox might
+     * be the parent to child checkboxes, and we need to show that a subset of
      * children are checked.
      */
     indeterminate: {
@@ -102,22 +103,30 @@ export default Vue.extend({
     description: {
       type:    String,
       default: null
-    }
+    },
+
+    /**
+     * Primary checkbox displays label so that it stands out more
+     */
+    primary: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   computed: {
     /**
      * Determines if the checkbox is disabled.
-     * @returns boolean: True when the disabled prop is true or when mode is 
+     * @returns boolean: True when the disabled prop is true or when mode is
      * View.
      */
     isDisabled(): boolean {
       return (this.disabled || this.mode === _VIEW);
     },
     /**
-     * Determines if the checkbox is checked when using custom values or 
+     * Determines if the checkbox is checked when using custom values or
      * multiple values.
-     * @returns boolean: True when at least one value is true in a collection or 
+     * @returns boolean: True when at least one value is true in a collection or
      * when value matches `this.valueWhenTrue`.
      */
     isChecked(): boolean {
@@ -154,15 +163,23 @@ export default Vue.extend({
       const click = new CustomEvent('click', customEvent);
 
       // Flip the value
-      if (this.isMulti(this.value)) {
+      const value = cloneDeep(this.value);
+
+      if (this.isMulti(value)) {
         if (this.isChecked) {
-          removeObject(this.value, this.valueWhenTrue);
+          removeObject(value, this.valueWhenTrue);
         } else {
-          addObject(this.value, this.valueWhenTrue);
+          addObject(value, this.valueWhenTrue);
         }
-        this.$emit('input', this.value);
+        this.$emit('input', value);
+      } else if (this.isString(this.valueWhenTrue)) {
+        if (this.isChecked) {
+          this.$emit('input', null);
+        } else {
+          this.$emit('input', this.valueWhenTrue);
+        }
       } else {
-        this.$emit('input', !this.value);
+        this.$emit('input', !value);
         this.$el.dispatchEvent(click);
       }
     },
@@ -170,8 +187,12 @@ export default Vue.extend({
     /**
      * Determines if there are multiple values for the checkbox.
      */
-    isMulti(value: boolean | boolean[]): value is boolean[] {
+    isMulti(value: boolean | boolean[] | string): value is boolean[] {
       return Array.isArray(value);
+    },
+
+    isString(value: boolean | number | string): value is boolean {
+      return typeof value === 'string';
     },
 
     /**
@@ -186,7 +207,10 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div class="checkbox-outer-container" data-checkbox-ctrl>
+  <div
+    class="checkbox-outer-container"
+    data-checkbox-ctrl
+  >
     <label
       class="checkbox-container"
       :class="{ 'disabled': isDisabled}"
@@ -196,14 +220,13 @@ export default Vue.extend({
       @click="clicked($event)"
     >
       <input
-        v-model="value"
         :checked="isChecked"
         :value="valueWhenTrue"
         type="checkbox"
         :tabindex="-1"
         :name="id"
         @click.stop.prevent
-      />
+      >
       <span
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
@@ -215,17 +238,36 @@ export default Vue.extend({
       <span
         v-if="$slots.label || label || labelKey || tooltipKey || tooltip"
         class="checkbox-label"
+        :class="{ 'checkbox-primary': primary }"
       >
         <slot name="label">
-          <t v-if="labelKey" :k="labelKey" :raw="true" />
+          <t
+            v-if="labelKey"
+            :k="labelKey"
+            :raw="true"
+          />
           <template v-else-if="label">{{ label }}</template>
-          <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
-          <i v-else-if="tooltip" v-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
+          <i
+            v-if="tooltipKey"
+            v-tooltip="t(tooltipKey)"
+            class="checkbox-info icon icon-info icon-lg"
+          />
+          <i
+            v-else-if="tooltip"
+            v-tooltip="tooltip"
+            class="checkbox-info icon icon-info icon-lg"
+          />
         </slot>
       </span>
     </label>
-    <div v-if="descriptionKey || description" class="checkbox-outer-container-description">
-      <t v-if="descriptionKey" :k="descriptionKey" />
+    <div
+      v-if="descriptionKey || description"
+      class="checkbox-outer-container-description"
+    >
+      <t
+        v-if="descriptionKey"
+        :k="descriptionKey"
+      />
       <template v-else-if="description">
         {{ description }}
       </template>
@@ -262,6 +304,11 @@ $fontColor: var(--input-label);
     color: var(--input-label);
     display: inline-flex;
     margin: 0px 10px 0px 5px;
+
+    &.checkbox-primary {
+      color: inherit;
+      font-weight: 600;
+    }
   }
 
   .checkbox-info {

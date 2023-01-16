@@ -95,7 +95,7 @@ if (addTypeFolders) {
 
 // Copy base files
 files.forEach((file) => {
-  const src = path.join(__dirname, file);
+  const src = path.join(__dirname, 'files', file);
   const dest = path.join(path.join(pkgFolder, file));
 
   if (!fs.existsSync(dest)) {
@@ -136,6 +136,9 @@ if (!isNodeModulesShell) {
   Object.keys(tsconfig.compilerOptions.paths).forEach((p) => {
     tsconfig.compilerOptions.paths[p] = updateArray(tsconfig.compilerOptions.paths[p]);
   });
+
+  // Update typeRoots
+  tsconfig.compilerOptions.typeRoots = updateArray(tsconfig.compilerOptions.typeRoots);
 
   fs.writeFileSync(path.join(pkgFolder, 'tsconfig.json'), JSON.stringify(tsconfig, null, 2));
   console.log('  Updated tsconfig.json for shell folder location');

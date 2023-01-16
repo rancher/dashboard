@@ -17,43 +17,33 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:       'legacy.alerts',
-    name:           'v1-alerts',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'alerts' } },
-    exact:          true
+    labelKey:   'legacy.alerts',
+    name:       'v1-alerts',
+    group:      'Root',
+    namespaced: true,
+    weight:     111,
+    route:      { name: 'c-cluster-legacy-pages-page', params: { page: 'alerts' } },
+    exact:      true
   });
 
   virtualType({
-    labelKey:       'legacy.catalogs',
-    name:           'v1-catalogs',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'catalogs' } },
-    exact:          true
+    labelKey:   'legacy.catalogs',
+    name:       'v1-catalogs',
+    group:      'Root',
+    namespaced: true,
+    weight:     111,
+    route:      { name: 'c-cluster-legacy-pages-page', params: { page: 'catalogs' } },
+    exact:      true
   });
 
   virtualType({
-    labelKey:       'legacy.notifiers',
-    name:           'v1-notifiers',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'notifiers' } },
-    exact:          true
-  });
-
-  virtualType({
-    labelKey:       'legacy.cis-scans',
-    name:           'v1-cis-scans',
-    group:          'Root',
-    namespaced:     true,
-    weight:         111,
-    route:          { name: 'c-cluster-legacy-pages-page', params: { page: 'cis' } },
-    exact:          true
+    labelKey:   'legacy.notifiers',
+    name:       'v1-notifiers',
+    group:      'Root',
+    namespaced: true,
+    weight:     111,
+    route:      { name: 'c-cluster-legacy-pages-page', params: { page: 'notifiers' } },
+    exact:      true
   });
 
   virtualType({
@@ -82,7 +72,6 @@ export function init(store) {
     'v1-alerts',
     'v1-catalogs',
     'v1-notifiers',
-    'v1-cis-scans',
     'v1-project-overview'
   ]);
 
@@ -123,44 +112,11 @@ export function init(store) {
 
   virtualType({
     ifHave:     IF_HAVE.PROJECT,
-    labelKey:   'legacy.logging',
-    namespaced: true,
-    name:       'project-logging',
-    weight:     105,
-    route:      { name: 'c-cluster-legacy-project-page', params: { page: 'logging' } },
-    exact:      true,
-    overview:   false,
-  });
-
-  virtualType({
-    ifHave:     IF_HAVE.PROJECT,
     labelKey:   'legacy.monitoring',
     namespaced: true,
     name:       'project-monitoring',
     weight:     105,
     route:      { name: 'c-cluster-legacy-project-page', params: { page: 'monitoring' } },
-    exact:      true,
-    overview:   false,
-  });
-
-  virtualType({
-    ifHave:     IF_HAVE.PROJECT,
-    labelKey:   'legacy.istio',
-    namespaced: true,
-    name:       'project-istio',
-    weight:     105,
-    route:      { name: 'c-cluster-legacy-project-page', params: { page: 'istio' } },
-    exact:      true,
-    overview:   false,
-  });
-
-  virtualType({
-    ifHave:     IF_HAVE.PROJECT,
-    labelKey:   'legacy.pipelines',
-    namespaced: true,
-    name:       'project-pipelines',
-    weight:     104,
-    route:      { name: 'c-cluster-legacy-project-pipelines' },
     exact:      true,
     overview:   false,
   });
@@ -192,10 +148,7 @@ export function init(store) {
     'project-alerts',
     'project-catalogs',
     'project-config-maps',
-    'project-logging',
-    'project-istio',
     'project-monitoring',
-    'project-pipelines',
     'project-secrets',
   ], 'Project');
 }

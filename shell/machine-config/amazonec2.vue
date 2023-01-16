@@ -30,7 +30,7 @@ export default {
     },
 
     cluster: {
-      type:     Object,
+      type:    Object,
       default: () => ({})
     },
 
@@ -212,7 +212,7 @@ export default {
       const subnetsByVpc = {};
 
       for ( const obj of this.vpcInfo.Vpcs ) {
-        const name = obj.Tags.find(t => t.Key === 'Name')?.Value;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
 
         vpcs.push({
           label:     name || obj.VpcId,
@@ -237,7 +237,7 @@ export default {
           subnetsByVpc[obj.VpcId] = entry;
         }
 
-        const name = obj.Tags.find(t => t.Key === 'Name')?.Value;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
 
         entry.push({
           label:     name || obj.SubnetId,
@@ -474,6 +474,7 @@ export default {
               :disabled="disabled"
               :placeholder="t('cluster.machineConfig.amazonEc2.selectedNetwork.placeholder')"
               :label="t('cluster.machineConfig.amazonEc2.selectedNetwork.label')"
+              option-key="value"
               @input="updateNetwork($event)"
             >
               <template v-slot:option="opt">
@@ -522,7 +523,10 @@ export default {
             <div class="col span-12">
               <h3>
                 {{ t('cluster.machineConfig.amazonEc2.securityGroup.title') }}
-                <span v-if="!value.vpcId" class="text-muted text-small">
+                <span
+                  v-if="!value.vpcId"
+                  class="text-muted text-small"
+                >
                   {{ t('cluster.machineConfig.amazonEc2.securityGroup.vpcId') }}
                 </span>
               </h3>
@@ -566,7 +570,10 @@ export default {
                 :mode="mode"
                 :label="t('cluster.machineConfig.amazonEc2.encryptEbsVolume')"
               />
-              <div v-if="value.encryptEbsVolume" class="mt-10">
+              <div
+                v-if="value.encryptEbsVolume"
+                class="mt-10"
+              >
                 <LabeledSelect
                   v-if="canReadKms"
                   v-model="value.kmsKey"
@@ -596,7 +603,10 @@ export default {
                 :mode="mode"
                 :label="t('cluster.machineConfig.amazonEc2.requestSpotInstance')"
               />
-              <div v-if="value.requestSpotInstance" class="mt-10">
+              <div
+                v-if="value.requestSpotInstance"
+                class="mt-10"
+              >
                 <UnitInput
                   v-model="value.spotPrice"
                   output-as="string"
@@ -631,6 +641,7 @@ export default {
               <div>
                 <Checkbox
                   v-model="value.httpEndpoint"
+                  value-when-true="enabled"
                   :mode="mode"
                   :disabled="disabled"
                   :label="t('cluster.machineConfig.amazonEc2.httpEndpoint')"
@@ -639,6 +650,7 @@ export default {
               <div>
                 <Checkbox
                   v-model="value.httpTokens"
+                  value-when-true="required"
                   :mode="mode"
                   :disabled="!value.httpEndpoint || disabled"
                   :label="t('cluster.machineConfig.amazonEc2.httpTokens')"

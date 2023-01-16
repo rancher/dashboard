@@ -31,6 +31,10 @@ export default {
     return { entries };
   },
 
+  created() {
+    set(this.value, 'spec.rkeConfig.registries.mirrors', {});
+  },
+
   methods: {
     update(entries) {
       const mirrors = {};
@@ -42,7 +46,6 @@ export default {
 
         mirrors[entry.hostname] = { endpoint: entry.endpoints.split(/\s*,\s*/).map(x => x.trim()) };
       }
-
       set(this.value, 'spec.rkeConfig.registries.mirrors', mirrors);
     },
   }
@@ -54,6 +57,7 @@ export default {
     key="labels"
     :value="entries"
     :as-map="false"
+    :initial-empty-row="true"
     key-label="Registry Hostname"
     key-name="hostname"
     key-placeholder="e.g. docker.io or *"
@@ -68,8 +72,14 @@ export default {
     <template #title>
       <h3>
         {{ t('registryMirror.header') }}
-        <i v-tooltip="t('registryMirror.toolTip')" class="icon icon-info" />
+        <i
+          v-tooltip="t('registryMirror.toolTip')"
+          class="icon icon-info"
+        />
       </h3>
+      <p class="mb-20">
+        {{ t('registryMirror.description') }}
+      </p>
     </template>
   </KeyValue>
 </template>

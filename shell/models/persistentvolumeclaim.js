@@ -40,10 +40,10 @@ export default class PVC extends SteveModel {
     // Add backwards, each one to the top
     insertAt(out, 0, { divider: true });
     insertAt(out, 0, {
-      action:     'goToEditVolumeSize',
-      enabled:    this.expandable && this.bound,
-      icon:       'icon icon-fw icon-plus',
-      label:      this.t('persistentVolumeClaim.expand.label'),
+      action:  'goToEditVolumeSize',
+      enabled: this.expandable && this.bound,
+      icon:    'icon icon-fw icon-plus',
+      label:   this.t('persistentVolumeClaim.expand.label'),
     });
 
     return out;

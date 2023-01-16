@@ -63,8 +63,8 @@ export function get(obj, path) {
     try {
       return JSONPath({
         path,
-        json:        obj,
-        wrap:        false,
+        json: obj,
+        wrap: false,
       });
     } catch (e) {
       console.log('JSON Path error', e, path, obj); // eslint-disable-line no-console
@@ -352,4 +352,18 @@ export function applyChangeset(obj, changeset) {
   }
 
   return obj;
+}
+
+/**
+ * Creates an object composed of the `object` properties `predicate` returns
+ */
+export function pickBy(obj = {}, predicate = (value, key) => false) {
+  return Object.entries(obj)
+    .reduce((res, [key, value]) => {
+      if (predicate(value, key)) {
+        res[key] = value;
+      }
+
+      return res;
+    }, {});
 }

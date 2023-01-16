@@ -4,6 +4,7 @@ import InfoBox from '@shell/components/InfoBox';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
+  name:       'ArrayListGrouped',
   components: { ArrayList, InfoBox },
   props:      {
     /**
@@ -21,6 +22,13 @@ export default {
       type:    Boolean,
       default: true,
     },
+    /**
+     * Start with empty row
+     */
+    initialEmptyRow: {
+      type:    Boolean,
+      default: false,
+    },
 
     /**
      * Form mode for the component
@@ -31,7 +39,7 @@ export default {
     },
   },
 
-  computed:   {
+  computed: {
     isView() {
       return this.mode === _VIEW;
     }
@@ -51,7 +59,7 @@ export default {
       }
 
       return this.canRemove;
-    }
+    },
   }
 };
 </script>
@@ -62,6 +70,7 @@ export default {
     v-bind="$attrs"
     :add-allowed="canAdd && !isView"
     :mode="mode"
+    :initial-empty-row="initialEmptyRow"
     @input="$emit('input', $event)"
     @add="$emit('add')"
     @remove="$emit('remove', $event)"
@@ -79,13 +88,19 @@ export default {
         :data-testid="`remove-item-${scope.i}`"
         @click="scope.remove"
       >
-        <i class="icon icon-2x icon-x" />
+        <i class="icon icon-x" />
       </button>
-      <span v-else></span>
+      <span v-else />
     </template>
     <!-- Pass down templates provided by the caller -->
-    <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-      <slot :name="slot" v-bind="scope" />
+    <template
+      v-for="(_, slot) of $scopedSlots"
+      v-slot:[slot]="scope"
+    >
+      <slot
+        :name="slot"
+        v-bind="scope"
+      />
     </template>
   </ArrayList>
 </template>
@@ -99,15 +114,15 @@ export default {
       & > .remove {
         position: absolute;
 
-        padding: 0px;
-
         top: 0;
         right: 0;
       }
 
       & > .info-box {
         margin-bottom: 0;
+        padding-right: 25px;
       }
     }
 }
+
 </style>

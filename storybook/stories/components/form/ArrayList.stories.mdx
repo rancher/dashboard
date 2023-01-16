@@ -1,0 +1,71 @@
+import { Meta, Canvas, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import ArrayList from '@shell/components/form/ArrayList';
+import { _EDIT, _VIEW } from "@shell/config/query-params";
+
+export const Template = (args, { argTypes }) => ({
+  components: { ArrayList },
+  props:      Object.keys(argTypes),
+  template:   '<ArrayList v-bind="$props" />',
+})
+
+<Meta 
+  title="Components/Form/ArrayList"
+  decorators={[]}
+/>
+
+# ArrayList
+The ArrayList is used to input a list of strings. The list is of variable length.
+
+## Default Empty ArrayList (Button only)
+<Canvas>
+  <Story
+    name="Empty"
+    args={{
+       addLabel: "Add",
+       removeLabel: "Remove"
+    }}>
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+## Showing an Initial Empty Row
+<Canvas>
+  <Story
+    name="Showing an initial empty row"
+    args={{
+       initialEmptyRow: true,
+       addLabel: "Add",
+       removeLabel: "Remove"
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+## Read-only Mode
+<Canvas>
+  <Story
+    name="Disabled"
+    args={{
+      value: ['string 1', 'string 2'],
+      mode: _VIEW,
+      addLabel: "Add",
+      removeLabel: "Remove"
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import 
+<Source
+  language='ts'
+  code={`
+     import ArrayList from '@shell/components/form/ArrayList';
+  `}
+/>
+
+
+### Props table
+
+<ArgsTable of={ArrayList} />

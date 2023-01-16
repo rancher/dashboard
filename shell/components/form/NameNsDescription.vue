@@ -5,7 +5,7 @@ import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { _VIEW, _EDIT } from '@shell/config/query-params';
+import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
@@ -20,6 +20,7 @@ export function normalizeName(str) {
 }
 
 export default {
+  name:       'NameNsDescripiton',
   components: {
     LabeledInput,
     LabeledSelect
@@ -148,6 +149,15 @@ export default {
         description: []
       }),
       type: Object,
+    },
+
+    /**
+     * Inherited global identifier prefix for tests
+     * Define a term based on the parent component to avoid conflicts on multiple components
+     */
+    componentTestid: {
+      type:    String,
+      default: 'name-ns-description'
     }
   },
 
@@ -186,16 +196,20 @@ export default {
       description = metadata?.annotations?.[DESCRIPTION];
     }
 
+    const inStore = this.$store.getters['currentStore']();
+    const nsSchema = this.$store.getters[`${ inStore }/schemaFor`](NAMESPACE);
+
     return {
       namespace,
       name,
       description,
-      createNamespace: false
+      createNamespace: false,
+      nsSchema
     };
   },
 
   computed: {
-    ...mapGetters(['isVirtualCluster']),
+    ...mapGetters(['currentProduct', 'currentCluster']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -211,17 +225,21 @@ export default {
       const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
 
       const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
+        // By default, include the namespace in the dropdown.
+        let out = true;
 
-        if (this.isVirtualCluster) {
-          // For virtual clusters, filter out the namespace
+        if (this.currentProduct?.hideSystemResources) {
+          // Filter out the namespace
           // if it is a system namespace or if it is managed by
           // Fleet.
-          return !namespace.isSystem && !namespace.isFleetManaged && !isSettingSystemNamespace;
+          out = !namespace.isSystem && !namespace.isFleetManaged;
         }
 
-        // By default, include the namespace in the dropdown.
-        return true;
+        if (this.mode === _CREATE) {
+          out = out && !!namespace.links.update;
+        }
+
+        return out;
       }));
 
       const withLabels = filtered.map(this.namespaceMapper || ((obj) => {
@@ -240,18 +258,23 @@ export default {
         });
       }
 
-      return [
-        {
+      const out = [];
+
+      if (this.canCreateNamespace) {
+        out.push({
           label: this.t('namespace.createNamespace'),
-          value: ''
-        },
-        {
-          label:    'divider',
-          disabled: true,
-          kind:     'divider'
-        },
-        ...sortedByLabel
-      ];
+          value: '',
+          kind:  'highlighted'
+        });
+      }
+      out.push({
+        label:    'divider',
+        disabled: true,
+        kind:     'divider'
+      },
+      ...sortedByLabel);
+
+      return out;
     },
 
     isView() {
@@ -270,6 +293,11 @@ export default {
 
       return `span-${ span }`;
     },
+
+    canCreateNamespace() {
+      // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
+      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster.canUpdate;
+    }
   },
 
   watch: {
@@ -316,7 +344,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', this.namespaces && !this.namespaces.find(n => n.value === val));
+        this.$emit('isNamespaceNew', !val || (this.namespaces && !this.namespaces.find(n => n.value === val)));
       }
 
       if (this.namespaceKey) {
@@ -331,14 +359,22 @@ export default {
       this.namespace = e.selected;
     },
 
+    cancelCreateNamespace(e) {
+      this.createNamespace = false;
+      this.$parent.$emit('createNamespace', false);
+      this.namespace = this.$store.getters['defaultNamespace'];
+    },
+
     selectNamespace(e) {
       if (!e || e.value === '') { // The blank value in the dropdown is labeled "Create a New Namespace"
         this.createNamespace = true;
         this.$parent.$emit('createNamespace', true);
+        this.$emit('isNamespaceNew', true);
         Vue.nextTick(() => this.$refs.namespace.focus());
       } else {
         this.createNamespace = false;
         this.$parent.$emit('createNamespace', false);
+        this.$emit('isNamespaceNew', false);
       }
     }
   },
@@ -347,12 +383,16 @@ export default {
 
 <template>
   <div class="row mb-20">
-    <div v-if="namespaced && !nameNsHidden && createNamespace" class="col span-3">
+    <div
+      v-if="namespaced && !nameNsHidden && createNamespace"
+      :data-testid="componentTestid + '-namespace-create'"
+      class="col span-3"
+    >
       <LabeledInput
         ref="namespace"
         v-model="namespace"
         :label="t('namespace.label')"
-        :placeholder="t('namespace.selectOrCreate')"
+        :placeholder="t('namespace.createNamespace')"
         :disabled="namespaceReallyDisabled"
         :mode="mode"
         :min-height="30"
@@ -361,18 +401,19 @@ export default {
       />
       <button
         aria="Cancel create"
-        @click="() => {
-          createNamespace = false
-          $parent.$emit('createNamespace', false)
-        }"
+        @click="cancelCreateNamespace"
       >
         <i
           v-tooltip="t('generic.cancel')"
-          class="icon icon-lg icon-close align-value"
+          class="icon icon-close align-value"
         />
       </button>
     </div>
-    <div v-if="namespaced && !nameNsHidden && !createNamespace" class="col span-3">
+    <div
+      v-if="namespaced && !nameNsHidden && !createNamespace"
+      :data-testid="componentTestid + '-namespace'"
+      class="col span-3"
+    >
       <LabeledSelect
         v-show="!createNamespace"
         v-model="namespace"
@@ -390,7 +431,11 @@ export default {
       />
     </div>
 
-    <div v-if="!nameNsHidden" class="col span-3">
+    <div
+      v-if="!nameNsHidden"
+      :data-testid="componentTestid + '-name'"
+      class="col span-3"
+    >
       <LabeledInput
         ref="name"
         key="name"
@@ -405,7 +450,11 @@ export default {
       />
     </div>
 
-    <div v-show="!descriptionHidden" :class="['col', extraColumns.length > 0 ? 'span-3' : 'span-6']">
+    <div
+      v-show="!descriptionHidden"
+      :data-testid="componentTestid + '-description'"
+      :class="['col', extraColumns.length > 0 ? 'span-3' : 'span-6']"
+    >
       <LabeledInput
         key="description"
         v-model="description"
@@ -423,10 +472,12 @@ export default {
       :key="slot"
       :class="{ col: true, [colSpan]: true }"
     >
-      <slot :name="slot">
-      </slot>
+      <slot :name="slot" />
     </div>
-    <div v-if="showSpacer" class="spacer"></div>
+    <div
+      v-if="showSpacer"
+      class="spacer"
+    />
   </div>
 </template>
 
@@ -445,7 +496,6 @@ button {
     padding-top: 7px;
   }
 }
-
 .row {
   &.name-ns-description {
     max-height: $input-height;

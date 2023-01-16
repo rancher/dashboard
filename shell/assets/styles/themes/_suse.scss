@@ -1,5 +1,5 @@
 .suse {
-  $primary: hsl(151, 59%, 46%);
+  $primary: hsl(225, 100%, 57%);
   $info:  mix($primary, $secondary, 50%);
   $selected: rgba($primary, .5);
 
@@ -9,7 +9,7 @@
   --primary-hover-text         : #{saturate($lightest, 20%)};
   --primary-active-bg          : #{darken($primary, 25%)};
   --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-  --primary-border             : #($primary);
+  --primary-border             : #{$primary};
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
 

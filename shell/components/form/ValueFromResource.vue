@@ -11,7 +11,7 @@ export default {
     LabeledInput
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
       default: 'create'
@@ -34,7 +34,11 @@ export default {
     namespaced: {
       type:    Boolean,
       default: true
-    }
+    },
+    loading: {
+      default: false,
+      type:    Boolean
+    },
   },
 
   data() {
@@ -280,7 +284,10 @@ export default {
       />
     </div>
 
-    <div v-if="type==='simple'" class="single-value">
+    <div
+      v-if="type==='simple'"
+      class="single-value"
+    >
       <LabeledInput
         v-model="valStr"
         :label="t('workload.container.command.fromResource.value.label')"
@@ -300,6 +307,7 @@ export default {
           :get-option-key="opt=>opt.id|| opt"
           :mode="mode"
           :label="sourceLabel"
+          :loading="loading"
         />
       </div>
       <div v-if="type!=='secretRef' && type!== 'configMapRef'">
@@ -310,6 +318,7 @@ export default {
           :mode="mode"
           option-label="label"
           :label="t('workload.container.command.fromResource.key.label')"
+          :loading="loading"
           @input="updateRow"
         />
       </div>
@@ -351,7 +360,12 @@ export default {
       </div>
     </template>
 
-    <button v-if="!isView" type="button" class="btn btn-sm role-link" @click.stop="$emit('remove')">
+    <button
+      v-if="!isView"
+      type="button"
+      class="btn btn-sm role-link"
+      @click.stop="$emit('remove')"
+    >
       {{ t('generic.remove') }}
     </button>
   </div>

@@ -7,8 +7,8 @@ export default {
   components: {
     ArrayList, LabeledInput, RadioGroup
   },
-  props:      {
-    value:      {
+  props: {
+    value: {
       type:    Object,
       default: () => ({})
     },
@@ -52,18 +52,37 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <ArrayList v-model="value.spec.fc.targetWWNs" :add-label="t('persistentVolume.fc.targetWWNS.add')" :mode="mode" />
+        <ArrayList
+          v-model="value.spec.fc.targetWWNs"
+          :add-label="t('persistentVolume.fc.targetWWNS.add')"
+          :mode="mode"
+        />
       </div>
       <div class="col span-6">
-        <ArrayList v-model="value.spec.fc.wwids" :add-label="t('persistentVolume.fc.wwids.add')" :mode="mode" />
+        <ArrayList
+          v-model="value.spec.fc.wwids"
+          :add-label="t('persistentVolume.fc.wwids.add')"
+          :mode="mode"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="lun" :mode="mode" :label="t('persistentVolume.fc.lun.label')" :placeholder="t('persistentVolume.fc.lun.placeholder')" type="number" />
+        <LabeledInput
+          v-model="lun"
+          :mode="mode"
+          :label="t('persistentVolume.fc.lun.label')"
+          :placeholder="t('persistentVolume.fc.lun.placeholder')"
+          type="number"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.fc.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput
+          v-model="value.spec.fc.fsType"
+          :mode="mode"
+          :label="t('persistentVolume.shared.filesystemType.label')"
+          :placeholder="t('persistentVolume.shared.filesystemType.placeholder')"
+        />
       </div>
     </div>
     <div class="row mb-20">

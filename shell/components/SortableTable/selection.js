@@ -270,6 +270,7 @@ export default {
         this.$store.commit(`action-menu/show`, {
           resources,
           event: e.originalEvent || e, // Handle jQuery event and raw event
+          elem:  actionElement
         });
 
         return;
@@ -546,14 +547,14 @@ function _add(map, act, incrementCounts = true) {
     obj.allEnabled = false;
   }
 
-  if ( act.enabled === false ) {
+  if ( !act.enabled ) {
     obj.allEnabled = false;
   } else {
     obj.anyEnabled = true;
   }
 
   if ( incrementCounts ) {
-    obj.available = (obj.available || 0) + (act.enabled === false ? 0 : 1 );
+    obj.available = (obj.available || 0) + (!act.enabled ? 0 : 1 );
     obj.total = (obj.total || 0) + 1;
   }
 

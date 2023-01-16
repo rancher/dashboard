@@ -115,11 +115,13 @@ export default {
 
       let charts = filterAndArrangeCharts(enabledCharts, {
         clusterProvider,
-        showDeprecated:   this.showDeprecated,
-        showHidden:       this.showHidden,
-        showRepos:        [this.rancherCatalog?._key],
-        showTypes:        [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
+        showDeprecated: this.showDeprecated,
+        showHidden:     this.showHidden,
+        showRepos:      [this.rancherCatalog?._key],
+        showTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
+
+      charts = charts.filter(c => c.sideLabel !== 'Experimental');
 
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools
       if (this.legacyEnabled) {
@@ -127,7 +129,7 @@ export default {
         charts = sortBy(charts, ['certifiedSort', 'chartNameDisplay']);
       }
 
-      const chartsWithApps = charts.map((chart) => {
+      let chartsWithApps = charts.map((chart) => {
         return {
           chart,
           app: this.installedAppForChart[chart.id],
@@ -136,9 +138,9 @@ export default {
 
       // V1 Legacy support
       if (this.legacyEnabled) {
-        this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-monitoring', 'rancher-monitoring', 'cluster-monitoring');
-        this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-istio', 'rancher-istio', 'cluster-istio');
-        this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-logging', 'rancher-logging', 'rancher-logging');
+        chartsWithApps = this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-monitoring', 'rancher-monitoring', 'cluster-monitoring', false);
+        chartsWithApps = this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-istio', 'rancher-istio', 'cluster-istio', true);
+        chartsWithApps = this.checkLegacyApp(chartsWithApps, this.v1Apps, 'v1-logging', 'rancher-logging', 'rancher-logging', true);
       }
 
       return chartsWithApps;
@@ -231,7 +233,7 @@ export default {
       return versions;
     },
 
-    checkLegacyApp(chartsWithApps, v1Apps, v1ChartName, v2ChartName, v1AppName) {
+    checkLegacyApp(chartsWithApps, v1Apps, v1ChartName, v2ChartName, v1AppName, showOnlyIfInstalled) {
       const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
       const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
 
@@ -251,6 +253,9 @@ export default {
               v1.app.upgradeAvailable = latest;
             }
           }
+        } else if (showOnlyIfInstalled) {
+          // Remove the v1 chart if it is not already installed for charts which we no longer support
+          chartsWithApps = chartsWithApps.filter(c => c !== v1);
         }
 
         if (v2) {
@@ -262,6 +267,8 @@ export default {
           }
         }
       }
+
+      return chartsWithApps;
     }
   }
 };
@@ -410,7 +417,10 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="options.length">
     <h1 v-html="t('catalog.tools.header')" />
-    <TypeDescription v-if="!legacyEnabled" resource="chart" />
+    <TypeDescription
+      v-if="!legacyEnabled"
+      resource="chart"
+    />
 
     <div class="grid">
       <div
@@ -418,16 +428,29 @@ export default {
         :key="opt.chart.id"
         class="item"
       >
-        <div class="logo" :class="{'legacy': opt.chart.legacy}">
-          <i v-if="opt.chart.iconName" class="icon" :class="opt.chart.iconName" />
-          <LazyImage v-else :src="opt.chart.icon" />
+        <div
+          class="logo"
+          :class="{'legacy': opt.chart.legacy}"
+        >
+          <i
+            v-if="opt.chart.iconName"
+            class="icon"
+            :class="opt.chart.iconName"
+          />
+          <LazyImage
+            v-else
+            :src="opt.chart.icon"
+          />
         </div>
         <div class="name-version">
           <div>
             <h3 class="name">
               {{ opt.chart.chartNameDisplay }}
             </h3>
-            <label v-if="opt.chart.deploysOnWindows" class="os-label">{{ t('catalog.charts.deploysOnWindows') }}</label>
+            <label
+              v-if="opt.chart.deploysOnWindows"
+              class="os-label"
+            >{{ t('catalog.charts.deploysOnWindows') }}</label>
           </div>
           <div class="version">
             <template v-if="opt.app && opt.app.upgradeAvailable">
@@ -442,41 +465,84 @@ export default {
           </div>
         </div>
         <div class="description">
-          <div class="description-content" v-html="opt.chart.chartDescription" />
+          <div
+            class="description-content"
+            v-html="opt.chart.chartDescription"
+          />
         </div>
-        <div v-if="opt.app && !opt.chart.legacy" class="state">
-          <AppSummaryGraph :row="opt.app" label-key="generic.resourceCount" :link-to="opt.app.detailLocation" />
+        <div
+          v-if="opt.app && !opt.chart.legacy"
+          class="state"
+        >
+          <AppSummaryGraph
+            :row="opt.app"
+            label-key="generic.resourceCount"
+            :link-to="opt.app.detailLocation"
+          />
         </div>
         <div class="action">
           <template v-if="opt.blocked">
-            <button disabled="true" class="btn btn-sm role-primary" v-html="t('catalog.tools.action.install')" />
+            <button
+              disabled="true"
+              class="btn btn-sm role-primary"
+              v-html="t('catalog.tools.action.install')"
+            />
           </template>
           <template v-else-if="opt.app && opt.chart.legacy">
-            <button class="btn btn-sm role-secondary" @click="openV1Tool(opt.chart.legacyPage)" v-html="t('catalog.tools.action.manage')" />
+            <button
+              class="btn btn-sm role-secondary"
+              @click="openV1Tool(opt.chart.legacyPage)"
+              v-html="t('catalog.tools.action.manage')"
+            />
           </template>
           <template v-else-if="opt.app && opt.upgradeAvailable && !opt.chart.legacy">
-            <button class="btn btn-sm role-secondary" @click="remove(opt.app, $event)">
+            <button
+              class="btn btn-sm role-secondary"
+              @click="remove(opt.app, $event)"
+            >
               <i class="icon icon-delete icon-lg" />
             </button>
-            <button class="btn btn-sm role-secondary" @click="edit(opt.app, opt.app.upgradeAvailable)" v-html="t('catalog.tools.action.upgrade')" />
+            <button
+              class="btn btn-sm role-secondary"
+              @click="edit(opt.app, opt.app.upgradeAvailable)"
+              v-html="t('catalog.tools.action.upgrade')"
+            />
           </template>
           <template v-else-if="opt.app">
-            <button class="btn btn-sm role-secondary" @click="remove(opt.app, $event)">
+            <button
+              class="btn btn-sm role-secondary"
+              @click="remove(opt.app, $event)"
+            >
               <i class="icon icon-delete icon-lg" />
             </button>
-            <button class="btn btn-sm role-secondary" @click="edit(opt.app)" v-html="t('catalog.tools.action.edit')" />
+            <button
+              class="btn btn-sm role-secondary"
+              @click="edit(opt.app)"
+              v-html="t('catalog.tools.action.edit')"
+            />
           </template>
           <template v-else-if="opt.chart.legacy">
-            <button class="btn btn-sm role-primary" @click="openV1Tool(opt.chart.legacyPage)" v-html="t('catalog.tools.action.install')" />
+            <button
+              class="btn btn-sm role-primary"
+              @click="openV1Tool(opt.chart.legacyPage)"
+              v-html="t('catalog.tools.action.install')"
+            />
           </template>
           <template v-else>
-            <button class="btn btn-sm role-primary" @click="install(opt.chart)" v-html="t('catalog.tools.action.install')" />
+            <button
+              class="btn btn-sm role-primary"
+              @click="install(opt.chart)"
+              v-html="t('catalog.tools.action.install')"
+            />
           </template>
         </div>
       </div>
     </div>
   </div>
   <div v-else>
-    <IconMessage icon="icon-warning" message-key="catalog.tools.noTools" />
+    <IconMessage
+      icon="icon-warning"
+      message-key="catalog.tools.noTools"
+    />
   </div>
 </template>

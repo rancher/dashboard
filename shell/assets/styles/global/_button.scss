@@ -95,7 +95,11 @@ button,
   }
 
   &.btn-sm {
-    line-height: $btn-sm-height;
+    line-height: $btn-sm-height - 2px;
+
+    &:focus, &.focused {
+      border: 0;
+    }
   }
 }
 
@@ -139,6 +143,7 @@ fieldset[disabled] .btn {
   color: var(--disabled-text) !important;
   &:not(.role-link){
     background-color: var(--disabled-bg) !important;
+    border-color: var(--disabled-bg) !important;
   }
 }
 

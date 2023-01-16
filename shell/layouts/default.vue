@@ -1,7 +1,12 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
-import { mapPref, DEV, FAVORITE_TYPES, AFTER_LOGIN_ROUTE } from '@shell/store/prefs';
+import {
+  mapPref,
+  FAVORITE_TYPES,
+  AFTER_LOGIN_ROUTE,
+  THEME_SHORTCUT
+} from '@shell/store/prefs';
 import ActionMenu from '@shell/components/ActionMenu';
 import GrowlManager from '@shell/components/GrowlManager';
 import WindowManager from '@shell/components/nav/WindowManager';
@@ -16,19 +21,22 @@ import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@shell/config/types';
 import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
-import { NAME as HARVESTER } from '@shell/config/product/harvester';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import { getProductFromRoute } from '@shell/middleware/authenticated';
+import { BOTTOM } from '@shell/utils/position';
+import { DraggableZone } from '@components/Utils/DraggableZone';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -46,20 +54,29 @@ export default {
     WindowManager,
     FixedBanner,
     AwsComplianceBanner,
-    AzureWarning
+    AzureWarning,
+    DraggableZone,
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
+  // Note - This will not run on route change
   data() {
     return {
-      groups:         [],
-      gettingGroups:  false,
-      wantNavSync:    false
+      noLocaleShortcut: process.env.dev || false,
+      groups:           [],
+      gettingGroups:    false,
+      wantNavSync:      false,
+      unwatchPin:       undefined,
+      wmPin:            null,
+      draggable:        false,
     };
   },
 
-  middleware: ['authenticated'],
+  // Note - These will run on route change
+  middleware: [
+    'authenticated'
+  ],
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
@@ -73,8 +90,8 @@ export default {
       return this.$store.getters['activeNamespaceCache'];
     },
 
-    dev:            mapPref(DEV),
-    favoriteTypes:  mapPref(FAVORITE_TYPES),
+    themeShortcut: mapPref(THEME_SHORTCUT),
+    favoriteTypes: mapPref(FAVORITE_TYPES),
 
     pageActions() {
       const pageActions = [];
@@ -98,7 +115,7 @@ export default {
     },
 
     allSchemas() {
-      const managementReady = this.$store.getters['managementReady'];
+      const managementReady = this.managementReady;
       const product = this.$store.getters['currentProduct'];
 
       if ( !managementReady || !product ) {
@@ -117,7 +134,7 @@ export default {
     },
 
     counts() {
-      const managementReady = this.$store.getters['managementReady'];
+      const managementReady = this.managementReady;
       const product = this.$store.getters['currentProduct'];
 
       if ( !managementReady || !product ) {
@@ -143,13 +160,11 @@ export default {
     },
 
     displayVersion() {
-      let { displayVersion } = getVersionInfo(this.$store);
-
-      if (this.isVirtualProduct && this.isSingleProduct) {
-        const setting = this.$store.getters['harvester/byId'](HCI.SETTING, 'server-version');
-
-        displayVersion = setting?.value || 'unknown';
+      if (this.isSingleProduct?.getVersionInfo) {
+        return this.isSingleProduct?.getVersionInfo(this.$store);
       }
+
+      const { displayVersion } = getVersionInfo(this.$store);
 
       return displayVersion;
     },
@@ -167,32 +182,58 @@ export default {
     },
 
     supportLink() {
-      const product = this.$store.getters['currentProduct'].name;
+      const product = this.$store.getters['currentProduct'];
 
-      return { name: `c-cluster-${ product }-support` };
+      if (product?.supportRoute) {
+        return { ...product.supportRoute, params: { ...product.supportRoute.params, cluster: this.clusterId } };
+      }
+
+      return { name: `c-cluster-${ product?.name }-support` };
     },
 
     unmatchedRoute() {
       return !this.$route?.matched?.length;
-    }
+    },
+
+    /**
+     * When navigation involves unloading one cluster and loading another, clusterReady toggles from true->false->true in middleware (before new route content renders)
+     * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
+     */
+    clusterAndRouteReady() {
+      return this.clusterReady &&
+        this.clusterId === this.$route?.params?.cluster &&
+        this.currentProduct?.name === getProductFromRoute(this.$route);
+    },
+
+    pinClass() {
+      return `pin-${ this.wmPin }`;
+    },
 
   },
 
   watch: {
-    counts() {
-      this.queueUpdate();
+    counts(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    allSchemas() {
-      this.queueUpdate();
+    allSchemas(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    allNavLinks() {
-      this.queueUpdate();
+    allNavLinks(a, b) {
+      if ( a !== b ) {
+        this.queueUpdate();
+      }
     },
 
-    favoriteTypes() {
-      this.queueUpdate();
+    favoriteTypes(a, b) {
+      if ( !isEqual(a, b) ) {
+        this.queueUpdate();
+      }
     },
 
     locale(a, b) {
@@ -276,6 +317,18 @@ export default {
   mounted() {
     // Sync the navigation tree on fresh load
     this.$nextTick(() => this.syncNav());
+
+    this.wmPin = window.localStorage.getItem('wm-pin') || BOTTOM;
+
+    // two-way binding this.wmPin <-> draggableZone.pin
+    this.$refs.draggableZone.pin = this.wmPin;
+    this.unwatchPin = this.$watch('$refs.draggableZone.pin', (pin) => {
+      this.wmPin = pin;
+    });
+  },
+
+  unmounted() {
+    this.unwatchPin();
   },
 
   methods: {
@@ -290,6 +343,7 @@ export default {
 
       await this.$store.dispatch('prefs/setLastVisited', route);
     },
+
     handlePageAction(action) {
       if (action.action === SET_LOGIN_ACTION) {
         this.afterLoginRoute = this.getLoginRoute();
@@ -315,7 +369,6 @@ export default {
       if ( this.gettingGroups ) {
         return;
       }
-
       this.gettingGroups = true;
 
       if ( !this.clusterReady ) {
@@ -331,7 +384,9 @@ export default {
       let namespaces = null;
 
       if ( !this.$store.getters['isAllNamespaces'] ) {
-        namespaces = Object.keys(this.namespaces);
+        const namespacesObject = this.$store.getters['namespaces']();
+
+        namespaces = Object.keys(namespacesObject);
       }
 
       // Always show cluster-level types, regardless of the namespace filter
@@ -368,6 +423,7 @@ export default {
 
         for ( const mode of modes ) {
           const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
+
           const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
           if ( productId === EXPLORER || !this.isExplorer ) {
@@ -441,12 +497,12 @@ export default {
             });
           } else {
             toAdd.push({
-              name:       `navlink-${ entry.name }`,
-              label:      entry.label,
-              isRoot:     true,
+              name:     `navlink-${ entry.name }`,
+              label:    entry.label,
+              isRoot:   true,
               // This is the item that actually shows up in the nav, since this outer group will be invisible
-              children:   [entry],
-              weight:     -100,
+              children: [entry],
+              weight:   -100,
             });
           }
         }
@@ -540,11 +596,18 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
-    <AwsComplianceBanner />
-    <AzureWarning />
-    <div v-if="managementReady" class="dashboard-content">
+    <AwsComplianceBanner v-if="managementReady" />
+    <AzureWarning v-if="managementReady" />
+    <div
+      v-if="managementReady"
+      class="dashboard-content"
+      :class="{[pinClass]: true}"
+    >
       <Header />
-      <nav v-if="clusterReady" class="side-nav">
+      <nav
+        v-if="clusterReady"
+        class="side-nav"
+      >
         <div class="nav">
           <template v-for="(g) in groups">
             <Group
@@ -560,13 +623,24 @@ export default {
             />
           </template>
         </div>
-        <n-link v-if="showClusterTools" tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}">
-          <a class="tools-button" @click="collapseAll()">
+        <n-link
+          v-if="showClusterTools"
+          tag="div"
+          class="tools"
+          :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}"
+        >
+          <a
+            class="tools-button"
+            @click="collapseAll()"
+          >
             <i class="icon icon-gear" />
             <span>{{ t('nav.clusterTools') }}</span>
           </a>
         </n-link>
-        <div v-if="showProductFooter" class="footer">
+        <div
+          v-if="showProductFooter"
+          class="footer"
+        >
           <nuxt-link
             :to="supportLink"
             class="pull-right"
@@ -595,7 +669,10 @@ export default {
               </a>
 
               <template slot="popover">
-                <ul class="list-unstyled dropdown" style="margin: -1px;">
+                <ul
+                  class="list-unstyled dropdown"
+                  style="margin: -1px;"
+                >
                   <li
                     v-for="(label, name) in availableLocales"
                     :key="name"
@@ -609,32 +686,70 @@ export default {
             </v-popover>
           </span>
         </div>
-        <div v-else class="version text-muted">
+        <div
+          v-else
+          class="version text-muted"
+        >
           {{ displayVersion }}
         </div>
       </nav>
-      <main v-if="clusterReady">
+      <main
+        v-if="clusterAndRouteReady"
+        class="main-layout"
+      >
         <nuxt class="outlet" />
         <ActionMenu />
         <PromptRemove />
         <PromptRestore />
         <AssignTo />
         <PromptModal />
-        <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
-        <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-        <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
-        <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
+        <button
+          v-if="noLocaleShortcut"
+          v-shortkey.once="['shift','l']"
+          class="hide"
+          @shortkey="toggleNoneLocale()"
+        />
+        <button
+          v-if="themeShortcut"
+          v-shortkey.once="['shift','t']"
+          class="hide"
+          @shortkey="toggleTheme()"
+        />
+        <button
+          v-shortkey.once="['f8']"
+          class="hide"
+          @shortkey="wheresMyDebugger()"
+        />
+        <button
+          v-shortkey.once="['`']"
+          class="hide"
+          @shortkey="toggleShell"
+        />
       </main>
       <!-- Ensure there's an outlet to show the error (404) page -->
-      <main v-else-if="unmatchedRoute">
+      <main
+        v-else-if="unmatchedRoute"
+        class="main-layout"
+      >
         <nuxt class="outlet" />
       </main>
-      <div class="wm">
-        <WindowManager />
+      <div
+        v-if="$refs.draggableZone"
+        class="wm"
+        :class="{
+          'drag-end': !$refs.draggableZone.drag.active,
+          'drag-start': $refs.draggableZone.drag.active,
+        }"
+        :draggable="draggable"
+        @dragstart="$refs.draggableZone.onDragStart($event)"
+        @dragend="$refs.draggableZone.onDragEnd($event)"
+      >
+        <WindowManager @draggable="draggable=$event" />
       </div>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <DraggableZone ref="draggableZone" />
   </div>
 </template>
 <style lang="scss" scoped>
@@ -649,7 +764,7 @@ export default {
 
 </style>
 <style lang="scss">
-  .dashboard-root{
+  .dashboard-root {
     display: flex;
     flex-direction: column;
     height: 100vh;
@@ -662,13 +777,30 @@ export default {
     overflow-y: auto;
     min-height: 0px;
 
-    grid-template-areas:
-      "header  header"
-      "nav      main"
-      "wm       wm";
+    &.pin-right {
+      grid-template-areas:
+        "header  header  header"
+        "nav      main     wm";
+      grid-template-rows:    var(--header-height) auto;
+      grid-template-columns: var(--nav-width)     auto var(--wm-width, 0px);
+    }
 
-    grid-template-columns: var(--nav-width)     auto;
-    grid-template-rows:    var(--header-height) auto  var(--wm-height, 0px);
+    &.pin-bottom {
+      grid-template-areas:
+        "header  header"
+        "nav       main"
+        "wm         wm";
+      grid-template-rows:    var(--header-height) auto  var(--wm-height, 0px);
+      grid-template-columns: var(--nav-width)     auto;
+    }
+
+    &.pin-left {
+      grid-template-areas:
+        "header  header  header"
+        "wm       nav     main";
+      grid-template-rows:    var(--header-height) auto;
+      grid-template-columns: var(--wm-width, 0px) var(--nav-width) auto;
+    }
 
     > HEADER {
       grid-area: header;
@@ -760,58 +892,6 @@ export default {
     }
   }
 
-  MAIN {
-    grid-area: main;
-    overflow: auto;
-
-    .outlet {
-      display: flex;
-      flex-direction: column;
-      padding: $space-m;
-      min-height: 100%;
-    }
-
-    FOOTER {
-      background-color: var(--nav-bg);
-      height: var(--footer-height);
-    }
-
-    HEADER {
-      display: grid;
-      grid-template-areas:  "type-banner type-banner"
-                            "title actions"
-                            "state-banner state-banner";
-      grid-template-columns: auto auto;
-      margin-bottom: 20px;
-      align-content: center;
-      min-height: 48px;
-
-      .type-banner {
-        grid-area: type-banner;
-      }
-
-      .state-banner {
-        grid-area: state-banner;
-      }
-
-      .title {
-        grid-area: title;
-        align-self: center;
-      }
-
-      .actions-container {
-        grid-area: actions;
-        margin-left: 8px;
-        align-self: center;
-        text-align: right;
-      }
-
-      .role-multi-action {
-        padding: 0 $input-padding-sm;
-      }
-    }
-  }
-
   .wm {
     grid-area: wm;
     overflow-y: hidden;
@@ -840,5 +920,15 @@ export default {
         text-decoration: none;
       }
     }
+  }
+
+  .drag-start {
+    z-index: 1000;
+    opacity: 0.5;
+    transition: opacity .3s ease;
+  }
+
+  .drag-end {
+    opacity: 1;
   }
 </style>

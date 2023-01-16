@@ -6,7 +6,9 @@ import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { LOGGING, NODE, POD, SCHEMA } from '@shell/config/types';
+import {
+  LOGGING, NAMESPACE, NODE, POD, SCHEMA
+} from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
@@ -51,6 +53,7 @@ export default {
   async fetch() {
     const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
     const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
+    const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
     const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
@@ -62,6 +65,7 @@ export default {
     const hash = await allHash({
       allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow && hasAccessToOutputs),
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
+      allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
       allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
@@ -113,10 +117,11 @@ export default {
       matches,
       allOutputs:         null,
       allClusterOutputs:  null,
+      allNamespaces:      null,
       allNodes:           null,
       allPods:            null,
       filtersYaml,
-      initialFiltersYaml:   filtersYaml,
+      initialFiltersYaml: filtersYaml,
       globalOutputRefs,
       localOutputRefs
     };
@@ -164,6 +169,22 @@ export default {
         .map((clusterOutput) => {
           return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
         });
+    },
+
+    namespaceChoices() {
+      if (!this.allNamespaces) {
+        // Handle the case where the user doesn't have permission
+        // to see namespaces
+        return [];
+      }
+      const out = this.allNamespaces.map((namespace) => {
+        return {
+          label: namespace.nameDisplay,
+          value: namespace.metadata.name
+        };
+      });
+
+      return out;
     },
 
     nodeChoices() {
@@ -330,36 +351,75 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="value.type !== LOGGING.CLUSTER_FLOW" />
+    <NameNsDescription
+      v-if="!isView"
+      v-model="value"
+      :mode="mode"
+      :namespaced="value.type !== LOGGING.CLUSTER_FLOW"
+    />
 
-    <Tabbed :side-tabs="true" @changed="tabChanged($event)">
-      <Tab name="match" :label="t('logging.flow.matches.label')" :weight="3">
-        <Banner color="info" class="mt-0" label="Configure which container logs will be pulled from" />
-        <ArrayListGrouped v-model="matches" :add-label="t('ingress.rules.addRule')" :default-add-value="{}" :mode="mode">
+    <Tabbed
+      :side-tabs="true"
+      @changed="tabChanged($event)"
+    >
+      <Tab
+        name="match"
+        :label="t('logging.flow.matches.label')"
+        :weight="3"
+      >
+        <Banner
+          color="info"
+          class="mt-0"
+          :label="t('logging.flow.matches.banner')"
+        />
+        <ArrayListGrouped
+          v-model="matches"
+          :add-label="t('ingress.rules.addRule')"
+          :default-add-value="{}"
+          :mode="mode"
+        >
           <template #default="props">
             <Match
               class="rule mb-20"
               :value="props.row.value"
               :mode="mode"
+              :namespaces="namespaceChoices"
               :nodes="nodeChoices"
               :containers="containerChoices"
+              :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
               @input="e=>updateMatch(e,props.row.i)"
             />
           </template>
           <template #add>
-            <button class="btn role-tertiary add" type="button" @click="addMatch(true)">
+            <button
+              class="btn role-tertiary add"
+              type="button"
+              @click="addMatch(true)"
+            >
               {{ t('logging.flow.matches.addSelect') }}
             </button>
-            <button class="btn role-tertiary add" type="button" @click="addMatch(false)">
+            <button
+              class="btn role-tertiary add"
+              type="button"
+              @click="addMatch(false)"
+            >
               {{ t('logging.flow.matches.addExclude') }}
             </button>
           </template>
         </ArrayListGrouped>
       </Tab>
 
-      <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="2">
-        <Banner v-if="value.type !== LOGGING.CLUSTER_FLOW" label="Output must reside in same namespace as the flow." color="info" />
+      <Tab
+        name="outputs"
+        :label="t('logging.flow.outputs.label')"
+        :weight="2"
+      >
+        <Banner
+          v-if="value.type !== LOGGING.CLUSTER_FLOW"
+          :label="t('logging.flow.outputs.sameNamespaceError')"
+          color="info"
+        />
         <LabeledSelect
           v-model="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"
@@ -371,7 +431,11 @@ export default {
           :reduce="opt=>opt.value"
         >
           <template #selected-option="option">
-            <i v-if="isTag(clusterOutputChoices, option)" v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            <i
+              v-if="isTag(clusterOutputChoices, option)"
+              v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')"
+              class="icon icon-info status-icon text-warning"
+            />
             {{ option.label }}
           </template>
         </LabeledSelect>
@@ -388,13 +452,21 @@ export default {
           :reduce="opt=>opt.value"
         >
           <template #selected-option="option">
-            <i v-if="isTag(outputChoices, option)" v-tooltip="t('logging.flow.outputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            <i
+              v-if="isTag(outputChoices, option)"
+              v-tooltip="t('logging.flow.outputs.doesntExistTooltip')"
+              class="icon icon-info status-icon text-warning"
+            />
             {{ option.label }}
           </template>
         </LabeledSelect>
       </Tab>
 
-      <Tab name="filters" :label="t('logging.flow.filters.label')" :weight="1">
+      <Tab
+        name="filters"
+        :label="t('logging.flow.filters.label')"
+        :weight="1"
+      >
         <YamlEditor
           ref="yaml"
           v-model="filtersYaml"
@@ -406,7 +478,11 @@ export default {
       </Tab>
     </Tabbed>
   </CruResource>
-  <Banner v-else label="This resource contains a match configuration that the form editor does not support.  Please use YAML edit." color="error" />
+  <Banner
+    v-else
+    :label="t('logging.flow.matches.unsupportedConfig')"
+    color="error"
+  />
 </template>
 
 <style lang="scss" scoped>

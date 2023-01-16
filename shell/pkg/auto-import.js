@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove', 'l10n', 'windowComponents', 'formatters'];
+const contextFolders = ['chart', 'cloud-credential', 'content', 'detail', 'edit', 'list', 'machine-config', 'models', 'promptRemove', 'l10n', 'windowComponents', 'dialog', 'formatters'];
 const contextMap = contextFolders.reduce((map, obj) => {
   map[obj] = true;
 
@@ -9,6 +9,19 @@ const contextMap = contextFolders.reduce((map, obj) => {
 
 function replaceAll(str, find, replace) {
   return str.split(find).join(replace);
+}
+
+function registerFile(file, type, pkg, f) {
+  const importType = (f === 'models') ? 'require' : 'import';
+  const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
+
+  return `  $plugin.register('${ f }', '${ type }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
+}
+
+function register(file, pkg, f) {
+  const name = file.replace(/\.[^/.]+$/, '');
+
+  return registerFile(file, name, pkg, f);
 }
 
 // This function is used to generate the code to register models, edit, detail, list etc for a type
@@ -20,13 +33,34 @@ function generateTypeImport(pkg, dir) {
 
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
-    if (fs.existsSync(path.join(dir, f))) {
-      fs.readdirSync(path.join(dir, f)).forEach((file) => {
-        const name = file.replace(/\.[^/.]+$/, '');
-        const importType = (f === 'models') ? 'require' : 'import';
-        const chunkName = (f === 'l10n') ? '' : `/* webpackChunkName: "${ f }" */`;
+    const filePath = path.join(dir, f);
 
-        content += `  $plugin.register('${ f }', '${ name }', () => ${ importType }(${ chunkName }'${ pkg }/${ f }/${ file }'));\n`;
+    if (fs.existsSync(filePath)) {
+      fs.readdirSync(path.join(dir, f)).forEach((file) => {
+        const fileStat = fs.lstatSync(path.join(filePath, file));
+
+        // Directories are special cases
+        if (fileStat.isDirectory()) {
+          // This might be a <type>/index.vue (aka nested component)
+          const indexFilePath = path.join(file, 'index.vue');
+          const fullIndexFilePath = path.join(filePath, indexFilePath);
+
+          if (fs.existsSync(fullIndexFilePath)) {
+            content += registerFile(indexFilePath, file, pkg, f);
+
+            return;
+          }
+
+          // This might be a <store name>/<model name|type>.js file (aka nested model)
+          if (f === 'models') {
+            fs.readdirSync(path.join(filePath, file)).forEach((store) => {
+              content += register(path.join(file, store), pkg, f);
+            });
+          }
+        } else {
+          // This is a simple <resource type>.<file type> file
+          content += register(file, pkg, f);
+        }
       });
     }
   });
@@ -48,7 +82,10 @@ function generateDynamicTypeImport(pkg, dir) {
   // Auto-import if the folder exists
   contextFolders.forEach((f) => {
     if (fs.existsSync(path.join(dir, f))) {
-      let genImport = replaceAll(template, 'NAME', f);
+      const safeName = f.replace(/\/|-/g, '_');
+      let genImport = replaceAll(template, 'NAME', safeName);
+
+      genImport = replaceAll(genImport, 'DIR', f );
       const importType = (f === 'models') ? 'require' : 'import';
       // Ensure i18n chunks are named with the request name (which will be the locale)
       const chunk = (f === 'l10n') ? '[request]' : f;

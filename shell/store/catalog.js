@@ -61,6 +61,11 @@ export const getters = {
     return [...clustered, ...namespaced];
   },
 
+  // Raw charts
+  rawCharts(state) {
+    return state.charts;
+  },
+
   repo(state, getters) {
     return ({ repoType, repoName }) => {
       const ary = (repoType === 'cluster' ? state.clusterRepos : state.namespacedRepos);
@@ -250,19 +255,13 @@ export const getters = {
 
   haveComponent() {
     return (name) => {
-      try {
-        require.resolve(`@shell/chart/${ name }`);
-
-        return true;
-      } catch (e) {
-        return false;
-      }
+      return getters['type-map/hasCustomChart'](name);
     };
   },
 
   importComponent(state, getters) {
     return (name) => {
-      return importChart(name);
+      return getters['type-map/importChart'](name);
     };
   },
 
@@ -340,6 +339,7 @@ export const actions = {
     // Installing an app? This is fine (in cluster store)
     // Fetching list of cluster templates? This is fine (in management store)
     // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
+
     const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
 
     if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
@@ -503,31 +503,32 @@ function addChart(ctx, map, chart, repo) {
     if ( ctx ) { }
     obj = classify(ctx, {
       key,
-      type:                 'chart',
-      id:                   key,
+      type:                'chart',
+      id:                  key,
       certified,
       sideLabel,
       repoType,
       repoName,
-      repoNameDisplay:      ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
-      certifiedSort:        CERTIFIED_SORTS[certified] || 99,
-      icon:                 chart.icon,
-      color:                repo.color,
-      chartType:            chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
-      chartName:            chart.name,
-      chartNameDisplay:     chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
-      chartDescription:     chart.description,
-      repoKey:              repo._key,
-      versions:             [],
-      categories:           filterCategories(chart.keywords),
-      deprecated:           !!chart.deprecated,
-      hidden:               !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
-      targetNamespace:      chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
-      targetName:           chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
-      scope:                chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      provides:             [],
-      windowsIncompatible:  !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
-      deploysOnWindows:     (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')
+      repoNameDisplay:     ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
+      certifiedSort:       CERTIFIED_SORTS[certified] || 99,
+      icon:                chart.icon,
+      color:               repo.color,
+      chartType:           chart.annotations?.[CATALOG_ANNOTATIONS.TYPE] || CATALOG_ANNOTATIONS._APP,
+      chartName:           chart.name,
+      chartNameDisplay:    chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartDescription:    chart.description,
+      featured:            chart.annotations?.[CATALOG_ANNOTATIONS.FEATURED],
+      repoKey:             repo._key,
+      versions:            [],
+      categories:          filterCategories(chart.keywords),
+      deprecated:          !!chart.deprecated,
+      hidden:              !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
+      targetNamespace:     chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+      targetName:          chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:               chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
+      provides:            [],
+      windowsIncompatible: !(chart.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || '').includes('windows'),
+      deploysOnWindows:    (chart.annotations?.[CATALOG_ANNOTATIONS.DEPLOYED_OS] || '').includes('windows')
     });
 
     map[key] = obj;
@@ -652,7 +653,9 @@ export function filterAndArrangeCharts(charts, {
       const searchTokens = searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
 
       for ( const token of searchTokens ) {
-        if ( !c.chartNameDisplay.match(token) && (c.chartDescription && !c.chartDescription.match(token)) ) {
+        const chartDescription = c.chartDescription || '';
+
+        if ( !c.chartNameDisplay.match(token) && !chartDescription.match(token) ) {
           return false;
         }
       }
