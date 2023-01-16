@@ -137,13 +137,15 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          path: ./
 
       - name: Merge coverage files
         run: |
           ls
           yarn install
+          ls -al coverage
           yarn coverage
-          ls coverage
+          ls -al coverage
 
       - name: Upload updated coverage
         uses: actions/upload-artifact@v3
@@ -159,6 +161,7 @@ jobs:
           flags: unit
           files: ./coverage/unit/coverage-final.json
           fail_ci_if_error: false
+          verbose: true
 
       - name: Upload e2e test coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -167,6 +170,7 @@ jobs:
           flags: e2e
           files: ./coverage/e2e/coverage-final.json
           fail_ci_if_error: false
+          verbose: true
 
       - name: Upload merged coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -175,3 +179,4 @@ jobs:
           flags: merged
           files: ./coverage/combined/coverage-final.json
           fail_ci_if_error: false
+          verbose: true
