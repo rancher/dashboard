@@ -146,6 +146,15 @@ jobs:
           ls -al coverage
           yarn coverage
           ls -al coverage
+          mkdir -p coverage-artifacts/coverage
+          cp -r coverage/* coverage-artifacts/coverage/
+          ls -al coverage-artifacts
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          path: coverage-artifacts/**/*
 
       - name: Upload updated coverage
         uses: actions/upload-artifact@v3
