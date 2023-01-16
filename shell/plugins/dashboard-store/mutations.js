@@ -366,11 +366,7 @@ export default {
     const keyField = getters.keyFieldForType(type);
 
     allLatest.forEach((entry) => {
-      let existing;
-
-      if (state.types && state.types[type]) {
-        existing = state.types[type].map.get(entry[keyField]);
-      }
+      const existing = state.types[type].map.get(entry[keyField]);
 
       load(state, {
         data: entry, ctx, existing

@@ -83,6 +83,12 @@ export default {
 
     type = getters.normalizeType(type);
 
+    // if there's no registered type, then register it so
+    // that we don't have issues on 'loadAdd' mutation
+    if ( !getters.typeRegistered(type) ) {
+      commit('registerType', type);
+    }
+
     const loadCount = getters['loadCounter'](type);
 
     try {
