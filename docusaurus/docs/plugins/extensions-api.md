@@ -1,3 +1,7 @@
+---
+toc_max_heading_level: 4
+---
+
 # Extensions API
 
 ## Introduction
@@ -106,6 +110,8 @@ Example 4:
 
 Extension enhancement will be applied on the `edit` view/mode of the resource `catalog.cattle.io.clusterrepo` inside the `local` cluster (if applicable).
 
+<br/>
+<br/>
 
 ## Extension API methods
 
@@ -123,12 +129,16 @@ _Arguments_
 `locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
 `locationConfig.where` string parameter admissable values:
+
 | Key | Type | Description |
 |---|---|---|
 |`header`| String | Add a button to the Header component |
 |`table`| String | Add a button/action to any `SortableTable`/table |
 
-#### `where: 'header'` option
+<br/>
+<br/>
+
+#### **`where: 'header'`** option
 
 ![Header Actions](./screenshots/header-actions.png)
 
@@ -169,7 +179,10 @@ plugin.addAction(
   }
 );
 ```
-#### `where: 'table'` option
+<br/>
+<br/>
+
+#### **`where: 'table'`** option
 
 _INLINE TABLE ACTION_
 
@@ -273,7 +286,10 @@ _Arguments_
 |---|---|---|
 |`resourceTabs`| String | Adds a tab to the `ResourceTabs` component |
 
-#### `where: 'resourceTabs'` option
+<br/>
+<br/>
+
+#### **`where: 'resourceTabs'`** option
 
 ![Tabs](./screenshots/add-tab.png)
 
@@ -309,118 +325,139 @@ plugin.addTab(
 );
 ```
 
-### `addToDetailsMasthead`
-This method adds a component to be displayed on the "details view masthead" on Rancher Dashboard.
+
+
+
+
+
+
+
+
+
+### `addPanel`
+This method adds a panel/content to the UI.
+
+Method:
+
+```
+plugin.addPanel(locationConfig: Object, options: Object)
+```
+
+_Arguments_
+
+`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
+
+`locationConfig.where` string parameter admissable values:
+
+| Key | Type | Description |
+|---|---|---|
+|`detailsMasthead`| String | Add a panel/content to the "detail view" Masthead component |
+|`detailTop`| String | Add a panel/content to the "detail view" detailTop component |
+|`listView`| String | Add a panel/content to a list view (above the table) |
+
+<br/>
+<br/>
+
+#### **`where: 'detailsMasthead'`** option
 
 ![Details Masthead](./screenshots/masthead.png)
 
-
-Method:
-
-```
-plugin.addToDetailsMasthead(locationConfig: Object, options: Object)
-```
-
-_Arguments_
-
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`options` config object. Admissable parameters are:
+`options` config object. Admissable parameters for the `options` with `where: 'detailsMasthead'` are:
 
 | Key | Type | Description |
 |---|---|---|
-|`component`| String | Component to be rendered as content on "details view masthead" |
+|`component`| String | Component to be rendered as content on the "detail view" Masthead component |
 
-Usage example:
+Usage example for `where: 'detailsMasthead'`:
 
 ```
-plugin.addToDetailsMasthead(
-  { resource: 'catalog.cattle.io.clusterrepo', mode: 'edit' },
-  { component: () => import('./BannerComponent.vue') }
-);
+plugin.addPanel(
+  {
+    where: 'detailsMasthead',
+    when:  { resource: 'catalog.cattle.io.clusterrepo' }
+  },
+  { component: () => import('./MastheadDetailsComponent.vue') });
 ```
 
-### `addToDetailTop`
-This method adds a component to be displayed on the "details view detailsTop" area on Rancher Dashboard.
+<br/>
+<br/>
+
+#### **`where: 'detailTop'`** option
 
 ![DetailTop](./screenshots/detailtop.png)
 
-
-
-Method:
-
-```
-plugin.addToDetailTop(locationConfig: Object, options: Object)
-```
-
-_Arguments_
-
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`options` config object. Admissable parameters are:
+`options` config object. Admissable parameters for the `options` with `where: 'detailTop'` are:
 
 | Key | Type | Description |
 |---|---|---|
-|`component`| String | Component to be rendered as content on "details view detailsTop" area |
+|`component`| String | Component to be rendered as content on the "detail view" detailTop component |
 
-Usage example:
+Usage example for `where: 'detailTop'`:
 
 ```
-plugin.addToDetailTop(
-  { resource: 'catalog.cattle.io.clusterrepo' },
-  { component: () => import('./BannerComponent.vue') }
-);
+plugin.addPanel(
+  {
+    where: 'detailTop',
+    when:  { resource: 'catalog.cattle.io.clusterrepo' }
+  },
+  { component: () => import('./DetailTopComponent.vue') });
 ```
 
-### `addToListView`
-This method adds a component to be displayed as content above a table on a "list view" on Rancher Dashboard.
+<br/>
+<br/>
+
+#### **`where: 'listView'`** option
 
 ![List View](./screenshots/list-view.png)
 
-
-Method:
-
-```
-plugin.addToListView(locationConfig: Object, options: Object)
-```
-
-_Arguments_
-
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`options` config object. Admissable parameters are:
+`options` config object. Admissable parameters for the `options` with `where: 'listView'` are:
 
 | Key | Type | Description |
 |---|---|---|
 |`component`| String | Component to be rendered as content above a table on a "list view" |
 
-Usage example:
+Usage example for `where: 'listView'`:
 
 ```
-plugin.addToListView(
-  { resource: 'catalog.cattle.io.clusterrepo' },
-  { component: () => import('./BannerComponent.vue') }
-);
+plugin.addPanel(
+  {
+    where: 'listView',
+    when:  { resource: 'catalog.cattle.io.app' }
+  },
+  { component: () => import('./BannerComponent.vue') });
 ```
 
-### `addClusterDashboardCard`
-This method adds a component to be displayed as content of a "Cluster Dashboard Card" on Rancher Dashboard.
+<br/>
+<br/>
 
-![Cluster Dashboard Card](./screenshots/cluster-cards.png)
+### `addCard`
 
-
+This method adds a card element to the UI.
 
 Method:
 
 ```
-plugin.addClusterDashboardCard(locationConfig: Object, options: Object)
+plugin.addCard(locationConfig: Object, options: Object)
 ```
 
 _Arguments_
 
 `locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
-`options` config object. Admissable parameters are:
+`locationConfig.where` string parameter admissable values:
+
+| Key | Type | Description |
+|---|---|---|
+|`clusterDashboard`| String | Add a card element to the Cluster Dashboard view  |
+
+<br/>
+<br/>
+
+#### **`where: 'clusterDashboard'`** option
+
+![Cluster Dashboard Card](./screenshots/cluster-cards.png)
+
+`options` config object. Admissable parameters for the `options` with `where: 'clusterDashboard'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -428,33 +465,53 @@ _Arguments_
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
 |`component`| String | Component to be rendered aas content of a "Cluster Dashboard Card" |
 
-Usage example:
+Usage example for `where: 'clusterDashboard'`:
 
 ```
-plugin.addClusterDashboardCard( { cluster: 'local' }, {
-  label:     'some-label',
-  labelKey:  'generic.comingSoon',
-  component: () => import('./MastheadDetailsComponent.vue')
-});
+plugin.addCard(
+  {
+    where: 'clusterDashboard',
+    when:  { cluster: 'local' }
+  },
+  {
+    label:     'some-label',
+    labelKey:  'generic.comingSoon',
+    component: () => import('./MastheadDetailsComponent.vue')
+  }
+);
 ```
 
-### `addTableCol`
-This method adds a column to a table based on `SortableTable` component on Rancher Dashboard. All "list views" are/should be based on the `SortableTable`/`ResourceList` components
+<br/>
+<br/>
 
-![Table Col](./screenshots/table-cols.png)
+### `addTableColumn`
 
+This method adds a table column to a `SortableTable`/`ResourceList` element-based table on the UI.
 
 Method:
 
 ```
-plugin.addTableCol(locationConfig: Object, options: Object)
+plugin.addTableColumn(locationConfig: Object, options: Object)
 ```
 
 _Arguments_
 
 `locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
-`options` config object. Admissable parameters are:
+`locationConfig.where` string parameter admissable values:
+
+| Key | Type | Description |
+|---|---|---|
+|`listView`| String | Add a table column to a `SortableTable`/`ResourceList` element-based table |
+
+<br/>
+<br/>
+
+#### **`where: 'listView'`** option
+
+![Table Col](./screenshots/table-cols.png)
+
+`options` config object. Admissable parameters for the `options` with `where: 'listView'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -466,17 +523,26 @@ _Arguments_
 |`sort`| Array | Object properties to be bound to the table sorting |
 |`search`| Array | Object properties to be bound to the table search |
 
-Usage example:
+Usage example for `where: 'listView'`:
 
 ```
-plugin.addTableCol( { resource: 'configmap' }, {
-  name:     'some-prop-col',
-  labelKey: 'generic.comingSoon',
-  getValue: (row: any) => {
-    return `${ row.id }-some-string`;
+plugin.addTableColumn(
+  {
+    where: 'listView',
+    when:  { resource: 'configmap' }
   },
-  width: 100,
-  sort: ['stateSort', 'nameSort'],
-  search: ['stateSort', 'nameSort'],
-});
+  {
+    name:     'some-prop-col',
+    labelKey: 'generic.comingSoon',
+    getValue: (row: any) => {
+      return `${ row.id }-THIS-IS-A-DEMO-COL-VALUE!`;
+    },
+    width: 100,
+    sort: ['stateSort', 'nameSort'],
+    search: ['stateSort', 'nameSort'],
+  }
+);
 ```
+
+<br/>
+<br/>
