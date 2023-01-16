@@ -32,7 +32,7 @@ describe('management.cattle.io.setting should', () => {
   });
 
   describe('using predefined generic rule', () => {
-    const id = SETTING.CATTLE_PASSWORD_MIN_LENGTH;
+    const id = SETTING.PASSWORD_MIN_LENGTH;
 
     describe('validate input with provided settings', () => {
       it('allowing to save if pass', () => {
