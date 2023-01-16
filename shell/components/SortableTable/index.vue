@@ -411,16 +411,14 @@ export default {
       immediate: true
     },
 
-    isManualRefreshLoading: {
+    // this is the flag that indicates that manual refresh data has been loaded
+    // and we should update the deferred cols
+    manualRefreshLoadingFinished: {
       handler(neu, old) {
-        this.currentPhase = neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
-
-        // setTimeout is needed so that this is pushed further back on the JS computing queue
-        // because nextTick isn't enough to capture the DOM update for the manual refresh only scenario
-        if (old && !neu) {
-          this.manualRefreshTimer = setTimeout(() => {
-            this.watcherUpdateLiveAndDelayed(neu, old);
-          }, 2000);
+        // this is merely to update the manual refresh button status
+        this.currentPhase = !neu ? ASYNC_BUTTON_STATES.WAITING : ASYNC_BUTTON_STATES.ACTION;
+        if (neu && neu !== old) {
+          this.$nextTick(() => this.updateLiveAndDelayed());
         }
       },
       immediate: true
@@ -440,6 +438,10 @@ export default {
 
     initalLoad() {
       return !!(!this.loading && !this._didinit && this.rows?.length);
+    },
+
+    manualRefreshLoadingFinished() {
+      return !!(!this.loading && this._didinit && this.rows?.length && !this.isManualRefreshLoading);
     },
 
     fullColspan() {
