@@ -1199,6 +1199,7 @@ export default {
             url:    `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
             method: 'POST',
             data:   {
+              csiClusterRoleName: 'harvesterhci.io:csi-driver',
               clusterRoleName:    'harvesterhci.io:cloudprovider',
               namespace,
               serviceAccountName: this.value.metadata.name,

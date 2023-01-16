@@ -4998,6 +4998,14 @@ storageClass:
   deprecated: 
     title: (Deprecated)
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
+  harvesterhci:
+    title: Harvester (CSI)
+    warning: 
+      unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
+    hostStorageClass:
+      label: Host Storage Class
+      placeholder: Storage class name on the host Harvester cluster
+      tooltip: By default the default storage class on the host Harvester cluster is used.
 
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
