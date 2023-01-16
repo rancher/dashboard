@@ -65,7 +65,7 @@ describe('management.cattle.io.setting should', () => {
       });
       const expectation = [{
         path:  'value',
-        rules: ['betweenValues']
+        rules: ['betweenValues', 'isInteger']
       }];
 
       expect(wrapper.vm.$data['fvFormRuleSets']).toStrictEqual(expectation);
@@ -76,7 +76,7 @@ describe('management.cattle.io.setting should', () => {
         propsData: { value: { id, value: '' } },
         ...requiredSetup()
       });
-      const expectation = ['betweenValues'];
+      const expectation = ['betweenValues', 'isInteger'];
 
       // Avoid integration tests with mixin as it returns the whole function
       const rules = Object.keys((wrapper.vm as any)['fvExtraRules']);

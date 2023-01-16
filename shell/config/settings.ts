@@ -98,6 +98,10 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
         name: 'betweenValues',
         key:  'Password',
         arg:  [2, 256]
+      },
+      {
+        name: 'isInteger',
+        key:  'Password',
       }
     ],
   },
