@@ -2,6 +2,7 @@
 import { Banner } from '@components/Banner';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
+import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, SNAPSHOT, NORMAN } from '@shell/config/types';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
@@ -33,31 +34,34 @@ export default {
 
   async fetch() {
     this.$initializeFetchData(CAPI.RANCHER_CLUSTER);
-
-    this.$fetchType(NORMAN.CLUSTER, [], 'rancher');
+    const hash = {
+      rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER),
+      normanClusters:  this.$fetchType(NORMAN.CLUSTER, [], 'rancher'),
+      mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
+    };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      this.$fetchType(SNAPSHOT);
+      hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-      this.$fetchType(CAPI.MACHINE);
+      hash.capiMachines = this.$fetchType(CAPI.MACHINE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      this.$fetchType(MANAGEMENT.NODE);
+      hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      this.$fetchType(MANAGEMENT.NODE_POOL);
+      hash.mgmtPools = this.$fetchType(MANAGEMENT.NODE_POOL);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      this.$fetchType(MANAGEMENT.NODE_TEMPLATE);
+      hash.mgmtTemplates = this.$fetchType(MANAGEMENT.NODE_TEMPLATE);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-      this.$fetchType(CAPI.MACHINE_DEPLOYMENT);
+      hash.machineDeployments = this.$fetchType(CAPI.MACHINE_DEPLOYMENT);
     }
 
     // Fetch RKE template revisions so we can show when an updated template is available
@@ -66,8 +70,9 @@ export default {
       this.$fetchType(MANAGEMENT.RKE_TEMPLATE_REVISION);
     }
 
-    this.mgmtClusters = await this.$fetchType(MANAGEMENT.CLUSTER);
-    await this.$fetchType(CAPI.RANCHER_CLUSTER);
+    const res = await allHash(hash);
+
+    this.mgmtClusters = res.mgmtClusters;
   },
 
   data() {
