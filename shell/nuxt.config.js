@@ -237,7 +237,11 @@ export default function(dir, _appConfig) {
 
     if (index !== -1 && (index + 1) < ctx.length) {
       const pkg = ctx[index + 1];
-      const p = path.resolve(dir, 'pkg', pkg, resource.request.substr(5));
+      let p = path.resolve(dir, 'pkg', pkg, resource.request.substr(5));
+
+      if (resource.request.startsWith(`@pkg/${ pkg }`)) {
+        p = path.resolve(dir, 'pkg', resource.request.substr(5));
+      }
 
       resource.request = p;
     }
