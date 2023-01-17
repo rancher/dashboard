@@ -17,7 +17,7 @@ import AnsiUp from 'ansi_up';
 import day from 'dayjs';
 import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
-import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { DATE_FORMAT, TIME_FORMAT, SCALE_POOL_PROMPT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph';
 import Socket, {
@@ -29,6 +29,7 @@ import Socket, {
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
+import { isAlternate } from '@shell/utils/platform';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -500,6 +501,25 @@ export default {
   },
 
   methods: {
+    toggleScaleDownModal( event, resources = this ) {
+      // Check if the user held alt key when an action is clicked.
+      const alt = isAlternate(event);
+      const showScalePoolPrompt = this.$store.getters['prefs/get'](SCALE_POOL_PROMPT);
+      console.log(resources);
+
+      // Prompt if showScalePoolPrompt pref not store and user did not held alt key
+      if (!alt && !showScalePoolPrompt) {
+        this.$store.dispatch('management/promptModal', {
+          component:  'ScalePoolDownDialog',
+          resources: resources.allMachineDeployments[0],
+          modalWidth: '450px'
+        });
+      } else {
+        // User held alt key, so don't prompt
+        resources.allMachineDeployments[0].scalePool(-1);
+      }
+    },
+
     async takeSnapshot(btnCb) {
       try {
         await this.value.takeSnapshot();
@@ -693,7 +713,7 @@ export default {
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.toggleScaleDownModal($event)"
+                    @click="toggleScaleDownModal($event)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
