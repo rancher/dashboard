@@ -12,7 +12,7 @@ import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@shell/components/RoleBindings.v
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 // import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import { LAST_NAMESPACE } from '@shell/store/prefs';
 
 export default {
@@ -38,6 +38,11 @@ export default {
     if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
       this.fleetClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     }
+
+    if (this.$store.getters['management/schemaFor']( FLEET.GIT_REPO_RESTRICTION )) {
+      this.restrictions = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO_RESTRICTION });
+    }
+
     this.restrictionsOptions = await this.$store.getters[`type-map/optionsFor`](FLEET.GIT_REPO_RESTRICTION);
     this.restrictionsSchema = await this.$store.getters[`management/schemaFor`](FLEET.GIT_REPO_RESTRICTION);
   },
@@ -48,6 +53,7 @@ export default {
     return {
       fleetClusters:      null,
       rancherClusters:    null,
+      restrictions:       [],
       restrictionsSchema: { spec: {} },
       namespace:          this.$store.getters['prefs/get'](LAST_NAMESPACE)
     };
@@ -58,12 +64,14 @@ export default {
       // Anyone who can edit workspace
       await this.value.save();
 
+      console.log(this.value)
+
       const model = await this.$store.dispatch(`management/create`, {
         type:                    FLEET.GIT_REPO_RESTRICTION,
-        allowedTargetNamespaces: ['sdfdsf'],
+        allowedTargetNamespaces: this.value.spec.allowedTargetNameSpaces,
         metadata:                {
-          name:      `restriction-fleet-ws${ Date.now() }`, // I customed by SUSE... create annotation
-          namespace: 'fleet-ws' // what the user types
+          name:      `restriction-${ this.value.metadata.name }-${ Date.now() }`, // I customed by SUSE... create annotation
+          namespace: this.value.metadata.name // what the user types
         }
       });
 
@@ -73,7 +81,22 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['workspace']),
+    ...mapState(['allWorkspaces', 'workspace']),
+
+    allowedTargetNameSpaces: {
+
+      get() {
+
+        return this.restrictions.filter((item)=>{
+          console.log(item, this.workspace, this.value)
+          return item.metadata.namespace === this.value.metadata.name
+        }).map((item)=>item.metadata.namespace)
+      },
+      set(value) {
+        this.value.spec.allowedTargetNameSpaces = value
+      }
+
+    },
 
     SCOPE_NAMESPACE() {
       return SCOPE_NAMESPACE;
@@ -142,7 +165,7 @@ export default {
       >
         <ArrayList
           key="labels"
-          v-model="value.spec.allowedTargetNameSpaces"
+          v-model="allowedTargetNameSpaces"
           :add-label="t('fleet.restrictions.addLabel')"
           :mode="mode"
           :title="t('fleet.restrictions.addTitle')"
