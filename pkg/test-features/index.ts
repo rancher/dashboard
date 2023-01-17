@@ -31,7 +31,7 @@ export default function(plugin: IPlugin) {
         return true;
       },
       clicked() {
-        console.log('action executed 1', this.$route); // eslint-disable-line no-console
+        console.log('action executed 1', this); // eslint-disable-line no-console
       }
     }
   );

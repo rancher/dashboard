@@ -38,7 +38,7 @@ import Vue from 'vue';
 import { normalizeType } from './normalize';
 
 import { UI_CONFIG_TABLE_ACTION } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -855,20 +855,8 @@ export default class Resource {
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
     // get menu actions available by plugins configuration
-    const extensionMenuActions = [];
-
-    const actions = this.$rootState.$plugin.getUIConfig(UI_CONFIG_TABLE_ACTION);
     const currentRoute = this.currentRouter().app._route;
-
-    actions.forEach((action) => {
-      if (checkExtensionRouteBinding(currentRoute, action.locationConfig)) {
-        if (action.labelKey) {
-          action.label = this.t(action.labelKey);
-        }
-
-        extensionMenuActions.push(action);
-      }
-    });
+    const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, UI_CONFIG_TABLE_ACTION, currentRoute, this);
 
     let all = [
       { divider: true },

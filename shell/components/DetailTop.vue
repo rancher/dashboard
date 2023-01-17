@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
 import { UI_CONFIG_DETAIL_TOP } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export const SEPARATOR = { separator: true };
 
@@ -51,6 +51,7 @@ export default {
 
   data() {
     return {
+      extensionDetailTop: getApplicableExtensionEnhancements(this, UI_CONFIG_DETAIL_TOP, this.$route),
       annotationsVisible: false,
       showAllLabels:      false,
       view:               _VIEW
@@ -156,19 +157,6 @@ export default {
       }
 
       return false;
-    },
-
-    extensionDetailTop() {
-      const extensionDetailTop = [];
-      const actions = this.$plugin.getUIConfig(UI_CONFIG_DETAIL_TOP);
-
-      actions.forEach((action) => {
-        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
-          extensionDetailTop.push(action);
-        }
-      });
-
-      return extensionDetailTop;
     },
   },
   methods: {
@@ -304,7 +292,7 @@ export default {
     </div>
 
     <!-- Extensions Detail Top -->
-    <div v-if="extensionDetailTop">
+    <div v-if="extensionDetailTop.length">
       <div
         v-for="item, i in extensionDetailTop"
         :key="`extensionDetailTop${i}`"

@@ -42,7 +42,7 @@ import EventsTable from './EventsTable';
 import { fetchClusterResources } from './explorer-utils';
 import SimpleBox from '@shell/components/SimpleBox';
 import { UI_CONFIG_CLUSTER_DASHBOARD_CARD } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -130,6 +130,7 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
       selectedTab:        'cluster-events',
+      extensionCards:     getApplicableExtensionEnhancements(this, UI_CONFIG_CLUSTER_DASHBOARD_CARD, this.$route),
     };
   },
 
@@ -146,23 +147,6 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
-
-    extensionCards() {
-      const extensionCards = [];
-      const cards = this.$plugin.getUIConfig(UI_CONFIG_CLUSTER_DASHBOARD_CARD);
-
-      cards.forEach((card, i) => {
-        if (checkExtensionRouteBinding(this.$route, card.locationConfig)) {
-          if (card.labelKey) {
-            cards[i].label = this.t(card.labelKey);
-          }
-
-          extensionCards.push(card);
-        }
-      });
-
-      return extensionCards;
-    },
 
     displayPspDeprecationBanner() {
       const cluster = this.currentCluster;

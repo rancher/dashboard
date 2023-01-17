@@ -12,7 +12,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
 import { UI_CONFIG_TAB } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export default {
 
@@ -71,6 +71,7 @@ export default {
       allEvents:     [],
       selectedTab:   this.defaultTab,
       didLoadEvents: false,
+      extensionTabs: getApplicableExtensionEnhancements(this, UI_CONFIG_TAB, this.$route),
     };
   },
 
@@ -79,19 +80,6 @@ export default {
   },
 
   computed: {
-    extensionTabs() {
-      const extensionTabs = [];
-      const actions = this.$plugin.getUIConfig(UI_CONFIG_TAB);
-
-      actions.forEach((action) => {
-        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
-          extensionTabs.push(action);
-        }
-      });
-
-      return extensionTabs;
-    },
-
     showConditions() {
       const inStore = this.$store.getters['currentStore'](this.value.type);
 

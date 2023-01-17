@@ -16,7 +16,7 @@ import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
 import { UI_CONFIG_HEADER_ACTION } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -45,13 +45,15 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      show:              false,
-      showTooltip:       false,
-      kubeConfigCopying: false,
+      show:                   false,
+      showTooltip:            false,
+      kubeConfigCopying:      false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:    null,
+      navHeaderRight:         null,
+      extensionHeaderActions: getApplicableExtensionEnhancements(this, UI_CONFIG_HEADER_ACTION, this.$route),
+      ctx:                    this
     };
   },
 
@@ -163,23 +165,6 @@ export default {
           ...this.isSingleProduct.logoRoute.params,
         }
       };
-    },
-
-    ctx() {
-      return this;
-    },
-
-    extensionHeaderActions() {
-      const extensionHeaderActions = [];
-      const actions = this.$plugin.getUIConfig(UI_CONFIG_HEADER_ACTION);
-
-      actions.forEach((action) => {
-        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
-          extensionHeaderActions.push(action);
-        }
-      });
-
-      return extensionHeaderActions;
     },
 
   },

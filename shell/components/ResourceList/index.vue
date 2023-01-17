@@ -7,7 +7,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { UI_CONFIG_RESOURCE_LIST } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export default {
   name: ResourceListComponentName,
@@ -98,6 +98,7 @@ export default {
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,
+      extensionResourceList:            getApplicableExtensionEnhancements(this, UI_CONFIG_RESOURCE_LIST, this.$route),
       loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
       hasFetch:                         false,
       // manual refresh
@@ -131,18 +132,6 @@ export default {
       return this.perfConfig?.incrementalLoading?.enabled;
     },
 
-    extensionResourceList() {
-      const extensionResourceList = [];
-      const actions = this.$plugin.getUIConfig(UI_CONFIG_RESOURCE_LIST);
-
-      actions.forEach((action) => {
-        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
-          extensionResourceList.push(action);
-        }
-      });
-
-      return extensionResourceList;
-    },
   },
 
   watch: {
@@ -206,8 +195,8 @@ export default {
         <slot name="extraActions" />
       </template>
     </Masthead>
-    <!-- Extensions Detail Top -->
-    <div v-if="extensionResourceList">
+    <!-- Extensions Resource List -->
+    <div v-if="extensionResourceList.length">
       <div
         v-for="item, i in extensionResourceList"
         :key="`extensionResourceList${i}`"

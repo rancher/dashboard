@@ -11,7 +11,7 @@ import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
 import { UI_CONFIG_DETAILS_MASTHEAD } from '@shell/core/types';
-import { checkExtensionRouteBinding } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 /**
  * Resource Detail Masthead component.
@@ -85,7 +85,10 @@ export default {
   },
 
   data() {
-    return { DETAIL_VIEW: _DETAIL };
+    return {
+      DETAIL_VIEW:              _DETAIL,
+      extensionDetailsMasthead: getApplicableExtensionEnhancements(this, UI_CONFIG_DETAILS_MASTHEAD, this.$route),
+    };
   },
 
   computed: {
@@ -367,19 +370,6 @@ export default {
 
     hideNamespaceLocation() {
       return this.$store.getters['currentProduct'].hideNamespaceLocation;
-    },
-
-    extensionDetailsMasthead() {
-      const extensionDetailsMasthead = [];
-      const actions = this.$plugin.getUIConfig(UI_CONFIG_DETAILS_MASTHEAD);
-
-      actions.forEach((action) => {
-        if (checkExtensionRouteBinding(this.$route, action.locationConfig)) {
-          extensionDetailsMasthead.push(action);
-        }
-      });
-
-      return extensionDetailsMasthead;
     },
   },
 

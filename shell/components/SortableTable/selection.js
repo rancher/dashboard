@@ -578,8 +578,8 @@ function _filter(map, disableAll = false) {
 function _execute(resources, action, args, opts = {}, ctx) {
   args = args || [];
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
-    // this means it's an action coming from an extension
-    if (action.clicked) {
+    // this means it's a bulkable action coming from an extension
+    if (action.bulkAction) {
       const fn = action.bulkAction;
 
       if ( fn ) {
