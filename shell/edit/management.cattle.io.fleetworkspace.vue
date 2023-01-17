@@ -10,8 +10,6 @@ import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@shell/components/RoleBindings.vue';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
-// import KeyValue from '@shell/components/form/KeyValue.vue';
-import ArrayList from '@shell/components/form/ArrayList.vue';
 import { mapGetters } from 'vuex';
 import { LAST_NAMESPACE } from '@shell/store/prefs';
 
@@ -23,11 +21,8 @@ export default {
     Labels,
     Loading,
     NameNsDescription,
-    // RoleBindings,
-    ArrayList,
     Tabbed,
     Tab,
-  //  KeyValue,
   },
 
   mixins: [CreateEditView],
@@ -57,17 +52,6 @@ export default {
     async saveAll() {
       // Anyone who can edit workspace
       await this.value.save();
-
-      const model = await this.$store.dispatch(`management/create`, {
-        type:                    FLEET.GIT_REPO_RESTRICTION,
-        allowedTargetNamespaces: ['sdfdsf'],
-        metadata:                {
-          name:      `restriction-fleet-ws${ Date.now() }`, // I customed by SUSE... create annotation
-          namespace: 'fleet-ws' // what the user types
-        }
-      });
-
-      await model.save();
     },
 
   },
@@ -134,20 +118,6 @@ export default {
         <Labels
           v-model="value"
           :mode="mode"
-        />
-      </Tab>
-      <Tab
-        name="allowedtargetnamespaces"
-        label-key="fleet.workspaces.tabs.restrictions"
-      >
-        <ArrayList
-          key="labels"
-          v-model="value.spec.allowedTargetNameSpaces"
-          :add-label="t('fleet.restrictions.addLabel')"
-          :mode="mode"
-          :title="t('fleet.restrictions.addTitle')"
-          :read-allowed="false"
-          :value-can-be-empty="true"
         />
       </Tab>
     </Tabbed>
