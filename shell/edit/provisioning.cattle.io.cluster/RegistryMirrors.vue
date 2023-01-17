@@ -37,7 +37,9 @@ export default {
   },
 
   created() {
-    set(this.value, 'spec.rkeConfig.registries.mirrors', {});
+    if (!this.value.spec.rkeConfig?.registries?.mirrors) {
+      set(this.value, 'spec.rkeConfig.registries.mirrors', {});
+    }
   },
 
   computed: {
