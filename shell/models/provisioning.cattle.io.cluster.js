@@ -6,6 +6,7 @@ import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
+import { ELEMENTAL_CLUSTER_PROVIDER } from '../config/elemental-types';
 
 /**
  * Class representing Cluster resource.
@@ -239,6 +240,10 @@ export default class ProvCluster extends SteveModel {
     }
 
     return false;
+  }
+
+  get isElemental() {
+    return this.machineProvider === ELEMENTAL_CLUSTER_PROVIDER;
   }
 
   get confirmRemove() {

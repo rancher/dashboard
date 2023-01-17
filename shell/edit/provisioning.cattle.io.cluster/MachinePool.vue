@@ -154,7 +154,8 @@ export default {
       }
     },
     // handle emitted matched machine inventories on selector so that machine count
-    // on machine pool can be kept up to date (only used on Elemental)
+    // on machine pool can be kept up to date
+    // (only used on Elemental because it comes from "machineinventoryselectortemplate" machine-config)
     updateMachineCount(val) {
       this.value.pool.quantity = val || 1;
     }

@@ -698,7 +698,7 @@ export default {
                 </div>
               </div>
               <div
-                v-if="group.ref"
+                v-if="group.ref && poolSummaryInfo[group.ref]"
                 class="right group-header-buttons mr-20"
               >
                 <MachineSummaryGraph

@@ -1056,7 +1056,8 @@ export default {
                 id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
               });
             } catch (e) {
-              // Some users can't see the config, that's ok. we will display a banner for a 404
+              // Some users can't see the config, that's ok.
+              // we will display a banner for a 404 only for elemental
               if (e?.status === 404) {
                 if (this.isElementalCluster) {
                   configMissing = true;
@@ -1081,7 +1082,7 @@ export default {
     },
 
     async addMachinePool(idx) {
-      if ( !this.machineConfigSchema && !this.isElementalCluster ) {
+      if ( !this.machineConfigSchema ) {
         return;
       }
 
