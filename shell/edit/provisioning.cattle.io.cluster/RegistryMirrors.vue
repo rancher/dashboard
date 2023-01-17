@@ -1,9 +1,13 @@
 <script>
+import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import KeyValue from '@shell/components/form/KeyValue';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { set } from '@shell/utils/object';
 
 export default {
-  components: { KeyValue },
+  components: {
+    ArrayListGrouped, KeyValue, LabeledInput
+  },
 
   props: {
     mode: {
@@ -25,6 +29,7 @@ export default {
       entries.push({
         hostname,
         endpoints: (mirrorMap[hostname].endpoint || []).join(', '),
+        rewrite:   mirrorMap[hostname].rewrite || {},
       });
     }
 
@@ -33,6 +38,16 @@ export default {
 
   created() {
     set(this.value, 'spec.rkeConfig.registries.mirrors', {});
+  },
+
+  computed: {
+    defaultAddValue() {
+      return {
+        hostname:  '',
+        endpoints: '',
+        rewrite:   {}
+      };
+    },
   },
 
   methods: {
@@ -45,6 +60,9 @@ export default {
         }
 
         mirrors[entry.hostname] = { endpoint: entry.endpoints.split(/\s*,\s*/).map(x => x.trim()) };
+        if (entry.rewrite) {
+          mirrors[entry.hostname].rewrite = entry.rewrite;
+        }
       }
       set(this.value, 'spec.rkeConfig.registries.mirrors', mirrors);
     },
@@ -53,33 +71,66 @@ export default {
 </script>
 
 <template>
-  <KeyValue
-    key="labels"
-    :value="entries"
-    :as-map="false"
-    :initial-empty-row="true"
-    key-label="Registry Hostname"
-    key-name="hostname"
-    key-placeholder="e.g. docker.io or *"
-    value-label="Mirror Endpoints"
-    value-placeholder="e.g. a.registry.com:5000, b.registry.com:5000"
-    value-name="endpoints"
-    :add-label="t('registryMirror.addLabel')"
-    :mode="mode"
-    :read-allowed="false"
-    @input="update"
-  >
-    <template #title>
-      <h3>
-        {{ t('registryMirror.header') }}
-        <i
-          v-tooltip="t('registryMirror.toolTip')"
-          class="icon icon-info"
-        />
-      </h3>
-      <p class="mb-20">
-        {{ t('registryMirror.description') }}
-      </p>
-    </template>
-  </KeyValue>
+  <div>
+    <h3>
+      {{ t('registryMirror.header') }}
+      <i
+        v-tooltip="t('registryMirror.toolTip')"
+        class="icon icon-info"
+      />
+    </h3>
+    <p class="mb-20">
+      {{ t('registryMirror.description') }}
+    </p>
+    <ArrayListGrouped
+      v-model="entries"
+      :add-label="t('registryMirror.addLabel')"
+      :default-add-value="defaultAddValue"
+      :initial-empty-row="true"
+      :mode="mode"
+      @input="update"
+    >
+      <template #default="{row}">
+        <div class="row">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="row.value.hostname"
+              :label="t('registryMirror.hostnameLabel')"
+              :placeholder="t('registryMirror.hostnamePlaceholder')"
+              :mode="mode"
+            />
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model="row.value.endpoints"
+              :label="t('registryMirror.endpointsLabel')"
+              :placeholder="t('registryMirror.endpointsPlaceholder')"
+              :mode="mode"
+            />
+          </div>
+        </div>
+        <div class="row mt-20">
+          <div class="col span-12">
+            <h3>
+              {{ t('registryMirrorRewrite.header') }}
+              <i
+                v-tooltip="t('registryMirrorRewrite.toolTip')"
+                class="icon icon-info"
+              />
+            </h3>
+            <KeyValue
+              v-model="row.value.rewrite"
+              :mode="mode"
+              :add-label="t('registryMirrorRewrite.addLabel')"
+              :read-allowed="false"
+              :key-label="t('registryMirrorRewrite.keyLabel')"
+              :key-placeholder="t('registryMirrorRewrite.keyPlaceholder')"
+              :value-label="t('registryMirrorRewrite.valueLabel')"
+              :value-placeholder="t('registryMirrorRewrite.valuePlaceholder')"
+            />
+          </div>
+        </div>
+      </template>
+    </ArrayListGrouped>
+  </div>
 </template>
