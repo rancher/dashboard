@@ -24,7 +24,8 @@ export default {
      * Returns the namespace that requests should be filtered by
      */
     namespaceFilter() {
-      return this.__namespaceRequired ? this.__singleNamespaceFilter : '';
+      // If there's only a single namespace selected then we don't even need to check if it's required.
+      return this.isSingleNamespace || this.__namespaceRequired ? this.__singleNamespaceFilter : '';
     },
 
     /**
@@ -77,8 +78,11 @@ export default {
       immediate: true,
     },
 
-    async namespaceFilter(neu) {
-      if (neu) {
+    async namespaceFilter(neu, old) {
+      if (
+        (neu || old) & // if neu or old have a value
+        neu !== old // and there's a difference between them
+      ) {
         // When a NS filter is required and the user selects a different one, kick off a new set of API requests
         //
         // ResourceList has two modes

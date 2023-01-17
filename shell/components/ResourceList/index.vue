@@ -140,8 +140,12 @@ export default {
      *
      * This covers case 1
      */
-    namespaceFilter(neu) {
-      if (neu && !this.hasFetch) {
+    namespaceFilter(neu, old) {
+      if (
+        (neu || old) && // if neu or old have a value
+        neu !== old && // and there's a difference between them
+        !this.hasFetch // and there's a fetch passed into the component
+      ) {
         this.$fetchType(this.resource);
       }
     }
