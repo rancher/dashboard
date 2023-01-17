@@ -399,7 +399,7 @@ export default {
 
 <template>
   <div class="masthead">
-    <header class="header-layout">
+    <header>
       <div class="title">
         <div class="primaryheader">
           <h1>
