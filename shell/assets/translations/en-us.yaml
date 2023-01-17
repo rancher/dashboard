@@ -3103,6 +3103,7 @@ monitoring:
       editYaml: Edit AlertmanagerConfig
       detail: Receiver in AlertmanagerConfig
     disabledReceiverButton: The receiver form is available after the AlertmanagerConfig is created
+    error: An error occurred saving the AlertmanagerConfig
     email:
       username: Auth Username
       password: Secret with Auth Password
