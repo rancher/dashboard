@@ -141,6 +141,16 @@ export class Plugin implements IPlugin {
     switch (locationConfig.where) {
     case 'table':
       type = UI_CONFIG_TABLE_ACTION;
+
+      // sets the enabled flag to true if ommited on the config
+      if (!Object.keys(action).includes('enabled')) {
+        action.enabled = true;
+      }
+
+      // if user defines a bulkAction, there's no need to set the bulkable flag
+      if (Object.keys(action).includes('bulkAction')) {
+        action.bulkable = true;
+      }
       break;
     case 'header':
       type = UI_CONFIG_HEADER_ACTION;

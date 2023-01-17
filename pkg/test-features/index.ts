@@ -96,7 +96,6 @@ export default function(plugin: IPlugin) {
       label:    'some-extension-action',
       labelKey: 'generic.customize',
       icon:     'icon-pipeline',
-      enabled:  true,
       clicked() {
         console.log('table action executed1', this); // eslint-disable-line no-console
       }
@@ -114,8 +113,6 @@ export default function(plugin: IPlugin) {
       label:    'some-bulkable-action',
       labelKey: 'generic.comingSoon',
       icon:     'icon-pipeline',
-      bulkable: true,
-      enabled:  true,
       clicked() {
         console.log('table action executed2', this); // eslint-disable-line no-console
       },
