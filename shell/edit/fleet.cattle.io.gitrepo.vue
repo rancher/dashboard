@@ -241,8 +241,13 @@ export default {
     },
 
     repoUrl() {
+      if (this.value.spec.repo.startsWith('git@')) {
+        return {
+          protocol: 'ssh',
+          url:      this.value.spec.repo
+        };
+      }
       const [protocol, url] = this.value.spec.repo.split('://');
-
       return {
         protocol,
         url
@@ -350,7 +355,11 @@ export default {
     },
 
     changeProtocol({ text, selected }) {
-      this.value.spec.repo = `${ selected }://${ text }`;
+      if (text.startsWith('https://') || text.startsWith('git@') || selected === 'ssh') {
+        this.value.spec.repo = text;
+      } else {
+        this.value.spec.repo = selected === 'ssh' ? text : `${ selected }://${ text }`;
+      }
 
       this.stepOneReady();
     },
@@ -530,7 +539,7 @@ export default {
             :placeholder="repoUrlPlaceholder"
             :text-value="repoUrl.url"
             :text-required="true"
-            :options="[{label: 'https://', value: 'https'}, {label: 'ssh://', value: 'ssh'}]"
+            :options="[{label: 'https://', value: 'https'}, {label: 'ssh', value: 'ssh'}]"
             @input="changeProtocol($event)"
           />
         </div>
