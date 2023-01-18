@@ -195,8 +195,8 @@ export default {
       }
 
       // this will come from extensions...
-      if (action.clicked) {
-        const fn = action.clicked;
+      if (action.singleAction) {
+        const fn = action.singleAction;
 
         if (fn && action.enabled) {
           fn.apply(this, [event]);

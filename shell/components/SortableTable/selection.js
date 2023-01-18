@@ -600,15 +600,15 @@ function _execute(resources, action, args, opts = {}, ctx) {
   for ( const resource of resources ) {
     let fn;
 
-    if (action.clicked) {
-      fn = action.clicked;
+    if (action.singleAction) {
+      fn = action.singleAction;
     } else if (opts.alt && action.altAction) {
       fn = resource[action.altAction];
     } else {
       fn = resource[action.action];
     }
 
-    if (fn && action.clicked) {
+    if (fn && action.singleAction) {
       promises.push(fn.apply(ctx, [args]));
     } else if (fn) {
       promises.push(fn.apply(resource, args));

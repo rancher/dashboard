@@ -295,7 +295,7 @@ export default {
     },
 
     handleExtensionAction(action, event) {
-      const fn = action.clicked;
+      const fn = action.clickAction;
 
       if (fn && action.enabled()) {
         fn.apply(this, [event]);

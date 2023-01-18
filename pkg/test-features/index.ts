@@ -30,7 +30,7 @@ export default function(plugin: IPlugin) {
       enabled(ctx: any) {
         return true;
       },
-      clicked() {
+      clickAction() {
         console.log('action executed 1', this); // eslint-disable-line no-console
       }
     }
@@ -53,7 +53,7 @@ export default function(plugin: IPlugin) {
       enabled(ctx: any) {
         return true;
       },
-      clicked() {
+      clickAction() {
         console.log('action executed 2', this); // eslint-disable-line no-console
       }
     }
@@ -96,7 +96,7 @@ export default function(plugin: IPlugin) {
       label:    'some-extension-action',
       labelKey: 'generic.customize',
       icon:     'icon-pipeline',
-      clicked() {
+      singleAction() {
         console.log('table action executed1', this); // eslint-disable-line no-console
       }
     }
@@ -113,7 +113,7 @@ export default function(plugin: IPlugin) {
       label:    'some-bulkable-action',
       labelKey: 'generic.comingSoon',
       icon:     'icon-pipeline',
-      clicked() {
+      singleAction() {
         console.log('table action executed2', this); // eslint-disable-line no-console
       },
       bulkAction(args: any) {
