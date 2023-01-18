@@ -501,22 +501,21 @@ export default {
   },
 
   methods: {
-    toggleScaleDownModal( event, resources = this ) {
+    toggleScaleDownModal( event, resources ) {
       // Check if the user held alt key when an action is clicked.
       const alt = isAlternate(event);
       const showScalePoolPrompt = this.$store.getters['prefs/get'](SCALE_POOL_PROMPT);
-      console.log(resources);
 
       // Prompt if showScalePoolPrompt pref not store and user did not held alt key
       if (!alt && !showScalePoolPrompt) {
         this.$store.dispatch('management/promptModal', {
           component:  'ScalePoolDownDialog',
-          resources: resources.allMachineDeployments[0],
+          resources,
           modalWidth: '450px'
         });
       } else {
         // User held alt key, so don't prompt
-        resources.allMachineDeployments[0].scalePool(-1);
+        resources.scalePool(-1);
       }
     },
 
@@ -713,7 +712,7 @@ export default {
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="toggleScaleDownModal($event)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
@@ -797,7 +796,7 @@ export default {
                     :disabled="group.ref.spec.quantity < 2"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.toggleScaleDownModal($event)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
