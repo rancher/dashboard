@@ -39,7 +39,7 @@ export default {
 
 <template>
   <section>
-    <header class="header-layout row">
+    <header class="row">
       <div class="col span-12">
         <h1>
           <t k="longhorn.overview.title" />
