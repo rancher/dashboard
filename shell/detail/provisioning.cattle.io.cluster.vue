@@ -254,7 +254,9 @@ export default {
       const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
         const machinePrefix = `${ this.value.name }-${ mp.name }`;
         const machines = this.value.machines.filter((machine) => {
-          return machine.spec?.infrastructureRef?.name.startsWith(machinePrefix);
+          const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+
+          return !isElementalCluster ? machine.spec?.infrastructureRef?.name.startsWith(machinePrefix) : machine.spec?.infrastructureRef?.name.includes(machinePrefix);
         });
 
         return machines.length === 0;
