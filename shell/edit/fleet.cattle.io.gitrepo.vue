@@ -248,6 +248,7 @@ export default {
         };
       }
       const [protocol, url] = this.value.spec.repo.split('://');
+
       return {
         protocol,
         url
