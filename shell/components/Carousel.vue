@@ -95,12 +95,18 @@ export default {
     },
 
     slidePosition() {
-      if (this.activeItemId <= 1) {
-        this.$refs.slide[this.slider.length - 1].style.left = '-93%';
-        this.$refs.slide[0].style.left = '7%';
+      if (this.activeItemId > 1) {
+        this.$refs.slide[this.slider.length - 1].style.left = '0';
+        this.$refs.slide[0].style.left = '100%';
       } else {
-        this.$refs.slide[this.slider.length - 1].style.left = '7%';
-        this.$refs.slide[0].style.left = '107%';
+        this.$refs.slide[this.slider.length - 1].style.left = '-100%';
+        this.$refs.slide[0].style.left = '0';
+      }
+
+      // Incase of 3 slides in Carousel do not change postion of last/3rd slide.
+      if (this.activeItemId === 1) {
+        this.$refs.slide[this.slider.length - 1].style.left = '0';
+        this.$refs.slide[0].style.left = '0';
       }
     }
   },
@@ -212,6 +218,7 @@ export default {
   animation: scrolls 10s ;
   position: relative;
   transition: 1s ease-in-out;
+  left: 21%;
 }
 
 .slider-badge {
@@ -226,11 +233,10 @@ export default {
   position: relative;
   border: 1px solid var(--tabbed-border);
   border-radius: var(--border-radius);
-  left: 7%;
   cursor: pointer;
 
   &:last-child {
-    left: -93%;
+    left: -100%;
   }
 
   .slide-header {
