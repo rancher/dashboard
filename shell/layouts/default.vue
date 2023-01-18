@@ -69,6 +69,7 @@ export default {
       wantNavSync:      false,
       unwatchPin:       undefined,
       wmPin:            null,
+      draggable:        false,
     };
   },
 
@@ -739,11 +740,11 @@ export default {
           'drag-end': !$refs.draggableZone.drag.active,
           'drag-start': $refs.draggableZone.drag.active,
         }"
-        draggable="true"
+        :draggable="draggable"
         @dragstart="$refs.draggableZone.onDragStart($event)"
         @dragend="$refs.draggableZone.onDragEnd($event)"
       >
-        <WindowManager />
+        <WindowManager @draggable="draggable=$event" />
       </div>
     </div>
     <FixedBanner :footer="true" />

@@ -96,6 +96,20 @@ export default {
         return this.$store.getters['i18n/t']('keyValue.keyPlaceholder');
       },
     },
+    /**
+     * List of keys which needs to be disabled and hidden based on toggler
+     */
+    protectedKeys: {
+      type:    Array,
+      default: () => [],
+    },
+    /**
+     * Conditionally display protected keys, if any
+     */
+    toggleFilter: {
+      type:    Boolean,
+      default: false,
+    },
     separatorLabel: {
       type:    String,
       default: '',
@@ -235,7 +249,6 @@ export default {
   },
 
   computed: {
-
     isView() {
       return this.mode === _VIEW;
     },
@@ -261,6 +274,12 @@ export default {
      */
     canRemove() {
       return !this.isView && this.removeAllowed;
+    },
+    /**
+     * Filter rows based on toggler, keeping to still emit all the values
+     */
+    filteredRows() {
+      return this.rows.filter(row => !(this.isProtected(row.key) && !this.toggleFilter));
     }
   },
   created() {
@@ -275,6 +294,10 @@ export default {
     }
   },
   methods: {
+    isProtected(key) {
+      return this.protectedKeys && this.protectedKeys.includes(key);
+    },
+
     getRows(value) {
       const rows = [];
 
@@ -325,7 +348,7 @@ export default {
           rows.push(entry);
         }
       }
-      if ( !rows.length && this.initialEmptyRow ) {
+      if ( rows && !rows.length && this.initialEmptyRow ) {
         rows.push({
           [this.keyName]:   '',
           [this.valueName]: '',
@@ -389,6 +412,10 @@ export default {
             this.add(key, value);
           }
         });
+
+        if (lines.length > 0) {
+          this.removeEmptyRows();
+        }
       }
     },
     download(idx, ev) {
@@ -550,9 +577,10 @@ export default {
         </div>
       </template>
       <template
-        v-for="(row,i) in rows"
+        v-for="(row,i) in filteredRows"
         v-else
       >
+        <!-- Key -->
         <div
           :key="i+'key'"
           class="kv-item key"
@@ -570,6 +598,7 @@ export default {
               ref="key"
               v-model="row[keyName]"
               :searchable="true"
+              :disabled="isProtected(row.key)"
               :clearable="false"
               :taggable="keyTaggable"
               :options="calculateOptions(row[keyName])"
@@ -579,13 +608,15 @@ export default {
               v-else
               ref="key"
               v-model="row[keyName]"
-              :disabled="isView || !keyEditable"
+              :disabled="isView || !keyEditable || isProtected(row.key)"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
             >
           </slot>
         </div>
+
+        <!-- Value -->
         <div
           :key="i+'value'"
           class="kv-item value"
@@ -608,6 +639,7 @@ export default {
               v-else-if="valueMultiline"
               v-model="row[valueName]"
               :class="{'conceal': valueConcealed}"
+              :disabled="isProtected(row.key)"
               :mode="mode"
               :placeholder="valuePlaceholder"
               :min-height="40"
@@ -617,7 +649,7 @@ export default {
             <input
               v-else
               v-model="row[valueName]"
-              :disabled="isView"
+              :disabled="isView || isProtected(row.key)"
               :type="valueConcealed ? 'password' : 'text'"
               :placeholder="valuePlaceholder"
               autocorrect="off"
@@ -652,7 +684,7 @@ export default {
           >
             <button
               type="button"
-              :disabled="isView"
+              :disabled="isView || isProtected(row.key)"
               class="btn role-link"
               @click="remove(i)"
             >
@@ -664,7 +696,7 @@ export default {
     </div>
     <div
       v-if="(addAllowed || readAllowed) && !isView"
-      class="footer"
+      class="footer mt-20"
     >
       <slot
         name="add"

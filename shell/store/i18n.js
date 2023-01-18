@@ -2,7 +2,7 @@ import merge from 'lodash/merge';
 import IntlMessageFormat from 'intl-messageformat';
 import { get } from '@shell/utils/object';
 import en from '@shell/assets/translations/en-us.yaml';
-import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
+import { getProduct, getVendor } from '@shell/config/private-label';
 import { loadTranslation } from '@shell/utils/dynamic-importer';
 
 const NONE = 'none';
@@ -98,9 +98,8 @@ export const getters = {
     } else if ( formatter && formatter.format ) {
       // Inject things like appName so they're always available in any translation
       const moreArgs = {
-        vendor:   getVendor(),
-        appName:  getProduct(),
-        docsBase: DOCS_BASE,
+        vendor:  getVendor(),
+        appName: getProduct(),
         ...args
       };
 

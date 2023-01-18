@@ -189,37 +189,42 @@ export default Vue.extend({
         return;
       }
       if (this.editedItem) {
+        this.deleteAndSelectNext(this.editedItem);
         this.toggleEditMode(false);
 
         return;
       }
       if (this.selected) {
-        const index = findStringIndex(this.items, this.selected, false);
+        this.deleteAndSelectNext(this.selected);
+      }
+    },
 
-        if (index !== -1) {
-          /**
-           * Select the next item in the list when an item is to be deleted.
-           */
-          const item = (this.items[index + 1] || this.items[index - 1]);
+    deleteAndSelectNext(currItem: string) {
+      const index = findStringIndex(this.items, currItem, false);
 
-          this.onSelect(item);
-          this.setFocus(item);
+      if (index !== -1) {
+        /**
+         * Select the next item in the list.
+         */
+        const item = (this.items[index + 1] || this.items[index - 1]);
 
-          this.deleteItem(this.items[index]);
-        }
+        this.onSelect(item);
+        this.setFocus(item);
+
+        this.deleteItem(this.items[index]);
       }
     },
 
     setFocus(refId: string) {
-      this.$nextTick(() => this.getElemByRef(refId)?.focus());
+      this.$nextTick(() => (this.getElemByRef(refId) as Vue & HTMLElement)?.focus());
     },
 
     /**
      * Move scrollbar when the selected item is over the top or bottom side of the box
      */
     moveScrollbar(arrow: Arrow, value?: number) {
-      const box = this.getElemByRef(BOX);
-      const item = this.getElemByRef(this.selected || '');
+      const box = this.getElemByRef(BOX) as HTMLElement;
+      const item = this.getElemByRef(this.selected || '') as HTMLElement;
 
       if (box && item && item.className.includes(CLASS.item)) {
         const boxRect = box.getClientRects()[0];
@@ -248,7 +253,7 @@ export default Vue.extend({
     },
 
     toggleErrorClass(refId: string, val: boolean) {
-      const input = this.getElemByRef(refId)?.$el;
+      const input = (this.getElemByRef(refId) as Vue)?.$el;
 
       if (input) {
         if (val) {
@@ -306,7 +311,7 @@ export default Vue.extend({
     getElemByRef(id: string) {
       const ref = this.$refs[id];
 
-      return (Array.isArray(ref) ? ref[0] : ref) as any;
+      return Array.isArray(ref) ? ref[0] : ref;
     },
 
     /**
@@ -527,6 +532,7 @@ export default Vue.extend({
         width: auto;
         user-select: none;
         overflow: hidden;
+        white-space: no-wrap;
         text-overflow: ellipsis;
         padding-top: 1px;
       }

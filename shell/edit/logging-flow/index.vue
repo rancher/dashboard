@@ -6,7 +6,9 @@ import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
-import { LOGGING, NODE, POD, SCHEMA } from '@shell/config/types';
+import {
+  LOGGING, NAMESPACE, NODE, POD, SCHEMA
+} from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createYaml } from '@shell/utils/create-yaml';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
@@ -51,6 +53,7 @@ export default {
   async fetch() {
     const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
     const hasAccessToOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.OUTPUT);
+    const hasAccessToNamespaces = this.$store.getters[`cluster/schemaFor`](NAMESPACE);
     const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
     const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
@@ -62,6 +65,7 @@ export default {
     const hash = await allHash({
       allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow && hasAccessToOutputs),
       allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
+      allNamespaces:     getAllOrDefault(NAMESPACE, hasAccessToNamespaces),
       allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
       allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
@@ -113,6 +117,7 @@ export default {
       matches,
       allOutputs:         null,
       allClusterOutputs:  null,
+      allNamespaces:      null,
       allNodes:           null,
       allPods:            null,
       filtersYaml,
@@ -164,6 +169,22 @@ export default {
         .map((clusterOutput) => {
           return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
         });
+    },
+
+    namespaceChoices() {
+      if (!this.allNamespaces) {
+        // Handle the case where the user doesn't have permission
+        // to see namespaces
+        return [];
+      }
+      const out = this.allNamespaces.map((namespace) => {
+        return {
+          label: namespace.nameDisplay,
+          value: namespace.metadata.name
+        };
+      });
+
+      return out;
     },
 
     nodeChoices() {
@@ -349,7 +370,7 @@ export default {
         <Banner
           color="info"
           class="mt-0"
-          label="Configure which container logs will be pulled from"
+          :label="t('logging.flow.matches.banner')"
         />
         <ArrayListGrouped
           v-model="matches"
@@ -362,8 +383,10 @@ export default {
               class="rule mb-20"
               :value="props.row.value"
               :mode="mode"
+              :namespaces="namespaceChoices"
               :nodes="nodeChoices"
               :containers="containerChoices"
+              :is-cluster-flow="value.type === LOGGING.CLUSTER_FLOW"
               @remove="e=>removeMatch(props.row.i)"
               @input="e=>updateMatch(e,props.row.i)"
             />
@@ -394,7 +417,7 @@ export default {
       >
         <Banner
           v-if="value.type !== LOGGING.CLUSTER_FLOW"
-          label="Output must reside in same namespace as the flow."
+          :label="t('logging.flow.outputs.sameNamespaceError')"
           color="info"
         />
         <LabeledSelect
@@ -457,7 +480,7 @@ export default {
   </CruResource>
   <Banner
     v-else
-    label="This resource contains a match configuration that the form editor does not support.  Please use YAML edit."
+    :label="t('logging.flow.matches.unsupportedConfig')"
     color="error"
   />
 </template>

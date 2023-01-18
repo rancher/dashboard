@@ -1,16 +1,15 @@
 import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
 import Banner from '@/pkg/rancher-components/src/components/Banner/Banner';
 
-
 <Meta 
   title="Components/Banner"
   component={Banner}
 />
 
-export const Template = (args, { argTypes, events }) => ({
+export const Template = (args, { argTypes }) => ({
   components: { Banner },
   props:      Object.keys(argTypes),
-  template:   '<Banner v-bind="$props" />'
+  template:   `<Banner v-bind="$props"/>`
 });
 
 
@@ -28,6 +27,59 @@ Banner contain messages that communicate information to the user. They may also 
 
 <br/>
 
+#### Closable
+
+Banner can be closable for temporary messages such like errors in a form. An event will be emitted on close.
+
+<Canvas>
+  <Story
+    name="Closable"
+    args={{
+      label:    'Please update system with new patch',
+      closable: true,
+      color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Stacked
+
+Multiple banners can be stacked together and dismissed individually.
+
+<Canvas>
+  <Story
+    name="Stacked"
+    args={{
+      label:    'First message',
+      stacked: true,
+      closable: true,
+      color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Stacked"
+    args={{
+      label:    'Second message',
+      stacked: true,
+      closable: true,
+      color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Stacked"
+    args={{
+      label:    'Third message',
+      stacked: true,
+      closable: true,
+      color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
 #### Primary
 
 Primary banner are triggered by system events. They appear as a fixed, full-width strip, on top of the screen throughout the application.
@@ -37,8 +89,25 @@ Primary banner are triggered by system events. They appear as a fixed, full-widt
     name="Primary"
     args={{
       label:    'Please update system with new patch',
-      closable: true,
+      closable: false,
       color:    'primary',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Icon
+
+Icon can be added to enchance the type of message.
+
+<Canvas>
+  <Story
+    name="Icon"
+    args={{
+      label:    'Error in the Pod Security Access',
+      closable: false,
+      icon:    'icon-pod_security',
+      color:    'error',
     }}>
     {Template.bind({})}
   </Story>
@@ -52,7 +121,7 @@ Secondary alerts should be used when there are tips or special notes that's requ
     name="Secondary"
     args={{
       label:    'Please update system with new patch',
-      closable: true,
+      closable: false,
       color:    'secondary',
     }}>
     {Template.bind({})}
@@ -67,7 +136,7 @@ Success alerts should be used when an action was performed successfully.
     name="Success"
     args={{
       label:    'Your account has been successfully migrated to the new user interface.',
-      closable: true,
+      closable: false,
       color:    'success',
     }}>
     {Template.bind({})}
@@ -82,7 +151,7 @@ Info alerts should be used when there are tips or information that a user can be
     name="Info"
     args={{
       label:    'The new Patch Finder 2.0 will be released soon.',
-      closable: true,
+      closable: false,
       color:    'info',
     }}>
     {Template.bind({})}
@@ -97,7 +166,7 @@ Warning banner should be used for messages that likely require attention. They a
     name="Warning"
     args={{
       label:    'Your browser is outdated. For a better experience consider upgrading it to the latest version available.',
-      closable: true,
+      closable: false,
       color:    'warning',
     }}>
     {Template.bind({})}

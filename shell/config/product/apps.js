@@ -32,7 +32,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'Charts',
+    labelKey:   'catalog.charts.header',
     icon:       'compass',
     namespaced: false,
     name:       'charts',

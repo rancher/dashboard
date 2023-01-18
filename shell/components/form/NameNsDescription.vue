@@ -405,7 +405,7 @@ export default {
       >
         <i
           v-tooltip="t('generic.cancel')"
-          class="icon icon-lg icon-close align-value"
+          class="icon icon-close align-value"
         />
       </button>
     </div>

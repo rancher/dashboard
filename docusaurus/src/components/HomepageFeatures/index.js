@@ -4,14 +4,14 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title:       'Getting Started',
-    link:        'getting-started/concepts/',
+    title:       'Developer Documentation',
+    link:        'home',
     target:      '',
     Svg:         require('@site/static/img/documentation.svg').default,
     description: (
       <>
-        This section covers the basics of working with the Rancher dashboard. It will familiarize you with the development
-        environment, concepts, and new Rancher UI.
+        This section covers the basics of working with the Rancher UI. It will familiarize you with the development
+        environment, concepts, extensions and new Rancher UI.
       </>
     ),
   },

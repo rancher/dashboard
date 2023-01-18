@@ -16,6 +16,7 @@ import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Password from '@shell/components/form/Password';
 import { applyProducts } from '@shell/store/type-map';
+import { mapGetters } from 'vuex';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -172,6 +173,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ rancherDocsBase: 'rancherDocsBase' }),
     saveEnabled() {
       if ( !this.eula && this.isFirstLogin) {
         return false;
@@ -385,6 +387,7 @@ export default {
                     k="setup.telemetry"
                     :raw="true"
                     :name="productName"
+                    :docs-base="rancherDocsBase"
                   />
                 </template>
               </Checkbox>

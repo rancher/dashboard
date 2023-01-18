@@ -47,6 +47,7 @@ import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import { defaultContainer } from '@shell/models/workload';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -250,7 +251,9 @@ export default {
 
     defaultTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
-        return 'container-0';
+        const container = this.allContainers.find(c => c.__active);
+
+        return container?.name ?? 'container-0';
       }
 
       return this.allContainers.length ? this.allContainers[0].name : '';
@@ -874,13 +877,16 @@ export default {
         nameNumber++;
       }
       const container = {
-        imagePullPolicy: 'Always',
-        name:            `container-${ nameNumber }`,
-        active:          true
+        ...defaultContainer,
+        name:   `container-${ nameNumber }`,
+        active: true
       };
 
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);
+      this.$nextTick(() => {
+        this.$refs.containersTabbed?.select(container.name);
+      });
     },
 
     removeContainer(container) {

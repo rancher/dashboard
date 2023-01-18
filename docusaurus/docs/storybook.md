@@ -1,19 +1,22 @@
 # Storybook
 
-### Repo
+Rancher Dashboard uses Storybook to document its component and design kit.
 
-https://github.com/rancher/dashboard
+The published Storybook is available here: https://rancher.github.io/storybook/.
 
+### Source
 
-### Folder structure
+The Source for Storybook is contained in the main Dashboard GitHub repository (https://github.com/rancher/dashboard).
+
+Stories are contained in the `storybook/stories` folder:
+
 ```bash
 ├── dashboard
-|  ├── stories       // All files and setup for Storybook are here
-|  |  |  ├── WIP      // WIP stories 
-|  |  |  ├── components   // All components stories are here
-|  |  |  ├── foundation   // All foundation stories are here
-
-
+|  ├── storybook             // All files and setup for Storybook are here
+|  |  ├── stories            // Stories folder
+|  |  |  |  ├── WIP          // WIP stories 
+|  |  |  |  ├── components   // All components stories are here
+|  |  |  |  ├── foundation   // All foundation stories are here
 ```
 
 ### How to write
@@ -37,7 +40,7 @@ import Checkbox from './Checkbox.vue';
 
 <Meta title="Components/Checkbox" component={Checkbox} />
 
-<!-- Add templet for checkbox stories -->
+<!-- Add template for checkbox stories -->
 export const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { Checkbox },
@@ -116,7 +119,7 @@ export default {
   }
 };;
 
-<!-- Add templet for PercentageBar stories -->
+<!-- Add template for PercentageBar stories -->
 export const Story = (args, { argTypes }) => ({
   components: { PercentageBar },
   props:      Object.keys(argTypes),

@@ -3,6 +3,7 @@
 import { haveV1Monitoring, haveV1MonitoringWorkloads } from '@shell/utils/monitoring';
 import AsyncButton from '@shell/components/AsyncButton';
 import IconMessage from '@shell/components/IconMessage';
+import { mapGetters } from 'vuex';
 
 function delay(t, v) {
   return new Promise((resolve) => {
@@ -37,11 +38,13 @@ export default {
     });
   },
 
+  computed: { ...mapGetters({ rancherDocsBase: 'rancherDocsBase' }) },
+
   methods: {
     uninstall(buttonCb) {
       this.$store.dispatch('cluster/promptModal', {
-        component: 'GenericPrompt',
-        resources: {
+        component:      'GenericPrompt',
+        componentProps: {
           applyMode:   'uninstall',
           applyAction: async(buttonDone) => {
             await this.$store.getters['currentCluster'].doAction('disableMonitoring');
@@ -89,7 +92,7 @@ export default {
           </p>
           <p
             class="mt-10"
-            v-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)"
+            v-html="t('monitoring.installSteps.uninstallV1.warning2', {docsBase: rancherDocsBase}, true)"
           />
         </template>
       </IconMessage>

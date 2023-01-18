@@ -60,3 +60,52 @@ export function getSecondsDiff(startDate, endDate) {
     Math.abs(Date.parse(endDate) - Date.parse(startDate)) / 1000
   );
 }
+
+/**
+ * return { diff: number; label: string }
+ *
+ * diff:  update frequency in seconds
+ * label: content of the cell's column
+ */
+export function elapsedTime(seconds) {
+  if (!seconds) {
+    return {};
+  }
+
+  if (seconds < 120) {
+    return {
+      diff:  1,
+      label: `${ seconds }s`
+    };
+  }
+
+  const minutes = Math.floor(seconds / 60);
+
+  if (minutes < 10) {
+    return {
+      diff:  1,
+      label: `${ minutes }m${ seconds - (minutes * 60) }s`
+    };
+  }
+
+  const hours = Math.floor(seconds / 3600);
+
+  if (hours < 3) {
+    return {
+      diff:  60,
+      label: `${ minutes }m`,
+    };
+  }
+
+  if (hours > 7) {
+    return {
+      diff:  60,
+      label: `${ hours }h`,
+    };
+  }
+
+  return {
+    diff:  60,
+    label: `${ hours }h${ minutes - (hours * 60) }m`,
+  };
+}

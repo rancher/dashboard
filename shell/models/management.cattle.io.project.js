@@ -163,6 +163,7 @@ export default class Project extends HybridModel {
       normanProject.setLabels(this.metadata.labels);
       normanProject.setResourceQuotas(clearedResourceQuotas);
       normanProject.description = this.spec.description;
+      normanProject.name = this.spec.displayName;
       normanProject.containerDefaultResourceLimit = this.spec.containerDefaultResourceLimit;
 
       return normanProject;

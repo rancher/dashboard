@@ -13,21 +13,22 @@ module.exports = {
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-a11y",
-    "storybook-dark-mode"
+    "storybook-dark-mode",
+    "@storybook/addon-actions"
   ],
 
   staticDirs: [
     'public',
-    '../shell/assets'
+    '../../shell/assets'
   ],
 
   webpackFinal: async (config, { configType }) => {
-    const baseFolder = path.resolve(__dirname, '..');
+    const baseFolder = path.resolve(__dirname, '..', '..');
 
     const sassLoader = {
       loader: 'sass-loader',
       options: {
-        additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss'; @import '~stories/global.scss'; `,
+        additionalData: `@use "sass:math"; @import '~shell/assets/styles/app.scss'; @import '~storybook/stories/global.scss'; `,
         sassOptions: {
           importer: (url, prev, done) => {
             if (url.indexOf('~/') === 0) {
@@ -83,9 +84,19 @@ module.exports = {
     config.resolve.alias['@'] = baseFolder;
     config.resolve.alias['@shell'] = path.join(baseFolder, 'shell');
     config.resolve.alias['@components'] = path.join(baseFolder, 'pkg', 'rancher-components', 'src', 'components');
+    config.resolve.alias['~shell'] = path.join(baseFolder, 'shell');
 
     // Cheat for importing ~shell/assets
     config.resolve.modules.push(baseFolder);
+
+    // Do not cache babel results - this causes issues with Typescript transpiling for rancher components
+    config.module.rules.forEach(r => {
+      (r.use || []).forEach(r => {
+        if (r.options && r.options.cacheDirectory) {
+          r.options.cacheDirectory = false;
+        }
+      });
+    });
 
     return config;
   },  

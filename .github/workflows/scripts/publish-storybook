@@ -1,37 +1,23 @@
 #!/bin/bash
 DIST=publish-storybook
-DIR=${GITHUB_WORKSPACE}
 
-if [ -z "${GITHUB_WORKSPACE}" ]; then
-  echo "Missing environment variable GITHUB_WORKSPACE"
-  exit 1
-fi
+echo "Building and publishing Storybook"
 
 if [ -z "${STORYBOOK_TOKEN}" ]; then
   echo "Missing environment variable STORYBOOK_TOKEN"
   exit 1
 fi
 
-echo "Building and publishing Storybook"
+if [ ! -d "${DIR}/storybook-static" ]; then
+  echo "Storybook has not been built"
+  exit 1
+fi
 
 set -e
 
 mkdir -p ~/.ssh
 echo -e "${STORYBOOK_TOKEN}" > ~/.ssh/id_rsa
 chmod 700 ~/.ssh/id_rsa
-
-pushd $DIR > /dev/null
-
-rm -rf ${DIST}
-
-echo "Installing dependencies ..."
-
-yarn install
-yarn install-storybook
-
-echo "Building Storybook ..."
-
-yarn build-storybook
 
 # Clone the storybook repo into the dist folder
 git clone git@github.com:rancher/storybook.git ${DIST}
@@ -42,7 +28,7 @@ rm *.txt
 rm *.map
 popd
 
-cp -R ${DIR}/storybook-static/* ${DIST}/docs
+cp -R ./storybook-static/* ${DIST}/docs
 
 MSG=$(git log -1  --pretty='%s')
 echo $MSG
@@ -56,8 +42,6 @@ cd ${DIST}
 git add -A
 git commit -m "Storybook Update: ${MSG}"
 git push origin
-
-popd > /dev/null
 
 rm -rf ~/.ssh/id_rsa_storybook.github
 

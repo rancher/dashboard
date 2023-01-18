@@ -54,7 +54,7 @@ export function init(store) {
     name:       'pod-security-policies',
     group:      'Root',
     namespaced: false,
-    weight:     0,
+    weight:     5,
     icon:       'folder',
     route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
     exact:      true
@@ -64,7 +64,6 @@ export function init(store) {
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
-    'pod-security-policies',
   ]);
 
   configureType(CAPI.RANCHER_CLUSTER, {
@@ -125,6 +124,7 @@ export function init(store) {
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
+    'pod-security-policies',
   ], 'advanced');
 
   weightGroup('advanced', -1, true);

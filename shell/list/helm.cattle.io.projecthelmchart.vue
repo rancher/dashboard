@@ -16,11 +16,6 @@ export default {
       required: true,
     },
 
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -116,6 +111,7 @@ export default {
         :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
         key-field="_key"
         :groupable="false"
+        :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       />
     </div>
   </div>

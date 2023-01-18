@@ -18,8 +18,10 @@ import {
   MANAGEMENT,
   CONFIG_MAP,
   NORMAN,
-  NODE
+  NODE,
 } from '@shell/config/types';
+
+import { SETTING } from '@shell/config/settings';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { allHashSettled } from '@shell/utils/promise';
 import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod-affinity';
@@ -94,17 +96,13 @@ export default {
 
       const url = `/k8s/clusters/${ clusterId }/v1`;
 
-      const isImportCluster =
-        this.credential.decodedData.clusterType === 'imported';
-
-      this.isImportCluster = isImportCluster;
-
-      if (clusterId && isImportCluster) {
+      if (clusterId) {
         const res = await allHashSettled({
           namespaces: this.$store.dispatch('cluster/request', { url: `${ url }/${ NAMESPACE }s` }),
           images:     this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` }),
           configMaps: this.$store.dispatch('cluster/request', { url: `${ url }/${ CONFIG_MAP }s` }),
           networks:   this.$store.dispatch('cluster/request', { url: `${ url }/k8s.cni.cncf.io.network-attachment-definitions` }),
+          settings:   this.$store.dispatch('cluster/request', { url: `${ url }/${ MANAGEMENT.SETTING }s` })
         });
 
         for (const key of Object.keys(res)) {
@@ -172,10 +170,20 @@ export default {
           };
         });
 
+        let systemNamespaces = (res.settings.value?.data || []).filter(x => x.id === SETTING.SYSTEM_NAMESPACES);
+
+        if (systemNamespaces) {
+          systemNamespaces = (systemNamespaces[0]?.value || systemNamespaces[0]?.default)?.split(',') || [];
+        }
+
         (res.namespaces.value.data || []).forEach(async(namespace) => {
           const proxyNamespace = await this.$store.dispatch('cluster/create', namespace);
 
-          if (!proxyNamespace.isSystem && namespace.links.update) {
+          const isSettingSystemNamespace = systemNamespaces.includes(namespace.metadata.name);
+
+          const systemNS = proxyNamespace.isSystem || proxyNamespace.isFleetManaged || isSettingSystemNamespace || proxyNamespace.isObscure;
+
+          if (!systemNS && namespace.links.update) {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 
@@ -231,7 +239,6 @@ export default {
 
     return {
       credential:         null,
-      isImportCluster:    false,
       vmAffinity,
       userData,
       networkData,
@@ -400,7 +407,7 @@ export default {
         const clusterId = get(this.credential, 'decodedData.clusterId');
         const url = `/k8s/clusters/${ clusterId }/v1`;
 
-        if (url && this.isImportCluster) {
+        if (url) {
           const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.IMAGE }s` });
 
           this.images = res?.data;
@@ -491,7 +498,6 @@ export default {
 
         <div class="col span-6">
           <LabeledSelect
-            v-if="isImportCluster"
             v-model="value.vmNamespace"
             :mode="mode"
             :options="namespaceOptions"
@@ -503,23 +509,10 @@ export default {
               t('cluster.harvester.machinePool.namespace.placeholder')
             "
           />
-
-          <LabeledInput
-            v-else
-            v-model="value.vmNamespace"
-            label-key="cluster.credential.harvester.namespace"
-            :required="true"
-            :mode="mode"
-            :disabled="namespaceDisabled"
-            :placeholder="
-              t('cluster.harvester.machinePool.namespace.placeholder')
-            "
-          />
         </div>
       </div>
 
       <div
-        v-if="isImportCluster"
         class="row mt-20"
       >
         <div class="col span-6">
@@ -547,33 +540,6 @@ export default {
             :placeholder="
               t('cluster.harvester.machinePool.network.placeholder')
             "
-          />
-        </div>
-      </div>
-
-      <div
-        v-else
-        class="row mt-20"
-      >
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.imageName"
-            :mode="mode"
-            :required="true"
-            :placeholder="t('cluster.credential.harvester.placeholder')"
-            :disabled="disabledEdit"
-            label-key="cluster.credential.harvester.image"
-          />
-        </div>
-
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.networkName"
-            :mode="mode"
-            :required="true"
-            :placeholder="t('cluster.credential.harvester.placeholder')"
-            :disabled="disabledEdit"
-            label-key="cluster.credential.harvester.network"
           />
         </div>
       </div>
@@ -620,7 +586,7 @@ export default {
         </h3>
         <div>
           <LabeledSelect
-            v-if="isImportCluster && isCreate"
+            v-if="isCreate"
             v-model="userData"
             class="mb-10"
             :options="userDataOptions"
@@ -643,7 +609,7 @@ export default {
         <h3>{{ t('cluster.credential.harvester.networkData.title') }}</h3>
         <div>
           <LabeledSelect
-            v-if="isImportCluster && isCreate"
+            v-if="isCreate"
             v-model="networkData"
             class="mb-10"
             :options="networkDataOptions"

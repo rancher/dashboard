@@ -117,7 +117,11 @@ export default {
         if (opt.hasManualRefresh) {
           dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
         }
-        commit('setHaveAll', { type });
+        if (opt.namespaced) {
+          commit('setHaveNamespace', { type, namespace: opt.namespaced });
+        } else {
+          commit('setHaveAll', { type });
+        }
       }
     } catch (e) {
       if (opt.hasManualRefresh) {
@@ -140,7 +144,7 @@ export default {
       commit('registerType', type);
     }
 
-    if ( opt.force !== true && getters['haveAll'](type) ) {
+    if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
       const args = {
         type,
         revision:  '',
@@ -297,8 +301,9 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data: out.data,
-          skipHaveAll
+          data:      out.data,
+          skipHaveAll,
+          namespace: opt.namespaced,
         });
       }
     }
@@ -572,6 +577,10 @@ export default {
     return resource;
   },
 
+  cleanForDownload(ctx, resource) {
+    return resource;
+  },
+
   // Wait for a schema that is expected to exist that may not have been loaded yet (for instance when loadCluster is still running).
   async waitForSchema({ getters, dispatch }, { type }) {
     let tries = SCHEMA_CHECK_RETRIES;
@@ -606,5 +615,26 @@ export default {
 
   gcResetStore({ state }) {
     garbageCollect.gcResetStore(state);
-  }
+  },
+
+  // the doc url for the latest rancher version does not have a hardcoded version: check if this is the latest major/minor version and set the rancher doc url accordingly
+  async findLatestVersion({ commit, dispatch }) {
+    try {
+      const res = await dispatch('request', {
+        url:                  `https://api.github.com/repos/rancher/rancher/releases/latest`,
+        method:               'GET',
+        headers:              { accept: 'application/json' },
+        redirectUnauthorized: false,
+        withCredentials:      false,
+        excludeCookies:       true
+      });
+
+      const version = res.tag_name;
+
+      commit('setDocsBase', version );
+    } catch {
+      // eslint-disable-next-line no-console
+      console.log('unable to determine latest rancher version...using default documentation versioning');
+    }
+  },
 };

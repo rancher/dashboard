@@ -7,6 +7,8 @@ import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioni
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import * as path from 'path';
+import * as jsyaml from 'js-yaml';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -18,6 +20,8 @@ const clusterRequestBase = `${ baseUrl }/v1/provisioning.cattle.io.clusters/flee
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
+
+const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('Cluster Manager', () => {
   const clusterList = new ClusterManagerListPagePo();
@@ -54,7 +58,7 @@ describe('Cluster Manager', () => {
         cy.intercept('PUT', `${ clusterRequestBase }/${ rke2CustomName }`).as('saveRequest');
 
         clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(0);
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
         editCreatedClusterPage.waitForPage('mode=edit', 'basic');
         editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
@@ -62,7 +66,7 @@ describe('Cluster Manager', () => {
 
         cy.wait('@saveRequest').then(() => {
           clusterList.goTo();
-          clusterList.list().actionMenu(rke2CustomName).clickMenuItem(0);
+          clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
           editCreatedClusterPage.waitForPage('mode=edit', 'basic');
           editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
@@ -71,17 +75,35 @@ describe('Cluster Manager', () => {
 
       it('can view cluster YAML editor', () => {
         clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(1);
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit YAML').click();
 
         editCreatedClusterPage.waitForPage('mode=edit&as=yaml');
         editCreatedClusterPage.resourceDetail().resourceYaml().checkVisible();
+      });
+
+      it('can download KubeConfig', () => {
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
+
+        const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
+
+        cy.readFile(downloadedFilename).then((buffer) => {
+          // This will throw an exception which will fail the test if not valid yaml
+          const obj = jsyaml.load(buffer);
+
+          // Basic checks on the downloaded YAML
+          expect(obj.clusters.length).to.equal(1);
+          expect(obj.clusters[0].name).to.equal(rke2CustomName);
+          expect(obj.apiVersion).to.equal('v1');
+          expect(obj.kind).to.equal('Config');
+        });
       });
 
       it('can delete cluster', () => {
         cy.intercept('DELETE', `${ clusterRequestBase }/${ rke2CustomName }`).as('deleteRequest');
 
         clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(4);
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
         const promptRemove = new PromptRemove();
 
@@ -118,7 +140,7 @@ describe('Cluster Manager', () => {
 
       it('can navigate to cluster edit page', () => {
         clusterList.goTo();
-        clusterList.list().actionMenu(importGenericName).clickMenuItem(0);
+        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
         editImportedClusterPage.waitForPage('mode=edit');
       });

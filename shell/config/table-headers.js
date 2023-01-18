@@ -23,6 +23,8 @@ export const DOWNLOAD = {
   align:         'right',
 };
 
+// This header is used for nodes in
+// both Cluster Explorer and Cluster Management.
 export const INTERNAL_EXTERNAL_IP = {
   // @TODO this is called internal/external but displays external/internal (╯°□°)╯︵ ┻━┻
   name:      'internal-external-ip',
@@ -228,7 +230,7 @@ export const AGE = {
   search:    false,
   formatter: 'LiveDate',
   width:     100,
-  align:     'right'
+  align:     'left'
 };
 
 export const AGE_NORMAN = {
@@ -255,10 +257,11 @@ export const DESCRIPTION = {
 };
 
 export const DURATION = {
-  name:     'duration',
-  labelKey: 'tableHeaders.duration',
-  value:    'duration.value',
-  sort:     'duration.seconds',
+  name:      'duration',
+  labelKey:  'tableHeaders.duration',
+  value:     'duration.value',
+  sort:      'duration.seconds',
+  formatter: 'LiveDuration',
 };
 
 export const IMAGE = {
@@ -934,10 +937,4 @@ export const FLEET_BUNDLE_TYPE = {
   value:    'bundleType',
   sort:     ['bundleType'],
   width:    100,
-};
-
-export const IP_ADDRESS = {
-  name:     'ipaddress',
-  value:    'ipaddress',
-  labelKey: 'tableHeaders.ipaddress',
 };

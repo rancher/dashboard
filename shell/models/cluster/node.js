@@ -201,7 +201,9 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podConsumed() {
-    return this.pods.length;
+    const runningPods = this.pods.filter(pod => pod.state === 'running');
+
+    return runningPods.length || 0;
   }
 
   get podRequests() {
@@ -310,7 +312,13 @@ export default class ClusterNode extends SteveModel {
   }
 
   drain(resources) {
-    this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
+    this.$dispatch('promptModal', {
+      component:      'DrainNode',
+      componentProps: {
+        kubeNodes:    resources || [this],
+        normanNodeId: this.normanNodeId
+      }
+    });
   }
 
   async stopDrain(resources) {

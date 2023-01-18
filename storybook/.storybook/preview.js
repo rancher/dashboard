@@ -1,37 +1,46 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import { themes } from '@storybook/theming';
-import { get } from '../shell/utils/object';
+import { get } from '../../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
-
-const i18nStrings = require('../shell/assets/translations/en-us.yaml');
+import growl from './store/growl';
+const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
 
 // Register custom i18n plugin
-require('../shell/plugins/i18n');
+require('../../shell/plugins/i18n');
 
-require('../shell/plugins/v-select');
-require('../shell/plugins/tooltip');
+require('../../shell/plugins/v-select');
+require('../../shell/plugins/tooltip');
 
-//const store = require('./store');
 
 Vue.use(Vuex);
 
-const store = new Vuex.Store({
+Vue.component('nuxt-link', {
+  props:   ['to'],
+  template: '<a>link</a>',
+})
+
+// Defines namespaced modules for the Store.
+export const store = new Vuex.Store({
   getters: {
     'i18n/t': state => (key, args) => {
       const msg = get(i18nStrings, key) || key;
 
-      if ( msg?.includes('{')) {
+      if (msg?.includes('{')) {
         const formatter = new IntlMessageFormat(msg, state.selected);
         return formatter.format(args);
       }
 
       return msg;
-    }
+    },
+  },
+  modules: {
+    growl
   }
 });
+
 
 const storePlugin = {
   store,
@@ -43,7 +52,7 @@ const storePlugin = {
 Vue.use(storePlugin);
 
 export const parameters = {
-  previewTabs: { 
+  previewTabs: {
     canvas: { hidden: false },
   },
   actions: { argTypesRegex: "^on[A-Z].*" },
@@ -60,12 +69,12 @@ export const parameters = {
     dark: {
       ...themes.dark,
       brandTitle: 'Rancher Storybook',
-      brandImage: '/dark/rancher-logo.svg'
+      brandImage: 'dark/rancher-logo.svg'
     },
     light: {
       ...themes.normal,
       brandTitle: 'Rancher Storybook',
-      brandImage: '/rancher-logo.svg'
+      brandImage: 'rancher-logo.svg'
     },
     darkClass: 'theme-dark',
     lightClass: 'theme-light',
@@ -81,3 +90,5 @@ export const decorators = [
 window.onload = () => {
   installShortcut();
 }
+
+export default store
