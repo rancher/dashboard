@@ -7,7 +7,7 @@ import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export default {
   name: ResourceListComponentName,
@@ -17,7 +17,8 @@ export default {
     ResourceTable,
     Masthead,
     ResourceLoadingIndicator,
-    IconMessage
+    IconMessage,
+    ExtensionPanel
   },
   mixins: [ResourceFetch],
 
@@ -98,7 +99,8 @@ export default {
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,
-      extensionResourceList:            getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_PANEL, BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST, this.$route),
+      extensionType:                    BuiltinExtensionEnhancementTypes.ADD_PANEL,
+      extensionLocation:                BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST,
       loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
       hasFetch:                         false,
       // manual refresh
@@ -195,18 +197,12 @@ export default {
         <slot name="extraActions" />
       </template>
     </Masthead>
-    <!-- Extensions Resource List -->
-    <div v-if="extensionResourceList.length">
-      <div
-        v-for="item, i in extensionResourceList"
-        :key="`extensionResourceList${i}`"
-      >
-        <component
-          :is="item.component"
-          :resource="resource"
-        />
-      </div>
-    </div>
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource-instance="{}"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
 
     <div v-if="hasListComponent">
       <component

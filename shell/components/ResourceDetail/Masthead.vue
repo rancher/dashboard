@@ -11,7 +11,7 @@ import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
 import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 /**
  * Resource Detail Masthead component.
@@ -23,7 +23,7 @@ export default {
   name: 'MastheadResourceDetail',
 
   components: {
-    BadgeState, Banner, ButtonGroup
+    BadgeState, Banner, ButtonGroup, ExtensionPanel
   },
   props: {
     value: {
@@ -86,8 +86,9 @@ export default {
 
   data() {
     return {
-      DETAIL_VIEW:              _DETAIL,
-      extensionDetailsMasthead: getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_PANEL, BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD, this.$route),
+      DETAIL_VIEW:       _DETAIL,
+      extensionType:     BuiltinExtensionEnhancementTypes.ADD_PANEL,
+      extensionLocation: BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
     };
   },
 
@@ -454,21 +455,12 @@ export default {
           /></span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
-        <!-- Extension Masthead Details -->
-        <div
-          v-if="extensionDetailsMasthead.length"
-        >
-          <div
-            v-for="item, i in extensionDetailsMasthead"
-            :key="`extensionDetailsMasthead${i}`"
-            class="subheader"
-          >
-            <component
-              :is="item.component"
-              :resource="value"
-            />
-          </div>
-        </div>
+        <!-- Extension area -->
+        <ExtensionPanel
+          :resource-instance="value"
+          :type="extensionType"
+          :location="extensionLocation"
+        />
       </div>
       <slot name="right">
         <div class="actions-container align-start">

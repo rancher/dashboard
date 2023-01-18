@@ -4,12 +4,14 @@ import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
 import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export const SEPARATOR = { separator: true };
 
 export default {
-  components: { DetailText, Tag },
+  components: {
+    DetailText, Tag, ExtensionPanel
+  },
 
   props: {
     value: {
@@ -51,7 +53,8 @@ export default {
 
   data() {
     return {
-      extensionDetailTop: getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_PANEL, BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP, this.$route),
+      extensionType:      BuiltinExtensionEnhancementTypes.ADD_PANEL,
+      extensionLocation:  BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP,
       annotationsVisible: false,
       showAllLabels:      false,
       view:               _VIEW
@@ -291,18 +294,12 @@ export default {
       </div>
     </div>
 
-    <!-- Extensions Detail Top -->
-    <div v-if="extensionDetailTop.length">
-      <div
-        v-for="item, i in extensionDetailTop"
-        :key="`extensionDetailTop${i}`"
-      >
-        <component
-          :is="item.component"
-          :resource="value"
-        />
-      </div>
-    </div>
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource-instance="value"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
   </div>
 </template>
 
