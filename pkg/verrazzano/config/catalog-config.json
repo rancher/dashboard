@@ -4,6 +4,10 @@
       "citrix-adc-istio-ingress-gateway",
       "citrix-cpx-istio-sidecar-injector",
       "cost-analyzer",
-      "rancher-istio"
+      "rancher-istio",
+      "rancher-monitoring",
+      "prometheus-federator",
+      "rancher-alerting-drivers",
+      "rancher-backup"
     ]
 }

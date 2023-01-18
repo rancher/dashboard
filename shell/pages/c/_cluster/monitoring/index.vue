@@ -126,7 +126,7 @@ export default {
       // const hash = await allHash({ endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }) });
       const hash = await allHash({
         endpoints:   this.$store.dispatch('cluster/findAll', { type: ENDPOINTS }),
-        verrazzanos: this.$store.dispatch('management/findAll', { type: VERRAZZANO })
+        verrazzanos: this.$store.dispatch('cluster/findAll', { type: VERRAZZANO })
       });
       // Added by Verrazzano End
 
