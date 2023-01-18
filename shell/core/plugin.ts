@@ -126,7 +126,7 @@ export class Plugin implements IPlugin {
   /**
    * Adds an action/button to the UI
    */
-  addAction(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
+  addAction(where: string, when: LocationConfig, action: IAction): void {
     let type: string;
 
     switch (where) {
@@ -143,11 +143,8 @@ export class Plugin implements IPlugin {
         action.bulkable = true;
       }
       break;
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION;
-      break;
     default:
-      console.error(`Unknown addAction type for extension - ${ where }`); // eslint-disable-line no-console
+      type = where;
 
       return;
     }
@@ -159,86 +156,33 @@ export class Plugin implements IPlugin {
   /**
    * Adds a tab to the UI
    */
-  addTab(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
-    let type: string;
-
-    switch (where) {
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_TAB:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_TAB;
-      break;
-    default:
-      console.error(`Unknown addTab type for extension - ${ where }`); // eslint-disable-line no-console
-
-      return;
-    }
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][type] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][type].push({ ...action, locationConfig: when });
+  addTab(where: string, when: LocationConfig, action: IAction): void {
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][where] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][where].push({ ...action, locationConfig: when });
   }
 
   /**
    * Adds a panel/component to the UI
    */
-  addPanel(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
-    let type: string;
-
-    switch (where) {
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD;
-      break;
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP;
-      break;
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST;
-      break;
-    default:
-      console.error(`Unknown addPanel type for extension - ${ where }`); // eslint-disable-line no-console
-
-      return;
-    }
-
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][type] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][type].push({ ...action, locationConfig: when });
+  addPanel(where: string, when: LocationConfig, action: IAction): void {
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][where] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][where].push({ ...action, locationConfig: when });
   }
 
   /**
    * Adds a card to the to the UI
    */
-  addCard( where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
-    let type: string;
-
-    switch (where) {
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD;
-      break;
-    default:
-      console.error(`Unknown addCard type for extension - ${ where }`); // eslint-disable-line no-console
-
-      return;
-    }
-
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][type] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][type].push({ ...action, locationConfig: when });
+  addCard( where: string, when: LocationConfig, action: IAction): void {
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][where] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][where].push({ ...action, locationConfig: when });
   }
 
   /**
    * Adds a new column to a table on the UI
    */
-  addTableColumn(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
-    let type: string;
-
-    switch (where) {
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST;
-      break;
-    default:
-      console.error(`Unknown addTableColumn type for extension - ${ where }`); // eslint-disable-line no-console
-
-      return;
-    }
-
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][type] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][type].push({ ...action, locationConfig: when });
+  addTableColumn(where: string, when: LocationConfig, action: IAction): void {
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][where] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][where].push({ ...action, locationConfig: when });
   }
 
   setHomePage(component: any) {
