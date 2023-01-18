@@ -185,7 +185,7 @@ export default function(plugin: IPlugin) {
 
   // ADD A COL TO A TABLE
   plugin.addTableColumn(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_COL,
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST,
     { resource: 'configmap' },
     {
       name:     'some-prop-col',

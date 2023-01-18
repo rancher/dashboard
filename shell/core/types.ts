@@ -36,22 +36,21 @@ export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfi
 export type OnLogOut = (store: any) => Promise<void>;
 
 export enum BuiltinExtensionEnhancementTypes {
-  ADD_ACTION = 'addAction',
-  ADD_TAB = 'addTab',
-  ADD_PANEL = 'addPanel',
-  ADD_CARD = 'addCard',
-  ADD_TABLE_COL = 'addTableColumn',
+  ADD_ACTION = 'addAction', // eslint-disable-line no-unused-vars
+  ADD_TAB = 'addTab', // eslint-disable-line no-unused-vars
+  ADD_PANEL = 'addPanel', // eslint-disable-line no-unused-vars
+  ADD_CARD = 'addCard', // eslint-disable-line no-unused-vars
+  ADD_TABLE_COL = 'addTableColumn', // eslint-disable-line no-unused-vars
 }
 
 export enum BuiltinExtensionEnhancementLocations {
-  UI_CONFIG_HEADER_ACTION = 'header-action',
-  UI_CONFIG_TAB = 'tab',
-  UI_CONFIG_TABLE_ACTION = 'table-action',
-  UI_CONFIG_DETAILS_MASTHEAD = 'details-masthead',
-  UI_CONFIG_DETAIL_TOP = 'detail-top',
-  UI_CONFIG_RESOURCE_LIST = 'resource-list',
-  UI_CONFIG_CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card',
-  UI_CONFIG_TABLE_COL = 'table-col',
+  UI_CONFIG_HEADER_ACTION = 'header-action', // eslint-disable-line no-unused-vars
+  UI_CONFIG_TAB = 'tab', // eslint-disable-line no-unused-vars
+  UI_CONFIG_TABLE_ACTION = 'table-action', // eslint-disable-line no-unused-vars
+  UI_CONFIG_DETAILS_MASTHEAD = 'details-masthead', // eslint-disable-line no-unused-vars
+  UI_CONFIG_DETAIL_TOP = 'detail-top', // eslint-disable-line no-unused-vars
+  UI_CONFIG_RESOURCE_LIST = 'resource-list', // eslint-disable-line no-unused-vars
+  UI_CONFIG_CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card', // eslint-disable-line no-unused-vars
 }
 
 export type IAction = any;
@@ -113,21 +112,25 @@ export interface IPlugin {
    * Adds a tab to the UI (ResourceTabs component)
    */
    addTab(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
+   addTab(where: string, when: LocationConfig, action: IAction): void;
 
   /**
    * Adds a panel/component to the UI
    */
    addPanel(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
+   addPanel(where: string, when: LocationConfig, action: IAction): void;
 
   /**
    * Adds a card to the UI
    */
    addCard(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
+   addCard(where: string, when: LocationConfig, action: IAction): void;
 
   /**
    * Adds a new column to the SortableTable  component
    */
    addTableColumn(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
+   addTableColumn(where: string, when: LocationConfig, action: IAction): void;
 
   /**
    * Set the component to use for the landing home page

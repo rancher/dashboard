@@ -224,7 +224,7 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
-      const extensionCols = store.$plugin.getUIConfig(BuiltinExtensionEnhancementTypes.ADD_TABLE_COL, BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_COL);
+      const extensionCols = store.$plugin.getUIConfig(BuiltinExtensionEnhancementTypes.ADD_TABLE_COL, BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST);
 
       // adding extension defined cols to the correct header config
       extensionCols.forEach((col) => {
