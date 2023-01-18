@@ -134,6 +134,11 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       label:  this.t('epinio.applications.actions.createManifest.label'),
       icon:   'icon icon-fw icon-download',
     },
+    {
+      action: 'foo',
+      label:  'fooAction',
+      icon:   'icon icon-fw icon-download',
+    },
     { divider: true },
 
     ...super._availableActions);
@@ -146,6 +151,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       update:        this.getUrl(),
       self:          this.getUrl(),
       remove:        this.getUrl(),
+      bulkRemove:    this.getUrl(this.meta?.namespace, null).replace('applications/', 'applications?'),
       create:        this.getUrl(this.meta?.namespace, null), // ensure name is null
       store:         `${ this.getUrl() }/store`,
       stage:         `${ this.getUrl() }/stage`,
@@ -677,6 +683,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       .catch((e) => {
         console.error('Failed to download manifest: ', e);// eslint-disable-line no-console
       });
+  }
+
+  foo() {
+    console.log('foo');
   }
 
   async updateConfigurations(initialValues = [], currentValues = this.configuration.configurations) {

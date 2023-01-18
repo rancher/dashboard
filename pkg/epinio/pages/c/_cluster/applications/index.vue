@@ -27,6 +27,8 @@ export default {
     const resource = EPINIO_TYPES.APP;
     const schema = this.$store.getters[`epinio/schemaFor`](resource);
 
+    console.log('🚀 ~ file: index.vue:30 ~ data ~ schema', schema);
+
     return {
       schema,
       resource,
