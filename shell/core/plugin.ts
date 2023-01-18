@@ -5,14 +5,8 @@ import {
   IAction,
   IPlugin,
   LocationConfig,
-  UI_CONFIG_HEADER_ACTION,
-  UI_CONFIG_TAB,
-  UI_CONFIG_TABLE_ACTION,
-  UI_CONFIG_DETAILS_MASTHEAD,
-  UI_CONFIG_DETAIL_TOP,
-  UI_CONFIG_RESOURCE_LIST,
-  UI_CONFIG_CLUSTER_DASHBOARD_CARD,
-  UI_CONFIG_TABLE_COL,
+  BuiltinExtensionEnhancementTypes,
+  BuiltinExtensionEnhancementLocations,
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
@@ -33,15 +27,12 @@ export class Plugin implements IPlugin {
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
 
-  public uiConfig: { [key: string]: any[] } = {
-    [UI_CONFIG_HEADER_ACTION]:          [],
-    [UI_CONFIG_TAB]:                    [],
-    [UI_CONFIG_TABLE_ACTION]:           [],
-    [UI_CONFIG_DETAILS_MASTHEAD]:       [],
-    [UI_CONFIG_DETAIL_TOP]:             [],
-    [UI_CONFIG_RESOURCE_LIST]:          [],
-    [UI_CONFIG_CLUSTER_DASHBOARD_CARD]: [],
-    [UI_CONFIG_TABLE_COL]:              [],
+  public uiConfig: { [key: string]: any } = {
+    [BuiltinExtensionEnhancementTypes.ADD_ACTION]:    {},
+    [BuiltinExtensionEnhancementTypes.ADD_CARD]:      {},
+    [BuiltinExtensionEnhancementTypes.ADD_PANEL]:     {},
+    [BuiltinExtensionEnhancementTypes.ADD_TAB]:       {},
+    [BuiltinExtensionEnhancementTypes.ADD_TABLE_COL]: {},
   };
 
   // Plugin metadata (plugin package.json)
@@ -135,12 +126,12 @@ export class Plugin implements IPlugin {
   /**
    * Adds an action/button to the UI
    */
-  addAction(locationConfig: LocationConfig, action: IAction): void {
+  addAction(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
     let type: string;
 
-    switch (locationConfig.where) {
-    case 'table':
-      type = UI_CONFIG_TABLE_ACTION;
+    switch (where) {
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION;
 
       // sets the enabled flag to true if ommited on the config
       if (!Object.keys(action).includes('enabled')) {
@@ -152,102 +143,102 @@ export class Plugin implements IPlugin {
         action.bulkable = true;
       }
       break;
-    case 'header':
-      type = UI_CONFIG_HEADER_ACTION;
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION;
       break;
     default:
-      console.error(`Unknown addAction type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+      console.error(`Unknown addAction type for extension - ${ where }`); // eslint-disable-line no-console
 
       return;
     }
 
-    this.uiConfig[type] = this.uiConfig[type] || [];
-    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][type] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][type].push({ ...action, locationConfig: when });
   }
 
   /**
    * Adds a tab to the UI
    */
-  addTab(locationConfig: LocationConfig, action: IAction): void {
+  addTab(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
     let type: string;
 
-    switch (locationConfig.where) {
-    case 'resourceTabs':
-      type = UI_CONFIG_TAB;
+    switch (where) {
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_TAB:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_TAB;
       break;
     default:
-      console.error(`Unknown addTab type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+      console.error(`Unknown addTab type for extension - ${ where }`); // eslint-disable-line no-console
 
       return;
     }
-    this.uiConfig[type] = this.uiConfig[type] || [];
-    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][type] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][type].push({ ...action, locationConfig: when });
   }
 
   /**
    * Adds a panel/component to the UI
    */
-  addPanel(locationConfig: LocationConfig, action: IAction): void {
+  addPanel(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
     let type: string;
 
-    switch (locationConfig.where) {
-    case 'detailsMasthead':
-      type = UI_CONFIG_DETAILS_MASTHEAD;
+    switch (where) {
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD;
       break;
-    case 'detailTop':
-      type = UI_CONFIG_DETAIL_TOP;
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP;
       break;
-    case 'listView':
-      type = UI_CONFIG_RESOURCE_LIST;
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST;
       break;
     default:
-      console.error(`Unknown addPanel type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+      console.error(`Unknown addPanel type for extension - ${ where }`); // eslint-disable-line no-console
 
       return;
     }
 
-    this.uiConfig[type] = this.uiConfig[type] || [];
-    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][type] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][type].push({ ...action, locationConfig: when });
   }
 
   /**
    * Adds a card to the to the UI
    */
-  addCard( locationConfig: LocationConfig, action: IAction): void {
+  addCard( where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
     let type: string;
 
-    switch (locationConfig.where) {
-    case 'clusterDashboard':
-      type = UI_CONFIG_CLUSTER_DASHBOARD_CARD;
+    switch (where) {
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD;
       break;
     default:
-      console.error(`Unknown addCard type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+      console.error(`Unknown addCard type for extension - ${ where }`); // eslint-disable-line no-console
 
       return;
     }
 
-    this.uiConfig[type] = this.uiConfig[type] || [];
-    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][type] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][type].push({ ...action, locationConfig: when });
   }
 
   /**
    * Adds a new column to a table on the UI
    */
-  addTableColumn(locationConfig: LocationConfig, action: IAction): void {
+  addTableColumn(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void {
     let type: string;
 
-    switch (locationConfig.where) {
-    case 'listView':
-      type = UI_CONFIG_TABLE_COL;
+    switch (where) {
+    case BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST:
+      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST;
       break;
     default:
-      console.error(`Unknown addTableColumn type for extension - ${ locationConfig.where }`); // eslint-disable-line no-console
+      console.error(`Unknown addTableColumn type for extension - ${ where }`); // eslint-disable-line no-console
 
       return;
     }
 
-    this.uiConfig[type] = this.uiConfig[type] || [];
-    this.uiConfig[type].push({ ...action, locationConfig: locationConfig.when });
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][type] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][type].push({ ...action, locationConfig: when });
   }
 
   setHomePage(component: any) {

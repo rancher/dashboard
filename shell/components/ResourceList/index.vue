@@ -6,7 +6,7 @@ import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
-import { UI_CONFIG_RESOURCE_LIST } from '@shell/core/types';
+import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export default {
@@ -98,7 +98,7 @@ export default {
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,
-      extensionResourceList:            getApplicableExtensionEnhancements(this, UI_CONFIG_RESOURCE_LIST, this.$route),
+      extensionResourceList:            getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_PANEL, BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST, this.$route),
       loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
       hasFetch:                         false,
       // manual refresh

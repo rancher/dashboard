@@ -3,7 +3,7 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
-import { UI_CONFIG_DETAIL_TOP } from '@shell/core/types';
+import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export const SEPARATOR = { separator: true };
@@ -51,7 +51,7 @@ export default {
 
   data() {
     return {
-      extensionDetailTop: getApplicableExtensionEnhancements(this, UI_CONFIG_DETAIL_TOP, this.$route),
+      extensionDetailTop: getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_PANEL, BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP, this.$route),
       annotationsVisible: false,
       showAllLabels:      false,
       view:               _VIEW

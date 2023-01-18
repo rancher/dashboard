@@ -37,7 +37,7 @@ import Vue from 'vue';
 
 import { normalizeType } from './normalize';
 
-import { UI_CONFIG_TABLE_ACTION } from '@shell/core/types';
+import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 const STRING_LIKE_TYPES = [
@@ -856,7 +856,7 @@ export default class Resource {
   get _availableActions() {
     // get menu actions available by plugins configuration
     const currentRoute = this.currentRouter().app._route;
-    const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, UI_CONFIG_TABLE_ACTION, currentRoute, this);
+    const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, BuiltinExtensionEnhancementTypes.ADD_ACTION, BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION, currentRoute, this);
 
     let all = [
       { divider: true },

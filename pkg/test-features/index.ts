@@ -1,5 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin } from '@shell/core/types';
+import { IPlugin, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 
 // Init the package
@@ -15,10 +15,8 @@ export default function(plugin: IPlugin) {
 
   // HEADER ACTION - GLOBAL
   plugin.addAction(
-    {
-      where: 'header',
-      when:  {}
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION,
+    {},
     {
       tooltipKey: 'generic.customize',
       tooltip:    'Test Action1',
@@ -38,10 +36,8 @@ export default function(plugin: IPlugin) {
 
   // HEADER ACTION - BOUND TO A PRODUCT
   plugin.addAction(
-    {
-      where: 'header',
-      when:  { product: 'explorer' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION,
+    { product: 'explorer' },
     {
       tooltipKey: 'generic.comingSoon',
       tooltip:    'Test Action2',
@@ -61,10 +57,8 @@ export default function(plugin: IPlugin) {
 
   // ADDS TAB TO "ResourceTabs" COMPONENT
   plugin.addTab(
-    {
-      where: 'resourceTabs',
-      when:  { resource: 'pod' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_TAB,
+    { resource: 'pod' },
     {
       name:       'some-name',
       labelKey:   'generic.comingSoon',
@@ -78,19 +72,14 @@ export default function(plugin: IPlugin) {
 
   // TABLE ACTIONS - divider
   plugin.addAction(
-    {
-      where: 'table',
-      when:  { resource: 'catalog.cattle.io.clusterrepo' }
-    }
-    ,
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION,
+    { resource: 'catalog.cattle.io.clusterrepo' },
     { divider: true }); // renders a divider instead of an actual action
 
   // TABLE ACTIONS - ROW ACTION
   plugin.addAction(
-    {
-      where: 'table',
-      when:  { resource: 'catalog.cattle.io.clusterrepo' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION,
+    { resource: 'catalog.cattle.io.clusterrepo' },
     {
       action:   'some-extension-action',
       label:    'some-extension-action',
@@ -104,10 +93,8 @@ export default function(plugin: IPlugin) {
 
   // TABLE ACTIONS - ROW + BULKABLE
   plugin.addAction(
-    {
-      where: 'table',
-      when:  { resource: 'catalog.cattle.io.clusterrepo' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION,
+    { resource: 'catalog.cattle.io.clusterrepo' },
     {
       action:   'some-bulkable-action',
       label:    'some-bulkable-action',
@@ -124,50 +111,38 @@ export default function(plugin: IPlugin) {
 
   // DETAILS VIEW MASTHEAD DATA
   plugin.addPanel(
-    {
-      where: 'detailsMasthead',
-      when:  { resource: 'catalog.cattle.io.clusterrepo' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
+    { resource: 'catalog.cattle.io.clusterrepo' },
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA - CONFIG VIEW
   plugin.addPanel(
-    {
-      where: 'detailsMasthead',
-      when:  { resource: 'catalog.cattle.io.clusterrepo', mode: 'config' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
+    { resource: 'catalog.cattle.io.clusterrepo', mode: 'config' },
     { component: () => import('./MastheadDetailsComponentConfig.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA - EDIT VIEW
   plugin.addPanel(
-    {
-      where: 'detailsMasthead',
-      when:  { resource: 'catalog.cattle.io.clusterrepo', mode: 'edit' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
+    { resource: 'catalog.cattle.io.clusterrepo', mode: 'edit' },
     { component: () => import('./MastheadDetailsComponentEdit.vue') }); // component to be rendered
 
   // DETAILS VIEW "DetailTop" DATA
   plugin.addPanel(
-    {
-      where: 'detailTop',
-      when:  { resource: 'catalog.cattle.io.clusterrepo' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP,
+    { resource: 'catalog.cattle.io.clusterrepo' },
     { component: () => import('./DetailTopComponent.vue') }); // component to be rendered
 
   // DATA ABOVE LIST VIEW
   plugin.addPanel(
-    {
-      where: 'listView',
-      when:  { resource: 'catalog.cattle.io.app' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST,
+    { resource: 'catalog.cattle.io.app' },
     { component: () => import('./BannerComponent.vue') }); // component to be rendered
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
-    {
-      where: 'clusterDashboard',
-      when:  { cluster: 'local' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+    { cluster: 'local' },
     {
       label:     'some-label',
       labelKey:  'generic.comingSoon',
@@ -177,10 +152,8 @@ export default function(plugin: IPlugin) {
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
-    {
-      where: 'clusterDashboard',
-      when:  { cluster: 'local' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+    { cluster: 'local' },
     {
       label:     'some-label1',
       labelKey:  'generic.comingSoon',
@@ -190,10 +163,8 @@ export default function(plugin: IPlugin) {
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
-    {
-      where: 'clusterDashboard',
-      when:  { cluster: 'local' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+    { cluster: 'local' },
     {
       label:     'some-label2',
       labelKey:  'generic.comingSoon',
@@ -203,10 +174,8 @@ export default function(plugin: IPlugin) {
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
-    {
-      where: 'clusterDashboard',
-      when:  { cluster: 'local' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+    { cluster: 'local' },
     {
       label:     'some-label3',
       labelKey:  'generic.comingSoon',
@@ -216,10 +185,8 @@ export default function(plugin: IPlugin) {
 
   // ADD A COL TO A TABLE
   plugin.addTableColumn(
-    {
-      where: 'listView',
-      when:  { resource: 'configmap' }
-    },
+    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_COL,
+    { resource: 'configmap' },
     {
       name:     'some-prop-col',
       labelKey: 'generic.comingSoon',

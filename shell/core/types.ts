@@ -35,27 +35,34 @@ export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => 
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
 
-export const UI_CONFIG_HEADER_ACTION = 'header-action';
-export const UI_CONFIG_TAB = 'tab';
-export const UI_CONFIG_TABLE_ACTION = 'table-action';
-export const UI_CONFIG_DETAILS_MASTHEAD = 'details-masthead';
-export const UI_CONFIG_DETAIL_TOP = 'detail-top';
-export const UI_CONFIG_RESOURCE_LIST = 'resource-list';
-export const UI_CONFIG_CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card';
-export const UI_CONFIG_TABLE_COL = 'table-col';
+export enum BuiltinExtensionEnhancementTypes {
+  ADD_ACTION = 'addAction',
+  ADD_TAB = 'addTab',
+  ADD_PANEL = 'addPanel',
+  ADD_CARD = 'addCard',
+  ADD_TABLE_COL = 'addTableColumn',
+}
+
+export enum BuiltinExtensionEnhancementLocations {
+  UI_CONFIG_HEADER_ACTION = 'header-action',
+  UI_CONFIG_TAB = 'tab',
+  UI_CONFIG_TABLE_ACTION = 'table-action',
+  UI_CONFIG_DETAILS_MASTHEAD = 'details-masthead',
+  UI_CONFIG_DETAIL_TOP = 'detail-top',
+  UI_CONFIG_RESOURCE_LIST = 'resource-list',
+  UI_CONFIG_CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card',
+  UI_CONFIG_TABLE_COL = 'table-col',
+}
 
 export type IAction = any;
 
 export type LocationConfig = {
-  where?: string,
-  when: {
-    product?: string,
-    resource?: string,
-    namespace?: string,
-    cluster?: string,
-    id?: string,
-    mode?: string
-  }
+  product?: string,
+  resource?: string,
+  namespace?: string,
+  cluster?: string,
+  id?: string,
+  mode?: string
 };
 
 /**
@@ -99,27 +106,28 @@ export interface IPlugin {
   /**
    * Adds an action/button to the UI
    */
-   addAction(locationConfig: LocationConfig, action: IAction): void;
+   addAction(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
+   addAction(where: string, when: LocationConfig, action: IAction): void;
 
   /**
    * Adds a tab to the UI (ResourceTabs component)
    */
-   addTab( locationConfig: LocationConfig, action: IAction): void;
+   addTab(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
 
   /**
    * Adds a panel/component to the UI
    */
-   addPanel( locationConfig: LocationConfig, action: IAction): void;
+   addPanel(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
 
   /**
    * Adds a card to the UI
    */
-   addCard( locationConfig: LocationConfig, action: IAction): void;
+   addCard(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
 
   /**
    * Adds a new column to the SortableTable  component
    */
-   addTableColumn(locationConfig: LocationConfig, action: IAction): void;
+   addTableColumn(where: BuiltinExtensionEnhancementLocations, when: LocationConfig, action: IAction): void;
 
   /**
    * Set the component to use for the landing home page

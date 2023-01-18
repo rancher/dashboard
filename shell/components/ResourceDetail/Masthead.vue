@@ -10,7 +10,7 @@ import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
-import { UI_CONFIG_DETAILS_MASTHEAD } from '@shell/core/types';
+import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 /**
@@ -87,7 +87,7 @@ export default {
   data() {
     return {
       DETAIL_VIEW:              _DETAIL,
-      extensionDetailsMasthead: getApplicableExtensionEnhancements(this, UI_CONFIG_DETAILS_MASTHEAD, this.$route),
+      extensionDetailsMasthead: getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_PANEL, BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD, this.$route),
     };
   },
 

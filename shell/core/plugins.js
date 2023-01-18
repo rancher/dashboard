@@ -3,16 +3,7 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
-import {
-  UI_CONFIG_HEADER_ACTION,
-  UI_CONFIG_TAB,
-  UI_CONFIG_TABLE_ACTION,
-  UI_CONFIG_DETAILS_MASTHEAD,
-  UI_CONFIG_DETAIL_TOP,
-  UI_CONFIG_RESOURCE_LIST,
-  UI_CONFIG_CLUSTER_DASHBOARD_CARD,
-  UI_CONFIG_TABLE_COL,
-} from './types';
+import { BuiltinExtensionEnhancementTypes } from './types';
 
 const MODEL_TYPE = 'models';
 
@@ -32,14 +23,11 @@ export default function({
   const pluginRoutes = new PluginRoutes(app.router);
 
   const uiConfig = {
-    [UI_CONFIG_HEADER_ACTION]:          [],
-    [UI_CONFIG_TAB]:                    [],
-    [UI_CONFIG_TABLE_ACTION]:           [],
-    [UI_CONFIG_DETAILS_MASTHEAD]:       [],
-    [UI_CONFIG_DETAIL_TOP]:             [],
-    [UI_CONFIG_RESOURCE_LIST]:          [],
-    [UI_CONFIG_CLUSTER_DASHBOARD_CARD]: [],
-    [UI_CONFIG_TABLE_COL]:              [],
+    [BuiltinExtensionEnhancementTypes.ADD_ACTION]:    {},
+    [BuiltinExtensionEnhancementTypes.ADD_CARD]:      {},
+    [BuiltinExtensionEnhancementTypes.ADD_PANEL]:     {},
+    [BuiltinExtensionEnhancementTypes.ADD_TAB]:       {},
+    [BuiltinExtensionEnhancementTypes.ADD_TABLE_COL]: {},
   };
 
   inject('plugin', {
@@ -273,9 +261,14 @@ export default function({
       });
 
       // UI Configuration - copy UI config from a plugin into the global uiConfig object
-      Object.keys(plugin.uiConfig).forEach((type) => {
-        plugin.uiConfig[type].forEach((action) => {
-          uiConfig[type].push(action);
+      Object.keys(plugin.uiConfig).forEach((actionType) => {
+        Object.keys(plugin.uiConfig[actionType]).forEach((actionLocation) => {
+          plugin.uiConfig[actionType][actionLocation].forEach((action) => {
+            if (!uiConfig[actionType][actionLocation]) {
+              uiConfig[actionType][actionLocation] = [];
+            }
+            uiConfig[actionType][actionLocation].push(action);
+          });
         });
       });
 
@@ -365,8 +358,8 @@ export default function({
     /**
      * Return the UI configuration for the given type and location
      */
-    getUIConfig(typeName) {
-      return uiConfig[typeName] || {};
+    getUIConfig(type, uiArea) {
+      return uiConfig[type][uiArea] || [];
     },
 
     /**

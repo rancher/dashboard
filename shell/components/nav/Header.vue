@@ -15,7 +15,7 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
-import { UI_CONFIG_HEADER_ACTION } from '@shell/core/types';
+import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 const PAGE_HEADER_ACTION = 'page-action';
@@ -52,7 +52,7 @@ export default {
       shellShortcut,
       LOGGED_OUT,
       navHeaderRight:         null,
-      extensionHeaderActions: getApplicableExtensionEnhancements(this, UI_CONFIG_HEADER_ACTION, this.$route),
+      extensionHeaderActions: getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_ACTION, BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION, this.$route),
       ctx:                    this
     };
   },

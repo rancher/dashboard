@@ -148,7 +148,7 @@ import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
-import { UI_CONFIG_TABLE_COL } from '@shell/core/types';
+import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -224,7 +224,7 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
-      const extensionCols = store.$plugin.getUIConfig(UI_CONFIG_TABLE_COL);
+      const extensionCols = store.$plugin.getUIConfig(BuiltinExtensionEnhancementTypes.ADD_TABLE_COL, BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_COL);
 
       // adding extension defined cols to the correct header config
       extensionCols.forEach((col) => {

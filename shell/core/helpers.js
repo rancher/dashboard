@@ -1,4 +1,4 @@
-import { UI_CONFIG_CLUSTER_DASHBOARD_CARD, UI_CONFIG_TABLE_ACTION } from '@shell/core/types';
+import { BuiltinExtensionEnhancementLocations } from '@shell/core/types';
 
 function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
   // console.log('name && params', name, params);
@@ -64,14 +64,15 @@ function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
   return res;
 }
 
-export function getApplicableExtensionEnhancements(pluginCtx, uiArea, currRoute, translationCtx = pluginCtx) {
+export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx) {
   const extensionEnhancements = [];
-  const actions = pluginCtx.$plugin.getUIConfig(uiArea);
+
+  const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
 
   actions.forEach((action, i) => {
     if (checkExtensionRouteBinding(currRoute, action.locationConfig)) {
       // intercept to apply translation when dealing with adding a card to cluster dashboard view
-      if ((uiArea === UI_CONFIG_CLUSTER_DASHBOARD_CARD || uiArea === UI_CONFIG_TABLE_ACTION) && action.labelKey) {
+      if ((uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD || uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION) && action.labelKey) {
         actions[i].label = translationCtx.t(action.labelKey);
       }
 
