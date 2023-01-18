@@ -94,13 +94,11 @@ export default {
 
     this.errors = [];
 
-    console.error(this.showCustomRegistry);
-
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
     if (this.showCustomRegistry) {
       this.clusterRegistry = await this.getClusterRegistry();
       this.globalRegistry = await this.getGlobalRegistry();
-      // this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
+      this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
     }
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
