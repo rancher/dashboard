@@ -17,6 +17,7 @@ import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
 import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import IconOrSvg from '@shell/components/IconOrSvg';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -31,6 +32,7 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
+    IconOrSvg
   },
 
   props: {
@@ -541,9 +543,10 @@ export default {
           @shortkey="handleExtensionAction(action, $event)"
           @click="handleExtensionAction(action, $event)"
         >
-          <i
+          <IconOrSvg
             class="icon icon-lg"
-            :class="action.icon"
+            :icon="action.icon"
+            :src="action.svg"
           />
         </button>
       </div>

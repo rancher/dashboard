@@ -38,7 +38,7 @@ export default function(plugin: IPlugin) {
       tooltipKey: 'plugin-examples.header-action-two',
       tooltip:    'Test Action2',
       shortcut:   { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
-      icon:       'icon-spinner',
+      svg:        require('@pkg/test-features/icons/rancher-desktop.svg'),
       enabled(ctx: any) {
         return true;
       },
