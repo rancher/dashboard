@@ -9,7 +9,7 @@ import {
   PSADefaultLevel,
   PSADefaultVersion, PSADimensions, PSALevels, PSAModes
 } from '@shell/config/pod-security-admission';
-import { pickBy } from '@shell/utils/object';
+import { pickBy, toDictionary } from '@shell/utils/object';
 
 interface PSAControl { active: boolean, level: string, version: string }
 const getPsaControl = (): PSAControl => ({
@@ -75,9 +75,9 @@ export default Vue.extend({
 
   data() {
     return {
-      // Generate form controls
-      psaControls:           Object.assign({}, ...PSAModes.map(mode => ({ [mode]: getPsaControl() }))),
-      psaExemptionsControls: Object.assign({}, ...PSADimensions.map(dimension => ({ [dimension]: getExemptionControl() }))),
+      // Generate PSA form controls
+      psaControls:           toDictionary(PSAModes, getPsaControl) as Record<PSAMode, PSAControl>,
+      psaExemptionsControls: toDictionary(PSADimensions, getExemptionControl) as Record<PSADimension, PSAExemptionControl>,
       options:               PSALevels,
     };
   },
