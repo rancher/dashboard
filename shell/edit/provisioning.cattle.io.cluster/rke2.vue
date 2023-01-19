@@ -75,8 +75,6 @@ const ADVANCED = 'advanced';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
-const noneOption = { label: '(None)', value: '' };
-
 export default {
   components: {
     ACE,
@@ -460,7 +458,10 @@ export default {
         return { label: x, value: x };
       });
 
-      out.unshift(noneOption);
+      out.unshift({
+        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
+        value: ''
+      });
 
       return out;
     },
@@ -470,7 +471,10 @@ export default {
         return null;
       }
 
-      const out = [noneOption];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
+        value: ''
+      }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
@@ -497,7 +501,10 @@ export default {
       if ( !this.needsPSA ) {
         return [];
       }
-      const out = [noneOption];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option'),
+        value: ''
+      }];
 
       if ( this.allPSAs ) {
         for ( const psa of this.allPSAs ) {

@@ -1732,9 +1732,12 @@ cluster:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
+      option: (None)
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
-      option: RKE2 Default
+      option: (None)
+    cisProfile:
+      option: (None)
     enableNetworkPolicy:
       label: Project Network Isolation
       warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
