@@ -2022,7 +2022,7 @@ export default {
           </h3>
 
           <div
-            v-if="psaOptions && needsPSA"
+            v-if="needsPSA"
             class="row mb-10"
           >
             <div class="col span-6">
