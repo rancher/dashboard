@@ -16,6 +16,7 @@ import { get } from '@shell/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { SYSTEM_LABELS } from '~/shell/config/labels-annotations';
 export default {
   name:       'ListNode',
   components: {
@@ -138,7 +139,19 @@ export default {
       return (row.spec.taints && row.spec.taints.length) || !!this.displayLabels(row).length;
     },
     displayLabels(row) {
-      return row.labels ? Object.keys(row.labels) : [];
+      const out = [];
+
+      if (row.labels) {
+        for (const k in row.labels) {
+          const [prefix] = k.split('/');
+
+          if (!SYSTEM_LABELS.includes(prefix)) {
+            out.push(`${ k }=${ row.labels[k] }`);
+          }
+        }
+      }
+
+      return out;
     },
 
     toggleLabels() {
@@ -196,7 +209,7 @@ export default {
                 class="mt-5"
               > {{ t('node.list.nodeLabels') }}:
                 <span
-                  v-if="isLabelsVisible"
+                  v-if="isLabelsVisible || displayLabels(row).length < 6"
                   class="mt-5 labels"
                 >
                   <Tag
@@ -208,6 +221,7 @@ export default {
                   </Tag>
                 </span>
                 <a
+                  v-if="displayLabels(row).length > 5"
                   href="#"
                   @click.prevent="toggleLabels"
                 >

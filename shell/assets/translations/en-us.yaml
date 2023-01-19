@@ -3382,7 +3382,7 @@ node:
     nodeLabels: Labels 
     hideLabels: |-
       {labelCount, plural,
-      =1 {Show 1}
+      =1 {Hide 1}
       other {Hide {labelCount}}}
     showLabels: |-
       {labelCount, plural,
