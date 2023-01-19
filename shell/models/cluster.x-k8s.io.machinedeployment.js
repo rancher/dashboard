@@ -6,12 +6,9 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
-<<<<<<< HEAD
-=======
 import { isAlternate } from '@shell/utils/platform';
 import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
 import { KIND } from '../config/elemental-types';
->>>>>>> 8cda6b03d (fix issue where elemental cluster details could not be displayed + minor changes and fixes)
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
@@ -38,10 +35,6 @@ export default class CapiMachineDeployment extends SteveModel {
 
   get groupByPoolShortLabel() {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
-  }
-
-  get infrastructureRefKind() {
-    return this.spec?.template?.spec?.infrastructureRef?.kind;
   }
 
   get templateType() {
@@ -104,7 +97,7 @@ export default class CapiMachineDeployment extends SteveModel {
 
   // use this pool's definition in the cluster's rkeConfig to scale, not this.spec.replicas
   get inClusterSpec() {
-    const machineConfigName = this.template?.metadata?.annotations['rke.cattle.io/cloned-from-name'];
+    const machineConfigName = this.template.metadata.annotations['rke.cattle.io/cloned-from-name'];
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
     return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
@@ -157,7 +150,7 @@ export default class CapiMachineDeployment extends SteveModel {
 
   // prevent scaling pool to 0 if it would scale down the only etcd or control plane node
   canScaleDownPool() {
-    if (!this.canUpdate || this.inClusterSpec?.quantity === 0 || this.infrastructureRefKind === KIND.MACHINE_INV_SELECTOR_TEMPLATES) {
+    if (!this.canUpdate || this.inClusterSpec?.quantity === 0) {
       return false;
     }
 
@@ -169,12 +162,7 @@ export default class CapiMachineDeployment extends SteveModel {
     return notOnlyOfRole(this, this.cluster.machines);
   }
 
-  // prevent scaling up pool for MachineInventorySelectorTemplate (elemental cluster config resource)
   canScaleUpPool() {
-    if (this.infrastructureRefKind === KIND.MACHINE_INV_SELECTOR_TEMPLATES) {
-      return false;
-    }
-
     return true;
   }
 
