@@ -132,11 +132,13 @@ describe('fx: isEmpty', () => {
 describe('fX: toDictionary', () => {
   it('should return a dictionary from an array', () => {
     const array = ['a', 'b', 'c'];
-    const callback = (value: string) => value.toUpperCase();
-    const expectation = ['A', 'B', 'C'];
+    const asd = (value: string) => value.toUpperCase();
+    const expectation = {
+      a: 'A', b: 'B', c: 'C'
+    };
 
-    const result = toDictionary(array, callback);
+    const result = toDictionary(array, asd);
 
-    expect(result).toBe(expectation);
+    expect(result).toStrictEqual(expectation);
   });
 });

@@ -375,5 +375,5 @@ export function pickBy(obj = {}, predicate = (value, key) => false) {
  * @returns
  */
 export const toDictionary = (array, callback) => Object.assign(
-  {}, ...array.map(item => ({ [item]: callback() }))
+  {}, ...array.map(item => ({ [item]: callback(item) }))
 );
