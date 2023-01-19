@@ -6,9 +6,6 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
-import { isAlternate } from '@shell/utils/platform';
-import { SCALE_POOL_PROMPT } from '@shell/store/prefs';
-import { KIND } from '../config/elemental-types';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
