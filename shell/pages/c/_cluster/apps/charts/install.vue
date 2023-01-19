@@ -96,6 +96,7 @@ export default {
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
     if (this.showCustomRegistry) {
+      // Note: Cluster scoped registry is only supported for node driver clusters
       this.clusterRegistry = await this.getClusterRegistry();
       this.globalRegistry = await this.getGlobalRegistry();
       this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
