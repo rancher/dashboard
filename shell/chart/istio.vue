@@ -74,7 +74,10 @@ export default {
       overlayFile = defaultOverlayFile;
     }
 
-    return { overlayFile };
+    return {
+      overlayFile,
+      showKialiBanner: this.value.kiali?.enabled
+    };
   },
 
   computed: {
@@ -122,6 +125,15 @@ export default {
 
     onFileSelected(value) {
       this.$refs['yaml-editor'].updateValue(value);
+    },
+
+    changeKiali(value) {
+      if (value && this.value.pilot) {
+        this.value.pilot.enabled = true;
+        this.showKialiBanner = true;
+      } else if (!value) {
+        this.showKialiBanner = false;
+      }
     }
   }
 };
@@ -140,7 +152,7 @@ export default {
     <h3>
       {{ t('istio.titles.components') }}
     </h3>
-    <div class="row">
+    <div class="row mb-10">
       <div
         v-if="value.cni"
         class="col span-4"
@@ -170,7 +182,7 @@ export default {
         />
       </div>
     </div>
-    <div class="row">
+      <div class="row mb-10">
       <div
         v-if="value.pilot"
         class="col span-4"
@@ -178,6 +190,7 @@ export default {
         <Checkbox
           v-model="value.pilot.enabled"
           :label="t('istio.pilot')"
+            :disabled="value.kiali && value.kiali.enabled"
         />
       </div>
       <div
@@ -207,6 +220,7 @@ export default {
         <Checkbox
           v-model="value.kiali.enabled"
           :label="t('istio.kiali')"
+            @input="changeKiali"
         />
       </div>
       <div
@@ -219,6 +233,18 @@ export default {
         />
       </div>
       <div class="col span-4" />
+      </div>
+      <div
+        v-if="showKialiBanner"
+        class="row"
+      >
+        <div class="col span-12">
+          <Banner color="info">
+            <span
+              v-html="t('istio.pilotRequired', {}, true)"
+            />
+          </Banner>
+        </div>
     </div>
 
     <h3>{{ t('istio.customOverlayFile.label') }}</h3>
