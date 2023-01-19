@@ -792,7 +792,7 @@ export default {
 
       if (hasPermissionToSeeProvCluster) {
         const mgmCluster = this.$store.getters['currentCluster'];
-        const provCluster = mgmCluster ? await this.$store.dispatch('management/find', {
+        const provCluster = mgmCluster?.provClusterId ? await this.$store.dispatch('management/find', {
           type: CAPI.RANCHER_CLUSTER,
           id:   mgmCluster.provClusterId
         }) : {};
