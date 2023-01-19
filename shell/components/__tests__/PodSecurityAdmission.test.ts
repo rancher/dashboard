@@ -10,7 +10,7 @@ describe('component: PodSecurityAdmission', () => {
     ])('should display default value %p for input %p', (value, inputId) => {
       const wrapper = mount(PodSecurityAdmission, { propsData: { mode: 'create' } });
 
-      const input = wrapper.find(`[data-testid="pod-security-admission--control-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+      const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
 
       expect(input.value).toStrictEqual(value);
     });
@@ -24,7 +24,7 @@ describe('component: PodSecurityAdmission', () => {
           [`${ prefix }enforce`]:         'baseline',
           [`${ prefix }enforce-version`]: '123'
         };
-        const controls = {
+        const psaControls = {
           audit: {
             active:  false,
             level:   'privileged',
@@ -50,7 +50,7 @@ describe('component: PodSecurityAdmission', () => {
           }
         });
 
-        expect(wrapper.vm.controls).toStrictEqual(controls);
+        expect(wrapper.vm.psaControls).toStrictEqual(psaControls);
       });
 
       it.each([
@@ -71,7 +71,7 @@ describe('component: PodSecurityAdmission', () => {
           }
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--control-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
 
         expect(input.value).toStrictEqual(value);
       });
@@ -94,7 +94,7 @@ describe('component: PodSecurityAdmission', () => {
           }
         });
 
-        const input = wrapper.find(`[data-testid="pod-security-admission--control-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
 
         expect(input.value).toStrictEqual(value);
       });
@@ -114,7 +114,7 @@ describe('component: PodSecurityAdmission', () => {
             },
             // Unable to toggle the checkbox, so we enforce the data
             data: () => ({
-              controls: {
+              psaControls: {
                 enforce: {
                   active:  true,
                   level:   '',
@@ -125,7 +125,7 @@ describe('component: PodSecurityAdmission', () => {
           });
 
           // Unable to toggle the checkbox, so we use the input
-          wrapper.find(`[data-testid="pod-security-admission--control-0-version"]`).find('input').setValue(version);
+          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).find('input').setValue(version);
 
           expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
         });
@@ -147,7 +147,7 @@ describe('component: PodSecurityAdmission', () => {
             },
             // Unable to toggle the checkbox, so we enforce the data
             data: () => ({
-              controls: {
+              psaControls: {
                 enforce: {
                   active:  true,
                   level:   '',
@@ -159,7 +159,7 @@ describe('component: PodSecurityAdmission', () => {
 
           // Unable to toggle the checkbox, so we enforce the data
           wrapper.setData({
-            controls: {
+            psaControls: {
               audit: {
                 active:  false,
                 level:   '',
@@ -169,7 +169,7 @@ describe('component: PodSecurityAdmission', () => {
           });
 
           // Unable to toggle the checkbox, so we use the input
-          wrapper.find(`[data-testid="pod-security-admission--control-0-version"]`).find('input').setValue('');
+          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).find('input').setValue('');
 
           expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
         });
@@ -183,7 +183,7 @@ describe('component: PodSecurityAdmission', () => {
             },
             // Unable to toggle the checkbox, so we enforce the data
             data: () => ({
-              controls: {
+              psaControls: {
                 enforce: {
                   active:  true,
                   level:   '',
@@ -198,7 +198,7 @@ describe('component: PodSecurityAdmission', () => {
           };
 
           // Unable to toggle the checkbox, so we use the input
-          wrapper.find(`[data-testid="pod-security-admission--control-0-version"]`).find('input').setValue('');
+          wrapper.find(`[data-testid="pod-security-admission--psaControl-0-version"]`).find('input').setValue('');
 
           expect(wrapper.emitted('updateLabels')![0][0]).toStrictEqual(newLabels);
         });
@@ -206,19 +206,19 @@ describe('component: PodSecurityAdmission', () => {
     });
   });
 
-  describe('handling exceptions', () => {
-    it('should map exemptions to the form exceptions', () => {
-      const exemptions = { runtimeClasses: ['my class'] };
-      const exceptions = {
-        usernames: {
+  describe('handling exemptions', () => {
+    it.each(['namespace1, namespace2'])('should map exemptions to the form control', (exemption) => {
+      const exemptions = { namespaces: [exemption] };
+      const result = {
+        namespaces: {
+          active: true,
+          value:  exemption
+        },
+        runtimeClasses: {
           active: false,
           value:  ''
         },
-        runtimeClasses: {
-          active: true,
-          value:  'my class'
-        },
-        namespaces: {
+        usernames: {
           active: false,
           value:  ''
         },
@@ -231,7 +231,7 @@ describe('component: PodSecurityAdmission', () => {
         }
       });
 
-      expect(wrapper.vm.exceptions).toStrictEqual(exceptions);
+      expect(wrapper.vm.psaExemptionsControls).toStrictEqual(result);
     });
 
     it.each([
@@ -246,7 +246,7 @@ describe('component: PodSecurityAdmission', () => {
         }
       });
 
-      const input = wrapper.find(`[data-testid="pod-security-admission--exception-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+      const input = wrapper.find(`[data-testid="pod-security-admission--psaExemptionsControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
 
       expect(input.value).toStrictEqual(value);
     });
@@ -268,7 +268,7 @@ describe('component: PodSecurityAdmission', () => {
           },
         });
         // Unable to toggle the checkbox, so we use the input
-        const input = wrapper.find(`[data-testid="pod-security-admission--exception-0-value"]`).find('input');
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaExemptionsControl-0-value"]`).find('input');
 
         input.setValue(value);
 

@@ -3923,10 +3923,10 @@ podSecurityAdmission:
   description: Define the admission control mode you want to use for the pod security
   version:
     placeholder: 'Version (default: latest)'
-  exceptions: 
-    title: Exceptions
+  exemptions: 
+    title: Exemptions
     description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
-    placeholder: Enter a comma separated list of {exception}
+    placeholder: Enter a comma separated list of {psaExemptionsControl}
 prefs:
   title: Preferences
   theme:

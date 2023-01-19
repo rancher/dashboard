@@ -12,15 +12,15 @@ import {
 import { pickBy } from '@shell/utils/object';
 
 interface PSAControl { active: boolean, level: string, version: string }
-const control = (): PSAControl => ({
+const getPsaControl = (): PSAControl => ({
   active:  false,
   level:   PSADefaultLevel,
   version: ''
 });
 
-// Type and function for exceptions form builder
-interface PSAException { active: boolean, value: string }
-const exception = (): PSAException => ({
+// Type and function for exemptions form builder
+interface PSAExemptionControl { active: boolean, value: string }
+const getExemptionControl = (): PSAExemptionControl => ({
   active: false,
   value:  ''
 });
@@ -75,9 +75,10 @@ export default Vue.extend({
 
   data() {
     return {
-      controls:   Object.assign({}, ...PSAModes.map(mode => ({ [mode]: control() }))),
-      exceptions: Object.assign({}, ...PSADimensions.map(dimension => ({ [dimension]: exception() }))),
-      options:    PSALevels,
+      // Generate form controls
+      psaControls:           Object.assign({}, ...PSAModes.map(mode => ({ [mode]: getPsaControl() }))),
+      psaExemptionsControls: Object.assign({}, ...PSADimensions.map(dimension => ({ [dimension]: getExemptionControl() }))),
+      options:               PSALevels,
     };
   },
 
@@ -89,7 +90,7 @@ export default Vue.extend({
     },
 
     /**
-     * Enable exemption view if any
+     * Enable exemption form if any
      */
     hasExemptions(): boolean {
       return Object.keys(this.exemptions).length > 0;
@@ -98,12 +99,12 @@ export default Vue.extend({
 
   created() {
     // Assign values to the form, overriding existing values
-    this.controls = {
-      ...this.controls,
-      ...this.getControls()
+    this.psaControls = {
+      ...this.psaControls,
+      ...this.getPsaControls()
     };
 
-    this.exceptions = this.getExceptions();
+    this.psaExemptionsControls = this.getPsaExemptions();
   },
 
   methods: {
@@ -113,12 +114,12 @@ export default Vue.extend({
     updateLabels(): void {
       const nonPSALabels = pickBy(this.labels, (_, key) => !key.includes(this.labelsPrefix));
       const labels = PSAModes.reduce((acc, mode) => {
-        return this.controls[mode].active ? {
+        return this.psaControls[mode].active ? {
           ...acc,
           // Set default level if none
-          [`${ this.labelsPrefix }${ mode }`]:         this.controls[mode].level || PSADefaultLevel,
+          [`${ this.labelsPrefix }${ mode }`]:         this.psaControls[mode].level || PSADefaultLevel,
           // Set default version if none
-          [`${ this.labelsPrefix }${ mode }-version`]: this.controls[mode].version || PSADefaultVersion
+          [`${ this.labelsPrefix }${ mode }-version`]: this.psaControls[mode].version || PSADefaultVersion
         } : acc;
       }, nonPSALabels);
 
@@ -127,8 +128,8 @@ export default Vue.extend({
 
     updateExemptions(): void {
       const exemptions = PSADimensions.reduce((acc, dimension) => {
-        const value = this.exceptions[dimension].value.split(', ');
-        const active = this.exceptions[dimension].active;
+        const value = this.psaExemptionsControls[dimension].value.split(', ');
+        const active = this.psaExemptionsControls[dimension].active;
 
         return {
           ...acc,
@@ -142,7 +143,7 @@ export default Vue.extend({
     /**
      * Generate form controls based on PSA labels in the provided dictionary
      */
-    getControls(): Record<PSAMode, PSAControl> {
+    getPsaControls(): Record<PSAMode, PSAControl> {
       return PSAModes.reduce((acc, mode) => {
         const level = this.labels[`${ this.labelsPrefix }${ mode }`];
         // Retrieve version, hiding the value 'latest' from the user
@@ -160,9 +161,9 @@ export default Vue.extend({
     },
 
     /**
-     * Generate form exceptions based on PSA exemptions provided dictionary
+     * Generate form exemptions based on PSA exemptions provided dictionary
      */
-    getExceptions(): Record<PSADimension, PSAException> {
+    getPsaExemptions(): Record<PSADimension, PSAExemptionControl> {
       return PSADimensions.reduce((acc, dimension) => {
         const values = (this.exemptions[dimension] || []).join(', ');
 
@@ -173,7 +174,7 @@ export default Vue.extend({
             value:  values
           }
         };
-      }, {}) as Record<PSADimension, PSAException>;
+      }, {}) as Record<PSADimension, PSAExemptionControl>;
     }
   }
 });
@@ -187,14 +188,14 @@ export default Vue.extend({
     </p>
 
     <div
-      v-for="(control, level, i) in controls"
-      :key="'control-' + i"
+      v-for="(psaControl, level, i) in psaControls"
+      :key="'psaControl-' + i"
       class="row row--y-center mb-20"
     >
       <span class="col span-2">
         <Checkbox
-          v-model="control.active"
-          :data-testid="componentTestid + '--control-' + i + '-active'"
+          v-model="psaControl.active"
+          :data-testid="componentTestid + '--psaControl-' + i + '-active'"
           :label="level"
           :disabled="isView"
           @input="updateLabels()"
@@ -203,9 +204,9 @@ export default Vue.extend({
 
       <span class="col span-4">
         <LabeledSelect
-          v-model="control.level"
-          :data-testid="componentTestid + '--control-' + i + '-level'"
-          :disabled="(isView || !control.active)"
+          v-model="psaControl.level"
+          :data-testid="componentTestid + '--psaControl-' + i + '-level'"
+          :disabled="(isView || !psaControl.active)"
           :options="options"
           :mode="mode"
           @input="updateLabels()"
@@ -214,11 +215,11 @@ export default Vue.extend({
 
       <span class="col span-4">
         <LabeledInput
-          v-model="control.version"
-          :data-testid="componentTestid + '--control-' + i + '-version'"
-          :disabled="(isView || !control.active)"
+          v-model="psaControl.version"
+          :data-testid="componentTestid + '--psaControl-' + i + '-version'"
+          :disabled="(isView || !psaControl.active)"
           :options="options"
-          :placeholder="t('podSecurityAdmission.version.placeholder', { control: mode })"
+          :placeholder="t('podSecurityAdmission.version.placeholder', { psaControl: mode })"
           :mode="mode"
           @input="updateLabels()"
         />
@@ -229,22 +230,22 @@ export default Vue.extend({
     <template v-if="hasExemptions">
       <slot name="title">
         <h3>
-          <t k="podSecurityAdmission.exceptions.title" />
+          <t k="podSecurityAdmission.exemptions.title" />
         </h3>
       </slot>
       <p class="helper-text mb-30">
-        <t k="podSecurityAdmission.exceptions.description" />
+        <t k="podSecurityAdmission.exemptions.description" />
       </p>
 
       <div
-        v-for="(exception, dimension, i) in exceptions"
-        :key="'exception-' + i"
+        v-for="(psaExemptionsControl, dimension, i) in psaExemptionsControls"
+        :key="'psaExemptionsControl-' + i"
         class="row row--y-center mb-20"
       >
         <span class="col span-2">
           <Checkbox
-            v-model="exception.active"
-            :data-testid="componentTestid + '--exception-' + i + '-active'"
+            v-model="psaExemptionsControl.active"
+            :data-testid="componentTestid + '--psaExemptionsControl-' + i + '-active'"
             :label="dimension"
             :disabled="isView"
             @input="updateExemptions()"
@@ -252,11 +253,11 @@ export default Vue.extend({
         </span>
         <span class="col span-8">
           <LabeledInput
-            v-model="exception.value"
-            :data-testid="componentTestid + '--exception-' + i + '-value'"
-            :disabled="(isView || !exception.active)"
+            v-model="psaExemptionsControl.value"
+            :data-testid="componentTestid + '--psaExemptionsControl-' + i + '-value'"
+            :disabled="(isView || !psaExemptionsControl.active)"
             :options="options"
-            :placeholder="t('podSecurityAdmission.exceptions.placeholder', { exception: dimension })"
+            :placeholder="t('podSecurityAdmission.exemptions.placeholder', { psaExemptionsControl: dimension })"
             :mode="mode"
             @input="updateExemptions()"
           />
