@@ -629,7 +629,7 @@ export default {
       </ArrayList>
     </template>
     <template #stepTargetInfo>
-      <h2 v-t="isLocal ? 'fleet .gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
+      <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
 
       <template v-if="!isLocal">
         <div class="row">
