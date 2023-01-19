@@ -340,7 +340,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header class="header-layout">
+    <header>
       <div class="title">
         <h1 class="m-0">
           {{ t('catalog.charts.header') }}

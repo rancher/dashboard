@@ -121,7 +121,7 @@ export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', fals
 export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
 
 // Prompt for confirm when scaling down node pool in GUI and save the pref
-export const SCALE_POOL_PROMPT = create('scale-pool-prompt', '', { parseJSON });
+export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
 // --------------------
 
 const cookiePrefix = 'R_';

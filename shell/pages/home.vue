@@ -301,7 +301,9 @@ export default {
             data-testid="changelog-banner"
             color="info whats-new"
           >
-            <div>{{ t('landing.seeWhatsNew') }}</div>
+            <div class="message">
+              {{ t('landing.seeWhatsNew') }}
+            </div>
             <a
               class="hand"
               @click.prevent.stop="showWhatsNew"
@@ -322,7 +324,9 @@ export default {
                 :closable="true"
                 @close="closeSetLoginBanner()"
               >
-                <div>{{ t('landing.landingPrefs.title') }}</div>
+                <div class="message">
+                  {{ t('landing.landingPrefs.title') }}
+                </div>
                 <a
                   class="hand mr-20"
                   @click.prevent.stop="showUserPrefs"
@@ -457,20 +461,10 @@ export default {
       margin-left: 1.75%;
     }
   }
-
-  .banner.info.whats-new, .banner.set-login-page {
-    border: 0;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-    > div {
-      flex: 1;
-    }
-    > a {
-      align-self: flex-end;
-    }
+  .banner.set-login-page .message, .whats-new .message  {
+    flex: 1;
   }
+
   .banner.set-login-page {
     border: 1px solid var(--border);
   }

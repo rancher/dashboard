@@ -642,7 +642,7 @@ asyncButton:
   load:
     action: Load
     success: Loaded
-    waiting: Loadingg&hellip;
+    waiting: Loading&hellip;
   pause:
     action: Pause Orchestration
     success: Paused Orchestration
@@ -1227,7 +1227,6 @@ cluster:
           </ul>
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
-      import: Imported Harvester
       namespace: Namespace
       cpu: CPUs
       memory: Memory
@@ -1244,7 +1243,7 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
-      cluster: Cluster
+      cluster: Imported Harvester Cluster
       affinity:
         namespaces:
           placeholder: e.g. default,system,base
@@ -3974,7 +3973,7 @@ prefs:
     label: Helm Charts
   confirmationSetting:
     title: Confirmation Setting
-    scalingDownPrompt: Enable confirmation prompt for scaling down node pool.
+    scalingDownPrompt: Do not ask for confirmation when scaling down node pools.
 
 principal:
   loading: Loading&hellip;
@@ -5033,7 +5032,7 @@ storageClass:
       placeholder: e.g. storageos-secret
   no-provisioner:
     title: Local Storage
-  deprecated: 
+  deprecated:
     title: (Deprecated)
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
 
@@ -6815,6 +6814,10 @@ performance:
     count:
       inputLabel: Resource Threshold
       description: The threshold above which filtering by a namespace is required
+  advancedWorker:
+    label: Websocket Web Worker
+    description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
+    checkboxLabel: Enable Advanced Websocket Web Worker
 
 banner:
   label: Fixed Banners

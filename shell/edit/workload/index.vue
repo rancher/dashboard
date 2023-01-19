@@ -22,8 +22,10 @@ export default {
   },
   methods: {
     changed(tab) {
+      const key = this.idKey;
+
       this.selectedName = tab.selectedName;
-      const container = this.containerOptions.find( c => c.name === tab.selectedName);
+      const container = this.containerOptions.find( c => c[key] === tab.selectedName);
 
       if ( container ) {
         this.selectContainer(container);
@@ -117,9 +119,9 @@ export default {
       >
         <Tab
           v-for="(tab, i) in allContainers"
-          :key="i"
+          :key="tab[idKey]"
           :label="tab.name"
-          :name="tab.name"
+          :name="tab[idKey]"
           :weight="tab.weight"
           :error="!!tab.error"
         >
@@ -161,11 +163,11 @@ export default {
                   <div class="col span-6">
                     <RadioGroup
                       :mode="mode"
-                      :value="isInitContainer"
+                      :value="allContainers[i]._init"
                       name="initContainer"
                       :options="[true, false]"
                       :labels="[t('workload.container.init'), t('workload.container.standard')]"
-                      @input="updateInitContainer"
+                      @input="updateInitContainer($event, allContainers[i])"
                     />
                   </div>
                 </div>
@@ -261,7 +263,7 @@ export default {
             </Tab>
 
             <Tab
-              v-if="!isInitContainer"
+              v-if="!allContainers[i]._init"
               :label="t('workload.container.titles.healthCheck')"
               name="healthCheck"
               :weight="tabWeightMap['healthCheck']"
