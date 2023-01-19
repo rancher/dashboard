@@ -367,3 +367,13 @@ export function pickBy(obj = {}, predicate = (value, key) => false) {
       return res;
     }, {});
 }
+
+/**
+ * Convert list to dictionary from a given function
+ * @param {*} array
+ * @param {*} callback
+ * @returns
+ */
+export const toDictionary = (array, callback) => Object.assign(
+  {}, ...array.map(item => ({ [item]: callback() }))
+);
