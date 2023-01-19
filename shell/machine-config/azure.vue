@@ -362,7 +362,9 @@ export default {
       });
 
       if (data.length > 0) {
-        return data[0].AvailabilityZones;
+        return data[0].AvailabilityZones.sort((a, b) => {
+          return a - b;
+        });
       }
 
       return [];
