@@ -87,7 +87,13 @@ export default {
 
     provisioners() {
       return PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported);
-    }
+    },
+
+    provisionerIsHideCustomize() {
+      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
+
+      return provisionerOpt && provisionerOpt.hideCustomize !== undefined;
+    },
   },
 
   watch: {
@@ -159,7 +165,11 @@ export default {
       <Tab name="parameters" :label="t('storageClass.parameters.label')" :weight="2">
         <component :is="getComponent(value.provisioner)" :key="value.provisioner" :value="value" :mode="modeOverride" />
       </Tab>
-      <Tab name="customize" :label="t('storageClass.customize.label')">
+      <Tab
+        v-if="!provisionerIsHideCustomize"
+        name="customize"
+        :label="t('storageClass.customize.label')"
+      >
         <div class="row mt-20">
           <div class="col span-6">
             <div class="row mb-20">
