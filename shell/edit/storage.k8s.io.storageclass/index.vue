@@ -141,8 +141,13 @@ export default {
       const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
 
       return provisionerOpt && provisionerOpt.deprecated !== undefined;
-    }
+    },
 
+    provisionerIsHideCustomize() {
+      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
+
+      return provisionerOpt && provisionerOpt.hideCustomize !== undefined;
+    },
   },
 
   watch: {
@@ -247,6 +252,7 @@ export default {
         />
       </Tab>
       <Tab
+        v-if="!provisionerIsHideCustomize"
         name="customize"
         :label="t('storageClass.customize.label')"
       >
