@@ -17,7 +17,7 @@ export default function(plugin: IPlugin) {
     BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION,
     {},
     {
-      tooltipKey: 'generic.customize',
+      tooltipKey: 'plugin-examples.header-action-one',
       tooltip:    'Test Action1',
       shortcut:   'm',
       icon:       'icon-pipeline',
@@ -35,7 +35,7 @@ export default function(plugin: IPlugin) {
     BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION,
     { product: 'explorer' },
     {
-      tooltipKey: 'generic.comingSoon',
+      tooltipKey: 'plugin-examples.header-action-two',
       tooltip:    'Test Action2',
       shortcut:   { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
       icon:       'icon-spinner',
@@ -54,7 +54,7 @@ export default function(plugin: IPlugin) {
     { resource: 'pod' },
     {
       name:       'some-name',
-      labelKey:   'generic.comingSoon',
+      labelKey:   'plugin-examples.tab-label',
       label:      'some-label',
       weight:     -5,
       showHeader: true,
@@ -76,7 +76,7 @@ export default function(plugin: IPlugin) {
     {
       action:   'some-extension-action',
       label:    'some-extension-action',
-      labelKey: 'generic.customize',
+      labelKey: 'plugin-examples.table-action-one',
       icon:     'icon-pipeline',
       singleAction() {
         console.log('table action executed1', this); // eslint-disable-line no-console
@@ -91,7 +91,7 @@ export default function(plugin: IPlugin) {
     {
       action:   'some-bulkable-action',
       label:    'some-bulkable-action',
-      labelKey: 'generic.comingSoon',
+      labelKey: 'plugin-examples.table-action-two',
       icon:     'icon-pipeline',
       singleAction() {
         console.log('table action executed2', this); // eslint-disable-line no-console
@@ -138,7 +138,7 @@ export default function(plugin: IPlugin) {
     { cluster: 'local' },
     {
       label:     'some-label',
-      labelKey:  'generic.comingSoon',
+      labelKey:  'plugin-examples.card-title-one',
       component: () => import('./MastheadDetailsComponent.vue')
     }
   );
@@ -149,7 +149,7 @@ export default function(plugin: IPlugin) {
     { cluster: 'local' },
     {
       label:     'some-label1',
-      labelKey:  'generic.comingSoon',
+      labelKey:  'plugin-examples.card-title-two',
       component: () => import('./MastheadDetailsComponent.vue')
     }
   );
@@ -160,7 +160,7 @@ export default function(plugin: IPlugin) {
     { cluster: 'local' },
     {
       label:     'some-label2',
-      labelKey:  'generic.comingSoon',
+      labelKey:  'plugin-examples.card-title-three',
       component: () => import('./MastheadDetailsComponent.vue')
     }
   );
@@ -171,7 +171,7 @@ export default function(plugin: IPlugin) {
     { cluster: 'local' },
     {
       label:     'some-label3',
-      labelKey:  'generic.comingSoon',
+      labelKey:  'plugin-examples.card-title-four',
       component: () => import('./MastheadDetailsComponent.vue')
     }
   );
@@ -182,9 +182,9 @@ export default function(plugin: IPlugin) {
     { resource: 'configmap' },
     {
       name:     'some-prop-col',
-      labelKey: 'generic.comingSoon',
+      labelKey: 'plugin-examples.col-label',
       getValue: (row: any) => {
-        return `${ row.id }-THIS-IS-A-DEMO-COL-VALUE!`;
+        return `${ row.id }-DEMO-COL-STRING-ADDED!`;
       },
     }
   );
