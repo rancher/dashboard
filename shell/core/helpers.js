@@ -1,4 +1,5 @@
-import { BuiltinExtensionEnhancementLocations } from '@shell/core/types';
+import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
+import { isMac } from '@shell/utils/platform';
 
 function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
   // console.log('name && params', name, params);
@@ -71,12 +72,63 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
 
   actions.forEach((action, i) => {
     if (checkExtensionRouteBinding(currRoute, action.locationConfig)) {
-      // intercept to apply translation when dealing with adding a card to cluster dashboard view
-      if ((uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD || uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION) && action.labelKey) {
-        actions[i].label = translationCtx.t(action.labelKey);
+      // ADD CARD PLUGIN UI ENHANCEMENT
+      if (actionType === BuiltinExtensionEnhancementTypes.ADD_CARD) {
+        // intercept to apply translation
+        if (uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD && action.labelKey) {
+          actions[i].label = translationCtx.t(action.labelKey);
+        }
+
+      // ADD ACTION PLUGIN UI ENHANCEMENT
+      } else if (actionType === BuiltinExtensionEnhancementTypes.ADD_ACTION) {
+        if (uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION) {
+          // intercept to apply translation
+          if (action.labelKey) {
+            actions[i].label = translationCtx.t(action.labelKey);
+          }
+
+          // sets the enabled flag to true if ommited on the config
+          if (!Object.keys(action).includes('enabled')) {
+            actions[i].enabled = true;
+          }
+
+          // if user defines a bulkAction, there's no need to set the bulkable flag
+          if (Object.keys(action).includes('bulkAction')) {
+            actions[i].bulkable = true;
+          }
+        }
+
+        // extract simplified shortcut definition on plugin
+        if (uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION && action.shortcut) {
+          // if it's a string, then assume CTRL for windows and META for mac
+          if (typeof action.shortcut === 'string') {
+            actions[i].shortcutLabel = () => {
+              return isMac ? `(\u2318-${ action.shortcut.toUpperCase() })` : `(Ctrl-${ action.shortcut.toUpperCase() })`;
+            };
+            actions[i].shortcutKey = { windows: ['ctrl', action.shortcut], mac: ['meta', action.shortcut] };
+          // correct check for an Object type in JS... handle the object passed
+          } else if (typeof action.shortcut === 'object' && !Array.isArray(action.shortcut) && action.shortcut !== null) {
+            actions[i].shortcutKey = action.shortcut;
+            const keyboardCombo = isMac ? actions[i].shortcut.mac : actions[i].shortcut.windows ? actions[i].shortcut.windows : [];
+            let scLabel = '';
+
+            keyboardCombo.forEach((key, i) => {
+              if (i < keyboardCombo.length - 1) {
+                scLabel += `${ key }`;
+                scLabel += '-';
+              } else {
+                scLabel += `${ key.toUpperCase() }`;
+              }
+            });
+
+            actions[i].shortcutLabel = () => {
+              return `(${ scLabel })`;
+            };
+          }
+        }
       }
 
-      extensionEnhancements.push(action);
+      extensionEnhancements.push(actions[i]);
     }
   });
 

@@ -6,7 +6,6 @@ import {
   IPlugin,
   LocationConfig,
   BuiltinExtensionEnhancementTypes,
-  BuiltinExtensionEnhancementLocations,
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
@@ -127,30 +126,8 @@ export class Plugin implements IPlugin {
    * Adds an action/button to the UI
    */
   addAction(where: string, when: LocationConfig, action: IAction): void {
-    let type: string;
-
-    switch (where) {
-    case BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION:
-      type = BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION;
-
-      // sets the enabled flag to true if ommited on the config
-      if (!Object.keys(action).includes('enabled')) {
-        action.enabled = true;
-      }
-
-      // if user defines a bulkAction, there's no need to set the bulkable flag
-      if (Object.keys(action).includes('bulkAction')) {
-        action.bulkable = true;
-      }
-      break;
-    default:
-      type = where;
-
-      return;
-    }
-
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][type] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][type] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][type].push({ ...action, locationConfig: when });
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][where] || [];
+    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][where].push({ ...action, locationConfig: when });
   }
 
   /**

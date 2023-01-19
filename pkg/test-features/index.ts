@@ -1,6 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
-import { isMac } from '@shell/utils/platform';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -20,11 +19,8 @@ export default function(plugin: IPlugin) {
     {
       tooltipKey: 'generic.customize',
       tooltip:    'Test Action1',
-      shortcutLabel() {
-        return isMac ? '(\u2318-M)' : '(Ctrl+M)';
-      },
-      shortcutKey: { windows: ['ctrl', 'm'], mac: ['meta', 'm'] },
-      icon:        'icon-pipeline',
+      shortcut:   'm',
+      icon:       'icon-pipeline',
       enabled(ctx: any) {
         return true;
       },
@@ -41,11 +37,8 @@ export default function(plugin: IPlugin) {
     {
       tooltipKey: 'generic.comingSoon',
       tooltip:    'Test Action2',
-      shortcutLabel() {
-        return isMac ? '(\u2318-B)' : '(Ctrl+B)';
-      },
-      shortcutKey: { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
-      icon:        'icon-spinner',
+      shortcut:   { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
+      icon:       'icon-spinner',
       enabled(ctx: any) {
         return true;
       },
