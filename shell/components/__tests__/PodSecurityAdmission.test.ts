@@ -207,12 +207,14 @@ describe('component: PodSecurityAdmission', () => {
   });
 
   describe('handling exemptions', () => {
-    it.each(['namespace1, namespace2'])('should map exemptions to the form control', (exemption) => {
-      const exemptions = { namespaces: [exemption] };
+    it.each([
+      [['namespace1', 'namespace2'], 'namespace1,namespace2'],
+    ])('should map %p to the form control as %p', (exemption, control) => {
+      const exemptions = { namespaces: exemption };
       const result = {
         namespaces: {
           active: true,
-          value:  exemption
+          value:  control
         },
         runtimeClasses: {
           active: false,
@@ -237,7 +239,7 @@ describe('component: PodSecurityAdmission', () => {
     it.each([
       // ['true', 'active'],
       ['username', 'value'],
-    ])('should map exemption to the form, with value %p for input %p', (value, inputId) => {
+    ])('should map to the form, with value %p for input %p', (value, inputId) => {
       const exemptions = { usernames: [value] };
       const wrapper = mount(PodSecurityAdmission, {
         propsData: {
@@ -255,7 +257,8 @@ describe('component: PodSecurityAdmission', () => {
       it.each([
         ['username1', ['username1']],
         ['username1, username2', ['username1', 'username2']],
-      ])('should update exemption value %p from %p', (value, exemption) => {
+        ['username1,username2', ['username1', 'username2']],
+      ])('should emit exemption input value %p as %p', (value, exemption) => {
         const exemptions = {
           usernames:      exemption,
           namespaces:     [],

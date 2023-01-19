@@ -128,7 +128,7 @@ export default Vue.extend({
 
     updateExemptions(): void {
       const exemptions = PSADimensions.reduce((acc, dimension) => {
-        const value = this.psaExemptionsControls[dimension].value.split(', ');
+        const value = this.psaExemptionsControls[dimension].value.split(',').map(value => value.trim());
         const active = this.psaExemptionsControls[dimension].active;
 
         return {
@@ -165,7 +165,7 @@ export default Vue.extend({
      */
     getPsaExemptions(): Record<PSADimension, PSAExemptionControl> {
       return PSADimensions.reduce((acc, dimension) => {
-        const values = (this.exemptions[dimension] || []).join(', ');
+        const values = (this.exemptions[dimension] || []).map(value => value.trim()).join(',');
 
         return {
           ...acc,
