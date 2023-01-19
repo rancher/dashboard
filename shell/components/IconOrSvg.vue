@@ -105,6 +105,9 @@ export default {
           button:hover > img.${ className } {
             ${ hoverFilter };
           }
+          li:hover > img.${ className } {
+            ${ hoverFilter };
+          }
           a.option:hover > img.${ className } {
             ${ hoverFilter };
           }      `;

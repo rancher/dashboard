@@ -547,6 +547,7 @@ export default {
             class="icon icon-lg"
             :icon="action.icon"
             :src="action.svg"
+            color="header"
           />
         </button>
       </div>

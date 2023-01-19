@@ -3,15 +3,16 @@ import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import { isAlternate } from '@shell/utils/platform';
+import IconOrSvg from '@shell/components/IconOrSvg';
 
 const HIDDEN = 'hide';
 const CALC = 'calculate';
 const SHOW = 'show';
 
 export default {
-  name: 'ActionMenu',
-
-  props: {
+  name:       'ActionMenu',
+  components: { IconOrSvg },
+  props:      {
     customActions: {
       // Custom actions can be used if you need the action
       // menu to work for something that is not a Kubernetes
@@ -254,9 +255,12 @@ export default {
         :data-testid="componentTestid + '-' + i + '-item'"
         @click="execute(opt, $event)"
       >
-        <i
-          v-if="opt.icon"
-          :class="{icon: true, [opt.icon]: true}"
+        <IconOrSvg
+          v-if="opt.icon || opt.svg"
+          :icon="opt.icon"
+          :src="opt.svg"
+          class="icon"
+          color="header"
         />
         <span v-html="opt.label" />
       </li>

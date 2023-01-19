@@ -92,7 +92,7 @@ export default function(plugin: IPlugin) {
       action:   'some-bulkable-action',
       label:    'some-bulkable-action',
       labelKey: 'plugin-examples.table-action-two',
-      icon:     'icon-pipeline',
+      svg:      require('@pkg/test-features/icons/rancher-desktop.svg'),
       singleAction() {
         console.log('table action executed2', this); // eslint-disable-line no-console
       },
