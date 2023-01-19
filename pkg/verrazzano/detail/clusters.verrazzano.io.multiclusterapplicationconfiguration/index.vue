@@ -248,7 +248,7 @@ export default {
       }, 0);
     },
     podRestarts() {
-      return this.value.pods.reduce((total, pod) => {
+      return this.rowsData.reduce((total, pod) => {
         const { status:{ containerStatuses = [] } } = pod;
 
         if (containerStatuses.length) {
@@ -295,21 +295,20 @@ export default {
     },
     showPodGaugeCircles() {
       const podGauges = Object.values(this.value.podGauges);
-      const total = this.value.pods.length;
+      const total = this.rowsData.length;
 
       return !podGauges.find(pg => pg.count === total);
     },
     showJobGaugeCircles() {
       const jobGauges = Object.values(this.value.jobGauges);
-      const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
+      const total = this.isCronJob ? this.totalRuns : this.rowsData.length;
 
       return !jobGauges.find(jg => jg.count === total);
     }
   },
   methods: {
     resetPods() {
-      this.value.pods = this.allPods[this.namespace] || [];
-      this.rowsData = this.value.pods;
+      this.rowsData = this.allPods[this.namespace] || [];
     }
   },
   watch: {
@@ -330,12 +329,12 @@ export default {
     <h3>
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
-    <div v-if="value.pods || value.jobGauges" class="gauges mb-20" :class="{'gauges__pods': !!value.pods}">
+    <div v-if="rowsData || value.jobGauges" class="gauges mb-20" :class="{'gauges__pods': !!rowsData}">
       <template v-if="value.jobGauges">
         <CountGauge
           v-for="(group, key) in value.jobGauges"
           :key="key"
-          :total="isCronJob? totalRuns : value.pods.length"
+          :total="isCronJob? totalRuns : rowsData.length"
           :useful="group.count || 0"
           :graphical="showJobGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -346,7 +345,7 @@ export default {
         <CountGauge
           v-for="(group, key) in value.podGauges"
           :key="key"
-          :total="value.pods.length"
+          :total="rowsData.length"
           :useful="group.count || 0"
           :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"

@@ -74,7 +74,7 @@ export default {
       return this.$store.getters['cluster/schemaFor']('core.oam.dev.component');
     },
     podRestarts() {
-      return this.value.pods.reduce((total, pod) => {
+      return this.displayPods.reduce((total, pod) => {
         const { status:{ containerStatuses = [] } } = pod;
 
         if (containerStatuses.length) {
@@ -99,18 +99,17 @@ export default {
 
     showPodGaugeCircles() {
       const podGauges = Object.values(this.value.podGauges);
-      const total = this.value.pods.length;
+      const total = this.displayPods.length;
 
       return !podGauges.find(pg => pg.count === total);
     },
   },
   methods: {
     resetPods() {
-      this.value.pods = this.allPods[this.namespace] || [];
-      this.displayPods = this.value.pods;
+      this.displayPods = this.allPods[this.namespace] || [];
     },
     resetComponents() {
-      this.value.relatedComponents = this.allComponents[this.namespace] || [];
+      this.relatedComponents = this.allComponents[this.namespace] || [];
     }
   },
   watch: {
@@ -160,12 +159,12 @@ export default {
     <h3>
       {{ t('verrazzano.common.titles.applicationDetails') }}
     </h3>
-    <div v-if="value.pods" class="gauges mb-20" :class="{'gauges__pods': !!value.pods}">
+    <div v-if="displayPods" class="gauges mb-20" :class="{'gauges__pods': !!displayPods}">
       <template>
         <CountGauge
           v-for="(group, key) in value.podGauges"
           :key="key"
-          :total="value.pods.length"
+          :total="displayPods.length"
           :useful="group.count || 0"
           :graphical="showPodGaugeCircles"
           :primary-color-var="`--sizzle-${group.color}`"
@@ -187,8 +186,8 @@ export default {
       </Tab>
       <Tab name="Components">
         <SortableTable
-          v-if="value.relatedComponents"
-          :rows="value.relatedComponents"
+          v-if="relatedComponents"
+          :rows="relatedComponents"
           :headers="componentHeaders"
           key-field="id"
           :schema="componentSchema"

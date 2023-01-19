@@ -96,8 +96,7 @@ export default {
   },
   methods: {
     resetPods() {
-      this.value.pods = this.allPods[this.namespace] || [];
-      this.displayPods = this.value.pods;
+      this.displayPods = this.allPods[this.namespace] || [];
     },
     resetApplications() {
       this.referringApplications = this.allApplications[this.namespace] || [];
