@@ -75,6 +75,14 @@ export default {
       default: () => []
     },
 
+    /**
+     * Set of maps to convert error messages to something more user friendly and apply icons
+     */
+    errorsMap: {
+      type:    Object,
+      default: null
+    },
+
     // Is the edit as yaml button allowed
     canYaml: {
       type:    Boolean,
@@ -152,7 +160,7 @@ export default {
         4: '18px',
         5: '16px',
         6: '14px'
-      }
+      },
     };
   },
 
@@ -224,6 +232,19 @@ export default {
      */
     hasErrors() {
       return this.errors?.length && Array.isArray(this.errors);
+    },
+
+    /**
+     * Replace returned string with new picked value and icon
+     */
+    mappedErrors() {
+      return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: {
+          message: error,
+          icon:    null
+        }
+      }), {});
     },
   },
 
@@ -373,8 +394,8 @@ export default {
           v-for="(err, i) in errors"
           :key="i"
           color="error"
-          :label="stringify(err)"
-          :stacked="true"
+          :label="stringify(mappedErrors[err].message)"
+          :icon="mappedErrors[err].icon"
           :closable="true"
           @close="closeError(i)"
         />
