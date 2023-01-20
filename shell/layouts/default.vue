@@ -20,6 +20,7 @@ import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
+import DraggableZone from '@shell/components/DraggableZone';
 import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@shell/config/types';
@@ -36,7 +37,6 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
-import { DraggableZone } from '@components/Utils/DraggableZone';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
