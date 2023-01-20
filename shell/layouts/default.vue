@@ -14,29 +14,26 @@ import PromptRemove from '@shell/components/PromptRemove';
 import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
 import AssignTo from '@shell/components/AssignTo';
-import Group from '@shell/components/nav/Group';
 import Header from '@shell/components/nav/Header';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import DraggableZone from '@shell/components/DraggableZone';
-import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
-} from '@shell/config/types';
+import { COUNT, SCHEMA, MANAGEMENT, UI } from '@shell/config/types';
 import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
-import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
+import { markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
+import NavigationSecondary from '@shell/components/NavigationSecondary';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -49,13 +46,13 @@ export default {
     PromptModal,
     Header,
     ActionMenu,
-    Group,
     GrowlManager,
     WindowManager,
     FixedBanner,
     AwsComplianceBanner,
     AzureWarning,
     DraggableZone,
+    NavigationSecondary,
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
@@ -80,7 +77,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -151,44 +148,6 @@ export default {
       }
 
       return {};
-    },
-
-    showClusterTools() {
-      return this.isExplorer &&
-             this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
-             this.$store.getters['cluster/canList'](CATALOG.APP);
-    },
-
-    displayVersion() {
-      if (this.isSingleProduct?.getVersionInfo) {
-        return this.isSingleProduct?.getVersionInfo(this.$store);
-      }
-
-      const { displayVersion } = getVersionInfo(this.$store);
-
-      return displayVersion;
-    },
-
-    showProductFooter() {
-      if (this.isVirtualProduct) {
-        return true;
-      } else {
-        return false;
-      }
-    },
-
-    isVirtualProduct() {
-      return this.$store.getters['currentProduct'].name === HARVESTER;
-    },
-
-    supportLink() {
-      const product = this.$store.getters['currentProduct'];
-
-      if (product?.supportRoute) {
-        return { ...product.supportRoute, params: { ...product.supportRoute.params, cluster: this.clusterId } };
-      }
-
-      return { name: `c-cluster-${ product?.name }-support` };
     },
 
     unmatchedRoute() {
@@ -357,12 +316,6 @@ export default {
         name:   this.$route.name,
         params: this.$route.params
       };
-    },
-
-    collapseAll() {
-      this.$refs.groups.forEach((grp) => {
-        grp.isExpanded = false;
-      });
     },
 
     getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap) {
@@ -534,14 +487,6 @@ export default {
       this.$store.dispatch('prefs/toggleTheme');
     },
 
-    groupSelected(selected) {
-      this.$refs.groups.forEach((grp) => {
-        if (grp.canCollapse) {
-          grp.isExpanded = (grp.group.name === selected.name);
-        }
-      });
-    },
-
     wheresMyDebugger() {
       // vue-shortkey is preventing F8 from passing through to the browser... this works for now.
       // eslint-disable-next-line no-debugger
@@ -616,95 +561,7 @@ export default {
       :class="{[pinClass]: true}"
     >
       <Header />
-      <nav
-        v-if="clusterReady"
-        class="side-nav"
-      >
-        <div class="nav">
-          <template v-for="(g) in groups">
-            <Group
-              ref="groups"
-              :key="g.name"
-              id-prefix=""
-              class="package"
-              :group="g"
-              :can-collapse="!g.isRoot"
-              :show-header="!g.isRoot"
-              @selected="groupSelected($event)"
-              @expand="groupSelected($event)"
-            />
-          </template>
-        </div>
-        <n-link
-          v-if="showClusterTools"
-          tag="div"
-          class="tools"
-          :to="{name: 'c-cluster-explorer-tools', params: {cluster: clusterId}}"
-        >
-          <a
-            class="tools-button"
-            @click="collapseAll()"
-          >
-            <i class="icon icon-gear" />
-            <span>{{ t('nav.clusterTools') }}</span>
-          </a>
-        </n-link>
-        <div
-          v-if="showProductFooter"
-          class="footer"
-        >
-          <nuxt-link
-            :to="supportLink"
-            class="pull-right"
-          >
-            {{ t('nav.support', {hasSupport: true}) }}
-          </nuxt-link>
-
-          <span
-            v-tooltip="{content: displayVersion, placement: 'top'}"
-            class="clip version text-muted"
-          >
-            {{ displayVersion }}
-          </span>
-
-          <span v-if="isSingleProduct">
-            <v-popover
-              popover-class="localeSelector"
-              placement="top"
-              trigger="click"
-            >
-              <a
-                data-testid="locale-selector"
-                class="locale-chooser"
-              >
-                {{ locale }}
-              </a>
-
-              <template slot="popover">
-                <ul
-                  class="list-unstyled dropdown"
-                  style="margin: -1px;"
-                >
-                  <li
-                    v-for="(label, name) in availableLocales"
-                    :key="name"
-                    class="hand"
-                    @click="switchLocale(name)"
-                  >
-                    {{ label }}
-                  </li>
-                </ul>
-              </template>
-            </v-popover>
-          </span>
-        </div>
-        <div
-          v-else
-          class="version text-muted"
-        >
-          {{ displayVersion }}
-        </div>
-      </nav>
+      <navigation-secondary :groups="groups" />
       <main
         v-if="clusterAndRouteReady"
         class="main-layout"
@@ -764,17 +621,6 @@ export default {
     <DraggableZone ref="draggableZone" />
   </div>
 </template>
-<style lang="scss" scoped>
-  .side-nav {
-    display: flex;
-    flex-direction: column;
-    .nav {
-      flex: 1;
-      overflow-y: auto;
-    }
-  }
-
-</style>
 <style lang="scss">
   .dashboard-root {
     display: flex;
@@ -831,75 +677,6 @@ export default {
         line-height: initial;
 
         A { padding-left: 0; }
-      }
-    }
-
-    NAV .tools {
-      display: flex;
-      margin: 10px;
-      text-align: center;
-
-      A {
-        align-items: center;
-        border: 1px solid var(--border);
-        border-radius: 5px;
-        color: var(--body-text);
-        display: flex;
-        justify-content: center;
-        outline: 0;
-        flex: 1;
-        padding: 10px;
-
-        &:hover {
-          background: var(--nav-hover);
-          text-decoration: none;
-        }
-
-        > I {
-          margin-right: 4px;
-        }
-      }
-
-      &.nuxt-link-active:not(:hover) {
-        A {
-          background-color: var(--nav-active);
-        }
-      }
-    }
-
-    NAV .version {
-      cursor: default;
-      margin: 0 10px 10px 10px;
-    }
-
-    NAV .footer {
-      margin: 20px;
-
-      display: flex;
-      flex: 0;
-      flex-direction: row;
-      > * {
-        flex: 1;
-        color: var(--link);
-
-        &:last-child {
-          text-align: right;
-        }
-
-        &:first-child {
-          text-align: left;
-        }
-
-        text-align: center;
-      }
-
-      .version {
-        cursor: default;
-        margin: 0px;
-      }
-
-      .locale-chooser {
-        cursor: pointer;
       }
     }
   }
