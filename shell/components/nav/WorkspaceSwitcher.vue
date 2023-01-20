@@ -52,12 +52,9 @@ export default {
   created() {
     // in fleet standard user with just the project owner and global git repo permissions
     // returns 'default'
-
-    console.log(this.workspace, this.$store.getters['prefs/get'](LAST_NAMESPACE))
     const initValue = !this.workspace ? this.$store.getters['prefs/get'](LAST_NAMESPACE) : '';
 
     this.value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
-
   },
 
   data() {
@@ -74,7 +71,7 @@ export default {
 
 <template>
   <div class="filter">
-    WS {{value}}
+    WS {{ value }}
     <Select
       ref="select"
       v-model="value"
