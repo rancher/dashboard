@@ -82,7 +82,6 @@ export default (Vue as VueConstructor<Vue & InstanceType<typeof CreateEditView>>
   <Loading v-if="$fetchState.pending" />
   <CruResource
     v-else
-    :can-yaml="!isCreate"
     :mode="mode"
     :resource="value"
     :errors="errors"
