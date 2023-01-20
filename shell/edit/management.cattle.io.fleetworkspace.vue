@@ -190,7 +190,15 @@ export default {
         <Banner
           color="info"
         >
-          <div>{{ t('fleet.restrictions.banner', { count: allowedTargetNamespaces.length, repoURL: '' }) }}</div>
+          <div>
+            {{ t('fleet.restrictions.banner', { count: allowedTargetNamespaces.length }) }}
+            <a
+              v-if="!!allowedTargetNamespaces.length"
+              @click="workSpaceRestriction.goToDetail()"
+            >
+              Here
+            </a>
+          </div>
         </Banner>
 
         <ArrayList

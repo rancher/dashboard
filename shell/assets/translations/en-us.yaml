@@ -2096,8 +2096,8 @@ fleet:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
     banner: "{count, plural,
-          =0 { Setting allowedTargetNamespace will create a GitrepoRestriction. }
-          other { Only GitReporestriction allowedTargetnamespace is managed here. If you like to make additional changes navigate to GitRepoRestrictions} 
+          =0 { Setting allowedTargetNamespaces here will create a GitrepoRestriction. }
+          other { Only GitReporestriction.allowedTargetNamespaces is managed here. You can make additional changes} 
         }"
 footer:
   docs: Docs
