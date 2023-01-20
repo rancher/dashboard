@@ -12,7 +12,7 @@ describe('class Namespace', () => {
       ['c-whatever-system', true],
       ['whatever', false]
     ])('should return true if end with "-system', (name, expectation) => {
-      const namespace = new Namespace();
+      const namespace = new Namespace({});
 
       namespace.metadata = { ...namespace.metadata, name };
 
@@ -28,7 +28,7 @@ describe('class Namespace', () => {
       ['whatever', false],
       ['', false]
     ])('should return a value if has or not a name in the metadata', (name, expectation) => {
-      const namespace = new Namespace();
+      const namespace = new Namespace({});
 
       namespace.metadata = { ...namespace.metadata, name };
 
@@ -45,14 +45,14 @@ describe('class Namespace', () => {
   it.todo('should check if istioInstalled');
   it.todo('should check if injectionEnabled');
 
-  describe('handling Istio labels', () => {
+  describe('handling Istio  labels', () => {
     const save = jest.fn();
 
     it.each([
       { metadata: { name: '', labels: { 'istio-injection': 'whatever' } }, save },
       [{ metadata: { name: '', labels: { 'istio-injection': 'whatever' } }, save }],
     ])('should handle both data as list and single object and save', (data) => {
-      const namespace = new Namespace();
+      const namespace = new Namespace({});
 
       namespace.enableAutoInjection(data as unknown as Namespace);
 
@@ -61,7 +61,7 @@ describe('class Namespace', () => {
 
     it('should add auto injection label as enable', () => {
       const data = { metadata: { name: '', labels: { 'istio-injection': 'whatever' } }, save };
-      const namespace = new Namespace();
+      const namespace = new Namespace({});
 
       namespace.enableAutoInjection(data as unknown as Namespace);
 
@@ -70,7 +70,7 @@ describe('class Namespace', () => {
 
     it('should remove label on disable', () => {
       const data = { metadata: { name: '', labels: { 'istio-injection': 'whatever' } }, save };
-      const namespace = new Namespace();
+      const namespace = new Namespace({});
 
       namespace.enableAutoInjection(data as unknown as Namespace, false);
 
@@ -86,7 +86,7 @@ describe('class Namespace', () => {
       ['c-cluster-product-projectsnamespaces', true],
       ['c-cluster-product-resource', false],
     ])('should return the name %p if is Rancher (%p)', (name, isRancher) => {
-      const namespace = new Namespace();
+      const namespace = new Namespace({});
 
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
         isRancher,
@@ -97,7 +97,7 @@ describe('class Namespace', () => {
     });
 
     it('should return the name and resource if Harvester', () => {
-      const namespace = new Namespace();
+      const namespace = new Namespace({});
 
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({
         isRancher:      true,
