@@ -244,7 +244,16 @@ export default {
               </div>
               <div class="spacer" />
               <div>
-                <h3>{{ t('workload.container.titles.ports') }}</h3>
+                <h3>
+                  {{ t('workload.container.ports.expose') }}
+                  <i
+                    v-tooltip="t('workload.container.ports.toolTip')"
+                    class="icon icon-info"
+                  />
+                </h3>
+                <p class="padded">
+                  {{ t('workload.container.ports.description') }}
+                </p>
                 <div class="row">
                   <WorkloadPorts
                     v-model="allContainers[i].ports"
@@ -565,9 +574,7 @@ export default {
               type="button"
               class="btn-sm role-link"
               @click="addContainerBtn"
-            >
-              <i class="icon icon-plus" /> {{ t('workload.container.addContainer') }}
-            </button>
+            />
           </li>
         </template>
       </Tabbed>
@@ -634,5 +641,8 @@ export default {
     border-bottom: 1px solid var(--border);
     margin-bottom: 10px;
   }
+}
+.padded {
+  padding-bottom: 10px;
 }
 </style>
