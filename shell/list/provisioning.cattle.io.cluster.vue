@@ -169,7 +169,7 @@ export default {
       >
         <n-link
           :to="importLocation"
-          class="btn role-primary mr-10"
+          class="btn role-primary"
           data-testid="cluster-manager-list-import"
         >
           {{ t('cluster.importAction') }}
