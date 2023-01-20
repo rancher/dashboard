@@ -187,6 +187,10 @@ export default {
       } else {
         await this.value.save();
       }
+    },
+
+    setErrors(errors) {
+      this.errors = errors;
     }
   },
 };
