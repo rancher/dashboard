@@ -232,8 +232,7 @@ export default {
 
     stepOneRequires() {
       return !!this.value.metadata.name && !!this.refValue;
-    }
-
+    },
   },
 
   watch: {
@@ -497,6 +496,17 @@ export default {
         @change="onUpdateRepoName"
       />
 
+      <div class="row">
+        <div class="col span-6">
+          <Banner
+            color="info col span-6"
+          >
+            <div>
+              {{ t('fleet.gitRepo.repo.protocolBanner') }}
+            </div>
+          </Banner>
+        </div>
+      </div>
       <div
         class="row"
         :class="{'mt-20': isView}"
@@ -523,7 +533,6 @@ export default {
           />
         </div>
       </div>
-
       <SelectOrCreateAuthSecret
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"

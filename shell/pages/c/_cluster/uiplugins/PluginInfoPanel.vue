@@ -63,16 +63,18 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      this.versionError = false;
-      this.versionInfo = undefined;
-
       const versionName = version || this.info.displayVersion;
+
+      const isVersionNotCompatibleWithUi = this.info.versions?.find(v => v.version === versionName && !v.isCompatibleWithUi);
+
+      if (!this.info.chart || isVersionNotCompatibleWithUi) {
+        return;
+      }
 
       this.infoVersion = versionName;
 
-      if (!this.info.chart) {
-        return;
-      }
+      this.versionError = false;
+      this.versionInfo = undefined;
 
       try {
         this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
@@ -113,10 +115,12 @@ export default {
     <div
       v-if="showSlideIn"
       class="glass"
+      data-testid="extension-details-bg"
       @click="hide()"
     />
     <div
       class="slideIn"
+      data-testid="extension-details"
       :class="{'hide': false, 'slideIn__show': showSlideIn}"
     >
       <div
@@ -142,8 +146,11 @@ export default {
             >
           </div>
           <div class="plugin-title">
-            <h2 class="slideIn__header">
-              {{ info.name }}
+            <h2
+              class="slideIn__header"
+              data-testid="extension-details-title"
+            >
+              {{ info.label }}
             </h2>
             <p class="plugin-description">
               {{ info.description }}
@@ -153,6 +160,7 @@ export default {
             <div class="slideIn__header__buttons">
               <div
                 class="slideIn__header__button"
+                data-testid="extension-details-close"
                 @click="showSlideIn = false"
               >
                 <i class="icon icon-close" />
@@ -198,8 +206,9 @@ export default {
             :key="v.version"
           >
             <a
+              v-tooltip="v.requiredUiVersion ? t('plugins.info.requiresVersion', { version: v.requiredUiVersion }) : ''"
               class="version-link"
-              :class="{'version-active': v.version === infoVersion}"
+              :class="{'version-active': v.version === infoVersion, 'disabled': !v.isCompatibleWithUi}"
               @click="loadPluginVersionInfo(v.version)"
             >
               {{ v.version }}
@@ -224,8 +233,11 @@ export default {
         </div>
         <div v-if="!info.versions.length">
           <h3>
-            {{ t('plugins.version', { version: info.displayVersion }) }}
+            {{ t('plugins.info.versions') }}
           </h3>
+          <div class="version-link version-active version-builtin">
+            {{ info.displayVersion }}
+          </div>
         </div>
       </div>
     </div>
@@ -236,6 +248,7 @@ export default {
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 1;
 
     $slideout-width: 35%;
     $title-height: 50px;
@@ -344,6 +357,18 @@ export default {
         &.version-active {
           color: var(--link-text);
           background: var(--link);
+        }
+
+        &.disabled {
+          cursor: not-allowed;
+          color: var(--disabled-text) !important;
+          background-color: var(--disabled-bg) !important;
+          border-color: var(--disabled-bg) !important;
+          text-decoration: none !important;
+        }
+
+        &.version-builtin {
+          display: inline-block;
         }
       }
 

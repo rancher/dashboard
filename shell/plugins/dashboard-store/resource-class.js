@@ -37,6 +37,9 @@ import Vue from 'vue';
 
 import { normalizeType } from './normalize';
 
+import { ExtensionPoint, ActionLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+
 const STRING_LIKE_TYPES = [
   'string',
   'date',
@@ -851,7 +854,11 @@ export default class Resource {
 
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
-    const all = [
+    // get menu actions available by plugins configuration
+    const currentRoute = this.currentRouter().app._route;
+    const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
+
+    let all = [
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -898,6 +905,13 @@ export default class Resource {
         weight:     -10, // Delete always goes last
       },
     ];
+
+    // Extension actions get added to the end, so add a divider if there are any
+    if (extensionMenuActions.length) {
+      // Add a divider first
+      all.push({ divider: true });
+      all = all.concat(extensionMenuActions);
+    }
 
     return all;
   }
@@ -1042,9 +1056,16 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  /**
+   * Allow to handle the response of the save request
+   * @param {*} res Full request response
+   */
+  processSaveResponse(res) { }
+
   async _save(opt = {}) {
     delete this.__rehydrate;
     delete this.__clone;
+
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
@@ -1117,6 +1138,9 @@ export default class Resource {
 
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
+
+      // Allow to process response independently from the related models
+      this.processSaveResponse(res);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {

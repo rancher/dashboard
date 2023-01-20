@@ -6,7 +6,8 @@ const fs = require('fs-extra');
 const targets = {
   dev:   './node_modules/.bin/nuxt dev',
   nuxt:  './node_modules/.bin/nuxt',
-  build: './node_modules/.bin/nuxt build'
+  build: './node_modules/.bin/nuxt build',
+  clean: './node_modules/@rancher/shell/scripts/clean'
 };
 
 const files = [

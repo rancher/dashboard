@@ -301,7 +301,7 @@ export default {
             data-testid="changelog-banner"
             color="info whats-new"
           >
-            <div class="message">
+            <div>
               {{ t('landing.seeWhatsNew') }}
             </div>
             <a
@@ -320,11 +320,11 @@ export default {
           >
             <div class="col span-12">
               <Banner
-                color="set-login-page"
+                color="set-login-page mt-0"
                 :closable="true"
                 @close="closeSetLoginBanner()"
               >
-                <div class="message">
+                <div>
                   {{ t('landing.landingPrefs.title') }}
                 </div>
                 <a
@@ -461,8 +461,18 @@ export default {
       margin-left: 1.75%;
     }
   }
-  .banner.set-login-page .message, .whats-new .message  {
-    flex: 1;
+
+  .set-login-page, .whats-new {
+    > ::v-deep .banner__content {
+      display: flex;
+
+      > div {
+        flex: 1;
+      }
+      > a {
+        align-self: flex-end;
+      }
+    }
   }
 
   .banner.set-login-page {

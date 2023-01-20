@@ -238,12 +238,13 @@ export default {
       </Tab>
       <Tab
         name="pod-security-admission"
-        label-key="podSecurityAdmission.label"
-        :label="t('podSecurityAdmission.label')"
+        label-key="podSecurityAdmission.name"
+        :label="t('podSecurityAdmission.name')"
       >
         <PodSecurityAdmission
           :labels="value.labels"
           :mode="mode"
+          labels-prefix="pod-security.kubernetes.io/"
           @updateLabels="value.setLabels($event)"
         />
       </Tab>

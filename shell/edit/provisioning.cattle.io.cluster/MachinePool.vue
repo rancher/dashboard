@@ -152,6 +152,20 @@ export default {
 
         return errors;
       }
+    },
+    // handle emitted matched machine inventories on selector so that machine count
+    // on machine pool can be kept up to date
+    // (only used on Elemental because it comes from "machineinventoryselectortemplate" machine-config)
+    updateMachineCount(val) {
+      this.value.pool.quantity = val || 1;
+    },
+
+    expandAdvanced() {
+      const advancedComponent = this.$refs.advanced;
+
+      if (advancedComponent && !advancedComponent.show) {
+        advancedComponent.toggle();
+      }
     }
   }
 };
@@ -216,6 +230,8 @@ export default {
       :pool-index="idx"
       :machine-pools="machinePools"
       @error="e=>errors = e"
+      @updateMachineCount="updateMachineCount"
+      @expandAdvanced="expandAdvanced"
     />
     <Banner
       v-else-if="value.configMissing"
@@ -229,6 +245,7 @@ export default {
     />
 
     <AdvancedSection
+      ref="advanced"
       :mode="mode"
       class="advanced"
     >

@@ -1,9 +1,11 @@
 {
   "name": "harvester-manager",
-  "description": "harvester-manager plugin",
+  "description": "Provides the Virtualization Management feature in Rancher Manager",
   "version": "0.1.0",
   "private": false,
-  "rancher": true,
+  "rancher": {
+    "catalog.cattle.io/display-name": "Virtualization Manager"
+  },
   "scripts": {
     "dev": "./node_modules/.bin/nuxt dev",
     "nuxt": "./node_modules/.bin/nuxt"

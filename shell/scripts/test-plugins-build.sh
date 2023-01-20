@@ -91,6 +91,10 @@ ${SHELL_DIR}/scripts/publish-shell.sh
 yarn build:lib
 yarn publish:lib
 
+# We pipe into cat for cleaner logging - we need to set pipefail
+# to ensure the build fails in these cases
+set -o pipefail
+
 if [ "${SKIP_STANDALONE}" == "false" ]; then
   DIR=$(mktemp -d)
   pushd $DIR > /dev/null

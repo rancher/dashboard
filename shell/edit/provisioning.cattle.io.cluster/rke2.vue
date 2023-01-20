@@ -67,6 +67,7 @@ import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
+import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -138,6 +139,10 @@ export default {
         hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
       }
 
+      if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
+        hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+      }
+
       // Get the latest versions from the global settings if possible
       const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
       const defaultRke2Setting = globalSettings.find(setting => setting.id === 'rke2-default-version') || {};
@@ -159,6 +164,7 @@ export default {
       const res = await allHash(hash);
 
       this.allPSPs = res.allPSPs || [];
+      this.allPSAs = res.allPSAs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
 
@@ -232,6 +238,10 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
+    if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
+      set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+    }
+
     await this.initAddons();
     await this.initRegistry();
 
@@ -268,10 +278,15 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
+    // Store the initial PSP template name, so we can set it back if needed
+    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
+    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
       allPSPs:                         null,
+      allPSAs:                         [],
       nodeComponent:                   null,
       credentialId:                    null,
       credential:                      null,
@@ -297,6 +312,11 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
+      lastDefaultPodSecurityPolicyTemplateName,
+      previousKubernetesVersion,
+      harvesterVersion:      '',
+      cisOverride:           false,
+      cisPsaChangeBanner:    false,
     };
   },
 
@@ -310,6 +330,10 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    isElementalCluster() {
+      return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
     advancedTitleAlt() {
@@ -330,9 +354,34 @@ export default {
       return this.value.agentConfig;
     },
 
-    // kubeletConfigs() {
-    //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
-    // },
+    /**
+     * Define introduction of PSA and return need of PSA templates based on min k8s version
+     */
+    needsPSA() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
+
+      return isRequiredVersion;
+    },
+
+    /**
+     * Define PSP deprecation and restrict use of PSP based on min k8s version
+     */
+    needsPSP() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return isRequiredVersion;
+    },
+
+    /**
+     * Define introduction of Rancher defined PSA templates
+     */
+    hasPsaTemplates() {
+      return !this.needsPSP;
+    },
 
     unsupportedSelectorConfig() {
       let global = 0;
@@ -418,13 +467,25 @@ export default {
     },
 
     profileOptions() {
-      const out = (this.agentArgs.profile?.options || []).map((x) => {
+      const out = (this.agentArgs?.profile?.options || []).map((x) => {
         return { label: x, value: x };
       });
 
-      out.unshift({ label: '(None)', value: '' });
+      out.unshift({
+        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
+        value: ''
+      });
 
       return out;
+    },
+
+    /**
+     * Allow to display override if PSA is needed and profile is set
+     */
+    hasCisOverride() {
+      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA &&
+        // Also check other cases on when to display the override
+        this.hasPsaTemplates && this.showCisProfile && this.isCisSupported;
     },
 
     pspOptions() {
@@ -432,7 +493,10 @@ export default {
         return null;
       }
 
-      const out = [{ label: 'RKE2 Default', value: '' }];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
+        value: ''
+      }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
@@ -450,6 +514,62 @@ export default {
       }
 
       return out;
+    },
+
+    /**
+     * Disable PSA if CIS hardening is enabled, except override
+     */
+    isPsaDisabled() {
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+
+      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates && this.isCisSupported;
+    },
+
+    /**
+     * Get the default label for the PSA template option
+     */
+    defaultPsaOptionLabel() {
+      const optionCase = !this.needsPSP ? 'default' : 'none';
+
+      return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
+    },
+
+    /**
+     * Convert PSA templates into options, sorting and flagging if any selected
+     */
+    psaOptions() {
+      if ( !this.needsPSA ) {
+        return [];
+      }
+      const out = [{
+        label: this.defaultPsaOptionLabel,
+        value: ''
+      }];
+
+      if ( this.allPSAs ) {
+        for ( const psa of this.allPSAs ) {
+          out.push({
+            label: psa.nameDisplay,
+            value: psa.id,
+          });
+        }
+      }
+      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName;
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
+    /**
+     * Check if current CIS profile is required and listed in the options
+     */
+    isCisSupported() {
+      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+
+      return !cisProfile || this.profileOptions.map(option => option.value).includes(cisProfile);
     },
 
     disableOptions() {
@@ -512,11 +632,7 @@ export default {
     },
 
     haveArgInfo() {
-      if ( this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs ) {
-        return true;
-      }
-
-      return false;
+      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
     },
 
     serverArgs() {
@@ -532,11 +648,11 @@ export default {
     },
 
     showCisProfile() {
-      return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
     },
 
     needCredential() {
-      if ( this.provider === 'custom' || this.provider === 'import' || this.mode === _VIEW ) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW ) {
         return false;
       }
 
@@ -556,13 +672,17 @@ export default {
     },
 
     machineConfigSchema() {
+      let schema;
+
       if ( !this.hasMachinePools ) {
         return null;
+      } else if (this.isElementalCluster) {
+        schema = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+      } else {
+        schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`);
-
-      return schema;
+      return this.$store.getters['management/schemaFor'](schema);
     },
 
     nodeTotals() {
@@ -821,6 +941,7 @@ export default {
     },
 
     isHarvesterIncompatible() {
+      const CompareVersion = '<v1.2';
       let ccmRke2Version = (this.chartVersions['harvester-cloud-provider'] || {})['version'];
       let csiRke2Version = (this.chartVersions['harvester-csi-driver'] || {})['version'];
 
@@ -836,8 +957,12 @@ export default {
       }
 
       if (ccmVersion && csiVersion) {
-        if (semver.satisfies(ccmRke2Version, ccmVersion) &&
-            semver.satisfies(csiRke2Version, csiVersion)) {
+        if (semver.satisfies(this.harvesterVersion, CompareVersion) || !(this.harvesterVersion || '').startsWith('v')) {
+          // When harveste version is less than `CompareVersion`, compatibility is not determined,
+          // At the same time, version numbers like this will not be checked: master-14bbee2c-head
+          return false;
+        } else if (semver.satisfies(ccmRke2Version, ccmVersion) &&
+          semver.satisfies(csiRke2Version, csiVersion)) {
           return false;
         } else {
           return true;
@@ -953,8 +1078,16 @@ export default {
 
       if ( existing?.length ) {
         for ( const pool of existing ) {
-          const type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          let type;
+
+          if (this.isElementalCluster) {
+            type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else {
+            type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          }
+
           let config;
+          let configMissing = false;
 
           if ( this.$store.getters['management/canList'](type) ) {
             try {
@@ -964,6 +1097,12 @@ export default {
               });
             } catch (e) {
               // Some users can't see the config, that's ok.
+              // we will display a banner for a 404 only for elemental
+              if (e?.status === 404) {
+                if (this.isElementalCluster) {
+                  configMissing = true;
+                }
+              }
             }
           }
 
@@ -977,6 +1116,7 @@ export default {
             update: true,
             pool:   clone(pool),
             config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
+            configMissing
           });
         }
       }
@@ -1024,6 +1164,11 @@ export default {
       if (this.provider === 'vmwarevsphere') {
         pool.pool.machineOS = 'linux';
       }
+
+      if (this.isElementalCluster) {
+        pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
+      }
+
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
@@ -1096,6 +1241,11 @@ export default {
           entry.config = await entry.config.save();
         }
 
+        // Ensure Elemental clusters have a hostname prefix
+        if (this.isElementalCluster && !entry.pool.hostnamePrefix ) {
+          entry.pool.hostnamePrefix = `${ prefix }-`;
+        }
+
         finalPools.push(entry.pool);
       }
 
@@ -1121,7 +1271,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId);
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1215,6 +1365,7 @@ export default {
             url:    `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
             method: 'POST',
             data:   {
+              csiClusterRoleName: 'harvesterhci.io:csi-driver',
               clusterRoleName:    'harvesterhci.io:cloudprovider',
               namespace,
               serviceAccountName: this.value.metadata.name,
@@ -1383,7 +1534,7 @@ export default {
         }
       }
 
-      if ( !this.serverConfig.profile ) {
+      if ( !this.serverConfig?.profile ) {
         set(this.serverConfig, 'profile', null);
       }
     },
@@ -1644,7 +1795,10 @@ export default {
         const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.SETTING }s` });
 
         const version = (res?.data || []).find(s => s.id === 'harvester-csi-ccm-versions');
+        // get harvester server-version
+        const serverVersion = (res?.data || []).find(s => s.id === 'server-version');
 
+        this.harvesterVersion = serverVersion.value;
         if (version) {
           this.harvesterVersionRange = JSON.parse(version.value || version.default || '{}');
         } else {
@@ -1661,6 +1815,29 @@ export default {
         this.initRegistry();
       }
     },
+
+    /**
+     * Reset PSA on several input changes for given conditions
+     */
+    togglePsaDefault() {
+      // This option is created from the server and is guaranteed to exist #8032
+      const hardcodedTemplate = 'rancher-restricted';
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+
+      if (!this.cisOverride) {
+        if (this.hasPsaTemplates && cisValue) {
+          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
+        }
+
+        this.cisPsaChangeBanner = this.hasPsaTemplates;
+      }
+    },
+
+    handleCisChange() {
+      this.togglePsaDefault();
+      this.updateCisProfile();
+    },
+
     updateCisProfile() {
       // If the user selects any Worker CIS Profile,
       // protect-kernel-defaults should be set to false
@@ -1672,7 +1849,41 @@ export default {
       } else {
         set(this.agentConfig, 'protect-kernel-defaults', false);
       }
-    }
+    },
+
+    /**
+     * Handle k8s changes side effects, like PSP and PSA resets
+     */
+    handleKubernetesChange(value) {
+      if (value) {
+        this.togglePsaDefault();
+        const version = VERSION.parse(value);
+        const major = parseInt(version?.[0] || 0);
+        const minor = parseInt(version?.[1] || 0);
+
+        // Reset PSA if not RKE2
+        if (!value.includes('rke2')) {
+          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+        } else {
+          // Reset PSP if it's legacy due k8s version 1.25+
+          if (major === 1 && minor >= 25) {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+          } else {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
+          }
+
+          this.previousKubernetesVersion = value;
+        }
+      }
+    },
+
+    /**
+     * Keep last PSP value
+     */
+    handlePspChange(value) {
+      this.lastDefaultPodSecurityPolicyTemplateName = value;
+    },
+
   },
 };
 </script>
@@ -1707,13 +1918,7 @@ export default {
         v-if="isEdit"
         color="warning"
       >
-        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', true)" />
-      </Banner>
-      <Banner
-        v-if="isEdit && displayInvalidPspsBanner"
-        color="warning"
-      >
-        <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
+        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
       </Banner>
     </div>
     <SelectCredential
@@ -1748,6 +1953,7 @@ export default {
         {{ appsOSWarning }}
       </Banner>
 
+      <!-- Pools Extras -->
       <template v-if="hasMachinePools">
         <div class="clearfix">
           <h2
@@ -1781,6 +1987,7 @@ export default {
           </div>
         </div>
 
+        <!-- Extra Tabs for Machine Pool -->
         <Tabbed
           ref="pools"
           :side-tabs="true"
@@ -1810,17 +2017,19 @@ export default {
             </Tab>
           </template>
           <div v-if="!unremovedMachinePools.length">
-            You do not have any machine pools defined, click the plus to add one.
+            {{ t('cluster.machinePool.noPoolsDisclaimer') }}
           </div>
         </Tabbed>
         <div class="spacer" />
       </template>
 
+      <!-- Cluster Tabs -->
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed
         :side-tabs="true"
         class="min-height"
       >
+        <!-- Basic -->
         <Tab
           name="basic"
           label-key="cluster.tabs.basic"
@@ -1830,7 +2039,7 @@ export default {
           <Banner
             v-if="!haveArgInfo"
             color="warning"
-            label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor."
+            :label="t('cluster.banner.haveArgInfo')"
           />
           <Banner
             v-if="showk8s21LegacyWarning"
@@ -1852,6 +2061,7 @@ export default {
                 :mode="mode"
                 :options="versionOptions"
                 label-key="cluster.kubernetesVersion.label"
+                @input="handleKubernetesChange($event)"
               />
               <Checkbox
                 v-model="showDeprecatedPatchVersions"
@@ -1926,37 +2136,108 @@ export default {
           <h3>
             {{ t('cluster.rke2.security.header') }}
           </h3>
-          <div class="row">
-            <div class="col span-6">
+          <Banner
+            v-if="isEdit && displayInvalidPspsBanner"
+            color="warning"
+          >
+            <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
+          </Banner>
+          <Banner
+            v-else-if="isCreate && !needsPSP"
+            color="info"
+          >
+            <span v-html="t('cluster.banner.removedPsp', {}, true)" />
+          </Banner>
+          <Banner
+            v-else-if="isCreate"
+            color="info"
+          >
+            <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
+          </Banner>
+
+          <Banner
+            v-if="showCisProfile && !isCisSupported"
+            color="info"
+            :label="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)"
+          />
+
+          <div class="row mb-10">
+            <div
+              v-if="pspOptions && needsPSP"
+              class="col span-6"
+            >
+              <!-- PSP template selector -->
               <LabeledSelect
-                v-if="pspOptions"
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+                data-testid="rke2-custom-edit-psp"
                 :mode="mode"
                 :options="pspOptions"
                 :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
+                @input="handlePspChange($event)"
               />
             </div>
+
             <div
               v-if="showCisProfile"
               class="col span-6"
             >
               <LabeledSelect
-                v-if="serverArgs.profile"
+                v-if="serverArgs && serverArgs.profile"
                 v-model="serverConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
-                label="Server CIS Profile"
+                :label="t('cluster.rke2.cis.sever')"
+                @input="handleCisChange"
               />
               <LabeledSelect
-                v-else-if="agentArgs.profile"
+                v-else-if="agentArgs && agentArgs.profile"
                 v-model="agentConfig.profile"
+                data-testid="rke2-custom-edit-cis-agent"
                 :mode="mode"
                 :options="profileOptions"
-                :label="t('cis.workerProfile')"
-                @input="updateCisProfile"
+                :label="t('cluster.rke2.cis.agent')"
+                @input="handleCisChange"
               />
             </div>
           </div>
+
+          <template v-if="hasCisOverride">
+            <Checkbox
+              v-model="cisOverride"
+              :mode="mode"
+              :label="t('cluster.rke2.cis.override')"
+              @input="togglePsaDefault"
+            />
+
+            <Banner
+              v-if="cisOverride"
+              color="warning"
+              :label="t('cluster.rke2.banner.cisOverride')"
+            />
+            <Banner
+              v-if="cisPsaChangeBanner && !cisOverride"
+              color="info"
+              :label="t('cluster.rke2.banner.psaChange')"
+            />
+          </template>
+
+          <div
+            v-if="needsPSA"
+            class="row mb-10 mt-10"
+          >
+            <div class="col span-6">
+              <!-- PSA template selector -->
+              <LabeledSelect
+                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
+                :mode="mode"
+                data-testid="rke2-custom-edit-psa"
+                :options="psaOptions"
+                :disabled="isPsaDisabled"
+                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
+              />
+            </div>
+          </div>
+
           <div class="row">
             <div class="col span-12 mt-20">
               <Checkbox
@@ -2010,6 +2291,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Member Roles -->
         <Tab
           v-if="canManageMembers"
           name="memberRoles"
@@ -2029,6 +2311,7 @@ export default {
           />
         </Tab>
 
+        <!-- etcd -->
         <Tab
           name="etcd"
           label-key="cluster.tabs.etcd"
@@ -2106,6 +2389,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Networking -->
         <Tab
           v-if="haveArgInfo"
           name="networking"
@@ -2207,6 +2491,7 @@ export default {
           />
         </Tab>
 
+        <!-- Upgrade -->
         <Tab
           name="upgrade"
           label-key="cluster.tabs.upgrade"
@@ -2251,6 +2536,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Registries -->
         <Tab
           name="registry"
           label-key="cluster.tabs.registry"
@@ -2334,6 +2620,7 @@ export default {
           </template>
         </Tab>
 
+        <!-- Add-on Config -->
         <Tab
           name="addons"
           label-key="cluster.tabs.addons"
@@ -2397,6 +2684,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Advanced -->
         <Tab
           v-if="haveArgInfo || agentArgs['protect-kernel-defaults']"
           name="advanced"

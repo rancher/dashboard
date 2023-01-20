@@ -187,11 +187,7 @@ export default class Namespace extends SteveModel {
   }
 
   get _detailLocation() {
-    let _detailLocation = super._detailLocation;
-
-    if (this.$rootGetters['currentProduct'].hideNamespaceLocation) {
-      _detailLocation = false;
-    }
+    const _detailLocation = super._detailLocation;
 
     return _detailLocation;
   }
@@ -259,5 +255,9 @@ export default class Namespace extends SteveModel {
       this.metadata.labels = this.metadata.labels || {};
       this.metadata.labels[PROJECT] = project;
     }
+  }
+
+  get hideDetailLocation() {
+    return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
   }
 }

@@ -112,6 +112,10 @@ export default {
       // is updated if a new project is created or removed.
       const projectsInAllClusters = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
+      if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore && this.$store.getters[`${ this.currentProduct.inStore }/filterProject`]) {
+        return this.$store.getters[`${ this.currentProduct.inStore }/filterProject`];
+      }
+
       const clustersInProjects = projectsInAllClusters.filter(project => project.spec.clusterName === clusterId);
 
       return clustersInProjects;
@@ -235,13 +239,17 @@ export default {
     }
   },
   methods: {
-    getPSA(row) {
+    /**
+     * Get PSA HTML to be displayed in the tooltips
+     */
+    getPsaTooltip(row) {
       const dictionary = row.psaTooltipsDescription;
       const list = Object.values(dictionary)
         .sort()
         .map(text => `<li>${ text }</li>`).join('');
+      const title = `<p>${ this.t('podSecurityAdmission.name') }: </p>`;
 
-      return `<ul class="psa-tooltip">${ list }</ul>`;
+      return `${ title }<ul class="psa-tooltip">${ list }</ul>`;
     },
 
     userIsFilteringForSpecificNamespaceOrProject() {
@@ -399,7 +407,7 @@ export default {
       <template #cell:name="{row}">
         <div class="namespace-name">
           <n-link
-            v-if="row.detailLocation"
+            v-if="row.detailLocation && !row.hideDetailLocation"
             :to="row.detailLocation"
           >
             {{ row.name }}
@@ -409,7 +417,7 @@ export default {
           </span>
           <i
             v-if="row.hasSystemLabels"
-            v-tooltip="getPSA(row)"
+            v-tooltip="getPsaTooltip(row)"
             class="icon icon-lock ml-5"
           />
         </div>

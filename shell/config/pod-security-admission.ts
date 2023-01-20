@@ -18,7 +18,7 @@ export const PSALevels: PSALevel[] = ['privileged', 'baseline', 'restricted'];
 /**
  * Used for restrictions in templates
  */
-export const PSADimensions: PSADimension[] = ['Usernames', 'RuntimeClassNames', 'Namespaces'];
+export const PSADimensions: PSADimension[] = ['usernames', 'runtimeClasses', 'namespaces'];
 
 /**
  * For the UI, we prefer use this value as default one

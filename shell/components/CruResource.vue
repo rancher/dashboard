@@ -75,6 +75,14 @@ export default {
       default: () => []
     },
 
+    /**
+     * Set of maps to convert error messages to something more user friendly and apply icons
+     */
+    errorsMap: {
+      type:    Object,
+      default: null
+    },
+
     // Is the edit as yaml button allowed
     canYaml: {
       type:    Boolean,
@@ -128,6 +136,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'form'
+    },
+
+    description: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -152,7 +165,7 @@ export default {
         4: '18px',
         5: '16px',
         6: '14px'
-      }
+      },
     };
   },
 
@@ -224,6 +237,19 @@ export default {
      */
     hasErrors() {
       return this.errors?.length && Array.isArray(this.errors);
+    },
+
+    /**
+     * Replace returned string with new picked value and icon
+     */
+    mappedErrors() {
+      return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: {
+          message: error,
+          icon:    null
+        }
+      }), {});
     },
   },
 
@@ -358,6 +384,12 @@ export default {
 <template>
   <section class="cru">
     <slot name="noticeBanner" />
+    <p
+      v-if="description"
+      class="description"
+    >
+      {{ description }}
+    </p>
     <form
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
@@ -373,8 +405,8 @@ export default {
           v-for="(err, i) in errors"
           :key="i"
           color="error"
-          :label="stringify(err)"
-          :stacked="true"
+          :label="stringify(mappedErrors[err].message)"
+          :icon="mappedErrors[err].icon"
           :closable="true"
           @close="closeError(i)"
         />
@@ -619,7 +651,7 @@ export default {
       </template>
       <!------ YAML ------>
       <section
-        v-else
+        v-else-if="showYaml"
         class="cru-resource-yaml-container resource-container cru__content"
       >
         <ResourceYaml
@@ -803,6 +835,11 @@ form.create-resource-container .cru {
     background-color: var(--header-bg);
     margin: 10px 0;
   }
+}
+
+.description {
+  margin-bottom: 15px;
+  margin-top: 5px;
 }
 
 </style>

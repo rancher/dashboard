@@ -3,7 +3,8 @@ import {
   CAPI,
   CATALOG,
   NORMAN,
-  HCI
+  HCI,
+  MANAGEMENT
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
@@ -64,6 +65,7 @@ export function init(store) {
     CAPI.RANCHER_CLUSTER,
     'cloud-credentials',
     'drivers',
+    'pod-security-policies',
   ]);
 
   configureType(CAPI.RANCHER_CLUSTER, {
@@ -118,6 +120,7 @@ export function init(store) {
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
   weightType(CATALOG.CLUSTER_REPO, 0, true);
+  weightType(MANAGEMENT.PSA, 5, true);
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
@@ -125,6 +128,7 @@ export function init(store) {
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
     'pod-security-policies',
+    MANAGEMENT.PSA
   ], 'advanced');
 
   weightGroup('advanced', -1, true);

@@ -96,6 +96,7 @@ export default {
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
     if (this.showCustomRegistry) {
+      // Note: Cluster scoped registry is only supported for node driver clusters
       this.clusterRegistry = await this.getClusterRegistry();
       this.globalRegistry = await this.getGlobalRegistry();
       this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
@@ -792,7 +793,7 @@ export default {
 
       if (hasPermissionToSeeProvCluster) {
         const mgmCluster = this.$store.getters['currentCluster'];
-        const provCluster = mgmCluster ? await this.$store.dispatch('management/find', {
+        const provCluster = mgmCluster?.provClusterId ? await this.$store.dispatch('management/find', {
           type: CAPI.RANCHER_CLUSTER,
           id:   mgmCluster.provClusterId
         }) : {};
@@ -843,10 +844,8 @@ export default {
     },
 
     async loadValuesComponent() {
-      // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart.
-
       // The const component is a string, for example, 'monitoring'.
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
       // Load a values component for the UI if it is named in the Helm chart.
       if ( component ) {
@@ -871,7 +870,7 @@ export default {
     },
 
     async loadChartSteps() {
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
       if ( component ) {
         const steps = await this.$store.getters['catalog/chartSteps'](component);
@@ -1348,13 +1347,15 @@ export default {
             color="info"
             class="description"
           >
-            <span>{{ step1Description }}</span>
-            <span
-              v-if="namespaceNewAllowed"
-              class="mt-10"
-            >
-              {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
-            </span>
+            <div>
+              <span>{{ step1Description }}</span>
+              <span
+                v-if="namespaceNewAllowed"
+                class="mt-10"
+              >
+                {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
+              </span>
+            </div>
           </Banner>
           <div
             v-if="requires.length || warnings.length"
@@ -1473,10 +1474,11 @@ export default {
 &nbsp;
           </div>
           <Banner
-            v-if="isNamespaceNew"
+            v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
-            v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) "
-          />
+          >
+            <div v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
+          </Banner>
         </div>
       </template>
       <template #clusterTplVersion>

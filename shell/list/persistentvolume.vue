@@ -25,11 +25,10 @@ export default {
   },
 
   async fetch() {
-    const inStore = this.$store.getters['currentStore']();
-    const pvcPromise = this.$store.dispatch(`${ inStore }/findAll`, { type: PVC });
+    this.$initializeFetchData(this.resource);
 
+    this.$fetchType(PVC);
     await this.$fetchType(this.resource);
-    await pvcPromise;
   }
 };
 </script>

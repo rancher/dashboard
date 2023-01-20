@@ -20,6 +20,7 @@ import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
+import DraggableZone from '@shell/components/DraggableZone';
 import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@shell/config/types';
@@ -36,7 +37,7 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
-import { DraggableZone } from '@components/Utils/DraggableZone';
+import { BLANK_CLUSTER } from '@shell/store';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -286,7 +287,7 @@ export default {
 
     async currentProduct(a, b) {
       if ( !isEqual(a, b) ) {
-        if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
+        if ((a.inStore !== b.inStore || a.inStore !== 'cluster') && this.clusterId && a.name) {
           const route = {
             name:   'c-cluster-product',
             params: {
@@ -333,6 +334,9 @@ export default {
 
   methods: {
     async setClusterAsLastRoute() {
+      if (!this.clusterId || this.clusterId === BLANK_CLUSTER) {
+        return;
+      }
       const route = {
         name:   this.$route.name,
         params: {
@@ -365,48 +369,9 @@ export default {
       });
     },
 
-    getGroups() {
-      if ( this.gettingGroups ) {
-        return;
-      }
-      this.gettingGroups = true;
-
-      if ( !this.clusterReady ) {
-        clear(this.groups);
-        this.gettingGroups = false;
-
-        return;
-      }
-
+    getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap) {
       const clusterId = this.$store.getters['clusterId'];
-      const currentProduct = this.$store.getters['productId'];
       const currentType = this.$route.params.resource || '';
-      let namespaces = null;
-
-      if ( !this.$store.getters['isAllNamespaces'] ) {
-        const namespacesObject = this.$store.getters['namespaces']();
-
-        namespaces = Object.keys(namespacesObject);
-      }
-
-      // Always show cluster-level types, regardless of the namespace filter
-      const namespaceMode = 'both';
-      const out = [];
-      const loadProducts = this.isExplorer ? [EXPLORER] : [];
-      const productMap = this.activeProducts.reduce((acc, p) => {
-        return { ...acc, [p.name]: p };
-      }, {});
-
-      if ( this.isExplorer ) {
-        for ( const product of this.activeProducts ) {
-          if ( product.inStore === 'cluster' ) {
-            addObject(loadProducts, product.name);
-          }
-        }
-      }
-
-      // This should already have come into the list from above, but in case it hasn't...
-      addObject(loadProducts, currentProduct);
 
       for ( const productId of loadProducts ) {
         const modes = [BASIC];
@@ -443,7 +408,9 @@ export default {
           }
         }
       }
+    },
 
+    getExplorerGroups(out) {
       if ( this.isExplorer ) {
         const allNavLinks = this.allNavLinks;
         const toAdd = [];
@@ -509,6 +476,55 @@ export default {
 
         addObjects(out, toAdd);
       }
+    },
+
+    /**
+     * Fetch navigation by creating groups from product schemas
+     */
+    getGroups() {
+      if ( this.gettingGroups ) {
+        return;
+      }
+      this.gettingGroups = true;
+
+      if ( !this.clusterReady ) {
+        clear(this.groups);
+        this.gettingGroups = false;
+
+        return;
+      }
+
+      const currentProduct = this.$store.getters['productId'];
+      let namespaces = null;
+
+      if ( !this.$store.getters['isAllNamespaces'] ) {
+        const namespacesObject = this.$store.getters['namespaces']();
+
+        namespaces = Object.keys(namespacesObject);
+      }
+
+      // Always show cluster-level types, regardless of the namespace filter
+      const namespaceMode = 'both';
+      const out = [];
+      const loadProducts = this.isExplorer ? [EXPLORER] : [];
+
+      const productMap = this.activeProducts.reduce((acc, p) => {
+        return { ...acc, [p.name]: p };
+      }, {});
+
+      if ( this.isExplorer ) {
+        for ( const product of this.activeProducts ) {
+          if ( product.inStore === 'cluster' ) {
+            addObject(loadProducts, product.name);
+          }
+        }
+      }
+
+      // This should already have come into the list from above, but in case it hasn't...
+      addObject(loadProducts, currentProduct);
+
+      this.getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap);
+      this.getExplorerGroups(out);
 
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
       this.gettingGroups = false;

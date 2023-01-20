@@ -25,8 +25,8 @@ export default {
   },
 
   async fetch() {
-    await this.$fetchType(FLEET.TOKEN);
-    this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    await this.$fetchType(this.resource);
+    this.allFleet = await this.$fetchType(FLEET.CLUSTER);
   },
 
   data() {
