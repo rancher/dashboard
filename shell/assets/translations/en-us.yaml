@@ -2231,6 +2231,9 @@ growl:
   reconnected:
     message: "The connection to {url} was restored on attempt #{tries}."
     title: Websocket Reconnected
+  podSecurity:
+    message: "The creation of this Pod would violate existing restricted policies for the adopted Namespace"
+    title: PodSecurity violation
 
 hpa:
   detail:
