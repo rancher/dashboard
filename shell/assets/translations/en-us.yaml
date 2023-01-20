@@ -1232,7 +1232,20 @@ cluster:
       memory: Memory
       disk: Disk
       image: Image
-      network: Network Name
+      network: 
+        title: Networks
+        network: Network
+        addNetwork: Add Network
+        networkName: Network Name
+        macAddress: Mac Address
+        macFormat: 'Invalid MAC address format.'
+      volume:
+        title: Volumes
+        volume: Volume
+        imageVolume: Image Volume
+        addVolume: Add Volume
+        addVMImage: Add VM Image
+        storageClass: Storage Class
       sshUser: SSH User
       userData:
         label: User Data Template
