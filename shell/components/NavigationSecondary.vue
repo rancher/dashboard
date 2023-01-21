@@ -417,6 +417,21 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  ::v-deep > .package H6, .package .root.child .label {
+    margin: 0;
+    letter-spacing: normal;
+    line-height: initial;
+
+    A { padding-left: 0; }
+  }
+
+  NAV {
+    position: relative;
+    background-color: var(--nav-bg);
+    border-right: var(--nav-border-size) solid var(--nav-border);
+    overflow-y: auto;
+  }
+
   NAV .tools {
     display: flex;
     margin: 10px;
