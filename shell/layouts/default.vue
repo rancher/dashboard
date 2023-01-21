@@ -1,5 +1,4 @@
 <script>
-import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
 import {
   mapPref,
@@ -20,15 +19,9 @@ import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import DraggableZone from '@shell/components/DraggableZone';
-import { COUNT, SCHEMA, MANAGEMENT, UI } from '@shell/config/types';
-import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
-import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
+import { COUNT, SCHEMA, MANAGEMENT } from '@shell/config/types';
 import isEqual from 'lodash/isEqual';
-import { ucFirst } from '@shell/utils/string';
 import { markSeenReleaseNotes } from '@shell/utils/version';
-import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
@@ -61,8 +54,6 @@ export default {
   data() {
     return {
       noLocaleShortcut: process.env.dev || false,
-      groups:           [],
-      gettingGroups:    false,
       wantNavSync:      false,
       unwatchPin:       undefined,
       wmPin:            null,
@@ -79,7 +70,6 @@ export default {
     ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
-    ...mapGetters('type-map', ['activeProducts']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
@@ -120,14 +110,6 @@ export default {
       }
 
       return this.$store.getters[`${ product.inStore }/all`](SCHEMA);
-    },
-
-    allNavLinks() {
-      if ( !this.clusterId || !this.$store.getters['cluster/schemaFor'](UI.NAV_LINK) ) {
-        return [];
-      }
-
-      return this.$store.getters['cluster/all'](UI.NAV_LINK);
     },
 
     counts() {
@@ -171,75 +153,10 @@ export default {
   },
 
   watch: {
-    counts(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
-    allSchemas(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
-    allNavLinks(a, b) {
-      if ( a !== b ) {
-        this.queueUpdate();
-      }
-    },
-
-    favoriteTypes(a, b) {
-      if ( !isEqual(a, b) ) {
-        this.queueUpdate();
-      }
-    },
-
-    locale(a, b) {
-      if ( !isEqual(a, b) ) {
-        this.getGroups();
-      }
-    },
-
-    productId(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
     clusterId(a, b) {
       if ( !isEqual(a, b) ) {
         // Store the last visited route when the cluster changes
         this.setClusterAsLastRoute();
-      }
-    },
-
-    namespaceMode(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    namespaces(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    clusterReady(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
-      }
-    },
-
-    product(a, b) {
-      if ( !isEqual(a, b) ) {
-        // Immediately update because you'll see it come in later
-        this.getGroups();
       }
     },
 
@@ -266,10 +183,6 @@ export default {
   },
 
   async created() {
-    this.queueUpdate = debounce(this.getGroups, 500);
-
-    this.getGroups();
-
     await this.$store.dispatch('prefs/setLastVisited', this.$route);
   },
 
@@ -316,167 +229,6 @@ export default {
         name:   this.$route.name,
         params: this.$route.params
       };
-    },
-
-    getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap) {
-      const clusterId = this.$store.getters['clusterId'];
-      const currentType = this.$route.params.resource || '';
-
-      for ( const productId of loadProducts ) {
-        const modes = [BASIC];
-
-        if ( productId === NAVLINKS ) {
-          // Navlinks produce their own top-level nav items so don't need to show it as a product.
-          continue;
-        }
-
-        if ( productId === EXPLORER ) {
-          modes.push(FAVORITE);
-          modes.push(USED);
-        }
-
-        for ( const mode of modes ) {
-          const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
-
-          const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
-
-          if ( productId === EXPLORER || !this.isExplorer ) {
-            addObjects(out, more);
-          } else {
-            const root = more.find(x => x.name === 'root');
-            const other = more.filter(x => x.name !== 'root');
-
-            const group = {
-              name:     productId,
-              label:    this.$store.getters['i18n/withFallback'](`product.${ productId }`, null, ucFirst(productId)),
-              children: [...(root?.children || []), ...other],
-              weight:   productMap[productId]?.weight || 0,
-            };
-
-            addObject(out, group);
-          }
-        }
-      }
-    },
-
-    getExplorerGroups(out) {
-      if ( this.isExplorer ) {
-        const allNavLinks = this.allNavLinks;
-        const toAdd = [];
-        const haveGroup = {};
-
-        for ( const obj of allNavLinks ) {
-          if ( !obj.link ) {
-            continue;
-          }
-
-          const groupLabel = obj.spec.group;
-          const groupSlug = obj.normalizedGroup;
-
-          const entry = {
-            name:        `link-${ obj._key }`,
-            link:        obj.link,
-            target:      obj.actualTarget,
-            label:       obj.labelDisplay,
-            sideLabel:   obj.spec.sideLabel,
-            iconSrc:     obj.spec.iconSrc,
-            description: obj.spec.description,
-          };
-
-          // If there's a spec.group (groupLabel), all entries with that name go under one nav group
-          if ( groupSlug ) {
-            if ( haveGroup[groupSlug] ) {
-              continue;
-            }
-
-            haveGroup[groupSlug] = true;
-
-            toAdd.push({
-              name:     `navlink-group-${ groupSlug }`,
-              label:    groupLabel,
-              isRoot:   true,
-              // This is the item that actually shows up in the nav, since this outer group will be invisible
-              children: [
-                {
-                  name:  `navlink-child-${ groupSlug }`,
-                  label: groupLabel,
-                  route: {
-                    name:   'c-cluster-navlinks-group',
-                    params: {
-                      cluster: this.clusterId,
-                      group:   groupSlug,
-                    }
-                  },
-                }
-              ],
-              weight: -100,
-            });
-          } else {
-            toAdd.push({
-              name:     `navlink-${ entry.name }`,
-              label:    entry.label,
-              isRoot:   true,
-              // This is the item that actually shows up in the nav, since this outer group will be invisible
-              children: [entry],
-              weight:   -100,
-            });
-          }
-        }
-
-        addObjects(out, toAdd);
-      }
-    },
-
-    /**
-     * Fetch navigation by creating groups from product schemas
-     */
-    getGroups() {
-      if ( this.gettingGroups ) {
-        return;
-      }
-      this.gettingGroups = true;
-
-      if ( !this.clusterReady ) {
-        clear(this.groups);
-        this.gettingGroups = false;
-
-        return;
-      }
-
-      const currentProduct = this.$store.getters['productId'];
-      let namespaces = null;
-
-      if ( !this.$store.getters['isAllNamespaces'] ) {
-        const namespacesObject = this.$store.getters['namespaces']();
-
-        namespaces = Object.keys(namespacesObject);
-      }
-
-      // Always show cluster-level types, regardless of the namespace filter
-      const namespaceMode = 'both';
-      const out = [];
-      const loadProducts = this.isExplorer ? [EXPLORER] : [];
-
-      const productMap = this.activeProducts.reduce((acc, p) => {
-        return { ...acc, [p.name]: p };
-      }, {});
-
-      if ( this.isExplorer ) {
-        for ( const product of this.activeProducts ) {
-          if ( product.inStore === 'cluster' ) {
-            addObject(loadProducts, product.name);
-          }
-        }
-      }
-
-      // This should already have come into the list from above, but in case it hasn't...
-      addObject(loadProducts, currentProduct);
-
-      this.getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap);
-      this.getExplorerGroups(out);
-
-      replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
-      this.gettingGroups = false;
     },
 
     toggleNoneLocale() {
@@ -561,7 +313,7 @@ export default {
       :class="{[pinClass]: true}"
     >
       <Header />
-      <navigation-secondary :groups="groups" />
+      <navigation-secondary />
       <main
         v-if="clusterAndRouteReady"
         class="main-layout"
