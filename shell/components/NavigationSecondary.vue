@@ -9,7 +9,7 @@ export default {
   components: { Group },
   computed:   {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['clusterId', 'isSingleProduct']),
+    ...mapGetters(['clusterId', 'isSingleProduct', 'isExplorer']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
 
     showClusterTools() {
