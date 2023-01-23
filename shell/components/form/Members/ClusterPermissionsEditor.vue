@@ -175,7 +175,20 @@ export default {
         opt:  { url: `/v3/principals/${ principalId }` }
       }, { root: true });
     },
+    customPermissionsUpdate() {
+      this.customPermissions.map((customPermissionsItem) => {
+        const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
+
+        if (lockedExist.locked) {
+          customPermissionsItem['locked'] = true
+          customPermissionsItem['tooltip'] = 'This cluster role is locked.';
+        }
+      });
+
+      return this.customPermissions;
+    }
   },
+
   watch: {
     roleTemplateIds() {
       this.updateBindings();
@@ -208,7 +221,7 @@ export default {
         this.$emit('input', bindings);
       }
     }
-  }
+  },
 };
 </script>
 <template>
@@ -254,9 +267,11 @@ export default {
           :class="{'two-column': useTwoColumnsForCustom}"
         >
           <Checkbox
-            v-for="permission in customPermissions"
+            v-for="permission in customPermissionsUpdate"
             :key="permission.key"
             v-model="permission.value"
+            :disabled="permission.locked"
+            :tooltip="permission.tooltip"
             class="mb-5"
             :label="permission.label"
           />

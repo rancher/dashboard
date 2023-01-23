@@ -188,6 +188,18 @@ export default {
           value:       'custom'
         }
       ];
+    },
+    customPermissionsUpdate() {
+      this.customPermissions.map((customPermissionsItem) => {
+        const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
+
+        if (lockedExist.locked) {
+          customPermissionsItem['locked'] = true
+          customPermissionsItem['tooltip'] = 'This project role is locked.';
+        }
+      });
+
+      return this.customPermissions;
     }
   },
   watch: {
@@ -278,9 +290,11 @@ export default {
           :class="{'two-column': useTwoColumnsForCustom}"
         >
           <Checkbox
-            v-for="permission in customPermissions"
+            v-for="permission in customPermissionsUpdate"
             :key="permission.key"
             v-model="permission.value"
+            :disabled="permission.locked"
+            :tooltip="permission.tooltip"
             class="mb-5"
             :label="permission.label"
           />
