@@ -221,10 +221,12 @@ export default {
         const chart = all.find(c => c.name === p.name);
 
         if (!chart) {
-          // A pluign is loaded, but there is no chart, so add an item so that it shows up
+          // A plugin is loaded, but there is no chart, so add an item so that it shows up
+          const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
+          const label = rancher[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
             name:           p.name,
-            label:          p.name,
+            label,
             description:    p.metadata?.description,
             icon:           p.metadata?.icon,
             id:             p.id,
@@ -880,7 +882,6 @@ export default {
         width: 40px;
         -o-object-fit: contain;
         object-fit: contain;
-        position: relative;
         top: 2px;
         left: 2px;
       }
