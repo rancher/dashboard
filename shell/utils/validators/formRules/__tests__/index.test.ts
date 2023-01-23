@@ -1059,7 +1059,7 @@ describe('formRules', () => {
     ['requiredInt', [2, 2.2], ['e']],
     ['isInteger', ['2', 2], [2.2, 'e']],
     ['isPositive', ['0', 1], [-1]],
-    ['isOctal', ['0', 0], ['01']],
+    ['isOctal', ['0', 0, 10], ['01']],
 
   ])('given validator %p', (rule, correctValues, wrongValues) => {
     it.each(wrongValues as [])('should return error for value %p', (wrong) => {
