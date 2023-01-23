@@ -57,8 +57,11 @@ export default {
       // We map the setting rulesets to use values to define validation from factory
       return this.setting?.ruleSet ? mapValues(
         keyBy(this.setting.ruleSet, 'name'),
-        ({ key, name, arg }) => {
-          return formRulesGenerator(t, key ? { key } : {})[name](arg);
+        // The validation is curried and may require the factory argument for the ValidatorFactory
+        ({ key, name, factoryArg }) => {
+          const rule = formRulesGenerator(t, key ? { key } : {})[name];
+
+          return factoryArg ? rule(factoryArg) : rule;
         }) : {};
     }
   },
