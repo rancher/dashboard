@@ -83,7 +83,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
   const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key }) : undefined;
 
-  const isInteger: Validator = (val: string | number) => !Number.isInteger(+val) ? t('validation.number.requiredInt', { key }) : undefined;
+  const isInteger: Validator = (val: string | number) => !Number.isInteger(+val) || `${ val }`.match(/\.+/g) ? t('validation.number.requiredInt', { key }) : undefined;
 
   const isPositive: Validator = (val: string | number) => +val < 0 ? t('validation.number.isPositive', { key }) : undefined;
 
