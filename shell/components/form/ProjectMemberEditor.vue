@@ -194,7 +194,7 @@ export default {
         const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
 
         if (lockedExist.locked) {
-          customPermissionsItem['locked'] = true
+          customPermissionsItem['locked'] = true;
           customPermissionsItem['tooltip'] = 'This role is locked.';
         }
       });
@@ -302,7 +302,7 @@ export default {
             <i
               v-if="permission.locked"
               v-tooltip="permission.tooltip"
-              class="icon icon-lock icon-lg"
+              class="icon icon-lock icon-fw"
             />
           </div>
         </div>
