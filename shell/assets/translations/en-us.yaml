@@ -5362,6 +5362,8 @@ validation:
   noType: No type to validate
   number:
     requiredInt: '"{key}" must be integer'
+    isPositive: '"{key}" must be positive'
+    isOctal: '"{key}" must have no leading zeros'
     between: '"{key}" should be between {min} and {max}'
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'

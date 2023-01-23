@@ -102,6 +102,14 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
       {
         name: 'isInteger',
         key:  'Password',
+      },
+      {
+        name: 'isPositive',
+        key:  'Password',
+      },
+      {
+        name: 'isOctal',
+        key:  'Password',
       }
     ],
   },
