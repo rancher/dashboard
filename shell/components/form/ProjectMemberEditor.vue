@@ -195,7 +195,7 @@ export default {
 
         if (lockedExist.locked) {
           customPermissionsItem['locked'] = true
-          customPermissionsItem['tooltip'] = 'This project role is locked.';
+          customPermissionsItem['tooltip'] = 'This role is locked.';
         }
       });
 
@@ -289,15 +289,22 @@ export default {
           class="custom-permissions ml-20 mt-10"
           :class="{'two-column': useTwoColumnsForCustom}"
         >
-          <Checkbox
+          <div
             v-for="permission in customPermissionsUpdate"
             :key="permission.key"
-            v-model="permission.value"
-            :disabled="permission.locked"
-            :tooltip="permission.tooltip"
-            class="mb-5"
-            :label="permission.label"
-          />
+          >
+            <Checkbox
+              v-model="permission.value"
+              :disabled="permission.locked"
+              class="mb-5"
+              :label="permission.label"
+            />
+            <i
+              v-if="permission.locked"
+              v-tooltip="permission.tooltip"
+              class="icon icon-lock icon-lg"
+            />
+          </div>
         </div>
       </template>
     </Card>
@@ -319,6 +326,10 @@ label.radio {
   grid-template-columns: 1fr 1fr 1fr;
   &.two-column {
     grid-template-columns: 1fr 1fr;
+  }
+
+  ::v-deep .checkbox-label {
+    margin-right: 0;
   }
 }
 </style>
