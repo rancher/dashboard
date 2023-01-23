@@ -57,13 +57,11 @@ export default {
       // We map the setting rulesets to use values to define validation from factory
       return this.setting?.ruleSet ? mapValues(
         keyBy(this.setting.ruleSet, 'name'),
-        // arg is present only in case of ValidatorFactory
-        ({ key, name, arg }) => {
-          // eslint-disable-next-line multiline-ternary
-          return arg
-            // eslint-disable-next-line multiline-ternary
-            ? formRulesGenerator(t, key ? { key } : {})[name](arg) // ValidatorFactory
-            : formRulesGenerator(t, key ? { key } : {})[name]; // Validator
+        // The validation is curried and may require the factory argument for the ValidatorFactory
+        ({ key, name, factoryArg }) => {
+          const rule = formRulesGenerator(t, key ? { key } : {})[name];
+
+          return factoryArg ? rule(factoryArg) : rule;
         }) : {};
     }
   },

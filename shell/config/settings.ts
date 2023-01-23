@@ -4,7 +4,7 @@ import { GC_DEFAULTS } from '../utils/gc/gc-types';
 interface GlobalSettingRuleset {
   name: string,
   key?: string | number,
-  arg?: string | number | (string | number)[]
+  factoryArg?: string | number | (string | number)[]
 }
 
 interface GlobalSetting {
@@ -95,9 +95,9 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
     kind:    'integer',
     ruleSet: [
       {
-        name: 'betweenValues',
-        key:  'Password',
-        arg:  [2, 256]
+        name:       'betweenValues',
+        key:        'Password',
+        factoryArg: [2, 256]
       },
       {
         name: 'isInteger',
