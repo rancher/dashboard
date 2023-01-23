@@ -223,4 +223,8 @@ export default {
       margin: 0;
     }
   }
+
+  header {
+    margin-bottom: 20px;
+  }
 </style>
