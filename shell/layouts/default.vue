@@ -2,7 +2,6 @@
 import { mapState, mapGetters } from 'vuex';
 import {
   mapPref,
-  FAVORITE_TYPES,
   AFTER_LOGIN_ROUTE,
   THEME_SHORTCUT
 } from '@shell/store/prefs';
@@ -19,7 +18,7 @@ import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import DraggableZone from '@shell/components/DraggableZone';
-import { COUNT, SCHEMA, MANAGEMENT } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import isEqual from 'lodash/isEqual';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
@@ -68,17 +67,11 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct']),
-    ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
+    ...mapGetters(['clusterId', 'currentProduct']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
-    namespaces() {
-      return this.$store.getters['activeNamespaceCache'];
-    },
-
     themeShortcut: mapPref(THEME_SHORTCUT),
-    favoriteTypes: mapPref(FAVORITE_TYPES),
 
     pageActions() {
       const pageActions = [];
@@ -99,37 +92,6 @@ export default {
       }
 
       return pageActions;
-    },
-
-    allSchemas() {
-      const managementReady = this.managementReady;
-      const product = this.$store.getters['currentProduct'];
-
-      if ( !managementReady || !product ) {
-        return [];
-      }
-
-      return this.$store.getters[`${ product.inStore }/all`](SCHEMA);
-    },
-
-    counts() {
-      const managementReady = this.managementReady;
-      const product = this.$store.getters['currentProduct'];
-
-      if ( !managementReady || !product ) {
-        return {};
-      }
-
-      const inStore = product.inStore;
-
-      // So that there's something to watch for updates
-      if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
-        const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
-
-        return counts;
-      }
-
-      return {};
     },
 
     unmatchedRoute() {
@@ -293,10 +255,6 @@ export default {
           }
         });
       }
-    },
-
-    switchLocale(locale) {
-      this.$store.dispatch('i18n/switchTo', locale);
     },
   }
 };

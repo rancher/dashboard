@@ -1,6 +1,6 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
-import { CATALOG, UI } from '@shell/config/types';
+import { SCHEMA, COUNT, CATALOG, UI } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { getVersionInfo } from '@shell/utils/version';
 import Group from '@shell/components/nav/Group';
@@ -12,12 +12,13 @@ import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import { ucFirst } from '@shell/utils/string';
 import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
+import { mapPref, FAVORITE_TYPES } from '@shell/store/prefs';
 
 export default {
   components: { Group },
   computed:   {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['clusterId', 'isSingleProduct', 'isExplorer']),
+    ...mapGetters(['productId', 'clusterId', 'isSingleProduct', 'isExplorer', 'namespaceMode']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -66,6 +67,43 @@ export default {
 
       return this.$store.getters['cluster/all'](UI.NAV_LINK);
     },
+
+    counts() {
+      const managementReady = this.managementReady;
+      const product = this.$store.getters['currentProduct'];
+
+      if ( !managementReady || !product ) {
+        return {};
+      }
+
+      const inStore = product.inStore;
+
+      // So that there's something to watch for updates
+      if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
+        const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
+
+        return counts;
+      }
+
+      return {};
+    },
+
+    allSchemas() {
+      const managementReady = this.managementReady;
+      const product = this.$store.getters['currentProduct'];
+
+      if ( !managementReady || !product ) {
+        return [];
+      }
+
+      return this.$store.getters[`${ product.inStore }/all`](SCHEMA);
+    },
+
+    namespaces() {
+      return this.$store.getters['activeNamespaceCache'];
+    },
+
+    favoriteTypes: mapPref(FAVORITE_TYPES),
   },
   watch: {
     counts(a, b) {
@@ -319,6 +357,10 @@ export default {
           grp.isExpanded = (grp.group.name === selected.name);
         }
       });
+    },
+
+    switchLocale(locale) {
+      this.$store.dispatch('i18n/switchTo', locale);
     },
   }
 };
