@@ -137,11 +137,6 @@ export default {
         }
       }
     },
-
-    $route(a, b) {
-      this.$nextTick(() => this.syncNav());
-    },
-
   },
 
   async created() {
@@ -149,9 +144,6 @@ export default {
   },
 
   mounted() {
-    // Sync the navigation tree on fresh load
-    this.$nextTick(() => this.syncNav());
-
     this.wmPin = window.localStorage.getItem('wm-pin') || BOTTOM;
 
     // two-way binding this.wmPin <-> draggableZone.pin
@@ -224,37 +216,6 @@ export default {
       }
 
       cluster.openShell();
-    },
-
-    syncNav() {
-      const refs = this.$refs.groups;
-
-      if (refs) {
-        // Only expand one group - so after the first has been expanded, no more will
-        // This prevents the 'More Resources' group being expanded in addition to the normal group
-        let canExpand = true;
-        const expanded = refs.filter(grp => grp.isExpanded)[0];
-
-        if (expanded && expanded.hasActiveRoute()) {
-          this.$nextTick(() => expanded.syncNav());
-
-          return;
-        }
-        refs.forEach((grp) => {
-          if (!grp.group.isRoot) {
-            grp.isExpanded = false;
-            if (canExpand) {
-              const isActive = grp.hasActiveRoute();
-
-              if (isActive) {
-                grp.isExpanded = true;
-                canExpand = false;
-                this.$nextTick(() => grp.syncNav());
-              }
-            }
-          }
-        });
-      }
     },
   }
 };
