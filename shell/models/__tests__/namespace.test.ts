@@ -38,8 +38,19 @@ describe('class Namespace', () => {
     it.todo('should return a value if is or not system');
   });
 
-  it.todo('should return the projectId');
+  it.each([
+    ['foo:bar', 'bar'],
+    ['', null]
+  ])('given %p annotation, projectId should be %p', (value, result) => {
+    const namespace = new Namespace({});
+
+    namespace.metadata = { name: '', annotations: { 'field.cattle.io/projectId': value } };
+
+    expect(namespace.projectId).toBe(result);
+  });
+
   it.todo('should return the project');
+  it.todo('should return the groupByLabel with i18n');
   it.todo('should return the project name with i18n');
   it.todo('should return the projectNameSort');
   it.todo('should check if istioInstalled');
