@@ -22,6 +22,7 @@
   // dark main text
   $lightest: #ffffff;
 
+  $primary-900: #333333;
   $secondary: $lighter;
   $disabled: $light;
 
@@ -31,6 +32,7 @@
 
   $drag-over: #DCDEE7;
 
+  --primary-900                : #{$primary-900};
   --default                    : #{$dark};
   --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};
@@ -209,4 +211,7 @@
 
   --product-icon               : #{$lighter};
   --product-icon-active        : #{$lightest};
+
+  --activity-icon-active-background: #{$lightest};
+  --activity-icon-color: #{$blue-500};
 }

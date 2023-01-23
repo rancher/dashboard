@@ -20,10 +20,16 @@ $lighter   : #F4F5FA;
 //light body bg
 $lightest  : #FFFFFF;
 
+$blue-300     : #3D98D3;
+$blue-500     : #0181BE;
+$blue-900     : #002C40;
+
 //color for items that are not enabled
 $disabled  : $medium;
 
 $primary         : #3D98D3;
+$primary-500     : #0181BE;
+$primary-900     : #002C40;
 $secondary       : $darker;
 $link            : #3D98D3;
 
@@ -45,6 +51,8 @@ $drag-over: #DCDEE7;
 BODY, .theme-light {
 
   --primary                    : #{$primary};
+  --primary-500                : #{$primary-500};
+  --primary-900                : #{$primary-900};
   --primary-text               : #{contrast-color($primary)};
   --primary-hover-bg           : #{darken($primary, 10%)};
   --primary-hover-text         : #{saturate($lightest, 20%)};
@@ -540,4 +548,7 @@ BODY, .theme-light {
 
   --product-icon               : #{$darker};
   --product-icon-active        : #{$darkest};
+
+  --activity-icon-active-background: var(--primary-500);
+  --activity-icon-color: #{$lightest};
 }
