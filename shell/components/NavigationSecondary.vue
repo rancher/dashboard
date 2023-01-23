@@ -171,6 +171,13 @@ export default {
       }
     },
 
+    $route(a, b) {
+      this.$nextTick(() => this.syncNav());
+    },
+  },
+  mounted() {
+    // Sync the navigation tree on fresh load
+    this.$nextTick(() => this.syncNav());
   },
   created() {
     this.queueUpdate = debounce(this.getGroups, 500);
@@ -361,6 +368,37 @@ export default {
 
     switchLocale(locale) {
       this.$store.dispatch('i18n/switchTo', locale);
+    },
+
+    syncNav() {
+      const refs = this.$refs.groups;
+
+      if (refs) {
+        // Only expand one group - so after the first has been expanded, no more will
+        // This prevents the 'More Resources' group being expanded in addition to the normal group
+        let canExpand = true;
+        const expanded = refs.filter(grp => grp.isExpanded)[0];
+
+        if (expanded && expanded.hasActiveRoute()) {
+          this.$nextTick(() => expanded.syncNav());
+
+          return;
+        }
+        refs.forEach((grp) => {
+          if (!grp.group.isRoot) {
+            grp.isExpanded = false;
+            if (canExpand) {
+              const isActive = grp.hasActiveRoute();
+
+              if (isActive) {
+                grp.isExpanded = true;
+                canExpand = false;
+                this.$nextTick(() => grp.syncNav());
+              }
+            }
+          }
+        });
+      }
     },
   }
 };
