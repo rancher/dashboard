@@ -634,19 +634,17 @@ export default {
     },
 
     machineConfigSchema() {
-      let schemaAddress;
+      let schema;
 
       if ( !this.hasMachinePools ) {
         return null;
       } else if (this.isElementalCluster) {
-        schemaAddress = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+        schema = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
       } else {
-        schemaAddress = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
+        schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](schemaAddress);
-
-      return schema;
+      return this.$store.getters['management/schemaFor'](schema);
     },
 
     nodeTotals() {
@@ -1045,7 +1043,6 @@ export default {
             type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
           }
 
-          const id = `pool${ ++this.lastIdx }`;
           let config;
           let configMissing = false;
 
@@ -1065,6 +1062,9 @@ export default {
               }
             }
           }
+
+          // @TODO what if the pool is missing?
+          const id = `pool${ ++this.lastIdx }`;
 
           out.push({
             id,
@@ -1198,7 +1198,8 @@ export default {
           entry.config = await entry.config.save();
         }
 
-        if ( !entry.pool.hostnamePrefix ) {
+        // Ensure Elemental clusters have a hostname prefix
+        if (this.isElementalCluster && !entry.pool.hostnamePrefix ) {
           entry.pool.hostnamePrefix = `${ prefix }-`;
         }
 
