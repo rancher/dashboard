@@ -6223,6 +6223,11 @@ typeLabel:
       one { Workspace }
       other { Workspaces }
     }
+  management.cattle.io.podsecurityadmissionconfigurationtemplate: |-
+    {count, plural,
+      one { Pod Security Admission }
+      other { Pod Security Admissions }
+    }
   policy.poddisruptionbudget: |-
     {count, plural,
       one { Pod Disruption Budget }
