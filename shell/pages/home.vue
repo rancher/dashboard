@@ -320,7 +320,7 @@ export default {
           >
             <div class="col span-12">
               <Banner
-                color="set-login-page"
+                color="set-login-page mt-0"
                 :closable="true"
                 @close="closeSetLoginBanner()"
               >
