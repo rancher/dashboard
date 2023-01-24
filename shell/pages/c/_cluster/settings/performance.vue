@@ -267,6 +267,22 @@ export default {
             />
           </div>
         </div>
+        <!-- Advanced Websocket Worker -->
+        <div class="mt-40">
+          <h2>{{ t('performance.advancedWorker.label') }}</h2>
+          <p>{{ t('performance.advancedWorker.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Checkbox
+            v-model="value.advancedWorker.enabled"
+            :mode="mode"
+            :label="t('performance.advancedWorker.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+        </div>
       </div>
     </div>
     <template v-for="err in errors">

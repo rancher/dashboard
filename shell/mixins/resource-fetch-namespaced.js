@@ -1,5 +1,6 @@
 import { mapGetters } from 'vuex';
-import { ResourceListComponentName } from '../components/ResourceList';
+import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
+
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
  */

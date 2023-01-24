@@ -22,12 +22,48 @@ export default {
   },
   methods: {
     changed(tab) {
+      const key = this.idKey;
+
       this.selectedName = tab.selectedName;
-      const container = this.containerOptions.find( c => c.name === tab.selectedName);
+      const container = this.containerOptions.find( c => c[key] === tab.selectedName);
 
       if ( container ) {
         this.selectContainer(container);
       }
+    },
+
+    /**
+     * Find error exceptions to be mapped for each case
+     */
+    mapError(error) {
+      switch (true) {
+      case error.includes('violates PodSecurity'): {
+        const match = error.match(/(?<=\")(.*?)(?=\")/gi);
+        const name = match[0];
+        const policy = match[2];
+
+        return {
+          message: `Pod "${ name }" Security Policy Violation "${ policy }"`,
+          icon:    'icon-pod_security'
+        };
+      }
+
+      default:
+        break;
+      }
+    },
+
+    /**
+     * Map all the error texts to a message and icon object
+     */
+    getErrorsMap(errors) {
+      return !errors ? {} : errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: this.mapError(error) || {
+          message: error,
+          icon:    null
+        }
+      }), {});
     }
   }
 };
@@ -49,6 +85,7 @@ export default {
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
       :value="value"
+      :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
       @error="e=>errors = e"
@@ -117,9 +154,9 @@ export default {
       >
         <Tab
           v-for="(tab, i) in allContainers"
-          :key="i"
+          :key="tab[idKey]"
           :label="tab.name"
-          :name="tab.name"
+          :name="tab[idKey]"
           :weight="tab.weight"
           :error="!!tab.error"
         >
@@ -161,11 +198,11 @@ export default {
                   <div class="col span-6">
                     <RadioGroup
                       :mode="mode"
-                      :value="isInitContainer"
+                      :value="allContainers[i]._init"
                       name="initContainer"
                       :options="[true, false]"
                       :labels="[t('workload.container.init'), t('workload.container.standard')]"
-                      @input="updateInitContainer"
+                      @input="updateInitContainer($event, allContainers[i])"
                     />
                   </div>
                 </div>
@@ -261,7 +298,7 @@ export default {
             </Tab>
 
             <Tab
-              v-if="!isInitContainer"
+              v-if="!allContainers[i]._init"
               :label="t('workload.container.titles.healthCheck')"
               name="healthCheck"
               :weight="tabWeightMap['healthCheck']"

@@ -7,6 +7,7 @@ import SteveModel from './steve-class';
 import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
+import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -130,6 +131,12 @@ export default {
 
       return data;
     }
+
+    // If the existing model has a cleanResource method, use it
+    if (existing?.cleanResource && typeof existing.cleanResource === 'function') {
+      return existing.cleanResource(data);
+    }
+
     const typeSuperClass = Object.getPrototypeOf(Object.getPrototypeOf(existing))?.constructor;
 
     return typeSuperClass === HybridModel ? cleanHybridResources(data) : data;
@@ -144,6 +151,18 @@ export default {
 
   gcIgnoreTypes: () => {
     return GC_IGNORE_TYPES;
-  }
+  },
+
+  currentGeneration: state => (type) => {
+    type = normalizeType(type);
+
+    const cache = state.types[type];
+
+    if ( !cache ) {
+      return null;
+    }
+
+    return cache.generation;
+  },
 
 };

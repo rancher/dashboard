@@ -3,3 +3,7 @@ const validCIDRregex = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2
 export function isValidCIDR(cidr) {
   return !!cidr.match(validCIDRregex);
 }
+
+export function isValidMac(value) {
+  return /^[A-Fa-f0-9]{2}(-[A-Fa-f0-9]{2}){5}$|^[A-Fa-f0-9]{2}(:[A-Fa-f0-9]{2}){5}$/.test(value);
+}

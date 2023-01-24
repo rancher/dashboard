@@ -4,6 +4,9 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { azureEnvironments } from '@shell/machine-config/azure';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
+const AZURE_ERROR_MSG_REGEX = /^.*Message=\"(.*)\"$/;
+const AZURE_ERROR_JSON_REGEX = /^.*Response body: ({.*})/;
+
 export default {
   components: { LabeledInput, LabeledSelect },
   mixins:     [CreateEditView],
@@ -53,6 +56,26 @@ export default {
 
         return true;
       } catch (e) {
+        if (e.error) {
+          // Try and parse the response from Azure a couple of ways
+          const msgMatch = e.error.match(AZURE_ERROR_MSG_REGEX);
+
+          if (msgMatch?.length === 2) {
+            return { errors: [msgMatch[1]] };
+          } else {
+            const jsonMatch = e.error.match(AZURE_ERROR_JSON_REGEX);
+
+            if (jsonMatch?.length === 2) {
+              try {
+                const errorObj = JSON.parse(jsonMatch[1]);
+
+                return { errors: [errorObj.error_description] };
+              } catch (e) {}
+            }
+          }
+        }
+
+        // Can't parse error, so go with the generic 'auth failed' error message
         return false;
       }
     },

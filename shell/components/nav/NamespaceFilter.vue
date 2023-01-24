@@ -19,11 +19,12 @@ import { KEY } from '@shell/utils/platform';
 export default {
   data() {
     return {
-      isOpen:        false,
-      filter:        '',
-      hidden:        0,
-      total:         0,
-      activeElement: null,
+      isOpen:         false,
+      filter:         '',
+      hidden:         0,
+      total:          0,
+      activeElement:  null,
+      cachedFiltered: [],
     };
   },
 
@@ -343,6 +344,21 @@ export default {
   watch: {
     value(neu) {
       this.layout();
+    },
+
+    /**
+     * When there are thousands of entries certain actions (drop down opened, selection changed, etc) take a long time to complete (upwards
+     * of 5 seconds)
+     *
+     * This is caused by churn of the filtered and options computed properties causing multiple renders for each action.
+     *
+     * To break this multiple-render per cycle behaviour detatch `filtered` from the value used in `v-for`.
+     *
+     */
+    filtered(neu) {
+      if (!!neu) {
+        this.cachedFiltered = neu;
+      }
     }
   },
 
@@ -755,7 +771,7 @@ export default {
         role="list"
       >
         <div
-          v-for="(opt, i) in filtered"
+          v-for="(opt, i) in cachedFiltered"
           :id="opt.elementId"
           :key="opt.id"
           tabindex="0"
@@ -763,7 +779,7 @@ export default {
           :disabled="!opt.enabled"
           :class="{
             'ns-selected': opt.selected,
-            'ns-single-match': filtered.length === 1 && !opt.selected,
+            'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
           }"
           :data-testid="`namespaces-option-${i}`"
           @click="opt.enabled && selectOption(opt)"
@@ -790,7 +806,7 @@ export default {
           </div>
         </div>
         <div
-          v-if="filtered.length === 0"
+          v-if="cachedFiltered.length === 0"
           class="ns-none"
           data-testid="namespaces-option-none"
         >

@@ -25,7 +25,7 @@ echo Creating release directory
 mkdir $RELEASE_DIR
 
 echo Installing dependencies
-yarn install --frozen-lockfile
+yarn install:ci
 
 echo Building
 NUXT_ENV_commit=$GITHUB_SHA NUXT_ENV_version=$GITHUB_REF_NAME OUTPUT_DIR="$ARTIFACT_LOCATION" ROUTER_BASE="$ROUTER_BASE" RANCHER_ENV=$RANCHER_ENV API=$API RESOURCE_BASE=$RESOURCE_BASE EXCLUDES_PKG=$EXCLUDES_PKG yarn run build --spa

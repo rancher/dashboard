@@ -269,4 +269,12 @@ export default {
   .step-list li:not(:last-child) {
     margin-bottom: 8px;
   }
+  .banner {
+    display: block;
+
+    &::v-deep code {
+      padding: 0 3px;
+      margin: 0 3px;
+    }
+  }
 </style>

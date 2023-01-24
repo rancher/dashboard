@@ -44,7 +44,6 @@ export default {
         serverUrl: this.serverUrl,
         provider:  this.displayName,
         username:  this.principal.loginName || this.principal.name,
-        docsBase:  this.$store.getters['rancherDocsBase']
       };
     },
 
@@ -247,7 +246,7 @@ export default {
           v-if="!model.enabled"
           class="row"
         >
-          <div class="col span-12">
+          <div class="col span-12 google">
             <Banner
               color="info"
               v-html="t('authConfig.associatedWarning', tArgs, true)"
@@ -261,5 +260,14 @@ export default {
 <style lang="scss" scoped>
   .step-list li:not(:last-child) {
     margin-bottom: 8px;
+  }
+
+  .banner {
+    display: block;
+
+    &::v-deep code {
+      padding: 0 3px;
+      margin: 0 3px;
+    }
   }
 </style>

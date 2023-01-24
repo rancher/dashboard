@@ -7,6 +7,7 @@ generic:
   and: ' and '
   back: Back
   cancel: Cancel
+  confirm: Confirm
   clear: Clear
   clearAll: Clear All
   close: Close
@@ -28,7 +29,9 @@ generic:
     always: Always
     ifNotPresent: IfNotPresent
     never: Never
+  labels: Labels
   labelsAndAnnotations: Labels & Annotations
+  podSecurityAdmission: Pod Security Admission
   links: Links
   loading: Loading&hellip;
   members: Members
@@ -416,7 +419,7 @@ authConfig:
           5: 'Upload the downloaded JSON file in the OAuth credentials box.'
       3:
         title: 'Create Service Account credentials'
-        introduction: 'Follow <a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
+        introduction: 'Follow <a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:'
         body:
           1: Create a service account.
           2: Generate a key for the service account.
@@ -639,7 +642,7 @@ asyncButton:
   load:
     action: Load
     success: Loaded
-    waiting: Loadingg&hellip;
+    waiting: Loading&hellip;
   pause:
     action: Pause Orchestration
     success: Paused Orchestration
@@ -1011,7 +1014,7 @@ cis:
   alertNeeded: |-
     Alerting must be enabled within the CIS chart values.yaml.
     This requires that the <a tabindex="0" href="{link}">{vendor} Monitoring and Alerting app</a> is installed
-    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'> configured to send out alerts.</a>
+    and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -1104,7 +1107,7 @@ cluster:
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
-      NodeName: Node Name
+      nodeName: Node Name
       publicIp: Node Public IP
       privateIp: Node Private IP
       nodeLabel:
@@ -1163,6 +1166,14 @@ cluster:
         help: Paste in a Personal Access Token from the Linode <a href="https://cloud.linode.com/profile/tokens" target="_blank" rel="noopener noreferrer nofollow">API Tokens</a> screen.
         label: Access Token
         placeholder: Your Linode API Access Token
+    pnap:
+      clientIdentifier:
+        label: Client ID
+        placeholder: Your Client ID
+      clientSecret:
+        help: From <a href="https://bmc.phoenixnap.com/credentials/" target="_blank" rel="nofollow noreferrer noopener">phoenixNAP BMC Portal</a> API Credentials
+        label: Client Secret
+        placeholder: Your Client Secret
     name:
       label: Credential Name
       placeholder: Name for this credential (optional)
@@ -1216,13 +1227,25 @@ cluster:
           </ul>
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
-      import: Imported Harvester
       namespace: Namespace
       cpu: CPUs
       memory: Memory
       disk: Disk
       image: Image
-      network: Network Name
+      network: 
+        title: Networks
+        network: Network
+        addNetwork: Add Network
+        networkName: Network Name
+        macAddress: Mac Address
+        macFormat: 'Invalid MAC address format.'
+      volume:
+        title: Volumes
+        volume: Volume
+        imageVolume: Image Volume
+        addVolume: Add Volume
+        addVMImage: Add VM Image
+        storageClass: Storage Class
       sshUser: SSH User
       userData:
         label: User Data Template
@@ -1233,7 +1256,7 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
-      cluster: Cluster
+      cluster: Imported Harvester Cluster
       affinity:
         namespaces:
           placeholder: e.g. default,system,base
@@ -1532,6 +1555,27 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+    pnap:
+      serverLocation:
+        label: Location
+      serverType:
+        label: Type
+      serverCpu:
+        label: CPU
+      serverCoresPerCpu:
+        label: Cores per CPU
+      serverCpuCount:
+        label: CPU Count
+      serverCpuFrequency:
+        label: CPU Frequency [GHz]
+      serverRam:
+        label: RAM [GB]
+      serverStorage:
+        label: Storage
+      serverNetwork:
+        label: Network
+      serverOs:
+        label: OS
   addOns:
     dependencyBanner: Add-On Configurations can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
@@ -1559,8 +1603,10 @@ cluster:
   banner:
     warning: 'This cluster contains a machineSelectorConfig which this form does not fully support; use the YAML editor to manage the full configuration.'
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
-    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences" target="_blank" rel="noopener nofollow">documentation</a>.'
+    rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
+    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
+    haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
 
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
@@ -1723,10 +1769,18 @@ cluster:
     cloudProvider:
       label: Cloud Provider
       header: Cloud Provider Config
+      defaultValue:
+        label: Default - RKE2 Embedded
     security:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
+      option: RKE Default
+    defaultPodSecurityAdmissionConfigurationTemplateName:
+      label: Default Pod Security Admission
+      option: (None)
+    cisProfile:
+      option: (None)
     enableNetworkPolicy:
       label: Project Network Isolation
       warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
@@ -2190,6 +2244,9 @@ growl:
   reconnected:
     message: "The connection to {url} was restored on attempt #{tries}."
     title: Websocket Reconnected
+  podSecurity:
+    message: "The creation of this Pod would violate existing restricted policies for the adopted Namespace"
+    title: PodSecurity violation
 
 hpa:
   detail:
@@ -2513,7 +2570,10 @@ labels:
   addAnnotation: Add Annotation
   labels:
     title: Labels
+    description: Key/value pairs that are attached to objects which specify identifying attributes.
     fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
+    show: Show System Label
+    hide: Hide System Label
   annotations:
     title: Annotations
 
@@ -3031,7 +3091,7 @@ monitoring:
       keyFilePath:
         label: Key File Path
         placeholder: e.g. ./key-file.pfx
-      secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/pages-for-subheaders/monitoring-v2-configuration" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
+      secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart. For more information see our <a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">documentation</a>.
   projectMonitoring:
     detail:
       error: "Unable to fetch Dashboard values with status: "
@@ -3065,6 +3125,7 @@ monitoring:
       editYaml: Edit AlertmanagerConfig
       detail: Receiver in AlertmanagerConfig
     disabledReceiverButton: The receiver form is available after the AlertmanagerConfig is created
+    error: An error occurred saving the AlertmanagerConfig
     email:
       username: Auth Username
       password: Secret with Auth Password
@@ -3088,7 +3149,7 @@ monitoring:
       stepTitle: Uninstall V1
       stepSubtext: Uninstall Previous Monitoring
       warning1: V1 Monitoring is currently deployed. This needs to be uninstalled before V2 monitoring can be installed.
-      warning2: <a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/how-to-guides/advanced-user-guides/monitoring-alerting-guides/migrate-to-rancher-v2.5+-monitoring#migrating-from-monitoring-v1-to-monitoring-v2" target='_blank' rel='noopener nofollow'>Learn more</a> about the migration steps to V2 Monitoring.
+      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>Learn more</a> about the migration steps to V2 Monitoring.
       promptDescription: <div class="mt-20 mb-20">You are attempting to uninstall V1 Monitoring. Please ensure you have read the migration steps.</div>
       success1: V1 monitoring successfully uninstalled.
       success2: Press Next to continue
@@ -3793,6 +3854,7 @@ podDisruptionBudget:
   maxUnavailable:
     label: Max. unavailable Pods
 
+
 # Rancher Extensions
 plugins:
   labels:
@@ -3886,6 +3948,15 @@ plugins:
       crd:
         title: Remove the Rancher Extensions Custom Resource Definition
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
+podSecurityAdmission:
+  label: Pod Security Admission
+  description: Define the admission control mode you want to use for the pod security
+  version:
+    placeholder: 'Version (default: latest)'
+  exemptions: 
+    title: Exemptions
+    description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
+    placeholder: Enter a comma separated list of {psaExemptionsControl}
 prefs:
   title: Preferences
   theme:
@@ -3931,6 +4002,9 @@ prefs:
     'true': Include Prerelease Versions
     'false': Show Releases Only
     label: Helm Charts
+  confirmationSetting:
+    title: Confirmation Setting
+    scalingDownPrompt: Do not ask for confirmation when scaling down node pools.
 
 principal:
   loading: Loading&hellip;
@@ -4115,6 +4189,7 @@ promptRemove:
   deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
   willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
   confirmRelatedResource: "Deleting the {type} will remove all the resources on this particular {type} and this is not revertable, are you sure you want to continue deleting {names}?"
+  promptConfirmation: "Do not prompt again for confirmation when scaling down."
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
@@ -4988,9 +5063,17 @@ storageClass:
       placeholder: e.g. storageos-secret
   no-provisioner:
     title: Local Storage
-  deprecated: 
+  deprecated:
     title: (Deprecated)
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
+  harvesterhci:
+    title: Harvester (CSI)
+    warning: 
+      unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
+    hostStorageClass:
+      label: Host Storage Class
+      placeholder: Storage class name on the host Harvester cluster
+      tooltip: By default the default storage class on the host Harvester cluster is used.
 
 tableHeaders:
   assuredConcurrencyShares: Assured Concurrency Shares
@@ -5319,6 +5402,8 @@ validation:
   noType: No type to validate
   number:
     requiredInt: '"{key}" must be integer'
+    isPositive: '"{key}" must be positive'
+    isOctal: '"{key}" must have no leading zeros'
     between: '"{key}" should be between {min} and {max}'
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
@@ -5921,15 +6006,7 @@ workload:
       pod: Pod
       containers: Containers
 
-harvesterManager:
-  manage: Manage
-  cluster:
-    label: Harvester Clusters
-    none: There are no Harvester Clusters
-    learnMore: Learn more about Harvester from the <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Web Site</a> or read the the <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Docs</a>
-    description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
-  plugins:
-    loadError: Error loading harvester plugin
+
 
 ##############################
 # Model Properties
@@ -6179,7 +6256,7 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanagerconfig: |-
     {count, plural,
-      one { AlertmanagerConfigs }
+      one { AlertmanagerConfig }
       other { AlertmanagerConfigs }
     }
   monitoring.coreos.com.podmonitor: |-
@@ -6284,7 +6361,7 @@ typeLabel:
     }
   networking.k8s.io.networkpolicy: |-
     {count, plural,
-      one { Network Policies }
+      one { Network Policy }
       other { Network Policies }
     }
   service: |-
@@ -6404,8 +6481,8 @@ typeLabel:
     }
   fleet.cattle.io.bundledeployment: |-
     {count, plural,
-      one { ClusterRegistration }
-      other { ClusterRegistrations }
+      one { BundleDeployment }
+      other { BundleDeployments }
     }
   k3s.cattle.io.addon: |-
     {count, plural,
@@ -6419,13 +6496,13 @@ typeLabel:
     }
   management.cattle.io.catalog: |-
     {count, plural,
-      one { APIService }
-      other { APIServices }
+      one { Catalog }
+      other { Catalogs }
     }
   fleet.cattle.io.clusterregistration: |-
     {count, plural,
-      one { Catalog }
-      other { Catalogs }
+      one { ClusterRegistration }
+      other { ClusterRegistrations }
     }
   management.cattle.io.dynamicschema: |-
     {count, plural,
@@ -6489,7 +6566,7 @@ typeLabel:
     }
   management.cattle.io.clusterregistrationtoken: |-
     {count, plural,
-      one { ClusterRegistrationTokens }
+      one { ClusterRegistrationToken }
       other { ClusterRegistrationTokens }
     }
   management.cattle.io.node: |-
@@ -6544,7 +6621,7 @@ typeLabel:
     }
   scheduling.k8s.io.priorityclass: |-
     {count, plural,
-      one { PriorityClasse }
+      one { PriorityClass }
       other { PriorityClasses }
     }
   storage.k8s.io.csinode: |-
@@ -6632,6 +6709,19 @@ registryMirror:
   toolTip: 'Mirrors can be used to redirect requests for images from one registry to come from a list of endpoints you specify instead.  For example docker.io could redirect to your internal registry instead of ever going to DockerHub.'
   addLabel: Add Mirror
   description: Mirrors define the names and endpoints for private registries. The endpoints are tried one by one, and the first working one is used.
+  hostnameLabel: Registry Hostname
+  hostnamePlaceholder: e.g. docker.io or *
+  endpointsLabel: Mirror Endpoints
+  endpointsPlaceholder: e.g. a.registry.com:5000, b.registry.com:5000
+
+registryMirrorRewrite:
+  header: Rewrites
+  toolTip: 'Each mirror can have a set of rewrites. Rewrites can change the tag of an image based on a regular expression.'
+  addLabel: Add Rewrite Config
+  keyLabel: Rewrite pattern
+  keyPlaceholder: e.g. ^rancher/(.*)
+  valueLabel: Rewrite replacement
+  valuePlaceholder: e.g. mirrorproject/rancher-images/$1
 
 registryConfig:
   header: Registry Authentication
@@ -6778,6 +6868,10 @@ performance:
     count:
       inputLabel: Resource Threshold
       description: The threshold above which filtering by a namespace is required
+  advancedWorker:
+    label: Websocket Web Worker
+    description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
+    checkboxLabel: Enable Advanced Websocket Web Worker
 
 banner:
   label: Fixed Banners
@@ -6967,13 +7061,13 @@ embedding:
 v1ClusterTools:
   monitoring:
     label: Monitoring (Legacy)
-    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/how-to-guides/advanced-user-guides/monitoring-alerting-guides/migrate-to-rancher-v2.5+-monitoring#migrating-from-monitoring-v1-to-monitoring-v2">Learn more</a> about the migration steps to V2 Monitoring.'
+    description: 'Legacy V1 monitoring. V1 Monitoring is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">Learn more</a> about the migration steps to V2 Monitoring.'
   logging:
     label: Logging (Legacy)
-    description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/integrations-in-rancher/logging/migrate-to-rancher-v2.5+-logging">Learn more</a> about migrating to V2 Logging.'
+    description: 'Legacy V1 logging. V1 Logging is deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/logging/migrating/">Learn more</a> about migrating to V2 Logging.'
   istio:
     label: Istio (Legacy)
-    description: 'Legacy V1 Istio. Istio v1.5 has been deprecated since Rancher 2.5.0. <a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/pages-for-subheaders/istio#migrate-from-previous-istio-version">Learn more</a> about migrating to the latest version.'
+    description: 'Legacy V1 Istio. Istio v1.5 has been deprecated since Rancher 2.5.0. <a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">Learn more</a> about migrating to the latest version.'
 
 legacy:
   alerts: Alerts
