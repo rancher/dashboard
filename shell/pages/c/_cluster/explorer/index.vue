@@ -406,7 +406,7 @@ export default {
 
 <template>
   <section class="dashboard">
-    <header class="header-layout">
+    <header>
       <div class="title">
         <h1>
           <t k="clusterIndexPage.header" />

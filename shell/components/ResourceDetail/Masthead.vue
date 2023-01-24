@@ -362,6 +362,10 @@ export default {
 
       return parent?.location;
     },
+
+    hideNamespaceLocation() {
+      return this.$store.getters['currentProduct'].hideNamespaceLocation;
+    },
   },
 
   methods: {
@@ -395,7 +399,7 @@ export default {
 
 <template>
   <div class="masthead">
-    <header class="header-layout">
+    <header>
       <div class="title">
         <div class="primaryheader">
           <h1>
@@ -427,7 +431,18 @@ export default {
         >
           <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <nuxt-link :to="project.detailLocation">{{ project.nameDisplay }}</nuxt-link></span>
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-else-if="namespace && !hasMultipleNamespaces">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+          <span v-else-if="namespace && !hasMultipleNamespaces">
+            {{ t("resourceDetail.masthead.namespace") }}:
+            <nuxt-link
+              v-if="!hideNamespaceLocation"
+              :to="namespaceLocation"
+            >
+              {{ namespace }}
+            </nuxt-link>
+            <span v-else>
+              {{ namespace }}
+            </span>
+          </span>
           <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate
             class="live-date"
             :value="value.creationTimestamp"

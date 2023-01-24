@@ -5,8 +5,7 @@ import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
-
-export const ResourceListComponentName = 'ResourceList';
+import { ResourceListComponentName } from './resource-list.config';
 
 export default {
   name: ResourceListComponentName,

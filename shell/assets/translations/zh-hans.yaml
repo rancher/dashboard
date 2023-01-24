@@ -52,6 +52,7 @@ generic:
   reload: 重新加载
   register: 注册
   remove: 移除
+  addCatalog: 添加应用商店
   resource: |-
     {count, plural,
     one  {资源}
@@ -59,8 +60,8 @@ generic:
     }
   resourceCount: |-
     {count, plural,
-    one  {1资源}
-    other {#资源}
+    one  {1 资源}
+    other {# 资源}
     }
   save: 保存
   showAdvanced: 展开高级选项
@@ -135,7 +136,7 @@ nav:
   group:
     cluster: 集群
     inUse: 更多资源
-    policy: 策略
+    Policy: 策略
     rbac: RBAC
     serviceDiscovery: 服务发现
     starred: 已收藏
@@ -148,8 +149,15 @@ nav:
     apps: 应用
     clusterProvisioning: 集群配置
     core: 核心
+    legacy: 旧版
+    API: API
+    Coordination: 协调
     Discovery: 发现
-    Policy: 策略
+    Fleet: Fleet
+    K3s: K3s
+    Networking: 网络
+    Rancher: Rancher
+    RBAC: RBAC
     Scheduling: 调度
     Storage: 存储
   ns:
@@ -205,8 +213,10 @@ product:
   neuvector: NeuVector
   harvesterManager: 虚拟化管理
   rancher: Rancher
+  legacy: 旧版
   uiplugins: 扩展
   elemental: OS 管理
+  plugins: 插件
 
 suffix:
   percent: "%"
@@ -407,7 +417,7 @@ authConfig:
           5: '在 OAuth 凭证框中，上传下载的 JSON 文件。'
       3:
         title: '创建 Service Account 凭证'
-        introduction: '参照本<a href="{docsBase}/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/authentication-config/configure-google-oauth#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">指南</a>：'
+        introduction: '参照本<a href="{docsBase}/admin-settings/authentication/google/#3-creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">指南</a>：'
         body:
           1: 创建一个 Service Account。
           2: 为这个 Service Account 生成密钥。
@@ -820,7 +830,7 @@ catalog:
       other: 其他
       partner: Partner
       rancher: '{vendor}'
-    deploysOnWindows: 在 Windows 上部署
+    deploysOnWindows: 支持 Windows 部署
     windowsIncompatible: 仅 Linux
     versionWindowsIncompatible: 仅限 Linux 版本
     header: Chart
@@ -852,7 +862,7 @@ catalog:
         navigate: 导航到旧版应用程序
         mcmNotSupported: 无法通过此 UI 管理旧版多集群应用程序
         category:
-          legacy: 旧版应用
+          legacy: 旧版
           mcm: 多集群
     header:
       install: '安装 {name}'
@@ -1009,7 +1019,7 @@ cis:
   alertNeeded: |-
     必须在 CIS Chart values.yaml 中开启告警。
     这要求<a tabindex="0" href="{link}"> {vendor} 的 Monitoring 与 Alerting 应用</a>已经安装
-    ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/how-to-guides/advanced-user-guides/monitoring-v2-configuration-guides/advanced-configuration/alertmanager'>已配置告警发送</a>。
+    ，而且接收器和路由<a target="_blank" rel='noopener noreferrer nofollow' href='{docsBase}/monitoring-alerting/configuration/#alertmanager-configuration/'>已配置告警发送</a>。
   alertOnComplete: 扫描完成告警
   alertOnFailure: 扫描失败告警
   benchmarkVersion: Benchmark 版本
@@ -1240,7 +1250,7 @@ cluster:
     label: 集群描述
     placeholder: 输入可以描述该集群的文本
   harvester:
-    importNotice: 导入 Harvester 集群方式
+    importNotice: 导入 Harvester 集群的方式：
     warning:
       label: 这是一个 Harvester 集群 - 请启用 Harvester 功能开关以对其进行管理。
       state: 警告
@@ -1281,7 +1291,6 @@ cluster:
     clusterRoleBindingInstructions: '如果你在创建资源时遇到权限错误，你的用户可能没有绑定 <code>cluster-admin</code> 角色。你可以运行这个命令来申请角色：'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
   explore: 浏览
-  exploreHarvester: 浏览
   importAction: 导入已有集群
   manageAction: 管理
   kubernetesVersion:
@@ -1559,7 +1568,7 @@ cluster:
   banner:
     warning: '此集群包含此表单不完全支持的 machineSelectorConfig。使用 YAML 编辑器管理完整配置。'
     os: '你正在将 {newOS} worker 节点添加到具有一个或多个 {existingOS} worker 节点的集群。你可能需要升级或删除某些已安装的应用。'
-    rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/rke1-vs-rke2-differences" target="_blank" rel="noopener nofollow">文档</a>。'
+    rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">文档</a>。'
     desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
 
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
@@ -3034,7 +3043,7 @@ monitoring:
       keyFilePath:
         label: 密钥文件路径
         placeholder: 例如：./key-file.pfx
-      secretsBanner: 部署 Monitoring Chart 时，必须在<<pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre>中引用以下文件路径。详情请查看<a href="{docsBase}/pages-for-subheaders/monitoring-v2-configuration" target="_blank" rel="noopener noreferrer nofollow">官方文档</a>。
+      secretsBanner: 部署 Monitoring Chart 时，必须在<<pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre>中引用以下文件路径。详情请查看<a href="{docsBase}/monitoring-alerting/" target="_blank" rel="noopener noreferrer nofollow">官方文档</a>。
   projectMonitoring:
     detail:
       error: "无法获取具有状态的仪表板值： "
@@ -3091,7 +3100,7 @@ monitoring:
       stepTitle: 卸载 V1
       stepSubtext: 卸载旧版 Monitoring
       warning1: 已部署 Monitoring V1。你需要先卸载 Monitoring V1 才能安装 Monitoring V2。
-      warning2: <a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/how-to-guides/advanced-user-guides/monitoring-alerting-guides/migrate-to-rancher-v2.5+-monitoring#migrating-from-monitoring-v1-to-monitoring-v2" target='_blank' rel='noopener nofollow'>了解迁移到 Monitoring V2 的步骤</a>。
+      warning2: <a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/" target='_blank' rel='noopener nofollow'>了解迁移到 Monitoring V2 的步骤</a>。
       promptDescription: <div class="mt-20 mb-20">你正在尝试卸载 Monitoring V1。请确保你已阅读迁移步骤。</div>
       success1:  Monitoring V1 已成功卸载。
       success2: 点击下一步继续
@@ -4103,6 +4112,7 @@ promptRemove:
     other { 还有另外<b>{count}个</b>。}
     }
   attemptingToRemove: "你正在试图删除 {type}"
+  attemptingToRemoveAuthConfig: "你正在尝试禁用此 Auth Provider。<br><br> 请注意，集群角色模板绑定、项目角色模板绑定、全局角色绑定、用户和 Token 都会被删除。<br><br> 你确定要继续吗？"
   protip: "提示：按住 {alternateLabel} 键的同时单击删除，以绕过此确认。"
   confirmName: "在下方输入 <b>{nameToMatch}</b> 以确认："
   deleteAssociatedNamespaces: "同时删除此项目中的命名空间："
@@ -4986,47 +4996,80 @@ storageClass:
     warning: '{provisioner} 树内插件已弃用。你可以在<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">这里</a>查找 CSI 驱动。'
 
 tableHeaders:
+  assuredConcurrencyShares: 确保并发份额
   accessKey: Access Key
+  addressType: 地址类型
+  accessModes: 访问模式
   address: 地址
   age: 存活时间
   apiGroup: API 组
+  apikey: API 密钥
+  available: 可用
+  attachedVM: 挂载的虚拟机
+
   authRoles:
     globalDefault: 新用户的默认角色
     clusterDefault: 集群创建者的默认角色
     projectDefault: 项目创建者的默认角色
   branch: 分支
+  backupTarget: 备份路径
   builtIn: 内置
   bundlesReady: 就绪 Bundle
   bundleDeploymentsReady: Deployment
   builtin: 内置
   chart: Chart
+  capacity: 容量
+  current: 当前
   clusterCreatorDefault: 集群创建者的默认角色
   clusterFlow: Cluster Flow
   clusterOutput: 集群输出
   cluster: 集群
   clusters: 集群
+  cluster-Name: 集群
   clustersReady: 就绪集群
   clusterGroups: 集群组
   commit: Commit
   condition: 状态
+  completions: 完成 Job 历史数
+  count: 数量
+  createdAt: 创建于 
   customVerbs: 自定义操作
   description: 描述
-  duration: 持续时间
   expires: 过期时间
-  providers: 提供商
   cpu: CPU
+  currentReplicas: 当前副本数
   date: 日期
+  data: 数据
   default: 默认
+  desired: 期望
+  defaultVersion: 默认版本
   destination: 目标
+  deployed: 已部署
   download: 下载
+  duration: 持续时间
+  diskState: 磁盘状态
+  drivers: 驱动
+  distinguisherMethod: 区分方法
   effect: 效果
   endpoints: 端点
+  firstSeen: 首次出现时间
   fleetBundleType: 类型
   flow: Flow
+  fingerprint: 唯一标识
   gitRepos: Git 仓库
+  groups: 组
+  groupName: 组名称
+  groupRoleNames: 组角色名称
+  global-Default: 全局默认
   host: 主机
+  hostIp: 主机 IP
+  holder: 持有者
+  hpaReference: 工作负载
   health: 健康
+  handSize: Hand Size
+  ipAddress: IP 地址
   id: ID
+  iP: IP
   image: 镜像
   imageSize: 大小
   ingressClass: IngressClass
@@ -5038,25 +5081,34 @@ tableHeaders:
   jobs: Job
   key: 键
   keys: 数据
+  labels: 标签
   lastUpdated: 最后更新时间
+  lastSchedule: 最后调度时间
   lastSeen: 最后出现
   loggingOutputProviders: 提供商
   machines: 主机
   machineNodeName: 节点
   manual: 手动
   matches: 匹配
+  matchingPrecedence: 匹配优先级
   maxKubernetesVersion: 最大 Kubernetes 版本
   message: 消息
   minKubernetesVersion: 最低 Kubernetes 版本
+  minReplicas: 最小副本数
+  maxReplicas: 最大副本数
+  missingPL: 缺少 PL
   memory: 内存
+  monitored: 已监控
   name: 名称
   nameDisplay: 显示名称
   nameUnlinked: 名称
   namespace: 命名空间
   namespaceName: 名称
   namespaceNameUnlinked: 名称
+  networkType: 类型
+  networkVlan: Vlan ID
   node: 节点
-  nodeName: 名称
+  nodeName: 节点名称
   nodesReady: 就绪节点
   nodePort: Node Port
   object: 对象
@@ -5065,14 +5117,23 @@ tableHeaders:
   p95: 95 百分位数
   persistentVolumeClaim: 持久卷声明
   persistentVolumeSource: 源
+  phase: 阶段
+  progress: 进度
   podImages: 镜像
   podRestarts: 重启次数
   pods: Pod
+  pod-Selector: Pod 选择器
+  providers: 提供商
+  providerID: 提供商 ID
   port: 端口
+  ports: 端口
   project: 项目
   protocol: 协议
   provider: 提供商
+  priorityLevel: 优先级
   publicPorts: 公共端口
+  queues: 队列
+  queueLengthLimit: 队列长度限制
   ram: 内存（RAM）
   rbac:
     create: Create
@@ -5098,12 +5159,20 @@ tableHeaders:
   resources: 资源
   resourcesReady: 就绪资源
   restarts: 重启次数
+  restart: 需要重启
   role: 角色
   roles: 角色
   routes: 路由
+  routeConnectivity: 路由连接
+  readyToUse: 可用
   scale: 比例
   scope: 范围
   selector: 选择器
+  secrets: 密文
+  schedule: 调度
+  service: 服务
+  serviceAccounts: Service Account
+  secret-Name: 密文名称
   simpleName: 名称
   simpleScale: 比例
   simpleType: 类型
@@ -5111,80 +5180,35 @@ tableHeaders:
   started: 已开始
   state: 状态
   status: 状态
+  targetVm: 目标虚拟机
   storage_class_provisioner: 提供商
+  storage: 存储大小
+  storageClass: 存储类
+  source: 源
   subject: 主题
   subType: 类型
   success: 成功
   summary: 概述
+  subobject: 子对象
   taints: 污点
   target: 目标
   targetKind: 目标类型
   targetPort: 目标
   type: 类型
   updated: 更新时间
+  up-to-date: 最新
   upgrade: 可升级
   url: URL
+  users: 用户
   userDisplayName: 显示名称
   userId: ID
   userStatus: 状态
   username: 本地用户名
   value: 值
   version: 版本
+  volume: 卷
+  volumeMode: 卷模式
   weight: 权重
-  progress: 进度
-  fingerprint: 唯一标识
-  networkType: 类型
-  networkVlan: Vlan ID
-  readyToUse: 可用
-  backupTarget: 备份路径
-  targetVm: 目标虚拟机
-  phase: 阶段
-  attachedVM: 挂载的虚拟机
-  hostIp: 主机 IP
-  storage: 存储大小
-  defaultVersion: 默认版本
-  ipAddress: IP 地址
-  diskState: 磁盘状态
-  routeConnectivity: 路由连接
-  Schedule: 调度
-  'Last Schedule': 上次调度
-  Ready: 就绪
-  Current: 当前
-  Desired: 期望
-  Up-to-date: 最新
-  Available: 可用
-  Completions: 完成
-  Duration: 时长
-  Restarts: 重启
-  hpaReference: 工作负载
-  minReplicas: 最小副本数
-  maxReplicas: 最大副本数
-  currentReplicas: 当前副本数
-  Pod-Selector: Pod 选择器
-  Status: 状态
-  Volume: 卷
-  Capacity: 容量
-  Access Modes: 访问模式
-  StorageClass: 存储类
-  VolumeMode: 卷类型
-  data: 数据
-  Service: 服务
-  Endpoints: 端点
-  AddressType: 地址类型
-  Ports: 端口
-  Role: 角色
-  Users: 用户
-  Groups: 组
-  ServiceAccounts: 服务账户
-  Value: 值
-  Global-Default: 全局默认
-  Drivers: 驱动数量
-  apikey: API 密钥
-  groupName: 组名称
-  groupRoleNames: 组角色名称
-  Secret-Name: 密文名称
-  restart: 要求重启
-
 target:
   router:
     label: 路由
@@ -5900,15 +5924,7 @@ workload:
       pod: Pod
       containers: 容器
 
-harvesterManager:
-  manage: 管理
-  cluster:
-    label: Harvester 集群
-    none: 不存在 Harvester 集群
-    learnMore: 访问 <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 网站</a> 或阅读 <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 官方文档</a>，以了解更多关于 Harvester 的信息。
-    description: Harvester 是一个采用企业级开源技术，包括Kubernetes、Kubevirt和Longhorn，为裸金属服务器打造的现代超融合基础设施（HCI）解决方案。
-  plugins:
-    loadError: 加载 Harvester 插件时出错
+
 
 ##############################
 # Model Properties
@@ -5997,9 +6013,9 @@ typeDescription:
   cis.cattle.io.clusterscan: 扫描是用来根据定义的配置文件，在集群上触发 CIS 扫描的。扫描完成后会创建一份报告。
   cis.cattle.io.clusterscanreport: 报告是集群 CIS 扫描的结果。
   management.cattle.io.feature: 功能开关用于打开或关闭某些 {vendor} 功能。默认关闭的功能是实验功能。
-  cluster.x-k8s.io.machine: 一个 Machine 封装一个 Kubernetes 节点的配置。你可以使用此视图，来查看更新集群后的情况。
-  cluster.x-k8s.io.machinedeployment: Machine Deployment 通过使用模板，在一组 Machine Set（与 Deployment 类似）上编排部署。你可以使用此视图，来查看更新集群后的情况。
-  cluster.x-k8s.io.machineset: Machine Set 确保所需数量的 Machine 始终启动并运行（与 ReplicaSet 类似）。你可以使用此视图，来查看更新集群后的情况。
+  cluster.x-k8s.io.machine: 一个 Machine 封装一个 Kubernetes 节点的配置。你可以使用此视图来查看更新集群后的情况。
+  cluster.x-k8s.io.machinedeployment: Machine Deployment 通过使用模板，在一组 Machine Set（与 Deployment 类似）上编排部署。你可以使用此视图来查看更新集群后的情况。
+  cluster.x-k8s.io.machineset: Machine Set 确保所需数量的 Machine 始终启动并运行（与 ReplicaSet 类似）。你可以使用此视图来查看更新集群后的情况。
   resources.cattle.io.backup: 创建备份是为了基于 ResourceSet 执行一次性备份或安排重复性备份。
   resources.cattle.io.restore: 创建还原用于根据备份文件触发对集群的还原。
   resources.cattle.io.resourceset: Resource Set 定义要在备份中存储哪些 CRD 和资源。
@@ -6120,6 +6136,21 @@ typeLabel:
       one { 工作空间 }
       other { 工作空间 }
     }
+  policy.poddisruptionbudget: |-
+    {count, plural,
+      one { Pod 中断预算 }
+      other { Pod 中断预算 }
+    }
+  limitrange: |-
+    {count, plural,
+      one { 限制范围 }
+      other { 限制范围 }
+    }
+  resourcequota: |-
+    {count, plural,
+      one { 资源配额 }
+      other { 资源配额 }
+    }
   # pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
   monitoring.coreos.com.prometheus: |-
     {count, plural,
@@ -6186,7 +6217,7 @@ typeLabel:
       one { 集群 }
       other { 集群 }
     }
-  'management.cattle.io.user': |-
+  management.cattle.io.user: |-
     {count, plural,
       one { 用户 }
       other { 用户 }
@@ -6200,6 +6231,136 @@ typeLabel:
     {count, plural,
       one { 节点 }
       other { 节点 }
+    }
+  event: |-
+    {count, plural,
+      one { 事件 }
+      other { 事件 }
+    }
+  apps.deployment: |-
+    {count, plural,
+      one { Deployment }
+      other { Deployment }
+    }
+  batch.cronjob: |-
+    {count, plural,
+      one { CronJob }
+      other { CronJob }
+    }
+  apps.daemonset: |-
+    {count, plural,
+      one { DaemonSet }
+      other { DaemonSet }
+    }
+  batch.job: |-
+    {count, plural,
+      one { Job }
+      other { Job }
+    }
+  apps.statefulset: |-
+    {count, plural,
+      one { StatefulSet }
+      other { StatefulSet }
+    }
+  pod: |-
+    {count, plural,
+      one { Pod }
+      other { Pod }
+    }
+  autoscaling.horizontalpodautoscaler: |-
+    {count, plural,
+      one { HorizontalPodAutoscaler }
+      other { HorizontalPodAutoscaler }
+    }
+  networking.k8s.io.ingress: |-
+    {count, plural,
+      one { Ingress }
+      other { Ingress }
+    }
+  networking.k8s.io.networkpolicy: |-
+    {count, plural,
+      one { 网络策略 }
+      other { 网络策略 }
+    }
+  service: |-
+    {count, plural,
+      one { Service }
+      other { Service }
+    }
+  persistentvolume: |-
+    {count, plural,
+      one { PersistentVolume }
+      other { PersistentVolume }
+    }
+  storage.k8s.io.storageclass: |-
+    {count, plural,
+      one { StorageClass }
+      other { StorageClass }
+    }
+  configmap: |-
+    {count, plural,
+      one { ConfigMap }
+      other { ConfigMap }
+    }
+  persistentvolumeclaim: |-
+    {count, plural,
+      one { PersistentVolumeClaim }
+      other { PersistentVolumeClaim }
+    }
+  secret: |-
+    {count, plural,
+      one { Secret }
+      other { Secret }
+    }
+  apiregistration.k8s.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIService }
+    }
+  apiextensions.k8s.io.customresourcedefinition: |-
+    {count, plural,
+      one { CustomResourceDefinition }
+      other { CustomResourceDefinition }
+    }
+  flowcontrol.apiserver.k8s.io.flowschema: |-
+    {count, plural,
+      one { FlowSchema }
+      other { FlowSchema }
+    }
+  flowcontrol.apiserver.k8s.io.prioritylevelconfiguration: |-
+    {count, plural,
+      one { PriorityLevelConfiguration }
+      other { PriorityLevelConfiguration }
+    }
+  apps.replicaset: |-
+    {count, plural,
+      one { ReplicaSet }
+      other { ReplicaSet }
+    }
+  coordination.k8s.io.lease: |-
+    {count, plural,
+      one { Lease }
+      other { Lease }
+    }
+  serviceaccount: |-
+    {count, plural,
+      one { ServiceAccount }
+      other { ServiceAccount }
+    }
+  discovery.k8s.io.endpointslice: |-
+    {count, plural,
+      one { EndpointSlice }
+      other { EndpointSlice }
+    }
+  admissionregistration.k8s.io.mutatingwebhookconfiguration: |-
+    {count, plural,
+      one { MutatingWebhookConfiguration }
+      other { MutatingWebhookConfiguration }
+    }
+  admissionregistration.k8s.io.validatingwebhookconfiguration: |-
+    {count, plural,
+      one { ValidatingWebhookConfiguration }
+      other { ValidatingWebhookConfiguration }
     }
   group.principal: |-
     {count, plural,
@@ -6221,95 +6382,190 @@ typeLabel:
       one { Harvester 集群 }
       other { Harvester 集群 }
     }
+  harvesterhci.io.cloudtemplate: |-
+    {count, plural,
+      one { Cloud Config 模板 }
+      other { Cloud Config 模板 }
+    }
+  fleet.cattle.io.content: |-
+    {count, plural,
+      one { Content }
+      other { Content }
+    }
   fleet.cattle.io.bundle: |-
     {count, plural,
       one { Bundle }
       other { Bundle }
     }
-  fleet.cattle.io.clusterregistrationtoken: |-
+  fleet.cattle.io.bundledeployment: |-
     {count, plural,
-      one { 集群注册 Token }
-      other { 集群注册 Token }
+      one { BundleDeployment }
+      other { BundleDeployment }
     }
-  event: |-
+  k3s.cattle.io.addon: |-
     {count, plural,
-      one { 事件 }
-      other { 事件 }
-    }
-  secret: |-
-    {count, plural,
-      one { 密文 }
-      other { 密文 }
-    }
-  serviceaccount: |-
-    {count, plural,
-      one { 服务账户 }
-      other { 服务账户 }
-    }
-  service: |-
-    {count, plural,
-      one { 服务 }
-      other { 服务 }
+      one { 插件 }
+      other { 插件 }
     }
   management.cattle.io.apiservice: |-
     {count, plural,
-      one { API 服务 }
-      other { API 服务 }
+      one { APIService }
+      other { APIService }
     }
   management.cattle.io.catalog: |-
     {count, plural,
       one { 应用商店 }
       other { 应用商店 }
     }
+  fleet.cattle.io.clusterregistration: |-
+    {count, plural,
+      one { ClusterRegistration }
+      other { ClusterRegistration }
+    }
+  management.cattle.io.dynamicschema: |-
+    {count, plural,
+      one { DynamicSchema }
+      other { DynamicSchema }
+    }
+  management.cattle.io.globalrolebinding: |-
+    {count, plural,
+      one { GlobalRoleBinding }
+      other { GlobalRoleBinding }
+    }
+  management.cattle.io.kontainerdriver: |-
+    {count, plural,
+      one { KontainerDriver }
+      other { KontainerDriver }
+    }
   management.cattle.io.nodedriver: |-
     {count, plural,
-      one { 主机驱动 }
-      other { 主机驱动 }
+      one { NodeDriver }
+      other { NodeDriver }
+    }
+  management.cattle.io.podsecuritypolicytemplate: |-
+    {count, plural,
+      one { PodSecurityPolicyTemplate }
+      other { PodSecurityPolicyTemplate }
+    }
+  management.cattle.io.userattribute: |-
+    {count, plural,
+      one { UserAttribute }
+      other { UserAttribute }
+    }
+  management.cattle.io.catalogtemplate: |-
+    {count, plural,
+      one { CatalogTemplate }
+      other { CatalogTemplate }
+    }
+  management.cattle.io.catalogtemplateversion: |-
+    {count, plural,
+      one { CatalogTemplateVersion }
+      other { CatalogTemplateVersion }
+    }
+  management.cattle.io.cisbenchmarkversion: |-
+    {count, plural,
+      one { CisBenchmarkVersion }
+      other { CisBenchmarkVersion }
+    }
+  management.cattle.io.cisconfig: |-
+    {count, plural,
+      one { CisConfig }
+      other { CisConfig }
+    }
+  management.cattle.io.clusteralertgroup: |-
+    {count, plural,
+      one { ClusterAlertGroup }
+      other { ClusterAlertGroup }
+    }
+  management.cattle.io.clusteralertrule: |-
+    {count, plural,
+      one { ClusterAlertRule }
+      other { ClusterAlertRule }
+    }
+  management.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { ClusterRegistrationToken }
+      other { ClusterRegistrationToken }
     }
   management.cattle.io.node: |-
     {count, plural,
       one { 节点 }
       other { 节点 }
     }
+  management.cattle.io.projectalertgroup: |-
+    {count, plural,
+      one { ProjectAlertGroup }
+      other { ProjectAlertGroup }
+    }
+  management.cattle.io.projectalertrule: |-
+    {count, plural,
+      one { ProjectAlertRule }
+      other { ProjectAlertRule }
+    }
+  management.cattle.io.rkeaddon: |-
+    {count, plural,
+      one { RkeAddon }
+      other { RkeAddon }
+    }
+  management.cattle.io.rkek8sserviceoption: |-
+    {count, plural,
+      one { RkeK8sServiceOption }
+      other { RkeK8sServiceOption }
+    }
+  management.cattle.io.rkek8ssystemimage: |-
+    {count, plural,
+      one { RkeK8sSystemImage }
+      other { RkeK8sSystemImage }
+    }
+  rbac.authorization.k8s.io.clusterrolebinding: |-
+    {count, plural,
+      one { ClusterRoleBinding }
+      other { ClusterRoleBinding }
+    }
   rbac.authorization.k8s.io.clusterrole: |-
     {count, plural,
-      one { 集群角色 }
-      other { 集群角色 }
+      one { ClusterRole }
+      other { ClusterRole }
+    }
+  rbac.authorization.k8s.io.rolebinding: |-
+    {count, plural,
+      one { RoleBinding }
+      other { RoleBinding }
     }
   rbac.authorization.k8s.io.role: |-
     {count, plural,
-      one { 角色 }
-      other { 角色 }
+      one { Role }
+      other { Role }
     }
-  storage.k8s.io.storageclass: |-
+  scheduling.k8s.io.priorityclass: |-
     {count, plural,
-      one { 存储类 }
-      other { 存储类 }
-    }
-  persistentvolume: |-
-    {count, plural,
-      one { 持久卷 }
-      other { 持久卷 }
-    }
-  persistentvolumeclaim: |-
-    {count, plural,
-      one { 持久卷声明 }
-      other { 持久卷声明 }
-    }
-  configmap: |-
-    {count, plural,
-      one { 配置映射 }
-      other { 配置映射 }
-    }
-  policy.podsecuritypolicy: |-
-    {count, plural,
-      one { Pod 安全策略 }
-      other { Pod 安全策略 }
+      one { PriorityClass }
+      other { PriorityClass }
     }
   storage.k8s.io.csinode: |-
     {count, plural,
-      one { CSI 节点 }
-      other { CSI 节点 }
+      one { CSINode }
+      other { CSINode }
+    }
+  cluster.x-k8s.io.machinedeployment: |-
+    {count, plural,
+      one { MachineDeployment }
+      other { MachineDeployment }
+    }
+  cluster.x-k8s.io.machineset: |-
+    {count, plural,
+      one { MachineSet }
+      other { MachineSet }
+    }
+  cluster.x-k8s.io.machine: |-
+    {count, plural,
+      one { Machine }
+      other { Machine }
+    }
+  fleet.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { 集群注册 Token }
+      other { 集群注册 Token }
     } 
 
 action:
@@ -6384,10 +6640,11 @@ registryConfig:
 
 advancedSettings:
   label: 设置
-  subtext: 一般用户不需要修改此处的设置。请谨慎操作，不正确的值会破坏 {appName} 的安装。与默认不同的设置会标记为 "Modified"。
+  subtext: 一般用户不需要修改此处的设置。请谨慎操作，不正确的值会破坏 {appName} 的安装。与默认不同的设置会标记为“已修改”。
   show: 显示
   hide: 隐藏
   none: 无
+  modified: 已修改
   edit:
     label: 编辑设置
     changeSetting: "修改设置："
@@ -6715,13 +6972,13 @@ embedding:
 v1ClusterTools:
   monitoring:
     label: Monitoring（旧版）
-    description: '旧版 Monitoring V1。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/how-to-guides/advanced-user-guides/monitoring-alerting-guides/migrate-to-rancher-v2.5+-monitoring#migrating-from-monitoring-v1-to-monitoring-v2">迁移到 Monitoring V2 的步骤</a>。'
+    description: '旧版 Monitoring V1。自 Rancher 2.5.0 起，我们已弃用 Monitoring V1。了解<a target="blank" href="{docsBase}/monitoring-alerting/guides/migrating/">迁移到 Monitoring V2 的步骤</a>。'
   logging:
     label: Logging（旧版）
-    description: '旧版 Logging V1。自 Rancher 2.5.0 起，我们已弃用 Logging V1。了解<a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/integrations-in-rancher/logging/migrate-to-rancher-v2.5+-logging">迁移到 Logging V2 的步骤</a>。'
+    description: '旧版 Logging V1。自 Rancher 2.5.0 起，我们已弃用 Logging V1。了解<a target="blank" href="{docsBase}/logging/migrating/">迁移到 Logging V2 的步骤</a>。'
   istio:
     label: Istio（旧版）
-    description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们已弃用 Istio V1.5。了解<a target="blank" href="https://ranchermanager.docs.rancher.com/v2.6/pages-for-subheaders/istio#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
+    description: '旧版 Istio V1。自 Rancher 2.5.0 起，我们已弃用 Istio V1.5。了解<a target="blank" href="{docsBase}/istio/#migrate-from-previous-istio-version">迁移到最新版本</a> 的更多信息。'
 
 legacy:
   alerts: 告警

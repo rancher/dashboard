@@ -235,6 +235,15 @@ export default {
     }
   },
   methods: {
+    getPSA(row) {
+      const dictionary = row.psaTooltipsDescription;
+      const list = Object.values(dictionary)
+        .sort()
+        .map(text => `<li>${ text }</li>`).join('');
+
+      return `<ul class="psa-tooltip">${ list }</ul>`;
+    },
+
     userIsFilteringForSpecificNamespaceOrProject() {
       const activeFilters = this.$store.getters['namespaceFilters'];
 
@@ -387,6 +396,24 @@ export default {
           class="text-muted"
         >&ndash;</span>
       </template>
+      <template #cell:name="{row}">
+        <div class="namespace-name">
+          <n-link
+            v-if="row.detailLocation"
+            :to="row.detailLocation"
+          >
+            {{ row.name }}
+          </n-link>
+          <span v-else>
+            {{ row.name }}
+          </span>
+          <i
+            v-if="row.hasSystemLabels"
+            v-tooltip="getPSA(row)"
+            class="icon icon-lock ml-5"
+          />
+        </div>
+      </template>
       <template
         v-for="project in projectsWithoutNamespaces"
         v-slot:[slotName(project)]
@@ -448,6 +475,19 @@ export default {
         }
       }
     }
+
+    .namespace-name {
+      display: flex;
+      align-items: center;
+    }
   }
 }
+</style>
+<style lang="scss">
+  .psa-tooltip {
+    // These could pop up a lot as the mouse moves around, keep them as small and unintrusive as possible
+    // (easier to test with v-tooltip="{ content: getPSA(row), autoHide: false, show: true }")
+    margin: 3px 0;
+    padding: 0 8px 0 22px;
+  }
 </style>

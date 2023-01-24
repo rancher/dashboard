@@ -34,7 +34,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load', { force: true });
+    await this.$store.dispatch('catalog/load', { force: true, reset: true });
 
     const query = this.$route.query;
 
@@ -340,7 +340,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header class="header-layout">
+    <header>
       <div class="title">
         <h1 class="m-0">
           {{ t('catalog.charts.header') }}

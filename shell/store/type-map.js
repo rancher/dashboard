@@ -42,6 +42,7 @@
 //   category,                -- Group to show the product in for the nav hamburger menu
 //   typeStoreMap,            -- An object mapping types to the store that should be used to retrieve information about the type
 //   hideSystemResources      -- Hide resources in namespaces where namespace.isSystem === true, or a namespace managed by fleet (per its annotation) and hide those namespaces from ns/project list and nsfilter (default false)
+//   hideNamespaceLocation    -- Hide the namespace link in the ResourceDetail masthead of namespaced resources and hide the ExplorerProjectsNamespaces namespace link (default false)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object
@@ -137,7 +138,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -365,16 +366,19 @@ export const state = function() {
     hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
-      typeMove:         {},
-      groupLabel:       {},
-      ignore:           {},
-      list:             {},
-      chart:            {},
-      detail:           {},
-      edit:             {},
-      componentFor:     {},
-      promptRemove:     {},
-      windowComponents: {},
+      typeMove:           {},
+      groupLabel:         {},
+      ignore:             {},
+      list:               {},
+      chart:              {},
+      detail:             {},
+      edit:               {},
+      componentFor:       {},
+      promptRemove:       {},
+      windowComponents:   {},
+      'machine-config':   {},
+      'cloud-credential': {}
+
     },
   };
 };
@@ -1114,6 +1118,22 @@ export const getters = {
     };
   },
 
+  hasCustomMachineConfigComponent(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
+
+      return hasCustom(state, rootState, 'machine-config', key, key => resolveMachineConfigComponent(key));
+    };
+  },
+
+  hasCustomCloudCredentialComponent(state, getters, rootState) {
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
+
+      return hasCustom(state, rootState, 'machine-config', key, key => resolveCloudCredentialComponent(key));
+    };
+  },
+
   importComponent(state, getters) {
     return (path) => {
       return importEdit(path);
@@ -1159,6 +1179,18 @@ export const getters = {
   importWindowComponent(state, getters, rootState) {
     return (rawType, subType) => {
       return loadExtension(rootState, 'windowComponents', getters.componentFor(rawType, subType), importWindowComponent);
+    };
+  },
+
+  importMachineConfig(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'machine-config', getters.componentFor(rawType, subType), importMachineConfig);
+    };
+  },
+
+  importCloudCredential(state, getters, rootState) {
+    return (rawType, subType) => {
+      return loadExtension(rootState, 'cloud-credential', getters.componentFor(rawType, subType), importCloudCredential);
     };
   },
 

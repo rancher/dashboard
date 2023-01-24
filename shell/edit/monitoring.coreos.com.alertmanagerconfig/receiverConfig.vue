@@ -12,6 +12,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
+import FormValidation from '@shell/mixins/form-validation';
 
 export const RECEIVERS_TYPES = [
   {
@@ -100,7 +101,7 @@ export default {
     },
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   data(props) {
     const currentReceiver = {};
@@ -144,14 +145,18 @@ export default {
     }
 
     return {
-      create:        _CREATE,
+      create:         _CREATE,
       EDITOR_MODES,
       expectedFields,
-      fileFound:     false,
-      receiverTypes: RECEIVERS_TYPES,
+      fileFound:      false,
+      receiverTypes:  RECEIVERS_TYPES,
       suffixYaml,
-      view:          _VIEW,
-      yamlError:     '',
+      view:           _VIEW,
+      yamlError:      '',
+      fvFormRuleSets: [
+        { path: 'name', rules: ['required'] }
+      ],
+      fvReportedValidationPaths: ['value']
     };
   },
 
@@ -235,6 +240,14 @@ export default {
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
     },
+
+    setError(err) {
+      if (!err) {
+        this.errors = [];
+      } else {
+        this.errors = [err];
+      }
+    }
   }
 };
 </script>
@@ -249,8 +262,9 @@ export default {
     :can-yaml="true"
     :errors="errors"
     :cancel-event="true"
+    :validation-passed="fvFormIsValid"
     @error="e=>errors = e"
-    @finish="saveOverride()"
+    @finish="saveOverride"
     @cancel="redirectAfterCancel"
   >
     <div class="row mb-10">
@@ -259,7 +273,9 @@ export default {
           v-model="value.name"
           :is-disabled="receiverNameDisabled"
           :label="t('generic.name')"
+          :required="true"
           :mode="mode"
+          :rules="fvGetAndReportPathRules('name')"
         />
       </div>
     </div>
