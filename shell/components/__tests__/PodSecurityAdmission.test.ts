@@ -204,6 +204,104 @@ describe('component: PodSecurityAdmission', () => {
         });
       });
     });
+
+    describe.each(['level', 'version'])('should keep always %p enabled', (inputId) => {
+      it('given labelsAlwaysActive true and no labels', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:               'create',
+            labelsAlwaysActive: true,
+            labels:             {}
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(false);
+      });
+
+      it('given existing values', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:   'create',
+            labels: {
+              [`enforce`]:         'baseline',
+              [`enforce-version`]: '123'
+            }
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(false);
+      });
+    });
+
+    describe.each(['level', 'version'])('should keep always %p disabled', (inputId) => {
+      it('given labelsAlwaysActive false and no labels', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:               'create',
+            labelsAlwaysActive: false,
+            labels:             {}
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(true);
+      });
+
+      it('given disabled active status', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: { mode: 'create' },
+          data:      () => ({
+            psaControls: {
+              enforce: {
+                active:  false,
+                level:   '',
+                version: ''
+              }
+            }
+          }),
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(true);
+      });
+
+      it('given view mode and provided labels', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:   'view',
+            labels: {
+              [`enforce`]:         'baseline',
+              [`enforce-version`]: '123'
+            }
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(true);
+      });
+    });
+
+    it.each([
+      [true, false],
+    ])('should display the checkbox %p', (value) => {
+      const wrapper = mount(PodSecurityAdmission, {
+        propsData: {
+          mode:               'create',
+          labelsAlwaysActive: value
+        }
+      });
+
+      const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-active"]`).element as HTMLInputElement;
+
+      expect(!input).toBe(value);
+    });
   });
 
   describe('handling exemptions', () => {

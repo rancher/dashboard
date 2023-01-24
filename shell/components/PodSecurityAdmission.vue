@@ -39,6 +39,11 @@ export default Vue.extend({
       default: () => ({})
     },
 
+    labelsAlwaysActive: {
+      type:    Boolean,
+      default: false
+    },
+
     /**
      * Map editing capabilities to the component
      */
@@ -117,7 +122,7 @@ export default Vue.extend({
     updateLabels(): void {
       const nonPSALabels = pickBy(this.labels, (_, key) => !key.includes(this.labelsPrefix));
       const labels = PSAModes.reduce((acc, mode) => {
-        return this.psaControls[mode].active ? {
+        return this.psaControls[mode].active || this.labelsAlwaysActive ? {
           ...acc,
           // Set default level if none
           [`${ this.labelsPrefix }${ mode }`]:         this.psaControls[mode].level || PSADefaultLevel,
@@ -178,6 +183,13 @@ export default Vue.extend({
           }
         };
       }, {}) as Record<PSADimension, PSAExemptionControl>;
+    },
+
+    /**
+     * Add checks on input for PSA controls to be active or not, allowing white cases
+     */
+    isPsaControlDisabled(active: boolean): boolean {
+      return !this.labelsAlwaysActive && (!active || this.isView);
     }
   }
 });
@@ -197,6 +209,7 @@ export default Vue.extend({
     >
       <span class="col span-2">
         <Checkbox
+          v-if="!labelsAlwaysActive"
           v-model="psaControl.active"
           :data-testid="componentTestid + '--psaControl-' + i + '-active'"
           :label="level"
@@ -204,13 +217,20 @@ export default Vue.extend({
           :disabled="isView"
           @input="updateLabels()"
         />
+        <p v-else>
+          <t :k="`podSecurityAdmission.labels.${level}`" />
+        </p>
       </span>
 
-      <span class="col span-4">
+      <span
+        class="
+          col
+          span-4"
+      >
         <LabeledSelect
           v-model="psaControl.level"
           :data-testid="componentTestid + '--psaControl-' + i + '-level'"
-          :disabled="(isView || !psaControl.active)"
+          :disabled="isPsaControlDisabled(psaControl.active)"
           :options="options"
           :mode="mode"
           @input="updateLabels()"
@@ -221,7 +241,7 @@ export default Vue.extend({
         <LabeledInput
           v-model="psaControl.version"
           :data-testid="componentTestid + '--psaControl-' + i + '-version'"
-          :disabled="(isView || !psaControl.active)"
+          :disabled="isPsaControlDisabled(psaControl.active)"
           :options="options"
           :placeholder="t('podSecurityAdmission.version.placeholder', { psaControl: mode })"
           :mode="mode"
