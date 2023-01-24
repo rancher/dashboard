@@ -8,4 +8,8 @@ export default class ActionMenuPo extends ComponentPo {
   clickMenuItem(index: number) {
     return this.self().find('li').eq(index).click();
   }
+
+  getMenuItem(name: string) {
+    return this.self().get('li > span').contains(name);
+  }
 }

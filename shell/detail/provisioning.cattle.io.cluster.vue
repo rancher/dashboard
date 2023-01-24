@@ -9,7 +9,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import { allHash } from '@shell/utils/promise';
 import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
-  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME, IP_ADDRESS
+  STATE, NAME as NAME_COL, AGE, AGE_NORMAN, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
 } from '@shell/config/table-headers';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@shell/components/AsyncButton.vue';
@@ -17,7 +17,7 @@ import AnsiUp from 'ansi_up';
 import day from 'dayjs';
 import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
-import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { DATE_FORMAT, TIME_FORMAT, SCALE_POOL_PROMPT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph';
 import Socket, {
@@ -29,6 +29,7 @@ import Socket, {
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
+import { isAlternate } from '@shell/utils/platform';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -356,7 +357,7 @@ export default {
           formatterOpts: { reference: 'kubeNodeDetailLocation' },
           dashIfEmpty:   true,
         },
-        IP_ADDRESS,
+        INTERNAL_EXTERNAL_IP,
         MACHINE_NODE_OS,
         ROLES,
         AGE,
@@ -375,7 +376,7 @@ export default {
           formatterOpts: { reference: 'kubeNodeDetailLocation' },
           dashIfEmpty:   true,
         },
-        IP_ADDRESS,
+        INTERNAL_EXTERNAL_IP,
         MANAGEMENT_NODE_OS,
         ROLES,
         AGE
@@ -500,6 +501,24 @@ export default {
   },
 
   methods: {
+    toggleScaleDownModal( event, resources ) {
+      // Check if the user held alt key when an action is clicked.
+      const alt = isAlternate(event);
+      const showScalePoolPrompt = this.$store.getters['prefs/get'](SCALE_POOL_PROMPT);
+
+      // Prompt if showScalePoolPrompt pref not store and user did not held alt key
+      if (!alt && !showScalePoolPrompt) {
+        this.$store.dispatch('management/promptModal', {
+          component:  'ScalePoolDownDialog',
+          resources,
+          modalWidth: '450px'
+        });
+      } else {
+        // User held alt key, so don't prompt
+        resources.scalePool(-1);
+      }
+    },
+
     async takeSnapshot(btnCb) {
       try {
         await this.value.takeSnapshot();
@@ -693,7 +712,7 @@ export default {
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.scalePool(-1)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
@@ -777,7 +796,7 @@ export default {
                     :disabled="group.ref.spec.quantity < 2"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.scalePool(-1)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>

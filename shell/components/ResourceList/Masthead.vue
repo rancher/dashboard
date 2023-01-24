@@ -65,6 +65,11 @@ export default {
       default: false
     },
 
+    loadNamespace: {
+      type:    String,
+      default: null
+    },
+
     showIncrementalLoadingIndicator: {
       type:    Boolean,
       default: false
@@ -163,7 +168,7 @@ export default {
 </script>
 
 <template>
-  <header class="header-layout">
+  <header>
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>
@@ -178,6 +183,7 @@ export default {
         v-if="showIncrementalLoadingIndicator"
         :resources="loadResources"
         :indeterminate="loadIndeterminate"
+        :namespace="loadNamespace"
       />
     </div>
     <div class="actions-container">
@@ -216,5 +222,9 @@ export default {
     h1 {
       margin: 0;
     }
+  }
+
+  header {
+    margin-bottom: 20px;
   }
 </style>

@@ -11,32 +11,27 @@ export default {
     Banner,
   },
   props: {
-    resources: {
-      type:     Array,
-      required: true
+    applyAction: {
+      type:    Function,
+      default: () => {}
+    },
+    applyMode: {
+      type:    String,
+      default: 'create'
+    },
+    title: {
+      type:    String,
+      default: ''
+    },
+    body: {
+      type:    String,
+      default: ''
     }
   },
   data() {
     return { errors: [] };
   },
-  computed: {
-    config() {
-      return this.resources[0];
-    },
-    applyAction() {
-      return this.config.applyAction;
-    },
-    applyMode() {
-      return this.config.applyMode || 'create';
-    },
-    title() {
-      return this.config.title;
-    },
-    body() {
-      return this.config.body;
-    },
 
-  },
   methods: {
     close() {
       this.$emit('close');

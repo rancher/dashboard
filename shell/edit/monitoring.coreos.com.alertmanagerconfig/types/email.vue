@@ -25,7 +25,7 @@ export default {
   },
   data() {
     this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
-    this.$set(this.value, 'requireTls', this.value.requireTls || false);
+    this.$set(this.value, 'requireTLS', this.value.requireTLS || false);
 
     return {
       view:                          _VIEW,
@@ -123,7 +123,7 @@ export default {
       </div>
       <div class="col span-6">
         <Checkbox
-          v-model="value.requireTls"
+          v-model="value.requireTLS"
           :mode="mode"
           class="mt-20"
           label="Use TLS"

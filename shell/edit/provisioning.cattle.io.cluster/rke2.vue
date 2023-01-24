@@ -4,7 +4,6 @@ import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
-
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 
@@ -29,6 +28,7 @@ import { sortBy } from '@shell/utils/sort';
 import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import * as VERSION from '@shell/utils/version';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -66,6 +66,7 @@ import RegistryConfigs from './RegistryConfigs';
 import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
+import AdvancedSection from '@shell/components/AdvancedSection.vue';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -77,6 +78,7 @@ const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 export default {
   components: {
     ACE,
+    AdvancedSection,
     AgentEnv,
     ArrayList,
     ArrayListGrouped,
@@ -136,6 +138,10 @@ export default {
         hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
       }
 
+      if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
+        hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+      }
+
       // Get the latest versions from the global settings if possible
       const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
       const defaultRke2Setting = globalSettings.find(setting => setting.id === 'rke2-default-version') || {};
@@ -157,6 +163,7 @@ export default {
       const res = await allHash(hash);
 
       this.allPSPs = res.allPSPs || [];
+      this.allPSAs = res.allPSAs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
 
@@ -230,6 +237,10 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
+    if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
+      set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+    }
+
     await this.initAddons();
     await this.initRegistry();
 
@@ -267,30 +278,32 @@ export default {
     }
 
     return {
-      loadedOnce:                  false,
-      lastIdx:                     0,
-      allPSPs:                     null,
-      nodeComponent:               null,
-      credentialId:                null,
-      credential:                  null,
-      machinePools:                null,
-      rke2Versions:                null,
-      k3sVersions:                 null,
-      defaultRke2:                 '',
-      defaultK3s:                  '',
-      s3Backup:                    false,
-      versionInfo:                 {},
-      membershipUpdate:            {},
-      showDeprecatedPatchVersions: false,
-      systemRegistry:              null,
-      registryHost:                null,
-      registryMode:                null,
-      registrySecret:              null,
-      userChartValues:             {},
-      userChartValuesTemp:         {},
-      addonsRev:                   0,
-      clusterIsAlreadyCreated:     !!this.value.id,
-      fvFormRuleSets:              [{
+      loadedOnce:                      false,
+      lastIdx:                         0,
+      allPSPs:                         null,
+      allPSAs:                         [],
+      nodeComponent:                   null,
+      credentialId:                    null,
+      credential:                      null,
+      machinePools:                    null,
+      rke2Versions:                    null,
+      k3sVersions:                     null,
+      defaultRke2:                     '',
+      defaultK3s:                      '',
+      s3Backup:                        false,
+      versionInfo:                     {},
+      membershipUpdate:                {},
+      showDeprecatedPatchVersions:     false,
+      systemRegistry:                  null,
+      registryHost:                    null,
+      showCustomRegistryInput:         false,
+      showCustomRegistryAdvancedInput: false,
+      registrySecret:                  null,
+      userChartValues:                 {},
+      userChartValuesTemp:             {},
+      addonsRev:                       0,
+      clusterIsAlreadyCreated:         !!this.value.id,
+      fvFormRuleSets:                  [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
@@ -327,9 +340,35 @@ export default {
       return this.value.agentConfig;
     },
 
+    /**
+     * Return need of PSA if RKE and min k8s version
+     */
+    needsPSA() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const isRKE2 = release.includes('rke2');
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
+
+      return isRKE2 && isRequiredVersion;
+    },
+
+    /**
+     * Restrict use of PSP based on min k8s version
+     */
+    needsPSP() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return isRequiredVersion;
+    },
+
     // kubeletConfigs() {
     //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
     // },
+    /**
+     * Check if k8s release version used is RKE2 ^1.25
+     */
 
     unsupportedSelectorConfig() {
       let global = 0;
@@ -419,7 +458,10 @@ export default {
         return { label: x, value: x };
       });
 
-      out.unshift({ label: '(None)', value: '' });
+      out.unshift({
+        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
+        value: ''
+      });
 
       return out;
     },
@@ -429,7 +471,10 @@ export default {
         return null;
       }
 
-      const out = [{ label: 'RKE2 Default', value: '' }];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
+        value: ''
+      }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
@@ -449,6 +494,35 @@ export default {
       return out;
     },
 
+    /**
+     * Convert PSA templates into options, sorting and flagging if any selected
+     */
+    psaOptions() {
+      if ( !this.needsPSA ) {
+        return [];
+      }
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option'),
+        value: ''
+      }];
+
+      if ( this.allPSAs ) {
+        for ( const psa of this.allPSAs ) {
+          out.push({
+            label: psa.nameDisplay,
+            value: psa.id,
+          });
+        }
+      }
+      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName;
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
     disableOptions() {
       return this.serverArgs.disable.options.map((value) => {
         return {
@@ -459,7 +533,10 @@ export default {
     },
 
     cloudProviderOptions() {
-      const out = [{ label: '(None)', value: '' }];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
+      }];
 
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
@@ -506,11 +583,7 @@ export default {
     },
 
     haveArgInfo() {
-      if ( this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs ) {
-        return true;
-      }
-
-      return false;
+      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
     },
 
     serverArgs() {
@@ -527,15 +600,6 @@ export default {
 
     showCisProfile() {
       return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
-    },
-
-    registryOptions() {
-      return [PUBLIC, PRIVATE, ADVANCED].map((opt) => {
-        return {
-          label: this.$store.getters['i18n/withFallback'](`cluster.privateRegistry.mode."${ opt }"`, null, opt),
-          value: opt,
-        };
-      });
     },
 
     needCredential() {
@@ -849,6 +913,19 @@ export default {
         return false;
       }
     },
+
+    displayInvalidPspsBanner() {
+      const version = VERSION.parse(this.value.spec.kubernetesVersion);
+
+      const major = parseInt(version?.[0] || 0);
+      const minor = parseInt(version?.[1] || 0);
+
+      if (major === 1 && minor >= 25) {
+        return this.allPSPs?.length > 0;
+      }
+
+      return false;
+    }
   },
 
   watch: {
@@ -1205,6 +1282,7 @@ export default {
             url:    `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
             method: 'POST',
             data:   {
+              csiClusterRoleName: 'harvesterhci.io:csi-driver',
               clusterRoleName:    'harvesterhci.io:cloudprovider',
               namespace,
               serviceAccountName: this.value.metadata.name,
@@ -1393,12 +1471,22 @@ export default {
     },
 
     async initRegistry() {
-      let registryMode = PUBLIC;
-      let registryHost = this.agentConfig?.['system-default-registry'] || '';
+      // Check for an existing cluster scoped registry
+      const clusterRegistry = this.agentConfig?.['system-default-registry'] || '';
+
+      // Check for the global registry
+      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
+
+      // The order of precedence is to use the cluster scoped registry
+      // if it exists, then use the global scoped registry as a fallback
+      if (clusterRegistry) {
+        this.registryHost = clusterRegistry;
+      } else {
+        this.registryHost = this.systemRegistry;
+      }
+
       let registrySecret = null;
       let regs = this.rkeConfig.registries;
-
-      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
 
       if ( !regs ) {
         regs = {};
@@ -1413,73 +1501,83 @@ export default {
         set(regs, 'mirrors', {});
       }
 
-      if ( registryHost ) {
-        registryMode = PRIVATE;
-      } else if ( this.systemRegistry ) {
-        registryHost = this.systemRegistry;
-        registryMode = PRIVATE;
+      const hostname = Object.keys(regs.configs)[0];
+      const config = regs.configs[hostname];
+
+      if ( config ) {
+        registrySecret = config.authConfigSecretName;
       }
 
-      if ( Object.keys(regs.mirrors || {}).length || Object.keys(regs.configs || {}).length > 1 ) {
-        registryMode = ADVANCED;
-      } else {
-        const hostname = Object.keys(regs.configs)[0];
-        const config = regs.configs[hostname];
+      this.registrySecret = registrySecret;
 
-        if ( config ) {
-          if ( hostname !== registryHost || config.caBundle || config.insecureSkipVerify || config.tlsSecretName ) {
-            registryMode = ADVANCED;
-          } else {
-            registryMode = PRIVATE;
-            registrySecret = config.authConfigSecretName;
-          }
+      const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
+
+      if (this.registryHost || registrySecret || hasMirrorsOrAuthConfig) {
+        this.showCustomRegistryInput = true;
+
+        if (hasMirrorsOrAuthConfig) {
+          this.showCustomRegistryAdvancedInput = true;
         }
       }
-
-      this.registryHost = registryHost;
-      this.registryMode = registryMode;
-      this.registrySecret = registrySecret;
     },
 
     setRegistryConfig() {
       const hostname = (this.registryHost || '').trim();
 
-      if ( this.registryMode === PUBLIC ) {
-        if ( this.systemRegistry ) {
-          // Empty string overrides the system default to nothing
-          set(this.agentConfig, 'system-default-registry', '');
-        } else {
-          // No need to set anything
-          set(this.agentConfig, 'system-default-registry', undefined);
-        }
-      } else if ( !hostname || hostname === this.systemRegistry ) {
+      if ( this.systemRegistry ) {
+        // Empty string overrides the system default to nothing
+        set(this.agentConfig, 'system-default-registry', '');
+      } else {
+        // No need to set anything
+        set(this.agentConfig, 'system-default-registry', undefined);
+      }
+      if ( !hostname || hostname === this.systemRegistry ) {
         // Undefined removes the key which uses the global setting without hardcoding it into the config
         set(this.agentConfig, 'system-default-registry', undefined);
       } else {
         set(this.agentConfig, 'system-default-registry', hostname);
       }
 
-      if ( this.registryMode === ADVANCED ) {
-        // Leave it alone...
-      } else if ( this.registryMode === PRIVATE ) {
-        set(this.rkeConfig.registries, 'mirrors', {});
+      if ( hostname && this.registrySecret ) {
+        // For a registry with basic auth, but no mirrors,
+        // add a single registry config with the basic auth secret.
+        const basicAuthConfig = {
+          [hostname]: {
+            authConfigSecretName: this.registrySecret,
+            caBundle:             null,
+            insecureSkipVerify:   false,
+            tlsSecretName:        null,
+          }
+        };
 
-        if ( this.registrySecret ) {
-          set(this.rkeConfig.registries, 'configs', {
-            [hostname]: {
-              authConfigSecretName: this.registrySecret,
-              caBundle:             null,
-              insecureSkipVerify:   false,
-              tlsSecretName:        null,
-            }
-          });
+        const rkeConfig = this.value.spec.rkeConfig;
+
+        if (!rkeConfig) {
+          this.value.spec.rkeConfig = { registries: { configs: basicAuthConfig } };
+        } else if (rkeConfig.registries.configs && Object.keys(rkeConfig.registries.configs).length > 0) {
+          // If some existing authentication secrets are already configured
+          // for registry mirrors, the basic auth is added to the existing ones.
+          const existingConfigs = rkeConfig.registries.configs;
+
+          this.value.spec.rkeConfig.registries.configs = { ...basicAuthConfig, ...existingConfigs };
         } else {
-          set(this.rkeConfig.registries, 'configs', {});
+          const existingMirrorAndAuthConfig = this.value.spec.rkeConfig.registries;
+
+          this.value.spec.rkeConfig.registries = {
+            ...existingMirrorAndAuthConfig,
+            configs: basicAuthConfig
+          };
         }
-      } else {
-        set(this.rkeConfig.registries, 'configs', {});
-        set(this.rkeConfig.registries, 'mirrors', {});
       }
+    },
+
+    updateConfigs(configs) {
+      // Update authentication configuration
+      // for each mirror
+      if (!this.value.spec?.rkeConfig) {
+        this.value.spec.rkeConfig = { registries: {} };
+      }
+      set(this.value.spec.rkeConfig.registries, 'configs', configs);
     },
 
     getAllOptionsAfterMinVersion(versions, minVersion, defaultVersion) {
@@ -1623,6 +1721,55 @@ export default {
       }
       this.setHarvesterDefaultCloudProvider();
     },
+    toggleCustomRegistry(e) {
+      if (this.registryHost) {
+        this.registryHost = null;
+        this.registrySecret = null;
+      } else {
+        this.initRegistry();
+      }
+    },
+    updateCisProfile() {
+      // If the user selects any Worker CIS Profile,
+      // protect-kernel-defaults should be set to false
+      // in the RKE2 worker/agent config.
+      const selectedCisProfile = this.agentConfig?.profile;
+
+      if (selectedCisProfile) {
+        set(this.agentConfig, 'protect-kernel-defaults', true);
+      } else {
+        set(this.agentConfig, 'protect-kernel-defaults', false);
+      }
+    },
+
+    /**
+     * Handle k8s changes side effects, like PSP and PSA resets
+     */
+    handleKubernetesChange(value) {
+      if (value) {
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+      }
+    },
+
+    /**
+     * Handle PSA changes side effects, like PSP resets
+     */
+    handlePsaChange(value) {
+      if (value) {
+        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+      }
+    },
+
+    /**
+     * Handle PSP changes side effects, like PSA resets
+     */
+    handlePspChange(value) {
+      if (value) {
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+      }
+    },
+
   },
 };
 </script>
@@ -1652,12 +1799,20 @@ export default {
     @cancel="cancel"
     @error="fvUnreportedValidationErrors"
   >
-    <Banner
-      v-if="isEdit"
-      color="warning"
-    >
-      <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
-    </Banner>
+    <div class="header-warnings">
+      <Banner
+        v-if="isEdit"
+        color="warning"
+      >
+        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
+      </Banner>
+      <Banner
+        v-if="isEdit && displayInvalidPspsBanner"
+        color="warning"
+      >
+        <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
+      </Banner>
+    </div>
     <SelectCredential
       v-if="needCredential"
       v-model="credentialId"
@@ -1690,6 +1845,7 @@ export default {
         {{ appsOSWarning }}
       </Banner>
 
+      <!-- Pools Extras -->
       <template v-if="hasMachinePools">
         <div class="clearfix">
           <h2
@@ -1723,6 +1879,7 @@ export default {
           </div>
         </div>
 
+        <!-- Extra Tabs for Machine Pool -->
         <Tabbed
           ref="pools"
           :side-tabs="true"
@@ -1758,11 +1915,13 @@ export default {
         <div class="spacer" />
       </template>
 
+      <!-- Cluster Tabs -->
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed
         :side-tabs="true"
         class="min-height"
       >
+        <!-- Basic -->
         <Tab
           name="basic"
           label-key="cluster.tabs.basic"
@@ -1772,7 +1931,7 @@ export default {
           <Banner
             v-if="!haveArgInfo"
             color="warning"
-            label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor."
+            :label="t('cluster.banner.haveArgInfo')"
           />
           <Banner
             v-if="showk8s21LegacyWarning"
@@ -1794,6 +1953,7 @@ export default {
                 :mode="mode"
                 :options="versionOptions"
                 label-key="cluster.kubernetesVersion.label"
+                @input="handleKubernetesChange($event)"
               />
               <Checkbox
                 v-model="showDeprecatedPatchVersions"
@@ -1868,16 +2028,40 @@ export default {
           <h3>
             {{ t('cluster.rke2.security.header') }}
           </h3>
-          <div class="row">
+
+          <div
+            v-if="needsPSA"
+            class="row mb-10"
+          >
             <div class="col span-6">
+              <!-- PSA template selector -->
               <LabeledSelect
-                v-if="pspOptions"
+                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
+                :mode="mode"
+                data-testid="rke2-custom-edit-psa"
+                :options="psaOptions"
+                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
+                @input="handlePsaChange($event)"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div
+              v-if="pspOptions && needsPSP"
+              class="col span-6"
+            >
+              <!-- PSP template selector -->
+              <LabeledSelect
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+                data-testid="rke2-custom-edit-psp"
                 :mode="mode"
                 :options="pspOptions"
                 :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
+                @input="handlePspChange($event)"
               />
             </div>
+
             <div
               v-if="showCisProfile"
               class="col span-6"
@@ -1894,7 +2078,8 @@ export default {
                 v-model="agentConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
-                label="Worker CIS Profile"
+                :label="t('cis.workerProfile')"
+                @input="updateCisProfile"
               />
             </div>
           </div>
@@ -1951,6 +2136,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Member Roles -->
         <Tab
           v-if="canManageMembers"
           name="memberRoles"
@@ -1970,6 +2156,7 @@ export default {
           />
         </Tab>
 
+        <!-- etcd -->
         <Tab
           name="etcd"
           label-key="cluster.tabs.etcd"
@@ -2047,6 +2234,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Networking -->
         <Tab
           v-if="haveArgInfo"
           name="networking"
@@ -2148,6 +2336,7 @@ export default {
           />
         </Tab>
 
+        <!-- Upgrade -->
         <Tab
           name="upgrade"
           label-key="cluster.tabs.upgrade"
@@ -2192,55 +2381,91 @@ export default {
           </div>
         </Tab>
 
+        <!-- Registries -->
         <Tab
           name="registry"
           label-key="cluster.tabs.registry"
         >
-          <RadioGroup
-            v-model="registryMode"
-            name="registry-mode"
-            :options="registryOptions"
-            :mode="mode"
-          />
-
-          <LabeledInput
-            v-if="registryMode !== PUBLIC"
-            v-model="registryHost"
-            class="mt-20"
-            :mode="mode"
-            :required="true"
-            :label="t('cluster.privateRegistry.systemDefaultRegistry.label')"
-          />
-
-          <SelectOrCreateAuthSecret
-            v-if="registryMode === PRIVATE"
-            v-model="registrySecret"
-            :register-before-hook="registerBeforeHook"
-            :hook-priority="1"
-            :mode="mode"
-            in-store="management"
-            :allow-ssh="false"
-            :allow-rke="true"
-            :vertical="true"
-            :namespace="value.metadata.namespace"
-            generate-name="registryconfig-auth-"
-          />
-          <template v-else-if="registryMode === ADVANCED">
-            <RegistryMirrors
-              v-model="value"
-              class="mt-20"
-              :mode="mode"
+          <div class="row">
+            <h3>Registry for Rancher System Container Images</h3>
+          </div>
+          <div class="row">
+            <div class="col span-12">
+              <Banner
+                :closable="false"
+                class="cluster-tools-tip"
+                color="info"
+                label-key="cluster.privateRegistry.description"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <Checkbox
+              v-model="showCustomRegistryInput"
+              class="mb-20"
+              :label="t('cluster.privateRegistry.label')"
+              @input="toggleCustomRegistry"
             />
-
-            <RegistryConfigs
-              v-model="value"
-              class="mt-20"
-              :mode="mode"
-              :cluster-register-before-hook="registerBeforeHook"
-            />
+          </div>
+          <div
+            v-if="showCustomRegistryInput"
+            class="row"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model="registryHost"
+                label-key="catalog.chart.registry.custom.inputLabel"
+                placeholder-key="catalog.chart.registry.custom.placeholder"
+                :min-height="30"
+              />
+              <SelectOrCreateAuthSecret
+                v-model="registrySecret"
+                :register-before-hook="registerBeforeHook"
+                :hook-priority="1"
+                :mode="mode"
+                in-store="management"
+                :allow-ssh="false"
+                :allow-rke="true"
+                :vertical="true"
+                :namespace="value.metadata.namespace"
+                generate-name="registryconfig-auth-"
+              />
+            </div>
+          </div>
+          <template>
+            <div
+              v-if="showCustomRegistryInput"
+              class="row"
+            >
+              <AdvancedSection
+                class="col span-12 advanced"
+                :is-open-by-default="showCustomRegistryAdvancedInput"
+                :mode="mode"
+              >
+                <Banner
+                  :closable="false"
+                  class="cluster-tools-tip"
+                  color="info"
+                  :label-key="isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
+                />
+                <RegistryMirrors
+                  v-model="value"
+                  class="mt-20"
+                  :mode="mode"
+                />
+                <RegistryConfigs
+                  v-model="value"
+                  class="mt-20"
+                  :mode="mode"
+                  :cluster-register-before-hook="registerBeforeHook"
+                  @updateConfigs="updateConfigs"
+                />
+              </AdvancedSection>
+            </div>
           </template>
         </Tab>
 
+        <!-- Add-on Config -->
         <Tab
           name="addons"
           label-key="cluster.tabs.addons"
@@ -2304,6 +2529,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Advanced -->
         <Tab
           v-if="haveArgInfo || agentArgs['protect-kernel-defaults']"
           name="advanced"
@@ -2419,5 +2645,8 @@ export default {
   }
   .patch-version {
     margin-top: 5px;
+  }
+  .header-warnings .banner {
+    margin-bottom: 0;
   }
 </style>

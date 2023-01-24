@@ -91,12 +91,14 @@ export default {
       :label="t('authConfig.noneEnabled')"
       color="info"
     >
-      {{ t('authConfig.localEnabled') }}
-      <nuxt-link :to="localUsersRoute">
-        {{ t('authConfig.manageLocal') }}
-      </nuxt-link>
-      <br>
-      {{ t('authConfig.noneEnabled') }}
+      <div>
+        {{ t('authConfig.localEnabled') }}
+        <nuxt-link :to="localUsersRoute">
+          {{ t('authConfig.manageLocal') }}
+        </nuxt-link>
+        <br>
+        {{ t('authConfig.noneEnabled') }}
+      </div>
     </Banner>
     <SelectIconGrid
       :rows="rows"

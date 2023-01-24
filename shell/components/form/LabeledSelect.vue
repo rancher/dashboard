@@ -150,6 +150,10 @@ export default {
       this.resizeHandler();
     },
 
+    onClose() {
+      this.$emit('on-close');
+    },
+
     getOptionLabel(option) {
       if (!option) {
         return;
@@ -277,6 +281,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
+      @close="onClose"
       @option:selected="$emit('selecting', $event)"
     >
       <template #option="option">
@@ -456,9 +461,7 @@ export default {
 
   ::v-deep .vs__actions {
     &:after {
-      line-height: 1.85rem;
       position: relative;
-      right: 3px;
       top: -10px;
     }
   }

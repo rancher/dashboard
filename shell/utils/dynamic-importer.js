@@ -122,3 +122,11 @@ export function resolveDetail(key) {
 export function resolveWindowComponent(key) {
   return require.resolve(`@shell/components/nav/WindowManager/${ key }`);
 }
+
+export function resolveMachineConfigComponent(key) {
+  return require.resolve(`@shell/machine-config/${ key }`);
+}
+
+export function resolveCloudCredentialComponent(key) {
+  return require.resolve(`@shell/cloud-credential/${ key }`);
+}

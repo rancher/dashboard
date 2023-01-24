@@ -133,7 +133,7 @@ export default {
           <p>{{ t('performance.manualRefresh.description') }}</p>
           <Banner
             color="error"
-            label-key="performance.manualRefresh.banner"
+            label-key="performance.experimental"
           />
           <Checkbox
             v-model="value.manualRefresh.enabled"
@@ -163,7 +163,7 @@ export default {
           <p>{{ t('performance.gc.description') }}</p>
           <Banner
             color="error"
-            label-key="performance.gc.banner"
+            label-key="performance.experimental"
           />
           <Checkbox
             v-model="value.garbageCollection.enabled"
@@ -236,6 +236,52 @@ export default {
               />
             </div>
           </div>
+        </div>
+        <!-- Force NS filter -->
+        <div class="mt-40">
+          <h2>{{ t('performance.nsFiltering.label') }}</h2>
+          <p>{{ t('performance.nsFiltering.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Checkbox
+            v-model="value.forceNsFilter.enabled"
+            :mode="mode"
+            :label="t('performance.nsFiltering.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+          <div class="ml-20">
+            <p :class="{ 'text-muted': !value.forceNsFilter.enabled }">
+              {{ t('performance.nsFiltering.count.description') }}
+            </p>
+            <LabeledInput
+              v-model="value.forceNsFilter.threshold"
+              :mode="mode"
+              :label="t('performance.nsFiltering.count.inputLabel')"
+              :disabled="!value.forceNsFilter.enabled"
+              class="input"
+              type="number"
+              min="0"
+            />
+          </div>
+        </div>
+        <!-- Advanced Websocket Worker -->
+        <div class="mt-40">
+          <h2>{{ t('performance.advancedWorker.label') }}</h2>
+          <p>{{ t('performance.advancedWorker.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Checkbox
+            v-model="value.advancedWorker.enabled"
+            :mode="mode"
+            :label="t('performance.advancedWorker.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
         </div>
       </div>
     </div>

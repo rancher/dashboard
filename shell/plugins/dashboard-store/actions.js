@@ -6,6 +6,7 @@ import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
+import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -48,10 +49,7 @@ export async function loadSchemas(ctx, watch = true) {
     res.data = res.concat(spoofedTypes);
   }
 
-  res.data.forEach((schema) => {
-    schema._id = normalizeType(schema.id);
-    schema._group = normalizeType(schema.attributes?.group);
-  });
+  res.data.forEach(addSchemaIndexFields);
 
   commit('loadAll', {
     ctx,
@@ -117,7 +115,11 @@ export default {
         if (opt.hasManualRefresh) {
           dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
         }
-        commit('setHaveAll', { type });
+        if (opt.namespaced) {
+          commit('setHaveNamespace', { type, namespace: opt.namespaced });
+        } else {
+          commit('setHaveAll', { type });
+        }
       }
     } catch (e) {
       if (opt.hasManualRefresh) {
@@ -140,16 +142,14 @@ export default {
       commit('registerType', type);
     }
 
-    if ( opt.force !== true && getters['haveAll'](type) ) {
+    if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
       const args = {
         type,
         revision:  '',
         namespace: opt.watchNamespace
       };
 
-      // if we are coming from a resource that wasn't watched
-      // but for which we have results already, just return the results but start watching it
-      if (opt.watch !== false && !getters.watchStarted(args)) {
+      if (opt.watch !== false ) {
         dispatch('watch', args);
       }
 
@@ -297,8 +297,9 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data: out.data,
-          skipHaveAll
+          data:      out.data,
+          skipHaveAll,
+          namespace: opt.namespaced,
         });
       }
     }
@@ -483,6 +484,15 @@ export default {
     });
   },
 
+  batchChanges(ctx, batch) {
+    const { commit } = ctx;
+
+    commit('batchChanges', {
+      ctx,
+      batch
+    });
+  },
+
   loadAll(ctx, { type, data }) {
     const { commit } = ctx;
 
@@ -516,20 +526,7 @@ export default {
   // Forget a type in the store
   // Remove all entries for that type and stop watching it
   forgetType({ commit, getters, dispatch }, type) {
-    const obj = {
-      type,
-      stop: true, // Stops the watch on a type
-    };
-
-    if (getters['schemaFor'](type) && getters['watchStarted'](obj)) {
-      // Set that we don't want to watch this type
-      // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
-      // detect the stop message from the backend over the web socket
-      commit('setWatchStopped', obj);
-      dispatch('watch', obj); // Ask the backend to stop watching the type
-      // Make sure anything in the pending queue for the type is removed, since we've now removed the type
-      commit('clearFromQueue', type);
-    }
+    dispatch('unwatch', type);
 
     commit('forgetType', type);
   },
@@ -569,6 +566,10 @@ export default {
   // Clean a resource for the ResourceDetail page
   // This can ensure common, required properties exists that might have been removed
   cleanForDetail(ctx, resource) {
+    return resource;
+  },
+
+  cleanForDownload(ctx, resource) {
     return resource;
   },
 

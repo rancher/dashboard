@@ -19,6 +19,7 @@ Components in the dialog folder are used within the `PromptModal` component. Dis
 |Name |Type |Description|
 |---|---|---|
 |resources| Array or Object| Optional - Any resource(s) relevant to the custom modal component |
+|componentProps| Object | Optional - additional props to pass to the custom modal component |
 |component| String | Optional- the name of the custom modal component|
 |modalWidth| String CSS Property | Desired width of the modal (default 600px)|
 |modalSticky| Boolean | Whether or not to apply sticky positioning (default false)| 

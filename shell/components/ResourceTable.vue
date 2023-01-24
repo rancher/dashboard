@@ -140,7 +140,28 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    /**
+     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     */
+    forceUpdateLiveAndDelayed: {
+      type:    Number,
+      default: 0
     }
+  },
+
+  mounted() {
+    /**
+     * v-shortkey prevents the event's propagation:
+     * https://github.com/fgr-araujo/vue-shortkey/blob/55d802ea305cadcc2ea970b55a3b8b86c7b44c05/src/index.js#L156-L157
+     *
+     * 'Enter' key press is handled via event listener in order to allow the event propagation
+     */
+    window.addEventListener('keyup', this.handleEnterKeyPress);
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('keyup', this.handleEnterKeyPress);
   },
 
   data() {
@@ -232,10 +253,15 @@ export default {
         return [];
       }
 
+      const haveAllNamespace = this.$store.getters['haveAllNamespace'];
+
       return this.rows.filter((row) => {
         if (this.currentProduct?.hideSystemResources && this.isNamespaced) {
           return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
         } else if (!this.isNamespaced) {
+          return true;
+        } else if (haveAllNamespace) {
+          // `rows` only contains resource from a single namespace
           return true;
         } else {
           return !!includedNamespaces[row.metadata.namespace];
@@ -375,8 +401,11 @@ export default {
 
     handleActionButtonClick(event) {
       this.$emit('clickedActionButton', event);
-    }
+    },
 
+    handleEnterKeyPress(event) {
+      this.keyAction('detail');
+    }
   }
 };
 </script>
@@ -406,6 +435,7 @@ export default {
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     v-on="$listeners"
@@ -447,11 +477,6 @@ export default {
     </template>
 
     <template #shortkeys>
-      <button
-        v-shortkey.once="['enter']"
-        class="hide detail"
-        @shortkey="keyAction('detail')"
-      />
       <button
         v-shortkey.once="['e']"
         class="hide"

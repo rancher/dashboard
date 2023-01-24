@@ -5,33 +5,27 @@ export default {
   computed: { ...mapGetters(['isSingleProduct']) },
   methods:  {
     setTabVisibilityListener(isAdd) {
-      const method = isAdd ? 'addEventListener' : 'removeEventListener';
+      if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
+        const method = isAdd ? 'addEventListener' : 'removeEventListener';
 
-      document[method]('visibilitychange', this.visibilityChange, true);
+        document[method]('visibilitychange', this.visibilityChange, true);
+      }
     },
 
     async visibilityChange() {
       if (!document.hidden) {
-        await this.$store.dispatch('rancher/findAll', {
+        await this.$store.dispatch('rancher/request', {
           type: NORMAN.USER,
-          opt:  {
-            url:    '/v3/users',
-            filter: { me: true },
-            force:  true
-          }
+          opt:  { url: '/v3/users?me=true' }
         });
       }
     },
   },
 
   mounted() {
-    if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
-      this.setTabVisibilityListener(true);
-    }
+    this.setTabVisibilityListener(true);
   },
   beforeDestroy() {
-    if ((!this.isSingleProduct || this.isSingleProduct?.enableSessionCheck) && this.$config.rancherEnv !== 'desktop') {
-      this.setTabVisibilityListener(false);
-    }
+    this.setTabVisibilityListener(false);
   },
 };

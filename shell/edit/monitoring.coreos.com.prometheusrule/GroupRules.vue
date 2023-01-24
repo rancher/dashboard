@@ -1,6 +1,5 @@
 <script>
 import has from 'lodash/has';
-
 import { Banner } from '@components/Banner';
 import { removeAt } from '@shell/utils/array';
 import { _VIEW } from '@shell/config/query-params';
@@ -34,8 +33,9 @@ export default {
       expr:   '',
       for:    '0s',
       labels: {
-        severity:  'none',
-        namespace: 'default'
+        severity:   'none',
+        namespace:  'default',
+        cluster_id: this.$store.getters['clusterId']
       },
     };
 
@@ -91,7 +91,15 @@ export default {
 
       switch (ruleType) {
       case 'record':
-        value.push({ record: '', expr: '' });
+        value.push({
+          record: '',
+          expr:   '',
+          labels: {
+            severity:   'none',
+            namespace:  'default',
+            cluster_id: this.$store.getters['clusterId']
+          },
+        });
         break;
       case 'alert':
         value.push(this.defaultAlert);
@@ -145,7 +153,7 @@ export default {
             class="btn role-link close btn-sm"
             @click="removeRule(props.i)"
           >
-            <i class="icon icon-2x icon-x" />
+            <i class="icon icon-x" />
           </button>
           <span v-else />
         </template>
@@ -194,7 +202,7 @@ export default {
             class="btn role-link close btn-sm"
             @click="removeRule(props.i)"
           >
-            <i class="icon icon-2x icon-x" />
+            <i class="icon icon-x" />
           </button>
           <span v-else />
         </template>

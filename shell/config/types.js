@@ -62,6 +62,7 @@ export const SERVICE = 'service';
 export const SECRET = 'secret';
 export const SERVICE_ACCOUNT = 'serviceaccount';
 export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
+export const CSI_DRIVER = 'storage.k8s.io.csidriver';
 export const OBJECT_META = 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta';
 export const NETWORK_ATTACHMENT = 'k8s.cni.cncf.io.networkattachmentdefinition';
 
@@ -173,6 +174,7 @@ export const MANAGEMENT = {
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
+  PSA:                           'management.cattle.io.podsecurityadmissionconfigurationtemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
@@ -283,7 +285,8 @@ export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';
 
 export const ADDRESSES = {
   HOSTNAME:    'Hostname',
-  INTERNAL_IP: 'InternalIP'
+  INTERNAL_IP: 'InternalIP',
+  EXTERNAL_IP: 'ExternalIP'
 };
 
 export const DEFAULT_WORKSPACE = 'fleet-default';

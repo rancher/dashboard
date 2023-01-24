@@ -44,11 +44,11 @@ export default {
     }
   },
   async fetch() {
-    const ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
+    this.ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
     const hash = await allHash({
       secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
       services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      ingressClasses: ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
+      ingressClasses: this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
     });
 
     this.allServices = hash.services;
@@ -57,10 +57,11 @@ export default {
   },
   data() {
     return {
-      allSecrets:        [],
-      allServices:       [],
-      allIngressClasses: [],
-      fvFormRuleSets:    [
+      ingressClassSchema: null,
+      allSecrets:         [],
+      allServices:        [],
+      allIngressClasses:  [],
+      fvFormRuleSets:     [
         {
           path: 'metadata.name', rules: ['required', 'hostname'], translationKey: 'nameNsDescription.name.label'
         },

@@ -22,11 +22,6 @@ export default {
       required: true,
     },
 
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -69,6 +64,7 @@ export default {
       :schema="schema"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
   </div>
 </template>

@@ -25,6 +25,7 @@ import {
   validateLength,
 } from '@shell/utils/validators';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { waitFor } from '@shell/utils/async';
 import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
 import forIn from 'lodash/forIn';
@@ -752,41 +753,7 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   waitForTestFn(fn, msg, timeoutMs, intervalMs) {
-    console.log('Starting wait for', msg); // eslint-disable-line no-console
-
-    if ( !timeoutMs ) {
-      timeoutMs = DEFAULT_WAIT_TMIMEOUT;
-    }
-
-    if ( !intervalMs ) {
-      intervalMs = DEFAULT_WAIT_INTERVAL;
-    }
-
-    return new Promise((resolve, reject) => {
-      // Do a first check immediately
-      if ( fn.apply(this) ) {
-        console.log('Wait for', msg, 'done immediately'); // eslint-disable-line no-console
-        resolve(this);
-      }
-
-      const timeout = setTimeout(() => {
-        console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
-        clearInterval(interval);
-        clearTimeout(timeout);
-        reject(new Error(`Failed waiting for: ${ msg }`));
-      }, timeoutMs);
-
-      const interval = setInterval(() => {
-        if ( fn.apply(this) ) {
-          console.log('Wait for', msg, 'done'); // eslint-disable-line no-console
-          clearInterval(interval);
-          clearTimeout(timeout);
-          resolve(this);
-        } else {
-          console.log('Wait for', msg, 'not done yet'); // eslint-disable-line no-console
-        }
-      }, intervalMs);
-    });
+    return waitFor(() => fn.apply(this), msg, timeoutMs || DEFAULT_WAIT_TMIMEOUT, intervalMs || DEFAULT_WAIT_INTERVAL, true);
   }
 
   waitForState(state, timeout, interval) {
@@ -798,19 +765,19 @@ export default class Resource {
   waitForTransition() {
     return this.waitForTestFn(() => {
       return !this.transitioning;
-    }, 'transition completion');
+    }, 'transition completion', undefined, undefined);
   }
 
   waitForAction(name) {
     return this.waitForTestFn(() => {
       return this.hasAction(name);
-    }, `action=${ name }`);
+    }, `action=${ name }`, undefined, undefined);
   }
 
   waitForLink(name) {
     return this.waitForTestFn(() => {
       return this.hasLink(name);
-    }, `link=${ name }`);
+    }, `link=${ name }`, undefined, undefined);
   }
 
   hasCondition(condition) {
@@ -1075,6 +1042,12 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  /**
+   * Allow to handle the response of the save request
+   * @param {*} res Full request response
+   */
+  processSaveResponse(res) { }
+
   async _save(opt = {}) {
     delete this.__rehydrate;
     delete this.__clone;
@@ -1150,6 +1123,9 @@ export default class Resource {
 
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
+
+      // Allow to process response independently from the related models
+      this.processSaveResponse(res);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
@@ -1323,8 +1299,9 @@ export default class Resource {
 
   async download() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+    const data = await this.$dispatch('cleanForDownload', value.data);
 
-    downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
+    downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
 
   async downloadBulk(items) {
@@ -1343,8 +1320,11 @@ export default class Resource {
     }
 
     await eachLimit(items, 10, (item, idx) => {
-      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
-        files[`resources/${ names[idx] }`] = data.data || data;
+      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then(async(data) => {
+        const yaml = data.data || data;
+        const cleanedYaml = await this.$dispatch('cleanForDownload', yaml);
+
+        files[`resources/${ names[idx] }`] = cleanedYaml;
       });
     });
 

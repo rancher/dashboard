@@ -216,15 +216,15 @@ export default Vue.extend({
     },
 
     setFocus(refId: string) {
-      this.$nextTick(() => this.getElemByRef(refId)?.focus());
+      this.$nextTick(() => (this.getElemByRef(refId) as Vue & HTMLElement)?.focus());
     },
 
     /**
      * Move scrollbar when the selected item is over the top or bottom side of the box
      */
     moveScrollbar(arrow: Arrow, value?: number) {
-      const box = this.getElemByRef(BOX);
-      const item = this.getElemByRef(this.selected || '');
+      const box = this.getElemByRef(BOX) as HTMLElement;
+      const item = this.getElemByRef(this.selected || '') as HTMLElement;
 
       if (box && item && item.className.includes(CLASS.item)) {
         const boxRect = box.getClientRects()[0];
@@ -253,7 +253,7 @@ export default Vue.extend({
     },
 
     toggleErrorClass(refId: string, val: boolean) {
-      const input = this.getElemByRef(refId)?.$el;
+      const input = (this.getElemByRef(refId) as Vue)?.$el;
 
       if (input) {
         if (val) {
@@ -311,7 +311,7 @@ export default Vue.extend({
     getElemByRef(id: string) {
       const ref = this.$refs[id];
 
-      return (Array.isArray(ref) ? ref[0] : ref) as any;
+      return Array.isArray(ref) ? ref[0] : ref;
     },
 
     /**
@@ -532,6 +532,7 @@ export default Vue.extend({
         width: auto;
         user-select: none;
         overflow: hidden;
+        white-space: no-wrap;
         text-overflow: ellipsis;
         padding-top: 1px;
       }

@@ -400,7 +400,7 @@ export default {
 
 <template>
   <section class="dashboard">
-    <header class="header-layout">
+    <header>
       <div class="title">
         <h1>
           <t k="clusterIndexPage.header" />
@@ -719,7 +719,6 @@ export default {
 
   > I {
     text-align: center;
-    font-size: 20px;
     padding: 5px 10px;
     border-right: 1px solid var(--border);
   }

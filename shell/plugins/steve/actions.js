@@ -7,6 +7,7 @@ import { streamJson, streamingSupported } from '@shell/utils/stream';
 import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
+import jsyaml from 'js-yaml';
 
 export default {
 
@@ -323,6 +324,35 @@ export default {
 
     return resource;
   },
+
+  // remove fields added by steve before showing/downloading yamls
+  cleanForDownload(ctx, yaml) {
+    if (!yaml) {
+      return;
+    }
+    const rootKeys = [
+      'id',
+      'links',
+      'type',
+      'actions'
+    ];
+    const metadataKeys = [
+      'fields',
+      'relationships',
+      'state',
+    ];
+    const conditionKeys = [
+      'error',
+      'transitioning',
+    ];
+    const obj = jsyaml.load(yaml);
+
+    dropKeys(obj, rootKeys);
+    dropKeys(obj?.metadata, metadataKeys);
+    (obj?.status?.conditions || []).forEach(condition => dropKeys(condition, conditionKeys));
+
+    return jsyaml.dump(obj);
+  }
 };
 
 const diffRootKeys = [

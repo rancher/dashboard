@@ -7,6 +7,7 @@ generic:
   and: ' and '
   back: Back
   cancel: Cancel
+  confirm: Confirm
   clear: Clear
   clearAll: Clear All
   close: Close
@@ -16,6 +17,7 @@ generic:
   create: Create
   created: Created
   customize: Customize
+  dashboard: Dashboard
   default: Default
   disabled: Disabled
   done: Done
@@ -27,7 +29,9 @@ generic:
     always: Always
     ifNotPresent: IfNotPresent
     never: Never
+  labels: Labels
   labelsAndAnnotations: Labels & Annotations
+  podSecurityAdmission: Pod Security Admission
   links: Links
   loading: Loading&hellip;
   members: Members
@@ -51,6 +55,7 @@ generic:
   reload: Reload
   register: Register
   remove: Remove
+  addCatalog: Add Catalog
   resource: |-
     {count, plural,
     one  {resource}
@@ -134,7 +139,7 @@ nav:
   group:
     cluster: Cluster
     inUse: More Resources
-    policy: Policy
+    Policy: Policy
     rbac: RBAC
     serviceDiscovery: Service Discovery
     starred: Starred
@@ -147,6 +152,17 @@ nav:
     apps: Apps
     clusterProvisioning: Cluster Provisioning
     core: Core
+    legacy: Legacy
+    API: API
+    Coordination: Coordination
+    Discovery: Discovery
+    Fleet: Fleet
+    K3s: K3s
+    Networking: Networking
+    Rancher: Rancher
+    RBAC: RBAC
+    Scheduling: Scheduling
+    Storage: Storage
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -200,8 +216,10 @@ product:
   neuvector: NeuVector
   harvesterManager: Virtualization Management
   rancher: Rancher
+  legacy: Legacy
   uiplugins: Extensions
   elemental: OS Management
+  plugins: Plugins
 
 suffix:
   percent: "%"
@@ -624,7 +642,7 @@ asyncButton:
   load:
     action: Load
     success: Loaded
-    waiting: Loadingg&hellip;
+    waiting: Loading&hellip;
   pause:
     action: Pause Orchestration
     success: Paused Orchestration
@@ -1047,6 +1065,7 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
+  workerProfile: CIS Worker Profile
 
 cluster:
   addonChart:
@@ -1147,6 +1166,14 @@ cluster:
         help: Paste in a Personal Access Token from the Linode <a href="https://cloud.linode.com/profile/tokens" target="_blank" rel="noopener noreferrer nofollow">API Tokens</a> screen.
         label: Access Token
         placeholder: Your Linode API Access Token
+    pnap:
+      clientIdentifier:
+        label: Client ID
+        placeholder: Your Client ID
+      clientSecret:
+        help: From <a href="https://bmc.phoenixnap.com/credentials/" target="_blank" rel="nofollow noreferrer noopener">phoenixNAP BMC Portal</a> API Credentials
+        label: Client Secret
+        placeholder: Your Client Secret
     name:
       label: Credential Name
       placeholder: Name for this credential (optional)
@@ -1200,14 +1227,25 @@ cluster:
           </ul>
           More info on roles can be found <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/iam-integration" target="_blank" rel="noopener noreferrer nofollow">here</a>.
     harvester:
-      import: Imported Harvester
-      external: External Harvester (Experimental)
       namespace: Namespace
       cpu: CPUs
       memory: Memory
       disk: Disk
       image: Image
-      network: Network Name
+      network: 
+        title: Networks
+        network: Network
+        addNetwork: Add Network
+        networkName: Network Name
+        macAddress: Mac Address
+        macFormat: 'Invalid MAC address format.'
+      volume:
+        title: Volumes
+        volume: Volume
+        imageVolume: Image Volume
+        addVolume: Add Volume
+        addVMImage: Add VM Image
+        storageClass: Storage Class
       sshUser: SSH User
       userData:
         label: User Data Template
@@ -1218,7 +1256,7 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
-      cluster: Cluster
+      cluster: Imported Harvester Cluster
       affinity:
         namespaces:
           placeholder: e.g. default,system,base
@@ -1267,7 +1305,6 @@ cluster:
     clusterRoleBindingInstructions: 'If you get permission errors creating some of the resources, your user may not have the <code>cluster-admin</code> role.  Use this command to apply it:'
     clusterRoleBindingCommand: 'kubectl create clusterrolebinding cluster-admin-binding --clusterrole cluster-admin --user <your username from your kubeconfig>'
   explore: Explore
-  exploreHarvester: Explore
   importAction: Import Existing
   manageAction: Manage
   kubernetesVersion:
@@ -1297,8 +1334,14 @@ cluster:
           other {{storageSize, number} {storageUnit} {storageType}}
         }
     azure:
+      acceleratedNetworking:
+        label: Accelerated Networking
       availabilitySet:
         label: Availability Set (unmanaged)
+        description: Availability sets are used to protect applications from hardware failures within an Azure data center.
+      availabilityZone:
+        label: Availability Zone
+        description: Availability zones protect applications from complete Azure data center failures.
       dns:
         help: A unique DNS label for the public IP address.
         label: DNS Label
@@ -1338,10 +1381,18 @@ cluster:
         label: Resource Group
       size:
         label: VM Size
+        tooltip: When accelerated networking is enabled, not all sizes are available.
+        supportsAcceleratedNetworking: Sizes that Support Accelerated Networking
+        doesNotSupportAcceleratedNetworking: Sizes Without Accelerated Networking
+        availabilityWarning: The selected VM size is not available in the selected region.
+        regionDoesNotSupportAzs: Availability zones are not supported in the selected region. Please select a different region or use an availability set instead.
+        regionSupportsAzsButNotThisSize: The selected region does not support availability zones for the selected VM size. Please select a different region or VM size.
+        selectedSizeAcceleratedNetworkingWarning: The selected VM size does not support accelerated networking. Please select another VM size or disable accelerated networking.
       sshUser:
         label: SSH Username
       storageType:
         label: Storage Type
+        warning: StandardSSD_LRS requires managed disks. Please select Use Managed Disks or select another storage type.
       subnet:
         label: Subnet
       subnetPrefix:
@@ -1354,6 +1405,8 @@ cluster:
       vnet:
         label: Virtual Network
         placeholder: '[resourcegroup:]name'
+      tags:
+        label: Tags
     digitalocean:
       sizeLabel: |-
         {plan, select,
@@ -1502,6 +1555,27 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+    pnap:
+      serverLocation:
+        label: Location
+      serverType:
+        label: Type
+      serverCpu:
+        label: CPU
+      serverCoresPerCpu:
+        label: Cores per CPU
+      serverCpuCount:
+        label: CPU Count
+      serverCpuFrequency:
+        label: CPU Frequency [GHz]
+      serverRam:
+        label: RAM [GB]
+      serverStorage:
+        label: Storage
+      serverNetwork:
+        label: Network
+      serverOs:
+        label: OS
   addOns:
     dependencyBanner: Add-On Configurations can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
@@ -1531,6 +1605,8 @@ cluster:
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
+    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
+    haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
 
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
@@ -1606,12 +1682,10 @@ cluster:
       searchPlaceholder: Start typing to search
       noResults: No results found
   privateRegistry:
-    systemDefaultRegistry:
-      label: Registry hostname for Rancher System Container Images
-    mode:
-      public: Use default global registry for Rancher System Container Images
-      private: Use specified private registry for Rancher System Container Images
-      advanced: Configure advanced containerd mirroring and registry authentication options
+    label: Enable cluster scoped container registry for Rancher system container images
+    description: "If enabled, Rancher will pull container images from this registry during cluster provisioning. By default, Rancher will also use this registry when installing Rancher's official Helm chart apps. If the cluster scoped registry is disabled, system images are pulled from the System Default Registry in the global settings."
+    docsLinkRke2: "For help configuring private registry mirrors, see the RKE2 <a href=\"https://docs.rke2.io/install/containerd_registry_configuration/\" target=\"_blank\">documentation.</a>"
+    docsLinkK3s: "For help configuring private registry mirrors, see the K3s <a href=\"https://docs.k3s.io/installation/private-registry\" target=\"_blank\">documentation.</a>"
   provider:
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
@@ -1695,10 +1769,18 @@ cluster:
     cloudProvider:
       label: Cloud Provider
       header: Cloud Provider Config
+      defaultValue:
+        label: Default - RKE2 Embedded
     security:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
+      option: RKE Default
+    defaultPodSecurityAdmissionConfigurationTemplateName:
+      label: Default Pod Security Admission
+      option: (None)
+    cisProfile:
+      option: (None)
     enableNetworkPolicy:
       label: Project Network Isolation
       warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
@@ -1803,7 +1885,7 @@ cluster:
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
-    cores: Cores
+    cores: CPU
     pods: Pods
     ram: Memory
     used: Used
@@ -2165,6 +2247,9 @@ growl:
   reconnected:
     message: "The connection to {url} was restored on attempt #{tries}."
     title: Websocket Reconnected
+  podSecurity:
+    message: "The creation of this Pod would violate existing restricted policies for the adopted Namespace"
+    title: PodSecurity violation
 
 hpa:
   detail:
@@ -2488,7 +2573,10 @@ labels:
   addAnnotation: Add Annotation
   labels:
     title: Labels
+    description: Key/value pairs that are attached to objects which specify identifying attributes.
     fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
+    show: Show System Label
+    hide: Hide System Label
   annotations:
     title: Annotations
 
@@ -2536,13 +2624,39 @@ logging:
       doesntExistTooltip: This cluster output doesn't exist
       label: Cluster Outputs
     matches:
+      banner: Configure which container logs will be pulled from
+      unsupportedConfig: This resource contains a match configuration that the form editor does not support. Please use YAML edit.
       label: Matches
       addSelect: Add Include Rule
       addExclude: Add Exclude Rule
+      pods:
+        title:
+          include: Include Pods
+          exclude: Exclude Pods
+        keyLabel: Pod Label Key
+        valueLabel: Pod Label Value
+        addLabel: Add Pod
+      nodes:
+        title:
+          include: Limit to specific nodes
+          exclude: Exclude specific nodes
+        placeholder: "Default: Any node"
+      containerNames:
+        title:
+          include: Limit to specific container names
+          exclude: Exclude specific container names
+        placeholder: "Default: Any container"
+      namespaces:
+        title:
+          include: Limit to specific namespaces
+          exclude: Exclude specific namespaces
+        placeholder: "Default: Any namespace"
+
     filters:
       label: Filters
     outputs:
       doesntExistTooltip: This output doesn't exist
+      sameNamespaceError: Output must reside in same namespace as the flow.
       label: Outputs
   install:
     k3sContainerEngine: K3S Container Engine
@@ -2808,6 +2922,7 @@ managementNode:
 
 members:
   clusterMembers: Cluster Members
+  clusterAndProject: Cluster and Project Members
   createActionLabel: Add
   clusterPermissions:
     noDescription: User created - no description
@@ -2834,6 +2949,7 @@ members:
       label: Custom
       description: Choose individual roles for this user.
   localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any part of this installation."
+  noRolesAssigned: There are no users assigned to this project.
 
 membershipEditor:
   label: Members
@@ -3012,6 +3128,7 @@ monitoring:
       editYaml: Edit AlertmanagerConfig
       detail: Receiver in AlertmanagerConfig
     disabledReceiverButton: The receiver form is available after the AlertmanagerConfig is created
+    error: An error occurred saving the AlertmanagerConfig
     email:
       username: Auth Username
       password: Secret with Auth Password
@@ -3374,6 +3491,8 @@ persistentVolume:
     label: Plugin configuration
   plugin:
     label: Volume Plugin
+    inTree: in-tree plugin
+    unsupported: (Unsupported)
   capacity:
     label: Capacity
   customize:
@@ -3421,6 +3540,7 @@ persistentVolume:
       placeholder: e.g. sp1
   csi:
     label: CSI (Unsupported)
+    suffix: (CSI)
     driver:
       label: Driver
       placeholder: e.g. driver.longhorn.io
@@ -3453,6 +3573,21 @@ persistentVolume:
     controllerPublishSecretNamespace:
       label: Controller Publish Secret Namespace
       placeholder: e.g. default
+    drivers:
+      disk-csi-azure-com: Azure Disk (CSI)
+      file-csi-azure-com: Azure File (CSI)
+      driver-longhorn-io: Longhorn (CSI)
+      driver-harvesterhci-io: Harvester (CSI)
+      nfs-csi-k8s-io: NFS (CSI)
+      ebs-csi-aws-com: AWS Elastic Block Store (CSI)
+      rbd-csi-ceph-com: Ceph RBD (CSI)
+      org-gluster-glusterfs: GlusterFS (CSI)
+      pd-csi-storage-gke-io: GCE Persistent Disk (CSI)
+      cinder-csi-openstack-org: Cinder (CSI)
+      pxd-portworx-com: Portworx (CSI)
+      quobyte-csi: Quobyte (CSI)
+      storageos: StorageOS (CSI)
+      csi-vsphere-vmware-com: vSphere (CSI)
   cephfs:
     label: Ceph Filesystem (Unsupported)
     path:
@@ -3713,6 +3848,7 @@ podDisruptionBudget:
   maxUnavailable:
     label: Max. unavailable Pods
 
+
 # Rancher Extensions
 plugins:
   labels:
@@ -3806,6 +3942,15 @@ plugins:
       crd:
         title: Remove the Rancher Extensions Custom Resource Definition
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
+podSecurityAdmission:
+  label: Pod Security Admission
+  description: Define the admission control mode you want to use for the pod security
+  version:
+    placeholder: 'Version (default: latest)'
+  exemptions: 
+    title: Exemptions
+    description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
+    placeholder: Enter a comma separated list of {psaExemptionsControl}
 prefs:
   title: Preferences
   theme:
@@ -3851,6 +3996,9 @@ prefs:
     'true': Include Prerelease Versions
     'false': Show Releases Only
     label: Helm Charts
+  confirmationSetting:
+    title: Confirmation Setting
+    scalingDownPrompt: Do not ask for confirmation when scaling down node pools.
 
 principal:
   loading: Loading&hellip;
@@ -4029,11 +4177,13 @@ promptRemove:
     other { and <b>{count} others</b>.}
     }
   attemptingToRemove: "You are attempting to delete the {type}"
+  attemptingToRemoveAuthConfig: "You are attempting to disable this Auth Provider. <br><br> Be aware that cluster role template bindings, project role template bindings, global role bindings, users, tokens will be all deleted. <br><br> Are you sure you want to proceed?"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
   confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
   deleteAssociatedNamespaces: "Also delete the namespaces in this project:"
   willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
   confirmRelatedResource: "Deleting the {type} will remove all the resources on this particular {type} and this is not revertable, are you sure you want to continue deleting {names}?"
+  promptConfirmation: "Do not prompt again for confirmation when scaling down."
 
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
@@ -4288,6 +4438,8 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
+  nsFiltering: "There are too many {resource}.<br>Please filter them by selecting a Namespace above."
+  nsFilterToolTip: "There are too many resources, filtering is restricted to a single {mode}."
 resourceLoadingIndicator:
   loading: Loading
 
@@ -4710,7 +4862,7 @@ storageClass:
       zonal: Zonal
       regional: Regional
   longhorn:
-    title: Longhorn
+    title: Longhorn (CSI)
     addLabel: Add Parameter
   vsphere-volume:
     title: VMWare vSphere Volume
@@ -4737,7 +4889,7 @@ storageClass:
   custom:
     addLabel: Add Parameter
   glusterfs:
-    title: Gluster Volume (Unsupported)
+    title: Gluster Volume
     restUrl:
       label: REST URL
       placeholder: e.g. http://127.0.0.1:8081
@@ -4766,7 +4918,7 @@ storageClass:
       label: Volume Type
       placeholder: "e.g. replicate:3"
   cinder:
-    title: Openstack Cinder Volume (Unsupported)
+    title: Openstack Cinder Volume
     volumeType:
       label: Volume Type
       placeholder: e.g. fast
@@ -4777,7 +4929,7 @@ storageClass:
         label: "Manual: Choose specific zones"
         placeholder: e.g. nova
   rbd:
-    title: Ceph RBD (Unsupported)
+    title: Ceph RBD
     monitors:
       label: Monitors
       placeholder: e.g. 10.16.153.105:6789
@@ -4812,7 +4964,7 @@ storageClass:
       label: Image Features
       placeholder: e.g. layering
   quobyte:
-    title: Quobyte Volume (Unsupported)
+    title: Quobyte Volume
     quobyteApiServer:
       label: Quobyte API Server
       placeholder: "e.g. http://138.68.74.142:7860"
@@ -4838,7 +4990,7 @@ storageClass:
       label: Quobyte Tenant
       placeholder: e.g. DEFAULT
   portworx-volume:
-    title: Portworx Volume (Unsupported)
+    title: Portworx Volume
     filesystem:
       label: Filesystem
       placeholder: e.g. ext4
@@ -4861,7 +5013,7 @@ storageClass:
       label: Ephemeral
       placeholder: e.g. true
   scaleio:
-    title: ScaleIO Volume (Unsupported)
+    title: ScaleIO Volume
     gateway:
       label: Gateway
       placeholder: e.g. https://192.168.99.200:443/api
@@ -4887,7 +5039,7 @@ storageClass:
       label: Filesystem Type
       placeholder: e.g. xfs
   storageos:
-    title: StorageOS (Unsupported)
+    title: StorageOS
     pool:
       label: Pool
       placeholder: e.g. default
@@ -4904,50 +5056,94 @@ storageClass:
       label: Admin Secret Name
       placeholder: e.g. storageos-secret
   no-provisioner:
-    title: Local Storage (Unsupported)
+    title: Local Storage
+  deprecated:
+    title: (Deprecated)
+    warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
+  harvesterhci:
+    title: Harvester (CSI)
+    warning: 
+      unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
+    hostStorageClass:
+      label: Host Storage Class
+      placeholder: Storage class name on the host Harvester cluster
+      tooltip: By default the default storage class on the host Harvester cluster is used.
 
 tableHeaders:
+  assuredConcurrencyShares: Assured Concurrency Shares
   accessKey: Access Key
+  addressType: Address Type
+  accessModes: Access Modes
   address: Address
   age: Age
   apiGroup: API Groups
+  apikey: API Key
+  available: Available
+  attachedVM: Attached VM
+
   authRoles:
     globalDefault: New User Default
     clusterDefault: Cluster Creator Default
     projectDefault: Project Creator Default
   branch: Branch
+  backupTarget: Backup Target
   builtIn: Built In
   bundlesReady: Bundles Ready
   bundleDeploymentsReady: Deployments
   builtin: Built-In
   chart: Chart
+  capacity: Capacity
+  current: Current
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
   cluster: Cluster
   clusters: Clusters
+  cluster-Name: Cluster
   clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
+  completions: Completions
+  count: Count
+  createdAt: Created At
   customVerbs: Custom Verbs
   description: Description
-  duration: Duration
   expires: Expires
-  providers: Providers
   cpu: CPU
+  currentReplicas: Current Replicas
   date: Date
+  data: Data
   default: Default
+  desired: Desired
+  defaultVersion: Default version
   destination: Target
+  deployed: Deployed
   download: Download
+  duration: Duration
+  diskState: Disk State
+  drivers: Drivers
+  distinguisherMethod: Distinguisher Method
   effect: Effect
   endpoints: Endpoints
+  firstSeen: First Seen
   fleetBundleType: Type
   flow: Flow
+  fingerprint: Fingerprint
   gitRepos: Git Repos
+  groups: Groups
+  groupName: Group Name
+  groupRoleNames: Group Role Names
+  global-Default: Global-Default
   host: Host
+  hostIp: Host IP
+  holder: Holder
+  hpaReference: Workload
   health: Health
+  handSize: Hand Size
+  ipAddress: IP Address
   id: ID
+  iP: IP
   image: Image
   imageSize: Size
   ingressClass: Ingress Class
@@ -4955,28 +5151,38 @@ tableHeaders:
   ingressTarget: Target
   internalExternalIp: External/Internal IP
   ipaddress: IP Address
+  internalIpSameAsExternal: Same as External
   jobs: Jobs
   key: Key
   keys: Data
+  labels: Labels
   lastUpdated: Last Updated
+  lastSchedule: Last Schedule
   lastSeen: Last Seen
   loggingOutputProviders: Provider
   machines: Machines
   machineNodeName: Node
   manual: Manual
   matches: Matches
+  matchingPrecedence: Matching Precedence
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
   minKubernetesVersion: Min Kubernetes Version
+  minReplicas: Minimum Replicas
+  maxReplicas: Maximum Replicas
+  missingPL: MissingPL
   memory: Memory
+  monitored: Monitored
   name: Name
   nameDisplay: Display Name
   nameUnlinked: Name
   namespace: Namespace
   namespaceName: Name
   namespaceNameUnlinked: Name
+  networkType: Type
+  networkVlan: Vlan ID
   node: Node
-  nodeName: Name
+  nodeName: Node Name
   nodesReady: Nodes Ready
   nodePort: Node Port
   object: Object
@@ -4985,14 +5191,23 @@ tableHeaders:
   p95: 95%tile
   persistentVolumeClaim: Persistent Volume Claim
   persistentVolumeSource: Source
+  phase: Phase
+  progress: Progress
   podImages: Image
   podRestarts: Restarts
   pods: Pods
+  pod-Selector: Pod-Selector
+  providers: Providers
+  providerID: Provider ID
   port: Port
+  ports: Ports
   project: Project
   protocol: Protocol
   provider: Provider
+  priorityLevel: Priority Level
   publicPorts: Public Ports
+  queues: Queues
+  queueLengthLimit: Queue Length Limit
   ram: RAM
   rbac:
     create: Create
@@ -5018,12 +5233,20 @@ tableHeaders:
   resources: Resources
   resourcesReady: Resources Ready
   restarts: Restarts
+  restart: Restart Required
   role: Role
   roles: Roles
   routes: Routes
+  routeConnectivity: Route Connectivity
+  readyToUse: Ready To Use
   scale: Scale
   scope: Scope
   selector: Selector
+  secrets: Secrets
+  schedule: Schedule
+  service: Service
+  serviceAccounts: Service Accounts
+  secret-Name: Secret-Name
   simpleName: Name
   simpleScale: Scale
   simpleType: Type
@@ -5031,51 +5254,35 @@ tableHeaders:
   started: Started
   state: State
   status: Status
+  targetVm: Target VM
   storage_class_provisioner: Provisioner
+  storage: Storage Size
+  storageClass: Storage Class
+  source: Source
   subject: Subject
   subType: Kind
   success: Success
   summary: Summary
+  subobject: Subobject
   taints: Taints
   target: Target
   targetKind: Target Type
   targetPort: Target
   type: Type
   updated: Updated
+  up-to-date: Up To Date
   upgrade: Upgradable
   url: URL
+  users: Users
   userDisplayName: Display Name
   userId: ID
   userStatus: Status
   username: Local Username
   value: Value
   version: Version
+  volume: Volume
+  volumeMode: Volume Mode
   weight: Weight
-  progress: Progress
-  fingerprint: Fingerprint
-  networkType: Type
-  networkVlan: Vlan ID
-  readyToUse: Ready To Use
-  backupTarget: Backup Target
-  targetVm: Target VM
-  phase: Phase
-  attachedVM: Attached VM
-  hostIp: Host IP
-  storage: Storage Size
-  defaultVersion: Default version
-  ipAddress: IP Address
-  diskState: Disk State
-  routeConnectivity: Route Connectivity
-  hpaReference: Workload
-  minReplicas: Minimum Replicas
-  maxReplicas: Maximum Replicas
-  currentReplicas: Current Replicas
-  data: Data
-  apikey: API Key
-  groupName: Group Name
-  groupRoleNames: Group Role Names
-  restart: Restart Required
-
 target:
   router:
     label: Router
@@ -5189,6 +5396,8 @@ validation:
   noType: No type to validate
   number:
     requiredInt: '"{key}" must be integer'
+    isPositive: '"{key}" must be positive'
+    isOctal: '"{key}" must have no leading zeros'
     between: '"{key}" should be between {min} and {max}'
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
@@ -5791,15 +6000,7 @@ workload:
       pod: Pod
       containers: Containers
 
-harvesterManager:
-  manage: Manage
-  cluster:
-    label: Harvester Clusters
-    none: There are no Harvester Clusters
-    learnMore: Learn more about Harvester from the <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Web Site</a> or read the the <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Docs</a>
-    description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
-  plugins:
-    loadError: Error loading harvester plugin
+
 
 ##############################
 # Model Properties
@@ -6011,6 +6212,21 @@ typeLabel:
       one { Workspace }
       other { Workspaces }
     }
+  policy.poddisruptionbudget: |-
+    {count, plural,
+      one { Pod Disruption Budget }
+      other { Pod Disruption Budgets }
+    }
+  limitrange: |-
+    {count, plural,
+      one { Limit Range }
+      other { Limit Ranges }
+    }
+  resourcequota: |-
+    {count, plural,
+      one { Resource Quota }
+      other { Resource Quotas }
+    }
   # pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
   monitoring.coreos.com.prometheus: |-
     {count, plural,
@@ -6034,7 +6250,7 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanagerconfig: |-
     {count, plural,
-      one { AlertmanagerConfigs }
+      one { AlertmanagerConfig }
       other { AlertmanagerConfigs }
     }
   monitoring.coreos.com.podmonitor: |-
@@ -6077,10 +6293,10 @@ typeLabel:
       one { Cluster }
       other { Clusters }
     }
-  'management.cattle.io.user': |-
+  management.cattle.io.user: |-
     {count, plural,
       one { User }
-      other { Users }
+      other { Users}
     }
   namespace: |-
     {count, plural,
@@ -6091,6 +6307,136 @@ typeLabel:
     {count, plural,
       one { Node }
       other { Nodes }
+    }
+  event: |-
+    {count, plural,
+      one { Event }
+      other { Events }
+    }
+  apps.deployment: |-
+    {count, plural,
+      one { Deployment }
+      other { Deployments }
+    }
+  batch.cronjob: |-
+    {count, plural,
+      one { CronJob }
+      other { CronJobs }
+    }
+  apps.daemonset: |-
+    {count, plural,
+      one { DaemonSet }
+      other { DaemonSets }
+    }
+  batch.job: |-
+    {count, plural,
+      one { Job }
+      other { Jobs }
+    }
+  apps.statefulset: |-
+    {count, plural,
+      one { StatefulSet }
+      other { StatefulSets }
+    }
+  pod: |-
+    {count, plural,
+      one { Pod }
+      other { Pods }
+    }
+  autoscaling.horizontalpodautoscaler: |-
+    {count, plural,
+      one { HorizontalPodAutoscaler }
+      other { HorizontalPodAutoscalers }
+    }
+  networking.k8s.io.ingress: |-
+    {count, plural,
+      one { Ingress }
+      other { Ingresses }
+    }
+  networking.k8s.io.networkpolicy: |-
+    {count, plural,
+      one { Network Policy }
+      other { Network Policies }
+    }
+  service: |-
+    {count, plural,
+      one { Service }
+      other { Services }
+    }
+  persistentvolume: |-
+    {count, plural,
+      one { PersistentVolume }
+      other { PersistentVolumes }
+    }
+  storage.k8s.io.storageclass: |-
+    {count, plural,
+      one { StorageClass }
+      other { StorageClasses }
+    }
+  configmap: |-
+    {count, plural,
+      one { ConfigMap }
+      other { ConfigMaps }
+    }
+  persistentvolumeclaim: |-
+    {count, plural,
+      one { PersistentVolumeClaim }
+      other { PersistentVolumeClaims }
+    }
+  secret: |-
+    {count, plural,
+      one { Secret }
+      other { Secrets }
+    }
+  apiregistration.k8s.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  apiextensions.k8s.io.customresourcedefinition: |-
+    {count, plural,
+      one { CustomResourceDefinition }
+      other { CustomResourceDefinitions }
+    }
+  flowcontrol.apiserver.k8s.io.flowschema: |-
+    {count, plural,
+      one { FlowSchema }
+      other { FlowSchemas }
+    }
+  flowcontrol.apiserver.k8s.io.prioritylevelconfiguration: |-
+    {count, plural,
+      one { PriorityLevelConfiguration }
+      other { PriorityLevelConfigurations }
+    }
+  apps.replicaset: |-
+    {count, plural,
+      one { ReplicaSet }
+      other { ReplicaSets }
+    }
+  coordination.k8s.io.lease: |-
+    {count, plural,
+      one { Lease }
+      other { Leases }
+    }
+  serviceaccount: |-
+    {count, plural,
+      one { ServiceAccount }
+      other { ServiceAccounts }
+    }
+  discovery.k8s.io.endpointslice: |-
+    {count, plural,
+      one { EndpointSlice }
+      other { EndpointSlices }
+    }
+  admissionregistration.k8s.io.mutatingwebhookconfiguration: |-
+    {count, plural,
+      one { MutatingWebhookConfiguration }
+      other { MutatingWebhookConfigurations }
+    }
+  admissionregistration.k8s.io.validatingwebhookconfiguration: |-
+    {count, plural,
+      one { ValidatingWebhookConfiguration }
+      other { ValidatingWebhookConfigurations }
     }
   group.principal: |-
     {count, plural,
@@ -6112,10 +6458,185 @@ typeLabel:
       one { Harvester Cluster }
       other { Harvester Clusters }
     }
+  harvesterhci.io.cloudtemplate: |-
+    {count, plural,
+      one { Cloud Config Template }
+      other { Cloud Config Templates }
+    }
+  fleet.cattle.io.content: |-
+    {count, plural,
+      one { Content }
+      other { Contents }
+    }
   fleet.cattle.io.bundle: |-
     {count, plural,
       one { Bundle }
       other { Bundles }
+    }
+  fleet.cattle.io.bundledeployment: |-
+    {count, plural,
+      one { BundleDeployment }
+      other { BundleDeployments }
+    }
+  k3s.cattle.io.addon: |-
+    {count, plural,
+      one { Addon }
+      other { Addons }
+    }
+  management.cattle.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIServices }
+    }
+  management.cattle.io.catalog: |-
+    {count, plural,
+      one { Catalog }
+      other { Catalogs }
+    }
+  fleet.cattle.io.clusterregistration: |-
+    {count, plural,
+      one { ClusterRegistration }
+      other { ClusterRegistrations }
+    }
+  management.cattle.io.dynamicschema: |-
+    {count, plural,
+      one { DynamicSchema }
+      other { DynamicSchemas }
+    }
+  management.cattle.io.globalrolebinding: |-
+    {count, plural,
+      one { GlobalRoleBinding }
+      other { GlobalRoleBindings }
+    }
+  management.cattle.io.kontainerdriver: |-
+    {count, plural,
+      one { KontainerDriver }
+      other { KontainerDrivers }
+    }
+  management.cattle.io.nodedriver: |-
+    {count, plural,
+      one { NodeDriver }
+      other { NodeDrivers }
+    }
+  management.cattle.io.podsecuritypolicytemplate: |-
+    {count, plural,
+      one { PodSecurityPolicyTemplate }
+      other { PodSecurityPolicyTemplates }
+    }
+  management.cattle.io.userattribute: |-
+    {count, plural,
+      one { UserAttribute }
+      other { UserAttributes }
+    }
+  management.cattle.io.catalogtemplate: |-
+    {count, plural,
+      one { CatalogTemplate }
+      other { CatalogTemplates }
+    }
+  management.cattle.io.catalogtemplateversion: |-
+    {count, plural,
+      one { CatalogTemplateVersion }
+      other { CatalogTemplateVersions }
+    }
+  management.cattle.io.cisbenchmarkversion: |-
+    {count, plural,
+      one { CisBenchmarkVersion }
+      other { CisBenchmarkVersions }
+    }
+  management.cattle.io.cisconfig: |-
+    {count, plural,
+      one { CisConfig }
+      other { CisConfigs }
+    }
+  management.cattle.io.clusteralertgroup: |-
+    {count, plural,
+      one { ClusterAlertGroup }
+      other { ClusterAlertGroups }
+    }
+  management.cattle.io.clusteralertrule: |-
+    {count, plural,
+      one { ClusterAlertRule }
+      other { ClusterAlertRules }
+    }
+  management.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { ClusterRegistrationToken }
+      other { ClusterRegistrationTokens }
+    }
+  management.cattle.io.node: |-
+    {count, plural,
+      one { Node }
+      other { Nodes }
+    }
+  management.cattle.io.projectalertgroup: |-
+    {count, plural,
+      one { ProjectAlertGroup }
+      other { ProjectAlertGroups }
+    }
+  management.cattle.io.projectalertrule: |-
+    {count, plural,
+      one { ProjectAlertRule }
+      other { ProjectAlertRules }
+    }
+  management.cattle.io.rkeaddon: |-
+    {count, plural,
+      one { RkeAddon }
+      other { RkeAddons }
+    }
+  management.cattle.io.rkek8sserviceoption: |-
+    {count, plural,
+      one { RkeK8sServiceOption }
+      other { RkeK8sServiceOptions }
+    }
+  management.cattle.io.rkek8ssystemimage: |-
+    {count, plural,
+      one { RkeK8sSystemImage }
+      other { RkeK8sSystemImages }
+    }
+  rbac.authorization.k8s.io.clusterrolebinding: |-
+    {count, plural,
+      one { ClusterRoleBinding }
+      other { ClusterRoleBindings }
+    }
+  rbac.authorization.k8s.io.clusterrole: |-
+    {count, plural,
+      one { ClusterRole }
+      other { ClusterRoles }
+    }
+  rbac.authorization.k8s.io.rolebinding: |-
+    {count, plural,
+      one { RoleBinding }
+      other { RoleBindings }
+    }
+  rbac.authorization.k8s.io.role: |-
+    {count, plural,
+      one { Role }
+      other { Roles }
+    }
+  scheduling.k8s.io.priorityclass: |-
+    {count, plural,
+      one { PriorityClass }
+      other { PriorityClasses }
+    }
+  storage.k8s.io.csinode: |-
+    {count, plural,
+      one { CSINode }
+      other { CSINodes }
+    }
+  cluster.x-k8s.io.machinedeployment: |-
+    {count, plural,
+      one { MachineDeployment }
+      other { MachineDeployments }
+    }
+  cluster.x-k8s.io.machineset: |-
+    {count, plural,
+      one { MachineSet }
+      other { MachineSets }
+    }
+  cluster.x-k8s.io.machine: |-
+    {count, plural,
+      one { Machine }
+      other { Machines }
     }
   fleet.cattle.io.clusterregistrationtoken: |-
     {count, plural,
@@ -6179,13 +6700,28 @@ keyValue:
 
 registryMirror:
   header: Mirrors
-  toolTip: 'Mirrors can be used to redirect requests for images from one registry to actually come from a list of endpoints you specify instead.  For example you could point docker.io to always talk to your internal registry and instead of ever going to the actual DockerHub on the internet.'
+  toolTip: 'Mirrors can be used to redirect requests for images from one registry to come from a list of endpoints you specify instead.  For example docker.io could redirect to your internal registry instead of ever going to DockerHub.'
   addLabel: Add Mirror
+  description: Mirrors define the names and endpoints for private registries. The endpoints are tried one by one, and the first working one is used.
+  hostnameLabel: Registry Hostname
+  hostnamePlaceholder: e.g. docker.io or *
+  endpointsLabel: Mirror Endpoints
+  endpointsPlaceholder: e.g. a.registry.com:5000, b.registry.com:5000
+
+registryMirrorRewrite:
+  header: Rewrites
+  toolTip: 'Each mirror can have a set of rewrites. Rewrites can change the tag of an image based on a regular expression.'
+  addLabel: Add Rewrite Config
+  keyLabel: Rewrite pattern
+  keyPlaceholder: e.g. ^rancher/(.*)
+  valueLabel: Rewrite replacement
+  valuePlaceholder: e.g. mirrorproject/rancher-images/$1
 
 registryConfig:
   header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
   addLabel: Add Registry
+  description: "Define the TLS and credential configuration for each registry hostname and mirror."
 
 ##############################
 ### Advanced Settings
@@ -6197,6 +6733,7 @@ advancedSettings:
   show: Show
   hide: Hide
   none: None
+  modified: Modified
   edit:
     label: Edit Setting
     changeSetting: "Change Setting:"
@@ -6276,6 +6813,7 @@ featureFlags:
 performance:
   label: UI Performance Settings
   settingName: Performance
+  experimental: This setting is experimental and may be removed or updated in future versions.
   incrementalLoad:
     label: Incremental Loading
     setting: You can configure the threshold above which incremental loading will be used.
@@ -6284,7 +6822,6 @@ performance:
     checkboxLabel: Enable incremental loading
     inputLabel: Resource Threshold
   manualRefresh:
-    banner: This setting is experimental and may be removed or updated in future versions.
     label: Manual Refresh
     setting: You can configure a threshold above which manual refresh will be enabled.
     buttonTooltip: Refresh list
@@ -6300,7 +6837,6 @@ performance:
   gc:
     label: Resource Garbage Collection
     description: The UI will cache kuberentes resources locally to avoid having to re-fetch them. In some cases this can lead to a large amount of data stored in the browser. Enable this setting to periodically remove them.
-    banner: This setting is experimental and may be removed or updated in future versions.
     checkboxLabel: Enable Garbage Collection
     whenRun:
       description: Update when garbage collection runs
@@ -6319,7 +6855,17 @@ performance:
       count:
         description: Resource types must exceed this amount to be considered for garbage collection.
         inputLabel: Resource Count
-
+  nsFiltering:
+    label: Require Namespace Filtering
+    description: When there are too many resources to show in a list, require the user to select a single namespace and only fetch resources from within it.
+    checkboxLabel: Enable Required Namespace Filtering
+    count:
+      inputLabel: Resource Threshold
+      description: The threshold above which filtering by a namespace is required
+  advancedWorker:
+    label: Websocket Web Worker
+    description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
+    checkboxLabel: Enable Advanced Websocket Web Worker
 
 banner:
   label: Fixed Banners

@@ -6,16 +6,17 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@shell/config/labels-annotations';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
+import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
-import Labels from '@shell/components/form/Labels';
 import { PROJECT_ID, _VIEW } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import Labels from '@shell/components/form/Labels';
 
 export default {
   components: {
@@ -25,6 +26,7 @@ export default {
     Labels,
     Loading,
     NameNsDescription,
+    PodSecurityAdmission,
     ResourceQuota,
     Tab,
     Tabbed,
@@ -101,7 +103,8 @@ export default {
 
     showContainerResourceLimit() {
       return !this.isSingleHarvester;
-    }
+    },
+
   },
 
   watch: {
@@ -222,7 +225,6 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="!isView"
         name="labels-and-annotations"
         label-key="generic.labelsAndAnnotations"
         :weight="-1"
@@ -232,6 +234,18 @@ export default {
           :value="value"
           :mode="mode"
           :display-side-by-side="false"
+        />
+      </Tab>
+      <Tab
+        name="pod-security-admission"
+        label-key="podSecurityAdmission.label"
+        :label="t('podSecurityAdmission.label')"
+      >
+        <PodSecurityAdmission
+          :labels="value.labels"
+          :mode="mode"
+          labels-prefix="pod-security.kubernetes.io/"
+          @updateLabels="value.setLabels($event)"
         />
       </Tab>
     </Tabbed>

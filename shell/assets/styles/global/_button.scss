@@ -95,7 +95,11 @@ button,
   }
 
   &.btn-sm {
-    line-height: $btn-sm-height;
+    line-height: $btn-sm-height - 2px;
+
+    &:focus, &.focused {
+      border: 0;
+    }
   }
 }
 
