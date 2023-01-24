@@ -209,7 +209,7 @@ export default {
                 class="mt-5"
               > {{ t('node.list.nodeLabels') }}:
                 <span
-                  v-if="isLabelsVisible || displayLabels(row).length < 6"
+                  v-if="isLabelsVisible || displayLabels(row).length < 8"
                   class="mt-5 labels"
                 >
                   <Tag
@@ -221,7 +221,7 @@ export default {
                   </Tag>
                 </span>
                 <a
-                  v-if="displayLabels(row).length > 5"
+                  v-if="displayLabels(row).length > 7"
                   href="#"
                   @click.prevent="toggleLabels"
                 >
@@ -248,10 +248,6 @@ export default {
     display: inline;
     flex-wrap: wrap;
 
-    span {
-      margin-bottom: 1px;
-      display: inline-block;
-    }
 }
 .taints {
   td {
