@@ -186,7 +186,7 @@ export default Vue.extend({
 <template>
   <div class="psa">
     <!-- PSA -->
-    <p class="helper-text mb-30">
+    <p class="mb-30">
       <t k="podSecurityAdmission.description" />
     </p>
 
@@ -237,7 +237,7 @@ export default Vue.extend({
           <t k="podSecurityAdmission.exemptions.title" />
         </h3>
       </slot>
-      <p class="helper-text mb-30">
+      <p class="mb-30">
         <t k="podSecurityAdmission.exemptions.description" />
       </p>
 
