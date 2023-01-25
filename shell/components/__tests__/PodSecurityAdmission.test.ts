@@ -2,13 +2,31 @@ import { mount } from '@vue/test-utils';
 import PodSecurityAdmission from '@shell/components/PodSecurityAdmission.vue';
 
 describe('component: PodSecurityAdmission', () => {
+  it.each([
+    ['updateLabels', {
+      audit:             'privileged',
+      'audit-version':   'latest',
+      enforce:           'privileged',
+      'enforce-version': 'latest',
+      warn:              'privileged',
+      'warn-version':    'latest',
+    }],
+    ['updateExemptions', {
+      namespaces: [], runtimeClasses: [], usernames: []
+    }]
+  ])('should emit %p and exemptions on creation if labels always active', (emission, value) => {
+    const wrapper = mount(PodSecurityAdmission, { propsData: { mode: 'create', labelsAlwaysActive: true } });
+
+    expect(wrapper.emitted(emission)![0][0]).toStrictEqual(value);
+  });
+
   describe('handling labels', () => {
     it.each([
       ['true', 'active'],
       ['', 'level'],
       ['', 'version'],
     ])('should display default value %p for input %p', (value, inputId) => {
-      const wrapper = mount(PodSecurityAdmission, { propsData: { mode: 'create' } });
+      const wrapper = mount(PodSecurityAdmission, { propsData: { mode: 'edit' } });
 
       const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
 
@@ -44,7 +62,7 @@ describe('component: PodSecurityAdmission', () => {
 
         const wrapper = mount(PodSecurityAdmission, {
           propsData: {
-            mode:         'create',
+            mode:         'edit',
             labels,
             labelsPrefix: prefix
           }
@@ -65,7 +83,7 @@ describe('component: PodSecurityAdmission', () => {
 
         const wrapper = mount(PodSecurityAdmission, {
           propsData: {
-            mode:         'create',
+            mode:         'edit',
             labels,
             labelsPrefix: prefix
           }
@@ -88,7 +106,7 @@ describe('component: PodSecurityAdmission', () => {
 
         const wrapper = mount(PodSecurityAdmission, {
           propsData: {
-            mode:         'create',
+            mode:         'edit',
             labels,
             labelsPrefix: prefix
           }
@@ -108,7 +126,7 @@ describe('component: PodSecurityAdmission', () => {
           };
           const wrapper = mount(PodSecurityAdmission, {
             propsData: {
-              mode:         'create',
+              mode:         'edit',
               labels:       {},
               labelsPrefix: prefix
             },
@@ -141,7 +159,7 @@ describe('component: PodSecurityAdmission', () => {
           };
           const wrapper = mount(PodSecurityAdmission, {
             propsData: {
-              mode:         'create',
+              mode:         'edit',
               labels,
               labelsPrefix: prefix
             },
@@ -177,7 +195,7 @@ describe('component: PodSecurityAdmission', () => {
         it('should assign default version and level if missing', () => {
           const wrapper = mount(PodSecurityAdmission, {
             propsData: {
-              mode:         'create',
+              mode:         'edit',
               labels:       {},
               labelsPrefix: prefix
             },
@@ -204,6 +222,104 @@ describe('component: PodSecurityAdmission', () => {
         });
       });
     });
+
+    describe.each(['level', 'version'])('should keep always %p enabled', (inputId) => {
+      it('given labelsAlwaysActive true and no labels', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:               'edit',
+            labelsAlwaysActive: true,
+            labels:             {}
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(false);
+      });
+
+      it('given existing values', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:   'edit',
+            labels: {
+              [`enforce`]:         'baseline',
+              [`enforce-version`]: '123'
+            }
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(false);
+      });
+    });
+
+    describe.each(['level', 'version'])('should keep always %p disabled', (inputId) => {
+      it('given labelsAlwaysActive false and no labels', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:               'edit',
+            labelsAlwaysActive: false,
+            labels:             {}
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(true);
+      });
+
+      it('given disabled active status', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: { mode: 'edit' },
+          data:      () => ({
+            psaControls: {
+              enforce: {
+                active:  false,
+                level:   '',
+                version: ''
+              }
+            }
+          }),
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(true);
+      });
+
+      it('given view mode and provided labels', () => {
+        const wrapper = mount(PodSecurityAdmission, {
+          propsData: {
+            mode:   'view',
+            labels: {
+              [`enforce`]:         'baseline',
+              [`enforce-version`]: '123'
+            }
+          },
+        });
+
+        const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-${ inputId }"]`).find('input').element as HTMLInputElement;
+
+        expect(input.disabled).toBe(true);
+      });
+    });
+
+    it.each([
+      [true, false],
+    ])('should display the checkbox %p', (value) => {
+      const wrapper = mount(PodSecurityAdmission, {
+        propsData: {
+          mode:               'edit',
+          labelsAlwaysActive: value
+        }
+      });
+
+      const input = wrapper.find(`[data-testid="pod-security-admission--psaControl-0-active"]`).element as HTMLInputElement;
+
+      expect(!input).toBe(value);
+    });
   });
 
   describe('handling exemptions', () => {
@@ -228,7 +344,7 @@ describe('component: PodSecurityAdmission', () => {
 
       const wrapper = mount(PodSecurityAdmission, {
         propsData: {
-          mode: 'create',
+          mode: 'edit',
           exemptions,
         }
       });
@@ -243,7 +359,7 @@ describe('component: PodSecurityAdmission', () => {
       const exemptions = { usernames: [value] };
       const wrapper = mount(PodSecurityAdmission, {
         propsData: {
-          mode: 'create',
+          mode: 'edit',
           exemptions
         }
       });
@@ -266,7 +382,7 @@ describe('component: PodSecurityAdmission', () => {
         };
         const wrapper = mount(PodSecurityAdmission, {
           propsData: {
-            mode: 'create',
+            mode: 'edit',
             exemptions
           },
         });

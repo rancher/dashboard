@@ -75,7 +75,7 @@ export default {
           :on-label="t('labels.labels.show')"
         />
       </div>
-      <p class="helper-text mt-10 mb-10">
+      <p class="mt-10 mb-10">
         <t k="labels.labels.description" />
       </p>
       <div :class="sectionClass">

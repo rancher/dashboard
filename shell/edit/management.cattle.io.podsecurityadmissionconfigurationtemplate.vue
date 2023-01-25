@@ -97,6 +97,7 @@ export default (Vue as VueConstructor<Vue & InstanceType<typeof CreateEditView>>
     />
     <PodSecurityAdmission
       :labels="defaults"
+      :labels-always-active="true"
       :exemptions="exemptions"
       :mode="mode"
       @updateLabels="setDefaults($event)"

@@ -190,6 +190,7 @@ export default class Pod extends WorkloadService {
         this.$dispatch('growl/warning', {
           title:   this.$rootGetters['i18n/t']('growl.podSecurity.title'),
           message: this.$rootGetters['i18n/t']('growl.podSecurity.message'),
+          timeout: 5000,
         }, { root: true });
       }
     }
