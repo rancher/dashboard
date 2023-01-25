@@ -25,7 +25,11 @@ import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import { NAME as HARVESTER } from '@shell/config/product/harvester';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
-import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
+// Added by Verrazzano Start
+// import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
+import { getVersionInfo, getVerrazzanoVersion, markSeenReleaseNotes } from '@shell/utils/version';
+// Added by Verrazzano End
+
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
@@ -56,8 +60,19 @@ export default {
       groups:         [],
       gettingGroups:  false,
       wantNavSync:    false,
+      // Added by Verrazzano Start
+      vzVersion:     '',
+      // Added by Verrazzano End
     };
   },
+
+  // Added by Verrazzano Start
+  fetch() {
+    getVerrazzanoVersion().then((versionInfo) => {
+      this.vzVersion = versionInfo.dashboardBuild;
+    });
+  },
+  // Added by Verrazzano End
 
   middleware: ['authenticated'],
 
@@ -612,7 +627,7 @@ export default {
           </span>
         </div>
         <div v-else class="version text-muted">
-          {{ displayVersion }}
+          {{ vzVersion }}
         </div>
       </nav>
       <main v-if="clusterReady">

@@ -8,7 +8,10 @@ import { mapPref, DEV, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
-import { getVersionInfo } from '@shell/utils/version';
+// Added by Verrazzano Start
+// import { getVersionInfo } from '@shell/utils/version';
+import { getVersionInfo, getVerrazzanoVersion } from '@shell/utils/version';
+// Added by Verrazzano End
 import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
@@ -33,6 +36,9 @@ export default {
       uiVersion:      UI_VERSION,
       clusterFilter:  '',
       hasProvCluster,
+      // Added by Verrazzano Start
+      vzVersion:     '',
+      // Added by Verrazzano End
     };
   },
 
@@ -40,6 +46,12 @@ export default {
     if (this.hasProvCluster) {
       this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     }
+
+    // Added by Verrazzano Start
+    getVerrazzanoVersion().then((versionInfo) => {
+      this.vzVersion = versionInfo.dashboardBuild;
+    });
+    // Added by Verrazzano End
   },
 
   computed: {
@@ -346,18 +358,28 @@ export default {
           <div class="pad"></div>
         </div>
         <div class="footer">
-          <div v-if="canEditSettings" @click="hide()">
+          <!-- Added by Verrazzano Start -->
+          <!-- <div v-if="canEditSettings" @click="hide()">
             <nuxt-link :to="{name: 'support'}">
               {{ t('nav.support', {hasSupport}) }}
             </nuxt-link>
-          </div>
+          </div> -->
+          <!-- Added by Verrazzano End -->
           <div @click="hide()">
-            <nuxt-link
+            <!-- Added by Verrazzano Start -->
+            <!-- nuxt-link
               v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }"
               :to="{ name: 'about' }"
-              class="version"
+               class="version"
               v-html="displayVersion"
+            /-->
+
+            <div
+              v-tooltip="{ content: vzVersion, classes: 'footer-tooltip' }"
+              class="version"
+              v-html="vzVersion"
             />
+            <!-- Added by Verrazzano End -->
           </div>
           <div v-if="showLocale">
             <v-popover

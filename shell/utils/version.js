@@ -98,6 +98,12 @@ export function getVersionInfo(store) {
   };
 }
 
+// Added by Verrazzano Start
+export function getVerrazzanoVersion() {
+  return import('@pkg/verrazzano/assets/buildVersion.json');
+}
+// Added by Verrazzano End
+
 export function seenReleaseNotes(store) {
   const lastSeenNew = store.getters['prefs/get'](SEEN_WHATS_NEW) ;
   const fullVersion = getVersionInfo(store).fullVersion;
