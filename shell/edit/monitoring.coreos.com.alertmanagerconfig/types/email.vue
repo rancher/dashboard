@@ -25,7 +25,7 @@ export default {
   },
   data() {
     this.$set(this.value, 'sendResolved', this.value.sendResolved || false);
-    this.$set(this.value, 'requireTls', this.value.requireTls || false);
+    this.$set(this.value, 'requireTLS', this.value.requireTLS || false);
 
     return {
       view:                          _VIEW,
@@ -102,7 +102,7 @@ export default {
         <LabeledInput v-model="value.smarthost" :mode="mode" label="Host" placeholder="e.g. 192.168.1.121:587" />
       </div>
       <div class="col span-6">
-        <Checkbox v-model="value.requireTls" :mode="mode" class="mt-20" label="Use TLS" />
+        <Checkbox v-model="value.requireTLS" :mode="mode" class="mt-20" label="Use TLS" />
       </div>
     </div>
     <div v-if="namespace" class="row mb-20">
