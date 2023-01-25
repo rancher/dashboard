@@ -1607,6 +1607,8 @@ cluster:
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
+    deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
+    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
 
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 

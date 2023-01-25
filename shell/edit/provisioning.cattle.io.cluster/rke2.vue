@@ -277,6 +277,10 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
+    // Store the initial PSP template name, so we can set it back if needed
+    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
+    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
@@ -307,6 +311,8 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
+      lastDefaultPodSecurityPolicyTemplateName,
+      previousKubernetesVersion,
     };
   },
 
@@ -1747,17 +1753,26 @@ export default {
      */
     handleKubernetesChange(value) {
       if (value) {
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
-        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-      }
-    },
+        const version = VERSION.parse(value);
+        const major = parseInt(version?.[0] || 0);
+        const minor = parseInt(version?.[1] || 0);
 
-    /**
-     * Handle PSA changes side effects, like PSP resets
-     */
-    handlePsaChange(value) {
-      if (value) {
-        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+        // If the new version is 1.25 or greater, set the PSP Policy to 'RKE2 Default' (empty string)
+        if (major === 1 && minor >= 25) {
+          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+        } else {
+          const previous = VERSION.parse(this.previousKubernetesVersion);
+          const major = parseInt(previous?.[0] || 0);
+          const minor = parseInt(previous?.[1] || 0);
+
+          if (major === 1 && minor >= 25) {
+            // Previous value was 1.25 or greater, so reset back
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
+          }
+        }
+
+        this.previousKubernetesVersion = value;
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
       }
     },
 
@@ -1766,7 +1781,7 @@ export default {
      */
     handlePspChange(value) {
       if (value) {
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+        this.lastDefaultPodSecurityPolicyTemplateName = value;
       }
     },
 
@@ -1805,12 +1820,6 @@ export default {
         color="warning"
       >
         <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
-      </Banner>
-      <Banner
-        v-if="isEdit && displayInvalidPspsBanner"
-        color="warning"
-      >
-        <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
       </Banner>
     </div>
     <SelectCredential
@@ -2028,7 +2037,24 @@ export default {
           <h3>
             {{ t('cluster.rke2.security.header') }}
           </h3>
-
+          <Banner
+            v-if="isEdit && displayInvalidPspsBanner"
+            color="warning"
+          >
+            <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
+          </Banner>
+          <Banner
+            v-else-if="isCreate && !needsPSP"
+            color="info"
+          >
+            <span v-html="t('cluster.banner.removedPsp', {}, true)" />
+          </Banner>
+          <Banner
+            v-else-if="isCreate"
+            color="info"
+          >
+            <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
+          </Banner>
           <div
             v-if="needsPSA"
             class="row mb-10"
@@ -2041,7 +2067,6 @@ export default {
                 data-testid="rke2-custom-edit-psa"
                 :options="psaOptions"
                 :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
-                @input="handlePsaChange($event)"
               />
             </div>
           </div>

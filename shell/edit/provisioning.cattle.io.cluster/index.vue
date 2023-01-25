@@ -32,7 +32,7 @@ const SORT_GROUPS = {
   custom2:   5,
 };
 
-// uSed to proxy stylesheets for custom drviers that provide custom UI (RKE1)
+// uSed to proxy stylesheets for custom drivers that provide custom UI (RKE1)
 const PROXY_ENDPOINT = '/meta/proxy';
 
 export default {
