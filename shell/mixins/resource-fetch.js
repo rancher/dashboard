@@ -36,7 +36,7 @@ export default {
       isTooManyItemsToAutoUpdate: false,
       force:                      false,
       // incremental loading vars
-      incremental:                0,
+      incremental:                false,
       fetchedResourceType:        [],
       // force ns filtering
       forceNsFilter:              {
@@ -114,14 +114,22 @@ export default {
         });
       }
 
+      let incremental = 0;
+
+      if (this.incremental) {
+        const resourceCount = this.__getCountForResources([type], this.namespaceFilter, currStore);
+
+        incremental = Math.ceil(resourceCount / PAGES);
+      }
+
       const opt = {
-        incremental:      this.incremental,
+        incremental,
         watch:            this.watch,
         force:            this.force,
         hasManualRefresh: this.hasManualRefresh
       };
 
-      const schema = this.$store.getters['cluster/schemaFor'](type);
+      const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
 
       if (schema?.attributes?.namespaced) {
         opt.namespaced = this.namespaceFilter;
@@ -140,7 +148,7 @@ export default {
     },
 
     __getCountForResource(resourceName, namespace, storeType) {
-      const resourceCounts = this.$store.getters[`${ storeType }/all`](COUNT)[0].counts[`${ resourceName }`];
+      const resourceCounts = this.$store.getters[`${ storeType }/all`](COUNT)[0]?.counts[`${ resourceName }`]; // NB `rancher` store behaves differently, lacks counts but has resource
       const resourceCount = namespace && resourceCounts?.namespaces ? resourceCounts?.namespaces[namespace]?.count : resourceCounts?.summary?.count;
 
       return resourceCount || 0;
@@ -167,7 +175,7 @@ export default {
       let isTooManyItemsToAutoUpdate = false;
 
       // incremental loading vars
-      let incremental = 0;
+      let incremental = false;
 
       // get resource counts
       const resourcesForCount = this.multipleResources.length ? this.multipleResources : [resourceName];
@@ -179,10 +187,9 @@ export default {
         watch = false;
         isTooManyItemsToAutoUpdate = true;
       }
+
       // incremental loading check
-      if (incrementalLoadingEnabled && incrementalLoadingThreshold > 0 && resourceCount >= incrementalLoadingThreshold) {
-        incremental = Math.ceil(resourceCount / PAGES);
-      }
+      incremental = incrementalLoadingEnabled && incrementalLoadingThreshold > 0 && resourceCount >= incrementalLoadingThreshold;
 
       // pass on the flag that controls the appearance of the manual refresh button on the sortable table
       this.$store.dispatch('resource-fetch/updateIsTooManyItems', isTooManyItemsToAutoUpdate);
