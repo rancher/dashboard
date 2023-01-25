@@ -233,7 +233,7 @@ export default {
         class="mt-20"
         :default-add-value="{ matchExpressions: [] }"
         :mode="mode"
-        :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+        :add-label="t('podAffinity.addLabel')"
         @remove="remove"
       >
         <template #default="props">

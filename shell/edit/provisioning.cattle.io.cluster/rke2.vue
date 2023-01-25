@@ -69,6 +69,7 @@ import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
+import ClusterAgentConfiguration from './ClusterAgentConfiguration';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -87,6 +88,7 @@ export default {
     BadgeState,
     Banner,
     Checkbox,
+    ClusterAgentConfiguration,
     ClusterMembershipEditor,
     CruResource,
     DrainOptions,
@@ -254,6 +256,11 @@ export default {
 
       this.userChartValues[key] = value;
     });
+
+    // Cluster Agent Configuration
+    if ( !this.value.spec.clusterAgentConfiguration ) {
+      set(this.value.spec, 'clusterAgentConfiguration', {});
+    }
   },
 
   data() {
@@ -2753,6 +2760,16 @@ export default {
               class="yaml-editor"
             />
           </div>
+        </Tab>
+
+        <Tab
+          name="clusteragentconfig"
+          label-key="cluster.clusterAgentConfig.tab"
+        >
+          <ClusterAgentConfiguration
+            v-model="value.spec.clusterAgentConfiguration"
+            :mode="mode"
+          />
         </Tab>
 
         <!-- Advanced -->

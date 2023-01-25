@@ -1598,6 +1598,13 @@ cluster:
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
+  clusterAgentConfig:
+    tab: Cluster Agent
+    groups:
+      deploymentLabels: Deployment Labels
+      selector: Selector
+      podAffinity: Pod Affinity
+
   advanced:
     argInfo:
       title: Additional Kubelet Args
