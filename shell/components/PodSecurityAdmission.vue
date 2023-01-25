@@ -1,6 +1,6 @@
 <script lang="ts">
 import Vue from 'vue';
-import { _VIEW } from '@shell/config/query-params';
+import { _VIEW, _CREATE } from '@shell/config/query-params';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
@@ -113,6 +113,12 @@ export default Vue.extend({
     };
 
     this.psaExemptionsControls = this.getPsaExemptions();
+
+    // Emit initial value on creation if labels always active, as default predefined values are required
+    if (this.mode === _CREATE && this.labelsAlwaysActive) {
+      this.updateLabels();
+      this.updateExemptions();
+    }
   },
 
   methods: {
@@ -134,6 +140,9 @@ export default Vue.extend({
       this.$emit('updateLabels', labels);
     },
 
+    /**
+     * Emit active exemptions in required format
+     */
     updateExemptions(): void {
       const exemptions = PSADimensions.reduce((acc, dimension) => {
         const value = this.psaExemptionsControls[dimension].value.split(',').map(value => value.trim());
