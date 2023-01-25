@@ -3942,6 +3942,8 @@ plugins:
 podSecurityAdmission:
   label: Pod Security Admission
   description: Define the admission control mode you want to use for the pod security
+  banner: 
+    modifications: 'Note: Modifying a Pod Security Admission Configuration Template will not affect any downstream cluster that references it until there is a cluster update'
   version:
     placeholder: 'Version (default: latest)'
   exemptions: 
