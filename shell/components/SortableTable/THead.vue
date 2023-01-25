@@ -191,6 +191,16 @@ export default {
         value
       });
     },
+
+    tooltip(col) {
+      if (!col.tooltip) {
+        return null;
+      }
+
+      const exists = this.$store.getters['i18n/exists'];
+
+      return exists(col.tooltip) ? this.t(col.tooltip) : col.tooltip;
+    },
   }
 
 };
@@ -230,7 +240,7 @@ export default {
         >
           <span
             v-if="col.sort"
-            v-tooltip="col.tooltip"
+            v-tooltip="tooltip(col)"
           >
             <span v-html="labelFor(col)" />
             <i
@@ -252,7 +262,7 @@ export default {
           </span>
           <span
             v-else
-            v-tooltip="col.tooltip"
+            v-tooltip="tooltip(col)"
           >{{ labelFor(col) }}</span>
         </div>
       </th>

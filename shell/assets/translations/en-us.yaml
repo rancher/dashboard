@@ -5156,6 +5156,7 @@ tableHeaders:
   lastUpdated: Last Updated
   lastSchedule: Last Schedule
   lastSeen: Last Seen
+  lastSeenTooltip: The time at which the most recent occurrence of this event was recorded
   loggingOutputProviders: Provider
   machines: Machines
   machineNodeName: Node
