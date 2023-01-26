@@ -196,14 +196,19 @@ export default {
       }
 
       // this will come from extensions...
-      if (action.singleAction) {
-        const fn = action.singleAction;
+      if (action.invoke) {
+        const fn = action.invoke;
 
         if (fn && action.enabled) {
           const resources = this.$store.getters['action-menu/resources'];
+          const opts = {
+            event,
+            action,
+            isAlt: isAlternate(event)
+          };
 
           if (resources.length === 1) {
-            fn.apply(this, [resources[0], event, isAlternate(event)]);
+            fn.apply(this, [opts, resources]);
           }
         }
       } else if (this.useCustomTargetElement) {

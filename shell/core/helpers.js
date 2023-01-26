@@ -93,10 +93,7 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
             actions[i].enabled = true;
           }
 
-          // if user defines a bulkAction, there's no need to set the bulkable flag
-          if (Object.keys(action).includes('bulkAction')) {
-            actions[i].bulkable = true;
-          }
+          actions[i].bulkable = actions[i].multiple || actions[i].bulkable;
         }
 
         // extract simplified shortcut definition on plugin

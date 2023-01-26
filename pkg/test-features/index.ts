@@ -6,6 +6,7 @@ import {
   TabLocation,
   CardLocation,
   TableColumnLocation,
+  ActionOpts,
 } from '@shell/core/types';
 
 // Init the package
@@ -28,11 +29,10 @@ export default function(plugin: IPlugin) {
       tooltip:    'Test Action1',
       shortcut:   'm',
       icon:       'icon-pipeline',
-      enabled(ctx: any) {
-        return true;
-      },
-      clickAction() {
+      invoke(opts: any, resources: any) {
         console.log('action executed 1', this); // eslint-disable-line no-console
+        console.log(opts); // eslint-disable-line no-console
+        console.log(resources); // eslint-disable-line no-console
       }
     }
   );
@@ -49,8 +49,10 @@ export default function(plugin: IPlugin) {
       enabled(ctx: any) {
         return true;
       },
-      clickAction() {
+      invoke(opts: any, resources: any) {
         console.log('action executed 2', this); // eslint-disable-line no-console
+        console.log(opts); // eslint-disable-line no-console
+        console.log(resources); // eslint-disable-line no-console
       }
     }
   );
@@ -81,14 +83,14 @@ export default function(plugin: IPlugin) {
   // TABLE ACTIONS - ROW ACTION
   plugin.addAction(
     ActionLocation.TABLE,
-    { resource: 'catalog.cattle.io.clusterrepo' },
+    'catalog.cattle.io.clusterrepo',
     {
       action:   'some-extension-action',
       label:    'some-extension-action',
       labelKey: 'plugin-examples.table-action-one',
       icon:     'icon-pipeline',
-      singleAction(resource: any, event: any, alt: boolean) {
-        console.log('table action executed1', this, resource, event, alt); // eslint-disable-line no-console
+      invoke(opts: ActionOpts, values: any[]) {
+        console.log('table action executed 1', this, opts, values); // eslint-disable-line no-console
       }
     }
   );
@@ -102,12 +104,12 @@ export default function(plugin: IPlugin) {
       label:    'some-bulkable-action',
       labelKey: 'plugin-examples.table-action-two',
       svg:      require('@pkg/test-features/icons/rancher-desktop.svg'),
-      singleAction() {
-        console.log('table action executed2', this); // eslint-disable-line no-console
+      multiple: true,
+      invoke(opts: ActionOpts, values: any[]) {
+        console.log('table action executed 2', this); // eslint-disable-line no-console
+        console.log(opts); // eslint-disable-line no-console
+        console.log(values); // eslint-disable-line no-console
       },
-      bulkAction(args: any) {
-        console.log('bulk table action executed', this, args); // eslint-disable-line no-console
-      }
     }
   );
 

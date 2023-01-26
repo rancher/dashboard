@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
-import { isMac } from '@shell/utils/platform';
+import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct } from '@shell/config/private-label';
@@ -297,14 +297,18 @@ export default {
     },
 
     handleExtensionAction(action, event) {
-      // TODO: This needs to be consistent with normal action that has 'singleAction'
-      const fn = action.clickAction;
+      const fn = action.invoke;
+      const opts = {
+        event,
+        action,
+        isAlt:   isAlternate(event),
+        product: this.currentProduct.name,
+        cluster: this.currentCluster,
+      };
+      const enabled = action.enabled ? action.enabled.apply(this, [opts]) : true;
 
-      // TODO: What happens if enabled not set?
-      // Args here need to be consistent with normal action
-      // Suggest event is part of opts is 2nd argument
-      if (fn && action.enabled()) {
-        fn.apply(this, [event]);
+      if (fn && enabled) {
+        fn.apply(this, [opts, []]);
       }
     },
 

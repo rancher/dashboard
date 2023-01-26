@@ -74,6 +74,12 @@ export type ICard = any;
 export type ITableColumn = any;
 export type ITab = any;
 
+export type ActionOpts = {
+  event: any;
+  isAlt: boolean;
+  action: any;
+};
+
 export type LocationConfig = {
   product?: string,
   resource?: string,

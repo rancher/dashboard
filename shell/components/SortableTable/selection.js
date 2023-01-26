@@ -504,7 +504,7 @@ export default {
     },
 
     applyTableAction(action, args, event) {
-      const opts = { alt: event && isAlternate(event) };
+      const opts = { alt: event && isAlternate(event), event };
 
       // Go through the table selection and filter out those actions that can't run the chosen action
       const executableSelection = this.selectedRows.filter((row) => {
@@ -575,10 +575,20 @@ function _filter(map, disableAll = false) {
   return out;
 }
 
-// TODO: Need to figure out if we should always call bulkAction and let it
-// handle the alt case, or use existing pattern
 function _execute(resources, action, args, opts = {}, ctx) {
   args = args || [];
+
+  // New pattern for extensions - always call invoke
+  if (action.invoke) {
+    const actionOpts = {
+      action,
+      event: opts.event,
+      isAlt: !!opts.alt,
+    };
+
+    return action.invoke.apply(ctx, [actionOpts, resources || [], args]);
+  }
+
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
     // Check if bulkAction is a string or a function (extensions use functions)
     const isFunction = typeof action.bulkAction !== 'string';
@@ -599,11 +609,6 @@ function _execute(resources, action, args, opts = {}, ctx) {
       }
     }
   }
-
-  // For extension actions, call the bulkAction handler anyway - it can
-  // determine that alt was held down
-  // TODO
-  // User held down the ALT key, so execute the single action for each resource
 
   const promises = [];
 

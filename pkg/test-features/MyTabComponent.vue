@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: 'MyTabComponent',
+  name:  'MyTabComponent',
   props: {
     resource: {
       type:    Object,
@@ -8,10 +8,7 @@ export default {
     }
   }, 
   data() {
-    console.log(this);
-    console.log(this.resource);
-
-    return { key: 'asdasd' };
+    return { key: 'value' };
   }
 };
 </script>
