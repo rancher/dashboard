@@ -38,12 +38,12 @@ export default {
     mapError(error) {
       switch (true) {
       case error.includes('violates PodSecurity'): {
-        const match = error.match(/(?<=\")(.*?)(?=\")/gi);
+        const match = error.match(/\"(.*?)\"/gi);
         const name = match[0];
-        const policy = match[2];
+        const policy = match[1];
 
         return {
-          message: `Pod "${ name }" Security Policy Violation "${ policy }"`,
+          message: `Pod ${ name } Security Policy Violation ${ policy }`,
           icon:    'icon-pod_security'
         };
       }
@@ -57,7 +57,7 @@ export default {
      * Map all the error texts to a message and icon object
      */
     getErrorsMap(errors) {
-      return !errors ? {} : errors.reduce((acc, error) => ({
+      return !errors || !Array.isArray(errors) ? {} : errors.reduce((acc, error) => ({
         ...acc,
         [error]: this.mapError(error) || {
           message: error,
