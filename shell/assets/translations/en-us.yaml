@@ -1065,7 +1065,7 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
-  workerProfile: CIS Worker Profile
+  workerProfile: CIS Profile
 
 cluster:
   addonChart:
