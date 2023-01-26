@@ -71,9 +71,7 @@ export default {
   data() {
     const formRoute = {
       name:   `c-cluster-product-resource`,
-      params: {
-        resource: FLEET.WORKSPACE,
-      }
+      params: { resource: FLEET.WORKSPACE }
     };
 
     return { hasWorkspaces: false, formRoute };
