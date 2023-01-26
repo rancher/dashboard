@@ -4,7 +4,7 @@ import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 export default {
   name:  'ExtensionPanel',
   props: {
-    resourceInstance: {
+    resource: {
       type:    Object,
       default: () => {
         return {};
@@ -35,7 +35,7 @@ export default {
     >
       <component
         :is="item.component"
-        :resource="resourceInstance"
+        :resource="resource"
       />
     </div>
   </div>

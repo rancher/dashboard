@@ -41,7 +41,7 @@ import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
 import { fetchClusterResources } from './explorer-utils';
 import SimpleBox from '@shell/components/SimpleBox';
-import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
+import { ExtensionPoint, CardLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
@@ -130,7 +130,7 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
       selectedTab:        'cluster-events',
-      extensionCards:     getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_CARD, BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD, this.$route),
+      extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
     };
   },
 

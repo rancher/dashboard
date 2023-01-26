@@ -6,7 +6,7 @@ import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
-import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
+import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export default {
@@ -99,8 +99,8 @@ export default {
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,
-      extensionType:                    BuiltinExtensionEnhancementTypes.ADD_PANEL,
-      extensionLocation:                BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST,
+      extensionType:                    ExtensionPoint.PANEL,
+      extensionLocation:                PanelLocation.RESOURCE_LIST,
       loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
       hasFetch:                         false,
       // manual refresh
@@ -199,7 +199,7 @@ export default {
     </Masthead>
     <!-- Extensions area -->
     <ExtensionPanel
-      :resource-instance="{}"
+      :resource="{}"
       :type="extensionType"
       :location="extensionLocation"
     />

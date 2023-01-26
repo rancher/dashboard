@@ -10,7 +10,7 @@ import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
-import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 /**
@@ -87,8 +87,8 @@ export default {
   data() {
     return {
       DETAIL_VIEW:       _DETAIL,
-      extensionType:     BuiltinExtensionEnhancementTypes.ADD_PANEL,
-      extensionLocation: BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
+      extensionType:     ExtensionPoint.PANEL,
+      extensionLocation: PanelLocation.DETAILS_MASTHEAD,
     };
   },
 
@@ -455,12 +455,6 @@ export default {
           /></span>
           <span v-if="value.showPodRestarts">{{ t("resourceDetail.masthead.restartCount") }}:<span class="live-data"> {{ value.restartCount }}</span></span>
         </div>
-        <!-- Extension area -->
-        <ExtensionPanel
-          :resource-instance="value"
-          :type="extensionType"
-          :location="extensionLocation"
-        />
       </div>
       <slot name="right">
         <div class="actions-container align-start">
@@ -504,6 +498,13 @@ export default {
         </div>
       </slot>
     </header>
+
+    <!-- Extension area -->
+    <ExtensionPanel
+      :resource="value"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
 
     <Banner
       v-if="banner && isView && !parent.hideBanner"

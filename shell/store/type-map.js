@@ -148,7 +148,7 @@ import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
-import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
+import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -224,12 +224,23 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
-      const extensionCols = store.$plugin.getUIConfig(BuiltinExtensionEnhancementTypes.ADD_TABLE_COL, BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST);
+      const extensionCols = store.$plugin.getUIConfig(ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE);
+
+      // Try and insert the columns before the Age column, if that is the last column
+      let insertPosition = headers.length;
+
+      if (headers.length > 0) {
+        const lastColumn = headers[headers.length - 1];
+
+        if (lastColumn?.name === 'age') {
+          insertPosition--;
+        }
+      }
 
       // adding extension defined cols to the correct header config
       extensionCols.forEach((col) => {
         if (col.locationConfig.resource && type === col.locationConfig.resource) {
-          headers = headers.concat(col);
+          headers.splice(insertPosition, 0, col);
         }
       });
 

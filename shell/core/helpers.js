@@ -1,5 +1,6 @@
-import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
+import { ActionLocation, CardLocation, ExtensionPoint } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
+import { ucFirst } from '@shell/utils/string';
 
 function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
   // console.log('name && params', name, params);
@@ -73,21 +74,21 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
   actions.forEach((action, i) => {
     if (checkExtensionRouteBinding(currRoute, action.locationConfig)) {
       // ADD CARD PLUGIN UI ENHANCEMENT
-      if (actionType === BuiltinExtensionEnhancementTypes.ADD_CARD) {
+      if (actionType === ExtensionPoint.CARD) {
         // intercept to apply translation
-        if (uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD && action.labelKey) {
+        if (uiArea === CardLocation.CLUSTER_DASHBOARD_CARD && action.labelKey) {
           actions[i].label = translationCtx.t(action.labelKey);
         }
 
       // ADD ACTION PLUGIN UI ENHANCEMENT
-      } else if (actionType === BuiltinExtensionEnhancementTypes.ADD_ACTION) {
-        if (uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION) {
+      } else if (actionType === ExtensionPoint.ACTION) {
+        if (uiArea === ActionLocation.TABLE) {
           // intercept to apply translation
           if (action.labelKey) {
             actions[i].label = translationCtx.t(action.labelKey);
           }
 
-          // sets the enabled flag to true if ommited on the config
+          // sets the enabled flag to true if omitted on the config
           if (!Object.keys(action).includes('enabled')) {
             actions[i].enabled = true;
           }
@@ -99,7 +100,7 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
         }
 
         // extract simplified shortcut definition on plugin
-        if (uiArea === BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION && action.shortcut) {
+        if (uiArea === ActionLocation.HEADER && action.shortcut) {
           // if it's a string, then assume CTRL for windows and META for mac
           if (typeof action.shortcut === 'string') {
             actions[i].shortcutLabel = () => {
@@ -114,6 +115,11 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
 
             keyboardCombo.forEach((key, i) => {
               if (i < keyboardCombo.length - 1) {
+                if (key === 'meta') {
+                  key = '\u2318';
+                } else {
+                  key = ucFirst(key);
+                }
                 scLabel += `${ key }`;
                 scLabel += '-';
               } else {

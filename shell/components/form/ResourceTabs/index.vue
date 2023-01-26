@@ -11,7 +11,7 @@ import { EVENT } from '@shell/config/types';
 import SortableTable from '@shell/components/SortableTable';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
-import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
+import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 
 export default {
@@ -71,7 +71,7 @@ export default {
       allEvents:     [],
       selectedTab:   this.defaultTab,
       didLoadEvents: false,
-      extensionTabs: getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_TAB, BuiltinExtensionEnhancementLocations.UI_CONFIG_TAB, this.$route),
+      extensionTabs: getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route),
     };
   },
 

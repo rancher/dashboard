@@ -3,7 +3,7 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
-import { BuiltinExtensionEnhancementTypes } from './types';
+import { ExtensionPoint } from './types';
 
 const MODEL_TYPE = 'models';
 
@@ -22,13 +22,11 @@ export default function({
 
   const pluginRoutes = new PluginRoutes(app.router);
 
-  const uiConfig = {
-    [BuiltinExtensionEnhancementTypes.ADD_ACTION]:    {},
-    [BuiltinExtensionEnhancementTypes.ADD_CARD]:      {},
-    [BuiltinExtensionEnhancementTypes.ADD_PANEL]:     {},
-    [BuiltinExtensionEnhancementTypes.ADD_TAB]:       {},
-    [BuiltinExtensionEnhancementTypes.ADD_TABLE_COL]: {},
-  };
+  const uiConfig = {};
+
+  for (const ep in ExtensionPoint) {
+    uiConfig[ExtensionPoint[ep]] = {};
+  }
 
   inject('plugin', {
     // Plugins should not use these - but we will pass them in for now as a 2nd argument

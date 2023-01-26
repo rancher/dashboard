@@ -1,7 +1,16 @@
 <script>
 export default {
-  name: 'MyDemoComponent',
+  name: 'MyTabComponent',
+  props: {
+    resource: {
+      type:    Object,
+      default: () => ({})
+    }
+  }, 
   data() {
+    console.log(this);
+    console.log(this.resource);
+
     return { key: 'asdasd' };
   }
 };
@@ -9,7 +18,8 @@ export default {
 
 <template>
   <div>
-    <h1>THIS IS A DEMO COMPONENT</h1>
+    <h1>THIS IS A DEMO TAB</h1>
+    <h2>{{ resource.id }}</h2>
   </div>
 </template>
 

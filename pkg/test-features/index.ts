@@ -1,5 +1,12 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
+import {
+  IPlugin,
+  ActionLocation,
+  PanelLocation,
+  TabLocation,
+  CardLocation,
+  TableColumnLocation,
+} from '@shell/core/types';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -14,7 +21,7 @@ export default function(plugin: IPlugin) {
 
   // HEADER ACTION - GLOBAL
   plugin.addAction(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION,
+    ActionLocation.HEADER,
     {},
     {
       tooltipKey: 'plugin-examples.header-action-one',
@@ -32,7 +39,7 @@ export default function(plugin: IPlugin) {
 
   // HEADER ACTION - BOUND TO A PRODUCT
   plugin.addAction(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION,
+    ActionLocation.HEADER,
     { product: 'explorer' },
     {
       tooltipKey: 'plugin-examples.header-action-two',
@@ -50,7 +57,7 @@ export default function(plugin: IPlugin) {
 
   // ADDS TAB TO "ResourceTabs" COMPONENT
   plugin.addTab(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_TAB,
+    TabLocation.RESOURCE_DETAIL,
     { resource: 'pod' },
     {
       name:       'some-name',
@@ -63,30 +70,32 @@ export default function(plugin: IPlugin) {
     }
   );
 
+  // We shouldn't have to do this
+
   // TABLE ACTIONS - divider
-  plugin.addAction(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION,
-    { resource: 'catalog.cattle.io.clusterrepo' },
-    { divider: true }); // renders a divider instead of an actual action
+  // plugin.addAction(
+  //   ActionLocation.TABLE,
+  //   { resource: 'catalog.cattle.io.clusterrepo' },
+  //   { divider: true }); // renders a divider instead of an actual action
 
   // TABLE ACTIONS - ROW ACTION
   plugin.addAction(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION,
+    ActionLocation.TABLE,
     { resource: 'catalog.cattle.io.clusterrepo' },
     {
       action:   'some-extension-action',
       label:    'some-extension-action',
       labelKey: 'plugin-examples.table-action-one',
       icon:     'icon-pipeline',
-      singleAction() {
-        console.log('table action executed1', this); // eslint-disable-line no-console
+      singleAction(resource: any, event: any, alt: boolean) {
+        console.log('table action executed1', this, resource, event, alt); // eslint-disable-line no-console
       }
     }
   );
 
   // TABLE ACTIONS - ROW + BULKABLE
   plugin.addAction(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_TABLE_ACTION,
+    ActionLocation.TABLE,
     { resource: 'catalog.cattle.io.clusterrepo' },
     {
       action:   'some-bulkable-action',
@@ -104,37 +113,37 @@ export default function(plugin: IPlugin) {
 
   // DETAILS VIEW MASTHEAD DATA
   plugin.addPanel(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
+    PanelLocation.DETAILS_MASTHEAD,
     { resource: 'catalog.cattle.io.clusterrepo' },
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA - CONFIG VIEW
   plugin.addPanel(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
+    PanelLocation.DETAILS_MASTHEAD,
     { resource: 'catalog.cattle.io.clusterrepo', mode: 'config' },
     { component: () => import('./MastheadDetailsComponentConfig.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA - EDIT VIEW
   plugin.addPanel(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAILS_MASTHEAD,
+    PanelLocation.DETAILS_MASTHEAD,
     { resource: 'catalog.cattle.io.clusterrepo', mode: 'edit' },
     { component: () => import('./MastheadDetailsComponentEdit.vue') }); // component to be rendered
 
   // DETAILS VIEW "DetailTop" DATA
   plugin.addPanel(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP,
+    PanelLocation.DETAIL_TOP,
     { resource: 'catalog.cattle.io.clusterrepo' },
     { component: () => import('./DetailTopComponent.vue') }); // component to be rendered
 
   // DATA ABOVE LIST VIEW
   plugin.addPanel(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST,
+    PanelLocation.RESOURCE_LIST,
     { resource: 'catalog.cattle.io.app' },
     { component: () => import('./BannerComponent.vue') }); // component to be rendered
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+    CardLocation.CLUSTER_DASHBOARD_CARD,
     { cluster: 'local' },
     {
       label:     'some-label',
@@ -145,18 +154,18 @@ export default function(plugin: IPlugin) {
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+    CardLocation.CLUSTER_DASHBOARD_CARD,
     { cluster: 'local' },
     {
       label:     'some-label1',
       labelKey:  'plugin-examples.card-title-two',
-      component: () => import('./MastheadDetailsComponent.vue')
+      component: () => import('./ClusterDashboardCard.vue')
     }
   );
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
+    CardLocation.CLUSTER_DASHBOARD_CARD,
     { cluster: 'local' },
     {
       label:     'some-label2',
@@ -165,21 +174,10 @@ export default function(plugin: IPlugin) {
     }
   );
 
-  // CLUSTER DASHBOARD CARD
-  plugin.addCard(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_CLUSTER_DASHBOARD_CARD,
-    { cluster: 'local' },
-    {
-      label:     'some-label3',
-      labelKey:  'plugin-examples.card-title-four',
-      component: () => import('./MastheadDetailsComponent.vue')
-    }
-  );
-
   // ADD A COL TO A TABLE
   plugin.addTableColumn(
-    BuiltinExtensionEnhancementLocations.UI_CONFIG_RESOURCE_LIST,
-    { resource: 'configmap' },
+    TableColumnLocation.RESOURCE,
+    'configmap',
     {
       name:     'some-prop-col',
       labelKey: 'plugin-examples.col-label',

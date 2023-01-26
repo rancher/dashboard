@@ -3,7 +3,7 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
-import { BuiltinExtensionEnhancementTypes, BuiltinExtensionEnhancementLocations } from '@shell/core/types';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export const SEPARATOR = { separator: true };
@@ -53,8 +53,8 @@ export default {
 
   data() {
     return {
-      extensionType:      BuiltinExtensionEnhancementTypes.ADD_PANEL,
-      extensionLocation:  BuiltinExtensionEnhancementLocations.UI_CONFIG_DETAIL_TOP,
+      extensionType:      ExtensionPoint.PANEL,
+      extensionLocation:  PanelLocation.DETAIL_TOP,
       annotationsVisible: false,
       showAllLabels:      false,
       view:               _VIEW
@@ -296,7 +296,7 @@ export default {
 
     <!-- Extensions area -->
     <ExtensionPanel
-      :resource-instance="value"
+      :resource="value"
       :type="extensionType"
       :location="extensionLocation"
     />

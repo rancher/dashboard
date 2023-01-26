@@ -15,7 +15,7 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
-import { BuiltinExtensionEnhancementLocations, BuiltinExtensionEnhancementTypes } from '@shell/core/types';
+import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 
@@ -54,7 +54,7 @@ export default {
       shellShortcut,
       LOGGED_OUT,
       navHeaderRight:         null,
-      extensionHeaderActions: getApplicableExtensionEnhancements(this, BuiltinExtensionEnhancementTypes.ADD_ACTION, BuiltinExtensionEnhancementLocations.UI_CONFIG_HEADER_ACTION, this.$route),
+      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
       ctx:                    this
     };
   },
@@ -297,8 +297,12 @@ export default {
     },
 
     handleExtensionAction(action, event) {
+      // TODO: This needs to be consistent with normal action that has 'singleAction'
       const fn = action.clickAction;
 
+      // TODO: What happens if enabled not set?
+      // Args here need to be consistent with normal action
+      // Suggest event is part of opts is 2nd argument
       if (fn && action.enabled()) {
         fn.apply(this, [event]);
       }

@@ -200,7 +200,11 @@ export default {
         const fn = action.singleAction;
 
         if (fn && action.enabled) {
-          fn.apply(this, [event]);
+          const resources = this.$store.getters['action-menu/resources'];
+
+          if (resources.length === 1) {
+            fn.apply(this, [resources[0], event, isAlternate(event)]);
+          }
         }
       } else if (this.useCustomTargetElement) {
         // If the state of this component is controlled

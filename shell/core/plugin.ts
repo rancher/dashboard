@@ -3,9 +3,13 @@ import { DSL as STORE_DSL } from '@shell/store/type-map';
 import {
   CoreStoreInit,
   IAction,
+  ITab,
+  ICard,
+  IPanel,
+  ITableColumn,
   IPlugin,
   LocationConfig,
-  BuiltinExtensionEnhancementTypes,
+  ExtensionPoint,
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
@@ -26,13 +30,7 @@ export class Plugin implements IPlugin {
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
 
-  public uiConfig: { [key: string]: any } = {
-    [BuiltinExtensionEnhancementTypes.ADD_ACTION]:    {},
-    [BuiltinExtensionEnhancementTypes.ADD_CARD]:      {},
-    [BuiltinExtensionEnhancementTypes.ADD_PANEL]:     {},
-    [BuiltinExtensionEnhancementTypes.ADD_TAB]:       {},
-    [BuiltinExtensionEnhancementTypes.ADD_TABLE_COL]: {},
-  };
+  public uiConfig: { [key: string]: any } = {};
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
@@ -48,6 +46,11 @@ export class Plugin implements IPlugin {
   constructor(id: string) {
     this.id = id;
     this.name = id;
+
+    // Initialize uiConfig for all of the possible enum values
+    Object.values(ExtensionPoint).forEach((v) => {
+      this.uiConfig[v] = {};
+    });
   }
 
   get metadata() {
@@ -122,44 +125,47 @@ export class Plugin implements IPlugin {
     this.routes.push({ parent, route });
   }
 
+  private _addUIConfig(type: string, where: string, when: LocationConfig | string, config: any) {
+    // For convenience 'when' can be a string to indicate a resource, so convert it to the LocationConfig format
+    const locationConfig = (typeof when === 'string') ? { resource: when } : when;
+
+    this.uiConfig[type][where] = this.uiConfig[type][where] || [];
+    this.uiConfig[type][where].push({ ...config, locationConfig });
+  }
+
   /**
    * Adds an action/button to the UI
    */
-  addAction(where: string, when: LocationConfig, action: IAction): void {
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][where] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_ACTION][where].push({ ...action, locationConfig: when });
+  addAction(where: string, when: LocationConfig | string, action: IAction): void {
+    this._addUIConfig(ExtensionPoint.ACTION, where, when, action);
   }
 
   /**
    * Adds a tab to the UI
    */
-  addTab(where: string, when: LocationConfig, action: IAction): void {
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][where] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TAB][where].push({ ...action, locationConfig: when });
+  addTab(where: string, when: LocationConfig | string, tab: ITab): void {
+    this._addUIConfig(ExtensionPoint.TAB, where, when, tab);
   }
 
   /**
    * Adds a panel/component to the UI
    */
-  addPanel(where: string, when: LocationConfig, action: IAction): void {
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][where] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_PANEL][where].push({ ...action, locationConfig: when });
+  addPanel(where: string, when: LocationConfig | string, panel: IPanel): void {
+    this._addUIConfig(ExtensionPoint.PANEL, where, when, panel);
   }
 
   /**
    * Adds a card to the to the UI
    */
-  addCard( where: string, when: LocationConfig, action: IAction): void {
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][where] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_CARD][where].push({ ...action, locationConfig: when });
+  addCard( where: string, when: LocationConfig | string, card: ICard): void {
+    this._addUIConfig(ExtensionPoint.CARD, where, when, card);
   }
 
   /**
    * Adds a new column to a table on the UI
    */
-  addTableColumn(where: string, when: LocationConfig, action: IAction): void {
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][where] = this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][where] || [];
-    this.uiConfig[BuiltinExtensionEnhancementTypes.ADD_TABLE_COL][where].push({ ...action, locationConfig: when });
+  addTableColumn(where: string, when: LocationConfig | string, column: ITableColumn): void {
+    this._addUIConfig(ExtensionPoint.TABLE_COL, where, when, column);
   }
 
   setHomePage(component: any) {

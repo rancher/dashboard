@@ -575,11 +575,16 @@ function _filter(map, disableAll = false) {
   return out;
 }
 
+// TODO: Need to figure out if we should always call bulkAction and let it
+// handle the alt case, or use existing pattern
 function _execute(resources, action, args, opts = {}, ctx) {
   args = args || [];
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
+    // Check if bulkAction is a string or a function (extensions use functions)
+    const isFunction = typeof action.bulkAction !== 'string';
+
     // this means it's a bulkable action coming from an extension
-    if (action.bulkAction) {
+    if (isFunction) {
       const fn = action.bulkAction;
 
       if ( fn ) {
@@ -594,6 +599,11 @@ function _execute(resources, action, args, opts = {}, ctx) {
       }
     }
   }
+
+  // For extension actions, call the bulkAction handler anyway - it can
+  // determine that alt was held down
+  // TODO
+  // User held down the ALT key, so execute the single action for each resource
 
   const promises = [];
 

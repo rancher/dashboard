@@ -1,7 +1,7 @@
 import semver from 'semver';
 
 // Version of the plugin API supported
-export const UI_PLUGIN_API_VERSION = '1.0.0';
+export const UI_PLUGIN_API_VERSION = '1.1.0';
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
 export const UI_PLUGIN_BASE_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy';
@@ -32,8 +32,8 @@ export const UI_PLUGINS_REPO_BRANCH = 'main';
 // Chart annotations
 export const UI_PLUGIN_CHART_ANNOTATIONS = {
   RANCHER_VERSION:    'catalog.cattle.io/rancher-version',
-  EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extenstions-version',
-  EXTENSIONS_HOST:    'catalog.cattle.io/ui-extenstions-host',
+  EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extensions-version',
+  EXTENSIONS_HOST:    'catalog.cattle.io/ui-extensions-host',
   DISPLAY_NAME:       'catalog.cattle.io/display-name',
 };
 
