@@ -3440,15 +3440,9 @@ node:
     poolDescription:
       noSize: No Size
       noLocation: No Location
-    nodeLabels: Labels 
-    hideLabels: |-
-      {labelCount, plural,
-      =1 {Hide 1}
-      other {Hide {labelCount}}}
-    showLabels: |-
-      {labelCount, plural,
-      =1 {Show 1}
-      other {Show {labelCount}}}
+    nodeLabels: Labels
+    hideLabels: Show less
+    showLabels: Show more
   detail:
     detailTop:
       containerRuntime: Container Runtime

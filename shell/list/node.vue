@@ -209,23 +209,31 @@ export default {
                 class="mt-5"
               > {{ t('node.list.nodeLabels') }}:
                 <span
-                  v-if="isLabelsVisible || displayLabels(row).length < 8"
                   class="mt-5 labels"
                 >
                   <Tag
-                    v-for="(label, i) in displayLabels(row)"
+                    v-for="(label, i) in displayLabels(row).slice(0, 7)"
                     :key="i"
                     class="mr-2"
                   >
-                    {{ label }}
+                    {{ label }} s
                   </Tag>
+                  <span v-if="isLabelsVisible && displayLabels(row).length > 7">
+                    <Tag
+                      v-for="(label, i) in displayLabels(row).slice(7)"
+                      :key="i"
+                      class="mr-2"
+                    >
+                      {{ label }}
+                    </Tag>
+                  </span>
                 </span>
                 <a
                   v-if="displayLabels(row).length > 7"
                   href="#"
                   @click.prevent="toggleLabels"
                 >
-                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`, {labelCount: displayLabels(row).length}) }}
+                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`) }}
                 </a>
               </span>
             </td>
