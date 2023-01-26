@@ -2984,7 +2984,7 @@ monitoring:
       radio:
         label: Config Secret
     validation:
-      duplicatedReceiverName: 'Duplicate name of receiver'
+      duplicatedReceiverName: A receiver with the name {name} already exists.
     templates:
       keyLabel: File Name
       label: Template Files
