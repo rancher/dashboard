@@ -6,7 +6,7 @@ export default {
       type:    Object,
       default: () => ({})
     }
-  }, 
+  },
   data() {
     return { key: 'value' };
   }
@@ -21,5 +21,4 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-
 </style>
