@@ -1,7 +1,10 @@
 <script>
+import ActivityBarIcon from './ActivityBarIcon';
+
 export default {
-  name:  'ActivityBarBody',
-  props: {
+  name:       'ActivityBarBody',
+  components: { ActivityBarIcon },
+  props:      {
     activities: {
       type:     Array,
       required: true,
@@ -25,21 +28,12 @@ export default {
         :to="activity.route"
         :class="{ active: activity.active }"
       >
-        <div class="activity-icon">
-          <span
-            class="icon icon-2x"
-            :class="[activity.icon]"
-          />
-        </div>
-        <transition name="fade">
-          <span
-            v-show="isExpanded"
-            class="activity-text"
-            :class="{ active: activity.active }"
-          >
-            {{ activity.label }}
-          </span>
-        </transition>
+        <activity-bar-icon
+          :icon="activity.icon"
+          :label="activity.label"
+          :is-expanded="isExpanded"
+          :is-active="activity.active"
+        />
       </nuxt-link>
     </div>
   </div>
@@ -53,7 +47,6 @@ export default {
 
     .activity a {
       display: flex;
-      gap: 1rem;
       align-items: center;
       cursor: pointer;
 
@@ -62,24 +55,6 @@ export default {
         background-color: var(--activity-icon-active-background);
         color: var(--activity-icon-color);
         border-radius: 8px;
-
-        .activity-icon {
-          border: none;
-          color: var(--activity-icon-color);
-        }
-      }
-
-      &:not(.active) {
-        &:hover {
-          .activity-icon {
-            color: var(--primary-hover-text);
-            border-color: var(--primary-hover-text);
-          }
-
-          .activity-text {
-            color: var(--primary-hover-text);
-          }
-        }
       }
 
       &:hover {
@@ -89,35 +64,6 @@ export default {
       &:active {
         text-decoration: none;
       }
-
-      .activity-text {
-        color: #BCBCBC;
-        flex-shrink: 0;
-
-        &.active {
-          color: var(--darker-text);
-        }
-      }
-
-      .activity-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 34px;
-        min-height: 34px;
-        border: 1px solid #BCBCBC;
-        color: #BCBCBC;
-        border-radius: 8px;
-        opacity: 1;
-      }
     }
-  }
-
-  .fade-enter-active, .fade-leave-active {
-    transition: opacity .25s;
-  }
-
-  .fade-enter, .fade-leave-to {
-    opacity: 0;
   }
 </style>
