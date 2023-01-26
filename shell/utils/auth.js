@@ -100,3 +100,39 @@ export const checkSchemasForFindAllHash = (types, store) => {
 
   return allHash(hash);
 };
+
+export const checkPermissions = (types, getters) => {
+  const hash = {};
+
+  for (const [key, value] of Object.entries(types)) {
+    const schema = getters['management/schemaFor'](value.type);
+
+    if (!schema) {
+      hash[key] = false;
+
+      continue;
+    }
+
+    // It could be that user has permissions for GET but not list
+    // e.g. Standard user with GitRepo permissions try to fetch list of fleetworkspaces
+    // user has ability to GET but not fleet workspaces
+    // so optionally define a function that require it to pass before /findAll
+    if (value.schemaValidator) {
+      hash[key] = value.schemaValidator(schema);
+
+      continue;
+    }
+
+    if (value.resourceMethods && schema) {
+      hash[key] = value.resourceMethods.every((method) => {
+        return (schema.resourceMethods || []).includes(method);
+      });
+
+      continue;
+    }
+
+    hash[key] = !!schema;
+  }
+
+  return allHash(hash);
+};

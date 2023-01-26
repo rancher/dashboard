@@ -3,7 +3,7 @@ import FleetRepos from '@shell/components/fleet/FleetRepos';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { FLEET } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
   name:       'ListGitRepo',
@@ -40,30 +40,43 @@ export default {
   },
 
   async fetch() {
-    const hash = await checkSchemasForFindAllHash({
-      cluster: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER
-      },
-      clusterGroups: {
-        inStoreType: 'management',
-        type:        FLEET.CLUSTER_GROUP
-      },
+    try {
+      const hash = await checkSchemasForFindAllHash({
+        cluster: {
+          inStoreType: 'management',
+          type:        FLEET.CLUSTER
+        },
+        clusterGroups: {
+          inStoreType: 'management',
+          type:        FLEET.CLUSTER_GROUP
+        },
 
-      // Not sure why I need this here
-      gitRepos: {
-        inStoreType: 'management',
-        type:        FLEET.GIT_REPO
-      },
+        // Not sure why I need this here
+        gitRepos: {
+          inStoreType: 'management',
+          type:        FLEET.GIT_REPO
+        },
 
-      workspaces: {
-        inStoreType: 'management',
-        type:        FLEET.WORKSPACE
-      },
+        workspaces: {
+          inStoreType: 'management',
+          type:        FLEET.WORKSPACE
+        },
 
-    }, this.$store);
+      }, this.$store);
 
-    this.hasWorkspaces = !!hash.workspaces.length;
+      this.hasWorkspaces = !!hash.workspaces;
+
+    } catch (e) {
+      console.error(e);
+    }
+
+    try {
+      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO } }, this.$store.getters);
+
+      this.permissions = permissions;
+    } catch (e) {
+      console.error(e)
+    }
 
     await this.$fetchType(this.resource);
   },
@@ -74,7 +87,9 @@ export default {
       params: { resource: FLEET.WORKSPACE }
     };
 
-    return { hasWorkspaces: false, formRoute };
+    return {
+      hasWorkspaces: false, formRoute, permissions: {}
+    };
   },
 };
 </script>
@@ -103,7 +118,10 @@ export default {
       <div class="title">
         <span v-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
       </div>
-      <div class="actions">
+      <div
+        v-if="permissions.workspaces"
+        class="actions"
+      >
         <n-link
           :to="formRoute"
           class="btn role-secondary"
