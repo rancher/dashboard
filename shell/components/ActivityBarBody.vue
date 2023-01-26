@@ -64,8 +64,7 @@ export default {
         border-radius: 8px;
 
         .activity-icon {
-          border: 1px solid var(--activity-icon-active-background);
-          background-color: var(--activity-icon-active-background);
+          border: none;
           color: var(--activity-icon-color);
         }
       }
@@ -104,8 +103,8 @@ export default {
         display: flex;
         align-items: center;
         justify-content: center;
-        min-width: 36px;
-        min-height: 36px;
+        min-width: 34px;
+        min-height: 34px;
         border: 1px solid #BCBCBC;
         color: #BCBCBC;
         border-radius: 8px;
