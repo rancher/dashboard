@@ -21,11 +21,11 @@ export default {
       :key="activity.id"
       class="activity"
     >
-      <nuxt-link :to="activity.route">
-        <div
-          class="activity-icon"
-          :class="{ active: activity.active }"
-        >
+      <nuxt-link
+        :to="activity.route"
+        :class="{ active: activity.active }"
+      >
+        <div class="activity-icon">
           <span
             class="icon icon-2x"
             :class="[activity.icon]"
@@ -57,21 +57,38 @@ export default {
       align-items: center;
       cursor: pointer;
 
-      &:active {
-        text-decoration: none;
+      &.active {
+        border: 1px solid var(--activity-icon-active-background);
+        background-color: var(--activity-icon-active-background);
+        color: var(--activity-icon-color);
+        border-radius: 8px;
+
+        .activity-icon {
+          border: 1px solid var(--activity-icon-active-background);
+          background-color: var(--activity-icon-active-background);
+          color: var(--activity-icon-color);
+        }
+      }
+
+      &:not(.active) {
+        &:hover {
+          .activity-icon {
+            color: var(--primary-hover-text);
+            border-color: var(--primary-hover-text);
+          }
+
+          .activity-text {
+            color: var(--primary-hover-text);
+          }
+        }
       }
 
       &:hover {
         text-decoration: none;
+      }
 
-        .activity-icon {
-          color: var(--primary-hover-text);
-          border-color: var(--primary-hover-text);
-        }
-
-        .activity-text {
-          color: var(--primary-hover-text);
-        }
+      &:active {
+        text-decoration: none;
       }
 
       .activity-text {
@@ -84,12 +101,6 @@ export default {
       }
 
       .activity-icon {
-        &.active {
-          border: 1px solid var(--activity-icon-active-background);
-          background-color: var(--activity-icon-active-background);
-          color: var(--activity-icon-color);
-        }
-
         display: flex;
         align-items: center;
         justify-content: center;
