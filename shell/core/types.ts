@@ -37,11 +37,11 @@ export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfi
 export type OnLogOut = (store: any) => Promise<void>;
 
 export enum ExtensionPoint {
-  ACTION = 'addAction', // eslint-disable-line no-unused-vars
-  TAB = 'addTab', // eslint-disable-line no-unused-vars
-  PANEL = 'addPanel', // eslint-disable-line no-unused-vars
-  CARD = 'addCard', // eslint-disable-line no-unused-vars
-  TABLE_COL = 'addTableColumn', // eslint-disable-line no-unused-vars
+  ACTION = 'Action', // eslint-disable-line no-unused-vars
+  TAB = 'Tab', // eslint-disable-line no-unused-vars
+  PANEL = 'Panel', // eslint-disable-line no-unused-vars
+  CARD = 'Card', // eslint-disable-line no-unused-vars
+  TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
 }
 
 export enum ActionLocation {
@@ -67,17 +67,51 @@ export enum TableColumnLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
 
-// TODO: These types need defining
-export type IAction = any;
-export type IPanel = any;
-export type ICard = any;
-export type ITableColumn = any;
-export type ITab = any;
+export type ShortCutKey = {
+  windows?: string[];
+  mac?: string[];
+};
 
 export type ActionOpts = {
   event: any;
   isAlt: boolean;
   action: any;
+};
+
+export type Action = {
+  label?: string;
+  labelKey?: string;
+  tooltipKey?: string;
+  tooltip?: string;
+  shortcut?: string | ShortCutKey;
+  svg?: Function;
+  icon?: string;
+  multiple?: boolean;
+  enabled?: (ctx: any) => boolean;
+  invoke: (opts: ActionOpts, resources: any[]) => void | boolean | Promise<boolean>;
+};
+
+export type Panel = {
+  component: Function;
+};
+
+export type Card = {
+  label?: string;
+  labelKey?: string;
+  component: Function;
+};
+
+export type TableColumn = any;
+
+export type Tab = {
+  name: string;
+  label?: string;
+  labelKey?: string;
+  tooltipKey?: string;
+  tooltip?: string;
+  showHeader?: boolean;
+  weight?: number;
+  component: Function;
 };
 
 export type LocationConfig = {
@@ -130,27 +164,27 @@ export interface IPlugin {
   /**
    * Adds an action/button to the UI
    */
-  addAction(where: ActionLocation | string, when: LocationConfig | string, action: IAction): void;
+  addAction(where: ActionLocation | string, when: LocationConfig | string, action: Action): void;
 
   /**
    * Adds a tab to the UI (ResourceTabs component)
    */
-  addTab(where: TabLocation | string, when: LocationConfig | string, action: IAction): void;
+  addTab(where: TabLocation | string, when: LocationConfig | string, action: Tab): void;
 
   /**
    * Adds a panel/component to the UI
    */
-  addPanel(where: PanelLocation | string, when: LocationConfig | string, action: IAction): void;
+  addPanel(where: PanelLocation | string, when: LocationConfig | string, action: Panel): void;
 
   /**
    * Adds a card to the UI
    */
-  addCard(where: CardLocation | string, when: LocationConfig | string, action: IAction): void;
+  addCard(where: CardLocation | string, when: LocationConfig | string, action: Card): void;
 
   /**
    * Adds a new column to the SortableTable component
    */
-  addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, action: IAction): void;
+  addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, action: TableColumn): void;
 
   /**
    * Set the component to use for the landing home page
@@ -195,7 +229,7 @@ export interface IPlugin {
     onLogOut?: OnLogOut
   ): void;
 
-    /**
+  /**
    * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
    * @param {String} type type of thing to register, e.g. 'edit'
    * @param {String} name unique name of 'something'

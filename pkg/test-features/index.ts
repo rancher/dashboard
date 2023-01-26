@@ -85,7 +85,6 @@ export default function(plugin: IPlugin) {
     ActionLocation.TABLE,
     'catalog.cattle.io.clusterrepo',
     {
-      action:   'some-extension-action',
       label:    'some-extension-action',
       labelKey: 'plugin-examples.table-action-one',
       icon:     'icon-pipeline',
@@ -100,7 +99,6 @@ export default function(plugin: IPlugin) {
     ActionLocation.TABLE,
     { resource: 'catalog.cattle.io.clusterrepo' },
     {
-      action:   'some-bulkable-action',
       label:    'some-bulkable-action',
       labelKey: 'plugin-examples.table-action-two',
       svg:      require('@pkg/test-features/icons/rancher-desktop.svg'),
@@ -116,7 +114,7 @@ export default function(plugin: IPlugin) {
   // DETAILS VIEW MASTHEAD DATA
   plugin.addPanel(
     PanelLocation.DETAILS_MASTHEAD,
-    { resource: 'catalog.cattle.io.clusterrepo' },
+    'catalog.cattle.io.clusterrepo',
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA - CONFIG VIEW

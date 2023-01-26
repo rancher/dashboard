@@ -2,11 +2,11 @@ import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
 import {
   CoreStoreInit,
-  IAction,
-  ITab,
-  ICard,
-  IPanel,
-  ITableColumn,
+  Action,
+  Tab,
+  Card,
+  Panel,
+  TableColumn,
   IPlugin,
   LocationConfig,
   ExtensionPoint,
@@ -136,35 +136,35 @@ export class Plugin implements IPlugin {
   /**
    * Adds an action/button to the UI
    */
-  addAction(where: string, when: LocationConfig | string, action: IAction): void {
+  addAction(where: string, when: LocationConfig | string, action: Action): void {
     this._addUIConfig(ExtensionPoint.ACTION, where, when, action);
   }
 
   /**
    * Adds a tab to the UI
    */
-  addTab(where: string, when: LocationConfig | string, tab: ITab): void {
+  addTab(where: string, when: LocationConfig | string, tab: Tab): void {
     this._addUIConfig(ExtensionPoint.TAB, where, when, tab);
   }
 
   /**
    * Adds a panel/component to the UI
    */
-  addPanel(where: string, when: LocationConfig | string, panel: IPanel): void {
+  addPanel(where: string, when: LocationConfig | string, panel: Panel): void {
     this._addUIConfig(ExtensionPoint.PANEL, where, when, panel);
   }
 
   /**
    * Adds a card to the to the UI
    */
-  addCard( where: string, when: LocationConfig | string, card: ICard): void {
+  addCard( where: string, when: LocationConfig | string, card: Card): void {
     this._addUIConfig(ExtensionPoint.CARD, where, when, card);
   }
 
   /**
    * Adds a new column to a table on the UI
    */
-  addTableColumn(where: string, when: LocationConfig | string, column: ITableColumn): void {
+  addTableColumn(where: string, when: LocationConfig | string, column: TableColumn): void {
     this._addUIConfig(ExtensionPoint.TABLE_COL, where, when, column);
   }
 
