@@ -13,7 +13,7 @@ export default {
 
     value: {
       get() {
-        return this.workspace || this.namespace || this.options[0].value;
+        return this.workspace || this.namespace || this.options[0]?.value;
       },
 
       set(value) {

@@ -2073,6 +2073,7 @@ fleet:
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
+      noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories.
     add:
       steps:
         repoInfo:
@@ -2123,6 +2124,7 @@ fleet:
       cluster: There are no clusters available
     workspace:
       label: Workspace
+      addWorkspace: Add a workspace
   clusterGroup:
     selector:
       label: Cluster Selectors

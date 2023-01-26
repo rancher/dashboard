@@ -40,7 +40,7 @@ export default {
   },
 
   async fetch() {
-    await checkSchemasForFindAllHash({
+    const hash = await checkSchemasForFindAllHash({
       cluster: {
         inStoreType: 'management',
         type:        FLEET.CLUSTER
@@ -54,20 +54,35 @@ export default {
       gitRepos: {
         inStoreType: 'management',
         type:        FLEET.GIT_REPO
-      }
+      },
+
+      workspaces: {
+        inStoreType: 'management',
+        type:        FLEET.WORKSPACE
+      },
 
     }, this.$store);
 
-    // fixes getter error await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    //  await store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
+    this.hasWorkspaces = !!hash.workspaces.length;
 
     await this.$fetchType(this.resource);
-  }
+  },
+
+  data() {
+    const formRoute = {
+      name:   `c-cluster-product-resource`,
+      params: {
+        resource: FLEET.WORKSPACE,
+      }
+    };
+
+    return { hasWorkspaces: false, formRoute };
+  },
 };
 </script>
 
 <template>
-  <div>
+  <div v-if="hasWorkspaces">
     <Masthead
       :schema="schema"
       :resource="resource"
@@ -84,4 +99,41 @@ export default {
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
   </div>
+  <div v-else>
+    <div class="intro-box">
+      <i class="icon icon-repository" />
+      <div class="title">
+        <span v-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
+      </div>
+      <div class="actions">
+        <n-link
+          :to="formRoute"
+          class="btn role-secondary"
+        >
+          {{ t('fleet.gitRepo.workspace.addWorkspace') }}
+        </n-link>
+      </div>
+    </div>
+  </div>
 </template>
+<style lang="scss" scoped>
+.intro-box {
+  flex: 0 0 100%;
+  height: calc(100vh - 246px); // 2(48 content header + 20 padding + 55 pageheader)
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.title {
+  margin-bottom: 15px;
+  font-size: $font-size-h2;
+  text-align: center;
+  max-width: 600px;
+}
+.icon-repository {
+  font-size: 96px;
+  margin-bottom: 32px;
+}
+</style>
