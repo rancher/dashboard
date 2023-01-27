@@ -1349,13 +1349,15 @@ export default {
             color="info"
             class="description"
           >
-            <span>{{ step1Description }}</span>
-            <span
-              v-if="namespaceNewAllowed"
-              class="mt-10"
-            >
-              {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
-            </span>
+            <div>
+              <span>{{ step1Description }}</span>
+              <span
+                v-if="namespaceNewAllowed"
+                class="mt-10"
+              >
+                {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
+              </span>
+            </div>
           </Banner>
           <div
             v-if="requires.length || warnings.length"
@@ -1474,10 +1476,11 @@ export default {
 &nbsp;
           </div>
           <Banner
-            v-if="isNamespaceNew"
+            v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
-            v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) "
-          />
+          >
+            <div v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
+          </Banner>
         </div>
       </template>
       <template #clusterTplVersion>
