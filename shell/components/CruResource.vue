@@ -136,6 +136,11 @@ export default {
     componentTestid: {
       type:    String,
       default: 'form'
+    },
+
+    description: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -379,6 +384,12 @@ export default {
 <template>
   <section class="cru">
     <slot name="noticeBanner" />
+    <p
+      v-if="description"
+      class="description"
+    >
+      {{ description }}
+    </p>
     <form
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
@@ -824,6 +835,11 @@ form.create-resource-container .cru {
     background-color: var(--header-bg);
     margin: 10px 0;
   }
+}
+
+.description {
+  margin-bottom: 15px;
+  margin-top: 5px;
 }
 
 </style>
