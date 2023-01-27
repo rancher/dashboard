@@ -5627,7 +5627,7 @@ workload:
     ports:
       expose: Networking
       description: 'Define a Service to expose the container, or define a non-functional, named port so that humans will know where the app within the container is expected to run.'
-      detailedDescription: If ClusterIP, LoadBalancer or NodePort is selected, a Service is automatically created that will select the Pods in this workload using labels.
+      detailedDescription: If ClusterIP, LoadBalancer, or NodePort is selected, a Service is automatically created that will select the Pods in this workload using labels.
       toolTip: 'For help exposing workloads on Kubernetes, see the official Kubernetes documentation on Services. You can also manually create a Service to expose Pods by selecting their labels, and you can use an Ingress to map HTTP routes to Services.'
       createService: Service Type
       noCreateService: Do not create a service
