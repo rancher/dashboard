@@ -1,12 +1,12 @@
 
 <script>
 import { Banner } from '@components/Banner';
-import AsyncButton from '@shell/components/AsyncButton';
+import DisableAuthProviderModal from '@shell/components/DisableAuthProviderModal';
 
 export default {
   components: {
-    AsyncButton,
-    Banner
+    Banner,
+    DisableAuthProviderModal
   },
 
   props: {
@@ -32,6 +32,11 @@ export default {
       return Object.entries(this.table);
     }
   },
+  methods: {
+    showDisableModal() {
+      this.$refs.disableAuthProviderModal.show();
+    }
+  },
 };
 </script>
 
@@ -45,12 +50,22 @@ export default {
       <button type="button" class="btn-sm role-primary" @click="edit">
         {{ t('action.edit') }}
       </button>
-      <AsyncButton class="ml-10" mode="disable" size="sm" action-color="bg-error" @click="disable" />
+      <button
+        type="button"
+        class="ml-10 btn-sm role-primary bg-error"
+        @click="showDisableModal"
+      >
+        {{ t('generic.disable') }}
+      </button>
     </Banner>
 
     <table v-if="!!$slots.rows" class="values">
       <slot name="rows"></slot>
     </table>
+    <DisableAuthProviderModal
+      ref="disableAuthProviderModal"
+      @disable="disable"
+    />
   </div>
 </template>
 
