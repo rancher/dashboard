@@ -199,7 +199,7 @@ export default {
                 <Tag
                   v-for="taint in row.spec.taints"
                   :key="taint.key + taint.value + taint.effect"
-                  class="mr-5"
+                  class="mr-5 mt-2"
                 >
                   {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
                 </Tag>
@@ -215,7 +215,7 @@ export default {
                     <Tag
                       v-for="(label, i) in displayLabels(row).slice(0, 7)"
                       :key="i"
-                      class="mr-2"
+                      class="mr-2 label"
                     >
                       {{ label }}
                     </Tag>
@@ -224,7 +224,7 @@ export default {
                     <Tag
                       v-for="(label, i) in displayLabels(row)"
                       :key="i"
-                      class="mr-2"
+                      class="mr-2 label"
                     >
                       {{ label }}
                     </Tag>
@@ -258,12 +258,19 @@ export default {
     display: inline;
     flex-wrap: wrap;
 
+    .label {
+      display: inline-block;
+      margin-top: 2px;
+    }
+
 }
 .taints {
   td {
     padding-top:0;
     .tag {
-      margin-right: 5px
+      margin-right: 5px;
+      display: inline-block;
+      margin-top: 2px;
     }
   }
   &.empty-taints {
