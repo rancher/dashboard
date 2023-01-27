@@ -844,10 +844,8 @@ export default {
     },
 
     async loadValuesComponent() {
-      // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart.
-
       // The const component is a string, for example, 'monitoring'.
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
       // Load a values component for the UI if it is named in the Helm chart.
       if ( component ) {
@@ -872,7 +870,7 @@ export default {
     },
 
     async loadChartSteps() {
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
       if ( component ) {
         const steps = await this.$store.getters['catalog/chartSteps'](component);
