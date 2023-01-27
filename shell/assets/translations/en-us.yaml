@@ -4621,7 +4621,7 @@ serviceTypes:
   nodeport: Node Port
 
 servicesPage:
-  serviceListDescription: Services allow you to define a logical set of Pods that can be accessed with single IP address and port.
+  serviceListDescription: Services allow you to define a logical set of Pods that can be accessed with a single IP address and port.
   targetPorts: The Service will send requests to this port, and the selected Pods are expected to listen on this port.
   listeningPorts: The Service is exposed on this port.
   anyNode: Any Node
