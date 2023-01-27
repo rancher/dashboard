@@ -640,7 +640,7 @@ export default {
       </template>
       <!------ YAML ------>
       <section
-        v-else
+        v-else-if="showYaml"
         class="cru-resource-yaml-container resource-container cru__content"
       >
         <ResourceYaml
