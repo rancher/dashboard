@@ -18,6 +18,7 @@ import { CAPI, MANAGEMENT, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { mapFeature, RKE2 as RKE2_FEATURE } from '@shell/store/features';
 import { allHash } from '@shell/utils/promise';
 import { BLANK_CLUSTER } from '@shell/store';
+import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
 import Import from './import';
 
@@ -157,6 +158,7 @@ export default {
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
+    ...mapGetters('type-map', ['activeProducts']),
     preferredProvisioner: mapPref(PROVISIONER),
     _RKE1:                () => _RKE1,
     _RKE2:                () => _RKE2,
@@ -242,6 +244,7 @@ export default {
     subTypes() {
       const getters = this.$store.getters;
       const isImport = this.isImport;
+      const isElementalActive = !!this.activeProducts.find(item => item.name === ELEMENTAL_PRODUCT_NAME);
 
       const out = [];
 
@@ -283,6 +286,10 @@ export default {
           });
 
           addType('custom', 'custom2', false);
+
+          if (isElementalActive) {
+            addType(ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
+          }
         }
       }
 

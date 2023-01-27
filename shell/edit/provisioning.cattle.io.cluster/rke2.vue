@@ -67,6 +67,7 @@ import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
+import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -326,6 +327,10 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    isElementalCluster() {
+      return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
     advancedTitleAlt() {
@@ -605,11 +610,11 @@ export default {
     },
 
     showCisProfile() {
-      return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs.profile || this.agentArgs.profile );
     },
 
     needCredential() {
-      if ( this.provider === 'custom' || this.provider === 'import' || this.mode === _VIEW ) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW ) {
         return false;
       }
 
@@ -629,13 +634,17 @@ export default {
     },
 
     machineConfigSchema() {
+      let schema;
+
       if ( !this.hasMachinePools ) {
         return null;
+      } else if (this.isElementalCluster) {
+        schema = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+      } else {
+        schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`);
-
-      return schema;
+      return this.$store.getters['management/schemaFor'](schema);
     },
 
     nodeTotals() {
@@ -1026,8 +1035,16 @@ export default {
 
       if ( existing?.length ) {
         for ( const pool of existing ) {
-          const type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          let type;
+
+          if (this.isElementalCluster) {
+            type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else {
+            type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          }
+
           let config;
+          let configMissing = false;
 
           if ( this.$store.getters['management/canList'](type) ) {
             try {
@@ -1037,6 +1054,12 @@ export default {
               });
             } catch (e) {
               // Some users can't see the config, that's ok.
+              // we will display a banner for a 404 only for elemental
+              if (e?.status === 404) {
+                if (this.isElementalCluster) {
+                  configMissing = true;
+                }
+              }
             }
           }
 
@@ -1050,6 +1073,7 @@ export default {
             update: true,
             pool:   clone(pool),
             config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
+            configMissing
           });
         }
       }
@@ -1097,6 +1121,11 @@ export default {
       if (this.provider === 'vmwarevsphere') {
         pool.pool.machineOS = 'linux';
       }
+
+      if (this.isElementalCluster) {
+        pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
+      }
+
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
@@ -1169,6 +1198,11 @@ export default {
           entry.config = await entry.config.save();
         }
 
+        // Ensure Elemental clusters have a hostname prefix
+        if (this.isElementalCluster && !entry.pool.hostnamePrefix ) {
+          entry.pool.hostnamePrefix = `${ prefix }-`;
+        }
+
         finalPools.push(entry.pool);
       }
 
@@ -1194,7 +1228,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId);
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1918,7 +1952,7 @@ export default {
             </Tab>
           </template>
           <div v-if="!unremovedMachinePools.length">
-            You do not have any machine pools defined, click the plus to add one.
+            {{ t('cluster.machinePool.noPoolsDisclaimer') }}
           </div>
         </Tabbed>
         <div class="spacer" />
