@@ -211,16 +211,18 @@ export default {
                 <span
                   class="mt-5 labels"
                 >
-                  <Tag
-                    v-for="(label, i) in displayLabels(row).slice(0, 7)"
-                    :key="i"
-                    class="mr-2"
-                  >
-                    {{ label }} s
-                  </Tag>
-                  <span v-if="isLabelsVisible && displayLabels(row).length > 7">
+                  <span v-if="!isLabelsVisible">
                     <Tag
-                      v-for="(label, i) in displayLabels(row).slice(7)"
+                      v-for="(label, i) in displayLabels(row).slice(0, 7)"
+                      :key="i"
+                      class="mr-2"
+                    >
+                      {{ label }}
+                    </Tag>
+                  </span>
+                  <span v-else>
+                    <Tag
+                      v-for="(label, i) in displayLabels(row)"
                       :key="i"
                       class="mr-2"
                     >
