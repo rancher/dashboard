@@ -39,11 +39,10 @@ export default {
   },
 
   async fetch() {
-    const store = this.$store;
+    this.$initializeFetchData(this.resource);
 
-    await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    await store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
-
+    this.$fetchType(FLEET.CLUSTER);
+    this.$fetchType(FLEET.CLUSTER_GROUP);
     await this.$fetchType(this.resource);
   }
 };
