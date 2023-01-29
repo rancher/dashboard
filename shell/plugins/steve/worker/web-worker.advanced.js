@@ -300,3 +300,5 @@ onmessage = (e) => {
     }
   });
 }; // bind everything to the worker's onmessage handler via the workerActions
+
+export default {};
