@@ -2722,6 +2722,7 @@ logging:
     sslClientCertKey: Cert Key from Secret
   loki:
     url: URL
+    urlInvalid: Incorrect URL format. Please  check and correct your URL format before saving.
     tenant: Tenant
     username: User from Secret
     password: Password from Secret

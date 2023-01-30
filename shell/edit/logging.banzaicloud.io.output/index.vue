@@ -100,9 +100,6 @@ export default {
     }
   },
 
-  created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
-  },
   methods: {
     getComponent(name) {
       return require(`./providers/${ name }`).default;
@@ -110,7 +107,18 @@ export default {
     launch(provider) {
       this.$refs.tabbed.select(provider.name);
     },
-    willSave() {
+    saveSettings(done) {
+      const t = this.$store.getters['i18n/t'];
+      const isLokiHttps = this.value.spec['loki'].url ? this.value.spec['loki'].url.toLowerCase().startsWith('https://') : undefined;
+
+      if (this.selectedProvider === 'loki' && !isLokiHttps) {
+        this.errors = [t('logging.loki.urlInvalid')];
+
+        return done(false);
+      }
+
+      this.errors = [];
+
       this.value.spec = { [this.selectedProvider]: this.value.spec[this.selectedProvider] };
 
       const bufferJson = jsyaml.load(this.bufferYaml);
@@ -120,6 +128,7 @@ export default {
       } else {
         this.$delete(this.value.spec[this.selectedProvider], 'buffer');
       }
+      this.save(done);
     },
     tabChanged({ tab }) {
       if ( tab.name === 'buffer' ) {
@@ -151,7 +160,7 @@ export default {
       :errors="errors"
       :can-yaml="true"
       @error="e=>errors = e"
-      @finish="save"
+      @finish="saveSettings"
       @cancel="done"
     >
       <NameNsDescription
