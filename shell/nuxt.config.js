@@ -10,6 +10,8 @@ import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 
 const createProxyMiddleware = require('http-proxy-middleware');
 
+const instrumentCode = (process.env.TEST_INSTRUMENT === 'true'); //  Instrument code for code coverage in e2e tests
+
 // ===============================================================================================
 // Nuxt configuration
 // ===============================================================================================
@@ -36,8 +38,21 @@ export default function(dir, _appConfig) {
     typescript = { typeCheck: { eslint: { files: './shell/**/*.{ts,js,vue}' } } };
   }
 
+  // Instrument code for tests
+  const babelPlugins = [
+    // TODO: Browser support
+    // ['@babel/plugin-transform-modules-commonjs'],
+    ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
+  ];
+
+  if (instrumentCode) {
+    babelPlugins.push('babel-plugin-istanbul');
+
+    console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
+  }
+
   // ===============================================================================================
-  // Functions for the UI Pluginas
+  // Functions for the UI Plugins
   // ===============================================================================================
 
   const appConfig = _appConfig || {};
@@ -493,11 +508,7 @@ export default function(dir, _appConfig) {
             '@babel/preset-typescript',
           ];
         },
-        plugins: [
-          // TODO: Browser support
-          // ['@babel/plugin-transform-modules-commonjs'],
-          ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
-        ],
+        plugins: babelPlugins
       }
     },
 

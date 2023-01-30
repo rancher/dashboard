@@ -16,6 +16,9 @@ For the cypress test runner to consume the UI, you should specify the environmen
   - `CATTLE_BOOTSTRAP_PASSWORD`, initialization password which will also be used as `admin` password (do not pick `admin`)
 - `TEST_BASE_URL` // URL used by Cypress to run the tests, default `https://localhost:8005`
 - `TEST_SKIP_SETUP` // Avoid to execute bootstrap setup tests for already initialized Rancher instances
+
+>  Note: To enable instrumentation required for code coverage, you must set the environment variable `TEST_INSTRUMENT` to `true`.
+
 - Dashboard
   - `TEST_PROJECT_ID` // Project ID used by Cypress/Sorry cypress to run the tests
   - `TEST_RUN_ID` (optional) // Identifier for your dashboard run, default value is timestamp
