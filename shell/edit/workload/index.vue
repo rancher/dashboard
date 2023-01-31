@@ -94,7 +94,7 @@ export default {
       <Tabbed class="deployment-tabs" :show-tabs-add-remove="true" :default-tab="defaultTab" :flat="true" @changed="changed">
         <Tab
           v-for="(tab, i) in allContainers"
-          :key="i+tab.name"
+          :key="i"
           :label="tab.name"
           :name="tab.name"
           :weight="tab.weight"
