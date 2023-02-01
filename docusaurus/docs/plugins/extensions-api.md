@@ -47,13 +47,30 @@ With this it's then possible to easily identify the parameters needed to populat
 
 
 The admissable parameters for the `locationConfig` object are:
+
 | Key | Type | Description |
 |---|---|---|
 |`where`| String | The identifier of the UI area where to apply the given enhancement |
 |`when`| Object | the `locationObject` which is based on the Vue router experience above described |
 
+<br/>
 
-The admissable parameters for the `locationObject` object are:
+The admissable string values for the `where` are:
+
+| Key | Type | Description |
+|---|---|---|
+|`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard. Check [screenshot](#where-header-option-for-addaction) for location. |
+|`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard. Check [screenshot](#where-table-option-for-addaction) for location. |
+|`TabLocation.RESOURCE_DETAIL`| String | Location for a Tab on a Resource Detail page. Check [screenshot](#where-resourcetabs-option-for-addtab) for location. |
+|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page. Check [screenshot](#where-detailsmasthead-option-for-addpanel) for location. |
+|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page. Check [screenshot](#where-detailtop-option-for-addpanel) for location. |
+|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area). Check [screenshot](#where-listview-option-for-addpanel) for location. |
+|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page. Check [screenshot](#where-clusterdashboard-option-for-addcard) for location. |
+|`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page. Check [screenshot](#where-listview-option-for-addtablecolumn) for location. |
+
+<br/>
+
+The admissable parameters for the `when` object are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -121,24 +138,27 @@ This method adds a button/action to the UI.
 Method:
 
 ```
-plugin.addAction(locationConfig: Object, options: Object)
+plugin.addAction(where: String, when: locationConfig, options: Object)
 ```
 
 _Arguments_
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`locationConfig.where` string parameter admissable values:
+`where` string parameter admissable values:
 
 | Key | Type | Description |
 |---|---|---|
-|`header`| String | Add a button to the Header component |
-|`table`| String | Add a button/action to any `SortableTable`/table |
+|`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard |
+|`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard |
+
+
+`when` Object admissable values:
+
+`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'header'`** option
+#### **`where: 'HEADER'`** option for addAction
 
 ![Header Actions](./screenshots/header-actions.png)
 
@@ -148,33 +168,52 @@ _Arguments_
 |---|---|---|
 |`tooltip`| String | Text for tooltip of button |
 |`tooltipKey`| String | Same as "tooltip" but allows for translation. Will superseed "tooltip" |
-|`shortcutLabel`| Function | Adds shortcut label to tooltip |
-|`shortcutKey`| Object | Shortcut key binding |
+|`shortcut`| Object or String | Shortcut key binding. Check examples |
 |`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
+|`svg`| Function | icon based on a SVG file which can be included using `@require` |
 |`enabled`| Function | Whether the action/button is enabled or not |
-|`clicked`| Function | function executed when action/button is clicked |
+|`invoke`| Function | function executed when action/button is clicked |
 
-Usage example for `where: 'header'`:
+Usage example for `where: 'HEADER'`:
 
 ```
 plugin.addAction(
   {
-    where: 'header',
+    where: ActionLocation.HEADER,
     when:  {}
   },
   {
-    tooltipKey: 'generic.customize',
+    tooltipKey: 'plugin-examples.header-action-one',
     tooltip:    'Test Action1',
-    shortcutLabel() {
-      return isMac ? '(\u2318-M)' : '(Ctrl+M)';
-    },
-    shortcutKey: { windows: ['ctrl', 'm'], mac: ['meta', 'm'] },
-    icon:        'icon-pipeline',
+    shortcut:   'm',
+    icon:       'icon-pipeline',
+    invoke(opts: any, resources: any) {
+      console.log('action executed 1', this); // eslint-disable-line no-console
+      console.log(opts); // eslint-disable-line no-console
+      console.log(resources); // eslint-disable-line no-console
+    }
+  }
+);
+```
+
+```
+plugin.addAction(
+  {
+    where: ActionLocation.HEADER,
+    when:  {}
+  },
+  {
+    tooltipKey: 'plugin-examples.header-action-two',
+    tooltip:    'Test Action2',
+    shortcut:   { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
+    svg:        require('@pkg/test-features/icons/rancher-desktop.svg'),
     enabled(ctx: any) {
       return true;
     },
-    clicked() {
-      console.log('action executed 1', this.$route); // eslint-disable-line no-console
+    invoke(opts: any, resources: any) {
+      console.log('action executed 2', this); // eslint-disable-line no-console
+      console.log(opts); // eslint-disable-line no-console
+      console.log(resources); // eslint-disable-line no-console
     }
   }
 );
@@ -182,7 +221,7 @@ plugin.addAction(
 <br/>
 <br/>
 
-#### **`where: 'table'`** option
+#### **`where: 'TABLE'`** option for addAction
 
 _INLINE TABLE ACTION_
 
@@ -192,29 +231,27 @@ _BULKABLE/GLOBAL TABLE ACTION_
 
 ![bulkable table action](./screenshots/inline-and-bulkable.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'table'` are:
+`options` config object. Admissable parameters for the `options` with `where: 'TABLE'` are:
 
 | Key | Type | Description |
 |---|---|---|
-|`action`| String | Unique identifier for the action |
 |`label`| String | Action label |
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
 |`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
-|`enabled`| Boolean | Whether the action/button is enabled or not |
-|`clicked`| Function | function executed when action/button is clicked (non-bulkable mode) |
+|`svg`| Function | icon based on a SVG file which can be included using `@require` |
 |`divider`| Boolean | Shows a line separator (divider) in actions menu |
-|`bulkable`| Boolean | Whether the action/button is bulkable (can be performed on multiple list items) |
-|`bulkAction`| Function | Function exectued when bulklable action/button is clicked (only bulkable mode) |
+|`multiple`| Boolean | Whether the action/button is bulkable (can be performed on multiple list items) |
+|`invoke`| Function | function executed when action/button is clicked |
 
 
-Usage example for `where: 'table'`:
+Usage example for `where: 'TABLE'`:
 
 _RENDERING A SIMPLE DIVIDER_
 
 ```
 plugin.addAction( 
   { 
-    where: 'table',
+    where: ActionLocation.TABLE,
     when: { resource: 'catalog.cattle.io.clusterrepo' }
   }, 
   { divider: true });
@@ -226,17 +263,15 @@ _CONFIGURING A NON-BULKABLE ACTION (inline action)_
 ```
 plugin.addAction(
   { 
-    where: 'table',
+    where: ActionLocation.TABLE,
     when: { resource: 'catalog.cattle.io.clusterrepo' }
   }, 
   {
-    action:   'some-extension-action',
     label:    'some-extension-action',
-    labelKey: 'generic.customize',
+    labelKey: 'plugin-examples.table-action-one',
     icon:     'icon-pipeline',
-    enabled:  true,
-    clicked() {
-      console.log('table action executed1', this);
+    invoke(opts: ActionOpts, values: any[]) {
+      console.log('table action executed 1', this, opts, values); // eslint-disable-line no-console
     }
   }
 );
@@ -248,22 +283,19 @@ _CONFIGURING AN INLINE AND BULKABLE ACTION_
 ```
 plugin.addAction(
   { 
-    where: 'table',
+    where: ActionLocation.TABLE,
     when: { resource: 'catalog.cattle.io.clusterrepo' }
   }, 
   {
-    action:   'some-bulkable-action',
     label:    'some-bulkable-action',
-    labelKey: 'generic.comingSoon',
-    icon:     'icon-pipeline',
-    bulkable: true,
-    enabled:  true,
-    clicked() {
-      console.log('table action executed2', this);
+    labelKey: 'plugin-examples.table-action-two',
+    svg:      require('@pkg/test-features/icons/rancher-desktop.svg'),
+    multiple: true,
+    invoke(opts: ActionOpts, values: any[]) {
+      console.log('table action executed 2', this); // eslint-disable-line no-console
+      console.log(opts); // eslint-disable-line no-console
+      console.log(values); // eslint-disable-line no-console
     },
-    bulkAction(args: any) {
-      console.log('bulk table action executed', this, args);
-    }
   }
 );
 ```
@@ -274,26 +306,29 @@ This method adds a tab to the UI.
 Method:
 
 ```
-plugin.addTab(locationConfig: Object, options: Object)
+plugin.addTab(where: String, when: locationConfig, options: Object)
 ```
 
 _Arguments_
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
+`where` string parameter admissable values:
 
-`locationConfig.where` string parameter admissable values:
 | Key | Type | Description |
 |---|---|---|
-|`resourceTabs`| String | Adds a tab to the `ResourceTabs` component |
+|`TabLocation.RESOURCE_DETAIL`| String | Location for a Tab on a Resource Detail page |
+
+`when` Object admissable values:
+
+`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'resourceTabs'`** option
+#### **`where: 'RESOURCE_DETAIL'`** option for addTab
 
 ![Tabs](./screenshots/add-tab.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'resourceTabs'` are:
+`options` config object. Admissable parameters for the `options` with `where: 'RESOURCE_DETAIL'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -303,19 +338,19 @@ _Arguments_
 |`weight`| Int | Defines the order on which the tab is displayed in relation to other tabs in the component |
 |`showHeader`| Boolean | Whether the tab header is displayed or not |
 |`tooltip`| String | Tooltip message (on tab header) |
-|`clicked`| Function | Component to be displayed as tab content |
+|`component`| Function | Component to be rendered as content on the tab |
 
 Usage example:
 
 ```
 plugin.addTab( 
   { 
-    where: 'resourceTabs',
+    where: TabLocation.RESOURCE_DETAIL,
     when: { resource: 'pod' }
   }, 
   {
     name:       'some-name',
-    labelKey:   'generic.comingSoon',
+    labelKey:   'plugin-examples.tab-label',
     label:      'some-label',
     weight:     -5,
     showHeader: true,
@@ -326,54 +361,48 @@ plugin.addTab(
 ```
 
 
-
-
-
-
-
-
-
-
 ### `addPanel`
 This method adds a panel/content to the UI.
 
 Method:
 
 ```
-plugin.addPanel(locationConfig: Object, options: Object)
+plugin.addPanel(where: String, when: locationConfig, options: Object)
 ```
 
 _Arguments_
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`locationConfig.where` string parameter admissable values:
+`where` string parameter admissable values:
 
 | Key | Type | Description |
 |---|---|---|
-|`detailsMasthead`| String | Add a panel/content to the "detail view" Masthead component |
-|`detailTop`| String | Add a panel/content to the "detail view" detailTop component |
-|`listView`| String | Add a panel/content to a list view (above the table) |
+|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page |
+|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page |
+|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area) |
+
+`when` Object admissable values:
+
+`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'detailsMasthead'`** option
+#### **`where: 'DETAILS_MASTHEAD'`** option for addPanel
 
 ![Details Masthead](./screenshots/masthead.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'detailsMasthead'` are:
+`options` config object. Admissable parameters for the `options` with `where: 'DETAILS_MASTHEAD'` are:
 
 | Key | Type | Description |
 |---|---|---|
-|`component`| String | Component to be rendered as content on the "detail view" Masthead component |
+|`component`| Function | Component to be rendered as content on the "detail view" Masthead component |
 
-Usage example for `where: 'detailsMasthead'`:
+Usage example for `where: 'DETAILS_MASTHEAD'`:
 
 ```
 plugin.addPanel(
   {
-    where: 'detailsMasthead',
+    where: PanelLocation.DETAILS_MASTHEAD,
     when:  { resource: 'catalog.cattle.io.clusterrepo' }
   },
   { component: () => import('./MastheadDetailsComponent.vue') });
@@ -382,22 +411,22 @@ plugin.addPanel(
 <br/>
 <br/>
 
-#### **`where: 'detailTop'`** option
+#### **`where: 'DETAIL_TOP'`** option for addPanel
 
 ![DetailTop](./screenshots/detailtop.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'detailTop'` are:
+`options` config object. Admissable parameters for the `options` with `where: 'DETAIL_TOP'` are:
 
 | Key | Type | Description |
 |---|---|---|
-|`component`| String | Component to be rendered as content on the "detail view" detailTop component |
+|`component`| Function | Component to be rendered as content on the "detail view" detailTop component |
 
-Usage example for `where: 'detailTop'`:
+Usage example for `where: 'DETAIL_TOP'`:
 
 ```
 plugin.addPanel(
   {
-    where: 'detailTop',
+    where: PanelLocation.DETAIL_TOP,
     when:  { resource: 'catalog.cattle.io.clusterrepo' }
   },
   { component: () => import('./DetailTopComponent.vue') });
@@ -406,22 +435,22 @@ plugin.addPanel(
 <br/>
 <br/>
 
-#### **`where: 'listView'`** option
+#### **`where: 'RESOURCE_LIST'`** option for addPanel
 
 ![List View](./screenshots/list-view.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'listView'` are:
+`options` config object. Admissable parameters for the `options` with `where: 'RESOURCE_LIST'` are:
 
 | Key | Type | Description |
 |---|---|---|
-|`component`| String | Component to be rendered as content above a table on a "list view" |
+|`component`| Function | Component to be rendered as content above a table on a "list view" |
 
-Usage example for `where: 'listView'`:
+Usage example for `where: 'RESOURCE_LIST'`:
 
 ```
 plugin.addPanel(
   {
-    where: 'listView',
+    where: PanelLocation.RESOURCE_LIST,
     when:  { resource: 'catalog.cattle.io.app' }
   },
   { component: () => import('./BannerComponent.vue') });
@@ -437,40 +466,42 @@ This method adds a card element to the UI.
 Method:
 
 ```
-plugin.addCard(locationConfig: Object, options: Object)
+plugin.addCard(where: String, when: locationConfig, options: Object)
 ```
 
 _Arguments_
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`locationConfig.where` string parameter admissable values:
+`where` string parameter admissable values:
 
 | Key | Type | Description |
 |---|---|---|
-|`clusterDashboard`| String | Add a card element to the Cluster Dashboard view  |
+|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page |
+
+`when` Object admissable values:
+
+`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'clusterDashboard'`** option
+#### **`where: 'CLUSTER_DASHBOARD_CARD'`** option for addCard
 
 ![Cluster Dashboard Card](./screenshots/cluster-cards.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'clusterDashboard'` are:
+`options` config object. Admissable parameters for the `options` with `where: 'CLUSTER_DASHBOARD_CARD'` are:
 
 | Key | Type | Description |
 |---|---|---|
 |`label`| String | Card title |
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
-|`component`| String | Component to be rendered aas content of a "Cluster Dashboard Card" |
+|`component`| Function | Component to be rendered aas content of a "Cluster Dashboard Card" |
 
-Usage example for `where: 'clusterDashboard'`:
+Usage example for `where: 'CLUSTER_DASHBOARD_CARD'`:
 
 ```
 plugin.addCard(
   {
-    where: 'clusterDashboard',
+    where: CardLocation.CLUSTER_DASHBOARD_CARD,
     when:  { cluster: 'local' }
   },
   {
@@ -491,27 +522,29 @@ This method adds a table column to a `SortableTable`/`ResourceList` element-base
 Method:
 
 ```
-plugin.addTableColumn(locationConfig: Object, options: Object)
+plugin.addTableColumn(where: String, when: locationConfig, options: Object)
 ```
 
 _Arguments_
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
-
-`locationConfig.where` string parameter admissable values:
+`where` string parameter admissable values:
 
 | Key | Type | Description |
 |---|---|---|
-|`listView`| String | Add a table column to a `SortableTable`/`ResourceList` element-based table |
+|`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page |
+
+`when` Object admissable values:
+
+`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'listView'`** option
+#### **`where: 'RESOURCE'`** option for addTableColumn
 
 ![Table Col](./screenshots/table-cols.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'listView'` are:
+`options` config object. Admissable parameters for the `options` with `where: 'RESOURCE'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -519,23 +552,23 @@ _Arguments_
 |`labelKey`| String | Same as "name" but allows for translation. Will superseed "name" |
 |`value`| String | Object property to obtain the value from |
 |`getValue`| Fuction | Same as "value", but it can be a function. Will superseed "value" |
-|`width`| Int | Column width (in px) |
-|`sort`| Array | Object properties to be bound to the table sorting |
-|`search`| Array | Object properties to be bound to the table search |
+|`width`| Int | Column width (in px). Optional |
+|`sort`| Array | Object properties to be bound to the table sorting. Optional |
+|`search`| Array | Object properties to be bound to the table search. Optional |
 
-Usage example for `where: 'listView'`:
+Usage example for `where: 'RESOURCE'`:
 
 ```
 plugin.addTableColumn(
   {
-    where: 'listView',
+    where: TableColumnLocation.RESOURCE,
     when:  { resource: 'configmap' }
   },
   {
     name:     'some-prop-col',
     labelKey: 'generic.comingSoon',
     getValue: (row: any) => {
-      return `${ row.id }-THIS-IS-A-DEMO-COL-VALUE!`;
+      return `${ row.id }-DEMO-COL-STRING-ADDED!`;
     },
     width: 100,
     sort: ['stateSort', 'nameSort'],
