@@ -14,7 +14,12 @@ import { NAME as MANAGER } from '@shell/config/product/manager';
 import { STATE } from '@shell/config/table-headers';
 import { MODE, _IMPORT } from '@shell/config/query-params';
 import { createMemoryFormat, formatSi, parseSi, createMemoryValues } from '@shell/utils/units';
-import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@shell/utils/version';
+// Added by Verrazzano Start
+// import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes } from '@shell/utils/version';
+import {
+  getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenReleaseNotes, getVerrazzanoVersion
+} from '@shell/utils/version';
+// Added by Verrazzano End
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
@@ -69,7 +74,13 @@ export default {
     ];
 
     return {
-      HIDE_HOME_PAGE_CARDS, fullVersion, pageActions, vendor: getVendor(),
+      HIDE_HOME_PAGE_CARDS,
+      fullVersion,
+      pageActions,
+      vendor:          getVendor(),
+      // Added by Verrazzano Start
+      whatsNewVersion: undefined,
+      // Added by Verrazzano End
     };
   },
 
@@ -218,6 +229,20 @@ export default {
   },
 
   async created() {
+    // Added by Verrazzano Start
+    getVerrazzanoVersion().then((version) => {
+      let vzVersion = version.dashboardBuild;
+
+      // strip dashboardBuild to {major}.{minor} when possible
+      const groups = vzVersion.match(/^(\d+)\.(\d+)\..*/);
+
+      if (groups) {
+        vzVersion = `${ groups[1] }.${ groups[2] }`;
+      }
+      this.whatsNewVersion = vzVersion;
+    });
+    // Added by Verrazzano End
+
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
     markSeenReleaseNotes(this.$store);
@@ -310,8 +335,8 @@ export default {
             <!--
             <a class="hand" @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
             -->
-            <a :href="whatsNewLink" target="_blank" rel="noopener noreferrer nofollow" class="hand">
-              <span v-html="t('landing.whatsNewLink')" />
+            <a v-if="whatsNewVersion" :href="whatsNewLink" target="_blank" rel="noopener noreferrer nofollow" class="hand">
+              <span v-html="t('landing.whatsNewLink', {version: whatsNewVersion})" />
             </a>
 
             <!-- Added by Verrazzano Start -->

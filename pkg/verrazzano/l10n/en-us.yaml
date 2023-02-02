@@ -30,7 +30,7 @@ landing:
     body: Take a look at the Verrazzano getting started blog.
     link: Learn More
     title: Getting Started with Verrazzano
-  whatsNewLink: What's new in 1.4
+  whatsNewLink: What's new in {version}
 
 ##############################
 ### Verrazzano keys
