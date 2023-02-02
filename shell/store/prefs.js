@@ -122,12 +122,13 @@ export const state = function() {
   return {
     cookiesLoaded: false,
     data:          {},
+    definitions,
   };
 };
 
 export const getters = {
   get: state => (key) => {
-    const definition = definitions[key];
+    const definition = state.definitions[key];
 
     if (!definition) {
       throw new Error(`Unknown preference: ${ key }`);
@@ -145,7 +146,7 @@ export const getters = {
   },
 
   defaultValue: state => (key) => {
-    const definition = definitions[key];
+    const definition = state.definitions[key];
 
     if (!definition) {
       throw new Error(`Unknown preference: ${ key }`);
@@ -155,7 +156,7 @@ export const getters = {
   },
 
   options: state => (key) => {
-    const definition = definitions[key];
+    const definition = state.definitions[key];
 
     if (!definition) {
       throw new Error(`Unknown preference: ${ key }`);
@@ -238,19 +239,25 @@ export const mutations = {
   },
 
   reset(state) {
-    for (const key in definitions) {
-      if ( definitions[key]?.asCookie ) {
+    for (const key in state.definitions) {
+      if ( state.definitions[key]?.asCookie ) {
         continue;
       }
       delete state.data[key];
     }
-  }
+  },
+
+  setDefinition(state, { name, definition = {} }) {
+    state.definitions[name] = definition;
+  },
 };
 
 export const actions = {
-  async set({ dispatch, commit, rootGetters }, opt) {
+  async set({
+    dispatch, commit, rootGetters, state
+  }, opt) {
     let { key, value } = opt; // eslint-disable-line prefer-const
-    const definition = definitions[key];
+    const definition = state.definitions[key];
     let server;
 
     if ( opt.val ) {
@@ -312,8 +319,8 @@ export const actions = {
       return;
     }
 
-    for (const key in definitions) {
-      const definition = definitions[key];
+    for (const key in state.definitions) {
+      const definition = state.definitions[key];
 
       if ( !definition.asCookie ) {
         continue;
@@ -427,9 +434,13 @@ export const actions = {
       prefsBeforeLogin = {};
     }
 
-    for (const key in definitions) {
-      const definition = definitions[key];
+    for (const key in state.definitions) {
+      const definition = state.definitions[key];
       let value = clone(server.data[key]);
+
+      if (value === undefined && definition.inheritFrom) {
+        value = clone(server.data[definition.inheritFrom]);
+      }
 
       if ( value === undefined || key === ignoreKey) {
         continue;
