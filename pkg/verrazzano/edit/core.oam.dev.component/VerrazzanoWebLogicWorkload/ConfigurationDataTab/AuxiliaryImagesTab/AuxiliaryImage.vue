@@ -20,6 +20,10 @@ export default {
       type:    String,
       default: 'create',
     },
+    weight: {
+      type:    Number,
+      default: 0
+    },
   },
 };
 </script>

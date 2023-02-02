@@ -1,12 +1,12 @@
 <script>
 // Added by Verrazzano
-import AdminServerTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/AdminServerTab';
+import AdminServerTab8 from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/AdminServerTab';
 import AuxiliaryImageVolumesTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/AuxiliaryImageVolumesTab';
 import ClustersTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ClustersTab';
 import ConfigurationDataTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ConfigurationDataTab';
 import FluentdSpecificationTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/FluentdSpecificationTab';
-import WebLogicGeneralDataTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/WebLogicGeneralDataTab';
-import ManagedServersTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ManagedServersTab';
+import WebLogicGeneralDataTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/WebLogicGeneralDataTab';
+import ManagedServersTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ManagedServersTab';
 import MonitoringExporterTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/MonitoringExporterTab';
 import ServerPodTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ServerPodTab';
 import ServerServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ServerServiceTab';
@@ -16,7 +16,7 @@ import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 export default {
   name:       'VerrazzanoWebLogic8Workload',
   components: {
-    AdminServerTab,
+    AdminServerTab8,
     AuxiliaryImageVolumesTab,
     ClustersTab,
     ConfigurationDataTab,
@@ -132,7 +132,7 @@ export default {
        |                                        Admin Server Tab                                              |
        -------------------------------------------------------------------------------------------------------->
 
-      <AdminServerTab
+      <AdminServerTab8
         :value="getWorkloadSpecField('adminServer')"
         :mode="mode"
         :namespaced-object="value"

@@ -170,6 +170,7 @@ export default {
         :value="getField('onlineUpdate')"
         :mode="mode"
         :tab-name="createTabName(treeTabName, 'onlineUpdate')"
+        :weight="2"
         @input="setFieldIfNotEmpty('onlineUpdate', $event)"
         @delete="setField('onlineUpdate', undefined)"
       />
@@ -179,6 +180,7 @@ export default {
         :mode="mode"
         :namespaced-object="namespacedObject"
         :tab-name="createTabName(treeTabName, 'auxiliaryImages')"
+        :weight="1"
         @input="setFieldIfNotEmpty('auxiliaryImages', $event)"
       />
     </template>

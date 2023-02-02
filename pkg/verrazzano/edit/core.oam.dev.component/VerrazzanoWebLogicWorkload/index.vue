@@ -22,23 +22,35 @@ export default {
     },
   },
   data() {
-    let domainApiVersion = this.get(this.value, 'spec.workload.spec.template.apiVersion');
-
     // No use of computed properties from within the data block...
+
+    const template = this.get(this.value, 'spec.workload.spec.template') || {};
+
+    let domainApiVersion = template.apiVersion;
+
     if (this.mode === 'create') {
       domainApiVersion = this.getVerrazzanoWebLogicDomainApiVersion();
     } else if (domainApiVersion === undefined) {
       domainApiVersion = this.getVerrazzanoWebLogicDomain8ApiVersion();
-      this.$set(this.value, 'spec.workload.spec.template.apiVersion', domainApiVersion);
+    }
+
+    if (!template.apiVersion) {
+      template.apiVersion = domainApiVersion;
+      this.set(this.value, 'spec.workload.spec.template', template);
     }
 
     return {
-      apiVersion:     domainApiVersion,
       configRoot:     this.value,
       namespace:      '',
     };
   },
   computed: {
+    apiVersion() {
+      const template = this.get(this.value, 'spec.workload.spec.template') || {};
+
+      return template.apiVersion;
+    },
+
     isV8Domain() {
       return this.apiVersion === this.getVerrazzanoWebLogicDomain8ApiVersion();
     }

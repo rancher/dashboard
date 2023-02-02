@@ -1,6 +1,5 @@
 <script>
 // Added by Verrazzano
-import Checkbox from '@components/Form/Checkbox/Checkbox';
 import ClusterServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ClustersTab/ClusterServiceTab';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -13,7 +12,6 @@ import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 export default {
   name:       'ClusterTab',
   components: {
-    Checkbox,
     ClusterServiceTab,
     LabeledInput,
     LabeledSelect,
@@ -154,27 +152,6 @@ export default {
             :placeholder="getNotSetPlaceholder(value, 'restartVersion')"
             :label="t('verrazzano.weblogic.fields.restartVersion')"
             @input="setFieldIfNotEmpty('restartVersion', $event)"
-          />
-        </div>
-        <div class="col span-4">
-          <LabeledSelect
-            :value="getField('serverStartState')"
-            :mode="mode"
-            :options="serverStartStateOptions"
-            option-key="value"
-            option-label="label"
-            :placeholder="getNotSetPlaceholder(value, 'serverStartState')"
-            :label="t('verrazzano.weblogic.fields.serverStartState')"
-            @input="setFieldIfNotEmpty('serverStartState', $event)"
-          />
-        </div>
-        <div class="col span-4">
-          <div class="spacer-small" />
-          <Checkbox
-            :value="getField('allowReplicasBelowMinDynClusterSize')"
-            :mode="mode"
-            :label="t('verrazzano.weblogic.fields.clusters.allowReplicasBelowMinDynClusterSize')"
-            @input="setBooleanField('allowReplicasBelowMinDynClusterSize', $event)"
           />
         </div>
       </div>

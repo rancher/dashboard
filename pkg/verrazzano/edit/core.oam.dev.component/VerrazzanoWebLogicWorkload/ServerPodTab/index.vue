@@ -203,6 +203,18 @@ export default {
           />
         </div>
       </div>
+      <div class="spacer-small" />
+      <div class="row">
+        <div class="col span-4">
+          <LabeledInput
+            :value="getField('maxReadyWaitTimeSeconds')"
+            :mode="mode"
+            :placeholder="getNotSetPlaceholder(value, 'maxReadyWaitTimeSeconds')"
+            :label="t('verrazzano.common.fields.podSpec.maxReadyWaitTimeSeconds')"
+            @input="setField('maxReadyWaitTimeSeconds', $event)"
+          />
+        </div>
+      </div>
     </template>
     <template #nestedTabs>
       <LabelsTab

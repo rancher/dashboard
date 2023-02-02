@@ -274,57 +274,12 @@ export default {
               @input="setFieldIfNotEmpty('spec.logHome', $event)"
             />
             <div class="spacer-tiny" />
-            <div class="row">
-              <div class="col span-6">
-                <LabeledSelect
-                  v-if="isLogHomeEnabled"
-                  option-key="value"
-                  option-label="label"
-                  :options="logHomeLayoutOptions"
-                  :value="getField('spec.logHomeLayout')"
-                  :mode="mode"
-                  :placeholder="getNotSetPlaceholder(value, 'spec.logHomeLayout')"
-                  :label="t('verrazzano.weblogic.fields.logHomeLayout')"
-                  @input="setFieldIfNotEmpty('spec.logHomeLayout', $event)"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="spacer" />
-        <div class="row">
-          <div class="col span-6">
             <LabeledInput
               :value="getField('spec.dataHome')"
               :mode="mode"
               :placeholder="getNotSetPlaceholder(value, 'spec.dataHome')"
               :label="t('verrazzano.weblogic.fields.dataHome')"
               @input="setFieldIfNotEmpty('spec.dataHome', $event)"
-            />
-          </div>
-        </div>
-        <div class="spacer" />
-        <div class="row">
-          <div class="col span-4">
-            <LabeledInput
-              :value="getField('spec.failureRetryIntervalSeconds')"
-              :mode="mode"
-              type="Number"
-              min="0"
-              :placeholder="getNotSetPlaceholder(value, 'spec.failureRetryIntervalSeconds')"
-              :label="t('verrazzano.weblogic.fields.failureRetryIntervalSeconds')"
-              @input="setFieldIfNotEmpty('spec.failureRetryIntervalSeconds', $event)"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              :value="getField('spec.failureRetryLimitMinutes')"
-              :mode="mode"
-              type="Number"
-              min="0"
-              :placeholder="getNotSetPlaceholder(value, 'spec.failureRetryLimitMinutes')"
-              :label="t('verrazzano.weblogic.fields.failureRetryLimitMinutes')"
-              @input="setFieldIfNotEmpty('spec.failureRetryLimitMinutes', $event)"
             />
           </div>
         </div>
@@ -365,6 +320,18 @@ export default {
               :placeholder="getNotSetPlaceholder(value, 'spec.serverStartPolicy')"
               :label="t('verrazzano.weblogic.fields.serverStartPolicy')"
               @input="setFieldIfNotEmpty('spec.serverStartPolicy', $event)"
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledSelect
+              :value="getField('spec.serverStartState')"
+              :mode="mode"
+              :options="serverStartStateOptions"
+              option-label="label"
+              option-key="value"
+              :placeholder="getNotSetPlaceholder(value, 'spec.serverStartState')"
+              :label="t('verrazzano.weblogic.fields.serverStartState')"
+              @input="setFieldIfNotEmpty('spec.serverStartState', $event)"
             />
           </div>
         </div>

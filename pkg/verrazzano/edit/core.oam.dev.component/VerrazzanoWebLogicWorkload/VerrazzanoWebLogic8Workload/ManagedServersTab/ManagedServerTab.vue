@@ -1,7 +1,5 @@
 <script>
 // Added by Verrazzano
-import AdminServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/AdminServerTab/AdminServiceTab';
-import Checkbox from '@components/Form/Checkbox/Checkbox';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import ServerPodTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ServerPodTab';
@@ -11,16 +9,14 @@ import TreeTab from '@pkg/components/TreeTabbed/TreeTab';
 import WebLogicWorkloadHelper from '@pkg/mixins/weblogic-workload-helper';
 
 export default {
-  name:       'AdminServerTab',
+  name:       'ManagedServerTab',
   components: {
-    AdminServiceTab,
-    Checkbox,
     LabeledInput,
     LabeledSelect,
     ServerPodTab,
     ServerServiceTab,
     TabDeleteButton,
-    TreeTab
+    TreeTab,
   },
   mixins: [WebLogicWorkloadHelper],
   props:  {
@@ -53,14 +49,14 @@ export default {
   },
   created() {
     if (!this.treeTabLabel) {
-      this.treeTabLabel = this.t('verrazzano.weblogic.tabs.adminServer');
+      this.treeTabLabel = this.value.serverName || this.t('verrazzano.weblogic.tabs.managedServer');
     }
   },
 };
 </script>
 
 <template>
-  <TreeTab :name="treeTabName" :label="treeTabLabel">
+  <TreeTab :name="treeTabName" :label="treeTabLabel" :title="t('verrazzano.weblogic.tabs.managedServer')">
     <template #beside-header>
       <TabDeleteButton
         :element-name="treeTabLabel"
@@ -70,39 +66,61 @@ export default {
     </template>
     <template #default>
       <div class="row">
-        <div class="col span-6">
-          <Checkbox
-            :value="getField('adminChannelPortForwardingEnabled')"
+        <div class="col span-3">
+          <LabeledInput
+            :value="getField('serverName')"
             :mode="mode"
-            :label="t('verrazzano.weblogic.fields.adminChannelPortForwardingEnabled')"
-            @input="setBooleanField('adminChannelPortForwardingEnabled', $event)"
+            required
+            disabled
+            :placeholder="getNotSetPlaceholder(value, 'serverName')"
+            :label="t('verrazzano.weblogic.fields.managedServers.serverName')"
+            @input="setFieldIfNotEmpty('serverName', $event)"
           />
         </div>
-      </div>
-      <div class="spacer-small" />
-      <div class="row">
-        <div class="col span-4">
+        <div class="col span-3">
           <LabeledInput
             :value="getField('restartVersion')"
             :mode="mode"
-            type="Number"
-            min="0"
+            :placeholder="getNotSetPlaceholder(value, 'restartVersion')"
             :label="t('verrazzano.weblogic.fields.restartVersion')"
-            @input="setNumberField('restartVersion', $event)"
+            @input="setFieldIfNotEmpty('restartVersion', $event)"
           />
         </div>
-        <div class="col span-4">
+        <div class="col span-3">
           <LabeledSelect
             :value="getField('serverStartPolicy')"
             :mode="mode"
             :options="serverStartPolicyOptions"
             option-key="value"
             option-label="label"
+            :placeholder="getNotSetPlaceholder(value, 'serverStartPolicy')"
             :label="t('verrazzano.weblogic.fields.serverStartPolicy')"
-            @input="setField('serverStartPolicy', $event)"
+            @input="setFieldIfNotEmpty('serverStartPolicy', $event)"
+          />
+        </div>
+        <div class="col span-3">
+          <LabeledSelect
+            :value="getField('serverStartState')"
+            :mode="mode"
+            :options="serverStartStateOptions"
+            option-key="value"
+            option-label="label"
+            :placeholder="getNotSetPlaceholder(value, 'serverStartState')"
+            :label="t('verrazzano.weblogic.fields.serverStartState')"
+            @input="setFieldIfNotEmpty('serverStartState', $event)"
           />
         </div>
       </div>
+      <div class="spacer-small" />
+      <div>
+        <h3>{{ t('verrazzano.weblogic.tabs.serverService') }}</h3>
+        <ServerService
+          :value="getField('serverService')"
+          :mode="mode"
+          @input="setFieldIfNotEmpty('serverService', $event)"
+        />
+      </div>
+      <div class="spacer-small" />
     </template>
     <template #nestedTabs>
       <ServerPodTab
@@ -111,21 +129,12 @@ export default {
         :namespaced-object="namespacedObject"
         :tab-name="createTabName(treeTabName, 'serverPod')"
         @input="setFieldIfNotEmpty('serverPod', $event)"
-        @delete="setField('serverPod', undefined)"
-      />
-      <AdminServiceTab
-        :value="getField('adminService')"
-        :mode="mode"
-        :tab-name="createTabName(treeTabName, 'adminService')"
-        @input="setFieldIfNotEmpty('adminService', $event)"
-        @delete="setField('adminService', undefined)"
       />
       <ServerServiceTab
         :value="getField('serverService')"
         :mode="mode"
         :tab-name="createTabName(treeTabName, 'serverService')"
         @input="setFieldIfNotEmpty('serverService', $event)"
-        @delete="setField('serverService', undefined)"
       />
     </template>
   </TreeTab>

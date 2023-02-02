@@ -1,6 +1,6 @@
 <script>
 // Added by Verrazzano
-import AdminServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/AdminServerTab/AdminServiceTab';
+import AdminServiceTab from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/AdminServerTab/AdminServiceTab';
 import Checkbox from '@components/Form/Checkbox/Checkbox';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -100,6 +100,17 @@ export default {
             option-label="label"
             :label="t('verrazzano.weblogic.fields.serverStartPolicy')"
             @input="setField('serverStartPolicy', $event)"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledSelect
+            :value="getField('serverStartState')"
+            :mode="mode"
+            :options="serverStartStateOptions"
+            option-key="value"
+            option-label="label"
+            :label="t('verrazzano.weblogic.fields.serverStartState')"
+            @input="setField('serverStartState', $event)"
           />
         </div>
       </div>

@@ -1,9 +1,7 @@
 <script>
 // Added by Verrazzano
 import ConfigurationModelTab
-  from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload//ConfigurationDataTab/ConfigurationModelTab';
-import IstioConfigTab
-  from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ConfigurationDataTab/IstioConfigTab';
+  from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ConfigurationDataTab/ConfigurationModelTab';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import OpssConfigurationTab
@@ -19,7 +17,6 @@ export default {
   name:       'ConfigurationDataTab',
   components: {
     ConfigurationModelTab,
-    IstioConfigTab,
     LabeledInput,
     LabeledSelect,
     OpssConfigurationTab,
@@ -211,14 +208,6 @@ export default {
         :weight="1"
         @input="setFieldIfNotEmpty('model', $event)"
         @delete="setField('model', undefined)"
-      />
-      <IstioConfigTab
-        :value="getField('istio')"
-        :mode="mode"
-        :tab-name="createTabName(treeTabName, 'istio')"
-        :weight="2"
-        @input="setFieldIfNotEmpty('istio', $event)"
-        @delete="setField('istio', undefined)"
       />
       <OpssConfigurationTab
         :value="getField('opss')"

@@ -3,7 +3,7 @@
 import ConfigurationModelTab
   from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ConfigurationDataTab/ConfigurationModelTab';
 import IstioConfigTab
-  from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/ConfigurationDataTab/IstioConfigTab';
+  from '@pkg/edit/core.oam.dev.component/VerrazzanoWebLogicWorkload/VerrazzanoWebLogic8Workload/ConfigurationDataTab/IstioConfigTab';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import OpssConfigurationTab

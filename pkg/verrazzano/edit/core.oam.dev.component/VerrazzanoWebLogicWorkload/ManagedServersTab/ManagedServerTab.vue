@@ -98,18 +98,6 @@ export default {
             @input="setFieldIfNotEmpty('serverStartPolicy', $event)"
           />
         </div>
-        <div class="col span-3">
-          <LabeledSelect
-            :value="getField('serverStartState')"
-            :mode="mode"
-            :options="serverStartStateOptions"
-            option-key="value"
-            option-label="label"
-            :placeholder="getNotSetPlaceholder(value, 'serverStartState')"
-            :label="t('verrazzano.weblogic.fields.serverStartState')"
-            @input="setFieldIfNotEmpty('serverStartState', $event)"
-          />
-        </div>
       </div>
       <div class="spacer-small" />
       <div>

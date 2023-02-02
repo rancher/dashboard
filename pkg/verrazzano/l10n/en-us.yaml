@@ -469,6 +469,9 @@ verrazzano:
     fields:
       accessModes: Access Modes
       allocateLoadBalancerNodePorts: Allocate Node Ports for Load Balancer Service Type
+      auxiliaryImageVolumeMedium: Volume Medium
+      auxiliaryImageVolumeMountPath: Volume Mount Path
+      auxiliaryImageVolumeSizeLimit: Volume Size Limit
       apiGroup: API Group
       appProtocol: Application Protocol
       cidr: CIDR
@@ -632,6 +635,7 @@ verrazzano:
         priority: Priority
         priorityClassName: Priority Class Name
         restartPolicy: Restart Policy
+        maxReadyWaitTimeSeconds: Max Ready Wait Time
         runtimeClassName: Runtime Class Name
         schedulerName: Scheduler Name
         serviceAccountName: Service Account Name
@@ -1604,6 +1608,8 @@ verrazzano:
       domainHome: WebLogic Domain Home
       domainHomeSourceType: Domain Home Source Location
       domainUID: Domain UID
+      failureRetryIntervalSeconds: Failure Retry Interval Seconds
+      failureRetryLimitMinutes: Failure Retry Limit Minutes
       fluentd:
         elasticSearchCredentials: Elasticsearch Credentials Secret
         fluentdConfiguration: Fluentd Configuration
@@ -1621,6 +1627,7 @@ verrazzano:
         replicationChannelPort: Replication Channel Port
       livenessProbeCustomScript: Liveness Probe Custom Script Path
       logHome: Log Home
+      logHomeLayout: Log Home Layout
       logHomeEnabled: Log Home Enabled
       managedServers:
         serverName: Server Name
@@ -1660,6 +1667,7 @@ verrazzano:
       adminService: Admin Service
       auxiliaryImage: Auxiliary Image
       auxiliaryImages: Auxiliary Images
+      auxiliaryImageSettings: Volume Settings
       auxiliaryImageVolumes: Auxiliary Image Volumes
       cluster: Cluster
       clusters: Clusters
@@ -1711,6 +1719,9 @@ verrazzano:
       domainType:
         wls: WebLogic Server (WLS)
         jrf: FMW Infrastructure (JRF)
+      logHomeLayoutOptions:
+        flat: Flat
+        byServers: By Servers
       onNonDynamicChanges:
         commitUpdateOnly: Commit Update Only
         commitUpdateAndRoll: Commit Update and Roll
