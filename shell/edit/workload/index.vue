@@ -574,7 +574,9 @@ export default {
               type="button"
               class="btn-sm role-link"
               @click="addContainerBtn"
-            />
+            >
+              <i class="icon icon-plus pr-5" /> {{ t('workload.container.addContainer') }}
+            </button>
           </li>
         </template>
       </Tabbed>
