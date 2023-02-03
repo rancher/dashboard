@@ -366,6 +366,10 @@ export default {
     hideNamespaceLocation() {
       return this.$store.getters['currentProduct'].hideNamespaceLocation;
     },
+
+    resourceExternalLink() {
+      return this.value.resourceExternalLink;
+    },
   },
 
   methods: {
@@ -423,6 +427,15 @@ export default {
               class="masthead-state"
               :value="value"
             />
+            <a
+              v-if="!!resourceExternalLink"
+              class="resource-external"
+              rel="nofollow noopener noreferrer"
+              target="_blank"
+              :href="resourceExternalLink.url"
+            >
+              <i class="icon icon-external-link" />
+            </a>
           </h1>
         </div>
         <div
