@@ -77,7 +77,10 @@ export default {
     } catch (e) {
       console.error(e)
     }
+    this.$initializeFetchData(this.resource);
 
+    this.$fetchType(FLEET.CLUSTER);
+    this.$fetchType(FLEET.CLUSTER_GROUP);
     await this.$fetchType(this.resource);
   },
 

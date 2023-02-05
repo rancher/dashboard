@@ -198,6 +198,7 @@ export default {
     :subtypes="[]"
     :validation-passed="fvFormIsValid"
     :errors="fvUnreportedValidationErrors"
+    :description="t('ingress.description')"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"

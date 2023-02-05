@@ -328,6 +328,7 @@ export default {
     :validation-passed="fvFormIsValid"
     :errors="fvUnreportedValidationErrors"
     :apply-hooks="applyHooks"
+    :description="t('servicesPage.serviceListDescription')"
     @error="(e) => (errors = e)"
     @finish="save"
     @cancel="done"
@@ -385,6 +386,7 @@ export default {
         name="selectors"
         :label="t('servicesPage.selectors.label')"
       >
+        <p>{{ t('servicesPage.selectors.matchingPods.description') }}</p>
         <div class="row">
           <div class="col span-12">
             <Banner :color="(matchingPods.none ? 'warning' : 'success')">

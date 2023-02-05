@@ -259,6 +259,12 @@ export default {
 
 <template>
   <div :style="{'width':'100%'}">
+    <p
+      v-if="rows.length > 0"
+      class="padded"
+    >
+      {{ t('workload.container.ports.detailedDescription') }}
+    </p>
     <div
       v-for="(row, idx) in rows"
       :key="idx"

@@ -1065,7 +1065,7 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
-  workerProfile: CIS Worker Profile
+  workerProfile: CIS Profile
 
 cluster:
   addonChart:
@@ -1607,6 +1607,8 @@ cluster:
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
     invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
+    deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
+    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
 
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
@@ -2333,6 +2335,7 @@ import:
     }
 
 ingress:
+  description: Ingresses route incoming traffic from the internet to Services within the cluster based on the hostname and path specified in the request. You can expose multiple Services on the same external IP address and port.
   certificates:
     addCertificate: Add Certificate
     addHost: Add Host
@@ -2385,6 +2388,7 @@ ingress:
       placeholder: e.g. example.com
     target:
       label: Target Service
+      tooltip: If none of the Services in this dropdown select the Pods that you need to expose, you will need to create a Service that selects those Pods first.
       doesntExist: The selected service does not exist
     title: Rules
   rulesAndCertificates:
@@ -3951,8 +3955,20 @@ plugins:
         title: Remove the Rancher Extensions Custom Resource Definition
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
 podSecurityAdmission:
-  label: Pod Security Admission
+  name: Pod Security Admission
   description: Define the admission control mode you want to use for the pod security
+  banner: 
+    modifications: 'Note: Modifying a Pod Security Admission Configuration Template will not affect any downstream cluster that references it until there is a cluster update'
+  labels:
+    enforce: Enforce
+    audit: Audit
+    warn: Warn
+    usernames: Usernames
+    runtimeClasses: RuntimeClasses
+    namespaces: Namespaces
+    privileged: privileged
+    baseline: baseline
+    restricted: restricted
   version:
     placeholder: 'Version (default: latest)'
   exemptions: 
@@ -4631,6 +4647,9 @@ serviceTypes:
   nodeport: Node Port
 
 servicesPage:
+  serviceListDescription: Services allow you to define a logical set of Pods that can be accessed with a single IP address and port.
+  targetPorts: The Service will send requests to this port, and the selected Pods are expected to listen on this port.
+  listeningPorts: The Service is exposed on this port.
   anyNode: Any Node
   labelsAnnotations:
     label: Labels & Annotations
@@ -4693,6 +4712,7 @@ servicesPage:
     helpText: ""
     label: Selectors
     matchingPods:
+      description: Selector keys and values are intended to match labels and values on existing Pods.
       matchesSome: |-
         {matched, plural,
           =0 {Matches 0 of {total, number} pods. If no selector is created, manual endpoints must be made.}
@@ -4702,23 +4722,23 @@ servicesPage:
   serviceTypes:
     clusterIp:
       abbrv: IP
-      description: Exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster. This is the default type.
+      description: Expose a set of Pods to other Pods within the cluster. This type of Service is only reachable from within the cluster. This is the default type.
       label: Cluster IP
     externalName:
       abbrv: EN
-      description: "Maps the service to the contents of the `externalName` field (e.g. foo.bar.example.com), by returning a CNAME record with its value. No proxying of any kind is set up."
+      description: Create a Service that uses a DNS name instead of selectors. This is an advanced use case.
       label: External Name
     headless:
       abbrv: H
-      description: Neither a cluster IP or load balancer is defined. These are used to interface with other service discovery mechanisms outside of Kubernetes implementation. A cluster IP is not allocated and kube-proxy does not handle these services.
+      description: Create a Service without a cluster IP or load balancer. This is an advanced use case.
       label: Headless
     loadBalancer:
       abbrv: LB
-      description: Exposes the service externally using a cloud provider's load balancer.
+      description: Create a load balancer in the underlying infrastructure (e.g. a cloud provider's load balancer) and assign a public IP address to the service. Allows external clients to access the service using the public IP address and the port specified in the service definition.
       label: Load Balancer
     nodePort:
       abbrv: NP
-      description: "Exposes the service on each node's IP at a static port (the `NodePort`). You'll be able to contact this type of service, from outside the cluster, by requesting `&lt;NodeIP&gt;:&lt;NodePort&gt;`."
+      description: "Expose the service on each node's IP at a static port."
       label: Node Port
   typeOpts:
     label: Service Type
@@ -5167,6 +5187,7 @@ tableHeaders:
   lastUpdated: Last Updated
   lastSchedule: Last Schedule
   lastSeen: Last Seen
+  lastSeenTooltip: The time at which the most recent occurrence of this event was recorded
   loggingOutputProviders: Provider
   machines: Machines
   machineNodeName: Node
@@ -5633,6 +5654,10 @@ workload:
     noPorts: There are no ports configured.
     noServiceAccess: You do not have permission to create or manage services
     ports:
+      expose: Networking
+      description: 'Define a Service to expose the container, or define a non-functional, named port so that humans will know where the app within the container is expected to run.'
+      detailedDescription: If ClusterIP, LoadBalancer, or NodePort is selected, a Service is automatically created that will select the Pods in this workload using labels.
+      toolTip: 'For help exposing workloads on Kubernetes, see the official Kubernetes documentation on Services. You can also manually create a Service to expose Pods by selecting their labels, and you can use an Ingress to map HTTP routes to Services.'
       createService: Service Type
       noCreateService: Do not create a service
       containerPort: Private Container Port
@@ -6220,6 +6245,11 @@ typeLabel:
       one { Workspace }
       other { Workspaces }
     }
+  management.cattle.io.podsecurityadmissionconfigurationtemplate: |-
+    {count, plural,
+      one { Pod Security Admission }
+      other { Pod Security Admissions }
+    }
   policy.poddisruptionbudget: |-
     {count, plural,
       one { Pod Disruption Budget }
@@ -6694,7 +6724,7 @@ unit:
       other { days }
     }
 workloadPorts:
-  addPort: Add Port
+  addPort: Add Port or Service
   remove: Remove
   addHost: Add Host
 

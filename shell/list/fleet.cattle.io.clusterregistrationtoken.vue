@@ -26,6 +26,7 @@ export default {
 
   async fetch() {
     await this.$fetchType(FLEET.TOKEN);
+    await this.$fetchType(this.resource);
     if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
       this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
     }

@@ -2,10 +2,11 @@
 import ResourceTable from '@shell/components/ResourceTable';
 import { STORAGE_CLASS } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { Banner } from '@components/Banner';
 
 export default {
   name:       'PodSecurityAdmission',
-  components: { ResourceTable },
+  components: { ResourceTable, Banner },
   mixins:     [ResourceFetch],
   props:      {
     resource: {
@@ -31,9 +32,16 @@ export default {
 </script>
 
 <template>
-  <ResourceTable
-    :loading="loading"
-    :schema="schema"
-    :rows="rows"
-  />
+  <div>
+    <Banner
+      color="info"
+      :label="t('podSecurityAdmission.banner.modifications')"
+    />
+
+    <ResourceTable
+      :loading="loading"
+      :schema="schema"
+      :rows="rows"
+    />
+  </div>
 </template>
