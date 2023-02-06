@@ -280,7 +280,6 @@ export default {
 
     // Store the initial PSP template name, so we can set it back if needed
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
-    const lastDefaultPodSecurityAdmissionTemplateName = this.value.spec.defaultPodSecurityAdmissionTemplateName;
     const previousKubernetesVersion = this.value.spec.kubernetesVersion;
 
     return {
@@ -314,7 +313,6 @@ export default {
       }],
       harvesterVersionRange: {},
       lastDefaultPodSecurityPolicyTemplateName,
-      lastDefaultPodSecurityAdmissionTemplateName,
       previousKubernetesVersion,
     };
   },
@@ -1810,13 +1808,6 @@ export default {
     },
 
     /**
-     * Keep last PSA value
-     */
-    handlePsaChange(value) {
-      this.lastDefaultPodSecurityAdmissionTemplateName = value;
-    },
-
-    /**
      * Keep last PSP value
      */
     handlePspChange(value) {
@@ -2105,7 +2096,6 @@ export default {
                 data-testid="rke2-custom-edit-psa"
                 :options="psaOptions"
                 :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
-                @input="handlePsaChange($event)"
               />
             </div>
           </div>
