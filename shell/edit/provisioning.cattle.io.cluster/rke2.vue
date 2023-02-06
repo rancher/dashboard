@@ -1806,7 +1806,6 @@ export default {
         }
 
         this.previousKubernetesVersion = value;
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
       }
     },
 
