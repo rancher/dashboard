@@ -356,11 +356,10 @@ export default {
      */
     needsPSA() {
       const release = this.value?.spec?.kubernetesVersion || '';
-      const isRKE2 = release.includes('rke2');
       const version = release.match(/\d+/g);
       const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
 
-      return isRKE2 && isRequiredVersion;
+      return isRequiredVersion;
     },
 
     /**
