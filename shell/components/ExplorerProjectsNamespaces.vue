@@ -235,13 +235,17 @@ export default {
     }
   },
   methods: {
-    getPSA(row) {
+    /**
+     * Get PSA HTML to be displayed in the tooltips
+     */
+    getPsaTooltip(row) {
       const dictionary = row.psaTooltipsDescription;
       const list = Object.values(dictionary)
         .sort()
         .map(text => `<li>${ text }</li>`).join('');
+      const title = `<p>${ this.t('podSecurityAdmission.name') }: </p>`;
 
-      return `<ul class="psa-tooltip">${ list }</ul>`;
+      return `${ title }<ul class="psa-tooltip">${ list }</ul>`;
     },
 
     userIsFilteringForSpecificNamespaceOrProject() {
@@ -409,7 +413,7 @@ export default {
           </span>
           <i
             v-if="row.hasSystemLabels"
-            v-tooltip="getPSA(row)"
+            v-tooltip="getPsaTooltip(row)"
             class="icon icon-lock ml-5"
           />
         </div>

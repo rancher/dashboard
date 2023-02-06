@@ -62,6 +62,7 @@ export default {
      * Are there too many core list resources to show in the list?
      */
     __areResourcesTooMany() {
+      // __getCountForResources is defined on resource-fetch mixin...
       const count = this.__getCountForResources(this.loadResources);
 
       return count > this.perfConfig.forceNsFilter.threshold;

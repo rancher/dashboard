@@ -90,7 +90,7 @@ export default {
     },
 
     labels() {
-      if (this.showAllLabels || !this.showFilteredSystemLabels) {
+      if (!this.showFilteredSystemLabels) {
         return this.value?.labels || {};
       }
 
@@ -249,6 +249,7 @@ export default {
             v-tooltip="prop ? `${key} : ${prop}` : key"
           >
             <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
+            <span v-if="showAllLabels">: {{ key }}</span>
           </span>
           <span v-else>{{ prop ? `${key} : ${prop}` : key }}</span>
         </Tag>

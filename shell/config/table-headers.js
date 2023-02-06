@@ -464,7 +464,8 @@ export const LAST_SEEN_TIME = {
   name:     'lastSeen',
   labelKey: 'tableHeaders.lastSeen',
   value:    'lastSeen',
-  sort:     'lastTimestamp:desc'
+  sort:     'lastTimestamp:desc',
+  tooltip:  'tableHeaders.lastSeenTooltip'
 };
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',

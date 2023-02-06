@@ -1057,7 +1057,7 @@ describe('formRules', () => {
 
   describe.each([
     ['requiredInt', [2, 2.2], ['e']],
-    ['isInteger', ['2', 2], [2.2, 'e']],
+    ['isInteger', ['2', 2, 0], [2.2, 'e', '1.0']],
     ['isPositive', ['0', 1], [-1]],
     ['isOctal', ['0', 0, 10], ['01']],
 

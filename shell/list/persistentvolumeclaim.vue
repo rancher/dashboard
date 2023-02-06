@@ -25,11 +25,9 @@ export default {
   },
 
   async fetch() {
-    const inStore = this.$store.getters['currentStore']();
+    this.$initializeFetchData(this.resource);
 
-    // Fetch storage classes so we can determine if a PVC can be expanded
-    this.$store.dispatch(`${ inStore }/findAll`, { type: STORAGE_CLASS });
-
+    this.$fetchType(STORAGE_CLASS);
     await this.$fetchType(this.resource);
   }
 };
