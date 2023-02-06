@@ -280,6 +280,7 @@ export default {
 
     // Store the initial PSP template name, so we can set it back if needed
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
+    const lastDefaultPodSecurityAdmissionTemplateName = this.value.spec.defaultPodSecurityAdmissionTemplateName;
     const previousKubernetesVersion = this.value.spec.kubernetesVersion;
 
     return {
@@ -313,6 +314,7 @@ export default {
       }],
       harvesterVersionRange: {},
       lastDefaultPodSecurityPolicyTemplateName,
+      lastDefaultPodSecurityAdmissionTemplateName,
       previousKubernetesVersion,
     };
   },
@@ -1791,31 +1793,37 @@ export default {
         const major = parseInt(version?.[0] || 0);
         const minor = parseInt(version?.[1] || 0);
 
-        // If the new version is 1.25 or greater, set the PSP Policy to 'RKE2 Default' (empty string)
-        if (major === 1 && minor >= 25) {
+        // Reset PSA if not RKE2
+        if (!value.includes('rke2')) {
+          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
           set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
         } else {
-          const previous = VERSION.parse(this.previousKubernetesVersion);
-          const major = parseInt(previous?.[0] || 0);
-          const minor = parseInt(previous?.[1] || 0);
+          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', this.lastDefaultPodSecurityAdmissionTemplateName);
 
+          // Reset PSP if it's legacy due k8s version 1.25+
           if (major === 1 && minor >= 25) {
-            // Previous value was 1.25 or greater, so reset back
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+          } else {
             set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
           }
-        }
 
-        this.previousKubernetesVersion = value;
+          this.previousKubernetesVersion = value;
+        }
       }
     },
 
     /**
-     * Handle PSP changes side effects, like PSA resets
+     * Keep last PSA value
+     */
+    handlePsaChange(value) {
+      this.lastDefaultPodSecurityAdmissionTemplateName = value;
+    },
+
+    /**
+     * Keep last PSP value
      */
     handlePspChange(value) {
-      if (value) {
-        this.lastDefaultPodSecurityPolicyTemplateName = value;
-      }
+      this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
 
   },
@@ -2100,6 +2108,7 @@ export default {
                 data-testid="rke2-custom-edit-psa"
                 :options="psaOptions"
                 :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
+                @input="handlePsaChange($event)"
               />
             </div>
           </div>
