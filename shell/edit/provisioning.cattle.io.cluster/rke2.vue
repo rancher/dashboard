@@ -314,6 +314,7 @@ export default {
       harvesterVersionRange: {},
       lastDefaultPodSecurityPolicyTemplateName,
       previousKubernetesVersion,
+      harvesterVersion:      ''
     };
   },
 
@@ -903,6 +904,7 @@ export default {
     },
 
     isHarvesterIncompatible() {
+      const CompareVersion = '<v1.2';
       let ccmRke2Version = (this.chartVersions['harvester-cloud-provider'] || {})['version'];
       let csiRke2Version = (this.chartVersions['harvester-csi-driver'] || {})['version'];
 
@@ -918,8 +920,12 @@ export default {
       }
 
       if (ccmVersion && csiVersion) {
-        if (semver.satisfies(ccmRke2Version, ccmVersion) &&
-            semver.satisfies(csiRke2Version, csiVersion)) {
+        if (semver.satisfies(this.harvesterVersion, CompareVersion) || !(this.harvesterVersion || '').startsWith('v')) {
+          // When harveste version is less than `CompareVersion`, compatibility is not determined,
+          // At the same time, version numbers like this will not be checked: master-14bbee2c-head
+          return false;
+        } else if (semver.satisfies(ccmRke2Version, ccmVersion) &&
+          semver.satisfies(csiRke2Version, csiVersion)) {
           return false;
         } else {
           return true;
@@ -1752,7 +1758,10 @@ export default {
         const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.SETTING }s` });
 
         const version = (res?.data || []).find(s => s.id === 'harvester-csi-ccm-versions');
+        // get harvester server-version
+        const serverVersion = (res?.data || []).find(s => s.id === 'server-version');
 
+        this.harvesterVersion = serverVersion.value;
         if (version) {
           this.harvesterVersionRange = JSON.parse(version.value || version.default || '{}');
         } else {
