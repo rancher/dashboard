@@ -1795,11 +1795,8 @@ export default {
 
         // Reset PSA if not RKE2
         if (!value.includes('rke2')) {
-          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
           set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
         } else {
-          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', this.lastDefaultPodSecurityAdmissionTemplateName);
-
           // Reset PSP if it's legacy due k8s version 1.25+
           if (major === 1 && minor >= 25) {
             set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
