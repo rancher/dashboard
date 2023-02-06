@@ -68,7 +68,7 @@ export default {
 
       this.hasWorkspaces = !!hash.workspaces;
     } catch (e) {
-      console.error(e);
+      console.error(e); // eslint-disable-line no-console
     }
 
     try {
@@ -76,13 +76,13 @@ export default {
 
       this.permissions = permissions;
     } catch (e) {
-      console.error(e);
+      console.error(e); // eslint-disable-line no-console
     }
-   // this.$initializeFetchData(this.resource);
+    // this.$initializeFetchData(this.resource);
 
     // this.$fetchType(FLEET.CLUSTER);
     // this.$fetchType(FLEET.CLUSTER_GROUP);
-     await this.$fetchType(this.resource);
+    await this.$fetchType(this.resource);
   },
 
   data() {

@@ -49,7 +49,7 @@ export default {
 
       this.permissions = permissions;
     } catch (e) {
-      console.log(e);
+      console.error(e); // eslint-disable-line no-console
     }
   },
 
