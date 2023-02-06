@@ -95,7 +95,6 @@ export default Vue.extend<any, any, any, any>({
         this.sectionContent[0].isLoaded = true;
       }
 
-      console.log('🚀 ~ file: dashboard.vue:99 ~ redoCards ~ this.apps?.totalApps', this.apps?.totalApps);
       if (this.apps?.totalApps || this.apps?.totalApps === 0) {
         this.sectionContent[1].isLoaded = true;
       }
