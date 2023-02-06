@@ -79,6 +79,7 @@ export default {
   gap: $space-m;
   outline: 1px solid var(--border);
   border-radius: var(--border-radius);
+  height: 100%;
 
   // Header's style
   .d-header {
