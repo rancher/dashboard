@@ -21,6 +21,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 
 export default {
+  name:       'Charts',
   components: {
     AsyncButton,
     Banner,
@@ -53,6 +54,7 @@ export default {
       searchQuery:     null,
       showDeprecated:  null,
       showHidden:      null,
+      isPspLegacy:     false,
       chartOptions:    [
         {
           label: 'Browse',
@@ -239,6 +241,14 @@ export default {
     }
   },
 
+  created() {
+    const release = this.currentCluster?.status?.version.gitVersion || '';
+    const isRKE2 = release.includes('rke2');
+    const version = release.match(/\d+/g);
+
+    this.isPspLegacy = version?.length ? isRKE2 && (+version[0] === 1 && +version[1] < 25) : false;
+  },
+
   methods: {
     colorForChart(chart) {
       const repos = this.repoOptions;
@@ -363,6 +373,13 @@ export default {
         @clicked="(row) => selectChart(row)"
       />
     </div>
+
+    <Banner
+      v-if="isPspLegacy"
+      color="warning"
+      :label="t('catalog.chart.banner.legacy')"
+    />
+
     <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select
