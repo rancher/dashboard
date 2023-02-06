@@ -7,9 +7,10 @@ import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';
 import CompoundStatusBadge from '@shell/components/CompoundStatusBadge';
-import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
+import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
 
 export default {
   name:       'ListGitRepo',
@@ -17,7 +18,8 @@ export default {
     Loading,
     ResourceTable,
     CollapsibleCard,
-    CompoundStatusBadge
+    CompoundStatusBadge,
+    FleetNoWorkspaces
   },
 
   async fetch() {
@@ -41,6 +43,14 @@ export default {
 
     this.gitRepos = hash.gitRepos;
     this.fleetWorkspacesData = hash.fleetWorkspaces || [];
+
+    try {
+      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO } }, this.$store.getters);
+
+      this.permissions = permissions;
+    } catch (e) {
+      console.log(e);
+    }
   },
 
   data() {
@@ -80,6 +90,7 @@ export default {
       gitRepos:            [],
       fleetWorkspacesData: [],
       isCollapsed:         {},
+      permissions:         {},
       getStartedLink:      {
         name:   'c-cluster-product-resource-create',
         params: {
@@ -290,6 +301,10 @@ export default {
   <div class="fleet-dashboard">
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
+    <FleetNoWorkspaces
+      v-else-if="!fleetWorkspacesData.length"
+      :can-view="permissions.workspaces"
+    />
     <div
       v-else-if="!gitRepos.length"
       class="fleet-empty-dashboard"
@@ -429,6 +444,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.fleet-dashboard {
+  min-height: 100vh;
+}
 .fleet-empty-dashboard {
   flex: 1;
   display: flex;
