@@ -254,7 +254,7 @@ function matches(fields, token, item) {
     }
 
     if ( !modifier ) {
-      if ( val.includes(token) ) {
+      if ( val.includes((`${ token }`).toLowerCase()) ) {
         return true;
       }
     } else if ( modifier === 'exact' ) {
