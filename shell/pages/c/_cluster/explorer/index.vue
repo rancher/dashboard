@@ -42,7 +42,7 @@ import EventsTable from './EventsTable';
 import { fetchClusterResources } from './explorer-utils';
 import SimpleBox from '@shell/components/SimpleBox';
 import { ExtensionPoint, CardLocation } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 

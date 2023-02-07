@@ -1,5 +1,5 @@
 <script>
-import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 export default {
   name:  'ExtensionPanel',

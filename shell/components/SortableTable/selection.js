@@ -590,23 +590,10 @@ function _execute(resources, action, args, opts = {}, ctx) {
   }
 
   if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
-    // Check if bulkAction is a string or a function (extensions use functions)
-    const isFunction = typeof action.bulkAction !== 'string';
+    const fn = resources[0][action.bulkAction];
 
-    // this means it's a bulkable action coming from an extension
-    if (isFunction) {
-      const fn = action.bulkAction;
-
-      if ( fn ) {
-        return fn.call(ctx, resources, ...args);
-      }
-    // regular flow for bulk actions
-    } else {
-      const fn = resources[0][action.bulkAction];
-
-      if ( fn ) {
-        return fn.call(resources[0], resources, ...args);
-      }
+    if ( fn ) {
+      return fn.call(resources[0], resources, ...args);
     }
   }
 
@@ -615,17 +602,13 @@ function _execute(resources, action, args, opts = {}, ctx) {
   for ( const resource of resources ) {
     let fn;
 
-    if (action.singleAction) {
-      fn = action.singleAction;
-    } else if (opts.alt && action.altAction) {
+    if (opts.alt && action.altAction) {
       fn = resource[action.altAction];
     } else {
       fn = resource[action.action];
     }
 
-    if (fn && action.singleAction) {
-      promises.push(fn.apply(ctx, [args]));
-    } else if (fn) {
+    if ( fn ) {
       promises.push(fn.apply(resource, args));
     }
   }

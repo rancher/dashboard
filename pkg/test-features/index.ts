@@ -44,7 +44,7 @@ export default function(plugin: IPlugin) {
     {
       tooltipKey: 'plugin-examples.header-action-two',
       tooltip:    'Test Action2',
-      shortcut:   { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
+      shortcut:   'b',
       svg:        require('@pkg/test-features/icons/rancher-desktop.svg'),
       enabled(ctx: any) {
         return true;
@@ -71,14 +71,6 @@ export default function(plugin: IPlugin) {
       component:  () => import('./MyTabComponent.vue')
     }
   );
-
-  // We shouldn't have to do this
-
-  // TABLE ACTIONS - divider
-  // plugin.addAction(
-  //   ActionLocation.TABLE,
-  //   { resource: 'catalog.cattle.io.clusterrepo' },
-  //   { divider: true }); // renders a divider instead of an actual action
 
   // TABLE ACTIONS - ROW ACTION
   plugin.addAction(

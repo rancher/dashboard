@@ -36,6 +36,7 @@ export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => 
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
 
+/** Enum regarding the extensionable areas/places of the UI */
 export enum ExtensionPoint {
   ACTION = 'Action', // eslint-disable-line no-unused-vars
   TAB = 'Tab', // eslint-disable-line no-unused-vars
@@ -44,40 +45,48 @@ export enum ExtensionPoint {
   TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
 }
 
+/** Enum regarding action locations that are extensionable in the UI */
 export enum ActionLocation {
   HEADER = 'header-action', // eslint-disable-line no-unused-vars
   TABLE = 'table-action', // eslint-disable-line no-unused-vars
 }
 
+/** Enum regarding panel locations that are extensionable in the UI */
 export enum PanelLocation {
   DETAILS_MASTHEAD = 'details-masthead', // eslint-disable-line no-unused-vars
   DETAIL_TOP = 'detail-top', // eslint-disable-line no-unused-vars
   RESOURCE_LIST = 'resource-list', // eslint-disable-line no-unused-vars
 }
 
+/** Enum regarding tab locations that are extensionable in the UI */
 export enum TabLocation {
   RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
 }
 
+/** Enum regarding card locations that are extensionable in the UI */
 export enum CardLocation {
   CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card', // eslint-disable-line no-unused-vars
 }
 
+/** Enum regarding table col locations that are extensionable in the UI */
 export enum TableColumnLocation {
   RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
 }
 
+/** Definition of the shortcut object (keyboard shortcuts) */
 export type ShortCutKey = {
   windows?: string[];
   mac?: string[];
 };
 
+/** Definition of the action options (table actions) */
 export type ActionOpts = {
   event: any;
   isAlt: boolean;
   action: any;
 };
 
+/** Definition of an extension action (options that can be passed when setting an extension action) */
 export type Action = {
   label?: string;
   labelKey?: string;
@@ -91,10 +100,12 @@ export type Action = {
   invoke: (opts: ActionOpts, resources: any[]) => void | boolean | Promise<boolean>;
 };
 
+/** Definition of a panel (options that can be passed when defining an extension panel enhancement) */
 export type Panel = {
   component: Function;
 };
 
+/** Definition of a card (options that can be passed when defining an extension card enhancement) */
 export type Card = {
   label?: string;
   labelKey?: string;
@@ -103,6 +114,7 @@ export type Card = {
 
 export type TableColumn = any;
 
+/** Definition of a tab (options that can be passed when defining an extension tab enhancement) */
 export type Tab = {
   name: string;
   label?: string;
@@ -114,6 +126,7 @@ export type Tab = {
   component: Function;
 };
 
+/** Definition of the locationConfig object (used in extensions) */
 export type LocationConfig = {
   product?: string,
   resource?: string,

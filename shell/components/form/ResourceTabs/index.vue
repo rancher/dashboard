@@ -12,7 +12,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 export default {
 

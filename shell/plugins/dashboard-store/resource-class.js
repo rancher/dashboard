@@ -38,7 +38,7 @@ import Vue from 'vue';
 import { normalizeType } from './normalize';
 
 import { ExtensionPoint, ActionLocation } from '@shell/core/types';
-import { getApplicableExtensionEnhancements } from '@shell/core/helpers';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 const STRING_LIKE_TYPES = [
   'string',

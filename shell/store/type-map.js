@@ -232,7 +232,7 @@ export function DSL(store, product, module = 'type-map') {
       if (headers.length > 0) {
         const lastColumn = headers[headers.length - 1];
 
-        if (lastColumn?.name === 'age') {
+        if (lastColumn?.name === AGE.name) {
           insertPosition--;
         }
       }

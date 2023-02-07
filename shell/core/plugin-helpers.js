@@ -1,6 +1,7 @@
 import { ActionLocation, CardLocation, ExtensionPoint } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
-import { ucFirst } from '@shell/utils/string';
+import { ucFirst, randomStr } from '@shell/utils/string';
+import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
 
 function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
   // console.log('name && params', name, params);
@@ -40,13 +41,13 @@ function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
         }
         // also handle "mode" in a separate way because it mainly depends on query params
       } else if (param === 'mode') {
-        if (locationConfig[param] === 'edit' && query.mode && query.mode === 'edit') {
+        if (locationConfig[param] === _EDIT && query.mode && query.mode === _EDIT) {
           res = true;
-        } else if (locationConfig[param] === 'config' && query.as && query.as === 'config') {
+        } else if (locationConfig[param] === _CONFIG && query.as && query.as === _CONFIG) {
           res = true;
-        } else if (locationConfig[param] === 'detail' && name.includes('-id')) {
+        } else if (locationConfig[param] === _DETAIL && name.includes('-id')) {
           res = true;
-        } else if (locationConfig[param] === 'list' && !name.includes('-id')) {
+        } else if (locationConfig[param] === _LIST && !name.includes('-id')) {
           res = true;
         } else {
           res = false;
@@ -82,6 +83,7 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
 
       // ADD ACTION PLUGIN UI ENHANCEMENT
       } else if (actionType === ExtensionPoint.ACTION) {
+        // TABLE ACTION
         if (uiArea === ActionLocation.TABLE) {
           // intercept to apply translation
           if (action.labelKey) {
@@ -93,10 +95,16 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
             actions[i].enabled = true;
           }
 
+          // bulkable flag
           actions[i].bulkable = actions[i].multiple || actions[i].bulkable;
+
+          // populate action identifier to prevent errors
+          if (!actions[i].action) {
+            actions[i].action = `custom-table-action-${ randomStr(10).toLowerCase() }`;
+          }
         }
 
-        // extract simplified shortcut definition on plugin
+        // extract simplified shortcut definition on plugin - HEADER ACTION
         if (uiArea === ActionLocation.HEADER && action.shortcut) {
           // if it's a string, then assume CTRL for windows and META for mac
           if (typeof action.shortcut === 'string') {
