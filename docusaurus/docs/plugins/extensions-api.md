@@ -168,7 +168,7 @@ _Arguments_
 |---|---|---|
 |`tooltip`| String | Text for tooltip of button |
 |`tooltipKey`| String | Same as "tooltip" but allows for translation. Will superseed "tooltip" |
-|`shortcut`| Object or String | Shortcut key binding. Check examples |
+|`shortcut`| String | Shortcut key bindings. Passed as a string (ex: m), for which the default will be `Ctrl+m` for Linux/Windows and `Meta+m` for Mac OS. Check examples below |
 |`icon`| String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
 |`svg`| Function | icon based on a SVG file which can be included using `@require` |
 |`enabled`| Function | Whether the action/button is enabled or not |
@@ -205,7 +205,7 @@ plugin.addAction(
   {
     tooltipKey: 'plugin-examples.header-action-two',
     tooltip:    'Test Action2',
-    shortcut:   { windows: ['ctrl', 'b'], mac: ['meta', 'b'] },
+    shortcut:   'b',
     svg:        require('@pkg/test-features/icons/rancher-desktop.svg'),
     enabled(ctx: any) {
       return true;
