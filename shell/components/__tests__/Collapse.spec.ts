@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils';
 import Collapse from '@shell/components/Collapse.vue';
+import { mount } from '@vue/test-utils';
 
 describe('component: Collapse.vue', () => {
   describe('closed', () => {

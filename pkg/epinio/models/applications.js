@@ -1,10 +1,10 @@
-import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
-import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
-import EpinioMetaResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
-import { createEpinioRoute } from '../utils/custom-routing';
+import { formatSi } from '@shell/utils/units';
 import { epiniofy } from '../store/epinio-store/actions';
+import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import { createEpinioRoute } from '../utils/custom-routing';
+import EpinioMetaResource from './epinio-namespaced-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -281,7 +281,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       return {
         label:   'GitHub',
         icon:    'icon-github',
-        details:  [
+        details: [
           appChart, {
             label: 'Url',
             value: this.origin.git.repository
