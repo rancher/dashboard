@@ -5,11 +5,11 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 export default {
   props: {
     gitSource:      { default: null, type: Object },
-    commitPosition:     {
+    commitPosition: {
       default: null,
       type:    Object
     },
-    gitDeployment:  {
+    gitDeployment: {
       default: null,
       type:    Object
     },
@@ -27,26 +27,43 @@ export default {
 <template>
   <div class="repo-info">
     <div class="repo-info-owner">
-      <img :src="gitSource.owner.avatar_url" alt="">
+      <img
+        :src="gitSource.owner.avatar_url"
+        alt=""
+      >
       <div>
-        <a ref="nofollow" target="_blank" :href="gitSource.owner.html_url">{{ gitSource.owner.login }}</a>
+        <a
+          ref="nofollow"
+          target="_blank"
+          :href="gitSource.owner.html_url"
+        >{{ gitSource.owner.login }}</a>
         <span>/</span>
-        <a ref="nofollow" target="_blank" :href="gitSource.html_url">{{ gitSource.name }}</a>
+        <a
+          ref="nofollow"
+          target="_blank"
+          :href="gitSource.html_url"
+        >{{ gitSource.name }}</a>
       </div>
     </div>
-    <div v-if="gitDeployment.deployedCommit" class="repo-info-revision">
+    <div
+      v-if="gitDeployment.deployedCommit"
+      class="repo-info-revision"
+    >
       <span>
-        <i class="icon icon-fw icon-commit"></i>
+        <i class="icon icon-fw icon-commit" />
         {{ gitDeployment.deployedCommit.short }}
 
       </span>
-      <span v-if="commitPosition" class="masthead-state badge-state">
-        <i class="icon icon-fw icon-commit"></i>
+      <span
+        v-if="commitPosition"
+        class="masthead-state badge-state"
+      >
+        <i class="icon icon-fw icon-commit" />
         {{ commitPosition.text }}
       </span>
     </div>
     <div class="repo-info-description">
-      <i class="icon icon-fw icon-comment"></i>
+      <i class="icon icon-fw icon-comment" />
       <p>
         {{ gitSource.description }}
       </p>

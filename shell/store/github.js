@@ -1,5 +1,3 @@
-import { classify } from '@shell/plugins/dashboard-store/classify';
-import lookup from '@shell/plugins/lookup';
 const GITHUB_BASE_API = 'https://api.github.com';
 
 const fetchGithubAPI = async(endpoint) => {
@@ -21,10 +19,10 @@ const fetchGithubAPI = async(endpoint) => {
 };
 
 export const getters = {
-  classify: (state, getters, rootState) => (obj) => {
-    // TODO: Handle classify
-    return lookup('github', obj.type, undefined, rootState);
-  }
+  // classify: (state, getters, rootState) => (obj) => {
+  //   // TODO: Handle classify
+  //   return lookup('github', obj.type, undefined, rootState);
+  // }
 };
 
 export const actions = {
