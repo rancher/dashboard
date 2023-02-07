@@ -584,6 +584,7 @@ export default {
   .side-nav {
     display: flex;
     flex-direction: column;
+    min-width: var(--nav-width);
     .nav {
       flex: 1;
       overflow-y: auto;

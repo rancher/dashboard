@@ -304,6 +304,7 @@ export default {
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
     >
+      {{ singleProductLogoRoute }}
       <n-link
         v-if="isSingleProduct"
         :to="singleProductLogoRoute"

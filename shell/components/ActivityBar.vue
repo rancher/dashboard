@@ -9,32 +9,20 @@ export default Vue.extend({
     ActivityBarBody,
     ActivityBarMenu,
   },
+  props: {
+    activities: {
+      type:     Array,
+      required: true,
+    }
+  },
   data() {
-    return {
-      isExpanded: false,
-      activities: [
-        {
-          id:     'desktop',
-          icon:   'icon-rancher-desktop',
-          label:  'Desktop',
-          active: true,
-          route:  '/general',
-        },
-        {
-          id:     'dashboard',
-          icon:   'icon-dashboard',
-          label:  'Dashboard',
-          active: false,
-          route:  '/c/local',
-        },
-      ]
-    };
+    return { isExpanded: false };
   },
   methods: {
     toggleExpansion() {
       this.isExpanded = !this.isExpanded;
     }
-  }
+  },
 });
 </script>
 
@@ -50,6 +38,7 @@ export default Vue.extend({
       @click="toggleExpansion"
     />
     <activity-bar-body
+      v-if="activities"
       :activities="activities"
       :is-expanded="isExpanded"
     />

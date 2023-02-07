@@ -25,6 +25,7 @@ export default {
       class="activity"
     >
       <nuxt-link
+        v-if="activity.route"
         :to="activity.route"
         :class="{ active: activity.active }"
       >

@@ -10,7 +10,6 @@ import { CAPI, HCI } from '@shell/config/types';
 import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
 import { Banner } from '@components/Banner';
 import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
-import { NAME as HARVESTER_MANAGER } from '@/pkg/harvester-manager/config/harvester-manager';
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { addObject } from '@shell/utils/array';
 import { HIDE_DESC, mapPref } from '@shell/store/prefs';
