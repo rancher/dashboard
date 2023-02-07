@@ -147,8 +147,8 @@ export default {
 
     displayPspDeprecationBanner() {
       const cluster = this.currentCluster;
-      const major = cluster.status?.version?.major ? parseInt(cluster.status?.version?.major) : 0;
-      const minor = cluster.status?.version?.minor ? parseInt(cluster.status?.version?.minor) : 0;
+      const major = cluster?.status?.version?.major ? parseInt(cluster?.status?.version?.major) : 0;
+      const minor = cluster?.status?.version?.minor ? parseInt(cluster?.status?.version?.minor) : 0;
 
       if (major === 1 && minor >= 21 && minor < 25) {
         const clusterCounts = this.$store.getters[`cluster/all`](COUNT)?.[0]?.counts;
@@ -181,7 +181,7 @@ export default {
     displayProvider() {
       const other = 'other';
 
-      let provider = this.currentCluster.status.provider || other;
+      let provider = this.currentCluster?.status?.provider || other;
 
       if (provider === 'rke.windows') {
         provider = 'rkeWindows';
@@ -442,18 +442,21 @@ export default {
       <div>
         <label>{{ t('glance.version') }}: </label>
         <span
-          v-if="currentCluster.kubernetesVersionExtension"
+          v-if="currentCluster && currentCluster.kubernetesVersionExtension"
           style="font-size: 0.5em"
         >{{ currentCluster.kubernetesVersionExtension }}</span>
-        <span>{{ currentCluster.kubernetesVersionBase }}</span>
+        <span v-if="currentCluster">{{ currentCluster.kubernetesVersionBase }}</span>
       </div>
       <div>
         <label>{{ t('glance.created') }}: </label>
-        <span><LiveDate
-          :value="currentCluster.metadata.creationTimestamp"
-          :add-suffix="true"
-          :show-tooltip="true"
-        /></span>
+        <span>
+          <LiveDate
+            v-if="currentCluster"
+            :value="currentCluster.metadata.creationTimestamp"
+            :add-suffix="true"
+            :show-tooltip="true"
+          />
+        </span>
       </div>
       <p
         v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
@@ -477,7 +480,7 @@ export default {
         <span>{{ t('glance.v1MonitoringInstalled') }}</span>
       </div>
       <ConfigBadge
-        v-if="currentCluster.canUpdate"
+        v-if="currentCluster && currentCluster.canUpdate"
         :cluster="currentCluster"
       />
     </div>

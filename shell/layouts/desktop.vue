@@ -20,6 +20,27 @@ export default {
 
   middleware: ['authenticated'],
 
+  data() {
+    return {
+      activities: [
+        {
+          id:     'desktop',
+          icon:   'icon-rancher-desktop',
+          label:  'Desktop',
+          active: true,
+          route:  '/rancher-desktop/general',
+        },
+        {
+          id:     'dashboard',
+          icon:   'icon-dashboard',
+          label:  'Dashboard',
+          active: false,
+          route:  '/c/local',
+        },
+      ]
+    };
+  },
+
   computed: {
     ...mapState(['managementReady']),
     ...mapGetters(['isSingleProduct']),
@@ -35,34 +56,12 @@ export default {
         }
       };
     },
-
-    activities() {
-      const desktopRoute = this.singleProductLogoRoute;
-
-      return [
-        {
-          id:     'desktop',
-          icon:   'icon-rancher-desktop',
-          label:  'Desktop',
-          active: true,
-          route:  desktopRoute,
-        },
-        {
-          id:     'dashboard',
-          icon:   'icon-dashboard',
-          label:  'Dashboard',
-          active: false,
-          route:  '/c/local',
-        },
-      ];
-    },
   },
 };
 </script>
 
 <template>
   <div class="dashboard-root">
-    {{ $route }}
     <div class="dashboard-content">
       <activity-bar
         class="activity-bar"
