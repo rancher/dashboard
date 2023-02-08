@@ -55,7 +55,7 @@ export default {
     return { className: '' };
   },
 
-  created() {
+  mounted() {
     if (this.src) {
       this.setColor();
     }
@@ -63,8 +63,21 @@ export default {
 
   methods: {
     setColor() {
-      const uiColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].color).trim());
-      const hoverColor = mapStandardColors(getComputedStyle(document.body).getPropertyValue(colors[this.color].hover).trim());
+      const currTheme = this.$store.getters['prefs/theme'];
+      let uiColor, hoverColor;
+
+      // grab css vars values based on the actual stylesheets, depending on the theme applied
+      Object.keys(document.styleSheets).forEach((ssIndex) => {
+        Object.keys(document.styleSheets[ssIndex].cssRules).forEach((cssRulesIndex) => {
+          const cssRules = document.styleSheets[ssIndex].cssRules[cssRulesIndex];
+          const selectorText = currTheme === 'light' ? 'body, .theme-light' : '.theme-dark';
+
+          if (cssRules.selectorText && cssRules.selectorText === selectorText) {
+            uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
+            hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
+          }
+        });
+      });
 
       const uiColorRGB = colorToRgb(uiColor);
       const hoverColorRGB = colorToRgb(hoverColor);
