@@ -65,6 +65,7 @@ export default class EpinioResource extends Resource {
       opt.url = (this.links || {})['self'].replace(/\/[^\/]+$/, '?');
     }
     opt.method = 'delete';
+    opt.data = JSON.stringify({ unbind: false });
 
     // Separates the resources by namespace
     const _byNamespace = items.reduce((acc, cur) => {
@@ -82,14 +83,13 @@ export default class EpinioResource extends Resource {
     const resPerNS = buildBulkLink(_byNamespace, this.type);
 
     // Call the bulk remove for each namespace
-    for await (const [key, value] of Object.entries(resPerNS)) {
+    await Promise.all(Object.entries(resPerNS).map(async([key, value]) => {
       opt.url = `${ opt.url?.replace(/\/([^\/]*)\/([^\/]*)\/([^\/]*)\/([^\/]*)/, `/$1/$2/$3/${ key }`) }${ value }`;
 
+      this.$dispatch('remove', this);
+
       await this.$dispatch('request', { opt, type: this.type });
-
       console.log('### Resource Bulk Remove', this.type, this.id, opt); // eslint-disable-line no-console
-    }
-
-    this.$dispatch('remove', this);
+    }));
   }
 }
