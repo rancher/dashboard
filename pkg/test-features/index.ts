@@ -40,7 +40,7 @@ export default function(plugin: IPlugin) {
   // HEADER ACTION - BOUND TO A PRODUCT
   plugin.addAction(
     ActionLocation.HEADER,
-    { product: 'explorer' },
+    { product: ['explorer'] },
     {
       tooltipKey: 'plugin-examples.header-action-two',
       tooltip:    'Test Action2',
@@ -60,7 +60,7 @@ export default function(plugin: IPlugin) {
   // ADDS TAB TO "ResourceTabs" COMPONENT
   plugin.addTab(
     TabLocation.RESOURCE_DETAIL,
-    { resource: 'pod' },
+    { resource: ['pod'] },
     {
       name:       'some-name',
       labelKey:   'plugin-examples.tab-label',
@@ -75,7 +75,7 @@ export default function(plugin: IPlugin) {
   // TABLE ACTIONS - ROW ACTION
   plugin.addAction(
     ActionLocation.TABLE,
-    'catalog.cattle.io.clusterrepo',
+    { resource: ['catalog.cattle.io.clusterrepo'] },
     {
       label:    'some-extension-action',
       labelKey: 'plugin-examples.table-action-one',
@@ -89,7 +89,7 @@ export default function(plugin: IPlugin) {
   // TABLE ACTIONS - ROW + BULKABLE
   plugin.addAction(
     ActionLocation.TABLE,
-    { resource: 'catalog.cattle.io.clusterrepo' },
+    { resource: ['catalog.cattle.io.clusterrepo'] },
     {
       label:    'some-bulkable-action',
       labelKey: 'plugin-examples.table-action-two',
@@ -106,37 +106,37 @@ export default function(plugin: IPlugin) {
   // DETAILS VIEW MASTHEAD DATA
   plugin.addPanel(
     PanelLocation.DETAILS_MASTHEAD,
-    'catalog.cattle.io.clusterrepo',
+    { resource: ['catalog.cattle.io.clusterrepo'] },
     { component: () => import('./MastheadDetailsComponent.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA - CONFIG VIEW
   plugin.addPanel(
     PanelLocation.DETAILS_MASTHEAD,
-    { resource: 'catalog.cattle.io.clusterrepo', mode: 'config' },
+    { resource: ['catalog.cattle.io.clusterrepo'], mode: ['config'] },
     { component: () => import('./MastheadDetailsComponentConfig.vue') }); // component to be rendered
 
   // DETAILS VIEW MASTHEAD DATA - EDIT VIEW
   plugin.addPanel(
     PanelLocation.DETAILS_MASTHEAD,
-    { resource: 'catalog.cattle.io.clusterrepo', mode: 'edit' },
+    { resource: ['catalog.cattle.io.clusterrepo'], mode: ['edit'] },
     { component: () => import('./MastheadDetailsComponentEdit.vue') }); // component to be rendered
 
   // DETAILS VIEW "DetailTop" DATA
   plugin.addPanel(
     PanelLocation.DETAIL_TOP,
-    { resource: 'catalog.cattle.io.clusterrepo' },
+    { resource: ['catalog.cattle.io.clusterrepo'] },
     { component: () => import('./DetailTopComponent.vue') }); // component to be rendered
 
   // DATA ABOVE LIST VIEW
   plugin.addPanel(
     PanelLocation.RESOURCE_LIST,
-    { resource: 'catalog.cattle.io.app' },
+    { resource: ['catalog.cattle.io.app'] },
     { component: () => import('./BannerComponent.vue') }); // component to be rendered
 
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
     CardLocation.CLUSTER_DASHBOARD_CARD,
-    { cluster: 'local' },
+    { cluster: ['local'] },
     {
       label:     'some-label',
       labelKey:  'plugin-examples.card-title-one',
@@ -147,7 +147,7 @@ export default function(plugin: IPlugin) {
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
     CardLocation.CLUSTER_DASHBOARD_CARD,
-    { cluster: 'local' },
+    { cluster: ['local'] },
     {
       label:     'some-label1',
       labelKey:  'plugin-examples.card-title-two',
@@ -158,7 +158,7 @@ export default function(plugin: IPlugin) {
   // CLUSTER DASHBOARD CARD
   plugin.addCard(
     CardLocation.CLUSTER_DASHBOARD_CARD,
-    { cluster: 'local' },
+    { cluster: ['local'] },
     {
       label:     'some-label2',
       labelKey:  'plugin-examples.card-title-three',
@@ -169,7 +169,7 @@ export default function(plugin: IPlugin) {
   // ADD A COL TO A TABLE
   plugin.addTableColumn(
     TableColumnLocation.RESOURCE,
-    'configmap',
+    { resource: ['configmap', 'secret'] },
     {
       name:     'some-prop-col',
       labelKey: 'plugin-examples.col-label',

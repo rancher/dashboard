@@ -2,10 +2,9 @@ import { ActionLocation, CardLocation, ExtensionPoint } from '@shell/core/types'
 import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
 import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
+import { getProductFromRoute } from '@shell/middleware/authenticated';
 
 function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
-  // console.log('name && params', name, params);
-
   // if no configuration is passed, consider it as global
   if (!Object.keys(locationConfig).length) {
     return true;
@@ -27,39 +26,49 @@ function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
     const param = paramsToCheck[i];
 
     if (locationConfig[param]) {
-      // handle "product" in a separate way...
-      if (param === 'product') {
-        // alias for the homepage
-        if (locationConfig[param] === 'home' && !name.startsWith('c-')) {
-          res = true;
-        // alias for the cluster explorer
-        } else if (locationConfig[param] === 'explorer' && name.startsWith('c-cluster-explorer')) {
-          res = true;
-        } else if (locationConfig[param] === params[param]) {
-          res = true;
+      for (let x = 0; x < locationConfig[param].length; x++) {
+        const locationConfigParam = locationConfig[param][x];
+
+        if (locationConfigParam) {
+        // handle "product" in a separate way...
+          if (param === 'product') {
+            const product = getProductFromRoute({
+              name, params, query
+            });
+
+            // alias for the homepage
+            if (locationConfigParam === 'home' && name === 'home') {
+              res = true;
+            } else if (locationConfigParam === product) {
+              res = true;
+            } else {
+              res = false;
+              break;
+            }
+          // also handle "mode" in a separate way because it mainly depends on query params
+          } else if (param === 'mode') {
+            if (locationConfigParam === _EDIT && query.mode && query.mode === _EDIT) {
+              res = true;
+            } else if (locationConfigParam === _CONFIG && query.as && query.as === _CONFIG) {
+              res = true;
+            } else if (locationConfigParam === _DETAIL && name.includes('-id')) {
+              res = true;
+              // alias to target all list views
+            } else if (locationConfigParam === _LIST && !name.includes('-id') && name.includes('-resource')) {
+              res = true;
+            } else {
+              res = false;
+              break;
+            }
+          } else if (locationConfigParam === params[param]) {
+            res = true;
+          } else {
+            res = false;
+            break;
+          }
         } else {
-          res = false;
-          break;
+          continue;
         }
-        // also handle "mode" in a separate way because it mainly depends on query params
-      } else if (param === 'mode') {
-        if (locationConfig[param] === _EDIT && query.mode && query.mode === _EDIT) {
-          res = true;
-        } else if (locationConfig[param] === _CONFIG && query.as && query.as === _CONFIG) {
-          res = true;
-        } else if (locationConfig[param] === _DETAIL && name.includes('-id')) {
-          res = true;
-        } else if (locationConfig[param] === _LIST && !name.includes('-id')) {
-          res = true;
-        } else {
-          res = false;
-          break;
-        }
-      } else if (locationConfig[param] === params[param]) {
-        res = true;
-      } else {
-        res = false;
-        break;
       }
     } else {
       continue;

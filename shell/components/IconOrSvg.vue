@@ -67,17 +67,30 @@ export default {
       let uiColor, hoverColor;
 
       // grab css vars values based on the actual stylesheets, depending on the theme applied
-      Object.keys(document.styleSheets).forEach((ssIndex) => {
-        Object.keys(document.styleSheets[ssIndex].cssRules).forEach((cssRulesIndex) => {
-          const cssRules = document.styleSheets[ssIndex].cssRules[cssRulesIndex];
-          const selectorText = currTheme === 'light' ? 'body, .theme-light' : '.theme-dark';
+      // use for loops to minimize computation
+      for (let i = 0; i < Object.keys(document.styleSheets).length; i++) {
+        let found = false;
+        const stylesheet = document.styleSheets[i];
 
-          if (cssRules.selectorText && cssRules.selectorText === selectorText) {
-            uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
-            hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
+        if (stylesheet && stylesheet.cssRules) {
+          for (let x = 0; x < Object.keys(stylesheet.cssRules).length; x++) {
+            const cssRules = stylesheet.cssRules[x];
+            const selectorText = currTheme === 'light' ? 'body, .theme-light' : '.theme-dark';
+
+            if (cssRules.selectorText && cssRules.selectorText === selectorText) {
+              uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
+              hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
+              found = true;
+              break;
+            }
           }
-        });
-      });
+        }
+        if (found) {
+          break;
+        } else {
+          continue;
+        }
+      }
 
       const uiColorRGB = colorToRgb(uiColor);
       const hoverColorRGB = colorToRgb(hoverColor);

@@ -128,12 +128,12 @@ export type Tab = {
 
 /** Definition of the locationConfig object (used in extensions) */
 export type LocationConfig = {
-  product?: string,
-  resource?: string,
-  namespace?: string,
-  cluster?: string,
-  id?: string,
-  mode?: string
+  product?: string[],
+  resource?: string[],
+  namespace?: string[],
+  cluster?: string[],
+  id?: string[],
+  mode?: string[]
 };
 
 /**
