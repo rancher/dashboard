@@ -4,11 +4,43 @@ import { ucFirst, randomStr } from '@shell/utils/string';
 import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 
-function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
+function checkRouteProduct({ name, params, query }, locationConfigParam) {
+  const product = getProductFromRoute({
+    name, params, query
+  });
+
+  // alias for the homepage
+  if (locationConfigParam === 'home' && name === 'home') {
+    return true;
+  } else if (locationConfigParam === product) {
+    return true;
+  }
+
+  return false;
+}
+
+function checkRouteMode({ name, query }, locationConfigParam) {
+  if (locationConfigParam === _EDIT && query.mode && query.mode === _EDIT) {
+    return true;
+  } else if (locationConfigParam === _CONFIG && query.as && query.as === _CONFIG) {
+    return true;
+  } else if (locationConfigParam === _DETAIL && name.includes('-id')) {
+    return true;
+    // alias to target all list views
+  } else if (locationConfigParam === _LIST && !name.includes('-id') && name.includes('-resource')) {
+    return true;
+  }
+
+  return false;
+}
+
+function checkExtensionRouteBinding($route, locationConfig) {
   // if no configuration is passed, consider it as global
   if (!Object.keys(locationConfig).length) {
     return true;
   }
+
+  const { params } = $route;
 
   // "params" to be checked based on the locationConfig
   const paramsToCheck = [
@@ -30,48 +62,29 @@ function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
         const locationConfigParam = locationConfig[param][x];
 
         if (locationConfigParam) {
-        // handle "product" in a separate way...
+          // handle "product" in a separate way...
           if (param === 'product') {
-            const product = getProductFromRoute({
-              name, params, query
-            });
-
-            // alias for the homepage
-            if (locationConfigParam === 'home' && name === 'home') {
-              res = true;
-            } else if (locationConfigParam === product) {
-              res = true;
-            } else {
-              res = false;
-              break;
-            }
+            res = checkRouteProduct($route, locationConfigParam);
           // also handle "mode" in a separate way because it mainly depends on query params
           } else if (param === 'mode') {
-            if (locationConfigParam === _EDIT && query.mode && query.mode === _EDIT) {
-              res = true;
-            } else if (locationConfigParam === _CONFIG && query.as && query.as === _CONFIG) {
-              res = true;
-            } else if (locationConfigParam === _DETAIL && name.includes('-id')) {
-              res = true;
-              // alias to target all list views
-            } else if (locationConfigParam === _LIST && !name.includes('-id') && name.includes('-resource')) {
-              res = true;
-            } else {
-              res = false;
-              break;
-            }
+            res = checkRouteMode($route, locationConfigParam);
           } else if (locationConfigParam === params[param]) {
             res = true;
           } else {
             res = false;
-            break;
           }
-        } else {
-          continue;
+        }
+
+        // If a single location config param is good then this is an param (aka ['pods', 'configmap'] = pods or configmaps)
+        if (res) {
+          break;
         }
       }
-    } else {
-      continue;
+
+      // If a single param (set of location config params) is bad then this is not an acceptable location
+      if (!res) {
+        break;
+      }
     }
   }
 
