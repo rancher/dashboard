@@ -952,7 +952,7 @@ catalog:
       defaultMessage: 'Will default to "master" if left blank'
     gitRepo:
       label: Git Repo URL
-      placeholder: e.g. git@github.com:rancher/fleet-examples.git
+      placeholder: 'e.g. https://github.com/your-company/charts.git'
     name:
       rancher-charts: '{vendor}'
       rancher-partner-charts: Partners
