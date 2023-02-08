@@ -111,7 +111,6 @@ export default {
     const addRepositorySteps = [stepRepoInfo, stepTargetInfo].sort((a, b) => (b.weight || 0) - (a.weight || 0));
 
     return {
-      repoProtocol:         'https',
       allClusters:          [],
       allClusterGroups:     [],
       allWorkspaces:        [],
@@ -234,24 +233,6 @@ export default {
     stepOneRequires() {
       return !!this.value.metadata.name && !!this.refValue;
     },
-
-    repoUrlPlaceholder() {
-      return this.t(`fleet.gitRepo.repo.placeholder.${ this.repoProtocol }`);
-    },
-
-    repoUrl: {
-      set(value) {
-        this.value.spec.repo = value;
-
-        if (!value.startsWith('https://') && !value.startsWith('git@') && this.repoProtocol !== 'ssh' && !!value) {
-          this.value.spec.repo = `${ this.repoProtocol }://${ value }`;
-        }
-      },
-
-      get() {
-        return this.value.spec.repo;
-      }
-    }
   },
 
   watch: {
@@ -347,17 +328,6 @@ export default {
         }
       } else {
         spec.targets = [];
-      }
-
-      this.stepOneReady();
-    },
-
-    changeProtocol({ text, selected }) {
-      this.repoProtocol = selected;
-      this.repoUrl = text;
-
-      if (text.startsWith('git@')) {
-        this.repoProtocol = 'ssh';
       }
 
       this.stepOneReady();
@@ -526,24 +496,30 @@ export default {
         @change="onUpdateRepoName"
       />
 
+      <div class="row">
+        <div class="col span-6">
+          <Banner
+            color="info col span-6"
+          >
+            <div>
+              {{ t('fleet.gitRepo.repo.protocolBanner') }}
+            </div>
+          </Banner>
+        </div>
+      </div>
       <div
         class="row"
         :class="{'mt-20': isView}"
       >
         <div class="col span-6">
-          <InputWithSelect
+          <LabeledInput
+            v-model="value.spec.repo"
             :mode="mode"
-            :select-label="t('fleet.gitRepo.repo.protocol')"
-            :select-value="repoProtocol"
-            :placeholder="repoUrlPlaceholder"
-            :text-value="repoUrl"
-            :text-required="true"
-            :options="[{label: 'HTTPS', value: 'https'}, {label: 'SSH', value: 'ssh'}]"
-            @input="changeProtocol($event)"
+            label-key="fleet.gitRepo.repo.label"
+            :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
           />
         </div>
         <div class="col span-6">
-          {{ value.spec.repo }}
           <InputWithSelect
             :mode="mode"
             :select-label="t('fleet.gitRepo.ref.label')"
@@ -557,7 +533,6 @@ export default {
           />
         </div>
       </div>
-
       <SelectOrCreateAuthSecret
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"

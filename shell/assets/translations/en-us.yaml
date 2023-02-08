@@ -952,7 +952,7 @@ catalog:
       defaultMessage: 'Will default to "master" if left blank'
     gitRepo:
       label: Git Repo URL
-      placeholder: 'e.g. https://github.com/your-company/charts.git'
+      placeholder: e.g. git@github.com:rancher/fleet-examples.git
     name:
       rancher-charts: '{vendor}'
       rancher-partner-charts: Partners
@@ -2071,11 +2071,10 @@ fleet:
     repo:
       label: Repository URL
       protocol: Protocol
-      placeholder: 
-        ssh: e.g. git@github.com:rancher/fleet-examples.git
-        https: e.g. https://github.com/rancher/fleet-examples.git
+      placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
+      protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     add:
       steps:
         repoInfo:
