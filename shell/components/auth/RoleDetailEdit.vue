@@ -648,7 +648,7 @@ export default {
               </div>
             </template>
             <template #columns="props">
-              <div class="columns row">
+              <div class="columns row mr-20">
                 <div :class="ruleClass">
                   <Select
                     :value="props.row.value.verbs"
@@ -713,7 +713,7 @@ export default {
             :mode="mode"
           >
             <template #columns="props">
-              <div class="columns row">
+              <div class="columns row mr-20">
                 <div class="col span-12">
                   <Select
                     v-model="props.row.value"

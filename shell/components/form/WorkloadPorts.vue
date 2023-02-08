@@ -276,7 +276,7 @@ export default {
         'show-ipam': showIpam,
       }"
     >
-      <div class="service-type col">
+      <div class="service-type">
         <LabeledSelect
           v-model="row._serviceType"
           :mode="mode"
@@ -444,7 +444,7 @@ $checkbox: 75;
 }
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 20% 32% 145px 90px .5fr .5fr;
+  grid-template-columns: 28% 28% 15% 10% 75px 0.5fr;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;

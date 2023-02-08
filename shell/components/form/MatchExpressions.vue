@@ -319,14 +319,14 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     margin: 5px 0;
-    grid-gap: 10px;
+    grid-gap: 20px;
 
     & > LABEL {
       margin: 0;
     }
 
     &:not(.view){
-      grid-template-columns: 1fr 1fr 1fr 100px;
+      grid-template-columns: repeat(3, 1fr) 50px;
     }
   }
 </style>

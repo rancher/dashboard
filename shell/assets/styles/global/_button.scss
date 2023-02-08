@@ -87,7 +87,7 @@ button,
 
   &:hover, &._hover {
     color: var(--lightest) !important;
-  }  
+  }
 
   &:focus, &.focused {
     background-color: var(--primary-hover-bg);
@@ -121,6 +121,16 @@ button,
 .role-link {
   background: transparent;
   color: var(--link) !important;
+
+  &:hover, &._hover {
+    color: var(--lightest) !important;
+  }
+
+  &:focus, &.focused {
+    background: transparent;
+    color: var(--link) !important;
+    box-shadow: none;
+  }
 }
 
 .role-multi-action {
