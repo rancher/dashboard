@@ -319,7 +319,7 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     margin: 5px 0;
-    grid-gap: 20px;
+    grid-gap: $column-gutter;
 
     & > LABEL {
       margin: 0;
