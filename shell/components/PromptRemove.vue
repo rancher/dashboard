@@ -264,16 +264,14 @@ export default {
       }
     },
     async serialRemove(btnCB) {
-      await console.log('🚀 ~ file: PromptRemove.vue:293 ~ serialRemove ~ btnCB');
-
       try {
-        // const spoofedTypes = this.getSpoofedTypes(this.toRemove);
+        const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
-        // for (const resource of this.toRemove) {
-        //   await resource.remove();
-        // }
+        for (const resource of this.toRemove) {
+          await resource.remove();
+        }
 
-        // await this.refreshSpoofedTypes(spoofedTypes);
+        await this.refreshSpoofedTypes(spoofedTypes);
         this.done();
       } catch (err) {
         this.error = err.message || err;
@@ -281,18 +279,18 @@ export default {
       }
     },
     async parallelRemove(btnCB) {
-      await console.log('🚀 ~ file: PromptRemove.vue:309 ~ parallelRemove ~ btnCB');
-      console.log('🚀 ~ file: PromptRemove.vue:299 ~ parallelRemove ~       this.toRemove', this.toRemove);
-      // INFO: Find another way to access the resource (?)
-      this.toRemove[0].bulkRemove(this.toRemove, {});
-
-      console.log('🚀 ~ file: PromptRemove.vue:286 ~ parallelRemove ~ this.resource', this.resource);
       try {
-        // const spoofedTypes = this.getSpoofedTypes(this.toRemove);
+        if (typeof this.toRemove[0]?.bulkRemove === 'undefined') {
+          await Promise.all(this.toRemove.map(resource => resource.remove()));
+          this.done();
+        } else {
+          this.toRemove[0]?.bulkRemove(this.toRemove, {}).then(() => {
+            this.done();
+          });
+        }
+        const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
-        // await Promise.all(this.toRemove.map(resource => resource.remove()));
-        // await this.refreshSpoofedTypes(spoofedTypes);
-        // this.done();
+        await this.refreshSpoofedTypes(spoofedTypes);
       } catch (err) {
         this.error = err.message || err;
         btnCB(false);
