@@ -29,9 +29,11 @@ function checkExtensionRouteBinding({ name, params, query }, locationConfig) {
     if (locationConfig[param]) {
       // handle "product" in a separate way...
       if (param === 'product') {
+        // alias for the homepage
         if (locationConfig[param] === 'home' && !name.startsWith('c-')) {
           res = true;
-        } else if (locationConfig[param] === 'explorer' && name.startsWith('c-')) {
+        // alias for the cluster explorer
+        } else if (locationConfig[param] === 'explorer' && name.startsWith('c-cluster-explorer')) {
           res = true;
         } else if (locationConfig[param] === params[param]) {
           res = true;

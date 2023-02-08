@@ -176,6 +176,12 @@ export default {
       if (nue && old && nue.id !== old.id) {
         this.checkClusterName();
       }
+    },
+    // since the Header is a "persistent component" we need to update it at every route change...
+    $route(nue) {
+      if (nue) {
+        this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+      }
     }
   },
 
