@@ -55,7 +55,7 @@ export default {
     return { className: '' };
   },
 
-  mounted() {
+  created() {
     if (this.src) {
       this.setColor();
     }
