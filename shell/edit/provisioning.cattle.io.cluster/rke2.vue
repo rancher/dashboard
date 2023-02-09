@@ -500,10 +500,22 @@ export default {
     },
 
     /**
+     * Disable PSA if CIS hardening is enabled, except override
+     */
+    isPsaDisabled() {
+      const cisValue = this.agentConfig.profile || this.serverConfig.profile;
+
+      return !(!cisValue || this.cisOverride);
+    },
+
+    /**
      * Get the default label for the PSA template option
      */
-    getDefaultPSAOptionLabel() {
-      return this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option');
+    defaultPsaOptionLabel() {
+      const isNone = !this.needsPSA;
+      const optionCase = isNone ? 'none' : 'default';
+
+      return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
 
     /**
@@ -514,7 +526,7 @@ export default {
         return [];
       }
       const out = [{
-        label: this.getDefaultPSAOptionLabel(),
+        label: this.defaultPsaOptionLabel,
         value: ''
       }];
 
@@ -2094,7 +2106,7 @@ export default {
             <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
           </Banner>
 
-          <div class="row">
+          <div class="row mb-10">
             <div
               v-if="pspOptions && needsPSP"
               class="col span-6"
@@ -2133,7 +2145,7 @@ export default {
           </div>
 
           <div
-            v-if="serverConfig.profile || agentConfig.profile"
+            v-if="(serverConfig.profile || agentConfig.profile) && needsPSA"
             class="row mb-10"
           >
             <div class="col span-6">
@@ -2156,6 +2168,7 @@ export default {
                 :mode="mode"
                 data-testid="rke2-custom-edit-psa"
                 :options="psaOptions"
+                :disabled="isPsaDisabled"
                 :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
               />
             </div>
