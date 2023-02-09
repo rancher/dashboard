@@ -459,7 +459,7 @@ export default {
     },
 
     profileOptions() {
-      const out = (this.agentArgs.profile?.options || []).map((x) => {
+      const out = (this.agentArgs?.profile?.options || []).map((x) => {
         return { label: x, value: x };
       });
 
@@ -469,6 +469,10 @@ export default {
       });
 
       return out;
+    },
+
+    hasCisOverride() {
+      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA;
     },
 
     pspOptions() {
@@ -503,7 +507,7 @@ export default {
      * Disable PSA if CIS hardening is enabled, except override
      */
     isPsaDisabled() {
-      const cisValue = this.agentConfig.profile || this.serverConfig.profile;
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
       return !(!cisValue || this.cisOverride);
     },
@@ -512,8 +516,10 @@ export default {
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const isNone = !this.needsPSA;
-      const optionCase = isNone ? 'none' : 'default';
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isDefault = version?.length ? +version[0] > 1 || +version[1] >= 25 : false;
+      const optionCase = isDefault ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
@@ -623,7 +629,7 @@ export default {
     },
 
     showCisProfile() {
-      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
     },
 
     needCredential() {
@@ -1509,7 +1515,7 @@ export default {
         }
       }
 
-      if ( !this.serverConfig.profile ) {
+      if ( !this.serverConfig?.profile ) {
         set(this.serverConfig, 'profile', null);
       }
     },
@@ -2127,14 +2133,14 @@ export default {
               class="col span-6"
             >
               <LabeledSelect
-                v-if="serverArgs.profile"
+                v-if="serverArgs && serverArgs.profile"
                 v-model="serverConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
                 :label="t('cluster.rke2.cis.sever')"
               />
               <LabeledSelect
-                v-else-if="agentArgs.profile"
+                v-else-if="agentArgs && agentArgs.profile"
                 v-model="agentConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
@@ -2145,7 +2151,7 @@ export default {
           </div>
 
           <div
-            v-if="(serverConfig.profile || agentConfig.profile) && needsPSA"
+            v-if="hasCisOverride"
             class="row mb-10"
           >
             <div class="col span-6">
