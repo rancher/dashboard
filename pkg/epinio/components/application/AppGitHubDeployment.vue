@@ -88,7 +88,6 @@ export default {
     display: grid;
     grid-auto-columns: minmax(0, 1fr);
     grid-gap: 20px;
-    // outline: 1px solid var(--border);
     font-size: 14px;
 
     &-owner {
@@ -136,10 +135,10 @@ export default {
       justify-content: space-between;
 
       li {
-        font-size: 12px;
+        font-size: 14px;
         opacity: 0.5;
         span {
-          color: #c4c4c4;
+          color: var(--default-text);
         }
       }
     }

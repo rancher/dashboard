@@ -108,7 +108,6 @@ export default Vue.extend<Data, any, any, any>({
       ]
     };
   },
-
   methods: {
     async updateInstances(newInstances: number) {
       this.$set(this, 'saving', true);
@@ -133,7 +132,19 @@ export default Vue.extend<Data, any, any, any>({
         const { usernameOrOrg, repo } = JSON.parse(envs.appDeployment);
         const res = await this.$store.dispatch('github/fetchRepoDetails', { username: usernameOrOrg, repo });
 
-        this.gitSource = res;
+        const {
+          // eslint-disable-next-line camelcase
+          owner, description, created_at, updated_at, html_url, name
+        } = res;
+
+        this.gitSource = {
+          owner,
+          description,
+          created_at,
+          updated_at,
+          html_url,
+          name
+        };
 
         const commit = this.value.sourceInfo?.details.filter((ele: { label: string; }) => ele.label === 'Revision')[0]?.value;
 
@@ -187,7 +198,6 @@ export default Vue.extend<Data, any, any, any>({
       }
     },
   },
-
   computed: {
     sourceIcon(): string {
       return this.value.sourceInfo?.icon || 'icon-epinio';
@@ -221,7 +231,7 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <div>
+  <div class="content">
     <div class="application-details">
       <ApplicationCard>
         <!-- Icon slot -->
@@ -312,29 +322,28 @@ export default Vue.extend<Data, any, any, any>({
 
               <div class="deployment__origin__row">
                 <hr class="mt-10 mb-10">
-                <h4>Metrics</h4>
-                <table class="stats mt-15">
-                  <thead>
-                    <tr>
-                      <th />
-                      <th>Min</th>
-                      <th>Max</th>
-                      <th>Avg</th>
-                    </tr>
-                  </thead>
-                  <tr>
-                    <td>{{ t('tableHeaders.memory') }}</td>
-                    <td>{{ value.instanceMemory.min }}</td>
-                    <td>{{ value.instanceMemory.max }}</td>
-                    <td>{{ value.instanceMemory.avg }}</td>
-                  </tr>
-                  <tr>
-                    <td>{{ t('tableHeaders.cpu') }}</td>
-                    <td>{{ value.instanceCpu.min }}</td>
-                    <td>{{ value.instanceCpu.max }}</td>
-                    <td>{{ value.instanceCpu.avg }}</td>
-                  </tr>
-                </table>
+                <h4 class="mt-10 mb-10">
+                  Metrics
+                </h4>
+
+                <div class="stats">
+                  <div>
+                    <h3>{{ t('tableHeaders.memory') }}</h3>
+                    <ul>
+                      <li> <span>Min: </span> {{ value.instanceMemory.min }}</li>
+                      <li> <span>Max: </span>{{ value.instanceMemory.max }}</li>
+                      <li><span>Avg: </span>{{ value.instanceMemory.avg }}</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3>{{ t('tableHeaders.cpu') }}</h3>
+                    <ul>
+                      <li> <span>Min: </span> {{ value.instanceCpu.min }}</li>
+                      <li> <span>Max: </span>{{ value.instanceCpu.max }}</li>
+                      <li><span>Avg: </span>{{ value.instanceCpu.avg }}</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </SimpleBox>
             <SimpleBox v-if="value.sourceInfo">
@@ -360,10 +369,6 @@ export default Vue.extend<Data, any, any, any>({
                     <span>{{ value.sourceInfo.label }}</span>
                   </li>
 
-                  <!-- <span v-if="value.sourceInfo.label === 'Git'">
-                      <i class="icon icon-fw icon-github"></i>
-                      {{ value.sourceInfo.label }}
-                    </span> -->
                   <li
                     v-for="d of value.sourceInfo.details"
                     :key="d.label"
@@ -402,6 +407,7 @@ export default Vue.extend<Data, any, any, any>({
             :search="true"
             :paging="true"
             :table-actions="false"
+            :row-actions="false"
             :rows-per-page="10"
           >
             <template #cell:author="{row}">
@@ -479,6 +485,9 @@ export default Vue.extend<Data, any, any, any>({
 </template>
 
 <style lang="scss" scoped>
+.content {
+  max-width: 1280px;
+}
 .simple-box-row {
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
@@ -515,7 +524,7 @@ export default Vue.extend<Data, any, any, any>({
         tr {
           th {
             text-align: left;
-            color: #c4c4c4;
+            color: var(--muted);
             font-weight: 300;
           }
         }
@@ -571,6 +580,46 @@ export default Vue.extend<Data, any, any, any>({
   }
 }
 
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 12px 0;
+  position: relative;
+
+  &::before {
+    content: "";
+    border-right: 1px solid var(--default);
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+  }
+
+  & > div:nth-child(2) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  h3 {
+    font-size: 16px;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+
+    li {
+      list-style: none;
+      font-size: 14px;
+    }
+  }
+
+}
 .deployment__origin__list {
   ul {
     margin: 0;
@@ -581,9 +630,11 @@ export default Vue.extend<Data, any, any, any>({
     li {
       margin: 5px;
       list-style: none;
+
       h4 {
-        color: #c4c4c4;
+        color: var(--default-text);
         font-weight: 300;
+        font-size: 12px;
         margin: 0;
       }
     }

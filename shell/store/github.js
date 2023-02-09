@@ -2,7 +2,6 @@ const GITHUB_BASE_API = 'https://api.github.com';
 
 const fetchGithubAPI = async(endpoint) => {
   const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
-  // TODO: Look for rate limit headers and handle appropriately https://docs.github.com/en/rest/guides/best-practices-for-integrators#dealing-with-secondary-rate-limits
 
   // If rate-limit is exceeded, we should wait until the rate limit is reset
   if (response.status === 403) {
@@ -18,12 +17,7 @@ const fetchGithubAPI = async(endpoint) => {
   return await response.json();
 };
 
-export const getters = {
-  // classify: (state, getters, rootState) => (obj) => {
-  //   // TODO: Handle classify
-  //   return lookup('github', obj.type, undefined, rootState);
-  // }
-};
+export const getters = {};
 
 export const actions = {
   async apiList(ctx, {
@@ -89,14 +83,6 @@ export const actions = {
     const { dispatch } = ctx;
     const res = await dispatch('apiList', {
       username, endpoint: 'commits', repo, branch
-    });
-
-    // TODO: Handle classify
-    const ob = res.map((data) => {
-      // return classify(ctx, {
-      //   ...data,
-      //   type: 'github-commits'
-      // });
     });
 
     return res;

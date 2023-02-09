@@ -113,7 +113,17 @@ export default Vue.extend<Data, any, any, any>({
         this.set(this.value.configuration, { appchart: appChart });
         // FIX: this is a hack to get the app chart to show up in the UI
         if (!!changes.github.url) {
-          this.set(this.value.configuration, { environment: { appDeployment: JSON.stringify(changes.github) } });
+          this.set(this.value.configuration, {
+            ...this.value.configuration,
+            environment: {
+              ...this.value.configuration.environment,
+              appDeployment: JSON.stringify({
+                usernameOrOrg: changes.github.usernameOrOrg,
+                repo:          changes.github.repo,
+                branch:        changes.github.branch,
+              })
+            }
+          });
         }
       }
 
