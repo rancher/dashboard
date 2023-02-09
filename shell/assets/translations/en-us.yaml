@@ -1379,6 +1379,8 @@ cluster:
           label: No Public IP
         staticPublicIp:
           label: Static Public IP
+        standardSKU:
+          label: Use Standard SKU for Public IP
       resourceGroup:
         label: Resource Group
       size:

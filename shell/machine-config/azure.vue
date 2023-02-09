@@ -1,6 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import merge from 'lodash/merge';
@@ -105,7 +106,7 @@ export default {
     RadioGroup
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     credentialId: {
@@ -194,7 +195,24 @@ export default {
       loading:         false,
       useAvailabilitySet,
       vmSizes:         [],
-      valueCopy:       this.value
+      valueCopy:       this.value,
+      fvFormRuleSets:  [
+        {
+          path:       'managedDisks',
+          rules:      ['requiredByAZ'],
+          rootObject: 'value'
+        },
+        {
+          path:       'enablePublicIpStandardSku',
+          rules:      ['requiredByAZ'],
+          rootObject: 'value'
+        },
+        {
+          path:       'staticPublicIp',
+          rules:      ['requiredByAZ'],
+          rootObject: 'value'
+        }
+      ],
     };
   },
 
@@ -202,6 +220,14 @@ export default {
     credentialId() {
       this.$fetch();
     },
+
+    'value.availabilityZone'(neu) {
+      if (neu) {
+        this.$set(this.value, 'enablePublicIpStandardSku', true);
+        this.$set(this.value, 'managedDisks', true);
+        this.$set(this.value, 'staticPublicIp', true);
+      }
+    }
   },
 
   computed: {
@@ -368,7 +394,17 @@ export default {
       }
 
       return [];
-    }
+    },
+    fvExtraRules() {
+      return {
+        requiredByAZ: (val) => {
+          if (!val && this.value.availabilityZone) {
+            return true;
+          }
+        },
+
+      };
+    },
   },
 
   created() {
@@ -699,6 +735,13 @@ export default {
             v-model="value.staticPublicIp"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.publicIpOptions.staticPublicIp.label')"
+            :rules="fvGetAndReportPathRules('staticPublicIp')"
+          />
+          <Checkbox
+            v-model="value.enablePublicIpStandardSku"
+            :mode="mode"
+            :label="t('cluster.machineConfig.azure.publicIpOptions.standardSKU.label')"
+            :rules="fvGetAndReportPathRules('enablePublicIpStandardSku')"
           />
         </div>
       </div>
@@ -767,6 +810,7 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
+            :rules="fvGetAndReportPathRules('managedDisks')"
           />
         </div>
       </div>
