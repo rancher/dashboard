@@ -380,6 +380,12 @@ export default Vue.extend<Data, any, any, any>({
                         target="_blank"
                       >{{ formatURL(d.value) }}</a>
                     </span>
+                    <span v-else-if="gitSource && d.value && d.value.match(/^[a-f0-9]{40}$/)">
+                      <a
+                        :href="`${gitSource.html_url}/commit/${d.value}`"
+                        target="_blank"
+                      >{{ d.value }}</a>
+                    </span>
                     <span v-else>{{ d.value }}</span>
                   </li>
 
@@ -634,7 +640,7 @@ export default Vue.extend<Data, any, any, any>({
       h4 {
         color: var(--default-text);
         font-weight: 300;
-        font-size: 12px;
+        font-size: 14px;
         margin: 0;
       }
     }
