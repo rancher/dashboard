@@ -729,7 +729,7 @@ export default {
         <transition-group>
           <div
             v-for="(disk, i) in disks"
-            :key="disk"
+            :key="`${disk.bootOrder}${i}`"
           >
             <InfoBox
               class="box"
