@@ -729,7 +729,7 @@ export default {
         <transition-group>
           <div
             v-for="(disk, i) in disks"
-            :key="i"
+            :key="disk"
           >
             <InfoBox
               class="box"
