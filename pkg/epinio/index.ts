@@ -5,17 +5,22 @@ import epinioMgmtStore from './store/epinio-mgmt-store';
 import epinioRoutes from './routing/epinio-routing';
 import { MANAGEMENT } from '@shell/config/types';
 
+const semanticVersionRegex = /v(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\.\d+)/;
+
 const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
 
   const serverVersionSettings = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
   const res = await store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
 
+  // If the version is a custom build, set it to 1.5.1
+  const version = !res.version.match(semanticVersionRegex) ? 'v1.5.1' : res.version;
+
   await store.dispatch('management/load', {
     data: {
       ...serverVersionSettings,
       type:  MANAGEMENT.SETTING,
-      value: res.version
+      value: version
     }
   });
 };
