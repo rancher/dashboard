@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o errexit
+set -e
 
 echo "Checking plugin build"
 
