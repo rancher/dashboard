@@ -12,11 +12,9 @@ import {
   MANAGEMENT, METRIC, NODE, NORMAN, POD
 } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import { get } from '@shell/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
-import { SYSTEM_LABELS } from '~/shell/config/labels-annotations';
 export default {
   name:       'ListNode',
   components: {
@@ -71,7 +69,7 @@ export default {
   },
 
   data() {
-    return { canViewPods: false, isLabelsVisible: false };
+    return { canViewPods: false };
   },
 
   beforeDestroy() {
@@ -121,7 +119,6 @@ export default {
 
       return headers;
     },
-
   },
 
   methods: {
@@ -137,31 +134,14 @@ export default {
         this.$forceUpdate();
       }
     },
+
+    toggleLabels(row) {
+      this.$set(row, 'displayLabels', !row.displayLabels);
+    },
+
     displayTaintsAndLabels(row) {
-      return (row.spec.taints && row.spec.taints.length) || !!this.displayLabels(row).length;
+      return (row.spec.taints && row.spec.taints.length) || !!row.customLabelCount;
     },
-    displayLabels(row) {
-      const out = [];
-
-      if (row.labels) {
-        for (const k in row.labels) {
-          const [prefix] = k.split('/');
-
-          if (!SYSTEM_LABELS.includes(prefix)) {
-            out.push(`${ k }=${ row.labels[k] }`);
-          }
-        }
-      }
-
-      return out;
-    },
-
-    toggleLabels() {
-      this.isLabelsVisible = !this.isLabelsVisible;
-    },
-
-    get,
-
   }
 
 };
@@ -207,37 +187,33 @@ export default {
                 </Tag>
               </span>
               <span
-                v-if="!!displayLabels(row).length"
+                v-if="!!row.customLabelCount"
                 class="mt-5"
               > {{ t('node.list.nodeLabels') }}:
                 <span
+                  v-for="(label, i) in row.customLabels"
+                  :key="i"
                   class="mt-5 labels"
                 >
-                  <span v-if="!isLabelsVisible">
-                    <Tag
-                      v-for="(label, i) in displayLabels(row).slice(0, 7)"
-                      :key="i"
-                      class="mr-2 label"
-                    >
-                      {{ label }}
-                    </Tag>
-                  </span>
-                  <span v-else>
-                    <Tag
-                      v-for="(label, i) in displayLabels(row)"
-                      :key="i"
-                      class="mr-2 label"
-                    >
-                      {{ label }}
-                    </Tag>
-                  </span>
+                  <Tag
+                    v-if="i < 7"
+                    class="mr-2 label"
+                  >
+                    {{ label }}
+                  </Tag>
+                  <Tag
+                    v-else-if="i > 6 && row.displayLabels"
+                    class="mr-2 label"
+                  >
+                    {{ label }}
+                  </Tag>
                 </span>
                 <a
-                  v-if="displayLabels(row).length > 7"
+                  v-if="row.customLabelCount > 6"
                   href="#"
-                  @click.prevent="toggleLabels"
+                  @click.prevent="toggleLabels(row)"
                 >
-                  {{ t(`node.list.${isLabelsVisible? 'hideLabels' : 'showLabels'}`) }}
+                  {{ t(`node.list.${row.displayLabels? 'hideLabels' : 'showLabels'}`) }}
                 </a>
               </span>
             </td>
