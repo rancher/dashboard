@@ -728,7 +728,13 @@ const defaultActions = {
 
       const revisionExisting = getters.nextResourceVersion(type, obj.id);
 
-      let revisionLatest;
+      const debounceWatch = (obj, revision) => {
+        setTimeout(() => {
+          // Delay a bit so that immediate start/error/stop causes
+          // only a slow infinite loop instead of a tight one.
+          dispatch('watch', revision ? { ...obj, revision } : obj);
+        }, 5000);
+      };
 
       if (revisionExisting) {
         // Attempt to fetch the latest revision at the time the resource watch was stopped, in theory our local cache should be up to
@@ -738,8 +744,8 @@ const defaultActions = {
         const opt = { limit: 1 };
 
         opt.url = getters.urlFor(type, null, opt);
-        revisionLatest = dispatch('request', { opt, type } )
-          .then(res => res.revision)
+        dispatch('request', { opt, type } )
+          .then(res => debounceWatch(obj, res.revision))
           .catch((err) => {
             // For some reason we can't fetch a reasonable revision, so force a re-fetch
             console.warn(`Resource error retrieving resourceVersion, forcing re-fetch`, type, ':', err); // eslint-disable-line no-console
@@ -749,14 +755,8 @@ const defaultActions = {
       } else {
         // Some v1 resource types don't have revisions (either at the collection or resource level), so we avoided making an API request
         // for them
-        revisionLatest = Promise.resolve(null); // Null to ensure we don't go through `nextResourceVersion` again
+        debounceWatch(obj);
       }
-
-      setTimeout(() => {
-        // Delay a bit so that immediate start/error/stop causes
-        // only a slow infinite loop instead of a tight one.
-        revisionLatest.then(revision => dispatch('watch', { ...obj, revision }));
-      }, 5000);
     }
   },
 
