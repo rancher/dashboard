@@ -230,11 +230,10 @@ export default {
 
   async created() {
     // Added by Verrazzano Start
-    getVerrazzanoVersion().then((version) => {
-      let vzVersion = version.dashboardBuild;
 
+    getVerrazzanoVersion(this.$store).then((vzVersion) => {
       // strip dashboardBuild to {major}.{minor} when possible
-      const groups = vzVersion.match(/^(\d+)\.(\d+)\..*/);
+      const groups = vzVersion.match(/^v(\d+)\.(\d+)\..*/);
 
       if (groups) {
         vzVersion = `${ groups[1] }.${ groups[2] }`;

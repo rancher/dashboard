@@ -4,8 +4,7 @@ import SimpleBox from '@shell/components/SimpleBox';
 
 import { mapGetters } from 'vuex';
 import { allHash } from '@shell/utils/promise';
-
-const VERRAZZANO = 'install.verrazzano.io.Verrazzano';
+import { VERRAZZANO } from '@shell/config/types';
 
 export default {
   name:       'VerrazzanoLinksBox',

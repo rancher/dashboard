@@ -48,8 +48,8 @@ export default {
     }
 
     // Added by Verrazzano Start
-    getVerrazzanoVersion().then((versionInfo) => {
-      this.vzVersion = versionInfo.dashboardBuild;
+    getVerrazzanoVersion(this.$store).then((version) => {
+      this.vzVersion = version;
     });
     // Added by Verrazzano End
   },
