@@ -31,9 +31,110 @@ export type OnEnterLeavePackageConfig = {
   isExt: string,
   oldIsExt: string
 }
+
 export type OnNavToPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnNavAwayFromPackage = (store: any, config: OnEnterLeavePackageConfig) => Promise<void>;
 export type OnLogOut = (store: any) => Promise<void>;
+
+/** Enum regarding the extensionable areas/places of the UI */
+export enum ExtensionPoint {
+  ACTION = 'Action', // eslint-disable-line no-unused-vars
+  TAB = 'Tab', // eslint-disable-line no-unused-vars
+  PANEL = 'Panel', // eslint-disable-line no-unused-vars
+  CARD = 'Card', // eslint-disable-line no-unused-vars
+  TABLE_COL = 'TableColumn', // eslint-disable-line no-unused-vars
+}
+
+/** Enum regarding action locations that are extensionable in the UI */
+export enum ActionLocation {
+  HEADER = 'header-action', // eslint-disable-line no-unused-vars
+  TABLE = 'table-action', // eslint-disable-line no-unused-vars
+}
+
+/** Enum regarding panel locations that are extensionable in the UI */
+export enum PanelLocation {
+  DETAILS_MASTHEAD = 'details-masthead', // eslint-disable-line no-unused-vars
+  DETAIL_TOP = 'detail-top', // eslint-disable-line no-unused-vars
+  RESOURCE_LIST = 'resource-list', // eslint-disable-line no-unused-vars
+}
+
+/** Enum regarding tab locations that are extensionable in the UI */
+export enum TabLocation {
+  RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
+}
+
+/** Enum regarding card locations that are extensionable in the UI */
+export enum CardLocation {
+  CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card', // eslint-disable-line no-unused-vars
+}
+
+/** Enum regarding table col locations that are extensionable in the UI */
+export enum TableColumnLocation {
+  RESOURCE = 'resource-list', // eslint-disable-line no-unused-vars
+}
+
+/** Definition of the shortcut object (keyboard shortcuts) */
+export type ShortCutKey = {
+  windows?: string[];
+  mac?: string[];
+};
+
+/** Definition of the action options (table actions) */
+export type ActionOpts = {
+  event: any;
+  isAlt: boolean;
+  action: any;
+};
+
+/** Definition of an extension action (options that can be passed when setting an extension action) */
+export type Action = {
+  label?: string;
+  labelKey?: string;
+  tooltipKey?: string;
+  tooltip?: string;
+  shortcut?: string | ShortCutKey;
+  svg?: Function;
+  icon?: string;
+  multiple?: boolean;
+  enabled?: (ctx: any) => boolean;
+  invoke: (opts: ActionOpts, resources: any[]) => void | boolean | Promise<boolean>;
+};
+
+/** Definition of a panel (options that can be passed when defining an extension panel enhancement) */
+export type Panel = {
+  component: Function;
+};
+
+/** Definition of a card (options that can be passed when defining an extension card enhancement) */
+export type Card = {
+  label?: string;
+  labelKey?: string;
+  component: Function;
+};
+
+export type TableColumn = any;
+
+/** Definition of a tab (options that can be passed when defining an extension tab enhancement) */
+export type Tab = {
+  name: string;
+  label?: string;
+  labelKey?: string;
+  tooltipKey?: string;
+  tooltip?: string;
+  showHeader?: boolean;
+  weight?: number;
+  component: Function;
+};
+
+/** Definition of the locationConfig object (used in extensions) */
+export type LocationConfig = {
+  product?: string[],
+  resource?: string[],
+  namespace?: string[],
+  cluster?: string[],
+  id?: string[],
+  mode?: string[]
+};
 
 /**
  * Interface for a Dashboard plugin
@@ -63,7 +164,7 @@ export interface IPlugin {
   validators: {[key: string]: Function};
 
   /**
-   * Add a module contains localisations for a specific locale
+   * Add a module containing localisations for a specific locale
    */
   addL10n(locale: string, fn: Function): void;
 
@@ -72,6 +173,31 @@ export interface IPlugin {
    */
   addRoute(route: RouteConfig): void;
   addRoute(parent: string, route: RouteConfig): void;
+
+  /**
+   * Adds an action/button to the UI
+   */
+  addAction(where: ActionLocation | string, when: LocationConfig | string, action: Action): void;
+
+  /**
+   * Adds a tab to the UI (ResourceTabs component)
+   */
+  addTab(where: TabLocation | string, when: LocationConfig | string, action: Tab): void;
+
+  /**
+   * Adds a panel/component to the UI
+   */
+  addPanel(where: PanelLocation | string, when: LocationConfig | string, action: Panel): void;
+
+  /**
+   * Adds a card to the UI
+   */
+  addCard(where: CardLocation | string, when: LocationConfig | string, action: Card): void;
+
+  /**
+   * Adds a new column to the SortableTable component
+   */
+  addTableColumn(where: TableColumnLocation | string, when: LocationConfig | string, action: TableColumn): void;
 
   /**
    * Set the component to use for the landing home page
@@ -116,7 +242,7 @@ export interface IPlugin {
     onLogOut?: OnLogOut
   ): void;
 
-    /**
+  /**
    * Register 'something' that can be dynamically loaded - e.g. model, edit, create, list, i18n
    * @param {String} type type of thing to register, e.g. 'edit'
    * @param {String} name unique name of 'something'

@@ -492,10 +492,13 @@ export default {
 <template>
   <div class="plugins">
     <div class="plugin-header">
-      <h2>{{ t('plugins.title') }}</h2>
+      <h2 data-testid="extensions-page-title">
+        {{ t('plugins.title') }}
+      </h2>
       <div
         v-if="reloadRequired"
         class="plugin-reload-banner mr-20"
+        data-testid="extension-reload-banner"
       >
         <i class="icon icon-checkmark mr-10" />
         <span>
@@ -503,6 +506,7 @@ export default {
         </span>
         <button
           class="ml-10 btn btn-sm role-primary"
+          data-testid="extension-reload-banner-reload-btn"
           @click="reload()"
         >
           {{ t('generic.reload') }}
@@ -514,6 +518,7 @@ export default {
         aria-haspopup="true"
         type="button"
         class="btn actions role-secondary"
+        data-testid="extensions-page-menu"
         @click="setMenu"
       >
         <i class="icon icon-actions" />
@@ -555,15 +560,18 @@ export default {
       <Tabbed
         ref="tabs"
         :tabs-only="true"
+        data-testid="extension-tabs"
         @changed="filterChanged"
       >
         <Tab
           name="installed"
+          data-testid="extension-tab-installed"
           label-key="plugins.tabs.installed"
           :weight="20"
         />
         <Tab
           name="available"
+          data-testid="extension-tab-available"
           label-key="plugins.tabs.available"
           :weight="19"
         />
@@ -606,6 +614,7 @@ export default {
             v-for="plugin in list"
             :key="plugin.name"
             class="plugin"
+            :data-testid="`extension-card-${plugin.name}`"
             @click="showPluginDetail(plugin)"
           >
             <div
@@ -709,6 +718,7 @@ export default {
                   <button
                     v-if="!plugin.builtin"
                     class="btn role-secondary"
+                    :data-testid="`extension-card-uninstall-btn-${plugin.name}`"
                     @click="showUninstallDialog(plugin, $event)"
                   >
                     {{ t('plugins.uninstall.label') }}
@@ -716,6 +726,7 @@ export default {
                   <button
                     v-if="plugin.upgrade"
                     class="btn role-secondary"
+                    :data-testid="`extension-card-update-btn-${plugin.name}`"
                     @click="showInstallDialog(plugin, 'update', $event)"
                   >
                     {{ t('plugins.update.label') }}
@@ -723,6 +734,7 @@ export default {
                   <button
                     v-if="!plugin.upgrade && plugin.versions.length > 1"
                     class="btn role-secondary"
+                    :data-testid="`extension-card-rollback-btn-${plugin.name}`"
                     @click="showInstallDialog(plugin, 'rollback', $event)"
                   >
                     {{ t('plugins.rollback.label') }}
@@ -734,6 +746,7 @@ export default {
                 >
                   <button
                     class="btn role-secondary"
+                    :data-testid="`extension-card-install-btn-${plugin.name}`"
                     @click="showInstallDialog(plugin, 'install', $event)"
                   >
                     {{ t('plugins.install.label') }}
