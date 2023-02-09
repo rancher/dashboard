@@ -374,13 +374,6 @@ export default {
       return isRequiredVersion;
     },
 
-    // kubeletConfigs() {
-    //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
-    // },
-    /**
-     * Check if k8s release version used is RKE2 ^1.25
-     */
-
     unsupportedSelectorConfig() {
       let global = 0;
       let kubeletOnly = 0;
@@ -506,6 +499,13 @@ export default {
     },
 
     /**
+     * Get the default label for the PSA template option
+     */
+    getDefaultPSAOptionLabel() {
+      return this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option');
+    },
+
+    /**
      * Convert PSA templates into options, sorting and flagging if any selected
      */
     psaOptions() {
@@ -513,7 +513,7 @@ export default {
         return [];
       }
       const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option'),
+        label: this.getDefaultPSAOptionLabel(),
         value: ''
       }];
 
@@ -2092,21 +2092,6 @@ export default {
           >
             <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
           </Banner>
-          <div
-            v-if="needsPSA"
-            class="row mb-10"
-          >
-            <div class="col span-6">
-              <!-- PSA template selector -->
-              <LabeledSelect
-                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
-                :mode="mode"
-                data-testid="rke2-custom-edit-psa"
-                :options="psaOptions"
-                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
-              />
-            </div>
-          </div>
 
           <div class="row">
             <div
@@ -2145,6 +2130,23 @@ export default {
               />
             </div>
           </div>
+
+          <div
+            v-if="needsPSA"
+            class="row mb-10"
+          >
+            <div class="col span-6">
+              <!-- PSA template selector -->
+              <LabeledSelect
+                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
+                :mode="mode"
+                data-testid="rke2-custom-edit-psa"
+                :options="psaOptions"
+                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
+              />
+            </div>
+          </div>
+
           <div class="row">
             <div class="col span-12 mt-20">
               <Checkbox
