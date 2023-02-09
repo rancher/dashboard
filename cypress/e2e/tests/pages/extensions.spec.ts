@@ -1,6 +1,6 @@
 import ExtensionsPo from '@/cypress/e2e/po/pages/extensions.po';
 
-const extensionName = 'homepage';
+const extensionName = 'clock';
 
 describe('Extensions page', () => {
   before(() => {
@@ -29,7 +29,6 @@ describe('Extensions page', () => {
     extensionsPo.disableExtensionsClick();
 
     // on the modal, keep the extensions repo and click disable
-    // extensionsPo.removeRancherExtRepoCheckboxClick();
     extensionsPo.disableExtensionModalDisableClick();
 
     // let's wait for the install button to become visible and re-install
