@@ -1067,7 +1067,6 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
-  workerProfile: CIS Profile
 
 cluster:
   addonChart:
@@ -1777,6 +1776,10 @@ cluster:
         label: Default - RKE2 Embedded
     security:
       header: Security
+    cis:
+      server: Server CIS Profile
+      agent: CIS Profile
+      override: Allow PSA Default Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: RKE Default

@@ -314,7 +314,8 @@ export default {
       harvesterVersionRange: {},
       lastDefaultPodSecurityPolicyTemplateName,
       previousKubernetesVersion,
-      harvesterVersion:      ''
+      harvesterVersion:      '',
+      cisOverride:           false,
     };
   },
 
@@ -2118,15 +2119,28 @@ export default {
                 v-model="serverConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
-                label="Server CIS Profile"
+                :label="t('cluster.rke2.cis.sever')"
               />
               <LabeledSelect
                 v-else-if="agentArgs.profile"
                 v-model="agentConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
-                :label="t('cis.workerProfile')"
+                :label="t('cluster.rke2.cis.agent')"
                 @input="updateCisProfile"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="serverConfig.profile || agentConfig.profile"
+            class="row mb-10"
+          >
+            <div class="col span-6">
+              <Checkbox
+                v-model="cisOverride"
+                :mode="mode"
+                :label="t('cluster.rke2.cis.override')"
               />
             </div>
           </div>
