@@ -8,11 +8,58 @@ toc_max_heading_level: 4
 
 Rancher Extensions provides a mechanism to add new functionality to the Dashboard UI at runtime. This is covered mostly by the Extensions API which provides several methods on the `plugin` object to enhance the Rancher Dashboard UI in key areas of the interface. They should be defined where the extension is initialized.
 
-In order understand how these methods work, there are some key concepts that should be learnt, like:
+Mostly, these methods will need 3 arguments:
 
-## `locationConfig` object definition
+**where** - this defines which area of the UI the extension method will apply to.
 
-The `locationConfig` object defines **where** (which area of the UI) and **when** (product, resource, cluster...) these UI enhancement methods are applied on the UI. The **when** is based on the current routing system employed on Rancher Dashboard. Let's take on a simple example to try and understand the routing structure.
+**when** - this defines the exact product, resource, cluster, mode, etc, which the extension method will apply to and it's based on a `LocationConfig` object, which is explained on the next chapter.
+
+**options** - set of options needed for each specific method.
+
+Example: 
+
+```
+plugin.addPanel(
+  where,
+  when,
+  options
+```
+
+or
+
+```
+plugin.addPanel(
+  PanelLocation.DETAIL_TOP,
+  { resource: ['catalog.cattle.io.clusterrepo'] },
+  { component: () => import('./DetailTopComponent.vue') });
+```
+
+<br/>
+<br/>
+
+## `where` string definition
+
+The `where` defines which area of the UI the extension method will apply to and they depend on which method they are applied to. This means that each method will only accept a given subset of the the following list (documented per each method).
+
+The admissable string values for the `where` are:
+
+| Key | Type | Description |
+|---|---|---|
+|`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard. Check [screenshot](#where-header-option-for-addaction) for location. |
+|`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard. Check [screenshot](#where-table-option-for-addaction) for location. |
+|`TabLocation.RESOURCE_DETAIL`| String | Location for a Tab on a Resource Detail page. Check [screenshot](#where-resourcetabs-option-for-addtab) for location. |
+|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page. Check [screenshot](#where-detailsmasthead-option-for-addpanel) for location. |
+|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page. Check [screenshot](#where-detailtop-option-for-addpanel) for location. |
+|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area). Check [screenshot](#where-listview-option-for-addpanel) for location. |
+|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page. Check [screenshot](#where-clusterdashboard-option-for-addcard) for location. |
+|`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page. Check [screenshot](#where-listview-option-for-addtablecolumn) for location. |
+
+<br/>
+<br/>
+
+## `LocationConfig` object definition (`when`)
+
+The `LocationConfig` object defines **when** (product, resource, cluster...) these UI enhancement methods are applied on the UI. The **when** is based on the current routing system employed on Rancher Dashboard. Let's take on a simple example to try and understand the routing structure.
 
 Example URL:
 ```
@@ -43,85 +90,49 @@ which translates to:
 <INSTANCE-BASE-URL>/dashboard/<PRODUCT-ID>/c/<CLUSTER-ID>/<RESOURCE-ID>/<ID>
 ```
 
-With this it's then possible to easily identify the parameters needed to populate the `locationConfig` and add the UI enhancements to the areas that you like. YES, it's possible to also even enhance other extensions!
+With this it's then possible to easily identify the parameters needed to populate the `LocationConfig` and add the UI enhancements to the areas that you like. YES, it's possible to also even enhance other extensions!
 
 
-The admissable parameters for the `locationConfig` object are:
-
-| Key | Type | Description |
-|---|---|---|
-|`where`| String | The identifier of the UI area where to apply the given enhancement |
-|`when`| Object | the `locationObject` which is based on the Vue router experience above described |
-
-<br/>
-
-The admissable string values for the `where` are:
+The admissable parameters for the `LocationConfig` object are:
 
 | Key | Type | Description |
 |---|---|---|
-|`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard. Check [screenshot](#where-header-option-for-addaction) for location. |
-|`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard. Check [screenshot](#where-table-option-for-addaction) for location. |
-|`TabLocation.RESOURCE_DETAIL`| String | Location for a Tab on a Resource Detail page. Check [screenshot](#where-resourcetabs-option-for-addtab) for location. |
-|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page. Check [screenshot](#where-detailsmasthead-option-for-addpanel) for location. |
-|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page. Check [screenshot](#where-detailtop-option-for-addpanel) for location. |
-|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area). Check [screenshot](#where-listview-option-for-addpanel) for location. |
-|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page. Check [screenshot](#where-clusterdashboard-option-for-addcard) for location. |
-|`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page. Check [screenshot](#where-listview-option-for-addtablecolumn) for location. |
-
-<br/>
-
-The admissable parameters for the `when` object are:
-
-| Key | Type | Description |
-|---|---|---|
-|`product`| String | The product identifier. Ex: `fleet`, `manager` (Cluster Management), `harvesterManager` (Virtualization Management), `explorer` (Cluster Explorer) or `home` (Homepage) |
-|`resource`| String | The identifier of the kubernetes resource to be bound to. Ex: `apps.deployment`, `storage.k8s.io.storageclass` or `secret`  |
-|`namespace`| String | The namespace identifier. Ex: `kube-system`, `cattle-global-data` or `cattle-system` |
-|`cluster`| String | The cluster identifier. Ex: `local` |
-|`id`| String | The identifier for a given resource. Ex: `deployment-unt6xmz` |
-|`mode`| String | Relates to the type of view on which the given enhancement should be applied. Admissable values are: `edit`, `config`, `detail` and `list` |
+|`product`| Array | Array of the product identifier. Ex: `fleet`, `manager` (Cluster Management), `harvesterManager` (Virtualization Management), `explorer` (Cluster Explorer) or `home` (Homepage) |
+|`resource`| Array | Array of the identifier of the kubernetes resource to be bound to. Ex: `apps.deployment`, `storage.k8s.io.storageclass` or `secret`  |
+|`namespace`| Array | Array of the namespace identifier. Ex: `kube-system`, `cattle-global-data` or `cattle-system` |
+|`cluster`| Array | Array of the cluster identifier. Ex: `local` |
+|`id`| Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
+|`mode`| Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissable values are: `edit`, `config`, `detail` and `list` |
 
 ### Examples
 
 Example 1:
 ```
-{
-  where: '...',
-  when: {}
-}
+{}
 ```
 
-Passing an empty object as a `locationObject` will apply a given extension enhancement to all locations where it can be apllied.
+Passing an empty object as a `LocationObject` will apply a given extension enhancement to all locations where it can be apllied.
 
 Example 2:
 ```
-{
-  where: '...',
-  when: { product: 'home' }
-}
+{ product: ['home'] }
 ```
 
 Extension enhancement will be applied on the homepage of rancher dashboard (if applicable).
 
 Example 3:
 ```
-{
-  where: '...',
-  when: { resource: 'pod', id: 'pod-nxr5vm' }
-}
+{ resource: ['pod'], id: ['pod-nxr5vm'] }
 ```
 
 Extension enhancement will be applied on the resource `pod` with id `pod-nxr5vm` (if applicable).
 
 Example 4:
 ```
-{
-  where: '...',
-  when: { 
-    cluster:  'local', 
-    resource: 'catalog.cattle.io.clusterrepo', 
-    mode:     'edit' 
-  }
+{ 
+  cluster:  ['local'], 
+  resource: ['catalog.cattle.io.clusterrepo]', 
+  mode:     ['edit'] 
 }
 ```
 
@@ -132,37 +143,38 @@ Extension enhancement will be applied on the `edit` view/mode of the resource `c
 
 ## Extension API methods
 
-### `addAction`
+### **`addAction`**
 This method adds a button/action to the UI.
 
 Method:
 
 ```
-plugin.addAction(where: String, when: locationConfig, options: Object)
+plugin.addAction(where: String, when: LocationConfig, options: Object)
 ```
 
 _Arguments_
 
-`where` string parameter admissable values:
+`where` string parameter admissable values for this method:
 
 | Key | Type | Description |
 |---|---|---|
 |`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard |
 |`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard |
 
+<br/>
 
 `when` Object admissable values:
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'HEADER'`** option for addAction
+#### `'ActionLocation.HEADER'` options
 
 ![Header Actions](./screenshots/header-actions.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'header'` are:
+`options` config object. Admissable parameters for the `options` with `'ActionLocation.HEADER'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -174,14 +186,12 @@ _Arguments_
 |`enabled`| Function | Whether the action/button is enabled or not |
 |`invoke`| Function | function executed when action/button is clicked |
 
-Usage example for `where: 'HEADER'`:
+Usage example for `'ActionLocation.HEADER'`:
 
 ```
 plugin.addAction(
-  {
-    where: ActionLocation.HEADER,
-    when:  {}
-  },
+  ActionLocation.HEADER,
+  {},
   {
     tooltipKey: 'plugin-examples.header-action-one',
     tooltip:    'Test Action1',
@@ -198,10 +208,8 @@ plugin.addAction(
 
 ```
 plugin.addAction(
-  {
-    where: ActionLocation.HEADER,
-    when:  {}
-  },
+  ActionLocation.HEADER,
+  {},
   {
     tooltipKey: 'plugin-examples.header-action-two',
     tooltip:    'Test Action2',
@@ -218,10 +226,11 @@ plugin.addAction(
   }
 );
 ```
+
 <br/>
 <br/>
 
-#### **`where: 'TABLE'`** option for addAction
+#### `'ActionLocation.TABLE'` options
 
 _INLINE TABLE ACTION_
 
@@ -231,7 +240,7 @@ _BULKABLE/GLOBAL TABLE ACTION_
 
 ![bulkable table action](./screenshots/inline-and-bulkable.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'TABLE'` are:
+`options` config object. Admissable parameters for the `options` with `'ActionLocation.TABLE'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -244,16 +253,14 @@ _BULKABLE/GLOBAL TABLE ACTION_
 |`invoke`| Function | function executed when action/button is clicked |
 
 
-Usage example for `where: 'TABLE'`:
+Usage example for `'ActionLocation.TABLE'`:
 
 _RENDERING A SIMPLE DIVIDER_
 
 ```
 plugin.addAction( 
-  { 
-    where: ActionLocation.TABLE,
-    when: { resource: 'catalog.cattle.io.clusterrepo' }
-  }, 
+  ActionLocation.TABLE,
+  { resource: ['catalog.cattle.io.clusterrepo'] }, 
   { divider: true });
 ```
 
@@ -262,10 +269,8 @@ _CONFIGURING A NON-BULKABLE ACTION (inline action)_
 
 ```
 plugin.addAction(
-  { 
-    where: ActionLocation.TABLE,
-    when: { resource: 'catalog.cattle.io.clusterrepo' }
-  }, 
+  ActionLocation.TABLE,
+  { resource: ['catalog.cattle.io.clusterrepo'] }, 
   {
     label:    'some-extension-action',
     labelKey: 'plugin-examples.table-action-one',
@@ -282,10 +287,8 @@ _CONFIGURING AN INLINE AND BULKABLE ACTION_
 
 ```
 plugin.addAction(
-  { 
-    where: ActionLocation.TABLE,
-    when: { resource: 'catalog.cattle.io.clusterrepo' }
-  }, 
+  ActionLocation.TABLE,
+  { resource: ['catalog.cattle.io.clusterrepo'] }, 
   {
     label:    'some-bulkable-action',
     labelKey: 'plugin-examples.table-action-two',
@@ -300,35 +303,37 @@ plugin.addAction(
 );
 ```
 
-### `addTab`
+### **`addTab`**
 This method adds a tab to the UI.
 
 Method:
 
 ```
-plugin.addTab(where: String, when: locationConfig, options: Object)
+plugin.addTab(where: String, when: LocationConfig, options: Object)
 ```
 
 _Arguments_
 
-`where` string parameter admissable values:
+`where` string parameter admissable values for this method:
 
 | Key | Type | Description |
 |---|---|---|
 |`TabLocation.RESOURCE_DETAIL`| String | Location for a Tab on a Resource Detail page |
 
+<br/>
+
 `when` Object admissable values:
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'RESOURCE_DETAIL'`** option for addTab
+#### `'TabLocation.RESOURCE_DETAIL'` options
 
 ![Tabs](./screenshots/add-tab.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'RESOURCE_DETAIL'` are:
+`options` config object. Admissable parameters for the `options` with `'TabLocation.RESOURCE_DETAIL'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -344,10 +349,8 @@ Usage example:
 
 ```
 plugin.addTab( 
-  { 
-    where: TabLocation.RESOURCE_DETAIL,
-    when: { resource: 'pod' }
-  }, 
+  TabLocation.RESOURCE_DETAIL,
+  { resource: ['pod'] }, 
   {
     name:       'some-name',
     labelKey:   'plugin-examples.tab-label',
@@ -361,18 +364,18 @@ plugin.addTab(
 ```
 
 
-### `addPanel`
+### **`addPanel`**
 This method adds a panel/content to the UI.
 
 Method:
 
 ```
-plugin.addPanel(where: String, when: locationConfig, options: Object)
+plugin.addPanel(where: String, when: LocationConfig, options: Object)
 ```
 
 _Arguments_
 
-`where` string parameter admissable values:
+`where` string parameter admissable values for this method:
 
 | Key | Type | Description |
 |---|---|---|
@@ -380,115 +383,113 @@ _Arguments_
 |`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page |
 |`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area) |
 
+<br/>
+
 `when` Object admissable values:
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'DETAILS_MASTHEAD'`** option for addPanel
+#### `'PanelLocation.DETAILS_MASTHEAD'` options
 
 ![Details Masthead](./screenshots/masthead.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'DETAILS_MASTHEAD'` are:
+`options` config object. Admissable parameters for the `options` with `'PanelLocation.DETAILS_MASTHEAD'` are:
 
 | Key | Type | Description |
 |---|---|---|
 |`component`| Function | Component to be rendered as content on the "detail view" Masthead component |
 
-Usage example for `where: 'DETAILS_MASTHEAD'`:
+Usage example for `'PanelLocation.DETAILS_MASTHEAD'`:
 
 ```
 plugin.addPanel(
-  {
-    where: PanelLocation.DETAILS_MASTHEAD,
-    when:  { resource: 'catalog.cattle.io.clusterrepo' }
-  },
+  PanelLocation.DETAILS_MASTHEAD
+  { resource: ['catalog.cattle.io.clusterrepo'] },
   { component: () => import('./MastheadDetailsComponent.vue') });
 ```
 
 <br/>
 <br/>
 
-#### **`where: 'DETAIL_TOP'`** option for addPanel
+#### `'PanelLocation.DETAIL_TOP'` options
 
 ![DetailTop](./screenshots/detailtop.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'DETAIL_TOP'` are:
+`options` config object. Admissable parameters for the `options` with `'PanelLocation.DETAIL_TOP'` are:
 
 | Key | Type | Description |
 |---|---|---|
 |`component`| Function | Component to be rendered as content on the "detail view" detailTop component |
 
-Usage example for `where: 'DETAIL_TOP'`:
+Usage example for `'PanelLocation.DETAIL_TOP'`:
 
 ```
 plugin.addPanel(
-  {
-    where: PanelLocation.DETAIL_TOP,
-    when:  { resource: 'catalog.cattle.io.clusterrepo' }
-  },
+  PanelLocation.DETAIL_TOP,
+  { resource: ['catalog.cattle.io.clusterrepo'] },
   { component: () => import('./DetailTopComponent.vue') });
 ```
 
 <br/>
 <br/>
 
-#### **`where: 'RESOURCE_LIST'`** option for addPanel
+#### `'PanelLocation.RESOURCE_LIST'` options
 
 ![List View](./screenshots/list-view.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'RESOURCE_LIST'` are:
+`options` config object. Admissable parameters for the `options` with `'PanelLocation.RESOURCE_LIST'` are:
 
 | Key | Type | Description |
 |---|---|---|
 |`component`| Function | Component to be rendered as content above a table on a "list view" |
 
-Usage example for `where: 'RESOURCE_LIST'`:
+Usage example for `'PanelLocation.RESOURCE_LIST'`:
 
 ```
 plugin.addPanel(
-  {
-    where: PanelLocation.RESOURCE_LIST,
-    when:  { resource: 'catalog.cattle.io.app' }
-  },
+  PanelLocation.RESOURCE_LIST,
+  { resource: ['catalog.cattle.io.app'] },
   { component: () => import('./BannerComponent.vue') });
 ```
 
 <br/>
 <br/>
 
-### `addCard`
+### **`addCard`**
 
 This method adds a card element to the UI.
 
 Method:
 
 ```
-plugin.addCard(where: String, when: locationConfig, options: Object)
+plugin.addCard(where: String, when: LocationConfig, options: Object)
 ```
 
 _Arguments_
 
-`where` string parameter admissable values:
+`where` string parameter admissable values for this method:
 
 | Key | Type | Description |
 |---|---|---|
 |`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page |
 
+<br/>
+
 `when` Object admissable values:
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'CLUSTER_DASHBOARD_CARD'`** option for addCard
+#### `'CardLocation.CLUSTER_DASHBOARD_CARD'` options
 
 ![Cluster Dashboard Card](./screenshots/cluster-cards.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'CLUSTER_DASHBOARD_CARD'` are:
+`options` config object. Admissable parameters for the `options` with `'CardLocation.CLUSTER_DASHBOARD_CARD'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -496,14 +497,12 @@ _Arguments_
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
 |`component`| Function | Component to be rendered aas content of a "Cluster Dashboard Card" |
 
-Usage example for `where: 'CLUSTER_DASHBOARD_CARD'`:
+Usage example for `'CardLocation.CLUSTER_DASHBOARD_CARD'`:
 
 ```
 plugin.addCard(
-  {
-    where: CardLocation.CLUSTER_DASHBOARD_CARD,
-    when:  { cluster: 'local' }
-  },
+  CardLocation.CLUSTER_DASHBOARD_CARD,
+  { cluster: ['local'] },
   {
     label:     'some-label',
     labelKey:  'generic.comingSoon',
@@ -515,36 +514,38 @@ plugin.addCard(
 <br/>
 <br/>
 
-### `addTableColumn`
+### **`addTableColumn`**
 
 This method adds a table column to a `SortableTable`/`ResourceList` element-based table on the UI.
 
 Method:
 
 ```
-plugin.addTableColumn(where: String, when: locationConfig, options: Object)
+plugin.addTableColumn(where: String, when: LocationConfig, options: Object)
 ```
 
 _Arguments_
 
-`where` string parameter admissable values:
+`where` string parameter admissable values for this method:
 
 | Key | Type | Description |
 |---|---|---|
 |`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page |
 
+<br/>
+
 `when` Object admissable values:
 
-`locationConfig` as described above for the [locationConfig object](#locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
 
 <br/>
 <br/>
 
-#### **`where: 'RESOURCE'`** option for addTableColumn
+#### `'TableColumnLocation.RESOURCE'` options
 
 ![Table Col](./screenshots/table-cols.png)
 
-`options` config object. Admissable parameters for the `options` with `where: 'RESOURCE'` are:
+`options` config object. Admissable parameters for the `options` with `'TableColumnLocation.RESOURCE'` are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -556,14 +557,12 @@ _Arguments_
 |`sort`| Array | Object properties to be bound to the table sorting. Optional |
 |`search`| Array | Object properties to be bound to the table search. Optional |
 
-Usage example for `where: 'RESOURCE'`:
+Usage example for `'TableColumnLocation.RESOURCE'`:
 
 ```
 plugin.addTableColumn(
-  {
-    where: TableColumnLocation.RESOURCE,
-    when:  { resource: 'configmap' }
-  },
+  TableColumnLocation.RESOURCE,
+  { resource: ['configmap'] },
   {
     name:     'some-prop-col',
     labelKey: 'generic.comingSoon',
@@ -577,5 +576,6 @@ plugin.addTableColumn(
 );
 ```
 
-<br/>
-<br/>
+
+
+
