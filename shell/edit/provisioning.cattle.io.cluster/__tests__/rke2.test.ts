@@ -2,6 +2,12 @@ import { mount } from '@vue/test-utils';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 
 describe('component: rke2', () => {
+  // Disable existing log to avoid pollution
+  // eslint-disable-next-line jest/no-hooks
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
   it.each([
     'v1.25.0+rke2r1',
     'v1.24.0+rke2r1',
@@ -186,11 +192,11 @@ describe('component: rke2', () => {
   });
 
   it.each([
-    ['any CIS value', false, true],
-    ['any CIS value', true, false],
+    ['anything', false, true],
+    ['anything', true, false],
     ['', false, false],
     ['', true, false],
-  ])('given CIS %p and override as %p it should be disabled %p', (cis, override, disabled) => {
+  ])('given CIS value as %p and its override as %p, it should set PSA dropdown as disabled %p', (cis, override, disabled) => {
     const label = 'whatever';
     const k8s = 'v1.25.0+rke2r1';
     const option = { label, value: label };
