@@ -120,15 +120,15 @@ button,
 
 .role-link {
   background: transparent;
-  color: var(--link) !important;
+  color: var(--link);
 
   &:hover, &._hover {
-    color: var(--lightest) !important;
+    color: var(--lightest);
   }
 
   &:focus, &.focused {
     background: transparent;
-    color: var(--link) !important;
+    color: var(--link);
     box-shadow: none;
   }
 }
