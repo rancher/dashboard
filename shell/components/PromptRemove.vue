@@ -280,8 +280,8 @@ export default {
     },
     async parallelRemove(btnCB) {
       try {
-        if (this.toRemove[0]?.bulkRemove) {
-          await this.toRemove[0]?.bulkRemove(this.toRemove, {});
+        if (this.toRemove[0].bulkRemove) {
+          await this.toRemove[0].bulkRemove(this.toRemove, {});
         } else {
           await Promise.all(this.toRemove.map(resource => resource.remove()));
         }
