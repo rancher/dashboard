@@ -212,11 +212,18 @@ export default {
         return;
       }
 
-      event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
       const split = text.split('\n').map(value => ({ value }));
 
+      if (split.length === 1) {
+        // It's not multi-line, so don't treat it as such
+        return;
+      }
+
+      event.preventDefault();
+
       this.rows.splice(index, 1, ...split);
+
       this.update();
     }
   },
