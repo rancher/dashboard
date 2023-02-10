@@ -4,7 +4,7 @@ import { formatSi } from '@shell/utils/units';
 import { epiniofy } from '../store/epinio-store/actions';
 import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
-import EpinioMetaResource from './epinio-namespaced-resource';
+import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -23,7 +23,7 @@ const STATES_MAPPED = {
   unknown:           'unknown',
 };
 
-export default class EpinioApplicationModel extends EpinioMetaResource {
+export default class EpinioApplicationModel extends EpinioNamespacedResource {
   buildCache = {};
 
   // ------------------------------------------------------------------
@@ -576,6 +576,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     this.closeWindows();
 
     await super.remove();
+  }
+
+  bulkRemove(items, opt) {
+    return bulkRemove(items, opt);
   }
 
   async waitForStaging(stageId, iteration = 0) {
