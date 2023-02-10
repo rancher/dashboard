@@ -7,6 +7,8 @@ import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { _VIEW } from '@shell/config/query-params';
 
+const REGEX = /^(x[a-z0-9]*)-([^-]+)/;
+
 export interface EpinioAppBindings {
   configurations: string[],
   services: EpinioService[],
@@ -72,6 +74,7 @@ export default Vue.extend<Data, any, any, any>({
           value: s,
         }));
 
+      // Need to regex all
       return sortBy(list, 'label');
     },
 
@@ -93,6 +96,12 @@ export default Vue.extend<Data, any, any, any>({
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isFromManifest() {
+      const params = new URLSearchParams(document.location.search);
+
+      return params.get('from') === 'manifest';
     }
   },
 
@@ -124,6 +133,10 @@ export default Vue.extend<Data, any, any, any>({
           // Filter out any we don't know about
           this.values.configurations = this.initialApplication.baseConfigurationsNames?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
         }
+
+        if (this.isFromManifest) {
+          this.values.configurations = this.application.configuration.configurations.filter((c: string) => !c.match(REGEX)) || [];
+        }
       }
     },
 
@@ -133,8 +146,16 @@ export default Vue.extend<Data, any, any, any>({
           this.values.services = (this.initialApplication.services || []);
         }
       }
-    }
 
+      if (this.isFromManifest) {
+        const matchItems = this.application.configuration.configurations
+          .filter((c: string) => c.match(REGEX))
+          .map((c:any) => c.match(REGEX)[2]);
+
+        // INFO: This is quit hard to match, we might have to revisit it.
+        this.values.services = this.services.filter((o: any) => matchItems.some((d: any) => o.value.catalog_service.includes(d))).map((ele: any) => ele.label);
+      }
+    }
   },
 });
 

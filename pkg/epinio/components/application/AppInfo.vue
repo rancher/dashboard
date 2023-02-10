@@ -17,6 +17,7 @@ export interface EpinioAppInfo {
     namespace: string
   },
   configuration: {
+    configurations: string[],
     instances: number,
     environment: {},
     routes: string[]
