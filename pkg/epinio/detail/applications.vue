@@ -325,8 +325,10 @@ export default Vue.extend<Data, any, any, any>({
                 <h4 class="mt-10 mb-10">
                   Metrics
                 </h4>
-
-                <div class="stats">
+                <div
+                  v-if="gitSource"
+                  class="stats"
+                >
                   <div>
                     <h3>{{ t('tableHeaders.memory') }}</h3>
                     <ul>
@@ -343,6 +345,34 @@ export default Vue.extend<Data, any, any, any>({
                       <li><span>Avg: </span>{{ value.instanceCpu.avg }}</li>
                     </ul>
                   </div>
+                </div>
+
+                <div
+                  v-else
+                  class="stats-table"
+                >
+                  <table class="mt-15">
+                    <thead>
+                      <tr>
+                        <th />
+                        <th>Min</th>
+                        <th>Max</th>
+                        <th>Avg</th>
+                      </tr>
+                    </thead>
+                    <tr>
+                      <td>{{ t('tableHeaders.memory') }}</td>
+                      <td>{{ value.instanceMemory.min }}</td>
+                      <td>{{ value.instanceMemory.max }}</td>
+                      <td>{{ value.instanceMemory.avg }}</td>
+                    </tr>
+                    <tr>
+                      <td>{{ t('tableHeaders.cpu') }}</td>
+                      <td>{{ value.instanceCpu.min }}</td>
+                      <td>{{ value.instanceCpu.max }}</td>
+                      <td>{{ value.instanceCpu.avg }}</td>
+                    </tr>
+                  </table>
                 </div>
               </div>
             </SimpleBox>
@@ -586,6 +616,15 @@ export default Vue.extend<Data, any, any, any>({
   }
 }
 
+.stats-table {
+  display: flex;
+  width: 100%;
+
+  table {
+    width: 100%;
+  }
+}
+
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -623,6 +662,11 @@ export default Vue.extend<Data, any, any, any>({
       list-style: none;
       font-size: 14px;
     }
+  }
+
+  // For the second div in stats, style the ul differently
+  & > div:nth-child(2) ul {
+    align-items: flex-end;
   }
 
 }
