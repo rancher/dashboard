@@ -4,7 +4,6 @@ import jsyaml from 'js-yaml';
 
 import Application from '../../models/applications';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { appendSearchParams } from '../../utils/url';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 import GithubPicker from '@shell/components/form/GithubPicker.vue';
@@ -14,6 +13,8 @@ import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
+
+export const EPINIO_APP_MANIFEST = 'manifest';
 
 interface Archive{
   tarball: string,
@@ -236,7 +237,7 @@ export default Vue.extend<Data, any, any, any>({
           }
         };
 
-        appendSearchParams('from', 'manifest');
+        this.$router.applyQuery({ from: EPINIO_APP_MANIFEST });
         this.update();
         this.updateAppInfo(appInfo);
         this.updateConfigurations(parsed.configuration.configurations || []);

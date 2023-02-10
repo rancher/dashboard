@@ -1,6 +1,8 @@
 import { EPINIO_TYPES } from '../types';
 import EpinioNamespacedResource from './epinio-namespaced-resource';
 
+export const EPINIO_CONFIG_NAME_IS_SERVICE = /^(x[a-z0-9]*)-([^-]+)$/;
+
 export default class EpinioConfigurationModel extends EpinioNamespacedResource {
   get canCustomEdit() {
     return !this.isServiceRelated;
@@ -44,7 +46,7 @@ export default class EpinioConfigurationModel extends EpinioNamespacedResource {
   }
 
   get isServiceRelated() {
-    return !!this.configuration?.origin;
+    return this.name.match(EPINIO_CONFIG_NAME_IS_SERVICE);
   }
 
   get service() {
