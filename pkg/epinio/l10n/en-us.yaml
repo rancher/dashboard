@@ -58,7 +58,7 @@ epinio:
     cards:
       namespaces:
         linkText: Create Namespace
-        slotTitle: Latest Namespace
+        slotTitle: Newest Namespaces
       applications:
         linkText: Deploy Application
         running: Running
