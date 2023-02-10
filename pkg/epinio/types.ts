@@ -50,6 +50,13 @@ export const APPLICATION_ACTION_STATE = {
   PENDING: 'pending',
 };
 
+export const APPLICATION_ENV_VAR = 'EPINIO_APP_DATA';
+export interface EPINIO_APP_ENV_VAR_GITHUB {
+  usernameOrOrg: string,
+  repo: string,
+  branch: string,
+}
+
 // --------------------------------------
 // Temporary code until models are typed
 interface EpinioMeta {

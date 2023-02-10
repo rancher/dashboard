@@ -1,10 +1,10 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
-import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
-import EpinioMetaResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
-import { createEpinioRoute } from '../utils/custom-routing';
+import { formatSi } from '@shell/utils/units';
 import { epiniofy } from '../store/epinio-store/actions';
+import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import { createEpinioRoute } from '../utils/custom-routing';
+import EpinioMetaResource from './epinio-namespaced-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -206,6 +206,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return Object.keys(this.configuration?.environment || []).length;
   }
 
+  get envDetails() {
+    return this.configuration?.environment;
+  }
+
   get routeCount() {
     return this.configuration?.routes.length;
   }
@@ -258,9 +262,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
             value: this.origin.git.repository
           }, {
             label: 'Revision',
-            icon:  'icon-github',
+            icon:  'icon-commit',
             value: this.origin.git.revision
-          }]
+          },
+        ]
       };
     case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
       return {
@@ -270,6 +275,20 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
           appChart, {
             label: 'Image',
             value: this.origin.Container || this.origin.container
+          }]
+      };
+    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB:
+      return {
+        label:   'GitHub',
+        icon:    'icon-github',
+        details: [
+          appChart, {
+            label: 'Url',
+            value: this.origin.git.repository
+          }, {
+            label: 'Revision',
+            icon:  'icon-github',
+            value: this.origin.git.revision
           }]
       };
     default:
@@ -627,7 +646,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       // 'deployed' status. Unfortunately we don't have that... so wait for ready === desired replica sets instead
       const fresh = this.$getters['byId'](EPINIO_TYPES.APP, `${ this.meta.namespace }/${ this.meta.name }`);
 
-      if (fresh.deployment?.readyreplicas === fresh.deployment?.desiredreplicas) {
+      if (fresh.deployment?.readyreplicas === fresh.deployment?.desiredreplicas && fresh.deployment.state === APPLICATION_ACTION_STATE.SUCCESS) {
         return true;
       }
       // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time

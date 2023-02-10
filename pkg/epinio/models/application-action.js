@@ -1,7 +1,7 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
+import Vue from 'vue';
 import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME } from '../types';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
-import Vue from 'vue';
 
 export const APPLICATION_ACTION_TYPE = {
   CREATE_NS:           'create_namespace',
@@ -166,7 +166,8 @@ export default class ApplicationActionResource extends Resource {
         kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB,
         git:  {
           revision:   source.github.commit,
-          repository: source.github.url
+          repository: source.github.url,
+          branch:     source.github.branch
         },
       };
     }
