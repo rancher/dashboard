@@ -403,7 +403,7 @@ export default {
       <template #cell:name="{row}">
         <div class="namespace-name">
           <n-link
-            v-if="row.detailLocation"
+            v-if="row.detailLocation && !row.hideDetailLocation"
             :to="row.detailLocation"
           >
             {{ row.name }}
