@@ -63,7 +63,9 @@ export default {
     <div
       class="d-slot"
     >
-      <h2>{{ slotTitle }}</h2>
+      <h2 v-if="slotTitle">
+        {{ slotTitle }}
+      </h2>
       <slot />
     </div>
   </div>
