@@ -243,6 +243,7 @@ export default {
             label-key="plugins.install.version"
             :options="versionOptions"
             class="version-selector mt-10"
+            data-testid="install-ext-modal-select-version"
           />
           <div v-else>
             {{ t('plugins.install.version') }} {{ version }}
@@ -252,12 +253,14 @@ export default {
           <button
             :disabled="busy"
             class="btn role-secondary"
+            data-testid="install-ext-modal-cancel-btn"
             @click="closeDialog(false)"
           >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             :mode="buttonMode"
+            data-testid="install-ext-modal-install-btn"
             @click="install"
           />
         </div>

@@ -817,6 +817,8 @@ catalog:
       keywords: Keywords
     errors:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
+    banner:
+      legacy: 'PSP Removal: Before upgrading a cluster to Kubernetes 1.25+, please ensure you review your Helm applications for Pod Security Policies and update them accordingly'
   charts:
     all: All
     categories:
@@ -2072,10 +2074,11 @@ fleet:
       empty: The root of the repo is used by default.  To use one or more different directories, add them here.
     repo:
       label: Repository URL
-      placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+      placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories.
+      protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     add:
       steps:
         repoInfo:
@@ -2994,6 +2997,8 @@ monitoring:
       new: Create default config
       radio:
         label: Config Secret
+    validation:
+      duplicatedReceiverName: A receiver with the name {name} already exists.
     templates:
       keyLabel: File Name
       label: Template Files

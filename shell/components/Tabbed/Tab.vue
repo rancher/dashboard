@@ -99,7 +99,7 @@ export default {
       class="tab-header"
     >
       <h2>
-        {{ label }}
+        {{ labelDisplay }}
         <i
           v-if="tooltip"
           v-tooltip="tooltip"

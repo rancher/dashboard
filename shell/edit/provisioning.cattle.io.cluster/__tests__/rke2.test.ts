@@ -6,6 +6,9 @@ describe('component: rke2', () => {
     'v1.25.0+rke2r1',
     'v1.24.0+rke2r1',
     'v1.23.0+rke2r1',
+    'v1.25.0+k3s1',
+    'v1.24.0+k3s1',
+    'v1.23.0+k3s1',
   ])('should display PSA option', () => {
     const label = 'whatever';
     const option = { label, value: label };

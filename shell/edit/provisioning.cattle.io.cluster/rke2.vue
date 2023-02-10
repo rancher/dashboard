@@ -314,6 +314,7 @@ export default {
       harvesterVersionRange: {},
       lastDefaultPodSecurityPolicyTemplateName,
       previousKubernetesVersion,
+      harvesterVersion:      ''
     };
   },
 
@@ -356,11 +357,10 @@ export default {
      */
     needsPSA() {
       const release = this.value?.spec?.kubernetesVersion || '';
-      const isRKE2 = release.includes('rke2');
       const version = release.match(/\d+/g);
       const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
 
-      return isRKE2 && isRequiredVersion;
+      return isRequiredVersion;
     },
 
     /**
@@ -903,6 +903,7 @@ export default {
     },
 
     isHarvesterIncompatible() {
+      const CompareVersion = '<v1.2';
       let ccmRke2Version = (this.chartVersions['harvester-cloud-provider'] || {})['version'];
       let csiRke2Version = (this.chartVersions['harvester-csi-driver'] || {})['version'];
 
@@ -918,8 +919,12 @@ export default {
       }
 
       if (ccmVersion && csiVersion) {
-        if (semver.satisfies(ccmRke2Version, ccmVersion) &&
-            semver.satisfies(csiRke2Version, csiVersion)) {
+        if (semver.satisfies(this.harvesterVersion, CompareVersion) || !(this.harvesterVersion || '').startsWith('v')) {
+          // When harveste version is less than `CompareVersion`, compatibility is not determined,
+          // At the same time, version numbers like this will not be checked: master-14bbee2c-head
+          return false;
+        } else if (semver.satisfies(ccmRke2Version, ccmVersion) &&
+          semver.satisfies(csiRke2Version, csiVersion)) {
           return false;
         } else {
           return true;
@@ -1752,7 +1757,10 @@ export default {
         const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.SETTING }s` });
 
         const version = (res?.data || []).find(s => s.id === 'harvester-csi-ccm-versions');
+        // get harvester server-version
+        const serverVersion = (res?.data || []).find(s => s.id === 'server-version');
 
+        this.harvesterVersion = serverVersion.value;
         if (version) {
           this.harvesterVersionRange = JSON.parse(version.value || version.default || '{}');
         } else {
@@ -1791,32 +1799,27 @@ export default {
         const major = parseInt(version?.[0] || 0);
         const minor = parseInt(version?.[1] || 0);
 
-        // If the new version is 1.25 or greater, set the PSP Policy to 'RKE2 Default' (empty string)
-        if (major === 1 && minor >= 25) {
+        // Reset PSA if not RKE2
+        if (!value.includes('rke2')) {
           set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
         } else {
-          const previous = VERSION.parse(this.previousKubernetesVersion);
-          const major = parseInt(previous?.[0] || 0);
-          const minor = parseInt(previous?.[1] || 0);
-
+          // Reset PSP if it's legacy due k8s version 1.25+
           if (major === 1 && minor >= 25) {
-            // Previous value was 1.25 or greater, so reset back
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+          } else {
             set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
           }
-        }
 
-        this.previousKubernetesVersion = value;
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+          this.previousKubernetesVersion = value;
+        }
       }
     },
 
     /**
-     * Handle PSP changes side effects, like PSA resets
+     * Keep last PSP value
      */
     handlePspChange(value) {
-      if (value) {
-        this.lastDefaultPodSecurityPolicyTemplateName = value;
-      }
+      this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
 
   },

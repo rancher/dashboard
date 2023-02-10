@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
-import { isMac } from '@shell/utils/platform';
+import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct } from '@shell/config/private-label';
@@ -15,6 +15,9 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
+import { ActionLocation, ExtensionPoint } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import IconOrSvg from '@shell/components/IconOrSvg';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -29,6 +32,7 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
+    IconOrSvg
   },
 
   props: {
@@ -43,13 +47,15 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      show:              false,
-      showTooltip:       false,
-      kubeConfigCopying: false,
+      show:                   false,
+      showTooltip:            false,
+      kubeConfigCopying:      false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:    null,
+      navHeaderRight:         null,
+      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
+      ctx:                    this
     };
   },
 
@@ -170,6 +176,12 @@ export default {
       if (nue && old && nue.id !== old.id) {
         this.checkClusterName();
       }
+    },
+    // since the Header is a "persistent component" we need to update it at every route change...
+    $route(nue) {
+      if (nue) {
+        this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+      }
     }
   },
 
@@ -288,6 +300,33 @@ export default {
           button.classList.remove('header-btn-active');
         }
       });
+    },
+
+    handleExtensionAction(action, event) {
+      const fn = action.invoke;
+      const opts = {
+        event,
+        action,
+        isAlt:   isAlternate(event),
+        product: this.currentProduct.name,
+        cluster: this.currentCluster,
+      };
+      const enabled = action.enabled ? action.enabled.apply(this, [opts]) : true;
+
+      if (fn && enabled) {
+        fn.apply(this, [opts, []]);
+      }
+    },
+
+    handleExtensionTooltip(action) {
+      if (action.tooltipKey || action.tooltip) {
+        const tooltip = action.tooltipKey ? this.t(action.tooltipKey) : action.tooltip;
+        const shortcut = action.shortcutLabel ? action.shortcutLabel() : '';
+
+        return `${ tooltip } ${ shortcut }`;
+      }
+
+      return null;
     }
   }
 };
@@ -500,6 +539,31 @@ export default {
         >
           <Jump @closeSearch="hideSearch()" />
         </modal>
+      </div>
+
+      <!-- Extension header actions -->
+      <div
+        v-if="extensionHeaderActions.length"
+        class="header-buttons"
+      >
+        <button
+          v-for="action, i in extensionHeaderActions"
+          :key="`${action.label}${i}`"
+          v-tooltip="handleExtensionTooltip(action)"
+          v-shortkey="action.shortcutKey"
+          :disabled="action.enabled ? !action.enabled(ctx) : false"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @shortkey="handleExtensionAction(action, $event)"
+          @click="handleExtensionAction(action, $event)"
+        >
+          <IconOrSvg
+            class="icon icon-lg"
+            :icon="action.icon"
+            :src="action.svg"
+            color="header"
+          />
+        </button>
       </div>
 
       <div
