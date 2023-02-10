@@ -176,16 +176,16 @@ export default {
       }, { root: true });
     },
     customPermissionsUpdate() {
-      this.customPermissions.map((customPermissionsItem) => {
+      return this.customPermissions.reduce((acc, customPermissionsItem) => {
         const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
 
         if (lockedExist.locked) {
           customPermissionsItem['locked'] = true;
-          customPermissionsItem['tooltip'] = 'This role is locked.';
+          customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
         }
-      });
 
-      return this.customPermissions;
+        return [...acc, customPermissionsItem];
+      }, []);
     }
   },
 
