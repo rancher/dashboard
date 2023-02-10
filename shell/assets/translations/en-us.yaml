@@ -2074,9 +2074,10 @@ fleet:
       empty: The root of the repo is used by default.  To use one or more different directories, add them here.
     repo:
       label: Repository URL
-      placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+      placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
+      protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     add:
       steps:
         repoInfo:
