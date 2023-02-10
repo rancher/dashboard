@@ -29,7 +29,7 @@ export default Vue.extend<any, any, any, any>({
           cta:         createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }, { query: { mode: 'openModal' } }),
           link:        createEpinioRoute('c-cluster-resource', { resource: EPINIO_TYPES.NAMESPACE }),
           linkText:    this.t('epinio.intro.cards.namespaces.linkText'),
-          description: this.t('typeDescription.namespaces'),
+          description: this.t('typeDescription.namespaces', {}, true),
           slotTitle:   this.t('epinio.intro.cards.namespaces.slotTitle')
         },
         {
