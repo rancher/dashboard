@@ -1,7 +1,16 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { createEpinioRoute } from '../utils/custom-routing';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
-import { buildBulkLink } from '../utils/links';
+
+export const buildBulkLink = (arr, type) => {
+  return Object
+    .keys(arr)
+    .reduce((acc, cur) => {
+      type === 'applications' ? acc[cur] = arr[cur].map(_e => `applications[]=${ _e }`).join('&') : acc[cur] = arr[cur].map(_e => `${ type }[]=${ _e }`).join('&');
+
+      return acc;
+    }, {});
+};
 
 export default class EpinioResource extends Resource {
   get listLocation() {
@@ -50,7 +59,6 @@ export default class EpinioResource extends Resource {
     opt.method = 'delete';
 
     try {
-      await this.bulkRemove(opt);
       const res = await this.$dispatch('request', { opt, type: this.type });
 
       console.log('### Resource Remove', this.type, this.id, res);// eslint-disable-line no-console
@@ -61,6 +69,11 @@ export default class EpinioResource extends Resource {
   }
 
   async bulkRemove(items, opt = {}) {
+    // If the resource is not an application, service or configuration, move to parallel remove.
+    if (!['applications', 'services', 'configurations'].includes(this.type)) {
+      return await Promise.all(items.map(resource => resource.remove()));
+    }
+
     if ( !opt.url ) {
       opt.url = (this.links || {})['self'].replace(/\/[^\/]+$/, '?');
     }
@@ -89,7 +102,7 @@ export default class EpinioResource extends Resource {
       this.$dispatch('remove', this);
 
       await this.$dispatch('request', { opt, type: this.type });
-      console.log('### Resource Bulk Remove', this.type, this.id, opt); // eslint-disable-line no-console
+      console.log('### Resource Bulk Remove', this.type, items?.map(ele => ele?.id), opt); // eslint-disable-line no-console
     }));
   }
 }

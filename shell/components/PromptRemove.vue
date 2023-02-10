@@ -280,17 +280,17 @@ export default {
     },
     async parallelRemove(btnCB) {
       try {
-        if (typeof this.toRemove[0]?.bulkRemove === 'undefined') {
-          await Promise.all(this.toRemove.map(resource => resource.remove()));
-          this.done();
+        if (this.toRemove[0]?.bulkRemove) {
+          await this.toRemove[0]?.bulkRemove(this.toRemove, {});
         } else {
-          this.toRemove[0]?.bulkRemove(this.toRemove, {}).then(() => {
-            this.done();
-          });
+          await Promise.all(this.toRemove.map(resource => resource.remove()));
         }
+
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
         await this.refreshSpoofedTypes(spoofedTypes);
+
+        this.done();
       } catch (err) {
         this.error = err.message || err;
         btnCB(false);
