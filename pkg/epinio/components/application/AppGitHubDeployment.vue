@@ -62,7 +62,10 @@ export default {
         {{ commitPosition.text }}
       </span>
     </div>
-    <div class="repo-info-description">
+    <div
+      v-if="gitSource.description"
+      class="repo-info-description"
+    >
       <i class="icon icon-fw icon-comment" />
       <p>
         {{ gitSource.description }}
@@ -70,10 +73,10 @@ export default {
     </div>
     <ul>
       <li>
-        <span>Created</span>: {{ formatDate(gitSource.created_at) }}
+        <span>{{ t('epinio.applications.detail.deployment.details.gitHub.created') }}</span>: {{ formatDate(gitSource.created_at) }}
       </li>
       <li>
-        <span>Updated</span>: {{ formatDate(gitSource.updated_at, true) }}
+        <span>{{ t('epinio.applications.detail.deployment.details.gitHub.updated') }}</span>: {{ formatDate(gitSource.updated_at, true) }}
       </li>
     </ul>
   </div>

@@ -79,8 +79,16 @@ epinio:
         label: Deployment
         summary: Summary
         instances: Instances
+        metrics: Metrics
         memory: Memory
         cpu: CPU
+        details:
+          label: Deployment Details
+          origin: Origin
+          gitHub:
+            created: Created
+            updated: Updated
+            deployed: Deployed
       tables:
         label: Resources
         instances: Instances

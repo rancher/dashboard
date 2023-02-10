@@ -5,7 +5,7 @@ import Vue, { PropType } from 'vue';
 import Application from '../models/applications';
 import SimpleBox from '@shell/components/SimpleBox.vue';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import { APPLICATION_ENV_VAR, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
@@ -14,6 +14,8 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
 import AppGitHubDeployment from '../components/application/AppGitHubDeployment.vue';
+import Link from '@shell/components/formatter/Link.vue';
+
 interface Data {
 }
 
@@ -29,6 +31,7 @@ export default Vue.extend<Data, any, any, any>({
     AppGitHubDeployment,
     Tabbed,
     Tab,
+    Link
   },
   props: {
     value: {
@@ -76,12 +79,9 @@ export default Vue.extend<Data, any, any, any>({
         headers: configsHeaders.filter((h: any) => !['namespace', 'boundApps', 'service'].includes(h.name)),
       },
       commitsTableHeaders: [{
-        name:          'sha',
-        label:         this.t('githubPicker.tableHeaders.sha.label'),
-        width:         90,
-        formatter:     'Link',
-        formatterOpts: { urlKey: 'html_url' },
-        value:         'sha'
+        name:  'sha',
+        label: this.t('githubPicker.tableHeaders.sha.label'),
+        width: 100,
       },
       {
         name:  'author',
@@ -128,8 +128,8 @@ export default Vue.extend<Data, any, any, any>({
     async fetchRepoDetails() {
       const envs = this.value?.envDetails;
 
-      if (envs.appDeployment ) {
-        const { usernameOrOrg, repo } = JSON.parse(envs.appDeployment);
+      if (envs[APPLICATION_ENV_VAR] ) {
+        const { usernameOrOrg, repo } = JSON.parse(envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GITHUB;
         const res = await this.$store.dispatch('github/fetchRepoDetails', { username: usernameOrOrg, repo });
 
         const {
@@ -161,11 +161,11 @@ export default Vue.extend<Data, any, any, any>({
     async fetchCommits() {
       const envs = this.value?.envDetails;
 
-      if (!envs.appDeployment) {
+      if (!envs[APPLICATION_ENV_VAR]) {
         return;
       }
 
-      const { usernameOrOrg, repo, branch } = JSON.parse(envs.appDeployment);
+      const { usernameOrOrg, repo, branch } = JSON.parse(envs[APPLICATION_ENV_VAR]);
 
       this.gitDeployment.commitsArray = await this.$store.dispatch('github/fetchCommits', {
         username: usernameOrOrg, repo, branch
@@ -321,7 +321,7 @@ export default Vue.extend<Data, any, any, any>({
               <div class="deployment__origin__row">
                 <hr class="mt-10 mb-10">
                 <h4 class="mt-10 mb-10">
-                  Metrics
+                  {{ t('epinio.applications.detail.deployment.metrics') }}
                 </h4>
                 <div
                   v-if="gitSource"
@@ -376,7 +376,7 @@ export default Vue.extend<Data, any, any, any>({
             </SimpleBox>
             <SimpleBox v-if="value.sourceInfo">
               <h4 class="mb-10">
-                Deployment Details
+                {{ t('epinio.applications.detail.deployment.details.label') }}
               </h4>
 
               <div
@@ -393,7 +393,7 @@ export default Vue.extend<Data, any, any, any>({
               <div class="deployment__origin__list">
                 <ul>
                   <li>
-                    <h4>Origin</h4>
+                    <h4>{{ t('epinio.applications.detail.deployment.details.origin') }}</h4>
                     <span>{{ value.sourceInfo.label }}</span>
                   </li>
 
@@ -462,6 +462,21 @@ export default Vue.extend<Data, any, any, any>({
                 <template v-else>
                   {{ t('githubPicker.tableHeaders.author.unknown') }}
                 </template>
+              </div>
+            </template>
+
+            <template #cell:sha="{row}">
+              <div class="sortable-table-commit">
+                <Link
+                  :row="row"
+                  url-key="html_url"
+                  :value="row.sha"
+                />
+                <i
+                  v-if="row.sha === gitDeployment.deployedCommit.short"
+                  v-tooltip="t('epinio.applications.detail.deployment.details.gitHub.deployed')"
+                  class="icon icon-fw icon-commit"
+                />
               </div>
             </template>
           </SortableTable>
@@ -689,16 +704,22 @@ export default Vue.extend<Data, any, any, any>({
   }
 }
 
-.sortable-table-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+.sortable-table {
+  &-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 
-  img {
-    width: 30px;
-    height: 30px;
-    border-radius: var(--border-radius);
-    margin-right: 10px;
+    img {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--border-radius);
+      margin-right: 10px;
+    }
+  }
+
+  &-commit {
+    display: flex;
   }
 }
 </style>

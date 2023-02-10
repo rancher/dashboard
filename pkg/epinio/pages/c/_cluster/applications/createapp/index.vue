@@ -4,7 +4,7 @@ import Application from '../../../../../models/applications';
 import CreateEditView from '@shell/mixins/create-edit-view/impl';
 import Loading from '@shell/components/Loading.vue';
 import Wizard from '@shell/components/Wizard.vue';
-import { EPINIO_TYPES } from '../../../../../types';
+import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
@@ -107,24 +107,27 @@ export default Vue.extend<Data, any, any, any>({
       this.source = {};
       const { appChart, ...cleanChanges } = changes;
 
+      this.value.configuration = this.value.configuration || {};
+
       if (appChart) {
         // app chart actually belongs in config, so stick it in there
-        this.value.configuration = this.value.configuration || {};
         this.set(this.value.configuration, { appchart: appChart });
-        // FIX: this is a hack to get the app chart to show up in the UI
-        if (!!changes.github.url) {
-          this.set(this.value.configuration, {
-            ...this.value.configuration,
-            environment: {
-              ...this.value.configuration.environment,
-              appDeployment: JSON.stringify({
-                usernameOrOrg: changes.github.usernameOrOrg,
-                repo:          changes.github.repo,
-                branch:        changes.github.branch,
-              })
-            }
-          });
-        }
+      }
+
+      if (changes.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
+        this.value.configuration.environment = this.value.configuration.environment || {};
+        const githubEnvVar: EPINIO_APP_ENV_VAR_GITHUB = {
+          usernameOrOrg: changes.github.usernameOrOrg as string,
+          repo:          changes.github.repo,
+          branch:        changes.github.branch,
+        };
+
+        this.set(this.value.configuration.environment, {
+          ...this.value.configuration.environment,
+          [APPLICATION_ENV_VAR]: JSON.stringify(githubEnvVar)
+        });
+      } else {
+        delete this.value.configuration?.environment?.[APPLICATION_ENV_VAR];
       }
 
       this.set(this.source, cleanChanges);
