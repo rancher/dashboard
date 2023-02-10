@@ -86,6 +86,14 @@ export default {
 
     tableGroup: mapPref(GROUP_RESOURCES),
 
+    parsedRows() {
+      this.rows.forEach((row) => {
+        row.displayTaintsAndLabels = (row.spec.taints && row.spec.taints.length) || !!row.customLabelCount;
+      });
+
+      return this.rows;
+    },
+
     headers() {
       const headers = [
         STATE,
@@ -138,10 +146,6 @@ export default {
     toggleLabels(row) {
       this.$set(row, 'displayLabels', !row.displayLabels);
     },
-
-    displayTaintsAndLabels(row) {
-      return (row.spec.taints && row.spec.taints.length) || !!row.customLabelCount;
-    },
   }
 
 };
@@ -158,7 +162,7 @@ export default {
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
-      :rows="rows"
+      :rows="parsedRows"
       :sub-rows="true"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
@@ -168,11 +172,11 @@ export default {
       <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
         <tr
           class="taints sub-row"
-          :class="{'empty-taints': !displayTaintsAndLabels(row)}"
+          :class="{'empty-taints': ! row.displayTaintsAndLabels}"
           @mouseenter="onRowMouseEnter"
           @mouseleave="onRowMouseLeave"
         >
-          <template v-if="displayTaintsAndLabels(row)">
+          <template v-if="row.displayTaintsAndLabels">
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
@@ -209,7 +213,7 @@ export default {
                   </Tag>
                 </span>
                 <a
-                  v-if="row.customLabelCount > 6"
+                  v-if="row.customLabelCount > 7"
                   href="#"
                   @click.prevent="toggleLabels(row)"
                 >
