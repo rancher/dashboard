@@ -175,14 +175,12 @@ export default Vue.extend<Data, any, any, any>({
       day.extend(relativeTime);
 
       return from ? day(date).fromNow() : day(date).format('DD MMM YYYY');
-    },
-    prepareArray(arr: []) {
-      if (arr === null) {
-        return;
-      }
-
-      if (arr.length) {
-        return arr.reduce((acc: any, cur: any) => {
+    }
+  },
+  computed: {
+    prepareCommitArray() {
+      if (this.gitDeployment.commitsArray.length) {
+        return this.gitDeployment.commitsArray.reduce((acc: any, cur: any) => {
           acc.push({
             message:   cur.commit.message,
             html_url:  cur.html_url,
@@ -196,9 +194,9 @@ export default Vue.extend<Data, any, any, any>({
           return acc;
         }, []);
       }
+
+      return [];
     },
-  },
-  computed: {
     sourceIcon(): string {
       return this.value.sourceInfo?.icon || 'icon-epinio';
     },
@@ -436,7 +434,7 @@ export default Vue.extend<Data, any, any, any>({
         >
           <SortableTable
             v-if="gitDeployment.commitsArray"
-            :rows="prepareArray(gitDeployment.commitsArray)"
+            :rows="prepareCommitArray"
             :headers="commitsTableHeaders"
             mode="view"
             key-field="sha"
@@ -522,7 +520,7 @@ export default Vue.extend<Data, any, any, any>({
 
 <style lang="scss" scoped>
 .content {
-  max-width: 1280px;
+  max-width: 1600px;
 }
 .simple-box-row {
   display: grid;
