@@ -13,9 +13,11 @@ import { sortBy } from 'lodash';
 export default Vue.extend<any, any, any, any>({
   components: { DashboardCard, ConsumptionGauge },
   async fetch() {
-    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CATALOG_SERVICE });
-    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.NAMESPACE });
-    await this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
+    await Promise.all([
+      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CATALOG_SERVICE }),
+      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.NAMESPACE }),
+      this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE })
+    ]);
   },
   data() {
     return {
@@ -59,8 +61,6 @@ export default Vue.extend<any, any, any, any>({
     this.redoCards();
   },
   watch: {
-    // Watchers for updated computed properties
-    // TODO: Unify and refactor if possible
     namespaces(old, neu) {
       if (isEqual(old, neu)) {
         return;
@@ -278,7 +278,7 @@ export default Vue.extend<any, any, any, any>({
     gap: $space-m;
     outline: 1px solid var(--border);
     border-radius: var(--border-radius);
-    margin: 0 0 64px 0;
+    margin: 0 0 20px 0;
     padding: $space-m;
     gap: $space-m;
 
@@ -294,6 +294,7 @@ export default Vue.extend<any, any, any, any>({
 
       span {
         background: var(--primary);
+        color: var(--default);
         border-radius: var(--border-radius);
         padding: 4px 8px;
       }

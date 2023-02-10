@@ -87,7 +87,7 @@ export default {
     align-items: center;
 
     i {
-      margin: 5px 10px 0 0 ;
+      margin-right: 5px ;
       width: auto;
       text-decoration: none;
     }
