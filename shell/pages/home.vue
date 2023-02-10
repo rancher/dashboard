@@ -53,7 +53,20 @@ export default {
 
   mixins: [PageHeaderActions],
 
-  fetch() {
+  // Added by Verrazzano Start
+  // fetch() {
+  async fetch() {
+    let vzVersion = await getVerrazzanoVersion(this.$store);
+
+    // strip dashboardBuild to {major}.{minor} when possible
+    const groups = vzVersion.match(/^v(\d+)\.(\d+)\..*/);
+
+    if (groups) {
+      vzVersion = `${ groups[1] }.${ groups[2] }`;
+    }
+    this.whatsNewVersion = vzVersion;
+
+    // Added by Verrazzano End
     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
   },
@@ -229,19 +242,6 @@ export default {
   },
 
   async created() {
-    // Added by Verrazzano Start
-
-    getVerrazzanoVersion(this.$store).then((vzVersion) => {
-      // strip dashboardBuild to {major}.{minor} when possible
-      const groups = vzVersion.match(/^v(\d+)\.(\d+)\..*/);
-
-      if (groups) {
-        vzVersion = `${ groups[1] }.${ groups[2] }`;
-      }
-      this.whatsNewVersion = vzVersion;
-    });
-    // Added by Verrazzano End
-
     // Update last visited on load
     await this.$store.dispatch('prefs/setLastVisited', { name: 'home' });
     markSeenReleaseNotes(this.$store);
