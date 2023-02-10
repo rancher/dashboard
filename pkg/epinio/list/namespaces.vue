@@ -45,7 +45,12 @@ export default {
     },
     ...mapState('action-menu', ['showPromptRemove']),
   },
-
+  mounted() {
+    // Opens the create namespace modal if the query is passed as query param
+    if (this.$route.query.mode === 'openModal') {
+      this.openCreateModal();
+    }
+  },
   props: {
     schema: {
       type:     Object,

@@ -20,6 +20,7 @@ export const EPINIO_TYPES = {
   CATALOG_SERVICE:  'catalogservices',
   SERVICE_INSTANCE: 'services',
   // Internal
+  DASHBOARD:        'dashboard',
   INSTANCE:         'instance',
   APP_ACTION:       'application-action',
   APP_INSTANCE:     'application-instance',

@@ -1,4 +1,8 @@
 typeLabel:
+  withCount:
+    namespaces: Namespaces {n}
+    applications: Applications {n}
+    services: Services {n}
   namespaces: |-
     {count, plural,
       one { Namespaces }
@@ -42,12 +46,27 @@ epinio:
     allPackages: See all packages
     getBinaries: Get binaries
   intro:
+    dashboard: Dashboard
     welcome: Welcome to Epinio
     blurb: The Application Development Engine for Kubernetes
+    description:  Epinio takes your application from source code to deployment and allow for Developers and Operators to work better together!
     learnMoreLink: https://epinio.io/
     learnMore: Learn more
     noNamespaces: Create a Namespace, then create your Applications
     getStarted: Get started
+    issues: Issues
+    cards:
+      namespaces:
+        linkText: Create Namespace
+        slotTitle: Newest Namespaces
+      applications:
+        linkText: Deploy Application
+        running: Running
+      services:
+        title: Services
+        description: Create instances of your services. Instances can be bound to your Applications to provide data.
+        linkText: Create Instance
+        slotTitle: Quick start with
   tableHeaders:
     namespace: Namespace
   instances:

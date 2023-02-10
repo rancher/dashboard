@@ -14,6 +14,7 @@ export function init($plugin: any, store: any) {
     configureType,
     spoofedType,
     weightType,
+    virtualType,
     weightGroup
   } = $plugin.DSL(store, $plugin.name);
 
@@ -24,8 +25,8 @@ export function init($plugin: any, store: any) {
       logo:                require(`../assets/logo-epinio.svg`),
       productNameKey:      'epinio.label',
       aboutPage:           createEpinioRoute('about', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
-      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
-      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      afterLoginRoute:     createEpinioRoute('c-cluster-dashboard', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      logoRoute:           createEpinioRoute('c-cluster-dashboard', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       disableSteveSockets: true,
     });
   }
@@ -77,6 +78,15 @@ export function init($plugin: any, store: any) {
     showState:   true,
     canYaml:     false,
     customRoute: createEpinioRoute('c-cluster-applications', { }),
+  });
+
+  virtualType({
+    label:      store.getters['i18n/t']('epinio.intro.dashboard'),
+    icon:       'dashboard',
+    group:      'Root',
+    namespaced: false,
+    name:       EPINIO_TYPES.DASHBOARD,
+    route:      createEpinioRoute('c-cluster-dashboard', { })
   });
 
   // App Chart resource
@@ -149,11 +159,13 @@ export function init($plugin: any, store: any) {
     EPINIO_TYPES.APP_CHARTS
   ], ADVANCED_GROUP);
 
-  weightType(EPINIO_TYPES.APP, 300, true);
+  weightType(EPINIO_TYPES.DASHBOARD, 300, true);
+  weightType(EPINIO_TYPES.APP, 250, true);
   weightGroup(SERVICE_GROUP, 2, true);
   weightType(EPINIO_TYPES.NAMESPACE, 100, true);
   weightGroup(ADVANCED_GROUP, 1, true);
   basicType([
+    EPINIO_TYPES.DASHBOARD,
     EPINIO_TYPES.APP,
     SERVICE_GROUP,
     EPINIO_TYPES.NAMESPACE,
