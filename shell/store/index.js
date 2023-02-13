@@ -534,6 +534,11 @@ export const mutations = {
   },
 
   changeAllNamespaces(state, namespace) {
+    // `allNamespaces/changeAllNamespaces` allow products to restrict the namespaces shown to the user in the NamespaceFilter and NameNsDescription components.
+    // You can configure the `notFilterNamespace` parameter for each resource page to define namespaces that do not need to be filtered,  and then change `allNamespaces` by calling `changeAllNamespaces`
+    // eg:
+    // const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
+    // const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
     state.allNamespaces = namespace;
   },
 
