@@ -4,7 +4,6 @@ import jsyaml from 'js-yaml';
 
 import Application from '../../models/applications';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 import GithubPicker from '@shell/components/form/GithubPicker.vue';
@@ -14,6 +13,8 @@ import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
+
+export const EPINIO_APP_MANIFEST = 'manifest';
 
 interface Archive{
   tarball: string,
@@ -214,9 +215,9 @@ export default Vue.extend<Data, any, any, any>({
         if (parsed.origin?.container) {
           Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
           Vue.set(this.container, 'url', parsed.origin.container);
-        } else if (parsed.origin.git?.url && parsed.origin.git?.revision) {
+        } else if (parsed.origin.git?.repository && parsed.origin.git?.revision) {
           Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.GIT_URL);
-          Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
+          Vue.set(this.gitUrl, 'url', parsed.origin.git.repository);
           Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
         }
         if (parsed.configuration) {
@@ -229,12 +230,14 @@ export default Vue.extend<Data, any, any, any>({
             namespace: this.namespaces?.[0]?.name || ''
           },
           configuration: {
-            instances:   parsed.configuration.instances || 1,
-            environment: parsed.configuration.environment || {},
-            routes:      parsed.configuration.routes || []
+            configurations: parsed.configuration?.configurations || [],
+            instances:      parsed.configuration.instances || 1,
+            environment:    parsed.configuration.environment || {},
+            routes:         parsed.configuration.routes || []
           }
         };
 
+        this.$router.applyQuery({ from: EPINIO_APP_MANIFEST });
         this.update();
         this.updateAppInfo(appInfo);
         this.updateConfigurations(parsed.configuration.configurations || []);
