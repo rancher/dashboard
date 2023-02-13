@@ -46,7 +46,7 @@ export default class EpinioConfigurationModel extends EpinioNamespacedResource {
   }
 
   get isServiceRelated() {
-    return this.name.match(EPINIO_CONFIG_NAME_IS_SERVICE);
+    return this.name?.match(EPINIO_CONFIG_NAME_IS_SERVICE);
   }
 
   get service() {

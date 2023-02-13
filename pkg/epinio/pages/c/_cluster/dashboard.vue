@@ -91,7 +91,7 @@ export default Vue.extend<any, any, any, any>({
       this.sectionContent[2].title = this.t('typeLabel.withCount.services', { n: this.services?.servicesInstances });
 
       // Handles descriptions
-      if (this.namespaces?.totalNamespaces ) {
+      if (this.namespaces?.totalNamespaces || this.namespaces?.totalNamespaces === 0 ) {
         this.sectionContent[0].isLoaded = true;
       }
 
@@ -99,12 +99,9 @@ export default Vue.extend<any, any, any, any>({
         this.sectionContent[1].isLoaded = true;
       }
 
-      if (this.services?.servicesCatalog.length) {
+      if (this.services?.servicesCatalog || this.services?.servicesInstances === 0) {
         this.sectionContent[2].isLoaded = true;
         this.sectionContent[2].isEnable = true;
-      } else {
-        this.sectionContent[2].isLoaded = false;
-        this.sectionContent[2].isEnable = false;
       }
     }
   },
