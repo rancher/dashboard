@@ -152,7 +152,10 @@ export default {
       const isOutdated = !this.options.find(opt => option[this.optionLabel] === opt[this.optionLabel]);
 
       if (isOutdated) {
-        return this.options.find(opt => option[this.optionKey] === opt[this.optionKey])?.[this.optionLabel];
+        const option = this.options.find(opt => option[this.optionKey] === opt[this.optionKey]);
+        const label = get(option, this.optionLabel);
+
+        return this.localizedLabel ? this.$store.getters['i18n/t'](label) || label : label;
       }
 
       if (this.$attrs['get-option-label']) {
