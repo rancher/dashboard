@@ -1441,7 +1441,7 @@ verrazzano:
   ### verrazzano.links ###
   ########################
   links:
-    argoCDUrl: ArgoCD Console
+    argoCDUrl: Argo CD Console
     consoleUrl: Verrazzano Console
     docs: Docs
     fileAnIssue: File an Issue
