@@ -2,10 +2,11 @@
 import Vue from 'vue';
 import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 import PlusMinus from '@shell/components/form/PlusMinus';
-import { SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
+import { POD, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
+const INVALID_TYPES = [POD];
 
 export default {
   components: { PlusMinus, ProgressBarMulti },
@@ -45,6 +46,10 @@ export default {
 
     canScale() {
       return !!SCALABLE_TYPES.includes(this.row.type) && this.row.canUpdate;
+    },
+
+    canShow() {
+      return !INVALID_TYPES.includes(this.row.type);
     },
 
     parts() {
@@ -162,8 +167,9 @@ export default {
 </script>
 
 <template>
+  <div v-if="!canShow" />
   <div
-    v-if="loading"
+    v-else-if="loading"
     class="hs-popover__loader"
   >
     <i class="icon icon-spinner" />

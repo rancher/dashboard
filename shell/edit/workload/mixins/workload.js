@@ -11,6 +11,7 @@ import {
   SERVICE_ACCOUNT,
   CAPI,
   POD,
+  LIST_WORKLOAD_TYPES,
 } from '@shell/config/types';
 import Tab from '@shell/components/Tabbed/Tab';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -490,21 +491,19 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
 
-    workloadTypes() {
-      return omitBy(WORKLOAD_TYPES, (type) => {
+    // array of id, label, description, initials for type selection step
+    workloadSubTypes() {
+      const workloadTypes = omitBy(LIST_WORKLOAD_TYPES, (type) => {
         return (
           type === WORKLOAD_TYPES.REPLICA_SET ||
           type === WORKLOAD_TYPES.REPLICATION_CONTROLLER
         );
       });
-    },
 
-    // array of id, label, description, initials for type selection step
-    workloadSubTypes() {
       const out = [];
 
-      for (const prop in this.workloadTypes) {
-        const type = this.workloadTypes[prop];
+      for (const prop in workloadTypes) {
+        const type = workloadTypes[prop];
         const subtype = {
           id:          type,
           description: `workload.typeDescriptions.'${ type }'`,

@@ -92,6 +92,11 @@ const {
 
 export const SCALABLE_WORKLOAD_TYPES = scalableWorkloads;
 
+export const LIST_WORKLOAD_TYPES = {
+  ...WORKLOAD_TYPES,
+  POD
+};
+
 export const METRIC = {
   NODE: 'metrics.k8s.io.nodemetrics',
   POD:  'metrics.k8s.io.podmetrics',

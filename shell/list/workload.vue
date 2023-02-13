@@ -1,6 +1,8 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
+import {
+  WORKLOAD_TYPES, SCHEMA, NODE, POD, LIST_WORKLOAD_TYPES
+} from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
 const schema = {
@@ -16,7 +18,7 @@ const schema = {
 const $loadingResources = ($route, $store) => {
   const allowedResources = [];
 
-  Object.values(WORKLOAD_TYPES).forEach((type) => {
+  Object.values(LIST_WORKLOAD_TYPES).forEach((type) => {
     // You may not have RBAC to see some of the types
     if ($store.getters['cluster/schemaFor'](type) ) {
       allowedResources.push(type);
@@ -134,8 +136,8 @@ export default {
       } else {
         const type = this.$route.params.resource;
 
-        if (type === WORKLOAD_TYPES.JOB) {
-          // Ignore job (we're fetching this anyway, plus they contain their own state)
+        if (type === WORKLOAD_TYPES.JOB || type === POD) {
+          // Ignore job and pods (we're fetching this anyway, plus they contain their own state)
           return;
         }
 
