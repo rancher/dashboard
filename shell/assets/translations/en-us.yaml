@@ -1787,7 +1787,7 @@ cluster:
       label: Default Pod Security Admission
       option: 
         none: (None)
-        default: Rancher Default
+        default: Default - RKE2 Embedded
     cisProfile:
       option: (None)
     enableNetworkPolicy:
