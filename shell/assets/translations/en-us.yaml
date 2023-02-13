@@ -1759,6 +1759,9 @@ cluster:
     create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
   rke2:
+    banner:
+      psaChange: PSACT is now set to Rancher default automatically
+      cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
     snapshots:
       suffix: Snapshots per node
     systemService:

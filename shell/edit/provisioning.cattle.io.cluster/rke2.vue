@@ -520,7 +520,7 @@ export default {
     isPsaDisabled() {
       const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      return !(!cisValue || this.cisOverride);
+      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates;
     },
 
     /**
@@ -1809,18 +1809,24 @@ export default {
     },
 
     /**
-     * Reset PSA on CIS changes for given conditions
+     * Reset PSA on several input changes for given conditions
      */
-    handleCisChange() {
+    togglePsaDefault() {
       // This option is created from the server and is guaranteed to exist #8032
       const hardcodedTemplate = 'rancher-restricted';
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      if (this.hasPsaTemplates) {
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
+      if (!this.cisOverride) {
+        if (this.hasPsaTemplates && cisValue) {
+          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
+        }
+
+        this.cisPsaChangeBanner = this.hasPsaTemplates;
       }
+    },
 
-      this.cisPsaChangeBanner = this.hasPsaTemplates;
-
+    handleCisChange() {
+      this.togglePsaDefault();
       this.updateCisProfile();
     },
 
@@ -1842,6 +1848,7 @@ export default {
      */
     handleKubernetesChange(value) {
       if (value) {
+        this.togglePsaDefault();
         const version = VERSION.parse(value);
         const major = parseInt(version?.[0] || 0);
         const minor = parseInt(version?.[1] || 0);
@@ -2185,6 +2192,18 @@ export default {
               v-model="cisOverride"
               :mode="mode"
               :label="t('cluster.rke2.cis.override')"
+              @input="togglePsaDefault"
+            />
+
+            <Banner
+              v-if="cisOverride"
+              color="warning"
+              :label="t('cluster.rke2.banner.cisOverride')"
+            />
+            <Banner
+              v-if="cisPsaChangeBanner && !cisOverride"
+              color="info"
+              :label="t('cluster.rke2.banner.psaChange')"
             />
           </template>
 
