@@ -59,7 +59,7 @@ export default {
     let vzVersion = await getVerrazzanoVersion(this.$store);
 
     // strip dashboardBuild to {major}.{minor} when possible
-    const groups = vzVersion.match(/^v(\d+)\.(\d+)\..*/);
+    const groups = vzVersion.match(/^(\d+)\.(\d+)\..*/);
 
     if (groups) {
       vzVersion = `${ groups[1] }.${ groups[2] }`;

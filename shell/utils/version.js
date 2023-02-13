@@ -105,7 +105,7 @@ export function getVersionInfo(store) {
 export async function getVerrazzanoVersion(store) {
   const vz = await store.dispatch('management/findAll', { type: VERRAZZANO });
 
-  return vz[0]?.spec?.version;
+  return vz[0]?.status?.version;
 }
 // Added by Verrazzano End
 
