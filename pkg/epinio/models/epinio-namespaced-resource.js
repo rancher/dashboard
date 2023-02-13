@@ -8,7 +8,7 @@ export const bulkRemove = async(items, opt = {}) => {
     opt.url = model.linkFor('self').replace(/\/[^\/]+$/, '?');
   }
   opt.method = 'delete';
-  opt.data = JSON.stringify({ unbind: false });
+  opt.data = JSON.stringify({ unbind: true });
 
   // Separates the resources by namespace
   const _byNamespace = items.reduce((acc, cur) => {
