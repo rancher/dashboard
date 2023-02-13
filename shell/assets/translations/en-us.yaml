@@ -2153,6 +2153,7 @@ fleet:
   workspaces: 
     tabs:
       restrictions: Allowed Target Namespaces
+    timeout: Workspace creation timeout. It's possible the cluster was created. We suggest checking the workspace page before trying to create another.
   restrictions: 
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add

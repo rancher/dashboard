@@ -1,6 +1,7 @@
 
 <script>
 import { FLEET } from '@shell/config/types';
+import { NAME } from '@shell/config/product/fleet';
 export default {
   name: 'NoWorkspaces',
 
@@ -12,8 +13,8 @@ export default {
   },
   data() {
     const formRoute = {
-      name:   `c-cluster-product-resource`,
-      params: { resource: FLEET.WORKSPACE }
+      name:   `c-cluster-product-resource-create`,
+      params: { resource: FLEET.WORKSPACE, product: NAME }
     };
 
     return { hasWorkspaces: false, formRoute };

@@ -60,13 +60,7 @@ export default {
       if (curr.length && !currentExists) {
         this.value = curr[0]?.value;
       }
-
-      console.log('TESTING', this.allNamespaces);
     },
-
-    allWorkspaces(curr, prev) {
-      console.log(curr, prev);
-    }
   },
 
   created() {

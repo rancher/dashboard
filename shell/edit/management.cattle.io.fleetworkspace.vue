@@ -96,9 +96,10 @@ export default {
           await model.save();
         }
 
+        await this.value.waitForWorkspaceSchema();
+
         buttonCb(true);
-        await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
-        this.navigateToList();
+        this.done();
       } catch (err) {
         console.error(err) ; // eslint-disable-line no-console
         buttonCb(false);

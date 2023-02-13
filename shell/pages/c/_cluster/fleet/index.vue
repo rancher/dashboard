@@ -11,6 +11,7 @@ import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth'
 import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 import { filterBy } from '@shell/utils/array';
 import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
+import { NAME } from '@shell/config/product/fleet';
 
 export default {
   name:       'ListGitRepo',
@@ -94,7 +95,7 @@ export default {
       getStartedLink:      {
         name:   'c-cluster-product-resource-create',
         params: {
-          product:  'fleet',
+          product:  NAME,
           resource: FLEET.GIT_REPO
         },
       }
@@ -144,7 +145,7 @@ export default {
       this.$router.push({
         name:   'c-cluster-product-resource',
         params: {
-          product:  'fleet',
+          product:  NAME,
           resource: FLEET.GIT_REPO
         },
       });
