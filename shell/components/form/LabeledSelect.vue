@@ -1,7 +1,6 @@
 <script>
 import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
-import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
@@ -105,16 +104,6 @@ export default {
     hasLabel() {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
-
-    currentLabel() {
-      const entry = findBy(this.options || [], 'value', this.value);
-
-      if (entry) {
-        return entry.label;
-      }
-
-      return this.getOptionLabel(this.value);
-    },
   },
 
   methods: {
@@ -157,6 +146,13 @@ export default {
     getOptionLabel(option) {
       if (!option) {
         return;
+      }
+
+      // Force to update the option label if prop has been changed
+      const isOutdated = !this.options.find(({ label }) => option.label === label);
+
+      if (isOutdated) {
+        return this.options.find(({ value }) => option.value === value)?.label;
       }
 
       if (this.$attrs['get-option-label']) {
