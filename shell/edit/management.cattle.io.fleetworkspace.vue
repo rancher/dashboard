@@ -97,12 +97,21 @@ export default {
         }
 
         buttonCb(true);
+        await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
+        this.navigateToList();
       } catch (err) {
         console.error(err) ; // eslint-disable-line no-console
         buttonCb(false);
         this.errors = exceptionToErrorsArray(err);
       }
     },
+
+    navigateToList() {
+      this.$router.replace({
+        name:   `c-cluster-product-resource`,
+        params: { resource: FLEET.WORKSPACE }
+      });
+    }
   },
 
   computed: {

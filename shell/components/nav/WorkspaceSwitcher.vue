@@ -49,6 +49,26 @@ export default {
     },
   },
 
+  watch: {
+    options(curr, prev) {
+      if (curr.length === 0) {
+        this.value = '';
+      }
+
+      const currentExists = curr.find(item => item.value === this.value);
+
+      if (curr.length && !currentExists) {
+        this.value = curr[0]?.value;
+      }
+
+      console.log('TESTING', this.allNamespaces);
+    },
+
+    allWorkspaces(curr, prev) {
+      console.log(curr, prev);
+    }
+  },
+
   created() {
     // in fleet standard user with just the project owner and global git repo permissions
     // returns 'default'
