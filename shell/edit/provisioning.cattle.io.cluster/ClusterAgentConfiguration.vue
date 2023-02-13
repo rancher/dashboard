@@ -1,4 +1,6 @@
 <script>
+import jsyaml from 'js-yaml';
+import Vue from 'Vue';
 import GroupPanel from '@shell/components/GroupPanel';
 import KeyValue from '@shell/components/form/KeyValue';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
@@ -6,6 +8,7 @@ import PodAffinity from '@shell/components/form/PodAffinity';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import HealthCheck from '@shell/components/form/HealthCheck';
 import Tolerations from '@shell/components/form/Tolerations';
+import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 
 import { cleanUp } from '@shell/utils/object';
 
@@ -20,6 +23,7 @@ export default {
     MatchExpressions,
     PodAffinity,
     Tolerations,
+    YamlEditor,
   },
   props: {
     value: {
@@ -34,7 +38,11 @@ export default {
   },
 
   data() {
-    const out = {};
+    const out = {
+      editorMode: EDITOR_MODES.VIEW_CODE,
+      yaml:       '',
+      showYaml:   false,
+    };
 
     return out;
   },
@@ -46,7 +54,7 @@ export default {
   computed: {
     flatResources: {
       get() {
-        const { limits = {}, requests = {} } = this.value.pod?.resources || {};
+        const { limits = {}, requests = {} } = this.value.pod?.containers || {};
         const {
           cpu: limitsCpu,
           memory: limitsMemory,
@@ -71,7 +79,13 @@ export default {
           limitsGpu,
         } = neu;
 
+        const existing = this.value?.pod?.containers || {};
+
+        delete existing.requests;
+        delete existing.limits;
+
         const out = {
+          ...existing,
           requests: {
             cpu:    requestsCpu,
             memory: requestsMemory,
@@ -83,7 +97,7 @@ export default {
           },
         };
 
-        this.$set(this.value.pod, 'resources', cleanUp(out));
+        this.$set(this.value.pod, 'containers', cleanUp(out));
       },
     }
   },
@@ -111,7 +125,21 @@ export default {
       this.value.pod = this.value.pod || {};
       this.value.pod.labels = this.value.pod.labels || [];
       this.value.pod.containers = this.value.pod.containers || {};
+      this.value.pod.containers.health = this.value.pod.containers.health || {};
       this.value.pod.tolerations = this.value.pod.tolerations || [];
+    },
+
+    updateYaml() {
+      const yaml = jsyaml.dump(this.value);
+      const component = this.$refs.yamleditor;
+
+      Vue.set(this, 'yaml', yaml);
+
+      if (component) {
+        component.updateValue(yaml);
+      }
+
+      this.showYaml = !this.showYaml;
     }
   }
 };
@@ -120,11 +148,17 @@ export default {
 <template>
   <div v-if="value && Object.keys(value).length">
     <button
-      class="btn btn-small role-primary"
-      @click="debug"
+      class="btn btn-small role-primary mb-10"
+      @click="updateYaml"
     >
-      Show Object
+      Toggle Object View
     </button>
+
+    <YamlEditor
+      v-if="showYaml"
+      ref="yamleditor"
+      :value="yaml"
+    />
     <GroupPanel
       label-key="cluster.clusterAgentConfig.groups.deploymentLabels"
     >
@@ -142,20 +176,6 @@ export default {
       label="Selector"
       class="mt-20"
     >
-      <!-- <h4>Match Labels</h4>
-
-      <KeyValue
-        key="labels"
-        :value="value.selector.matchLabels"
-        :protected-keys="[]"
-        :add-label="t('labels.addLabel')"
-        :mode="mode"
-        :read-allowed="false"
-        :value-can-be-empty="true"
-      />
-
-      <h4 class="mt-10">Match Expressions</h4> -->
-
       <MatchExpressions
         v-model="value.selector"
         :mode="mode"
@@ -207,7 +227,7 @@ export default {
       class="mt-20"
     >
       <HealthCheck
-        :value="value.pod.containers"
+        v-model="value.pod.containers.health"
         :mode="mode"
       />
     </GroupPanel>
