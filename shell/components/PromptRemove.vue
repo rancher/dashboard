@@ -280,10 +280,16 @@ export default {
     },
     async parallelRemove(btnCB) {
       try {
+        if (typeof this.toRemove[0].bulkRemove !== 'undefined') {
+          await this.toRemove[0].bulkRemove(this.toRemove, {});
+        } else {
+          await Promise.all(this.toRemove.map(resource => resource.remove()));
+        }
+
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
-        await Promise.all(this.toRemove.map(resource => resource.remove()));
         await this.refreshSpoofedTypes(spoofedTypes);
+
         this.done();
       } catch (err) {
         this.error = err.message || err;
@@ -408,6 +414,14 @@ export default {
             @input="chartAddCrdToRemove"
           />
         </labeledinput>
+        <template v-else>
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+        </template>
       </div>
       <template #actions>
         <button
