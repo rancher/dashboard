@@ -256,7 +256,9 @@ export default {
       const haveAllNamespace = this.$store.getters['haveAllNamespace'];
 
       return this.rows.filter((row) => {
-        if (!this.isNamespaced) {
+        if (this.currentProduct?.hideSystemResources && this.isNamespaced) {
+          return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
+        } else if (!this.isNamespaced) {
           return true;
         } else if (haveAllNamespace) {
           // `rows` only contains resource from a single namespace

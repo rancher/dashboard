@@ -231,6 +231,11 @@ export default {
 
         if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore) {
           out = filterNamespace.find(NS => NS.metadata.name === namespace.metadata.name);
+        } else if (this.currentProduct?.hideSystemResources) {
+          // Filter out the namespace
+          // if it is a system namespace or if it is managed by
+          // Fleet.
+          out = !namespace.isSystem && !namespace.isFleetManaged;
         }
 
         if (this.mode === _CREATE) {
