@@ -527,10 +527,7 @@ export default {
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const release = this.value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isDefault = version?.length ? +version[0] > 1 || +version[1] >= 25 : false;
-      const optionCase = isDefault ? 'default' : 'none';
+      const optionCase = !this.needsPSP ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
