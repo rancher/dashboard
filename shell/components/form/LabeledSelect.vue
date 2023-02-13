@@ -149,10 +149,10 @@ export default {
       }
 
       // Force to update the option label if prop has been changed
-      const isOutdated = !this.options.find(({ label }) => option.label === label);
+      const isOutdated = !this.options.find(opt => option[this.optionLabel] === opt[this.optionLabel]);
 
       if (isOutdated) {
-        return this.options.find(({ value }) => option.value === value)?.label;
+        return this.options.find(opt => option[this.optionKey] === opt[this.optionKey])?.[this.optionLabel];
       }
 
       if (this.$attrs['get-option-label']) {
