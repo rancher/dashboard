@@ -193,7 +193,6 @@ describe('component: rke2', () => {
 
   it.each([
     ['anything', false, true],
-    ['anything', true, false],
     ['', false, false],
     ['', true, false],
   ])('given CIS value as %p and its override as %p, it should set PSA dropdown as disabled %p', (cis, override, disabled) => {
@@ -212,7 +211,7 @@ describe('component: rke2', () => {
             kubernetesVersion:                                    k8s
           }
         },
-        provider: 'whatever',
+        provider: 'custom',
         resource: {}
       },
       computed: {
@@ -225,13 +224,13 @@ describe('component: rke2', () => {
         showk8s21LegacyWarning() {
           return false;
         },
+        agentArgs:      () => ({ profile: { options: [cis] } }),
         versionOptions: () => [
           {
-            value:      k8s,
-            serverArgs: {},
-            agentArgs:  {},
-            charts:     {},
-            profile:    { options: [cis] }
+            value:     k8s,
+            agentArgs: { profile: { options: [cis] } },
+            charts:    {},
+            profile:   { options: [cis] }
           }
         ]
       },

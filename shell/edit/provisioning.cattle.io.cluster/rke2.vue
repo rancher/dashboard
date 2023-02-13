@@ -471,6 +471,9 @@ export default {
       return out;
     },
 
+    /**
+     * Allow to display override if PSA is needed and profile is set
+     */
     hasCisOverride() {
       return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA;
     },
@@ -2142,6 +2145,7 @@ export default {
               <LabeledSelect
                 v-else-if="agentArgs && agentArgs.profile"
                 v-model="agentConfig.profile"
+                data-testid="rke2-custom-edit-cis-agent"
                 :mode="mode"
                 :options="profileOptions"
                 :label="t('cluster.rke2.cis.agent')"
