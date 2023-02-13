@@ -104,6 +104,7 @@
 //                               customRoute: undefined,
 //                               hasGraph: undefined   -- If true, render ForceDirectedTreeChart graph (ATTENTION: option graphConfig is needed also!!!)
 //                               graphConfig: undefined   -- Use this to pass along the graph configuration
+//                               notFilterNamespace:  undefined -- Define namespaces that do not need to be filtered
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it

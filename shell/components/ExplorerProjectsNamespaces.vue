@@ -112,6 +112,10 @@ export default {
       // is updated if a new project is created or removed.
       const projectsInAllClusters = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
+      if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore && this.$store.getters[`${ this.currentProduct.inStore }/filterProject`]) {
+        return this.$store.getters[`${ this.currentProduct.inStore }/filterProject`];
+      }
+
       const clustersInProjects = projectsInAllClusters.filter(project => project.spec.clusterName === clusterId);
 
       return clustersInProjects;
