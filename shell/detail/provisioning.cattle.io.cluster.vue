@@ -256,6 +256,13 @@ export default {
         const machines = this.value.machines.filter((machine) => {
           const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
 
+          // if labels exist, then the machinePrefix must unequivocally be equal to currMachineNaming (based on labels)
+          if (machine.metadata?.labels && machine.metadata?.labels['cluster.x-k8s.io/cluster-name'] && machine.metadata?.labels['rke.cattle.io/rke-machine-pool-name']) {
+            const currMachineNaming = `${ machine.metadata?.labels['cluster.x-k8s.io/cluster-name'] }-${ machine.metadata?.labels['rke.cattle.io/rke-machine-pool-name'] }`;
+
+            return !isElementalCluster ? currMachineNaming === machinePrefix : machine.spec?.infrastructureRef?.name.includes(machinePrefix);
+          }
+
           return !isElementalCluster ? machine.spec?.infrastructureRef?.name.startsWith(machinePrefix) : machine.spec?.infrastructureRef?.name.includes(machinePrefix);
         });
 
