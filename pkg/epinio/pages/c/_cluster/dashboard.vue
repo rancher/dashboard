@@ -91,15 +91,15 @@ export default Vue.extend<any, any, any, any>({
       this.sectionContent[2].title = this.t('typeLabel.withCount.services', { n: this.services?.servicesInstances });
 
       // Handles descriptions
-      if (this.namespaces?.totalNamespaces || this.namespaces?.totalNamespaces === 0 ) {
+      if (this.namespaces?.totalNamespaces >= 0) {
         this.sectionContent[0].isLoaded = true;
       }
 
-      if (this.apps?.totalApps || this.apps?.totalApps === 0) {
+      if (this.apps?.totalApps >= 0) {
         this.sectionContent[1].isLoaded = true;
       }
 
-      if (this.services?.servicesCatalog || this.services?.servicesInstances === 0) {
+      if (this.services?.servicesCatalog?.length >= 0) {
         this.sectionContent[2].isLoaded = true;
         this.sectionContent[2].isEnable = true;
       }
@@ -204,7 +204,7 @@ export default Vue.extend<any, any, any, any>({
           :description="card.description"
           :slot-title="card.slotTitle"
         >
-          <span v-if="index === 0">
+          <span v-if="index === 0 && namespaces.latestNamespaces.length > 0">
             <slot>
               <ul>
                 <li
@@ -217,7 +217,7 @@ export default Vue.extend<any, any, any, any>({
             </slot>
           </span>
 
-          <span v-if="index === 1">
+          <span v-if="index === 1 && apps.totalApps > 0">
             <slot>
               <ConsumptionGauge
                 :resource-name="t('epinio.intro.cards.applications.running')"
