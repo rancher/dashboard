@@ -4844,6 +4844,26 @@ storageClass:
       label: KMS Key ID for Encryption
       automatic: 'Automatic: Generate a key'
       manual: 'Manual: Use a specific key (full ARN)'
+  outscale-bsu:
+      title: Outscale BSU Disk
+      volumeType:
+        label: Volume Type
+        gp2: GP2 - General Purpose SSD
+        io1: IO1 - Provisioned IOPS SSD
+        provisionedIops:
+          label: Provisioned IOPS
+          suffix: per second, per GB
+      filesystemType:
+        label: Filesystem Type
+        placeholder: e.g. xfs, ext4
+      encryption:
+        label: Encryption
+        enabled: Enabled
+        disabled: Disabled
+        secret: Secret containing the key
+        luks-cipher: LUKS encryption cipher to use
+        luks-hash: Derivation Password hash algorithm
+        luks-key-size: Size of the encryption key
   azure-disk:
     title: Azure Disk
     storageAccountType:

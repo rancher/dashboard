@@ -78,6 +78,11 @@ export const PROVISIONER_OPTIONS = [
     value:         'driver.harvesterhci.io',
     supported:     true,
     hideCustomize: true,
+  },
+  {
+    labelKey:  'storageClass.outscale-bsu.title',
+    value:     'bsu.csi.outscale.com',
+    supported: true,
   }
 ];
 
