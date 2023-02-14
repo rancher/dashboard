@@ -3449,6 +3449,9 @@ node:
     poolDescription:
       noSize: No Size
       noLocation: No Location
+    nodeLabels: Labels
+    hideLabels: Show less
+    showLabels: Show more
   detail:
     detailTop:
       containerRuntime: Container Runtime

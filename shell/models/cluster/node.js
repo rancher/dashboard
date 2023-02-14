@@ -1,5 +1,5 @@
 import { formatPercent } from '@shell/utils/string';
-import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@shell/config/labels-annotations.js';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE, SYSTEM_LABELS } from '@shell/config/labels-annotations.js';
 import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
@@ -107,6 +107,26 @@ export default class ClusterNode extends SteveModel {
 
   get labels() {
     return this.metadata?.labels || {};
+  }
+
+  get customLabelCount() {
+    return this.customLabels.length;
+  }
+
+  get customLabels() {
+    const parsedLabels = [];
+
+    if (this.labels) {
+      for (const k in this.labels) {
+        const [prefix] = k.split('/');
+
+        if (!SYSTEM_LABELS.includes(prefix)) {
+          parsedLabels.push(`${ k }=${ this.labels[k] }`);
+        }
+      }
+    }
+
+    return parsedLabels;
   }
 
   get isWorker() {

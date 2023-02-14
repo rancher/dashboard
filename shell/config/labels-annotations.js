@@ -146,3 +146,19 @@ export const CLUSTER_BADGE = {
   // Custom icon text - max 2 characters
   ICON_TEXT: 'ui.rancher/badge-icon-text',
 };
+
+export const SYSTEM_LABELS = [
+  'io.cattle.lifecycle.',
+  'beta.kubernetes.io',
+  'failure-domain.beta.kubernetes.io',
+  'node-role.kubernetes.io',
+  'kubernetes.io',
+  'cattle.io',
+  'authz.management.cattle.io',
+  'rke.cattle.io',
+  'field.cattle.io',
+  'workload.user.cattle.io',
+  'k3s.io',
+  'node.kubernetes.io',
+  'egress.rke2.io'
+];
