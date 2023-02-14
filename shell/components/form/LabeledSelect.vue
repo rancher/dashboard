@@ -5,6 +5,7 @@ import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import isEqual from 'lodash/isEqual';
 
 export default {
   name: 'LabeledSelect',
@@ -152,10 +153,13 @@ export default {
       const isOutdated = !this.options.find(opt => option[this.optionLabel] === opt[this.optionLabel]);
 
       if (isOutdated && this.options) {
-        const newOption = this.options.find(opt => option[this.optionKey] === opt[this.optionKey]);
-        const label = get(newOption, this.optionLabel);
+        const newOption = this.options.find(opt => isEqual(this.reduce(option), this.reduce(opt)));
 
-        return this.localizedLabel ? this.$store.getters['i18n/t'](label) || label : label;
+        if (newOption) {
+          const label = get(newOption, this.optionLabel);
+
+          return this.localizedLabel ? this.$store.getters['i18n/t'](label) || label : label;
+        }
       }
 
       if (this.$attrs['get-option-label']) {
