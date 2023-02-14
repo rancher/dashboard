@@ -58,9 +58,10 @@ export default {
       {{ linkText }}
     </n-link>
 
-    <hr>
+    <hr v-if="$slots.default">
 
     <div
+      v-if="$slots.default"
       class="d-slot"
     >
       <h2 v-if="slotTitle">
