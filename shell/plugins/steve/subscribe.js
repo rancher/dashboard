@@ -29,8 +29,6 @@ import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 
-// eslint-disable-next-line
-import storeWorker from './worker/index.js';
 import { BLANK_CLUSTER } from '@shell/store/index.js';
 
 // minimum length of time a disconnect notification is shown
@@ -97,7 +95,7 @@ export async function createWorker(store, ctx) {
 
   if (!store.$workers[storeName]) {
     const workerMode = advancedWorker ? 'advanced' : 'basic';
-    const worker = storeWorker(workerMode);
+    const worker = store.steveCreateWorker(workerMode);
 
     store.$workers[storeName] = worker;
 
