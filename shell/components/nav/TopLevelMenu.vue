@@ -1,6 +1,7 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
+import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
@@ -16,7 +17,11 @@ import { isRancherPrime } from '@shell/config/version';
 
 export default {
 
-  components: { BrandImage, ClusterProviderIcon },
+  components: {
+    BrandImage,
+    ClusterProviderIcon,
+    IconOrSvg
+  },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -143,6 +148,7 @@ export default {
         return {
           label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
           icon:              `icon-${ p.icon || 'copy' }`,
+          svg:               p.svg,
           value:             p.name,
           removable:         p.removable !== false,
           inStore:           p.inStore || 'cluster',
@@ -357,9 +363,9 @@ export default {
                 class="option"
                 :to="a.to"
               >
-                <i
-                  class="icon group-icon"
-                  :class="a.icon"
+                <IconOrSvg
+                  :icon="a.icon"
+                  :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>
@@ -378,9 +384,9 @@ export default {
                 class="option"
                 :to="a.to"
               >
-                <i
-                  class="icon group-icon"
-                  :class="a.icon"
+                <IconOrSvg
+                  :icon="a.icon"
+                  :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>
@@ -399,9 +405,9 @@ export default {
                 class="option"
                 :to="a.to"
               >
-                <i
-                  class="icon group-icon"
-                  :class="a.icon"
+                <IconOrSvg
+                  :icon="a.icon"
+                  :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>
@@ -528,6 +534,9 @@ export default {
     svg {
       margin-right: 8px;
       fill: var(--link);
+    }
+    img {
+      margin-right: 8px;
     }
 
     > div {

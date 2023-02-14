@@ -17,7 +17,7 @@ import AnsiUp from 'ansi_up';
 import day from 'dayjs';
 import { addParams } from '@shell/utils/url';
 import { base64Decode } from '@shell/utils/crypto';
-import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
+import { DATE_FORMAT, TIME_FORMAT, SCALE_POOL_PROMPT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import MachineSummaryGraph from '@shell/components/formatter/MachineSummaryGraph';
 import Socket, {
@@ -29,6 +29,7 @@ import Socket, {
 } from '@shell/utils/socket';
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
+import { isAlternate } from '@shell/utils/platform';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -253,7 +254,9 @@ export default {
       const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
         const machinePrefix = `${ this.value.name }-${ mp.name }`;
         const machines = this.value.machines.filter((machine) => {
-          return machine.spec?.infrastructureRef?.name.startsWith(machinePrefix);
+          const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+
+          return !isElementalCluster ? machine.spec?.infrastructureRef?.name.startsWith(machinePrefix) : machine.spec?.infrastructureRef?.name.includes(machinePrefix);
         });
 
         return machines.length === 0;
@@ -500,6 +503,24 @@ export default {
   },
 
   methods: {
+    toggleScaleDownModal( event, resources ) {
+      // Check if the user held alt key when an action is clicked.
+      const alt = isAlternate(event);
+      const showScalePoolPrompt = this.$store.getters['prefs/get'](SCALE_POOL_PROMPT);
+
+      // Prompt if showScalePoolPrompt pref not store and user did not held alt key
+      if (!alt && !showScalePoolPrompt) {
+        this.$store.dispatch('management/promptModal', {
+          component:  'ScalePoolDownDialog',
+          resources,
+          modalWidth: '450px'
+        });
+      } else {
+        // User held alt key, so don't prompt
+        resources.scalePool(-1);
+      }
+    },
+
     async takeSnapshot(btnCb) {
       try {
         await this.value.takeSnapshot();
@@ -679,7 +700,7 @@ export default {
                 </div>
               </div>
               <div
-                v-if="group.ref"
+                v-if="group.ref && poolSummaryInfo[group.ref]"
                 class="right group-header-buttons mr-20"
               >
                 <MachineSummaryGraph
@@ -693,7 +714,7 @@ export default {
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.scalePool(-1)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>
@@ -777,7 +798,7 @@ export default {
                     :disabled="group.ref.spec.quantity < 2"
                     type="button"
                     class="btn btn-sm role-secondary"
-                    @click="group.ref.scalePool(-1)"
+                    @click="toggleScaleDownModal($event, group.ref)"
                   >
                     <i class="icon icon-sm icon-minus" />
                   </button>

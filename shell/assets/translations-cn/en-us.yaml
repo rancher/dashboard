@@ -105,6 +105,9 @@ generic:
           =1 {Matches 1 of {total, number}: "{sample}"}
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
+  confirm: Confirm
+  labels: Labels
+  podSecurityAdmission: Pod Security Admission
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -734,7 +737,7 @@ asyncButton:
   load:
     action: Load
     success: Loaded
-    waiting: Loadingg&hellip;
+    waiting: Loading&hellip;
   timing:
     action: Generate Response Times
     success: Response Times Generated
@@ -849,6 +852,8 @@ catalog:
         placeholder: Registry domain and ports, ex. registry.io:5000
       label: Container Registry
       tooltip: Container images are pulled from the Cluster Container Registry or, failing that, the System Container Registry Setting. To change this default behavior enter or update the registry here
+    banner:
+      legacy: 'PSP Removal: Before upgrading a cluster to Kubernetes 1.25+, please ensure you review your Helm applications for Pod Security Policies and update them accordingly'
   charts:
     all: All
     categories:
@@ -1096,7 +1101,7 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
-  workerProfile: CIS Worker Profile
+  workerProfile: CIS Profile
 cluster:
   addonChart:
     rancher-vsphere-cpi: vSphere CPI Configuration
@@ -1264,7 +1269,13 @@ cluster:
       memory: Memory
       disk: Disk
       image: Image
-      network: Network Name
+      network:
+        addNetwork: Add Network
+        macAddress: Mac Address
+        macFormat: Invalid MAC address format.
+        network: Network
+        networkName: Network Name
+        title: Networks
       sshUser: SSH User
       userData:
         label: User Data Template
@@ -1275,10 +1286,25 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
-      cluster: Cluster
+      cluster: Imported Harvester Cluster
       affinity:
         namespaces:
           placeholder: e.g. default,system,base
+      volume:
+        addVMImage: Add VM Image
+        addVolume: Add Volume
+        imageVolume: Image Volume
+        storageClass: Storage Class
+        title: Volumes
+        volume: Volume
+    pnap:
+      clientIdentifier:
+        label: Client ID
+        placeholder: Your Client ID
+      clientSecret:
+        help: From <a href="https://bmc.phoenixnap.com/credentials/" target="_blank" rel="nofollow noreferrer noopener">phoenixNAP BMC Portal</a> API Credentials
+        label: Client Secret
+        placeholder: Your Client Secret
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
@@ -1675,6 +1701,27 @@ cluster:
       httpEndpoint: Allow access to EC2 metadata
       httpTokens: Use tokens for metadata
       tagTitle: EC2 Tags
+    pnap:
+      serverCoresPerCpu:
+        label: Cores per CPU
+      serverCpu:
+        label: CPU
+      serverCpuCount:
+        label: CPU Count
+      serverCpuFrequency:
+        label: CPU Frequency [GHz]
+      serverLocation:
+        label: Location
+      serverNetwork:
+        label: Network
+      serverOs:
+        label: OS
+      serverRam:
+        label: RAM [GB]
+      serverStorage:
+        label: Storage
+      serverType:
+        label: Type
   addOns:
     dependencyBanner: Add-On Configurations can vary between Kubernetes versions. Changing the Kubernetes version may reset the values below.
     additionalManifest:
@@ -1706,6 +1753,10 @@ cluster:
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
+    deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
+    haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
+    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
+    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
   rkeTemplateUpgrade: Template revision {name} available for upgrade
   detail:
     provisioner: Provisioner
@@ -1869,10 +1920,13 @@ cluster:
     cloudProvider:
       label: Cloud Provider
       header: Cloud Provider Config
+      defaultValue:
+        label: Default - RKE2 Embedded
     security:
       header: Security
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
+      option: RKE Default
     enableNetworkPolicy:
       label: Project Network Isolation
       warning: Per default, the ingress controller will not be able to route requests to pods on other nodes.
@@ -1922,6 +1976,11 @@ cluster:
         label: Metrics
         false: Only available inside the cluster
         true: Exposed to the public interface
+    cisProfile:
+      option: (None)
+    defaultPodSecurityAdmissionConfigurationTemplateName:
+      label: Default Pod Security Admission
+      option: (None)
   k3s:
     techPreview: K3s provisioning is in Tech Preview
     systemService:
@@ -2162,9 +2221,10 @@ fleet:
       empty: The root of the repo is used by default.  To use one or more different directories, add them here.
     repo:
       label: Repository URL
-      placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+      placeholder: 'e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git'
       addRepo: Add Repository
       noRepos: No repositories have been added
+      protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     add:
       steps:
         repoInfo:
@@ -2328,6 +2388,9 @@ growl:
   reconnected:
     message: "The connection to {url} was restored on attempt #{tries}."
     title: Websocket Reconnected
+  podSecurity:
+    message: The creation of this Pod would violate existing restricted policies for the adopted Namespace
+    title: PodSecurity violation
 hpa:
   detail:
     currentMetrics:
@@ -2453,6 +2516,7 @@ ingress:
     target:
       label: Target Service
       doesntExist: The selected service does not exist
+      tooltip: If none of the Services in this dropdown select the Pods that you need to expose, you will need to create a Service that selects those Pods first.
     title: Rules
   rulesAndCertificates:
     title: Rules and Certificates
@@ -2460,6 +2524,7 @@ ingress:
   target:
     default: Default
   rulesOrBackendSpecified: Either Default Backend or Rules must be specified
+  description: Ingresses route incoming traffic from the internet to Services within the cluster based on the hostname and path specified in the request. You can expose multiple Services on the same external IP address and port.
 internalExternalIP:
   none: None
 istio:
@@ -2646,6 +2711,9 @@ labels:
   labels:
     title: Labels
     fleetClusterTooltip: Label changes are made to the Management Cluster and synchronized to the Fleet Cluster
+    description: Key/value pairs that are attached to objects which specify identifying attributes.
+    hide: Hide System Label
+    show: Show System Label
   annotations:
     title: Annotations
 landing:
@@ -3049,6 +3117,8 @@ monitoring:
       label: Template Files
       valueLabel: YAML Template
     title: Configure Alertmanager
+    validation:
+      duplicatedReceiverName: A receiver with the name {name} already exists.
   clusterType:
     label: Cluster Type
     placeholder: Select cluster type
@@ -3216,6 +3286,7 @@ monitoring:
       bearerTokenSecret: Bearer Token Secret
       basicAuthUsername: Secret with Basic Auth Username
       basicAuthPassword: Secret with Basic Auth Password
+    error: An error occurred saving the AlertmanagerConfig
   installSteps:
     uninstallV1:
       stepTitle: Uninstall V1
@@ -3977,6 +4048,9 @@ prefs:
     title: Advanced Features
     viewInApi: Enable "View in API"
   language: Language
+  confirmationSetting:
+    scalingDownPrompt: Do not ask for confirmation when scaling down node pools.
+    title: Confirmation Setting
 principal:
   loading: Loading&hellip;
   error: Unable to fetch principal info
@@ -4152,6 +4226,7 @@ promptRemove:
   willDeleteAssociatedNamespaces: "This will also delete all namespaces in the project: "
   confirmRelatedResource: "Deleting the {type} will remove all the resources on this particular {type} and this is not revertable, are you sure you want to continue deleting {names}?"
   attemptingToRemoveAuthConfig: You are attempting to disable this Auth Provider. <br><br> Be aware that cluster role template bindings, project role template bindings, global role bindings, users, tokens will be all deleted. <br><br> Are you sure you want to proceed?
+  promptConfirmation: Do not prompt again for confirmation when scaling down.
 promptRemoveApp:
   removeCrd: "Delete the CRD associated with this app"
 promptRestore:
@@ -4626,14 +4701,15 @@ servicesPage:
           =1 {Matches 1 of {total, number} pods: "{sample}"}
           other {Matches {matched, number} of {total, number} existing pods, including "{sample}"}
         }
+      description: Selector keys and values are intended to match labels and values on existing Pods.
   serviceTypes:
     clusterIp:
       abbrv: IP
-      description: Exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster. This is the default type.
+      description: Expose a set of Pods to other Pods within the cluster. This type of Service is only reachable from within the cluster. This is the default type.
       label: Cluster IP
     externalName:
       abbrv: EN
-      description: "Maps the service to the contents of the `externalName` field (e.g. foo.bar.example.com), by returning a CNAME record with its value. No proxying of any kind is set up."
+      description: "Create a Service that uses a DNS name instead of selectors. This is an advanced use case."
       label: External Name
     headless:
       abbrv: H
@@ -4641,11 +4717,11 @@ servicesPage:
       label: Headless
     loadBalancer:
       abbrv: LB
-      description: Exposes the service externally using a cloud provider's load balancer.
+      description: Create a load balancer in the underlying infrastructure (e.g. a cloud provider's load balancer) and assign a public IP address to the service. Allows external clients to access the service using the public IP address and the port specified in the service definition.
       label: Load Balancer
     nodePort:
       abbrv: NP
-      description: "Exposes the service on each node's IP at a static port (the `NodePort`). You'll be able to contact this type of service, from outside the cluster, by requesting `&lt;NodeIP&gt;:&lt;NodePort&gt;`."
+      description: "Expose the service on each node's IP at a static port."
       label: Node Port
   typeOpts:
     label: Service Type
@@ -4667,6 +4743,9 @@ servicesPage:
     ipam:
       label: IPAM
     title: Add-on Config
+  listeningPorts: The Service is exposed on this port.
+  serviceListDescription: Services allow you to define a logical set of Pods that can be accessed with a single IP address and port.
+  targetPorts: The Service will send requests to this port, and the selected Pods are expected to listen on this port.
 setup:
   currentPassword: Bootstrap Password
   confirmPassword: Confirm New Password
@@ -5010,6 +5089,14 @@ storageClass:
   deprecated:
     title: (Deprecated)
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
+  harvesterhci:
+    hostStorageClass:
+      label: Host Storage Class
+      placeholder: Storage class name on the host Harvester cluster
+      tooltip: By default the default storage class on the host Harvester cluster is used.
+    title: Harvester (CSI)
+    warning:
+      unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
 tableHeaders:
   accessKey: Access Key
   address: Address
@@ -5223,6 +5310,7 @@ tableHeaders:
   users: Users
   volume: Volume
   volumeMode: Volume Mode
+  lastSeenTooltip: The time at which the most recent occurrence of this event was recorded
 target:
   router:
     label: Router
@@ -5334,6 +5422,8 @@ validation:
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
     min: '"{key}" should be at least {val}'
+    isOctal: '"{key}" must have no leading zeros'
+    isPositive: '"{key}" must be positive'
   podAffinity:
     affinityTitle: Pod Affinity
     antiAffinityTitle: Pod Anti-Affinity
@@ -5573,6 +5663,10 @@ workload:
       name: Name
       protocol: Protocol
       listeningPort: Listening Port
+      description: Define a Service to expose the container, or define a non-functional, named port so that humans will know where the app within the container is expected to run.
+      detailedDescription: If ClusterIP, LoadBalancer, or NodePort is selected, a Service is automatically created that will select the Pods in this workload using labels.
+      expose: Networking
+      toolTip: For help exposing workloads on Kubernetes, see the official Kubernetes documentation on Services. You can also manually create a Service to expose Pods by selecting their labels, and you can use an Ingress to map HTTP routes to Services.
     removeContainer: Remove Container
     addContainer: Add Container
     security:
@@ -6207,7 +6301,7 @@ typeLabel:
     }
   monitoring.coreos.com.alertmanagerconfig: |-
     {count, plural,
-      one { AlertmanagerConfigs }
+      one { AlertmanagerConfig }
       other { AlertmanagerConfigs }
     }
   monitoring.coreos.com.podmonitor: |-
@@ -6253,7 +6347,7 @@ typeLabel:
   'management.cattle.io.user': |-
     {count, plural,
       one { User }
-      other { Users }
+      other { Users}
     }
   namespace: |-
     {count, plural,
@@ -6383,13 +6477,13 @@ typeLabel:
     }
   fleet.cattle.io.bundledeployment: |-
     {count, plural,
-      one { ClusterRegistration }
-      other { ClusterRegistrations }
+      one { BundleDeployment }
+      other { BundleDeployments }
     }
   fleet.cattle.io.clusterregistration: |-
     {count, plural,
-      one { Catalog }
-      other { Catalogs }
+      one { ClusterRegistration }
+      other { ClusterRegistrations }
     }
   fleet.cattle.io.content: |-
     {count, plural,
@@ -6428,8 +6522,8 @@ typeLabel:
     }
   management.cattle.io.catalog: |-
     {count, plural,
-      one { APIService }
-      other { APIServices }
+      one { Catalog }
+      other { Catalogs }
     }
   management.cattle.io.catalogtemplate: |-
     {count, plural,
@@ -6463,7 +6557,7 @@ typeLabel:
     }
   management.cattle.io.clusterregistrationtoken: |-
     {count, plural,
-      one { ClusterRegistrationTokens }
+      one { ClusterRegistrationToken }
       other { ClusterRegistrationTokens }
     }
   management.cattle.io.dynamicschema: |-
@@ -6533,7 +6627,7 @@ typeLabel:
     }
   networking.k8s.io.networkpolicy: |-
     {count, plural,
-      one { Network Policies }
+      one { Network Policy }
       other { Network Policies }
     }
   persistentvolume: |-
@@ -6583,7 +6677,7 @@ typeLabel:
     }
   scheduling.k8s.io.priorityclass: |-
     {count, plural,
-      one { PriorityClasse }
+      one { PriorityClass }
       other { PriorityClasses }
     }
   secret: |-
@@ -6610,6 +6704,11 @@ typeLabel:
     {count, plural,
       one { StorageClass }
       other { StorageClasses }
+    }
+  management.cattle.io.podsecurityadmissionconfigurationtemplate: |-
+    {count, plural,
+      one { Pod Security Admission }
+      other { Pod Security Admissions }
     }
 action:
   clone: Clone
@@ -6654,7 +6753,7 @@ unit:
       other { days }
     }
 workloadPorts:
-  addPort: Add Port
+  addPort: Add Port or Service
   remove: Remove
   addHost: Add Host
 podAffinity:
@@ -6671,6 +6770,10 @@ registryMirror:
   valuePlaceholder: e.g. https://a.registry.com:5000, https://b.registry.com:5000
   keyPlaceholder: e.g. docker.io or *
   description: Mirrors define the names and endpoints for private registries. The endpoints are tried one by one, and the first working one is used.
+  endpointsLabel: Mirror Endpoints
+  endpointsPlaceholder: e.g. a.registry.com:5000, b.registry.com:5000
+  hostnameLabel: Registry Hostname
+  hostnamePlaceholder: e.g. docker.io or *
 registryConfig:
   header: Registry Authentication
   toolTip: 'When an image needs to be pulled from the given registry hostname, this information will be used to verify the identity of the registry and authenticate to it.'
@@ -6837,6 +6940,10 @@ performance:
       inputLabel: Resource Threshold
     description: When there are too many resources to show in a list, require the user to select a single namespace and only fetch resources from within it.
     label: Require Namespace Filtering
+  advancedWorker:
+    checkboxLabel: Enable Advanced Websocket Web Worker
+    description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
+    label: Websocket Web Worker
 banner:
   label: Fixed Banners
   settingName: Banners
@@ -7527,3 +7634,32 @@ podDisruptionBudget:
     label: Max. unavailable Pods
   minAvailable:
     label: Min. available Pods
+podSecurityAdmission:
+  banner:
+    modifications: 'Note: Modifying a Pod Security Admission Configuration Template will not affect any downstream cluster that references it until there is a cluster update'
+  description: Define the admission control mode you want to use for the pod security
+  exemptions:
+    description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
+    placeholder: Enter a comma separated list of {psaExemptionsControl}
+    title: Exemptions
+  labels:
+    audit: Audit
+    baseline: baseline
+    enforce: Enforce
+    namespaces: Namespaces
+    privileged: privileged
+    restricted: restricted
+    runtimeClasses: RuntimeClasses
+    usernames: Usernames
+    warn: Warn
+  name: Pod Security Admission
+  version:
+    placeholder: 'Version (default: latest)'
+registryMirrorRewrite:
+  addLabel: Add Rewrite Config
+  header: Rewrites
+  keyLabel: Rewrite pattern
+  keyPlaceholder: e.g. ^rancher/(.*)
+  toolTip: Each mirror can have a set of rewrites. Rewrites can change the tag of an image based on a regular expression.
+  valueLabel: Rewrite replacement
+  valuePlaceholder: e.g. mirrorproject/rancher-images/$1

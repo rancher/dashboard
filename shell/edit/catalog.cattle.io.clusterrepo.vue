@@ -61,6 +61,7 @@ export default {
           :options="[false, true]"
           :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git')]"
           :mode="mode"
+          data-testid="clusterrepo-radio-input"
         />
       </div>
     </div>
@@ -76,6 +77,7 @@ export default {
           :label="t('catalog.repo.gitRepo.label')"
           :placeholder="t('catalog.repo.gitRepo.placeholder', null, true)"
           :mode="mode"
+          data-testid="clusterrepo-git-repo-input"
         />
       </div>
       <div class="col span-6">
@@ -85,6 +87,7 @@ export default {
           :label="t('catalog.repo.gitBranch.label')"
           :placeholder="t('catalog.repo.gitBranch.placeholder', null, true)"
           :mode="mode"
+          data-testid="clusterrepo-git-branch-input"
         />
       </div>
     </div>

@@ -265,3 +265,13 @@ export default {
     </CruResource>
   </div>
 </template>
+<style lang="scss" scoped>
+  .banner {
+    display: block;
+
+    &::v-deep code {
+      padding: 0 3px;
+      margin: 0 3px;
+    }
+  }
+</style>

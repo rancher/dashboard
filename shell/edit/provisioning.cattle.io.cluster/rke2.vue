@@ -28,6 +28,7 @@ import { sortBy } from '@shell/utils/sort';
 import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import * as VERSION from '@shell/utils/version';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -66,6 +67,7 @@ import RegistryMirrors from './RegistryMirrors';
 import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
+import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -137,6 +139,10 @@ export default {
         hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
       }
 
+      if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
+        hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+      }
+
       // Get the latest versions from the global settings if possible
       const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
       const defaultRke2Setting = globalSettings.find(setting => setting.id === 'rke2-default-version') || {};
@@ -158,6 +164,7 @@ export default {
       const res = await allHash(hash);
 
       this.allPSPs = res.allPSPs || [];
+      this.allPSAs = res.allPSAs || [];
       this.rke2Versions = res.rke2Versions.data || [];
       this.k3sVersions = res.k3sVersions.data || [];
 
@@ -231,6 +238,10 @@ export default {
       set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
     }
 
+    if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
+      set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+    }
+
     await this.initAddons();
     await this.initRegistry();
 
@@ -267,10 +278,15 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
+    // Store the initial PSP template name, so we can set it back if needed
+    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
+    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
       allPSPs:                         null,
+      allPSAs:                         [],
       nodeComponent:                   null,
       credentialId:                    null,
       credential:                      null,
@@ -296,6 +312,9 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
+      lastDefaultPodSecurityPolicyTemplateName,
+      previousKubernetesVersion,
+      harvesterVersion:      ''
     };
   },
 
@@ -309,6 +328,10 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    isElementalCluster() {
+      return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
     advancedTitleAlt() {
@@ -329,9 +352,34 @@ export default {
       return this.value.agentConfig;
     },
 
+    /**
+     * Return need of PSA if RKE and min k8s version
+     */
+    needsPSA() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
+
+      return isRequiredVersion;
+    },
+
+    /**
+     * Restrict use of PSP based on min k8s version
+     */
+    needsPSP() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return isRequiredVersion;
+    },
+
     // kubeletConfigs() {
     //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
     // },
+    /**
+     * Check if k8s release version used is RKE2 ^1.25
+     */
 
     unsupportedSelectorConfig() {
       let global = 0;
@@ -421,7 +469,10 @@ export default {
         return { label: x, value: x };
       });
 
-      out.unshift({ label: '(None)', value: '' });
+      out.unshift({
+        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
+        value: ''
+      });
 
       return out;
     },
@@ -431,7 +482,10 @@ export default {
         return null;
       }
 
-      const out = [{ label: 'RKE2 Default', value: '' }];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
+        value: ''
+      }];
 
       if ( this.allPSPs ) {
         for ( const pspt of this.allPSPs ) {
@@ -451,6 +505,35 @@ export default {
       return out;
     },
 
+    /**
+     * Convert PSA templates into options, sorting and flagging if any selected
+     */
+    psaOptions() {
+      if ( !this.needsPSA ) {
+        return [];
+      }
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option'),
+        value: ''
+      }];
+
+      if ( this.allPSAs ) {
+        for ( const psa of this.allPSAs ) {
+          out.push({
+            label: psa.nameDisplay,
+            value: psa.id,
+          });
+        }
+      }
+      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName;
+
+      if ( cur && !out.find(x => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
     disableOptions() {
       return this.serverArgs.disable.options.map((value) => {
         return {
@@ -461,7 +544,10 @@ export default {
     },
 
     cloudProviderOptions() {
-      const out = [{ label: '(None)', value: '' }];
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
+      }];
 
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
@@ -508,11 +594,7 @@ export default {
     },
 
     haveArgInfo() {
-      if ( this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs ) {
-        return true;
-      }
-
-      return false;
+      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
     },
 
     serverArgs() {
@@ -528,11 +610,11 @@ export default {
     },
 
     showCisProfile() {
-      return this.provider === 'custom' && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs.profile || this.agentArgs.profile );
     },
 
     needCredential() {
-      if ( this.provider === 'custom' || this.provider === 'import' || this.mode === _VIEW ) {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW ) {
         return false;
       }
 
@@ -552,13 +634,17 @@ export default {
     },
 
     machineConfigSchema() {
+      let schema;
+
       if ( !this.hasMachinePools ) {
         return null;
+      } else if (this.isElementalCluster) {
+        schema = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+      } else {
+        schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
 
-      const schema = this.$store.getters['management/schemaFor'](`${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`);
-
-      return schema;
+      return this.$store.getters['management/schemaFor'](schema);
     },
 
     nodeTotals() {
@@ -817,6 +903,7 @@ export default {
     },
 
     isHarvesterIncompatible() {
+      const CompareVersion = '<v1.2';
       let ccmRke2Version = (this.chartVersions['harvester-cloud-provider'] || {})['version'];
       let csiRke2Version = (this.chartVersions['harvester-csi-driver'] || {})['version'];
 
@@ -832,8 +919,12 @@ export default {
       }
 
       if (ccmVersion && csiVersion) {
-        if (semver.satisfies(ccmRke2Version, ccmVersion) &&
-            semver.satisfies(csiRke2Version, csiVersion)) {
+        if (semver.satisfies(this.harvesterVersion, CompareVersion) || !(this.harvesterVersion || '').startsWith('v')) {
+          // When harveste version is less than `CompareVersion`, compatibility is not determined,
+          // At the same time, version numbers like this will not be checked: master-14bbee2c-head
+          return false;
+        } else if (semver.satisfies(ccmRke2Version, ccmVersion) &&
+          semver.satisfies(csiRke2Version, csiVersion)) {
           return false;
         } else {
           return true;
@@ -850,6 +941,18 @@ export default {
         return 'registryconfig-auth-';
       }
     },
+    displayInvalidPspsBanner() {
+      const version = VERSION.parse(this.value.spec.kubernetesVersion);
+
+      const major = parseInt(version?.[0] || 0);
+      const minor = parseInt(version?.[1] || 0);
+
+      if (major === 1 && minor >= 25) {
+        return this.allPSPs?.length > 0;
+      }
+
+      return false;
+    }
   },
 
   watch: {
@@ -944,8 +1047,16 @@ export default {
 
       if ( existing?.length ) {
         for ( const pool of existing ) {
-          const type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          let type;
+
+          if (this.isElementalCluster) {
+            type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else {
+            type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          }
+
           let config;
+          let configMissing = false;
 
           if ( this.$store.getters['management/canList'](type) ) {
             try {
@@ -955,6 +1066,12 @@ export default {
               });
             } catch (e) {
               // Some users can't see the config, that's ok.
+              // we will display a banner for a 404 only for elemental
+              if (e?.status === 404) {
+                if (this.isElementalCluster) {
+                  configMissing = true;
+                }
+              }
             }
           }
 
@@ -968,6 +1085,7 @@ export default {
             update: true,
             pool:   clone(pool),
             config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
+            configMissing
           });
         }
       }
@@ -1015,6 +1133,11 @@ export default {
       if (this.provider === 'vmwarevsphere') {
         pool.pool.machineOS = 'linux';
       }
+
+      if (this.isElementalCluster) {
+        pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
+      }
+
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
@@ -1087,6 +1210,11 @@ export default {
           entry.config = await entry.config.save();
         }
 
+        // Ensure Elemental clusters have a hostname prefix
+        if (this.isElementalCluster && !entry.pool.hostnamePrefix ) {
+          entry.pool.hostnamePrefix = `${ prefix }-`;
+        }
+
         finalPools.push(entry.pool);
       }
 
@@ -1112,7 +1240,7 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || !!this.credentialId);
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
     },
 
     cancelCredential() {
@@ -1206,6 +1334,7 @@ export default {
             url:    `/k8s/clusters/${ clusterId }/v1/harvester/kubeconfig`,
             method: 'POST',
             data:   {
+              csiClusterRoleName: 'harvesterhci.io:csi-driver',
               clusterRoleName:    'harvesterhci.io:cloudprovider',
               namespace,
               serviceAccountName: this.value.metadata.name,
@@ -1635,7 +1764,10 @@ export default {
         const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.SETTING }s` });
 
         const version = (res?.data || []).find(s => s.id === 'harvester-csi-ccm-versions');
+        // get harvester server-version
+        const serverVersion = (res?.data || []).find(s => s.id === 'server-version');
 
+        this.harvesterVersion = serverVersion.value;
         if (version) {
           this.harvesterVersionRange = JSON.parse(version.value || version.default || '{}');
         } else {
@@ -1664,6 +1796,39 @@ export default {
         set(this.agentConfig, 'protect-kernel-defaults', false);
       }
     },
+
+    /**
+     * Handle k8s changes side effects, like PSP and PSA resets
+     */
+    handleKubernetesChange(value) {
+      if (value) {
+        const version = VERSION.parse(value);
+        const major = parseInt(version?.[0] || 0);
+        const minor = parseInt(version?.[1] || 0);
+
+        // Reset PSA if not RKE2
+        if (!value.includes('rke2')) {
+          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+        } else {
+          // Reset PSP if it's legacy due k8s version 1.25+
+          if (major === 1 && minor >= 25) {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+          } else {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
+          }
+
+          this.previousKubernetesVersion = value;
+        }
+      }
+    },
+
+    /**
+     * Keep last PSP value
+     */
+    handlePspChange(value) {
+      this.lastDefaultPodSecurityPolicyTemplateName = value;
+    },
+
   },
 };
 </script>
@@ -1693,12 +1858,14 @@ export default {
     @cancel="cancel"
     @error="fvUnreportedValidationErrors"
   >
-    <Banner
-      v-if="isEdit"
-      color="warning"
-    >
-      <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
-    </Banner>
+    <div class="header-warnings">
+      <Banner
+        v-if="isEdit"
+        color="warning"
+      >
+        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
+      </Banner>
+    </div>
     <SelectCredential
       v-if="needCredential"
       v-model="credentialId"
@@ -1731,6 +1898,7 @@ export default {
         {{ appsOSWarning }}
       </Banner>
 
+      <!-- Pools Extras -->
       <template v-if="hasMachinePools">
         <div class="clearfix">
           <h2
@@ -1764,6 +1932,7 @@ export default {
           </div>
         </div>
 
+        <!-- Extra Tabs for Machine Pool -->
         <Tabbed
           ref="pools"
           :side-tabs="true"
@@ -1793,17 +1962,19 @@ export default {
             </Tab>
           </template>
           <div v-if="!unremovedMachinePools.length">
-            You do not have any machine pools defined, click the plus to add one.
+            {{ t('cluster.machinePool.noPoolsDisclaimer') }}
           </div>
         </Tabbed>
         <div class="spacer" />
       </template>
 
+      <!-- Cluster Tabs -->
       <h2 v-t="'cluster.tabs.cluster'" />
       <Tabbed
         :side-tabs="true"
         class="min-height"
       >
+        <!-- Basic -->
         <Tab
           name="basic"
           label-key="cluster.tabs.basic"
@@ -1813,7 +1984,7 @@ export default {
           <Banner
             v-if="!haveArgInfo"
             color="warning"
-            label="Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor."
+            :label="t('cluster.banner.haveArgInfo')"
           />
           <Banner
             v-if="showk8s21LegacyWarning"
@@ -1835,6 +2006,7 @@ export default {
                 :mode="mode"
                 :options="versionOptions"
                 label-key="cluster.kubernetesVersion.label"
+                @input="handleKubernetesChange($event)"
               />
               <Checkbox
                 v-model="showDeprecatedPatchVersions"
@@ -1909,16 +2081,56 @@ export default {
           <h3>
             {{ t('cluster.rke2.security.header') }}
           </h3>
-          <div class="row">
+          <Banner
+            v-if="isEdit && displayInvalidPspsBanner"
+            color="warning"
+          >
+            <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
+          </Banner>
+          <Banner
+            v-else-if="isCreate && !needsPSP"
+            color="info"
+          >
+            <span v-html="t('cluster.banner.removedPsp', {}, true)" />
+          </Banner>
+          <Banner
+            v-else-if="isCreate"
+            color="info"
+          >
+            <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
+          </Banner>
+          <div
+            v-if="needsPSA"
+            class="row mb-10"
+          >
             <div class="col span-6">
+              <!-- PSA template selector -->
               <LabeledSelect
-                v-if="pspOptions"
+                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
+                :mode="mode"
+                data-testid="rke2-custom-edit-psa"
+                :options="psaOptions"
+                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
+              />
+            </div>
+          </div>
+
+          <div class="row">
+            <div
+              v-if="pspOptions && needsPSP"
+              class="col span-6"
+            >
+              <!-- PSP template selector -->
+              <LabeledSelect
                 v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+                data-testid="rke2-custom-edit-psp"
                 :mode="mode"
                 :options="pspOptions"
                 :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
+                @input="handlePspChange($event)"
               />
             </div>
+
             <div
               v-if="showCisProfile"
               class="col span-6"
@@ -1993,6 +2205,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Member Roles -->
         <Tab
           v-if="canManageMembers"
           name="memberRoles"
@@ -2012,6 +2225,7 @@ export default {
           />
         </Tab>
 
+        <!-- etcd -->
         <Tab
           name="etcd"
           label-key="cluster.tabs.etcd"
@@ -2089,6 +2303,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Networking -->
         <Tab
           v-if="haveArgInfo"
           name="networking"
@@ -2190,6 +2405,7 @@ export default {
           />
         </Tab>
 
+        <!-- Upgrade -->
         <Tab
           name="upgrade"
           label-key="cluster.tabs.upgrade"
@@ -2234,6 +2450,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Registries -->
         <Tab
           name="registry"
           label-key="cluster.tabs.registry"
@@ -2318,6 +2535,7 @@ export default {
           </template>
         </Tab>
 
+        <!-- Add-on Config -->
         <Tab
           name="addons"
           label-key="cluster.tabs.addons"
@@ -2381,6 +2599,7 @@ export default {
           </div>
         </Tab>
 
+        <!-- Advanced -->
         <Tab
           v-if="haveArgInfo || agentArgs['protect-kernel-defaults']"
           name="advanced"
@@ -2450,6 +2669,7 @@ export default {
               v-if="serverArgs['kube-controller-manager-arg']"
               v-model="serverConfig['kube-controller-manager-arg']"
               :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
               class="mb-20"
               :value-placeholder="t('cluster.advanced.argInfo.machineSelector.kubePlaceholder')"
             />
@@ -2465,6 +2685,7 @@ export default {
               v-if="serverArgs['kube-apiserver-arg']"
               v-model="serverConfig['kube-apiserver-arg']"
               :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
               class="mb-20"
               :value-placeholder="t('cluster.advanced.argInfo.machineSelector.kubePlaceholder')"
             />
@@ -2479,6 +2700,7 @@ export default {
               v-if="serverArgs['kube-scheduler-arg']"
               v-model="serverConfig['kube-scheduler-arg']"
               :mode="mode"
+              :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
               :value-placeholder="t('cluster.advanced.argInfo.machineSelector.kubePlaceholder')"
             />
           </template>
@@ -2529,5 +2751,8 @@ export default {
   }
   .patch-version {
     margin-top: 5px;
+  }
+  .header-warnings .banner {
+    margin-bottom: 0;
   }
 </style>

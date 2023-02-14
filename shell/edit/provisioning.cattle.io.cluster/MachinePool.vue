@@ -2,7 +2,6 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import { _EDIT } from '@shell/config/query-params';
-import { importMachineConfig } from '@shell/utils/dynamic-importer';
 import Taints from '@shell/components/form/Taints.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
@@ -109,13 +108,11 @@ export default {
 
   computed: {
     configComponent() {
-      const haveProviders = this.$store.getters['plugins/machineDrivers'];
-
-      if ( haveProviders.includes(this.provider) ) {
-        return importMachineConfig(this.provider);
+      if (this.$store.getters['type-map/hasCustomMachineConfigComponent'](this.provider)) {
+        return this.$store.getters['type-map/importMachineConfig'](this.provider);
       }
 
-      return importMachineConfig('generic');
+      return this.$store.getters['type-map/importMachineConfig']('generic');
     },
 
     isWindows() {
@@ -155,6 +152,12 @@ export default {
 
         return errors;
       }
+    },
+    // handle emitted matched machine inventories on selector so that machine count
+    // on machine pool can be kept up to date
+    // (only used on Elemental because it comes from "machineinventoryselectortemplate" machine-config)
+    updateMachineCount(val) {
+      this.value.pool.quantity = val || 1;
     }
   }
 };
@@ -208,7 +211,7 @@ export default {
     <hr class="mt-10">
     <component
       :is="configComponent"
-      v-if="value.config"
+      v-if="value.config && configComponent"
       ref="configComponent"
       :cluster="cluster"
       :uuid="uuid"
@@ -219,6 +222,7 @@ export default {
       :pool-index="idx"
       :machine-pools="machinePools"
       @error="e=>errors = e"
+      @updateMachineCount="updateMachineCount"
     />
     <Banner
       v-else-if="value.configMissing"

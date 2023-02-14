@@ -113,10 +113,12 @@ export default {
     <div
       v-if="showSlideIn"
       class="glass"
+      data-testid="extension-details-bg"
       @click="hide()"
     />
     <div
       class="slideIn"
+      data-testid="extension-details"
       :class="{'hide': false, 'slideIn__show': showSlideIn}"
     >
       <div
@@ -142,8 +144,11 @@ export default {
             >
           </div>
           <div class="plugin-title">
-            <h2 class="slideIn__header">
-              {{ info.name }}
+            <h2
+              class="slideIn__header"
+              data-testid="extension-details-title"
+            >
+              {{ info.label }}
             </h2>
             <p class="plugin-description">
               {{ info.description }}
@@ -153,6 +158,7 @@ export default {
             <div class="slideIn__header__buttons">
               <div
                 class="slideIn__header__button"
+                data-testid="extension-details-close"
                 @click="showSlideIn = false"
               >
                 <i class="icon icon-close" />
@@ -224,8 +230,11 @@ export default {
         </div>
         <div v-if="!info.versions.length">
           <h3>
-            {{ t('plugins.version', { version: info.displayVersion }) }}
+            {{ t('plugins.info.versions') }}
           </h3>
+          <div class="version-link version-active version-builtin">
+            {{ info.displayVersion }}
+          </div>
         </div>
       </div>
     </div>
@@ -236,6 +245,7 @@ export default {
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 1;
 
     $slideout-width: 35%;
     $title-height: 50px;
@@ -344,6 +354,10 @@ export default {
         &.version-active {
           color: var(--link-text);
           background: var(--link);
+        }
+
+        &.version-builtin {
+          display: inline-block;
         }
       }
 

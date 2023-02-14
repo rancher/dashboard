@@ -41,6 +41,9 @@ import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
 import { fetchClusterResources } from './explorer-utils';
 import ConnectMode from './ConnectMode.vue';
+import SimpleBox from '@shell/components/SimpleBox';
+import { ExtensionPoint, CardLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -73,6 +76,7 @@ export default {
     ConfigBadge,
     EventsTable,
     ConnectMode,
+    SimpleBox,
   },
 
   mixins: [metricPoller],
@@ -128,6 +132,7 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
       selectedTab:        'cluster-events',
+      extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
     };
   },
 
@@ -413,7 +418,7 @@ export default {
 
 <template>
   <section class="dashboard">
-    <header class="header-layout">
+    <header>
       <div class="title">
         <h1>
           <t k="clusterIndexPage.header" />
@@ -512,6 +517,27 @@ export default {
         v-if="canAccessDeployments"
         resource="apps.deployment"
       />
+    </div>
+
+    <!-- extension cards -->
+    <div
+      v-if="extensionCards.length"
+      class="extension-card-container mt-20"
+    >
+      <SimpleBox
+        v-for="item, i in extensionCards"
+        :key="`extensionCards${i}`"
+        class="extension-card"
+        :style="item.style"
+      >
+        <h3>
+          {{ item.label }}
+        </h3>
+        <component
+          :is="item.component"
+          :resource="currentCluster"
+        />
+      </SimpleBox>
     </div>
 
     <h3
@@ -661,6 +687,19 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.extension-card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc((100%/3) - 40px), 1fr));
+  grid-column-gap: 15px;
+  grid-row-gap: 20px;
+}
+
+@media only screen and (max-width: map-get($breakpoints, "--viewport-9")) {
+  .extension-card-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .cluster-dashboard-glance {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);

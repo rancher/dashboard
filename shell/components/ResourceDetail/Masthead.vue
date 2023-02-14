@@ -10,6 +10,8 @@ import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import {
   AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG, _GRAPH
 } from '@shell/config/query-params';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 /**
  * Resource Detail Masthead component.
@@ -21,7 +23,7 @@ export default {
   name: 'MastheadResourceDetail',
 
   components: {
-    BadgeState, Banner, ButtonGroup
+    BadgeState, Banner, ButtonGroup, ExtensionPanel
   },
   props: {
     value: {
@@ -83,7 +85,11 @@ export default {
   },
 
   data() {
-    return { DETAIL_VIEW: _DETAIL };
+    return {
+      DETAIL_VIEW:       _DETAIL,
+      extensionType:     ExtensionPoint.PANEL,
+      extensionLocation: PanelLocation.DETAILS_MASTHEAD,
+    };
   },
 
   computed: {
@@ -362,6 +368,10 @@ export default {
 
       return parent?.location;
     },
+
+    hideNamespaceLocation() {
+      return this.$store.getters['currentProduct'].hideNamespaceLocation;
+    },
   },
 
   methods: {
@@ -395,7 +405,7 @@ export default {
 
 <template>
   <div class="masthead">
-    <header class="header-layout">
+    <header>
       <div class="title">
         <div class="primaryheader">
           <h1>
@@ -428,7 +438,18 @@ export default {
         >
           <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: <nuxt-link :to="project.detailLocation">{{ project.nameDisplay }}</nuxt-link></span>
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-else-if="namespace && !hasMultipleNamespaces">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+          <span v-else-if="namespace && !hasMultipleNamespaces">
+            {{ t("resourceDetail.masthead.namespace") }}:
+            <nuxt-link
+              v-if="!hideNamespaceLocation"
+              :to="namespaceLocation"
+            >
+              {{ namespace }}
+            </nuxt-link>
+            <span v-else>
+              {{ namespace }}
+            </span>
+          </span>
           <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate
             class="live-date"
             :value="value.creationTimestamp"
@@ -437,7 +458,7 @@ export default {
         </div>
       </div>
       <slot name="right">
-        <div class="actions-container">
+        <div class="actions-container align-start">
           <div class="actions">
             <button
               v-if="detailsAction && currentView === DETAIL_VIEW && isView"
@@ -478,6 +499,13 @@ export default {
         </div>
       </slot>
     </header>
+
+    <!-- Extension area -->
+    <ExtensionPanel
+      :resource="value"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
 
     <Banner
       v-if="banner && isView && !parent.hideBanner"

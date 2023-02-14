@@ -446,12 +446,26 @@ export const SUB_TYPE = {
   width:    120,
 };
 
+export const EVENT_TYPE = {
+  name:     'type',
+  labelKey: 'tableHeaders.type',
+  value:    'eventType',
+  sort:     'eventType',
+};
+
 export const STATUS = {
   name:     'status',
   labelKey: 'tableHeaders.status',
   value:    'status',
   sort:     ['status'],
   width:    175
+};
+export const LAST_SEEN_TIME = {
+  name:     'lastSeen',
+  labelKey: 'tableHeaders.lastSeen',
+  value:    'lastSeen',
+  sort:     'lastTimestamp:desc',
+  tooltip:  'tableHeaders.lastSeenTooltip'
 };
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',

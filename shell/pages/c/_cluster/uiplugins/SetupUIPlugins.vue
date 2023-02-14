@@ -214,6 +214,7 @@ export default {
               :manual="true"
               :current-phase="buttonState"
               class="enable-plugin-support"
+              data-testid="extension-enable-operator"
               @click="enable"
             />
           </div>

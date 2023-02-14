@@ -39,7 +39,7 @@ body {
   font-family: 'Lato', sans-serif;
   color: var( --ifm-color-body);
 }
-      
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Poppins', sans-serif;
   font-weight: normal;
@@ -49,7 +49,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 1.5rem;
 }
 
-      
+
 .homepage-banner {
   text-align: left;
   min-height: 300px;
@@ -91,3 +91,6 @@ a.featureLink:hover {
   width: 150px;
 }
 
+#__docusaurus {
+  min-height: 100vh !important;
+}

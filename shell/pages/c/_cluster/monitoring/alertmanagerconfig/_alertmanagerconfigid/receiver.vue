@@ -161,7 +161,7 @@ export default {
     // being saved. Therefore we take the save from the
     // AlertmanagerConfig resource and pass it into the
     // receiver config form.
-    saveOverride(buttonDone) {
+    async saveOverride(buttonDone) {
       const receivers = this.alertmanagerConfigResource?.spec?.receivers || [];
       const errors = [];
 
@@ -208,9 +208,19 @@ export default {
         return;
       }
 
-      this.updatePandariaWebhookConfigs();
-      this.alertmanagerConfigResource.save(...arguments);
-      this.redirectToAlertmanagerConfigDetail();
+      try {
+        this.updatePandariaWebhookConfigs();
+        await this.alertmanagerConfigResource.save(...arguments);
+
+        buttonDone(true);
+
+        this.redirectToAlertmanagerConfigDetail();
+      } catch (e) {
+        const msg = e?.message ? e.message : this.t('monitoring.alertmanagerConfig.error');
+
+        this.$refs.config.setError(msg);
+        buttonDone(false);
+      }
     },
     updatePandariaWebhookConfigs() {
       const alertmanagerConfigResource = this.alertmanagerConfigResource;
@@ -342,7 +352,7 @@ export default {
 
 <template>
   <div>
-    <header class="header-layout header">
+    <header class="header">
       <div class="title">
         <div class="primaryheader">
           <h1>
@@ -387,6 +397,7 @@ export default {
     />
     <ReceiverConfig
       v-if="(currentView === config || currentView === detail) && alertmanagerConfigResource"
+      ref="config"
       :value="receiverValue"
       :mode="mode"
       :alertmanager-config-id="alertmanagerConfigId"

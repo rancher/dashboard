@@ -44,11 +44,17 @@ export default {
   },
 
   async fetch() {
+    if (this.allTypes && this.loadResources.length) {
+      this.$initializeFetchData(this.loadResources[0], this.loadResources);
+    } else {
+      this.$initializeFetchData(this.$route.params.resource);
+    }
+
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
 
       if (schema) {
-        this.$store.dispatch('cluster/findAll', { type: NODE });
+        this.$fetchType(NODE);
       }
     } catch {}
 
@@ -123,8 +129,8 @@ export default {
     loadHeathResources() {
       // Fetch these in the background to populate workload health
       if ( this.allTypes ) {
-        this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: this.namespaceFilter } });
-        this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB, opt: { namespaced: this.namespaceFilter } });
+        this.$fetchType(POD);
+        this.$fetchType(WORKLOAD_TYPES.JOB);
       } else {
         const type = this.$route.params.resource;
 
@@ -134,9 +140,9 @@ export default {
         }
 
         if (type === WORKLOAD_TYPES.CRON_JOB) {
-          this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB, opt: { namespaced: this.namespaceFilter } });
+          this.$fetchType(WORKLOAD_TYPES.JOB);
         } else {
-          this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: this.namespaceFilter } });
+          this.$fetchType(POD);
         }
       }
     }

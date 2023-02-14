@@ -191,6 +191,16 @@ export default {
         value
       });
     },
+
+    tooltip(col) {
+      if (!col.tooltip) {
+        return null;
+      }
+
+      const exists = this.$store.getters['i18n/exists'];
+
+      return exists(col.tooltip) ? this.t(col.tooltip) : col.tooltip;
+    },
   }
 
 };
@@ -230,7 +240,7 @@ export default {
         >
           <span
             v-if="col.sort"
-            v-tooltip="col.tooltip"
+            v-tooltip="tooltip(col)"
           >
             <span v-html="labelFor(col)" />
             <i
@@ -252,7 +262,7 @@ export default {
           </span>
           <span
             v-else
-            v-tooltip="col.tooltip"
+            v-tooltip="tooltip(col)"
           >{{ labelFor(col) }}</span>
         </div>
       </th>
@@ -338,7 +348,7 @@ export default {
         }
       }
       .table-options-container {
-        width: 320px;
+        width: 350px;
         border: 1px solid var(--primary);
         background-color: var(--body-bg);
         padding: 20px;
@@ -359,11 +369,10 @@ export default {
           list-style: none;
           margin: 0;
           padding: 0;
-          display: flex;
-          flex-wrap: wrap;
+          max-height: 200px;
+          overflow-y: auto;
 
           li {
-            flex: 1 1 136px;
             margin: 0;
             padding: 0;
 
@@ -405,11 +414,11 @@ export default {
       color: var(--body-text);
 
       .table-header-container {
-        display: flex;
-        align-items: center;
+        display: inherit;
 
         > span {
-          display: contents;
+          display: flex;
+          align-items: center;
         }
 
         &.not-filterable {
@@ -476,12 +485,10 @@ export default {
     }
   </style>
   <style lang="scss">
+    .table-options-checkbox .checkbox-custom {
+      min-width: 14px;
+    }
     .table-options-checkbox .checkbox-label {
       color: var(--body-text);
-      text-overflow: ellipsis;
-      width: 100px;
-      display: inline-block;
-      white-space: nowrap;
-      overflow: hidden;
     }
   </style>

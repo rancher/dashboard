@@ -334,11 +334,10 @@ export default {
       // }
 
       const out = [
-        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.doesNotSupportAcceleratedNetworking') },
-        ...this.vmsWithoutAcceleratedNetworking,
         { kind: 'group', label: this.t('cluster.machineConfig.azure.size.supportsAcceleratedNetworking') },
         ...this.vmsWithAcceleratedNetworking,
-
+        { kind: 'group', label: this.t('cluster.machineConfig.azure.size.doesNotSupportAcceleratedNetworking') },
+        ...this.vmsWithoutAcceleratedNetworking,
       ];
 
       if (!this.selectedVmSizeExistsInSelectedRegion) {
@@ -384,7 +383,9 @@ export default {
       });
 
       if (data.length > 0) {
-        return data[0].AvailabilityZones;
+        return data[0].AvailabilityZones.sort((a, b) => {
+          return a - b;
+        });
       }
 
       return [];

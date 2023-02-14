@@ -130,14 +130,6 @@ export const state = function() {
 };
 
 export const getters = {
-  credentialDrivers() {
-    const ctx = require.context('@shell/cloud-credential', true, /.*/);
-
-    const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
-
-    return drivers;
-  },
-
   credentialOptions() {
     return (name) => {
       name = (name || '').toLowerCase();
@@ -160,15 +152,6 @@ export const getters = {
 
       return driverToFieldMap[name] || name;
     };
-  },
-
-  machineDrivers() {
-    // The subset of drivers supported by Vue components
-    const ctx = require.context('@shell/machine-config', true, /.*/);
-
-    const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
-
-    return drivers;
   },
 
   clusterDrivers() {

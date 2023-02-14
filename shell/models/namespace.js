@@ -9,7 +9,9 @@ import { escapeHtml } from '@shell/utils/string';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import Vue from 'vue';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
+import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
@@ -193,11 +195,6 @@ export default class Namespace extends SteveModel {
   get _detailLocation() {
     const _detailLocation = super._detailLocation;
 
-    // Harvester uses these resource directly... but has different routes. detailLocation covers routes leading to resource (like edit)
-    if (this.$rootGetters['currentProduct'].inStore === HARVESTER) {
-      _detailLocation.name = `${ HARVESTER }-${ _detailLocation.name }`.replace('-product', '');
-    }
-
     return _detailLocation;
   }
 
@@ -217,6 +214,42 @@ export default class Namespace extends SteveModel {
     Vue.set(this.metadata.annotations, RESOURCE_QUOTA, JSON.stringify(value));
   }
 
+  get detailTopTooltips() {
+    return this.psaTooltipsDescription;
+  }
+
+  get detailTopIcons() {
+    return PSAIconsDisplay;
+  }
+
+  /**
+   * Check if resource contains PSA labels
+   */
+  get hasSystemLabels() {
+    return hasPSALabels(this);
+  }
+
+  get filteredSystemLabels() {
+    return Object.entries(this.labels).reduce((res, [key, value]) => {
+      if (!PSALabelsNamespaceVersion.includes(key)) {
+        res[key] = value;
+      }
+
+      return res;
+    }, {});
+  }
+
+  /**
+   * Generate list of present keys which can be filtered based on existing label keys and system keys
+   */
+  get systemLabels() {
+    return getPSALabels(this);
+  }
+
+  get psaTooltipsDescription() {
+    return getPSATooltipsDescription(this);
+  }
+
   // Preserve the project label - ensures we preserve project when cloning a namespace
   cleanForNew() {
     const project = this.metadata?.labels?.[PROJECT];
@@ -228,5 +261,9 @@ export default class Namespace extends SteveModel {
       this.metadata.labels = this.metadata.labels || {};
       this.metadata.labels[PROJECT] = project;
     }
+  }
+
+  get hideDetailLocation() {
+    return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
   }
 }

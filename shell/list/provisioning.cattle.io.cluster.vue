@@ -33,40 +33,41 @@ export default {
   },
 
   async fetch() {
+    this.$initializeFetchData(CAPI.RANCHER_CLUSTER);
     const hash = {
       rancherClusters: this.$fetchType(CAPI.RANCHER_CLUSTER),
-      normanClusters:  this.$store.dispatch('rancher/findAll', { type: NORMAN.CLUSTER }),
-      mgmtClusters:    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+      normanClusters:  this.$fetchType(NORMAN.CLUSTER, [], 'rancher'),
+      mgmtClusters:    this.$fetchType(MANAGEMENT.CLUSTER),
     };
 
     if ( this.$store.getters['management/canList'](SNAPSHOT) ) {
-      hash.etcdSnapshots = this.$store.dispatch('management/findAll', { type: SNAPSHOT });
+      hash.etcdSnapshots = this.$fetchType(SNAPSHOT);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
-      hash.capiMachines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      hash.capiMachines = this.$fetchType(CAPI.MACHINE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
-      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
-      hash.mgmtPools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+      hash.mgmtPools = this.$fetchType(MANAGEMENT.NODE_POOL);
     }
 
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
-      hash.mgmtTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+      hash.mgmtTemplates = this.$fetchType(MANAGEMENT.NODE_TEMPLATE);
     }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
-      hash.machineDeployments = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT });
+      hash.machineDeployments = this.$fetchType(CAPI.MACHINE_DEPLOYMENT);
     }
 
     // Fetch RKE template revisions so we can show when an updated template is available
     // This request does not need to be blocking
     if ( this.$store.getters['management/canList'](MANAGEMENT.RKE_TEMPLATE_REVISION) ) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.RKE_TEMPLATE_REVISION });
+      this.$fetchType(MANAGEMENT.RKE_TEMPLATE_REVISION);
     }
 
     const res = await allHash(hash);

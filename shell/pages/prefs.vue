@@ -9,7 +9,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
 import {
   mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE, MENU_MAX_CLUSTERS,
-  VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT, PLUGIN_DEVELOPER
+  VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT, PLUGIN_DEVELOPER, SCALE_POOL_PROMPT
 } from '@shell/store/prefs';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
@@ -25,17 +25,18 @@ export default {
     return { admin: isAdminUser(this.$store.getters) };
   },
   computed: {
-    keymap:          mapPref(KEYMAP),
-    viewInApi:       mapPref(VIEW_IN_API),
-    allNamespaces:   mapPref(ALL_NAMESPACES),
-    themeShortcut:   mapPref(THEME_SHORTCUT),
-    dateFormat:      mapPref(DATE_FORMAT),
-    timeFormat:      mapPref(TIME_FORMAT),
-    perPage:         mapPref(ROWS_PER_PAGE),
-    hideDesc:        mapPref(HIDE_DESC),
-    showPreRelease:  mapPref(SHOW_PRE_RELEASE),
-    menuMaxClusters: mapPref(MENU_MAX_CLUSTERS),
-    pluginDeveloper: mapPref(PLUGIN_DEVELOPER),
+    keymap:            mapPref(KEYMAP),
+    viewInApi:         mapPref(VIEW_IN_API),
+    allNamespaces:     mapPref(ALL_NAMESPACES),
+    themeShortcut:     mapPref(THEME_SHORTCUT),
+    dateFormat:        mapPref(DATE_FORMAT),
+    timeFormat:        mapPref(TIME_FORMAT),
+    perPage:           mapPref(ROWS_PER_PAGE),
+    hideDesc:          mapPref(HIDE_DESC),
+    showPreRelease:    mapPref(SHOW_PRE_RELEASE),
+    menuMaxClusters:   mapPref(MENU_MAX_CLUSTERS),
+    pluginDeveloper:   mapPref(PLUGIN_DEVELOPER),
+    scalingDownPrompt: mapPref(SCALE_POOL_PROMPT),
 
     ...mapGetters(['isSingleProduct']),
 
@@ -237,6 +238,16 @@ export default {
           />
         </div>
       </div>
+    </div>
+    <!-- Confirmation setting -->
+    <div class="col adv-features mt-10 mb-10">
+      <hr>
+      <h4 v-t="'prefs.confirmationSetting.title'" />
+      <Checkbox
+        v-model="scalingDownPrompt"
+        :label="t('prefs.confirmationSetting.scalingDownPrompt')"
+        class="mt-10"
+      />
     </div>
     <!-- Advanced Features -->
     <div class="col adv-features mt-10 mb-10">

@@ -22,7 +22,7 @@ import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOn
 import { clone } from '@shell/utils/object';
 import { POD, CAPI } from '@shell/config/types';
 import { matching } from '@shell/utils/selector';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
@@ -328,6 +328,7 @@ export default {
     :validation-passed="fvFormIsValid"
     :errors="fvUnreportedValidationErrors"
     :apply-hooks="applyHooks"
+    :description="t('servicesPage.serviceListDescription')"
     @error="(e) => (errors = e)"
     @finish="save"
     @cancel="done"
@@ -385,6 +386,7 @@ export default {
         name="selectors"
         :label="t('servicesPage.selectors.label')"
       >
+        <p>{{ t('servicesPage.selectors.matchingPods.description') }}</p>
         <div class="row">
           <div class="col span-12">
             <Banner :color="(matchingPods.none ? 'warning' : 'success')">

@@ -149,6 +149,11 @@ export default {
       initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
       model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
+      if (model.forceYaml === true) {
+        as = _YAML;
+        this.as = as;
+      }
+
       if ( as === _YAML ) {
         yaml = createYaml(schemas, resource, data);
       }
@@ -225,7 +230,6 @@ export default {
       this.value.applyDefaults(this, realMode);
     }
   },
-
   data() {
     return {
       chartData:       null,

@@ -66,7 +66,11 @@ export default {
       return isValueAnOption ? null : 'warning';
     },
     serviceTargetTooltip() {
-      return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
+      if (this.serviceTargetStatus === 'warning' ) {
+        return this.t('ingress.rules.target.doesntExist');
+      }
+
+      return this.t('ingress.rules.target.tooltip');
     },
   },
   created() {

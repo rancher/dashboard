@@ -1,4 +1,6 @@
 import { SCHEMA } from '@shell/config/types';
+import { hashObj } from '@shell/utils/crypto/browserHashUtils';
+import { removeSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 
@@ -8,25 +10,6 @@ const state = {
   queue:      [], // Schema change queue
   schemas:    {} // Map of schema id to hash to track when a schema actually changes
 };
-
-// Quick, simple hash function
-function hash(str) {
-  let hash = 0;
-
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-
-    hash = (hash << 5) - hash + char;
-    hash &= hash;
-  }
-
-  return new Uint32Array([hash])[0].toString(36);
-}
-
-// Quick, simple hash function to generate hash for an object
-function hashObj(obj) {
-  return hash(JSON.stringify(obj, null, 2));
-}
 
 function flush() {
   state.queue.forEach((schema) => {
@@ -81,9 +64,6 @@ const workerActions = {
     clearTimeout(state.flushTimer);
 
     self.postMessage({ destroyWorker: true }); // we're only passing the boolean here because the key needs to be something truthy to ensure it's passed on the object.
-
-    // Web worker global function to terminate the web worker
-    close();
   },
 
   // Called to load schema
@@ -91,8 +71,7 @@ const workerActions = {
     schemas.forEach((schema) => {
       // These properties are added to the object, but aren't on the raw object, so remove them
       // otherwise our comparison will show changes when there aren't any
-      delete schema._id;
-      delete schema._group;
+      removeSchemaIndexFields(schema);
 
       state.schemas[schema.id] = hashObj(schema);
     });
