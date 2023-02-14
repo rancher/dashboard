@@ -151,9 +151,9 @@ export default {
       // Force to update the option label if prop has been changed
       const isOutdated = !this.options.find(opt => option[this.optionLabel] === opt[this.optionLabel]);
 
-      if (isOutdated) {
-        const option = this.options.find(opt => option[this.optionKey] === opt[this.optionKey]);
-        const label = get(option, this.optionLabel);
+      if (isOutdated && this.options) {
+        const newOption = this.options.find(opt => option[this.optionKey] === opt[this.optionKey]);
+        const label = get(newOption, this.optionLabel);
 
         return this.localizedLabel ? this.$store.getters['i18n/t'](label) || label : label;
       }

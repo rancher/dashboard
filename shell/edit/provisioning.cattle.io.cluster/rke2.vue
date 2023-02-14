@@ -314,7 +314,9 @@ export default {
       harvesterVersionRange: {},
       lastDefaultPodSecurityPolicyTemplateName,
       previousKubernetesVersion,
-      harvesterVersion:      ''
+      harvesterVersion:      '',
+      cisOverride:           false,
+      cisPsaChangeBanner:    false,
     };
   },
 
@@ -353,7 +355,7 @@ export default {
     },
 
     /**
-     * Return need of PSA if RKE and min k8s version
+     * Define introduction of PSA and return need of PSA templates based on min k8s version
      */
     needsPSA() {
       const release = this.value?.spec?.kubernetesVersion || '';
@@ -364,7 +366,7 @@ export default {
     },
 
     /**
-     * Restrict use of PSP based on min k8s version
+     * Define PSP deprecation and restrict use of PSP based on min k8s version
      */
     needsPSP() {
       const release = this.value?.spec?.kubernetesVersion || '';
@@ -374,12 +376,12 @@ export default {
       return isRequiredVersion;
     },
 
-    // kubeletConfigs() {
-    //   return this.value.spec.rkeConfig.machineSelectorConfig.filter(x => !!x.machineLabelSelector);
-    // },
     /**
-     * Check if k8s release version used is RKE2 ^1.25
+     * Define introduction of Rancher defined PSA templates
      */
+    hasPsaTemplates() {
+      return !this.needsPSP;
+    },
 
     unsupportedSelectorConfig() {
       let global = 0;
@@ -465,7 +467,7 @@ export default {
     },
 
     profileOptions() {
-      const out = (this.agentArgs.profile?.options || []).map((x) => {
+      const out = (this.agentArgs?.profile?.options || []).map((x) => {
         return { label: x, value: x };
       });
 
@@ -475,6 +477,13 @@ export default {
       });
 
       return out;
+    },
+
+    /**
+     * Allow to display override if PSA is needed and profile is set
+     */
+    hasCisOverride() {
+      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA;
     },
 
     pspOptions() {
@@ -506,6 +515,24 @@ export default {
     },
 
     /**
+     * Disable PSA if CIS hardening is enabled, except override
+     */
+    isPsaDisabled() {
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+
+      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates;
+    },
+
+    /**
+     * Get the default label for the PSA template option
+     */
+    defaultPsaOptionLabel() {
+      const optionCase = !this.needsPSP ? 'default' : 'none';
+
+      return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
+    },
+
+    /**
      * Convert PSA templates into options, sorting and flagging if any selected
      */
     psaOptions() {
@@ -513,7 +540,7 @@ export default {
         return [];
       }
       const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option'),
+        label: this.defaultPsaOptionLabel,
         value: ''
       }];
 
@@ -610,7 +637,7 @@ export default {
     },
 
     showCisProfile() {
-      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs.profile || this.agentArgs.profile );
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
     },
 
     needCredential() {
@@ -1496,7 +1523,7 @@ export default {
         }
       }
 
-      if ( !this.serverConfig.profile ) {
+      if ( !this.serverConfig?.profile ) {
         set(this.serverConfig, 'profile', null);
       }
     },
@@ -1777,6 +1804,29 @@ export default {
         this.initRegistry();
       }
     },
+
+    /**
+     * Reset PSA on several input changes for given conditions
+     */
+    togglePsaDefault() {
+      // This option is created from the server and is guaranteed to exist #8032
+      const hardcodedTemplate = 'rancher-restricted';
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+
+      if (!this.cisOverride) {
+        if (this.hasPsaTemplates && cisValue) {
+          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
+        }
+
+        this.cisPsaChangeBanner = this.hasPsaTemplates;
+      }
+    },
+
+    handleCisChange() {
+      this.togglePsaDefault();
+      this.updateCisProfile();
+    },
+
     updateCisProfile() {
       // If the user selects any Worker CIS Profile,
       // protect-kernel-defaults should be set to false
@@ -1795,6 +1845,7 @@ export default {
      */
     handleKubernetesChange(value) {
       if (value) {
+        this.togglePsaDefault();
         const version = VERSION.parse(value);
         const major = parseInt(version?.[0] || 0);
         const minor = parseInt(version?.[1] || 0);
@@ -2092,23 +2143,8 @@ export default {
           >
             <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
           </Banner>
-          <div
-            v-if="needsPSA"
-            class="row mb-10"
-          >
-            <div class="col span-6">
-              <!-- PSA template selector -->
-              <LabeledSelect
-                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
-                :mode="mode"
-                data-testid="rke2-custom-edit-psa"
-                :options="psaOptions"
-                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
-              />
-            </div>
-          </div>
 
-          <div class="row">
+          <div class="row mb-10">
             <div
               v-if="pspOptions && needsPSP"
               class="col span-6"
@@ -2129,22 +2165,62 @@ export default {
               class="col span-6"
             >
               <LabeledSelect
-                v-if="serverArgs.profile"
+                v-if="serverArgs && serverArgs.profile"
                 v-model="serverConfig.profile"
                 :mode="mode"
                 :options="profileOptions"
-                label="Server CIS Profile"
+                :label="t('cluster.rke2.cis.sever')"
+                @input="handleCisChange"
               />
               <LabeledSelect
-                v-else-if="agentArgs.profile"
+                v-else-if="agentArgs && agentArgs.profile"
                 v-model="agentConfig.profile"
+                data-testid="rke2-custom-edit-cis-agent"
                 :mode="mode"
                 :options="profileOptions"
-                :label="t('cis.workerProfile')"
-                @input="updateCisProfile"
+                :label="t('cluster.rke2.cis.agent')"
+                @input="handleCisChange"
               />
             </div>
           </div>
+
+          <template v-if="hasCisOverride">
+            <Checkbox
+              v-model="cisOverride"
+              :mode="mode"
+              :label="t('cluster.rke2.cis.override')"
+              @input="togglePsaDefault"
+            />
+
+            <Banner
+              v-if="cisOverride"
+              color="warning"
+              :label="t('cluster.rke2.banner.cisOverride')"
+            />
+            <Banner
+              v-if="cisPsaChangeBanner && !cisOverride"
+              color="info"
+              :label="t('cluster.rke2.banner.psaChange')"
+            />
+          </template>
+
+          <div
+            v-if="needsPSA"
+            class="row mb-10 mt-10"
+          >
+            <div class="col span-6">
+              <!-- PSA template selector -->
+              <LabeledSelect
+                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
+                :mode="mode"
+                data-testid="rke2-custom-edit-psa"
+                :options="psaOptions"
+                :disabled="isPsaDisabled"
+                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
+              />
+            </div>
+          </div>
+
           <div class="row">
             <div class="col span-12 mt-20">
               <Checkbox

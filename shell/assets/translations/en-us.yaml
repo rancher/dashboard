@@ -1067,7 +1067,6 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
-  workerProfile: CIS Profile
 
 cluster:
   addonChart:
@@ -1771,6 +1770,9 @@ cluster:
     create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
   rke2:
+    banner:
+      psaChange: PSACT is now set to Rancher default automatically
+      cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -1788,12 +1790,18 @@ cluster:
         label: Default - RKE2 Embedded
     security:
       header: Security
+    cis:
+      server: Server CIS Profile
+      agent: CIS Profile
+      override: Allow PSA Default Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: RKE Default
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
-      option: (None)
+      option: 
+        none: (None)
+        default: Default - RKE2 Embedded
     cisProfile:
       option: (None)
     enableNetworkPolicy:
