@@ -56,8 +56,8 @@ generic:
     }
   resourceCount: |-
     {count, plural,
-    one  {1資源}
-    other {#資源}
+    one  {1 資源}
+    other {# 資源}
     }
   save: 保存
   showAdvanced: 展開高級選項
@@ -104,6 +104,10 @@ generic:
           =1 {匹配 {total, number} 箇中的 1 個："{sample}"}
           other {匹配 {total, number} 中的 {matched, number} 個，包括 "{sample}"}
         }
+  addCatalog: 添加應用商店
+  confirm: 確認
+  labels: 標籤
+  podSecurityAdmission: Pod 安全准入
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -153,6 +157,14 @@ nav:
     imageRepo: 鏡像倉庫
     globalMonitoring: 全局監控
     policy: 策略
+    API: API
+    Coordination: 協調
+    Fleet: Fleet
+    K3s: K3s
+    Networking: 網絡
+    RBAC: RBAC
+    Rancher: Rancher
+    legacy: 舊版
   ns:
     all: 所有命名空間
     clusterLevel: 集羣資源
@@ -219,6 +231,8 @@ product:
   rancher: Rancher
   elemental: OS 管理
   uiplugins: 擴展
+  legacy: 舊版
+  plugins: 插件
 suffix:
   percent: "%"
   milliCpus: milli CPU
@@ -356,7 +370,7 @@ authConfig:
     clientId:
       label: 客戶端 ID
     clientSecret:
-      label: 客戶端密文
+      label: 客戶端 Secret
     form:
       app:
         label: 應用名稱
@@ -514,17 +528,17 @@ authConfig:
     updateEndpoint:
       button: 更新端點
       banner:
-        message: '必須更新 Azure AD 身份驗證：它使用了 Azure Graph API，該 API 將於 2022 年底棄用。'
+        message: '必須更新 Azure AD 身份認證：它使用了 Azure Graph API，該 API 將於 2022 年底棄用。'
         linkText: '在此處進行更新。'
       modal:
         title: 是否確認？此更新是不可逆的。
-        body: '<p><b>你可能需要進行額外的更改</b>。請確保 Azure AD 應用已將 Directory.Read.All <b>Application</b> 權限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Azure AD 身份驗證時自定義了端點，這些端點將不會自動更新。</p>'
+        body: '<p><b>你可能需要進行額外的更改</b>。請確保 Azure AD 應用已將 Directory.Read.All <b>Application</b> 權限添加到 Microsoft Graph。<br> 如果在 Rancher 中配置 Azure AD 身份認證時自定義了端點，這些端點將不會自動更新。</p>'
   oidc:
     oidc: 配置 OIDC 賬號
     keycloakoidc: 配置 Keycloak OIDC 賬號
     rancherUrl: Rancher URL
     clientId: 客戶端 ID
-    clientSecret: 客戶端密文
+    clientSecret: 客戶端 Secret
     customEndpoint:
       label: 端點
       custom: 指定
@@ -856,7 +870,7 @@ catalog:
       other: 其他
       partner: Partner
       rancher: '{vendor}'
-    deploysOnWindows: 在 Windows 上部署
+    deploysOnWindows: 支持 Windows 部署
     windowsIncompatible: 僅 Linux
     versionWindowsIncompatible: 僅限 Linux 版本
     header: Chart
@@ -887,7 +901,7 @@ catalog:
           goto: 前往功能開關設置
         navigate: 導航到舊版應用程序
         category:
-          legacy: 舊版應用
+          legacy: 舊版
           mcm: 多集羣
         mcmNotSupported: 無法通過此 UI 管理舊版多集羣應用程序
     header:
@@ -928,7 +942,7 @@ catalog:
       valuesYaml: 編輯 YAML
       diff: 比較變化
     slideIn:
-      dock: 停靠到底部
+      dock: 停靠到 shell
     steps:
       basics:
         label: 元數據
@@ -1095,7 +1109,7 @@ cis:
   testID: 測試 ID
   testsSkipped: 已跳過的測試
   testsToSkip: 要跳過的測試
-  workerProfile: CIS Worker 配置文件
+  workerProfile: CIS 配置文件
 cluster:
   addonChart:
     rancher-vsphere-cpi: vSphere CPI 配置
@@ -1184,7 +1198,7 @@ cluster:
       clientId:
         label: 客戶端 ID
       clientSecret:
-        label: 客戶端密文
+        label: 客戶端 Secret
       environment:
         label: 環境
       subscriptionId:
@@ -1262,7 +1276,13 @@ cluster:
       memory: 內存
       disk: 磁盤
       image: 鏡像
-      network: 網絡
+      network:
+        addNetwork: 添加網絡
+        macAddress: MAC 地址
+        macFormat: MAC 地址格式不正確。
+        network: 網絡
+        networkName: 網絡
+        title: 網絡
       sshUser: SSH 用戶名
       userData:
         label: 用戶數據模板
@@ -1273,15 +1293,30 @@ cluster:
       kubeconfigContent:
         label: KubeconfigContent
       placeholder: '命名空間/名稱'
-      cluster: 集羣
+      cluster: 導入的 Harvester 集羣
       affinity:
         namespaces:
           placeholder: 例如：default,system,base
+      volume:
+        addVMImage: 添加虛擬機鏡像
+        addVolume: 添加捲
+        imageVolume: 鏡像卷
+        storageClass: 存儲類
+        title: 卷
+        volume: 卷
+    pnap:
+      clientIdentifier:
+        label: 客戶端 ID
+        placeholder: 你的客戶端 ID
+      clientSecret:
+        help: 來自 <a href="https://bmc.phoenixnap.com/credentials/" target="_blank" rel="nofollow noreferrer noopener">phoenixNAP BMC Portal</a> API 憑證
+        label: 客戶端 Secret
+        placeholder: 你的客戶端 Secret
   description:
     label: 集羣描述
     placeholder: 輸入可以描述該集羣的文本
   harvester:
-    importNotice: 導入 Harvester 集羣方式
+    importNotice: 導入 Harvester 集羣的方式：
     warning:
       label: 這是一個 Harvester 集羣 - 請啓用 Harvester 功能開關以對其進行管理。
       state: 警告
@@ -1674,6 +1709,27 @@ cluster:
       httpEndpoint: 允許訪問 EC2 元數據
       httpTokens: 爲元數據使用 Token
       tagTitle: EC2 標籤
+    pnap:
+      serverCoresPerCpu:
+        label: 每個 CPU 的核心數
+      serverCpu:
+        label: CPU
+      serverCpuCount:
+        label: CPU 數量
+      serverCpuFrequency:
+        label: CPU 頻率 [GHz]
+      serverLocation:
+        label: 位置
+      serverNetwork:
+        label: 網絡
+      serverOs:
+        label: 操作系統
+      serverRam:
+        label: RAM [GB]
+      serverStorage:
+        label: 存儲
+      serverType:
+        label: 類型
   addOns:
     dependencyBanner: 附加組件配置可能因 Kubernetes 版本而異。更改 Kubernetes 版本可能會重置以下值。
     additionalManifest:
@@ -1705,6 +1761,10 @@ cluster:
     os: '你正在將 {newOS} worker 節點添加到具有一個或多個 {existingOS} worker 節點的集羣。你可能需要升級或刪除某些已安裝的應用。'
     rke2-k3-reprovisioning: '更改集羣配置可能導致節點重新配置。詳情請參見 <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">文檔</a>。'
     desiredNodeGroupWarning: 沒有可用於運行 Cluster Agent 的節點。要讓集羣變爲 Active 狀態，至少需要有 1 個可用的節點。
+    deprecatedPsp: Pod 安全策略自 Kubernetes v1.21 起已棄用，並已在 Kubernetes v1.25 中刪除。
+    haveArgInfo: 所選 Kubernetes 版本的配置信息不可用。此屏幕中可用的選項將受到限制，你可能需要使用 YAML 編輯器。
+    invalidPsps: 你在此集羣中有一個或多個 PSP 資源。Pod 安全策略將在 Kubernetes v1.25 中不可用。
+    removedPsp: Pod 安全策略已在 Kubernetes v1.25 中刪除，請改用 PodSecurity Admission。
   rkeTemplateUpgrade: 模板修訂版 {name} 可用於升級
   detail:
     provisioner: 提供商
@@ -1872,6 +1932,7 @@ cluster:
       header: 安全
     defaultPodSecurityPolicyTemplateName:
       label: 默認 Pod 安全策略
+      option: RKE 默認
     enableNetworkPolicy:
       label: 項目網絡隔離
       warning: 默認情況下，Ingress Controller 無法將請求路由到其他節點上的 Pod。
@@ -1921,6 +1982,13 @@ cluster:
         label: 指標
         false: 僅在集羣內可用
         true: 暴露給公共接口
+    cisProfile:
+      option: (None)
+      defaultValue:
+        label: 默認 - 嵌入 RKE2
+    defaultPodSecurityAdmissionConfigurationTemplateName:
+      label: 默認 Pod 安全准入
+      option: (None)
   k3s:
     techPreview: K3s 配置處於技術預覽中
     systemService:
@@ -1930,7 +1998,7 @@ cluster:
       servicelb: 'Klipper 服務 LB'
       traefik: 'Traefik Ingress'
   selectCredential:
-    genericDescription: "{vendor} 沒有此驅動的內置支持。請查閱驅動的官方文檔，以瞭解身份驗證所需的字段。"
+    genericDescription: "{vendor} 沒有此驅動的內置支持。請查閱驅動的官方文檔，以瞭解身份認證所需的字段。"
   snapshot:
     successTitle: 快照已開始
     errorTitle: "快照 {name} 出錯"
@@ -2148,9 +2216,9 @@ fleet:
       resources: 資源
       unready: 未就緒
     auth:
-      label: 身份驗證
-      git: Git 身份驗證
-      helm: Helm 身份驗證
+      label: 身份認證
+      git: Git 身份認證
+      helm: Helm 身份認證
     caBundle:
       label: 證書
       placeholder: "粘貼一個或多個證書，以-----BEGIN CERTIFICATE----開始。"
@@ -2333,6 +2401,9 @@ growl:
   reconnected:
     message: '在嘗試第 #{tries} 次時恢復了與 {url} 的連接。'
     title: Websocket 已重新連接
+  podSecurity:
+    message: 創建此 Pod 將違反命名空間的現有限制策略
+    title: PodSecurity 違規
 hpa:
   detail:
     currentMetrics:
@@ -2458,6 +2529,7 @@ ingress:
     target:
       label: 目標服務
       doesntExist: 你選擇的服務不存在
+      tooltip: 如果此下拉列表中的 Service 均未選擇你要公開的 Pod，那麼你需要先創建一個選擇這些 Pod 的 Service。
     title: 規則
   rulesAndCertificates:
     title: 規則和證書
@@ -2465,6 +2537,7 @@ ingress:
   target:
     default: 默認
   rulesOrBackendSpecified: 必須指定默認後端或規則
+  description: Ingress 根據請求中指定的主機名和路徑將互聯網的傳入流量路由到集羣內的 Service。你可以在同一個外部 IP 地址和端口上公開多個 Service。
 internalExternalIP:
   none: 無
 istio:
@@ -2608,7 +2681,7 @@ istio:
         simple:
           label: 簡單 - 發起到上游端點的 TLS 連接
         mutual:
-          label: 雙向 - 通過客戶端證書進行身份驗證，使用雙向的 TLS 安全連接到上游
+          label: 雙向 - 通過客戶端證書進行身份認證，使用雙向的 TLS 安全連接到上游
       clientCertificate:
         label: 客戶端證書
         placeholder: 例如：/etc/certs/myclientcert.pem
@@ -2651,6 +2724,9 @@ labels:
   labels:
     title: 標籤
     fleetClusterTooltip: 標籤更改應用到管理集羣並同步到 Fleet 集羣。
+    description: 鍵值對，是附加到指定標識屬性的對象。
+    hide: 隱藏系統標籤
+    show: 顯示系統標籤
   annotations:
     title: 註釋
 landing:
@@ -3221,6 +3297,7 @@ monitoring:
       bearerTokenSecret: 持有者令牌密文
       basicAuthUsername: 具有基本認證用戶名的密文
       basicAuthPassword: 具有基本認證密碼的密文
+    error: 保存 AlertmanagerConfig 時出錯
   installSteps:
     uninstallV1:
       stepTitle: 卸載 V1
@@ -3447,12 +3524,12 @@ navLink:
           label: Scheme
           placeholder: '例如：http'
     target:
-      label: 鏈接打开方式
+      label: 窗口目標
       option:
-        blank: 新窗口打開
-        named: 自定義打开方式
+        blank: 新窗口
+        named: 自定義命名窗口
         iframe: 使用 Iframe
-        self: 當前窗口打開
+        self: 替換窗口
       namedValue:
         label: 窗口名稱
     group:
@@ -3557,7 +3634,7 @@ node:
       memoryPressure: 內存壓力
       pidPressure: PID 壓力
     tab:
-      conditions: 條件
+      conditions: 狀況
       images: 鏡像
       metrics: 指標
       info:
@@ -4157,6 +4234,8 @@ promptRemove:
   deleteAssociatedNamespaces: "同時刪除此項目中的命名空間："
   willDeleteAssociatedNamespaces: "項目中的所有命名空間也都會被刪除："
   confirmRelatedResource: "刪除 {type} 將刪除這個 {type} 上的所有資源，此過程不可逆。你確定要繼續刪除 {names} 嗎？"
+  attemptingToRemoveAuthConfig: 你正在嘗試禁用此 Auth Provider。<br><br> 請注意，集羣角色模板綁定、項目角色模板綁定、全局角色綁定、用戶和 Token 都會被刪除。<br><br> 你確定要繼續嗎？
+  promptConfirmation: 縮減時不再提示確認。
 promptRemoveApp:
   removeCrd: "刪除與此應用關聯的 CRD"
 promptRestore:
@@ -4287,7 +4366,7 @@ rbac:
         label: 創建 RKE 集羣模板
         description: 允許用戶創建 RKE 集羣模板，併成爲該模板的所有者（owner）。
       authn-manage:
-        label: 配置身份驗證
+        label: 配置身份認證
         description: 允許用戶啓用、編輯或禁用所有驗證提供程序配置。
       catalogs-manage:
         label: 舊版配置應用
@@ -4433,7 +4512,7 @@ resourceTable:
     notInACluster: 不在集羣中
 resourceTabs:
   conditions:
-    tab: 條件
+    tab: 狀況
   events:
     tab: 最近事件
   related:
@@ -4451,7 +4530,7 @@ resourceYaml:
     unified: 統一
     split: 拆分
 secret:
-  authentication: 身份驗證
+  authentication: 身份認證
   certificate:
     certificate: 證書
     certificatePlaceholder: "粘貼證書，一般以----BEGIN CERTIFICATE----開頭"
@@ -4529,7 +4608,7 @@ secret:
       description: 存儲 TLS 證書和密鑰
       docLink: https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
 selectOrCreateAuthSecret:
-  label: 身份驗證
+  label: 身份認證
   options:
     none: 無
     basic: HTTP 基礎認證
@@ -4548,8 +4627,8 @@ selectOrCreateAuthSecret:
   namespaceGroup: "命名空間：{name}"
   chooseExisting: "選擇一個現有的密文："
   createSsh: 創建 SSH 密鑰密文
-  createBasic: 創建 HTTP 基本身份驗證密文
-  createS3: 創建與 S3 兼容的身份驗證密文
+  createBasic: 創建 HTTP 基本身份認證密文
+  createS3: 創建與 S3 兼容的身份認證密文
 serviceAccount:
   automount: 自動掛載 Service Account 令牌
   imagePullSecrets: 鏡像拉取密文
@@ -4631,29 +4710,30 @@ servicesPage:
           =1 {與{total, number}個 Pod 中的1個匹配："{sample}"}
           other {與 {total, number} 個 Pod 中的 {matched, number} 個匹配，包括"{sample}"}
         }
+      description: 選擇器的鍵和值用於匹配現有 Pod 上的標籤和值。
   serviceTypes:
     clusterIp:
       abbrv: IP
-      description: 在集羣內網 IP 上公開服務。如果選擇此值，服務只能從集羣內部訪問。這是默認類型。
+      description: 將一組 Pod 暴露給集羣中的其他 Pod。此類型的 Service 只能從集羣內部訪問。這是默認類型。
       label: Cluster IP
     externalName:
       abbrv: EN
-      description: "將服務與 `externalName` 字段的內容（如 foo.bar.example.com）進行映射，返回一個帶有其值的 CNAME 記錄。沒有設置任何形式的代理。"
+      description: "創建一個使用 DNS 名稱而不是選擇器的 Service。這是高級用例。"
       label: External Name
     headless:
       abbrv: H
-      description: 既沒有定義 Cluster IP，也沒有定義 Load Balancer。它們是用來對接 Kubernetes 實現之外的其他服務發現機制的。這些服務沒有分配的 Cluster IP，kube-proxy 也不處理這些服務。
+      description: 創建沒有 Cluster IP 或 Load Balancer 的 Service。這是高級用例。
       label: Headless
     loadBalancer:
       abbrv: LB
-      description: 使用雲提供商的負載均衡器向外部公開服務。
+      description: 在底層基礎設施中創建一個 Load Balancer（例如雲提供商的 Load Balancer）併爲該 Service 分配一個公共 IP 地址。允許外部客戶端使用 Service 定義中指定的公共 IP 地址和端口訪問 Service。
       label: Load Balancer
     nodePort:
       abbrv: NP
-      description: "在每個節點的 IP 上以靜態端口（`NodePort`）公開服務。你可以通過請求`&lt;NodeIP&gt;:&lt;NodePort&gt;`從集羣外部聯繫這種類型的服務。"
+      description: "在每個節點的 IP 上以靜態端口公開 Service。"
       label: Node Port
   typeOpts:
-    label: 服務類型
+    label: Service 類型
   harvester:
     healthCheckEnabled:
       label: 健康檢查
@@ -4672,6 +4752,9 @@ servicesPage:
     ipam:
       label: IPAM
     title: 附加配置
+  listeningPorts: 該 Service 在此端口上公開。
+  serviceListDescription: Service 用於定義一組可以使用單個 IP 地址和端口訪問的邏輯 Pod。
+  targetPorts: Service 會向這個端口發送請求，被選中的 Pod 會監聽這個端口。
 setup:
   currentPassword: Bootstrap 密碼
   confirmPassword: 確認新密碼
@@ -5015,6 +5098,14 @@ storageClass:
   deprecated:
     title: （已棄用）
     warning: '{provisioner} 樹內插件已棄用。你可以在<a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">這裏</a>查找 CSI 驅動。'
+  harvesterhci:
+    hostStorageClass:
+      label: 主機存儲類
+      placeholder: 主機 Harvester 集羣上的存儲類名稱
+      tooltip: 默認使用主機 Harvester 集羣上的默認存儲類。
+    title: Harvester (CSI)
+    warning:
+      unSatisfiesVersion: 請升級 Harvester CSI 驅動版本來使用此功能(csi-driver >= v0.1.15)
 tableHeaders:
   accessKey: Access Key
   address: 地址
@@ -5083,7 +5174,7 @@ tableHeaders:
   namespaceName: 名稱
   namespaceNameUnlinked: 名稱
   node: 節點
-  nodeName: 名稱
+  nodeName: 節點名稱
   nodesReady: 就緒節點
   nodePort: Node Port
   object: 對象
@@ -5210,10 +5301,54 @@ tableHeaders:
   groupName: 組名稱
   groupRoleNames: 組角色名稱
   Secret-Name: 密文名稱
-  restart: 要求重啓
+  restart: 需要重啓
   cluster: 集羣
   duration: 持續時間
   internalIpSameAsExternal: 與外網 IP 相同
+  accessModes: 訪問模式
+  addressType: 地址類型
+  assuredConcurrencyShares: 確保併發份額
+  available: 可用
+  capacity: 容量
+  cluster-Name: 集羣
+  completions: 完成 Job 歷史數
+  count: 數量
+  createdAt: 創建於
+  current: 當前
+  deployed: 已部署
+  desired: 期望
+  distinguisherMethod: 區分方法
+  drivers: 驅動
+  firstSeen: 首次出現時間
+  global-Default: 全局默認
+  groups: 組
+  handSize: Hand Size
+  holder: 持有者
+  iP: IP
+  labels: 標籤
+  lastSchedule: 最後調度時間
+  lastSeenTooltip: 最近一次記錄此事件的時間
+  matchingPrecedence: 匹配優先級
+  missingPL: 缺少 PL
+  monitored: 已監控
+  pod-Selector: Pod 選擇器
+  ports: 端口
+  priorityLevel: 優先級
+  providerID: 提供商 ID
+  queueLengthLimit: 隊列長度限制
+  queues: 隊列
+  schedule: 調度
+  secret-Name: 密文名稱
+  secrets: 密文
+  service: 服務
+  serviceAccounts: Service Account
+  source: 源
+  storageClass: 存儲類
+  subobject: 子對象
+  up-to-date: 最新
+  users: 用戶
+  volume: 卷
+  volumeMode: 卷模式
 target:
   router:
     label: 路由
@@ -5265,7 +5400,7 @@ user:
   list:
     errorRefreshingGroupMemberships: 刷新組成員名單時出錯
 validation:
-  noUpperCase: '“{key}” 中的字母數字字符必須爲小寫'
+  noUpperCase: '"{key}" 中的字母數字字符必須爲小寫'
   arrayLength:
     between: '"{key}" 應該包含 {min} 至 {max} {max, plural, =1 {項} other {項}}'
     exactly: '"{key}" 應該包含 {count, plural, =1 {#項} other {#項}}'
@@ -5282,7 +5417,7 @@ validation:
   custom:
     missing: '{ validatorName } 不存在校驗。請檢查校驗是否存在於自定義校驗中，以及名稱是否拼寫正確。'
   dns:
-    doubleHyphen: '“{key}” 不能包含兩個或兩個以上連續的連字符"-"'
+    doubleHyphen: '"{key}" 不能包含兩個或兩個以上連續的連字符"-"'
     hostname:
       empty: '"{key}" 至少包含一個字符'
       emptyLabel: '"{key}" 不能包含兩個連續的點“.”'
@@ -5296,7 +5431,7 @@ validation:
     label:
       endDot: '"{key}" 不能以點“.”結束'
       startDot: '"{key}" 不能以點“.”開始'
-      emptyLabel: '“{key}” 不能爲空'
+      emptyLabel: '"{key}" 不能爲空'
       endHyphen: '"{key}" 不能以連字符“-”結束'
       startHyphen: '"{key}" 不能以連字符“-”開始'
       startNumber: '"{key}" 不能以數字開始'
@@ -5311,12 +5446,12 @@ validation:
   k8s:
     name: 必須由小寫字母數字或“-”組成，並且開頭和結尾必須是字母數字（例如“my-name”或“123-abc”）。
     identifier:
-      emptyLabel: '“{key}” 不能有空鍵'
-      emptyPrefix: '“{key}” 不能有空前綴'
-      endLetter: '“{key}” 末位必須是字母或數字'
-      startLetter: '“{key}” 首位必須是字母或數字'
-      tooLongKey: '“{key}” 的長度不能超過{max}個字符'
-      tooLongPrefix: '"{key}" 前綴的長度不能超過{max}個字符'
+      emptyLabel: '"{key}" 不能有空鍵'
+      emptyPrefix: '"{key}" 不能有空前綴'
+      endLetter: '"{key}" 末位必須是字母或數字'
+      startLetter: '"{key}" 首位必須是字母或數字'
+      tooLongKey: '"{key}" 的長度不能超過 {max} 個字符'
+      tooLongPrefix: '"{key}" 前綴的長度不能超過 {max} 個字符'
   noSchema: 沒有找到可以驗證的 schema
   noType: 沒有可驗證的類型
   number:
@@ -5325,6 +5460,8 @@ validation:
     exactly: '"{key}" 需要設爲 {val}'
     max: '"{key}" 最多可以是 {val}'
     min: '"{key}" 至少需要是 {val}'
+    isOctal: '"{key}" 不能有前導零'
+    isPositive: '"{key}" 必須是正數'
   podAffinity:
     affinityTitle: Pod 親和性
     antiAffinityTitle: Pod 反親和性
@@ -5556,7 +5693,7 @@ workload:
     noPorts: 沒有配置端口。
     noServiceAccess: 沒有創建或管理服務的權限
     ports:
-      createService: 服務類型
+      createService: Service 類型
       noCreateService: 不創建服務
       containerPort: 私有容器端口
       hostIP: 主機 IP
@@ -5564,6 +5701,10 @@ workload:
       name: 名稱
       protocol: 協議
       listeningPort: 監聽端口
+      description: 定義一個 Service 來公開容器，或者定義一個非功能性命名的端口，以便知道容器中的應用程序應該在哪裏運行。
+      detailedDescription: 如果選擇了 ClusterIP、LoadBalancer 或 NodePort，則會自動創建一個 Service，該 Service 將使用標籤來選擇此工作負載中的 Pod。
+      expose: 網絡
+      toolTip: 如需獲取在 Kubernetes 上公開工作負載的幫助，請參閱 Service 相關的 Kubernetes 官方文檔。你還可以通過選擇標籤手動創建 Service 來公開 Pod，並且可以使用 Ingress 將 HTTP 路由映射到 Service。
     removeContainer: 移除容器
     addContainer: 添加容器
     security:
@@ -5579,7 +5720,7 @@ workload:
       hostPID: 使用主機 PID 命名空間
       podFsGroup: Pod 文件系統組
       privileged:
-        label: 特權模式
+        label: Privileged
         'false': 否
         'true': "是：容器可以完全訪問主機"
       readOnlyRootFilesystem:
@@ -6053,9 +6194,9 @@ typeDescription:
   cis.cattle.io.clusterscan: 掃描是用來根據定義的配置文件，在集羣上觸發 CIS 掃描的。掃描完成後會創建一份報告。
   cis.cattle.io.clusterscanreport: 報告是集羣 CIS 掃描的結果。
   management.cattle.io.feature: 功能開關用於打開或關閉某些 {vendor} 功能。默認關閉的功能是實驗功能。
-  cluster.x-k8s.io.machine: 一個 Machine 封裝一個 Kubernetes 節點的配置。你可以使用此視圖，來查看更新集羣后的情況。
-  cluster.x-k8s.io.machinedeployment: Machine Deployment 通過使用模板，在一組 Machine Set（與 Deployment 類似）上編排部署。你可以使用此視圖，來查看更新集羣后的情況。
-  cluster.x-k8s.io.machineset: Machine Set 確保所需數量的 Machine 始終啓動並運行（與 ReplicaSet 類似）。你可以使用此視圖，來查看更新集羣后的情況。
+  cluster.x-k8s.io.machine: 一個 Machine 封裝一個 Kubernetes 節點的配置。你可以使用此視圖來查看更新集羣后的情況。
+  cluster.x-k8s.io.machinedeployment: Machine Deployment 通過使用模板，在一組 Machine Set（與 Deployment 類似）上編排部署。你可以使用此視圖來查看更新集羣后的情況。
+  cluster.x-k8s.io.machineset: Machine Set 確保所需數量的 Machine 始終啓動並運行（與 ReplicaSet 類似）。你可以使用此視圖來查看更新集羣后的情況。
   resources.cattle.io.backup: 創建備份是爲了基於 ResourceSet 執行一次性備份或安排重複性備份。
   resources.cattle.io.restore: 創建還原用於根據備份文件觸發對集羣的還原。
   resources.cattle.io.resourceset: Resource Set 定義要在備份中存儲哪些 CRD 和資源。
@@ -6281,11 +6422,7 @@ typeLabel:
       one { Bundle }
       other { Bundle }
     }
-  fleet.cattle.io.clusterregistrationtoken: |-
-    {count, plural,
-      one { 集羣註冊 Token }
-      other { 集羣註冊 Token }
-    }
+  fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { 集羣註冊 Token }\n  other { 集羣註冊 Token }\n} "
   event: |-
     {count, plural,
       one { 事件 }
@@ -6293,23 +6430,23 @@ typeLabel:
     }
   secret: |-
     {count, plural,
-      one { 密文 }
-      other { 密文 }
+      one { Secret }
+      other { Secret }
     }
   serviceaccount: |-
     {count, plural,
-      one { 服務賬戶 }
-      other { 服務賬戶 }
+      one { ServiceAccount }
+      other { ServiceAccount }
     }
   service: |-
     {count, plural,
-      one { 服務 }
-      other { 服務 }
+      one { Service }
+      other { Service }
     }
   management.cattle.io.apiservice: |-
     {count, plural,
-      one { API 服務 }
-      other { API 服務 }
+      one { APIService }
+      other { APIService }
     }
   management.cattle.io.catalog: |-
     {count, plural,
@@ -6318,8 +6455,8 @@ typeLabel:
     }
   management.cattle.io.nodedriver: |-
     {count, plural,
-      one { 主機驅動 }
-      other { 主機驅動 }
+      one { NodeDriver }
+      other { NodeDriver }
     }
   management.cattle.io.node: |-
     {count, plural,
@@ -6328,40 +6465,293 @@ typeLabel:
     }
   rbac.authorization.k8s.io.clusterrole: |-
     {count, plural,
-      one { 集羣角色 }
-      other { 集羣角色 }
+      one { ClusterRole }
+      other { ClusterRole }
     }
   rbac.authorization.k8s.io.role: |-
     {count, plural,
-      one { 角色 }
-      other { 角色 }
+      one { Role }
+      other { Role }
     }
   storage.k8s.io.storageclass: |-
     {count, plural,
-      one { 存儲類 }
-      other { 存儲類 }
+      one { StorageClass }
+      other { StorageClass }
     }
   persistentvolume: |-
     {count, plural,
-      one { 持久卷 }
-      other { 持久卷 }
+
+      one { PersistentVolume }
+      other { PersistentVolume }
     }
   persistentvolumeclaim: |-
     {count, plural,
-      one { 持久卷聲明 }
-      other { 持久卷聲明 }
+
+
+      one { PersistentVolumeClaim }
+      other { PersistentVolumeClaim }
     }
   configmap: |-
     {count, plural,
-      one { 配置映射 }
-      other { 配置映射 }
+      one { ConfigMap }
+      other { ConfigMap }
     }
   policy.podsecuritypolicy: |-
     {count, plural,
       one { Pod 安全策略 }
       other { Pod 安全策略 }
     }
-  storage.k8s.io.csinode: "{count, plural,\n  one { CSI 節點 }\n  other { CSI 節點 }\n} "
+  storage.k8s.io.csinode: "{count, plural,\n  one { CSINode }\n  other { CSINode }\n}"
+  admissionregistration.k8s.io.mutatingwebhookconfiguration: |-
+    {count, plural,
+      one { MutatingWebhookConfiguration }
+      other { MutatingWebhookConfiguration }
+    }
+  admissionregistration.k8s.io.validatingwebhookconfiguration: |-
+    {count, plural,
+      one { ValidatingWebhookConfiguration }
+      other { ValidatingWebhookConfiguration }
+    }
+  apiextensions.k8s.io.customresourcedefinition: |-
+    {count, plural,
+      one { CustomResourceDefinition }
+      other { CustomResourceDefinition }
+    }
+  apiregistration.k8s.io.apiservice: |-
+    {count, plural,
+      one { APIService }
+      other { APIService }
+    }
+  apps.daemonset: |-
+    {count, plural,
+      one { DaemonSet }
+      other { DaemonSet }
+    }
+  apps.deployment: |-
+    {count, plural,
+      one { Deployment }
+      other { Deployment }
+    }
+  apps.replicaset: |-
+    {count, plural,
+      one { ReplicaSet }
+      other { ReplicaSet }
+    }
+  apps.statefulset: |-
+    {count, plural,
+      one { StatefulSet }
+      other { StatefulSet }
+    }
+  autoscaling.horizontalpodautoscaler: |-
+    {count, plural,
+      one { HorizontalPodAutoscaler }
+      other { HorizontalPodAutoscaler }
+    }
+  batch.cronjob: |-
+    {count, plural,
+      one { CronJob }
+      other { CronJob }
+    }
+  batch.job: |-
+    {count, plural,
+      one { Job }
+      other { Job }
+    }
+  cluster.x-k8s.io.machine: |-
+    {count, plural,
+      one { Machine }
+      other { Machine }
+    }
+  cluster.x-k8s.io.machinedeployment: |-
+    {count, plural,
+      one { MachineDeployment }
+      other { MachineDeployment }
+    }
+  cluster.x-k8s.io.machineset: |-
+    {count, plural,
+      one { MachineSet }
+      other { MachineSet }
+    }
+  coordination.k8s.io.lease: |-
+    {count, plural,
+      one { Lease }
+      other { Lease }
+    }
+  discovery.k8s.io.endpointslice: |-
+    {count, plural,
+      one { EndpointSlice }
+      other { EndpointSlice }
+    }
+  fleet.cattle.io.bundledeployment: |-
+    {count, plural,
+      one { BundleDeployment }
+      other { BundleDeployment }
+    }
+  fleet.cattle.io.clusterregistration: |-
+    {count, plural,
+      one { ClusterRegistration }
+      other { ClusterRegistration }
+    }
+  fleet.cattle.io.content: |-
+    {count, plural,
+      one { Content }
+      other { Content }
+    }
+  flowcontrol.apiserver.k8s.io.flowschema: |-
+    {count, plural,
+      one { FlowSchema }
+      other { FlowSchema }
+    }
+  flowcontrol.apiserver.k8s.io.prioritylevelconfiguration: |-
+    {count, plural,
+      one { PriorityLevelConfiguration }
+      other { PriorityLevelConfiguration }
+    }
+  harvesterhci.io.cloudtemplate: |-
+    {count, plural,
+      one { Cloud Config 模板 }
+      other { Cloud Config 模板 }
+    }
+  k3s.cattle.io.addon: |-
+    {count, plural,
+      one { 插件 }
+      other { 插件 }
+    }
+  limitrange: |-
+    {count, plural,
+      one { 限制範圍 }
+      other { 限制範圍 }
+    }
+  management.cattle.io.catalogtemplate: |-
+    {count, plural,
+      one { CatalogTemplate }
+      other { CatalogTemplate }
+    }
+  management.cattle.io.catalogtemplateversion: |-
+    {count, plural,
+      one { CatalogTemplateVersion }
+      other { CatalogTemplateVersion }
+    }
+  management.cattle.io.cisbenchmarkversion: |-
+    {count, plural,
+      one { CisBenchmarkVersion }
+      other { CisBenchmarkVersion }
+    }
+  management.cattle.io.cisconfig: |-
+    {count, plural,
+      one { CisConfig }
+      other { CisConfig }
+    }
+  management.cattle.io.clusteralertgroup: |-
+    {count, plural,
+      one { ClusterAlertGroup }
+      other { ClusterAlertGroup }
+    }
+  management.cattle.io.clusteralertrule: |-
+    {count, plural,
+      one { ClusterAlertRule }
+      other { ClusterAlertRule }
+    }
+  management.cattle.io.clusterregistrationtoken: |-
+    {count, plural,
+      one { ClusterRegistrationToken }
+      other { ClusterRegistrationToken }
+    }
+  management.cattle.io.dynamicschema: |-
+    {count, plural,
+      one { DynamicSchema }
+      other { DynamicSchema }
+    }
+  management.cattle.io.globalrolebinding: |-
+    {count, plural,
+      one { GlobalRoleBinding }
+      other { GlobalRoleBinding }
+    }
+  management.cattle.io.kontainerdriver: |-
+    {count, plural,
+      one { KontainerDriver }
+      other { KontainerDriver }
+    }
+  management.cattle.io.podsecurityadmissionconfigurationtemplate: |-
+    {count, plural,
+      one { Pod 安全准入 }
+      other { Pod 安全准入 }
+    }
+  management.cattle.io.podsecuritypolicytemplate: |-
+    {count, plural,
+      one { PodSecurityPolicyTemplate }
+      other { PodSecurityPolicyTemplate }
+    }
+  management.cattle.io.projectalertgroup: |-
+    {count, plural,
+      one { ProjectAlertGroup }
+      other { ProjectAlertGroup }
+    }
+  management.cattle.io.projectalertrule: |-
+    {count, plural,
+      one { ProjectAlertRule }
+      other { ProjectAlertRule }
+    }
+  management.cattle.io.rkeaddon: |-
+    {count, plural,
+      one { RkeAddon }
+      other { RkeAddon }
+    }
+  management.cattle.io.rkek8sserviceoption: |-
+    {count, plural,
+      one { RkeK8sServiceOption }
+      other { RkeK8sServiceOption }
+    }
+  management.cattle.io.rkek8ssystemimage: |-
+    {count, plural,
+      one { RkeK8sSystemImage }
+      other { RkeK8sSystemImage }
+    }
+  management.cattle.io.userattribute: |-
+    {count, plural,
+      one { UserAttribute }
+      other { UserAttribute }
+    }
+  networking.k8s.io.ingress: |-
+    {count, plural,
+      one { Ingress }
+      other { Ingress }
+    }
+  networking.k8s.io.networkpolicy: |-
+    {count, plural,
+      one { 網絡策略 }
+      other { 網絡策略 }
+    }
+  pod: |-
+    {count, plural,
+      one { Pod }
+      other { Pod }
+    }
+  policy.poddisruptionbudget: |-
+    {count, plural,
+      one { Pod 中斷預算 }
+      other { Pod 中斷預算 }
+    }
+  rbac.authorization.k8s.io.clusterrolebinding: |-
+    {count, plural,
+      one { ClusterRoleBinding }
+      other { ClusterRoleBinding }
+    }
+  rbac.authorization.k8s.io.rolebinding: |-
+    {count, plural,
+      one { RoleBinding }
+      other { RoleBinding }
+    }
+  resourcequota: |-
+    {count, plural,
+      one { 資源配額 }
+      other { 資源配額 }
+    }
+  scheduling.k8s.io.priorityclass: |-
+    {count, plural,
+      one { PriorityClass }
+      other { PriorityClass }
+    }
 action:
   clone: 克隆
   disable: 禁用
@@ -6405,7 +6795,7 @@ unit:
       other { 天 }
     }
 workloadPorts:
-  addPort: 添加端口
+  addPort: 添加端口或 Service
   remove: 移除
   addHost: 添加主機
 podAffinity:
@@ -6422,6 +6812,10 @@ registryMirror:
   valuePlaceholder: 例如：https://a.registry.com:5000, https://b.registry.com:5000
   keyPlaceholder: 例如：docker.io 或 *
   description: Mirror 定義了私有鏡像倉庫的名稱和端點。將會逐個嘗試端點，並使用第一個可工作的端點。
+  endpointsLabel: Mirror 端點
+  endpointsPlaceholder: 例如：a.registry.com:5000, b.registry.com:5000
+  hostnameLabel: 鏡像倉庫主機名
+  hostnamePlaceholder: 例如：docker.io 或 *
 registryConfig:
   header: 倉庫驗證
   toolTip: '當需要從給定的鏡像倉庫主機名中拉取鏡像時，此信息將用於識別並驗證倉庫。'
@@ -6442,7 +6836,7 @@ modalDownLoadFileComponent:
 ##############################
 advancedSettings:
   label: 設置
-  subtext: 一般用戶不需要修改此處的設置。請謹慎操作，不正確的值會破壞 {appName} 的安裝。與默認不同的設置會標記爲 "Modified"。如果這裡沒有您需要的配置項，請查看<a href="/v3/setting" target="_blank">更多設置</a>。
+  subtext: 一般用戶不需要修改此處的設置。請謹慎操作，不正確的值會破壞 {appName} 的安裝。與默認不同的設置會標記爲“已修改”。
   show: 顯示
   hide: 隱藏
   none: 無
@@ -6474,7 +6868,7 @@ advancedSettings:
     'auth-user-info-resync-cron': '重新同步驗證提供程序組成員的默認 cron 調度。'
     'cluster-template-enforcement': '非管理員只能通過預先批准的 RKE 模板啓動集羣。'
     'auth-user-session-ttl-minutes': '用戶認證會話的自定義 TTL（單位：分鐘）。'
-    'auth-token-max-ttl-minutes': '所有身份驗證 Token 的最大 TTL（單位：分鐘）。如果設置爲 0，則 Token 永不過期。'
+    'auth-token-max-ttl-minutes': '所有身份認證 Token 的最大 TTL（單位：分鐘）。如果設置爲 0，則 Token 永不過期。'
     'kubeconfig-generate-token': '請求 kubeconfig 時自動爲用戶生成 Token。'
     'kubeconfig-token-ttl-minutes': '在 CLI 中生成的 Token TTL。已棄用：此設置將被刪除，kubeconfig-default-token-ttl-minutes 將用於所有 kubeconfig Token。'
     'kubeconfig-default-token-ttl-minutes': '應用於所有 kubeconfig Token 的 TTL（單位：分鐘）。如果設置爲 0，則 Token 永不過期。'
@@ -6520,6 +6914,9 @@ advancedSettings:
     'system-catalog':
       bundled: 'Bundled'
       external: 'External'
+  modified: 已修改
+  load:
+    waiting: 正在加載&hellip;
 featureFlags:
   label: 功能開關
   warning: |-
@@ -6599,6 +6996,10 @@ performance:
       inputLabel: 資源閾值
     description: 當列表無法顯示太多資源時，用戶需要選擇一個命名空間並僅提取該命名空間中的資源。
     label: 命名空間過濾
+  advancedWorker:
+    checkboxLabel: 啓用高級 Websocket Web Worker
+    description: 推送到 UI 的資源更新來自 WebSocket，並在 UI 線程中處理。啓用此選項可在單獨的線程中處理 Web Worker 中的集羣 WebSocket 更新。這有助於提高 UI 在資源經常變化的系統中的響應能力。
+    label: Websocket Web Worker
 banner:
   label: 固定橫幅
   settingName: 橫幅
@@ -7522,3 +7923,32 @@ podDisruptionBudget:
     label: 最大不可用 Pod
   minAvailable:
     label: 最小可用 Pod
+podSecurityAdmission:
+  banner:
+    modifications: 注意：在集羣更新之前，修改 Pod 安全准入配置模板不會影響任何引用它的下游集羣
+  description: 定義要用於 Pod 安全的准入控制模式
+  exemptions:
+    description: 允許爲特定的用戶名、RuntimeClassName 和命名空間創建 Pod，否則它們會被上方設置的策略禁止。
+    placeholder: 輸入以逗號分隔的 {psaExemptionsControl} 列表
+    title: 豁免
+  labels:
+    audit: 審計
+    baseline: baseline
+    enforce: 執行
+    namespaces: 命名空間
+    privileged: privileged
+    restricted: restricted
+    runtimeClasses: RuntimeClass
+    usernames: 用戶名
+    warn: 警告
+  name: Pod 安全准入
+  version:
+    placeholder: 版本（默認：latest）
+registryMirrorRewrite:
+  addLabel: 添加重寫配置
+  header: 重寫
+  keyLabel: 重寫模式
+  keyPlaceholder: 例如：^rancher/(.*)
+  toolTip: 每個鏡像都可以有一組重寫。重寫可以根據正則表達式來改變鏡像的標籤。
+  valueLabel: 重寫替換
+  valuePlaceholder: 例如：mirrorproject/rancher-images/$1
