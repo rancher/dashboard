@@ -103,8 +103,11 @@ export default {
       </div>
       <div v-if="clusterDetail.kubernetesVersionRaw" class="glance-item">
         <label>{{ t('glance.version') }}: </label>
-        <span v-if="clusterDetail.kubernetesVersionExtension" style="font-size: 0.5em">{{ clusterDetail.kubernetesVersionExtension }}</span>
         <span>{{ clusterDetail.kubernetesVersionBase }}</span>
+        <span
+          v-if="clusterDetail.kubernetesVersionExtension"
+          style="font-size: 0.75em"
+        >{{ clusterDetail.kubernetesVersionExtension }}</span>
       </div>
       <div class="glance-item">
         <label>{{ t('glance.created') }}: </label>

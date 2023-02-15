@@ -196,7 +196,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get kubernetesVersionExtension() {
-    if ( this.kubernetesVersion.match(/[+-]]/) ) {
+    if ( this.kubernetesVersion.match(/[+-]/) ) {
       return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
     }
 
