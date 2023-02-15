@@ -1,5 +1,5 @@
 <script>
-import { Checkbox } from '@components/form/Checkbox';
+import { Checkbox } from '@components/Form/Checkbox';
 import { mapGetters } from 'vuex';
 
 export default {
