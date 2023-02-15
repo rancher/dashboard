@@ -396,8 +396,11 @@ export default {
       </div>
       <div>
         <label>{{ t('glance.version') }}: </label>
-        <span v-if="currentCluster.kubernetesVersionExtension" style="font-size: 0.5em">{{ currentCluster.kubernetesVersionExtension }}</span>
         <span>{{ currentCluster.kubernetesVersionBase }}</span>
+        <span
+          v-if="currentCluster.kubernetesVersionExtension"
+          style="font-size: 0.75em"
+        >{{ currentCluster.kubernetesVersionExtension }}</span>
       </div>
       <div>
         <label>{{ t('glance.created') }}: </label>
