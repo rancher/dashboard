@@ -98,7 +98,7 @@ export default {
             <LabeledInput
               v-model="row.value.hostname"
               :label="t('registryMirror.hostnameLabel')"
-              :placeholder="t('registryMirror.hostnamePlaceholder')"
+              :placeholder="t('registryMirror.keyPlaceholder')"
               :mode="mode"
             />
           </div>
@@ -106,7 +106,8 @@ export default {
             <LabeledInput
               v-model="row.value.endpoints"
               :label="t('registryMirror.endpointsLabel')"
-              :placeholder="t('registryMirror.endpointsPlaceholder')"
+              :placeholder="t('registryMirror.valuePlaceholder')"
+              :tooltip="t('registryMirror.valueProtip')"
               :mode="mode"
             />
           </div>
