@@ -248,15 +248,33 @@ export default {
     },
 
     fakeMachines() {
+      const machineNameFn = (clusterName, machinePoolName) => `${ clusterName }-${ machinePoolName }`;
+
       // When we scale up, the quantity will change to N+1 - so from 0 to 1, the quantity changes,
       // but it takes tiem for the machine to appear, so the pool is empty, but if we just go off on a non-zero quqntity
       // then the pool would be hidden - so we find empty pool by checking the machines
       const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
-        const machinePrefix = `${ this.value.name }-${ mp.name }`;
+        const machineFullName = machineNameFn(this.value.name, mp.name);
+
         const machines = this.value.machines.filter((machine) => {
           const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+          const machinePoolInfName = machine.spec?.infrastructureRef?.name;
 
-          return !isElementalCluster ? machine.spec?.infrastructureRef?.name.startsWith(machinePrefix) : machine.spec?.infrastructureRef?.name.includes(machinePrefix);
+          if (isElementalCluster) {
+            return machinePoolInfName.includes(machineFullName);
+          }
+
+          // if labels exist, then the machineFullName must unequivocally be equal to manchineLabelFullName (based on labels)
+          const machineLabelClusterName = machine.metadata?.labels?.['cluster.x-k8s.io/cluster-name'];
+          const machineLabelPoolName = machine.metadata?.labels?.['rke.cattle.io/rke-machine-pool-name'];
+
+          if (machineLabelClusterName && machineLabelPoolName) {
+            const manchineLabelFullName = machineNameFn(machineLabelClusterName, machineLabelPoolName);
+
+            return machineFullName === manchineLabelFullName;
+          }
+
+          return machinePoolInfName.startsWith(machineFullName);
         });
 
         return machines.length === 0;
