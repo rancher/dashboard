@@ -57,15 +57,19 @@ Replace the contents of the file `pkg/test/index.js` with:
 
 ```
 import { importTypes } from '@rancher/auto-import';
+import { IPlugin } from '@shell/core/types';
 
 // Init the package
-export default function($plugin) {
+export default function(plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
-  importTypes($plugin);
+  importTypes(plugin);
 
-  $plugin.addProduct(require('./product'));
+  // Provide plugin metadata from package.json
+  plugin.metadata = require('./package.json');
+
+  // Load a product
+  // plugin.addProduct(require('./product'));
 }
-
 ```
 
 Next, create a new file `pkg/test/product.js` with this content:
