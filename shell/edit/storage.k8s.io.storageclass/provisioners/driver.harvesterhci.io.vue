@@ -45,10 +45,10 @@ export default {
     ...mapGetters(['currentCluster']),
 
     isSatisfiesVersion() {
-      const kubernetesVersion = this.currentCluster.kubernetesVersion;
-      const kubernetesVersionExtension = this.currentCluster.kubernetesVersionExtension;
+      const kubernetesVersion = this.currentCluster.kubernetesVersion || '';
+      const kubernetesVersionExtension = this.currentCluster.kubernetesVersion.replace(/^.*([+-])/, '$1');
 
-      if (kubernetesVersionExtension.startsWith('rke2')) {
+      if (kubernetesVersionExtension.startsWith('+rke2')) {
         const charts = ((this.rke2Versions?.data || []).find(v => v.id === kubernetesVersion) || {}).charts;
         let csiVersion = charts?.['harvester-csi-driver']?.version || '';
 
