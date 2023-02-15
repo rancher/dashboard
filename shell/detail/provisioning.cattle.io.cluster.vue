@@ -258,18 +258,23 @@ export default {
 
         const machines = this.value.machines.filter((machine) => {
           const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
-          const machineClusterName = machine.metadata?.labels?.['cluster.x-k8s.io/cluster-name'];
-          const machinePoolName = machine.metadata.labels?.['rke.cattle.io/rke-machine-pool-name'];
           const machinePoolInfName = machine.spec?.infrastructureRef?.name;
 
-          // if labels exist, then the machineFullName must unequivocally be equal to manchineFullNameLabels (based on labels)
-          if (machineClusterName && machinePoolName) {
-            const manchineFullNameLabels = machineNameFn(machineClusterName, machinePoolName);
-
-            return !isElementalCluster ? machineFullName === manchineFullNameLabels : machinePoolInfName.includes(machineFullName);
+          if (isElementalCluster) {
+            return machinePoolInfName.includes(machineFullName);
           }
 
-          return !isElementalCluster ? machinePoolInfName.startsWith(machineFullName) : machinePoolInfName.includes(machineFullName);
+          // if labels exist, then the machineFullName must unequivocally be equal to manchineLabelFullName (based on labels)
+          const machineLabelClusterName = machine.metadata?.labels?.['cluster.x-k8s.io/cluster-name'];
+          const machineLabelPoolName = machine.metadata?.labels?.['rke.cattle.io/rke-machine-pool-name'];
+
+          if (machineLabelClusterName && machineLabelPoolName) {
+            const manchineLabelFullName = machineNameFn(machineLabelClusterName, machineLabelPoolName);
+
+            return machineFullName === manchineLabelFullName;
+          }
+
+          return machinePoolInfName.startsWith(machineFullName);
         });
 
         return machines.length === 0;
