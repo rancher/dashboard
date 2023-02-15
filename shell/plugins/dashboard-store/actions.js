@@ -152,7 +152,7 @@ export default {
       const args = {
         type,
         revision:  '',
-        namespace: opt.watchNamespace
+        namespace: opt.watchNamespace || opt.namespaced
       };
 
       if (opt.watch !== false ) {
@@ -310,11 +310,13 @@ export default {
       }
     }
 
+    // ToDo: SM if we start a "bigger" watch (such as watch without a namespace vs a watch with a namespace), we should stop the stop the "smaller" watch so we don't have duplicate events coming back
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
         revision:  out.revision,
-        namespace: opt.watchNamespace,
+        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+        // ToDo: SM namespaced is sometimes a boolean and sometimes a string, I don't see it as especially broken but we should refactor that in the future
         force:     opt.forceWatch === true,
       });
     }
@@ -539,8 +541,10 @@ export default {
 
   // Forget a type in the store
   // Remove all entries for that type and stop watching it
-  forgetType({ commit, getters, dispatch }, type) {
-    dispatch('unwatch', type);
+  forgetType({ commit, dispatch, state }, type) {
+    state.started
+      .filter(entry => entry.type === type)
+      .forEach(entry => dispatch('unwatch', entry));
 
     commit('forgetType', type);
   },

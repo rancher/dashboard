@@ -369,12 +369,17 @@ const sharedActions = {
     return dispatch('send', msg);
   },
 
-  unwatch(ctx, type) {
+  unwatch(ctx, {
+    type, id, namespace, selector
+  }) {
     const { commit, getters, dispatch } = ctx;
 
     if (getters['schemaFor'](type)) {
       const obj = {
         type,
+        id,
+        namespace,
+        selector,
         stop: true, // Stops the watch on a type
       };
 
@@ -682,14 +687,30 @@ const defaultActions = {
   /**
    * Steve only event
    */
-  'ws.resource.start'({ state, getters, commit }, msg) {
+  'ws.resource.start'({
+    state, getters, commit, dispatch
+  }, msg) {
     state.debugSocket && console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
-    commit('setWatchStarted', {
+
+    const newWatch = {
       type:      msg.resourceType,
       namespace: msg.namespace,
       id:        msg.id,
       selector:  msg.selector
+    };
+
+    state.started.filter((entry) => {
+      if (
+        entry.type === newWatch.type &&
+        entry.namespace !== newWatch.namespace
+      ) {
+        return true;
+      }
+    }).forEach((entry) => {
+      dispatch('unwatch', entry);
     });
+
+    commit('setWatchStarted', newWatch);
   },
 
   'ws.resource.error'({ getters, commit, dispatch }, msg) {
