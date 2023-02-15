@@ -248,22 +248,28 @@ export default {
     },
 
     fakeMachines() {
+      const machineNameFn = (clusterName, machinePoolName) => `${ clusterName }-${ machinePoolName }`;
+
       // When we scale up, the quantity will change to N+1 - so from 0 to 1, the quantity changes,
       // but it takes tiem for the machine to appear, so the pool is empty, but if we just go off on a non-zero quqntity
       // then the pool would be hidden - so we find empty pool by checking the machines
       const emptyPools = (this.value.spec.rkeConfig?.machinePools || []).filter((mp) => {
-        const machinePrefix = `${ this.value.name }-${ mp.name }`;
+        const machineFullName = machineNameFn(this.value.name, mp.name);
+
         const machines = this.value.machines.filter((machine) => {
           const isElementalCluster = machine.spec?.infrastructureRef?.apiVersion.startsWith('elemental.cattle.io');
+          const machineClusterName = machine.metadata?.labels?.['cluster.x-k8s.io/cluster-name'];
+          const machinePoolName = machine.metadata.labels?.['rke.cattle.io/rke-machine-pool-name'];
+          const machinePoolInfName = machine.spec?.infrastructureRef?.name;
 
-          // if labels exist, then the machinePrefix must unequivocally be equal to currMachineNaming (based on labels)
-          if (machine.metadata?.labels && machine.metadata?.labels['cluster.x-k8s.io/cluster-name'] && machine.metadata?.labels['rke.cattle.io/rke-machine-pool-name']) {
-            const currMachineNaming = `${ machine.metadata?.labels['cluster.x-k8s.io/cluster-name'] }-${ machine.metadata?.labels['rke.cattle.io/rke-machine-pool-name'] }`;
+          // if labels exist, then the machineFullName must unequivocally be equal to manchineFullNameLabels (based on labels)
+          if (machineClusterName && machinePoolName) {
+            const manchineFullNameLabels = machineNameFn(machineClusterName, machinePoolName);
 
-            return !isElementalCluster ? currMachineNaming === machinePrefix : machine.spec?.infrastructureRef?.name.includes(machinePrefix);
+            return !isElementalCluster ? machineFullName === manchineFullNameLabels : machinePoolInfName.includes(machineFullName);
           }
 
-          return !isElementalCluster ? machine.spec?.infrastructureRef?.name.startsWith(machinePrefix) : machine.spec?.infrastructureRef?.name.includes(machinePrefix);
+          return !isElementalCluster ? machinePoolInfName.startsWith(machineFullName) : machinePoolInfName.includes(machineFullName);
         });
 
         return machines.length === 0;
