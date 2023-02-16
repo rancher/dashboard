@@ -225,6 +225,7 @@ export default {
       this.loading = false;
     },
     async validate(buttonDone) {
+      this.errors = [];
       const d = this.mode?.apiEndpoints || [];
 
       if (d.length === 0 || d.some(s => !s.trim())) {
