@@ -766,6 +766,20 @@ export default {
 
       this.fixNodeAffinity(nodeAffinity);
       this.fixPodAffinity(podAffinity);
+
+      // The fields are being removed because they are not allowed to be editabble
+      if (this.mode === _EDIT) {
+        if (template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
+          delete template.spec.affinity;
+        }
+
+        // Removing `affinity` fixes the issue with setting the `imagePullSecrets`
+        // However, this field should not be set. Therefore this is explicitly removed.
+        if (template?.spec?.imagePullSecrets && Object.keys(template?.spec?.imagePullSecrets).length === 0) {
+          delete template.spec.imagePullSecrets;
+        }
+      }
+
       this.fixPodAffinity(podAntiAffinity);
       this.fixPodSecurityContext(this.podTemplateSpec);
 
