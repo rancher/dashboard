@@ -207,16 +207,18 @@ export default {
         errors.push(message);
       };
 
-      ['minCpu', 'requestsCpu', 'limitsCpu', 'maxCpu'].reduce((pre, cur) => {
-        validate(pre, cur);
+      ['minCpu', 'requestsCpu', 'limitsCpu', 'maxCpu'].filter(k => limit[k])
+        .reduce((pre, cur) => {
+          validate(pre, cur);
 
-        return cur;
-      });
-      ['minMemory', 'requestsMemory', 'limitsMemory', 'maxMemory'].reduce((pre, cur) => {
-        validate(pre, cur);
+          return cur;
+        });
+      ['minMemory', 'requestsMemory', 'limitsMemory', 'maxMemory'].filter(k => limit[k])
+        .reduce((pre, cur) => {
+          validate(pre, cur);
 
-        return cur;
-      });
+          return cur;
+        });
 
       return errors;
     },
