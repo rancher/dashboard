@@ -29,7 +29,7 @@ export default {
         <UnitInput
           v-model="value.constraintViolationsLimit"
           label="Constraint violations limit"
-          suffix=""
+          suffix="Violations"
         />
       </div>
     </div>
