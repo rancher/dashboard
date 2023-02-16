@@ -104,6 +104,7 @@
 //                               customRoute: undefined,
 //                               hasGraph: undefined   -- If true, render ForceDirectedTreeChart graph (ATTENTION: option graphConfig is needed also!!!)
 //                               graphConfig: undefined   -- Use this to pass along the graph configuration
+//                               notFilterNamespace:  undefined -- Define namespaces that do not need to be filtered
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -224,29 +225,32 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
-      const extensionCols = store.$plugin.getUIConfig(ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE);
+      // gate it so that we prevent errors on older versions of dashboard
+      if (store.$plugin?.getUIConfig) {
+        const extensionCols = store.$plugin.getUIConfig(ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE);
 
-      // Try and insert the columns before the Age column, if that is the last column
-      let insertPosition = headers.length;
+        // Try and insert the columns before the Age column, if that is the last column
+        let insertPosition = headers.length;
 
-      if (headers.length > 0) {
-        const lastColumn = headers[headers.length - 1];
+        if (headers.length > 0) {
+          const lastColumn = headers[headers.length - 1];
 
-        if (lastColumn?.name === AGE.name) {
-          insertPosition--;
+          if (lastColumn?.name === AGE.name) {
+            insertPosition--;
+          }
         }
+
+        // adding extension defined cols to the correct header config
+        extensionCols.forEach((col) => {
+          if (col.locationConfig.resource) {
+            col.locationConfig.resource.forEach((resource) => {
+              if (resource && type === resource) {
+                headers.splice(insertPosition, 0, col);
+              }
+            });
+          }
+        });
       }
-
-      // adding extension defined cols to the correct header config
-      extensionCols.forEach((col) => {
-        if (col.locationConfig.resource) {
-          col.locationConfig.resource.forEach((resource) => {
-            if (resource && type === resource) {
-              headers.splice(insertPosition, 0, col);
-            }
-          });
-        }
-      });
 
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one

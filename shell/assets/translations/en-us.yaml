@@ -1067,7 +1067,6 @@ cis:
   testID: Test ID
   testsSkipped: Tests Skipped
   testsToSkip: Tests to Skip
-  workerProfile: CIS Profile
 
 cluster:
   addonChart:
@@ -1344,6 +1343,10 @@ cluster:
       availabilityZone:
         label: Availability Zone
         description: Availability zones protect applications from complete Azure data center failures.
+        publicIpAndSKUWarning: Availability zones require Static Public IP and Use Standard SKU for Public IP to be enabled.
+        publicIpWarning: Availability zones require Static Public IP to be enabled.
+        standardSKUWarning: Availability zones require Use Standard SKU for Public IP to be enabled.
+        managedDisksWarning: Availability zones require Managed Disks to be enabled.
       dns:
         help: A unique DNS label for the public IP address.
         label: DNS Label
@@ -1379,8 +1382,15 @@ cluster:
           label: No Public IP
         staticPublicIp:
           label: Static Public IP
+        standardSKU:
+          label: Use Standard SKU for Public IP
       resourceGroup:
         label: Resource Group
+      sections:
+        availabilitySetConfiguration: Availability Set Configuration
+        purchasePlan: Purchase Plan
+        network: Network
+        disks: Disks
       size:
         label: VM Size
         tooltip: When accelerated networking is enabled, not all sizes are available.
@@ -1760,6 +1770,9 @@ cluster:
     create-template: Use a Catalog Template to create a cluster
     register-custom: Import any Kubernetes cluster
   rke2:
+    banner:
+      psaChange: PSACT is now set to Rancher default automatically
+      cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -1777,12 +1790,18 @@ cluster:
         label: Default - RKE2 Embedded
     security:
       header: Security
+    cis:
+      server: Server CIS Profile
+      agent: CIS Profile
+      override: Allow PSA Default Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: RKE Default
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
-      option: (None)
+      option: 
+        none: (None)
+        default: Default - RKE2 Embedded
     cisProfile:
       option: (None)
     enableNetworkPolicy:
@@ -3461,6 +3480,9 @@ node:
     poolDescription:
       noSize: No Size
       noLocation: No Location
+    nodeLabels: Labels
+    hideLabels: Show less
+    showLabels: Show more
   detail:
     detailTop:
       containerRuntime: Container Runtime
@@ -3964,7 +3986,7 @@ podSecurityAdmission:
   name: Pod Security Admission
   description: Define the admission control mode you want to use for the pod security
   banner: 
-    modifications: 'Note: Modifying a Pod Security Admission Configuration Template will not affect any downstream cluster that references it until there is a cluster update'
+    modifications: 'Changing any template that is currently in use will cause an update to those live clusters the next time the cluster is updated'
   labels:
     enforce: Enforce
     audit: Audit
