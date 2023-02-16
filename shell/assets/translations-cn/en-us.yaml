@@ -2106,6 +2106,7 @@ containerResourceLimit:
   maxMemory: Max Memory
   minCpu: Min CPU
   minMemory: Min Memory
+  error: The value of {key1} must be less than or equal to the value of {key2}.
 resource:
   errors:
     update: "Error updating {name}"

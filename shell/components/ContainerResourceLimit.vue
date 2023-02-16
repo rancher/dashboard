@@ -141,6 +141,11 @@ export default {
       });
 
       if (namespace) {
+        const errors = this.validateResourceLimits(out);
+
+        if (errors.length > 0) {
+          return Promise.reject(errors);
+        }
         namespace.setAnnotation(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify(out));
       }
     },
@@ -174,8 +179,48 @@ export default {
         this.maxMemory = maxMemory;
       }
     },
-  }
 
+    validateResourceLimits(limit) {
+      const errors = [];
+      const validate = (a, b) => {
+        const aValue = limit[a];
+        const bValue = limit[b];
+
+        if (!aValue || !bValue) {
+          return;
+        }
+
+        const av = Number.parseFloat(aValue);
+        const bv = Number.parseFloat(bValue);
+
+        if (Number.isNaN(av) || Number.isNaN(bv)) {
+          return;
+        }
+        if (av <= bv) {
+          return;
+        }
+        const message = this.t('containerResourceLimit.error', {
+          key1: this.t(`containerResourceLimit.${ a }`),
+          key2: this.t(`containerResourceLimit.${ b }`)
+        });
+
+        errors.push(message);
+      };
+
+      ['minCpu', 'requestsCpu', 'limitsCpu', 'maxCpu'].reduce((pre, cur) => {
+        validate(pre, cur);
+
+        return cur;
+      });
+      ['minMemory', 'requestsMemory', 'limitsMemory', 'maxMemory'].reduce((pre, cur) => {
+        validate(pre, cur);
+
+        return cur;
+      });
+
+      return errors;
+    },
+  },
 };
 </script>
 
