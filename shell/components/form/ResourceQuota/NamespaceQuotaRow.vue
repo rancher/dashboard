@@ -68,24 +68,12 @@ export default {
     // We want to update the value first so that the value will be rounded to the project limit.
     // This is relevant when switching projects. If the value is 1200 and the project that it was
     // switched to only has capacity for 800 more this will force the value to be set to 800.
-    const sc = this.storageClass;
+    if (this.value?.limit?.[this.type]) {
+      this.update(this.limit);
+    }
 
-    if (sc) {
-      if (this.value?.limit?.[this.type]?.[sc]) {
-        this.update(this.value.limit[this.type][sc]);
-      }
-
-      if (!this.value?.limit?.[this.type]?.[sc] && this.defaultResourceQuotaLimits[this.type]?.[sc]) {
-        this.update(this.defaultResourceQuotaLimits[this.type][sc]);
-      }
-    } else {
-      if (this.value?.limit?.[this.type]) {
-        this.update(this.value.limit[this.type]);
-      }
-
-      if (!this.value?.limit?.[this.type]) {
-        this.update(this.defaultResourceQuotaLimits[this.type]);
-      }
+    if (!this.value?.limit?.[this.type]) {
+      this.update(this.drqLimts);
     }
   },
 
@@ -97,13 +85,17 @@ export default {
       return this.storageClasses.map(sc => ({ label: sc.id, value: sc.id }));
     },
     limitValue() {
+      return parseSi(this.prqLimits);
+    },
+    prqLimits() {
       const sc = this.storageClass;
 
-      if (sc) {
-        return parseSi(this.projectResourceQuotaLimits[this.type][sc]);
-      } else {
-        return parseSi(this.projectResourceQuotaLimits[this.type]);
-      }
+      return this.storageClass ? this.projectResourceQuotaLimits[this.type][sc] : this.projectResourceQuotaLimits[this.type];
+    },
+    drqLimts() {
+      const sc = this.storageClass;
+
+      return this.storageClass ? this.defaultResourceQuotaLimits[this.type][sc] : this.defaultResourceQuotaLimits[this.type];
     },
     siOptions() {
       return {
@@ -124,20 +116,19 @@ export default {
       return this.namespaceLimits.reduce((sum, limit) => sum + limit, 0);
     },
     totalContribution() {
-      const sc = this.storageClass;
-
-      return this.namespaceContribution + parseSi((sc ? this.value.limit[this.type]?.[sc] : this.value.limit[this.type]) || '0', this.siOptions);
+      return this.namespaceContribution + parseSi(this.limit || '0', this.siOptions);
     },
     percentageUsed() {
       return Math.min(this.totalContribution * 100 / this.projectLimit, 100);
     },
     projectLimit() {
-      const sc = this.storageClass;
-
-      return parseSi((sc ? this.projectResourceQuotaLimits[this.type]?.[sc] : this.projectResourceQuotaLimits[this.type]) || 0, this.siOptions);
+      return parseSi(this.prqLimits || 0, this.siOptions);
     },
     max() {
       return this.projectLimit - this.namespaceContribution;
+    },
+    availableResourceQuotas() {
+      return formatSi(this.projectLimit - this.totalContribution, { ...this.siOptions, addSuffixSpace: false });
     },
     slices() {
       const out = [];
@@ -155,7 +146,42 @@ export default {
       const sc = this.storageClass;
 
       return sc ? this.value.limit[this.type]?.[sc] : this.value.limit[this.type];
-    }
+    },
+    tooltip() {
+      const t = this.$store.getters['i18n/t'];
+      const out = [
+        {
+          label: t('resourceQuota.tooltip.reserved'),
+          value: formatSi(this.namespaceContribution, { ...this.siOptions, addSuffixSpace: false }),
+        },
+        {
+          label: t('resourceQuota.tooltip.namespace'),
+          value: this.limit
+        },
+        {
+          label: t('resourceQuota.tooltip.available'),
+          value: this.availableResourceQuotas
+        },
+        {
+          label: t('resourceQuota.tooltip.max'),
+          value: this.prqLimits
+        }
+      ];
+
+      let formattedTooltip = '<div class="quota-percentage-tooltip">';
+
+      (out || []).forEach((v) => {
+        formattedTooltip += `
+        <div style='margin-top: 5px; display: flex; justify-content: space-between;'>
+          ${ v.label }
+          <span style='margin-left: 20px;'>${ v.value }</span>
+        </div>`;
+      });
+      formattedTooltip += '</div>';
+
+      return formattedTooltip;
+    },
+
   },
 
   methods: {
@@ -205,6 +231,7 @@ export default {
     />
     <div>
       <PercentageBar
+        v-tooltip="tooltip"
         class="percentage-bar"
         :value="percentageUsed"
         :slices="slices"
