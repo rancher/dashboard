@@ -18,6 +18,7 @@ const files = [
 const topLevelScripts = {
   'build-pkg':  './node_modules/@rancher/shell/scripts/build-pkg.sh',
   'serve-pkgs': './node_modules/@rancher/shell/scripts/serve-pkgs',
+  'publish-pkgs': './node_modules/@rancher/shell/extension/scripts/publish',
 };
 
 const typeFolders = [

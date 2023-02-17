@@ -17,7 +17,7 @@
     "publish-pkg": "./shell/scripts/publish-pkg.sh",
     "serve-pkgs": "./shell/scripts/serve-pkgs",
     "publish-shell": "./shell/scripts/publish-shell.sh",
-    "clean": "./scripts/clean",
+    "clean": "./shell/scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.ts,.vue .",
     "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
