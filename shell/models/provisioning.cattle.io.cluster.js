@@ -292,7 +292,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get eksNodeGroups() {
-    return this.mgmt?.spec?.eksConfig?.nodeGroups;
+    return this.mgmt?.spec?.eksConfig?.nodeGroups || [];
   }
 
   waitForProvisioner(timeout, interval) {
