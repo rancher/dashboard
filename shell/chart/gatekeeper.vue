@@ -1,8 +1,9 @@
 <script>
 import UnitInput from '@shell/components/form/UnitInput';
+import ChartPsp from '@shell/components/ChartPsp';
 
 export default {
-  components: { UnitInput },
+  components: { UnitInput, ChartPsp },
   props:      {
     value: {
       type:    Object,
@@ -31,6 +32,11 @@ export default {
           label="Constraint violations limit"
           suffix="Violations"
         />
+      </div>
+    </div>
+    <div class="row mt-10">
+      <div class="col span-6">
+        <ChartPsp :value="value" />
       </div>
     </div>
   </div>
