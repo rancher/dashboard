@@ -13,7 +13,7 @@ import ServicePorts from '@shell/components/form/ServicePorts';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import UnitInput from '@shell/components/form/UnitInput';
-import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@shell/models/service';
+import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP, EXTERNALIP } from '@shell/models/service';
 import { ucFirst } from '@shell/utils/string';
 import CruResource from '@shell/components/CruResource';
 import { Banner } from '@components/Banner';
@@ -95,7 +95,9 @@ export default {
         SESSION_AFFINITY_ACTION_VALUES
       ),
       fvFormRuleSets:            [],
-      fvReportedValidationPaths: ['spec']
+      fvReportedValidationPaths: ['spec'],
+      selectedServiceType:       '',
+      ipAddresses:               []
     };
   },
 
@@ -136,9 +138,10 @@ export default {
       },
 
       set(serviceType) {
+        this.selectedServiceType = serviceType;
         this.$emit('set-subtype', serviceType);
 
-        if (serviceType === HEADLESS) {
+        if (serviceType === HEADLESS || serviceType === EXTERNALIP) {
           this.$set(this.value.spec, 'type', CLUSTERIP);
           this.$set(this.value.spec, 'clusterIP', 'None');
         } else {
@@ -195,6 +198,14 @@ export default {
 
       return out;
     },
+
+    isExternalIP() {
+      const serviceType = this.value?.spec?.type;
+      const clusterIp = this.value?.spec?.clusterIP;
+
+      return (serviceType === CLUSTERIP && clusterIp === 'None' && this.value?.metadata?.annotations?.['field.cattle.io/ipAddresses']) ||
+        this.selectedServiceType === EXTERNALIP;
+    }
   },
 
   watch: {
@@ -226,6 +237,20 @@ export default {
       } else {
         this.fvFormRuleSets = [{ path: 'spec.ports', rules: ['servicePort'] }];
       }
+    },
+
+    isExternalIP: {
+      handler(val) {
+        let ips = [];
+
+        if (val) {
+          try {
+            ips = JSON.parse(this.value?.metadata?.annotations?.['field.cattle.io/ipAddresses'] ?? '[]');
+          } catch (err) {}
+        }
+        this.ipAddresses = ips;
+      },
+      immediate: true
     }
   },
 
@@ -410,7 +435,7 @@ export default {
       <Tab
         name="ips"
         :label="t('servicesPage.ips.label')"
-        :tooltip="t('servicesPage.ips.external.protip')"
+        :tooltip="isExternalIP ? '' : t('servicesPage.ips.external.protip')"
       >
         <div
           v-if="hasClusterIp"
@@ -446,7 +471,26 @@ export default {
             />
           </div>
         </div>
-        <div class="row mb-20">
+        <div
+          v-if="isExternalIP"
+          class="row mb-20"
+        >
+          <div class="col span-7">
+            <ArrayList
+              key="clusterExternalIpAddresses-new"
+              v-model="ipAddresses"
+              :title="t('servicesPage.ips.external.label')"
+              :value-placeholder="t('servicesPage.ips.external.placeholder')"
+              :mode="mode"
+              :protip="false"
+              @input="(e) => $set(value.metadata.annotations, 'field.cattle.io/ipAddresses', JSON.stringify(e))"
+            />
+          </div>
+        </div>
+        <div
+          v-else
+          class="row mb-20"
+        >
           <div class="col span-7">
             <ArrayList
               key="clusterExternalIpAddresses"

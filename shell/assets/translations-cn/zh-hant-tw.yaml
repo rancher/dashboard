@@ -4785,8 +4785,12 @@ servicesPage:
       label: Load Balancer
     nodePort:
       abbrv: NP
-      description: "在每個節點的 IP 上以靜態端口公開 Service。"
-      label: Node Port
+      description: "在每個節點的 IP 上以靜態端口（`NodePort`）公開服務。你可以通過請求`&lt;NodeIP&gt;:&lt;NodePort&gt;`從集群外部聯繫這種類型的服務。"
+      label: 節點端口
+    externalIP:
+      label: External IP
+      description: 將服務映射到外部 IP 地址
+      abbrv: EIP
   typeOpts:
     label: Service 類型
   harvester:

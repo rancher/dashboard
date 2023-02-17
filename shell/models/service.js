@@ -33,6 +33,12 @@ export const DEFAULT_SERVICE_TYPES = [
     description: 'servicesPage.serviceTypes.nodePort.description',
     bannerAbbrv: 'servicesPage.serviceTypes.nodePort.abbrv',
   },
+  {
+    id:          'ExternalIP',
+    label:       'servicesPage.serviceTypes.externalIP.label',
+    description: 'servicesPage.serviceTypes.externalIP.description',
+    bannerAbbrv: 'servicesPage.serviceTypes.externalIP.abbrv',
+  },
 ];
 
 export const HEADLESS = (() => {
@@ -45,6 +51,12 @@ export const CLUSTERIP = (() => {
   const clusterIp = find(DEFAULT_SERVICE_TYPES, ['id', 'ClusterIP']);
 
   return clusterIp.id;
+})();
+
+export const EXTERNALIP = (() => {
+  const externalIP = find(DEFAULT_SERVICE_TYPES, ['id', 'ExternalIP']);
+
+  return externalIP.id;
 })();
 
 export default class extends SteveModel {

@@ -4782,6 +4782,10 @@ servicesPage:
       abbrv: NP
       description: "Expose the service on each node's IP at a static port."
       label: Node Port
+    externalIP:
+      label: External IP
+      description: Maps the service to the external IP addresses
+      abbrv: EIP
   typeOpts:
     label: Service Type
   harvester:
