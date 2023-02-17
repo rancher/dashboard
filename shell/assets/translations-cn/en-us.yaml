@@ -1122,6 +1122,7 @@ cluster:
     label: Agent Environment
     detail: Add additional environment variables to the agent container.  This is most commonly useful for configuring a HTTP proxy.
     keyLabel: Variable Name
+    tips: 'If you need to connect to an external service through the HTTP(S) proxy, you can set the following environment variables: HTTP_PROXY, HTTPS_PROXY and NO_PROXY. For example:'
   cloudProvider:
     aws:
       label: Amazon

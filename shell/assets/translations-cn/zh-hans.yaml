@@ -1131,6 +1131,7 @@ cluster:
     label: Agent 环境
     detail: 向 Agent 容器添加额外的环境变量。这在配置 HTTP 代理时是最常用的。
     keyLabel: 变量名
+    tips: '如果需要通过 HTTP(S) 代理连接到外部服务，可以设置如下环境变量: HTTP_PROXY, HTTPS_PROXY, NO_PROXY。例如：'
   cloudProvider:
     aws:
       label: Amazon
