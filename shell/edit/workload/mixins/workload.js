@@ -775,7 +775,7 @@ export default {
 
         // Removing `affinity` fixes the issue with setting the `imagePullSecrets`
         // However, this field should not be set. Therefore this is explicitly removed.
-        if (template?.spec?.imagePullSecrets && Object.keys(template?.spec?.imagePullSecrets).length === 0) {
+        if (template?.spec?.imagePullSecrets && template?.spec?.imagePullSecrets.length === 0) {
           delete template.spec.imagePullSecrets;
         }
       }
