@@ -4,7 +4,8 @@ import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, SERVICE } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, SERVICE, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import ActionMenu from '@shell/components/ActionMenu';
@@ -83,10 +84,13 @@ export default {
       hash.helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
 
+    hash.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
+
     const res = await allHash(hash);
 
     this.plugins = res.plugins || [];
     this.helmOps = res.helmOps || [];
+    this.settings = res.settings || [];
 
     const c = this.$store.getters['catalog/rawCharts'];
 
@@ -106,6 +110,12 @@ export default {
     ...mapGetters({ uiplugins: 'uiplugins/plugins' }),
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
+
+    rancherVersion() {
+      const setting = this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
+
+      return setting ? setting.value : '';
+    },
 
     applyDarkModeBg() {
       if (this.theme === 'dark') {
@@ -200,10 +210,10 @@ export default {
         item.chart = chart;
 
         // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter(version => isSupportedChartVersion(version) && isChartVersionAvailableForInstall(version, this.$config.dashboardVersion));
+        item.installableVersions = item.versions.filter(version => isSupportedChartVersion(version) && isChartVersionAvailableForInstall(version, this.rancherVersion));
 
         // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map(version => isChartVersionAvailableForInstall(version, this.$config.dashboardVersion, true));
+        item.versions = item.versions.map(version => isChartVersionAvailableForInstall(version, this.rancherVersion, true));
 
         const latestCompatible = item.installableVersions?.[0];
         const latestNotCompatible = item.versions.find(version => !version.isCompatibleWithUi);

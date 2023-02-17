@@ -130,13 +130,13 @@ export function isSupportedChartVersion(chartVersion, rancherVersion) {
   return true;
 }
 
-export function isChartVersionAvailableForInstall(version, dashboardVersion, returnObj = false) {
+export function isChartVersionAvailableForInstall(version, rancherVersion, returnObj = false) {
   const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
   const versionObj = { ...version };
 
   versionObj.isCompatibleWithUi = true;
 
-  if (requiredUiVersion && !semver.satisfies(dashboardVersion, requiredUiVersion)) {
+  if (requiredUiVersion && !semver.satisfies(rancherVersion, requiredUiVersion)) {
     if (!returnObj) {
       return false;
     }
