@@ -1302,7 +1302,27 @@ export default {
 
     showAddonConfirmation() {
       return new Promise((resolve, reject) => {
-        this.$store.dispatch('cluster/promptModal', { component: 'AddonConfigConfirmationDialog', resources: [value => resolve(value)] });
+        this.$store.dispatch('cluster/promptModal', {
+          component: 'AddonConfigConfirmationDialog',
+          resources: [value => resolve(value)]
+        });
+      });
+    },
+
+    /**
+     * Inform user to remove PSP for current cluster due deprecation
+     */
+    showPspConfirmation() {
+      return new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', {
+          component:      'GenericPrompt',
+          componentProps: {
+            title:       this.t('cluster.rke2.modal.pspChange.title'),
+            body:        this.t('cluster.rke2.modal.pspChange.body'),
+            applyMode:   'continue',
+            applyAction: () => resolve(true),
+          },
+        });
       });
     },
 
@@ -1311,7 +1331,17 @@ export default {
         clear(this.errors);
       }
 
-      if (this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion) {
+      const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+
+      if (isEditVersion && !this.needsPSP) {
+        const shouldContinue = await this.showPspConfirmation();
+
+        if (!shouldContinue) {
+          return btnCb('cancelled');
+        }
+      }
+
+      if (isEditVersion) {
         const shouldContinue = await this.showAddonConfirmation();
 
         if (!shouldContinue) {
