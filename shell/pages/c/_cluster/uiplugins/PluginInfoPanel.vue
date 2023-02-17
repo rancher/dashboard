@@ -63,16 +63,18 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      this.versionError = false;
-      this.versionInfo = undefined;
-
       const versionName = version || this.info.displayVersion;
+
+      const isVersionNotCompatibleWithUi = this.info.versions?.find(v => v.version === versionName && !v.isCompatibleWithUi);
+
+      if (!this.info.chart || isVersionNotCompatibleWithUi) {
+        return;
+      }
 
       this.infoVersion = versionName;
 
-      if (!this.info.chart) {
-        return;
-      }
+      this.versionError = false;
+      this.versionInfo = undefined;
 
       try {
         this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
@@ -204,8 +206,9 @@ export default {
             :key="v.version"
           >
             <a
+              v-tooltip="v.requiredUiVersion ? t('plugins.info.requiresVersion', { version: v.requiredUiVersion }) : ''"
               class="version-link"
-              :class="{'version-active': v.version === infoVersion}"
+              :class="{'version-active': v.version === infoVersion, 'disabled': !v.isCompatibleWithUi}"
               @click="loadPluginVersionInfo(v.version)"
             >
               {{ v.version }}
@@ -354,6 +357,14 @@ export default {
         &.version-active {
           color: var(--link-text);
           background: var(--link);
+        }
+
+        &.disabled {
+          cursor: not-allowed;
+          color: var(--disabled-text) !important;
+          background-color: var(--disabled-bg) !important;
+          border-color: var(--disabled-bg) !important;
+          text-decoration: none !important;
         }
 
         &.version-builtin {
