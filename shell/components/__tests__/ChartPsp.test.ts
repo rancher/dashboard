@@ -22,11 +22,12 @@ describe('component: ChartPsp', () => {
     expect(chartValues.global.cattle.psp.enabled).toBe(false);
   });
 
-  it('should define cattle.psp.enabled and set to false if not present in value.global', () => {
-    const chartValues = { global: {} } as any;
-
+  it.each([
+    [{ global: {} } as any, false],
+    [{ global: { cattle: {} } } as any, false],
+  ])('should define cattle.psp.enabled and set to false if not present in value.global', (chartValues, expected) => {
     shallowMount(ChartPsp, { propsData: { value: chartValues } });
 
-    expect(chartValues.global.cattle.psp.enabled).toBe(false);
+    expect(chartValues.global.cattle.psp.enabled).toBe(expected);
   });
 });

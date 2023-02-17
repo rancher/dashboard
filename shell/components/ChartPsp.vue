@@ -21,7 +21,7 @@ export default {
       this.$set(this.value.global, 'cattle', { psp: { enabled: false } });
     }
     if (!this.value.global.cattle.psp) {
-      this.$set(this.value.global, 'psp', { enabled: false });
+      this.$set(this.value.global.cattle, 'psp', { enabled: false });
     }
   },
   computed: { ...mapGetters({ t: 'i18n/t' }) }
