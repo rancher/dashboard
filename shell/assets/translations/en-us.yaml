@@ -1796,7 +1796,7 @@ cluster:
       override: Allow PSA Default Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
-      option: RKE Default
+      option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
       option: 
