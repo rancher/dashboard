@@ -819,6 +819,8 @@ catalog:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     banner:
       legacy: 'PSP Removal: Before upgrading a cluster to Kubernetes 1.25+, please ensure you review your Helm applications for Pod Security Policies and update them accordingly'
+    enablePSP: Enable Pod Security Policies
+    global: Global
   charts:
     all: All
     categories:
@@ -1796,7 +1798,7 @@ cluster:
       override: Allow PSA Default Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
-      option: RKE Default
+      option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
       option: 
@@ -2433,7 +2435,7 @@ istio:
       label: Jaeger
       description: Monitor and Troubleshoot microservices-based distributed systems.
     disabled: '{app} is not installed'
-  cni: Enabled CNI
+  cni: Enable CNI
   customOverlayFile:
     label: Custom Overlay File
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/additional-setup/customize-installation/#patching-the-output-manifest">overlay file</a> allows for additional configuration on top of the base {vendor} Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
@@ -2584,20 +2586,20 @@ istio:
         label: Subject Alternative Names
         placeholder: e.g. example.com
         add: Add Subject Alternative Name
-  egressGateway: Enabled Egress Gateway
-  ingressGateway: Enabled Ingress Gateway
-  istiodRemote: Enabled istiodRemote
-  kiali: Enabled Kiali
-  pilot: Enabled Pilot
-  policy: Enabled Policy
+  egressGateway: Enable Egress Gateway
+  ingressGateway: Enable Ingress Gateway
+  istiodRemote: Enable istiodRemote
+  kiali: Enable Kiali
+  pilot: Enable Pilot
+  policy: Enable Policy
   poweredBy: Powered by <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>
-  telemetry: Enabled Telemetry
+  telemetry: Enable Telemetry
   titles:
     components: Components
     customAnswers: Custom Answers
     advanced: Advanced Settings
     description: Description
-  tracing: Enabled Jaeger Tracing (limited)
+  tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
 
 labels:

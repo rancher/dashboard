@@ -630,6 +630,7 @@ export default function(dir, _appConfig) {
       { src: path.join(NUXT_SHELL, 'plugins/codemirror-loader'), ssr: false },
       { src: path.join(NUXT_SHELL, 'plugins/formatters'), ssr: false }, // Populate formatters cache for sorted table
       { src: path.join(NUXT_SHELL, 'plugins/version'), ssr: false }, // Makes a fetch to the backend to get version metadata
+      { src: path.join(NUXT_SHELL, 'plugins/steve-create-worker'), ssr: false }, // Add steve web worker creator to the store, to break the import chain
     ],
 
     // Proxy: https://github.com/nuxt-community/proxy-module#options

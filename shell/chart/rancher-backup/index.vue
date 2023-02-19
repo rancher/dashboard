@@ -10,6 +10,7 @@ import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, SECRET, PV } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { STORAGE } from '@shell/config/labels-annotations';
+import ChartPsp from '@shell/components/ChartPsp';
 
 export default {
   components: {
@@ -18,7 +19,8 @@ export default {
     S3,
     LabeledInput,
     LabeledSelect,
-    Banner
+    Banner,
+    ChartPsp
   },
 
   hasTabs: true,
@@ -165,6 +167,11 @@ export default {
       label="Chart Options"
       name="chartOptions"
     >
+      <div class="row">
+        <div class="col">
+          <ChartPsp :value="value" />
+        </div>
+      </div>
       <Banner
         color="info"
         :label="t('backupRestoreOperator.deployment.storage.tip')"
