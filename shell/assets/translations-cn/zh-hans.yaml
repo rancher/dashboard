@@ -740,7 +740,7 @@ asyncButton:
   load:
     action: 加载
     success: 已加载
-    waiting: 正在加载…
+    waiting: 正在加载&hellip;
   timing:
     action: 生成响应时间
     success: 已生成响应时间
@@ -1928,6 +1928,8 @@ cluster:
     cloudProvider:
       label: 云提供商
       header: 云提供商配置
+      defaultValue:
+        label: 默认 - 嵌入 RKE2
     security:
       header: 安全
     defaultPodSecurityPolicyTemplateName:
@@ -1984,8 +1986,6 @@ cluster:
         true: 暴露给公共接口
     cisProfile:
       option: (None)
-      defaultValue:
-        label: 默认 - 嵌入 RKE2
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: 默认 Pod 安全准入
       option: (None)
@@ -6481,14 +6481,11 @@ typeLabel:
     }
   persistentvolume: |-
     {count, plural,
-
       one { PersistentVolume }
       other { PersistentVolume }
     }
   persistentvolumeclaim: |-
     {count, plural,
-
-
       one { PersistentVolumeClaim }
       other { PersistentVolumeClaim }
     }

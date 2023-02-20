@@ -1518,6 +1518,8 @@ cluster:
           label: No Public IP
         staticPublicIp:
           label: Static Public IP
+        standardSKU:
+          label: Use Standard SKU for Public IP
       resourceGroup:
         label: Resource Group
       size:
@@ -1551,8 +1553,17 @@ cluster:
       availabilityZone:
         description: Availability zones protect applications from complete Azure data center failures.
         label: Availability Zone
+        managedDisksWarning: Availability zones require Managed Disks to be enabled.
+        publicIpAndSKUWarning: Availability zones require Static Public IP and Use Standard SKU for Public IP to be enabled.
+        publicIpWarning: Availability zones require Static Public IP to be enabled.
+        standardSKUWarning: Availability zones require Use Standard SKU for Public IP to be enabled.
       tags:
         label: Tags
+      sections:
+        availabilitySetConfiguration: Availability Set Configuration
+        disks: Disks
+        network: Network
+        purchasePlan: Purchase Plan
     digitalocean:
       sizeLabel: |-
         {plan, select,
@@ -1980,7 +1991,16 @@ cluster:
       option: (None)
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
-      option: (None)
+      option:
+        default: Default - RKE2 Embedded
+        none: (None)
+    banner:
+      cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
+      psaChange: PSACT is now set to Rancher default automatically
+    cis:
+      agent: CIS Profile
+      override: Allow PSA Default Template to be overridden when using a CIS Profile
+      server: Server CIS Profile
   k3s:
     techPreview: K3s provisioning is in Tech Preview
     systemService:
@@ -3605,6 +3625,9 @@ node:
     poolDescription:
       noSize: No Size
       noLocation: No Location
+    hideLabels: Show less
+    nodeLabels: Labels
+    showLabels: Show more
   detail:
     detailTop:
       containerRuntime: Container Runtime
@@ -4714,7 +4737,7 @@ servicesPage:
       label: External Name
     headless:
       abbrv: H
-      description: Neither a cluster IP or load balancer is defined. These are used to interface with other service discovery mechanisms outside of Kubernetes implementation. A cluster IP is not allocated and kube-proxy does not handle these services.
+      description: Create a Service without a cluster IP or load balancer. This is an advanced use case.
       label: Headless
     loadBalancer:
       abbrv: LB
@@ -7637,7 +7660,7 @@ podDisruptionBudget:
     label: Min. available Pods
 podSecurityAdmission:
   banner:
-    modifications: 'Note: Modifying a Pod Security Admission Configuration Template will not affect any downstream cluster that references it until there is a cluster update'
+    modifications: 'Changing any template that is currently in use will cause an update to those live clusters the next time the cluster is updated'
   description: Define the admission control mode you want to use for the pod security
   exemptions:
     description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
