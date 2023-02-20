@@ -86,9 +86,10 @@ export default (Vue as VueConstructor<Vue & InstanceType<typeof CreateEditView>>
     :resource="value"
     :errors="errors"
     :cancel-event="true"
+    :done-route="doneRoute"
     @error="setErrors"
     @finish="save"
-    @cancel="done()"
+    @cancel="done"
   >
     <NameNsDescription
       :value="value"
