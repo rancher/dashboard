@@ -1317,10 +1317,10 @@ export default {
         this.$store.dispatch('cluster/promptModal', {
           component:      'GenericPrompt',
           componentProps: {
-            title:       this.t('cluster.rke2.modal.pspChange.title'),
-            body:        this.t('cluster.rke2.modal.pspChange.body'),
-            applyMode:   'continue',
-            applyAction: () => resolve(true),
+            title:     this.t('cluster.rke2.modal.pspChange.title'),
+            body:      this.t('cluster.rke2.modal.pspChange.body'),
+            applyMode: 'continue',
+            confirm:   resolve
           },
         });
       });
@@ -1334,9 +1334,7 @@ export default {
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
       if (isEditVersion && !this.needsPSP) {
-        const shouldContinue = await this.showPspConfirmation();
-
-        if (!shouldContinue) {
+        if (!await this.showPspConfirmation()) {
           return btnCb('cancelled');
         }
       }
