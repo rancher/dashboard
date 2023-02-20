@@ -404,6 +404,10 @@ export const getters = {
     return state.namespaceFilters;
   },
 
+  allNamespaces(state) {
+    return state.allNamespaces;
+  },
+
   namespaces(state, getters) {
     // Call this getter if you want to recompute the active namespaces
     // by looping over all namespaces in a cluster. Otherwise call activeNamespaceCache,
@@ -527,6 +531,15 @@ export const mutations = {
     // Create map that can be used to efficiently check if a
     // resource should be displayed
     getActiveNamespaces(state, getters);
+  },
+
+  changeAllNamespaces(state, namespace) {
+    // `allNamespaces/changeAllNamespaces` allow products to restrict the namespaces shown to the user in the NamespaceFilter and NameNsDescription components.
+    // You can configure the `notFilterNamespace` parameter for each resource page to define namespaces that do not need to be filtered,  and then change `allNamespaces` by calling `changeAllNamespaces`
+    // eg:
+    // const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
+    // const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
+    state.allNamespaces = namespace;
   },
 
   setNamespaceFilterMode(state, mode) {

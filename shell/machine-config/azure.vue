@@ -1,6 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
 import merge from 'lodash/merge';
@@ -107,7 +108,7 @@ export default {
     RadioGroup
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   props: {
     credentialId: {
@@ -220,9 +221,16 @@ export default {
     credentialId() {
       this.$fetch();
     },
+
     'value.location'() {
       this.$fetch();
     },
+
+    'value.availabilityZone'(neu) {
+      if (neu && (!this.value.managedDisks || !this.value.enablePublicIpStandardSku || !this.value.staticPublicIp)) {
+        this.$emit('expandAdvanced');
+      }
+    }
   },
 
   computed: {
@@ -389,7 +397,7 @@ export default {
       }
 
       return [];
-    }
+    },
   },
 
   created() {
@@ -631,7 +639,7 @@ export default {
 
     <portal :to="'advanced-' + uuid">
       <div v-if="useAvailabilitySet">
-        <h2>Availability Set Configuration</h2>
+        <h2>{{ t('cluster.machineConfig.azure.sections.availabilitySetConfiguration') }}</h2>
         <div class="row mt-20">
           <div class="col span-6">
             <LabeledInput
@@ -654,7 +662,7 @@ export default {
         </div>
       </div>
       <hr class="mt-20 mb-20">
-      <h2>Purchase Plan</h2>
+      <h2>{{ t('cluster.machineConfig.azure.sections.purchasePlan') }}</h2>
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -666,9 +674,9 @@ export default {
           />
         </div>
       </div>
-      <hr class="mt-20 mb-20">
-      <h2>Network</h2>
-      <div class="row mt-20">
+      <hr class="mt-20">
+      <h2>{{ t('cluster.machineConfig.azure.sections.network') }}</h2>
+      <div class="row mt-20 mb-20">
         <div class="col span-6">
           <LabeledInput
             v-model="value.subnet"
@@ -687,18 +695,20 @@ export default {
         </div>
       </div>
       <div class="row mt-20">
-        <Checkbox
-          v-model="value.acceleratedNetworking"
-          :disabled="(!value.acceleratedNetworking && !selectedVmSizeSupportsAN)"
-          :mode="mode"
-          :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
-        />
+        <div class="col span-6">
+          <Checkbox
+            v-model="value.acceleratedNetworking"
+            :disabled="(!value.acceleratedNetworking && !selectedVmSizeSupportsAN)"
+            :mode="mode"
+            :label="t('cluster.machineConfig.azure.acceleratedNetworking.label')"
+          />
+          <Banner
+            v-if="!selectedVmSizeSupportsAN && value.acceleratedNetworking"
+            color="error"
+            :label="t('cluster.machineConfig.azure.size.selectedSizeAcceleratedNetworkingWarning')"
+          />
+        </div>
       </div>
-      <Banner
-        v-if="!selectedVmSizeSupportsAN && value.acceleratedNetworking"
-        color="error"
-        :label="t('cluster.machineConfig.azure.size.selectedSizeAcceleratedNetworkingWarning')"
-      />
       <div class="row mt-20">
         <div class="col span-6">
           <LabeledInput
@@ -709,7 +719,7 @@ export default {
             :disabled="disabled"
           />
         </div>
-        <div class="col span-6">
+        <div class="col span-6 inline-banner-container">
           <h3><t k="cluster.machineConfig.azure.publicIpOptions.header" /></h3>
           <Checkbox
             v-model="value.noPublicIp"
@@ -721,6 +731,31 @@ export default {
             :mode="mode"
             :label="t('cluster.machineConfig.azure.publicIpOptions.staticPublicIp.label')"
           />
+          <Checkbox
+            v-model="value.enablePublicIpStandardSku"
+            :mode="mode"
+            :label="t('cluster.machineConfig.azure.publicIpOptions.standardSKU.label')"
+          />
+          <div
+            v-if="value.availabilityZone && (!value.staticPublicIp || !value.enablePublicIpStandardSku)"
+            class="inline-error-banner"
+          >
+            <Banner
+              v-if="!value.staticPublicIp && !value.enablePublicIpStandardSku"
+              color="error"
+              :label="t('cluster.machineConfig.azure.availabilityZone.publicIpAndSKUWarning')"
+            />
+            <Banner
+              v-else-if="!value.staticPublicIp"
+              color="error"
+              :label="t('cluster.machineConfig.azure.availabilityZone.publicIpWarning')"
+            />
+            <Banner
+              v-else
+              color="error"
+              :label="t('cluster.machineConfig.azure.availabilityZone.standardSKUWarning')"
+            />
+          </div>
         </div>
       </div>
       <div class="row mt-20">
@@ -762,8 +797,8 @@ export default {
         </div>
       </div>
       <hr class="mt-20 mb-20">
-      <h2>Disks</h2>
-      <div class="row mt-20">
+      <h2>{{ t('cluster.machineConfig.azure.sections.disks') }}</h2>
+      <div class="row mt-20 mb-20">
         <div class="col span-6">
           <LabeledSelect
             v-model="value.storageType"
@@ -782,16 +817,21 @@ export default {
             :label="t('cluster.machineConfig.azure.storageType.warning')"
           />
         </div>
-        <div class="col span-6">
+        <div class="col span-6 inline-banner-container">
           <Checkbox
             v-model="value.managedDisks"
             :mode="mode"
             :label="t('cluster.machineConfig.azure.managedDisks.label')"
             :disabled="disabled"
           />
+          <Banner
+            v-if="value.availabilityZone && !value.managedDisks"
+            color="error"
+            :label="t('cluster.machineConfig.azure.availabilityZone.managedDisksWarning')"
+          />
         </div>
       </div>
-      <div class="row mt-20">
+      <div class="row">
         <div class="col span-6">
           <LabeledInput
             v-model="value.diskSize"
@@ -842,3 +882,13 @@ export default {
     </portal>
   </div>
 </template>
+
+<style scoped>
+.inline-banner-container{
+  position: relative;
+}
+.inline-error-banner {
+  position: absolute;
+  width:100%
+}
+</style>

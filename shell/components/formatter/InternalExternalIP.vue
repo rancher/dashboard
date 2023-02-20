@@ -56,3 +56,9 @@ export default {
     </template>
   </span>
 </template>
+
+<style lang='scss' scoped>
+.icon-btn {
+  margin-left: 8px;
+}
+</style>
