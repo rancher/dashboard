@@ -7131,7 +7131,7 @@ legacy:
   globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
-  psps: Pod Security Policies
+  psps: Pod Security Policy Templates
   secrets: Secrets
 
   project:
