@@ -21,6 +21,7 @@ import Socket, {
   EVENT_DISCONNECT_ERROR,
   NO_WATCH,
   NO_SCHEMA,
+  REVISION_TOO_OLD
 } from '@shell/utils/socket';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import day from 'dayjs';
@@ -306,7 +307,7 @@ const sharedActions = {
 
     // If socket is in error don't try to watch.... unless we `force` it
     if ( !stop && !force && !getters.canWatch(params) ) {
-      console.error(`Cannot Watch [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+      console.error(`Aborting Watch Request [${ getters.storeName }] (socket probably in error)`, JSON.stringify(params)); // eslint-disable-line no-console
 
       return;
     }
@@ -314,7 +315,10 @@ const sharedActions = {
     if ( !stop && getters.watchStarted({
       type, id, selector, namespace
     }) ) {
-      state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
+      // eslint-disable-next-line no-console
+      state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, {
+        type, id, selector, namespace
+      });
 
       return;
     }
@@ -693,6 +697,10 @@ const defaultActions = {
     } else if ( err.includes('failed to find schema') ) {
       commit('setInError', { type: msg.resourceType, reason: NO_SCHEMA });
     } else if ( err.includes('too old') ) {
+      // Set an error for (all) subs of this type. This..
+      // 1) blocks attempts by resource.stop to resub (as type is in error)
+      // 2) will be cleared when resyncWatch --> watch (with force) --> resource.start completes
+      commit('setInError', { type: msg.resourceType, reason: REVISION_TOO_OLD });
       dispatch('resyncWatch', msg);
     }
   },
@@ -700,10 +708,11 @@ const defaultActions = {
   /**
    * Steve only event
    *
-   * Steve only seems to send out `resource.stop` messages for two reasons
-   * - We have requested that the resource watch should be stopped and we receive this event as confirmation
-   * - Steve tells us that the resource is no longer watched
-   *
+   * Steve has stopped watching this resource. This happens for a couple of reasons
+   * - We have requested that the resource watch should be stopped (and we receive this event as confirmation)
+   * - Steve tells us that the resource watch has been stopped. Possible reasons
+   *   - The rancher <--> k8s socket closed (happens every ~30 mins on mgmt socket)
+   *   - Permissions has changed for the subscribed resource, so rancher closes socket
    */
   'ws.resource.stop'({
     state, getters, commit, dispatch
@@ -718,45 +727,16 @@ const defaultActions = {
 
     state.debugSocket && console.info(`Resource Stop [${ getters.storeName }]`, type, msg); // eslint-disable-line no-console
 
+    if (!type) {
+      console.error(`Resource Stop [${ getters.storeName }]. Received resource.stop with an empty resourceType, aborting`, msg); // eslint-disable-line no-console
+
+      return;
+    }
+
     // If we're trying to watch this event, attempt to re-watch
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       commit('setWatchStopped', obj);
-
-      // In summary, we need to re-watch but with a reliable `revision` (to avoid `too old` message kicking off a full re-fetch of all
-      // resources). To get a reliable `revision` go out and fetch the latest for that resource type, in theory our local cache should be
-      // up to date with that revision.
-
-      const revisionExisting = getters.nextResourceVersion(type, obj.id);
-
-      let revisionLatest;
-
-      if (revisionExisting) {
-        // Attempt to fetch the latest revision at the time the resource watch was stopped, in theory our local cache should be up to
-        // date with this
-        // Ideally we shouldn't need to fetch here and supply `0`, `-1` or `null` to start watching from the latest revision, however steve
-        // will send the current state of each resource via a `resource.created` event.
-        const opt = { limit: 1 };
-
-        opt.url = getters.urlFor(type, null, opt);
-        revisionLatest = dispatch('request', { opt, type } )
-          .then(res => res.revision)
-          .catch((err) => {
-            // For some reason we can't fetch a reasonable revision, so force a re-fetch
-            console.warn(`Resource error retrieving resourceVersion, forcing re-fetch`, type, ':', err); // eslint-disable-line no-console
-            dispatch('resyncWatch', msg);
-            throw err;
-          });
-      } else {
-        // Some v1 resource types don't have revisions (either at the collection or resource level), so we avoided making an API request
-        // for them
-        revisionLatest = Promise.resolve(null); // Null to ensure we don't go through `nextResourceVersion` again
-      }
-
-      setTimeout(() => {
-        // Delay a bit so that immediate start/error/stop causes
-        // only a slow infinite loop instead of a tight one.
-        revisionLatest.then(revision => dispatch('watch', { ...obj, revision }));
-      }, 5000);
+      dispatch('watch', obj);
     }
   },
 
