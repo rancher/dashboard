@@ -131,12 +131,15 @@ export function isSupportedChartVersion(chartVersion, rancherVersion) {
 }
 
 export function isChartVersionAvailableForInstall(version, rancherVersion, returnObj = false) {
+  const regex = new RegExp('^[A-Za-z0-9]{9}$');
+  const isRancherVersionHashString = regex.test(rancherVersion);
   const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
   const versionObj = { ...version };
 
   versionObj.isCompatibleWithUi = true;
 
-  if (requiredUiVersion && !semver.satisfies(rancherVersion, requiredUiVersion)) {
+  // if it's a head version of Rancher, then we skip the validation and enable them all
+  if (!isRancherVersionHashString && requiredUiVersion && !semver.satisfies(rancherVersion, requiredUiVersion)) {
     if (!returnObj) {
       return false;
     }
