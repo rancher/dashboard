@@ -5,7 +5,6 @@ import Masthead from '@shell/components/ResourceList/Masthead';
 import LinkDetail from '@shell/components/formatter/LinkDetail';
 import { EPINIO_TYPES } from '../../../../types';
 import { createEpinioRoute } from '../../../../utils/custom-routing';
-import EpinioIntro from '../../../../components/EpinioIntro.vue';
 
 export default {
   components: {
@@ -13,7 +12,6 @@ export default {
     LinkDetail,
     ResourceTable,
     Masthead,
-    EpinioIntro
   },
 
   async fetch() {
@@ -60,7 +58,6 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <EpinioIntro v-else-if="!hasNamespaces" />
   <div v-else>
     <Masthead
       :schema="schema"
