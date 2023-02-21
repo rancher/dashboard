@@ -33,6 +33,7 @@ export const UI_PLUGINS_REPO_BRANCH = 'main';
 export const UI_PLUGIN_CHART_ANNOTATIONS = {
   RANCHER_VERSION:    'catalog.cattle.io/rancher-version',
   EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extensions-version',
+  UI_VERSION:         'catalog.cattle.io/ui-version',
   EXTENSIONS_HOST:    'catalog.cattle.io/ui-extensions-host',
   DISPLAY_NAME:       'catalog.cattle.io/display-name',
 };
@@ -127,4 +128,32 @@ export function isSupportedChartVersion(chartVersion, rancherVersion) {
   }
 
   return true;
+}
+
+export function isChartVersionAvailableForInstall(version, rancherVersion, returnObj = false) {
+  const regex = new RegExp('^[A-Za-z0-9]{9}$');
+  const isRancherVersionHashString = regex.test(rancherVersion);
+  const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
+  const versionObj = { ...version };
+
+  versionObj.isCompatibleWithUi = true;
+
+  // if it's a head version of Rancher, then we skip the validation and enable them all
+  if (!isRancherVersionHashString && requiredUiVersion && !semver.satisfies(rancherVersion, requiredUiVersion)) {
+    if (!returnObj) {
+      return false;
+    }
+    versionObj.isCompatibleWithUi = false;
+    versionObj.requiredUiVersion = requiredUiVersion;
+  }
+
+  if (returnObj) {
+    return versionObj;
+  }
+
+  return true;
+}
+
+export function isChartVersionHigher(versionA, versionB) {
+  return semver.gt(versionA, versionB);
 }

@@ -3881,6 +3881,7 @@ podDisruptionBudget:
 
 # Rancher Extensions
 plugins:
+  incompatibleDisclaimer: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -3914,6 +3915,7 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
+    requiresVersion: "Requires Rancher {version}"
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available
