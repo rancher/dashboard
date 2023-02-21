@@ -843,13 +843,17 @@ export const getters = {
 
   allTypes(state, getters, rootState, rootGetters) {
     return (product, mode = ALL) => {
+      const out = {};
+
+      const product = findBy(state.products, 'name', product)
+      if(!product) {
+        return out
+      }
       const module = findBy(state.products, 'name', product)?.inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
       const isDev = rootGetters['prefs/get'](VIEW_IN_API);
       const isBasic = mode === BASIC;
-
-      const out = {};
 
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
