@@ -62,6 +62,7 @@ export default class User extends HybridModel {
     let isSystem = false;
     let isLocal = true;
     let provider = '';
+    const providers = new Set();
 
     for ( const p of principals ) {
       const idx = p.indexOf(':');
@@ -79,7 +80,12 @@ export default class User extends HybridModel {
         } else {
           provider = driver;
         }
+        providers.add(driver);
       }
+    }
+
+    if (provider === 'multiple' && providers.size === 1) {
+      provider = [...providers][0];
     }
 
     let key;
