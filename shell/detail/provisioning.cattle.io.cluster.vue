@@ -11,6 +11,7 @@ import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, AGE_NORMAN, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME, IP_ADDRESS
 } from '@shell/config/table-headers';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import AnsiUp from 'ansi_up';
@@ -322,7 +323,7 @@ export default {
     },
 
     showEksNodeGroupWarning() {
-      if ( this.value.isEKS ) {
+      if (this.value.isEKS && this.value.state !== STATES_ENUM.ACTIVE) {
         const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
 
         if ( desiredTotal.length === this.value.eksNodeGroups.length ) {
