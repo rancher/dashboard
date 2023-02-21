@@ -245,7 +245,7 @@ export default {
   data() {
     const rows = this.getRows(this.value);
 
-    return { rows };
+    return { rows, isFormValid: true };
   },
 
   computed: {
@@ -503,6 +503,25 @@ export default {
       this.rows.splice(index, 1, ...keyValues);
       this.queueUpdate();
     },
+    duplicate(i, row) {
+      let check = false;
+      this.errors = [];
+
+      this.rows.forEach((r, index) => {
+        if (r.key === row.key && i !== index) {
+          check = true;
+        }
+      })
+
+      if (check) {
+        this.isFormValid = false;
+        this.errors.push(this.t('elemental.machineRegistration.validation.machineInventoryLabels'));
+      } else {
+        this.isFormValid = true;
+      }
+
+      return check;
+    },
     calculateOptions(value) {
       const valueOption = this.keyOptions.find(o => o.value === value);
 
@@ -610,6 +629,7 @@ export default {
               v-model="row[keyName]"
               :disabled="isView || !keyEditable || isProtected(row.key)"
               :placeholder="keyPlaceholder"
+              :class="duplicate(i, row) ? 'error' : ''"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
             >
