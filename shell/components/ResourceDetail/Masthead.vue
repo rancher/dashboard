@@ -429,6 +429,15 @@ export default {
               class="masthead-state"
               :value="value"
             />
+            <span
+              v-if="!isCreate && value.isIstioInjectionEnabled"
+              class="masthead-istio"
+            >
+              <i
+                v-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+                class="icon icon-sm icon-istio"
+              />
+            </span>
           </h1>
         </div>
         <div
@@ -566,6 +575,13 @@ export default {
     display: inline-block;
     position: relative;
     top: -2px;
+  }
+
+  .masthead-istio {
+    .icon {
+      vertical-align: middle;
+      color: var(--primary);
+    }
   }
 
   .left-right-split {

@@ -416,6 +416,11 @@ export default {
             {{ row.name }}
           </span>
           <i
+            v-if="row.isIstioInjectionEnabled"
+            v-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+            class="icon icon-istio ml-5"
+          />
+          <i
             v-if="row.hasSystemLabels"
             v-tooltip="getPsaTooltip(row)"
             class="icon icon-lock ml-5"
@@ -487,6 +492,10 @@ export default {
     .namespace-name {
       display: flex;
       align-items: center;
+
+      .icon-istio {
+        color: var(--primary);
+      }
     }
   }
 }
