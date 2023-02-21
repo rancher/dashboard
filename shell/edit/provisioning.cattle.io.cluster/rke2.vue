@@ -483,7 +483,9 @@ export default {
      * Allow to display override if PSA is needed and profile is set
      */
     hasCisOverride() {
-      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA;
+      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA &&
+        // Also check other cases on when to display the override
+        this.hasPsaTemplates && this.showCisProfile && this.isCisSupported;
     },
 
     pspOptions() {
@@ -520,7 +522,7 @@ export default {
     isPsaDisabled() {
       const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates;
+      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates && this.isCisSupported;
     },
 
     /**
@@ -559,6 +561,15 @@ export default {
       }
 
       return out;
+    },
+
+    /**
+     * Check if current CIS profile is required and listed in the options
+     */
+    isCisSupported() {
+      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+
+      return !cisProfile || this.profileOptions.map(option => option.value).includes(cisProfile);
     },
 
     disableOptions() {
@@ -2143,6 +2154,12 @@ export default {
           >
             <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
           </Banner>
+
+          <Banner
+            v-if="showCisProfile && !isCisSupported"
+            color="info"
+            :label="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)"
+          />
 
           <div class="row mb-10">
             <div
