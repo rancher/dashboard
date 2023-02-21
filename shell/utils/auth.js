@@ -131,6 +131,14 @@ export const checkPermissions = (types, getters) => {
       continue;
     }
 
+    if (value.collectionMethods && schema) {
+      hash[key] = value.collectionMethods.every((method) => {
+        return (schema.collectionMethods || []).includes(method);
+      });
+
+      continue;
+    }
+
     hash[key] = !!schema;
   }
 

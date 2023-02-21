@@ -131,6 +131,10 @@ export default {
 
       const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
 
+      if (!schema) {
+        return;
+      }
+
       if (schema?.attributes?.namespaced) {
         opt.namespaced = this.namespaceFilter;
       }

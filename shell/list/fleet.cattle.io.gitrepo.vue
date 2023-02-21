@@ -68,7 +68,6 @@ export default {
 
       this.hasWorkspaces = !!hash.workspaces;
     } catch (e) {
-      console.error(e); // eslint-disable-line no-console
     }
 
     try {
@@ -76,7 +75,6 @@ export default {
 
       this.permissions = permissions;
     } catch (e) {
-      console.error(e); // eslint-disable-line no-console
     }
     // this.$initializeFetchData(this.resource);
 

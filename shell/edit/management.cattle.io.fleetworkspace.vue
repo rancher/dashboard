@@ -12,7 +12,7 @@ import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@shell/components/RoleBindings.v
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 // import KeyValue from '@shell/components/form/KeyValue.vue';
 import { mapState } from 'vuex';
-import { LAST_NAMESPACE } from '@shell/store/prefs';
+import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
@@ -66,7 +66,7 @@ export default {
       restrictions:         [],
       targetNamespaces:     [],
       restrictionsSchema:   { spec: {} },
-      namespace:            this.$store.getters['prefs/get'](LAST_NAMESPACE)
+      namespace:            this.$store.getters['prefs/get'](LAST_NAMESPACE),
     };
   },
 
@@ -75,8 +75,6 @@ export default {
       // Anyone who can edit workspace
 
       try {
-        await this.value.save();
-
         // IF there is a restriction update it
         if (this.workSpaceRestriction) {
           await this.workSpaceRestriction.save();
@@ -96,7 +94,16 @@ export default {
           await model.save();
         }
 
-        await this.value.waitForWorkspaceSchema();
+        await this.value.waitForWorkspaceSchema(20000, (schema) => {
+          // For standard user if there are no workspaces, user can't list workspaces
+          // Therefore wait for it.
+          return schema.collectionMethods?.includes('GET');
+        });
+
+        await this.$store.dispatch( 'management/findAll', { type: FLEET.WORKSPACE });
+
+        this.$store.commit('updateWorkspace', { value: this.value.metadata.name, getters: this.$store.getters } );
+        this.$store.dispatch('prefs/set', { key: WORKSPACE, value: this.value.metadata.name });
 
         buttonCb(true);
         this.done();

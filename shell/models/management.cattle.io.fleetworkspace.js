@@ -66,10 +66,16 @@ export default class Workspace extends HybridModel {
     await norman.save();
   }
 
-  waitForWorkspaceSchema(timeout = 5000, interval) {
+  waitForWorkspaceSchema(timeout = 20000, schemaCallback) {
     return this.waitForTestFn(() => {
-      return this.$rootGetters['management/schemaFor'](FLEET.WORKSPACE);
-    }, this.$rootGetters['i18n/t']('fleet.workspaces.timeout'), timeout, interval);
+      const schema = this.$rootGetters['management/schemaFor'](FLEET.WORKSPACE);
+
+      if (!schemaCallback) {
+        return schema;
+      }
+
+      return schemaCallback(schema);
+    }, this.$rootGetters['i18n/t']('fleet.workspaces.timeout'), timeout);
   }
 
   async remove() {
