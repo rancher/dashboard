@@ -353,8 +353,8 @@ export default {
     },
 
     showEksNodeGroupWarning() {
-      if (!this.value.eksNodeGroups && !this.value.eksNodeGroups.length) {
-        return false;
+      if (!this.value.eksNodeGroups || !this.value.eksNodeGroups.length) {
+        return true;
       }
 
       if ( this.value.provisioner === 'EKS' ) {
