@@ -291,6 +291,8 @@ export default class ProvCluster extends SteveModel {
     return !!this.mgmt?.isReady;
   }
 
+  // nodeGroups can be undefined for an EKS cluster that has just been created and has not
+  // had any node groups added to it
   get eksNodeGroups() {
     return this.mgmt?.spec?.eksConfig?.nodeGroups || [];
   }
