@@ -15,6 +15,8 @@ import {
   DEFAULT_WORKSPACE,
   SECRET,
   HCI,
+  PSP,
+  COUNT,
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -129,6 +131,8 @@ export default {
   },
 
   async fetch() {
+    this.hasPsp = this.checkPsp();
+
     if ( !this.rke2Versions ) {
       const hash = {
         rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
@@ -317,11 +321,13 @@ export default {
       harvesterVersion:      '',
       cisOverride:           false,
       cisPsaChangeBanner:    false,
+      hasPsp
     };
   },
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
+    ...mapGetters(['currentCluster']),
     ...mapGetters({ features: 'features/get' }),
 
     PUBLIC:   () => PUBLIC,
@@ -1846,6 +1852,16 @@ export default {
     },
 
     /**
+     * Check if current cluster has PSP enabled
+     */
+    checkPsp() {
+      const count = this.$store.getters[`cluster/all`](COUNT);
+      const clusterCounts = count?.[0]?.counts;
+
+      return !!clusterCounts?.[PSP]?.summary?.count;
+    },
+
+    /**
      * Reset PSA on several input changes for given conditions
      */
     togglePsaDefault() {
@@ -2165,24 +2181,23 @@ export default {
           <h3>
             {{ t('cluster.rke2.security.header') }}
           </h3>
-          <Banner
-            v-if="isEdit && displayInvalidPspsBanner"
-            color="warning"
-          >
-            <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
-          </Banner>
-          <Banner
-            v-else-if="isCreate && !needsPSP"
-            color="info"
-          >
-            <span v-html="t('cluster.banner.removedPsp', {}, true)" />
-          </Banner>
-          <Banner
-            v-else-if="isCreate"
-            color="info"
-          >
-            <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
-          </Banner>
+          <template v-if="hasPsp">
+            <Banner
+              v-if="isEdit && displayInvalidPspsBanner"
+              color="warning"
+              :label="t('cluster.banner.invalidPsps')"
+            />
+            <Banner
+              v-else-if="isCreate && !needsPSP"
+              color="info"
+              :label="t('cluster.banner.removedPsp')"
+            />
+            <Banner
+              v-else-if="isCreate"
+              color="info"
+              :label="t('cluster.banner.deprecatedPsp')"
+            />
+          </template>
 
           <Banner
             v-if="showCisProfile && !isCisSupported"
