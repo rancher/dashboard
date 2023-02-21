@@ -75,6 +75,8 @@ export default {
       // Anyone who can edit workspace
 
       try {
+        await this.value.save();
+
         // IF there is a restriction update it
         if (this.workSpaceRestriction) {
           await this.workSpaceRestriction.save();
