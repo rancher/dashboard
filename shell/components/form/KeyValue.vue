@@ -245,7 +245,7 @@ export default {
   data() {
     const rows = this.getRows(this.value);
 
-    return { rows, isFormValid: true };
+    return { rows };
   },
 
   computed: {
