@@ -845,9 +845,10 @@ export const getters = {
     return (product, mode = ALL) => {
       const out = {};
 
-      const product = findBy(state.products, 'name', product)
-      if(!product) {
-        return out
+      const foundProduct = findBy(state.products, 'name', product);
+
+      if (!foundProduct) {
+        return out;
       }
       const module = findBy(state.products, 'name', product)?.inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
