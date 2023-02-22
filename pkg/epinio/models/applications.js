@@ -2,8 +2,11 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { downloadFile } from '@shell/utils/download';
 import { formatSi } from '@shell/utils/units';
 import { epiniofy } from '../store/epinio-store/actions';
-import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import {
+  APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+} from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
+import { generateZip } from '../utils/download';
 import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
@@ -25,7 +28,6 @@ const STATES_MAPPED = {
 
 export default class EpinioApplicationModel extends EpinioNamespacedResource {
   buildCache = {};
-
   // ------------------------------------------------------------------
   // Dashboard plumbing
 
@@ -130,9 +132,10 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     },
     { divider: true },
     {
-      action: 'createManifest',
-      label:  this.t('epinio.applications.actions.createManifest.label'),
-      icon:   'icon icon-fw icon-download',
+      action:  'exportApp',
+      label:   this.t('epinio.applications.export.label'),
+      icon:    'icon icon-fw icon-download',
+      enabled: isRunning
     },
     { divider: true },
 
@@ -364,6 +367,10 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return createEpinioRoute(`c-cluster-applications`, {}) ;
   }
 
+  get applicationParts() {
+    return Object.values(APPLICATION_PARTS);
+  }
+
   // ------------------------------------------------------------------
   // Change/handle changes of the app
 
@@ -487,6 +494,38 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
     await this.forceFetch();
     this.showStagingLog(stage.id);
+  }
+
+  exportApp(resources = this) {
+    this.$dispatch('promptModal', {
+      resources:  [resources],
+      component:  'ExportAppDialog',
+      modalWidth: '450px'
+    });
+  }
+
+  async fetchPart(part) {
+    const responseType = part === 'values' ? 'text/plain' : 'blob';
+
+    const opt = { url: `${ this.linkFor('self') }/part/${ part }`, responseType };
+
+    const { data } = await this.$dispatch('request', { opt, type: this.type });
+
+    return data;
+  }
+
+  async downloadAppParts({ part, data, all = false }) {
+    if (part === 'values') {
+      await downloadFile(`${ this.meta.name }-${ part }.yaml`, data, 'text/plain');
+    } else {
+      await downloadFile(`${ this.meta.name }-${ part }`, data, 'application/gzip;charset=utf-8');
+    }
+  }
+
+  async chartZip(files) {
+    await generateZip(files).then(async(r) => {
+      await downloadFile(`${ this.meta.name }-helm-chart.zip`, r, 'application/zip');
+    });
   }
 
   get appShellId() {
@@ -665,6 +704,20 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     await this.followLink('restart', { method: 'post' });
     await this.forceFetch();
     this.showAppLog();
+  }
+
+  applyAction(btn, resource = this) {
+    console.log('btn', btn);
+    console.log('resource', resource);
+
+    const manifest = this.$route.hash === '#manifest';
+
+    if (manifest) {
+      resource.createManifest();
+      console.log('🚀 ~ file: applications.js:713 ~ EpinioApplicationModel ~ applyAction ~ this:', this);
+    } else {
+      console.log('downloading chart');
+    }
   }
 
   createManifest() {

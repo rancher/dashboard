@@ -130,6 +130,15 @@ epinio:
         title: Routes
         tooltip: Replace the default route (<app name>.<epinio domain>) with one or more custom routes
         placeholder: e.g. my-custom-route.com/my-app
+    export:
+      label: Export App
+      manifest:
+        title: Export Manifest
+        description: Export the manifest for this application
+      chart:
+        title: Export Chart
+        description: Export the helm chart for this application
+        banner: This might take a while, as some images may have a reasonable size.
     steps:
       basics:
         label: Details
