@@ -27,7 +27,7 @@ export default {
     // redirect to /home, which is what we would do below, if there was no `afterLoginRouteObject`
     if (targetRoute?.route?.fullPath === '/') {
       return redirect(dashboardHome);
-    }    
+    }
 
     // Confirm this is a valid route (it could have come from an uninstalled plugin)
     if (validRoute(afterLoginRouteObject, app.router)) {
