@@ -354,11 +354,6 @@ export default {
     },
 
     showEksNodeGroupWarning() {
-      // Handle undefined or empty
-      if (!this.value.eksNodeGroups || !this.value.eksNodeGroups.length) {
-        return true;
-      }
-
       if ( this.value.provisioner === 'EKS' && this.value.state !== STATES_ENUM.ACTIVE) {
         const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
 
