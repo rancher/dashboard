@@ -45,7 +45,7 @@ export default {
       }
 
       // Don't allow update/rollback to current version
-      const versions = this.plugin.installableVersions.filter((v) => {
+      const versions = this.plugin?.installableVersions?.filter((v) => {
         if (this.currentVersion) {
           return v.version !== this.currentVersion;
         }
@@ -78,8 +78,8 @@ export default {
         this.currentVersion = plugin.displayVersion;
 
         // Update to latest version, so take the first version
-        if (plugin.installableVersions.length > 0) {
-          this.version = plugin.installableVersions[0].version;
+        if (plugin.installableVersions?.length > 0) {
+          this.version = plugin.installableVersions?.[0]?.version;
         }
       } else if (mode === 'rollback') {
         // Find the newest version once we remove the current version
@@ -96,7 +96,7 @@ export default {
       const versionChart = plugin.installableVersions?.find(v => v.version === this.version);
 
       if (!versionChart) {
-        this.version = plugin.installableVersions[0].version;
+        this.version = plugin.installableVersions?.[0]?.version;
       }
 
       this.busy = false;
