@@ -706,20 +706,6 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     this.showAppLog();
   }
 
-  applyAction(btn, resource = this) {
-    console.log('btn', btn);
-    console.log('resource', resource);
-
-    const manifest = this.$route.hash === '#manifest';
-
-    if (manifest) {
-      resource.createManifest();
-      console.log('🚀 ~ file: applications.js:713 ~ EpinioApplicationModel ~ applyAction ~ this:', this);
-    } else {
-      console.log('downloading chart');
-    }
-  }
-
   createManifest() {
     const date = new Date().toISOString().split('.')[0];
     const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.json`;
