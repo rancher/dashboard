@@ -88,7 +88,10 @@ export default {
             type:                    FLEET.GIT_REPO_RESTRICTION,
             allowedTargetNamespaces: this.targetNamespaces,
             metadata:                {
-              name:      `restriction-${ this.value.metadata.name }-${ Date.now() }`, // I customed by SUSE... create annotation
+              // restriction- prefix is added to the workspace name 
+              // to identify automatically created GitRepoRestrictions
+              // when adding targetNamespaces at the point of workspace creation
+              name:      `restriction-${ this.value.metadata.name }-${ Date.now() }`,
               namespace: this.value.metadata.name // what the user types
             }
           });
@@ -115,13 +118,6 @@ export default {
         this.errors = exceptionToErrorsArray(err);
       }
     },
-
-    navigateToList() {
-      this.$router.replace({
-        name:   `c-cluster-product-resource`,
-        params: { resource: FLEET.WORKSPACE }
-      });
-    }
   },
 
   computed: {

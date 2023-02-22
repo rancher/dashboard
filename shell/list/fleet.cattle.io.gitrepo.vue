@@ -76,10 +76,6 @@ export default {
       this.permissions = permissions;
     } catch (e) {
     }
-    // this.$initializeFetchData(this.resource);
-
-    // this.$fetchType(FLEET.CLUSTER);
-    // this.$fetchType(FLEET.CLUSTER_GROUP);
     await this.$fetchType(this.resource);
   },
 
