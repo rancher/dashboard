@@ -88,7 +88,7 @@ export default {
             type:                    FLEET.GIT_REPO_RESTRICTION,
             allowedTargetNamespaces: this.targetNamespaces,
             metadata:                {
-              // restriction- prefix is added to the workspace name 
+              // restriction- prefix is added to the workspace name
               // to identify automatically created GitRepoRestrictions
               // when adding targetNamespaces at the point of workspace creation
               name:      `restriction-${ this.value.metadata.name }-${ Date.now() }`,
