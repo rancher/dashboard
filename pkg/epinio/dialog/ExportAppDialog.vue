@@ -105,28 +105,3 @@ export default {
     </template>
   </GenericPrompt>
 </template>
-
-<style lang="scss" scoped>
-  .app-parts {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-
-    div {
-      display: flex;
-      flex-direction: column;
-      align-content: flex-start;
-      flex-wrap: wrap;
-      align-items: flex-start;
-
-      hr {
-        border: 1px;
-        border-style: solid;
-      }
-      & >  span {
-        font-weight: bold;
-      }
-    }
-  }
-
-</style>
