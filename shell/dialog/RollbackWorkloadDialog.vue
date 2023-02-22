@@ -147,7 +147,7 @@ export default {
     },
     async save() {
       try {
-        await this.workload.rollBackWorkload(this.currentCluster, this.workload, this.rollbackRequestBody);
+        await this.workload.rollBack(this.currentCluster, this.workload, this.selectedRevision);
         this.close();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
