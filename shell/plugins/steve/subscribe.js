@@ -26,7 +26,7 @@ import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
-import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
+import { watchKeyFromObject } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
@@ -116,6 +116,10 @@ export async function createWorker(store, ctx) {
   }
 }
 
+export function findWatchInWatches(watches, watchObj) {
+  return watches.find(watch => watchKeyFromObject(watch) === watchKeyFromObject(watchObj));
+}
+
 export function equivalentWatch(a, b) {
   const aresourceType = a.resourceType || a.type;
   const bresourceType = b.resourceType || b.type;
@@ -139,7 +143,7 @@ export function equivalentWatch(a, b) {
   return true;
 }
 
-function queueChange({ getters, state }, { data, revision }, load, label) {
+function queueChange({ getters, state }, { data, revision, id: watchId }, load, label) {
   const type = getters.normalizeType(data.type);
 
   const entry = getters.typeEntry(type);
@@ -156,7 +160,8 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
     state.queue.push({
       action: 'dispatch',
       event:  'load',
-      body:   data
+      body:   data,
+      id:     watchId
     });
   } else {
     const obj = getters.byId(data.type, data.id);
@@ -165,7 +170,8 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
       state.queue.push({
         action: 'commit',
         event:  'remove',
-        body:   obj
+        body:   obj,
+        id:     watchId
       });
     }
 
@@ -188,6 +194,7 @@ function growlsDisabled(rootGetters) {
  * Actions that cover all cases (see file description)
  */
 const sharedActions = {
+  // The subscription is to the socket itself and doesn't include the "watch" which creates the resource messages that go back and forth over the socket
   async subscribe(ctx, opt) {
     const {
       state, commit, dispatch, getters, rootGetters
@@ -286,17 +293,24 @@ const sharedActions = {
     return Promise.all(cleanupTasks);
   },
 
+  // The watch is what we create when we want to watch a specific resourceType over the socket via the subscription
   watch({
-    state, dispatch, getters, rootGetters
+    state, dispatch, getters, rootGetters, commit
   }, params) {
     state.debugSocket && console.info(`Watch Request [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
-    let {
+    const {
       // eslint-disable-next-line prefer-const
-      type, selector, id, revision, namespace, stop, force
+      type: rawType, selector, id, namespace, stop, force
     } = params;
 
-    type = getters.normalizeType(type);
+    const type = getters.normalizeType(rawType);
+
+    const watch = {
+      type, id, namespace, selector
+    };
+
+    const revision = typeof params.revision === 'undefined' ? getters.getResourceVersion(watch) : params.revision;
 
     if (rootGetters['type-map/isSpoofed'](type)) {
       state.debugSocket && console.info('Will not Watch (type is spoofed)', JSON.stringify(params)); // eslint-disable-line no-console
@@ -317,10 +331,6 @@ const sharedActions = {
       state.debugSocket && console.debug(`Already Watching [${ getters.storeName }]`, JSON.stringify(params)); // eslint-disable-line no-console
 
       return;
-    }
-
-    if ( typeof revision === 'undefined' ) {
-      revision = getters.nextResourceVersion(type, id);
     }
 
     const msg = { resourceType: type };
@@ -357,28 +367,47 @@ const sharedActions = {
       return;
     }
 
+    commit('createWatch', {
+      type,
+      namespace,
+      id,
+      selector,
+      revision
+    });
+
     return dispatch('send', msg);
   },
 
-  unwatch(ctx, type) {
+  unwatch(ctx, {
+    type, id, namespace, selector
+  }) {
     const { commit, getters, dispatch } = ctx;
 
     if (getters['schemaFor'](type)) {
       const obj = {
         type,
+        id,
+        namespace,
+        selector,
         stop: true, // Stops the watch on a type
       };
 
       if (isAdvancedWorker(ctx)) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (getters['watchStarted'](obj)) {
+        // if it's started we want to send a stop and mark the watch
         // Set that we don't want to watch this type
         // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
         // detect the stop message from the backend over the web socket
         commit('setWatchStopped', obj);
         dispatch('watch', obj); // Ask the backend to stop watching the type
-        // Make sure anything in the pending queue for the type is removed, since we've now removed the type
-        commit('clearFromQueue', type);
+        const remainingWatchesOfType = getters.watches.filter(watch => watch.type === type && !equivalentWatch(obj, watch));
+
+        // if the watch we're unwatching includes an id then we should clear those events from the queue
+        // if the watch we're unwatching is the only watch for that type
+        if (id || remainingWatchesOfType.length === 0) {
+          commit('clearFromQueue', obj);
+        }
       }
     }
   },
@@ -466,7 +495,7 @@ const defaultActions = {
   }) {
     const promises = [];
 
-    for ( const entry of state.started.slice() ) {
+    for ( const entry of state.watches.slice() ) {
       console.info(`Reconnect [${ getters.storeName }]`, JSON.stringify(entry)); // eslint-disable-line no-console
 
       if ( getters.schemaFor(entry.type) ) {
@@ -718,43 +747,28 @@ const defaultActions = {
 
     // If we're trying to watch this event, attempt to re-watch
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
-      commit('setWatchStopped', obj);
+      const revision = getters.getResourceVersion(obj);
 
-      // In summary, we need to re-watch but with a reliable `revision` (to avoid `too old` message kicking off a full re-fetch of all
-      // resources). To get a reliable `revision` go out and fetch the latest for that resource type, in theory our local cache should be
-      // up to date with that revision.
+      const rewatch = () => {
+        if (revision) {
+          dispatch('watch', { ...obj, revision });
+        } else {
+          dispatch('resyncWatch', msg);
+        }
+      };
 
-      const revisionExisting = getters.nextResourceVersion(type, obj.id);
-
-      let revisionLatest;
-
-      if (revisionExisting) {
-        // Attempt to fetch the latest revision at the time the resource watch was stopped, in theory our local cache should be up to
-        // date with this
-        // Ideally we shouldn't need to fetch here and supply `0`, `-1` or `null` to start watching from the latest revision, however steve
-        // will send the current state of each resource via a `resource.created` event.
-        const opt = { limit: 1 };
-
-        opt.url = getters.urlFor(type, null, opt);
-        revisionLatest = dispatch('request', { opt, type } )
-          .then(res => res.revision)
-          .catch((err) => {
-            // For some reason we can't fetch a reasonable revision, so force a re-fetch
-            console.warn(`Resource error retrieving resourceVersion, forcing re-fetch`, type, ':', err); // eslint-disable-line no-console
-            dispatch('resyncWatch', msg);
-            throw err;
-          });
-      } else {
-        // Some v1 resource types don't have revisions (either at the collection or resource level), so we avoided making an API request
-        // for them
-        revisionLatest = Promise.resolve(null); // Null to ensure we don't go through `nextResourceVersion` again
+      if (getters.watchTimeRunning(obj) < 2000) {
+        commit('incrementFastStops', obj);
+      } else if (getters.fastStops(obj) > 0) {
+        commit('clearFastStops', obj);
       }
-
-      setTimeout(() => {
-        // Delay a bit so that immediate start/error/stop causes
-        // only a slow infinite loop instead of a tight one.
-        revisionLatest.then(revision => dispatch('watch', { ...obj, revision }));
-      }, 5000);
+      if (getters.fastStops(obj) <= 3) {
+        rewatch();
+      } else {
+        setTimeout(rewatch, 2000);
+      }
+    } else {
+      commit('removeWatch', obj);
     }
   },
 
@@ -857,34 +871,70 @@ const defaultMutations = {
     removeObject(state.pendingFrames, obj);
   },
 
-  setWatchStarted(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+  createWatch(state, obj) {
+    const existing = findWatchInWatches(state.watches, obj);
 
     if ( !existing ) {
-      addObject(state.started, obj);
+      addObject(state.watches, { ...obj, started: false });
     }
 
-    delete state.inError[keyForSubscribe(obj)];
+    delete state.inError[watchKeyFromObject(obj)];
+  },
+
+  setWatchStarted(state, obj) {
+    const existing = findWatchInWatches(state.watches, obj);
+
+    if ( !existing?.started ) {
+      existing.started = Date.now();
+    }
+
+    delete state.inError[watchKeyFromObject(obj)];
   },
 
   setWatchStopped(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+    const existing = findWatchInWatches(state.watches, obj);
 
     if ( existing ) {
-      removeObject(state.started, existing);
+      existing.started = undefined;
+    } else {
+      console.warn("Tried to stop a watch that doesn't exist", obj); // eslint-disable-line no-console
+    }
+  },
+
+  incrementFastStops(state, obj) {
+    const existing = findWatchInWatches(state.watches, obj);
+
+    if (existing.fastStops) {
+      existing.fastStops = existing.fastStops + 1;
+    } else {
+      existing.fastStops = 1;
+    }
+  },
+
+  clearFastStops(state, obj) {
+    const existing = findWatchInWatches(state.watches, obj);
+
+    existing.fastStops = 0;
+  },
+
+  removeWatch(state, obj) {
+    const existing = findWatchInWatches(state.watches, obj);
+
+    if ( existing ) {
+      removeObject(state.watches, existing);
     } else {
       console.warn("Tried to remove a watch that doesn't exist", obj); // eslint-disable-line no-console
     }
   },
 
   setInError(state, msg) {
-    const key = keyForSubscribe(msg);
+    const key = watchKeyFromObject(msg);
 
     state.inError[key] = msg.reason;
   },
 
   clearInError(state, msg) {
-    const key = keyForSubscribe(msg);
+    const key = watchKeyFromObject(msg);
 
     delete state.inError[key];
   },
@@ -892,7 +942,7 @@ const defaultMutations = {
   resetSubscriptions(state) {
     // Clear out socket state. This is only ever called from reset... which is always called after we `disconnect` above.
     // This could probably be folded in to there
-    clear(state.started);
+    clear(state.watches);
     clear(state.pendingFrames);
     clear(state.queue);
     clearTimeout(state.queueTimer);
@@ -900,10 +950,14 @@ const defaultMutations = {
     state.queueTimer = null;
   },
 
-  clearFromQueue(state, type) {
-    // Remove anything in the queue that is a resource update for the given type
+  clearFromQueue(state, { type, id }) {
+    // Remove anything in the queue that is a resource update for the given type and potentially id
     state.queue = state.queue.filter((item) => {
-      return item.body?.type !== type;
+      if (item.body?.type === type && (!id || item.id === id)) {
+        return false;
+      }
+
+      return true;
     });
   },
 };
@@ -912,47 +966,49 @@ const defaultMutations = {
  * Getters that cover cases 1 & 2 (see file description)
  */
 const defaultGetters = {
+  watches: (state) => {
+    return state.watches;
+  },
   canWatch: state => (obj) => {
-    return !state.inError[keyForSubscribe(obj)];
+    return !state.inError[watchKeyFromObject(obj)];
+  },
+  watch: state => (obj) => {
+    return state.watches.find(watch => watchKeyFromObject(watch === watchKeyFromObject(obj)));
   },
 
-  watchStarted: state => (obj) => {
-    return !!state.started.find(entry => equivalentWatch(obj, entry));
+  watchStarted: (state, getters) => (obj) => {
+    return !!getters.watch(obj)?.started;
   },
 
-  nextResourceVersion: (state, getters) => (type, id) => {
-    type = normalizeType(type);
-    let revision = 0;
+  watchTimeRunning: (state, getters) => (obj) => {
+    if (getters.watchStarted(obj)) {
+      return getters.watch.started - Date.now();
+    }
+  },
+
+  fastStops: (state, getters) => (obj) => {
+    return getters.watch(obj)?.fastStops || 0;
+  },
+
+  getResourceVersion: (state, getters) => (watch) => {
+    const { type, id } = watch;
+
+    const normalizedType = normalizeType(type);
+
+    const normalizedWatch = {
+      ...watch,
+      type: normalizedType
+    };
 
     if ( id ) {
-      const existing = getters['byId'](type, id);
+      const existing = getters['byId'](normalizedType, id);
 
-      revision = parseInt(existing?.metadata?.resourceVersion, 10);
+      return existing ? parseInt(existing?.metadata?.resourceVersion, 10) : null;
     }
 
-    if ( !revision ) {
-      const cache = state.types[type];
+    const { revision } = getters.watch(normalizedWatch) || {};
 
-      if ( !cache ) {
-        return null;
-      }
-
-      revision = cache.revision; // This is always zero.....
-
-      for ( const obj of cache.list ) {
-        if ( obj && obj.metadata ) {
-          const neu = parseInt(obj.metadata.resourceVersion, 10);
-
-          revision = Math.max(revision, neu);
-        }
-      }
-    }
-
-    if ( revision ) {
-      return revision;
-    }
-
-    return null;
+    return revision || null;
   },
 };
 

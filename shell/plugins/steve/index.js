@@ -24,7 +24,7 @@ export function SteveFactory(namespace, baseUrl) {
         allowStreaming:   true,
         pendingFrames:    [],
         deferredRequests: {},
-        started:          [],
+        watches:          [],
         inError:          {},
         podsByNamespace:  {}, // Cache of pods by namespace
       };

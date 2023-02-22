@@ -9,7 +9,7 @@ import {
   batchChanges,
   replace
 } from '@shell/plugins/dashboard-store/mutations';
-import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
+import { watchKeyFromObject } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 import { classify } from '@shell/plugins/dashboard-store/classify';
@@ -150,7 +150,7 @@ export default {
 
   forgetType(state, type) {
     if ( forgetType(state, type) ) {
-      delete state.inError[keyForSubscribe({ type })];
+      delete state.inError[watchKeyFromObject({ type })];
     }
   },
 

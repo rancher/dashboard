@@ -37,7 +37,7 @@ export const WATCH_STATUSES = {
   REMOVE_REQUESTED: 'removed_requested'
 };
 
-export const keyForSubscribe = ({
+export const watchKeyFromObject = ({
   resourceType, type, namespace, id, selector
 } = {}) => {
   return [(resourceType || type), namespace, id, selector] // each watch param in an array
@@ -60,7 +60,7 @@ export const watchKeyFromMessage = (msg) => {
     selector
   };
 
-  return keyForSubscribe(watchObject);
+  return watchKeyFromObject(watchObject);
 };
 
 const {
@@ -83,7 +83,7 @@ export default class ResourceWatcher extends Socket {
 
       Object.values(this.watches).forEach((watch) => {
         const { status, error } = watch;
-        const watchKey = keyForSubscribe(watch);
+        const watchKey = watchKeyFromObject(watch);
 
         if ([WATCH_PENDING, WATCH_REQUESTED, WATCHING].includes(status) && !error) {
           this.trace(EVENT_CONNECTED, ': re-watching previously required resource', watchKey, status);
@@ -230,7 +230,7 @@ export default class ResourceWatcher extends Socket {
     const {
       name: eventName, resourceType, data: { type }, id, namespace, selector, data
     } = JSON.parse(event.data);
-    const watchKey = keyForSubscribe({
+    const watchKey = watchKeyFromObject({
       resourceType,
       type,
       id,
