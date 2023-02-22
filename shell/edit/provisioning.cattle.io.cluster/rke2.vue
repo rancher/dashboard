@@ -957,7 +957,7 @@ export default {
       }
 
       if (ccmVersion && csiVersion) {
-        if (semver.satisfies(this.harvesterVersion, CompareVersion) || !(this.harvesterVersion || '').startsWith('v')) {
+        if (semver.satisfies(this.harvesterVersion, CompareVersion, { includePrerelease: true }) || !(this.harvesterVersion || '').startsWith('v')) {
           // When harveste version is less than `CompareVersion`, compatibility is not determined,
           // At the same time, version numbers like this will not be checked: master-14bbee2c-head
           return false;
