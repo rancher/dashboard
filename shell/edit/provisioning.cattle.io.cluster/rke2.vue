@@ -1332,8 +1332,9 @@ export default {
       }
 
       const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+      const hasPspManuallyAdded = !!this.value.spec.rkeConfig?.machineGlobalConfig?.['kube-apiserver-arg'];
 
-      if (isEditVersion && !this.needsPSP) {
+      if (isEditVersion && !this.needsPSP && hasPspManuallyAdded) {
         if (!await this.showPspConfirmation()) {
           return btnCb('cancelled');
         }
