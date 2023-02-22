@@ -170,7 +170,6 @@ export default {
             type:        FLEET.BUNDLE
           },
 
-          // Not sure why I need this here
           bundleDeployment: {
             inStoreType: 'management',
             type:        FLEET.BUNDLE_DEPLOYMENT

@@ -53,7 +53,6 @@ export default {
           type:        FLEET.CLUSTER_GROUP
         },
 
-        // Not sure why I need this here
         gitRepos: {
           inStoreType: 'management',
           type:        FLEET.GIT_REPO
