@@ -266,7 +266,7 @@ export default {
           chart.installing = this.installing[chart.name];
 
           // Check for upgrade
-          if (chart.installableVersions.length && p.version !== chart.installableVersions[0].version) {
+          if (chart.installableVersions?.length && p.version !== chart.installableVersions?.[0]?.version) {
             chart.upgrade = chart.installableVersions[0].version;
           }
         } else {
