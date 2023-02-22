@@ -131,7 +131,7 @@ export default {
   },
 
   async fetch() {
-    this.hasPsp = this.checkPsp();
+    this.hasPsp = await this.checkPsp();
 
     if ( !this.rke2Versions ) {
       const hash = {
@@ -321,7 +321,7 @@ export default {
       harvesterVersion:      '',
       cisOverride:           false,
       cisPsaChangeBanner:    false,
-      hasPsp
+      hasPsp:                false,
     };
   },
 
@@ -1854,7 +1854,18 @@ export default {
     /**
      * Check if current cluster has PSP enabled
      */
-    checkPsp() {
+    async checkPsp() {
+      const clusterId = this.value.mgmtClusterId;
+      const url = `/k8s/clusters/${ clusterId }/v1`;
+
+      try {
+        const mything = await this.$store.dispatch('cluster/request', { url: `${ url }/policy.podsecuritypolicies` });
+
+        console.log(mything);
+      } catch (error) {
+
+      }
+
       const count = this.$store.getters[`cluster/all`](COUNT);
       const clusterCounts = count?.[0]?.counts;
 
