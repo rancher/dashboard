@@ -46,7 +46,7 @@ export default {
 
 <template>
   <Card
-    class="addon-config-confirmation"
+    class="prompt-restore"
     :show-highlight-border="false"
   >
     <h4
@@ -66,24 +66,36 @@ export default {
       slot="actions"
       class="bottom"
     >
-      <button
-        type="button"
-        class="btn role-secondary mr-10"
-        @click="close"
-      >
-        {{ t('generic.cancel') }}
-      </button>
-      <AsyncButton
-        mode="continue"
-        @click="apply"
-      />
+      <div class="buttons">
+        <button
+          type="button"
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
+          {{ t('generic.cancel') }}
+        </button>
+        <AsyncButton
+          mode="continue"
+          @click="apply"
+        />
+      </div>
     </div>
   </Card>
 </template>
 <style lang='scss' scoped>
-  ::v-deep .card-actions {
+.prompt-restore {
+  margin: 0;
+}
+
+.bottom {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .buttons {
     display: flex;
-    flex-direction: row;
-    justify-content: center;
+    justify-content: flex-end;
+    width: 100%;
   }
+}
 </style>
