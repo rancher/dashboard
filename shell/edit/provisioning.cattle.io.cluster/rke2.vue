@@ -131,7 +131,9 @@ export default {
   },
 
   async fetch() {
-    this.hasPsp = await this.checkPsp();
+    if (this.mode !== _CREATE) {
+      this.hasPsp = await this.checkPsp();
+    }
 
     if ( !this.rke2Versions ) {
       const hash = {
