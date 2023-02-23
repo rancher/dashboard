@@ -10,14 +10,14 @@ We can `yarn link` to improve this workflow.
 
 With the Dashboard repository checked out, we can run:
 
-```
+```sh
 cd shell
 yarn link
 ```
 
 Then, in our other app's folder, we can:
 
-```
+```sh
 yarn link @rancher/shell
 ```
 
