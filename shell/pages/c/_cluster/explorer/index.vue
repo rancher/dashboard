@@ -151,10 +151,6 @@ export default {
     ...monitoringStatus(),
 
     displayPspDeprecationBanner() {
-      if (!this.currentCluster) {
-        return false;
-      }
-
       const cluster = this.currentCluster;
       const major = cluster.status?.version?.major ? parseInt(cluster.status?.version?.major) : 0;
       const minor = cluster.status?.version?.minor ? parseInt(cluster.status?.version?.minor) : 0;
