@@ -37,6 +37,7 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
+import { BLANK_CLUSTER } from '@shell/store';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -286,7 +287,7 @@ export default {
 
     async currentProduct(a, b) {
       if ( !isEqual(a, b) ) {
-        if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
+        if ((a.inStore !== b.inStore || a.inStore !== 'cluster') && this.clusterId && a.name) {
           const route = {
             name:   'c-cluster-product',
             params: {
@@ -333,6 +334,9 @@ export default {
 
   methods: {
     async setClusterAsLastRoute() {
+      if (!this.clusterId || this.clusterId === BLANK_CLUSTER) {
+        return;
+      }
       const route = {
         name:   this.$route.name,
         params: {

@@ -5,6 +5,7 @@ import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN, SERVICE } from '@shell/config/types';
+import { getVersionData } from '@shell/config/version';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import ActionMenu from '@shell/components/ActionMenu';
@@ -23,6 +24,8 @@ import {
   uiPluginAnnotation,
   uiPluginHasAnnotation,
   isSupportedChartVersion,
+  isChartVersionAvailableForInstall,
+  isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS
 } from '@shell/config/uiplugins';
@@ -59,6 +62,7 @@ export default {
       hasService:        false,
       defaultIcon:       require('~shell/assets/images/generic-plugin.svg'),
       reloadRequired:    false,
+      rancherVersion:    getVersionData()?.Version
     };
   },
 
@@ -183,27 +187,36 @@ export default {
         // Label can be overridden by chart annotation
         const label = uiPluginAnnotation(UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
-          name:           chart.chartNameDisplay,
+          name:         chart.chartNameDisplay,
           label,
-          description:    chart.chartDescription,
-          id:             chart.id,
-          versions:       [],
-          displayVersion: chart.versions?.length > 0 ? chart.versions[0].version : '',
-          installed:      false,
-          builtin:        false,
-          experimental:   uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
-          certified:      uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER),
+          description:  chart.chartDescription,
+          id:           chart.id,
+          versions:     [],
+          installed:    false,
+          builtin:      false,
+          experimental: uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.EXPERIMENTAL, 'true'),
+          certified:    uiPluginHasAnnotation(chart, CATALOG_ANNOTATIONS.CERTIFIED, CATALOG_ANNOTATIONS._RANCHER),
         };
 
-        this.latest = chart.versions[0];
         item.versions = [...chart.versions];
         item.chart = chart;
 
-        // Filter the versions, leaving only those that are compatible with this Rancher
-        item.versions = item.versions.filter(version => isSupportedChartVersion(version));
+        // Filter the versions available to install (plugins-api version and current dashboard version)
+        item.installableVersions = item.versions.filter(version => isSupportedChartVersion(version) && isChartVersionAvailableForInstall(version, this.rancherVersion));
 
-        if (this.latest) {
-          item.icon = chart.icon || this.latest.annotations['catalog.cattle.io/ui-icon'];
+        // add prop to version object if version is compatible with the current dashboard version
+        item.versions = item.versions.map(version => isChartVersionAvailableForInstall(version, this.rancherVersion, true));
+
+        const latestCompatible = item.installableVersions?.[0];
+        const latestNotCompatible = item.versions.find(version => !version.isCompatibleWithUi);
+
+        if (latestCompatible) {
+          item.displayVersion = latestCompatible.version;
+          item.icon = chart.icon || latestCompatible.annotations['catalog.cattle.io/ui-icon'];
+        }
+
+        if (latestNotCompatible && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
+          item.incompatibleDisclaimer = this.t('plugins.incompatibleDisclaimer', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
         }
 
         if (this.installing[item.name]) {
@@ -253,8 +266,8 @@ export default {
           chart.installing = this.installing[chart.name];
 
           // Check for upgrade
-          if (chart.versions.length && p.version !== chart.versions[0].version) {
-            chart.upgrade = chart.versions[0].version;
+          if (chart.installableVersions?.length && p.version !== chart.installableVersions?.[0]?.version) {
+            chart.upgrade = chart.installableVersions[0].version;
           }
         } else {
           // No chart, so add a card for the plugin based on its Custom resource being present
@@ -619,6 +632,7 @@ export default {
             :data-testid="`extension-card-${plugin.name}`"
             @click="showPluginDetail(plugin)"
           >
+            <!-- plugin icon -->
             <div
               class="plugin-icon"
               :class="applyDarkModeBg"
@@ -636,7 +650,9 @@ export default {
                 class="icon plugin-icon-img"
               >
             </div>
+            <!-- plugin card -->
             <div class="plugin-metadata">
+              <!-- plugin basic info -->
               <div class="plugin-name">
                 {{ plugin.label }}
               </div>
@@ -654,8 +670,13 @@ export default {
                     v-if="plugin.upgrade"
                     v-tooltip="t('plugins.upgradeAvailable')"
                   > -> {{ plugin.upgrade }}</span>
+                  <p
+                    v-if="plugin.incompatibleDisclaimer"
+                    class="incompatible"
+                  >{{ plugin.incompatibleDisclaimer }}</p>
                 </span>
               </div>
+              <!-- plugin badges -->
               <div
                 v-if="plugin.builtin"
                 class="plugin-badges"
@@ -682,6 +703,7 @@ export default {
                 </div>
               </div>
               <div class="plugin-spacer" />
+              <!-- plugin badges -->
               <div class="plugin-actions">
                 <template v-if="plugin.error">
                   <div
@@ -691,6 +713,7 @@ export default {
                     <i class="icon icon-warning" />
                   </div>
                 </template>
+                <!-- plugin status -->
                 <div
                   v-if="plugin.helmError"
                   v-tooltip="t('plugins.helmError')"
@@ -713,6 +736,7 @@ export default {
                     {{ t('plugins.labels.uninstalling') }}
                   </div>
                 </div>
+                <!-- plugin buttons -->
                 <div
                   v-else-if="plugin.installed"
                   class="plugin-buttons"
@@ -734,7 +758,7 @@ export default {
                     {{ t('plugins.update.label') }}
                   </button>
                   <button
-                    v-if="!plugin.upgrade && plugin.versions.length > 1"
+                    v-if="!plugin.upgrade && plugin.installableVersions && plugin.installableVersions.length > 1"
                     class="btn role-secondary"
                     :data-testid="`extension-card-rollback-btn-${plugin.name}`"
                     @click="showInstallDialog(plugin, 'rollback', $event)"
@@ -941,6 +965,11 @@ export default {
         font-size: 16px;
         height: 16px;
         width: 16px;
+      }
+
+      .incompatible {
+        margin: 10px 0;
+        font-weight: bold;
       }
     }
 

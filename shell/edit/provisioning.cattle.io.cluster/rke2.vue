@@ -483,7 +483,9 @@ export default {
      * Allow to display override if PSA is needed and profile is set
      */
     hasCisOverride() {
-      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA;
+      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA &&
+        // Also check other cases on when to display the override
+        this.hasPsaTemplates && this.showCisProfile && this.isCisSupported;
     },
 
     pspOptions() {
@@ -520,7 +522,7 @@ export default {
     isPsaDisabled() {
       const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates;
+      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates && this.isCisSupported;
     },
 
     /**
@@ -559,6 +561,15 @@ export default {
       }
 
       return out;
+    },
+
+    /**
+     * Check if current CIS profile is required and listed in the options
+     */
+    isCisSupported() {
+      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+
+      return !cisProfile || this.profileOptions.map(option => option.value).includes(cisProfile);
     },
 
     disableOptions() {
@@ -946,7 +957,7 @@ export default {
       }
 
       if (ccmVersion && csiVersion) {
-        if (semver.satisfies(this.harvesterVersion, CompareVersion) || !(this.harvesterVersion || '').startsWith('v')) {
+        if (semver.satisfies(this.harvesterVersion, CompareVersion, { includePrerelease: true }) || !(this.harvesterVersion || '').startsWith('v')) {
           // When harveste version is less than `CompareVersion`, compatibility is not determined,
           // At the same time, version numbers like this will not be checked: master-14bbee2c-head
           return false;
@@ -1291,7 +1302,27 @@ export default {
 
     showAddonConfirmation() {
       return new Promise((resolve, reject) => {
-        this.$store.dispatch('cluster/promptModal', { component: 'AddonConfigConfirmationDialog', resources: [value => resolve(value)] });
+        this.$store.dispatch('cluster/promptModal', {
+          component: 'AddonConfigConfirmationDialog',
+          resources: [value => resolve(value)]
+        });
+      });
+    },
+
+    /**
+     * Inform user to remove PSP for current cluster due deprecation
+     */
+    showPspConfirmation() {
+      return new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', {
+          component:      'GenericPrompt',
+          componentProps: {
+            title:     this.t('cluster.rke2.modal.pspChange.title'),
+            body:      this.t('cluster.rke2.modal.pspChange.body'),
+            applyMode: 'continue',
+            confirm:   resolve
+          },
+        });
       });
     },
 
@@ -1300,7 +1331,16 @@ export default {
         clear(this.errors);
       }
 
-      if (this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion) {
+      const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+      const hasPspManuallyAdded = !!this.value.spec.rkeConfig?.machineGlobalConfig?.['kube-apiserver-arg'];
+
+      if (isEditVersion && !this.needsPSP && hasPspManuallyAdded) {
+        if (!await this.showPspConfirmation()) {
+          return btnCb('cancelled');
+        }
+      }
+
+      if (isEditVersion) {
         const shouldContinue = await this.showAddonConfirmation();
 
         if (!shouldContinue) {
@@ -2143,6 +2183,12 @@ export default {
           >
             <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
           </Banner>
+
+          <Banner
+            v-if="showCisProfile && !isCisSupported"
+            color="info"
+            :label="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)"
+          />
 
           <div class="row mb-10">
             <div

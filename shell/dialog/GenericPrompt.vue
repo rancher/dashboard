@@ -26,7 +26,15 @@ export default {
     body: {
       type:    String,
       default: ''
-    }
+    },
+
+    /**
+     * Callback to identify response of the prompt
+     */
+    confirm: {
+      type:    Function,
+      default: () => { }
+    },
   },
   data() {
     return { errors: [] };
@@ -34,13 +42,15 @@ export default {
 
   methods: {
     close() {
-      this.$emit('close');
+      this.confirm(false);
+      this.$emit('close', false);
     },
 
     async apply(buttonDone) {
       try {
         await this.applyAction(buttonDone);
-        this.close();
+        this.confirm(true);
+        this.$emit('close', true);
       } catch (err) {
         console.error(err); // eslint-disable-line
         this.errors = exceptionToErrorsArray(err);

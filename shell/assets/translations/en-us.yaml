@@ -1623,7 +1623,6 @@ cluster:
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
     removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
-
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
   availabilityWarnings:
@@ -1775,6 +1774,11 @@ cluster:
     banner:
       psaChange: PSACT is now set to Rancher default automatically
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
+      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. It's recommended to review RKE2 documentation to evaluate the impact of changing CIS Profile.
+    modal:
+      pspChange:
+        title: Pod Security Policy deprecation
+        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be MANUALLY removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Proceed?
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -3893,6 +3897,7 @@ podDisruptionBudget:
 
 # Rancher Extensions
 plugins:
+  incompatibleDisclaimer: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -3926,6 +3931,7 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
+    requiresVersion: "Requires Rancher {version}"
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available
@@ -7141,7 +7147,7 @@ legacy:
   globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
-  psps: Pod Security Policies
+  psps: Pod Security Policy Templates
   secrets: Secrets
 
   project:
