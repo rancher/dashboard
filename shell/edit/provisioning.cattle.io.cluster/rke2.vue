@@ -15,8 +15,7 @@ import {
   DEFAULT_WORKSPACE,
   SECRET,
   HCI,
-  PSP,
-  COUNT,
+  PSPS,
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -131,8 +130,9 @@ export default {
   },
 
   async fetch() {
-    if (this.mode !== _CREATE) {
-      this.hasPsp = await this.checkPsp();
+    // Check presence of PSP in RKE2, which is where we show the templates
+    if (this.mode !== _CREATE && !this.isK3s) {
+      this.psps = await this.checkPsps();
     }
 
     if ( !this.rke2Versions ) {
@@ -318,12 +318,12 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
-      lastDefaultPodSecurityPolicyTemplateName,
+      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
       previousKubernetesVersion,
       harvesterVersion:      '',
       cisOverride:           false,
       cisPsaChangeBanner:    false,
-      hasPsp:                false,
+      psps:                  null, // List of policies if any
     };
   },
 
@@ -338,6 +338,13 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    /**
+     * Check presence of PSPs as template or CLI creation
+     */
+    hasPsps() {
+      return !!this.psps?.count;
     },
 
     isElementalCluster() {
@@ -1856,22 +1863,15 @@ export default {
     /**
      * Check if current cluster has PSP enabled
      */
-    async checkPsp() {
+    checkPsps() {
       const clusterId = this.value.mgmtClusterId;
-      const url = `/k8s/clusters/${ clusterId }/v1`;
+      const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
 
       try {
-        const mything = await this.$store.dispatch('cluster/request', { url: `${ url }/policy.podsecuritypolicies` });
-
-        console.log(mything);
+        return this.$store.dispatch('cluster/request', { url } );
       } catch (error) {
-
+        // PSP may not exists for this cluster and an error is returned without need to handle
       }
-
-      const count = this.$store.getters[`cluster/all`](COUNT);
-      const clusterCounts = count?.[0]?.counts;
-
-      return !!clusterCounts?.[PSP]?.summary?.count;
     },
 
     /**
@@ -2194,23 +2194,21 @@ export default {
           <h3>
             {{ t('cluster.rke2.security.header') }}
           </h3>
-          <template v-if="hasPsp">
-            <Banner
-              v-if="isEdit && displayInvalidPspsBanner"
-              color="warning"
-              :label="t('cluster.banner.invalidPsps')"
-            />
-            <Banner
-              v-else-if="isCreate && !needsPSP"
-              color="info"
-              :label="t('cluster.banner.removedPsp')"
-            />
-            <Banner
-              v-else-if="isCreate"
-              color="info"
-              :label="t('cluster.banner.deprecatedPsp')"
-            />
-          </template>
+          <Banner
+            v-if="isEdit && displayInvalidPspsBanner && hasPsps"
+            color="warning"
+            :label="t('cluster.banner.invalidPsps')"
+          />
+          <Banner
+            v-else-if="isCreate && !needsPSP"
+            color="info"
+            :label="t('cluster.banner.removedPsp')"
+          />
+          <Banner
+            v-else-if="isCreate && hasPsps"
+            color="info"
+            :label="t('cluster.banner.deprecatedPsp')"
+          />
 
           <Banner
             v-if="showCisProfile && !isCisSupported"
