@@ -31,6 +31,7 @@ import Socket, {
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 import { isAlternate } from '@shell/utils/platform';
+import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -639,6 +640,26 @@ export default {
         return day(time).format(this.dateTimeFormatStr);
       }
     },
+
+    machineSortGenerationFn() {
+      // The sort generation function creates a unique value and is used to create a key including sort details.
+      // The unique key determines if the list is redrawn or a cached version is shown.
+      // Because we ensure the 'not in a pool' group is there via a row, and timing issues, the unqiue key doesn't change
+      // after a machine is added/removed... so the list won't update... so we need to inject a string to ensure the key is fresh
+      const base = defaultTableSortGenerationFn(this.machineSchema, this.$store);
+
+      return base + (!!this.fakeMachines.length ? '-fake' : '');
+    },
+
+    nodeSortGenerationFn() {
+      // The sort generation function creates a unique value and is used to create a key including sort details.
+      // The unique key determines if the list is redrawn or a cached version is shown.
+      // Because we ensure the 'not in a pool' group is there via a row, and timing issues, the unqiue key doesn't change
+      // after a machine is added/removed... so the list won't update... so we need to inject a string to ensure the key is fresh
+      const base = defaultTableSortGenerationFn(this.mgmtNodeSchema, this.$store);
+
+      return base + (!!this.fakeNodes.length ? '-fake' : '');
+    },
   }
 };
 </script>
@@ -682,6 +703,7 @@ export default {
           :group-by="value.isCustom ? null : 'poolId'"
           group-ref="pool"
           :group-sort="['pool.nameDisplay']"
+          :sort-generation-fn="machineSortGenerationFn"
         >
           <template #main-row:isFake="{fullColspan}">
             <tr class="main-row">
@@ -766,6 +788,7 @@ export default {
           :group-by="value.isCustom ? null : 'spec.nodePoolName'"
           group-ref="pool"
           :group-sort="['pool.nameDisplay']"
+          :sort-generation-fn="nodeSortGenerationFn"
         >
           <template #main-row:isFake="{fullColspan}">
             <tr class="main-row">

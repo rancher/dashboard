@@ -26,6 +26,7 @@ export const EVENT_DISCONNECT_ERROR = 'disconnect_error';
 
 export const NO_WATCH = 'NO_WATCH';
 export const NO_SCHEMA = 'NO_SCHEMA';
+export const REVISION_TOO_OLD = 'TOO_OLD';
 
 export default class Socket extends EventTarget {
   url;
