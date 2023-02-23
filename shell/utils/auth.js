@@ -2,6 +2,7 @@ import { Popup, popupWindowOptions } from '@shell/utils/window';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 import { BACK_TO, SPA, _EDIT, _FLAGGED } from '@shell/config/query-params';
 import { MANAGEMENT } from '@shell/config/types';
+import { allHash } from '@shell/utils/promise';
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
@@ -78,4 +79,68 @@ export const authProvidersInfo = async(store) => {
     enabledLocation,
     enabled
   };
+};
+
+export const checkSchemasForFindAllHash = (types, store) => {
+  const hash = {};
+
+  for (const [key, value] of Object.entries(types)) {
+    const schema = store.getters[`${ value.inStoreType }/schemaFor`](value.type);
+
+    // It could be that user has permissions for GET but not list
+    // e.g. Standard user with GitRepo permissions try to fetch list of fleetworkspaces
+    // user has ability to GET but not fleet workspaces
+    // so optionally define a function that require it to pass before /findAll
+    const validSchema = value.schemaValidator ? value.schemaValidator(schema) : !!schema;
+
+    if (validSchema) {
+      hash[key] = store.dispatch(`${ value.inStoreType }/findAll`, { type: value.type } );
+    }
+  }
+
+  return allHash(hash);
+};
+
+export const checkPermissions = (types, getters) => {
+  const hash = {};
+
+  for (const [key, value] of Object.entries(types)) {
+    const schema = getters['management/schemaFor'](value.type);
+
+    if (!schema) {
+      hash[key] = false;
+
+      continue;
+    }
+
+    // It could be that user has permissions for GET but not list
+    // e.g. Standard user with GitRepo permissions try to fetch list of fleetworkspaces
+    // user has ability to GET but not fleet workspaces
+    // so optionally define a function that require it to pass before /findAll
+    if (value.schemaValidator) {
+      hash[key] = value.schemaValidator(schema);
+
+      continue;
+    }
+
+    if (value.resourceMethods && schema) {
+      hash[key] = value.resourceMethods.every((method) => {
+        return (schema.resourceMethods || []).includes(method);
+      });
+
+      continue;
+    }
+
+    if (value.collectionMethods && schema) {
+      hash[key] = value.collectionMethods.every((method) => {
+        return (schema.collectionMethods || []).includes(method);
+      });
+
+      continue;
+    }
+
+    hash[key] = !!schema;
+  }
+
+  return allHash(hash);
 };

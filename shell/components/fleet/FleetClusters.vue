@@ -71,8 +71,7 @@ export default {
     },
 
     pagingParams() {
-      const inStore = this.$store.getters['currentStore'](FLEET.CLUSTER);
-      const schema = this.$store.getters[`${ inStore }/schemaFor`](FLEET.CLUSTER);
+      const schema = this.$store.getters[`management/schemaFor`](FLEET.CLUSTER);
 
       return {
         singularLabel: this.$store.getters['type-map/labelFor'](schema),

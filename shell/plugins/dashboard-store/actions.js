@@ -396,6 +396,12 @@ export default {
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
+    if (!id) {
+      console.error('Attempting to find a resource with no id', type, id); // eslint-disable-line no-console
+
+      return;
+    }
+
     const { getters, dispatch } = ctx;
 
     opt = opt || {};

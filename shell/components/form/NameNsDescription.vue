@@ -299,7 +299,7 @@ export default {
 
     canCreateNamespace() {
       // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
-      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster.canUpdate;
+      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster?.canUpdate;
     }
   },
 

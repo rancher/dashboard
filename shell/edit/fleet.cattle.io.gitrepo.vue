@@ -23,6 +23,7 @@ import { _CREATE } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -48,8 +49,20 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    this.allClusterGroups = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
+    const hash = await checkSchemasForFindAllHash({
+      allClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+
+      allClusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      }
+    }, this.$store);
+
+    this.allClusters = hash.allClusters || [];
+    this.allClusterGroups = hash.allClusterGroups || [];
 
     let tls = _VERIFY;
 

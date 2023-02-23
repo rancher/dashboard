@@ -358,6 +358,10 @@ export default {
       const newNamespaceName = get(this.resource, this.namespaceKey);
       let namespaceAlreadyExists = false;
 
+      if (!this.createNamespace) {
+        return;
+      }
+
       try {
         // This is in a try-catch block because the call to fetch
         // a namespace throws an error if the namespace is not found.
