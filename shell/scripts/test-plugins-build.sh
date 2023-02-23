@@ -110,9 +110,6 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   echo "Building skeleton app"
   FORCE_COLOR=true yarn build | cat
 
-  echo "Cleaning temporary dir for test-app"
-  rm -rf ${DIR}/test-app
-
   # Package creator
   echo "Verifying package creator package"
   yarn create @rancher/pkg test-pkg
