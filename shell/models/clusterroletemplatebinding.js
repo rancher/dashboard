@@ -23,6 +23,9 @@ export default class CRTB extends NormanModel {
   }
 
   get steve() {
-    return this.$rootGetters[`management/byId`](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, this.id?.replace(':', '/'));
+    return this.$dispatch(`management/find`, {
+      type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+      id:   this.id?.replace(':', '/')
+    }, { root: true });
   }
 }
