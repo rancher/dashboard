@@ -43,15 +43,25 @@ export default {
       const errorMessage = isObject ? error.message || '' : error || '';
 
       switch (true) {
-      case errorMessage.includes('violates PodSecurity'): {
-        const match = errorMessage.match(/\"(.*?)\"/gi);
-        const name = match[0];
-        const policy = match[1];
+      // for objects (ex: YAMLexceptions)
+      case typeof error === 'object' && !Array.isArray(error) && error !== null: {
+        return { message: error.message || '' };
+      }
+      // for strings
+      case typeof error === 'string': {
+        // PSPs related
+        if (error.includes('violates PodSecurity')) {
+          const match = error.match(/\"(.*?)\"/gi);
+          const name = match[0];
+          const policy = match[1];
 
-        return {
-          message: `Pod ${ name } Security Policy Violation ${ policy }`,
-          icon:    'icon-pod_security'
-        };
+          return {
+            message: `Pod ${ name } Security Policy Violation ${ policy }`,
+            icon:    'icon-pod_security'
+          };
+        }
+
+        return { message: error };
       }
       default:
         break;
