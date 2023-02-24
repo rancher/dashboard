@@ -649,4 +649,8 @@ export default class Workload extends WorkloadService {
 
     return matching(allInNamespace, selector);
   }
+
+  get canUpdate() {
+    return this.hasLink('update');
+  }
 }
