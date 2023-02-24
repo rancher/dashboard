@@ -108,8 +108,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
 
-    isScalable() {
-      return this.value?.canUpdate;
+    isActive() {
+      return this.value.metadata.state.name === 'active';
     },
 
     isJob() {
@@ -335,7 +335,7 @@ export default {
         class="text-right"
         :label="t('tableHeaders.scale')"
         :value="value.spec.replicas"
-        :disabled="!isScalable"
+        :disabled="!isActive"
         @minus="scaleDown"
         @plus="scaleUp"
       />
