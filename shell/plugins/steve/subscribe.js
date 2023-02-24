@@ -306,8 +306,13 @@ const sharedActions = {
     }
 
     // If socket is in error don't try to watch.... unless we `force` it
-    if ( !stop && !force && !getters.canWatch(params) ) {
-      console.error(`Aborting Watch Request [${ getters.storeName }] (socket probably in error)`, JSON.stringify(params)); // eslint-disable-line no-console
+    const inError = getters.inError(params);
+
+    if ( !stop && !force && inError ) {
+      // REVISION_TOO_OLD is a temporary state and will be handled when `resyncWatch` completes
+      if (inError !== REVISION_TOO_OLD) {
+        console.error(`Aborting Watch Request [${ getters.storeName }]. Watcher in error (${ inError })`, JSON.stringify(params)); // eslint-disable-line no-console
+      }
 
       return;
     }
@@ -897,8 +902,8 @@ const defaultMutations = {
  * Getters that cover cases 1 & 2 (see file description)
  */
 const defaultGetters = {
-  canWatch: state => (obj) => {
-    return !state.inError[keyForSubscribe(obj)];
+  inError: state => (obj) => {
+    return state.inError[keyForSubscribe(obj)];
   },
 
   watchStarted: state => (obj) => {
