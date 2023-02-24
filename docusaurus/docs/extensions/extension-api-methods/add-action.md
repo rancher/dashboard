@@ -10,8 +10,8 @@ This method adds a button/action to the UI.
 
 Method:
 
-```
-plugin.addAction(where: String, when: LocationConfig, options: Object)
+```ts
+plugin.addAction(where: String, when: LocationConfig, options: Object);
 ```
 
 _Arguments_
@@ -27,7 +27,7 @@ _Arguments_
 
 `when` Object admissable values:
 
-`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](../extensions-api#locationconfig-object-definition-when).
 
 <br/>
 <br/>
@@ -50,7 +50,7 @@ _Arguments_
 
 Usage example for `'ActionLocation.HEADER'`:
 
-```
+```ts
 plugin.addAction(
   ActionLocation.HEADER,
   {},
@@ -68,7 +68,7 @@ plugin.addAction(
 );
 ```
 
-```
+```ts
 plugin.addAction(
   ActionLocation.HEADER,
   {},
@@ -119,7 +119,7 @@ Usage example for `'ActionLocation.TABLE'`:
 
 _RENDERING A SIMPLE DIVIDER_
 
-```
+```ts
 plugin.addAction( 
   ActionLocation.TABLE,
   { resource: ['catalog.cattle.io.clusterrepo'] }, 
@@ -129,7 +129,7 @@ plugin.addAction(
 
 _CONFIGURING A NON-BULKABLE ACTION (inline action)_
 
-```
+```ts
 plugin.addAction(
   ActionLocation.TABLE,
   { resource: ['catalog.cattle.io.clusterrepo'] }, 
@@ -147,7 +147,7 @@ plugin.addAction(
 
 _CONFIGURING AN INLINE AND BULKABLE ACTION_
 
-```
+```ts
 plugin.addAction(
   ActionLocation.TABLE,
   { resource: ['catalog.cattle.io.clusterrepo'] }, 

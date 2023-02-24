@@ -6,8 +6,8 @@ This method adds a panel/content to the UI.
 
 Method:
 
-```
-plugin.addPanel(where: String, when: LocationConfig, options: Object)
+```ts
+plugin.addPanel(where: String, when: LocationConfig, options: Object);
 ```
 
 _Arguments_
@@ -24,7 +24,7 @@ _Arguments_
 
 `when` Object admissable values:
 
-`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](../extensions-api#locationconfig-object-definition-when).
 
 <br/>
 <br/>
@@ -41,11 +41,12 @@ _Arguments_
 
 Usage example for `'PanelLocation.DETAILS_MASTHEAD'`:
 
-```
+```ts
 plugin.addPanel(
   PanelLocation.DETAILS_MASTHEAD
   { resource: ['catalog.cattle.io.clusterrepo'] },
-  { component: () => import('./MastheadDetailsComponent.vue') });
+  { component: () => import('./MastheadDetailsComponent.vue') }
+);
 ```
 
 <br/>
@@ -63,11 +64,12 @@ plugin.addPanel(
 
 Usage example for `'PanelLocation.DETAIL_TOP'`:
 
-```
+```ts
 plugin.addPanel(
   PanelLocation.DETAIL_TOP,
   { resource: ['catalog.cattle.io.clusterrepo'] },
-  { component: () => import('./DetailTopComponent.vue') });
+  { component: () => import('./DetailTopComponent.vue') }
+);
 ```
 
 <br/>
@@ -85,9 +87,10 @@ plugin.addPanel(
 
 Usage example for `'PanelLocation.RESOURCE_LIST'`:
 
-```
+```ts
 plugin.addPanel(
   PanelLocation.RESOURCE_LIST,
   { resource: ['catalog.cattle.io.app'] },
-  { component: () => import('./BannerComponent.vue') });
+  { component: () => import('./BannerComponent.vue') }
+);
 ```

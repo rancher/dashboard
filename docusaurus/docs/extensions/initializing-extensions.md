@@ -10,9 +10,9 @@ When setting up a extension, on the Extensions part of Rancher Dashboard you wil
 
 Which will come from two separate places: the extension initialization and a README file on the root folder of your extension.
 
-the extension initialization should contain the `metadata` extension method to grab fields such as `name` and `description`:
+The extension initialization should contain the `metadata` extension method to grab fields such as `name` and `description`:
 
-```
+```ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 
@@ -43,7 +43,7 @@ Product configuration for extensions is largely unchanged (read more about produ
 
 Defining an extension as product leverages the `addProduct` extension method, which will be defined on the `index.ts` on your root folder:
 
-```
+```ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 
@@ -63,7 +63,7 @@ export default function(plugin: IPlugin) {
 
 But as for a basic example of a product definition of your extension on your `product.js` file would be something along these lines:
 
-```
+```ts
 export function init($plugin, store) {
   const { product } = $plugin.DSL(store, $plugin.name);
 
@@ -84,7 +84,7 @@ Extensions should explicitly register any store modules in their `index.ts` by u
 
 An example would be to define in the folder `store` of your extension a basic configuration on an `index.ts` file, such as:
 
-```
+```ts
 import { CoreStoreSpecifics, CoreStoreConfig } from '@shell/core/types';
 import getters from './getters'; // this would be your getters file on your extension /store folder
 import mutations from './mutations'; // this would be your mutations file on your extension /store folder
@@ -113,7 +113,7 @@ export default {
 
 And on the `index.ts` on your root folder, where you define your extension configuration, you can just use the `addDashboardStore` extension method, such as:
 
-```
+```ts
 import extensionStore from './store';
 
 // Init the package
@@ -125,7 +125,7 @@ export default function($plugin: IPlugin) {
 
 
 Extensions can optionally define their own cluster store module by setting `isClusterStore` in the store index, eg:
-```
+```ts
 const config: CoreStoreConfig = {
   namespace:      PRODUCT_NAME,
   isClusterStore: true
@@ -144,9 +144,9 @@ This will cause the shell `loadCluster` action to run the extension's `loadClust
 ## Extension Routing
 Extensions should use a pages directory, as the shell currently does, but routing needs to be explicitly defined then added in the extension index using the extension `addRoutes` method. Extension routes can override existing dashboard routes: they'll be loaded on extension entry and unloaded (with old dashboard routes re-loaded...) on extension leave. As touched on above, cluster and product information used to connect to the cluster and define navigation is determined from the route. Consequently, while extensions have a lot of control over their own routing, anything tied into one kubernetes cluster should be nested in `pages/c/_cluster`.
 
-on the `index.ts` on your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
+Within the `index.ts` in your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
 
-```
+```ts
 import extensionRouting from './routing/extension-routing';
 
 // Init the package
@@ -158,7 +158,7 @@ export default function($plugin: IPlugin) {
 
 As in the `/routing/extension-routing.ts` you would have something like:
 
-```
+```ts
 import { YOUR_PRODUCT_NAME } from '../config/elemental-types';
 import ExtensionDashboardView from '../pages/extensionDashboardView.vue';
 
@@ -178,7 +178,7 @@ The routing definition on this example in `/routing/extension-routing.ts` is bas
 
 
 ## Navigation In and Out of Extensions
-Extensions can define `onEnter` and `onLeave` hooks in their index `addNavHooks` extension method, which will run when the authenticated middleware detects a package change by checking the route meta property. `onEnter` and `onLeave` accept the same props: the vuex store context and a config opject containing: 
+Extensions can define `onEnter` and `onLeave` hooks in their index `addNavHooks` extension method, which will run when the authenticated middleware detects a package change by checking the route meta property. `onEnter` and `onLeave` accept the same props: the vuex store context and a config object containing: 
 
 | Key | Type | Description |
 |---|---|---|
@@ -196,7 +196,7 @@ The `authenticated` middleware will:
 
 An example of the usage `onEnter` and `onLeave` using the `addNavHooks` extension method would be:
 
-```
+```ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin, OnNavToPackage, OnNavAwayFromPackage } from '@shell/core/types';
 

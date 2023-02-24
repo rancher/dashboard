@@ -32,20 +32,22 @@ To start off how to use the Extensions API, it's important to mention that most 
 
 Example: 
 
-```
+```ts
 plugin.addPanel(
   where,
   when,
   options
+);
 ```
 
 or
 
-```
+```ts
 plugin.addPanel(
   PanelLocation.DETAIL_TOP,
   { resource: ['catalog.cattle.io.clusterrepo'] },
-  { component: () => import('./DetailTopComponent.vue') });
+  { component: () => import('./DetailTopComponent.vue') }
+);
 ```
 
 <br/>
@@ -104,7 +106,7 @@ which translates to:
 <INSTANCE-BASE-URL>/dashboard/<PRODUCT-ID>/c/<CLUSTER-ID>/<RESOURCE-ID>/<ID>
 ```
 
-With this it's then possible to easily identify the parameters needed to populate the `LocationConfig` and add the UI enhancements to the areas that you like. YES, it's possible to also even enhance other extensions!
+With this it's then possible to easily identify the parameters needed to populate the `LocationConfig` and add the UI enhancements to the areas that you like. YES, it's also possible to enhance other extensions!
 
 
 The admissable parameters for the `LocationConfig` object are:
@@ -121,31 +123,31 @@ The admissable parameters for the `LocationConfig` object are:
 ## `LocationConfig` Examples
 
 Example 1:
-```
+```ts
 {}
 ```
 
 Passing an empty object as a `LocationObject` will apply a given extension enhancement to all locations where it can be apllied.
 
 Example 2:
-```
+```ts
 { product: ['home'] }
 ```
 
 Extension enhancement will be applied on the homepage of rancher dashboard (if applicable).
 
 Example 3:
-```
+```ts
 { resource: ['pod'], id: ['pod-nxr5vm'] }
 ```
 
 Extension enhancement will be applied on the resource `pod` with id `pod-nxr5vm` (if applicable).
 
 Example 4:
-```
+```ts
 { 
   cluster:  ['local'], 
-  resource: ['catalog.cattle.io.clusterrepo]', 
+  resource: ['catalog.cattle.io.clusterrepo'], 
   mode:     ['edit'] 
 }
 ```

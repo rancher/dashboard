@@ -6,8 +6,8 @@ This method adds a table column to a `SortableTable`/`ResourceList` element-base
 
 Method:
 
-```
-plugin.addTableColumn(where: String, when: LocationConfig, options: Object)
+```ts
+plugin.addTableColumn(where: String, when: LocationConfig, options: Object);
 ```
 
 _Arguments_
@@ -22,7 +22,7 @@ _Arguments_
 
 `when` Object admissable values:
 
-`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](../extensions-api#locationconfig-object-definition-when).
 
 <br/>
 <br/>
@@ -39,13 +39,13 @@ _Arguments_
 |`labelKey`| String | Same as "name" but allows for translation. Will superseed "name" |
 |`value`| String | Object property to obtain the value from |
 |`getValue`| Fuction | Same as "value", but it can be a function. Will superseed "value" |
-|`width`| Int | Column width (in px). Optional |
+|`width`| Int | Column width (in `px`). Optional |
 |`sort`| Array | Object properties to be bound to the table sorting. Optional |
 |`search`| Array | Object properties to be bound to the table search. Optional |
 
 Usage example for `'TableColumnLocation.RESOURCE'`:
 
-```
+```ts
 plugin.addTableColumn(
   TableColumnLocation.RESOURCE,
   { resource: ['configmap'] },

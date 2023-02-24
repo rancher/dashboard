@@ -6,8 +6,8 @@ This method adds a tab to the UI.
 
 Method:
 
-```
-plugin.addTab(where: String, when: LocationConfig, options: Object)
+```ts
+plugin.addTab(where: String, when: LocationConfig, options: Object);
 ```
 
 _Arguments_
@@ -22,7 +22,7 @@ _Arguments_
 
 `when` Object admissable values:
 
-`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](../extensions-api#locationconfig-object-definition-when).
 
 <br/>
 <br/>
@@ -45,7 +45,7 @@ _Arguments_
 
 Usage example:
 
-```
+```ts
 plugin.addTab( 
   TabLocation.RESOURCE_DETAIL,
   { resource: ['pod'] }, 

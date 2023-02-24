@@ -6,8 +6,8 @@ This method adds a card element to the UI.
 
 Method:
 
-```
-plugin.addCard(where: String, when: LocationConfig, options: Object)
+```ts
+plugin.addCard(where: String, when: LocationConfig, options: Object);
 ```
 
 _Arguments_
@@ -22,7 +22,7 @@ _Arguments_
 
 `when` Object admissable values:
 
-`LocationConfig` as described above for the [LocationConfig object](#Locationconfig-object-definition).
+`LocationConfig` as described above for the [LocationConfig object](../extensions-api#locationconfig-object-definition-when).
 
 <br/>
 <br/>
@@ -41,7 +41,7 @@ _Arguments_
 
 Usage example for `'CardLocation.CLUSTER_DASHBOARD_CARD'`:
 
-```
+```ts
 plugin.addCard(
   CardLocation.CLUSTER_DASHBOARD_CARD,
   { cluster: ['local'] },
