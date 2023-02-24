@@ -131,9 +131,7 @@ export default {
 
   async fetch() {
     // Check presence of PSP in RKE2, which is where we show the templates
-    if (this.mode !== _CREATE && !this.isK3s) {
-      this.psps = await this.checkPsps();
-    }
+    this.psps = await this.checkPsps();
 
     if ( !this.rke2Versions ) {
       const hash = {
@@ -1862,15 +1860,18 @@ export default {
 
     /**
      * Check if current cluster has PSP enabled
+     * Consider exclusively RKE2 provisioned clusters in edit mode
      */
     checkPsps() {
-      const clusterId = this.value.mgmtClusterId;
-      const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
+      if (this.mode !== _CREATE && !this.isK3s && this.value.state !== 'reconciling') {
+        const clusterId = this.value.mgmtClusterId;
+        const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
 
-      try {
-        return this.$store.dispatch('cluster/request', { url } );
-      } catch (error) {
-        // PSP may not exists for this cluster and an error is returned without need to handle
+        try {
+          return this.$store.dispatch('cluster/request', { url });
+        } catch (error) {
+          // PSP may not exists for this cluster and an error is returned without need to handle
+        }
       }
     },
 
