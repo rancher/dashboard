@@ -36,28 +36,23 @@ export default {
      * Find error exceptions to be mapped for each case
      */
     mapError(error) {
+      const isObject = error && typeof error === 'object' && !Array.isArray(error);
+      // We have just 2 cases, so we'll set a ternary operation:
+      // - one is for when we submit a YAML edited form (object - YAMLexceptions)
+      // - other is for a string message
+      const errorMessage = isObject ? error.message || '' : error || '';
+
       switch (true) {
-      // for objects (ex: YAMLexceptions)
-      case typeof error === 'object' && !Array.isArray(error) && error !== null: {
-        return { message: error.message || '' };
+      case errorMessage.includes('violates PodSecurity'): {
+        const match = errorMessage.match(/\"(.*?)\"/gi);
+        const name = match[0];
+        const policy = match[1];
+
+        return {
+          message: `Pod ${ name } Security Policy Violation ${ policy }`,
+          icon:    'icon-pod_security'
+        };
       }
-      // for strings
-      case typeof error === 'string': {
-        // PSPs related
-        if (error.includes('violates PodSecurity')) {
-          const match = error.match(/\"(.*?)\"/gi);
-          const name = match[0];
-          const policy = match[1];
-
-          return {
-            message: `Pod ${ name } Security Policy Violation ${ policy }`,
-            icon:    'icon-pod_security'
-          };
-        }
-
-        return { message: error };
-      }
-
       default:
         break;
       }
