@@ -19,6 +19,7 @@ export default {
 
   computed: {
     kind() {
+      // this cover most of the usecases for events
       if (this.value?.apiVersion && typeof this.value?.apiVersion === 'string') {
         const versionParts = this.value.apiVersion.split('/');
 
@@ -27,6 +28,9 @@ export default {
         }
 
         return `${ versionParts[0] }.${ this.value.kind.toLowerCase() }`;
+      // covers Node events usecase
+      } else if (this.value?.kind && typeof this.value?.kind === 'string') {
+        return this.value?.kind.toLowerCase();
       }
 
       return '';
