@@ -7,7 +7,6 @@ import { removeObject } from '@shell/utils/array';
 import { Checkbox } from '@components/Form/Checkbox';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import ActionDropdown from '@shell/components/ActionDropdown';
-import $ from 'jquery';
 import throttle from 'lodash/throttle';
 import debounce from 'lodash/debounce';
 import THead from './THead';
@@ -19,6 +18,8 @@ import grouping from './grouping';
 import actions from './actions';
 import AdvancedFiltering from './advanced-filtering';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { getParent } from '@shell/utils/dom';
+
 // Uncomment for table performance debugging
 // import tableDebug from './debug';
 
@@ -340,10 +341,10 @@ export default {
     }, 200);
 
     // Add scroll listener to the main element
-    const $main = $('main');
+    const $main = document.querySelector('main');
 
     this._onScroll = this.onScroll.bind(this);
-    $main.on('scroll', this._onScroll);
+    $main.addEventListener('scroll', this._onScroll);
   },
 
   beforeDestroy() {
@@ -354,9 +355,9 @@ export default {
     clearTimeout(this._delayedColumnsTimer);
     clearTimeout(this.manualRefreshTimer);
 
-    const $main = $('main');
+    const $main = document.querySelector('main');
 
-    $main.off('scroll', this._onScroll);
+    $main.removeEventListener('scroll', this._onScroll);
   },
 
   watch: {
@@ -817,13 +818,12 @@ export default {
     },
 
     nearestCheckbox() {
-      const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
-
-      return $cur[0];
+      return document.activeElement.closest('tr.main-row')?.querySelector('.checkbox-custom');
     },
 
     focusAdjacent(next = true) {
-      const all = $('.checkbox-custom', this.$el).toArray();
+      const all = Array.from(this.$el.querySelectorAll('.checkbox-custom'));
+
       const cur = this.nearestCheckbox();
       let idx = -1;
 
@@ -852,14 +852,14 @@ export default {
 
     focusNext: throttle(function(event, more = false) {
       const elem = this.focusAdjacent(true);
-      const row = $(elem).parents('tr');
+      const row = getParent(elem, 'tr');
 
       this.keySelectRow(row, more);
     }, 50),
 
     focusPrevious: throttle(function(event, more = false) {
       const elem = this.focusAdjacent(false);
-      const row = $(elem).parents('tr');
+      const row = getParent(elem, 'tr');
 
       this.keySelectRow(row, more);
     }, 50),
