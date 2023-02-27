@@ -208,6 +208,14 @@ export default class ClusterNode extends SteveModel {
     return ((this.ramUsage * 100) / this.ramCapacity).toString();
   }
 
+  get ramReserved() {
+    return parseSi(this.status?.allocatable?.memory);
+  }
+
+  get ramReservedPercentage() {
+    return ((this.ramUsage * 100) / this.ramReserved).toString();
+  }
+
   get podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
   }

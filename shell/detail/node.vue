@@ -229,13 +229,24 @@ export default {
         :capacity="value.cpuCapacity"
         :used="value.cpuUsage"
       />
-      <ConsumptionGauge
-        :resource-name="t('node.detail.glance.consumptionGauge.memory')"
-        :capacity="value.ramCapacity"
-        :used="value.ramUsage"
-        :units="memoryUnits"
-        :number-formatter="memoryFormatter"
-      />
+      <div>
+        <ConsumptionGauge
+          :resource-name="t('node.detail.glance.consumptionGauge.memory')"
+          :capacity="value.ramCapacity"
+          :used="value.ramUsage"
+          :units="memoryUnits"
+          :number-formatter="memoryFormatter"
+        />
+        <ConsumptionGauge
+          class="mt-20"
+          :resource-name="t('node.detail.glance.consumptionGauge.reserved')"
+          :used-as-resource-name="true"
+          :capacity="value.ramReserved"
+          :used="value.ramUsage"
+          :units="memoryUnits"
+          :number-formatter="memoryFormatter"
+        />
+      </div>
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.pods')"
         :capacity="value.podCapacity"

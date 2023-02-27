@@ -3499,6 +3499,7 @@ node:
     glance:
       consumptionGauge:
         used: Used
+        reserved: Reserved
         amount: "{used} of {total} {unit}"
         cpu: CPU
         memory: MEMORY
