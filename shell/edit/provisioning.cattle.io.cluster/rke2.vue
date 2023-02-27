@@ -380,8 +380,8 @@ export default {
         // Normally, we only want to show the most recent patch version
         // for each Kubernetes minor version. However, if the user
         // opts in to showing deprecated versions, we don't filter them.
-        allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
-        allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
+        allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur, this.defaultRke2);
+        allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur, this.defaultK3s);
       }
 
       const showRke2 = allValidRke2Versions.length && !existingK3s;
@@ -1529,7 +1529,8 @@ export default {
       const sortedWithDeprecatedLabel = sorted.map((optionData) => {
         const majorMinor = `${ semver.major(optionData.value) }.${ semver.minor(optionData.value) }`;
 
-        if (mostRecentPatchVersions[majorMinor] === optionData.value) {
+        // Don't mark latest or default version (if different) as deprecated
+        if (mostRecentPatchVersions[majorMinor] === optionData.value || optionData.value === defaultVersion) {
           return optionData;
         }
 
@@ -1560,7 +1561,7 @@ export default {
       return versionMap;
     },
 
-    filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
+    filterOutDeprecatedPatchVersions(allVersions, currentVersion, defaultVersion) {
       // Get the most recent patch version for each Kubernetes minor version.
       const mostRecentPatchVersions = this.getMostRecentPatchVersions(allVersions);
 
@@ -1572,8 +1573,8 @@ export default {
 
         const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
 
-        // Always show current version, else show if we haven't shown anything for this major.minor version yet
-        if (version === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
+        // Always show default version and current version, else show if we haven't shown anything for this major.minor version yet
+        if (version.value === defaultVersion || version === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
           return true;
         }
 
