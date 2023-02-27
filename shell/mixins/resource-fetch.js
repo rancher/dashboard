@@ -131,8 +131,8 @@ export default {
 
       const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
 
-      if (schema?.attributes?.namespaced) {
-        opt.namespaced = this.namespaceFilter;
+      if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
+        opt.namespaced = this.namespaceFilter; // namespaceFilter will only be populated if applicable for primary resource
       }
 
       return this.$store.dispatch(`${ currStore }/findAll`, {
