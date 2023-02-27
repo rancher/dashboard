@@ -30,6 +30,8 @@ jobs:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-latest
     steps:
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
@@ -65,6 +67,8 @@ jobs:
   unit-test:
     runs-on: ubuntu-latest
     steps:
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
@@ -90,6 +94,8 @@ jobs:
   i18n:
     runs-on: ubuntu-latest
     steps:
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
@@ -106,6 +112,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
@@ -126,6 +134,8 @@ jobs:
       - unit-test
       - e2e-test
     steps:
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1

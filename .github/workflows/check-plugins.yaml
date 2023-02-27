@@ -8,6 +8,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
+      env:
+        NODE_OPTIONS: "--max_old_space_size=4096"
     - name: Checkout
       uses: actions/checkout@v1
     - name: Setup Node.js
