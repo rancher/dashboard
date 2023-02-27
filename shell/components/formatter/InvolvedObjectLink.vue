@@ -40,7 +40,7 @@ export default {
 </script>
 
 <template>
-  <span v-if="value.kind && value.name">
+  <span v-if="kind && value.kind && value.name">
     <LinkName
       :type="kind"
       :value="`${value.kind} ${value.name}`"
@@ -50,4 +50,5 @@ export default {
       :show-type="true"
     />
   </span>
+  <span v-else />
 </template>
