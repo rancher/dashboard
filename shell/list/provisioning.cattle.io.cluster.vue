@@ -9,10 +9,11 @@ import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/u
 import { mapFeature, HARVESTER as HARVESTER_FEATURE } from '@shell/store/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import ResourceFetch from '@shell/mixins/resource-fetch';
+import { BadgeState } from '@components/BadgeState';
 
 export default {
   components: {
-    Banner, ResourceTable, Masthead
+    Banner, ResourceTable, Masthead, BadgeState
   },
   mixins: [ResourceFetch],
   props:  {
@@ -187,6 +188,32 @@ export default {
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     >
+      <!-- Why are state column and subrow overwritten here? -->
+      <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->
+      <!-- updates were getting lost. This isn't performant as normal columns, but the list shouldn't grow -->
+      <!-- big enough for the performance to matter -->
+      <template #cell:state="{row}">
+        <!-- mimic prov cluster stateObj (if harvester use hardcoded stateObj from prov cluster) -->
+        <BadgeState :value="row.isHarvester ? row : row.mgmt || row" />
+      </template>
+      <template #sub-row="{fullColspan, row, keyField, componentTestid, i, onRowMouseEnter, onRowMouseLeave}">
+        <tr
+          v-if="row.stateDescription"
+          :key="row[keyField] + '-description'"
+          :data-testid="componentTestid + '-' + i + '-row-description'"
+          class="state-description sub-row"
+          @mouseenter="onRowMouseEnter"
+          @mouseleave="onRowMouseLeave"
+        >
+          <td>&nbsp;</td>
+          <td
+            :colspan="fullColspan - 1"
+            :class="{ 'text-error' : row.stateObj.error }"
+          >
+            {{ row.stateDescription }}
+          </td>
+        </tr>
+      </template>
       <template #cell:summary="{row}">
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
