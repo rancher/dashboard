@@ -19,13 +19,17 @@ export default {
 
   computed: {
     kind() {
-      const versionParts = this.value.apiVersion.split('/');
+      if (this.value?.apiVersion && typeof this.value?.apiVersion === 'string') {
+        const versionParts = this.value.apiVersion.split('/');
 
-      if (versionParts.length === 1) {
-        return this.value.kind.toLowerCase();
+        if (versionParts.length === 1) {
+          return this.value.kind.toLowerCase();
+        }
+
+        return `${ versionParts[0] }.${ this.value.kind.toLowerCase() }`;
       }
 
-      return `${ versionParts[0] }.${ this.value.kind.toLowerCase() }`;
+      return '';
     }
   }
 };
