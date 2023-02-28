@@ -149,8 +149,7 @@ export default {
       <!-- updates were getting lost. This isn't performant as normal columns, but the list shouldn't grow -->
       <!-- big enough for the performance to matter -->
       <template #cell:state="{row}">
-        <!-- mimic prov cluster stateObj (if harvester use hardcoded stateObj from prov cluster) -->
-        <BadgeState :value="row.isHarvester ? row : row.mgmt || row" />
+        <BadgeState :color="row.stateBackground" :label="row.stateDisplay" />
       </template>
       <template #sub-row="{fullColspan, row, keyField, componentTestid, i, onRowMouseEnter, onRowMouseLeave}">
         <tr
