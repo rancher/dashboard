@@ -984,19 +984,6 @@ export default {
         return false;
       }
     },
-
-    displayInvalidPspsBanner() {
-      const version = VERSION.parse(this.value.spec.kubernetesVersion);
-
-      const major = parseInt(version?.[0] || 0);
-      const minor = parseInt(version?.[1] || 0);
-
-      if (major === 1 && minor >= 25) {
-        return this.allPSPs?.length > 0;
-      }
-
-      return false;
-    }
   },
 
   watch: {
@@ -2196,7 +2183,7 @@ export default {
             {{ t('cluster.rke2.security.header') }}
           </h3>
           <Banner
-            v-if="isEdit && displayInvalidPspsBanner && hasPsps"
+            v-if="isEdit && hasPsps"
             color="warning"
             :label="t('cluster.banner.invalidPsps')"
           />
