@@ -40,9 +40,9 @@ export default class ResourceCache {
   __addPreCacheFields(resource) {
     const newFields = {};
 
-    this.preCacheFields.forEach((fieldFunc) => {
-      if (fieldFunc.name && fieldFunc instanceof Function) {
-        newFields[fieldFunc.name] = fieldFunc(resource);
+    Object.entries(this.preCacheFields).forEach(([name, fieldFunc]) => {
+      if (name && fieldFunc instanceof Function) {
+        newFields[name] = fieldFunc(resource);
       }
     });
 
