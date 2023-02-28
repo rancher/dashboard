@@ -7,9 +7,9 @@ export default class ResourceCache {
   type;
   keyField;
 
-  /*
-  ** This property stores named functions
-  */
+  /**
+   * This property stores named functions
+   */
   preCacheFields = [];
 
   constructor(type) {
@@ -17,9 +17,9 @@ export default class ResourceCache {
     this.keyField = keyFieldFor(this.type);
   }
 
-  /*
-  ** Checks new hash against existing hash and updates it if different, returns boolean indicating if a change was made
-  */
+  /**
+   * Checks new hash against existing hash and updates it if different, returns boolean indicating if a change was made
+   */
   __updateCache(resource) {
     const resourceKey = resource[this.keyField];
     const existingResourceHash = this.resources[resourceKey];
@@ -34,9 +34,9 @@ export default class ResourceCache {
     return false;
   }
 
-  /*
-  ** Adds any new fields to a resource prior to caching based off of the functions in the 'preCacheFields' array above
-  */
+  /**
+   * Adds any new fields to a resource prior to caching based off of the functions in the 'preCacheFields' array above
+   */
   __addPreCacheFields(resource) {
     const newFields = {};
 
