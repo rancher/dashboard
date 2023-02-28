@@ -1,4 +1,4 @@
-import { COUNT } from '@shell/config/types';
+
 import { keyFieldFor, normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 
@@ -13,7 +13,7 @@ export default class ResourceCache {
   preCacheFields = [];
 
   constructor(type) {
-    this.type = normalizeType(type === 'counts' ? COUNT : type);
+    this.type = normalizeType(type);
     this.keyField = keyFieldFor(this.type);
   }
 
@@ -23,9 +23,9 @@ export default class ResourceCache {
   __updateCache(resource) {
     const resourceKey = resource[this.keyField];
     const existingResourceHash = this.resources[resourceKey];
-    const newResourceHash = hashObj(resource);
+    const newResourceHash = this.hash(resource);
 
-    if (existingResourceHash !== newResourceHash) {
+    if (!newResourceHash || existingResourceHash !== newResourceHash) {
       this.resources[resourceKey] = newResourceHash;
 
       return true;
@@ -47,6 +47,15 @@ export default class ResourceCache {
     });
 
     return Object.assign({}, resource, newFields);
+  }
+
+  /**
+   * Create a hash for the given resource.
+   *
+   * A falsy hash will infer the resource is to be considered as new/fresh
+   */
+  hash(resource) {
+    return hashObj(resource);
   }
 
   load(collection = []) {
