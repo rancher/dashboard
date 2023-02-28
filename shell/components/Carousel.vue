@@ -119,8 +119,8 @@ export default {
 
   mounted() {
     const slideTrack = document.getElementById('slide-track');
+
     if (this.slider.length === 1) {
-      const singleSlide = document.getElementById('slide0');
       // singleSlide.style = 'width: 100%; max-width: 100%';
       slideTrack.style = 'transform:translateX(0%); width:100%; left:0';
     } else {
