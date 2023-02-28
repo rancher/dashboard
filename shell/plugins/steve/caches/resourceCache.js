@@ -2,6 +2,7 @@ import { SCHEMA, COUNT } from '@shell/config/types';
 import { keyFieldFor, normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
+import { matches } from '@shell/utils/selector';
 
 export default class ResourceCache {
   resources = {};
@@ -12,8 +13,40 @@ export default class ResourceCache {
     this.keyField = keyFieldFor(this.type);
   }
 
+  /*
+  ** Checks new hash against existing hash and updates it if different, returns boolean indicating if a change was made
+  */
+  __updateCache(resource) {
+    const resourceKey = resource[this.keyField];
+    const existingResourceHash = this.resources[resourceKey]?.hash;
+    const newResourceHash = hashObj(resource);
+
+    if (existingResourceHash !== newResourceHash) {
+      this.resources[resourceKey] = { hash: newResourceHash, resource };
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /*
+  ** Adds any new fields to a resource prior to caching based off of the functions in the 'preCacheFields' array above
+  */
+  __addPreCacheFields(resource) {
+    const newFields = {};
+
+    this.preCacheFields.forEach((fieldFunc) => {
+      if (fieldFunc.name && fieldFunc instanceof Function) {
+        newFields[fieldFunc.name] = fieldFunc(resource);
+      }
+    });
+
+    return Object.assign({}, resource, newFields);
+  }
+
   load(collection = []) {
-    // console.time('startSchemaLoads!!!');
+    this.resources = {};
     for (let i = 0; i < collection.length; i++) {
       const resource = collection[i];
 
@@ -29,7 +62,36 @@ export default class ResourceCache {
     }
     // console.timeEnd('startSchemaLoads!!!');
 
-    return this;
+    const resourceArray = Object.values(this.resources).map((resource) => {
+      return resource.resource;
+    });
+
+    return resourceArray;
+  }
+
+  find({ namespace, id, selector }) {
+    if (id) {
+      return [this.resources[id].resource];
+    }
+
+    const filterConditions = [];
+
+    if (namespace) {
+      filterConditions.push(resource => resource.metadata.namespace === namespace);
+    }
+    if (selector) {
+      filterConditions.push(resource => matches(resource, selector));
+    }
+
+    if (filterConditions.length === 0) {
+      return Object.values(this.resources).map(resource => resource.resource);
+    }
+
+    return Object.values(this.resources)
+      .map(resource => resource.resource)
+      .filter((resource) => {
+        return filterConditions.every(condition => condition(resource));
+      });
   }
 
   change(resource, callback) {

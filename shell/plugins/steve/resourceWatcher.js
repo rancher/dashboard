@@ -151,6 +151,7 @@ export default class ResourceWatcher extends Socket {
     if (!skipResourceVersion && (!resourceVersion || Date.now() - resourceVersionTime > 300000)) { // 300000ms is 5minutes
       this.trace('watch:', 'revision update required', watchKey);
 
+      // ToDo: SM this isn't going to properly handle id and namespace requests... not that it actually matters.
       const resourceUrl = this.baseUrl + resourceType;
       const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
       const opt = {

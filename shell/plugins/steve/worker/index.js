@@ -8,6 +8,44 @@ export default function storeWorker(mode, options = {}, closures = {}) {
 
   if (mode === 'advanced') {
     worker = new advancedWorkerConstructor();
+    worker.requests = {};
+    worker.postMessageAndWait = function(params) {
+      const {
+        type, id, namespace, selector
+      } = params;
+      const requestParams = JSON.parse(JSON.stringify({
+        type,
+        id,
+        namespace,
+        selector
+      }));
+      const requestHash = JSON.stringify(requestParams);
+
+      if (worker.requests[requestHash]) {
+        return new Error('duplicate request is already active');
+      }
+
+      worker.requests[requestHash] = {
+        resolves: undefined, reject: undefined, promise: undefined
+      };
+
+      worker.requests[requestHash].promise = new Promise((resolve, reject) => {
+        worker.requests[requestHash].resolves = (resources) => {
+          console.log('resolve!!!', resources);
+          resolve(resources);
+        };
+        worker.requests[requestHash].reject = reject;
+
+        worker.postMessage({
+          waitingForResponse: {
+            requestHash,
+            params: requestParams
+          }
+        });
+      });
+
+      return worker.requests[requestHash].promise;
+    };
   } else {
     worker = new basicWorkerConstructor();
   }

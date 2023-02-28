@@ -167,6 +167,7 @@ export default {
       let fqid = id;
 
       if ( schema.attributes?.namespaced && namespace ) {
+        // ToDo: SM this is where we munge together the namespace and the id... we hates it...
         fqid = `${ namespace }/${ fqid }`;
       }
 

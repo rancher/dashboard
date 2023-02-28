@@ -27,6 +27,7 @@ import {
   splitNamespaceFilterKey,
 } from '@shell/utils/namespace-filter';
 import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
+import { isAdvancedWorker } from '~/shell/plugins/steve/subscribe';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -711,7 +712,7 @@ export const actions = {
   },
 
   async loadCluster({
-    state, commit, dispatch, getters
+    state, commit, dispatch, getters, rootGetters
   }, {
     id, product, oldProduct, oldPkg, newPkg
   }) {
@@ -827,10 +828,16 @@ export const actions = {
     commit('cluster/applyConfig',
       { baseUrl: clusterBase });
 
-    await Promise.all([
-      dispatch('cluster/loadSchemas', true),
-    ]);
+    // ToDo: SM instead of this, I can just send it all over to the worker and let it sort it out.
+    const isAdvancedWorkerStore = isAdvancedWorker({ getters, rootGetters });
 
+    if (!isAdvancedWorkerStore) {
+      await Promise.all([
+        dispatch('cluster/loadSchemas', true),
+      ]);
+    }
+
+    // ToDo: SM I might be able to wrap this into the createApi call that I'm going to add above...
     dispatch('cluster/subscribe');
 
     const projectArgs = {
@@ -841,6 +848,7 @@ export const actions = {
       }
     };
 
+    // ToDo: SM this looks like it can be replaced by a waitFor on management
     const fetchProjects = async() => {
       let limit = 30000;
       const sleep = 100;
@@ -855,6 +863,7 @@ export const actions = {
       }
     };
 
+    // ToDo: SM can we fire these off way earlier in the worker and just let this all happen faster?
     const res = await allHash({
       projects:   fetchProjects(),
       counts:     dispatch('cluster/findAll', { type: COUNT }),

@@ -8,6 +8,9 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
+import { createWorker, isAdvancedWorker } from '@shell/plugins/steve/subscribe';
+import { CSRF } from '@shell/config/cookies';
+import { waitFor } from '~/shell/utils/async';
 
 export default {
 
@@ -16,7 +19,12 @@ export default {
     return await loadSchemas(ctx, watch);
   },
 
-  async request({ state, dispatch, rootGetters }, pOpt ) {
+  async request(ctx, pOpt ) {
+    const {
+      state, dispatch, rootGetters, getters
+    } = ctx;
+    const isAdvancedWorkerStore = isAdvancedWorker({ rootGetters, getters });
+
     const opt = pOpt.opt || pOpt;
 
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
@@ -84,8 +92,33 @@ export default {
     let paginatedResult;
 
     while (true) {
+      let out;
+
       try {
-        const out = await makeRequest(this, opt);
+        if (isAdvancedWorkerStore) {
+          if (!this.$workers[getters.storeName]) {
+            createWorker(this, ctx);
+          }
+
+          await waitFor(() => !!this.$workers[getters.storeName], 'Worker creation');
+
+          this.$workers[getters.storeName].postMessage({
+            configure: {
+              url:       `${ state.config.baseUrl }`,
+              csrf:      this.$cookies.get(CSRF, { parseJSON: false }),
+              config:    state.config,
+              storeName: getters.storeName
+            },
+            createApi: {}
+          });
+        }
+
+        // ToDo: SM I should be queuing up requests if one of these comes up before the worker actually gets a chance to spin up
+        if (isAdvancedWorkerStore && this.$workers[getters.storeName]) {
+          out = await makeWorkerRequest(this, { pOpt, getters });
+        } else {
+          out = await makeRequest(this, opt);
+        }
 
         if (!opt.depaginate) {
           return out;
@@ -129,6 +162,29 @@ export default {
         finishDeferred(key, 'resolve', out);
 
         return out;
+      });
+    }
+
+    function makeWorkerRequest(that, { pOpt, getters }) {
+      const worker = that.$workers[getters.storeName];
+      const type = pOpt.type;
+      const opt = pOpt.opt || pOpt;
+      const schema = getters.schemaFor(type);
+      const { namespaced, resource } = schema?.attributes || {};
+      const url = parseUrl(opt.url);
+      const urlParts = url.path.split('/');
+      const resourceIndex = urlParts.indexOf(resource);
+      let namespace, id;
+
+      if (namespaced) {
+        [namespace, id] = urlParts.slice(resourceIndex + 1);
+      } else {
+        [id] = urlParts.slice(resourceIndex + 1);
+      }
+      const selector = opt?.filter?.labelSelector;
+
+      return worker.postMessageAndWait({
+        type, namespace, id, selector
       });
     }
 

@@ -144,6 +144,7 @@ export default {
       if (worker) {
         // Store raw json objects, not the proxies
         worker.postMessage({ loadSchemas: data });
+        // this is where I should get all the API crap to pass into the worker
       }
     }
   },

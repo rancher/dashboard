@@ -40,7 +40,7 @@ const waitForManagement = (store) => {
   return waitFor(managementReady, 'Management');
 };
 
-const isAdvancedWorker = (ctx) => {
+export const isAdvancedWorker = (ctx) => {
   const { rootGetters, getters } = ctx;
   const storeName = getters.storeName;
   const clusterId = rootGetters.clusterId;
@@ -56,7 +56,7 @@ const isAdvancedWorker = (ctx) => {
 
 // We only create a worker for the cluster store
 export async function createWorker(store, ctx) {
-  const { getters, dispatch } = ctx;
+  const { state, getters, dispatch } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
@@ -70,6 +70,7 @@ export async function createWorker(store, ctx) {
   const advancedWorker = isAdvancedWorker(ctx);
 
   const workerActions = {
+    // ToDo: SM make some type of workerAction so the worker thread can tell me when the watcher and the api are respectively ready so I don't need to spam them.
     load: (resource) => {
       queueChange(ctx, resource, true, 'Change');
     },
@@ -78,6 +79,11 @@ export async function createWorker(store, ctx) {
         store.$workers[storeName].terminate();
         delete store.$workers[storeName];
       }
+    },
+    awaitedResponse: ({ requestHash, resources }) => {
+      console.log('awaitedResponse!!!', requestHash, resources);
+      store.$workers[storeName].requests[requestHash].resolves(resources);
+      delete store.$workers[storeName].requests[requestHash];
     },
     batchChanges: (batch) => {
       dispatch('batchChanges', batch);
@@ -99,7 +105,9 @@ export async function createWorker(store, ctx) {
 
     store.$workers[storeName] = worker;
 
-    worker.postMessage({ initWorker: { storeName } });
+    if (workerMode === 'basic') {
+      worker.postMessage({ initWorker: { storeName } });
+    }
 
     /**
      * Covers message from Worker to UI thread
@@ -220,10 +228,14 @@ const sharedActions = {
 
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
+        configure: {
+          url:       `${ state.config.baseUrl }`,
+          csrf:      this.$cookies.get(CSRF, { parseJSON: false }),
+          config:    state.config,
+          storeName: getters.storeName
+        },
         createWatcher: {
           connectionMetadata,
-          url:  `${ state.config.baseUrl }/subscribe`,
-          csrf: this.$cookies.get(CSRF, { parseJSON: false }),
           maxTries
         }
       });
