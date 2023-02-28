@@ -6,7 +6,7 @@ import cloneDeep from 'lodash/cloneDeep';
 
 export default Vue.extend({
   name: 'Checkbox',
-  
+
   props: {
     /**
      * The checkbox value.

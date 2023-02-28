@@ -66,10 +66,25 @@ const sidebars = {
       type:  'category',
       label: 'Extensions',
       items: [
-        'plugins/introduction',
-        'plugins/plugins-getting-started',
-        'plugins/initializing-plugins',
-        'plugins/advanced',
+        'extensions/introduction',
+        'extensions/extensions-getting-started',
+        'extensions/initializing-extensions',
+        {
+          type:  'category',
+          label: 'Extensions API',
+          link:  {
+            type: 'doc',
+            id:   'extensions/extensions-api',
+          },
+          items: [
+            'extensions/extension-api-methods/add-action',
+            'extensions/extension-api-methods/add-card',
+            'extensions/extension-api-methods/add-panel',
+            'extensions/extension-api-methods/add-tab',
+            'extensions/extension-api-methods/add-table-column',
+          ]
+        },
+        'extensions/advanced',
       ]
     },
     'storybook',

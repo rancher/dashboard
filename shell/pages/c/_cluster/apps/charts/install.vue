@@ -799,7 +799,7 @@ export default {
         }) : {};
 
         if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
-          const agentConfig = provCluster.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+          const agentConfig = provCluster.spec?.rkeConfig?.machineSelectorConfig?.find(x => !x.machineLabelSelector).config;
 
           // If a cluster scoped registry exists,
           // it should be used by default.
@@ -812,7 +812,7 @@ export default {
         if (provCluster.isRke1) {
           // For RKE1 clusters, the cluster scoped private registry is on the management
           // cluster, not the provisioning cluster.
-          const rke1Registries = mgmCluster.spec.rancherKubernetesEngineConfig.privateRegistries;
+          const rke1Registries = mgmCluster.spec?.rancherKubernetesEngineConfig?.privateRegistries;
 
           if (rke1Registries?.length > 0) {
             const defaultRegistry = rke1Registries.find((registry) => {

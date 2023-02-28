@@ -62,6 +62,8 @@ export function init(store) {
     FLEET.WORKSPACE,
     FLEET.BUNDLE,
     FLEET.TOKEN,
+    FLEET.BUNDLE_NAMESPACE_MAPPING,
+    FLEET.GIT_REPO_RESTRICTION
   ], 'advanced');
 
   headers(FLEET.WORKSPACE, [

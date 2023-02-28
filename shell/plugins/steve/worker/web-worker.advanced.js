@@ -5,7 +5,6 @@
 
 import { SCHEMA, COUNT } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
-import ResourceCache from '@shell/plugins/steve/caches/resourceCache';
 import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@shell/utils/socket';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
@@ -35,18 +34,18 @@ const trace = (...args) => {
 trace('created');
 
 const makeResourceProps = (msg) => {
-  const { resourceType, data: { type }, data } = msg;
-  const rawType = resourceType || type;
-  const normalizedType = normalizeType(rawType === 'counts' ? COUNT : rawType);
-  const keyField = keyFieldFor(normalizedType);
+  const { resourceType, data: { type: rawType }, data } = msg;
+  const eitherType = resourceType || rawType;
+  const type = normalizeType(eitherType === 'counts' ? COUNT : eitherType);
+  const keyField = keyFieldFor(type);
 
-  if ( normalizedType === SCHEMA ) {
+  if ( type === SCHEMA ) {
     addSchemaIndexFields(data);
   }
 
   return {
-    type: normalizedType,
-    id:   data[keyField],
+    type,
+    id: data[keyField],
     data
   };
 };
@@ -78,6 +77,16 @@ const removeFromWatcherQueue = (watchKey) => {
 
     return watchKey !== workerMessageWatchKey;
   });
+};
+
+/**
+ * Creates a resourceCache with the appropriate type
+ */
+
+const resourceCache = (type) => {
+  const CacheClass = cacheClasses[`${ type }Cache`] || cacheClasses.resourceCache;
+
+  return new CacheClass(type);
 };
 
 /**
@@ -316,21 +325,21 @@ const resourceWatcherActions = {
   'resource.change': (msg) => {
     const { type, id, data } = makeResourceProps(msg);
 
-    if (caches[type]) {
-      caches[type].change(data, () => workerActions.updateBatch(type, id, data));
-    } else {
-      workerActions.updateBatch(type, id, data);
+    if (!caches[type]) {
+      caches[type] = resourceCache(type);
     }
+
+    caches[type].change(data, () => workerActions.updateBatch(type, id, data));
   },
   // ToDo: SM create is functionally identical to change in the cache but the worker isn't supposed to know that hence the near-duplicate code
   'resource.create': (msg) => {
     const { type, id, data } = makeResourceProps(msg);
 
-    if (caches[type]) {
-      caches[type].create(data, () => workerActions.updateBatch(type, id, data));
-    } else {
-      workerActions.updateBatch(type, id, data);
+    if (!caches[type]) {
+      caches[type] = resourceCache(type);
     }
+
+    caches[type].create(data, () => workerActions.updateBatch(type, id, data));
   },
   'resource.start': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
@@ -338,11 +347,11 @@ const resourceWatcherActions = {
   'resource.remove': (msg) => {
     const { type, id } = makeResourceProps(msg);
 
-    if (caches[type]) {
-      caches[type].remove(id, () => workerActions.updateBatch(type, id, {}));
-    } else {
-      workerActions.updateBatch(type, id, {});
+    if (!caches[type]) {
+      caches[type] = resourceCache(type);
     }
+
+    caches[type].remove(id, () => workerActions.updateBatch(type, id, {}));
   },
   'resource.stop': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread

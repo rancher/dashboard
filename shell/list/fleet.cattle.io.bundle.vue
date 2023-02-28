@@ -31,7 +31,9 @@ export default {
 
   async fetch() {
     await this.$fetchType(this.resource);
-    this.allFleet = await this.$fetchType(FLEET.CLUSTER);
+    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
+      this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
+    }
   },
 
   data() {
@@ -113,11 +115,12 @@ export default {
     >
       <template #cell:deploymentsReady="{row}">
         <span
-          v-if="row.status.summary.desiredReady != row.status.summary.ready"
+          v-if="row.status && (row.status.summary.desiredReady !== row.status.summary.ready)"
           class="text-warning"
         >
           {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
-        <span v-else>{{ row.status.summary.desiredReady }}</span>
+        <span v-else-if="row.status">{{ row.status.summary.desiredReady }}</span>
+        <span v-else>-</span>
       </template>
     </ResourceTable>
   </div>

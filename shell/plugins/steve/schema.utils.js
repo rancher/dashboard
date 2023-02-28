@@ -3,18 +3,14 @@ import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 /**
  * Returns _id special field without mutating the function input
  */
-export function _id(schema) {
+export function _getSchemaId(schema) {
   return normalizeType(schema.id);
-}
-
-export function functionTest() {
-  return 'blerb';
 }
 
 /**
  * Returns _group special field without mutating the function input
  */
-export function _group(schema) {
+export function _getSchemaGroup(schema) {
   return normalizeType(schema.attributes?.group);
 }
 
@@ -26,8 +22,8 @@ export function _group(schema) {
  * but ensures the reference isn't broken, which is needed to maintain similar functionality as before
  */
 export function addSchemaIndexFields(schema) {
-  schema._id = normalizeType(schema.id);
-  schema._group = normalizeType(schema.attributes?.group);
+  schema._id = _getSchemaId(schema);
+  schema._group = _getSchemaGroup(schema);
 }
 
 /**

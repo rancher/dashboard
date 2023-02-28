@@ -1775,6 +1775,10 @@ cluster:
       psaChange: PSACT is now set to Rancher default automatically
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
       cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. It's recommended to review RKE2 documentation to evaluate the impact of changing CIS Profile.
+    modal:
+      pspChange:
+        title: Pod Security Policy deprecation
+        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be MANUALLY removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Proceed?
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -2098,6 +2102,7 @@ fleet:
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
+      noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     add:
       steps:
@@ -2149,6 +2154,7 @@ fleet:
       cluster: There are no clusters available
     workspace:
       label: Workspace
+      addWorkspace: Create a workspace
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -2169,7 +2175,17 @@ fleet:
     error: Error
     ready: Ready
     errors: Errors
-
+  workspaces: 
+    tabs:
+      restrictions: Allowed Target Namespaces
+    timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
+  restrictions: 
+    addTitle: 'allowedTargetNamespaces'
+    addLabel: Add
+    banner: "{count, plural,
+          =0 { Setting allowedTargetNamespaces here will create a GitRepoRestriction. }
+          other { Only GitRepoRestriction.allowedTargetNamespaces is managed here. You can make additional changes} 
+        }"
 footer:
   docs: Docs
   download: Download CLI
