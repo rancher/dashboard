@@ -272,7 +272,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
-    return this.mgmt?.id || this.id.replace(`${ this.metadata.namespace }/`, '');
+    return this.mgmt?.id || this.id?.replace(`${ this.metadata.namespace }/`, '');
   }
 
   get mgmt() {
