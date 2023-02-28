@@ -159,6 +159,7 @@ export default {
           <div class="col span-6">
             <SecretSelector
               v-model="row.value.tlsSecretName"
+              in-store="management"
               :mode="mode"
               :types="[TLS]"
               :namespace="value.metadata.namespace"
