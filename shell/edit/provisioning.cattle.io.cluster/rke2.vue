@@ -2183,7 +2183,7 @@ export default {
             {{ t('cluster.rke2.security.header') }}
           </h3>
           <Banner
-            v-if="isEdit && hasPsps"
+            v-if="isEdit && !needsPSP && hasPsps"
             color="warning"
             :label="t('cluster.banner.invalidPsps')"
           />
