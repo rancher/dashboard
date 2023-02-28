@@ -1,60 +1,96 @@
-import { SCHEMA, COUNT } from '@shell/config/types';
+
 import { keyFieldFor, normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 
 export default class ResourceCache {
   resources = {};
   type;
   keyField;
+
+  /**
+   * This property stores named functions
+   */
+  preCacheFields = [];
+
   constructor(type) {
-    this.type = normalizeType(type === 'counts' ? COUNT : type);
+    this.type = normalizeType(type);
     this.keyField = keyFieldFor(this.type);
   }
 
-  load(collection = []) {
-    // console.time('startSchemaLoads!!!');
-    for (let i = 0; i < collection.length; i++) {
-      const resource = collection[i];
+  /**
+   * Checks new hash against existing hash and updates it if different, returns boolean indicating if a change was made
+   */
+  __updateCache(resource) {
+    const resourceKey = resource[this.keyField];
+    const existingResourceHash = this.resources[resourceKey];
+    const newResourceHash = this.hash(resource);
 
-      if ( this.type === SCHEMA ) {
-        addSchemaIndexFields(resource);
-      }
-      const id = resource[this.keyField];
+    if (!newResourceHash || existingResourceHash !== newResourceHash) {
+      this.resources[resourceKey] = newResourceHash;
 
-      // Store the hash instead of the whole object. This means longer load time be reduces memory footprint
-      // Perf Note: 3.328125 ms to load ~2500 schemas as objects into cache
-      // Perf Note: 67.450927734375 ms to load ~2500 schemas as hashes into cache
-      this.resources[id] = hashObj(resource);
+      return true;
     }
-    // console.timeEnd('startSchemaLoads!!!');
+
+    return false;
+  }
+
+  /**
+   * Adds any new fields to a resource prior to caching based off of the functions in the 'preCacheFields' array above
+   */
+  __addPreCacheFields(resource) {
+    const newFields = {};
+
+    Object.entries(this.preCacheFields).forEach(([name, fieldFunc]) => {
+      if (name && fieldFunc instanceof Function) {
+        newFields[name] = fieldFunc(resource);
+      }
+    });
+
+    return Object.assign({}, resource, newFields);
+  }
+
+  /**
+   * Create a hash for the given resource.
+   *
+   * A falsy hash will infer the resource is to be considered as new/fresh
+   */
+  hash(resource) {
+    return hashObj(resource);
+  }
+
+  load(collection = []) {
+    for (let i = 0; i < collection.length; i++) {
+      const preCacheResource = this.__addPreCacheFields(collection[i]);
+
+      this.__updateCache(preCacheResource);
+    }
 
     return this;
   }
 
   change(resource, callback) {
-    if ( this.type === SCHEMA ) {
-      addSchemaIndexFields(resource);
-    }
+    const preCacheResource = this.__addPreCacheFields(resource);
 
-    const existingResourceHash = this.resources[resource[this.keyField]] || {};
-    const newResourceHash = hashObj(resource);
+    const updatedCache = this.__updateCache(preCacheResource);
 
-    if (existingResourceHash !== newResourceHash) {
-      this.resources[resource[this.keyField]] = resource;
+    if (updatedCache) {
       callback();
     }
+
+    return this;
   }
 
   create(resource, callback) {
     // ToDo: the logic for create is identical to change in these caches but the worker doesn't know that
-    this.change(resource, callback);
+    return this.change(resource, callback);
   }
 
-  remove(id, callback) {
-    if (this.resources[id]) {
-      delete this.resources[id];
+  remove(key, callback) {
+    if (this.resources[key]) {
+      delete this.resources[key];
       callback();
     }
+
+    return this;
   }
 }
