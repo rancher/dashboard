@@ -169,7 +169,7 @@ export default {
     if (this.nameKey) {
       name = get(v, this.nameKey);
     } else {
-      name = metadata.name;
+      name = metadata?.name;
     }
 
     if (this.namespaced) {
@@ -222,6 +222,7 @@ export default {
 
     namespaces() {
       const currentStore = this.$store.getters['currentStore'](this.namespaceType);
+
       const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
       const filterNamespace = this.$store.getters['allNamespaces'];
 
@@ -232,14 +233,12 @@ export default {
         if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore) {
           out = filterNamespace.find(NS => NS.metadata.name === namespace.metadata.name);
         } else if (this.currentProduct?.hideSystemResources) {
-          // Filter out the namespace
-          // if it is a system namespace or if it is managed by
-          // Fleet.
+          // Hide system and fleet namespaces
           out = !namespace.isSystem && !namespace.isFleetManaged;
         }
 
         if (this.mode === _CREATE) {
-          out = out && !!namespace.links.update;
+          out = out && !!namespace.links?.update;
         }
 
         return out;
