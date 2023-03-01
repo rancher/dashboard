@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+BASE_DIR="$(pwd)"
+
+CYAN="\033[96m"
+RED="\033[91m"
+RESET="\033[0m"
+BOLD="\033[1m"
+
+TMP=${BASE_DIR}/tmp
+CHART_TEMPLATE=${TMP}/ui-plugin-server
+
+PKG="${1}"
+PKG_VERSION="${2}"
+REGISTRY="${3}"
+REGISTRY_ORG="${4}"
+IMAGE_PREFIX="${5}"
+PUSH="${6}"
+
+PKG_NAME="${PKG}-${PKG_VERSION}"
+
+# --------------------------------------------------------------------------------
+# Create the container image
+# --------------------------------------------------------------------------------
+mkdir -p ${TMP}/container
+cp -R ${CHART_TEMPLATE}/* ${TMP}/container/    
+
+# Copy the plugin assets
+rm -rf ${TMP}/container/plugin
+mkdir ${TMP}/container/plugin
+
+cp -R ${BASE_DIR}/dist-pkg/${PKG_NAME}/* ${TMP}/container/plugin
+rm -f ${TMP}/container/plugin/report.html
+
+# Build the docker image
+pushd ${TMP}/container > /dev/null
+echo -e "${CYAN}Building container image ...${RESET}"
+
+if [ ! -z "${REGISTRY}" ]; then
+  if [ "${REGISTRY_ORG}" == 'ui-extension-' ]; then
+    ORG=${REGISTRY} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} ./scripts/package
+  else
+    REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} ./scripts/package
+  fi
+
+  if [ "${PUSH}" == "--push" ]; then
+    echo -e "${CYAN}Pushing container image ...${RESET}"
+
+    # Ensure that you do not overwrite production images
+    if [[ "${REGISTRY_ORG}" == "rancher" ]]; then
+      IMAGE=${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
+      if docker manifest inspect 2>&1 1>/dev/null; then
+        echo -e "${RED}${BOLD}Cannot overwrite production image ${IMAGE_PREFIX}${PKG} since it already exists${RESET}"
+        exit 1
+      fi
+    fi
+
+    docker push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
+  fi
+fi
+
+popd > /dev/null
