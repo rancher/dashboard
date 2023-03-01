@@ -382,11 +382,7 @@ export default {
      * Define PSP deprecation and restrict use of PSP based on min k8s version
      */
     needsPSP() {
-      const release = this.value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
-
-      return isRequiredVersion;
+      return this.getNeedsPSP();
     },
 
     /**
@@ -1072,6 +1068,17 @@ export default {
   methods: {
     nlToBr,
     set,
+
+    /**
+     * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
+     */
+    getNeedsPSP(value = this.value) {
+      const release = value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return isRequiredVersion;
+    },
 
     async initMachinePools(existing) {
       const out = [];
@@ -1850,7 +1857,13 @@ export default {
      * Consider exclusively RKE2 provisioned clusters in edit mode
      */
     checkPsps() {
-      if (this.mode !== _CREATE && !this.isK3s && this.value.state !== 'reconciling') {
+      // As server returns 500 we exclude all the possible cases
+      if (
+        this.mode !== _CREATE &&
+        !this.isK3s &&
+        this.value.state !== 'reconciling' &&
+        this.getNeedsPSP(this.liveValue) // We consider editing only possible PSP cases
+      ) {
         const clusterId = this.value.mgmtClusterId;
         const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
 
