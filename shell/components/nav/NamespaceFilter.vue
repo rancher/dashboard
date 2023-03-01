@@ -953,6 +953,14 @@ export default {
                 color: var(--dropdown-hover-bg);
               }
             }
+
+            &:focus {
+              .ns-item {
+                > * {
+                  color: var(--dropdown-hover-text);
+                }
+              }
+            }
           }
         }
 
