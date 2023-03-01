@@ -41,7 +41,7 @@ export default class StatefulSet extends Workload {
           }
         }
 
-        return [];
+        return false;
       });
     }
 
