@@ -110,7 +110,7 @@ export default {
     .external-link {
       position: absolute;
       left: 10px;
-      top: -45px;
+      top: -47px;
     }
   }
 }

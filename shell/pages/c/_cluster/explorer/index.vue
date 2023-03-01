@@ -709,7 +709,7 @@ export default {
 }
 
 .etcd-metrics ::v-deep .external-link {
-  top: -102px;
+  top: -107px;
 }
 
 .cluster-tools-tip {

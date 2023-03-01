@@ -51,6 +51,7 @@ export default {
 
         .datum {
             text-align: center;
+            margin-right: 5px;
         }
 
         & ::v-deep label {
