@@ -66,6 +66,7 @@ export default {
     >
       <GrafanaDashboard
         v-if="graphOptions.type === 'detail'"
+        key="'detail'"
         class="col span-12 detail"
         :background-color="graphBackgroundColor"
         :theme="theme"
@@ -76,6 +77,7 @@ export default {
       />
       <GrafanaDashboard
         v-else
+        key="'summary'"
         class="col span-12 summary"
         :background-color="graphBackgroundColor"
         :theme="theme"

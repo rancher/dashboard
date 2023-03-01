@@ -604,6 +604,8 @@ export default {
     </div>
     <Tabbed
       v-if="hasMetricsTabs"
+      default-tab="cluster-metrics"
+      :use-hash="false"
       class="mt-30"
     >
       <Tab
