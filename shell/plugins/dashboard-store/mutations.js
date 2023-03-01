@@ -261,7 +261,8 @@ export function loadAll(state, {
   data,
   ctx,
   skipHaveAll,
-  namespace
+  namespace,
+  revision
 }) {
   const { getters } = ctx;
 
@@ -283,6 +284,7 @@ export function loadAll(state, {
 
   clear(cache.list);
   cache.map.clear();
+  cache.revision = revision || 0;
   cache.generation++;
 
   addObjects(cache.list, proxies);
@@ -320,7 +322,7 @@ export default {
   },
 
   loadSelector(state, {
-    type, entries, ctx, selector
+    type, entries, ctx, selector, revision
   }) {
     const cache = registerType(state, type);
 
@@ -329,6 +331,7 @@ export default {
     }
 
     cache.haveSelector[selector] = true;
+    cache.revision = revision || 0;
   },
 
   loadAll,

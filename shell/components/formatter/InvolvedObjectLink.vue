@@ -19,20 +19,28 @@ export default {
 
   computed: {
     kind() {
-      const versionParts = this.value.apiVersion.split('/');
+      // this cover most of the usecases for events
+      if (this.value?.apiVersion && typeof this.value?.apiVersion === 'string') {
+        const versionParts = this.value.apiVersion.split('/');
 
-      if (versionParts.length === 1) {
-        return this.value.kind.toLowerCase();
+        if (versionParts.length === 1) {
+          return this.value.kind.toLowerCase();
+        }
+
+        return `${ versionParts[0] }.${ this.value.kind.toLowerCase() }`;
+      // covers Node events usecase
+      } else if (this.value?.kind && typeof this.value?.kind === 'string') {
+        return this.value?.kind.toLowerCase();
       }
 
-      return `${ versionParts[0] }.${ this.value.kind.toLowerCase() }`;
+      return '';
     }
   }
 };
 </script>
 
 <template>
-  <span v-if="value.kind && value.name">
+  <span v-if="kind && value.kind && value.name">
     <LinkName
       :type="kind"
       :value="`${value.kind} ${value.name}`"
@@ -42,4 +50,5 @@ export default {
       :show-type="true"
     />
   </span>
+  <span v-else />
 </template>

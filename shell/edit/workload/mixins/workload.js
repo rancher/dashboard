@@ -783,6 +783,8 @@ export default {
       this.fixPodAffinity(podAntiAffinity);
       this.fixPodSecurityContext(this.podTemplateSpec);
 
+      template.metadata.namespace = this.value.metadata.namespace;
+
       // delete this.value.kind;
       if (this.container && !this.container.name) {
         this.$set(this.container, 'name', this.value.metadata.name);
