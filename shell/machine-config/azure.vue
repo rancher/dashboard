@@ -14,7 +14,7 @@ import { randomStr } from '@shell/utils/string';
 import { addParam, addParams } from '@shell/utils/url';
 import KeyValue from '@shell/components/form/KeyValue';
 import { RadioGroup } from '@components/Form/Radio';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT } from '@shell/config/query-params';
 
 export const azureEnvironments = [
   { value: 'AzurePublicCloud' },
@@ -161,7 +161,10 @@ export default {
         method: 'GET',
       });
 
-      if (this.mode === _CREATE) {
+      // when you edit an Azure cluster and add a new machine pool (edit)
+      // the location field doesn't come populated which causes the vmSizes request
+      // to return 200 but with a null response
+      if (this.mode === _CREATE || (this.mode === _EDIT && !this.value?.location)) {
         this.value.location = DEFAULT_REGION;
       }
 
