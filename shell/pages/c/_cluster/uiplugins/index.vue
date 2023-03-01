@@ -212,6 +212,8 @@ export default {
 
         if (latestCompatible) {
           item.displayVersion = latestCompatible.version;
+          item.icon = latestCompatible.icon;
+        } else {
           item.icon = chart.icon || latestCompatible.annotations['catalog.cattle.io/ui-icon'];
         }
 
