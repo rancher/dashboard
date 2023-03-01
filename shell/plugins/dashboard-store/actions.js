@@ -40,6 +40,7 @@ export async function loadSchemas(ctx, watch = true) {
   const {
     getters, dispatch, commit, rootGetters
   } = ctx;
+
   const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
   const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
 
@@ -250,7 +251,11 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      const res = await dispatch('request', { opt, type });
+      const namespace = opt.watchNamespace || opt.namespaced;
+
+      const res = await dispatch('request', {
+        opt, type, namespace
+      });
 
       if ( streamStarted ) {
         // Flush any remaining entries left over that didn't get loaded by onData
@@ -313,13 +318,11 @@ export default {
       }
     }
 
-    // ToDo: SM if we start a "bigger" watch (such as watch without a namespace vs a watch with a namespace), we should stop the stop the "smaller" watch so we don't have duplicate events coming back
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
         revision:  out.revision,
-        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
-        // ToDo: SM namespaced is sometimes a boolean and sometimes a string, I don't see it as especially broken but we should refactor that in the future
+        namespace: opt.watchNamespace || opt.namespaced, // it could be either
         force:     opt.forceWatch === true,
       });
     }
@@ -362,7 +365,6 @@ export default {
 
     opt.filter = opt.filter || {};
     opt.filter['labelSelector'] = selector;
-
     opt.url = getters.urlFor(type, null, opt);
     opt.depaginate = typeOptions?.depaginate;
 
@@ -427,7 +429,22 @@ export default {
     opt = opt || {};
     opt.url = getters.urlFor(type, id, opt);
 
-    const res = await dispatch('request', { opt, type });
+    const schema = getters['schemaFor'](type);
+
+    const namespaceAndId = {};
+
+    if (schema.attributes?.namespaced) {
+      const [namespace, realId] = id.split('/');
+
+      namespaceAndId.namespace = namespace;
+      namespaceAndId.id = realId;
+    } else {
+      namespaceAndId.id = id;
+    }
+
+    const res = await dispatch('request', {
+      opt, type, ...namespaceAndId
+    });
 
     await dispatch('load', { data: res });
 

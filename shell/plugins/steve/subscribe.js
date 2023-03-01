@@ -57,7 +57,7 @@ export const isAdvancedWorker = (ctx) => {
 
 // We only create a worker for the cluster store
 export async function createWorker(store, ctx) {
-  const { state, getters, dispatch } = ctx;
+  const { getters, dispatch } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
@@ -71,7 +71,6 @@ export async function createWorker(store, ctx) {
   const advancedWorker = isAdvancedWorker(ctx);
 
   const workerActions = {
-    // ToDo: SM make some type of workerAction so the worker thread can tell me when the watcher and the api are respectively ready so I don't need to spam them.
     load: (resource) => {
       queueChange(ctx, resource, true, 'Change');
     },
@@ -81,9 +80,8 @@ export async function createWorker(store, ctx) {
         delete store.$workers[storeName];
       }
     },
-    awaitedResponse: ({ requestHash, resources }) => {
-      console.log('awaitedResponse!!!', requestHash, resources);
-      store.$workers[storeName].requests[requestHash].resolves(resources);
+    awaitedResponse: ({ requestHash, response }) => {
+      store.$workers[storeName].requests[requestHash].resolves(response);
       delete store.$workers[storeName].requests[requestHash];
     },
     batchChanges: (batch) => {

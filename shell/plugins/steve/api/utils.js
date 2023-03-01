@@ -1,52 +1,7 @@
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import { isArray } from '@shell/utils/array';
 
 import { SCHEMA } from '@shell/config/types';
-
-// const urlOptions = (url, opt) => {
-//   opt = opt || {};
-
-//   // Filter
-//   if ( opt.filter ) {
-//     const keys = Object.keys(opt.filter);
-
-//     keys.forEach((key) => {
-//       let vals = opt.filter[key];
-
-//       if ( !isArray(vals) ) {
-//         vals = [vals];
-//       }
-
-//       vals.forEach((val) => {
-//         url += `${ (url.includes('?') ? '&' : '?') + encodeURIComponent(key) }=${ encodeURIComponent(val) }`;
-//       });
-//     });
-//   }
-//   // End: Filter
-
-//   // Limit
-//   const limit = opt.limit;
-
-//   if ( limit ) {
-//     url += `${ url.includes('?') ? '&' : '?' }limit=${ limit }`;
-//   }
-//   // End: Limit
-
-//   // Sort
-//   const sortBy = opt.sortBy;
-
-//   if ( sortBy ) {
-//     url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURIComponent(sortBy) }`;
-//   }
-
-//   const orderBy = opt.sortOrder;
-
-//   if ( orderBy ) {
-//     url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURIComponent(orderBy) }`;
-//   }
-//   // End: Sort
-
-//   return url;
-// };
 
 export default class SteveClient {
     __getSchema;
@@ -76,19 +31,60 @@ export default class SteveClient {
       this.__loadCache = methods.loadCache || this.__loadCache;
     }
 
-    __resourceUrl(params) {
+    __resourceQuery(params) {
       const {
-        type, id, namespace, selector
+        limit, filter, sortBy, sortOrder
       } = params;
+      const query = [];
+
+      // Filter
+      if ( filter ) {
+        const keys = Object.keys(filter);
+
+        keys.forEach((key) => {
+          let vals = filter[key];
+
+          if ( !isArray(vals) ) {
+            vals = [vals];
+          }
+
+          vals.forEach((val) => {
+            query.push(`${ encodeURIComponent(key) }=${ encodeURIComponent(val) }`);
+          });
+        });
+      }
+      // End: Filter
+
+      // Limit
+      if ( limit ) {
+        query.push(`limit=${ limit }`);
+      }
+      // // End: Limit
+
+      // Sort
+      if ( sortBy ) {
+        query.push(`sort=${ encodeURIComponent(sortBy) }`);
+      }
+
+      if ( sortOrder ) {
+        query.push(`order=${ encodeURIComponent(sortOrder) }`);
+      }
+      // End: Sort
+
+      return query.length > 0 ? `?${ query.join('&') }` : '';
+    }
+
+    __resourceUrl(params) {
+      const { type, id, namespace } = params;
+
       const resourceType = normalizeType(type);
 
-      if (resourceType === 'schemas') {
+      if (resourceType === SCHEMA) {
         return `${ self.location.origin }${ this.__config.url }/${ resourceType }`;
       }
 
-      const [schema] = this.__getSchema(resourceType);
-
-      const requestParts = [id ? schema.links.self : schema.links.collection];
+      const schema = this.__getSchema(resourceType);
+      const requestParts = [schema.links.collection];
 
       if (namespace) {
         requestParts.push(namespace);
@@ -97,9 +93,9 @@ export default class SteveClient {
         requestParts.push(id);
       }
       const resourceUrl = requestParts.join('/');
+      const resourceQuery = this.__resourceQuery(params);
 
-      // ToDo: SM add in the urlOptions here
-      return resourceUrl;
+      return `${ resourceUrl }${ resourceQuery }`;
     }
 
     request(params) {
@@ -116,12 +112,14 @@ export default class SteveClient {
 
       return fetch(requestUrl, opt)
         .then((res) => {
-          // ToDo: SM error checking
+          if (!res.ok) {
+            console.warn(`Resource error retrieving resource(s)`, params.type, ':', res.json()); // eslint-disable-line no-console
+          }
 
           return res.json();
         })
         .then((res) => {
-          this.__loadCache(res.data);
+          this.__loadCache(res.data || res, !!params.id);
 
           return res;
         });

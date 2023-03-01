@@ -11,13 +11,17 @@ export default function storeWorker(mode, options = {}, closures = {}) {
     worker.requests = {};
     worker.postMessageAndWait = function(params) {
       const {
-        type, id, namespace, selector
+        type, id, namespace, selector, limit, filter, sortBy, sortOrder
       } = params;
       const requestParams = JSON.parse(JSON.stringify({
         type,
         id,
         namespace,
-        selector
+        selector,
+        limit,
+        filter,
+        sortBy,
+        sortOrder
       }));
       const requestHash = JSON.stringify(requestParams);
 
@@ -31,7 +35,6 @@ export default function storeWorker(mode, options = {}, closures = {}) {
 
       worker.requests[requestHash].promise = new Promise((resolve, reject) => {
         worker.requests[requestHash].resolves = (resources) => {
-          console.log('resolve!!!', resources);
           resolve(resources);
         };
         worker.requests[requestHash].reject = reject;

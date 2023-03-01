@@ -98,10 +98,18 @@ const workerActions = {
       // the apiClient can only exist after schemas are loaded so we build it here.
       state.api = new SteveClient(state.config, { loadCache: workerActions.loadCache });
       if (!caches[SCHEMA]) {
-        state.api.request({ type: 'schemas' })
+        state.api.request({ type: SCHEMA })
           .then((res) => {
             // workerActions.loadCache(res.data);
-            state.api.loadWorkerMethods({ getSchema: id => caches[SCHEMA].find({ id }) });
+            state.api.loadWorkerMethods({
+              getSchema: (id) => {
+                return caches[SCHEMA].getSchema(id);
+              }
+            });
+            for (const [resourceKey, resourceCache] of Object.entries(caches)) {
+              resourceCache.loadWorkerMethods({ resourceGetter: params => state.api?.request({ ...params, type: resourceKey }) });
+            }
+
             workerActions.flushApiQueue();
           });
       }
@@ -158,15 +166,24 @@ const workerActions = {
     }
     const { params, requestHash } = request;
 
-    workerActions.apiRequest(params, resources => self.postMessage({ awaitedResponse: { resources, requestHash } }));
+    workerActions.request(params, response => self.postMessage({ awaitedResponse: { response, requestHash } }));
   },
-  apiRequest: (params, resolver) => {
-    if (state.api) {
+  request: (params, resolver = () => {}) => {
+    const {
+      type, namespace, id, filter, sortBy, sortOrder, limit
+    } = params;
+
+    if (!caches[type]) {
       state.api.request(params)
         .then((res) => {
-          if (resolver) {
-            resolver(res);
-          }
+          resolver(res);
+        });
+    } else {
+      caches[type].find({
+        type, namespace, id, filter, sortBy, sortOrder, limit
+      })
+        .then((res) => {
+          resolver(res);
         });
     }
   },
@@ -175,18 +192,21 @@ const workerActions = {
    * Accepts an array of JSON objects representing resources
    * types the array and constructs a cache if none exists and then loads each resource in the array into the cache
    */
-  loadCache: (collection) => {
-    if (collection.length === 0) {
+  loadCache: (payload, detail = false) => {
+    const rawResources = detail ? [payload] : payload;
+
+    if (payload?.length === 0) {
       return [];
     }
-    const rawType = collection[0].type;
+    const rawType = rawResources[0].type;
+
     const type = normalizeType(rawType === 'counts' ? COUNT : rawType);
 
     if (!caches[type]) {
-      caches[type] = resourceCache(type);
+      caches[type] = resourceCache(type, params => state.api?.request({ ...params, type }));
     }
 
-    return caches[type].load(collection);
+    return caches[type].load(rawResources, detail);
   },
   flushWatcherQueue: () => {
     while (state.watcherQueue.length > 0) {

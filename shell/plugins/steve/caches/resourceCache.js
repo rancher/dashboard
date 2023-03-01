@@ -7,15 +7,22 @@ export default class ResourceCache {
   resources = {};
   type;
   keyField;
+  __currentParams = {};
+  __resourceGetter = () => {};
 
   /**
    * This property stores named functions
    */
   preCacheFields = [];
 
-  constructor(type) {
+  constructor(type, resourceGetter) {
     this.type = normalizeType(type);
     this.keyField = keyFieldFor(this.type);
+    this.__resourceGetter = resourceGetter || this.__resourceGetter;
+  }
+
+  loadWorkerMethods(methods) {
+    this.__resourceGetter = methods.resourceGetter || this.__resourceGetter;
   }
 
   /**
@@ -27,7 +34,7 @@ export default class ResourceCache {
     const newResourceHash = this.hash(resource);
 
     if (!newResourceHash || existingResourceHash !== newResourceHash) {
-      this.resources[resourceKey] = newResourceHash;
+      this.resources[resourceKey] = { hash: newResourceHash, resource };
 
       return true;
     }
@@ -59,12 +66,28 @@ export default class ResourceCache {
     return hashObj(resource);
   }
 
-  load(collection = []) {
-    this.resources = {};
-    for (let i = 0; i < collection.length; i++) {
-      const preCacheResource = this.__addPreCacheFields(collection[i]);
+  get currentParams() {
+    return this.__currentParams;
+  }
 
+  load(payload = [], concat = false) {
+    const singleResource = payload.length === 1;
+    let id;
+
+    if (!concat) {
+      this.resources = {};
+    }
+    for (let i = 0; i < payload.length; i++) {
+      const preCacheResource = this.__addPreCacheFields(payload[i]);
+
+      if (singleResource) {
+        id = preCacheResource[this.keyField];
+      }
       this.__updateCache(preCacheResource);
+    }
+
+    if (singleResource) {
+      return this.resources[id].resource;
     }
 
     const resourceArray = Object.values(this.resources).map((resource) => {
@@ -74,9 +97,29 @@ export default class ResourceCache {
     return resourceArray;
   }
 
-  find({ namespace, id, selector }) {
+  find(params) {
+    const { namespace, id, selector } = params;
+    const { currentNamespace, currentSelector } = this.__currentParams;
+
+    this.__currentParams.namespace = namespace || null;
+    this.__currentParams.selector = selector || null;
     if (id) {
-      return [this.resources[id].resource];
+      if (this.resources[id]) {
+        return Promise.resolve(this.resources[id].resource);
+      }
+
+      return this.__resourceGetter({
+        id, namespace, selector
+      });
+    }
+
+    if (
+      (currentNamespace !== namespace || currentSelector !== selector) && // if either of these are different
+      !(currentNamespace === null && currentSelector === null) // if both are null then we've got a global request
+    ) {
+      return this.__resourceGetter({
+        id, namespace, selector
+      });
     }
 
     const filterConditions = [];
@@ -89,14 +132,16 @@ export default class ResourceCache {
     }
 
     if (filterConditions.length === 0) {
-      return Object.values(this.resources).map(resource => resource.resource);
+      return Promise.resolve(Object.values(this.resources).map(resource => resource.resource));
     }
 
-    return Object.values(this.resources)
-      .map(resource => resource.resource)
-      .filter((resource) => {
-        return filterConditions.every(condition => condition(resource));
-      });
+    return Promise.resolve({
+      data: Object.values(this.resources)
+        .map(resource => resource.resource)
+        .filter((resource) => {
+          return filterConditions.every(condition => condition(resource));
+        })
+    });
   }
 
   change(resource, callback) {

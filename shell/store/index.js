@@ -27,7 +27,6 @@ import {
   splitNamespaceFilterKey,
 } from '@shell/utils/namespace-filter';
 import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
-import { isAdvancedWorker } from '~/shell/plugins/steve/subscribe';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -827,16 +826,10 @@ export const actions = {
     commit('cluster/applyConfig',
       { baseUrl: clusterBase });
 
-    // ToDo: SM instead of this, I can just send it all over to the worker and let it sort it out.
-    const isAdvancedWorkerStore = isAdvancedWorker({ getters, rootGetters });
+    await Promise.all([
+      dispatch('cluster/loadSchemas', true),
+    ]);
 
-    if (!isAdvancedWorkerStore) {
-      await Promise.all([
-        dispatch('cluster/loadSchemas', true),
-      ]);
-    }
-
-    // ToDo: SM I might be able to wrap this into the createApi call that I'm going to add above...
     dispatch('cluster/subscribe');
 
     const projectArgs = {

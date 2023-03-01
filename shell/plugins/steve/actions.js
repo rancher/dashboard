@@ -10,7 +10,7 @@ import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import { createWorker, isAdvancedWorker } from '@shell/plugins/steve/subscribe';
 import { CSRF } from '@shell/config/cookies';
-import { waitFor } from '~/shell/utils/async';
+import { waitFor } from '@shell/utils/async';
 
 export default {
 
@@ -113,9 +113,23 @@ export default {
           });
         }
 
-        // ToDo: SM I should be queuing up requests if one of these comes up before the worker actually gets a chance to spin up
         if (isAdvancedWorkerStore && this.$workers[getters.storeName]) {
-          out = await makeWorkerRequest(this, { pOpt, getters });
+          const {
+            type, namespace, id, opt: {
+              limit, filter, sortBy, sortOrder
+            }
+          } = pOpt;
+
+          out = await makeWorkerRequest(this, {
+            type,
+            namespace,
+            id,
+            filter,
+            limit,
+            sortBy,
+            sortOrder,
+            getters
+          });
         } else {
           out = await makeRequest(this, opt);
         }
@@ -165,26 +179,13 @@ export default {
       });
     }
 
-    function makeWorkerRequest(that, { pOpt, getters }) {
+    function makeWorkerRequest(that, {
+      type, namespace, id, limit, filter, sortBy, sortOrder, getters
+    }) {
       const worker = that.$workers[getters.storeName];
-      const type = pOpt.type;
-      const opt = pOpt.opt || pOpt;
-      const schema = getters.schemaFor(type);
-      const { namespaced, resource } = schema?.attributes || {};
-      const url = parseUrl(opt.url);
-      const urlParts = url.path.split('/');
-      const resourceIndex = urlParts.indexOf(resource);
-      let namespace, id;
-
-      if (namespaced) {
-        [namespace, id] = urlParts.slice(resourceIndex + 1);
-      } else {
-        [id] = urlParts.slice(resourceIndex + 1);
-      }
-      const selector = opt?.filter?.labelSelector;
 
       return worker.postMessageAndWait({
-        type, namespace, id, selector
+        type, namespace, id, limit, filter, sortBy, sortOrder
       });
     }
 
