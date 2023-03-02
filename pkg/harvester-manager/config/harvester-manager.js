@@ -86,7 +86,7 @@ export function init($plugin, store) {
     configureType
   } = $plugin.DSL(store, NAME);
 
-  product({
+  $plugin.registerExtensionAsProduct(store, {
     ifHaveType:          CAPI.RANCHER_CLUSTER,
     ifFeature:           [MULTI_CLUSTER, HARVESTER],
     inStore:             'management',
@@ -96,6 +96,17 @@ export function init($plugin, store) {
     weight:              100,
     to:                  harvesterClustersLocation,
   });
+
+  // product({
+  //   ifHaveType:          CAPI.RANCHER_CLUSTER,
+  //   ifFeature:           [MULTI_CLUSTER, HARVESTER],
+  //   inStore:             'management',
+  //   icon:                'harvester',
+  //   removable:           false,
+  //   showClusterSwitcher: false,
+  //   weight:              100,
+  //   to:                  harvesterClustersLocation,
+  // });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });
   headers(HCI.CLUSTER, [

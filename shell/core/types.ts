@@ -140,6 +140,8 @@ export type LocationConfig = {
  * Interface for a Dashboard plugin
  */
 export interface IPlugin {
+  registerExtensionAsProduct(store: any, option: object): void;
+
   /**
    * Add a product
    * @param importFn Function that will import the module containing a product definition

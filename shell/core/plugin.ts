@@ -133,6 +133,19 @@ export class Plugin implements IPlugin {
     this.uiConfig[type][where].push({ ...config, locationConfig });
   }
 
+  registerExtensionAsProduct(store: any, options: object) {
+    console.log('registerProd this', this);
+    console.log('registerProd options', options);
+    console.log('registerProd store', store);
+    console.log('registerProd name', this.name);
+
+    const { product } = STORE_DSL(store, this.name);
+
+    console.log('registerProd this V2', this);
+
+    product(options);
+  }
+
   /**
    * Adds an action/button to the UI
    */
