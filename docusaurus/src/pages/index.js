@@ -3,38 +3,40 @@ import clsx from 'clsx';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
+import Contribute from '@site/src/components/Contribute';
+import GettingStarted from '@site/src/components/GettingStarted';
+import styles from './index.module.css';
+
+function HomepageHeader() {
+  return (
+    <header className={clsx('hero hero--primary', styles.heroBanner)}>
+      <div className="container homepage-banner">
+        <h1 className="hero__title">Rancher UI DevKit</h1>
+        <p className="hero__subtitle">Rancher UI DevKit provides everything you need to start developing with the Rancher UI and plugins</p>
+      </div>
+    </header>
+  );
+}
 
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
 
   return (
-    <div
+    <Layout
       title={`${ siteConfig.title }`}
       description="Description will go into a meta tag in <head />">
-      <div>header</div>
-      <div className="row homepage-banner">
-        <div className="container">
-          <div className="row">
-            <div className="col col--8 homepage-banner-img">
-              <img src={require('@site/static/img/header-img.jpeg').default} />
-            </div>
-            <div className="col col--4 homepage-banner-right">
-              <h1 className="hero__title">Rancher UI DevKit</h1>
-              <p className="hero__subtitle">Rancher UI DevKit provides everything you need to start developing with the Rancher UI and plugins</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <HomepageHeader />
       <main>
-        <div className="container featuresContainer">
-          <div className="row">
-            <div className="col col--8">
-              <HomepageFeatures />
-            </div>
-            <div className="col col--4 homepageFooter"></div>
+        <section className={styles.features}>
+          <div className="container">
+            <HomepageFeatures />
+            <hr/>
+            <Contribute/>
+            <hr/>
+            <GettingStarted/>
           </div>
-        </div>
+        </section>
       </main>
-    </div>
+    </Layout>
   );
 }
