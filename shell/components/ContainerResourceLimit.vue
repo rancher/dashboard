@@ -180,7 +180,7 @@ export default {
       }
     },
 
-    validateResourceLimits(limit) {
+    validateResourceLimits(limit = {}) {
       const errors = [];
       const validate = (a, b) => {
         const aValue = limit[a];
@@ -207,18 +207,25 @@ export default {
         errors.push(message);
       };
 
-      ['minCpu', 'requestsCpu', 'limitsCpu', 'maxCpu'].filter(k => limit[k])
-        .reduce((pre, cur) => {
+      const cpuLimts = ['minCpu', 'requestsCpu', 'limitsCpu', 'maxCpu'].filter(k => limit[k]);
+
+      if (cpuLimts.length > 1) {
+        cpuLimts.reduce((pre, cur) => {
           validate(pre, cur);
 
           return cur;
         });
-      ['minMemory', 'requestsMemory', 'limitsMemory', 'maxMemory'].filter(k => limit[k])
-        .reduce((pre, cur) => {
+      }
+
+      const memoryLimits = ['minMemory', 'requestsMemory', 'limitsMemory', 'maxMemory'].filter(k => limit[k]);
+
+      if (memoryLimits.length > 1) {
+        memoryLimits.reduce((pre, cur) => {
           validate(pre, cur);
 
           return cur;
         });
+      }
 
       return errors;
     },
