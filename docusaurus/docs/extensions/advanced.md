@@ -1,4 +1,4 @@
-# Advanced Topics
+# Miscellaneous
 
 ## Using yarn link
 
