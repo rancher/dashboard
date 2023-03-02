@@ -25,9 +25,11 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
-    this.allMgmt = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-    await this.$fetchType(FLEET.CLUSTER);
+    this.$initializeFetchData(this.resource);
+
+    this.$fetchType(FLEET.WORKSPACE);
+    await this.$fetchType(this.resource);
+    this.allMgmt = await this.$fetchType(MANAGEMENT.CLUSTER);
   },
 
   data() {

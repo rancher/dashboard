@@ -25,7 +25,7 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks:      { $store: { getters: { 'i18n/t': () => text } } },
+        mocks:      { $store: { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } } },
         directives: { shortkey: () => jest.fn() }
       });
       const element = wrapper.find(`[data-testid="namespaces-values-none"]`).element.textContent;
@@ -60,7 +60,8 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [{ label: text }],
         },
-        directives: { shortkey: () => jest.fn() }
+        directives: { shortkey: () => jest.fn() },
+        mocks:      { $store: { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } } },
       });
 
       const element = wrapper.find(`[data-testid="namespaces-value-0"]`).element.textContent;
@@ -92,8 +93,9 @@ describe('component: NamespaceFilter', () => {
         mocks: {
           $store: {
             getters: {
-              'i18n/t':    () => text,
-              'prefs/get': () => preferences
+              'i18n/t':            () => text,
+              'prefs/get':         () => preferences,
+              namespaceFilterMode: () => undefined,
             },
           }
         },
@@ -114,6 +116,7 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
+        mocks:      { $store: { getters: { 'i18n/t': () => '', namespaceFilterMode: () => undefined } } },
         directives: { shortkey: () => jest.fn() }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
@@ -132,7 +135,7 @@ describe('component: NamespaceFilter', () => {
           options:  () => [],
           value:    () => [],
         },
-        mocks:      { $store: { getters: { 'i18n/t': () => text } } },
+        mocks:      { $store: { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } } },
         directives: { shortkey: () => jest.fn() }
       });
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
@@ -147,18 +150,20 @@ describe('component: NamespaceFilter', () => {
       const text = 'my option';
       const wrapper = mount(NamespaceFilter, {
         computed: {
-          filtered: () => [
-            {
-              kind:  'namespace',
-              label: `default-${ text }`,
-            },
-          ],
           options: () => [],
           value:   () => [],
         },
-        mocks:      { $store: { getters: { 'i18n/t': () => text } } },
+        mocks:      { $store: { getters: { 'i18n/t': () => text, namespaceFilterMode: () => undefined } } },
         directives: { shortkey: () => jest.fn() }
       });
+
+      (wrapper.vm as any).cachedFiltered = [
+        {
+          kind:  'namespace',
+          label: `default-${ text }`,
+        },
+      ];
+
       const dropdown = wrapper.find(`[data-testid="namespaces-dropdown"]`);
 
       await dropdown.trigger('click');
@@ -180,28 +185,30 @@ describe('component: NamespaceFilter', () => {
       jest.spyOn(NamespaceFilter.computed.value, 'get').mockReturnValue([]);
       const wrapper = mount(NamespaceFilter, {
         computed: {
-          filtered: () => [
-            {
-              label:     text,
-              key,
-              elementId: text,
-              id:        text,
-              kind:      'namespace',
-              enabled:   true,
-            },
-          ],
-          options:        () => [],
-          currentProduct: () => undefined,
-          key:            () => key,
+          options:             () => [],
+          currentProduct:      () => undefined,
+          namespaceFilterMode: () => undefined,
+          key:                 () => key,
         },
         mocks: {
           $store: {
-            getters:  { 'i18n/t': () => text },
+            getters:  { 'i18n/t': () => text, namespaceFilterMode: () => undefined },
             dispatch: action
           }
         },
         directives: { shortkey: () => jest.fn() }
       });
+
+      (wrapper.vm as any).cachedFiltered = [
+        {
+          label:     text,
+          key,
+          elementId: text,
+          id:        text,
+          kind:      'namespace',
+          enabled:   true,
+        },
+      ];
 
       await wrapper.find(`[data-testid="namespaces-dropdown"]`).trigger('click');
       await wrapper.find(`[data-testid="namespaces-option-0"]`).trigger('click');

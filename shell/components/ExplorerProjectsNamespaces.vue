@@ -112,6 +112,10 @@ export default {
       // is updated if a new project is created or removed.
       const projectsInAllClusters = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
+      if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore && this.$store.getters[`${ this.currentProduct.inStore }/filterProject`]) {
+        return this.$store.getters[`${ this.currentProduct.inStore }/filterProject`];
+      }
+
       const clustersInProjects = projectsInAllClusters.filter(project => project.spec.clusterName === clusterId);
 
       return clustersInProjects;
@@ -235,6 +239,19 @@ export default {
     }
   },
   methods: {
+    /**
+     * Get PSA HTML to be displayed in the tooltips
+     */
+    getPsaTooltip(row) {
+      const dictionary = row.psaTooltipsDescription;
+      const list = Object.values(dictionary)
+        .sort()
+        .map(text => `<li>${ text }</li>`).join('');
+      const title = `<p>${ this.t('podSecurityAdmission.name') }: </p>`;
+
+      return `${ title }<ul class="psa-tooltip">${ list }</ul>`;
+    },
+
     userIsFilteringForSpecificNamespaceOrProject() {
       const activeFilters = this.$store.getters['namespaceFilters'];
 
@@ -387,6 +404,24 @@ export default {
           class="text-muted"
         >&ndash;</span>
       </template>
+      <template #cell:name="{row}">
+        <div class="namespace-name">
+          <n-link
+            v-if="row.detailLocation && !row.hideDetailLocation"
+            :to="row.detailLocation"
+          >
+            {{ row.name }}
+          </n-link>
+          <span v-else>
+            {{ row.name }}
+          </span>
+          <i
+            v-if="row.hasSystemLabels"
+            v-tooltip="getPsaTooltip(row)"
+            class="icon icon-lock ml-5"
+          />
+        </div>
+      </template>
       <template
         v-for="project in projectsWithoutNamespaces"
         v-slot:[slotName(project)]
@@ -448,6 +483,19 @@ export default {
         }
       }
     }
+
+    .namespace-name {
+      display: flex;
+      align-items: center;
+    }
   }
 }
+</style>
+<style lang="scss">
+  .psa-tooltip {
+    // These could pop up a lot as the mouse moves around, keep them as small and unintrusive as possible
+    // (easier to test with v-tooltip="{ content: getPSA(row), autoHide: false, show: true }")
+    margin: 3px 0;
+    padding: 0 8px 0 22px;
+  }
 </style>

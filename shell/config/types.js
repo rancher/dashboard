@@ -174,6 +174,7 @@ export const MANAGEMENT = {
   GLOBAL_ROLE:                   'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:           'management.cattle.io.globalrolebinding',
   POD_SECURITY_POLICY_TEMPLATE:  'management.cattle.io.podsecuritypolicytemplate',
+  PSA:                           'management.cattle.io.podsecurityadmissionconfigurationtemplate',
   MANAGED_CHART:                 'management.cattle.io.managedchart',
   USER_NOTIFICATION:             'management.cattle.io.rancherusernotification',
   GLOBAL_DNS_PROVIDER:           'management.cattle.io.globaldnsprovider',
@@ -196,14 +197,16 @@ export const CAPI = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
-  BUNDLE:            'fleet.cattle.io.bundle',
-  BUNDLE_DEPLOYMENT: 'fleet.cattle.io.bundledeployment',
-  CLUSTER:           'fleet.cattle.io.cluster',
-  CLUSTER_GROUP:     'fleet.cattle.io.clustergroup',
-  DASHBOARD:         'fleet.cattle.io.dashboard',
-  GIT_REPO:          'fleet.cattle.io.gitrepo',
-  WORKSPACE:         'management.cattle.io.fleetworkspace',
-  TOKEN:             'fleet.cattle.io.clusterregistrationtoken',
+  BUNDLE:                   'fleet.cattle.io.bundle',
+  BUNDLE_DEPLOYMENT:        'fleet.cattle.io.bundledeployment',
+  CLUSTER:                  'fleet.cattle.io.cluster',
+  CLUSTER_GROUP:            'fleet.cattle.io.clustergroup',
+  DASHBOARD:                'fleet.cattle.io.dashboard',
+  GIT_REPO:                 'fleet.cattle.io.gitrepo',
+  WORKSPACE:                'management.cattle.io.fleetworkspace',
+  TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
+  BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
+  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction'
 };
 
 export const GATEKEEPER = {

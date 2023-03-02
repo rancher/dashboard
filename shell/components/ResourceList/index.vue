@@ -5,8 +5,9 @@ import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import IconMessage from '@shell/components/IconMessage.vue';
-
-export const ResourceListComponentName = 'ResourceList';
+import { ResourceListComponentName } from './resource-list.config';
+import { PanelLocation, ExtensionPoint } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export default {
   name: ResourceListComponentName,
@@ -16,7 +17,8 @@ export default {
     ResourceTable,
     Masthead,
     ResourceLoadingIndicator,
-    IconMessage
+    IconMessage,
+    ExtensionPanel
   },
   mixins: [ResourceFetch],
 
@@ -97,6 +99,8 @@ export default {
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
       resource,
+      extensionType:                    ExtensionPoint.PANEL,
+      extensionLocation:                PanelLocation.RESOURCE_LIST,
       loadResources:                    [resource], // List of resources that will be loaded, this could be many (`Workloads`)
       hasFetch:                         false,
       // manual refresh
@@ -128,7 +132,8 @@ export default {
 
     showIncrementalLoadingIndicator() {
       return this.perfConfig?.incrementalLoading?.enabled;
-    }
+    },
+
   },
 
   watch: {
@@ -192,6 +197,13 @@ export default {
         <slot name="extraActions" />
       </template>
     </Masthead>
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource="{}"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
+
     <div v-if="hasListComponent">
       <component
         :is="listComponent"

@@ -12,7 +12,6 @@ import {
   MANAGEMENT, METRIC, NODE, NORMAN, POD
 } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
-import { get } from '@shell/utils/object';
 import { GROUP_RESOURCES, mapPref } from '@shell/store/prefs';
 import { COLUMN_BREAKPOINTS } from '@shell/components/SortableTable/index.vue';
 import ResourceFetch from '@shell/mixins/resource-fetch';
@@ -41,27 +40,29 @@ export default {
   },
 
   async fetch() {
-    const hash = { kubeNodes: this.$fetchType(NODE) };
+    this.$initializeFetchData(this.resource);
+
+    const hash = { kubeNodes: this.$fetchType(this.resource) };
 
     this.canViewPods = this.$store.getters[`cluster/schemaFor`](POD);
 
     if (this.$store.getters[`management/schemaFor`](MANAGEMENT.NODE)) {
       // Required for Drain/Cordon action
-      hash.normanNodes = this.$store.dispatch('rancher/findAll', { type: NORMAN.NODE });
+      hash.normanNodes = this.$fetchType(NORMAN.NODE, [], 'rancher');
     }
 
     if (this.$store.getters[`rancher/schemaFor`](NORMAN.NODE)) {
-      hash.mgmtNodes = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      hash.mgmtNodes = this.$fetchType(MANAGEMENT.NODE, [], 'management');
     }
 
     if (this.$store.getters[`management/schemaFor`](CAPI.MACHINE)) {
       // Required for ssh / download key actions
-      hash.machines = this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });
+      hash.machines = this.$fetchType(CAPI.MACHINE, [], 'management');
     }
 
     if (this.canViewPods) {
       // Used for running pods metrics - we don't need to block on this to show the list of nodes
-      this.$store.dispatch('cluster/findAll', { type: POD });
+      this.$fetchType(POD);
     }
 
     await allHash(hash);
@@ -82,7 +83,16 @@ export default {
     hasWindowsNodes() {
       return (this.rows || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
     },
+
     tableGroup: mapPref(GROUP_RESOURCES),
+
+    parsedRows() {
+      this.rows.forEach((row) => {
+        row.displayTaintsAndLabels = (row.spec.taints && row.spec.taints.length) || !!row.customLabelCount;
+      });
+
+      return this.rows;
+    },
 
     headers() {
       const headers = [
@@ -117,7 +127,6 @@ export default {
 
       return headers;
     },
-
   },
 
   methods: {
@@ -134,8 +143,9 @@ export default {
       }
     },
 
-    get,
-
+    toggleLabels(row) {
+      this.$set(row, 'displayLabels', !row.displayLabels);
+    },
   }
 
 };
@@ -152,7 +162,7 @@ export default {
       v-bind="$attrs"
       :schema="schema"
       :headers="headers"
-      :rows="rows"
+      :rows="parsedRows"
       :sub-rows="true"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
@@ -162,22 +172,54 @@ export default {
       <template #sub-row="{fullColspan, row, onRowMouseEnter, onRowMouseLeave}">
         <tr
           class="taints sub-row"
-          :class="{'empty-taints': !row.spec.taints || !row.spec.taints.length}"
+          :class="{'empty-taints': ! row.displayTaintsAndLabels}"
           @mouseenter="onRowMouseEnter"
           @mouseleave="onRowMouseLeave"
         >
-          <template v-if="row.spec.taints && row.spec.taints.length">
+          <template v-if="row.displayTaintsAndLabels">
             <td>&nbsp;</td>
             <td>&nbsp;</td>
             <td :colspan="fullColspan-2">
-              {{ t('node.list.nodeTaint') }}:
-              <Tag
-                v-for="taint in row.spec.taints"
-                :key="taint.key + taint.value + taint.effect"
-                class="mr-5"
-              >
-                {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
-              </Tag>
+              <span v-if="row.spec.taints && row.spec.taints.length">
+                {{ t('node.list.nodeTaint') }}:
+                <Tag
+                  v-for="taint in row.spec.taints"
+                  :key="taint.key + taint.value + taint.effect"
+                  class="mr-5 mt-2"
+                >
+                  {{ taint.key }}={{ taint.value }}:{{ taint.effect }}
+                </Tag>
+              </span>
+              <span
+                v-if="!!row.customLabelCount"
+                class="mt-5"
+              > {{ t('node.list.nodeLabels') }}:
+                <span
+                  v-for="(label, i) in row.customLabels"
+                  :key="i"
+                  class="mt-5 labels"
+                >
+                  <Tag
+                    v-if="i < 7"
+                    class="mr-2 label"
+                  >
+                    {{ label }}
+                  </Tag>
+                  <Tag
+                    v-else-if="i > 6 && row.displayLabels"
+                    class="mr-2 label"
+                  >
+                    {{ label }}
+                  </Tag>
+                </span>
+                <a
+                  v-if="row.customLabelCount > 7"
+                  href="#"
+                  @click.prevent="toggleLabels(row)"
+                >
+                  {{ t(`node.list.${row.displayLabels? 'hideLabels' : 'showLabels'}`) }}
+                </a>
+              </span>
             </td>
           </template>
           <td
@@ -193,11 +235,24 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+
+.labels {
+    display: inline;
+    flex-wrap: wrap;
+
+    .label {
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+}
 .taints {
   td {
     padding-top:0;
     .tag {
-      margin-right: 5px
+      margin-right: 5px;
+      display: inline-block;
+      margin-top: 2px;
     }
   }
   &.empty-taints {

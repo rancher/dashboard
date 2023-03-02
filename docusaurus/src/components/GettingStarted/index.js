@@ -55,7 +55,7 @@ const GettingStartedList = [
   {
     title:       'API',
     link:        'code-base-works/api-resources-and-schemas',
-    target:      '_blank',
+    target:      '',
     Svg:         require('@site/static/img/api.svg').default,
     classname:   'pine-green',
     description: (
@@ -67,7 +67,7 @@ const GettingStartedList = [
   {
     title:       'UI Walkthrough',
     link:        'getting-started/ui-walkthrough',
-    target:      '_blank',
+    target:      '',
     Svg:         require('@site/static/img/ui-walkthrough.svg').default,
     classname:   'primary-hover',
     description: (

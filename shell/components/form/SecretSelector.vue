@@ -55,6 +55,10 @@ export default {
     mode: {
       type:    String,
       default: _EDIT
+    },
+    inStore: {
+      type:    String,
+      default: 'cluster',
     }
   },
 
@@ -86,7 +90,7 @@ export default {
       }
     },
     secrets() {
-      const allSecrets = this.$store.getters['cluster/all'](SECRET);
+      const allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
 
       return allSecrets
         .filter(secret => this.types.includes(secret._type) && secret.namespace === this.namespace);

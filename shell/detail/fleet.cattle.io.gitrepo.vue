@@ -8,7 +8,7 @@ import { FLEET } from '@shell/config/types';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import FleetBundles from '@shell/components/fleet/FleetBundles.vue';
 import { resourceCounts } from '@shell/components/ResourceSummary.vue';
-import { allHash } from '~shell/utils/promise';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 export default {
   name: 'DetailGitRepo',
@@ -74,16 +74,23 @@ export default {
     },
   },
   async fetch() {
-    const { $store } = this;
+    const allDispatches = await checkSchemasForFindAllHash({
+      allBundles: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE
+      },
+      allFleet: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+      clusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      }
+    }, this.$store);
 
-    const allDispatches = await allHash({
-      allBundles:    $store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
-      allFleet:      $store.dispatch('management/findAll', { type: FLEET.CLUSTER }),
-      clusterGroups: $store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP }),
-    });
-
-    this.allBundles = allDispatches.allBundles;
-    this.allFleet = allDispatches.allFleet;
+    this.allBundles = allDispatches.allBundles || [];
+    this.allFleet = allDispatches.allFleet || [];
   },
 
 };
@@ -111,6 +118,7 @@ export default {
       :need-related="false"
     >
       <Tab
+        v-if="!!allBundles.length"
         label="Bundles"
         name="bundles"
         :weight="30"

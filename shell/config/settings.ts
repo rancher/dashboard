@@ -4,7 +4,7 @@ import { GC_DEFAULTS } from '../utils/gc/gc-types';
 interface GlobalSettingRuleset {
   name: string,
   key?: string | number,
-  arg?: string | number | (string | number)[]
+  factoryArg?: string | number | (string | number)[]
 }
 
 interface GlobalSetting {
@@ -56,7 +56,7 @@ export const SETTING = {
   AUTH_USER_SESSION_TTL_MINUTES:        'auth-user-session-ttl-minutes',
   AUTH_USER_INFO_RESYNC_CRON:           'auth-user-info-resync-cron',
   AUTH_LOCAL_VALIDATE_DESC:             'auth-password-requirements-description',
-  CATTLE_PASSWORD_MIN_LENGTH:           'password-min-length',
+  PASSWORD_MIN_LENGTH:                  'password-min-length', // CATTLE_PASSWORD_MIN_LENGTH
   CLUSTER_TEMPLATE_ENFORCEMENT:         'cluster-template-enforcement',
   UI_INDEX:                             'ui-index',
   UI_DASHBOARD_INDEX:                   'ui-dashboard-index',
@@ -88,16 +88,28 @@ export const SETTING = {
 
 // These are the settings that are allowed to be edited via the UI
 export const ALLOWED_SETTINGS: GlobalSetting = {
-  [SETTING.CA_CERTS]:                   { kind: 'multiline', readOnly: true },
-  [SETTING.ENGINE_URL]:                 {},
-  [SETTING.ENGINE_ISO_URL]:             {},
-  [SETTING.CATTLE_PASSWORD_MIN_LENGTH]: {
+  [SETTING.CA_CERTS]:            { kind: 'multiline', readOnly: true },
+  [SETTING.ENGINE_URL]:          {},
+  [SETTING.ENGINE_ISO_URL]:      {},
+  [SETTING.PASSWORD_MIN_LENGTH]: {
     kind:    'integer',
     ruleSet: [
       {
-        name: 'betweenValues',
+        name:       'betweenValues',
+        key:        'Password',
+        factoryArg: [2, 256]
+      },
+      {
+        name: 'isInteger',
         key:  'Password',
-        arg:  [2, 256]
+      },
+      {
+        name: 'isPositive',
+        key:  'Password',
+      },
+      {
+        name: 'isOctal',
+        key:  'Password',
       }
     ],
   },
@@ -141,5 +153,6 @@ export const DEFAULT_PERF_SETTING = {
   forceNsFilter:                {
     enabled:   false,
     threshold: 1500,
-  }
+  },
+  advancedWorker: { enabled: false },
 };

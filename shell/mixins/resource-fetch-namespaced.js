@@ -1,5 +1,6 @@
 import { mapGetters } from 'vuex';
-import { ResourceListComponentName } from '../components/ResourceList';
+import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
+
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
  */
@@ -61,6 +62,7 @@ export default {
      * Are there too many core list resources to show in the list?
      */
     __areResourcesTooMany() {
+      // __getCountForResources is defined on resource-fetch mixin...
       const count = this.__getCountForResources(this.loadResources);
 
       return count > this.perfConfig.forceNsFilter.threshold;

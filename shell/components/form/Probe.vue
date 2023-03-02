@@ -285,10 +285,10 @@ export default {
           >
             <UnitInput
               v-model="probe.timeoutSeconds"
+              min="0"
               :mode="mode"
               :suffix="t('suffix.sec')"
-              :label="t('probe.timeout.placeholder')"
-              min="0"
+              :label="t('probe.timeout.label')"
               :placeholder="t('probe.timeout.placeholder')"
               @input="update"
             />
@@ -322,7 +322,7 @@ export default {
               min="1"
               :mode="mode"
               :label="t('probe.failureThreshold.label')"
-              :placeholder="t('probe.failureThreshold.label')"
+              :placeholder="t('probe.failureThreshold.placeholder')"
               @input="update"
             />
           </div>

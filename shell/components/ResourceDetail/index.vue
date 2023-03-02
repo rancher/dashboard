@@ -13,6 +13,7 @@ import DetailTop from '@shell/components/DetailTop';
 import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import ForceDirectedTreeChart from '@shell/components/fleet/ForceDirectedTreeChart';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
 
 function modeFor(route) {
   if ( route.query?.mode === _IMPORT ) {
@@ -149,14 +150,34 @@ export default {
       initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
       model = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
+      if (model.forceYaml === true) {
+        as = _YAML;
+        this.as = as;
+      }
+
       if ( as === _YAML ) {
         yaml = createYaml(schemas, resource, data);
       }
     } else {
       if ( as === _GRAPH ) {
-        await store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-        await store.dispatch('management/findAll', { type: FLEET.BUNDLE });
-        await store.dispatch('management/findAll', { type: FLEET.BUNDLE_DEPLOYMENT });
+        const graphSchema = await checkSchemasForFindAllHash({
+          cluster: {
+            inStoreType: 'management',
+            type:        FLEET.CLUSTER
+          },
+          bundle: {
+            inStoreType: 'management',
+            type:        FLEET.BUNDLE
+          },
+
+          bundleDeployment: {
+            inStoreType: 'management',
+            type:        FLEET.BUNDLE_DEPLOYMENT
+          }
+
+        }, this.$store);
+
+        this.canViewChart = graphSchema.cluster && graphSchema.bundle && graphSchema.bundleDeployment;
       }
 
       let fqid = id;
@@ -225,7 +246,6 @@ export default {
       this.value.applyDefaults(this, realMode);
     }
   },
-
   data() {
     return {
       chartData:       null,
@@ -245,6 +265,7 @@ export default {
       value:           null,
       model:           null,
       notFound:        null,
+      canViewChart:    true,
     };
   },
 
@@ -381,7 +402,7 @@ export default {
     </Masthead>
 
     <ForceDirectedTreeChart
-      v-if="isGraph"
+      v-if="isGraph && canViewChart"
       :data="chartData"
       :fdc-config="getGraphConfig"
     />

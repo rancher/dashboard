@@ -9,7 +9,7 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable';
 import { mapGetters } from 'vuex';
-import { canViewProjectMembershipEditor } from '~/shell/components/form/Members/ProjectMembershipEditor.vue';
+import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
 
 /**

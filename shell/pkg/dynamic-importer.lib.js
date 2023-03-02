@@ -72,3 +72,11 @@ export function importWindowComponent(name) {
 export function resolveWindowComponent(key) {
   return undefined;
 }
+
+export function resolveMachineConfigComponent(key) {
+  return undefined;
+}
+
+export function resolveCloudCredentialComponent(key) {
+  return undefined;
+}

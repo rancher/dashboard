@@ -47,8 +47,12 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: normal;
 }
 
+.navbar {
+  height: auto;
+}
+
 .navbar__logo {
-  height: 1.5rem;
+  height: 4rem;
 }
 
 
@@ -113,8 +117,8 @@ h2 {
   display: block;
 }
 
-.logo-Gh {
-  height: 24px;
+.contributeLink img {
+  height: 75px;
   margin: 18px 0;
 }
 
@@ -136,8 +140,7 @@ a.gettingStartedLink .resourcesSvg {
 }
 
 a.gettingStartedLink .resourcesSvg svg {
-  width: 80px;
-  height: auto;
+  height: 80px;
 }
 
 .midnight-blue {
@@ -174,3 +177,4 @@ a.gettingStartedLink .resourcesSvg svg {
 #__docusaurus {
   min-height: 100vh !important;
 }
+

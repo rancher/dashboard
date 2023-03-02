@@ -13,6 +13,7 @@ export const UI_MANAGED = 'management.cattle.io/ui-managed';
 export const CREATOR_ID = 'field.cattle.io/creatorId';
 export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
 export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
+export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -146,3 +147,19 @@ export const CLUSTER_BADGE = {
   // Custom icon text - max 2 characters
   ICON_TEXT: 'ui.rancher/badge-icon-text',
 };
+
+export const SYSTEM_LABELS = [
+  'io.cattle.lifecycle.',
+  'beta.kubernetes.io',
+  'failure-domain.beta.kubernetes.io',
+  'node-role.kubernetes.io',
+  'kubernetes.io',
+  'cattle.io',
+  'authz.management.cattle.io',
+  'rke.cattle.io',
+  'field.cattle.io',
+  'workload.user.cattle.io',
+  'k3s.io',
+  'node.kubernetes.io',
+  'egress.rke2.io'
+];

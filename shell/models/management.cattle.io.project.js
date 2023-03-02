@@ -2,7 +2,7 @@ import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotation
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import isEmpty from 'lodash/isEmpty';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 function clearUnusedResourceQuotas(spec, types) {
   types.forEach((type) => {
@@ -99,18 +99,36 @@ export default class Project extends HybridModel {
     // and the PUT request should have a query param _replace=true.
     const newValue = await norman.save({ replace: forceReplaceOnReq });
 
-    try {
-      await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
-    } catch (err) {
-      if ( err.status === 409 || err.status === 403 ) {
-        // The backend updates each new project soon after it is created,
-        // so there is a chance of a resource conflict or forbidden error. If that happens,
-        // retry the action.
+    let retryCount = 0;
+
+    const finishProjectCreation = async() => {
+      try {
         await newValue.doAction('setpodsecuritypolicytemplate', { podSecurityPolicyTemplateId: this.spec.podSecurityPolicyTemplateId || null });
-      } else {
-        throw err;
+      } catch (err) {
+        if ( err.status === 409 || err.status === 403 ) {
+          // The backend updates each new project soon after it is created,
+          // so there is a chance of a 409 resource conflict or forbidden error. If that happens,
+          // retry the action.
+
+          // The 403 permission error can happen due to the user requesting
+          // the project before the project is fully created and the project
+          // permissions are assigned to the user so we allow some
+          // time for that process to complete.
+
+          if (retryCount < 3) {
+            retryCount++;
+            await setTimeout(() => {
+              // Delay for three seconds to avoid another failure due to latency.
+              finishProjectCreation();
+            }, '3000');
+          } else {
+            throw err;
+          }
+        }
       }
-    }
+    };
+
+    await finishProjectCreation();
 
     return newValue;
   }

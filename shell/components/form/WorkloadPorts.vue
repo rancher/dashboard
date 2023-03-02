@@ -8,7 +8,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { CAPI, SERVICE } from '@shell/config/types';
 
 export default {
@@ -259,6 +259,12 @@ export default {
 
 <template>
   <div :style="{'width':'100%'}">
+    <p
+      v-if="rows.length > 0"
+      class="padded"
+    >
+      {{ t('workload.container.ports.detailedDescription') }}
+    </p>
     <div
       v-for="(row, idx) in rows"
       :key="idx"

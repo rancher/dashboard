@@ -12,7 +12,7 @@ export default class Setting extends HybridModel {
     let out = super._availableActions;
 
     // Some settings are not editable
-    if ( settingMetadata?.readOnly || this.fromEnv ) {
+    if ( settingMetadata?.readOnly ) {
       toFilter.push('goToEdit');
     }
 

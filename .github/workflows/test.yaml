@@ -38,7 +38,7 @@ jobs:
           node-version: '14.x'
       
       - name: Install packages
-        run: yarn install
+        run: yarn install:ci
       
       - name: Prepare build
         run: yarn e2e:pre-prod
@@ -73,7 +73,7 @@ jobs:
           node-version: '14.x'
       
       - name: Install packages
-        run: yarn install
+        run: yarn install:ci
       
       - name: Run tests
         run: |
@@ -98,7 +98,7 @@ jobs:
           node-version: '14.x'
       
       - name: Install packages
-        run: yarn install
+        run: yarn install:ci
       
       - name: Run i18n linters
         run: yarn lint-l10n
@@ -114,7 +114,7 @@ jobs:
           node-version: '14.x'
       
       - name: Install packages
-        run: yarn install
+        run: yarn install:ci
       
       - name: Run linters
         run: yarn lint

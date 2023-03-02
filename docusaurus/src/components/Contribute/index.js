@@ -1,14 +1,15 @@
 import React from 'react';
 import clsx from 'clsx';
-import styles from '../styles.module.css';
 import SlackLogo from '@site/static/img/slack-logo.svg';
-
+import ThemedImage from '@theme/ThemedImage';
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const ContributeList = [
   {
     link:        'https://slack.rancher.io/',
     target:      '_blank',
-    Img:         <SlackLogo title="Slack Logo" />,
+    imgDark:     'img/slack-logo.svg',
+    imgLight:    'img/slack-logo-light.svg',
     description: (
       <>
         Join <strong>Rancher Users</strong> on Slack and start connecting with our community, learning from others and sharing knowledge.
@@ -19,7 +20,8 @@ const ContributeList = [
     title:       'Components & Design kit',
     link:        'https://github.com/rancher',
     target:      '_blank',
-    Img:         <img src={require('@site/static/img/GitHub-Logo.png').default} className="logo-Gh" />,
+    imgDark:     'img/GitHub-logo.svg',
+    imgLight:    'img/GitHub-Logo-light.png',   
     description: (
       <>
         Check all <strong>Rancher repos</strong> on GitHub.
@@ -29,12 +31,17 @@ const ContributeList = [
 ];
 
 function Contribute( {
-  Img, description, link, target
+  imgDark, imgLight, description, link, target
 } ) {
   return (
     <div className={clsx('col col--6')}>
       <a className="contributeLink" href={link} target={target}>
-        {Img}
+        <ThemedImage alt="GitHub-Logo"
+          sources={{
+            light: useBaseUrl(`${imgDark}`),
+            dark: useBaseUrl(`${imgLight}`),
+          }}
+        />
         <p>{description}</p>
       </a>
     </div>

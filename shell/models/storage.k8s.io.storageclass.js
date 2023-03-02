@@ -72,6 +72,12 @@ export const PROVISIONER_OPTIONS = [
     value:      'kubernetes.io/vsphere-volume',
     supported:  true,
     deprecated: true
+  },
+  {
+    labelKey:      'storageClass.harvesterhci.title',
+    value:         'driver.harvesterhci.io',
+    supported:     true,
+    hideCustomize: true,
   }
 ];
 

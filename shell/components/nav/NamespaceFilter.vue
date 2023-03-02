@@ -19,11 +19,12 @@ import { KEY } from '@shell/utils/platform';
 export default {
   data() {
     return {
-      isOpen:        false,
-      filter:        '',
-      hidden:        0,
-      total:         0,
-      activeElement: null,
+      isOpen:         false,
+      filter:         '',
+      hidden:         0,
+      total:          0,
+      activeElement:  null,
+      cachedFiltered: [],
     };
   },
 
@@ -104,13 +105,27 @@ export default {
       const t = this.$store.getters['i18n/t'];
       let out = [];
 
+      const params = { ...this.$route.params };
+      const resource = params.resource;
+      // Sometimes, different pages may have different namespaces to filter
+      const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
+
       // TODO: Add return info
       if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore) {
         // Sometimes the component can show before the 'currentProduct' has caught up, so access the product via the getter rather
         // than caching it in the `fetch`
+
+        // The namespace display on the list and edit pages should be the same as in the namespaceFilter component
+        if (this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`]) {
+          const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
+
+          this.$store.commit('changeAllNamespaces', allNamespaces);
+        }
+
         return this.$store.getters[`${ this.currentProduct.inStore }/namespaceFilterOptions`]({
           addNamespace,
-          divider
+          divider,
+          notFilterNamespaces
         });
       }
 
@@ -343,6 +358,21 @@ export default {
   watch: {
     value(neu) {
       this.layout();
+    },
+
+    /**
+     * When there are thousands of entries certain actions (drop down opened, selection changed, etc) take a long time to complete (upwards
+     * of 5 seconds)
+     *
+     * This is caused by churn of the filtered and options computed properties causing multiple renders for each action.
+     *
+     * To break this multiple-render per cycle behaviour detatch `filtered` from the value used in `v-for`.
+     *
+     */
+    filtered(neu) {
+      if (!!neu) {
+        this.cachedFiltered = neu;
+      }
     }
   },
 
@@ -355,17 +385,7 @@ export default {
         return namespaces;
       }
 
-      const isVirtualCluster = this.$store.getters['isVirtualCluster'];
-
       return namespaces.filter((namespace) => {
-        const isSettingSystemNamespace = this.$store.getters['systemNamespaces'].includes(namespace.metadata.name);
-        const systemNS = namespace.isSystem || namespace.isFleetManaged || isSettingSystemNamespace;
-
-        // For Harvester, filter out system namespaces AND obscure namespaces.
-        if (isVirtualCluster) {
-          return !systemNS && !namespace.isObscure;
-        }
-
         // Otherwise only filter out obscure namespaces, such as namespaces
         // that Rancher uses to manage RBAC for projects, which should not be
         // edited or deleted by Rancher users.
@@ -755,7 +775,7 @@ export default {
         role="list"
       >
         <div
-          v-for="(opt, i) in filtered"
+          v-for="(opt, i) in cachedFiltered"
           :id="opt.elementId"
           :key="opt.id"
           tabindex="0"
@@ -763,7 +783,7 @@ export default {
           :disabled="!opt.enabled"
           :class="{
             'ns-selected': opt.selected,
-            'ns-single-match': filtered.length === 1 && !opt.selected,
+            'ns-single-match': cachedFiltered.length === 1 && !opt.selected,
           }"
           :data-testid="`namespaces-option-${i}`"
           @click="opt.enabled && selectOption(opt)"
@@ -790,7 +810,7 @@ export default {
           </div>
         </div>
         <div
-          v-if="filtered.length === 0"
+          v-if="cachedFiltered.length === 0"
           class="ns-none"
           data-testid="namespaces-option-none"
         >
