@@ -134,12 +134,6 @@ export class Plugin implements IPlugin {
   }
 
   registerExtensionProduct(store: any, options: object) {
-    console.log('registerProd this', this);
-    console.log('registerProd options', options);
-    console.log('registerProd store', store);
-    console.log('registerProd name', this.name);
-    console.log('registerProd productNames', this.productNames);
-
     const { product } = STORE_DSL(store, this.productNames[0]);
 
     console.log('registerProd this V2', this);
@@ -159,7 +153,7 @@ export class Plugin implements IPlugin {
 
     // STILL MISSING: virtualType, spoofedType...
 
-    console.log('registerType', store, entries);
+    console.log('registerType entries', entries);
 
     const singleMenuEntry: { [key: string]: any } = {};
     const menuGrouping: { [key: string]: any } = {};
@@ -169,7 +163,7 @@ export class Plugin implements IPlugin {
       // no ID, no funny...
       if (!entries[i].id) {
         // eslint-disable-next-line no-console
-        console.error('you are missing the resource identifier (id)');
+        console.error('you are missing the registration identifier (id)!');
         continue;
       }
 
@@ -179,7 +173,13 @@ export class Plugin implements IPlugin {
         configureType(entries[i].id, entries[i].options || {});
       // custom page
       } else if (entries[i].type === 'custom-page') {
-        virtualType(entries[i].id, entries[i].options || {});
+        const options = entries[i].options || {};
+
+        // inject the ID as name... needed for virtualType
+        if (entries[i].id && !options.name) {
+          options.name = entries[i].id;
+        }
+        virtualType(options);
       }
 
       // register headers
@@ -224,8 +224,6 @@ export class Plugin implements IPlugin {
         weightGroup(key, menuGrouping[key].weight, true);
       }
     });
-
-    console.log('registerType this', this);
   }
 
   /**

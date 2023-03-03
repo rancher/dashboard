@@ -4,6 +4,19 @@ import { ucFirst, randomStr } from '@shell/utils/string';
 import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 
+export function setRoute(routeId, product, routes) {
+  const desiredRoute = routes.find(route => route.meta?.id === routeId);
+
+  if (desiredRoute) {
+    return {
+      name:   desiredRoute.name,
+      params: desiredRoute.meta?.params
+    };
+  }
+
+  return {};
+}
+
 function checkRouteProduct({ name, params, query }, locationConfigParam) {
   const product = getProductFromRoute({
     name, params, query
