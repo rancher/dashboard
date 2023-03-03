@@ -1263,6 +1263,7 @@ cluster:
       affinity:
         namespaces:
           placeholder: e.g. default,system,base
+      installGuestAgent: Install guest agent
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
