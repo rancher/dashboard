@@ -5,14 +5,14 @@ import HybridModel from '@shell/plugins/steve/hybrid-class';
 
 export default class ClusterRoleBinding extends HybridModel {
   get users() {
-    return this.subjects.filter(({kind}) => kind?.toLowerCase() === 'user')
+    return this.subjects.filter(({ kind }) => kind?.toLowerCase() === 'user');
   }
 
   get serviceAccounts() {
-    return this.subjects.filter(({kind}) => kind?.toLowerCase() === 'serviceaccount')
+    return this.subjects.filter(({ kind }) => kind?.toLowerCase() === 'serviceaccount');
   }
 
   get groups() {
-    return this.subjects.filter(({kind}) => kind?.toLowerCase() === 'group')
+    return this.subjects.filter(({ kind }) => kind?.toLowerCase() === 'group');
   }
 }

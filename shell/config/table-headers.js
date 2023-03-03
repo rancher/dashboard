@@ -962,26 +962,26 @@ export const FLEET_BUNDLE_TYPE = {
 };
 
 export const RBAC_ROLE = {
-  name:      'role',
-  value:     'roleRef.name',
+  name:  'role',
+  value: 'roleRef.name',
   sort:  ['roleRef.name'],
 };
 
 export const RBAC_USERS = {
-  name:      'users',
+  name:     'users',
   sort:     ['users'],
-  getValue:   row => row.users?.map(({name}) => name),
+  getValue: row => row.users?.map(({ name }) => name),
 };
 
 export const RBAC_GROUPS = {
-  name:      'groups',
-  sort:     ['groups'],
+  name: 'groups',
+  sort: ['groups'],
 
-  getValue:   row => row.groups?.map(({name}) => name),
+  getValue: row => row.groups?.map(({ name }) => name),
 };
 
 export const RBAC_SERVICE_ACCOUNTS = {
-  name:      'serviceAccount',
+  name:     'serviceAccount',
   sort:     ['serviceAccount'],
-  getValue:   row => row.serviceAccounts?.map(({name}) => name),
+  getValue: row => row.serviceAccounts?.map(({ name }) => name),
 };
