@@ -86,18 +86,7 @@ export function init($plugin, store) {
     configureType
   } = $plugin.DSL(store, NAME);
 
-  $plugin.registerExtensionAsProduct(store, {
-    ifHaveType:          CAPI.RANCHER_CLUSTER,
-    ifFeature:           [MULTI_CLUSTER, HARVESTER],
-    inStore:             'management',
-    icon:                'harvester',
-    removable:           false,
-    showClusterSwitcher: false,
-    weight:              100,
-    to:                  harvesterClustersLocation,
-  });
-
-  // product({
+  // $plugin.registerExtensionProduct(store, {
   //   ifHaveType:          CAPI.RANCHER_CLUSTER,
   //   ifFeature:           [MULTI_CLUSTER, HARVESTER],
   //   inStore:             'management',
@@ -107,6 +96,42 @@ export function init($plugin, store) {
   //   weight:              100,
   //   to:                  harvesterClustersLocation,
   // });
+
+  // $plugin.configureMenuEntries(store, [
+  //   {
+  //     id:       HCI.CLUSTER,
+  //     options:  { showListMasthead: false },
+  //     weight:   1000,
+  //     listCols: [
+  //       STATE,
+  //       NAME_COL,
+  //       {
+  //         ...VERSION,
+  //         value:    'kubernetesVersion',
+  //         getValue: row => row.kubernetesVersion
+  //       },
+  //       MACHINE_POOLS,
+  //       AGE,
+  //       {
+  //         name:  'harvester',
+  //         label: ' ',
+  //         align: 'right',
+  //         width: 65,
+  //       },
+  //     ]
+  //   }
+  // ]);
+
+  product({
+    ifHaveType:          CAPI.RANCHER_CLUSTER,
+    ifFeature:           [MULTI_CLUSTER, HARVESTER],
+    inStore:             'management',
+    icon:                'harvester',
+    removable:           false,
+    showClusterSwitcher: false,
+    weight:              100,
+    to:                  harvesterClustersLocation,
+  });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });
   headers(HCI.CLUSTER, [

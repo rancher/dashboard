@@ -133,17 +133,99 @@ export class Plugin implements IPlugin {
     this.uiConfig[type][where].push({ ...config, locationConfig });
   }
 
-  registerExtensionAsProduct(store: any, options: object) {
+  registerExtensionProduct(store: any, options: object) {
     console.log('registerProd this', this);
     console.log('registerProd options', options);
     console.log('registerProd store', store);
     console.log('registerProd name', this.name);
+    console.log('registerProd productNames', this.productNames);
 
-    const { product } = STORE_DSL(store, this.name);
+    const { product } = STORE_DSL(store, this.productNames[0]);
 
     console.log('registerProd this V2', this);
 
     product(options);
+  }
+
+  configureExtensionMenuEntries(store: any, entries: [any]) {
+    const {
+      configureType,
+      virtualType,
+      weightType,
+      weightGroup,
+      headers,
+      basicType
+    } = STORE_DSL(store, this.productNames[0]);
+
+    // STILL MISSING: virtualType, spoofedType...
+
+    console.log('configureExtensionMenuEntries', store, entries);
+
+    const singleMenuEntry: { [key: string]: any } = {};
+    const menuGrouping: { [key: string]: any } = {};
+
+    // apply menu registration (types, headers, weights)
+    for (let i = 0; i < entries.length; i++) {
+      // no ID, no funny...
+      if (!entries[i].id) {
+        // eslint-disable-next-line no-console
+        console.error('you are missing the resource identifier (id)');
+        continue;
+      }
+
+      // register types
+      // resource as page
+      if (!entries[i].type || entries[i].type === 'resource') {
+        configureType(entries[i].id, entries[i].options || {});
+      // custom page
+      } else if (entries[i].type === 'custom-page') {
+        virtualType(entries[i].id, entries[i].options || {});
+      }
+
+      // register headers
+      if (entries[i].listCols && Array.isArray(entries[i].listCols)) {
+        headers(entries[i].id, entries[i].listCols);
+      }
+
+      // prepare data for basicType (registering menu entries)
+      if (entries[i].menuGroupingId) {
+        if (!menuGrouping[entries[i].menuGroupingId]) {
+          menuGrouping[entries[i].menuGroupingId] = { menuItems: [entries[i].id] };
+        } else {
+          menuGrouping[entries[i].menuGroupingId].menuItems.push(entries[i].id);
+        }
+
+        if (entries[i].menuGroupingWeight && parseInt(entries[i].menuGroupingWeight) >= 0) {
+          menuGrouping[entries[i].menuGroupingId].weight = entries[i].menuGroupingWeight;
+        }
+      } else {
+        singleMenuEntry[entries[i].id] = {};
+
+        if (entries[i].weight && parseInt(entries[i].weight) >= 0) {
+          singleMenuEntry[entries[i].id].weight = entries[i].weight;
+        }
+      }
+    }
+
+    // register menu entries for non-grouped resources
+    Object.keys(singleMenuEntry).forEach((key) => {
+      basicType([key]);
+
+      if (singleMenuEntry[key].weight) {
+        weightType(key, singleMenuEntry[key].weight, true);
+      }
+    });
+
+    // register menu entries for grouped resources
+    Object.keys(menuGrouping).forEach((key) => {
+      basicType(menuGrouping[key].menuItems, key);
+
+      if (menuGrouping[key].weight) {
+        weightGroup(key, menuGrouping[key].weight, true);
+      }
+    });
+
+    console.log('configureExtensionMenuEntries this', this);
   }
 
   /**
