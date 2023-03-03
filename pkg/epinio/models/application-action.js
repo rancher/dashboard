@@ -1,11 +1,14 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import Vue from 'vue';
-import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME } from '../types';
+import {
+  APPLICATION_ACTION_STATE, APPLICATION_ENV_VAR, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME
+} from '../types';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 
 export const APPLICATION_ACTION_TYPE = {
   CREATE_NS:           'create_namespace',
   CREATE:              'create',
+  UPDATE_SOURCE:       'updateSource',
   GIT_FETCH:           'gitFetch',
   UPLOAD:              'upload',
   BIND_CONFIGURATIONS: 'bind_configurations',
@@ -72,6 +75,9 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
+    case APPLICATION_ACTION_TYPE.UPDATE_SOURCE:
+      await this.updateSource(params);
+      break;
     case APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS:
       await this.bindConfigurations(params);
       break;
@@ -129,6 +135,36 @@ export default class ApplicationActionResource extends Resource {
     this.application.showStagingLog(stage.id);
 
     await this.application.waitForStaging(stage.id);
+  }
+
+  /**
+   * Updates the application information
+   * @param {*} params
+   */
+  async updateSource(params) {
+    // // Filter out the EPINIO_APP_DATA env var if it's not a container image
+    if (params.source.type !== 'git_hub') {
+      this.application.configuration.environment = Object.keys(this.application.configuration.environment).reduce((acc, key) => {
+        if (key !== 'EPINIO_APP_DATA') {
+          acc[key] = this.application.configuration.environment[key];
+        }
+
+        return acc;
+      }, {});
+    } else {
+      const githubEnvVar = {
+        usernameOrOrg: params.source.github.usernameOrOrg,
+        repo:          params.source.github.repo,
+        branch:        params.source.github.branch,
+      };
+
+      this.application.configuration.environment = {
+        ...this.application.configuration.environment,
+        [APPLICATION_ENV_VAR]: JSON.stringify(githubEnvVar)
+      };
+    }
+
+    await this.application.update();
   }
 
   async deploy({ source }) {

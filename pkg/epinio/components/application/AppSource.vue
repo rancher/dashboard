@@ -172,7 +172,7 @@ export default Vue.extend<Data, any, any, any>({
   },
   mounted() {
     if (!this.appChart) {
-      Vue.set(this, 'appChart', this.appCharts[0].value);
+      Vue.set(this, 'appChart', this.appCharts[0]?.value);
     }
 
     this.$emit('valid', false);

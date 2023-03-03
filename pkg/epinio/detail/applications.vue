@@ -63,7 +63,7 @@ export default Vue.extend<Data, any, any, any>({
       saving:        false,
       gitSource:     null,
       gitDeployment: {
-        deployedCommit: null,
+        deployedCommit: '',
         commitsArray:   null,
       },
       appInstance: {
@@ -150,7 +150,7 @@ export default Vue.extend<Data, any, any, any>({
 
         if (commit) {
           this.gitDeployment.deployedCommit = {
-            short: commit?.slice(0, 7),
+            short: commit?.slice(0, 7) || '',
             long:  commit
           };
         }
@@ -209,7 +209,7 @@ export default Vue.extend<Data, any, any, any>({
 
       if (this.gitDeployment.commitsArray) {
         this.gitDeployment.commitsArray.map((ele: { sha: any; }, i: number) => {
-          if (ele.sha === this.gitDeployment.deployedCommit.long) {
+          if (ele.sha === this.gitDeployment?.deployedCommit?.long) {
             idx = i - 1;
           }
         });

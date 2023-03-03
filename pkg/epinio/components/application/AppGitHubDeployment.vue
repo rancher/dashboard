@@ -51,7 +51,7 @@ export default {
     >
       <span>
         <i class="icon icon-fw icon-commit" />
-        {{ gitDeployment.deployedCommit.short }}
+        <!-- {{ gitDeployment.deployedCommit.short }} -->
 
       </span>
       <span
