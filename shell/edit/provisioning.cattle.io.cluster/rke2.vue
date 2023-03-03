@@ -538,7 +538,7 @@ export default {
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const optionCase = !this.needsPSP ? 'default' : 'none';
+      const optionCase = !this.needsPSP && !this.isK3s ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
