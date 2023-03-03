@@ -1,5 +1,7 @@
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit.vue';
-jest.mock('@shell/utils/object');
+import { shallowMount } from '@vue/test-utils';
+import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@shell/config/labels-annotations';
+import UnitInput from '@shell/components/form/UnitInput';
 
 describe('component: ContainerResourceLimit, method: validateResourceLimits', () => {
   // have not empty errors
@@ -300,5 +302,119 @@ describe('component: ContainerResourceLimit, method: updateBeforeSave', () => {
 
     await expect(ContainerResourceLimit.methods.updateBeforeSave.call(localThis)).toBeUndefined();
     expect(setAnnotationMock).toHaveBeenCalledTimes(1);
+  });
+
+  describe('component: ContainerResourceLimit, show or hide max/min cpu/memory limit', () => {
+    it('should show max/min cpu/memory limit', () => {
+      const tMock = jest.fn(t => t);
+
+      const wrapper = shallowMount(ContainerResourceLimit, { mocks: { t: tMock } });
+
+      expect(tMock).toHaveBeenCalledWith('containerResourceLimit.maxCpu');
+      expect(tMock).toHaveBeenCalledWith('containerResourceLimit.minCpu');
+      expect(tMock).toHaveBeenCalledWith('containerResourceLimit.maxMemory');
+      expect(tMock).toHaveBeenCalledWith('containerResourceLimit.minMemory');
+      const allComponents = wrapper.findAllComponents(UnitInput);
+
+      expect(allComponents.at(4).props()).toMatchObject({
+        label: 'containerResourceLimit.maxCpu', inputExponent: -1, outputModifier: true, baseUnit: 'suffix.cpus'
+      });
+      expect(allComponents.at(5).props()).toMatchObject({
+        label: 'containerResourceLimit.maxMemory', inputExponent: 2, increment: 1024, outputModifier: true
+      });
+      expect(allComponents.at(6).props()).toMatchObject({
+        label: 'containerResourceLimit.minCpu', inputExponent: -1, outputModifier: true, baseUnit: 'suffix.cpus'
+      });
+      expect(allComponents.at(7).props()).toMatchObject({
+        label: 'containerResourceLimit.minMemory', inputExponent: 2, increment: 1024, outputModifier: true
+      });
+    });
+    it('should hide max/min cpu/memory limit', () => {
+      const tMock = jest.fn();
+
+      shallowMount(ContainerResourceLimit, {
+        propsData: { limitMinMaxValues: false },
+        mocks:     { t: tMock }
+      });
+
+      expect(tMock).not.toHaveBeenCalledWith('containerResourceLimit.maxCpu');
+      expect(tMock).not.toHaveBeenCalledWith('containerResourceLimit.minCpu');
+      expect(tMock).not.toHaveBeenCalledWith('containerResourceLimit.maxMemory');
+      expect(tMock).not.toHaveBeenCalledWith('containerResourceLimit.minMemory');
+    });
+    const limits = {
+      minCpu: '100m', maxCpu: '200m', minMemory: '100Mi', maxMemory: '200Mi'
+    };
+
+    it('should init min/max cpu/memory in namespace annotation', () => {
+      const crLimitWrapper = shallowMount(ContainerResourceLimit, {
+        propsData: {
+          namespace: {
+            id:       'test',
+            metadata: { annotations: { [CONTAINER_DEFAULT_RESOURCE_LIMIT]: JSON.stringify(limits) } },
+          }
+        },
+
+        mocks: { t: jest.fn() }
+      });
+
+      expect(crLimitWrapper.vm.$data).toMatchObject(limits);
+    });
+    it('should update min/max cpu/memory in namespace annotation', async() => {
+      const setAnnotationMock = jest.fn();
+      const crLimitWrapper = shallowMount(ContainerResourceLimit, {
+        propsData: {
+          namespace: {
+            id:            'test',
+            metadata:      { annotations: { [CONTAINER_DEFAULT_RESOURCE_LIMIT]: JSON.stringify(limits) } },
+            setAnnotation: setAnnotationMock
+          }
+        },
+        mocks: {
+          t:                      jest.fn(),
+          validateResourceLimits: jest.fn(() => []),
+        }
+      });
+      const updatedLimits = {
+        minCpu: '200m', maxCpu: '300m', minMemory: '200Mi', maxMemory: '300Mi'
+      };
+
+      await crLimitWrapper.setData(updatedLimits);
+      crLimitWrapper.vm.updateBeforeSave();
+      expect(setAnnotationMock).toHaveBeenCalledWith(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify(updatedLimits));
+
+      const updatedLimits2 = {
+        minCpu: null, maxCpu: '300m', minMemory: '200Mi', maxMemory: null
+      };
+
+      await crLimitWrapper.setData(updatedLimits2);
+      crLimitWrapper.vm.updateBeforeSave();
+      expect(setAnnotationMock).toHaveBeenCalledWith(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify({ maxCpu: '300m', minMemory: '200Mi' }));
+      const updatedLimits3 = {
+        minCpu: null, maxCpu: null, minMemory: null, maxMemory: null
+      };
+
+      await crLimitWrapper.setData(updatedLimits3);
+      crLimitWrapper.vm.updateBeforeSave();
+      expect(setAnnotationMock).toHaveBeenCalledWith(CONTAINER_DEFAULT_RESOURCE_LIMIT, JSON.stringify({}));
+    });
+    it('should not include min/max cpu/memory in namespace annotation', () => {
+      const setAnnotationMock = jest.fn();
+      const crLimitWrapper = shallowMount(ContainerResourceLimit, {
+        propsData: {
+          namespace: {
+            id:            'test',
+            setAnnotation: setAnnotationMock
+          }
+        },
+        mocks: {
+          t:                      jest.fn(),
+          validateResourceLimits: jest.fn(() => []),
+        }
+      });
+
+      crLimitWrapper.vm.updateBeforeSave();
+      expect(setAnnotationMock).toHaveBeenCalledWith(CONTAINER_DEFAULT_RESOURCE_LIMIT, '{}');
+    });
   });
 });
