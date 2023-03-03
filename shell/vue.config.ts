@@ -5,7 +5,7 @@ import webpack from 'webpack';
 import { STANDARD } from './config/private-label';
 import { generateDynamicTypeImport } from './pkg/auto-import';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
-import { createProxyMiddleware } from 'http-proxy-middleware';
+import { createProxyMiddleware, RequestHandler, Options } from 'http-proxy-middleware';
 
 const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
@@ -278,7 +278,7 @@ export default function(dir: any, _appConfig: any) {
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
-  const proxy = {
+  const proxy: { [path: string]: Options} = {
     ...appConfig.proxies,
     '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
     '/pp':             proxyWsOpts(api), // For (epinio) standalone API
@@ -313,7 +313,7 @@ export default function(dir: any, _appConfig: any) {
       host:   '0.0.0.0',
       public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
       before(app: any, server: any) {
-        const proxies: any = {};
+        const socketProxies: { [path: string]: RequestHandler} = {};
 
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
@@ -321,18 +321,24 @@ export default function(dir: any, _appConfig: any) {
             ws: false // We will handle the web socket upgrade
           });
 
-          proxies[p] = px;
+          if (proxy[p].ws) {
+            socketProxies[p] = px;
+          }
           app.use(p, px);
         });
 
         server.websocketProxies.push({
           upgrade(req: any, socket: any, head:any) {
-            if (req.url.startsWith('/v1')) {
-              return proxies['/v1'].upgrade(req, socket, head);
-            } else if (req.url.startsWith('/v3')) {
-              return proxies['/v3'].upgrade(req, socket, head);
-            } else if (req.url.startsWith('/k8s/')) {
-              return proxies['/k8s'].upgrade(req, socket, head);
+            const path = Object.keys(socketProxies).find(path => req.url.startsWith(path));
+
+            if (path) {
+              const proxy = socketProxies[path];
+
+              if (proxy.upgrade) {
+                proxy.upgrade(req, socket, head);
+              } else {
+                console.log(`Upgrade for Proxy is not defined. Cannot upgrade Web socket for ${ req.url }`); // eslint-disable-line no-console
+              }
             } else {
               console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
             }
