@@ -6,7 +6,7 @@ import YAML from 'yaml';
 import isBase64 from 'is-base64';
 
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-// import PodAffinity from '@shell/components/form/PodAffinity';
+import PodAffinity from '@shell/components/form/PodAffinity';
 import InfoBox from '@shell/components/InfoBox';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -82,7 +82,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, InfoBox
+    Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox
   },
 
   mixins: [CreateEditView],
@@ -219,7 +219,11 @@ export default {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 
-            this.namespaces.push(namespace);
+            this.namespaces.push({
+              nameDisplay: label,
+              id:          value
+            });
+
             this.namespaceOptions.push({
               label,
               value
@@ -407,7 +411,20 @@ export default {
       });
 
       return defaultStorageClass?.metadata?.name || '';
-    }
+    },
+
+    affinityLabels() {
+      return {
+        namespaceInputLabel:      this.t('harvesterManager.affinity.namespaces.label'),
+        namespaceSelectionLabels: [
+          this.t('harvesterManager.affinity.thisPodNamespace'),
+          this.t('workload.scheduling.affinity.allNamespaces'),
+          this.t('harvesterManager.affinity.matchExpressions.inNamespaces')
+        ],
+        addLabel:               this.t('harvesterManager.affinity.addLabel'),
+        topologyKeyPlaceholder: this.t('harvesterManager.affinity.topologyKey.placeholder')
+      };
+    },
   },
 
   watch: {
@@ -1180,26 +1197,6 @@ export default {
 
       <portal :to="'advanced-'+uuid">
         <h3 class="mt-20">
-          {{ t("workload.container.titles.nodeScheduling") }}
-        </h3>
-        <NodeAffinity
-          :mode="mode"
-          :value="vmAffinity.affinity.nodeAffinity"
-          @input="updateNodeScheduling"
-        />
-
-        <!-- <h3 class="mt-20">
-          {{ t("workload.container.titles.podScheduling") }}
-        </h3>
-        <PodAffinity
-          :mode="mode"
-          :value="vmAffinity"
-          :nodes="allNodeObjects"
-          :namespaces="namespaces"
-          @update="updateScheduling"
-        /> -->
-
-        <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
         </h3>
         <div>
@@ -1254,6 +1251,32 @@ export default {
             @onInput="valuesChanged($event, 'networkData')"
           />
         </div>
+
+        <hr class="divider mt-20">
+
+        <h3 class="mt-20">
+          {{ t("workload.container.titles.nodeScheduling") }}
+        </h3>
+        <NodeAffinity
+          :mode="mode"
+          :value="vmAffinity.affinity.nodeAffinity"
+          @input="updateNodeScheduling"
+        />
+
+        <h3 class="mt-20">
+          {{ t("harvesterManager.affinity.vmAffinityTitle") }}
+        </h3>
+        <PodAffinity
+          :mode="mode"
+          :value="vmAffinity"
+          :nodes="allNodeObjects"
+          :namespaces="namespaces"
+          :overwrite-labels="affinityLabels"
+          :all-namespaces-option-available="true"
+          @update="updateScheduling"
+        />
+
+        <hr class="divider mt-20">
       </portal>
     </div>
     <div v-if="errors.length">

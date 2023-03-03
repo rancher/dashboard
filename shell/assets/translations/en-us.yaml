@@ -1274,9 +1274,6 @@ cluster:
         label: KubeconfigContent
       placeholder: 'Namespace/Name'
       cluster: Imported Harvester Cluster
-      affinity:
-        namespaces:
-          placeholder: e.g. default,system,base
       installGuestAgent: Install guest agent
   description:
     label: Cluster Description
