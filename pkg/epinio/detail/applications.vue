@@ -150,7 +150,7 @@ export default Vue.extend<Data, any, any, any>({
 
         if (commit) {
           this.gitDeployment.deployedCommit = {
-            short: commit?.slice(0, 7) || '',
+            short: commit?.slice(0, 7),
             long:  commit
           };
         }
