@@ -72,16 +72,6 @@ const config = {
       },
       footer: {
         style: 'dark',
-        links: [
-          {
-            label: 'Stack',
-            href:  'https://slack.rancher.io/',
-          },
-          {
-            label: 'Github',
-            href:  'https://github.com/rancher/',
-          },
-        ],
         copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved.`,
       },
       prism: {

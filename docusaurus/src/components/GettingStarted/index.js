@@ -98,7 +98,7 @@ function GettingStarted( {
   );
 }
 
-export default function HomepageFeatures() {
+export default function GettingStartedFeatures() {
   return (
     <div>
       <h1>Resources</h1>

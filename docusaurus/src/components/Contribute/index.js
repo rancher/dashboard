@@ -1,6 +1,5 @@
 import React from 'react';
 import clsx from 'clsx';
-import SlackLogo from '@site/static/img/slack-logo.svg';
 import ThemedImage from '@theme/ThemedImage';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
@@ -21,7 +20,7 @@ const ContributeList = [
     link:        'https://github.com/rancher',
     target:      '_blank',
     imgDark:     'img/GitHub-logo.svg',
-    imgLight:    'img/GitHub-Logo-light.png',   
+    imgLight:    'img/GitHub-logo-light.svg',   
     description: (
       <>
         Check all <strong>Rancher repos</strong> on GitHub.
@@ -48,7 +47,7 @@ function Contribute( {
   );
 }
 
-export default function HomepageFeatures() {
+export default function ContributeFeatures() {
   return (
     <div>
       <h1>Contribute</h1>

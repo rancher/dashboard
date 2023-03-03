@@ -75,6 +75,8 @@ h1, h2, h3, h4, h5, h6 {
 section {
   padding: 50px 0;
 }
+
+a.guideLink,
 a.gettingStartedLink,
 a.contributeLink,
 a.featureLink {
@@ -84,6 +86,7 @@ a.featureLink {
   padding: 1rem;
 }
 
+a.guideLink:hover,
 a.gettingStartedLink:hover,
 a.contributeLink:hover,
 a.featureLink:hover {
@@ -119,7 +122,6 @@ h2 {
 
 .contributeLink img {
   height: 75px;
-  margin: 18px 0;
 }
 
 .resourcesSvg {
@@ -162,7 +164,9 @@ a.gettingStartedLink .resourcesSvg svg {
   background-color: #297DB4;
 }
 
-
+.footer{
+  padding: 16px;
+}
 @media screen and (max-width: 996px) {
   .homepage-banner {
     padding: 30px 30px;
@@ -170,11 +174,10 @@ a.gettingStartedLink .resourcesSvg svg {
   }
 
   .homepage-banner p {
-    width: 100%;
+    width: 55%;
   }
 }
 
 #__docusaurus {
   min-height: 100vh !important;
 }
-
