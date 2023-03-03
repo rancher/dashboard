@@ -86,7 +86,7 @@ export default {
     mode() {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
-      return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
+      return schema?.resourceMethods?.includes('PUT', 'PATCH') ? _EDIT : _VIEW;
     },
 
     headerMode() {

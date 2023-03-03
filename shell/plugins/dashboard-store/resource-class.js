@@ -1129,7 +1129,7 @@ export default class Resource {
     }
 
     // handle "replace" opt as a query param _replace=true for norman PUT requests
-    if (opt?.replace && opt.method === 'put') {
+    if (opt?.replace && (opt.method === 'put' || opt.method === 'patch')) {
       const argParam = opt.url.includes('?') ? '&' : '?';
 
       opt.url = `${ opt.url }${ argParam }_replace=true`;

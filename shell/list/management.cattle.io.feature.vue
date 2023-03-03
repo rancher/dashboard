@@ -84,7 +84,7 @@ export default {
     enableRowActions() {
       const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
 
-      return schema?.resourceMethods?.includes('PUT');
+      return schema?.resourceMethods?.includes('PUT', 'PATCH');
     },
   },
 
