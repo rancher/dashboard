@@ -960,3 +960,28 @@ export const FLEET_BUNDLE_TYPE = {
   sort:     ['bundleType'],
   width:    100,
 };
+
+export const RBAC_ROLE = {
+  name:      'role',
+  value:     'roleRef.name',
+  sort:  ['roleRef.name'],
+};
+
+export const RBAC_USERS = {
+  name:      'users',
+  sort:     ['users'],
+  getValue:   row => row.users?.map(({name}) => name),
+};
+
+export const RBAC_GROUPS = {
+  name:      'groups',
+  sort:     ['groups'],
+
+  getValue:   row => row.groups?.map(({name}) => name),
+};
+
+export const RBAC_SERVICE_ACCOUNTS = {
+  name:      'serviceAccount',
+  sort:     ['serviceAccount'],
+  getValue:   row => row.serviceAccounts?.map(({name}) => name),
+};
