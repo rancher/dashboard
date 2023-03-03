@@ -178,8 +178,6 @@ export default Vue.extend<Data, any, any, any>({
           ...this.value.configuration.environment,
           [APPLICATION_ENV_VAR]: JSON.stringify(githubEnvVar)
         });
-      } else {
-        // delete this.value.configuration?.environment?.[APPLICATION_ENV_VAR];
       }
 
       this.set(this.source, cleanChanges);
