@@ -159,7 +159,7 @@ export default {
     },
 
     canEditSettings() {
-      return (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT');
+      return (this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING)?.resourceMethods || []).includes('PUT', 'PATCH');
     },
 
     hasSupport() {
