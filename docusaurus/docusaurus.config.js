@@ -52,8 +52,8 @@ const config = {
       navbar: {
         title: 'UI DevKit',
         logo:  {
-          alt: 'Rancher Logo',
-          src: 'img/rancher-logo.svg',
+          alt:     'Rancher Logo',
+          src:     'img/rancher-logo.svg',
           srcDark: 'img/rancher-logo-dark.svg',
         },
         items: [
@@ -71,7 +71,7 @@ const config = {
         ],
       },
       footer: {
-        style: 'dark',
+        style:     'dark',
         copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved.`,
       },
       prism: {

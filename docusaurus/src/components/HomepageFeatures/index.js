@@ -41,7 +41,7 @@ function Feature( {
         </div>
         <div className="padding-horiz--md">
           <h2 className='exterl-link'>{title}
-          <ExternalLinkIcon title="Docusaurus Logo" className={`link-icon ${icon}`} />
+            <ExternalLinkIcon title="Docusaurus Logo" className={`link-icon ${ icon }`} />
           </h2>
           <p>{description}</p>
         </div>

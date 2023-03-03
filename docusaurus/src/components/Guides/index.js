@@ -5,33 +5,30 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const GuidesList = [
   {
-    title:       'Building an Image for Container Registries',
-    link:        'guide/build-for-container-registry',
-    target:      '',
+    title:  'Building an Image for Container Registries',
+    link:   'guide/build-for-container-registry',
+    target: '',
   },
   {
-    title:       'Package Management',
-    link:        'guide/package-management',
-    target:      '',
+    title:  'Package Management',
+    link:   'guide/package-management',
+    target: '',
   },
-  ,
   {
-    title:       'Auth Providers',
-    link:        'guide/auth-providers',
-    target:      '',
+    title:  'Auth Providers',
+    link:   'guide/auth-providers',
+    target: '',
   },
 ];
 
-function Guides( {
-  Svg, title, description, link, target, icon
-} ) {
+function Guides({ title, link, target }) {
   return (
     <div className={clsx('col col--4')}>
       <a className="guideLink" href={link} target={target}>
         <ThemedImage alt="GitHub-Logo"
           sources={{
             light: useBaseUrl('/img/guides.svg'),
-            dark: useBaseUrl('/img/guides-light.svg'),
+            dark:  useBaseUrl('/img/guides-light.svg'),
           }}
         />
         <div className="padding-horiz--md">

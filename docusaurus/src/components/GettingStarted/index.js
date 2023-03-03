@@ -84,12 +84,13 @@ function GettingStarted( {
   return (
     <div className={clsx('col col--4')}>
       <a className="gettingStartedLink" href={link} target={target}>
-        <div className={`resourcesSvg ${classname}`}>
+        <div className={`resourcesSvg ${ classname }`}>
           <Svg className={styles.featureSvg} role="img" />
         </div>
         <div>
-          <h2 className='exterl-link'>{title}
-          <ExternalLinkIcon title="Docusaurus Logo" className={`link-icon`} />
+          <h2 className='exterl-link'>
+            {title}
+            <ExternalLinkIcon title="Docusaurus Logo" className={`link-icon`} />
           </h2>
           <p>{description}</p>
         </div>

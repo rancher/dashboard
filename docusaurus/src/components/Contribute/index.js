@@ -20,7 +20,7 @@ const ContributeList = [
     link:        'https://github.com/rancher',
     target:      '_blank',
     imgDark:     'img/GitHub-logo.svg',
-    imgLight:    'img/GitHub-logo-light.svg',   
+    imgLight:    'img/GitHub-logo-light.svg',
     description: (
       <>
         Check all <strong>Rancher repos</strong> on GitHub.
@@ -37,8 +37,8 @@ function Contribute( {
       <a className="contributeLink" href={link} target={target}>
         <ThemedImage alt="GitHub-Logo"
           sources={{
-            light: useBaseUrl(`${imgDark}`),
-            dark: useBaseUrl(`${imgLight}`),
+            light: useBaseUrl(` ${ imgDark } `),
+            dark:  useBaseUrl(` ${ imgLight } `),
           }}
         />
         <p>{description}</p>
@@ -53,7 +53,7 @@ export default function ContributeFeatures() {
       <h1>Contribute</h1>
       <div className="row">
         {ContributeList.map((props, idx) => (
-            <Contribute key={idx} {...props} />
+          <Contribute key={idx} {...props} />
         ))}
       </div>
     </div>
