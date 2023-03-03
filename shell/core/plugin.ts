@@ -147,7 +147,7 @@ export class Plugin implements IPlugin {
     product(options);
   }
 
-  configureExtensionMenuEntries(store: any, entries: [any]) {
+  registerType(store: any, entries: [any]) {
     const {
       configureType,
       virtualType,
@@ -159,7 +159,7 @@ export class Plugin implements IPlugin {
 
     // STILL MISSING: virtualType, spoofedType...
 
-    console.log('configureExtensionMenuEntries', store, entries);
+    console.log('registerType', store, entries);
 
     const singleMenuEntry: { [key: string]: any } = {};
     const menuGrouping: { [key: string]: any } = {};
@@ -225,7 +225,7 @@ export class Plugin implements IPlugin {
       }
     });
 
-    console.log('configureExtensionMenuEntries this', this);
+    console.log('registerType this', this);
   }
 
   /**

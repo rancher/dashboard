@@ -97,7 +97,7 @@ export function init($plugin, store) {
   //   to:                  harvesterClustersLocation,
   // });
 
-  // $plugin.configureMenuEntries(store, [
+  // $plugin.registerType(store, [
   //   {
   //     id:       HCI.CLUSTER,
   //     options:  { showListMasthead: false },

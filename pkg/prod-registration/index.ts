@@ -17,12 +17,12 @@ export default function(plugin: IPlugin) {
   // Add Vue Routes
   plugin.addRoutes([
     {
-      name:      `c-cluster-productregistration`,
+      name:      `productregistration-c-cluster`,
       path:      `/:product/c/:cluster/dashboard`,
       component: Dashboard,
     },
     {
-      name:      `c-cluster-productregistration-resource`,
+      name:      `productregistration-c-cluster-resource`,
       path:      `/:product/c/:cluster/page2`,
       component: Page2,
     },

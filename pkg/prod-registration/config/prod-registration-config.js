@@ -21,7 +21,7 @@ export function init($plugin, store) {
     showClusterSwitcher: false,
     weight:              100,
     to:                  {
-      name:   'c-cluster-product',
+      name:   'product-c-cluster',
       params: {
         cluster: BLANK_CLUSTER,
         product: NAME
@@ -37,7 +37,7 @@ export function init($plugin, store) {
     name:   'dashboard-view',
     weight: 1,
     route:  {
-      name:   'c-cluster-product',
+      name:   'product-c-cluster',
       params: {
         cluster: BLANK_CLUSTER,
         product: NAME
@@ -53,7 +53,7 @@ export function init($plugin, store) {
     name:   'page2-view',
     weight: 1,
     route:  {
-      name:   'c-cluster-product-resource',
+      name:   'product-c-cluster-resource',
       params: {
         cluster:  BLANK_CLUSTER,
         product:  NAME,
