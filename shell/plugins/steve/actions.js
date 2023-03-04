@@ -186,6 +186,10 @@ export default {
 
       return worker.postMessageAndWait({
         type, namespace, id, limit, filter, sortBy, sortOrder
+      }).then((res) => {
+        finishDeferred(key, 'resolve', res);
+
+        return res;
       });
     }
 

@@ -432,21 +432,25 @@ export default {
     opt = opt || {};
     opt.url = getters.urlFor(type, id, opt);
 
-    const schema = getters['schemaFor'](type);
-
     const namespaceAndId = {};
+    const storeName = getters.storeName;
 
-    if (schema.attributes?.namespaced) {
-      const [namespace, realId] = id.split('/');
+    // ToDo: we'll need to figure out how to do this for all other stores if the advanced worker ever makes it beyond 'cluster'
+    if (storeName === 'cluster') {
+      const schema = getters['schemaFor'](type);
 
-      namespaceAndId.namespace = namespace;
-      namespaceAndId.id = realId;
-    } else {
-      namespaceAndId.id = id;
+      if (schema.attributes?.namespaced) {
+        const [namespace, realId] = id.split('/');
+
+        namespaceAndId.namespace = namespace;
+        namespaceAndId.id = realId;
+      } else {
+        namespaceAndId.id = id;
+      }
     }
 
     const res = await dispatch('request', {
-      opt, type, ...namespaceAndId
+      opt, type, id, ...namespaceAndId
     });
 
     await dispatch('load', { data: res });
