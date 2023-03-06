@@ -91,7 +91,7 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     // TODO hide buttons on #source
     shouldShowButtons() {
-      return this.$route.hash === '#source' ? 'hide-buttons' : '';
+      return this.$route.hash === '#source' ? 'hide-buttons-deploy' : '';
     },
   },
   methods: {
@@ -273,8 +273,7 @@ export default Vue.extend<Data, any, any, any>({
 </template>
 
 <style lang="scss">
-// TODO hide buttons on #source
-.hide-buttons {
+.hide-buttons-deploy {
   .cru__footer {
     display: none !important;
   }

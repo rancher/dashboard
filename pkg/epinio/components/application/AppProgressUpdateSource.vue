@@ -108,7 +108,6 @@ export default Vue.extend<Data, any, any, any>({
     })
     );
 
-    // TODO: Update the app with the needed changes
     this.actions.push(
       await this.$store.dispatch('epinio/create', {
         action: APPLICATION_ACTION_TYPE.UPDATE_SOURCE,
