@@ -84,27 +84,29 @@ export default {
   fetch() {
     fetchClusterResources(this.$store, NODE);
 
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
-      this,
-      'showClusterMetrics',
-      `Determine cluster metrics`
-    );
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
-      this,
-      'showK8sMetrics',
-      `Determine k8s metrics`
-    );
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
-      this,
-      'showEtcdMetrics',
-      `Determine etcd metrics`
-    );
+    if (this.currentCluster) {
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
+        this,
+        'showClusterMetrics',
+        `Determine cluster metrics`
+      );
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
+        this,
+        'showK8sMetrics',
+        `Determine k8s metrics`
+      );
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
+        this,
+        'showEtcdMetrics',
+        `Determine etcd metrics`
+      );
 
-    if (this.currentCluster.isLocal) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      if (this.currentCluster.isLocal) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
     }
   },
 
@@ -186,7 +188,7 @@ export default {
     displayProvider() {
       const other = 'other';
 
-      let provider = this.currentCluster.status.provider || other;
+      let provider = this.currentCluster?.status?.provider || other;
 
       if (provider === 'rke.windows') {
         provider = 'rkeWindows';
@@ -457,11 +459,11 @@ export default {
       </div>
       <div>
         <label>{{ t('glance.version') }}: </label>
+        <span>{{ currentCluster.kubernetesVersionBase }}</span>
         <span
           v-if="currentCluster.kubernetesVersionExtension"
-          style="font-size: 0.5em"
+          style="font-size: 0.75em"
         >{{ currentCluster.kubernetesVersionExtension }}</span>
-        <span>{{ currentCluster.kubernetesVersionBase }}</span>
       </div>
       <div>
         <label>{{ t('glance.created') }}: </label>
@@ -632,6 +634,8 @@ export default {
     </div>
     <Tabbed
       v-if="hasMetricsTabs"
+      default-tab="cluster-metrics"
+      :use-hash="false"
       class="mt-30"
     >
       <Tab
@@ -735,7 +739,7 @@ export default {
 }
 
 .etcd-metrics ::v-deep .external-link {
-  top: -102px;
+  top: -107px;
 }
 
 .cluster-tools-tip {

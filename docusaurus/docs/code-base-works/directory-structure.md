@@ -11,7 +11,7 @@ Components in the chart folder are used to add custom UI to a helm install flow.
 Cloud credentials are components that add provider-specific UI to create cloud credentials, needed to provision clusters. Read more about provisioning [here](./machine-drivers.md).
 
 ## config
-This is specific to plugins. Product definitions should be added directly under the `config` folder (as opposed to being nested in `shell/config/product`). See [Defining Products](./products-and-navigation.md) for more information.
+This is specific to extensions. Product definitions should be added directly under the `config` folder (as opposed to being nested in `shell/config/product`). See [Defining Products](./products-and-navigation.md) for more information.
 
 ## dialog
 Components in the dialog folder are used within the `PromptModal` component. Dispatch the `promptModal` action from the dashboard store to open a modal. This action takes a few props:
@@ -25,7 +25,7 @@ Components in the dialog folder are used within the `PromptModal` component. Dis
 |modalSticky| Boolean | Whether or not to apply sticky positioning (default false)| 
 
 ## formatters 
-This is not a top-level folder in the shell, which uses `/components/formatter`, but a top-level `formatters` directory works the same way in a plugin as the shell `formatter` directory does. Formatters are used to format data within tables. see [Defining Products](./products-and-navigation.md) for more information on configuring resource tables.
+This is not a top-level folder in the shell, which uses `/components/formatter`, but a top-level `formatters` directory works the same way in an extension as the shell `formatter` directory does. Formatters are used to format data within tables. see [Defining Products](./products-and-navigation.md) for more information on configuring resource tables.
 
 ## machine-config**
 Machine configs are used to add provider-specific UI to the rke2/k3s provisioning page. Read more about provisioning [here](./machine-drivers.md)
@@ -48,14 +48,14 @@ Some common model properties to overwrite are:
 * `detailLocation`: route for the detail view of one instance of the resource
 
 ### Overlapping Model Names
-It's possible that different products will use the same kubernetes resource, but need to add different model functionality (eg Harvester has a 'node' model). Files in a plugin's `models` folder will overwrite any files in the `shell/models` directory across the application. To extend or overwrite model functionality for a given store, nest models within a subfolder with the same name as the vuex module's `namespace`. see [Initializing Plugins](../plugins/initializing-plugins.md) for more information on configuring a plugin store.
+It's possible that different products will use the same kubernetes resource, but need to add different model functionality (eg Harvester has a 'node' model). Files in a extension's `models` folder will overwrite any files in the `shell/models` directory across the application. To extend or overwrite model functionality for a given store, nest models within a subfolder with the same name as the vuex module's `namespace`. see [Initializing Extensions](../extensions/initializing-extensions.md) for more information on configuring an extension store.
 
 ## promptRemove**
 Components in the PromptRemove folder are used to customize the removal prompt for specific resource types. Components added to this folder should have the same file name as the resource they're intended for. These components do not control the actual removal action - they are intended to allow the developer to supply additional information about consequences of removing a given resource, eg the Global Role removal prompt warns how many users are bound to that role. 
 
 
 ## l10n
-Plugin translation strings are merged with those already present in `shell/assets/translations`. Translation strings with duplicate keys of those present in the relevant shell translation file will overwrite those shell translation strings _across the app_: be mindful if adding translation strings that are not explicitly scoped to your plugin. Read more about translations [here](./on-screen-text-and-translations.md)
+Extension translation strings are merged with those already present in `shell/assets/translations`. Translation strings with duplicate keys of those present in the relevant shell translation file will overwrite those shell translation strings _across the app_: be mindful if adding translation strings that are not explicitly scoped to your extension. Read more about translations [here](./on-screen-text-and-translations.md)
 
 
 
@@ -66,6 +66,6 @@ Components in this folder can be used within `WindowManager` component, which re
 The rest of the top level directories are mostly Nuxt directories that you can read about [here](https://nuxtjs.org/docs/directory-structure/nuxt). 
 
 
-\*_not automatically imported with plugins_
+\*_not automatically imported with extensions_
 
 \*\* _components in these directories need particular names to work: either the relevant k8s resource or cloud provider_

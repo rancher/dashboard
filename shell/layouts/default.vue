@@ -38,6 +38,7 @@ import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import AutoLogout from '@shell/mixins/auto-logout';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
+import { BLANK_CLUSTER } from '@shell/store';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -352,7 +353,7 @@ export default {
 
   methods: {
     async setClusterAsLastRoute() {
-      if (!this.clusterId || this.clusterId === '_') {
+      if (!this.clusterId || this.clusterId === BLANK_CLUSTER) {
         return;
       }
       const route = {

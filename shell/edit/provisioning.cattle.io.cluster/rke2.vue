@@ -15,6 +15,7 @@ import {
   DEFAULT_WORKSPACE,
   SECRET,
   HCI,
+  PSPS,
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -129,6 +130,9 @@ export default {
   },
 
   async fetch() {
+    // Check presence of PSP in RKE2, which is where we show the templates
+    this.psps = await this.checkPsps();
+
     if ( !this.rke2Versions ) {
       const hash = {
         rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
@@ -312,16 +316,18 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
-      lastDefaultPodSecurityPolicyTemplateName,
+      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
       previousKubernetesVersion,
       harvesterVersion:      '',
       cisOverride:           false,
       cisPsaChangeBanner:    false,
+      psps:                  null, // List of policies if any
     };
   },
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts' }),
+    ...mapGetters(['currentCluster']),
     ...mapGetters({ features: 'features/get' }),
 
     PUBLIC:   () => PUBLIC,
@@ -330,6 +336,13 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    /**
+     * Check presence of PSPs as template or CLI creation
+     */
+    hasPsps() {
+      return !!this.psps?.count;
     },
 
     isElementalCluster() {
@@ -369,11 +382,7 @@ export default {
      * Define PSP deprecation and restrict use of PSP based on min k8s version
      */
     needsPSP() {
-      const release = this.value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
-
-      return isRequiredVersion;
+      return this.getNeedsPSP();
     },
 
     /**
@@ -483,7 +492,9 @@ export default {
      * Allow to display override if PSA is needed and profile is set
      */
     hasCisOverride() {
-      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA;
+      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA &&
+        // Also check other cases on when to display the override
+        this.hasPsaTemplates && this.showCisProfile && this.isCisSupported;
     },
 
     pspOptions() {
@@ -520,7 +531,7 @@ export default {
     isPsaDisabled() {
       const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
 
-      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates;
+      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates && this.isCisSupported;
     },
 
     /**
@@ -559,6 +570,15 @@ export default {
       }
 
       return out;
+    },
+
+    /**
+     * Check if current CIS profile is required and listed in the options
+     */
+    isCisSupported() {
+      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+
+      return !cisProfile || this.profileOptions.map(option => option.value).includes(cisProfile);
     },
 
     disableOptions() {
@@ -946,7 +966,7 @@ export default {
       }
 
       if (ccmVersion && csiVersion) {
-        if (semver.satisfies(this.harvesterVersion, CompareVersion) || !(this.harvesterVersion || '').startsWith('v')) {
+        if (semver.satisfies(this.harvesterVersion, CompareVersion, { includePrerelease: true }) || !(this.harvesterVersion || '').startsWith('v')) {
           // When harveste version is less than `CompareVersion`, compatibility is not determined,
           // At the same time, version numbers like this will not be checked: master-14bbee2c-head
           return false;
@@ -968,18 +988,6 @@ export default {
         return 'registryconfig-auth-';
       }
     },
-    displayInvalidPspsBanner() {
-      const version = VERSION.parse(this.value.spec.kubernetesVersion);
-
-      const major = parseInt(version?.[0] || 0);
-      const minor = parseInt(version?.[1] || 0);
-
-      if (major === 1 && minor >= 25) {
-        return this.allPSPs?.length > 0;
-      }
-
-      return false;
-    }
   },
 
   watch: {
@@ -1068,6 +1076,17 @@ export default {
   methods: {
     nlToBr,
     set,
+
+    /**
+     * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
+     */
+    getNeedsPSP(value = this.value) {
+      const release = value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return isRequiredVersion;
+    },
 
     async initMachinePools(existing) {
       const out = [];
@@ -1298,7 +1317,27 @@ export default {
 
     showAddonConfirmation() {
       return new Promise((resolve, reject) => {
-        this.$store.dispatch('cluster/promptModal', { component: 'AddonConfigConfirmationDialog', resources: [value => resolve(value)] });
+        this.$store.dispatch('cluster/promptModal', {
+          component: 'AddonConfigConfirmationDialog',
+          resources: [value => resolve(value)]
+        });
+      });
+    },
+
+    /**
+     * Inform user to remove PSP for current cluster due deprecation
+     */
+    showPspConfirmation() {
+      return new Promise((resolve, reject) => {
+        this.$store.dispatch('cluster/promptModal', {
+          component:      'GenericPrompt',
+          componentProps: {
+            title:     this.t('cluster.rke2.modal.pspChange.title'),
+            body:      this.t('cluster.rke2.modal.pspChange.body'),
+            applyMode: 'continue',
+            confirm:   resolve
+          },
+        });
       });
     },
 
@@ -1307,7 +1346,16 @@ export default {
         clear(this.errors);
       }
 
-      if (this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion) {
+      const isEditVersion = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
+      const hasPspManuallyAdded = !!this.value.spec.rkeConfig?.machineGlobalConfig?.['kube-apiserver-arg'];
+
+      if (isEditVersion && !this.needsPSP && hasPspManuallyAdded) {
+        if (!await this.showPspConfirmation()) {
+          return btnCb('cancelled');
+        }
+      }
+
+      if (isEditVersion) {
         const shouldContinue = await this.showAddonConfirmation();
 
         if (!shouldContinue) {
@@ -1813,6 +1861,29 @@ export default {
     },
 
     /**
+     * Check if current cluster has PSP enabled
+     * Consider exclusively RKE2 provisioned clusters in edit mode
+     */
+    checkPsps() {
+      // As server returns 500 we exclude all the possible cases
+      if (
+        this.mode !== _CREATE &&
+        !this.isK3s &&
+        this.value.state !== 'reconciling' &&
+        this.getNeedsPSP(this.liveValue) // We consider editing only possible PSP cases
+      ) {
+        const clusterId = this.value.mgmtClusterId;
+        const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
+
+        try {
+          return this.$store.dispatch('cluster/request', { url });
+        } catch (error) {
+          // PSP may not exists for this cluster and an error is returned without need to handle
+        }
+      }
+    },
+
+    /**
      * Reset PSA on several input changes for given conditions
      */
     togglePsaDefault() {
@@ -2133,23 +2204,26 @@ export default {
             {{ t('cluster.rke2.security.header') }}
           </h3>
           <Banner
-            v-if="isEdit && displayInvalidPspsBanner"
+            v-if="isEdit && !needsPSP && hasPsps"
             color="warning"
-          >
-            <span v-html="t('cluster.banner.invalidPsps', {}, true)" />
-          </Banner>
+            :label="t('cluster.banner.invalidPsps')"
+          />
           <Banner
             v-else-if="isCreate && !needsPSP"
             color="info"
-          >
-            <span v-html="t('cluster.banner.removedPsp', {}, true)" />
-          </Banner>
+            :label="t('cluster.banner.removedPsp')"
+          />
           <Banner
-            v-else-if="isCreate"
+            v-else-if="isCreate && hasPsps"
             color="info"
-          >
-            <span v-html="t('cluster.banner.deprecatedPsp', {}, true)" />
-          </Banner>
+            :label="t('cluster.banner.deprecatedPsp')"
+          />
+
+          <Banner
+            v-if="showCisProfile && !isCisSupported"
+            color="info"
+            :label="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)"
+          />
 
           <div class="row mb-10">
             <div

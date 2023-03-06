@@ -819,6 +819,8 @@ catalog:
       clusterToolExists: This chart has a fixed namespace and name. A matching <a href="{url}">application</a> has been found and any changes will be made to it.
     banner:
       legacy: 'PSP Removal: Before upgrading a cluster to Kubernetes 1.25+, please ensure you review your Helm applications for Pod Security Policies and update them accordingly'
+    enablePSP: Enable Pod Security Policies
+    global: Global
   charts:
     all: All
     categories:
@@ -1617,11 +1619,10 @@ cluster:
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
-    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
+    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25 and will be automatically removed.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
     removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
-
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
   availabilityWarnings:
@@ -1773,6 +1774,11 @@ cluster:
     banner:
       psaChange: PSACT is now set to Rancher default automatically
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
+      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. It's recommended to review RKE2 documentation to evaluate the impact of changing CIS Profile.
+    modal:
+      pspChange:
+        title: Pod Security Policy deprecation
+        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be MANUALLY removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Proceed?
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -1796,7 +1802,7 @@ cluster:
       override: Allow PSA Default Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
-      option: RKE Default
+      option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Default Pod Security Admission
       option: 
@@ -2096,6 +2102,7 @@ fleet:
       placeholder: e.g. https://github.com/rancher/fleet-examples.git or git@github.com:rancher/fleet-examples.git
       addRepo: Add Repository
       noRepos: No repositories have been added
+      noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     add:
       steps:
@@ -2147,6 +2154,7 @@ fleet:
       cluster: There are no clusters available
     workspace:
       label: Workspace
+      addWorkspace: Create a workspace
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -2167,7 +2175,17 @@ fleet:
     error: Error
     ready: Ready
     errors: Errors
-
+  workspaces: 
+    tabs:
+      restrictions: Allowed Target Namespaces
+    timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
+  restrictions: 
+    addTitle: 'allowedTargetNamespaces'
+    addLabel: Add
+    banner: "{count, plural,
+          =0 { Setting allowedTargetNamespaces here will create a GitRepoRestriction. }
+          other { Only GitRepoRestriction.allowedTargetNamespaces is managed here. You can make additional changes} 
+        }"
 footer:
   docs: Docs
   download: Download CLI
@@ -2421,7 +2439,7 @@ istio:
       label: Jaeger
       description: Monitor and Troubleshoot microservices-based distributed systems.
     disabled: '{app} is not installed'
-  cni: Enabled CNI
+  cni: Enable CNI
   customOverlayFile:
     label: Custom Overlay File
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/additional-setup/customize-installation/#patching-the-output-manifest">overlay file</a> allows for additional configuration on top of the base {vendor} Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
@@ -2572,20 +2590,20 @@ istio:
         label: Subject Alternative Names
         placeholder: e.g. example.com
         add: Add Subject Alternative Name
-  egressGateway: Enabled Egress Gateway
-  ingressGateway: Enabled Ingress Gateway
-  istiodRemote: Enabled istiodRemote
-  kiali: Enabled Kiali
-  pilot: Enabled Pilot
-  policy: Enabled Policy
+  egressGateway: Enable Egress Gateway
+  ingressGateway: Enable Ingress Gateway
+  istiodRemote: Enable istiodRemote
+  kiali: Enable Kiali
+  pilot: Enable Pilot
+  policy: Enable Policy
   poweredBy: Powered by <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>
-  telemetry: Enabled Telemetry
+  telemetry: Enable Telemetry
   titles:
     components: Components
     customAnswers: Custom Answers
     advanced: Advanced Settings
     description: Description
-  tracing: Enabled Jaeger Tracing (limited)
+  tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
 
 labels:
@@ -3879,6 +3897,7 @@ podDisruptionBudget:
 
 # Rancher Extensions
 plugins:
+  incompatibleDisclaimer: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -3912,6 +3931,7 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
+    requiresVersion: "Requires Rancher {version}"
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available
@@ -7127,7 +7147,7 @@ legacy:
   globalDnsProviders: Global DNS Providers
   notifiers: Notifiers
   monitoring: Monitoring
-  psps: Pod Security Policies
+  psps: Pod Security Policy Templates
   secrets: Secrets
 
   project:

@@ -38,8 +38,13 @@ export default {
   mixins: [PageHeaderActions],
 
   fetch() {
-    this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    if ( this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER) ) {
+      this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+    }
+
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    }
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE) ) {
       this.$store.dispatch('management/findAll', { type: CAPI.MACHINE });

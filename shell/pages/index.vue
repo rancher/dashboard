@@ -23,7 +23,9 @@ export default {
     const afterLoginRouteObject = store.getters['prefs/afterLoginRoute'];
     const targetRoute = app.router.resolve(afterLoginRouteObject);
 
-    if (targetRoute?.route?.fullPath === route.fullPath) {
+    // If target route is /, then we will loop with endless redirect - so detect that here and
+    // redirect to /home, which is what we would do below, if there was no `afterLoginRouteObject`
+    if (targetRoute?.route?.fullPath === '/') {
       return redirect(dashboardHome);
     }
 

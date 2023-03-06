@@ -1325,6 +1325,9 @@ export default {
             :full-colspan="fullColspan"
             :row="row.row"
             :sub-matches="subMatches"
+            :keyField="keyField"
+            :componentTestid="componentTestid"
+            :i="i"
             :onRowMouseEnter="onRowMouseEnter"
             :onRowMouseLeave="onRowMouseLeave"
           >

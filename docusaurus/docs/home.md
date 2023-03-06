@@ -10,5 +10,5 @@ This documentation is intended to help developers contribute to the Dashboard UI
 
 The [Getting Started](getting-started/concepts) section documents general concepts, the development environment and provides a walk-through of the Rancher Dashboard UI.
 
-Extension developers should head over to the [Extensions](plugins/introduction) section and start their journey there.
+Extension developers should head over to the [Extensions](extensions/introduction) section and start their journey there.
 

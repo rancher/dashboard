@@ -172,14 +172,16 @@ export default {
 
         this.loadedCredentialIdFor = this.credentialId;
       }
+      // when you edit an Azure cluster and add a new machine pool (edit)
+      // the location field doesn't come populated which causes the vmSizes request
+      // to return 200 but with a null response
+      // if (this.mode === _CREATE || (this.mode === _EDIT && !this.value?.location)) {
+      //   this.value.location = DEFAULT_REGION;
+      // }
 
       if (!this.value.location || !findBy(this.locationOptions, 'name', this.value.location)) {
         this.locationOptions?.length && this.setLocation(this.locationOptions[this.locationOptions.length - 1]);
       }
-
-      // if (this.mode === _CREATE) {
-      //   this.value.location = DEFAULT_REGION;
-      // }
 
       this.vmSizes = await this.$store.dispatch('management/request', {
         url: addParams('/meta/aksVMSizesV2', {

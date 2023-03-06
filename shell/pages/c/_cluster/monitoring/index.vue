@@ -214,3 +214,10 @@ export default {
     </div>
   </section>
 </template>
+
+<style lang="scss" scoped>
+  .create-resource-container .subtype-banner {
+    min-height: 80px;
+    padding: 10px;
+  }
+</style>

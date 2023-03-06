@@ -55,6 +55,7 @@ export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
 export const POD = 'pod';
 export const POD_DISRUPTION_BUDGET = 'policy.poddisruptionbudget';
 export const PSP = 'policy.podsecuritypolicy';
+export const PSPS = 'policy.podsecuritypolicies';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const RESOURCE_QUOTA = 'resourcequota';
@@ -199,14 +200,16 @@ export const CAPI = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
-  BUNDLE:            'fleet.cattle.io.bundle',
-  BUNDLE_DEPLOYMENT: 'fleet.cattle.io.bundledeployment',
-  CLUSTER:           'fleet.cattle.io.cluster',
-  CLUSTER_GROUP:     'fleet.cattle.io.clustergroup',
-  DASHBOARD:         'fleet.cattle.io.dashboard',
-  GIT_REPO:          'fleet.cattle.io.gitrepo',
-  WORKSPACE:         'management.cattle.io.fleetworkspace',
-  TOKEN:             'fleet.cattle.io.clusterregistrationtoken',
+  BUNDLE:                   'fleet.cattle.io.bundle',
+  BUNDLE_DEPLOYMENT:        'fleet.cattle.io.bundledeployment',
+  CLUSTER:                  'fleet.cattle.io.cluster',
+  CLUSTER_GROUP:            'fleet.cattle.io.clustergroup',
+  DASHBOARD:                'fleet.cattle.io.dashboard',
+  GIT_REPO:                 'fleet.cattle.io.gitrepo',
+  WORKSPACE:                'management.cattle.io.fleetworkspace',
+  TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
+  BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
+  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction'
 };
 
 export const GATEKEEPER = {
