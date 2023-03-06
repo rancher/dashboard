@@ -3,9 +3,8 @@ import { MONITORING } from '@shell/config/types';
 
 export function computeDashboardUrl(embedUrl, clusterId, params) {
   const url = parseUrl(embedUrl);
-  const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
 
-  let newUrl = `${ clusterPrefix }${ url.path }`;
+  let newUrl = `/k8s/clusters/${ clusterId }${ url.path }`;
 
   if (url.query.viewPanel) {
     newUrl = addParam(newUrl, 'viewPanel', url.query.viewPanel);
@@ -26,8 +25,7 @@ export async function dashboardExists(store, clusterId, embedUrl, storeName = 'c
   }
 
   const url = parseUrl(embedUrl);
-  const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
-  const prefix = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
+  const prefix = `/k8s/clusters/${ clusterId }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
   const delimiter = 'http:rancher-monitoring-grafana:80/proxy/';
   const path = url.path.split(delimiter)[1];
   const uid = path.split('/')[1];
@@ -49,8 +47,7 @@ export async function allDashboardsExist(store, clusterId, embeddedUrls, storeNa
 }
 
 export function queryGrafana(dispatch, clusterId, query, range, step) {
-  const clusterPrefix = clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
-  const url = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/api/datasources/proxy/1/api/v1/query_range?query=${ query }&start=${ range.start }&end=${ range.end }&step=${ step }`;
+  const url = `/k8s/clusters/${ clusterId }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/api/datasources/proxy/1/api/v1/query_range?query=${ query }&start=${ range.start }&end=${ range.end }&step=${ step }`;
 
   return dispatch('cluster/request', { url, redirectUnauthorized: false });
 }
