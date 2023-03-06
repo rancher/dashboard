@@ -105,6 +105,7 @@
 //                               hasGraph: undefined   -- If true, render ForceDirectedTreeChart graph (ATTENTION: option graphConfig is needed also!!!)
 //                               graphConfig: undefined   -- Use this to pass along the graph configuration
 //                               notFilterNamespace:  undefined -- Define namespaces that do not need to be filtered
+//                               localOnly: False -- Hide this type from the nav/search bar on downstream clusters
 //                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
@@ -869,6 +870,8 @@ export const getters = {
           // Skip the schemas that aren't top-level types
           continue;
         } else if ( typeof typeOptions.ifRancherCluster !== 'undefined' && typeOptions.ifRancherCluster !== rootGetters.isRancher ) {
+          continue;
+        } else if (typeOptions.localOnly && !rootGetters.currentCluster?.isLocal) {
           continue;
         }
 
