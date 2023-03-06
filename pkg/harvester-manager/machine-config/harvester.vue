@@ -3,6 +3,7 @@ import draggable from 'vuedraggable';
 import isEmpty from 'lodash/isEmpty';
 import jsyaml from 'js-yaml';
 import YAML from 'yaml';
+import isBase64 from 'is-base64';
 
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 // import PodAffinity from '@shell/components/form/PodAffinity';
@@ -302,18 +303,30 @@ export default {
 
     let userData = '';
     let installAgent;
+    let userDataIsBase64 = true;
+    let networkDataIsBase64 = true;
 
     if (isCreate) {
       installAgent = true;
       userData = this.addCloudConfigComment(QGA_JSON);
       this.value.userData = base64Encode(userData);
     } else {
-      userData = base64Decode(this.value.userData);
+      if (isBase64(this.value.userData)) {
+        userData = base64Decode(this.value.userData);
+      } else {
+        userDataIsBase64 = false;
+        userData = this.value.userData;
+      }
       installAgent = this.hasInstallAgent(userData, false);
     }
 
     if (this.value.networkData) {
-      networkData = base64Decode(this.value.networkData);
+      if (isBase64(this.value.networkData)) {
+        networkData = base64Decode(this.value.networkData);
+      } else {
+        networkDataIsBase64 = false;
+        networkData = this.value.networkData;
+      }
     }
 
     return {
@@ -335,6 +348,8 @@ export default {
       interfaces:         [],
       isOldFormat:        false,
       installAgent,
+      userDataIsBase64,
+      networkDataIsBase64,
       SOURCE_TYPE
     };
   },
@@ -462,6 +477,14 @@ export default {
 
     test() {
       const errors = [];
+
+      if (!this.userDataIsBase64) {
+        this.value.userData = base64Decode(this.value.userData);
+      }
+
+      if (!this.networkDataIsBase64) {
+        this.value.networkData = base64Decode(this.value.networkData);
+      }
 
       if (!this.value.cpuCount) {
         const message = this.validatorRequiredField(
