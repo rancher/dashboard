@@ -501,7 +501,6 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       resources:  [resources],
       component:  'ExportAppDialog',
       modalWidth: '450px',
-      title:      'Hello world?'
     });
   }
 
