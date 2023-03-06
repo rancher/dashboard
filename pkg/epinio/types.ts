@@ -33,6 +33,7 @@ export const APPLICATION_MANIFEST_SOURCE_TYPE = {
   GIT:       2,
   CONTAINER: 3,
   GIT_HUB:   4,
+  GIT_LAB:   5,
 };
 
 export const APPLICATION_SOURCE_TYPE = {
@@ -41,6 +42,7 @@ export const APPLICATION_SOURCE_TYPE = {
   FOLDER:        'folder',
   GIT_URL:       'git_url',
   GIT_HUB:       'git_hub',
+  GIT_LAB:       'git_lab',
 };
 
 export const APPLICATION_ACTION_STATE = {
@@ -51,7 +53,8 @@ export const APPLICATION_ACTION_STATE = {
 };
 
 export const APPLICATION_ENV_VAR = 'EPINIO_APP_DATA';
-export interface EPINIO_APP_ENV_VAR_GITHUB {
+export interface EPINIO_APP_ENV_VAR_GIT {
+  type: string,
   usernameOrOrg: string,
   repo: string,
   branch: string,

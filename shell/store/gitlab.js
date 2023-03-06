@@ -1,7 +1,9 @@
-const GITHUB_BASE_API = 'https://api.github.com';
+const API_VERSION = 'v4';
+const GITLAB_BASE_API = 'https://gitlab.com/api';
+const TOKEN = '';
 
-const fetchGithubAPI = async(endpoint) => {
-  const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
+const fetchGitLabAPI = async(endpoint) => {
+  const response = await fetch(`${ GITLAB_BASE_API }/${ API_VERSION }/${ endpoint }${ TOKEN }`);
 
   // If rate-limit is exceeded, we should wait until the rate limit is reset
   if (response.status === 403) {
@@ -21,32 +23,32 @@ export const getters = {};
 
 export const actions = {
   async apiList(ctx, {
-    username, endpoint, repo, branch
+    username, endpoint, project, repo, branch
   }) {
     try {
       switch (endpoint) {
       case 'branches': {
-        return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
+        return await fetchGitLabAPI(`projects/${ repo }/repository/branches?order_by=updated_at&per_page=100`);
       }
       case 'repo': {
-        return await fetchGithubAPI(`repos/${ username }/${ repo }`);
+        return await fetchGitLabAPI(`projects/${ repo }?`);
       }
       case 'commits': {
-        return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
+        return await fetchGitLabAPI(`projects/${ repo }/repository/commits/${ branch }?order_by=updated_at&per_page=100`);
       }
       case 'recentRepos': {
-        return await fetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
+        return await fetchGitLabAPI(`users/${ username }/projects?order_by=updated_at&per_page=100`);
       }
       case 'search': {
         // Fetch for a specific branches
         if (username && repo && branch) {
-          const response = await fetchGithubAPI(`repos/${ username }/${ repo }/branches/${ branch }`);
+          const response = await fetchGitLabAPI(`repos/${ username }/${ repo }/branches/${ branch }?`);
 
           return [response];
         }
 
         // Fetch for repos
-        const response = await fetchGithubAPI(`search/repositories?q=repo:${ username }/${ repo }`);
+        const response = await fetchGitLabAPI(`search/repositories?q=repo:${ username }/${ repo }`);
 
         if (response) {
           return response.items;
@@ -66,7 +68,7 @@ export const actions = {
 
   async fetchRepoDetails({ commit, dispatch }, { username, repo } = {}) {
     const res = await dispatch('apiList', {
-      username, endpoint: 'repo', repo: repo.name
+      username, endpoint: 'repo', repo: repo.id
     });
 
     return res;
@@ -74,7 +76,7 @@ export const actions = {
 
   async fetchBranches({ commit, dispatch }, { repo, username }) {
     const res = await dispatch('apiList', {
-      username, endpoint: 'branches', repo: repo.name
+      username, endpoint: 'branches', repo: repo.id
     });
 
     return res;
@@ -82,17 +84,19 @@ export const actions = {
 
   async fetchCommits(ctx, { repo, username, branch }) {
     const { dispatch } = ctx;
+
     const res = await dispatch('apiList', {
-      username, endpoint: 'commits', repo: repo.name, branch: branch.name
+      username, endpoint: 'commits', repo: repo.id, branch: branch.name
     });
 
     return res;
   },
+
   async search({ dispatch }, { repo, username, branch }) {
     const res = await dispatch('apiList', {
       username, endpoint: 'search', repo, branch
     });
 
     return res;
-  },
+  }
 };

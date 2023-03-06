@@ -291,6 +291,20 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
             value: this.origin.git.revision
           }]
       };
+    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT_LAB:
+      return {
+        label:   'GitLab',
+        icon:    'icon-gitlab',
+        details: [
+          appChart, {
+            label: 'Url',
+            value: this.origin.git.repository
+          }, {
+            label: 'Revision',
+            icon:  'icon-gitlab',
+            value: this.origin.git.revision
+          }]
+      };
     default:
       return undefined;
     }

@@ -1,17 +1,17 @@
 <script lang="ts">
 import Vue from 'vue';
 import Application from '../../../../../models/applications';
-import CreateEditView from '@shell/mixins/create-edit-view/impl';
 import Loading from '@shell/components/Loading.vue';
 import Wizard from '@shell/components/Wizard.vue';
-import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_TYPES } from '../../../../../types';
+import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
 import AppConfiguration, { EpinioAppBindings } from '../../../../../components/application/AppConfiguration.vue';
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
-import { allHash } from '~/shell/utils/promise';
+import { allHash } from '@shell/utils/promise';
+import { GitUtils } from '../../../../../utils/git';
 
 interface Data {
   value?: Application,
@@ -33,10 +33,6 @@ export default Vue.extend<Data, any, any, any>({
     AppConfiguration,
     AppProgress,
   },
-
-  mixins: [
-    CreateEditView,
-  ],
 
   async fetch() {
     const hash: { [key:string]: any } = await allHash({
@@ -114,18 +110,18 @@ export default Vue.extend<Data, any, any, any>({
         this.set(this.value.configuration, { appchart: appChart });
       }
 
-      if (changes.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
+      if (changes.type === APPLICATION_SOURCE_TYPE.GIT_HUB || changes.type === APPLICATION_SOURCE_TYPE.GIT_LAB) {
         this.value.configuration.environment = this.value.configuration.environment || {};
-        const githubEnvVar: EPINIO_APP_ENV_VAR_GITHUB = {
-          usernameOrOrg: changes.github.usernameOrOrg as string,
-          repo:          changes.github.repo,
-          branch:        changes.github.branch,
-        };
+        const type = changes.type.replace('_', '');
+        const gitEnvVar = GitUtils[type].application.env(changes.git);
 
-        this.set(this.value.configuration.environment, {
-          ...this.value.configuration.environment,
-          [APPLICATION_ENV_VAR]: JSON.stringify(githubEnvVar)
-        });
+        this.set(
+          this.value.configuration.environment,
+          {
+            ...this.value.configuration.environment,
+            [APPLICATION_ENV_VAR]: JSON.stringify(gitEnvVar)
+          }
+        );
       } else {
         delete this.value.configuration?.environment?.[APPLICATION_ENV_VAR];
       }

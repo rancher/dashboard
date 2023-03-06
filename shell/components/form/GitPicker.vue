@@ -1,13 +1,18 @@
-<script>
-import SortableTable from '@shell/components/SortableTable';
-import RadioButton from '@components/Form/Radio/RadioButton';
+<script lang="ts">
+import Vue from 'vue';
+import SortableTable from '@shell/components/SortableTable/index.vue';
+import RadioButton from '@components/Form/Radio/RadioButton.vue';
 import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import some from 'lodash/some';
+import { GitUtils } from '@/pkg/epinio/utils/git';
 
-export default {
+// TODO remove any types
+
+export default Vue.extend<any, any, any, any>({
+
   components: {
     LabeledSelect,
     SortableTable,
@@ -16,49 +21,13 @@ export default {
   },
 
   props: {
-    selection: {
+    value: {
       type:    Object,
       default: null
-    }
+    },
   },
-  data() {
-    const commitsTableHeaders = [
-      {
-        name:  'index',
-        label: this.t('githubPicker.tableHeaders.choose.label'),
-        width: 60,
-      }, {
-        name:          'sha',
-        label:         this.t('githubPicker.tableHeaders.sha.label'),
-        width:         90,
-        formatter:     'Link',
-        formatterOpts: { urlKey: 'html_url' },
-        value:         'sha'
-      },
-      {
-        name:  'author',
-        label: this.t('githubPicker.tableHeaders.author.label'),
-        width: 190,
-        value: 'author.login',
-        sort:  'author.login',
-      },
-      {
-        name:  'message',
-        label: this.t('githubPicker.tableHeaders.message.label'),
-        value: 'message',
-        sort:  'message',
-      },
-      {
-        name:        'date',
-        width:       220,
-        label:       this.t('githubPicker.tableHeaders.date.label'),
-        value:       'date',
-        sort:        ['date:desc'],
-        formatter:   'Date',
-        defaultSort: true,
-      },
-    ];
 
+  data() {
     return {
       loadingRecentRepos: true,
       loadingBranches:    true,
@@ -71,8 +40,7 @@ export default {
         commits: false,
         message: null,
       },
-      showSelections: false,
-      oldUsername:    null,
+      oldUsername: null,
 
       repos:    [],
       branches: [],
@@ -81,48 +49,104 @@ export default {
       selectedAccOrOrg: null,
       selectedRepo:     null,
       selectedBranch:   null,
-      selectedCommit:   false,
-      commitsTableHeaders,
+      selectedCommit:   {},
     };
   },
 
+  created() {
+    this.onSearch = debounce(this.searchForResult, 1000);
+  },
+
   mounted() {
-    // Keeps the selected repo/branch/commit when the user switches between steps
-    if (this.selection) {
-      this.selectedAccOrOrg = this.selection.usernameOrOrg;
-      this.selectedRepo = this.selection.repo;
-      this.selectedBranch = this.selection.branch;
+    // Keeps the repo/branch/commit when the user switches between steps
+    if (this.value) {
+      this.selectedAccOrOrg = this.value.usernameOrOrg;
+      this.selectedRepo = this.value.repo;
+      this.selectedBranch = this.value.branch;
 
       // API calls data
-      this.repos = this.selection.sourceData.repos;
-      this.branches = this.selection.sourceData.branches;
-      this.commits = this.selection.sourceData.commits;
+      this.repos = this.value.sourceData.repos;
+      this.branches = this.value.sourceData.branches;
+      this.commits = this.value.sourceData.commits;
     }
   },
+
+  watch: {
+    type(old, _new) {
+      if (_new && old !== _new) {
+        this.repos = [];
+        this.reset();
+      }
+    },
+  },
+
   computed: {
+    type() {
+      return this.value?.type;
+    },
+
+    commitHeaders() {
+      return [
+        {
+          name:  'index',
+          label: this.t(`gitPicker.${ this.type }.tableHeaders.choose.label`),
+          width: 60,
+        }, {
+          name:          'sha',
+          label:         this.t(`gitPicker.${ this.type }.tableHeaders.sha.label`),
+          width:         90,
+          formatter:     'Link',
+          formatterOpts: { urlKey: 'htmlUrl' },
+          value:         'sha'
+        },
+        {
+          name:  'author',
+          label: this.t(`gitPicker.${ this.type }.tableHeaders.author.label`),
+          width: 190,
+          value: 'author.login',
+          sort:  'author.login',
+        },
+        {
+          name:  'message',
+          label: this.t(`gitPicker.${ this.type }.tableHeaders.message.label`),
+          value: 'message',
+          sort:  'message',
+        },
+        {
+          name:        'date',
+          width:       220,
+          label:       this.t(`gitPicker.${ this.type }.tableHeaders.date.label`),
+          value:       'date',
+          sort:        ['date:desc'],
+          formatter:   'Date',
+          defaultSort: true,
+        },
+      ];
+    },
+
     preparedRepos() {
-      return this.prepareArray(this.repos);
+      return this.normalizeArray(this.repos, (item: any) => ({ id: item.id, name: item.name }));
     },
     preparedBranches() {
-      return this.prepareArray(this.branches);
+      return this.normalizeArray(this.branches, (item: any) => ({ id: item.id, name: item.name }));
     },
     preparedCommits() {
-      return this.prepareArray(this.commits, true);
+      return this.normalizeArray(this.commits, (c: any) => GitUtils[this.type].normalize.commit(c));
     },
   },
   methods: {
     reset() {
       this.selectedRepo = null;
       this.selectedBranch = null;
-      this.selectedCommit = false;
+      this.selectedCommit = {};
 
       this.communicateReset();
     },
     communicateReset() {
-      this.$emit('githubData', {
+      this.$emit('change', {
         selectedAccOrOrg: this.selectedAccOrOrg,
         repo:             this.selectedRepo,
-        commitSha:        this.selectedCommit,
+        commit:           this.selectedCommit,
       });
     },
     async fetchRepos() {
@@ -130,7 +154,7 @@ export default {
         if (this.selectedAccOrOrg.length) {
           this.selectedRepo = null;
 
-          const res = await this.$store.dispatch('github/fetchRecentRepos', { username: this.selectedAccOrOrg });
+          const res = await this.$store.dispatch(`${ this.type }/fetchRecentRepos`, { username: this.selectedAccOrOrg });
 
           this.repos = res;
           this.hasError.repo = false;
@@ -140,13 +164,13 @@ export default {
           if (this.oldUsername !== this.selectedAccOrOrg) {
             this.oldUsername = this.selectedAccOrOrg;
 
-            // Resets state, just in case.
+            // Resets state, just in case. TODO to be removed because is called in reset()
             this.communicateReset();
 
             return this.reset();
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         this.hasError.repo = true;
         this.hasError.message = error.message;
         this.selectedBranch = null;
@@ -158,17 +182,17 @@ export default {
     async fetchBranches() {
       this.loadingBranches = true;
       this.selectedBranch = null;
-      this.selectedCommit = false;
+      this.selectedCommit = {};
 
       this.communicateReset();
 
       try {
-        const res = await this.$store.dispatch('github/fetchBranches', { repo: this.selectedRepo, username: this.selectedAccOrOrg });
+        const res = await this.$store.dispatch(`${ this.type }/fetchBranches`, { repo: this.selectedRepo, username: this.selectedAccOrOrg });
 
         this.branches = res;
         this.hasError.branch = false;
         this.resetFetchErrorMessage();
-      } catch (error) {
+      } catch (error: any) {
         this.hasError.branch = true;
         this.hasError.message = error.message;
       } finally {
@@ -177,13 +201,12 @@ export default {
     },
     async fetchCommits() {
       this.loadingCommits = true;
-      this.showSelections = false;
-      this.selectedCommit = false;
+      this.selectedCommit = {};
 
       this.communicateReset();
 
       try {
-        const res = await this.$store.dispatch('github/fetchCommits', {
+        const res = await this.$store.dispatch(`${ this.type }/fetchCommits`, {
           repo:     this.selectedRepo,
           username: this.selectedAccOrOrg,
           branch:   this.selectedBranch,
@@ -191,7 +214,7 @@ export default {
 
         this.commits = res;
         this.resetFetchErrorMessage();
-      } catch (error) {
+      } catch (error: any) {
         this.hasError.commits = true;
         this.hasError.message = error.message;
       } finally {
@@ -201,50 +224,22 @@ export default {
     resetFetchErrorMessage() {
       this.hasError.message = null;
     },
-    prepareArray(arr, commits) {
-      if (!isArray(arr)) {
-        return;
-      }
 
-      if (commits) {
-        // Simplify the commits structure in the array
+    normalizeArray(elem: any, normalize: (v: any) => any) {
+      const arr: any[] = isArray(elem) ? elem : [elem];
 
-        return arr.reduce((acc, cur) => {
-          acc.push({
-            message:   cur.commit.message,
-            html_url:  cur.html_url,
-            sha:       this.trimCommit(cur.sha),
-            commitId:  cur?.sha,
-            author:    cur.author,
-            isChecked: false,
-            date:      cur?.commit.committer.date
-          });
-
-          return acc;
-        }, []);
-      }
-
-      // Handles repos & branches
-      const res = arr.reduce((acc, cur) => {
-        acc.push(cur.name);
-
-        return acc;
-      }, []);
-
-      return res;
+      return arr.map(item => normalize(item));
     },
-    trimCommit(commit) {
-      return !!commit ? commit.slice(0, 7) : undefined;
-    },
-    final(commitId) {
-      this.selectedCommit = this.commits.filter(ele => ele.sha === commitId)[0];
 
-      if (this.selectedAccOrOrg && this.selectedRepo && this.selectedCommit) {
-        this.$emit('githubData', {
+    final(commitId: string) {
+      this.selectedCommit = this.preparedCommits.find((c: any) => c.commitId === commitId);
+
+      if (this.selectedAccOrOrg && this.selectedRepo && this.selectedCommit.commitId) {
+        this.$emit('change', {
           selectedAccOrOrg: this.selectedAccOrOrg,
           repo:             this.selectedRepo,
           branch:           this.selectedBranch,
-          commitSha:        this.selectedCommit.sha,
+          commit:           this.selectedCommit.commitId,
           sourceData:       {
             repos:    this.repos,
             branches: this.branches,
@@ -252,13 +247,9 @@ export default {
           }
 
         });
-
-        this.showSelections = true;
       }
-
-      return null;
     },
-    async searchForResult(query) {
+    async searchForResult(query: any) {
       if (!query.length) {
         return;
       }
@@ -269,7 +260,7 @@ export default {
         await this.searchBranch(query);
       }
     },
-    async searchRepo(query) {
+    async searchRepo(query: any) {
       try {
         if (query.length) {
         // Check if the result is already in the fetched list.
@@ -277,7 +268,7 @@ export default {
 
           if (!resultInCurrentState) {
           // Search for specific repo under the username
-            const res = await this.$store.dispatch('github/search', { repo: query, username: this.selectedAccOrOrg });
+            const res = await this.$store.dispatch(`${ this.type }/search`, { repo: query, username: this.selectedAccOrOrg });
 
             if (res.message) {
               this.hasError.repo = true;
@@ -299,8 +290,8 @@ export default {
         this.hasError.message = `Could't find repository with the name of ${ query }`;
       }
     },
-    async searchBranch(query) {
-      const res = await this.$store.dispatch('github/search', {
+    async searchBranch(query: any) {
+      const res = await this.$store.dispatch(`${ this.type }/search`, {
         repo:     this.selectedRepo,
         branch:   query,
         username: this.selectedAccOrOrg,
@@ -313,20 +304,17 @@ export default {
         this.hasError.branch = false;
       }
     },
-    onSearch: debounce(function(q) {
-      this.searchForResult(q);
-    }, 1000),
-    status(value) {
+    status(value: any) {
       return !value ? null : 'error';
     },
     reposRules() {
-      return this.hasError.repo ? this.t('githubPicker.errors.noAccount') : null;
+      return this.hasError.repo ? this.t(`gitPicker.${ this.type }.errors.noAccount`) : null;
     },
     branchesRules() {
-      return this.hasError.branch ? this.t('githubPicker.errors.noBranch') : null;
+      return this.hasError.branch ? this.t(`gitPicker.${ this.type }.errors.noBranch`) : null;
     },
-  }
-};
+  },
+});
 </script>
 
 <template>
@@ -336,8 +324,8 @@ export default {
         <LabeledInput
           v-model="selectedAccOrOrg"
           data-testid="epinio_app-source_git-username"
-          :tooltip="t('githubPicker.username.tooltip')"
-          :label="t('githubPicker.username.inputLabel')"
+          :tooltip="t(`gitPicker.${ type }.username.tooltip`)"
+          :label="t(`gitPicker.${ type }.username.inputLabel`)"
           :required="true"
           :rules="[reposRules]"
           :delay="500"
@@ -353,13 +341,14 @@ export default {
         <LabeledSelect
           v-model="selectedRepo"
           :required="true"
-          :label="t('githubPicker.repo.inputLabel')"
+          :label="t(`gitPicker.${ type }.repo.inputLabel`)"
           :options="preparedRepos"
           :clearable="true"
           :searchable="true"
           :reduce="(e) => e"
           :rules="[branchesRules]"
           :status="status(hasError.repo)"
+          :option-label="'name'"
           @search="onSearch"
           @input="fetchBranches"
         />
@@ -372,24 +361,25 @@ export default {
         <LabeledSelect
           v-model="selectedBranch"
           :required="true"
-          :label="t('githubPicker.branch.inputLabel')"
+          :label="t(`gitPicker.${ type }.branch.inputLabel`)"
           :options="preparedBranches"
           :clearable="false"
           :reduce="(e) => e"
           :searchable="true"
           :status="status(hasError.branch)"
+          :option-label="'name'"
           @search="onSearch"
           @input="fetchCommits"
         />
       </div>
       <!-- Deals with Commits, display & allow to pick from it  -->
       <div
-        v-if="selectedBranch && commits.length"
+        v-if="selectedBranch && preparedCommits.length"
         class="commits-table mt-20"
       >
         <SortableTable
           :rows="preparedCommits"
-          :headers="commitsTableHeaders"
+          :headers="commitHeaders"
           mode="view"
           key-field="sha"
           :search="true"
@@ -400,29 +390,38 @@ export default {
         >
           <template #cell:index="{row}">
             <RadioButton
-              :value="selectedCommit.sha"
+              :value="selectedCommit.commitId"
               :val="row.commitId"
-              @input="final($event, row.commitId)"
+              @input="final($event)"
             />
           </template>
 
           <template #cell:author="{row}">
             <div class="sortable-table-avatar">
-              <template v-if="row.author">
+              <template v-if="type === 'github' && row.author">
                 <img
                   :src="row.author.avatar_url"
                   alt=""
                 >
                 <a
-                  :href="row.author.html_url"
+                  :href="row.author.htmlUrl"
                   target="_blank"
                   rel="nofollow noopener noreferrer"
                 >
                   {{ row.author.login }}
                 </a>
               </template>
+              <template v-else-if="type === 'gitlab' && row.author">
+                <!-- <img
+                  :src="row.author.avatar_url"
+                  alt=""
+                > -->
+                <span>
+                  {{ row.author }}
+                </span>
+              </template>
               <template v-else>
-                {{ t('githubPicker.tableHeaders.author.unknown') }}
+                {{ t(`gitPicker.${ type }.tableHeaders.author.unknown`) }}
               </template>
             </div>
           </template>

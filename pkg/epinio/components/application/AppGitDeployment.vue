@@ -28,20 +28,20 @@ export default {
   <div class="repo-info">
     <div class="repo-info-owner">
       <img
-        :src="gitSource.owner.avatar_url"
+        :src="gitSource.owner.avatarUrl"
         alt=""
       >
       <div>
         <a
           ref="nofollow"
           target="_blank"
-          :href="gitSource.owner.html_url"
-        >{{ gitSource.owner.login }}</a>
+          :href="gitSource.owner.htmlUrl"
+        >{{ gitSource.owner.name }}</a>
         <span>/</span>
         <a
           ref="nofollow"
           target="_blank"
-          :href="gitSource.html_url"
+          :href="gitSource.htmlUrl"
         >{{ gitSource.name }}</a>
       </div>
     </div>
@@ -73,10 +73,10 @@ export default {
     </div>
     <ul>
       <li>
-        <span>{{ t('epinio.applications.detail.deployment.details.gitHub.created') }}</span>: {{ formatDate(gitSource.created_at) }}
+        <span>{{ t('epinio.applications.detail.deployment.details.git.created') }}</span>: {{ formatDate(gitSource.created_at) }}
       </li>
       <li>
-        <span>{{ t('epinio.applications.detail.deployment.details.gitHub.updated') }}</span>: {{ formatDate(gitSource.updated_at, true) }}
+        <span>{{ t('epinio.applications.detail.deployment.details.git.updated') }}</span>: {{ formatDate(gitSource.updated_at, true) }}
       </li>
     </ul>
   </div>

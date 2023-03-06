@@ -6,13 +6,19 @@ import Application from '../../models/applications';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
-import GithubPicker from '@shell/components/form/GithubPicker.vue';
+import GitPicker from '@shell/components/form/GitPicker.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
+import camelCase from 'lodash/camelCase';
+
+const GIT_BASE_URL = {
+  [APPLICATION_SOURCE_TYPE.GIT_HUB]: 'https://github.com',
+  [APPLICATION_SOURCE_TYPE.GIT_LAB]: 'https://gitlab.com',
+};
 
 export const EPINIO_APP_MANIFEST = 'manifest';
 
@@ -30,18 +36,19 @@ interface GitUrl {
   branch: string
 }
 
-type GithubAPIData = {
+type GitAPIData = {
   repos: any[],
   branches: any[],
   commits: any[]
 }
-export interface GitHub {
+export interface Git {
+  type: 'git_hub' | 'git_lab',
   usernameOrOrg?: string,
-  repo: string,
+  repo: { id?: string, name: string },
   commit: string,
-  branch: string,
+  branch: { id?: string, name: string },
   url: string,
-  sourceData: GithubAPIData
+  sourceData: GitAPIData
 }
 
 interface BuilderImage {
@@ -53,8 +60,8 @@ interface Data {
   open: boolean,
   archive: Archive,
   container: Container,
+  git: Git,
   gitUrl: GitUrl,
-  github: GitHub,
   builderImage: BuilderImage,
   types: any[],
   unSafeType: string, // APPLICATION_SOURCE_TYPE || { } from the select component
@@ -65,8 +72,8 @@ export interface EpinioAppSource {
   type: string // APPLICATION_SOURCE_TYPE,
   archive: Archive,
   container: Container,
+  git: Git,
   gitUrl: GitUrl,
-  github: GitHub,
   builderImage: BuilderImage,
   appChart: string,
 }
@@ -87,7 +94,7 @@ export default Vue.extend<Data, any, any, any>({
     LabeledSelect,
     RadioGroup,
     Collapse,
-    GithubPicker
+    GitPicker
   },
 
   props: {
@@ -130,13 +137,14 @@ export default Vue.extend<Data, any, any, any>({
         validGitUrl: false,
       },
 
-      github: {
-        usernameOrOrg: this.source?.github.usernameOrOrg || '',
-        repo:          this.source?.github.repo || '',
-        commit:        this.source?.github.commit || '',
-        branch:        this.source?.github.branch || '',
-        url:           this.source?.github.url || '',
-        sourceData:    this.source?.github.sourceData || {
+      git: {
+        type:          this.source?.git.type || '',
+        usernameOrOrg: this.source?.git.usernameOrOrg || '',
+        repo:          this.source?.git.repo || '',
+        commit:        this.source?.git.commit || '',
+        branch:        this.source?.git.branch || '',
+        url:           this.source?.git.url || '',
+        sourceData:    this.source?.git.sourceData || {
           repos:    [],
           branches: [],
           commits:  []
@@ -150,22 +158,11 @@ export default Vue.extend<Data, any, any, any>({
 
       appChart: this.source?.appChart,
 
-      types: [{
-        label: this.t('epinio.applications.steps.source.archive.label'),
-        value: APPLICATION_SOURCE_TYPE.ARCHIVE
-      }, {
-        label: this.t('epinio.applications.steps.source.containerUrl.label'),
-        value: APPLICATION_SOURCE_TYPE.CONTAINER_URL
-      }, {
-        label: this.t('epinio.applications.steps.source.folder.label'),
-        value: APPLICATION_SOURCE_TYPE.FOLDER
-      }, {
-        label: this.t('epinio.applications.steps.source.gitUrl.label'),
-        value: APPLICATION_SOURCE_TYPE.GIT_URL
-      }, {
-        label: this.t('epinio.applications.steps.source.gitHub.label'),
-        value: APPLICATION_SOURCE_TYPE.GIT_HUB
-      }],
+      types: Object.values(APPLICATION_SOURCE_TYPE).map(value => ({
+        label: this.t(`epinio.applications.steps.source.${ camelCase(value) }.label`),
+        value
+      })),
+
       unSafeType: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
       APPLICATION_SOURCE_TYPE
     };
@@ -300,7 +297,7 @@ export default Vue.extend<Data, any, any, any>({
         gitUrl:       this.gitUrl,
         builderImage: this.builderImage,
         appChart:     this.appChart,
-        github:       this.github,
+        git:          this.git,
       });
     },
 
@@ -321,24 +318,25 @@ export default Vue.extend<Data, any, any, any>({
 
       this.update();
     },
-    githubData({
-      repo, selectedAccOrOrg, branch, commitSha, sourceData
+    gitUpdate({
+      repo, selectedAccOrOrg, branch, commit, sourceData
     }: {
-      commitSha: string,
+      commit: string,
       selectedAccOrOrg: string,
-      repo: string,
+      repo: { id?: string, name: string },
       branch: string,
-      sourceData: GithubAPIData
+      sourceData: GitAPIData
     }) {
-      if (!!selectedAccOrOrg && !!repo && !!commitSha && !!branch) {
-        const url = `https://github.com/${ selectedAccOrOrg }/${ repo }`;
+      if (!!selectedAccOrOrg && !!repo && !!commit && !!branch) {
+        const url = `${ GIT_BASE_URL[this.type] }/${ selectedAccOrOrg }/${ repo.name }`;
 
-        this.github.usernameOrOrg = selectedAccOrOrg;
-        this.github.url = url;
-        this.github.commit = commitSha;
-        this.github.branch = branch;
-        this.github.repo = repo;
-        this.github.sourceData = sourceData;
+        this.git.type = this.type;
+        this.git.usernameOrOrg = selectedAccOrOrg;
+        this.git.url = url;
+        this.git.commit = commit;
+        this.git.branch = branch;
+        this.git.repo = repo;
+        this.git.sourceData = sourceData;
 
         this.update();
         this.$emit('valid', true);
@@ -370,7 +368,8 @@ export default Vue.extend<Data, any, any, any>({
       case APPLICATION_SOURCE_TYPE.GIT_URL:
         return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value && !!this.gitUrl.validGitUrl;
       case APPLICATION_SOURCE_TYPE.GIT_HUB:
-        return !!this.github.usernameOrOrg && !!this.github.url && !!this.github.commit;
+      case APPLICATION_SOURCE_TYPE.GIT_LAB:
+        return !!this.git.usernameOrOrg && !!this.git.url && !!this.git.commit;
       }
 
       return false;
@@ -382,6 +381,7 @@ export default Vue.extend<Data, any, any, any>({
         APPLICATION_SOURCE_TYPE.FOLDER,
         APPLICATION_SOURCE_TYPE.GIT_URL,
         APPLICATION_SOURCE_TYPE.GIT_HUB,
+        APPLICATION_SOURCE_TYPE.GIT_LAB,
       ].includes(this.type);
     },
 
@@ -396,8 +396,15 @@ export default Vue.extend<Data, any, any, any>({
       }));
     },
 
+    sourceValue() {
+      return {
+        ...this.source.git,
+        type: this.type.replace('_', '')
+      };
+    },
+
     type() {
-      // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
+      // TODO There's a bug in the select component which fires off the option ({ value, label}) instead of the value
       // (possibly `reduce` related). This the workaround
       return this.unSafeType.value || this.unSafeType;
     },
@@ -518,11 +525,11 @@ export default Vue.extend<Data, any, any, any>({
         />
       </div>
     </template>
-    <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_HUB">
+    <template v-else>
       <KeepAlive>
-        <GithubPicker
-          :selection="source.github"
-          @githubData="githubData"
+        <GitPicker
+          :value="sourceValue"
+          @change="gitUpdate"
         />
       </KeepAlive>
     </template>

@@ -2,11 +2,11 @@
 import { getVersionInfo } from '@shell/utils/version';
 import Vue from 'vue';
 import DashboardCard from '../../../components/dashboard/Cards.vue';
-import { createEpinioRoute } from '@/pkg/epinio/utils/custom-routing';
-import { EpinioApplicationResource, EpinioCatalogService, EPINIO_TYPES } from '@/pkg/epinio/types';
+import { createEpinioRoute } from '../../../utils/custom-routing';
+import { EpinioApplicationResource, EpinioCatalogService, EPINIO_TYPES } from '../../../types';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
-import Namespace from '~/shell/models/namespace';
-import EpinioServiceModel from '~/pkg/epinio/models/services';
+import Namespace from '@shell/models/namespace';
+import EpinioServiceModel from '../../../models/services';
 import isEqual from 'lodash/isEqual';
 import { sortBy } from 'lodash';
 

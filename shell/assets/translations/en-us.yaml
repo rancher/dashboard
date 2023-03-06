@@ -6546,40 +6546,78 @@ vncConsole:
   error:
     message: Web VNC console connection is disconnected
 
-githubPicker:
-  label: GitHub
-  tableHeaders:
-    choose:
-      label: Select
-    sha:
-      label: SHA
-    author:
-      label: Author
-      unknown: Unknown
-    message:
-      label: Message
-    date:
-      label: Date
-  username:
-    label: Username / Organization
-    inputLabel: Username / Organization
-    tooltip: Username / Organization of the Git Repository
-  branch:
-    label: Branch
-    inputLabel: Branch
-    tooltip: Branch to deploy
-  repo:
-    label: Repository
-    inputLabel: Repository
-    tooltip: Branch to deploy from
-  commits:
-    label: Commits
-    tooltip: Commits to deploy from
-  commit:
-    label: Commit
-    inputLabel: Commit
-  commitMessage:
-    label: Commit Message
-  errors:
-    noAccount: No GitHub account or Organization found. Please review your query and try again.
-    noBranch: No branch found. Please review your query and try again."
+gitPicker:
+  github:
+    label: GitHub
+    tableHeaders:
+      choose:
+        label: Select
+      sha:
+        label: SHA
+      author:
+        label: Author
+        unknown: Unknown
+      message:
+        label: Message
+      date:
+        label: Date
+    username:
+      label: Username / Organization
+      inputLabel: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+    branch:
+      label: Branch
+      inputLabel: Branch
+      tooltip: Branch to deploy
+    repo:
+      label: Repository
+      inputLabel: Repository
+      tooltip: Branch to deploy from
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: No GitHub account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again."
+  gitlab:
+    label: GitLab
+    tableHeaders:
+      choose:
+        label: Select
+      sha:
+        label: SHA
+      author:
+        label: Author
+        unknown: Unknown
+      message:
+        label: Message
+      date:
+        label: Date
+    username:
+      label: Username / Organization
+      inputLabel: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+    branch:
+      label: Branch
+      inputLabel: Branch
+      tooltip: Branch to deploy
+    repo:
+      label: Repository
+      inputLabel: Repository
+      tooltip: Branch to deploy from
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: No GitLab account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again."
