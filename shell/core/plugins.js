@@ -392,12 +392,15 @@ export default function({
         loadPlugins = Object.values(plugins);
       }
 
-      loadPlugins.forEach((plugin) => {
+      loadPlugins.forEach((plugin, i) => {
         if (plugin.products) {
-          plugin.products.forEach(async(p) => {
+          plugin.products.forEach(async(p, x) => {
             const impl = await p;
 
             if (impl.init) {
+              loadPlugins[i].currStore = store;
+              loadPlugins[i].setDSLMethods(p.productName);
+              console.log('plugin will initialize', loadPlugins[i]);
               impl.init(plugin, store);
             }
           });

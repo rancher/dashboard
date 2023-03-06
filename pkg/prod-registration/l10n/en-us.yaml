@@ -1,0 +1,6 @@
+product:
+  # productregistration: Demo Prod Registration
+  labels:
+    productregistration: Demo Prod Registration
+  pages:
+    dashboard: This is my dashboard

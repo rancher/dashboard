@@ -142,7 +142,7 @@ export default {
         }
 
         return {
-          label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
+          label:             p.labelKey ? this.t(p.labelKey) : p.label ? p.label : this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
           icon:              `icon-${ p.icon || 'copy' }`,
           svg:               p.svg,
           value:             p.name,

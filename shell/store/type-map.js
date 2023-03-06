@@ -687,6 +687,8 @@ export const getters = {
         });
       }
 
+      console.error('GET TREE ROOT!', root);
+
       // Recursively sort the groups
       _sortGroup(root, mode);
 
@@ -1329,6 +1331,11 @@ export const getters = {
         }
       }
 
+      // new feature added to simplify enabling/disabling extension prod registration
+      if (p.enabled) {
+        return p.enabled(rootState);
+      }
+
       if ( p.ifFeature) {
         const features = Array.isArray(p.ifFeature) ? p.ifFeature : [p.ifFeature];
 
@@ -1596,6 +1603,10 @@ export const mutations = {
 
     for ( const t of types ) {
       map[t.toLowerCase()] = weight;
+    }
+
+    if (type === 'page2') {
+      console.log('state.basicTypeWeights', state.basicTypeWeights);
     }
   },
 

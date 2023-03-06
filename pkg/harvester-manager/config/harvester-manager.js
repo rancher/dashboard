@@ -86,42 +86,6 @@ export function init($plugin, store) {
     configureType
   } = $plugin.DSL(store, NAME);
 
-  // $plugin.registerExtensionProduct(store, {
-  //   ifHaveType:          CAPI.RANCHER_CLUSTER,
-  //   ifFeature:           [MULTI_CLUSTER, HARVESTER],
-  //   inStore:             'management',
-  //   icon:                'harvester',
-  //   removable:           false,
-  //   showClusterSwitcher: false,
-  //   weight:              100,
-  //   to:                  harvesterClustersLocation,
-  // });
-
-  // $plugin.registerType(store, [
-  //   {
-  //     id:       HCI.CLUSTER,
-  //     options:  { showListMasthead: false },
-  //     weight:   1000,
-  //     listCols: [
-  //       STATE,
-  //       NAME_COL,
-  //       {
-  //         ...VERSION,
-  //         value:    'kubernetesVersion',
-  //         getValue: row => row.kubernetesVersion
-  //       },
-  //       MACHINE_POOLS,
-  //       AGE,
-  //       {
-  //         name:  'harvester',
-  //         label: ' ',
-  //         align: 'right',
-  //         width: 65,
-  //       },
-  //     ]
-  //   }
-  // ]);
-
   product({
     ifHaveType:          CAPI.RANCHER_CLUSTER,
     ifFeature:           [MULTI_CLUSTER, HARVESTER],

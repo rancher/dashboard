@@ -145,8 +145,9 @@ export interface IPlugin {
   /**
    * Add a product
    * @param importFn Function that will import the module containing a product definition
+   * @param productName Product name
    */
-  addProduct(importFn: Function): void;
+  addProduct(importFn: Function, productName: string): void;
 
   /**
    * Add a locale to the i18n store
