@@ -840,7 +840,7 @@ catalog:
       chartVersions:
         label: Chart 版本
         showMore: 顯示更多
-        showLess: 顯示較少
+        showLess: 顯示更少
       home: 首頁
       maintainers: 維護者
       related: 相關
@@ -855,6 +855,10 @@ catalog:
         placeholder: 鏡像倉庫域名和端口，例如：registry.io:5000
       label: 容器鏡像倉庫
       tooltip: 容器鏡像是從 Cluster Container Registry 中拉取的，如果拉取失敗，則從系統容器鏡像倉庫中拉取。要更改默認行爲，請在此處輸入或更新鏡像倉庫。
+    banner:
+      legacy: PSP 刪除：在將集羣升級到 Kubernetes 1.25+ 之前，請確保你針對 PSP 檢查了 Helm 應用程序並相應進行更新
+    enablePSP: 啓用 Pod 安全策略
+    global: 全局
   charts:
     all: 全部
     categories:
@@ -1526,6 +1530,8 @@ cluster:
           label: 沒有公共 IP
         staticPublicIp:
           label: 靜態公共 IP
+        standardSKU:
+          label: 爲公共 IP 使用標準 SKU
       resourceGroup:
         label: 資源組
       size:
@@ -1559,8 +1565,17 @@ cluster:
       availabilityZone:
         description: 可用區用於讓應用程序免受 Azure 數據中心全面故障的影響。
         label: 可用區
+        managedDisksWarning: 可用區要求啓用\"託管磁盤\"。
+        publicIpAndSKUWarning: 可用區要求啓用\"靜態公共 IP\" 和\"爲公共 IP 使用標準 SKU\"。
+        publicIpWarning: 可用區要求啓用\"靜態公共 IP\"。
+        standardSKUWarning: 可用區要求啓用\"爲公共 IP 使用標準 SKU\"。
       tags:
         label: 標籤
+      sections:
+        availabilitySetConfiguration: 可用性集配置
+        disks: 磁盤
+        network: 網絡
+        purchasePlan: 購買計劃
     digitalocean:
       sizeLabel: |-
         {plan, select,
@@ -1934,7 +1949,7 @@ cluster:
       header: 安全
     defaultPodSecurityPolicyTemplateName:
       label: 默認 Pod 安全策略
-      option: RKE 默認
+      option: 默認 - 嵌入 RKE2
     enableNetworkPolicy:
       label: 項目網絡隔離
       warning: 默認情況下，Ingress Controller 無法將請求路由到其他節點上的 Pod。
@@ -1988,7 +2003,21 @@ cluster:
       option: (None)
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: 默認 Pod 安全准入
-      option: (None)
+      option:
+        default: 默認 - 嵌入 RKE2
+        none: (None)
+    banner:
+      cisOverride: 更改此設置可能會影響集羣安全，因爲它會覆蓋默認的 CIS 設置
+      cisUnsupported: 所選 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，請選擇支持的配置文件。建議你查看 RKE2 文檔評估更改 CIS 配置文件的影響。
+      psaChange: PSACT 現在自動設置爲 Rancher 默認值
+    cis:
+      agent: CIS 配置文件
+      override: 使用 CIS 配置文件時允許覆蓋 PSA 默認模板
+      server: Server CIS 配置文件
+    modal:
+      pspChange:
+        body: 從 v1.25 版開始，Kubernetes 已經取消了對 Pod 安全策略 (PSP) 的支持。如果你的集羣通過集羣 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 啓用了 PodSecurityPolicy 准入控制器，你必須在繼續升級之前手動刪除它。此外，集羣中存在的任何 PSP 將不再可用或強制執行。是否繼續？
+        title: 棄用 Pod 安全策略
   k3s:
     techPreview: K3s 配置處於技術預覽中
     systemService:
@@ -2230,9 +2259,10 @@ fleet:
       empty: 默認使用倉庫的根目錄。要使用一個或多個不同的目錄，請在這裏添加。
     repo:
       label: 倉庫 URL
-      placeholder: '例如：https://github.com/rancher/fleet-examples.git'
+      placeholder: '例如 https://github.com/rancher/fleet-examples.git 或 git@github.com:rancher/fleet-examples.git'
       addRepo: 添加倉庫
       noRepos: 未添加任何倉庫
+      protocolBanner: 輸入指向 git 倉庫的有效 HTTPS 或 SSH URL。
     add:
       steps:
         repoInfo:
@@ -3131,6 +3161,8 @@ monitoring:
       label: 模板文件
       valueLabel: YAML 模板
     title: 配置 Alertmanager
+    validation:
+      duplicatedReceiverName: 名稱爲 {name} 的接收器已存在。
   clusterType:
     label: 集羣類型
     placeholder: 選擇集羣類型
@@ -3616,6 +3648,9 @@ node:
     poolDescription:
       noSize: 沒有大小
       noLocation: 沒有位置
+    hideLabels: 顯示更少
+    nodeLabels: 標籤
+    showLabels: 顯示更多
   detail:
     detailTop:
       containerRuntime: 容器運行時
@@ -7194,7 +7229,7 @@ legacy:
   notifiers: Notifiers
   monitoring: 監控
   pipelines: 流水線
-  psps: Pod 安全策略
+  psps: Pod 安全策略模板
   secrets: 密文
   project:
     label: 項目
@@ -7506,6 +7541,7 @@ plugins:
     detail: 詳情
     versionError: 無法加載版本信息
     versions: 版本
+    requiresVersion: 需要 Rancher {version}
   install:
     label: 安裝
     prompt: 確定要安裝此擴展嗎？
@@ -7567,6 +7603,7 @@ plugins:
     title: 更新擴展 {name}
   upgradeAvailable: 此擴展有可用的版本更新
   version: 版本：{version}
+  incompatibleDisclaimer: 此擴展的最新版本 ({ version }) 與當前的 Rancher 版本 ({ rancherVersion }) 不兼容。
 clusterConnectMode:
   actions:
     restartConfirm: 您確定保存連接模式並重啓 {name} 集羣控制器嗎？
@@ -7923,7 +7960,7 @@ podDisruptionBudget:
     label: 最小可用 Pod
 podSecurityAdmission:
   banner:
-    modifications: 注意：在集羣更新之前，修改 Pod 安全准入配置模板不會影響任何引用它的下游集羣
+    modifications: 如果你更改正在使用的模板，在下次更新集羣時會更新這些活動集羣
   description: 定義要用於 Pod 安全的准入控制模式
   exemptions:
     description: 允許爲特定的用戶名、RuntimeClassName 和命名空間創建 Pod，否則它們會被上方設置的策略禁止。
