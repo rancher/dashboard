@@ -48,6 +48,10 @@ export default {
   },
 
   data() {
+    if (!this.value.spec.values) {
+      this.$set(this.value.spec, 'values', {});
+    }
+
     return {
       systemNamespaces: null,
       namespaces:       [],
@@ -128,7 +132,7 @@ export default {
           :side-tabs="true"
         >
           <Questions
-            v-model="value"
+            v-model="value.spec.values"
             tabbed="multiple"
             :target-namespace="value.metadata.namespace"
             :source="selectedNamespaceQuestions"
