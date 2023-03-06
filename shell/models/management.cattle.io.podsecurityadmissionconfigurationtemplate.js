@@ -1,4 +1,4 @@
-import SteveModel from '@shell/plugins/steve/steve-class';
+import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 
-export default class PodSecurityAdmissionTemplate extends SteveModel {
+export default class PodSecurityAdmissionTemplate extends SteveDescriptionModel {
 }
