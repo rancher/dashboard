@@ -394,7 +394,7 @@ export default function({
 
       loadPlugins.forEach((plugin, i) => {
         if (plugin.products) {
-          plugin.products.forEach(async(p, x) => {
+          plugin.products.forEach(async(p) => {
             const impl = await p;
 
             if (impl.init) {
