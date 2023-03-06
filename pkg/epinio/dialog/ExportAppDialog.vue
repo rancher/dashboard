@@ -6,7 +6,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 
 export default {
-  name:       'TestComponent',
+  name:       'ExportAppDialog',
   components: {
     GenericPrompt, Banner, Tabbed, Tab, AsyncButton
   },
@@ -103,5 +103,7 @@ export default {
         </Tab>
       </Tabbed>
     </template>
+  </genericprompt>
+</template>
   </GenericPrompt>
 </template>
