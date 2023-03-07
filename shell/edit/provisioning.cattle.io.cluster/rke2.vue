@@ -1856,7 +1856,7 @@ export default {
      * Check if current cluster has PSP enabled
      * Consider exclusively RKE2 provisioned clusters in edit mode
      */
-    checkPsps() {
+    async checkPsps() {
       // As server returns 500 we exclude all the possible cases
       if (
         this.mode !== _CREATE &&
@@ -1868,7 +1868,7 @@ export default {
         const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
 
         try {
-          return this.$store.dispatch('cluster/request', { url });
+          return await this.$store.dispatch('cluster/request', { url });
         } catch (error) {
           // PSP may not exists for this cluster and an error is returned without need to handle
         }
