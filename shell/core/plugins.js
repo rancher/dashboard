@@ -397,6 +397,8 @@ export default function({
           plugin.products.forEach(async(p) => {
             const impl = await p;
 
+            console.error('plugin', p);
+
             if (impl.init) {
               loadPlugins[i].currStore = store;
               loadPlugins[i].setDSLMethods(p.productName);

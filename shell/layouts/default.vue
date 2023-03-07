@@ -509,6 +509,11 @@ export default {
       const loadProducts = this.isExplorer ? [EXPLORER] : [];
 
       const productMap = this.activeProducts.reduce((acc, p) => {
+        // support for label and labelKey properties for extension products menu entry
+        // if (p.labelKey || p.label) {
+        //   p.name = p.labelKey ? this.t(p.labelKey) : p.label;
+        // }
+
         return { ...acc, [p.name]: p };
       }, {});
 

@@ -1,6 +1,6 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import { routes as singleProdRoutes, singleProdName } from './config/single-prod-routes-config';
+import { routes as clusterProdRoutes, clusterProdName } from './config/cluster-prod-routes-config';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -13,8 +13,8 @@ export default function(plugin: IPlugin) {
   plugin.metadata = require('./package.json');
 
   // Load a product
-  plugin.addProduct(require('./config/single-prod-reg-config'), singleProdName);
+  plugin.addProduct(require('./config/cluster-prod-reg-config'), clusterProdName);
 
   // Add Vue Routes
-  plugin.addRoutes(singleProdRoutes);
+  plugin.addRoutes(clusterProdRoutes);
 }

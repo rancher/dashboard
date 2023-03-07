@@ -167,6 +167,7 @@ export class Plugin implements IPlugin {
     } = this.dslMethods;
     // STILL MISSING: spoofedType...
 
+    console.log('******* START --------------------------------------------------- *************');
     console.log('_updateType', entry);
 
     // apply menu registration (types, headers, weights)
@@ -219,8 +220,9 @@ export class Plugin implements IPlugin {
       }
     }
 
-    console.log('singleMenuEntry', this.singleMenuEntry);
-    console.log('menuGrouping', this.menuGrouping);
+    // console.log('singleMenuEntry', this.singleMenuEntry);
+    // console.log('menuGrouping', this.menuGrouping);
+    console.log('******* --------------------------------------------------- END *************');
 
     // register menu entries for non-grouped resources
     Object.keys(this.singleMenuEntry).forEach((key) => {

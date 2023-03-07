@@ -1,29 +1,29 @@
 import { BLANK_CLUSTER } from '@shell/store';
-import Dashboard from '../pages/index.vue';
+import Page1 from '../pages/page1.vue';
 import Page2 from '../pages/page2.vue';
 import DefaultListView from '@shell/pages/c/_cluster/_product/_resource/index.vue';
 import DefaultCreateView from '@shell/pages/c/_cluster/_product/_resource/create.vue';
 import DefaultEditView from '@shell/pages/c/_cluster/_product/_resource/_id.vue';
 
-export const productName = 'productregistration';
+export const singleProdName = 'singleprodreg';
 
 export const defaultRouteParams = {
-  product: productName,
+  product: singleProdName,
   cluster: BLANK_CLUSTER
 };
 
 export const routes = [
   {
-    name:      `${ productName }-c-cluster`,
-    path:      `/:product/c/:cluster/dashboard`,
-    component: Dashboard,
+    name:      `${ singleProdName }-c-cluster`,
+    path:      `/:product/c/:cluster/page1`,
+    component: Page1,
     meta:      {
-      id:     'dashboard',
+      id:     'page1',
       params: { ...defaultRouteParams }
     }
   },
   {
-    name:      `${ productName }-c-cluster-page2`,
+    name:      `${ singleProdName }-c-cluster-page2`,
     path:      `/:product/c/:cluster/page2`,
     component: Page2,
     meta:      {
@@ -32,7 +32,7 @@ export const routes = [
     }
   },
   {
-    name:      `${ productName }-c-cluster-resource`,
+    name:      `${ singleProdName }-c-cluster-resource`,
     path:      `/:product/c/:cluster/:resource`,
     component: DefaultListView,
     meta:      {
@@ -41,12 +41,12 @@ export const routes = [
     }
   },
   {
-    name:      `${ productName }-c-cluster-resource-create`,
+    name:      `${ singleProdName }-c-cluster-resource-create`,
     path:      `/:product/c/:cluster/:resource/create`,
     component: DefaultCreateView,
   },
   {
-    name:      `${ productName }-c-cluster-resource-id`,
+    name:      `${ singleProdName }-c-cluster-resource-id`,
     path:      `/:product/c/:cluster/:resource/:id`,
     component: DefaultEditView,
   },

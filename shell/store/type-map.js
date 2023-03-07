@@ -687,7 +687,7 @@ export const getters = {
         });
       }
 
-      console.error('GET TREE ROOT!', root);
+      console.log('GET TREE ROOT!', root);
 
       // Recursively sort the groups
       _sortGroup(root, mode);
@@ -846,6 +846,8 @@ export const getters = {
 
   allTypes(state, getters, rootState, rootGetters) {
     return (product, mode = ALL) => {
+      // console.error('state.products', state.products);
+      // console.error('product', product);
       const module = findBy(state.products, 'name', product)?.inStore;
       const schemas = rootGetters[`${ module }/all`](SCHEMA);
       const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
@@ -1606,7 +1608,7 @@ export const mutations = {
     }
 
     if (type === 'page2') {
-      console.log('state.basicTypeWeights', state.basicTypeWeights);
+      // console.log('state.basicTypeWeights', state.basicTypeWeights);
     }
   },
 
