@@ -2,6 +2,19 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
 
 export default class SteveModel extends HybridModel {
+  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+    let _description;
+
+    if (data.description) {
+      _description = data.description;
+    }
+
+    super(data, ctx, rehydrateNamespace, setClone);
+    if (_description) {
+      this.description = _description;
+    }
+  }
+
   get name() {
     return this.metadata?.name || this._name;
   }
