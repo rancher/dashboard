@@ -248,7 +248,9 @@ export default {
       }
 
       if (!this.value.diskInfo) {
-        this.isOldFormat = true;
+        if (this.mode !== _CREATE) {
+          this.isOldFormat = true;
+        }
 
         // Convert the old format to the new format
         const disk = {
@@ -269,7 +271,9 @@ export default {
       this.disks = JSON.parse(this.value.diskInfo).disks || [];
 
       if (!this.value.networkInfo) {
-        this.isOldFormat = true;
+        if (this.mode !== _CREATE) {
+          this.isOldFormat = true;
+        }
 
         const _interface = {
           networkName: this.value.networkName || '',
