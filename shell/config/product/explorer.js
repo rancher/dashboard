@@ -175,6 +175,11 @@ export function init(store) {
     },
   });
 
+  /** This CRD is installed on provisioned clusters because rancher webhook, used for both local and provisioned clusters, expects it to be there
+   * Creating instances of this resource on downstream clusters wont do anything - Only show them for the local cluster
+   */
+  configureType(MANAGEMENT.PSA, { localOnly: true });
+
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
   headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
   headers(SECRET, [
@@ -311,8 +316,6 @@ export function init(store) {
 
   // Ignore these types as they are managed through the auth product
   ignoreType(MANAGEMENT.USER);
-
-  // Ignore these types as they are managed through the auth product
   ignoreType(MANAGEMENT.GLOBAL_ROLE);
   ignoreType(MANAGEMENT.ROLE_TEMPLATE);
 }
