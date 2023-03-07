@@ -398,9 +398,9 @@ export default Vue.extend<any, any, any, any>({
 
           <template #cell:author="{row}">
             <div class="sortable-table-avatar">
-              <template v-if="type === 'github' && row.author">
+              <template v-if="row.author">
                 <img
-                  :src="row.author.avatar_url"
+                  :src="row.author.avatarUrl"
                   alt=""
                 >
                 <a
@@ -408,17 +408,8 @@ export default Vue.extend<any, any, any, any>({
                   target="_blank"
                   rel="nofollow noopener noreferrer"
                 >
-                  {{ row.author.login }}
+                  {{ row.author.name }}
                 </a>
-              </template>
-              <template v-else-if="type === 'gitlab' && row.author">
-                <!-- <img
-                  :src="row.author.avatar_url"
-                  alt=""
-                > -->
-                <span>
-                  {{ row.author }}
-                </span>
               </template>
               <template v-else>
                 {{ t(`gitPicker.${ type }.tableHeaders.author.unknown`) }}

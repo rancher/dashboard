@@ -1,3 +1,5 @@
+import { isArray } from '@shell/utils/array';
+
 const API_VERSION = 'v4';
 const GITLAB_BASE_API = 'https://gitlab.com/api';
 const TOKEN = '';
@@ -23,7 +25,7 @@ export const getters = {};
 
 export const actions = {
   async apiList(ctx, {
-    username, endpoint, project, repo, branch
+    username, email, endpoint, repo, branch
   }) {
     try {
       switch (endpoint) {
@@ -38,6 +40,9 @@ export const actions = {
       }
       case 'recentRepos': {
         return await fetchGitLabAPI(`users/${ username }/projects?order_by=updated_at&per_page=100`);
+      }
+      case 'avatar': {
+        return await fetchGitLabAPI(`avatar?email=${ email }`);
       }
       case 'search': {
         // Fetch for a specific branches
@@ -89,7 +94,21 @@ export const actions = {
       username, endpoint: 'commits', repo: repo.id, branch: branch.name
     });
 
-    return res;
+    let commits = [];
+
+    if (res) {
+      commits = isArray(res) ? res : [res];
+
+      for (const c of commits) {
+        const avatar = await dispatch('apiList', {
+          username, endpoint: 'avatar', email: c.author_email
+        });
+
+        c.avatar_url = avatar?.avatar_url;
+      }
+    }
+
+    return commits.length === 1 ? commits[0] : commits;
   },
 
   async search({ dispatch }, { repo, username, branch }) {

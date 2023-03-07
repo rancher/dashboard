@@ -449,7 +449,7 @@ export default Vue.extend<Data, any, any, any>({
               <div class="sortable-table-avatar">
                 <template v-if="row.author">
                   <img
-                    :src="row.author.avatar_url"
+                    :src="row.author.avatarUrl"
                     alt=""
                   >
                   <a
@@ -457,7 +457,7 @@ export default Vue.extend<Data, any, any, any>({
                     target="_blank"
                     rel="nofollow noopener noreferrer"
                   >
-                    {{ row.author.login }}
+                    {{ row.author.name }}
                   </a>
                 </template>
                 <template v-else>

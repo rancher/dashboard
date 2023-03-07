@@ -61,11 +61,15 @@ export const GitUtils: Utils = {
         name:        data.name
       }),
       commit: (data: any) => ({
-        message:   data.commit?.message,
-        htmlUrl:   data.html_url,
-        sha:       getShortHash(data.sha),
-        commitId:  data.sha,
-        author:    data.author,
+        message:  data.commit?.message,
+        htmlUrl:  data.html_url,
+        sha:      getShortHash(data.sha),
+        commitId: data.sha,
+        author:   {
+          name:      data.author.login,
+          avatarUrl: data.author.avatar_url,
+          htmlUrl:   data.author.htmlUrl
+        },
         isChecked: false,
         date:      data.commit?.committer.date
       }),
@@ -76,8 +80,9 @@ export const GitUtils: Utils = {
     normalize:   {
       repo: (data: any) => ({
         owner: {
-          name:    data.namespace.name,
-          htmlUrl: data.namespace.web_url,
+          name:      data.namespace.name,
+          htmlUrl:   data.namespace.web_url,
+          avatarUrl: data.namespace.avatar_url
         },
         description: data.description,
         created_at:  data.created_at,
@@ -86,11 +91,15 @@ export const GitUtils: Utils = {
         name:        data.name
       }),
       commit: (data: any) => ({
-        message:   data.message,
-        htmlUrl:   data.web_url,
-        sha:       data.short_id,
-        commitId:  data.id,
-        author:    data.author_name,
+        message:  data.message,
+        htmlUrl:  data.web_url,
+        sha:      data.short_id,
+        commitId: data.id,
+        author:   {
+          name:      data.author_name,
+          avatarUrl: data.avatar_url,
+          htmlUrl:   data.web_url
+        },
         isChecked: false,
         date:      data.committed_date
       }),
