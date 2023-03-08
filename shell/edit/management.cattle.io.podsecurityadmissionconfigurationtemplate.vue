@@ -95,7 +95,9 @@ export default (Vue as VueConstructor<Vue & InstanceType<typeof CreateEditView>>
       :value="value"
       :namespaced="false"
       :mode="mode"
+      description-key="description"
     />
+
     <PodSecurityAdmission
       :labels="defaults"
       :labels-always-active="true"
