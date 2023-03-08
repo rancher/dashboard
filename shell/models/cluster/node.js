@@ -76,7 +76,8 @@ export default class ClusterNode extends SteveModel {
   }
 
   openSsh() {
-    this.provisionedMachine.openSsh();
+    // Pass in the name of the node, so we display that rather than the name of the provisioned machine
+    this.provisionedMachine.openSsh(this.nameDisplay);
   }
 
   downloadKeys() {
