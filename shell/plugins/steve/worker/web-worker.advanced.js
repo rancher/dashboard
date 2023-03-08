@@ -9,7 +9,7 @@ import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@she
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import cacheClasses from '@shell/plugins/steve/caches';
-import SteveClient from '@shell/plugins/steve/api/utils';
+import SteveApiClient from '~/shell/plugins/steve/api/client';
 
 const caches = {};
 
@@ -96,11 +96,12 @@ const workerActions = {
   createApi: () => {
     if (!state.api) {
       // the apiClient can only exist after schemas are loaded so we build it here.
-      state.api = new SteveClient(state.config, { loadCache: workerActions.loadCache });
+      state.api = new SteveApiClient(state.config, { updateCache: workerActions.updateCache });
       if (!caches[SCHEMA]) {
         state.api.request({ type: SCHEMA })
           .then((res) => {
-            // workerActions.loadCache(res.data);
+            // workerActions.updateCache(res.data);
+            // TODO: RC how often is loadWorkerMethods run?
             state.api.loadWorkerMethods({
               getSchema: (id) => {
                 return caches[SCHEMA].getSchema(id);
@@ -110,7 +111,7 @@ const workerActions = {
               resourceCache.loadWorkerMethods({ resourceGetter: params => state.api?.request({ ...params, type: resourceKey }) });
             }
 
-            workerActions.flushApiQueue();
+            workerActions.flushApiQueue(); // TODO: RC test this stuff
           });
       }
     }
@@ -192,7 +193,7 @@ const workerActions = {
    * Accepts an array of JSON objects representing resources
    * types the array and constructs a cache if none exists and then loads each resource in the array into the cache
    */
-  loadCache: (payload, detail = false) => {
+  updateCache: (payload, detail = false) => {
     const rawResources = detail ? [payload] : payload;
 
     if (payload?.length === 0) {
@@ -222,6 +223,8 @@ const workerActions = {
       }
     }
   },
+
+  // TODO: RC make sure we disgard any request relating to forgotting types??
   flushApiQueue: () => {
     while (state.apiQueue.length > 0) {
       trace('createApi', 'flushing apiQueue', state.apiQueue);
@@ -388,7 +391,13 @@ const resourceWatcherActions = {
   }
 };
 
-const maintenanceInterval = setInterval(workerActions.sendBatch, 5000); // 5 seconds
+const maintenanceInterval = setInterval(workerActions.sendBatch, 5000); // 5 seconds // TODO: RC revisit
+
+const actionPrecedence = {
+  configure:     1,
+  createWatcher: 2,
+  createApi:     2
+};
 
 /**
  * Covers message from UI Thread to Worker
@@ -397,12 +406,6 @@ onmessage = (e) => {
   /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
   // good enough for now considering that we never send more than one message action at a time right now */
   const messageActions = Object.keys(e?.data).sort((actionA, actionB) => {
-    const actionPrecedence = {
-      configure:     1,
-      createWatcher: 2,
-      createApi:     2
-    };
-
     const aPrecedence = actionPrecedence[actionA] || 3;
     const bPrecedence = actionPrecedence[actionB] || 3;
 

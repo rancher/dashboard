@@ -3,11 +3,22 @@ import { keyFieldFor, normalizeType } from '@shell/plugins/dashboard-store/norma
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 import { matches } from '@shell/utils/selector';
 
+/**
+ * Cache for a resource type. Has various create / update / remove style functions as well as a `find` which  will fetch the resource/s if missing
+ */
 export default class ResourceCache {
   resources = {};
   type;
   keyField;
+
+  /**
+   * Params which represent the restrictions on the current `resource` cache (namespace, selector, etc)
+   */
   __currentParams = {};
+
+  /**
+   * Makes the http request to fetch the resource. Links to SteveApiClient request
+   */
   __resourceGetter = () => {};
 
   /**
@@ -70,6 +81,9 @@ export default class ResourceCache {
     return this.__currentParams;
   }
 
+  /**
+   * Sets the current cache with the payload
+   */
   load(payload = [], concat = false) {
     const singleResource = payload.length === 1;
     let id;
@@ -97,7 +111,10 @@ export default class ResourceCache {
     return resourceArray;
   }
 
-  find(params) {
+  /**
+   * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
+   */
+  find(params) { // TODO: RC should now do things other than find?
     const { namespace, id, selector } = params;
     const { currentNamespace, currentSelector } = this.__currentParams;
 
@@ -122,6 +139,7 @@ export default class ResourceCache {
       });
     }
 
+    // TODO: RC why are we filtering here? shouldn't the cache be 1-1 with all / namespace / selector?
     const filterConditions = [];
 
     if (namespace) {
@@ -144,6 +162,9 @@ export default class ResourceCache {
     });
   }
 
+  /**
+   * Change the given resource in the cache
+   */
   change(resource, callback) {
     const preCacheResource = this.__addPreCacheFields(resource);
 
@@ -156,11 +177,17 @@ export default class ResourceCache {
     return this;
   }
 
+  /**
+   * Add the resource to the cache
+   */
   create(resource, callback) {
     // ToDo: the logic for create is identical to change in these caches but the worker doesn't know that
     return this.change(resource, callback);
   }
 
+  /**
+   * Remove the resource with the given key from the cache
+   */
   remove(key, callback) {
     if (this.resources[key]) {
       delete this.resources[key];

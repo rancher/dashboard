@@ -33,6 +33,8 @@ export default function storeWorker(mode, options = {}, closures = {}) {
         resolves: undefined, reject: undefined, promise: undefined
       };
 
+      // TODO: RC test thoroughly, for instance death of BE
+
       worker.requests[requestHash].promise = new Promise((resolve, reject) => {
         worker.requests[requestHash].resolves = (resources) => {
           resolve(resources);

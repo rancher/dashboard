@@ -42,7 +42,7 @@ export async function loadSchemas(ctx, watch = true) {
   } = ctx;
 
   const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
-  const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
+  const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ; // TODO: RC are spoofed schemas added to schema cache??
 
   if (Array.isArray(res.data)) {
     res.data = res.data.concat(spoofedTypes);
@@ -144,6 +144,7 @@ export default {
     } = ctx;
 
     opt = opt || {};
+
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -402,7 +403,7 @@ export default {
   //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
   //  limit: Number of records to return per page (default: 1000)
   //  sortBy: Sort by field
-  //  sortOrder: asc or desc
+  //  sortOrder: asc or desc // TODO: RC when is this ever set (even in findAll), and here?
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
@@ -440,7 +441,7 @@ export default {
       const schema = getters['schemaFor'](type);
 
       if (schema.attributes?.namespaced) {
-        const [namespace, realId] = id.split('/');
+        const [namespace, realId] = id.split('/'); // TODO: RC id is namespace/id... which is the resource id. why need just the id??
 
         namespaceAndId.namespace = namespace;
         namespaceAndId.id = realId;

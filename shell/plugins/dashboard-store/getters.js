@@ -10,40 +10,7 @@ import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
-
-export const urlFor = (state, getters) => (type, id, opt) => {
-  opt = opt || {};
-  type = getters.normalizeType(type);
-  let url = opt.url;
-
-  if ( !url ) {
-    const schema = getters.schemaFor(type);
-
-    if ( !schema ) {
-      throw new Error(`Unknown schema for type: ${ type }`);
-    }
-
-    url = schema.links.collection;
-
-    if ( !url ) {
-      throw new Error(`You don't have permission to list this type: ${ type }`);
-    }
-
-    if ( id ) {
-      url += `/${ id }`;
-    }
-  }
-
-  if ( !url.startsWith('/') && !url.startsWith('http') ) {
-    const baseUrl = state.config.baseUrl.replace(/\/$/, '');
-
-    url = `${ baseUrl }/${ url }`;
-  }
-
-  url = getters.urlOptions(url, opt);
-
-  return url;
-};
+import { urlFor } from '@shell/plugins/dashboard-store/getters.utils';
 
 export default {
 
@@ -293,7 +260,17 @@ export default {
     return keyFieldFor(type);
   },
 
-  urlFor,
+  urlFor: (state, getters) => (type, id, opt) => {
+    let url = urlFor({
+      normalizeType: getters.normalizeType, schemaFor: getters.schemaFor, baseUrl: state.config.baseUrl
+    }, {
+      type, id, opt
+    });
+
+    url = getters.urlOptions(url, opt);
+
+    return url;
+  },
 
   urlOptions: () => (url, opt) => {
     return url;

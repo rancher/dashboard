@@ -96,6 +96,8 @@ export default {
 
       try {
         if (isAdvancedWorkerStore) {
+          // TODO: RC why could there be no worker?
+          // TODO: RC do we do this setup stuff in multiple places?? (like in subscribe)
           if (!this.$workers[getters.storeName]) {
             createWorker(this, ctx);
           }
