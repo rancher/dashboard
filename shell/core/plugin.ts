@@ -163,7 +163,8 @@ export class Plugin implements IPlugin {
       weightType,
       weightGroup,
       headers,
-      basicType
+      basicType,
+      spoofedType
     } = this.dslMethods;
     // STILL MISSING: spoofedType...
 
@@ -179,18 +180,26 @@ export class Plugin implements IPlugin {
       return false;
     }
 
-    // register types
+    // registering a resource
     if (entry.type === 'resource') {
       configureType(entry.id, entry.options || {});
-      // custom page
-    } else if (entry.type === 'custom-page') {
+    // registering a custom page or a virtual resource
+    } else if (entry.type === 'custom-page' || entry.type === 'virtual-resource') {
       const options = entry.options || {};
 
-      // inject the ID as name... needed for virtualType
+      // inject the ID as name... needed for virtualType and spoofedType
       if (entry.id && !options.name) {
         options.name = entry.id;
       }
-      virtualType(options);
+
+      if (entry.type === 'custom-page') {
+        virtualType(options);
+      } else if (entry.type === 'virtual-resource') {
+        if (entry.id && !options.type) {
+          options.type = entry.id;
+        }
+        spoofedType(options);
+      }
     }
 
     // register headers

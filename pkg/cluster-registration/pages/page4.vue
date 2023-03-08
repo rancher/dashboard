@@ -1,10 +1,10 @@
 <script>
-export default { name: 'Page3' };
+export default { name: 'Page4' };
 </script>
 
 <template>
   <div>
-    <p>This is the page3 view</p>
+    <p>This is the page4 view</p>
   </div>
 </template>
 

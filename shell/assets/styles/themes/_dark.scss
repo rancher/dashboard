@@ -29,6 +29,8 @@
   $contrasted-dark: $lightest !default;
   $contrasted-light: $darkest !default;
 
+  $main-menu-link: #3D98D3;
+
   $drag-over: #DCDEE7;
 
   --default                    : #{$dark};
@@ -59,6 +61,8 @@
 
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
+
+  --main-nav-link-color        : #{$main-menu-link};
 
   --nav-bg                     : #{$darkest};
   --nav-active                 : var(--primary-active-bg);

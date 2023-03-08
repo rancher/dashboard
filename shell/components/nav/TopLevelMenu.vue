@@ -350,6 +350,7 @@ export default {
                 <IconOrSvg
                   :icon="a.icon"
                   :src="a.svg"
+                  color="side-menu-top-level"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>

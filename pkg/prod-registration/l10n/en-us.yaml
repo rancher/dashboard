@@ -1,9 +1,5 @@
 product:
-  # productregistration: Demo Prod Registration
   labels:
     extension-as-product: Extension as Single Product
-    extension-in-cluster: Extension as Cluster section
   pages:
     page1: Page 1 translation
-    page3: Page 3 translation
-    page4: Page 4 translation

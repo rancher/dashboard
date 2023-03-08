@@ -17,7 +17,8 @@ export function init($plugin) {
 
   /**
    * Object properties for registering an Extension product
-   * @property {string} label product name
+   * @property {string} name product name (should be unique)
+   * @property {string} label label for product menu entry
    * @property {string} labelKey path for translation of label
    * @property {string} inStore store name to include product
    * @property {function} [enabled] function to evaluate if extension prod is visible or not
@@ -67,13 +68,26 @@ export function init($plugin) {
       }
     },
     {
-      type:    'custom-page',
-      id:      'page2',
-      options: {
+      type:               'custom-page',
+      id:                 'page2',
+      menuGroupingId:     'this-is-a-unique-id-for-grouping',
+      menuGroupingWeight: 3,
+      options:            {
         weight: 3,
         label:  'Page 2',
         icon:   'folder',
         route:  setRoute('page2', routes)
+      }
+    },
+    {
+      type:           'custom-page',
+      id:             'page3',
+      menuGroupingId: 'this-is-a-unique-id-for-grouping',
+      options:        {
+        weight: 4,
+        label:  'Page 3',
+        icon:   'folder',
+        route:  setRoute('page3', routes)
       }
     },
     /**
@@ -105,11 +119,6 @@ export function init($plugin) {
 
     }
   ]);
-
-  $plugin.updateType({
-    id:      'page2',
-    options: { weight: 1000 }
-  });
 
   $plugin.updateType({
     id:       FLEET.WORKSPACE,

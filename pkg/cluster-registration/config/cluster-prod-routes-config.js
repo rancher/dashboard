@@ -1,4 +1,4 @@
-import Page3 from '../pages/page3.vue';
+import Page4 from '../pages/page4.vue';
 import DefaultListView from '@shell/pages/c/_cluster/_product/_resource/index.vue';
 import DefaultCreateView from '@shell/pages/c/_cluster/_product/_resource/create.vue';
 import DefaultEditView from '@shell/pages/c/_cluster/_product/_resource/_id.vue';
@@ -9,11 +9,11 @@ export const defaultRouteParams = { product: clusterProdName };
 
 export const routes = [
   {
-    name:      `c-cluster-${ clusterProdName }-page3`,
-    path:      `/c/:cluster/:product/page3`,
-    component: Page3,
+    name:      `c-cluster-${ clusterProdName }-page4`,
+    path:      `/c/:cluster/:product/page4`,
+    component: Page4,
     meta:      {
-      id:     'page3',
+      id:     'page4',
       params: { ...defaultRouteParams },
     }
   },

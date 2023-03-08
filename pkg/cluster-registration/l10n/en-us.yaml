@@ -1,9 +1,20 @@
 product:
-  # productregistration: Demo Prod Registration
   labels:
-    extension-as-product: Extension as Single Product
     extension-in-cluster: Extension as Cluster section
+    virtual-resource: Virtual resource translation
   pages:
-    page1: Page 1 translation
-    page3: Page 3 translation
     page4: Page 4 translation
+
+    
+typeLabel:
+  harvesterhci.io.management.somedummycluster:  |-
+      {count, plural,
+        one {My custom resource}
+        other {My custom resources}
+      }
+
+description:
+  harvesterhci.io.management.somedummycluster: custom CRD description
+
+typeDescription:
+  harvesterhci.io.management.somedummycluster: This is my custom resource type description
