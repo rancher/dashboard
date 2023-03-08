@@ -16,15 +16,11 @@
     "clean": "./scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .ts,.js,.vue .",
     "test": "./node_modules/.bin/nyc ava --serial --verbose",
-    "nuxt": "./node_modules/.bin/nuxt",
-    "dev": "./node_modules/.bin/nuxt dev",
-    "mem-dev": "node --max-old-space-size=8192 ./node_modules/.bin/nuxt dev",
+    "dev": "./node_modules/.bin/vue-cli-service dev",
     "docker-dev": "docker run --rm --name dashboard-dev -p 8005:8005 -e API=$API -v $(pwd):/src -v dashboard_node:/src/node_modules rancher/dashboard:dev",
-    "build": "./node_modules/.bin/nuxt build --devtools",
-    "analyze": "./node_modules/.bin/nuxt build --analyze",
-    "start": "./node_modules/.bin/nuxt start",
-    "generate": "./node_modules/.bin/nuxt generate",
-    "dev-debug": "node --inspect ./node_modules/.bin/nuxt",
+    "build": "./node_modules/.bin/vue-cli-service build",
+    "analyze": "./node_modules/.bin/vue-cli-service build --report",
+    "start": "./node_modules/.bin/vue-cli-service start",
     "cy:run": "cypress run",
     "cy:open": "cypress open",
     "e2e:pre": "NODE_ENV=dev yarn build",
@@ -41,7 +37,6 @@
     "@innologica/vue-dropdown-menu": "0.1.3",
     "@novnc/novnc": "1.2.0",
     "@nuxt/types": "2.14.6",
-    "@nuxt/typescript-build": "2.1.0",
     "@nuxtjs/axios": "5.12.0",
     "@nuxtjs/eslint-config-typescript": "6.0.1",
     "@nuxtjs/eslint-module": "1.2.0",
@@ -52,8 +47,6 @@
     "@types/node": "16.4.3",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
-    "@vue/cli-plugin-babel": "4.5.15",
-    "@vue/cli-plugin-typescript": "4.5.15",
     "@vue/cli-service": "4.5.15",
     "@vue/test-utils": "1.2.1",
     "@vue/vue2-jest": "27.0.0",
@@ -157,5 +150,8 @@
       ".js",
       ".vue"
     ]
+  },
+  "devDependencies": {
+    "@vue/cli": "4.5.15"
   }
 }

@@ -354,7 +354,7 @@ const sharedActions = {
       msg.selector = selector;
     }
 
-    const worker = this.$workers[getters.storeName] || {};
+    const worker = this.$workers?.[getters.storeName] || {};
 
     if (worker.mode === 'advanced') {
       if ( force ) {

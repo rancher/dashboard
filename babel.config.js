@@ -1,1 +1,1 @@
-module.exports = { env: { test: { presets: [['@babel/env', { targets: { node: 'current' } }]] } } };
+module.exports = require('./shell/babel.config.js');

@@ -40,6 +40,7 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   echo "  Package name:    ${NAME}"
   echo "  Package version: ${VERSION}"
   echo "  Output formats:  ${FORMATS}"
+  echo "  Output directory: ${PKG_DIST}"
   rm -rf ${PKG_DIST}
   mkdir -p ${PKG_DIST}
 

@@ -1,4 +1,5 @@
-import config from './shell/nuxt.config';
+
+import config from './shell/vue.config';
 
 // Excludes the following plugins if there's no .env file.
 let defaultExcludes = 'epinio, rancher-components, harvester';

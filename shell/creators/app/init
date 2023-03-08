@@ -4,15 +4,15 @@ const path = require('path');
 const fs = require('fs-extra');
 
 const targets = {
-  dev:   './node_modules/.bin/nuxt dev',
-  nuxt:  './node_modules/.bin/nuxt',
-  build: './node_modules/.bin/nuxt build',
+  dev:   'NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve',
+  build: './node_modules/.bin/vue-cli-service build',
   clean: './node_modules/@rancher/shell/scripts/clean'
 };
 
 const files = [
   'tsconfig.json',
-  'nuxt.config.js',
+  'vue.config.js',
+  'vue.config.ts',
   '.eslintignore',
   '.eslintrc.js',
   'babel.config.js',
@@ -25,7 +25,7 @@ console.log('Creating Skeleton Application');
 const args = process.argv;
 let appFolder = path.resolve('.');
 
-if (args.length == 3) {
+if (args.length === 3) {
   const name = args[2];
   const folder = path.resolve('.');
 
