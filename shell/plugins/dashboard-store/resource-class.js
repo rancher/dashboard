@@ -1110,7 +1110,7 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    opt.data = { ...this };
+    opt.data = this.toSave() || { ...this };
 
     if (opt?.data._type) {
       opt.data.type = opt.data._type;
@@ -1882,6 +1882,13 @@ export default class Resource {
     }
 
     return out;
+  }
+
+  /**
+   * Allow models to override the object that is sent when saving this resource
+   */
+  toSave() {
+    return undefined;
   }
 
   get creationTimestamp() {
