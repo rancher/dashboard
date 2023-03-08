@@ -12,7 +12,6 @@ const targets = {
 const files = [
   'tsconfig.json',
   'vue.config.js',
-  'vue.config.ts',
   '.eslintignore',
   '.eslintrc.js',
   'babel.config.js',
