@@ -54,7 +54,9 @@ h1, h2, h3, h4, h5, h6 {
 .navbar__logo {
   height: 4rem;
 }
-
+.container {
+  padding: 0 2rem;
+}
 
 .homepage-banner {
   text-align: left;
@@ -84,6 +86,8 @@ a.featureLink {
   display: flex;
   border: 1px solid transparent;
   padding: 1rem;
+  height: 100%;
+  transition: 0.4s ease;
 }
 
 a.guideLink:hover,
@@ -128,6 +132,7 @@ h2 {
   background-color: #4DA6DA;
   padding: 25px;
   display: flex;
+  max-height: 180px;
 }
 
 .resourcesSvg svg {
@@ -166,6 +171,10 @@ a.gettingStartedLink .resourcesSvg svg {
 
 .footer{
   padding: 16px;
+}
+
+hr {
+  margin: 2rem 0;
 }
 @media screen and (max-width: 996px) {
   .homepage-banner {

@@ -9,6 +9,7 @@ const ContributeList = [
     target:      '_blank',
     imgDark:     'img/slack-logo.svg',
     imgLight:    'img/slack-logo-light.svg',
+    atlText:     'Slack-logo',
     description: (
       <>
         Join <strong>Rancher Users</strong> on Slack and start connecting with our community, learning from others and sharing knowledge.
@@ -21,6 +22,7 @@ const ContributeList = [
     target:      '_blank',
     imgDark:     'img/GitHub-logo.svg',
     imgLight:    'img/GitHub-logo-light.svg',
+    atlText:     'GitHub-logo',
     description: (
       <>
         Check all <strong>Rancher repos</strong> on GitHub.
@@ -30,15 +32,15 @@ const ContributeList = [
 ];
 
 function Contribute( {
-  imgDark, imgLight, description, link, target
+  imgDark, imgLight, description, link, target, atlText
 } ) {
   return (
     <div className={clsx('col col--6')}>
       <a className="contributeLink" href={link} target={target}>
-        <ThemedImage alt="GitHub-Logo"
+        <ThemedImage alt={atlText}
           sources={{
-            light: useBaseUrl(` ${ imgDark } `),
-            dark:  useBaseUrl(` ${ imgLight } `),
+            light: useBaseUrl(`${ imgDark }`),
+            dark:  useBaseUrl(`${ imgLight }`),
           }}
         />
         <p>{description}</p>
