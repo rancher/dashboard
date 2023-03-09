@@ -29,9 +29,12 @@
   $contrasted-dark: $lightest !default;
   $contrasted-light: $darkest !default;
 
-  $main-menu-link: #3D98D3;
-
   $drag-over: #DCDEE7;
+
+  // need to redefine the link color because of IconOrSvg component
+  // which captures this color
+  $link: #3D98D3;
+  --link: #{$link};
 
   --default                    : #{$dark};
   --default-text               : #{$light};
@@ -61,8 +64,6 @@
 
   // Header, Footer and Consent banner defaults
   --banner-text-color          : #{$lightest};
-
-  --main-nav-link-color        : #{$main-menu-link};
 
   --nav-bg                     : #{$darkest};
   --nav-active                 : var(--primary-active-bg);

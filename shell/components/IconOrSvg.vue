@@ -25,34 +25,16 @@ const cssCache = {};
 
 const colors = {
   header: {
-    light: {
-      color: '--header-btn-text',
-      hover: '--header-btn-text-hover'
-    },
-    dark: {
-      color: '--header-btn-text',
-      hover: '--header-btn-text-hover'
-    }
+    color: '--header-btn-text',
+    hover: '--header-btn-text-hover'
   },
   primary: {
-    light: {
-      color: '--link',
-      hover: '--primary-hover-text'
-    },
-    dark: {
-      color: '--link',
-      hover: '--primary-hover-text'
-    }
+    color: '--link',
+    hover: '--primary-hover-text'
   },
   'side-menu-top-level': {
-    light: {
-      color: '--link',
-      hover: '--primary-hover-text'
-    },
-    dark: {
-      color: '--main-nav-link-color',
-      hover: '--header-btn-text-hover'
-    }
+    color: '--link',
+    hover: '--header-btn-text-hover'
   }
 };
 
@@ -100,8 +82,8 @@ export default {
             const selectorText = currTheme === 'light' ? 'body, .theme-light' : '.theme-dark';
 
             if (cssRules.selectorText && cssRules.selectorText === selectorText) {
-              uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color][currTheme].color).trim());
-              hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color][currTheme].hover).trim());
+              uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
+              hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
               found = true;
               break;
             }
