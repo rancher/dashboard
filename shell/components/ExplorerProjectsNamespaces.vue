@@ -284,6 +284,7 @@ export default {
       };
 
       location.query = { [PROJECT_ID]: project?.metadata.name };
+
       return location;
     },
 
@@ -296,7 +297,8 @@ export default {
         },
       };
 
-      location.query = {[FLAT_VIEW]: true };  
+      location.query = { [FLAT_VIEW]: true };
+
       return location;
     },
 

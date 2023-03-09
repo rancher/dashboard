@@ -87,7 +87,7 @@ export default {
 
       out.unshift({
         label: '(None)',
-        value: 'null',
+        value: null,
       });
 
       return out;
@@ -104,7 +104,7 @@ export default {
     showContainerResourceLimit() {
       return !this.isSingleHarvester;
     },
-  
+
     flatView() {
       return this.$route.query[FLAT_VIEW];
     }
@@ -189,7 +189,6 @@ export default {
     >
       <div class="col span-3">
         <LabeledSelect
-          :mode="mode"
           v-model="projectName"
           :label="t('namespace.project.label')"
           :options="projectOpts"
