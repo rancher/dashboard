@@ -7,10 +7,13 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
-const oldInfoLogger = console.info;
-console.info = () => {};
+const oldInfoLogger = console.info; // eslint-disable-line no-console
+
+console.info = () => {}; // eslint-disable-line no-console
+
 const { createProxyMiddleware } = require('http-proxy-middleware');
-console.info = oldInfoLogger;
+
+console.info = oldInfoLogger; // eslint-disable-line no-console
 
 // This is currently hardcoded to avoid importing the TS
 // const { STANDARD } = require('./config/private-label');
@@ -330,7 +333,7 @@ module.exports = function(dir, _appConfig) {
         // Close down quickly in response to CTRL + C
         process.once('SIGINT', () => {
           server.close();
-          console.log('\n');
+          console.log('\n'); // eslint-disable-line no-console
           process.exit(1);
         });
 
