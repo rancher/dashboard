@@ -144,7 +144,7 @@ export default {
 
       if (worker) {
         // Store raw json objects, not the proxies
-        worker.postMessage({ loadSchemas: data });
+        worker.postMessage({ loadSchemas: data }); //  TODO: RC DISCUSS - there's no `loadSchemas` action
         // this is where I should get all the API crap to pass into the worker // TODO: RC check with sean
       }
     }

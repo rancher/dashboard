@@ -40,6 +40,19 @@ export default {
   },
 
   async fetch() {
+    console.warn('WILL ROBINSON?');
+
+    try {
+      // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
+      // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
+
+      await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
+      await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 3 pods', res));
+    } catch (e) {
+      console.warn('DANGER WILL ROBINSON: ', e);
+    }
+    console.warn('chill WILL ROBINSON: ');
+
     this.$initializeFetchData(this.resource);
 
     const hash = { kubeNodes: this.$fetchType(this.resource) };

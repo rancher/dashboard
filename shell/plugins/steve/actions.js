@@ -23,7 +23,7 @@ export default {
     const {
       state, dispatch, rootGetters, getters
     } = ctx;
-    const isAdvancedWorkerStore = isAdvancedWorker({ rootGetters, getters });
+    const isAdvancedWorkerStore = isAdvancedWorker({ rootGetters, getters }) && (!pOpt?.url && !pOpt.type); // TODO: RC hack
 
     const opt = pOpt.opt || pOpt;
 

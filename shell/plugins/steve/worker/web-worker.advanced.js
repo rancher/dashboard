@@ -83,10 +83,10 @@ const removeFromWatcherQueue = (watchKey) => {
  * Creates a resourceCache with the appropriate type
  */
 
-const resourceCache = (type) => {
+const resourceCache = (type, resourceGetter) => {
   const CacheClass = cacheClasses[`${ type }Cache`] || cacheClasses.resourceCache;
 
-  return new CacheClass(type);
+  return new CacheClass(type, resourceGetter);
 };
 
 /**
@@ -98,7 +98,7 @@ const workerActions = {
       // the apiClient can only exist after schemas are loaded so we build it here.
       state.api = new SteveApiClient(state.config, { updateCache: workerActions.updateCache });
       if (!caches[SCHEMA]) {
-        state.api.request({ type: SCHEMA })
+        state.api.request({ type: SCHEMA }) // TODO: RC DISCUSS this duplicates dashboard-store actions `loadSchema`, or is it kicked off by it? what happens to spoofed schemas? feels like we should just add stuff to queue here and flush when `loadSchemas` message is received
           .then((res) => {
             // workerActions.updateCache(res.data);
             // TODO: RC how often is loadWorkerMethods run?
@@ -180,12 +180,22 @@ const workerActions = {
           resolver(res);
         });
     } else {
-      caches[type].find({
+      const a = caches[type].find({
         type, namespace, id, filter, sortBy, sortOrder, limit
-      })
-        .then((res) => {
-          resolver(res);
+      });
+
+      if (!a) {
+        console.warn('ww: advanced: request 2', type, cache[type]);
+
+        debugger;
+        caches[type].find({
+          type, namespace, id, filter, sortBy, sortOrder, limit
         });
+      }
+
+      a.then((res) => {
+        resolver(res);
+      });
     }
   },
   /**
@@ -219,6 +229,7 @@ const workerActions = {
       if (workerActions[action]) {
         workerActions[action](msg);
       } else {
+        // debugger;
         console.warn('no associated action for:', action); // eslint-disable-line no-console
       }
     }
@@ -235,6 +246,7 @@ const workerActions = {
       if (workerActions[action]) {
         workerActions[action](msg);
       } else {
+        debugger;
         console.warn('no associated action for:', action); // eslint-disable-line no-console
       }
     }
@@ -349,7 +361,7 @@ const resourceWatcherActions = {
     const { type, id, data } = makeResourceProps(msg);
 
     if (!caches[type]) {
-      caches[type] = resourceCache(type);
+      caches[type] = resourceCache(type); //  TODO: RC
     }
 
     caches[type].change(data, () => workerActions.updateBatch(type, id, data));
@@ -416,6 +428,7 @@ onmessage = (e) => {
     if (workerActions[action]) {
       workerActions[action](e?.data[action]);
     } else {
+      debugger;
       console.warn('no associated action for:', action); // eslint-disable-line no-console
     }
   });

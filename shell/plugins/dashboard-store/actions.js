@@ -71,6 +71,12 @@ export async function loadSchemas(ctx, watch = true) {
   return all;
 }
 
+const isStoreCompatibleWithAdvancedWorker = (getters) => {
+  const storeName = getters.storeName;
+
+  return storeName === 'cluster';
+};
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -152,7 +158,15 @@ export default {
     }
 
     // No need to request the resources if we have them already
-    if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
+    console.warn('ds: action: findAll:', type, opt, '1');
+
+    // TODO: RC Discuss - Flow - do we have / are we forcing? get from vuex store. How do we handle both in new world?
+
+    const awCompatible = isStoreCompatibleWithAdvancedWorker(getters);
+
+    if (!awCompatible && opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
+      console.warn('ds: action: findAll:', type, opt, '2 HAVE');
+
       const args = {
         type,
         revision:  '',
@@ -422,7 +436,7 @@ export default {
     console.log(`Find: [${ ctx.state.config.namespace }] ${ type } ${ id }`); // eslint-disable-line no-console
     let out;
 
-    if ( opt.force !== true ) {
+    if ( opt.force !== true ) { // TODO: RC Fetches from Vuex and not worker advanced cache
       out = getters.byId(type, id);
 
       if ( out ) {
@@ -434,10 +448,9 @@ export default {
     opt.url = getters.urlFor(type, id, opt);
 
     const namespaceAndId = {};
-    const storeName = getters.storeName;
 
     // ToDo: we'll need to figure out how to do this for all other stores if the advanced worker ever makes it beyond 'cluster'
-    if (storeName === 'cluster') {
+    if (isStoreCompatibleWithAdvancedWorker(getters)) {
       const schema = getters['schemaFor'](type);
 
       if (schema.attributes?.namespaced) {

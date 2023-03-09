@@ -51,7 +51,6 @@ export default class SteveApiClient {
     }
 
     __resourceUrl(params) {
-      debugger;
       const { type, id, namespace } = params;
 
       const resourceType = normalizeType(type);
