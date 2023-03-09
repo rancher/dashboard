@@ -257,6 +257,9 @@ module.exports = function(dir, _appConfig) {
     resourceBase += '/';
   }
 
+  // Store the Router Base as env variable that we can use in `nuxt/router.js`
+  process.env.VUE_APP_ROUTER_BASE = routerBasePath;
+
   console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
   if ( !dev ) {
