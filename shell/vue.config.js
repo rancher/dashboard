@@ -4,7 +4,13 @@ const serveStatic = require('serve-static');
 const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+// Suppress info level logging messages from http-proxy-middleware
+// This hides all of the "[HPM Proxy created] ..." messages
+const oldInfoLogger = console.info;
+console.info = () => {};
 const { createProxyMiddleware } = require('http-proxy-middleware');
+console.info = oldInfoLogger;
 
 // This is currently hardcoded to avoid importing the TS
 // const { STANDARD } = require('./config/private-label');
@@ -320,6 +326,13 @@ module.exports = function(dir, _appConfig) {
       public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
       before(app, server) {
         const socketProxies = {};
+
+        // Close down quickly in response to CTRL + C
+        process.once('SIGINT', () => {
+          server.close();
+          console.log('\n');
+          process.exit(1);
+        });
 
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
