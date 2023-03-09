@@ -245,7 +245,6 @@ export default {
     /**
      * Get PSA HTML to be displayed in the tooltips
      */
-
     getPsaTooltip(row) {
       const dictionary = row.psaTooltipsDescription;
       const list = Object.values(dictionary)
@@ -464,7 +463,7 @@ export default {
             class="empty text-center"
             colspan="5"
           >
-            {{ t('projectNamespaces.noNamespaces') }}rrr
+            {{ t('projectNamespaces.noNamespaces') }}
           </td>
         </tr>
       </template>
@@ -474,7 +473,7 @@ export default {
             class="empty text-center"
             colspan="5"
           >
-            {{ t('projectNamespaces.noProjectNoNamespaces') }}ss
+            {{ t('projectNamespaces.noProjectNoNamespaces') }}
           </td>
         </tr>
       </template>
