@@ -47,7 +47,7 @@ export default {
       const page = this.currentPage;
       const pagePath = this.pages[page];
 
-      return pagePath?.startsWith('/meta/auditui/');
+      return pagePath?.startsWith('/meta/auditui/') || pagePath?.endsWith('/quotas-cn');
     }
   },
 };
