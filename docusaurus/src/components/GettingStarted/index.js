@@ -102,7 +102,7 @@ function GettingStarted( {
 export default function GettingStartedFeatures() {
   return (
     <div>
-      <h1>Resources</h1>
+      <h1>Getting started</h1>
       <div className="row">
         {GettingStartedList.map((props, idx) => (
           <GettingStarted key={idx} {...props} />
