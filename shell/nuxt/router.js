@@ -101,9 +101,11 @@ const emptyFn = () => {}
 
 Vue.use(Router)
 
+// Note: router base comes from the VUE_APP_ROUTER_BASE env var
+
 export const routerOptions = {
   mode: 'history',
-  base: '/',
+  base: process.env.VUE_APP_ROUTER_BASE || '/',
   linkActiveClass: 'nuxt-link-active',
   linkExactActiveClass: 'nuxt-link-exact-active',
   scrollBehavior,
