@@ -182,7 +182,7 @@ export default {
         />
       </div>
     </div>
-      <div class="row mb-10">
+    <div class="row mb-10">
       <div
         v-if="value.pilot"
         class="col span-4"
