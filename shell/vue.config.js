@@ -583,7 +583,8 @@ function proxyMetaOpts(target) {
 function proxyOpts(target) {
   return {
     target,
-    secure: !devPorts,
+    secure:       !devPorts,
+    changeOrigin: true,
     onProxyReq,
     onProxyReqWs,
     onError,
