@@ -220,7 +220,7 @@ export default {
         <Checkbox
           v-model="value.kiali.enabled"
           :label="t('istio.kiali')"
-            @input="changeKiali"
+          @input="changeKiali"
         />
       </div>
       <div
@@ -233,7 +233,6 @@ export default {
         />
       </div>
       <div class="col span-4" />
-      </div>
       <div
         v-if="showKialiBanner"
         class="row"
@@ -245,6 +244,7 @@ export default {
             />
           </Banner>
         </div>
+      </div>
     </div>
 
     <h3>{{ t('istio.customOverlayFile.label') }}</h3>
