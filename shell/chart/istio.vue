@@ -190,7 +190,7 @@ export default {
         <Checkbox
           v-model="value.pilot.enabled"
           :label="t('istio.pilot')"
-            :disabled="value.kiali && value.kiali.enabled"
+          :disabled="value.kiali && value.kiali.enabled"
         />
       </div>
       <div
