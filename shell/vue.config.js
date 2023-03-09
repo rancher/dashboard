@@ -1,11 +1,14 @@
-import fs from 'fs';
-import path from 'path';
-import serveStatic from 'serve-static';
-import webpack from 'webpack';
-import { STANDARD } from './config/private-label';
-import { generateDynamicTypeImport } from './pkg/auto-import';
-import CopyWebpackPlugin from 'copy-webpack-plugin';
-import { createProxyMiddleware, RequestHandler, Options } from 'http-proxy-middleware';
+const fs = require('fs');
+const path = require('path');
+const serveStatic = require('serve-static');
+const webpack = require('webpack');
+const { generateDynamicTypeImport } = require('./pkg/auto-import');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+// This is currently hardcoded to avoid importing the TS
+// const { STANDARD } = require('./config/private-label');
+const STANDARD = 1;
 
 const dev = (process.env.NODE_ENV !== 'production');
 const devPorts = dev || process.env.DEV_PORTS === 'true';
@@ -32,7 +35,7 @@ if ( !api.startsWith('http') ) {
 // Expose a function that can be used by an app to provide a nuxt configuration for building an application
 // This takes the directory of the application as tehfirst argument so that we can derive folder locations
 // from it, rather than from the location of this file
-export default function(dir: any, _appConfig: any) {
+module.exports = function(dir, _appConfig) {
   // Paths to the shell folder when it is included as a node dependency
   let SHELL = 'node_modules/@rancher/shell';
   let SHELL_ABS = path.join(dir, 'node_modules/@rancher/shell');
@@ -57,7 +60,7 @@ export default function(dir: any, _appConfig: any) {
     COMPONENTS_DIR = path.join(dir, 'pkg', 'rancher-components', 'src', 'components');
   }
 
-  const babelPlugins: string | (string | object)[] = [
+  const babelPlugins = [
     // TODO: Browser support
     // ['@babel/plugin-transform-modules-commonjs'],
     ['@babel/plugin-proposal-private-property-in-object', { loose: true }]
@@ -85,7 +88,7 @@ export default function(dir: any, _appConfig: any) {
     /scripts\/standalone/
   ];
 
-  autoLoad.forEach((pkg: any) => {
+  autoLoad.forEach((pkg) => {
     // Need the version number of each file
     const pkgPackageFile = require(path.join(dir, 'pkg', pkg, 'package.json'));
     const pkgRef = `${ pkg }-${ pkgPackageFile.version }`;
@@ -104,7 +107,7 @@ export default function(dir: any, _appConfig: any) {
   // Find any UI packages in node_modules
   const NM = path.join(dir, 'node_modules');
   const pkg = require(path.join(dir, 'package.json'));
-  const nmPackages: any = {};
+  const nmPackages = {};
 
   if (pkg && pkg.dependencies) {
     Object.keys(pkg.dependencies).forEach((pkg) => {
@@ -127,7 +130,7 @@ export default function(dir: any, _appConfig: any) {
 
   serverMiddleware.push({
     path:    '/uiplugins-catalog',
-    handler: (req: any, res: any, next: any) => {
+    handler: (req, res, next) => {
       const p = req.url.split('?');
 
       try {
@@ -143,7 +146,7 @@ export default function(dir: any, _appConfig: any) {
     }
   });
 
-  function includePkg(name: any) {
+  function includePkg(name) {
     if (name.startsWith('.') || name === 'node_modules') {
       return false;
     }
@@ -151,7 +154,7 @@ export default function(dir: any, _appConfig: any) {
     return !excludes || (excludes && !excludes.includes(name));
   }
 
-  excludes.forEach((e: any) => {
+  excludes.forEach((e) => {
     watcherIgnores.push(new RegExp(`/pkg.${ e }`));
   });
 
@@ -159,7 +162,7 @@ export default function(dir: any, _appConfig: any) {
   // Add in the code to automatically import the types from that package
   // This imports models, edit, detail, list etc
   // When built as a UI package, shell/pkg/vue.config.js does the same thing
-  const autoImportTypes: any = {};
+  const autoImportTypes = {};
   const VirtualModulesPlugin = require('webpack-virtual-modules');
   let reqs = '';
   const pkgFolder = path.relative(dir, './pkg');
@@ -194,7 +197,7 @@ export default function(dir: any, _appConfig: any) {
   // Generate a virtual module '@rancher/dyanmic.js` which imports all of the packages that should be built into the application
   // This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
   const virtualModules = new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
-  const autoImport = new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource: any) => {
+  const autoImport = new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
     const ctx = resource.context.split('/');
     const pkg = ctx[ctx.length - 1];
 
@@ -203,10 +206,10 @@ export default function(dir: any, _appConfig: any) {
 
   // @pkg imports must be resolved to the package that it importing them - this allows a package to use @pkg as an alis
   // to the root of that particular package
-  const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg/, (resource: any) => {
+  const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg/, (resource) => {
     const ctx = resource.context.split('/');
     // Find 'pkg' folder in the contxt
-    const index = ctx.findIndex((s: any) => s === 'pkg');
+    const index = ctx.findIndex(s => s === 'pkg');
 
     if (index !== -1 && (index + 1) < ctx.length) {
       const pkg = ctx[index + 1];
@@ -278,7 +281,7 @@ export default function(dir: any, _appConfig: any) {
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
-  const proxy: { [path: string]: Options} = {
+  const proxy = {
     ...appConfig.proxies,
     '/k8s':            proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
     '/pp':             proxyWsOpts(api), // For (epinio) standalone API
@@ -312,8 +315,8 @@ export default function(dir: any, _appConfig: any) {
       port:   (devPorts ? 8005 : 80),
       host:   '0.0.0.0',
       public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
-      before(app: any, server: any) {
-        const socketProxies: { [path: string]: RequestHandler} = {};
+      before(app, server) {
+        const socketProxies = {};
 
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
@@ -328,7 +331,7 @@ export default function(dir: any, _appConfig: any) {
         });
 
         server.websocketProxies.push({
-          upgrade(req: any, socket: any, head:any) {
+          upgrade(req, socket, head) {
             const path = Object.keys(socketProxies).find(path => req.url.startsWith(path));
 
             if (path) {
@@ -346,8 +349,8 @@ export default function(dir: any, _appConfig: any) {
         });
       },
     },
-
-    css: {
+    publicPath: resourceBase || undefined,
+    css:        {
       loaderOptions: {
         sass: {
           // This is effectively added to the beginning of each style that's imported or included in a vue file. We may want to look into including these in app.scss
@@ -370,7 +373,7 @@ export default function(dir: any, _appConfig: any) {
       }
     },
 
-    configureWebpack(config: any) {
+    configureWebpack(config) {
       config.resolve.alias['~'] = dir;
       config.resolve.alias['@'] = dir;
       config.resolve.alias['~assets'] = path.join(__dirname, 'assets');
@@ -417,20 +420,16 @@ export default function(dir: any, _appConfig: any) {
         config.devtool = 'source-map';
       }
 
-      if (resourceBase) {
-        config.output.publicPath = resourceBase;
-      }
-
       config.resolve.symlinks = false;
 
       // Ensure we process files in the @rancher/shell folder
-      config.module.rules.forEach((r: any) => {
+      config.module.rules.forEach((r) => {
         if ('test.js'.match(r.test)) {
           if (r.exclude) {
             const orig = r.exclude;
 
-            r.exclude = function(modulePath: string) {
-              if (modulePath.indexOf(SHELL_ABS) === 0) {
+            r.exclude = function(modulePath) {
+              if (modulePath.indexOf(SHELL_ABS) === 0 || typeof orig !== 'function') {
                 return false;
               }
 
@@ -441,7 +440,7 @@ export default function(dir: any, _appConfig: any) {
       });
 
       // Instrument code for tests
-      const babelPlugins: (string | ([] | Object)[])[] = [
+      const babelPlugins = [
         // TODO: Browser support
         // ['@babel/plugin-transform-modules-commonjs'],
         ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
@@ -563,13 +562,13 @@ export default function(dir: any, _appConfig: any) {
   };
 
   return config;
-}
+};
 
 // ===============================================================================================
 // Functions for the request proxying used in dev
 // ===============================================================================================
 
-function proxyMetaOpts(target: any) {
+function proxyMetaOpts(target) {
   return {
     target,
     followRedirects: true,
@@ -581,10 +580,11 @@ function proxyMetaOpts(target: any) {
   };
 }
 
-function proxyOpts(target: any) {
+function proxyOpts(target) {
   return {
     target,
-    secure: !devPorts,
+    secure:       !devPorts,
+    changeOrigin: true,
     onProxyReq,
     onProxyReqWs,
     onError,
@@ -594,7 +594,7 @@ function proxyOpts(target: any) {
 
 // Intercept the /rancherversion API call wnad modify the 'RancherPrime' value
 // if configured to do so by the environment variable PRIME
-function proxyPrimeOpts(target: any) {
+function proxyPrimeOpts(target) {
   const opts = proxyOpts(target);
 
   // Don't intercept if the PRIME environment variable is not set
@@ -606,7 +606,7 @@ function proxyPrimeOpts(target: any) {
     const _end = res.end;
     let body = '';
 
-    proxyRes.on( 'data', (data: any) => {
+    proxyRes.on( 'data', (data) => {
       data = data.toString('utf-8');
       body += data;
     });
@@ -635,13 +635,13 @@ function proxyPrimeOpts(target: any) {
   return opts;
 }
 
-function onProxyRes(proxyRes: any, req: any, res: any) {
+function onProxyRes(proxyRes, req, res) {
   if (devPorts) {
     proxyRes.headers['X-Frame-Options'] = 'ALLOWALL';
   }
 }
 
-function proxyWsOpts(target: any) {
+function proxyWsOpts(target) {
   return {
     ...proxyOpts(target),
     ws:           true,
@@ -649,26 +649,26 @@ function proxyWsOpts(target: any) {
   };
 }
 
-function onProxyReq(proxyReq: any, req: any) {
+function onProxyReq(proxyReq, req) {
   if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
     proxyReq.setHeader('x-api-host', req.headers['host']);
     proxyReq.setHeader('x-forwarded-proto', 'https');
   }
 }
 
-function onProxyReqWs(proxyReq: any, req: any, socket: any, options: any, head: any) {
+function onProxyReqWs(proxyReq, req, socket, options, head) {
   req.headers.origin = options.target.href;
   proxyReq.setHeader('origin', options.target.href);
   proxyReq.setHeader('x-api-host', req.headers['host']);
   proxyReq.setHeader('x-forwarded-proto', 'https');
   // console.log(proxyReq.getHeaders());
 
-  socket.on('error', (err: any) => {
+  socket.on('error', (err) => {
     console.error('Proxy WS Error:', err); // eslint-disable-line no-console
   });
 }
 
-function onError(err: any, req: any, res: any) {
+function onError(err, req, res) {
   res.statusCode = 598;
   console.error('Proxy Error:', err); // eslint-disable-line no-console
   res.write(JSON.stringify(err));

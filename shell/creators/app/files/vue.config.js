@@ -1,10 +1,7 @@
-/**
- * This file is here purely to support using the typescript version of the vue config vue.config.ts.
- */
-require('ts-node').register({
-  project:         './tsconfig.json',
-  compilerOptions: { module: 'commonjs' },
-  logError:        true
-});
+const config = require('@rancher/shell/vue.config');
 
-module.exports = require('./vue.config.ts').default;
+module.exports = config(__dirname, {
+  excludes: [],
+  // excludes: ['fleet', 'example']
+  // autoLoad: ['fleet', 'example']
+});
