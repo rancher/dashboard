@@ -3334,6 +3334,7 @@ namespace:
   resourceQuotas: Resource Quotas
   project:
     label: Project
+    placeholder: Select a project
   resources: Resources
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection

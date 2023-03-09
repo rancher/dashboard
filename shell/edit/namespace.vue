@@ -10,7 +10,7 @@ import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
-import { PROJECT_ID, _VIEW } from '@shell/config/query-params';
+import { PROJECT_ID, _VIEW, FLAT_VIEW } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
@@ -50,7 +50,7 @@ export default {
       originalQuotaId = `${ this.liveValue.metadata.name }/default-quota`;
     }
 
-    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
+    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID] || '(None)';
 
     return {
       originalQuotaId,
@@ -87,7 +87,7 @@ export default {
 
       out.unshift({
         label: '(None)',
-        value: null,
+        value: 'null',
       });
 
       return out;
@@ -104,7 +104,10 @@ export default {
     showContainerResourceLimit() {
       return !this.isSingleHarvester;
     },
-
+  
+    flatView() {
+      return this.$route.query[FLAT_VIEW];
+    }
   },
 
   watch: {
@@ -144,8 +147,7 @@ export default {
 
       return project?.spec?.containerDefaultResourceLimit || {};
     }
-  }
-
+  },
 };
 </script>
 
@@ -181,7 +183,19 @@ export default {
         />
       </template>
     </NameNsDescription>
-
+    <div
+      v-if="flatView"
+      class="row mb-20"
+    >
+      <div class="col span-3">
+        <LabeledSelect
+          :mode="mode"
+          v-model="projectName"
+          :label="t('namespace.project.label')"
+          :options="projectOpts"
+        />
+      </div>
+    </div>
     <Tabbed :side-tabs="true">
       <Tab
         v-if="showResourceQuota"

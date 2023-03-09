@@ -4,7 +4,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
-import { PROJECT_ID } from '@shell/config/query-params';
+import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
@@ -236,12 +236,16 @@ export default {
 
     notInProjectKey() {
       return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
+    },
+    showCreateNsButton() {
+      return this.groupPreference !== 'namespace';
     }
   },
   methods: {
     /**
      * Get PSA HTML to be displayed in the tooltips
      */
+
     getPsaTooltip(row) {
       const dictionary = row.psaTooltipsDescription;
       const list = Object.values(dictionary)
@@ -281,9 +285,22 @@ export default {
       };
 
       location.query = { [PROJECT_ID]: project?.metadata.name };
-
       return location;
     },
+
+    createNamespaceLocationFlatList() {
+      const location = this.createNamespaceLocationOverride ? { ...this.createNamespaceLocationOverride } : {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  this.$store.getters['currentProduct'].name,
+          resource: NAMESPACE
+        },
+      };
+
+      location.query = {[FLAT_VIEW]: true };  
+      return location;
+    },
+
     showProjectAction(event, group) {
       const project = group.rows[0].project;
 
@@ -343,7 +360,20 @@ export default {
       :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
-    />
+    >
+      <template
+        v-if="showCreateNsButton"
+        slot="extraActions"
+      >
+        <n-link
+          :to="createNamespaceLocationFlatList()"
+          class="btn role-primary mr-10"
+          data-testid="cluster-manager-list-import"
+        >
+          {{ t('projectNamespaces.createNamespace') }}
+        </n-link>
+      </template>
+    </Masthead>
     <ResourceTable
       ref="table"
       class="table"
@@ -434,7 +464,7 @@ export default {
             class="empty text-center"
             colspan="5"
           >
-            {{ t('projectNamespaces.noNamespaces') }}
+            {{ t('projectNamespaces.noNamespaces') }}rrr
           </td>
         </tr>
       </template>
@@ -444,7 +474,7 @@ export default {
             class="empty text-center"
             colspan="5"
           >
-            {{ t('projectNamespaces.noProjectNoNamespaces') }}
+            {{ t('projectNamespaces.noProjectNoNamespaces') }}ss
           </td>
         </tr>
       </template>

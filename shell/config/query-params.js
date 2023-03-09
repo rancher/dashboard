@@ -73,3 +73,4 @@ export const CLOUD_CREDENTIAL = 'cloud';
 
 // NAMESPACE/PROJECT
 export const PROJECT_ID = 'projectId';
+export const FLAT_VIEW = 'flatView';
