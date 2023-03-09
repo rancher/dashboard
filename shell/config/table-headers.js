@@ -737,8 +737,8 @@ export const CONSTRAINT_VIOLATION_RESOURCE_LINK = {
 export const CONSTRAINT_VIOLATION_TYPE = {
   name:  'Type',
   label: 'Type',
-  value: `constraint.kind`,
-  sort:  `constraint.kind`
+  value: `kind`,
+  sort:  `kind`
 };
 
 export const CONSTRAINT_VIOLATION_MESSAGE = {

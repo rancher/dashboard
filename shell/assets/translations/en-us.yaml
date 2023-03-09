@@ -2221,8 +2221,11 @@ gatekeeperConstraint:
       editAsYaml: Edit as YAML
       title: Parameters
   template: Template
+  enforcement:
+    action: Enforcement Action
   violations:
-    title: Violations
+    title: "Violations: {total}"
+    notAll: Not all are shown - the constraint only includes details for {shown}
 
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper

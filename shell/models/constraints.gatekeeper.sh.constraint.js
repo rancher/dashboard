@@ -55,6 +55,10 @@ export default class GateKeeperConstraint extends SteveModel {
     }, { root: true });
   }
 
+  get totalViolations() {
+    return this.status?.totalViolations || this.violations.length;
+  }
+
   get violations() {
     const violations = this.status?.violations || [];
 
