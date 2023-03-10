@@ -53,7 +53,7 @@ export async function dashboardExists(monitoringVersion, store, clusterId, embed
 }
 
 export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster') {
-  const res = await store.dispatch(`cluster/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+  const res = await store.dispatch(`${ storeName }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
   const monitoringVersion = res?.currentVersion;
 
   const existPromises = embeddedUrls.map(url => dashboardExists(monitoringVersion, store, clusterId, url, storeName));

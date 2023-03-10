@@ -33,7 +33,8 @@ export default {
     }
   },
   async fetch() {
-    const res = await this.$store.dispatch(`cluster/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+    const inStore = this.$store.getters['currentProduct'].inStore;
+    const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
 
     this.monitoringVersion = res?.currentVersion;
   },
