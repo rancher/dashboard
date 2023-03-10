@@ -43,7 +43,7 @@ export default {
         <UnitInput
           v-model="value.auditInterval"
           :label="t('gatekeeperInstall.auditInterval')"
-          :suffix="t('generic.seconds')"
+          :suffix="t('suffix.seconds', {count: value.auditInterval})"
         />
       </div>
     </div>
