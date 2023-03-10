@@ -66,6 +66,7 @@ export default Vue.extend<Data, any, any, any>({
     return {
       APPLICATION_MANIFEST_SOURCE_TYPE,
       saving:        false,
+      envs:          this.value?.envDetails,
       gitSource:     null,
       gitDeployment: {
         deployedCommit: null,
@@ -104,10 +105,8 @@ export default Vue.extend<Data, any, any, any>({
       return `${ matchGit?.[4] }/${ matchGit?.[5] }`;
     },
     async fetchRepoDetails() {
-      const envs = this.value?.envDetails;
-
-      if (envs[APPLICATION_ENV_VAR] ) {
-        const { usernameOrOrg, repo } = JSON.parse(envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GIT;
+      if (this.envs[APPLICATION_ENV_VAR] ) {
+        const { usernameOrOrg, repo } = JSON.parse(this.envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GIT;
         const res = await this.$store.dispatch(`${ this.gitType }/fetchRepoDetails`, { username: usernameOrOrg, repo });
 
         this.gitSource = GitUtils[this.gitType].normalize.repo(res);
@@ -125,13 +124,11 @@ export default Vue.extend<Data, any, any, any>({
       await this.fetchCommits();
     },
     async fetchCommits() {
-      const envs = this.value?.envDetails;
-
-      if (!envs[APPLICATION_ENV_VAR]) {
+      if (!this.envs[APPLICATION_ENV_VAR]) {
         return;
       }
 
-      const { usernameOrOrg, repo, branch } = JSON.parse(envs[APPLICATION_ENV_VAR]);
+      const { usernameOrOrg, repo, branch } = JSON.parse(this.envs[APPLICATION_ENV_VAR]);
 
       this.gitDeployment.commits = await this.$store.dispatch(`${ this.gitType }/fetchCommits`, {
         username: usernameOrOrg, repo, branch
@@ -147,10 +144,8 @@ export default Vue.extend<Data, any, any, any>({
   },
   computed: {
     gitType() {
-      const envs = this.value?.envDetails;
-
-      if (envs[APPLICATION_ENV_VAR]) {
-        const { type } = JSON.parse(envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GIT;
+      if (this.envs[APPLICATION_ENV_VAR]) {
+        const { type } = JSON.parse(this.envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GIT;
 
         if (type) {
           return type.toLowerCase();
