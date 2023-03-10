@@ -308,7 +308,14 @@ export default {
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
-            <span v-html="t('networkpolicy.selectors.matchingNamespacesAndPods.matchesSome', matchingNamespacesAndPods)" />
+            <span
+              v-if="!namespaceSelectorExpressions.length"
+              v-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)"
+            />
+            <span
+              v-else
+              v-html="t('networkpolicy.selectors.matchingNamespacesAndPods.matchesSome', matchingNamespacesAndPods)"
+            />
           </Banner>
         </div>
       </div>
