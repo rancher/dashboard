@@ -12,9 +12,10 @@ import throttle from 'lodash/throttle';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
 
 const TARGET_OPTIONS = {
-  IP_BLOCK:           'ipBlock',
-  NAMESPACE_SELECTOR: 'namespaceSelector',
-  POD_SELECTOR:       'podSelector',
+  IP_BLOCK:                   'ipBlock',
+  NAMESPACE_SELECTOR:         'namespaceSelector',
+  POD_SELECTOR:               'podSelector',
+  NAMESPACE_AND_POD_SELECTOR: 'namespaceAndPodSelector',
 };
 
 export default {
@@ -56,7 +57,8 @@ export default {
   data() {
     if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
       !this.value[TARGET_OPTIONS.POD_SELECTOR] &&
-      !this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR]
+      !this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] &&
+      !this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR]
     ) {
       this.$nextTick(() => {
         this.$set(this.value, TARGET_OPTIONS.IP_BLOCK, {});
@@ -112,6 +114,9 @@ export default {
     targetType: {
       get() {
         for (const option of this.targetOptions) {
+          if (this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR] || (this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] && this.value[TARGET_OPTIONS.POD_SELECTOR])) {
+            return TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR;
+          }
           if (this.value[option]) {
             return option;
           }
@@ -123,6 +128,7 @@ export default {
         this.$delete(this.value, TARGET_OPTIONS.IP_BLOCK);
         this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_SELECTOR);
         this.$delete(this.value, TARGET_OPTIONS.POD_SELECTOR);
+        this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR);
         this.$nextTick(() => {
           this.$set(this.value, targetType, {});
         });
@@ -137,6 +143,13 @@ export default {
         immediate: true
       };
     },
+    matchingNamespacesAndPods() {
+      return {
+        policyNamespace: this.namespace,
+        ...Object.keys(this.matchingNamespaces).reduce((acc, k) => ({ ...acc, [`${ k }Namespaces`]: this.matchingNamespaces[k] }), {}),
+        ...Object.keys(this.matchingPods).reduce((acc, k) => ({ ...acc, [`${ k }Pods`]: this.matchingPods[k] }), {}),
+      };
+    }
   },
   watch: {
     namespace:                    'updateMatches',
@@ -162,7 +175,8 @@ export default {
       }
     },
     getMatchingPods() {
-      const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.namespace);
+      const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
+      const allInNamespace = this.allPods.filter(pod => namespaces.some(ns => ns.id === pod.metadata.namespace));
       const match = matching(allInNamespace, this.podSelectorExpressions);
       const matched = match.length || 0;
       const sample = match[0]?.nameDisplay;
@@ -290,5 +304,64 @@ export default {
         </div>
       </div>
     </div>
+    <div v-if="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR">
+      <div class="row">
+        <div class="col span-12">
+          <Banner color="success">
+            <span v-html="t('networkpolicy.selectors.matchingNamespacesAndPods.matchesSome', matchingNamespacesAndPods)" />
+          </Banner>
+        </div>
+      </div>
+      <div class="row mb-0">
+        <div class="col span-1 namespace-pod-rule">
+          <span class="label">
+            {{ t('networkpolicy.rules.namespace') }}
+          </span>
+        </div>
+        <div class="col span-11">
+          <MatchExpressions
+            v-model="namespaceSelectorExpressions"
+            :mode="mode"
+            :show-add-button="false"
+            :show-remove-button="false"
+            :show-remove="false"
+            :initial-empty-row="true"
+            :type="POD"
+          />
+        </div>
+      </div>
+      <div class="row mb-0">
+        <div class="col span-1 namespace-pod-rule">
+          <span class="label">
+            {{ t('networkpolicy.rules.pod') }}
+          </span>
+        </div>
+        <div class="col span-11">
+          <MatchExpressions
+            v-model="podSelectorExpressions"
+            :mode="mode"
+            :show-add-button="false"
+            :show-remove-button="false"
+            :show-remove="false"
+            :initial-empty-row="true"
+            :type="POD"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang='scss' scoped>
+  .namespace-pod-rule {
+    width: 100px;
+    margin: 0;
+    text-align: center;
+
+    .label {
+      display: block;
+      margin-top: 32px;
+      color: var(--primary);
+    }
+  }
+</style>
