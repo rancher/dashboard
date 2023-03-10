@@ -2570,9 +2570,9 @@ export default {
             </div>
             <div class="col span-6">
               <Checkbox
+                v-model="truncateHostnames"
                 class="mt-20"
                 :mode="mode"
-                v-model="truncateHostnames"
                 :label="t('cluster.rke2.truncateHostnames')"
               />
             </div>
