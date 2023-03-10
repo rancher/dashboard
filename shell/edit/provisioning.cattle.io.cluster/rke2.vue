@@ -2214,8 +2214,9 @@ export default {
           <Banner
             v-if="showCisProfile && !isCisSupported"
             color="info"
-            :label="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)"
-          />
+          >
+            <p v-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
+          </Banner>
 
           <div class="row mb-10">
             <div
