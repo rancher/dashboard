@@ -339,6 +339,7 @@ export default {
       cisOverride:           false,
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
+      truncateHostnames:     false,
     };
   },
 
@@ -2565,6 +2566,14 @@ export default {
                 v-model="serverConfig['service-node-port-range']"
                 :mode="mode"
                 :label="t('cluster.rke2.address.nodePortRange.label')"
+              />
+            </div>
+            <div class="col span-6">
+              <Checkbox
+                class="mt-20"
+                :mode="mode"
+                v-model="truncateHostnames"
+                :label="t('cluster.rke2.truncateHostnames')"
               />
             </div>
           </div>
