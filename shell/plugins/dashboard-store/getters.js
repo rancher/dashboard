@@ -11,6 +11,8 @@ import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
 import { urlFor } from '@shell/plugins/dashboard-store/getters.utils';
+import { getPerformanceSetting } from '@shell/utils/settings';
+import { BLANK_CLUSTER } from '@shell/store';
 
 export default {
 
@@ -311,5 +313,20 @@ export default {
 
   gcIgnoreTypes: () => {
     return {};
-  }
+  },
+
+  isAdvancedWorkerCompatible: (state, getters, rootState, rootGetters) => {
+    // TODO: RC Test - before merge ensure this works correctly
+    const storeName = getters.storeName;
+    const clusterId = rootGetters.clusterId;
+
+    if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
+      return false;
+    }
+
+    const perfSetting = getPerformanceSetting(rootGetters);
+
+    return perfSetting?.advancedWorker.enabled;
+  },
+
 };

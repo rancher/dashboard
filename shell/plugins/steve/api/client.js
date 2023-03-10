@@ -30,13 +30,6 @@ export default class SteveApiClient {
       this.__updateCache = methods.updateCache;
     }
 
-    // set config(config) { // TODO: RC if this is hit... change to updateConfig
-    //   this.__config = {
-    //     ...this.__config,
-    //     ...config
-    //   };
-    // }
-
     get config() {
       return this.__config;
     }
@@ -54,7 +47,7 @@ export default class SteveApiClient {
       const { type, id, namespace } = params;
 
       const resourceType = normalizeType(type);
-      // TODO: RC fix ${ self.location.origin }
+      // TODO: RC Investigate ${ self.location.origin }
       const opt = { url: resourceType === SCHEMA ? `${ self.location.origin }${ this.__config.url }/${ resourceType }` : undefined };
 
       const resourceUrl = urlFor({
@@ -80,16 +73,19 @@ export default class SteveApiClient {
 
       const requestUrl = this.__resourceUrl(params);
 
+      // fetch itself will reject a promise if the server fails to send a response (no connection, server not responding, etc)
       return fetch(requestUrl, opt)
         .then((res) => {
-          if (!res.ok) {
-            console.warn(`Resource error retrieving resource(s)`, params.type, ':', res.json()); // eslint-disable-line no-console
+          // The server returned a response
+
+          if (res.ok) {
+            return res.json();
           }
 
-          return res.json();
+          throw new Error(`Resource error retrieving resource(s): ${ params.type }`, { cause: { response: res } });
         })
         .then((res) => {
-          this.__updateCache(res.data || res, !!params.id); // TODO: RC what happens here on delete, push, etc
+          this.__updateCache(res.data || res, !!params.id); // TODO: RC Investigate what happens here on delete, push, etc
 
           return res;
         });

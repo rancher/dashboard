@@ -30,8 +30,6 @@ import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 
-import { BLANK_CLUSTER } from '@shell/store/index.js';
-
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
@@ -39,20 +37,6 @@ const waitForManagement = (store) => {
   const managementReady = () => store.state?.managementReady;
 
   return waitFor(managementReady, 'Management');
-};
-
-export const isAdvancedWorker = (ctx) => {
-  const { rootGetters, getters } = ctx;
-  const storeName = getters.storeName;
-  const clusterId = rootGetters.clusterId;
-
-  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
-    return false;
-  }
-
-  const perfSetting = getPerformanceSetting(rootGetters);
-
-  return perfSetting?.advancedWorker.enabled;
 };
 
 // We only create a worker for the cluster store
@@ -68,7 +52,7 @@ export async function createWorker(store, ctx) {
 
   await waitForManagement(store);
   // getting perf setting in a separate constant here because it'll provide other values we'll want later.
-  const advancedWorker = isAdvancedWorker(ctx);
+  const advancedWorker = getters.isAdvancedWorkerCompatible;
 
   const workerActions = {
     load: (resource) => {
@@ -80,8 +64,13 @@ export async function createWorker(store, ctx) {
         delete store.$workers[storeName];
       }
     },
-    awaitedResponse: ({ requestHash, response }) => {
-      store.$workers[storeName].requests[requestHash].resolves(response);
+    awaitedResponse: ({ requestHash, response, error }) => {
+      if (error) {
+        store.$workers[storeName].requests[requestHash].reject(error);
+      } else {
+        store.$workers[storeName].requests[requestHash].resolves(response);
+      }
+
       delete store.$workers[storeName].requests[requestHash];
     },
     batchChanges: (batch) => {
@@ -220,7 +209,7 @@ const sharedActions = {
     const maxTries = growlsDisabled(rootGetters) ? null : 3;
     const connectionMetadata = get(opt, 'metadata');
 
-    if (isAdvancedWorker(ctx)) {
+    if (ctx.getters.isAdvancedWorkerCompatible) {
       if (!this.$workers[getters.storeName]) {
         await createWorker(this, ctx);
       }
@@ -393,7 +382,7 @@ const sharedActions = {
         stop: true, // Stops the watch on a type
       };
 
-      if (isAdvancedWorker(ctx)) {
+      if (ctx.getters.isAdvancedWorkerCompatible) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (getters['watchStarted'](obj)) {
         // Set that we don't want to watch this type

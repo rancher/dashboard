@@ -13,6 +13,7 @@ import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 import { classify } from '@shell/plugins/dashboard-store/classify';
+import { CSRF } from '@shell/config/cookies';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -135,7 +136,7 @@ export default {
 
     // If we loaded a set of pods, then update the podsByNamespace cache
     if (type === POD) {
-      updatePodsByNamespaceCache(state, ctx, proxies, true);
+      updatePodsByNamespaceCache(state, ctx, proxies, true); // TODO: RC Test - How does this work with the advanced worker?
     }
 
     // Notify the web worker of the initial load of schemas
@@ -144,8 +145,16 @@ export default {
 
       if (worker) {
         // Store raw json objects, not the proxies
-        worker.postMessage({ loadSchemas: data }); //  TODO: RC DISCUSS - there's no `loadSchemas` action
-        // this is where I should get all the API crap to pass into the worker // TODO: RC check with sean
+        worker.postMessage({
+          configure: {
+            url:       `${ state.config.baseUrl }`,
+            csrf:      this.$cookies.get(CSRF, { parseJSON: false }), // TODO: RC Test - i think this is empty
+            config:    state.config,
+            storeName: ctx.getters.storeName
+          },
+          loadSchemas: data,
+          createApi:   {},
+        });
       }
     }
   },

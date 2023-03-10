@@ -9,7 +9,7 @@ import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@she
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import cacheClasses from '@shell/plugins/steve/caches';
-import SteveApiClient from '~/shell/plugins/steve/api/client';
+import SteveApiClient from '@shell/plugins/steve/api/client';
 
 const caches = {};
 
@@ -82,37 +82,65 @@ const removeFromWatcherQueue = (watchKey) => {
 /**
  * Creates a resourceCache with the appropriate type
  */
-
-const resourceCache = (type, resourceGetter) => {
+const resourceCache = (type, resourceGetter) => { // TODO: RC Discuss - there were scenarios where resourceGetter returned undefined (as per initial value from resourceCache)
   const CacheClass = cacheClasses[`${ type }Cache`] || cacheClasses.resourceCache;
 
-  return new CacheClass(type, resourceGetter);
+  return new CacheClass(type);
+};
+
+/**
+ * Errors sent over the thread boundary must be clonable. The response to `fetch` isn't, so cater for that before we send it over
+ */
+const parseRequestError = (e) => {
+  const res = e?.cause?.response;
+
+  if (res) {
+    return {
+      response: {
+        status:     res.status,
+        statusText: res.statusText,
+      }
+    };
+  }
+
+  return e;
 };
 
 /**
  * These are things that we do when we get a message from the UI thread
  */
 const workerActions = {
+  /**
+   * The UI thread is responsible for supply all schemas, including spoofed ones.
+   *
+   * This should be the first action called
+   */
+  loadSchemas: (data) => {
+    workerActions.updateCache(data); // This will create caches[SCHEMA]
+  },
+
+  /**
+   * Create the object that will make all api requests
+   */
   createApi: () => {
     if (!state.api) {
-      // the apiClient can only exist after schemas are loaded so we build it here.
-      state.api = new SteveApiClient(state.config, { updateCache: workerActions.updateCache });
       if (!caches[SCHEMA]) {
-        state.api.request({ type: SCHEMA }) // TODO: RC DISCUSS this duplicates dashboard-store actions `loadSchema`, or is it kicked off by it? what happens to spoofed schemas? feels like we should just add stuff to queue here and flush when `loadSchemas` message is received
-          .then((res) => {
-            // workerActions.updateCache(res.data);
-            // TODO: RC how often is loadWorkerMethods run?
-            state.api.loadWorkerMethods({
-              getSchema: (id) => {
-                return caches[SCHEMA].getSchema(id);
-              }
-            });
-            for (const [resourceKey, resourceCache] of Object.entries(caches)) {
-              resourceCache.loadWorkerMethods({ resourceGetter: params => state.api?.request({ ...params, type: resourceKey }) });
-            }
+        console.error('No schema cache. `loadSchemas` should be called before `createApi`');
 
-            workerActions.flushApiQueue(); // TODO: RC test this stuff
-          });
+        return;
+      }
+
+      // the apiClient can only exist after schemas are loaded so we build it here.
+      state.api = new SteveApiClient(state.config, {
+        updateCache: workerActions.updateCache,
+        getSchema:   (id) => {
+          return caches[SCHEMA].getSchema(id);
+        }
+      });
+
+      for (const [resourceKey, resourceCache] of Object.entries(caches)) {
+        // TODO: RC Discuss - Why is loadWorkerMethods needed to retrospectively apply this rather than in resourceCache ctor
+        resourceCache.loadWorkerMethods({ resourceGetter: params => state.api?.request({ ...params, type: resourceKey }) });
       }
     }
   },
@@ -159,16 +187,31 @@ const workerActions = {
       workerActions.flushWatcherQueue();
     }
   },
+
+  /**
+   * Starting point for requests for resources
+   */
   waitingForResponse: (request) => {
+    console.log('WW: advanced: waitingForResponse...?', request);
     if (!caches[SCHEMA]) {
+      console.log('WW: advanced: waitingForResponse: waiting', request);
       state.apiQueue.push({ waitingForResponse: request });
 
       return;
     }
+    console.log('WW: advanced: waitingForResponse: not waiting', request);
     const { params, requestHash } = request;
 
-    workerActions.request(params, response => self.postMessage({ awaitedResponse: { response, requestHash } }));
+    workerActions.request(params, (response, error) => self.postMessage({
+      awaitedResponse: {
+        response, requestHash, error
+      }
+    }));
   },
+
+  /**
+   * Either setup the resource type and make the request for the given params... or find the resource in the cache for the given params
+   */
   request: (params, resolver = () => {}) => {
     const {
       type, namespace, id, filter, sortBy, sortOrder, limit
@@ -178,28 +221,24 @@ const workerActions = {
       state.api.request(params)
         .then((res) => {
           resolver(res);
+        })
+        .catch((e) => {
+          resolver(undefined, parseRequestError(e));
         });
     } else {
-      const a = caches[type].find({
+      caches[type].find({
         type, namespace, id, filter, sortBy, sortOrder, limit
-      });
-
-      if (!a) {
-        console.warn('ww: advanced: request 2', type, cache[type]);
-
-        debugger;
-        caches[type].find({
-          type, namespace, id, filter, sortBy, sortOrder, limit
+      })
+        .then((res) => {
+          resolver(res);
+        })
+        .catch((e) => {
+          resolver(undefined, parseRequestError(e));
         });
-      }
-
-      a.then((res) => {
-        resolver(res);
-      });
     }
   },
   /**
-   * @param {[]} collection
+   * @param {[]} payload
    * Accepts an array of JSON objects representing resources
    * types the array and constructs a cache if none exists and then loads each resource in the array into the cache
    */
@@ -229,16 +268,15 @@ const workerActions = {
       if (workerActions[action]) {
         workerActions[action](msg);
       } else {
-        // debugger;
         console.warn('no associated action for:', action); // eslint-disable-line no-console
       }
     }
   },
 
-  // TODO: RC make sure we disgard any request relating to forgotting types??
+  // TODO: RC Test - make sure we disregard any request relating to forgotten types??
   flushApiQueue: () => {
     while (state.apiQueue.length > 0) {
-      trace('createApi', 'flushing apiQueue', state.apiQueue);
+      trace('flushApiQueue', 'flushing apiQueue', state.apiQueue);
 
       const workerMessage = state.apiQueue.shift();
       const [action, msg] = Object.entries(workerMessage)[0];
@@ -246,7 +284,6 @@ const workerActions = {
       if (workerActions[action]) {
         workerActions[action](msg);
       } else {
-        debugger;
         console.warn('no associated action for:', action); // eslint-disable-line no-console
       }
     }
@@ -361,7 +398,7 @@ const resourceWatcherActions = {
     const { type, id, data } = makeResourceProps(msg);
 
     if (!caches[type]) {
-      caches[type] = resourceCache(type); //  TODO: RC
+      caches[type] = resourceCache(type);
     }
 
     caches[type].change(data, () => workerActions.updateBatch(type, id, data));
@@ -403,12 +440,13 @@ const resourceWatcherActions = {
   }
 };
 
-const maintenanceInterval = setInterval(workerActions.sendBatch, 5000); // 5 seconds // TODO: RC revisit
+const maintenanceInterval = setInterval(workerActions.sendBatch, 5000); // 5 seconds
 
 const actionPrecedence = {
   configure:     1,
-  createWatcher: 2,
-  createApi:     2
+  loadSchemas:   2,
+  createWatcher: 3,
+  createApi:     3
 };
 
 /**
@@ -428,7 +466,6 @@ onmessage = (e) => {
     if (workerActions[action]) {
       workerActions[action](e?.data[action]);
     } else {
-      debugger;
       console.warn('no associated action for:', action); // eslint-disable-line no-console
     }
   });

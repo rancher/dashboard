@@ -42,7 +42,7 @@ export async function loadSchemas(ctx, watch = true) {
   } = ctx;
 
   const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
-  const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ; // TODO: RC are spoofed schemas added to schema cache??
+  const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
 
   if (Array.isArray(res.data)) {
     res.data = res.data.concat(spoofedTypes);
@@ -157,16 +157,11 @@ export default {
       commit('registerType', type);
     }
 
-    // No need to request the resources if we have them already
-    console.warn('ds: action: findAll:', type, opt, '1');
-
-    // TODO: RC Discuss - Flow - do we have / are we forcing? get from vuex store. How do we handle both in new world?
-
+    // TODO: RC Implement - Apply to all findX
     const awCompatible = isStoreCompatibleWithAdvancedWorker(getters);
 
+    // No need to request the resources if we have them already
     if (!awCompatible && opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
-      console.warn('ds: action: findAll:', type, opt, '2 HAVE');
-
       const args = {
         type,
         revision:  '',
@@ -417,7 +412,7 @@ export default {
   //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
   //  limit: Number of records to return per page (default: 1000)
   //  sortBy: Sort by field
-  //  sortOrder: asc or desc // TODO: RC when is this ever set (even in findAll), and here?
+  //  sortOrder: asc or desc // TODO: RC  Tidy - when is this ever set (even in findAll), and here?
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
@@ -436,7 +431,7 @@ export default {
     console.log(`Find: [${ ctx.state.config.namespace }] ${ type } ${ id }`); // eslint-disable-line no-console
     let out;
 
-    if ( opt.force !== true ) { // TODO: RC Fetches from Vuex and not worker advanced cache
+    if ( opt.force !== true ) {
       out = getters.byId(type, id);
 
       if ( out ) {
@@ -454,7 +449,7 @@ export default {
       const schema = getters['schemaFor'](type);
 
       if (schema.attributes?.namespaced) {
-        const [namespace, realId] = id.split('/'); // TODO: RC id is namespace/id... which is the resource id. why need just the id??
+        const [namespace, realId] = id.split('/');
 
         namespaceAndId.namespace = namespace;
         namespaceAndId.id = realId;

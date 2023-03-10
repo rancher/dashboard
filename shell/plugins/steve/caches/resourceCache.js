@@ -114,7 +114,7 @@ export default class ResourceCache {
   /**
    * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
    */
-  find(params) { // TODO: RC should now do things other than find?
+  find(params) { // TODO: RC Implement - Should this do other things now than find?
     const { namespace, id, selector } = params;
     const { currentNamespace, currentSelector } = this.__currentParams;
 
@@ -139,7 +139,7 @@ export default class ResourceCache {
       });
     }
 
-    // TODO: RC why are we filtering here? shouldn't the cache be 1-1 with all / namespace / selector?
+    // TODO: RC Discuss - why are we filtering here? shouldn't the cache be 1-1 with all / namespace / selector?
     const filterConditions = [];
 
     if (namespace) {

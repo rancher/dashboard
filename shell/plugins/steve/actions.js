@@ -8,13 +8,36 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
-import { createWorker, isAdvancedWorker } from '@shell/plugins/steve/subscribe';
-import { CSRF } from '@shell/config/cookies';
 import { waitFor } from '@shell/utils/async';
+
+const unsupportedAdvancedWorkerOptions = ['stream', 'depaginate', 'incremental', 'hasManualRefresh', 'redirectUnauthorized'];
+const validateAdvancedWorkerOpts = (opt, supportsStream) => {
+  if (!(opt?.url && !opt.type) || opt.load === false) {
+    // These are expected, and we just shouldn't use the advanced worker
+    return false;
+  }
+
+  const invalidOptions = Object.entries(opt)
+    .filter(([name, value]) => {
+      if (name === 'stream' && !supportsStream) {
+        return false;
+      }
+
+      return !!value && unsupportedAdvancedWorkerOptions.includes(name);
+    })
+    .map(([name]) => name);
+
+  if (invalidOptions.length) {
+    // These are unexpected, and we should address where they came from
+    throw new Error(`Advanced worker is enabled but invalid options were provided: ${ invalidOptions.join(', ') }`);
+  }
+
+  return true;
+};
 
 export default {
 
-  // Need to override this, so that thhe 'this' context is correct (this class not the base class)
+  // Need to override this, so that the 'this' context is correct (this class not the base class)
   async loadSchemas(ctx, watch = true) {
     return await loadSchemas(ctx, watch);
   },
@@ -23,9 +46,11 @@ export default {
     const {
       state, dispatch, rootGetters, getters
     } = ctx;
-    const isAdvancedWorkerStore = isAdvancedWorker({ rootGetters, getters }) && (!pOpt?.url && !pOpt.type); // TODO: RC hack
 
+    console.warn('steve: action: request: ', pOpt);
     const opt = pOpt.opt || pOpt;
+    const supportsStream = state.allowStreaming && state.config.supportsStream && streamingSupported();
+    const isAdvancedWorker = getters.isAdvancedWorkerCompatible && validateAdvancedWorkerOpts(opt, supportsStream);
 
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
@@ -77,7 +102,7 @@ export default {
       }
     }
 
-    if ( opt.stream && state.allowStreaming && state.config.supportsStream && streamingSupported() ) {
+    if ( opt.stream && supportsStream) {
       // console.log('Using Streaming for', opt.url);
 
       return streamJson(opt.url, opt, opt.onData).then(() => {
@@ -95,27 +120,16 @@ export default {
       let out;
 
       try {
-        if (isAdvancedWorkerStore) {
-          // TODO: RC why could there be no worker?
-          // TODO: RC do we do this setup stuff in multiple places?? (like in subscribe)
+        if (isAdvancedWorker) {
           if (!this.$workers[getters.storeName]) {
-            createWorker(this, ctx);
+            // TODO: RC Investigate - Why could there be no worker, it should be created when the store is initialised?
+            throw new Error('Advanced worker has not been created');
           }
 
           await waitFor(() => !!this.$workers[getters.storeName], 'Worker creation');
-
-          this.$workers[getters.storeName].postMessage({
-            configure: {
-              url:       `${ state.config.baseUrl }`,
-              csrf:      this.$cookies.get(CSRF, { parseJSON: false }),
-              config:    state.config,
-              storeName: getters.storeName
-            },
-            createApi: {}
-          });
         }
 
-        if (isAdvancedWorkerStore && this.$workers[getters.storeName]) {
+        if (isAdvancedWorker && this.$workers[getters.storeName]) {
           const {
             type, namespace, id, opt: {
               limit, filter, sortBy, sortOrder

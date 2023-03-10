@@ -40,18 +40,74 @@ export default {
   },
 
   async fetch() {
-    console.warn('WILL ROBINSON?');
+    // console.warn('WILL ROBINSON?');
 
-    try {
-      // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
-      // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
+    // try {
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
 
-      await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
-      await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 3 pods', res));
-    } catch (e) {
-      console.warn('DANGER WILL ROBINSON: ', e);
-    }
-    console.warn('chill WILL ROBINSON: ');
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 2 pods', res));
+
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 2 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'junk' } }).then(res => console.info('list nodes: 3 pods', res));
+
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 1 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'cattle-system' } }).then(res => console.info('list nodes: 2 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 3 pods', res));
+
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { force: true } }).then(res => console.info('list nodes: 2 pods', res));
+
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 1 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
+
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
+
+    // TODO: RC Test - no await, multiple dispatches, only a single request made
+    // TODO: RC CI - make unit tests for these issues
+    // ----
+    //  function wait(milliseconds) {
+    //   return new Promise(resolve => setTimeout(resolve, milliseconds));
+    // }
+    // const pWait = params.namespace === 'testtest' ? wait(10000) : Promise.resolve();
+    // ----
+    // async myTest({ getters }) {
+    //   const worker = this.$workers[getters.storeName];
+
+    //   console.warn('BEFORE');
+    //   const a = await worker.postMessageAndWait({
+    //     type: 'POD', namespace: 'testtest', debug: true
+    //   })
+    //     .then((res) => {
+    //     // finishDeferred(key, 'resolve', res);
+    //       console.warn('RES: ', res);
+
+    //       return res;
+    //     })
+    //     .catch(e => console.warn('ERROR: ', e));
+
+    //   console.warn('AFTER');
+
+    //   return a;
+    // },
+    // ----
+    // await this.$store.dispatch('cluster/myTest');
+    // ----
+    // if (requestUrl.includes('configmap')) {
+    //   requestUrl = 'junky';
+    //   opt.headers = {
+    //     ...opt.headers,
+    //     cookie:       '',
+    //     'x-api-csrf': 'asdsad'
+    //   };
+    //   console.error('BREAKING', opt);
+    // }
+    // } catch (e) {
+    //   console.warn('DANGER WILL ROBINSON: ', e);
+    // }
+    // console.warn('chill WILL ROBINSON: ');
 
     this.$initializeFetchData(this.resource);
 
