@@ -3490,6 +3490,7 @@ networkpolicy:
           other {Matches {matched, number} of {total, number} existing namespaces, including "{sample}"}
         }
     matchingNamespacesAndPods:
+      tooltip: A single entry rule that specifies both Namespace Selector and Pod Selector that selects particular Pods within particular namespaces
       matchesSome: |-
         {matchedPods, plural,
           =0 {Matches 0 of {totalPods, number} pods}

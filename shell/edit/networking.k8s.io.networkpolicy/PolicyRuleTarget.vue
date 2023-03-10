@@ -214,6 +214,7 @@ export default {
         <LabeledSelect
           v-model="targetType"
           :mode="mode"
+          :tooltip="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? t('networkpolicy.selectors.matchingNamespacesAndPods.tooltip') : null"
           :options="selectTargetOptions"
           :multiple="false"
           :label="t('networkpolicy.rules.type')"
