@@ -52,8 +52,9 @@ const config = {
       navbar: {
         title: 'UI DevKit',
         logo:  {
-          alt: 'Rancher Logo',
-          src: 'img/rancher-logo.svg',
+          alt:     'Rancher Logo',
+          src:     'img/rancher-logo.svg',
+          srcDark: 'img/rancher-logo-dark.svg',
         },
         items: [
           {
@@ -70,17 +71,7 @@ const config = {
         ],
       },
       footer: {
-        style: 'dark',
-        links: [
-          {
-            label: 'Stack',
-            href:  'https://slack.rancher.io/',
-          },
-          {
-            label: 'Github',
-            href:  'https://github.com/rancher/',
-          },
-        ],
+        style:     'dark',
         copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved.`,
       },
       prism: {
