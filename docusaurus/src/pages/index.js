@@ -3,9 +3,7 @@ import clsx from 'clsx';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
-import Contribute from '@site/src/components/Contribute';
-import GettingStarted from '@site/src/components/GettingStarted';
-import Guides from '@site/src/components/Guides';
+
 import styles from './index.module.css';
 
 function HomepageHeader() {
@@ -28,17 +26,7 @@ export default function Home() {
       description="Rancher UI DevKit">
       <HomepageHeader />
       <main>
-        <section className={styles.features}>
-          <div className="container">
-            <HomepageFeatures />
-            <hr/>
-            <Contribute/>
-            <hr/>
-            <GettingStarted/>
-            <hr/>
-            <Guides/>
-          </div>
-        </section>
+        <HomepageFeatures />
       </main>
     </Layout>
   );

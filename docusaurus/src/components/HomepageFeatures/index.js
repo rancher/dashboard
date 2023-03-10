@@ -1,18 +1,17 @@
 import React from 'react';
 import clsx from 'clsx';
-import styles from '../styles.module.css';
-import ExternalLinkIcon from '@site/static/img/external-link.svg';
+import styles from './styles.module.css';
 
 const FeatureList = [
   {
     title:       'Developer Documentation',
     link:        'home',
     target:      '',
-    Svg:         require('@site/static/img/developer-documentation.svg').default,
-    icon:        'hide',
+    Svg:         require('@site/static/img/documentation.svg').default,
     description: (
       <>
-        Learn the basics of working with the Rancher UI. Familiarize yourself with the development environment, concepts, extensions and new Rancher UI.
+        This section covers the basics of working with the Rancher UI. It will familiarize you with the development
+        environment, concepts, extensions and new Rancher UI.
       </>
     ),
   },
@@ -20,29 +19,27 @@ const FeatureList = [
     title:       'Components & Design kit',
     link:        'https://rancher.github.io/storybook/',
     target:      '_blank',
-    Svg:         require('@site/static/img/components-and-design-kit.svg').default,
-    icon:        'show',
+    Svg:         require('@site/static/img/storybook.svg').default,
     description: (
       <>
-        Rancher storybook is a collection of pre-built, reusable assets—components, patterns, and documentation guidance, to help developers to build consistent UI experiences faster.
+        Rancher storybook is a collection of pre-built, reusable assets—components, patterns, and documentation guidance, to help
+        developers to build consistent UI experiences faster.
       </>
     ),
   },
 ];
 
 function Feature( {
-  Svg, title, description, link, target, icon
+  Svg, title, description, link, target
 } ) {
   return (
     <div className={clsx('col col--6')}>
       <a className="featureLink" href={link} target={target}>
-        <div className="resourcesSvg">
+        <div className="text--center">
           <Svg className={styles.featureSvg} role="img" />
         </div>
-        <div className="padding-horiz--md">
-          <h2 className='exterl-link'>{title}
-            <ExternalLinkIcon title="Docusaurus Logo" className={`link-icon ${ icon }`} />
-          </h2>
+        <div className="text--center padding-horiz--md">
+          <h3>{title}</h3>
           <p>{description}</p>
         </div>
       </a>
@@ -52,13 +49,14 @@ function Feature( {
 
 export default function HomepageFeatures() {
   return (
-    <div>
-      <h1>Resources</h1>
-      <div className="row">
-        {FeatureList.map((props, idx) => (
-          <Feature key={idx} {...props} />
-        ))}
+    <section className={styles.features}>
+      <div className="container">
+        <div className="row">
+          {FeatureList.map((props, idx) => (
+            <Feature key={idx} {...props} />
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
