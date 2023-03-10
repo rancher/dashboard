@@ -5,7 +5,9 @@ import Vue, { PropType } from 'vue';
 import Application from '../models/applications';
 import SimpleBox from '@shell/components/SimpleBox.vue';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
-import { APPLICATION_ENV_VAR, EPINIO_APP_ENV_VAR_GIT, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import {
+  APPLICATION_ENV_VAR, EPINIO_APP_ENV_VAR_GIT, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+} from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
@@ -15,9 +17,9 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
 import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
-import { GitUtils } from '../utils/git';
+import { GitUtils, toLabel } from '../utils/git';
 import { isArray } from '@shell/utils/array';
-
+import startCase from 'lodash/startCase';
 interface Data {
 }
 
@@ -62,6 +64,7 @@ export default Vue.extend<Data, any, any, any>({
     const configsHeaders: [] = this.$store.getters['type-map/headersFor'](configsSchema);
 
     return {
+      APPLICATION_MANIFEST_SOURCE_TYPE,
       saving:        false,
       gitSource:     null,
       gitDeployment: {
@@ -138,7 +141,9 @@ export default Vue.extend<Data, any, any, any>({
       day.extend(relativeTime);
 
       return from ? day(date).fromNow() : day(date).format('DD MMM YYYY');
-    }
+    },
+    startCase,
+    toLabel,
   },
   computed: {
     gitType() {
@@ -224,6 +229,10 @@ export default Vue.extend<Data, any, any, any>({
         text:     ( idx - 1) >= 0 ? `${ idx } ${ this.t('epinio.applications.gitSource.behindCommits') }` : this.t('epinio.applications.gitSource.latestCommit'),
         position: idx
       };
+    },
+
+    originLabel() {
+      return this.value.sourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT ? startCase(this.gitType) : this.value.sourceInfo.label;
     }
   }
 });
@@ -376,10 +385,14 @@ export default Vue.extend<Data, any, any, any>({
               </div>
             </SimpleBox>
             <SimpleBox v-if="value.sourceInfo">
-              <h4 class="mb-10">
-                {{ t('epinio.applications.detail.deployment.details.label') }}
-              </h4>
-
+              <div class="mb-10 deployment__details__header">
+                <i
+                  v-if="value.sourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT"
+                  class="icon git-icon"
+                  :class="{[`icon-${gitType}`]: true}"
+                />
+                <h4>{{ t('epinio.applications.detail.deployment.details.label') }}</h4>
+              </div>
               <div
                 v-if="gitSource"
                 class="repo-info"
@@ -395,7 +408,7 @@ export default Vue.extend<Data, any, any, any>({
                 <ul>
                   <li>
                     <h4>{{ t('epinio.applications.detail.deployment.details.origin') }}</h4>
-                    <span>{{ value.sourceInfo.label }}</span>
+                    <span>{{ originLabel }}</span>
                   </li>
 
                   <li
@@ -684,6 +697,19 @@ export default Vue.extend<Data, any, any, any>({
   }
 
 }
+
+.deployment__details__header {
+  display: flex;
+  align-items: center;
+  h4 {
+    margin: 0
+  }
+  .git-icon {
+    margin: 0 3px 0 -3px;
+    font-size: 25px;
+  }
+}
+
 .deployment__origin__list {
   ul {
     margin: 0;
