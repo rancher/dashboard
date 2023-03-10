@@ -14,6 +14,7 @@ import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 import camelCase from 'lodash/camelCase';
+import { toLabel } from '../../utils/git';
 
 const GIT_BASE_URL = {
   [APPLICATION_SOURCE_TYPE.GIT_HUB]: 'https://github.com',
@@ -399,7 +400,7 @@ export default Vue.extend<Data, any, any, any>({
     sourceValue() {
       return {
         ...this.source.git,
-        type: this.type.replace('_', '')
+        type: toLabel(this.type),
       };
     },
 

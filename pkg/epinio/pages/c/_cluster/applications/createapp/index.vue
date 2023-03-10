@@ -11,7 +11,7 @@ import AppConfiguration, { EpinioAppBindings } from '../../../../../components/a
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
 import { allHash } from '@shell/utils/promise';
-import { GitUtils } from '../../../../../utils/git';
+import { GitUtils, toLabel } from '../../../../../utils/git';
 
 interface Data {
   value?: Application,
@@ -112,7 +112,7 @@ export default Vue.extend<Data, any, any, any>({
 
       if (changes.type === APPLICATION_SOURCE_TYPE.GIT_HUB || changes.type === APPLICATION_SOURCE_TYPE.GIT_LAB) {
         this.value.configuration.environment = this.value.configuration.environment || {};
-        const type = changes.type.replace('_', '');
+        const type = toLabel(changes.type);
         const gitEnvVar = GitUtils[type].application.env(changes.git);
 
         this.set(

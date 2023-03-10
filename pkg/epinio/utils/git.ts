@@ -1,4 +1,5 @@
 import { EPINIO_APP_ENV_VAR_GIT } from '../types';
+import startCase from 'lodash/startCase';
 
 interface Repo {
   owner: any,
@@ -37,11 +38,21 @@ function getShortHash(commit: string) {
 
 function applicationEnv(data: any) {
   return {
-    type:          data.type.replace('_', ''),
+    type:          toLabel(data.type),
     usernameOrOrg: data.usernameOrOrg as string,
     repo:          data.repo,
     branch:        data.branch,
   };
+}
+
+export function toLabel(type: string, options = { startCase: false }) {
+  const res = type.replace('_', '');
+
+  if (options?.startCase) {
+    return startCase(res);
+  }
+
+  return res;
 }
 
 export const GitUtils: Utils = {
