@@ -118,6 +118,9 @@ export default {
     },
 
     projectName(newProjectName) {
+      if (newProjectName === null) {
+        this.projectName = '(None)';
+      }
       this.$set(this, 'project', this.projects.find(p => p.id.includes(newProjectName)));
     }
   },
@@ -171,9 +174,9 @@ export default {
       :value="value"
       :namespaced="false"
       :mode="mode"
+      :extra-columns="['project-col']"
     >
       <template
-        v-if="project"
         #project-col
       >
         <LabeledSelect
