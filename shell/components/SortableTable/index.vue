@@ -436,6 +436,14 @@ export default {
       return this.$store.getters['activeNamespaceCache'];
     },
 
+    selectedRowsLength() {
+      if ( this.selectedRows.length <= this.rows.length ){
+        return this.selectedRowsText;
+      } else {
+        return this.t('sortableTable.actionAvailability.selected', { actionable: this.rows.length });;
+      }
+    },
+
     initalLoad() {
       return !!(!this.loading && !this._didinit && this.rows?.length);
     },
@@ -885,7 +893,9 @@ export default {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
-    }
+    },
+
+    
   }
 };
 </script>
@@ -974,7 +984,7 @@ export default {
                 :class="bulkActionAvailabilityClass"
                 class="action-availability"
               >
-                {{ selectedRowsText }}
+                {{ selectedRowsLength }}
               </label>
             </template>
           </slot>
