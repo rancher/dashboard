@@ -58,6 +58,8 @@ export default Vue.extend<Data, any, any, any>({
       type:        EPINIO_TYPES.APP_ACTION,
     };
 
+    console.log('fetching namespaces', this.application);
+
     if (!this.namespaces.find((ns: EpinioNamespace) => ns.name === coreArgs.application?.meta.namespace)) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {

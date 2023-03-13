@@ -388,6 +388,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         name:          this.meta.name,
         configuration: {
           appchart:       this.configuration.appchart,
+          settings:       this.configuration?.settings || null,
           instances:      this.configuration.instances,
           configurations: this.configuration.configurations,
           environment:    this.configuration.environment,

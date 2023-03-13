@@ -67,9 +67,11 @@ export default Vue.extend<Data, any, any, any>({
       configuration: {
         instances:   this.application.configuration?.instances || 1,
         environment: this.application.configuration?.environment || {},
+        settings:    this.application.configuration?.settings || {},
         routes:      this.application.configuration?.routes || [],
       },
     };
+
     this.$emit('valid', this.valid);
   },
 
@@ -79,6 +81,10 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     'values.configuration.environment'() {
+      this.update();
+    },
+
+    'values.configuration.settings'() {
       this.update();
     },
 
@@ -160,6 +166,19 @@ export default Vue.extend<Data, any, any, any>({
         :protip="t('epinio.applications.create.routes.tooltip')"
         :mode="mode"
         :value-placeholder="t('epinio.applications.create.routes.placeholder')"
+      />
+    </div>
+    <div class="spacer" />
+    <div class="col span-8">
+      <KeyValue
+        v-if="values.configuration.settings"
+        v-model="values.configuration.settings"
+        data-testid="epinio_app-info_envs"
+        :mode="mode"
+        :title="t('epinio.applications.create.appVars.title')"
+        :key-label="t('epinio.applications.create.appVars.keyLabel')"
+        :value-label="t('epinio.applications.create.appVars.valueLabel')"
+        :parse-lines-from-file="true"
       />
     </div>
     <div class="spacer" />

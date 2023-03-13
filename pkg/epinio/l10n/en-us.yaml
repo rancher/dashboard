@@ -122,6 +122,10 @@ epinio:
       title: Application
       titleSubText: Epinio
       instances: Instances
+      appVars:
+        title: Application Variables
+        keyLabel: Name
+        valueLabel: Value
       envvar:
         title: Environment Variables
         keyLabel: Name
