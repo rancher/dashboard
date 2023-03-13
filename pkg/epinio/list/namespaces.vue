@@ -117,9 +117,7 @@ export default {
       const validateName = name.match(/[a-z0-9]([-a-z0-9]*[a-z0-9])?/);
 
       if (!validateName || validateName[0] !== name) {
-        this.errors = [
-          "Namespace's name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc')"
-        ];
+        this.errors = [this.t('epinio.namespace.validations.name')];
 
         return;
       }
