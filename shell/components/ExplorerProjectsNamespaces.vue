@@ -416,7 +416,7 @@ export default {
             {{ row.name }}
           </span>
           <i
-            v-if="row.isIstioInjectionEnabled"
+            v-if="row.injectionEnabled"
             v-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
             class="icon icon-istio ml-5"
           />

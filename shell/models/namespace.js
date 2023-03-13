@@ -260,8 +260,4 @@ export default class Namespace extends SteveModel {
   get hideDetailLocation() {
     return !!this.$rootGetters['currentProduct'].hideNamespaceLocation;
   }
-
-  get isIstioInjectionEnabled() {
-    return this.metadata.labels[ISTIO_LABELS.AUTO_INJECTION] === 'enabled';
-  }
 }

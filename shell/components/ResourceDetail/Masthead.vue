@@ -430,7 +430,7 @@ export default {
               :value="value"
             />
             <span
-              v-if="!isCreate && value.isIstioInjectionEnabled"
+              v-if="!isCreate && value.injectionEnabled"
               class="masthead-istio"
             >
               <i
