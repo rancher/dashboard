@@ -30,7 +30,7 @@ export default function steveCreateWorker(ctx, mode) {
     // - This locates the promise from above and resolves it
 
     const {
-      type, id, namespace, selector, limit, filter, sortBy, sortOrder
+      type, id, namespace, selector, limit, filter, sortBy, sortOrder, force
     } = params;
 
     try {
@@ -42,7 +42,8 @@ export default function steveCreateWorker(ctx, mode) {
         limit,
         filter,
         sortBy,
-        sortOrder
+        sortOrder,
+        force
       }));
       const requestHash = JSON.stringify(requestParams);
 

@@ -213,8 +213,10 @@ const workerActions = {
    */
   request: (params, resolver = () => {}) => {
     const {
-      type, namespace, id, filter, sortBy, sortOrder, limit
+      type, namespace, id, filter, sortBy, sortOrder, limit, force
     } = params;
+
+    console.warn('RC: AD: request', params);
 
     // TODO: RC test: refresh on detail page (find id). nav back to detail page
 
@@ -229,7 +231,7 @@ const workerActions = {
         });
     } else {
       caches[type].find({
-        type, namespace, id, filter, sortBy, sortOrder, limit
+        type, namespace, id, filter, sortBy, sortOrder, limit, force
       })
         .then((res) => {
           return resolver(res);

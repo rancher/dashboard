@@ -141,7 +141,7 @@ export default {
         if (isAdvancedWorker && this.$workers[getters.storeName]) {
           const {
             type, namespace, id, opt: {
-              limit, filter, sortBy, sortOrder
+              limit, filter, sortBy, sortOrder, force
             } = {}
           } = pOpt;
 
@@ -153,7 +153,8 @@ export default {
             limit,
             sortBy,
             sortOrder,
-            getters
+            getters,
+            force
           });
         } else {
           out = await makeRequest(this, opt);
@@ -205,12 +206,12 @@ export default {
     }
 
     function makeWorkerRequest(that, {
-      type, namespace, id, limit, filter, sortBy, sortOrder, getters
+      type, namespace, id, limit, filter, sortBy, sortOrder, getters, force
     }) {
       const worker = that.$workers[getters.storeName];
 
       return worker.postMessageAndWait({
-        type, namespace, id, limit, filter, sortBy, sortOrder
+        type, namespace, id, limit, filter, sortBy, sortOrder, force
       }).then((res) => {
         finishDeferred(key, 'resolve', res);
 

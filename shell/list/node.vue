@@ -54,12 +54,16 @@ export default {
     // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 2 pods', res));
     // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'junk' } }).then(res => console.info('list nodes: 3 pods', res));
 
-    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 1 pods', res));
-    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'cattle-system' } }).then(res => console.info('list nodes: 2 pods', res));
-    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 3 pods', res));
+    // const mapNs = res => res.map(p => ({ id: p.id, namespace: p.metadata.namespace }));
 
-    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', res));
-    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { force: true } }).then(res => console.info('list nodes: 2 pods', res));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 1 pods', mapNs(res)));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'cattle-system' } }).then(res => console.info('list nodes: 2 pods', mapNs(res)));
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 3 pods', mapNs(res)));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'cattle-system' } }).then(res => console.info('list nodes: 4 pods', mapNs(res)));
+
+    // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 1 pods', mapNs(res)));
+    // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { force: true } }).then(res => console.info('list nodes: 2 pods', mapNs(res)));
+    // console.warn('list nodes 3 pods', mapNs(this.$store.getters['cluster/all'](POD)));
 
     // await this.$store.dispatch('cluster/findAll', { type: POD, opt: { namespaced: 'default' } }).then(res => console.info('list nodes: 1 pods', res));
     // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
@@ -67,6 +71,7 @@ export default {
     // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
 
     // TODO: RC Test - no await, multiple dispatches, only a single request made
+    // TODO: RC test individual
     // ----
     //  function wait(milliseconds) {
     //   return new Promise(resolve => setTimeout(resolve, milliseconds));

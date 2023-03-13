@@ -117,31 +117,52 @@ export default class ResourceCache {
    * Responses are expected in `{ data: res }` format, so anything from cache must behave like a http request
    */
   find(params) { // TODO: RC Implement - Should this do other things now than find?
-    const { namespace, id, selector } = params;
-    const { currentNamespace, currentSelector } = this.__currentParams;
+    const {
+      namespace, id, selector, force
+    } = params;
+    const { currentNamespace, currentSelector } = this.__currentParams; // undefined means we haven't fetch any
+    const newNamespace = namespace || null;
+    const newSelector = selector || null;
 
-    this.__currentParams.namespace = namespace || null;
-    this.__currentParams.selector = selector || null;
-    if (id) {
+    let request;
+
+    if (force) {
+      request = this.__resourceRequest({
+        id, namespace, selector, force
+      });
+    } else if (id) {
       if (this.resources[id]) {
         return Promise.resolve(this.resources[id].resource);
+      } else {
+        request = this.__resourceRequest({
+          id, namespace, selector, force
+        });
       }
+    } else {
+      // Selectively made the http request. This covers the case where we have all resources and are interested in a subset of them
+      const changed = currentNamespace !== newNamespace || currentSelector !== newSelector;
+      const haveAll = currentNamespace === null && currentSelector === null;
+      const haveNone = currentNamespace === undefined && currentSelector === undefined;
 
-      return this.__resourceRequest({
-        id, namespace, selector
+      if (
+        !haveAll && (haveNone || changed)
+      ) {
+        request = this.__resourceRequest({
+          id, namespace, selector
+        });
+      }
+    }
+
+    if (request) {
+      return request.then((res) => {
+        // Only set namespace/selectors if we've changed the resource cache, otherwise the state of the cache remains unchanged
+        this.__currentParams.currentNamespace = newNamespace;
+        this.__currentParams.currentSelector = newSelector;
+
+        return res;
       });
     }
 
-    if (
-      (currentNamespace !== namespace || currentSelector !== selector) && // if either of these are different
-      !(currentNamespace === null && currentSelector === null) // if both are null then we've got a global request
-    ) {
-      return this.__resourceRequest({
-        id, namespace, selector
-      });
-    }
-
-    // TODO: RC Discuss - why are we filtering here? shouldn't the cache be 1-1 with all / namespace / selector?
     const filterConditions = [];
 
     if (namespace) {

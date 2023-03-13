@@ -151,10 +151,12 @@ export default {
       commit('registerType', type);
     }
 
-    const awCompatible = getters.advancedWorkerCompatible;
-
     // No need to request the resources if we have them already
-    if (!awCompatible && opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
+    if (
+      !getters.advancedWorkerCompatible &&
+      opt.force !== true &&
+      (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))
+    ) {
       const args = {
         type,
         revision:  '',
