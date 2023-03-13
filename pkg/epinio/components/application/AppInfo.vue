@@ -6,6 +6,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Loading from '@shell/components/Loading.vue';
+import Banner from '@components/Banner/Banner.vue';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
@@ -37,7 +38,8 @@ export default Vue.extend<Data, any, any, any>({
     NameNsDescription,
     LabeledInput,
     KeyValue,
-    Loading
+    Loading,
+    Banner
   },
 
   props: {
@@ -169,17 +171,27 @@ export default Vue.extend<Data, any, any, any>({
       />
     </div>
     <div class="spacer" />
-    <div class="col span-8">
+    <div
+      v-if="values.configuration.settings"
+      class="col span-8"
+    >
+      <Banner
+        v-if="mode === 'edit'"
+        color="info"
+      >
+        {{ t('epinio.applications.create.settingsVars.description') }}
+      </Banner>
       <KeyValue
-        v-if="values.configuration.settings"
+
         v-model="values.configuration.settings"
         data-testid="epinio_app-info_envs"
         :mode="mode"
-        :title="t('epinio.applications.create.appVars.title')"
-        :key-label="t('epinio.applications.create.appVars.keyLabel')"
-        :value-label="t('epinio.applications.create.appVars.valueLabel')"
+        :title="t('epinio.applications.create.settingsVars.title')"
+        :key-label="t('epinio.applications.create.settingsVars.keyLabel')"
+        :value-label="t('epinio.applications.create.settingsVars.valueLabel')"
         :parse-lines-from-file="true"
       />
+      </span>
     </div>
     <div class="spacer" />
     <div class="col span-8">

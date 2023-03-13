@@ -86,6 +86,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     updateInfo(changes: any) {
+      console.log('🚀 ~ file: applications.vue:89 ~ updateInfo ~ changes:', changes);
       this.value.meta = this.value.meta || {};
       this.value.configuration = this.value.configuration || {};
       this.set(this.value.meta, changes.meta);

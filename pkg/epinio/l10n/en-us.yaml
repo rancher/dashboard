@@ -122,10 +122,11 @@ epinio:
       title: Application
       titleSubText: Epinio
       instances: Instances
-      appVars:
+      settingsVars:
         title: Application Variables
         keyLabel: Name
         valueLabel: Value
+        description: Changing the value of an existing Application Variable will also restart your application.
       envvar:
         title: Environment Variables
         keyLabel: Name

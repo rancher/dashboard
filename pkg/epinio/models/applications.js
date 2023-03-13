@@ -430,10 +430,16 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       data: {
         instances:      this.configuration.instances,
         configurations: this.configuration.configurations,
+        settings:       this.configuration.settings ?? null,
         environment:    this.configuration.environment,
         routes:         this.configuration.routes,
       }
     });
+
+    // Restart app after applying new custom-values
+    if (this.configuration.settings) {
+      await this.restart();
+    }
   }
 
   async storeArchive(data) {
