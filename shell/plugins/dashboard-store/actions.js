@@ -72,6 +72,7 @@ export async function loadSchemas(ctx, watch = true) {
 }
 
 const isStoreCompatibleWithAdvancedWorker = (getters) => {
+  // TODO: RC get rid, replace with common
   const storeName = getters.storeName;
 
   return storeName === 'cluster';
@@ -265,7 +266,7 @@ export default {
       const namespace = opt.watchNamespace || opt.namespaced;
 
       const res = await dispatch('request', {
-        opt, type, namespace
+        opt, type, namespace, load // TODO: RC make `load` compatible with the bucket used by AD worker stuff
       });
 
       if ( streamStarted ) {
@@ -445,7 +446,7 @@ export default {
     const namespaceAndId = {};
 
     // ToDo: we'll need to figure out how to do this for all other stores if the advanced worker ever makes it beyond 'cluster'
-    if (isStoreCompatibleWithAdvancedWorker(getters)) {
+    if (isStoreCompatibleWithAdvancedWorker(getters)) { // TODO: RC Implement Change to new advancedWorkerCompatible getter
       const schema = getters['schemaFor'](type);
 
       if (schema.attributes?.namespaced) {

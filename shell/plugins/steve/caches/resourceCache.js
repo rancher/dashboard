@@ -17,23 +17,23 @@ export default class ResourceCache {
   __currentParams = {};
 
   /**
-   * Makes the http request to fetch the resource. Links to SteveApiClient request
+   * Makes the http request to fetch the resource. Links to ResourceRequest request
    */
-  __resourceGetter = () => {};
+  __resourceRequest = () => {};
 
   /**
    * This property stores named functions
    */
   preCacheFields = [];
 
-  constructor(type, resourceGetter) {
+  constructor(type, resourceRequest) {
     this.type = normalizeType(type);
     this.keyField = keyFieldFor(this.type);
-    this.__resourceGetter = resourceGetter || this.__resourceGetter;
+    this.__resourceRequest = resourceRequest || this.__resourceRequest;
   }
 
   loadWorkerMethods(methods) {
-    this.__resourceGetter = methods.resourceGetter || this.__resourceGetter;
+    this.__resourceRequest = methods.resourceRequest || this.__resourceRequest;
   }
 
   /**
@@ -113,6 +113,8 @@ export default class ResourceCache {
 
   /**
    * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
+   *
+   * Responses are expected in `{ data: res }` format, so anything from cache must behave like a http request
    */
   find(params) { // TODO: RC Implement - Should this do other things now than find?
     const { namespace, id, selector } = params;
@@ -125,7 +127,7 @@ export default class ResourceCache {
         return Promise.resolve(this.resources[id].resource);
       }
 
-      return this.__resourceGetter({
+      return this.__resourceRequest({
         id, namespace, selector
       });
     }
@@ -134,7 +136,7 @@ export default class ResourceCache {
       (currentNamespace !== namespace || currentSelector !== selector) && // if either of these are different
       !(currentNamespace === null && currentSelector === null) // if both are null then we've got a global request
     ) {
-      return this.__resourceGetter({
+      return this.__resourceRequest({
         id, namespace, selector
       });
     }
@@ -150,7 +152,7 @@ export default class ResourceCache {
     }
 
     if (filterConditions.length === 0) {
-      return Promise.resolve(Object.values(this.resources).map(resource => resource.resource));
+      return Promise.resolve({ data: Object.values(this.resources).map(resource => resource.resource) });
     }
 
     return Promise.resolve({

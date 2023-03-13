@@ -315,7 +315,7 @@ export default {
     return {};
   },
 
-  isAdvancedWorkerCompatible: (state, getters, rootState, rootGetters) => {
+  advancedWorkerCompatible: (state, getters, rootState, rootGetters) => {
     // TODO: RC Test - before merge ensure this works correctly
     const storeName = getters.storeName;
     const clusterId = rootGetters.clusterId;

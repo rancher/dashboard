@@ -8,7 +8,7 @@ import { SCHEMA } from '@shell/config/types';
 /**
  * Handle http requests to the steve api, also cache the response
  */
-export default class SteveApiClient {
+export default class ResourceRequest {
     /**
      * Function that will fetch the schema for a given resource type
      */
@@ -61,17 +61,30 @@ export default class SteveApiClient {
       return `${ resourceUrl }${ resourceQuery }`;
     }
 
+    /**
+     * Make the http request
+     */
     request(params) {
       const opt = {
         method:  'get',
         headers: { accept: 'application/json' },
       };
 
+      console.warn('RC: resourceRequest: request', params);
+
       if (this.config.csrf) {
-        opt.headers['x-api-csrf'] = this.csrf;
+        opt.headers['x-api-csrf'] = this.__config.csrf;
       }
 
       const requestUrl = this.__resourceUrl(params);
+
+      // TODO: RC remove
+      // if (requestUrl.includes('configmap')) {
+      //   return Promise.reject(new Error(`Mocked 404: ${ params.type }`, { cause: { response: { status: 401 } } }));
+      // }
+      // if (requestUrl.includes('node')) {
+      //   debugger;
+      // }
 
       // fetch itself will reject a promise if the server fails to send a response (no connection, server not responding, etc)
       return fetch(requestUrl, opt)
@@ -82,10 +95,10 @@ export default class SteveApiClient {
             return res.json();
           }
 
-          throw new Error(`Resource error retrieving resource(s): ${ params.type }`, { cause: { response: res } });
+          throw new Error(`Error making resource(s) http request: ${ params.type }`, { cause: { response: res } });
         })
         .then((res) => {
-          this.__updateCache(res.data || res, !!params.id); // TODO: RC Investigate what happens here on delete, push, etc
+          this.__updateCache(params.type, res.data || res, !!params.id); // TODO: RC Investigate what happens here on delete, push, etc
 
           return res;
         });

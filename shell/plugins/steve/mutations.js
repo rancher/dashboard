@@ -13,7 +13,7 @@ import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { perfLoadAll } from '@shell/plugins/steve/performanceTesting';
 import Vue from 'vue';
 import { classify } from '@shell/plugins/dashboard-store/classify';
-import { CSRF } from '@shell/config/cookies';
+import { createWorker } from '@shell/plugins/steve/subscribe';
 
 function registerNamespace(state, namespace) {
   let cache = state.podsByNamespace[namespace];
@@ -117,7 +117,7 @@ export default {
     }
   },
 
-  loadAll(state, {
+  async loadAll(state, {
     type,
     data,
     ctx,
@@ -141,17 +141,17 @@ export default {
 
     // Notify the web worker of the initial load of schemas
     if (type === SCHEMA) {
-      const worker = (this.$workers || {})[ctx.getters.storeName];
+      let worker = (this.$workers || {})[ctx.getters.storeName];
+
+      if (!worker && ctx.getters.advancedWorkerCompatible) {
+        // We've likely navigated away from a cluster at some point and cleared the $workers[storename] entry
+        await createWorker(this, ctx);
+        worker = (this.$workers || {})[ctx.getters.storeName];
+      }
 
       if (worker) {
         // Store raw json objects, not the proxies
         worker.postMessage({
-          configure: {
-            url:       `${ state.config.baseUrl }`,
-            csrf:      this.$cookies.get(CSRF, { parseJSON: false }), // TODO: RC Test - i think this is empty
-            config:    state.config,
-            storeName: ctx.getters.storeName
-          },
           loadSchemas: data,
           createApi:   {},
         });

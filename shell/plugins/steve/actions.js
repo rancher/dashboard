@@ -1,6 +1,6 @@
 import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
-import { handleSpoofedRequest, loadSchemas } from '@shell/plugins/dashboard-store/actions';
+import { handleSpoofedRequest, loadSchemas, _ALL } from '@shell/plugins/dashboard-store/actions';
 import { set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';
@@ -11,10 +11,17 @@ import jsyaml from 'js-yaml';
 import { waitFor } from '@shell/utils/async';
 
 const unsupportedAdvancedWorkerOptions = ['stream', 'depaginate', 'incremental', 'hasManualRefresh', 'redirectUnauthorized'];
-const validateAdvancedWorkerOpts = (opt, supportsStream) => {
-  if (!(opt?.url && !opt.type) || opt.load === false) {
+const validateAdvancedWorkerOpts = (type, opt, { cacheLoadStrategy = _ALL, supportsStream }) => {
+  if ((opt?.url && !type) || opt.load === false) {
+    console.warn('RC steve: action: validateAdvancedWorkerOpts: skipping AD', opt, cacheLoadStrategy, supportsStream);
+
     // These are expected, and we just shouldn't use the advanced worker
     return false;
+  }
+
+  // cacheLoadStrategy is a more complex version of opt.load and details how the result should be added to the store
+  if (cacheLoadStrategy !== _ALL) {
+    throw new Error(`Advanced worker is only compatible with the "ALL" load strategy`);
   }
 
   const invalidOptions = Object.entries(opt)
@@ -42,15 +49,21 @@ export default {
     return await loadSchemas(ctx, watch);
   },
 
-  async request(ctx, pOpt ) {
+  // TODO: RC findX vs request
+  // - at some point, we're not storing anything other than pages in vuex?
+  async request(ctx, pOpt) {
     const {
       state, dispatch, rootGetters, getters
     } = ctx;
 
-    console.warn('steve: action: request: ', pOpt);
+    console.warn('RC steve: action: request: ', pOpt);
     const opt = pOpt.opt || pOpt;
     const supportsStream = state.allowStreaming && state.config.supportsStream && streamingSupported();
-    const isAdvancedWorker = getters.isAdvancedWorkerCompatible && validateAdvancedWorkerOpts(opt, supportsStream);
+    // TODO: RC do same as below
+    const isAdvancedWorker = getters.advancedWorkerCompatible && validateAdvancedWorkerOpts(pOpt.type, opt, {
+      cacheLoadStrategy: pOpt.load,
+      supportsStream
+    });
 
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
@@ -133,7 +146,7 @@ export default {
           const {
             type, namespace, id, opt: {
               limit, filter, sortBy, sortOrder
-            }
+            } = {}
           } = pOpt;
 
           out = await makeWorkerRequest(this, {

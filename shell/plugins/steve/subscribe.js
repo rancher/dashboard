@@ -10,7 +10,6 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { SCHEMA } from '@shell/config/types';
-import { CSRF } from '@shell/config/cookies';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
@@ -46,18 +45,20 @@ export async function createWorker(store, ctx) {
 
   store.$workers = store.$workers || {};
 
+  // TODO: RC use common function
   if (storeName !== 'cluster') {
     return;
   }
 
   await waitForManagement(store);
   // getting perf setting in a separate constant here because it'll provide other values we'll want later.
-  const advancedWorker = getters.isAdvancedWorkerCompatible;
+  const advancedWorker = getters.advancedWorkerCompatible;
 
   const workerActions = {
     load: (resource) => {
       queueChange(ctx, resource, true, 'Change');
     },
+    // TODO: RC long running request... change clusters (this triggers, what happens on response?)
     destroyWorker: () => {
       if (store.$workers) {
         store.$workers[storeName].terminate();
@@ -89,13 +90,9 @@ export async function createWorker(store, ctx) {
 
   if (!store.$workers[storeName]) {
     const workerMode = advancedWorker ? 'advanced' : 'basic';
-    const worker = store.steveCreateWorker(workerMode);
+    const worker = store.steveCreateWorker(ctx, workerMode);
 
     store.$workers[storeName] = worker;
-
-    if (workerMode === 'basic') {
-      worker.postMessage({ initWorker: { storeName } });
-    }
 
     /**
      * Covers message from Worker to UI thread
@@ -209,19 +206,12 @@ const sharedActions = {
     const maxTries = growlsDisabled(rootGetters) ? null : 3;
     const connectionMetadata = get(opt, 'metadata');
 
-    if (ctx.getters.isAdvancedWorkerCompatible) {
+    if (ctx.getters.advancedWorkerCompatible) {
       if (!this.$workers[getters.storeName]) {
         await createWorker(this, ctx);
       }
-
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
-        configure: {
-          url:       `${ state.config.baseUrl }`,
-          csrf:      this.$cookies.get(CSRF, { parseJSON: false }),
-          config:    state.config,
-          storeName: getters.storeName
-        },
         createWatcher: {
           connectionMetadata,
           maxTries
@@ -382,7 +372,7 @@ const sharedActions = {
         stop: true, // Stops the watch on a type
       };
 
-      if (ctx.getters.isAdvancedWorkerCompatible) {
+      if (ctx.getters.advancedWorkerCompatible) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (getters['watchStarted'](obj)) {
         // Set that we don't want to watch this type

@@ -2,8 +2,9 @@
 import basicWorkerConstructor from '@shell/plugins/steve/worker/web-worker.basic.js';
 // eslint-disable-next-line no-unused-vars
 import advancedWorkerConstructor from '@shell/plugins/steve/worker/web-worker.advanced.js';
+import { CSRF } from '@shell/config/cookies';
 
-export default function storeWorker(mode, options = {}, closures = {}) {
+export default function steveCreateWorker(ctx, mode) {
   let worker;
 
   /**
@@ -21,8 +22,8 @@ export default function storeWorker(mode, options = {}, closures = {}) {
     // 2) Worker thread action handles `waitingForResponse` and passes on to another worker thread action `request`
     // - This passes in a callback that is executed once the API request is completed
     // 3) Worker thread action handles `request` and calls `state.api.request`
-    // - state.api is a SteveApiClient instance
-    // 4) SteveApiClient `request` makes http request and triggers callback
+    // - state.api is a ResourceRequest instance
+    // 4) ResourceRequest `request` makes http request and triggers callback
     // - callback sends message `awaitedResponse` to UI thread
     // ------ ui / worker thread divide ------
     // 5) Subscribe instance handles `awaitedResponse`
@@ -81,8 +82,18 @@ export default function storeWorker(mode, options = {}, closures = {}) {
     worker = new advancedWorkerConstructor();
     worker.requests = {};
     worker.postMessageAndWait = postMessageAndWait;
+
+    worker.postMessage({
+      initWorker: {
+        url:       `${ ctx.state.config.baseUrl }`,
+        csrf:      this.$cookies.get(CSRF, { parseJSON: false }), // steveCreateWorker is in the root store
+        config:    ctx.state.config,
+        storeName: ctx.getters.storeName
+      },
+    });
   } else {
     worker = new basicWorkerConstructor();
+    worker.postMessage({ initWorker: { storeName: ctx.getters.storeName } });
   }
   worker.mode = mode;
 

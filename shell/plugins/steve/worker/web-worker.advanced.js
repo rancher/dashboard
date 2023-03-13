@@ -9,7 +9,7 @@ import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@she
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import cacheClasses from '@shell/plugins/steve/caches';
-import SteveApiClient from '@shell/plugins/steve/api/client';
+import ResourceRequest from '@shell/plugins/steve/api/resourceRequest';
 
 const caches = {};
 
@@ -82,10 +82,10 @@ const removeFromWatcherQueue = (watchKey) => {
 /**
  * Creates a resourceCache with the appropriate type
  */
-const resourceCache = (type, resourceGetter) => { // TODO: RC Discuss - there were scenarios where resourceGetter returned undefined (as per initial value from resourceCache)
+const resourceCache = (type) => {
   const CacheClass = cacheClasses[`${ type }Cache`] || cacheClasses.resourceCache;
 
-  return new CacheClass(type);
+  return new CacheClass(type, params => state.api?.request({ ...params, type }));
 };
 
 /**
@@ -116,7 +116,7 @@ const workerActions = {
    * This should be the first action called
    */
   loadSchemas: (data) => {
-    workerActions.updateCache(data); // This will create caches[SCHEMA]
+    workerActions.updateCache(SCHEMA, data); // This will create caches[SCHEMA]
   },
 
   /**
@@ -131,7 +131,7 @@ const workerActions = {
       }
 
       // the apiClient can only exist after schemas are loaded so we build it here.
-      state.api = new SteveApiClient(state.config, {
+      state.api = new ResourceRequest(state.config, {
         updateCache: workerActions.updateCache,
         getSchema:   (id) => {
           return caches[SCHEMA].getSchema(id);
@@ -140,7 +140,7 @@ const workerActions = {
 
       for (const [resourceKey, resourceCache] of Object.entries(caches)) {
         // TODO: RC Discuss - Why is loadWorkerMethods needed to retrospectively apply this rather than in resourceCache ctor
-        resourceCache.loadWorkerMethods({ resourceGetter: params => state.api?.request({ ...params, type: resourceKey }) });
+        resourceCache.loadWorkerMethods({ resourceRequest: params => state.api?.request({ ...params, type: resourceKey }) });
       }
     }
   },
@@ -217,10 +217,13 @@ const workerActions = {
       type, namespace, id, filter, sortBy, sortOrder, limit
     } = params;
 
+    // TODO: RC test: refresh on detail page (find id). nav back to detail page
+
     if (!caches[type]) {
       state.api.request(params)
         .then((res) => {
-          resolver(res);
+          // Expected format of `{ data: res }`
+          return resolver(res);
         })
         .catch((e) => {
           resolver(undefined, parseRequestError(e));
@@ -230,7 +233,7 @@ const workerActions = {
         type, namespace, id, filter, sortBy, sortOrder, limit
       })
         .then((res) => {
-          resolver(res);
+          return resolver(res);
         })
         .catch((e) => {
           resolver(undefined, parseRequestError(e));
@@ -242,18 +245,24 @@ const workerActions = {
    * Accepts an array of JSON objects representing resources
    * types the array and constructs a cache if none exists and then loads each resource in the array into the cache
    */
-  updateCache: (payload, detail = false) => {
+  updateCache: (type, payload, detail = false) => {
     const rawResources = detail ? [payload] : payload;
 
-    if (payload?.length === 0) {
-      return [];
-    }
-    const rawType = rawResources[0].type;
+    // TODO: RC BUG could genuinely be zero resources (cache has resources, resources deleted, etc)
+    // if (payload?.length === 0) {
+    //   return [];
+    // }
+    // const rawType = rawResources[0].type;
 
-    const type = normalizeType(rawType === 'counts' ? COUNT : rawType);
+    // const type = normalizeType(rawType === 'counts' ? COUNT : rawType);
+
+    if (!type) {
+      debugger;
+      throw new Error('FIX ME');
+    }
 
     if (!caches[type]) {
-      caches[type] = resourceCache(type, params => state.api?.request({ ...params, type }));
+      caches[type] = resourceCache(type);
     }
 
     return caches[type].load(rawResources, detail);
@@ -288,7 +297,7 @@ const workerActions = {
       }
     }
   },
-  configure: (config) => {
+  initWorker: (config) => {
     state.config = config;
   },
   watch: (msg) => {
@@ -343,11 +352,6 @@ const workerActions = {
     }
 
     state.watcher.unwatch(watchKey);
-  },
-  initWorker: ({ storeName }) => {
-    trace('initWorker', storeName);
-
-    state.store = storeName;
   },
   destroyWorker: () => {
     trace('destroyWorker');
