@@ -1,14 +1,13 @@
 <script>
 import Vue from 'vue';
-import { mapGetters, mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
+import { _VIEW, _EDIT } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 
 export function normalizeName(str) {
   return (str || '')
@@ -225,31 +224,8 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      // Use last picked filter from user preferences
-      // const currentStore = this.$store.getters['currentStore'](this.namespaceType);
-      // const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
-      // const filterNamespace = this.$store.getters['allNamespaces'];
-
-      // const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
-      //   // By default, include the namespace in the dropdown.
-      //   let out = true;
-
-      //   if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore) {
-      //     out = filterNamespace.find(NS => NS.metadata.name === namespace.metadata.name);
-      //   } else if (this.currentProduct?.hideSystemResources) {
-      //     // Hide system and fleet namespaces
-      //     out = !namespace.isSystem && !namespace.isFleetManaged;
-      //   }
-
-      //   if (this.mode === _CREATE) {
-      //     out = out && !!namespace.links?.update;
-      //   }
-
-      //   return out;
-      // }));
-
       const options = Object.keys(this.namespaces())
-        .map(ns => ({ nameDisplay: ns, id: ns }))
+        .map(namespace => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || (obj => ({
           label: obj.nameDisplay,
           value: obj.id,

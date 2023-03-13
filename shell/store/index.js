@@ -86,9 +86,13 @@ const getActiveNamespaces = (state, getters) => {
     return out;
   }
 
-  const hasNamespaces = Array.isArray(state.allNamespaces) && state.allNamespaces.length > 0;
   // Use default "All Namespaces" category if no namespaces is found
-  const namespaces = hasNamespaces ? state.allNamespaces : getters[`${ inStore }/all`](NAMESPACE);
+  const hasNamespaces = Array.isArray(state.allNamespaces) && state.allNamespaces.length > 0;
+  const allNamespaces = hasNamespaces ? state.allNamespaces : getters[`${ inStore }/all`](NAMESPACE);
+
+  // Filter out Rancher system namespaces
+  const showRancherNamespaces = state.prefs.data['all-namespaces'];
+  const namespaces = allNamespaces.filter(ns => showRancherNamespaces ? true : !ns.isObscure);
 
   // Retrieve all the filters selected by the user
   const filters = state.namespaceFilters.filter(
