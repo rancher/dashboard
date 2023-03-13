@@ -70,17 +70,7 @@ export default {
       }
     },
 
-    'value.meta.name'(neu) {
-      if (!neu?.length && !this.touched) {
-        this.touched = true;
-
-        return [];
-      }
-
-      const errors = validateKubernetesName(neu || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      this.errors = errors.length ? [errors.join(', ')] : [];
-    }
+    'value.meta.name': 'validateNamespace',
   },
 
   methods: {
@@ -108,6 +98,34 @@ export default {
         buttonCb(false);
       }
     },
+
+    validateNamespace(name) {
+      if (!name?.length && !this.touched) {
+        this.touched = true;
+
+        return;
+      }
+
+      const kubernetesErrors = validateKubernetesName(name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+
+      if (kubernetesErrors.length) {
+        this.errors = [kubernetesErrors.join(', ')];
+
+        return;
+      }
+
+      const validateName = name.match(/[a-z0-9]([-a-z0-9]*[a-z0-9])?/);
+
+      if (!validateName || validateName[0] !== name) {
+        this.errors = [
+          "Namespace's name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc')"
+        ];
+
+        return;
+      }
+
+      this.errors = [];
+    }
   }
 };
 </script>
