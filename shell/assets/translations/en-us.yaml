@@ -2229,6 +2229,11 @@ gatekeeperIndex:
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
   violations: Violations
 
+gatekeeperInstall: 
+  auditInterval: Auto Interval
+  constraintViolationsLimit: Constraint Violations Limit
+  runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
+
 glance:
   created: Created
   cpu: CPU Usage
