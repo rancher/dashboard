@@ -55,9 +55,6 @@ export const QGA_JSON = {
   ]
 };
 
-// Different operating systems may have different guest agents
-export const QGA_MAP = { default: 'qemu-guest-agent.service' };
-
 export function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
     const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
