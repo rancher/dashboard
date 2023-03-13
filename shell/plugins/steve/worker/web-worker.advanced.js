@@ -139,7 +139,6 @@ const workerActions = {
       });
 
       for (const [resourceKey, resourceCache] of Object.entries(caches)) {
-        // TODO: RC Discuss - Why is loadWorkerMethods needed to retrospectively apply this rather than in resourceCache ctor
         resourceCache.loadWorkerMethods({ resourceRequest: params => state.api?.request({ ...params, type: resourceKey }) });
       }
     }

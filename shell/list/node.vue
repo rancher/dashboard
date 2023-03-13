@@ -40,6 +40,7 @@ export default {
   },
 
   async fetch() {
+    // TODO: RC Remove
     // console.warn('WILL ROBINSON?');
 
     // try {
@@ -66,7 +67,6 @@ export default {
     // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
 
     // TODO: RC Test - no await, multiple dispatches, only a single request made
-    // TODO: RC CI - make unit tests for these issues
     // ----
     //  function wait(milliseconds) {
     //   return new Promise(resolve => setTimeout(resolve, milliseconds));

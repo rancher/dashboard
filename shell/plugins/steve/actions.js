@@ -49,8 +49,6 @@ export default {
     return await loadSchemas(ctx, watch);
   },
 
-  // TODO: RC findX vs request
-  // - at some point, we're not storing anything other than pages in vuex?
   async request(ctx, pOpt) {
     const {
       state, dispatch, rootGetters, getters
@@ -59,7 +57,6 @@ export default {
     console.warn('RC steve: action: request: ', pOpt);
     const opt = pOpt.opt || pOpt;
     const supportsStream = state.allowStreaming && state.config.supportsStream && streamingSupported();
-    // TODO: RC do same as below
     const isAdvancedWorker = getters.advancedWorkerCompatible && validateAdvancedWorkerOpts(pOpt.type, opt, {
       cacheLoadStrategy: pOpt.load,
       supportsStream
@@ -135,7 +132,6 @@ export default {
       try {
         if (isAdvancedWorker) {
           if (!this.$workers[getters.storeName]) {
-            // TODO: RC Investigate - Why could there be no worker, it should be created when the store is initialised?
             throw new Error('Advanced worker has not been created');
           }
 

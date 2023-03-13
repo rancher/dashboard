@@ -78,7 +78,7 @@ export default class ResourceRequest {
 
       const requestUrl = this.__resourceUrl(params);
 
-      // TODO: RC remove
+      // TODO: RC Remove
       // if (requestUrl.includes('configmap')) {
       //   return Promise.reject(new Error(`Mocked 404: ${ params.type }`, { cause: { response: { status: 401 } } }));
       // }
@@ -98,7 +98,8 @@ export default class ResourceRequest {
           throw new Error(`Error making resource(s) http request: ${ params.type }`, { cause: { response: res } });
         })
         .then((res) => {
-          this.__updateCache(params.type, res.data || res, !!params.id); // TODO: RC Investigate what happens here on delete, push, etc
+          // TODO: RC https://github.com/rancher/dashboard/issues/8420
+          this.__updateCache(params.type, res.data || res, !!params.id);
 
           return res;
         });

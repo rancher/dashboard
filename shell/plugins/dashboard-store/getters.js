@@ -315,12 +315,15 @@ export default {
     return {};
   },
 
-  advancedWorkerCompatible: (state, getters, rootState, rootGetters) => {
-    // TODO: RC Test - before merge ensure this works correctly
+  workerCompatible: (state, getters, rootState, rootGetters) => {
     const storeName = getters.storeName;
     const clusterId = rootGetters.clusterId;
 
-    if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
+    return storeName === 'cluster' && clusterId !== BLANK_CLUSTER;
+  },
+
+  advancedWorkerCompatible: (state, getters, rootState, rootGetters) => {
+    if (!getters.workerCompatible) {
       return false;
     }
 
