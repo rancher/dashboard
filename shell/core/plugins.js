@@ -149,6 +149,11 @@ export default function({
       // Initialize the plugin
       const p = module;
 
+      console.log('------------------------------------');
+      console.log('INIT PLUGIN', plugin.name);
+      console.log('INIT PLUGIN DATA', plugin);
+      console.log('------------------------------------');
+
       try {
         p.default(plugin, this.internal());
 
@@ -251,6 +256,8 @@ export default function({
 
     // Apply the plugin based on its metadata
     applyPlugin(plugin) {
+      console.log('APPLY PLUGIN', plugin);
+
       // Types
       Object.keys(plugin.types).forEach((typ) => {
         Object.keys(plugin.types[typ]).forEach((name) => {
@@ -392,12 +399,18 @@ export default function({
         loadPlugins = Object.values(plugins);
       }
 
-      loadPlugins.forEach((plugin) => {
+      loadPlugins.forEach((plugin, i) => {
         if (plugin.products) {
+          console.error('PLUGIN PRODUCTS', plugin.products);
+          console.error('store', store);
+
           plugin.products.forEach(async(p) => {
             const impl = await p;
 
             if (impl.init) {
+              loadPlugins[i].currStore = store;
+              loadPlugins[i].setDSLMethods(p.productName);
+              console.log('plugin will initialize', loadPlugins[i]);
               impl.init(plugin, store);
             }
           });

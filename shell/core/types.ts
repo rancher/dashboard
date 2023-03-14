@@ -140,11 +140,14 @@ export type LocationConfig = {
  * Interface for a Dashboard plugin
  */
 export interface IPlugin {
+  addToExistingProduct(): void;
+  registerExtensionAsProduct(store: any, option: object): void;
+
   /**
    * Add a product
    * @param importFn Function that will import the module containing a product definition
    */
-  addProduct(importFn: Function): void;
+  addProduct(importFn: Function, productName?: string): void;
 
   /**
    * Add a locale to the i18n store

@@ -358,6 +358,8 @@ export async function applyProducts(store, $plugin) {
     return;
   }
 
+  console.log('listProducts() on applyProducts function', listProducts());
+
   called = true;
   for ( const product of listProducts() ) {
     const impl = await loadProduct(product);
@@ -686,6 +688,8 @@ export const getters = {
           overview: !!typeObj.overview,
         });
       }
+
+      console.log('GET TREE ROOT!', root);
 
       // Recursively sort the groups
       _sortGroup(root, mode);
@@ -1327,6 +1331,11 @@ export const getters = {
             addObject(knownGroups[module], s._group);
           }
         }
+      }
+
+      // new feature added to simplify enabling/disabling extension prod registration
+      if (p.enabled) {
+        return p.enabled(rootState);
       }
 
       if ( p.ifFeature) {

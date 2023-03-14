@@ -43,6 +43,15 @@ export class Plugin implements IPlugin {
   // Uninstall hooks
   public uninstallHooks: Function[] = [];
 
+  // DSL abstraction attempt
+  public currStore: any;
+  public currProduct: any;
+  public currModule: any;
+  dslMethods: any;
+
+  public singleMenuEntry: { [key: string]: any } = {};
+  public menuGrouping: { [key: string]: any } = {};
+
   constructor(id: string) {
     this.id = id;
     this.name = id;
@@ -74,6 +83,10 @@ export class Plugin implements IPlugin {
     this._validators = vals;
   }
 
+  setDSLMethods(prodName: string) {
+    this.dslMethods = this.DSL(this.currStore, prodName);
+  }
+
   // Track which products the plugin creates
   DSL(store: any, productName: string) {
     const storeDSL = STORE_DSL(store, productName);
@@ -83,8 +96,8 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: Function): void {
-    this.products.push(product);
+  addProduct(product: Function, productName: string): void {
+    this.products.push({ ...product, productName });
   }
 
   addLocale(locale: string, label: string): void {
@@ -131,6 +144,138 @@ export class Plugin implements IPlugin {
 
     this.uiConfig[type][where] = this.uiConfig[type][where] || [];
     this.uiConfig[type][where].push({ ...config, locationConfig });
+  }
+
+  // POC new work....
+  addToExistingProduct() {
+    console.log('STORE', this.currStore);
+    console.log('LIST OF ACTIVE PRODUCTS', this.currStore.getters['type-map/activeProducts']);
+  }
+
+  // NEW WORK!!!!
+  registerExtensionProduct(options: object) {
+    const { product } = this.dslMethods;
+
+    console.log('registerProd this V2', this);
+
+    product(options);
+  }
+
+  // NEW WORK!!!!
+  private _updateType(entry: any) {
+    const {
+      configureType,
+      virtualType,
+      weightType,
+      weightGroup,
+      headers,
+      basicType,
+      spoofedType
+    } = this.dslMethods;
+    // STILL MISSING: spoofedType...
+
+    console.log('******* START --------------------------------------------------- *************');
+    console.log('_updateType', entry);
+
+    // apply menu registration (types, headers, weights)
+    // no ID, no funny...
+    if (!entry.id) {
+      // eslint-disable-next-line no-console
+      console.error('you are missing the registration identifier (id)!');
+
+      return false;
+    }
+
+    // registering a resource
+    if (entry.type === 'resource') {
+      configureType(entry.id, entry.options || {});
+    // registering a custom page or a virtual resource
+    } else if (entry.type === 'custom-page' || entry.type === 'virtual-resource') {
+      const options = entry.options || {};
+
+      // inject the ID as name... needed for virtualType and spoofedType
+      if (entry.id && !options.name) {
+        options.name = entry.id;
+      }
+
+      if (entry.type === 'custom-page') {
+        virtualType(options);
+      } else if (entry.type === 'virtual-resource') {
+        if (entry.id && !options.type) {
+          options.type = entry.id;
+        }
+        spoofedType(options);
+      }
+    }
+
+    // register headers
+    if (entry.listCols && Array.isArray(entry.listCols)) {
+      console.log('registering headers', entry.id, entry.listCols);
+      headers(entry.id, entry.listCols);
+    }
+
+    // prepare data for basicType (registering menu entries)
+    if (entry.menuGroupingId) {
+      if (!this.menuGrouping[entry.menuGroupingId]) {
+        this.menuGrouping[entry.menuGroupingId] = { menuItems: [entry.id] };
+      } else {
+        this.menuGrouping[entry.menuGroupingId].menuItems.push(entry.id);
+      }
+
+      if (entry.menuGroupingWeight && parseInt(entry.menuGroupingWeight) >= 0) {
+        this.menuGrouping[entry.menuGroupingId].weight = entry.menuGroupingWeight;
+      }
+    } else {
+      if (!this.singleMenuEntry[entry.id]) {
+        this.singleMenuEntry[entry.id] = {};
+      }
+
+      if (entry.options?.weight && parseInt(entry.options?.weight) >= 0) {
+        this.singleMenuEntry[entry.id].weight = entry.options?.weight;
+      }
+    }
+
+    // console.log('singleMenuEntry', this.singleMenuEntry);
+    // console.log('menuGrouping', this.menuGrouping);
+    console.log('******* --------------------------------------------------- END *************');
+
+    // register menu entries for non-grouped resources
+    Object.keys(this.singleMenuEntry).forEach((key) => {
+      basicType(Object.keys(this.singleMenuEntry));
+
+      if (this.singleMenuEntry[key].weight) {
+        weightType(key, this.singleMenuEntry[key].weight, true);
+      }
+    });
+
+    // register menu entries for grouped resources
+    Object.keys(this.menuGrouping).forEach((key) => {
+      basicType(this.menuGrouping[key].menuItems, key);
+
+      if (this.menuGrouping[key].weight) {
+        weightGroup(key, this.menuGrouping[key].weight, true);
+      }
+    });
+
+    return true;
+  }
+
+  // NEW WORK!!!!
+  registerType(entries: [any]) {
+    console.log('registerType entries', entries);
+    // apply menu registration (types, headers, weights)
+    for (let i = 0; i < entries.length; i++) {
+      const res = this._updateType(entries[i]);
+
+      if (!res) {
+        continue;
+      }
+    }
+  }
+
+  // NEW WORK!!!!
+  updateType(entry: any) {
+    this._updateType(entry);
   }
 
   /**
