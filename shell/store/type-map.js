@@ -358,6 +358,8 @@ export async function applyProducts(store, $plugin) {
     return;
   }
 
+  console.log('listProducts() on applyProducts function', listProducts());
+
   called = true;
   for ( const product of listProducts() ) {
     const impl = await loadProduct(product);

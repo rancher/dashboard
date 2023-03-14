@@ -3,7 +3,7 @@ import DefaultListView from '@shell/pages/c/_cluster/_product/_resource/index.vu
 import DefaultCreateView from '@shell/pages/c/_cluster/_product/_resource/create.vue';
 import DefaultEditView from '@shell/pages/c/_cluster/_product/_resource/_id.vue';
 
-export const clusterProdName = 'clusterprodreg';
+export const clusterProdName = 'explorer';
 
 export const defaultRouteParams = { product: clusterProdName };
 

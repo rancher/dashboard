@@ -146,6 +146,12 @@ export class Plugin implements IPlugin {
     this.uiConfig[type][where].push({ ...config, locationConfig });
   }
 
+  // POC new work....
+  addToExistingProduct() {
+    console.log('STORE', this.currStore);
+    console.log('LIST OF ACTIVE PRODUCTS', this.currStore.getters['type-map/activeProducts']);
+  }
+
   // NEW WORK!!!!
   registerExtensionProduct(options: object) {
     const { product } = this.dslMethods;

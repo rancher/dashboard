@@ -4,8 +4,6 @@ import { routes as clusterProdRoutes, clusterProdName } from './config/cluster-p
 
 // Init the package
 export default function(plugin: IPlugin) {
-  // console.log('=== singleProdName ===', singleProdName);
-  // console.log('=== clusterProdName ===', clusterProdName);
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 

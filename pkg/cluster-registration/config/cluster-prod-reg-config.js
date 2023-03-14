@@ -7,6 +7,8 @@ import { allHash } from '@shell/utils/promise';
 export function init($plugin, store) {
   console.log('$plugin init CLUSTER PROD', $plugin);
 
+  $plugin.addToExistingProduct();
+
   /********************************************************
    *
    *  INSTORE = CLUSTER EXAMPLE
@@ -36,9 +38,11 @@ export function init($plugin, store) {
 
   $plugin.registerType([
     {
-      type:    'custom-page',
-      id:      'page4',
-      options: {
+      type:               'custom-page',
+      id:                 'page4',
+      menuGroupingId:     'new-explorer-prod',
+      menuGroupingWeight: 3,
+      options:            {
         weight:   2,
         labelKey: 'product.pages.page4',
         icon:     'folder',
@@ -60,9 +64,10 @@ export function init($plugin, store) {
      * @property {async function} getInstances - responsible for fetching the data being displayed for this CRD
      */
   $plugin.updateType({
-    type:    'virtual-resource',
-    id:      fakeResourceType,
-    options: {
+    type:           'virtual-resource',
+    id:             fakeResourceType,
+    menuGroupingId: 'new-explorer-prod',
+    options:        {
       labelKey: 'product.labels.virtual-resource',
       icon:     'gear',
       weight:   -1,

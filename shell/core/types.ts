@@ -140,6 +140,7 @@ export type LocationConfig = {
  * Interface for a Dashboard plugin
  */
 export interface IPlugin {
+  addToExistingProduct(): void;
   registerExtensionAsProduct(store: any, option: object): void;
 
   /**
