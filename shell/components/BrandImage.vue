@@ -14,11 +14,8 @@ export default {
       default: false
     }
   },
-  async fetch() {
-    this.managementSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING);
-  },
   data() {
-    return { managementSettings: [] };
+    return { managementSettings: this.$store.getters['management/all'](MANAGEMENT.SETTING) };
   },
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),
