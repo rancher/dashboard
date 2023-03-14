@@ -11,9 +11,12 @@ import { Banner } from '@components/Banner';
 import throttle from 'lodash/throttle';
 import { isValidCIDR } from '@shell/utils/validators/cidr';
 
-const TARGET_OPTION_IP_BLOCK = 'ipBlock';
-const TARGET_OPTION_NAMESPACE_SELECTOR = 'namespaceSelector';
-const TARGET_OPTION_POD_SELECTOR = 'podSelector';
+const TARGET_OPTIONS = {
+  IP_BLOCK:                   'ipBlock',
+  NAMESPACE_SELECTOR:         'namespaceSelector',
+  POD_SELECTOR:               'podSelector',
+  NAMESPACE_AND_POD_SELECTOR: 'namespaceAndPodSelector',
+};
 
 export default {
   components: {
@@ -52,9 +55,13 @@ export default {
     },
   },
   data() {
-    if (!this.value[TARGET_OPTION_IP_BLOCK] && !this.value[TARGET_OPTION_POD_SELECTOR] && !this.value[TARGET_OPTION_NAMESPACE_SELECTOR]) {
+    if (!this.value[TARGET_OPTIONS.IP_BLOCK] &&
+      !this.value[TARGET_OPTIONS.POD_SELECTOR] &&
+      !this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] &&
+      !this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR]
+    ) {
       this.$nextTick(() => {
-        this.$set(this.value, TARGET_OPTION_IP_BLOCK, {});
+        this.$set(this.value, TARGET_OPTIONS.IP_BLOCK, {});
       });
     }
 
@@ -64,38 +71,32 @@ export default {
       matchingNamespaces: {},
       invalidCidr:        null,
       invalidCidrs:       [],
-      TARGET_OPTION_IP_BLOCK,
-      TARGET_OPTION_NAMESPACE_SELECTOR,
-      TARGET_OPTION_POD_SELECTOR,
       POD,
-      targetOptions:      [
-        TARGET_OPTION_IP_BLOCK,
-        TARGET_OPTION_NAMESPACE_SELECTOR,
-        TARGET_OPTION_POD_SELECTOR
-      ],
+      TARGET_OPTIONS,
+      targetOptions:      Object.values(TARGET_OPTIONS),
     };
   },
   computed: {
     podSelectorExpressions: {
       get() {
         return convert(
-          this.value[TARGET_OPTION_POD_SELECTOR]?.matchLabels || {},
-          this.value[TARGET_OPTION_POD_SELECTOR]?.matchExpressions || []
+          this.value[TARGET_OPTIONS.POD_SELECTOR]?.matchLabels || {},
+          this.value[TARGET_OPTIONS.POD_SELECTOR]?.matchExpressions || []
         );
       },
       set(podSelectorExpressions) {
-        this.$set(this.value, TARGET_OPTION_POD_SELECTOR, simplify(podSelectorExpressions));
+        this.$set(this.value, TARGET_OPTIONS.POD_SELECTOR, simplify(podSelectorExpressions));
       }
     },
     namespaceSelectorExpressions: {
       get() {
         return convert(
-          this.value[TARGET_OPTION_NAMESPACE_SELECTOR]?.matchLabels || {},
-          this.value[TARGET_OPTION_NAMESPACE_SELECTOR]?.matchExpressions || []
+          this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR]?.matchLabels || {},
+          this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR]?.matchExpressions || []
         );
       },
       set(namespaceSelectorExpressions) {
-        this.$set(this.value, TARGET_OPTION_NAMESPACE_SELECTOR, simplify(namespaceSelectorExpressions));
+        this.$set(this.value, TARGET_OPTIONS.NAMESPACE_SELECTOR, simplify(namespaceSelectorExpressions));
       }
     },
     selectTargetOptions() {
@@ -113,6 +114,9 @@ export default {
     targetType: {
       get() {
         for (const option of this.targetOptions) {
+          if (this.value[TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR] || (this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR] && this.value[TARGET_OPTIONS.POD_SELECTOR])) {
+            return TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR;
+          }
           if (this.value[option]) {
             return option;
           }
@@ -121,9 +125,10 @@ export default {
         return null;
       },
       set(targetType) {
-        this.$delete(this.value, TARGET_OPTION_IP_BLOCK);
-        this.$delete(this.value, TARGET_OPTION_NAMESPACE_SELECTOR);
-        this.$delete(this.value, TARGET_OPTION_POD_SELECTOR);
+        this.$delete(this.value, TARGET_OPTIONS.IP_BLOCK);
+        this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_SELECTOR);
+        this.$delete(this.value, TARGET_OPTIONS.POD_SELECTOR);
+        this.$delete(this.value, TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR);
         this.$nextTick(() => {
           this.$set(this.value, targetType, {});
         });
@@ -138,6 +143,13 @@ export default {
         immediate: true
       };
     },
+    matchingNamespacesAndPods() {
+      return {
+        policyNamespace: this.namespace,
+        ...Object.keys(this.matchingNamespaces).reduce((acc, k) => ({ ...acc, [`${ k }Namespaces`]: this.matchingNamespaces[k] }), {}),
+        ...Object.keys(this.matchingPods).reduce((acc, k) => ({ ...acc, [`${ k }Pods`]: this.matchingPods[k] }), {}),
+      };
+    }
   },
   watch: {
     namespace:                    'updateMatches',
@@ -150,20 +162,21 @@ export default {
   },
   methods: {
     validateCIDR() {
-      const exceptCidrs = this.value[TARGET_OPTION_IP_BLOCK]?.except || [];
+      const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
 
       this.invalidCidrs = exceptCidrs
         .filter(cidr => !isValidCIDR(cidr))
         .map(invalidCidr => invalidCidr || '<blank>');
 
-      if (this.value[TARGET_OPTION_IP_BLOCK]?.cidr && !isValidCIDR(this.value[TARGET_OPTION_IP_BLOCK].cidr)) {
-        this.invalidCidr = this.value[TARGET_OPTION_IP_BLOCK].cidr;
+      if (this.value[TARGET_OPTIONS.IP_BLOCK]?.cidr && !isValidCIDR(this.value[TARGET_OPTIONS.IP_BLOCK].cidr)) {
+        this.invalidCidr = this.value[TARGET_OPTIONS.IP_BLOCK].cidr;
       } else {
         this.invalidCidr = null;
       }
     },
     getMatchingPods() {
-      const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.namespace);
+      const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
+      const allInNamespace = this.allPods.filter(pod => namespaces.some(ns => ns.id === pod.metadata.namespace));
       const match = matching(allInNamespace, this.podSelectorExpressions);
       const matched = match.length || 0;
       const sample = match[0]?.nameDisplay;
@@ -201,17 +214,18 @@ export default {
         <LabeledSelect
           v-model="targetType"
           :mode="mode"
+          :tooltip="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? t('networkpolicy.selectors.matchingNamespacesAndPods.tooltip') : null"
           :options="selectTargetOptions"
           :multiple="false"
           :label="t('networkpolicy.rules.type')"
         />
       </div>
     </div>
-    <div v-if="targetType === TARGET_OPTION_IP_BLOCK">
+    <div v-if="targetType === TARGET_OPTIONS.IP_BLOCK">
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value[TARGET_OPTION_IP_BLOCK].cidr"
+            v-model="value[TARGET_OPTIONS.IP_BLOCK].cidr"
             :mode="mode"
             :placeholder="t('networkpolicy.rules.ipBlock.cidr.placeholder')"
             :label="t('networkpolicy.rules.ipBlock.cidr.label')"
@@ -231,7 +245,7 @@ export default {
       <div class="row mt-20">
         <div class="col span-12">
           <ArrayList
-            v-model="value[TARGET_OPTION_IP_BLOCK].except"
+            v-model="value[TARGET_OPTIONS.IP_BLOCK].except"
             :add-label="t('networkpolicy.rules.ipBlock.addExcept')"
             :mode="mode"
             :show-header="true"
@@ -251,7 +265,7 @@ export default {
         </div>
       </div>
     </div>
-    <div v-if="targetType === TARGET_OPTION_POD_SELECTOR">
+    <div v-if="targetType === TARGET_OPTIONS.POD_SELECTOR">
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
@@ -271,7 +285,7 @@ export default {
         </div>
       </div>
     </div>
-    <div v-if="targetType === TARGET_OPTION_NAMESPACE_SELECTOR">
+    <div v-if="targetType === TARGET_OPTIONS.NAMESPACE_SELECTOR">
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
@@ -291,5 +305,70 @@ export default {
         </div>
       </div>
     </div>
+    <div v-if="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR">
+      <div class="row">
+        <div class="col span-12">
+          <Banner color="success">
+            <span
+              v-if="!namespaceSelectorExpressions.length"
+              v-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)"
+            />
+            <span
+              v-else
+              v-html="t('networkpolicy.selectors.matchingNamespacesAndPods.matchesSome', matchingNamespacesAndPods)"
+            />
+          </Banner>
+        </div>
+      </div>
+      <div class="row mb-0">
+        <div class="col span-1 namespace-pod-rule">
+          <span class="label">
+            {{ t('networkpolicy.rules.namespace') }}
+          </span>
+        </div>
+        <div class="col span-11">
+          <MatchExpressions
+            v-model="namespaceSelectorExpressions"
+            :mode="mode"
+            :show-add-button="false"
+            :show-remove-button="false"
+            :show-remove="false"
+            :initial-empty-row="true"
+            :type="POD"
+          />
+        </div>
+      </div>
+      <div class="row mb-0">
+        <div class="col span-1 namespace-pod-rule">
+          <span class="label">
+            {{ t('networkpolicy.rules.pod') }}
+          </span>
+        </div>
+        <div class="col span-11">
+          <MatchExpressions
+            v-model="podSelectorExpressions"
+            :mode="mode"
+            :show-add-button="false"
+            :show-remove-button="false"
+            :show-remove="false"
+            :initial-empty-row="true"
+            :type="POD"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang='scss' scoped>
+  .namespace-pod-rule {
+    width: 100px;
+    margin: 0;
+    text-align: center;
+
+    .label {
+      display: block;
+      margin-top: 32px;
+    }
+  }
+</style>

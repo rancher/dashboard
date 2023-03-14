@@ -3440,6 +3440,8 @@ networkpolicy:
   labelsAnnotations:
     label: Labels & Annotations
   rules:
+    pod: Pod
+    namespace: Namespace
     ruleLabel: Rule {index}
     addPort: Add allowed port
     type: Rule type
@@ -3466,6 +3468,8 @@ networkpolicy:
       label: Pod Selector
     namespaceSelector:
       label: Namespace Selector
+    namespaceAndPodSelector:
+      label: Namespace/Pod Selector
   config:
     label: Configuration
   selectors:
@@ -3484,6 +3488,18 @@ networkpolicy:
           =0 {Matches 0 of {total, number} namespaces}
           =1 {Matches 1 of {total, number} namespaces: "{sample}"}
           other {Matches {matched, number} of {total, number} existing namespaces, including "{sample}"}
+        }
+    matchingNamespacesAndPods:
+      tooltip: A single entry rule that specifies both Namespace Selector and Pod Selector that selects particular Pods within particular namespaces
+      matchesSome: |-
+        {matchedPods, plural,
+          =0 {Matches 0 of {totalPods, number} pods}
+          =1 {Matches 1 of {totalPods, number} pods: "{samplePods}"}
+          other {Matches {matchedPods, number} of {totalPods, number} existing pods, including "{samplePods}"}
+        } in {matchedNamespaces, plural,
+          =0 {0 of {totalNamespaces, number} namespaces}
+          =1 {1 of {totalNamespaces, number} namespaces: "{sampleNamespaces}"}
+          other {{matchedNamespaces, number} of {totalNamespaces, number} existing namespaces, including "{sampleNamespaces}"}
         }
 node:
   list:
