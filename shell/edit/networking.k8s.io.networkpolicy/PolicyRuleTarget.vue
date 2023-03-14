@@ -58,20 +58,17 @@ export default {
       });
     }
 
-    const matchingPods = this.getMatchingPods();
-    const matchingNamespaces = this.getMatchingNamespaces();
-
     return {
-      portOptions:   ['TCP', 'UDP'],
-      matchingPods,
-      matchingNamespaces,
-      invalidCidr:   null,
-      invalidCidrs:  [],
+      portOptions:        ['TCP', 'UDP'],
+      matchingPods:       {},
+      matchingNamespaces: {},
+      invalidCidr:        null,
+      invalidCidrs:       [],
       TARGET_OPTION_IP_BLOCK,
       TARGET_OPTION_NAMESPACE_SELECTOR,
       TARGET_OPTION_POD_SELECTOR,
       POD,
-      targetOptions: [
+      targetOptions:      [
         TARGET_OPTION_IP_BLOCK,
         TARGET_OPTION_NAMESPACE_SELECTOR,
         TARGET_OPTION_POD_SELECTOR
@@ -131,7 +128,16 @@ export default {
           this.$set(this.value, targetType, {});
         });
       }
-    }
+    },
+    updateMatches() {
+      return {
+        handler: throttle(function() {
+          this.matchingNamespaces = this.getMatchingNamespaces();
+          this.matchingPods = this.getMatchingPods();
+        }, 250, { leading: true }),
+        immediate: true
+      };
+    },
   },
   watch: {
     namespace:                    'updateMatches',
@@ -156,10 +162,6 @@ export default {
         this.invalidCidr = null;
       }
     },
-    updateMatches: throttle(function() {
-      this.matchingPods = this.getMatchingPods();
-      this.matchingNamespaces = this.getMatchingNamespaces();
-    }, 250, { leading: true }),
     getMatchingPods() {
       const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.namespace);
       const match = matching(allInNamespace, this.podSelectorExpressions);
