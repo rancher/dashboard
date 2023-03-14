@@ -115,6 +115,10 @@ export default Vue.extend<Data, any, any, any>({
       const validInstances = typeof this.values.configuration?.instances !== 'string' && this.values.configuration?.instances >= 0;
 
       return validName && validNamespace && validInstances;
+    },
+
+    showApplicationVariables() {
+      return Object.keys(this.values?.configuration?.settings).length !== 0;
     }
   },
 
@@ -170,9 +174,12 @@ export default Vue.extend<Data, any, any, any>({
         :value-placeholder="t('epinio.applications.create.routes.placeholder')"
       />
     </div>
-    <div class="spacer" />
     <div
-      v-if="values.configuration.settings"
+      v-if="showApplicationVariables"
+      class="spacer"
+    />
+    <div
+      v-if="showApplicationVariables"
       class="col span-8"
     >
       <Banner
@@ -181,8 +188,8 @@ export default Vue.extend<Data, any, any, any>({
       >
         {{ t('epinio.applications.create.settingsVars.description') }}
       </Banner>
-      <KeyValue
 
+      <KeyValue
         v-model="values.configuration.settings"
         data-testid="epinio_app-info_envs"
         :mode="mode"
@@ -191,7 +198,6 @@ export default Vue.extend<Data, any, any, any>({
         :value-label="t('epinio.applications.create.settingsVars.valueLabel')"
         :parse-lines-from-file="true"
       />
-      </span>
     </div>
     <div class="spacer" />
     <div class="col span-8">

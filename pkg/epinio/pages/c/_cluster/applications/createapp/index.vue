@@ -111,7 +111,7 @@ export default Vue.extend<Data, any, any, any>({
 
       this.appChart.selectedChart = appChart;
       this.value.configuration = this.value.configuration || {};
-      this.value.configuration.settings = {};
+      this.value.configuration.settings = undefined;
 
       if (appChart) {
         // app chart actually belongs in config, so stick it in there
