@@ -105,10 +105,10 @@ const getActiveNamespaces = (state, getters) => {
   const includeUser = filters.includes(ALL_USER);
   const includeOrphans = filters.includes(ALL_ORPHANS);
 
-  // Special cases to pull in all the user, system, or orphaned namespaces
-  const hasSpecialCases = includeAll || includeOrphans || includeSystem || includeUser;
+  // Categories to pull in all the user, system, or orphaned namespaces
+  const hasCategory = includeAll || includeOrphans || includeSystem || includeUser;
 
-  if ( hasSpecialCases ) {
+  if ( hasCategory ) {
     for ( const ns of namespaces ) {
       if (
         includeAll ||
