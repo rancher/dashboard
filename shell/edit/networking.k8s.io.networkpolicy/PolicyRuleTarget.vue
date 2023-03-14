@@ -369,7 +369,6 @@ export default {
     .label {
       display: block;
       margin-top: 32px;
-      color: var(--primary);
     }
   }
 </style>
