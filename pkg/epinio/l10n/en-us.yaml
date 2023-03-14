@@ -258,6 +258,8 @@ epinio:
     name: Name
     create: Create a Namespace
     deleteWarning: All resources in a namespace will be deleted.
+    validations:
+      name: Namespace's name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc')
   configurations:
     pairs:
       label: Config Data
