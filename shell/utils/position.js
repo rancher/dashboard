@@ -1,5 +1,4 @@
 // @TODO replace this with popper.js...
-import $ from 'jquery';
 
 export const LEFT = 'left';
 export const RIGHT = 'right';
@@ -10,10 +9,9 @@ export const BOTTOM = 'bottom';
 export const AUTO = 'auto';
 
 export function boundingRect(elem) {
-  const $elem = $(elem);
-  const pos = $elem.offset();
-  const width = $elem.outerWidth(false);
-  const height = $elem.outerHeight(false);
+  const pos = elem.getBoundingClientRect();
+  const width = elem.offsetWidth;
+  const height = elem.offsetHeight;
 
   return {
     top:    pos.top,
@@ -37,9 +35,8 @@ export function fakeRectFor(event) {
 }
 
 export function screenRect() {
-  const $window = $(window);
-  const width = $window.width();
-  const height = $window.height();
+  const width = window.innerWidth;
+  const height = window.innerHeight;
   const top = window.pageYOffset;
   const left = window.pageXOffset;
 
