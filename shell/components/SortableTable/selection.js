@@ -440,11 +440,12 @@ export default {
     update(toAdd, toRemove) {
       toRemove.forEach((row) => {
         const index = this.selectedRows.findIndex(r => r === row);
+
         if (index !== -1) {
           this.selectedRows.splice(index, 1);
         }
       });
-      
+
       if ( this.selectedRows.length < this.pagedRows.length ) {
         this.selectedRows.push(...toAdd);
       }
@@ -458,7 +459,7 @@ export default {
         });
       }
 
-      if (toAdd.length) {
+      if (toAdd.length && this.selectedRows.length < this.pagedRows.length ) {
         this.$nextTick(() => {
           for ( let i = 0 ; i < toAdd.length ; i++ ) {
             this.updateInput(toAdd[i], true, this.keyField);
@@ -471,14 +472,13 @@ export default {
       });
     },
 
-
     updateInput(node, on, keyField) {
       const id = get(node, keyField);
 
       if ( id ) {
         // Note: This is looking for the checkbox control for the row
         const input = $(`div[data-checkbox-ctrl][data-node-id="${ id }"]`);
-        
+
         if ( input && input.length && !input[0].disabled ) {
           const label = $(input[0]).find('label');
 
