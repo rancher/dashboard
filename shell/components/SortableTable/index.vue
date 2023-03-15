@@ -437,10 +437,10 @@ export default {
     },
 
     selectedRowsLength() {
-      if ( this.selectedRows.length <= this.rows.length ){
+      if ( this.selectedRows.length <= this.rows.length ) {
         return this.selectedRowsText;
       } else {
-        return this.t('sortableTable.actionAvailability.selected', { actionable: this.rows.length });;
+        return this.t('sortableTable.actionAvailability.selected', { actionable: this.rows.length });
       }
     },
 
@@ -894,8 +894,6 @@ export default {
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
     },
-
-    
   }
 };
 </script>
