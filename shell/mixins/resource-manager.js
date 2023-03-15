@@ -48,7 +48,7 @@ export default {
       if (Object.keys(requests).length) {
         // this is the flag/variable that we need to apply to all places that rely on this data. Ex: LabeledSelect
         this.isLoadingSecondaryResources = true;
-        // TODO: CI - if any of these fail
+        // TODO: RC CI - if any of these fail
         const hash = await allHashSettled(requests);
         const types = Object.keys(hash);
 
