@@ -2212,7 +2212,7 @@ export default {
           />
 
           <Banner
-            v-if="showCisProfile && !isCisSupported"
+            v-if="showCisProfile && !isCisSupported && isEdit"
             color="info"
           >
             <p v-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
