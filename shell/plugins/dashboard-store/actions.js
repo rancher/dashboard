@@ -462,12 +462,20 @@ export default {
 
   load(ctx, { data, existing }) {
     const { getters, commit } = ctx;
-    const headWarnings = data?._headers?.['x-api-warnings'];
+    const headWarnings = data?._headers?.['warning'];
+    const warnings = headWarnings ? headWarnings.split('299') : [];
+    const messages = [];
 
-    if (headWarnings) {
+    warnings.forEach((warning) => {
+      if (warning && !warning.includes('violate PodSecurity') && !warning.includes('- unknown field')) {
+        messages.push(warning.substr(2));
+      }
+    });
+
+    if (messages.length) {
       ctx.dispatch('growl/warning', {
         title:   `${ capitalize(data?.type) }: ${ data?.metadata.name }`,
-        message: headWarnings,
+        message: decodeURIComponent(messages.join().replace(/\+/g, '%20')),
         timeout: 0,
       }, { root: true });
     }
