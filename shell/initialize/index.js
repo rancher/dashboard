@@ -1,21 +1,20 @@
 import Vue from 'vue';
-import Vuex from 'vuex';
 import Meta from 'vue-meta';
 import ClientOnly from 'vue-client-only';
 import NoSsr from 'vue-no-ssr';
 import { createRouter } from '../config/router.js';
-import NuxtChild from './components/nuxt-child.js';
+import NuxtChild from '../components/nuxt/nuxt-child.js';
 import NuxtError from '../layouts/error.vue';
-import Nuxt from './components/nuxt.js';
+import Nuxt from '../components/nuxt/nuxt.js';
 import App from './App.js';
-import { setContext, getLocation, getRouteData, normalizeError } from './utils';
-import { createStore } from './store.js';
+import { setContext, getLocation, getRouteData, normalizeError } from '../utils/nuxt';
+import { createStore } from '../config/store.js';
 
 /* Plugins */
 
-import './portal-vue.js';
-import cookieUniversalNuxt from './cookie-universal-nuxt.js';
-import axios from './axios.js';
+import '../plugins/portal-vue.js';
+import cookieUniversalNuxt from '../utils/cookie-universal-nuxt.js';
+import axios from '../utils/axios.js';
 import plugins from '../core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
 import axiosShell from '../plugins/axios';
@@ -42,7 +41,7 @@ import backButton from '../plugins/back-button';
 import plugin from '../plugins/plugin';
 import codeMirror from '../plugins/codemirror-loader';
 import '../plugins/formatters';
-import version from  '../plugins/version';
+import version from '../plugins/version';
 import steveCreateWorker from '../plugins/steve-create-worker';
 
 // Component: <ClientOnly>
@@ -55,7 +54,7 @@ Vue.component(NoSsr.name, {
     if (process.client && !NoSsr._warned) {
       NoSsr._warned = true;
 
-      console.warn('<no-ssr> has been deprecated and will be removed in Nuxt 3, please use <client-only> instead');
+      console.warn('<no-ssr> has been deprecated and will be removed in Nuxt 3, please use <client-only> instead'); // eslint-disable-line no-console
     }
 
     return NoSsr.render(h, ctx);
@@ -92,16 +91,6 @@ const defaultTransition = {
   name: 'page', mode: 'out-in', appear: true, appearClass: 'appear', appearActiveClass: 'appear-active', appearToClass: 'appear-to'
 };
 
-const originalRegisterModule = Vuex.Store.prototype.registerModule;
-
-function registerModule(path, rawModule, options = {}) {
-  const preserveState = process.client && (
-    Array.isArray(path) ? !!path.reduce((namespacedState, path) => namespacedState && namespacedState[path], this.state) : path in this.state
-  );
-
-  return originalRegisterModule.call(this, path, rawModule, { preserveState, ...options });
-}
-
 async function createApp(ssrContext, config = {}) {
   const router = await createRouter(ssrContext, config);
 
@@ -115,7 +104,17 @@ async function createApp(ssrContext, config = {}) {
   // here we inject the router and store to all child components,
   // making them available everywhere as `this.$router` and `this.$store`.
   const app = {
-    head: {"title":"dashboard","meta":[{"charset":"utf-8"},{"name":"viewport","content":"width=device-width, initial-scale=1"},{"hid":"description","name":"description","content":"Rancher Dashboard"}],"link":[{"hid":"icon","rel":"icon","type":"image\u002Fx-icon","href":"\u002Ffavicon.png"}],"style":[],"script":[]},
+    head: {
+      title: 'dashboard',
+      meta:  [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, {
+        hid: 'description', name: 'description', content: 'Rancher Dashboard'
+      }],
+      link: [{
+        hid: 'icon', rel: 'icon', type: 'image\u002Fx-icon', href: '\u002Ffavicon.png'
+      }],
+      style:  [],
+      script: []
+    },
 
     store,
     router,
@@ -318,7 +317,7 @@ async function createApp(ssrContext, config = {}) {
   // Lock enablePreview in context
   if (process.static && process.client) {
     app.context.enablePreview = function() {
-      console.warn('You cannot call enablePreview() outside a plugin.');
+      console.warn('You cannot call enablePreview() outside a plugin.'); // eslint-disable-line no-console
     };
   }
 

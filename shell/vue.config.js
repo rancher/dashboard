@@ -387,7 +387,7 @@ module.exports = function(dir, _appConfig) {
 
     pages: {
       index: {
-        entry:    path.join(SHELL_ABS, '/nuxt/client.js'),
+        entry:    path.join(SHELL_ABS, '/initialize/client.js'),
         template: path.join(SHELL_ABS, '/public/index.html')
       }
     },
