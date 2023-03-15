@@ -1308,6 +1308,7 @@ cluster:
         storageClass: 存儲類
         title: 卷
         volume: 卷
+      installGuestAgent: 安裝訪客代理
     pnap:
       clientIdentifier:
         label: 客戶端 ID
@@ -4096,6 +4097,9 @@ prefs:
     detail: 更改在 UI 中顯示信息的方式。
     title: 顯示設置
   language: 語言
+  confirmationSetting:
+    scalingDownPrompt: 縮減節點池時不要求確認。
+    title: 確認設置
 principal:
   loading: 正在加載&hellip;
   error: 無法獲取信息
