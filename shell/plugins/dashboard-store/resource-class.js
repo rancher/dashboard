@@ -981,7 +981,7 @@ export default class Resource {
       throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
     }
 
-    return this.$dispatch('request', { opt, type: this.type } );
+    return this.$dispatch('request', { opt } );
   }
 
   // ------------------------------------------------------------------
