@@ -6,7 +6,7 @@ import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
 import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
-import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
+import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
 
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
@@ -202,7 +202,16 @@ export default {
       return this.groupPreference === 'none' ? this.rows : this.rowsWithFakeNamespaces;
     },
     rows() {
-      if (this.$store.getters['prefs/get'](ALL_NAMESPACES)) {
+      let isDev;
+
+      // Ensure Harvester is compatible with Rancher v2.6.10
+      try {
+        isDev = this.$store.getters['prefs/get'](ALL_NAMESPACES);
+      } catch {
+        isDev = this.$store.getters['prefs/get'](DEV);
+      }
+
+      if (isDev) {
         // If all namespaces options are turned on in the user preferences,
         // return all namespaces including system namespaces and RBAC
         // management namespaces.

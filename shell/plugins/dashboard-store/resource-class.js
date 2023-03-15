@@ -9,7 +9,7 @@ import {
   AS,
   MODE
 } from '@shell/config/query-params';
-import { VIEW_IN_API } from '@shell/store/prefs';
+import { VIEW_IN_API, DEV } from '@shell/store/prefs';
 import { addObject, addObjects, findBy, removeAt } from '@shell/utils/array';
 import CustomValidators from '@shell/utils/custom-validators';
 import { downloadFile, generateZip } from '@shell/utils/download';
@@ -955,7 +955,12 @@ export default class Resource {
   }
 
   get canViewInApi() {
-    return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
+    // Ensure Harvester is compatible with Rancher v2.6.10
+    try {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](VIEW_IN_API);
+    } catch {
+      return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
+    }
   }
 
   get canYaml() {
