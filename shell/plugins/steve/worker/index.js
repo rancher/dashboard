@@ -3,9 +3,26 @@ import basicWorkerConstructor from '@shell/plugins/steve/worker/web-worker.basic
 // eslint-disable-next-line no-unused-vars
 import advancedWorkerConstructor from '@shell/plugins/steve/worker/web-worker.advanced.js';
 import { CSRF } from '@shell/config/cookies';
+import { deferred } from '@shell/utils/promise';
 
 export default function steveCreateWorker(ctx, mode) {
   let worker;
+  const deferredRequests = {};
+
+  /**
+   * Ensure any duplicated requests receive the result of the initial request
+   */
+  const finishDeferred = (requestHash, action = 'resolve', res) => {
+    const waiting = deferredRequests[requestHash] || [];
+
+    // console.log('Resolving deferred for', requestHash, waiting.length);
+
+    while ( waiting.length ) {
+      waiting.pop()[action](res);
+    }
+
+    delete deferredRequests[requestHash];
+  };
 
   /**
    * Make a http request, create a cached promise and return the promise.
@@ -47,9 +64,17 @@ export default function steveCreateWorker(ctx, mode) {
       }));
       const requestHash = JSON.stringify(requestParams);
 
+      // If we're already making this request return a weak link to the result of the first request
       if (worker.requests[requestHash]) {
-        // TODO: RC Discuss - not sure we want to error here, anyway to pass back the original promise? make a new one and chain, etc?
-        throw new Error('duplicate request is already active');
+        if (!deferredRequests[requestHash]) {
+          deferredRequests[requestHash] = [];
+        }
+
+        const later = deferred();
+
+        deferredRequests[requestHash].push(later);
+
+        return later.promise;
       }
 
       worker.requests[requestHash] = {
@@ -60,9 +85,11 @@ export default function steveCreateWorker(ctx, mode) {
       worker.requests[requestHash].promise = new Promise((resolve, reject) => {
         worker.requests[requestHash].resolves = (resources) => {
           resolve(resources);
+          finishDeferred(requestHash, 'resolve', resources);
         };
         worker.requests[requestHash].reject = (error) => {
           reject(error);
+          finishDeferred(requestHash, 'reject', resources);
         };
 
         worker.postMessage({

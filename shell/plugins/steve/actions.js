@@ -94,7 +94,7 @@ export default {
     const key = JSON.stringify(headers) + method + opt.url;
     let waiting;
 
-    if ( (method === 'get') ) {
+    if ( (method === 'get' && !isAdvancedWorker) ) {
       waiting = state.deferredRequests[key];
 
       if ( waiting ) {
