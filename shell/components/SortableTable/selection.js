@@ -114,6 +114,7 @@ export default {
       // List of selected items in the table
       selectedRows: [],
       prevNode:     null,
+      stopCounter:  false,
     };
   },
 
@@ -439,13 +440,14 @@ export default {
     update(toAdd, toRemove) {
       toRemove.forEach((row) => {
         const index = this.selectedRows.findIndex(r => r === row);
-
         if (index !== -1) {
           this.selectedRows.splice(index, 1);
         }
       });
-
-      this.selectedRows.push(...toAdd);
+      
+      if ( this.selectedRows.length < this.pagedRows.length ) {
+        this.selectedRows.push(...toAdd);
+      }
 
       // Uncheck and check the checkboxes of nodes that have been added/removed
       if (toRemove.length) {
@@ -469,13 +471,14 @@ export default {
       });
     },
 
+
     updateInput(node, on, keyField) {
       const id = get(node, keyField);
 
       if ( id ) {
         // Note: This is looking for the checkbox control for the row
         const input = $(`div[data-checkbox-ctrl][data-node-id="${ id }"]`);
-
+        
         if ( input && input.length && !input[0].disabled ) {
           const label = $(input[0]).find('label');
 

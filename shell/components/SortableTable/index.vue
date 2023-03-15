@@ -436,14 +436,6 @@ export default {
       return this.$store.getters['activeNamespaceCache'];
     },
 
-    selectedRowsLength() {
-      if ( this.selectedRows.length <= this.rows.length ) {
-        return this.selectedRowsText;
-      } else {
-        return this.t('sortableTable.actionAvailability.selected', { actionable: this.rows.length });
-      }
-    },
-
     initalLoad() {
       return !!(!this.loading && !this._didinit && this.rows?.length);
     },
@@ -795,7 +787,7 @@ export default {
     toggleExpand(row) {
       const key = row[this.keyField];
       const val = !this.expanded[key];
-
+      
       this.expanded[key] = val;
       this.expanded = { ...this.expanded };
 
@@ -826,7 +818,6 @@ export default {
 
     nearestCheckbox() {
       const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
-
       return $cur[0];
     },
 
@@ -982,7 +973,7 @@ export default {
                 :class="bulkActionAvailabilityClass"
                 class="action-availability"
               >
-                {{ selectedRowsLength }}
+                {{ selectedRowsText }}
               </label>
             </template>
           </slot>
