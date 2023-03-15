@@ -169,14 +169,21 @@ export default {
           url:    addParam('/meta/aksLocations', 'cloudCredentialId', this.credentialId),
           method: 'GET',
         });
-
-        this.loadedCredentialIdFor = this.credentialId;
       }
-      // when you edit an Azure cluster and add a new machine pool (edit)
-      // the location field doesn't come populated which causes the vmSizes request
-      // to return 200 but with a null response
-      // if (this.mode === _CREATE || (this.mode === _EDIT && !this.value?.location)) {
+
+      // if (this.mode === _CREATE) {
       //   this.value.location = DEFAULT_REGION;
+
+      // // when you edit an Azure cluster and add a new machine pool (edit)
+      // // the location field doesn't come populated which causes the vmSizes request
+      // // to return 200 but with a null response (also a bunch of other fields are undefined...)
+      // // so let's prefill them with the defaults
+      // } else if (this.mode === _EDIT && !this.value?.location) {
+      //   for (const key in this.defaultConfig) {
+      //     if (this.value[key] === undefined) {
+      //       this.$set(this.value, key, this.defaultConfig[key]);
+      //     }
+      //   }
       // }
 
       if (!this.value.location || !findBy(this.locationOptions, 'name', this.value.location)) {
@@ -190,32 +197,31 @@ export default {
         }),
         method: 'GET',
       });
+
+      // set correct option for useAvailabilitySet (will consider correct state for UI form based on availabilitySet)
+      if (this.mode === _CREATE) {
+        this.useAvailabilitySet = true;
+      } else {
+        this.useAvailabilitySet = !!this.value.availabilitySet;
+      }
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
   },
 
   data() {
-    let useAvailabilitySet = false;
-
-    if (this.mode === _CREATE) {
-      useAvailabilitySet = true;
-    } else {
-      useAvailabilitySet = !!this.value.availabilitySet;
-    }
-
     return {
       azureEnvironments,
       defaultConfig,
       storageTypes,
-      credential:      null,
-      locationOptions: [],
-      loading:         false,
-      useAvailabilitySet,
-      vmSizes:         [],
-      valueCopy:       this.value,
+      credential:         null,
+      locationOptions:    [],
+      loading:            false,
+      useAvailabilitySet: false,
+      vmSizes:            [],
+      valueCopy:          this.value,
 
-      loadedCredentialIdFor: null,
+      loadedCredentialIdFor: null
     };
   },
 

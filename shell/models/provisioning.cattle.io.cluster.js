@@ -104,7 +104,7 @@ export default class ProvCluster extends SteveModel {
     const clusterTemplatesSchema = this.$getters['schemaFor']('management.cattle.io.clustertemplate');
     let canUpdateClusterTemplate = false;
 
-    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods.includes('PUT'))) {
+    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods?.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods?.includes('PUT'))) {
       canUpdateClusterTemplate = true;
     }
 

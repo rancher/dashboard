@@ -538,7 +538,7 @@ export default {
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const optionCase = !this.needsPSP ? 'default' : 'none';
+      const optionCase = !this.needsPSP && !this.isK3s ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
@@ -1864,7 +1864,7 @@ export default {
      * Check if current cluster has PSP enabled
      * Consider exclusively RKE2 provisioned clusters in edit mode
      */
-    checkPsps() {
+    async checkPsps() {
       // As server returns 500 we exclude all the possible cases
       if (
         this.mode !== _CREATE &&
@@ -1876,7 +1876,7 @@ export default {
         const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
 
         try {
-          return this.$store.dispatch('cluster/request', { url });
+          return await this.$store.dispatch('cluster/request', { url });
         } catch (error) {
           // PSP may not exists for this cluster and an error is returned without need to handle
         }
@@ -2222,8 +2222,9 @@ export default {
           <Banner
             v-if="showCisProfile && !isCisSupported"
             color="info"
-            :label="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)"
-          />
+          >
+            <p v-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
+          </Banner>
 
           <div class="row mb-10">
             <div

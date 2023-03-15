@@ -178,6 +178,11 @@ export function init(store) {
     },
   });
 
+  /** This CRD is installed on provisioned clusters because rancher webhook, used for both local and provisioned clusters, expects it to be there
+   * Creating instances of this resource on downstream clusters wont do anything - Only show them for the local cluster
+   */
+  configureType(MANAGEMENT.PSA, { localOnly: true });
+
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
   headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
   headers(SECRET, [
@@ -206,6 +211,10 @@ export function init(store) {
   headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(POD, [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
+  headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
+    ...DESCRIPTION,
+    width: undefined
+  }, AGE]);
   headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE]);
 
   headers(RBAC.ROLE, [
@@ -356,8 +365,6 @@ export function init(store) {
 
   // Ignore these types as they are managed through the auth product
   ignoreType(MANAGEMENT.USER);
-
-  // Ignore these types as they are managed through the auth product
   ignoreType(MANAGEMENT.GLOBAL_ROLE);
   ignoreType(MANAGEMENT.ROLE_TEMPLATE);
 }

@@ -20,7 +20,7 @@ export default class SteveDescriptionModel extends SteveModel {
     this._description = value;
   }
 
-  // Ensure when we clone that we preserve the desription
+  // Ensure when we clone that we preserve the description
   toJSON() {
     const data = super.toJSON();
 
@@ -28,5 +28,9 @@ export default class SteveDescriptionModel extends SteveModel {
     delete data._description;
 
     return data;
+  }
+
+  toSave() {
+    return this.toJSON();
   }
 }
