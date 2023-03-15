@@ -787,7 +787,7 @@ export default {
     toggleExpand(row) {
       const key = row[this.keyField];
       const val = !this.expanded[key];
-      
+
       this.expanded[key] = val;
       this.expanded = { ...this.expanded };
 
@@ -818,6 +818,7 @@ export default {
 
     nearestCheckbox() {
       const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
+
       return $cur[0];
     },
 
