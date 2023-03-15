@@ -136,7 +136,7 @@ export default {
 
     // If we loaded a set of pods, then update the podsByNamespace cache
     if (type === POD) {
-      updatePodsByNamespaceCache(state, ctx, proxies, true); // TODO: RC Test - How does this work with the advanced worker?
+      updatePodsByNamespaceCache(state, ctx, proxies, true);
     }
 
     // Notify the web worker of the initial load of schemas
