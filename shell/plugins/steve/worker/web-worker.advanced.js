@@ -129,6 +129,7 @@ const workerActions = {
    */
   loadSchemas: (data) => {
     workerActions.updateCache(SCHEMA, data); // This will create caches[SCHEMA]
+    workerActions.flushApiQueue();
   },
 
   /**
@@ -230,8 +231,6 @@ const workerActions = {
 
     requestTracer.trace('waitingForResponse --> request', params);
 
-    // TODO: RC test: refresh on detail page (find id). nav back to detail page
-
     if (!caches[type]) {
       requestTracer.trace('waitingForResponse --> request. No Cache, created and requesting resources');
       state.api.request(params)
@@ -263,19 +262,6 @@ const workerActions = {
   updateCache: (type, payload, detail = false) => {
     const rawResources = detail ? [payload] : payload;
 
-    // TODO: RC BUG could genuinely be zero resources (cache has resources, resources deleted, etc)
-    // if (payload?.length === 0) {
-    //   return [];
-    // }
-    // const rawType = rawResources[0].type;
-
-    // const type = normalizeType(rawType === 'counts' ? COUNT : rawType);
-
-    if (!type) {
-      debugger;
-      throw new Error('FIX ME');
-    }
-
     if (!caches[type]) {
       caches[type] = resourceCache(type);
     }
@@ -297,11 +283,10 @@ const workerActions = {
     }
   },
 
-  // TODO: RC Test - make sure we disregard any request relating to forgotten types??
   flushApiQueue: () => {
-    while (state.apiQueue.length > 0) {
-      requestTracer.trace('flushApiQueue', 'flushing apiQueue', state.apiQueue);
+    requestTracer.trace('flushApiQueue', 'flushing apiQueue', state.apiQueue);
 
+    while (state.apiQueue.length > 0) {
       const workerMessage = state.apiQueue.shift();
       const [action, msg] = Object.entries(workerMessage)[0];
 

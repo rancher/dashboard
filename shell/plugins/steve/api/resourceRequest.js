@@ -80,14 +80,6 @@ export default class ResourceRequest extends Trace {
 
       const requestUrl = this.__resourceUrl(params);
 
-      // TODO: RC Remove
-      // if (requestUrl.includes('configmap')) {
-      //   return Promise.reject(new Error(`Mocked 404: ${ params.type }`, { cause: { response: { status: 401 } } }));
-      // }
-      // if (requestUrl.includes('node')) {
-      //   debugger;
-      // }
-
       // fetch itself will reject a promise if the server fails to send a response (no connection, server not responding, etc)
       return fetch(requestUrl, opt)
         .then((res) => {

@@ -70,8 +70,11 @@ export default {
 
     // await this.$store.dispatch('cluster/findAll', { type: POD }).then(res => console.info('list nodes: 2 pods', res));
 
-    // TODO: RC Test - no await, multiple dispatches, only a single request made
-    // TODO: RC test individual
+    // this.$store.dispatch('cluster/find', { type: POD, id: 'cattle-fleet-system/gitjob-74b98dff59-zdxrk' }).then(res => console.info('cattle-fleet-system/gitjob-74b98dff59-zdxrk node: 1 pod', res));
+    // this.$store.dispatch('cluster/find', { type: POD, id: 'cattle-fleet-system/gitjob-74b98dff59-zdxrk' }).then(res => console.info('cattle-fleet-system/gitjob-74b98dff59-zdxrk node: 1 pod', res));
+
+    // this.$store.dispatch('cluster/find', { type: POD, id: 'asdsad' }).then(res => console.info('cattle-fleet-system/gitjob-74b98dff59-zdxrk node: 1 pod', res));
+
     // ----
     //  function wait(milliseconds) {
     //   return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -112,6 +115,14 @@ export default {
     // } catch (e) {
     //   console.warn('DANGER WILL ROBINSON: ', e);
     // }
+    // ----
+    // if (requestUrl.includes('configmap')) {
+    //   return Promise.reject(new Error(`Mocked 404: ${ params.type }`, { cause: { response: { status: 401 } } }));
+    // }
+    // if (requestUrl.includes('node')) {
+    //   debugger;
+    // }
+    // ----
     // console.warn('chill WILL ROBINSON: ');
 
     this.$initializeFetchData(this.resource);

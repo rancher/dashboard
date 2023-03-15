@@ -119,8 +119,10 @@ export default class ResourceCache extends Trace {
    * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
    *
    * Responses are expected in `{ data: res }` format, so anything from cache must behave like a http request
+   *
+   * // TODO: RC https://github.com/rancher/dashboard/issues/8420
    */
-  find(params) { // TODO: RC Implement - Should this do other things now than find?
+  find(params) {
     this.trace('find', params);
     const {
       namespace, id, selector, force

@@ -57,7 +57,6 @@ export async function createWorker(store, ctx) {
     load: (resource) => {
       queueChange(ctx, resource, true, 'Change');
     },
-    // TODO: RC Test - long running request... change clusters (this triggers, what happens on response?)
     destroyWorker: () => {
       if (store.$workers) {
         store.$workers[storeName].terminate();

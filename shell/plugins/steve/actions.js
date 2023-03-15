@@ -54,7 +54,6 @@ export default {
       state, dispatch, rootGetters, getters
     } = ctx;
 
-    console.warn('RC steve: action: request: ', pOpt);
     const opt = pOpt.opt || pOpt;
     const supportsStream = state.allowStreaming && state.config.supportsStream && streamingSupported();
     const isAdvancedWorker = getters.advancedWorkerCompatible && validateAdvancedWorkerOpts(pOpt.type, opt, {
