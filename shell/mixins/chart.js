@@ -341,6 +341,71 @@ export default {
       }
     }, // End of fetchChart
 
+    // Charts have an annotation that specifies any additional charts that should be installed at the same time eg CRDs
+    async fetchAutoInstallInfo() {
+      const out = [];
+      /*
+        An example value for auto is ["rancher-monitoring-crd=match"].
+        It is an array of chart names that lets Rancher know of other
+        charts that should be auto-installed at the same time.
+      */
+      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+
+      for ( const constraint of auto ) {
+        const provider = this.$store.getters['catalog/versionSatisfying']({
+          constraint,
+          repoName:     this.chart.repoName,
+          repoType:     this.chart.repoType,
+          chartVersion: this.version.version,
+        });
+        /* An example return value for "provider":
+          [
+              {
+                  "name": "rancher-monitoring-crd",
+                  "version": "100.1.3+up19.0.3",
+                  "description": "Installs the CRDs for rancher-monitoring.",
+                  "apiVersion": "v1",
+                  "annotations": {
+                      "catalog.cattle.io/certified": "rancher",
+                      "catalog.cattle.io/hidden": "true",
+                      "catalog.cattle.io/namespace": "cattle-monitoring-system",
+                      "catalog.cattle.io/release-name": "rancher-monitoring-crd"
+                  },
+                  "type": "application",
+                  "urls": [
+                      "https://192.168.0.18:8005/k8s/clusters/c-m-hhpg69fv/v1/catalog.cattle.io.clusterrepos/rancher-charts?chartName=rancher-monitoring-crd&link=chart&version=100.1.3%2Bup19.0.3"
+                  ],
+                  "created": "2022-04-27T10:04:18.343124-07:00",
+                  "digest": "ecf07ba23a9cdaa7ffbbb14345d94ea1240b7f3b8e0ce9be4640e3e585c484e2",
+                  "key": "cluster/rancher-charts/rancher-monitoring-crd/100.1.3+up19.0.3",
+                  "repoType": "cluster",
+                  "repoName": "rancher-charts"
+              }
+          ]
+          */
+
+        if ( provider ) {
+          // more.push(provider);
+          try {
+            const crdVersionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
+              repoType:    provider.repoType,
+              repoName:    provider.repoName,
+              chartName:   provider.name,
+              versionName: provider.version
+            });
+
+            out.push(crdVersionInfo);
+          } catch (e) {
+            console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
+          }
+        } else {
+          this.errors.push(`This chart requires ${ constraint } but no matching chart was found`);
+        }
+      }
+
+      this.$set(this, 'autoInstallInfo', out);
+    },
+
     selectVersion({ id: version }) {
       this.$router.applyQuery({ [VERSION]: version });
     },
