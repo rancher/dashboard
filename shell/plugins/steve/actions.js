@@ -249,7 +249,7 @@ export default {
     function responseObject(res) {
       let out = res.data;
 
-      const fromHeader = res.headers['x-api-cattle-auth'];
+      const fromHeader = res.headers?.['x-api-cattle-auth'];
 
       if ( fromHeader && fromHeader !== rootGetters['auth/fromHeader'] ) {
         dispatch('auth/gotHeader', fromHeader, { root: true });

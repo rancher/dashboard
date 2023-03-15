@@ -87,7 +87,7 @@ export default class ResourceRequest extends Trace {
             return {
               status:     res.status,
               statusText: res.statusText,
-              headers:    {}, // res.headers won't serialise to send between threads
+              // headers:    res.headers, // headers won't serialise to send between threads
               data:       await res.json()
             };
           }
