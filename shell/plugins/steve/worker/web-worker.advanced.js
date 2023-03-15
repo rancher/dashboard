@@ -10,6 +10,7 @@ import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/norma
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import cacheClasses from '@shell/plugins/steve/caches';
 import ResourceRequest from '@shell/plugins/steve/api/resourceRequest';
+import Trace from '~/shell/plugins/steve/trace';
 
 const caches = {};
 
@@ -24,14 +25,20 @@ const state = {
   watcherQueue: [],
   apiQueue:     [],
   batchChanges: {},
-  debugWorker:  false
+  debugWorker:  {
+    trace:   false,
+    watch:   false,
+    request: false,
+    cache:   false,
+  }
 };
 
-const trace = (...args) => {
-  state.debugWorker && console.info('Advanced Worker:', ...args); // eslint-disable-line no-console
-};
+const tracer = new Trace('Advanced Worker');
+const watchTracer = new Trace('Advanced Worker: Watch');
+const requestTracer = new Trace('Advanced Worker: Request');
 
-trace('created');
+tracer.setDebug(state.debugWorker.trace);
+tracer.trace('created');
 
 const makeResourceProps = (msg) => {
   const { resourceType, data: { type: rawType }, data } = msg;
@@ -54,7 +61,8 @@ const makeResourceProps = (msg) => {
  * Pass the EVENT_CONNECT_ERROR / EVENT_DISCONNECT_ERROR back to the UI thread
  */
 const handleConnectionError = (eventType, event, watcher) => {
-  trace('createWatcher', eventType, event);
+  watchTracer.trace('createWatcher', eventType, event);
+
   self.postMessage({
     [eventType]: {
       type:       event.type,
@@ -85,7 +93,11 @@ const removeFromWatcherQueue = (watchKey) => {
 const resourceCache = (type) => {
   const CacheClass = cacheClasses[`${ type }Cache`] || cacheClasses.resourceCache;
 
-  return new CacheClass(type, params => state.api?.request({ ...params, type }));
+  const instance = new CacheClass(type, params => state.api?.request({ ...params, type }));
+
+  instance.setDebug(state.debugWorker.cache);
+
+  return instance;
 };
 
 /**
@@ -137,6 +149,7 @@ const workerActions = {
           return caches[SCHEMA].getSchema(id);
         }
       });
+      state.api.setDebug(state.debugWorker.request);
 
       for (const [resourceKey, resourceCache] of Object.entries(caches)) {
         resourceCache.loadWorkerMethods({ resourceRequest: params => state.api?.request({ ...params, type: resourceKey }) });
@@ -144,7 +157,7 @@ const workerActions = {
     }
   },
   createWatcher: (metadata) => {
-    trace('createWatcher', metadata);
+    watchTracer.trace('createWatcher', metadata);
 
     const { connectionMetadata, maxTries } = metadata;
     const { url, csrf } = state.config;
@@ -178,7 +191,7 @@ const workerActions = {
         handleConnectionError(EVENT_DISCONNECT_ERROR, e, state.watcher);
       });
 
-      state.watcher.setDebug(state.debugWorker);
+      state.watcher.setDebug(state.debugWorker.watch);
 
       state.watcher.connect(connectionMetadata);
 
@@ -191,14 +204,13 @@ const workerActions = {
    * Starting point for requests for resources
    */
   waitingForResponse: (request) => {
-    console.log('WW: advanced: waitingForResponse...?', request);
+    requestTracer.trace('waitingForResponse', request);
+
     if (!caches[SCHEMA]) {
-      console.log('WW: advanced: waitingForResponse: waiting', request);
       state.apiQueue.push({ waitingForResponse: request });
 
       return;
     }
-    console.log('WW: advanced: waitingForResponse: not waiting', request);
     const { params, requestHash } = request;
 
     workerActions.request(params, (response, error) => self.postMessage({
@@ -216,11 +228,12 @@ const workerActions = {
       type, namespace, id, filter, sortBy, sortOrder, limit, force
     } = params;
 
-    console.warn('RC: AD: request', params);
+    requestTracer.trace('waitingForResponse --> request', params);
 
     // TODO: RC test: refresh on detail page (find id). nav back to detail page
 
     if (!caches[type]) {
+      requestTracer.trace('waitingForResponse --> request. No Cache, created and requesting resources');
       state.api.request(params)
         .then((res) => {
           // Expected format of `{ data: res }`
@@ -230,6 +243,7 @@ const workerActions = {
           resolver(undefined, parseRequestError(e));
         });
     } else {
+      requestTracer.trace('waitingForResponse --> request. Have Cache');
       caches[type].find({
         type, namespace, id, filter, sortBy, sortOrder, limit, force
       })
@@ -270,7 +284,7 @@ const workerActions = {
   },
   flushWatcherQueue: () => {
     while (state.watcherQueue.length > 0) {
-      trace('createWatcher', 'flushing watcherQueue', state.watcherQueue);
+      watchTracer.trace('createWatcher', 'flushing watcherQueue', state.watcherQueue);
 
       const workerMessage = state.watcherQueue.shift();
       const [action, msg] = Object.entries(workerMessage)[0];
@@ -286,7 +300,7 @@ const workerActions = {
   // TODO: RC Test - make sure we disregard any request relating to forgotten types??
   flushApiQueue: () => {
     while (state.apiQueue.length > 0) {
-      trace('flushApiQueue', 'flushing apiQueue', state.apiQueue);
+      requestTracer.trace('flushApiQueue', 'flushing apiQueue', state.apiQueue);
 
       const workerMessage = state.apiQueue.shift();
       const [action, msg] = Object.entries(workerMessage)[0];
@@ -302,7 +316,7 @@ const workerActions = {
     state.config = config;
   },
   watch: (msg) => {
-    trace('watch', msg);
+    watchTracer.trace('watch', msg);
 
     const watchKey = watchKeyFromMessage(msg);
 
@@ -344,7 +358,7 @@ const workerActions = {
     state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
   },
   unwatch: (watchKey) => {
-    trace('unwatch', watchKey);
+    watchTracer.trace('unwatch', watchKey);
 
     removeFromWatcherQueue(watchKey);
 
@@ -355,7 +369,7 @@ const workerActions = {
     state.watcher.unwatch(watchKey);
   },
   destroyWorker: () => {
-    trace('destroyWorker');
+    tracer.trace('destroyWorker');
 
     clearInterval(maintenanceInterval);
 
@@ -372,8 +386,28 @@ const workerActions = {
     }
   },
   toggleDebug: ({ on }) => {
-    state.debugWorker = !!on;
-    state.watcher.setDebug(!!on);
+    console.debug('Setting Advanced Worker debug levels: ', on); // eslint-disable-line no-console
+
+    // Could be boolean... or object
+    const defaultDebug = Object.keys(on).length ? false : on;
+
+    const {
+      trace = defaultDebug, watch = defaultDebug, request = defaultDebug, cache = defaultDebug
+    } = on;
+
+    state.debugWorker = {
+      trace, watch, request, cache
+    };
+
+    tracer.setDebug(trace);
+
+    watchTracer.setDebug(watch);
+    state.watcher?.setDebug(watch);
+
+    requestTracer.setDebug(request);
+    state.api?.setDebug(request);
+
+    Object.values(caches).forEach(c => c.setDebug(cache));
   },
   updateBatch(type, id, change) {
     if (!state.batchChanges[type]) {
@@ -394,6 +428,8 @@ const workerActions = {
     }
   }
 };
+
+workerActions.toggleDebug({ on: state.debugWorker });
 
 /**
  * These are things that we do when we get a message from the resourceWatcher

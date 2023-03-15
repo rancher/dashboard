@@ -2,11 +2,12 @@
 import { keyFieldFor, normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 import { matches } from '@shell/utils/selector';
+import Trace from '@shell/plugins/steve/trace';
 
 /**
  * Cache for a resource type. Has various create / update / remove style functions as well as a `find` which  will fetch the resource/s if missing
  */
-export default class ResourceCache {
+export default class ResourceCache extends Trace {
   resources = {};
   type;
   keyField;
@@ -27,6 +28,7 @@ export default class ResourceCache {
   preCacheFields = [];
 
   constructor(type, resourceRequest) {
+    super('Resource Cache');
     this.type = normalizeType(type);
     this.keyField = keyFieldFor(this.type);
     this.__resourceRequest = resourceRequest || this.__resourceRequest;
@@ -85,6 +87,8 @@ export default class ResourceCache {
    * Sets the current cache with the payload
    */
   load(payload = [], concat = false) {
+    this.trace('load', payload);
+
     const singleResource = payload.length === 1;
     let id;
 
@@ -117,6 +121,7 @@ export default class ResourceCache {
    * Responses are expected in `{ data: res }` format, so anything from cache must behave like a http request
    */
   find(params) { // TODO: RC Implement - Should this do other things now than find?
+    this.trace('find', params);
     const {
       namespace, id, selector, force
     } = params;
@@ -189,6 +194,7 @@ export default class ResourceCache {
    * Change the given resource in the cache
    */
   change(resource, callback) {
+    this.trace('change', resource);
     const preCacheResource = this.__addPreCacheFields(resource);
 
     const updatedCache = this.__updateCache(preCacheResource);
@@ -204,6 +210,8 @@ export default class ResourceCache {
    * Add the resource to the cache
    */
   create(resource, callback) {
+    this.trace('create', resource);
+
     // ToDo: the logic for create is identical to change in these caches but the worker doesn't know that
     return this.change(resource, callback);
   }
@@ -212,6 +220,7 @@ export default class ResourceCache {
    * Remove the resource with the given key from the cache
    */
   remove(key, callback) {
+    this.trace('remove', key);
     if (this.resources[key]) {
       delete this.resources[key];
       callback();

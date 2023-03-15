@@ -4,11 +4,12 @@ import { urlFor } from '@shell/plugins/dashboard-store/getters.utils';
 import { steveUrlOptions } from '@shell/plugins/steve/getters.utils';
 
 import { SCHEMA } from '@shell/config/types';
+import Trace from '@shell/plugins/steve/trace';
 
 /**
  * Handle http requests to the steve api, also cache the response
  */
-export default class ResourceRequest {
+export default class ResourceRequest extends Trace {
     /**
      * Function that will fetch the schema for a given resource type
      */
@@ -25,6 +26,7 @@ export default class ResourceRequest {
     __config = {};
 
     constructor(config, methods = {}) {
+      super('Resource Requester');
       this.__config = { ...config };
       this.__getSchema = methods.getSchema;
       this.__updateCache = methods.updateCache;
@@ -65,12 +67,12 @@ export default class ResourceRequest {
      * Make the http request
      */
     request(params) {
+      this.trace('Request', params);
+
       const opt = {
         method:  'get',
         headers: { accept: 'application/json' },
       };
-
-      console.warn('RC: resourceRequest: request', params);
 
       if (this.config.csrf) {
         opt.headers['x-api-csrf'] = this.__config.csrf;
