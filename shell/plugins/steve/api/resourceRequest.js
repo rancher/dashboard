@@ -49,8 +49,7 @@ export default class ResourceRequest extends Trace {
       const { type, id, namespace } = params;
 
       const resourceType = normalizeType(type);
-      // TODO: RC Investigate ${ self.location.origin }
-      const opt = { url: resourceType === SCHEMA ? `${ self.location.origin }${ this.__config.url }/${ resourceType }` : undefined };
+      const opt = { url: resourceType === SCHEMA ? `${ this.__config.url }/${ resourceType }` : undefined };
 
       const resourceUrl = urlFor({
         normalizeType, schemaFor: this.__getSchema, baseUrl: this.__config.url
@@ -82,18 +81,22 @@ export default class ResourceRequest extends Trace {
 
       // fetch itself will reject a promise if the server fails to send a response (no connection, server not responding, etc)
       return fetch(requestUrl, opt)
-        .then((res) => {
+        .then(async(res) => {
           // The server returned a response
-
           if (res.ok) {
-            return res.json();
+            return {
+              status:     res.status,
+              statusText: res.statusText,
+              headers:    {}, // res.headers won't serialise to send between threads
+              data:       await res.json()
+            };
           }
 
           throw new Error(`Error making resource(s) http request: ${ params.type }`, { cause: { response: res } });
         })
         .then((res) => {
           // TODO: RC https://github.com/rancher/dashboard/issues/8420
-          this.__updateCache(params.type, res.data || res, !!params.id);
+          this.__updateCache(params.type, res.data.data || res.data, !!params.id);
 
           return res;
         });

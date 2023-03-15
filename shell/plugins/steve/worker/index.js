@@ -89,7 +89,7 @@ export default function steveCreateWorker(ctx, mode) {
         };
         worker.requests[requestHash].reject = (error) => {
           reject(error);
-          finishDeferred(requestHash, 'reject', resources);
+          finishDeferred(requestHash, 'reject', error);
         };
 
         worker.postMessage({

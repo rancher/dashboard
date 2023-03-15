@@ -12,8 +12,10 @@ import { waitFor } from '@shell/utils/async';
 
 const unsupportedAdvancedWorkerOptions = ['stream', 'depaginate', 'incremental', 'hasManualRefresh', 'redirectUnauthorized'];
 const validateAdvancedWorkerOpts = (type, opt, { cacheLoadStrategy = _ALL, supportsStream }) => {
-  if ((opt?.url && !type) || opt.load === false) {
-    console.warn('RC steve: action: validateAdvancedWorkerOpts: skipping AD', opt, cacheLoadStrategy, supportsStream);
+  const method = opt.method?.toLowerCase() || 'get'; // TODO: RC https://github.com/rancher/dashboard/issues/8420
+
+  if ((opt?.url && !type) || opt.load === false || method !== 'get') {
+    // TODO: RC remove `console.warn('RC)
 
     // These are expected, and we just shouldn't use the advanced worker
     return false;
@@ -224,9 +226,11 @@ export default {
       return worker.postMessageAndWait({
         type, namespace, id, limit, filter, sortBy, sortOrder, force
       }).then((res) => {
-        finishDeferred(key, 'resolve', res);
+        const out = responseObject(res);
 
-        return res;
+        finishDeferred(key, 'resolve', out);
+
+        return out;
       });
     }
 
