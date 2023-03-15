@@ -15,8 +15,6 @@ const validateAdvancedWorkerOpts = (type, opt, { cacheLoadStrategy = _ALL, suppo
   const method = opt.method?.toLowerCase() || 'get'; // TODO: RC https://github.com/rancher/dashboard/issues/8420
 
   if ((opt?.url && !type) || opt.load === false || method !== 'get') {
-    // TODO: RC remove `console.warn('RC)
-
     // These are expected, and we just shouldn't use the advanced worker
     return false;
   }

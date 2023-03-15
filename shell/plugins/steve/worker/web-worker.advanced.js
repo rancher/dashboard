@@ -10,7 +10,7 @@ import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/norma
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import cacheClasses from '@shell/plugins/steve/caches';
 import ResourceRequest from '@shell/plugins/steve/api/resourceRequest';
-import Trace from '~/shell/plugins/steve/trace';
+import Trace from '@shell/plugins/steve/trace';
 
 const caches = {};
 
@@ -138,7 +138,7 @@ const workerActions = {
   createApi: () => {
     if (!state.api) {
       if (!caches[SCHEMA]) {
-        console.error('No schema cache. `loadSchemas` should be called before `createApi`');
+        console.error('No schema cache. `loadSchemas` should be called before `createApi`'); // eslint-disable-line no-console
 
         return;
       }

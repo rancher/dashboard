@@ -9,7 +9,7 @@ import Socket, {
   EVENT_CONNECTED,
 } from '@shell/utils/socket';
 import { addParam } from '@shell/utils/url';
-import Trace from '~/shell/plugins/steve/trace';
+import Trace from '@shell/plugins/steve/trace';
 
 export const WATCH_STATUSES = {
   /**
