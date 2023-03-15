@@ -210,6 +210,18 @@ export default {
     }) {
       const worker = that.$workers[getters.storeName];
 
+      if (id) {
+        const schema = getters['schemaFor'](type);
+
+        // ToDo: we'll need to figure out how to do this for all other stores if the advanced worker ever makes it beyond 'cluster'
+        if (schema.attributes?.namespaced) {
+          [namespace, id] = id.split('/');
+          if (!namespace || !id) {
+            throw new Error(`Unable to determine the namespace and/or id of a namespaced resource. Type: '${ type }'. Namespace: '${ namespace }'. Id: '${ id }'`);
+          }
+        }
+      }
+
       return worker.postMessageAndWait({
         type, namespace, id, limit, filter, sortBy, sortOrder, force
       }).then((res) => {
