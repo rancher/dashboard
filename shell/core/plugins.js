@@ -401,8 +401,8 @@ export default function({
 
       loadPlugins.forEach((plugin, i) => {
         if (plugin.products) {
-          console.error('PLUGIN PRODUCTS', plugin.products);
-          console.error('store', store);
+          console.log('PLUGIN PRODUCTS', plugin.products);
+          console.error('activeProducts', store.getters['type-map/activeProducts']);
 
           plugin.products.forEach(async(p) => {
             const impl = await p;

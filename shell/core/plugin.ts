@@ -88,6 +88,7 @@ export class Plugin implements IPlugin {
   }
 
   // Track which products the plugin creates
+  // used for legacy plugins (until Rancher v2.7.1)
   DSL(store: any, productName: string) {
     const storeDSL = STORE_DSL(store, productName);
 
@@ -147,18 +148,33 @@ export class Plugin implements IPlugin {
   }
 
   // POC new work....
-  addToExistingProduct() {
-    console.log('STORE', this.currStore);
-    console.log('LIST OF ACTIVE PRODUCTS', this.currStore.getters['type-map/activeProducts']);
+  addToExistingProduct(productName: string, options: object) {
+    const { product } = this.dslMethods;
+
+    product(options);
+
+    const activeProducts = this.currStore.getters['type-map/activeProducts'];
+
+    console.error('addToExistingProduct this V2', activeProducts);
+
+    return {
+      registerType: arg => this.registerType(arg),
+      updateType:   arg => this.updateType(arg)
+    };
   }
 
   // NEW WORK!!!!
-  registerExtensionProduct(options: object) {
+  registerAsProduct(options: object) {
     const { product } = this.dslMethods;
 
-    console.log('registerProd this V2', this);
-
     product(options);
+
+    console.log('registerAsProduct this V2', this);
+
+    return {
+      registerType: arg => this.registerType(arg),
+      updateType:   arg => this.updateType(arg)
+    };
   }
 
   // NEW WORK!!!!
