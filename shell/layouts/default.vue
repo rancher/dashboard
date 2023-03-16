@@ -35,7 +35,7 @@ import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
-import { getProductFromRoute } from '@shell/middleware/authenticated';
+import { getClusterFromRoute, getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
 import { BLANK_CLUSTER } from '@shell/store';
 
@@ -202,7 +202,7 @@ export default {
      */
     clusterAndRouteReady() {
       return this.clusterReady &&
-        this.clusterId === this.$route?.params?.cluster &&
+        this.clusterId === getClusterFromRoute(this.$route) &&
         this.currentProduct?.name === getProductFromRoute(this.$route);
     },
 
