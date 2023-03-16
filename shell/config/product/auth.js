@@ -27,7 +27,7 @@ export function init(store) {
 
   product({
     ifHaveType:          new RegExp(`${ MANAGEMENT.USER }|${ MANAGEMENT.AUTH_CONFIG }`, 'i'),
-    ifHaveVerb:          'PUT',
+    ifHaveVerb:          'GET',
     ifFeature:           MULTI_CLUSTER,
     inStore:             'management',
     icon:                'user',
@@ -43,7 +43,8 @@ export function init(store) {
     name:       'config',
     weight:     -1,
     route:      { name: 'c-cluster-auth-config' },
-    ifHaveType: MANAGEMENT.AUTH_CONFIG
+    ifHaveType: MANAGEMENT.AUTH_CONFIG,
+    ifHaveVerb: 'PUT'
   });
 
   virtualType({
