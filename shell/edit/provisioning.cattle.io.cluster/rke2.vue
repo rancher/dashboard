@@ -427,8 +427,8 @@ export default {
       const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
       const existingK3s = this.mode === _EDIT && cur.includes('k3s');
 
-      let allValidRke2Versions = this.getAllOptionsAfterMinVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
-      let allValidK3sVersions = this.getAllOptionsAfterMinVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
+      let allValidRke2Versions = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
+      let allValidK3sVersions = this.getAllOptionsAfterCurrentVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
 
       if (!this.showDeprecatedPatchVersions) {
         // Normally, we only want to show the most recent patch version
@@ -463,8 +463,6 @@ export default {
 
         if ( existing ) {
           existing.disabled = false;
-        } else {
-          out.unshift({ label: `${ cur } (current)`, value: cur });
         }
       }
 
@@ -863,7 +861,7 @@ export default {
       const first = all[0]?.value;
       const preferred = all.find(x => x.value === this.defaultRke2)?.value;
 
-      const rke2 = this.getAllOptionsAfterMinVersion(this.rke2Versions, null);
+      const rke2 = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, null);
       const showRke2 = rke2.length;
       let out;
 
@@ -1704,21 +1702,32 @@ export default {
       set(this.value.spec.rkeConfig.registries, 'configs', configs);
     },
 
-    getAllOptionsAfterMinVersion(versions, minVersion, defaultVersion) {
+    getAllOptionsAfterCurrentVersion(versions, currentVersion, defaultVersion) {
       const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
         let disabled = false;
         let experimental = false;
+        let isCurrentVersion = false;
+        let label = obj.id;
 
-        if ( minVersion ) {
-          disabled = compare(obj.id, minVersion) < 0;
+        if ( currentVersion ) {
+          disabled = compare(obj.id, currentVersion) < 0;
+          isCurrentVersion = compare(obj.id, currentVersion) === 0;
         }
 
         if ( defaultVersion ) {
           experimental = compare(defaultVersion, obj.id) < 0;
         }
 
+        if (isCurrentVersion) {
+          label = `${ label } ${ this.t('cluster.kubernetesVersion.current') }`;
+        }
+
+        if (experimental) {
+          label = `${ label } ${ this.t('cluster.kubernetesVersion.experimental') }`;
+        }
+
         return {
-          label:      obj.id + (experimental ? ` (${ this.t('cluster.kubernetesVersion.experimental') })` : ''),
+          label,
           value:      obj.id,
           sort:       sortable(obj.id),
           serverArgs: obj.serverArgs,
@@ -1727,6 +1736,15 @@ export default {
           disabled,
         };
       });
+
+      if (currentVersion && !out.find(obj => obj.value === currentVersion)) {
+        out.push({
+          label: `${ currentVersion } ${ this.t('cluster.kubernetesVersion.current') }`,
+          value: currentVersion,
+          sort:  sortable(currentVersion),
+        });
+      }
+
       const sorted = sortBy(out, 'sort:desc');
 
       const mostRecentPatchVersions = this.getMostRecentPatchVersions(sorted);
@@ -1740,7 +1758,7 @@ export default {
 
         return {
           ...optionData,
-          label: `${ optionData.label } (${ this.t('cluster.kubernetesVersion.deprecated') })`
+          label: `${ optionData.label } ${ this.t('cluster.kubernetesVersion.deprecated') }`
         };
       });
 
@@ -1778,7 +1796,7 @@ export default {
         const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
 
         // Always show current version, else show if we haven't shown anything for this major.minor version yet
-        if (version === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
+        if (version.value === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
           return true;
         }
 

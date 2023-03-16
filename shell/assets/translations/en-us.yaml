@@ -1313,8 +1313,9 @@ cluster:
   manageAction: Manage
   kubernetesVersion:
     label: Kubernetes Version
-    experimental: experimental
-    deprecated: deprecated
+    current: (current)
+    experimental: (experimental)
+    deprecated: (deprecated)
     deprecatedPatches: Show deprecated Kubernetes patch versions
     deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
   toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
