@@ -1800,12 +1800,12 @@ cluster:
     cis:
       server: Server CIS Profile
       agent: CIS Profile
-      override: Allow PSA Default Template to be overridden when using a CIS Profile
+      override: Allow the default Pod Security Admission Configuration Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
-      label: Default Pod Security Admission
+      label: Pod Security Admission Configuration Template
       option: 
         none: (None)
         default: Default - RKE2 Embedded
