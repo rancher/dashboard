@@ -5,7 +5,7 @@ import { get, set } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
 import { NAMESPACE } from '@shell/config/types';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { _VIEW, _EDIT } from '@shell/config/query-params';
+import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
@@ -209,7 +209,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster', 'namespaces']),
+    ...mapGetters(['currentProduct', 'currentCluster', 'namespaces', 'allowedNamespaces']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -224,7 +224,7 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      const options = Object.keys(this.namespaces())
+      const options = Object.keys(this.isView ? this.namespaces() : this.allowedNamespaces())
         .map(namespace => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || (obj => ({
           label: obj.nameDisplay,
@@ -260,6 +260,10 @@ export default {
     },
 
     isView() {
+      return this.mode === _CREATE;
+    },
+
+    isCreate() {
       return this.mode === _VIEW;
     },
 

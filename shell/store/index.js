@@ -59,7 +59,7 @@ export const plugins = [
  * Collect all the namespaces grouped by category, project or single pick
  * @returns Record<string, true>
  */
-const getActiveNamespaces = (state, getters) => {
+const getActiveNamespaces = (state, getters, readonly = false) => {
   const out = {};
   const product = getters['currentProduct'];
 
@@ -147,6 +147,21 @@ const getActiveNamespaces = (state, getters) => {
 
   // Create map that can be used to efficiently check if a resource should be displayed
   updateActiveNamespaceCache(state, out);
+
+  // Exclude namespaces restricted to the user for writing
+  if (readonly) {
+    const readonlyNamespaces = Object
+      .values(namespaces)
+      .filter(ns => !!ns.links.update)
+      .map(({ id }) => id);
+
+    return Object.keys(out)
+      .filter(ns => readonlyNamespaces.includes(ns))
+      .reduce((acc, ns) => ({
+        ...acc,
+        [ns]: true
+      }), {});
+  }
 
   return out;
 };
@@ -436,6 +451,14 @@ export const getters = {
     // which returns the same object but is only recomputed when the updateNamespaces
     // mutation is called.
     return () => getActiveNamespaces(state, getters);
+  },
+
+  /**
+   * Return namespaces which the user can refer to create resources
+   * @returns Record<string, true>
+   */
+  allowedNamespaces(state, getters) {
+    return () => getActiveNamespaces(state, getters, true);
   },
 
   defaultNamespace(state, getters, rootState, rootGetters) {
