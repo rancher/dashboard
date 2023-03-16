@@ -27,7 +27,7 @@ export function init($plugin) {
    * @property {number} [weight] ordering of the side-menu entry
    * @property {object} to Vue Router object to define where product entry will lead to
    */
-  $plugin.registerExtensionProduct({
+  $plugin.registerAsProduct({
     name:     singleProdName,
     // label:    'Demo Product',
     labelKey: 'product.labels.extension-as-product',

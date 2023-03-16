@@ -1,4 +1,4 @@
-import { routes, clusterProdName } from './cluster-prod-routes-config';
+import { routes as routes3, clusterProdName } from './cluster-prod-routes-config';
 import { setRoute } from '@shell/core/plugin-helpers';
 
 import { MANAGEMENT, CAPI } from '@shell/config/types';
@@ -7,31 +7,16 @@ import { allHash } from '@shell/utils/promise';
 export function init($plugin, store) {
   console.log('$plugin init CLUSTER PROD', $plugin);
 
-  /********************************************************
-   *
-   *  INSTORE = CLUSTER EXAMPLE
-   *
-   * ******************************************************/
-
-  /**
-   * Object properties for registering an Extension product (cluster level)
-   * @property {string} name product name (should be unique)
-   * @property {string} label label for product menu entry
-   * @property {string} labelKey path for translation of label
-   * @property {string} inStore store name to include product
-   * @property {function} [enabled] function to evaluate if extension prod is visible or not
-   * @property {number} [weight] ordering of the side-menu entry
-   * @property {object} to Vue Router object to define where product entry will lead to
-   */
   const product = $plugin.addToExistingProduct(clusterProdName, {
-    name:     clusterProdName,
-    labelKey: 'product.labels.extension-in-cluster',
-    inStore:  'cluster',
-    enabled:  (rootState) => {
+    name:    clusterProdName,
+    label:   'bananas',
+    // labelKey: 'product.labels.extension-in-cluster',
+    inStore: 'cluster',
+    enabled: (rootState) => {
       return true;
     },
     weight: 1,
-    to:     setRoute('page4', routes)
+    to:     setRoute('page5', routes3)
   });
 
   // $plugin.registerAsProduct({
@@ -42,45 +27,35 @@ export function init($plugin, store) {
   //     return true;
   //   },
   //   weight: 1,
-  //   to:     setRoute('page4', routes)
+  //   to:     setRoute('page5', routes3)
   // });
 
   product.registerType([
     {
       type:               'custom-page',
-      id:                 'page4',
-      menuGroupingId:     'newExplorerProd',
+      id:                 'page5',
+      menuGroupingId:     'newExplorerProdDouble',
       menuGroupingWeight: 3,
       options:            {
         weight:   2,
-        labelKey: 'product.pages.page4',
+        labelKey: 'product.pages.page5',
         icon:     'folder',
-        route:    setRoute('page4', routes)
+        route:    setRoute('page5', routes3)
       }
     }
   ]);
 
   const fakeResourceType = 'harvesterhci.io.management.somedummycluster';
 
-  /**
-     * Options properties for registering a virtual-resource (options object)
-     * @property {string} label - product name
-     * @property {string} labelKey - path for translation of label
-     * @property {string} [icon] - icon from Rancher Icons (https://github.com/rancher/icons) - No support for SVGs
-     * @property {number} [weight] - ordering of the side-menu entry
-     * @property {object} route - Vue Router object to define which route enables access to this page
-     * @property {array} schemas - Array of schemas for this CRD
-     * @property {async function} getInstances - responsible for fetching the data being displayed for this CRD
-     */
   product.updateType({
     type:           'virtual-resource',
     id:             fakeResourceType,
-    menuGroupingId: 'newExplorerProd',
+    menuGroupingId: 'newExplorerProdDouble',
     options:        {
       labelKey: 'product.labels.virtual-resource',
       icon:     'gear',
       weight:   -1,
-      route:    setRoute('resource', routes, fakeResourceType),
+      route:    setRoute('resource', routes3, fakeResourceType),
       schemas:  [
         {
           id:                fakeResourceType,

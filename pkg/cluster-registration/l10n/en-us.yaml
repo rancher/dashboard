@@ -4,7 +4,9 @@ product:
     virtual-resource: Virtual resource translation
   pages:
     page4: Page 4 translation
-
+nav: 
+  group:
+    newExplorerProd: New Explorer Product
     
 typeLabel:
   harvesterhci.io.management.somedummycluster:  |-

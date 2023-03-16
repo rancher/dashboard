@@ -1,0 +1,10 @@
+product:
+  labels:
+    prod1: Management prod 1
+    prod2: Management prod 2
+  pages:
+    page1: Page 1 translation
+
+nav: 
+  group:
+    newExplorerProdDouble: Explorer Product multiple regs
