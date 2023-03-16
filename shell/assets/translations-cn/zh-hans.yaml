@@ -2848,6 +2848,11 @@ logging:
     tooltip: '某些 Kubernetes 发行版在 <code>journald</code>中记录日志。你需要定义<code>systemdLogPath</code> 以收集日志。默认路径是<code>/run/log/journal</code>，但某些 Linux 发行版不默认使用该路径。'
     url: '<a href="https://rancher.com/docs/rancher/v2.6/en/logging/helm-chart-options/" target="_blank" rel="noopener nofollow noreferrer">了解更多</a>'
     default: /run/log/journal
+    clusterType:
+      label: 集群类型
+      placeholder: 选择集群类型
+      default: 默认
+      tke: Tencent TKE
   elasticsearch:
     host: 主机
     scheme: Scheme

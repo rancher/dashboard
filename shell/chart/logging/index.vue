@@ -1,12 +1,13 @@
 <script>
 import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import ChartPsp from '@shell/components/ChartPsp';
 
 export default {
   components: {
-    Checkbox, LabeledInput, ChartPsp
+    Checkbox, LabeledInput, ChartPsp, LabeledSelect
   },
   props: {
     value: {
@@ -15,6 +16,43 @@ export default {
         return {};
       }
     }
+  },
+
+  data() {
+    return {
+      clusterType:  this.value?.loggingOverlay ? 'tke' : '',
+      clusterTypes: [{
+        label: this.t('logging.install.clusterType.default'),
+        value: '',
+      }, {
+        label: this.t('logging.install.clusterType.tke'),
+        value: 'tke'
+      }]
+    };
+  },
+
+  watch: {
+    clusterType(neu) {
+      if (neu === 'tke') {
+        const loggingOverlay = {
+          spec: {
+            fluentbit: {
+              extraVolumeMounts: [
+                {
+                  destination: '/var/lib/containerd',
+                  readOnly:    true,
+                  source:      '/var/lib/containerd'
+                }
+              ]
+            }
+          }
+        };
+
+        this.$set(this.value, 'loggingOverlay', loggingOverlay);
+      } else {
+        this.value.loggingOverlay && (delete this.value.loggingOverlay);
+      }
+    },
   },
 
   computed: {
@@ -36,12 +74,28 @@ export default {
       this.$set(this.value.additionalLoggingSources[provider], 'enabled', true);
       this.$set(this.value, 'global', this.value.global || {});
     }
+
+    if (provider === 'tke') {
+      this.$set(this, 'clusterType', provider === 'tke' ? 'tke' : '');
+    }
   },
 };
 </script>
 
 <template>
   <div class="logging">
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="clusterType"
+          :label="t('logging.install.clusterType.label')"
+          data-testid="input-logging-cluster-type"
+          :placeholder="t('logging.install.clusterType.placeholder')"
+          :localized-label="true"
+          :options="clusterTypes"
+        />
+      </div>
+    </div>
     <div
       v-if="provider === 'k3s'"
       class="row mb-20"
