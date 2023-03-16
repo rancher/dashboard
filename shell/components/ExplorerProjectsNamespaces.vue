@@ -292,7 +292,7 @@ export default {
       const location = this.createNamespaceLocationOverride ? { ...this.createNamespaceLocationOverride } : {
         name:   'c-cluster-product-resource-create',
         params: {
-          product:  this.$store.getters['currentProduct'].name,
+          product:  this.$store.getters['currentProduct']?.name,
           resource: NAMESPACE
         },
       };
@@ -369,7 +369,6 @@ export default {
         <n-link
           :to="createNamespaceLocationFlatList()"
           class="btn role-primary mr-10"
-          data-testid="cluster-manager-list-import"
         >
           {{ t('projectNamespaces.createNamespace') }}
         </n-link>

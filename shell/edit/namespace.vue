@@ -50,7 +50,7 @@ export default {
       originalQuotaId = `${ this.liveValue.metadata.name }/default-quota`;
     }
 
-    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID] || '(None)';
+    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID] || this.t('namespace.project.none');
 
     return {
       originalQuotaId,
@@ -86,7 +86,7 @@ export default {
       });
 
       out.unshift({
-        label: '(None)',
+        label: this.t('namespace.project.none'),
         value: null,
       });
 
@@ -118,9 +118,6 @@ export default {
     },
 
     projectName(newProjectName) {
-      if (newProjectName === null) {
-        this.projectName = '(None)';
-      }
       this.$set(this, 'project', this.projects.find(p => p.id.includes(newProjectName)));
     }
   },
@@ -177,6 +174,7 @@ export default {
       :extra-columns="['project-col']"
     >
       <template
+        v-if="flatView || project"
         #project-col
       >
         <LabeledSelect
@@ -186,18 +184,6 @@ export default {
         />
       </template>
     </NameNsDescription>
-    <div
-      v-if="flatView"
-      class="row mb-20"
-    >
-      <div class="col span-3">
-        <LabeledSelect
-          v-model="projectName"
-          :label="t('namespace.project.label')"
-          :options="projectOpts"
-        />
-      </div>
-    </div>
     <Tabbed :side-tabs="true">
       <Tab
         v-if="showResourceQuota"
