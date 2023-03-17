@@ -124,8 +124,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('promptRotateEncryptionKey.title')"
       class="text-default-text"
-      v-html="t('promptRotateEncryptionKey.title')"
     />
 
     <div

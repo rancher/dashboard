@@ -25,7 +25,7 @@ export default {
   <div>
     <Banner color="warning">
       <strong>{{ t('harvester.upgradePage.upgradeInfo.warning') }}:</strong>
-      <p class="mb-5" v-html="t('harvester.upgradePage.upgradeInfo.doc', {}, true)">
+      <p v-clean-html="t('harvester.upgradePage.upgradeInfo.doc', {}, true)" class="mb-5">
       </p>
 
       <p class="mb-5">

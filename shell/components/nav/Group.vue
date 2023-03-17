@@ -202,11 +202,11 @@ export default {
           :to="group.children[0].route"
           :exact="group.children[0].exact"
         >
-          <h6 v-html="group.labelDisplay || group.label" />
+          <h6 v-clean-html="group.labelDisplay || group.label" />
         </n-link>
         <h6
           v-else
-          v-html="group.labelDisplay || group.label"
+          v-clean-html="group.labelDisplay || group.label"
         />
       </slot>
       <i
