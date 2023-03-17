@@ -87,6 +87,11 @@ export class Plugin implements IPlugin {
     this.products.push(product);
   }
 
+  // New mechanism
+  initProducts(product: Function): void {
+    this.products.push(product);
+  }
+
   addLocale(locale: string, label: string): void {
     this.locales.push({ locale, label });
   }

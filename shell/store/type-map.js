@@ -842,6 +842,10 @@ export const getters = {
     });
   },
 
+  allProducts(state) {
+    return state.products;
+  },
+
   allTypes(state, getters, rootState, rootGetters) {
     return (product, mode = ALL) => {
       const module = findBy(state.products, 'name', product)?.inStore;
@@ -1327,6 +1331,11 @@ export const getters = {
             addObject(knownGroups[module], s._group);
           }
         }
+      }
+
+      // new feature added to simplify enabling/disabling extension prod registration
+      if (p.enabled) {
+        return p.enabled(rootState);
       }
 
       if ( p.ifFeature) {

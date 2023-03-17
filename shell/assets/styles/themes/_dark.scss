@@ -31,6 +31,11 @@
 
   $drag-over: #DCDEE7;
 
+  // need to redefine the link color because of IconOrSvg component
+  // which captures this color
+  $link: #3D98D3;
+  --link: #{$link};
+
   --default                    : #{$dark};
   --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};

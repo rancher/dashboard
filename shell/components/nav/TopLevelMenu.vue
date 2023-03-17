@@ -136,13 +136,14 @@ export default {
           params: { cluster }
         };
 
-        if ( !this.$router.getMatchedComponents(to).length ) {
+        if ( !this.$router.getMatchedComponents(to)?.length ) {
           to.name = 'c-cluster-product';
+          to.params = to.params || {};
           to.params.product = p.name;
         }
 
         return {
-          label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
+          label:             p.labelKey ? this.t(p.labelKey) : p.label ? p.label : this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
           icon:              `icon-${ p.icon || 'copy' }`,
           svg:               p.svg,
           value:             p.name,
@@ -350,6 +351,7 @@ export default {
                 <IconOrSvg
                   :icon="a.icon"
                   :src="a.svg"
+                  color="side-menu-top-level"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>

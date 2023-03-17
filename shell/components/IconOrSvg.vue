@@ -30,7 +30,11 @@ const colors = {
   },
   primary: {
     color: '--link',
-    hover: '--primary-hover-text'
+    hover: '--primary-hover-text',
+  },
+  'side-menu-top-level': {
+    color: '--link',
+    hover: '--header-btn-text-hover'
   }
 };
 
