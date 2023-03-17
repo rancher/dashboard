@@ -8,7 +8,7 @@ import { MONITORING } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { EDITOR_MODES } from '@shell/components/YamlEditor';
-import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
+import { RECEIVERS_TYPES } from '@shell/plugins/steve/resourceUtils/monitoring.coreos.com.receiver';
 import RouteConfig from './routeConfig';
 import ResourceTable from '@shell/components/ResourceTable';
 import ActionMenu from '@shell/components/ActionMenu';

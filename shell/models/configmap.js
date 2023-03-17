@@ -1,20 +1,8 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getKeysDisplay } from '@shell/plugins/steve/resourceUtils/configmap';
 
 export default class ConfigMap extends SteveModel {
   get keysDisplay() {
-    const keys = [
-      ...Object.keys(this.data || []),
-      ...Object.keys(this.binaryData || [])
-    ];
-
-    if ( !keys.length ) {
-      return '(none)';
-    }
-
-    // if ( keys.length >= 4 ) {
-    //   return `${keys[0]}, ${keys[1]}, ${keys[2]} and ${keys.length - 3} more`;
-    // }
-
-    return keys.join(', ');
+    return _getKeysDisplay(this);
   }
 }

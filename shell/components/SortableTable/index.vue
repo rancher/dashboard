@@ -311,6 +311,26 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+
+    setPageFn: {
+      type:    Function,
+      default: null,
+    },
+
+    setSearchFn: {
+      type:    Function,
+      default: null,
+    },
+
+    setSortFn: {
+      type:    Function,
+      default: null,
+    },
+
+    listLength: {
+      type:    Number,
+      default: null
     }
   },
 
@@ -378,7 +398,7 @@ export default {
       }
     }, 200),
 
-    descending(neu, old) {
+    sortDesc(neu, old) {
       this.watcherUpdateLiveAndDelayed(neu, old);
     },
     searchQuery(neu, old) {
@@ -641,6 +661,9 @@ export default {
   },
 
   methods: {
+    setGroup(val) {
+      this.$emit('group-value-change', val);
+    },
     refreshTableData() {
       this.$store.dispatch('resource-fetch/doManualRefresh');
     },
@@ -1103,15 +1126,15 @@ export default {
         :how-much-selected="howMuchSelected"
         :sort-by="sortBy"
         :default-sort-by="_defaultSortBy"
-        :descending="descending"
+        :descending="sortDesc"
         :no-rows="noRows"
         :loading="loading && !loadingDelay"
         :no-results="noResults"
         @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
         @col-visibility-change="changeColVisibility"
-        @group-value-change="(val) => $emit('group-value-change', val)"
         @update-cols-options="updateColsOptions"
+        @group-value-change="setGroup"
       />
 
       <!-- Don't display anything if we're loading and the delay has yet to pass -->

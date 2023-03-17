@@ -3,8 +3,7 @@ import { SCHEMA } from '@shell/config/types';
 
 import { matches } from '@shell/utils/selector';
 import { typeMunge, typeRef, SIMPLE_TYPES } from '@shell/utils/create-yaml';
-import { splitObjectPath } from '@shell/utils/string';
-import { parseType } from '@shell/models/schema';
+import { pathExistsInSchema } from '@shell/plugins/steve/resourceUtils/schema';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
@@ -31,6 +30,26 @@ export default {
     }, type);
 
     return state.types[type].list;
+  },
+
+  listLength: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    if (state.types[type]) {
+      return state.types[type].listLength;
+    }
+
+    return 0;
+  },
+
+  totalLength: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    if (state.types[type]) {
+      return state.types[type].totalLength;
+    }
+
+    return 0;
   },
 
   matching: (state, getters, rootState) => (type, selector, namespace) => {
@@ -64,29 +83,9 @@ export default {
   },
 
   pathExistsInSchema: (state, getters) => (type, path) => {
-    let schema = getters.schemaFor(type);
-    const parts = splitObjectPath(path);
+    const schema = getters.schemaFor(type);
 
-    while ( parts.length ) {
-      const key = parts.shift();
-
-      type = schema.resourceFields?.[key]?.type;
-
-      if ( !type ) {
-        return false;
-      }
-
-      if ( parts.length ) {
-        type = parseType(type).pop(); // Get the main part of array[map[something]] => something
-        schema = getters.schemaFor(type);
-
-        if ( !schema ) {
-          return false;
-        }
-      }
-    }
-
-    return true;
+    return pathExistsInSchema(schema, path, getters.schemaFor);
   },
 
   // @TODO resolve difference between this and schemaFor and have only one of them.
@@ -134,6 +133,7 @@ export default {
   schemaFor: (state, getters) => (type, fuzzy = false, allowThrow = true) => {
     const schemas = state.types[SCHEMA];
 
+    // ToDo: SM why do we put normalizeType in a getter anyway? it's an imported function with no dependency on the store
     type = getters.normalizeType(type);
 
     if ( !schemas ) {

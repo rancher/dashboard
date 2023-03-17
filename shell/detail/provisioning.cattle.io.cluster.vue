@@ -11,7 +11,7 @@ import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
 import {
   STATE, NAME as NAME_COL, AGE, AGE_NORMAN, INTERNAL_EXTERNAL_IP, STATE_NORMAN, ROLES, MACHINE_NODE_OS, MANAGEMENT_NODE_OS, NAME,
 } from '@shell/config/table-headers';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-constants';
 import CustomCommand from '@shell/edit/provisioning.cattle.io.cluster/CustomCommand';
 import AsyncButton from '@shell/components/AsyncButton.vue';
 import AnsiUp from 'ansi_up';

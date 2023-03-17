@@ -356,6 +356,10 @@ export default {
       :loading="loading"
       group-tooltip="resourceTable.groupBy.project"
       key-field="_key"
+      :set-page-fn="resourceQueryMethods.setPage"
+      :set-search-fn="resourceQueryMethods.setSearch"
+      :set-sort-fn="resourceQueryMethods.setSort"
+      :list-length="listLength"
       v-on="$listeners"
     >
       <template #group-by="group">

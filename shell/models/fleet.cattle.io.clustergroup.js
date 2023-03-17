@@ -1,8 +1,8 @@
-import { escapeHtml } from '@shell/utils/string';
 import { matching, convert } from '@shell/utils/selector';
 import { FLEET } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/fleet.cattle.io.clusterGroup';
 
 export default class FleetClusterGroup extends SteveModel {
   applyDefaults() {
@@ -28,13 +28,7 @@ export default class FleetClusterGroup extends SteveModel {
   }
 
   get groupByLabel() {
-    const name = this.metadata.namespace;
-
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
-    }
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get clusterInfo() {

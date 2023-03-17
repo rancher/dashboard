@@ -7,7 +7,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { Checkbox } from '@components/Form/Checkbox';
 import { SECRET } from '@shell/config/types';
-import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import { TYPES as SECRET_TYPES } from '@shell/plugins/steve/resourceUtils/secret';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {

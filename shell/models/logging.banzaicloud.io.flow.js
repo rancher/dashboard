@@ -1,7 +1,9 @@
 import { LOGGING } from '@shell/config/types';
 import { set } from '@shell/utils/object';
-import uniq from 'lodash/uniq';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import {
+  _getOutputs, _getClusterOutputs, _getProvidersDisplay, _getOutputsSortable, _getClusterOutputsSortable
+} from '@shell/plugins/steve/resourceUtils/logging.banzaicloud.io.flow';
 
 export function matchRuleIsPopulated(rule) {
   if ( !rule ) {
@@ -62,45 +64,23 @@ export default class LogFlow extends SteveModel {
   }
 
   get outputs() {
-    const localOutputRefs = this.spec?.localOutputRefs || [];
-
-    return this.allOutputs.filter(output => localOutputRefs.includes(output.name));
+    return _getOutputs(this);
   }
 
   get outputsSortable() {
-    const displays = this.outputs.map(o => o.nameDisplay);
-
-    displays.sort();
-
-    return displays.join('');
+    return _getOutputsSortable(this);
   }
 
   get clusterOutputs() {
-    const globalOutputRefs = this.spec?.globalOutputRefs || [];
-
-    if (this.allClusterOutputs) {
-      return this.allClusterOutputs.filter(output => globalOutputRefs.includes(output.name));
-    } else {
-      // Handle the case where the user doesn't have permission
-      // to see ClusterOutputs
-      return [];
-    }
+    return _getClusterOutputs(this);
   }
 
   get clusterOutputsSortable() {
-    const displays = this.clusterOutputs.map(o => o.nameDisplay);
-
-    displays.sort();
-
-    return displays.join('');
+    return _getClusterOutputsSortable(this);
   }
 
   get providersDisplay() {
-    const combinedOutputs = [...this.outputs, ...this.clusterOutputs];
-    const duplicatedProviders = combinedOutputs
-      .flatMap(output => output.providersDisplay);
-
-    return uniq(duplicatedProviders) || [];
+    return _getProvidersDisplay(this);
   }
 
   get customValidationRules() {

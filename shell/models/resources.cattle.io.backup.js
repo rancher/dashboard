@@ -1,29 +1,16 @@
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
-import { findBy } from '@shell/utils/array';
-import { get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getColorForState, _getReadyMessage, _getStateDisplay } from '@shell/plugins/steve/resourceUtils/resources.cattle.io.backup';
 
 export default class Backup extends SteveModel {
   get readyMessage() {
-    const conditions = get(this, 'status.conditions');
-    const readyMessage = (findBy(conditions, 'type', 'Ready') || {}).message ;
-
-    return readyMessage;
+    return _getReadyMessage;
   }
 
   get colorForState() {
-    if (this.readyMessage) {
-      return colorForState(this.readyMessage);
-    }
-
-    return colorForState();
+    return _getColorForState(this);
   }
 
   get stateDisplay() {
-    if (this.readyMessage) {
-      return stateDisplay(this.readyMessage);
-    }
-
-    return stateDisplay();
+    return _getStateDisplay(this);
   }
 }

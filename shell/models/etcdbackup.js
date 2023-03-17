@@ -1,4 +1,5 @@
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { _getNameDisplay } from '@shell/plugins/steve/resourceUtils/etcdbackup';
 
 export default class Rke1EtcdBackup extends NormanModel {
   get _availableActions() {
@@ -35,7 +36,7 @@ export default class Rke1EtcdBackup extends NormanModel {
   }
 
   get nameDisplay() {
-    return this.name;
+    return _getNameDisplay(this);
   }
 
   get backupLocation() {

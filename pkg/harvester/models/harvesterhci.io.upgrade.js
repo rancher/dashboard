@@ -1,6 +1,6 @@
 import jsyaml from 'js-yaml';
 import { NODE } from '@shell/config/types';
-import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import { HCI } from '@pkg/harvester/config/labels-annotations';
 import HarvesterResource from './harvester';
 

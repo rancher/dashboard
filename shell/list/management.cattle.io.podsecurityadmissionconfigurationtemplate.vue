@@ -42,6 +42,10 @@ export default {
       :loading="loading"
       :schema="schema"
       :rows="rows"
+      :set-page-fn="resourceQueryMethods.setPage"
+      :set-search-fn="resourceQueryMethods.setSearch"
+      :set-sort-fn="resourceQueryMethods.setSort"
+      :list-length="listLength"
     />
   </div>
 </template>

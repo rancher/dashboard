@@ -6,7 +6,7 @@ import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
-import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
+import { addSchemaIndexFields } from '@shell/plugins/steve/resourceUtils/schema';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -42,7 +42,7 @@ export async function loadSchemas(ctx, watch = true) {
   } = ctx;
 
   const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
-  const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
+  const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'];
 
   if (Array.isArray(res.data)) {
     res.data = res.data.concat(spoofedTypes);
@@ -264,7 +264,7 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      const namespace = opt.watchNamespace || opt.namespaced;
+      const namespace = opt.watchNamespace;
 
       const res = await dispatch('request', {
         opt, type, namespace, load
@@ -324,11 +324,31 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data:      out.data,
-          revision:  out.revision,
+          data:        out.data,
+          revision:    out.revision,
           skipHaveAll,
-          namespace: opt.namespaced,
+          namespace:   opt.namespaced,
+          listLength:  out.listLength,
+          totalLength: out.totalLength
         });
+        if (out.secondaryResources?.length > 0) {
+          out.secondaryResources.forEach((secondaryResource) => {
+            if (secondaryResource.data.length > 0) {
+              const { type } = secondaryResource.data[0];
+
+              commit('loadAll', {
+                ctx,
+                type,
+                data:        secondaryResource.data,
+                revision:    secondaryResource.revision,
+                skipHaveAll,
+                namespace:   secondaryResource.namespaced,
+                listLength:  secondaryResource.listLength,
+                totalLength: secondaryResource.totalLength
+              });
+            }
+          });
+        }
       }
     }
 

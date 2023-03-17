@@ -14,6 +14,8 @@ import { isHarvesterCluster } from '@shell/utils/cluster';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
+import { _getKubernetesVersion, _getMachineProvider, _getNodes } from '@shell/plugins/steve/resourceUtils/management.cattle.io.cluster';
+import { _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/cluster.x-k8s.io.machineset';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
@@ -85,15 +87,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get machineProvider() {
-    const kind = this.machinePools?.[0]?.provider;
-
-    if ( kind ) {
-      return kind.replace(/config$/i, '').toLowerCase();
-    } else if ( this.spec?.internal ) {
-      return 'local';
-    }
-
-    return null;
+    return _getMachineProvider(this);
   }
 
   get rkeTemplateVersion() {
@@ -167,7 +161,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get groupByLabel() {
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get isReady() {
@@ -188,7 +182,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get kubernetesVersion() {
-    return this.kubernetesVersionRaw || this.$rootGetters['i18n/t']('generic.provisioning');
+    return _getKubernetesVersion(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get kubernetesVersionBase() {
@@ -434,7 +428,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+    return _getNodes(this, { all: this.$getters['all'] });
   }
 
   get provClusterId() {

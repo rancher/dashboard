@@ -1,8 +1,8 @@
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { escapeHtml } from '@shell/utils/string';
 import { insertAt } from '@shell/utils/array';
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getGroupByLabel, _getNameDisplay } from '@shell/plugins/steve/resourceUtils/fleet.cattle.io.cluster';
 
 export default class FleetCluster extends SteveModel {
   get _availableActions() {
@@ -76,7 +76,7 @@ export default class FleetCluster extends SteveModel {
   }
 
   get nameDisplay() {
-    return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_DISPLAY_NAME] || this.metadata?.name || this.id;
+    return _getNameDisplay(this);
   }
 
   get state() {
@@ -122,12 +122,6 @@ export default class FleetCluster extends SteveModel {
   }
 
   get groupByLabel() {
-    const name = this.metadata.namespace;
-
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
-    }
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 }

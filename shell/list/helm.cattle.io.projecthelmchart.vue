@@ -112,6 +112,10 @@ export default {
         key-field="_key"
         :groupable="false"
         :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+        :set-page-fn="resourceQueryMethods.setPage"
+        :set-search-fn="resourceQueryMethods.setSearch"
+        :set-sort-fn="resourceQueryMethods.setSort"
+        :list-length="listLength"
       />
     </div>
   </div>

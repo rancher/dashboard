@@ -155,6 +155,7 @@ export default class ResourceWatcher extends Socket {
       this.trace('watch:', 'revision update required', watchKey);
 
       // ToDo: SM this needs to accept a closure for the watch to resync itself instead of this fetch
+      // ToDo: SM this is getting the wrong noun on some of these resulting in bad requests (specifically navlinks)
       const resourceUrl = this.baseUrl + resourceType;
       const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
       const opt = {

@@ -1,5 +1,8 @@
 import { NORMAN } from '@shell/config/types';
 import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
+import {
+  _getDescription, _getLabelForSelect, _getNameDisplay, _getProvider, _getProviderDisplay
+} from '@shell/plugins/steve/resourceUtils/management.cattle.io.user';
 
 export default class User extends HybridModel {
   // Preserve description
@@ -21,8 +24,8 @@ export default class User extends HybridModel {
   }
 
   get isSystem() {
-    for ( const p of this.principalIds || [] ) {
-      if ( p.startsWith('system://') ) {
+    for ( const principal of this.principalIds || [] ) {
+      if ( principal.startsWith('system://') ) {
         return true;
       }
     }
@@ -43,60 +46,19 @@ export default class User extends HybridModel {
   }
 
   get nameDisplay() {
-    return this.displayName || this.username || this.id;
+    return _getNameDisplay(this);
   }
 
   get labelForSelect() {
-    const name = this.nameDisplay;
-    const id = this.id;
-
-    if ( name === id ) {
-      return id;
-    } else {
-      return `${ name } (${ id })`;
-    }
+    return _getLabelForSelect(this);
   }
 
   get provider() {
-    const principals = this.principalIds || [];
-    let isSystem = false;
-    let isLocal = true;
-    let provider = '';
-
-    for ( const p of principals ) {
-      const idx = p.indexOf(':');
-      const driver = p.substr(0, idx).toLowerCase().split('_')[0];
-
-      if ( driver === 'system' ) {
-        isSystem = true;
-      } else if ( driver === 'local' ) {
-        // Do nothing, defaults to local
-      } else {
-        isLocal = false;
-
-        if ( provider ) {
-          provider = 'multiple';
-        } else {
-          provider = driver;
-        }
-      }
-    }
-
-    let key;
-
-    if ( isSystem ) {
-      key = 'system';
-    } else if ( isLocal ) {
-      key = 'local';
-    } else {
-      key = provider;
-    }
-
-    return key;
+    return _getProvider(this);
   }
 
   get providerDisplay() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
+    return _getProviderDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get state() {
@@ -108,7 +70,7 @@ export default class User extends HybridModel {
   }
 
   get description() {
-    return this._description;
+    return _getDescription(this);
   }
 
   set description(value) {

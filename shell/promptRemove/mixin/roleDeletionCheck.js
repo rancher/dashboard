@@ -1,7 +1,7 @@
 import { mapState, mapGetters } from 'vuex';
 import { resourceNames } from '@shell/utils/string';
 import { MANAGEMENT } from '@shell/config/types';
-import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
+import { SUBTYPE_MAPPING } from '@shell/plugins/steve/resourceUtils/management.cattle.io.roletemplate';
 const CLUSTER = SUBTYPE_MAPPING.CLUSTER.key;
 
 export default {

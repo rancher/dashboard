@@ -3,56 +3,7 @@ import { isEmpty } from '@shell/utils/object';
 import { MONITORING } from '@shell/config/types';
 import jsyaml from 'js-yaml';
 import SteveModel from '@shell/plugins/steve/steve-class';
-
-export const RECEIVERS_TYPES = [
-  {
-    name:  'slack',
-    label: 'monitoringReceiver.slack.label',
-    title: 'monitoringReceiver.slack.title',
-    info:  'monitoringReceiver.slack.info',
-    key:   'slack_configs',
-    logo:  require(`~shell/assets/images/vendor/slack.svg`)
-  },
-  {
-    name:  'email',
-    label: 'monitoringReceiver.email.label',
-    title: 'monitoringReceiver.email.title',
-    key:   'email_configs',
-    logo:  require(`~shell/assets/images/vendor/email.svg`)
-  },
-  {
-    name:  'pagerduty',
-    label: 'monitoringReceiver.pagerduty.label',
-    title: 'monitoringReceiver.pagerduty.title',
-    info:  'monitoringReceiver.pagerduty.info',
-    key:   'pagerduty_configs',
-    logo:  require(`~shell/assets/images/vendor/pagerduty.svg`)
-  },
-  {
-    name:  'opsgenie',
-    label: 'monitoringReceiver.opsgenie.label',
-    title: 'monitoringReceiver.opsgenie.title',
-    key:   'opsgenie_configs',
-    logo:  require(`~shell/assets/images/vendor/email.svg`)
-  },
-  {
-    name:      'webhook',
-    label:     'monitoringReceiver.webhook.label',
-    title:     'monitoringReceiver.webhook.title',
-    key:       'webhook_configs',
-    logo:      require(`~shell/assets/images/vendor/webhook.svg`),
-    banner:    'webhook.banner',
-    addButton: 'webhook.add'
-  },
-  {
-    name:  'custom',
-    label: 'monitoringReceiver.custom.label',
-    title: 'monitoringReceiver.custom.title',
-    info:  'monitoringReceiver.custom.info',
-    key:   'webhook_configs',
-    logo:  require(`~shell/assets/images/vendor/custom.svg`)
-  },
-];
+import { _getReceiverTypes } from '@shell/plugins/steve/resourceUtils/monitoring.coreos.com.receiver';
 
 export default class Receiver extends SteveModel {
   get removeSerially() {
@@ -128,24 +79,7 @@ export default class Receiver extends SteveModel {
   }
 
   get receiverTypes() {
-    const types = RECEIVERS_TYPES
-      .filter(type => type.name !== 'custom' && this.spec[type.key]?.length > 0)
-      .map(type => this.t(type.label));
-
-    const expectedKeys = RECEIVERS_TYPES.map(type => type.key).filter(key => key !== 'custom');
-
-    expectedKeys.push('name');
-
-    const customKeys = Object.keys(this.spec)
-      .filter(key => !expectedKeys.includes(key));
-
-    if (customKeys.length > 0) {
-      const customLabel = this.t(RECEIVERS_TYPES.find(type => type.name === 'custom').label);
-
-      types.push(customLabel);
-    }
-
-    return types;
+    return _getReceiverTypes(this, { translate: this.t });
   }
 
   get updateReceivers() {

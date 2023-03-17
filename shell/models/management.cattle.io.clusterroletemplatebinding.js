@@ -3,6 +3,7 @@ import { _CREATE } from '@shell/config/query-params';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { HARVESTER_NAME } from '@shell/config/features';
+import { _getNameDisplay, _getPrincipalId, _getUser } from '@shell/plugins/steve/resourceUtils/management.cattle.io.clusterroletemplatebinding';
 
 export default class CRTB extends HybridModel {
   detailPageHeaderActionOverride(realMode) {
@@ -24,7 +25,7 @@ export default class CRTB extends HybridModel {
   }
 
   get user() {
-    return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userName);
+    return _getUser(this, { mgmtById: this.$rootGetters['management/byId'] });
   }
 
   get principal() {
@@ -38,12 +39,11 @@ export default class CRTB extends HybridModel {
   }
 
   get principalId() {
-    // We've either set it ourselves or it's comes from native properties
-    return this.principalName || this.userPrincipalName || this.groupPrincipalName;
+    return _getPrincipalId(this);
   }
 
   get nameDisplay() {
-    return this.user?.nameDisplay || this.userName || this.principalId;
+    return _getNameDisplay(this);
   }
 
   get roleDisplay() {

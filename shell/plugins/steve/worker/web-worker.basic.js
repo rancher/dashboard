@@ -1,6 +1,6 @@
 import { SCHEMA } from '@shell/config/types';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
-import { removeSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
+import { removeSchemaIndexFields } from '@shell/plugins/steve/resourceUtils/schema';
 
 const SCHEMA_FLUSH_TIMEOUT = 2500;
 

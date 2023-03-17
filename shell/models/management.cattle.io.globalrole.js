@@ -1,11 +1,13 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { SCHEMA, NORMAN } from '@shell/config/types';
-import { CATTLE_API_GROUP, SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
+import { CATTLE_API_GROUP, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
+import { SUBTYPE_MAPPING } from '@shell/plugins/steve/resourceUtils/management.cattle.io.roletemplate';
 import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
+import { _getDefault, _getNameDisplay } from '@shell/plugins/steve/resourceUtils/management.cattle.io.globalrole';
 
 const BASE = 'user-base';
 const USER = 'user';
@@ -31,10 +33,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   }
 
   get nameDisplay() {
-    const path = `rbac.globalRoles.role.${ this.id }.label`;
-    const label = this.displayName || this.metadata?.name || this.id;
-
-    return this.$rootGetters['i18n/withFallback'](path, label);
+    return _getNameDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get descriptionDisplay() {
@@ -52,7 +51,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   }
 
   get default() {
-    return !!this.newUserDefault;
+    return _getDefault(this);
   }
 
   get allResources() {

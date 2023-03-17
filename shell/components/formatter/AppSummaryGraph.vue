@@ -1,6 +1,7 @@
 <script>
 import ProgressBarMulti from '@shell/components/ProgressBarMulti';
-import { colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import { stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import { sortBy } from '@shell/utils/sort';
 
 export default {

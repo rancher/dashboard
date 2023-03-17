@@ -1,18 +1,19 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getDescription, _getName, _getVersion } from '@shell/plugins/steve/resourceUtils/catalog.cattle.io.uiplugin';
 
 const CACHED_STATUS = 'cached';
 
 export default class UIPlugin extends SteveModel {
   get name() {
-    return this.spec?.plugin?.name;
+    return _getName(this);
   }
 
   get description() {
-    return this.spec?.plugin?.description;
+    return _getDescription(this);
   }
 
   get version() {
-    return this.spec?.plugin?.version;
+    return _getVersion(this);
   }
 
   get willBeCached() {

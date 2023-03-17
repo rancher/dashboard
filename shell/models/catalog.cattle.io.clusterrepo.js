@@ -5,6 +5,7 @@ import { insertAt } from '@shell/utils/array';
 import { CATALOG as CATALOG_TYPE } from '@shell/config/types';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getTypeDisplay, _getNameDisplay, _getUrlDisplay } from '@shell/plugins/steve/resourceUtils/catalog.cattle.io.clusterrepo';
 
 export default class ClusterRepo extends SteveModel {
   applyDefaults() {
@@ -100,24 +101,15 @@ export default class ClusterRepo extends SteveModel {
   }
 
   get typeDisplay() {
-    if ( this.spec.gitRepo ) {
-      return 'git';
-    } else if ( this.spec.url ) {
-      return 'http';
-    } else {
-      return '?';
-    }
+    return _getTypeDisplay(this);
   }
 
   get nameDisplay() {
-    const name = this.metadata?.name;
-    const key = `catalog.repo.name."${ name }"`;
-
-    return this.$rootGetters['i18n/withFallback'](key, null, name);
+    return _getNameDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get urlDisplay() {
-    return this.status?.url || this.spec.gitRepo || this.spec.url;
+    return _getUrlDisplay(this);
   }
 
   get branchDisplay() {

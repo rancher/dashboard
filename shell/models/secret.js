@@ -1,4 +1,3 @@
-import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES } from '@shell/config/labels-annotations';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import { removeObjects } from '@shell/utils/array';
@@ -6,22 +5,9 @@ import { SERVICE_ACCOUNT } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import { NAME as MANAGER } from '@shell/config/product/manager';
 import SteveModel from '@shell/plugins/steve/steve-class';
-
-export const TYPES = {
-  OPAQUE:           'Opaque',
-  SERVICE_ACCT:     'kubernetes.io/service-account-token',
-  DOCKER:           'kubernetes.io/dockercfg',
-  DOCKER_JSON:      'kubernetes.io/dockerconfigjson',
-  BASIC:            'kubernetes.io/basic-auth',
-  SSH:              'kubernetes.io/ssh-auth',
-  TLS:              'kubernetes.io/tls',
-  BOOTSTRAP:        'bootstrap.kubernetes.io/token',
-  ISTIO_TLS:        'istio.io/key-and-cert',
-  HELM_RELEASE:     'helm.sh/release.v1',
-  FLEET_CLUSTER:    'fleet.cattle.io/cluster-registration-values',
-  CLOUD_CREDENTIAL: 'provisioning.cattle.io/cloud-credential',
-  RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
-};
+import {
+  _getDataPreview, _getSubTypeDisplay, TYPES, _getKeysDisplay, _getSshUser, _getCertInfo
+} from '@shell/plugins/steve/resourceUtils/secret';
 
 export default class Secret extends SteveModel {
   get hasSensitiveData() {
@@ -158,135 +144,25 @@ export default class Secret extends SteveModel {
   }
 
   get keysDisplay() {
-    const keys = [
-      ...Object.keys(this.data || []),
-      ...Object.keys(this.binaryData || [])
-    ];
-
-    if ( !keys.length ) {
-      return '(none)';
-    }
-
-    // if ( keys.length >= 4 ) {
-    //   return `${keys[0]}, ${keys[1]}, ${keys[2]} and ${keys.length - 3} more`;
-    // }
-
-    return keys.join(', ');
+    return _getKeysDisplay(this);
   }
 
   // decode some secret data to show in list view
   get dataPreview() {
-    if (this._type === TYPES.DOCKER_JSON) {
-      const encodedJSON = this.data['.dockerconfigjson'];
-
-      if (encodedJSON) {
-        const decodedJSON = base64Decode(encodedJSON);
-
-        try {
-          const auths = JSON.parse(decodedJSON).auths;
-          const out = [];
-
-          for (const domain in auths) {
-            out.push(domain);
-          }
-
-          return out.join(', ');
-        } catch (e) {
-          return decodedJSON;
-        }
-      }
-    } else if (this._type === TYPES.TLS) {
-      return this.certInfo || this.keysDisplay;
-    } else if ( this._type === TYPES.BASIC ) {
-      return base64Decode(this.data.username);
-    } else if ( this._type === TYPES.SSH ) {
-      return this.sshUser;
-    } else if ( this._type === TYPES.SERVICE_ACCT ) {
-      return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
-    }
-
-    return this.keysDisplay;
+    return _getDataPreview(this);
   }
 
   get sshUser() {
-    if ( this._type !== TYPES.SSH ) {
-      return null;
-    }
-
-    const pub = base64Decode(this.data['ssh-publickey']);
-
-    if ( !pub ) {
-      return null;
-    }
-
-    if ( pub.startsWith('----') ) {
-      // PEM format
-      const match = pub.match(/from OpenSSH by ([^"]+)"/);
-
-      if ( match ) {
-        return match[1];
-      }
-    } else if ( pub.startsWith('ssh-') ) {
-      // OpenSSH format
-      const parts = pub.replace(/\n/g, '').split(/\s+/);
-
-      if ( parts && parts.length === 3 ) {
-        return parts[2];
-      }
-    }
-
-    return null;
+    return _getSshUser(this);
   }
 
   get subTypeDisplay() {
-    const type = this._type || '';
-    const fallback = type.replace(/^kubernetes.io\//, '');
-
-    return this.$rootGetters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
+    return _getSubTypeDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   // parse TLS certs and return issuer, notAfter, cn, sans
   get certInfo() {
-    const pem = base64Decode(this.data['tls.crt']);
-    let issuer, notAfter, cn, sans, x;
-    const END_MARKER = '-----END CERTIFICATE-----';
-
-    if (pem) {
-      const certs = pem.split(END_MARKER);
-      let first = pem;
-
-      if (certs.length > 1) {
-        first = `${ certs[0] }${ END_MARKER }`;
-      }
-
-      try {
-        x = new r.X509();
-
-        x.readCertPEM(first);
-        const issuerString = x.getIssuerString();
-
-        issuer = issuerString.slice(issuerString.indexOf('CN=') + 3);
-        notAfter = r.zulutodate(x.getNotAfter());
-
-        const cnString = x.getSubjectString();
-
-        cn = cnString.slice(cnString.indexOf('CN=') + 3);
-      } catch {
-        return null;
-      }
-
-      try {
-        sans = x.getExtSubjectAltName();
-      } catch (e) {
-        sans = [];
-      }
-
-      return {
-        issuer, notAfter, cn, sans
-      };
-    }
-
-    return null;
+    return _getCertInfo(this);
   }
 
   // use for + n more name display

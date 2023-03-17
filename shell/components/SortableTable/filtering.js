@@ -34,7 +34,11 @@ export default {
     */
     filteredRows() {
       // PROP hasAdvancedFiltering comes from Advanced Filtering mixin (careful changing data var there...)
-      if (!this.hasAdvancedFiltering) {
+      if (this.setSearchFn) {
+        this.setSearchFn(this.searchQuery);
+
+        return this.arrangedRows;
+      } else if (!this.hasAdvancedFiltering) {
         return this.handleFiltering();
       } else {
         return this.handleAdvancedFiltering();

@@ -4,10 +4,8 @@ import { HCI } from '../../types';
 import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { clone } from '@shell/utils/object';
 import findLast from 'lodash/findLast';
-import {
-  colorForState,
-  stateDisplay
-} from '@shell/plugins/dashboard-store/resource-class';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import { parseSi } from '@shell/utils/units';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';

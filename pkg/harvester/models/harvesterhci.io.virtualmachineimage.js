@@ -8,7 +8,8 @@ import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations
 import { get, clone } from '@shell/utils/object';
 import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';
-import { stateDisplay, colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import { _CLONE } from '@shell/config/query-params';
 import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';

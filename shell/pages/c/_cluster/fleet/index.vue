@@ -2,7 +2,8 @@
 import { mapState } from 'vuex';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
-import { STATES_ENUM, STATES, getStateLabel } from '@shell/plugins/dashboard-store/resource-class';
+import { getStateLabel } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES_ENUM, STATES } from '@shell/plugins/dashboard-store/resource-constants';
 import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';

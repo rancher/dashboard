@@ -12,11 +12,6 @@ export default {
       type:     String,
       required: true,
     },
-
-    schema: {
-      type:     Object,
-      required: true,
-    },
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
@@ -39,6 +34,10 @@ export default {
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    :set-page-fn="resourceQueryMethods.setPage"
+    :set-search-fn="resourceQueryMethods.setSearch"
+    :set-sort-fn="resourceQueryMethods.setSort"
+    :list-length="listLength"
   >
     <template #cell:upgrade="{row}">
       <span

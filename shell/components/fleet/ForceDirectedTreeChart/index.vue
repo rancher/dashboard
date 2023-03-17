@@ -1,6 +1,6 @@
 <script>
 import * as d3 from 'd3';
-import { STATES } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES } from '@shell/plugins/dashboard-store/resource-constants';
 import { BadgeState } from '@components/BadgeState';
 import { getChartIcon } from './chartIcons.js';
 

@@ -1,46 +1,28 @@
 import { sortBy } from '@shell/utils/sort';
-import { addObject } from '@shell/utils/array';
+import { defaultSortBy, groupAndSort } from '@shell/mixins/resource-fetch-query';
 
 export default {
   computed: {
     sortFields() {
-      let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
-      let fromColumn = [];
-
-      const column = (this.columns || this.headers).find(x => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
-
-      if ( this.sortBy && column && column.sort ) {
-        fromColumn = column.sort;
-      }
-
-      if ( !Array.isArray(fromGroup) ) {
-        fromGroup = [fromGroup];
-      }
-
-      if ( !Array.isArray(fromColumn) ) {
-        fromColumn = [fromColumn];
-      }
-
-      const out = [...fromGroup, ...fromColumn];
-
-      addObject(out, 'nameSort');
-      addObject(out, 'id');
-
-      return out;
+      return groupAndSort(this);
     },
 
     arrangedRows() {
+      if (this.setSortFn) {
+        return this.rows;
+      }
+
       let key;
 
       if ( this.sortGenerationFn ) {
-        key = `${ this.sortGenerationFn.apply(this) }/${ this.rows.length }/${ this.descending }/${ this.sortFields.join(',') }`;
+        key = `${ this.sortGenerationFn.apply(this) }/${ this.rows.length }/${ this.sortDesc }/${ this.sortFields.join(',') }`;
 
         if ( this.cacheKey === key ) {
           return this.cachedRows;
         }
       }
 
-      const out = sortBy(this.rows, this.sortFields, this.descending);
+      const out = sortBy(this.rows, this.sortFields);
 
       if ( key ) {
         this.cacheKey = key;
@@ -52,41 +34,13 @@ export default {
   },
 
   data() {
-    let sortBy = null;
+    const sortBy = this.defaultSortBy || defaultSortBy({ headers: this.headers });
 
-    this._defaultSortBy = this.defaultSortBy;
-
-    // Try to find a reasonable default sort
-    if ( !this._defaultSortBy ) {
-      const markedColumn = this.headers.find(x => !!x.defaultSort);
-      const nameColumn = this.headers.find( x => x.name === 'name');
-
-      if ( markedColumn ) {
-        this._defaultSortBy = markedColumn.name;
-      } else if ( nameColumn ) {
-        // Use the name column if there is one
-        this._defaultSortBy = nameColumn.name;
-      } else {
-        // The first column that isn't state
-        const first = this.headers.filter( x => x.name !== 'state' )[0];
-
-        if ( first ) {
-          this._defaultSortBy = first.name;
-        } else {
-          // I give up
-          this._defaultSortBy = 'id';
-        }
-      }
-    }
-
-    // If the sort column doesn't exist or isn't specified, use default
-    if ( !sortBy || !this.headers.find(x => x.name === sortBy ) ) {
-      sortBy = this._defaultSortBy;
-    }
+    this._defaultSortBy = sortBy;
 
     return {
       sortBy,
-      descending: false,
+      sortDesc:   false,
       cachedRows: null,
       cacheKey:   null,
     };
@@ -94,11 +48,17 @@ export default {
 
   methods: {
     changeSort(sort, desc) {
-      this.sortBy = sort;
-      this.descending = desc;
+      if (this.setSortFn) {
+        const [newSort, newDesc] = this.setSortFn(sort, desc);
 
-      // Always go back to the first page when the sort is changed
-      this.setPage(1);
+        this.sortDesc = newDesc;
+        this.sortBy = newSort;
+      }
+      if (!this.setSortFn) {
+        this.sortBy = sort;
+        this.sortDesc = desc;
+        this.setPage(1);
+      }
     },
   },
 };

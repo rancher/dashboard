@@ -3,9 +3,10 @@ import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotat
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
-import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
+import { convertSelectorObj, matching } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/components/DetailTop';
 import WorkloadService from '@shell/models/workload.service';
+import { _getDesired, _getPods, _getReady, _getRestartCount } from '@shell/plugins/steve/resourceUtils/workload';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -206,17 +207,7 @@ export default class Workload extends WorkloadService {
   }
 
   get restartCount() {
-    const pods = this.pods;
-
-    let sum = 0;
-
-    pods.forEach((pod) => {
-      if (pod.status.containerStatuses) {
-        sum += pod.status?.containerStatuses[0].restartCount || 0;
-      }
-    });
-
-    return sum;
+    return _getRestartCount(this);
   }
 
   get hasSidecars() {
@@ -300,7 +291,7 @@ export default class Workload extends WorkloadService {
   }
 
   get desired() {
-    return this.spec?.replicas || 0;
+    return _getDesired(this);
   }
 
   get available() {
@@ -308,13 +299,7 @@ export default class Workload extends WorkloadService {
   }
 
   get ready() {
-    const readyReplicas = Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
-
-    if (this.type === WORKLOAD_TYPES.DAEMON_SET) {
-      return readyReplicas;
-    }
-
-    return `${ readyReplicas }/${ this.desired }`;
+    return _getReady(this);
   }
 
   get unavailable() {
@@ -547,18 +532,7 @@ export default class Workload extends WorkloadService {
   }
 
   get pods() {
-    const relationships = this.metadata?.relationships || [];
-    const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
-
-    if (podRelationship) {
-      const pods = this.$getters['podsByNamespace'](this.metadata.namespace);
-
-      return pods.filter((obj) => {
-        return matches(obj, podRelationship.selector);
-      });
-    } else {
-      return [];
-    }
+    return _getPods(this, { podsByNamespace: this.$getters['podsByNamespace'] });
   }
 
   get podGauges() {

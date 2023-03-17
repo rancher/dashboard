@@ -2,16 +2,16 @@ import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
+import ResourceFetchQuery from '@shell/mixins/resource-fetch-query';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
 
 export default {
 
-  mixins: [ResourceFetchNamespaced],
+  mixins: [ResourceFetchNamespaced, ResourceFetchQuery],
 
   data() {
-    // fetching the settings related to manual refresh from global settings
     const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
     let perfConfig = {};
 
@@ -71,6 +71,25 @@ export default {
     loading() {
       return this.rows.length ? false : this.$fetchState.pending;
     },
+    advancedWorker() {
+      return !!this.perfConfig?.advancedWorker?.enabled;
+    },
+
+    listLength() {
+      // const { params: { resource: type } } = this.$route;
+
+      // return this.$store.getters['cluster/loadedLength'](type);
+
+      return undefined;
+    },
+
+    loadedLength() {
+      // const { params: { resource: type } } = this.$route;
+
+      // return this.$store.getters['cluster/loadedLength'](type);
+
+      return undefined;
+    },
   },
   watch: {
     refreshFlag(neu) {
@@ -78,7 +97,7 @@ export default {
       if (this.init && neu) {
         this.$fetch();
       }
-    }
+    },
   },
   methods: {
     // this defines all the flags needed for the mechanism
@@ -130,6 +149,10 @@ export default {
       };
 
       const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
+
+      if (this.resourceParams) {
+        opt.resourceQuery = this.resourceQuery(schema);
+      }
 
       if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
         opt.namespaced = this.namespaceFilter; // namespaceFilter will only be populated if applicable for primary resource

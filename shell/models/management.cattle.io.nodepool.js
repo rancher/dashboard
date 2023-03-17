@@ -1,13 +1,11 @@
-import { CAPI, MANAGEMENT, NORMAN } from '@shell/config/types';
+import { CAPI, NORMAN } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { _getNodes, _getNodeTemplate, _getProviderDisplay } from '@shell/plugins/steve/resourceUtils/management.cattle.io.nodepool';
 
 export default class MgmtNodePool extends HybridModel {
   get nodeTemplate() {
-    const id = (this.spec?.nodeTemplateName || '').replace(/:/, '/');
-    const template = this.$getters['byId'](MANAGEMENT.NODE_TEMPLATE, id);
-
-    return template;
+    return _getNodeTemplate(this, { byId: this.$getters['byId'] });
   }
 
   get provider() {
@@ -19,7 +17,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get providerDisplay() {
-    return this.nodeTemplate?.providerDisplay;
+    return _getProviderDisplay(this);
   }
 
   get providerLocation() {
@@ -69,9 +67,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get nodes() {
-    const nodePoolName = this.id.replace('/', ':');
-
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.spec.nodePoolName === nodePoolName);
+    return _getNodes(this, { all: this.$getters['all'] });
   }
 
   get nodeSummary() {

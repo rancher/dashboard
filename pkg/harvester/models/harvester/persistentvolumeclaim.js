@@ -6,7 +6,7 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { findBy } from '@shell/utils/array';
 import { get, clone } from '@shell/utils/object';
-import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import HarvesterResource from '../harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../config/harvester';
 

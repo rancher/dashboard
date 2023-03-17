@@ -1,9 +1,10 @@
-import { escapeHtml, ucFirst } from '@shell/utils/string';
+import { ucFirst } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import typeHelper from '@shell/utils/type-helpers';
 import { addObject, addObjects, findBy } from '@shell/utils/array';
 import { FLEET } from '@shell/config/types';
 import { convertSelectorObj, matching } from '@shell/utils/selector';
+import { _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/fleet.cattle.io.bundle';
 
 export default class FleetBundle extends SteveModel {
   get deploymentInfo() {
@@ -126,14 +127,6 @@ export default class FleetBundle extends SteveModel {
   }
 
   get groupByLabel() {
-    const name = this.metadata.namespace;
-
-    if (name) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t'](
-        'resourceTable.groupLabel.notInAWorkspace'
-      );
-    }
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 }

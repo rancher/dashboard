@@ -6,6 +6,7 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
+import { computeGroupBy, groupOptions } from '@shell/mixins/resource-fetch-query';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -150,6 +151,28 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+    /**
+     * closures for sortable-table to trigger on the appropriate methods
+     */
+    setPageFn: {
+      type:    Function,
+      default: null,
+    },
+    setSearchFn: {
+      type:    Function,
+      default: null,
+    },
+    setSortFn: {
+      type:    Function,
+      default: null,
+    },
+    /**
+     * list lengthas determined by the actual result set and not the length of the returned list
+     */
+    listLength: {
+      type:    Number,
+      default: null
     }
   },
 
@@ -180,7 +203,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct']),
+    ...mapGetters(['currentProduct', 'isMultipleNamespaces']),
     isNamespaced() {
       if ( this.namespaced !== null ) {
         return this.namespaced;
@@ -244,8 +267,9 @@ export default {
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
 
-      // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter) {
+      // If the resources isn't namespaced or we want ALL of them, there's nothing to do or if the resources are filtered in the fetched results.
+      // if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter || this.setSearchFn) {
+      if ( this.setSearchFn || !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter) {
         return this.rows || [];
       }
 
@@ -306,38 +330,11 @@ export default {
     },
 
     computedGroupBy() {
-      if ( this.groupBy ) {
-        return this.groupBy;
-      }
-
-      if ( this.group === 'namespace' && this.showGrouping ) {
-        return 'groupByLabel';
-      }
-
-      const custom = this.listGroupMapped[this.group];
-
-      if (custom && custom.field) {
-        return custom.field;
-      }
-
-      return null;
+      return computeGroupBy(this);
     },
 
     groupOptions() {
-      const standard = [
-        {
-          tooltipKey: 'resourceTable.groupBy.none',
-          icon:       'icon-list-flat',
-          value:      'none',
-        },
-        {
-          tooltipKey: this.groupTooltip,
-          icon:       'icon-folder',
-          value:      'namespace',
-        },
-      ];
-
-      return standard.concat(this.listGroups);
+      return groupOptions(this);
     },
 
     pagingParams() {
@@ -416,94 +413,101 @@ export default {
 </script>
 
 <template>
-  <SortableTable
-    ref="table"
-    v-bind="$attrs"
-    :headers="_headers"
-    :rows="filteredRows"
-    :loading="loading"
-    :group-by="computedGroupBy"
-    :group="group"
-    :group-options="groupOptions"
-    :search="search"
-    :paging="true"
-    :paging-params="pagingParams"
-    :paging-label="pagingLabel"
-    :row-actions="rowActions"
-    :table-actions="_showBulkActions"
-    :overflow-x="overflowX"
-    :overflow-y="overflowY"
-    :get-custom-detail-link="getCustomDetailLink"
-    :has-advanced-filtering="hasAdvancedFiltering"
-    :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
-    :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
-    key-field="_key"
-    :sort-generation-fn="safeSortGenerationFn"
-    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-    @clickedActionButton="handleActionButtonClick"
-    @group-value-change="group = $event"
-    v-on="$listeners"
-  >
-    <template
-      v-if="showGrouping"
-      #header-middle
+  <span>
+    <SortableTable
+      ref="table"
+      v-bind="$attrs"
+      :headers="_headers"
+      :rows="filteredRows"
+      :list-length="listLength"
+      :loading="loading"
+      :group-by="computedGroupBy"
+      :group="group"
+      :group-options="groupOptions"
+      :search="search"
+      :paging="true"
+      :paging-params="pagingParams"
+      :paging-label="pagingLabel"
+      :set-page-fn="setPageFn"
+      :set-search-fn="setSearchFn"
+      :set-sort-fn="setSortFn"
+      :row-actions="rowActions"
+      :table-actions="_showBulkActions"
+      :overflow-x="overflowX"
+      :overflow-y="overflowY"
+      :get-custom-detail-link="getCustomDetailLink"
+      :has-advanced-filtering="hasAdvancedFiltering"
+      :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
+      :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
+      key-field="_key"
+      :sort-generation-fn="safeSortGenerationFn"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+
+      @clickedActionButton="handleActionButtonClick"
+      @group-value-change="group = $event"
+      v-on="$listeners"
     >
-      <slot name="more-header-middle" />
-      <ButtonGroup
-        v-model="group"
-        :options="groupOptions"
-      />
-    </template>
+      <template
+        v-if="showGrouping"
+        #header-middle
+      >
+        <slot name="more-header-middle" />
+        <ButtonGroup
+          v-model="group"
+          :options="groupOptions"
+        />
+      </template>
 
-    <template
-      v-if="showGrouping"
-      #header-right
-    >
-      <slot name="header-right" />
-    </template>
+      <template
+        v-if="showGrouping"
+        #header-right
+      >
+        <slot name="header-right" />
+      </template>
 
-    <template #group-by="{group: thisGroup}">
-      <div
-        class="group-tab"
-        v-html="thisGroup.ref"
-      />
-    </template>
+      <template #group-by="{group: thisGroup}">
+        <div
+          class="group-tab"
+          v-html="thisGroup.ref"
+        />
+      </template>
 
-    <!-- Pass down templates provided by the caller -->
-    <template
-      v-for="(_, slot) of $scopedSlots"
-      v-slot:[slot]="scope"
-    >
-      <slot
-        :name="slot"
-        v-bind="scope"
-      />
-    </template>
+      <!-- Pass down templates provided by the caller -->
+      <template
+        v-for="(_, slot) of $scopedSlots"
+        v-slot:[slot]="scope"
+      >
+        <slot
+          :name="slot"
+          v-bind="scope"
+        />
+      </template>
 
-    <template #shortkeys>
-      <button
-        v-shortkey.once="['e']"
-        class="hide"
-        @shortkey="keyAction('edit')"
-      />
-      <button
-        v-shortkey.once="['y']"
-        class="hide"
-        @shortkey="keyAction('yaml')"
-      />
-      <button
-        v-if="_showBulkActions"
-        v-shortkey.once="['del']"
-        class="hide"
-        @shortkey="keyAction('remove')"
-      />
-      <button
-        v-if="_showBulkActions"
-        v-shortkey.once="['backspace']"
-        class="hide"
-        @shortkey="keyAction('remove')"
-      />
-    </template>
-  </SortableTable>
+      <template #shortkeys>
+        <button
+          v-shortkey.once="['e']"
+          class="hide"
+          @shortkey="keyAction('edit')"
+        />
+        <button
+          v-shortkey.once="['y']"
+          class="hide"
+          @shortkey="keyAction('yaml')"
+        />
+        <button
+          v-if="_showBulkActions"
+          v-shortkey.once="['del']"
+          class="hide"
+          @shortkey="keyAction('remove')"
+        />
+        <button
+          v-if="_showBulkActions"
+          v-shortkey.once="['backspace']"
+          class="hide"
+          @shortkey="keyAction('remove')"
+        />
+      </template>
+    </SortableTable>
+  </span>
 </template>

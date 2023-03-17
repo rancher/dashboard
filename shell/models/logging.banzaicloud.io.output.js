@@ -1,4 +1,5 @@
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getProviders, _getProvidersDisplay, _getProvidersSortable } from '@shell/plugins/steve/resourceUtils/logging.banzaicloud.io.output';
 
 export const PROVIDERS = [
   {
@@ -117,18 +118,11 @@ export default class LogOutput extends SteveModel {
   }
 
   get providers() {
-    const spec = this.spec || {};
-
-    return Object.keys(spec)
-      .filter(provider => provider !== 'loggingRef');
+    return _getProviders(this);
   }
 
   get providersDisplay() {
-    return this.providers.map((p) => {
-      const translation = this.t(`logging.outputProviders.${ p }`);
-
-      return translation || this.t('logging.outputProviders.unknown');
-    });
+    return _getProvidersDisplay(this);
   }
 
   isSupportedProvider(provider) {
@@ -140,11 +134,7 @@ export default class LogOutput extends SteveModel {
   }
 
   get providersSortable() {
-    const copy = [...this.providersDisplay];
-
-    copy.sort();
-
-    return copy.join('');
+    return _getProvidersSortable(this);
   }
 
   get text() {

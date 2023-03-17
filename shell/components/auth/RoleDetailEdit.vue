@@ -13,7 +13,8 @@ import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES } from '@shell/config/roles';
 
-import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
+import { VERBS } from '@shell/models/management.cattle.io.roletemplate';
+import { SUBTYPE_MAPPING } from '@shell/plugins/steve/resourceUtils/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;

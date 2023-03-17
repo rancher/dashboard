@@ -1,6 +1,7 @@
 import { CREATOR_ID } from '@shell/config/labels-annotations';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { _getClusterId, _getNameDisplay, _getUser } from '@shell/plugins/steve/resourceUtils/management.cattle.io.projectroletemplatebinding';
 
 export default class PRTB extends HybridModel {
   get canCustomEdit() {
@@ -16,7 +17,7 @@ export default class PRTB extends HybridModel {
   }
 
   get user() {
-    return this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userName);
+    return _getUser(this, { mgmtById: this.$rootGetters['management/byId'] });
   }
 
   get principal() {
@@ -35,7 +36,7 @@ export default class PRTB extends HybridModel {
   }
 
   get nameDisplay() {
-    return this.user?.nameDisplay;
+    return _getNameDisplay(this);
   }
 
   get projectId() {
@@ -44,8 +45,7 @@ export default class PRTB extends HybridModel {
   }
 
   get clusterId() {
-    // projectName is in format `local:p-v679w`,
-    return this.projectName.substring(0, this.projectName.lastIndexOf(':'));
+    return _getClusterId(this);
   }
 
   get project() {

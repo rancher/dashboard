@@ -3,7 +3,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
 import { clone } from '@shell/utils/object';
-import { findBy, addObject, filterBy, isArray } from '@shell/utils/array';
+import { findBy, addObject, isArray } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { sortBy } from '@shell/utils/sort';
@@ -12,6 +12,7 @@ import { ensureRegex } from '@shell/utils/string';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { lookup } from '@shell/plugins/dashboard-store/model-loader';
+import { chart, preferSameRepo } from '@shell/utils/catalog.cattle.io.app';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -101,38 +102,8 @@ export const getters = {
   },
 
   chart(state, getters) {
-    return ({
-      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
-    }) => {
-      if ( key && !repoType && !repoName && !chartName) {
-        const parsed = parseKey(key);
-
-        repoType = parsed.repoType;
-        repoName = parsed.repoName;
-        chartName = parsed.chartName;
-      }
-
-      let matching = filterBy(getters.charts, {
-        repoType,
-        repoName,
-        chartName,
-        deprecated: false,
-      });
-
-      if ( includeHidden === false ) {
-        matching = matching.filter(x => !x.hidden);
-      }
-
-      if ( !matching.length ) {
-        return;
-      }
-
-      if ( preferRepoType && preferRepoName ) {
-        preferSameRepo(matching, preferRepoType, preferRepoName);
-      }
-
-      return matching[0];
-    };
+    // returns a function that passes in the charts list and then filters it on params
+    return chart(getters.charts);
   },
 
   isInstalled(state, getters, rootState, rootGetters) {
@@ -458,16 +429,6 @@ export function generateKey(repoType, repoName, chartName) {
   return `${ repoType }/${ repoName }/${ chartName }`;
 }
 
-export function parseKey(key) {
-  const parts = key.split('/');
-
-  return {
-    repoType:  parts[0],
-    repoName:  parts[1],
-    chartName: parts[2],
-  };
-}
-
 function addChart(ctx, map, chart, repo) {
   const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
   const repoName = repo.metadata.name;
@@ -547,21 +508,6 @@ function addChart(ctx, map, chart, repo) {
   obj.versions.push(chart);
 }
 
-function preferSameRepo(matching, repoType, repoName) {
-  matching.sort((a, b) => {
-    const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
-    const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
-
-    if ( aSameRepo && !bSameRepo ) {
-      return -1;
-    } else if ( !aSameRepo && bSameRepo ) {
-      return 1;
-    }
-
-    return 0;
-  });
-}
-
 function normalizeVersion(v) {
   return v.replace(/^v/i, '').toLowerCase().trim();
 }
@@ -597,10 +543,10 @@ export function compatibleVersionsFor(chart, os, includePrerelease = true) {
     os = [os];
   }
 
-  return versions.filter((ver) => {
-    const osPermitted = (ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
+  return versions.filter(({ annotations, version } = {}) => {
+    const osPermitted = (annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
 
-    if ( !includePrerelease && isPrerelease(ver.version) ) {
+    if ( !includePrerelease && isPrerelease(version) ) {
       return false;
     }
 

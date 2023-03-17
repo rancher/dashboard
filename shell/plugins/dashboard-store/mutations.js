@@ -2,7 +2,7 @@ import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@shell/utils/array';
 import { SCHEMA, COUNT } from '@shell/config/types';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
-import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
+import { addSchemaIndexFields } from '@shell/plugins/steve/resourceUtils/schema';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import garbageCollect from '@shell/utils/gc/gc';
 
@@ -18,6 +18,8 @@ function registerType(state, type) {
       revision:      0, // The highest known resourceVersion from the server for this type
       generation:    0, // Updated every time something is loaded for this type
       loadCounter:   0, // Used to cancel incremental loads if the page changes during load
+      listLength:    0, // This is the length of the unfiltered list for this type in the worker cache (if used)
+      totalLength:   0 // This is the length of the whole worker cache for this type (if used)
     };
 
     // Not enumerable so they don't get sent back to the client for SSR
@@ -256,30 +258,36 @@ export function batchChanges(state, { ctx, batch }) {
   });
 }
 
-export function loadAll(state, {
-  type,
-  data,
-  ctx,
-  skipHaveAll,
-  namespace,
-  revision
-}) {
+export function loadAll(state, payload) {
+  const {
+    type,
+    data,
+    ctx,
+    skipHaveAll,
+    namespace,
+    revision,
+    listLength,
+    totalLength
+  } = payload;
+
   const { getters } = ctx;
 
   if (!data) {
     return;
   }
 
+  let limitedData = data;
+
   const opts = ctx.rootGetters[`type-map/optionsFor`](type);
   const limit = opts?.limit;
 
   // If there is a limit, only store the last elements from the list to keep to that limit
   if (limit) {
-    data = data.slice(-limit);
+    limitedData = data.slice(-limit);
   }
 
   const keyField = getters.keyFieldForType(type);
-  const proxies = data.map(x => classify(ctx, x));
+  const proxies = limitedData.map(x => classify(ctx, x));
   const cache = registerType(state, type);
 
   clear(cache.list);
@@ -289,6 +297,9 @@ export function loadAll(state, {
 
   addObjects(cache.list, proxies);
 
+  cache.listLength = listLength;
+  cache.totalLength = totalLength;
+
   for ( let i = 0 ; i < proxies.length ; i++ ) {
     cache.map.set(proxies[i][keyField], proxies[i]);
   }
@@ -297,6 +308,12 @@ export function loadAll(state, {
   if (!skipHaveAll) {
     cache.haveNamespace = namespace;
     cache.haveAll = !namespace;
+  }
+
+  // if listLength is present, that means we're using the worker cache and "haveAll" gets in the way of that
+  if (listLength) {
+    cache.haveNamespace = false;
+    cache.haveAll = false;
   }
 
   return proxies;

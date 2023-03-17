@@ -1,7 +1,7 @@
 import { HCI } from '../types';
 import { get } from '@shell/utils/object';
 import { findBy } from '@shell/utils/array';
-import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import { _CREATE } from '@shell/config/query-params';
 import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';

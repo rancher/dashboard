@@ -1,6 +1,7 @@
-import { COUNT, FLEET, NORMAN } from '@shell/config/types';
+import { FLEET, NORMAN } from '@shell/config/types';
 import { filterBy } from '@shell/utils/array';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { _getCounts } from '@shell/plugins/steve/resourceUtils/management.cattle.io.fleetworkspace';
 
 export default class Workspace extends HybridModel {
   get isLocal() {
@@ -8,16 +9,7 @@ export default class Workspace extends HybridModel {
   }
 
   get counts() {
-    const summary = this.$rootGetters[`management/all`](COUNT)[0].counts || {};
-    const name = this.metadata.name;
-
-    const out = {
-      clusterGroups: summary[FLEET.CLUSTER_GROUP]?.namespaces?.[name]?.count || 0,
-      clusters:      summary[FLEET.CLUSTER]?.namespaces?.[name]?.count || 0,
-      gitRepos:      summary[FLEET.GIT_REPO]?.namespaces?.[name]?.count || 0
-    };
-
-    return out;
+    return _getCounts(this, { all: this.$rootGetters[`management/all`] });
   }
 
   get clusters() {

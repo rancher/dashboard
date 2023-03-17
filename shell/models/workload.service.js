@@ -2,11 +2,57 @@
 import { findBy } from '@shell/utils/array';
 import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
-import { clone, get } from '@shell/utils/object';
+import { clone } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { shortenedImage } from '@shell/utils/string';
+import { _getImageNames } from '@shell/plugins/steve/resourceUtils/workload.service';
 
 export default class WorkloadService extends SteveModel {
+  get imageNames() {
+    return _getImageNames(this);
+  }
+
+  get containers() {
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      // cronjob pod template is nested slightly different than other types
+      const { spec: { jobTemplate: { spec: { template: { spec: { containers } } } } } } = this;
+
+      return containers;
+    }
+
+    if ( this.spec.containers ) {
+      return this.spec.containers;
+    }
+
+    const { spec:{ template:{ spec:{ containers } } } } = this;
+
+    return containers;
+  }
+
+  get initContainers() {
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      // cronjob pod template is nested slightly different than other types
+      const { spec: { jobTemplate: { spec: { template: { spec: { initContainers } } } } } } = this;
+
+      return initContainers;
+    }
+
+    if (this.spec.initContainers) {
+      return this.spec.initContainers;
+    }
+
+    const { spec:{ template:{ spec:{ initContainers } } } } = this;
+
+    return initContainers;
+  }
+
+  get workloadSelector() {
+    return {
+      'workload.user.cattle.io/workloadselector': `${ this._type ? this._type : this.type }-${
+        this.metadata.namespace
+      }-${ this.metadata.name }`
+    };
+  }
+
   async getPortsWithServiceType() {
     const ports = [];
 
@@ -94,68 +140,6 @@ export default class WorkloadService extends SteveModel {
     const allSvc = await this.$dispatch('cluster/findAll', { type: SERVICE, opt: { force } }, { root: true });
 
     return (allSvc || []).filter(svc => (svc.spec?.selector || {})[selectorKey] === steveSelectorValue || (svc.spec?.selector || {})[selectorKey] === normanSelectorValue );
-  }
-
-  get imageNames() {
-    let containers;
-    const images = [];
-
-    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-      containers = get(this, 'spec.jobTemplate.spec.template.spec.containers');
-    } else {
-      containers = get(this, 'spec.template.spec.containers');
-    }
-    if (containers) {
-      containers.forEach((container) => {
-        if (!images.includes(container.image)) {
-          images.push(container.image);
-        }
-      });
-    }
-
-    return images.map(shortenedImage);
-  }
-
-  get containers() {
-    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-      // cronjob pod template is nested slightly different than other types
-      const { spec: { jobTemplate: { spec: { template: { spec: { containers } } } } } } = this;
-
-      return containers;
-    }
-
-    if ( this.spec.containers ) {
-      return this.spec.containers;
-    }
-
-    const { spec:{ template:{ spec:{ containers } } } } = this;
-
-    return containers;
-  }
-
-  get initContainers() {
-    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-      // cronjob pod template is nested slightly different than other types
-      const { spec: { jobTemplate: { spec: { template: { spec: { initContainers } } } } } } = this;
-
-      return initContainers;
-    }
-
-    if (this.spec.initContainers) {
-      return this.spec.initContainers;
-    }
-
-    const { spec:{ template:{ spec:{ initContainers } } } } = this;
-
-    return initContainers;
-  }
-
-  get workloadSelector() {
-    return {
-      'workload.user.cattle.io/workloadselector': `${ this._type ? this._type : this.type }-${
-        this.metadata.namespace
-      }-${ this.metadata.name }`
-    };
   }
 
   // create clusterip, nodeport, loadbalancer services from container port spec

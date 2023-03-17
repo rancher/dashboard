@@ -2,16 +2,16 @@ import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 import {
   PROJECT, SYSTEM_NAMESPACE, ISTIO as ISTIO_LABELS, FLEET, RESOURCE_QUOTA
 } from '@shell/config/labels-annotations';
-import { ISTIO, MANAGEMENT } from '@shell/config/types';
+import { ISTIO } from '@shell/config/types';
 
 import { get, set } from '@shell/utils/object';
-import { escapeHtml } from '@shell/utils/string';
 import { insertAt, isArray } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import Vue from 'vue';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { hasPSALabels, getPSATooltipsDescription, getPSALabels } from '@shell/utils/pod-security-admission';
 import { PSAIconsDisplay, PSALabelsNamespaceVersion } from '@shell/config/pod-security-admission';
+import { _getProject, _getProjectNameSort, _getGroupByLabel, _getProjectId } from '@shell/plugins/steve/resourceUtils/namespace';
 
 const OBSCURE_NAMESPACE_PREFIX = [
   'c-', // cluster namespace
@@ -109,34 +109,21 @@ export default class Namespace extends SteveModel {
   }
 
   get projectId() {
-    const projectAnnotation = this.metadata?.annotations?.[PROJECT] || '';
-
-    return projectAnnotation.split(':')[1] || null;
+    return _getProjectId(this);
   }
 
   get project() {
-    if ( !this.projectId || !this.$rootGetters['isRancher'] ) {
-      return null;
-    }
-
-    const clusterId = this.$rootGetters['currentCluster']?.id;
-    const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
-
-    return project;
+    return _getProject(this, {
+      isRancher: this.$rootGetters['isRancher'], currentCluster: this.$rootGetters['currentCluster'], mgmtById: this.$rootGetters['management/byId']
+    });
   }
 
   get groupByLabel() {
-    const name = this.project?.nameDisplay;
-
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.project', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAProject');
-    }
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get projectNameSort() {
-    return this.project?.nameSort || '';
+    return _getProjectNameSort(this);
   }
 
   get istioInstalled() {

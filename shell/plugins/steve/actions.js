@@ -1,7 +1,7 @@
 import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
 import { handleSpoofedRequest, loadSchemas, _ALL } from '@shell/plugins/dashboard-store/actions';
-import { set } from '@shell/utils/object';
+import { clone, set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';
 import isObject from 'lodash/isObject';
@@ -140,18 +140,25 @@ export default {
         if (isAdvancedWorker && this.$workers[getters.storeName]) {
           const {
             type, namespace, id, opt: {
-              limit, filter, sortBy, sortOrder, force
+              limit, filter, resourceQuery, force
             } = {}
           } = pOpt;
+
+          const {
+            page, pageSize, sortBy, searches, namespaces
+          } = resourceQuery || {};
 
           out = await makeWorkerRequest(this, {
             type,
             namespace,
+            namespaces,
             id,
             filter,
             limit,
+            page,
+            pageSize,
             sortBy,
-            sortOrder,
+            searches,
             getters,
             force
           });
@@ -205,7 +212,7 @@ export default {
     }
 
     function makeWorkerRequest(that, {
-      type, namespace, id, limit, filter, sortBy, sortOrder, getters, force
+      type, namespace, namespaces, id, limit, page, pageSize, filter, searches, sortBy, getters, force
     }) {
       const worker = that.$workers[getters.storeName];
 
@@ -222,9 +229,17 @@ export default {
       }
 
       return worker.postMessageAndWait({
-        type, namespace, id, limit, filter, sortBy, sortOrder, force
+        type, namespace, namespaces, id, limit, page, pageSize, filter, searches, sortBy, force
       }).then((res) => {
-        const out = responseObject(res);
+        const { secondaryResources } = clone(res);
+        const out = responseObject(clone(res));
+
+        if (secondaryResources?.length > 0) {
+          out.secondaryResources = [];
+          secondaryResources.forEach((secondaryResource) => {
+            out.secondaryResources.push(responseObject(secondaryResource));
+          });
+        }
 
         finishDeferred(key, 'resolve', out);
 
@@ -257,7 +272,7 @@ export default {
         out = {};
       }
 
-      if ( typeof out !== 'object' ) {
+      if ( typeof out !== 'object' || Array.isArray(out) ) {
         out = { data: out };
       }
 
@@ -267,6 +282,8 @@ export default {
         _headers:    { value: res.headers },
         _req:        { value: res.request },
         _url:        { value: opt.url },
+        listLength:  { value: res.listLength },
+        totalLength: { value: res.totalLength }
       });
 
       return out;

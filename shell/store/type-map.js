@@ -134,10 +134,8 @@ import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@shell/utils/array';
-import { clone, get } from '@shell/utils/object';
-import {
-  ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
-} from '@shell/utils/string';
+import { clone } from '@shell/utils/object';
+import { ensureRegex, escapeHtml, escapeRegex, ucFirst } from '@shell/utils/string';
 import {
   importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
 } from '@shell/utils/dynamic-importer';
@@ -146,6 +144,7 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
+import { applyMapping, labelForDefaultFn, stringToRegex } from '@shell/utils/type-map';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
@@ -417,28 +416,22 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // 1 ) Getting info
   // ----------------------------------------------------------------------------
+  cacheRequest(state) {
+    return state.typeMappings;
+  },
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   labelFor(state, getters, rootState, rootGetters) {
-    return (schema, count = 1, language = null) => {
-      return _applyMapping(schema, state.typeMappings, 'id', false, () => {
-        const key = `typeLabel."${ schema.id.toLowerCase() }"`;
+    const translate = rootGetters['i18n/t'];
+    const exists = rootGetters['i18n/exists'];
 
-        if ( rootGetters['i18n/exists'](key, language) ) {
-          return rootGetters['i18n/t'](key, { count }, language).trim();
-        }
-
-        const out = schema?.attributes?.kind || schema.id || '?';
-
-        // Add spaces, but breaks typing names into jump menu naturally
-        // out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));
-
-        if ( count === 1 ) {
-          return out;
-        }
-
-        // This works for most things... if you don't like it, put in a typeLabel translation for above.
-        return pluralize(out);
-      });
+    return (schema, count, language) => {
+      return applyMapping(
+        schema,
+        state.typeMappings,
+        'id',
+        false,
+        labelForDefaultFn(schema, count, language, { translate, exists })
+      );
     };
   },
 
@@ -468,7 +461,7 @@ export const getters = {
         return null;
       }
 
-      const out = _applyMapping(group, state.groupMappings, null, state.cache.groupLabel, (group) => {
+      const out = applyMapping(group, state.groupMappings, null, state.cache.groupLabel, (group) => {
         const match = group.match(/^(.*)\.k8s\.io$/);
 
         if ( match ) {
@@ -1706,53 +1699,6 @@ function _matchingCounts(typeObj, namespaces) {
   return out;
 }
 
-function _applyMapping(objOrValue, mappings, keyField, cache, defaultFn) {
-  let key = objOrValue;
-  let found = false;
-
-  if ( keyField ) {
-    if ( typeof objOrValue !== 'object' ) {
-      return objOrValue;
-    }
-
-    key = get(objOrValue, keyField);
-
-    if ( typeof key !== 'string' ) {
-      return null;
-    }
-  }
-
-  if ( key && cache && cache[key] ) {
-    return cache[key];
-  }
-
-  let out = `${ key }`;
-
-  for ( const rule of mappings ) {
-    const re = stringToRegex(rule.match);
-    const captured = out.match(re);
-
-    if ( captured && rule.replace ) {
-      out = out.replace(re, rule.replace);
-
-      found = true;
-      if ( !rule.continueOnMatch ) {
-        break;
-      }
-    }
-  }
-
-  if ( !found && defaultFn ) {
-    out = defaultFn(out, objOrValue);
-  }
-
-  if ( cache ) {
-    cache[key] = out;
-  }
-
-  return out;
-}
-
 function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   match = regexToString(ensureRegex(match));
 
@@ -1776,22 +1722,8 @@ function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   });
 }
 
-// Regexes can't be represented in state because they don't serialize to JSON..
-const regexCache = {};
-
 function regexToString(regex) {
   return regex.source;
-}
-
-function stringToRegex(str) {
-  let out = regexCache[str];
-
-  if ( !out ) {
-    out = new RegExp(str);
-    regexCache[str] = out;
-  }
-
-  return out;
 }
 
 function ifHave(getters, option) {

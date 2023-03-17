@@ -1,21 +1,15 @@
-import { LOGGING } from '@shell/config/types';
+
 import uniq from 'lodash/uniq';
+import { _getAllOutputs, _getOutputs } from '@shell/plugins/steve/resourceUtils/logging.banzaicloud.io.clusterflow';
 import Flow from './logging.banzaicloud.io.flow';
 
 export default class LogClusterFlow extends Flow {
   get allOutputs() {
-    return this.$rootGetters['cluster/all'](LOGGING.CLUSTER_OUTPUT) || [];
+    return _getAllOutputs(this, { all: this.$rootGetters['cluster/all'] });
   }
 
   get outputs() {
-    if (!this.allOutputs) {
-      // Handle the case where the user doesn't have permission
-      // to see Outputs
-      return [];
-    }
-    const outputRefs = this?.spec?.globalOutputRefs || this?.spec?.outputRefs || [];
-
-    return this.allOutputs.filter(output => outputRefs.includes(output.name));
+    return _getOutputs(this);
   }
 
   get outputProviders() {

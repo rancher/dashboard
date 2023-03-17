@@ -1,5 +1,4 @@
 import { CAPI } from '@shell/config/types';
-import { escapeHtml } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -7,32 +6,25 @@ import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 import { MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 import { KIND } from '../config/elemental-types';
+import {
+  _getCluster, _getGroupByLabel, _getGroupByPoolShortLabel, _getProviderDisplay, _getTemplate, _getTemplateType
+} from '@shell/plugins/steve/resourceUtils/cluster.x-k8s.io.machinedeployment';
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
-
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
+    return _getCluster(this, { mgmtById: this.$rootGetters['management/byId'] });
   }
 
   get groupByLabel() {
-    const name = this.cluster?.nameDisplay || this.spec.clusterName;
-
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get groupByPoolLabel() {
-    return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get groupByPoolShortLabel() {
-    return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.machinePool', { name: escapeHtml(this.nameDisplay) }) }`;
+    return _getGroupByPoolShortLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get infrastructureRefKind() {
@@ -40,15 +32,11 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get templateType() {
-    return this.spec.template.spec.infrastructureRef.kind ? `rke-machine.cattle.io.${ this.spec.template.spec.infrastructureRef.kind.toLowerCase() }` : null;
+    return _getTemplateType(this);
   }
 
   get template() {
-    const ref = this.spec.template.spec.infrastructureRef;
-    const id = `${ ref.namespace }/${ ref.name }`;
-    const template = this.$rootGetters['management/byId'](this.templateType, id);
-
-    return template;
+    return _getTemplate(this, { mgmtById: this.$rootGetters['management/byId'] });
   }
 
   get providerName() {
@@ -56,9 +44,7 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get providerDisplay() {
-    const provider = (this.template?.provider || '').toLowerCase();
-
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
+    return _getProviderDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get providerLocation() {

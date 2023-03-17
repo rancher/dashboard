@@ -1,5 +1,6 @@
 import { formatSi } from '@shell/utils/units';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { _getProvider, _getProviderDisplay } from '@shell/plugins/steve/resourceUtils/management.cattle.io.nodetemplate';
 
 const CONFIG_KEYS = [
   {
@@ -76,17 +77,7 @@ const CONFIG_KEYS = [
 
 export default class NodeTemplate extends HybridModel {
   get provider() {
-    const allKeys = Object.keys(this);
-
-    const configKey = allKeys
-      .filter(k => this[k] !== null)
-      .find(k => k.endsWith('Config'));
-
-    if ( configKey ) {
-      return configKey.replace(/config$/i, '');
-    }
-
-    return null;
+    return _getProvider(this);
   }
 
   get providerConfig() {
@@ -94,9 +85,7 @@ export default class NodeTemplate extends HybridModel {
   }
 
   get providerDisplay() {
-    const provider = (this.provider || '').toLowerCase();
-
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
+    return _getProviderDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get providerLocation() {

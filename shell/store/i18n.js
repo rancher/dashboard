@@ -1,16 +1,13 @@
 import merge from 'lodash/merge';
-import IntlMessageFormat from 'intl-messageformat';
 import { get } from '@shell/utils/object';
 import en from '@shell/assets/translations/en-us.yaml';
-import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
 import { loadTranslation } from '@shell/utils/dynamic-importer';
+import { i18n } from '@shell/plugins/steve/caches/utils/translations';
 
 const NONE = 'none';
 const DEFAULT_LOCALE = 'en-us';
 
 // Formatters can't be serialized into state
-const intlCache = {};
-
 let lastLoaded = 0;
 
 export const state = function() {
@@ -58,78 +55,9 @@ export const getters = {
     return out;
   },
 
-  t: state => (key, args, language) => {
-    if (state.selected === NONE && !language) {
-      return `%${ key }%`;
-    }
+  t: state => i18n(state).translate,
 
-    const locale = language || state.selected;
-    const cacheKey = `${ locale }/${ key }`;
-    let formatter = intlCache[cacheKey];
-
-    if ( !formatter ) {
-      let msg = get(state.translations[locale], key);
-
-      if ( !msg ) {
-        msg = get(state.translations[state.default], key);
-      }
-
-      if ( msg === undefined ) {
-        return undefined;
-      }
-
-      if ( typeof msg === 'object' ) {
-        console.error('Translation for', cacheKey, 'is an object'); // eslint-disable-line no-console
-
-        return undefined;
-      }
-
-      if ( msg?.includes('{')) {
-        formatter = new IntlMessageFormat(msg, locale);
-      } else {
-        formatter = msg;
-      }
-
-      intlCache[cacheKey] = formatter;
-    }
-
-    if ( typeof formatter === 'string' ) {
-      return formatter;
-    } else if ( formatter && formatter.format ) {
-      // Inject things like appName so they're always available in any translation
-      const moreArgs = {
-        vendor:   getVendor(),
-        appName:  getProduct(),
-        docsBase: DOCS_BASE,
-        ...args
-      };
-
-      return formatter.format(moreArgs);
-    } else {
-      return '?';
-    }
-  },
-
-  exists: state => (key, language) => {
-    const locale = language || state.selected;
-    const cacheKey = `${ locale }/${ key }`;
-
-    if ( intlCache[cacheKey] ) {
-      return true;
-    }
-
-    let msg = get(state.translations[state.default], key);
-
-    if ( !msg && locale && locale !== NONE ) {
-      msg = get(state.translations[locale], key);
-    }
-
-    if ( msg !== undefined ) {
-      return true;
-    }
-
-    return false;
-  },
+  exists: state => i18n(state).exists,
 
   current: state => () => {
     return state.selected;
@@ -147,21 +75,11 @@ export const getters = {
     });
   },
 
-  withFallback: (state, getters) => (key, args, fallback, fallbackIsKey = false) => {
-    // Support withFallback(key,fallback) when no args
-    if ( !fallback && typeof args === 'string' ) {
-      fallback = args;
-      args = {};
-    }
+  withFallback: state => i18n(state).translateWithFallback,
 
-    if ( getters.exists(key) ) {
-      return getters.t(key, args);
-    } else if ( fallbackIsKey ) {
-      return getters.t(fallback, args);
-    } else {
-      return fallback;
-    }
-  },
+  config: state => () => {
+    return state;
+  }
 
 };
 

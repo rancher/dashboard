@@ -1,6 +1,7 @@
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { MANAGEMENT } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import Principal from './principal';
+import { _getNameDisplay, _getPrincipalNameDisplay } from '@shell/plugins/steve/resourceUtils/group.principal';
 
 export default class Group extends Principal {
   get canViewInApi() {
@@ -8,13 +9,11 @@ export default class Group extends Principal {
   }
 
   get nameDisplay() {
-    return this.principalNameDisplay;
+    return _getNameDisplay(this);
   }
 
   get principalNameDisplay() {
-    const principal = this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, this.id);
-
-    return `${ principal.name } (${ principal.displayType })`;
+    return _getPrincipalNameDisplay(this, { rancherById: this.$rootGetters['rancher/byId'] });
   }
 
   get detailLocation() {

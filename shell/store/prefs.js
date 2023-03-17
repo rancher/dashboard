@@ -2,6 +2,7 @@ import Vue from 'vue';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import { SETTING } from '@shell/config/settings';
+import { get } from '@shell/utils/prefs';
 
 const definitions = {};
 /**
@@ -141,22 +142,29 @@ export const state = function() {
 };
 
 export const getters = {
-  get: state => (key) => {
-    const definition = state.definitions[key];
+  // get: state => (key) => {
+  //   const definition = state.definitions[key];
 
-    if (!definition) {
-      throw new Error(`Unknown preference: ${ key }`);
-    }
+  //   if (!definition) {
+  //     throw new Error(`Unknown preference: ${ key }`);
+  //   }
 
-    const user = state.data[key];
+  //   const user = state.data[key];
 
-    if (user !== undefined) {
-      return clone(user);
-    }
+  //   if (user !== undefined) {
+  //     return clone(user);
+  //   }
 
-    const def = clone(definition.def);
+  //   const def = clone(definition.def);
 
-    return def;
+  //   return def;
+  // },
+
+  get: (state) => {
+    const prefsDefinitions = state.definitions;
+    const prefsData = state.data;
+
+    return get(prefsDefinitions, prefsData);
   },
 
   defaultValue: state => (key) => {

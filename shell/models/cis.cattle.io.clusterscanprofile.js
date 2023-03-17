@@ -1,5 +1,6 @@
 
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getNumberTestsSkipped } from '@shell/plugins/steve/resourceUtils/cis.cattle.io.clusterscanprofile';
 
 export default class CISProfile extends SteveModel {
   warnDeletionMessage(toRemove = []) {
@@ -7,8 +8,6 @@ export default class CISProfile extends SteveModel {
   }
 
   get numberTestsSkipped() {
-    const { skipTests = [] } = this.spec;
-
-    return skipTests.length;
+    return _getNumberTestsSkipped(this);
   }
 }

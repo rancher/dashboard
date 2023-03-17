@@ -1,8 +1,9 @@
 import { insertAt } from '@shell/utils/array';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
-import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
+import { _getImageNames, _getRestartCount, _getIsRunning, _getGroupByNode } from '@shell/plugins/steve/resourceUtils/pod';
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -111,7 +112,7 @@ export default class Pod extends WorkloadService {
   }
 
   get imageNames() {
-    return this.spec.containers.map(container => shortenedImage(container.image));
+    return _getImageNames(this);
   }
 
   get workloadRef() {
@@ -163,22 +164,16 @@ export default class Pod extends WorkloadService {
   }
 
   get isRunning() {
-    return this.status.phase === 'Running';
+    return _getIsRunning(this);
   }
 
   // Use by pod list to group the pods by node
   get groupByNode() {
-    const name = this.spec?.nodeName || this.$rootGetters['i18n/t']('generic.none');
-
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
+    return _getGroupByNode(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get restartCount() {
-    if (this.status.containerStatuses) {
-      return this.status?.containerStatuses[0].restartCount || 0;
-    }
-
-    return 0;
+    return _getRestartCount(this);
   }
 
   processSaveResponse(res) {

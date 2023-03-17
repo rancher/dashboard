@@ -1,5 +1,5 @@
-import { CATALOG } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getIsDefault } from '@shell/plugins/steve/resourceUtils/cis.cattle.io.clusterscanbenchmark';
 
 export default class ClusterScanBenchmark extends SteveModel {
   warnDeletionMessage(toRemove = []) {
@@ -7,12 +7,6 @@ export default class ClusterScanBenchmark extends SteveModel {
   }
 
   get isDefault() {
-    const { relationships = [] } = this.metadata;
-
-    if (!relationships) {
-      return false;
-    }
-
-    return relationships.filter(rel => rel.fromType === CATALOG.APP ).length > 0;
+    return _getIsDefault(this);
   }
 }

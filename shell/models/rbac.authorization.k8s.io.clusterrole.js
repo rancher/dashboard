@@ -1,4 +1,5 @@
-import { CATTLE_API_GROUP, SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
+import { CATTLE_API_GROUP } from '@shell/models/management.cattle.io.roletemplate';
+import { SUBTYPE_MAPPING } from '@shell/plugins/steve/resourceUtils/management.cattle.io.roletemplate';
 import { uniq } from '@shell/utils/array';
 import Role from './rbac.authorization.k8s.io.role';
 

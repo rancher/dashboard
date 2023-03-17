@@ -171,15 +171,21 @@ export function compare(a, b) {
 
 export function parseField(str) {
   const parts = str.split(/:/);
+  const descSuffix = (parts.length === 2 && parts[1] === 'desc');
+  const descPrefix = str[0] === '-';
+  // this is as close to an exclusive or as JS gets I think
+  const reverse = !!(descSuffix ^ descPrefix);
+  // `/^-/` matches the "-" character but only if it's the first character
+  const field = parts[0].replace(/^-/, '');
 
-  if ( parts.length === 2 && parts[1] === 'desc' ) {
-    return { field: parts[0], reverse: true };
-  } else {
-    return { field: str, reverse: false };
-  }
+  return { field, reverse };
 }
 
-export function sortBy(ary, keys, desc) {
+export function unparseField({ field, reverse }) {
+  return `${ reverse ? '-' : '' }${ field }`;
+}
+
+export function sortBy(ary, keys, desc = false) {
   if ( !Array.isArray(keys) ) {
     keys = [keys];
   }
@@ -200,7 +206,9 @@ export function sortBy(ary, keys, desc) {
           res *= -1;
         }
 
-        return res;
+        if (res) {
+          return res;
+        }
       }
     }
 

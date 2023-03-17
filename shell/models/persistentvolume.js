@@ -1,111 +1,5 @@
-import { PVC } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
-
-export const VOLUME_PLUGINS = [
-  {
-    labelKey:  'persistentVolume.awsElasticBlockStore.label',
-    value:     'awsElasticBlockStore',
-    supported: true
-  },
-  {
-    labelKey:  'persistentVolume.azureDisk.label',
-    value:     'azureDisk',
-    supported: true
-  },
-  {
-    labelKey:  'persistentVolume.azureFile.label',
-    value:     'azureFile',
-    supported: true
-  },
-  {
-    labelKey: 'persistentVolume.cephfs.label',
-    value:    'cephfs',
-  },
-  {
-    labelKey: 'persistentVolume.rbd.label',
-    value:    'rbd',
-  },
-  {
-    labelKey: 'persistentVolume.csi.label',
-    value:    'csi',
-  },
-  {
-    labelKey: 'persistentVolume.fc.label',
-    value:    'fc',
-  },
-  {
-    labelKey: 'persistentVolume.flexVolume.label',
-    value:    'flexVolume',
-  },
-  {
-    labelKey: 'persistentVolume.flocker.label',
-    value:    'flocker',
-  },
-  {
-    labelKey: 'persistentVolume.glusterfs.label',
-    value:    'glusterfs',
-  },
-  {
-    labelKey:  'persistentVolume.gcePersistentDisk.label',
-    value:     'gcePersistentDisk',
-    supported: true
-  },
-  {
-    labelKey:  'persistentVolume.hostPath.label',
-    value:     'hostPath',
-    supported: true
-  },
-  {
-    labelKey: 'persistentVolume.iscsi.label',
-    value:    'iscsi',
-  },
-  {
-    labelKey:  'persistentVolume.local.label',
-    value:     'local',
-    supported: true
-  },
-  {
-    labelKey:  'persistentVolume.longhorn.label',
-    value:     'longhorn',
-    supported: true
-  },
-  {
-    labelKey:  'persistentVolume.nfs.label',
-    value:     'nfs',
-    supported: true
-  },
-  {
-    labelKey: 'persistentVolume.cinder.label',
-    value:    'cinder',
-  },
-  {
-    labelKey: 'persistentVolume.photonPersistentDisk.label',
-    value:    'photonPersistentDisk',
-  },
-  {
-    labelKey: 'persistentVolume.portworxVolume.label',
-    value:    'portworxVolume',
-  },
-
-  {
-    labelKey: 'persistentVolume.quobyte.label',
-    value:    'quobyte',
-  },
-
-  {
-    labelKey: 'persistentVolume.scaleIO.label',
-    value:    'scaleIO',
-  },
-  {
-    labelKey: 'persistentVolume.storageos.label',
-    value:    'storageos',
-  },
-  {
-    labelKey:  'persistentVolume.vsphereVolume.label',
-    value:     'vsphereVolume',
-    supported: true
-  },
-];
+import { _getClaimName, _getSource, VOLUME_PLUGINS, _getClaim } from '@shell/plugins/steve/resourceUtils/persistentvolume';
 
 export const LONGHORN_DRIVER = 'driver.longhorn.io';
 
@@ -114,20 +8,7 @@ export const LONGHORN_PLUGIN = VOLUME_PLUGINS.find(plugin => plugin.value === 'l
 export default class PV extends SteveModel {
   // plugin display value table
   get source() {
-    const csiDriver = this.spec?.csi?.driver;
-    const fallback = `${ csiDriver } ${ this.t('persistentVolume.csi.drivers.suffix') }`;
-
-    if (csiDriver) {
-      return this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ csiDriver.replaceAll('.', '-') }`, null, fallback);
-    }
-    const pluginDef = VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]);
-
-    if (pluginDef) {
-      return this.t(pluginDef.labelKey);
-    }
-
-    // every source should be a csi driver or listed in VOLUME_PLUGIN but just in case..
-    return this.t('generic.unknown');
+    return _getSource(this, { translate: this.t, translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get isLonghorn() {
@@ -135,17 +16,11 @@ export default class PV extends SteveModel {
   }
 
   get claim() {
-    if (!this.name) {
-      return null;
-    }
-
-    const allClaims = this.$rootGetters['cluster/all'](PVC);
-
-    return allClaims.find(claim => claim.spec.volumeName === this.name);
+    return _getClaim(this, { all: this.$rootGetters['cluster/all'] });
   }
 
   get claimName() {
-    return this.claim?.nameDisplay || this.t('generic.na');
+    return _getClaimName(this, { translate: this.t });
   }
 
   get canDelete() {

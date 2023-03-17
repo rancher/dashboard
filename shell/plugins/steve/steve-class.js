@@ -1,17 +1,18 @@
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import HybridModel from './hybrid-class';
+import { _getNamespace, _getName, _getDescription } from '@shell/plugins/steve/resourceUtils/steve-class';
 
 export default class SteveModel extends HybridModel {
   get name() {
-    return this.metadata?.name || this._name;
+    return _getName(this);
   }
 
   get namespace() {
-    return this.metadata?.namespace;
+    return _getNamespace(this);
   }
 
   get description() {
-    return this.metadata?.annotations?.[DESCRIPTION] || this.spec?.description || this._description;
+    return _getDescription(this);
   }
 
   /**

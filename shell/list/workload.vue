@@ -44,34 +44,42 @@ export default {
   },
 
   async fetch() {
-    if (this.allTypes && this.loadResources.length) {
-      this.$initializeFetchData(this.loadResources[0], this.loadResources);
-    } else {
-      this.$initializeFetchData(this.$route.params.resource);
-    }
-
-    try {
-      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
-
-      if (schema) {
-        this.$fetchType(NODE);
+    if (!this.resourceQueryMethods.setPage) {
+      if (this.allTypes && this.loadResources.length) {
+        this.$initializeFetchData(this.loadResources[0], this.loadResources);
+      } else {
+        this.$initializeFetchData(this.$route.params.resource);
       }
-    } catch {}
 
-    this.loadHeathResources();
+      try {
+        const schema = this.$store.getters[`cluster/schemaFor`](NODE);
 
-    if ( this.allTypes ) {
-      this.resources = await Promise.all(this.loadResources.map((allowed) => {
-        return this.$fetchType(allowed, this.loadResources);
-      }));
+        if (schema) {
+          this.$fetchType(NODE);
+        }
+      } catch {}
+
+      this.loadHeathResources();
+
+      if ( this.allTypes ) {
+        this.resources = await Promise.all(this.loadResources.map((allowed) => {
+          return this.$fetchType(allowed, this.loadResources);
+        }));
+      } else {
+        const type = this.$route.params.resource;
+
+        if ( this.$store.getters['cluster/schemaFor'](type) ) {
+          const resource = await this.$fetchType(type);
+
+          this.resources = [resource];
+        }
+      }
+      // ToDo: SM this is inelegant, come back to it
     } else {
       const type = this.$route.params.resource;
+      const resource = await this.$fetchType(type);
 
-      if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$fetchType(type);
-
-        this.resources = [resource];
-      }
+      this.resources = [resource];
     }
   },
 
@@ -169,5 +177,9 @@ export default {
     :overflow-y="true"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    :set-page-fn="resourceQueryMethods.setPage"
+    :set-search-fn="resourceQueryMethods.setSearch"
+    :set-sort-fn="resourceQueryMethods.setSort"
+    :list-length="listLength"
   />
 </template>

@@ -10,7 +10,7 @@ import {
 } from '@shell/config/query-params';
 import Vue from 'vue';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-constants';
 import { STORAGE_CLASS } from '@shell/config/types';
 
 export default class PVC extends SteveModel {

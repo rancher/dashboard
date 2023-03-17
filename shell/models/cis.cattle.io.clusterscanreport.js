@@ -1,5 +1,6 @@
 import { compare } from '@shell/utils/sort';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getNodes, _getParsedReport } from '@shell/plugins/steve/resourceUtils/cis.cattle.io.clusterscanreport';
 
 export default class CISReport extends SteveModel {
   get aggregatedTests() {
@@ -44,19 +45,10 @@ export default class CISReport extends SteveModel {
   }
 
   get nodes() {
-    return this.parsedReport ? this.parsedReport.nodes : {};
+    return _getNodes(this);
   }
 
   get parsedReport() {
-    try {
-      const json = this.spec?.reportJSON;
-
-      const parsed = JSON.parse(json);
-
-      return parsed;
-    } catch (e) {
-    }
-
-    return null;
+    return _getParsedReport(this);
   }
 }

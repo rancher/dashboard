@@ -1,13 +1,12 @@
 import { formatPercent } from '@shell/utils/string';
 import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE, SYSTEM_LABELS } from '@shell/config/labels-annotations.js';
-import {
-  CAPI, MANAGEMENT, METRIC, NORMAN, POD
-} from '@shell/config/types';
+import { CAPI, MANAGEMENT, METRIC, NORMAN } from '@shell/config/types';
 import { parseSi } from '@shell/utils/units';
 import findLast from 'lodash/findLast';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { LOCAL } from '@shell/config/query-params';
+
+import { _getClusterId, _getName, _getPods, _getVersion } from '@shell/plugins/steve/resourceUtils/node';
 
 export default class ClusterNode extends SteveModel {
   get _availableActions() {
@@ -88,7 +87,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get name() {
-    return this.metadata.name;
+    return _getName(this);
   }
 
   get internalIp() {
@@ -169,7 +168,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get version() {
-    return this.status.nodeInfo.kubeletVersion;
+    return _getVersion(this);
   }
 
   get cpuUsage() {
@@ -297,16 +296,7 @@ export default class ClusterNode extends SteveModel {
    *Find the node's cluster id from it's url
    */
   get clusterId() {
-    const parts = this.links.self.split('/');
-
-    // Local cluster url links omit `/k8s/clusters/<cluster id>`
-    // `/v1/nodes` vs `k8s/clusters/c-m-274kcrc4/v1/nodes`
-    // Be safe when determining this, so work back through the url from a known point
-    if (parts.length > 6 && parts[parts.length - 6] === 'k8s' && parts[parts.length - 5] === 'clusters') {
-      return parts[parts.length - 4];
-    }
-
-    return LOCAL;
+    return _getClusterId(this);
   }
 
   get normanNodeId() {
@@ -398,9 +388,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get pods() {
-    const allPods = this.$rootGetters['cluster/all'](POD);
-
-    return allPods.filter(pod => pod.spec.nodeName === this.name);
+    return _getPods(this, { all: this.$rootGetters['cluster/all'] });
   }
 
   get confirmRemove() {

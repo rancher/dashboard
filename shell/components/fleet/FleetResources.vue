@@ -1,5 +1,7 @@
 <script>
-import { colorForState, stateDisplay, stateSort, STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
+import { stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-constants';
 import SortableTable from '@shell/components/SortableTable';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';

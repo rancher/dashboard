@@ -4,6 +4,7 @@ import { isEmpty, set } from '@shell/utils/object';
 import { SECRET } from '@shell/config/types';
 import { escapeHtml } from '@shell/utils/string';
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { _getConfigKey, _getProvider, _getProviderDisplay } from '@shell/plugins/steve/resourceUtils/cloudcredential';
 
 export default class CloudCredential extends NormanModel {
   get hasSensitiveData() {
@@ -37,26 +38,11 @@ export default class CloudCredential extends NormanModel {
   }
 
   get configKey() {
-    return Object.keys(this).find( k => k.endsWith('credentialConfig'));
+    return _getConfigKey(this);
   }
 
   get provider() {
-    const annotation = this.annotations?.[CAPI.CREDENTIAL_DRIVER];
-
-    if ( annotation ) {
-      return annotation;
-    }
-
-    const configKey = this.configKey;
-
-    // Call [amazoneks,amazonec2] -> aws
-    if ( configKey ) {
-      const out = this.$rootGetters['plugins/credentialDriverFor'](configKey.replace(/credentialConfig$/, ''));
-
-      return out;
-    }
-
-    return null;
+    return _getProvider(this, { credentialDriverFor: this.$rootGetters['plugins/credentialDriverFor'] });
   }
 
   setProvider(neu) {
@@ -107,9 +93,7 @@ export default class CloudCredential extends NormanModel {
   }
 
   get providerDisplay() {
-    const provider = (this.provider || '').toLowerCase();
-
-    return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, provider);
+    return _getProviderDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get publicData() {

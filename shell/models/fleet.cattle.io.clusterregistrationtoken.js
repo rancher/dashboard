@@ -1,14 +1,8 @@
-import { escapeHtml } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/fleet.cattle.io.clusterregistration';
 
 export default class FleetToken extends SteveModel {
   get groupByLabel() {
-    const name = this.metadata.namespace;
-
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
-    }
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 }

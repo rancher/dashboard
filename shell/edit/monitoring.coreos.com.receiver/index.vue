@@ -18,7 +18,7 @@ import Tab from '@shell/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@shell/components/YamlEditor';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
-import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
+import { RECEIVERS_TYPES } from '@shell/plugins/steve/resourceUtils/monitoring.coreos.com.receiver';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 
 export default {

@@ -6,10 +6,13 @@ import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
+import {
+  _getIsImported, _getIsRke2, _getNodes, _getCreationTimestamp, _getKubernetesVersion, _getMachineProvider, _getMgmtClusterId, _getMgmt
+} from '@shell/plugins/steve/resourceUtils/provisioning.cattle.io.cluster';
 
 /**
  * Class representing Cluster resource.
- * @extends SteveModal
+ * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
   get details() {
@@ -60,15 +63,9 @@ export default class ProvCluster extends SteveModel {
   // displaying the oldest age between provisioning.cluster and management.cluster
   // so that on a version upgrade of Rancher (ex: 2.5.x to 2.6.x)
   // we can have the correct age of the cluster displayed on the UI side
+
   get creationTimestamp() {
-    const provCreationTimestamp = Date.parse(this.metadata?.creationTimestamp);
-    const mgmtCreationTimestamp = Date.parse(this.mgmt?.metadata?.creationTimestamp);
-
-    if (mgmtCreationTimestamp && mgmtCreationTimestamp < provCreationTimestamp) {
-      return this.mgmt?.metadata?.creationTimestamp;
-    }
-
-    return super.creationTimestamp;
+    return _getCreationTimestamp(this);
   }
 
   // Models can specify a single action that will be shown as a button in the details masthead
@@ -224,9 +221,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isImported() {
-    // As of Rancher v2.6.7, this returns false for imported K3s clusters,
-    // in which this.provisioner is `k3s`.
-    return this.provisioner === 'imported';
+    return _getIsImported(this);
   }
 
   get isCustom() {
@@ -260,7 +255,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isRke2() {
-    return !!this.spec?.rkeConfig;
+    return _getIsRke2(this);
   }
 
   get isRke1() {
@@ -272,19 +267,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
-    return this.mgmt?.id || this.id?.replace(`${ this.metadata.namespace }/`, '');
+    return _getMgmtClusterId(this);
   }
 
   get mgmt() {
-    const name = this.status?.clusterName;
-
-    if ( !name ) {
-      return null;
-    }
-
-    const out = this.$rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
-
-    return out;
+    return _getMgmt(this, { mgmtById: this.$rootGetters['management/byId'] });
   }
 
   get isReady() {
@@ -347,36 +334,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   get kubernetesVersion() {
-    const unknown = this.$rootGetters['i18n/t']('generic.unknown');
-
-    if ( this.isRke2 ) {
-      const fromStatus = this.status?.version?.gitVersion;
-      const fromSpec = this.spec?.kubernetesVersion;
-
-      return fromStatus || fromSpec || unknown;
-    } else if ( this.mgmt ) {
-      return this.mgmt.kubernetesVersion || unknown;
-    } else {
-      return unknown;
-    }
+    return _getKubernetesVersion(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get machineProvider() {
-    if ( this.isImported ) {
-      return null;
-    } else if ( this.isRke2 ) {
-      const kind = this.spec?.rkeConfig?.machinePools?.[0]?.machineConfigRef?.kind?.toLowerCase();
-
-      if ( kind ) {
-        return kind.replace(/config$/i, '').toLowerCase();
-      }
-
-      return null;
-    } else if ( this.mgmt?.machineProvider ) {
-      return this.mgmt.machineProvider.toLowerCase();
-    }
-
-    return null;
+    return _getMachineProvider(this);
   }
 
   get machineProviderDisplay() {
@@ -394,7 +356,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get nodes() {
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
+    return _getNodes(this, { mgmtAll: this.$rootGetters['management/all'] });
   }
 
   get machines() {

@@ -1,4 +1,5 @@
 import { removeObjects } from '@shell/utils/array';
+import { driverMap } from '@shell/utils/plugins';
 
 export function simplify(key) {
   return key.toLowerCase().replace(/[^a-z0-9]/ig, '');
@@ -42,20 +43,6 @@ export const rke1Supports = [
 
 // Map a credential driver name to a component name
 // e.g. ec2 and eks both use the 'aws' driver to share the same pool of creds.
-const driverMap = {
-  aks:                             'azure',
-  amazonec2:                       'aws',
-  amazoneks:                       'aws',
-  amazonelasticcontainerservice:   'aws',
-  azurekubernetesservice:          'azure',
-  google:                          'gcp',
-  googlekubernetesengine:          'gcp',
-  huaweicontainercloudengine:      'huawei',
-  linodekubernetesengine:          'linode',
-  oci:                             'oracle',
-  opentelekomcloudcontainerengine: 'otc',
-  oraclecontainerengine:           'oracle',
-};
 
 // Map a driver component back to the cloud credential field name their data has to be stored in
 const driverToFieldMap = {

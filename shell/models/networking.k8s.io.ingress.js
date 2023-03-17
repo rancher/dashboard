@@ -1,8 +1,8 @@
 import { SECRET, SERVICE } from '@shell/config/types';
 import isUrl from 'is-url';
 import { get } from '@shell/utils/object';
-import isEmpty from 'lodash/isEmpty';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getDefaultBackendPath, _getHasDefaultBackend } from '@shell/plugins/steve/resourceUtils/networking.k8s.io.ingress';
 
 function tlsHosts(spec) {
   const tls = spec.tls || [];
@@ -184,13 +184,11 @@ export default class Ingress extends SteveModel {
   }
 
   get defaultBackendPath() {
-    const defaultBackend = this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.defaultBackend');
-
-    return defaultBackend ? 'defaultBackend' : 'backend';
+    return _getDefaultBackendPath(this, { pathExistsInSchema: this.$rootGetters['cluster/pathExistsInSchema'] });
   }
 
   get hasDefaultBackend() {
-    return !isEmpty(this.spec[this.defaultBackendPath]);
+    return _getHasDefaultBackend(this);
   }
 
   get details() {

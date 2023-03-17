@@ -7,6 +7,7 @@ import { insertAt, findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { downloadUrl } from '@shell/utils/download';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getCluster } from '@shell/plugins/steve/resourceUtils/cluster.x-k8s.io.machine';
 
 /**
  * Prevent scaling down control plane or etcd machines to zero
@@ -143,15 +144,7 @@ export default class CapiMachine extends SteveModel {
   }
 
   get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
-
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
+    return _getCluster(this, { mgmtById: this.$rootGetters['management/byId'] });
   }
 
   get poolName() {

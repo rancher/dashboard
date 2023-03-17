@@ -1,5 +1,6 @@
 import { insertAt } from '@shell/utils/array';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getNameDisplay, _getProvider } from '@shell/plugins/steve/resourceUtils/management.cattle.io.authconfig';
 
 export const configType = {
   activedirectory: 'ldap',
@@ -36,11 +37,11 @@ export default class AuthConfig extends SteveModel {
   }
 
   get nameDisplay() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.name."${ this.id }"`, null, this.provider);
+    return _getNameDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get provider() {
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.id }"`, null, this.id);
+    return _getProvider(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
   }
 
   get configType() {

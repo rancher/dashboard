@@ -1,6 +1,6 @@
 <script>
 import ButtonDropdown from '@shell/components/ButtonDropdown';
-import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
+import { RECEIVERS_TYPES } from '@shell/plugins/steve/resourceUtils/monitoring.coreos.com.receiver';
 import { _VIEW } from '@shell/config/query-params';
 
 export const MS_TEAMS_URL = 'http://rancher-alerting-drivers-prom2teams.cattle-monitoring-system.svc:8089/v2/connector';

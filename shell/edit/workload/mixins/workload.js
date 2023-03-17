@@ -46,7 +46,7 @@ import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import formRulesGenerator from '@shell/utils/validators/formRules';
-import { TYPES as SECRET_TYPES } from '@shell/models/secret';
+import { TYPES as SECRET_TYPES } from '@shell/plugins/steve/resourceUtils/secret';
 import { defaultContainer } from '@shell/models/workload';
 
 const TAB_WEIGHT_MAP = {

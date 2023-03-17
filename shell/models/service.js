@@ -1,6 +1,7 @@
 import find from 'lodash/find';
 import { POD } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { proxyUrlFromBase, _getPodRelationship, _getPods } from '@shell/plugins/steve/resourceUtils/service';
 
 export const DEFAULT_SERVICE_TYPES = [
   {
@@ -129,9 +130,7 @@ export default class extends SteveModel {
   }
 
   get podRelationship() {
-    const { metadata:{ relationships = [] } } = this;
-
-    return (relationships || []).filter(relationship => relationship.toType === POD)[0];
+    return _getPodRelationship(this);
   }
 
   async fetchPods() {
@@ -145,7 +144,7 @@ export default class extends SteveModel {
   }
 
   get pods() {
-    return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
+    return _getPods(this, { matching: this.$getters.matching });
   }
 
   get serviceType() {
@@ -170,21 +169,4 @@ export default class extends SteveModel {
 
     return proxyUrlFromBase(view.slice(0, idx), scheme, this.metadata.name, port);
   }
-}
-
-export function proxyUrlFromParts(clusterId, namespace, name, scheme, port, path) {
-  const base = `/k8s/clusters/${ escape(clusterId) }/api/v1/namespaces/${ escape(namespace) }/services`;
-
-  return proxyUrlFromBase(base, scheme, name, port, path);
-}
-
-export function proxyUrlFromBase(base, scheme, name, port, path) {
-  const schemaNamePort = (scheme ? `${ escape(scheme) }:` : '') + escape(name) + (port ? `:${ escape(port) }` : '');
-
-  const cleanPath = `/${ (path || '').replace(/^\/+/g, '') }`;
-  const cleanBase = base.replace(/\/+$/g, '');
-
-  const out = `${ cleanBase }/${ schemaNamePort }/proxy${ cleanPath }`;
-
-  return out;
 }

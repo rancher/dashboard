@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty';
 import { ucFirst } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getEventType, _getLastSeen } from '@shell/plugins/steve/resourceUtils/event';
 
 export default class K8sEvent extends SteveModel {
   get displayInvolvedObject() {
@@ -22,13 +23,10 @@ export default class K8sEvent extends SteveModel {
   }
 
   get eventType() {
-    return this._type;
+    return _getEventType(this);
   }
 
   get lastSeen() {
-    const schema = this.$getters['schemaFor'](this.type);
-    const rowValueGetter = this.$rootGetters['type-map/rowValueGetter'];
-
-    return schema && rowValueGetter ? rowValueGetter(schema, 'Last Seen')(this) : null;
+    return _getLastSeen(this, { schemaFor: this.$getters['schemaFor'], rowValueGetter: this.$rootGetters['type-map/rowValueGetter'] });
   }
 }

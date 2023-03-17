@@ -1,96 +1,18 @@
 import { STORAGE } from '@shell/config/labels-annotations';
 import { STORAGE_CLASS } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getIsDefault, _getProvisionerDisplay } from '@shell/plugins/steve/resourceUtils/storage.k8s.io.storageclass';
 
 // These are storage class drivers w/ custom components
 // all but longhorn are in-tree plugins
-export const PROVISIONER_OPTIONS = [
-  {
-    labelKey:   'storageClass.aws-ebs.title',
-    value:      'kubernetes.io/aws-ebs',
-    supported:  true,
-    deprecated: true,
-  },
-  {
-    labelKey:   'storageClass.azure-disk.title',
-    value:      'kubernetes.io/azure-disk',
-    supported:  true,
-    deprecated: true
-  },
-  {
-    labelKey:   'storageClass.azure-file.title',
-    value:      'kubernetes.io/azure-file',
-    supported:  true,
-    deprecated: true,
-  },
-  {
-    labelKey: 'storageClass.rbd.title',
-    value:    'kubernetes.io/rbd',
-  },
-  {
-    labelKey: 'storageClass.glusterfs.title',
-    value:    'kubernetes.io/glusterfs',
-  },
-  {
-    labelKey:   'storageClass.gce-pd.title',
-    value:      'kubernetes.io/gce-pd',
-    supported:  true,
-    deprecated: true,
-  },
-  {
-    labelKey: 'storageClass.no-provisioner.title',
-    value:    'kubernetes.io/no-provisioner',
-  },
-  {
-    labelKey:  'storageClass.longhorn.title',
-    value:     'driver.longhorn.io',
-    supported: true
-  },
-  {
-    labelKey:   'storageClass.cinder.title',
-    value:      'kubernetes.io/cinder',
-    deprecated: true,
-  },
-  {
-    labelKey: 'storageClass.portworx-volume.title',
-    value:    'kubernetes.io/portworx-volume',
-  },
-  {
-    labelKey: 'storageClass.quobyte.title',
-    value:    'kubernetes.io/quobyte',
-  },
-  {
-    labelKey: 'storageClass.scaleio.title',
-    value:    'kubernetes.io/scaleio',
-  },
-  {
-    labelKey: 'storageClass.storageos.title',
-    value:    'kubernetes.io/storageos',
-  },
-  {
-    labelKey:   'storageClass.vsphere-volume.title',
-    value:      'kubernetes.io/vsphere-volume',
-    supported:  true,
-    deprecated: true
-  },
-  {
-    labelKey:      'storageClass.harvesterhci.title',
-    value:         'driver.harvesterhci.io',
-    supported:     true,
-    hideCustomize: true,
-  }
-];
 
 export default class extends SteveModel {
   get provisionerDisplay() {
-    const option = PROVISIONER_OPTIONS.find(o => o.value === this.provisioner);
-    const fallback = `${ this.provisioner } ${ this.t('persistentVolume.csi.drivers.suffix') }`;
-
-    return option ? this.t(option.labelKey) : this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ this.provisioner.replaceAll('.', '-') }`, null, fallback);
+    return _getProvisionerDisplay(this, { translate: this.t });
   }
 
   get isDefault() {
-    return this.annotations[STORAGE.DEFAULT_STORAGE_CLASS] === 'true';
+    return _getIsDefault(this);
   }
 
   updateDefault(value) {

@@ -3,16 +3,84 @@
  * relocates cluster resource sockets off the UI thread and into a webworker
  */
 
-import { SCHEMA, COUNT } from '@shell/config/types';
+import { SCHEMA, COUNT, POD } from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
 import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@shell/utils/socket';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
-import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
+import { addSchemaIndexFields } from '@shell/plugins/steve/resourceUtils/schema';
 import cacheClasses from '@shell/plugins/steve/caches';
 import ResourceRequest from '@shell/plugins/steve/api/resourceRequest';
 import Trace from '@shell/plugins/steve/trace';
+import { i18n } from '@shell/plugins/steve/caches/utils/translations';
+import { applyMapping, labelForDefaultFn } from '@shell/utils/type-map';
+import TempCache from '@shell/plugins/steve/caches/utils/tempCache';
+// import { findBy } from '@shell/utils/array';
 
 const caches = {};
+
+// these are caches pulled from the UI thread to satisfy calculatedFields, purged shortly after use.
+const tempCaches = {
+  management: {},
+  rancher:    {},
+  'type-map': {},
+  plugins:    {},
+  prefs:      null,
+  catalog:    null,
+  root:       {}
+};
+
+const uiRequests = {};
+const uiRequester = (getter) => {
+  const cacheGetter = `${ getter }/cacheRequest`;
+  const uiPromise = {};
+
+  uiPromise.promise = new Promise((resolve, reject) => {
+    uiPromise.resolves = () => {
+      resolve({ index: uiPromise.index, cacheGetter });
+    };
+    uiPromise.reject = (error) => {
+      reject(error);
+    };
+
+    if (!uiRequests[cacheGetter] || uiRequests[cacheGetter].length < 1) {
+      self.postMessage({ get: cacheGetter });
+    }
+  });
+  uiPromise.index = uiRequests[cacheGetter]?.length || 0;
+
+  uiRequests[cacheGetter] = [...(uiRequests[cacheGetter] || []), uiPromise];
+
+  return uiPromise.promise;
+};
+
+const cacheFieldGetters = {
+  translate:             (key, args, language) => caches['i18n']?.translate(key, args, language),
+  translateWithFallback: (key, args, fallback, fallbackIsKey) => caches['i18n']?.translateWithFallback(key, args, fallback, fallbackIsKey),
+  exists:                (key, language) => caches['i18n']?.exists(key, language),
+  all:                   type => caches[type]?.all(),
+  byId:                  (type, id) => caches[type]?.byId(id),
+  findByIds:             (type, ids) => caches[type]?.find({ ids }),
+  matching:              (type, selector, namespace) => caches[type]?.matching(selector, namespace),
+  schemaFor:             type => caches[SCHEMA]?.getSchema(type),
+  podsByNamespace:       (namespace) => {
+    return caches[POD]?.byNamespace(namespace) || [];
+  },
+  pathExistsInSchema: (type, path) => caches[SCHEMA]?.pathExistsInSchema(type, path),
+  mgmtAll:            type => tempCaches['management'][type]?.all(),
+  mgmtById:           (type, id) => tempCaches['management'][type]?.byId(id),
+  rancherById:        (type, id) => tempCaches['management'][type]?.byId(id),
+  prefGet:            pref => tempCaches['prefs']?.get(pref),
+  labelFor:           (schema) => {
+    const label = applyMapping(schema, tempCaches['type-map']?.cache || [], 'id', false, labelForDefaultFn(schema, undefined, undefined, caches['i18n']));
+
+    return label;
+  },
+  rowValueGetter: (schema, colName) => resource => 'a value from a column/row pair', // ToDo: SM gets from type-map store
+  findChart:      opt => tempCaches['catalog'].findChart(opt), // ToDo: SM just need to build out the catalog tempCache with "findChart" built in now
+  isRancher:      caches['root']?.isRancher,
+  currentCluster: caches['root']?.currentCluster,
+  clusterId:      caches['root']?.clusterId,
+};
 
 const state = {
   config:       {},
@@ -91,9 +159,8 @@ const removeFromWatcherQueue = (watchKey) => {
  * Creates a resourceCache with the appropriate type
  */
 const resourceCache = (type) => {
-  const CacheClass = cacheClasses[`${ type }Cache`] || cacheClasses.resourceCache;
-
-  const instance = new CacheClass(type, params => state.api?.request({ ...params, type }));
+  const CacheClass = cacheClasses[type] || cacheClasses.resourceCache;
+  const instance = new CacheClass(type, params => state.api?.request({ ...params, type }), cacheFieldGetters);
 
   instance.setDebug(state.debugWorker.cache);
 
@@ -128,7 +195,7 @@ const workerActions = {
    * This should be the first action called
    */
   loadSchemas: (data) => {
-    workerActions.updateCache(SCHEMA, data); // This will create caches[SCHEMA]
+    workerActions.loadIntoCache(SCHEMA, data, {}); // This will create caches[SCHEMA]
     workerActions.flushApiQueue();
   },
 
@@ -145,15 +212,17 @@ const workerActions = {
 
       // the apiClient can only exist after schemas are loaded so we build it here.
       state.api = new ResourceRequest(state.config, {
-        updateCache: workerActions.updateCache,
-        getSchema:   (id) => {
+        loadIntoCache: workerActions.loadIntoCache,
+        getSchema:     (id) => {
           return caches[SCHEMA].getSchema(id);
         }
       });
       state.api.setDebug(state.debugWorker.request);
 
       for (const [resourceKey, resourceCache] of Object.entries(caches)) {
-        resourceCache.loadWorkerMethods({ resourceRequest: params => state.api?.request({ ...params, type: resourceKey }) });
+        if (resourceCache?.loadWorkerMethods) {
+          resourceCache.loadWorkerMethods({ resourceRequest: params => state.api?.request({ ...params, type: resourceKey }) });
+        }
       }
     }
   },
@@ -201,6 +270,15 @@ const workerActions = {
     }
   },
 
+  cacheResponse: (response) => {
+    const cacheName = response.getter.replace('/cacheRequest', '');
+
+    tempCaches[cacheName] = new TempCache(response.cache);
+    uiRequests[response.getter].forEach((request) => {
+      request.resolves(response.cache);
+    });
+  },
+
   /**
    * Starting point for requests for resources
    */
@@ -225,33 +303,62 @@ const workerActions = {
    * Either setup the resource type and make the request for the given params... or find the resource in the cache for the given params
    */
   request: (params, resolver = () => {}) => {
-    const {
-      type, namespace, id, filter, sortBy, sortOrder, limit, force
-    } = params;
+    const { type } = params;
 
     requestTracer.trace('waitingForResponse --> request', params);
 
-    if (!caches[type]) {
+    if (!caches[type] || caches[type].cacheIsInvalid(params)) {
+    // if (!caches[type]) {
       requestTracer.trace('waitingForResponse --> request. No Cache, created and requesting resources');
-      state.api.request(params)
-        .then((res) => {
-          // Expected format of `{ data: res }`
-          return resolver(res);
+      const type = params.type;
+
+      caches[type] = resourceCache(type);
+      const dependencyRequests = caches[type].calculatedFields
+        .filter(field => (field.cache && !caches[field.cache]) || field.tempCache)
+        .map((field) => {
+          const requests = [];
+
+          // ToDo: SM potentially add in filter criteria here if I can map it so I can cut down on response payload
+          if (field.cache) {
+            requests.concat(field.cache.map((fieldCache) => {
+              return state.api.request({ type: fieldCache })
+                .then(() => {
+                  return true;
+                }).catch((e) => {
+                  resolver(undefined, parseRequestError(e));
+                });
+            }));
+          }
+          if (field.tempCache) {
+            requests.concat(field.tempCache.map((tempFieldCache) => {
+              return uiRequester(field.tempFieldCache)
+                .then((res) => {
+                  uiRequests[res.cacheGetter] = uiRequests[res.cacheGetter]
+                    .filter(prom => prom.index !== res.index);
+
+                  return true;
+                });
+            }));
+          }
+
+          return requests;
         })
-        .catch((e) => {
+        .reduce((acc, requests) => [...acc, ...requests]);
+
+      Promise.all([
+        state.api.request(params).catch((e) => {
           resolver(undefined, parseRequestError(e));
+        }),
+        ...dependencyRequests
+      ])
+        .then(() => {
+          resolver(caches[type].find(params, { noRequest: true }));
         });
     } else {
-      requestTracer.trace('waitingForResponse --> request. Have Cache');
-      caches[type].find({
-        type, namespace, id, filter, sortBy, sortOrder, limit, force
-      })
-        .then((res) => {
-          return resolver(res);
-        })
-        .catch((e) => {
-          resolver(undefined, parseRequestError(e));
-        });
+      requestTracer.trace('waitingForResponse --> Direct lookup in cache');
+      const results = caches[type].find(params);
+
+      resolver(results);
     }
   },
   /**
@@ -259,14 +366,14 @@ const workerActions = {
    * Accepts an array of JSON objects representing resources
    * types the array and constructs a cache if none exists and then loads each resource in the array into the cache
    */
-  updateCache: (type, payload, detail = false) => {
+  loadIntoCache: (type, payload, params = {}, detail = false) => {
     const rawResources = detail ? [payload] : payload;
 
     if (!caches[type]) {
       caches[type] = resourceCache(type);
     }
 
-    return caches[type].load(rawResources, detail);
+    return caches[type].load(rawResources, params, detail);
   },
   flushWatcherQueue: () => {
     while (state.watcherQueue.length > 0) {
@@ -299,6 +406,7 @@ const workerActions = {
   },
   initWorker: (config) => {
     state.config = config;
+    caches['i18n'] = i18n(config.i18nConfig);
   },
   watch: (msg) => {
     watchTracer.trace('watch', msg);
@@ -478,6 +586,8 @@ const actionPrecedence = {
 /**
  * Covers message from UI Thread to Worker
  */
+// ToDo: SM intermittent error 'Uncaught (in promise) SyntaxError: Unexpected token '<', "<!doctype "... is not valid JSON' on a watch action
+// ToDo: SM navlink is using the singular noun for a get-list request...
 onmessage = (e) => {
   /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
   // good enough for now considering that we never send more than one message action at a time right now */

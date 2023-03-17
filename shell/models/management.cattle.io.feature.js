@@ -1,5 +1,6 @@
 import { ONE_WAY } from '@shell/config/features';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { _getRestartRequired } from '@shell/plugins/steve/resourceUtils/management.cattle.io.feature';
 
 export default class Feature extends HybridModel {
   get state() {
@@ -17,7 +18,7 @@ export default class Feature extends HybridModel {
   }
 
   get restartRequired() {
-    return !this.status.dynamic;
+    return _getRestartRequired(this);
   }
 
   get canYaml() {

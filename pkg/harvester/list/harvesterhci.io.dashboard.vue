@@ -15,7 +15,7 @@ import {
 } from '@shell/config/types';
 import { HCI } from '../types';
 import ResourceSummary, { resourceCounts, colorToCountName } from '@shell/components/ResourceSummary';
-import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';

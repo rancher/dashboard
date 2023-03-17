@@ -1,23 +1,12 @@
-import { CAPI } from '@shell/config/types';
-import { escapeHtml } from '@shell/utils/string';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getCluster, _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/cluster.x-k8s.io.machineset';
 
 export default class CapiMachineSet extends SteveModel {
   get cluster() {
-    if ( !this.spec.clusterName ) {
-      return null;
-    }
-
-    const clusterId = `${ this.metadata.namespace }/${ this.spec.clusterName }`;
-
-    const cluster = this.$rootGetters['management/byId'](CAPI.RANCHER_CLUSTER, clusterId);
-
-    return cluster;
+    return _getCluster(this, { mgmtById: this.$rootGetters['management/byId'] });
   }
 
   get groupByLabel() {
-    const name = this.cluster?.nameDisplay || this.spec.clusterName;
-
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.cluster', { name: escapeHtml(name) });
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 }

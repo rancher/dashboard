@@ -18,7 +18,7 @@ export default class ResourceRequest extends Trace {
     /**
      * Fetch and update the cache for the resource associated with the request
      */
-    __updateCache;
+    __loadIntoCache;
 
     /**
      * Configuration required to make http requests
@@ -29,7 +29,7 @@ export default class ResourceRequest extends Trace {
       super('Resource Requester');
       this.__config = { ...config };
       this.__getSchema = methods.getSchema;
-      this.__updateCache = methods.updateCache;
+      this.__loadIntoCache = methods.loadIntoCache;
     }
 
     get config() {
@@ -38,7 +38,7 @@ export default class ResourceRequest extends Trace {
 
     loadWorkerMethods(methods) {
       this.__getSchema = methods.getSchema || this.__getSchema;
-      this.__updateCache = methods.updateCache || this.__updateCache;
+      this.__loadIntoCache = methods.loadIntoCache || this.__loadIntoCache;
     }
 
     __resourceQuery(params) {
@@ -96,9 +96,12 @@ export default class ResourceRequest extends Trace {
         })
         .then((res) => {
           // TODO: RC https://github.com/rancher/dashboard/issues/8420
-          this.__updateCache(params.type, res.data.data || res.data, !!params.id);
+          // ToDo: SM default resolver on request should fire off an update similar to a socket message.
+          const { type, id } = params;
+          const data = res.data?.data || res.data;
 
-          return res;
+          // this is actually the "load" method on the cache
+          return this.__loadIntoCache(type, data, !!id).find(params, { noRequest: true });
         });
     }
 }

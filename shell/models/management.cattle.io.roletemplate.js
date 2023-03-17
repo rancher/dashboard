@@ -5,46 +5,9 @@ import { NORMAN } from '@shell/config/types';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
+import { SUBTYPE_MAPPING, _getDefault, _getSubType } from '@shell/plugins/steve/resourceUtils/management.cattle.io.roletemplate';
 
 export const CATTLE_API_GROUP = '.cattle.io';
-
-export const SUBTYPE_MAPPING = {
-  GLOBAL: {
-    key:        'GLOBAL',
-    type:       'management.cattle.io.globalrole',
-    defaultKey: 'newUserDefault',
-    id:         'GLOBAL',
-    labelKey:   'rbac.roletemplate.subtypes.GLOBAL.label',
-  },
-  CLUSTER: {
-    key:        'CLUSTER',
-    type:       'management.cattle.io.roletemplate',
-    context:    'cluster',
-    defaultKey: 'clusterCreatorDefault',
-    id:         'CLUSTER',
-    labelKey:   'rbac.roletemplate.subtypes.CLUSTER.label',
-  },
-  NAMESPACE: {
-    key:        'NAMESPACE',
-    type:       'management.cattle.io.roletemplate',
-    context:    'project',
-    defaultKey: 'projectCreatorDefault',
-    id:         'NAMESPACE',
-    labelKey:   'rbac.roletemplate.subtypes.NAMESPACE.label',
-  },
-  RBAC_ROLE: {
-    key:      'RBAC_ROLE',
-    type:     'rbac.authorization.k8s.io.role',
-    id:       'RBAC_ROLE',
-    labelKey: 'rbac.roletemplate.subtypes.RBAC_ROLE.label',
-  },
-  RBAC_CLUSTER_ROLE: {
-    key:      'RBAC_CLUSTER_ROLE',
-    type:     'rbac.authorization.k8s.io.clusterrole',
-    id:       'RBAC_CLUSTER_ROLE',
-    labelKey: 'rbac.roletemplate.subtypes.RBAC_CLUSTER_ROLE.label',
-  }
-};
 
 export const VERBS = [
   'create',
@@ -84,19 +47,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
   }
 
   get subtype() {
-    if (this._subtype) {
-      return this._subtype;
-    }
-
-    if (this.type === SUBTYPE_MAPPING.CLUSTER.type && this.context === SUBTYPE_MAPPING.CLUSTER.context) {
-      return SUBTYPE_MAPPING.CLUSTER.key;
-    }
-
-    if (this.type === SUBTYPE_MAPPING.NAMESPACE.type && this.context === SUBTYPE_MAPPING.NAMESPACE.context) {
-      return SUBTYPE_MAPPING.NAMESPACE.key;
-    }
-
-    return null;
+    return _getSubType(this);
   }
 
   updateSubtype(subtype) {
@@ -105,9 +56,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
   }
 
   get default() {
-    const defaultKey = SUBTYPE_MAPPING[this.subtype]?.defaultKey;
-
-    return !!this[defaultKey];
+    return _getDefault(this);
   }
 
   updateDefault(value) {

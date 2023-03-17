@@ -1,11 +1,11 @@
 import { convert, matching, convertSelectorObj } from '@shell/utils/selector';
 import jsyaml from 'js-yaml';
-import { escapeHtml } from '@shell/utils/string';
 import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
+import { _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/fleet.cattle.io.gitrepo';
 
 function quacksLikeAHash(str) {
   if ( str.match(/^[a-f0-9]{40,}$/i) ) {
@@ -293,13 +293,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get groupByLabel() {
-    const name = this.metadata.namespace;
-
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
-    }
+    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
   }
 
   get bundles() {

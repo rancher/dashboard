@@ -47,7 +47,7 @@ export default function steveCreateWorker(ctx, mode) {
     // - This locates the promise from above and resolves it
 
     const {
-      type, id, namespace, selector, limit, filter, sortBy, sortOrder, force
+      type, id, namespace, namespaces, selector, limit, page, pageSize, filter, sortBy, searches, force
     } = params;
 
     try {
@@ -55,12 +55,15 @@ export default function steveCreateWorker(ctx, mode) {
         type,
         id,
         namespace,
+        namespaces,
         selector,
         limit,
+        page,
+        pageSize,
         filter,
         sortBy,
-        sortOrder,
-        force
+        force,
+        searches,
       }));
       const requestHash = JSON.stringify(requestParams);
 
@@ -113,10 +116,11 @@ export default function steveCreateWorker(ctx, mode) {
 
     worker.postMessage({
       initWorker: {
-        url:       `${ ctx.state.config.baseUrl }`,
-        csrf:      this.$cookies.get(CSRF, { parseJSON: false }), // steveCreateWorker is in the root store
-        config:    ctx.state.config,
-        storeName: ctx.getters.storeName
+        url:        `${ ctx.state.config.baseUrl }`,
+        csrf:       this.$cookies.get(CSRF, { parseJSON: false }), // steveCreateWorker is in the root store
+        config:     ctx.state.config,
+        storeName:  ctx.getters.storeName,
+        i18nConfig: this.getters['i18n/config']()
       },
     });
   } else {

@@ -1,3 +1,4 @@
+import { _getDescription } from '@shell/plugins/steve/resourceUtils/steve-description-class';
 import SteveModel from './steve-class';
 
 /**
@@ -13,7 +14,7 @@ export default class SteveDescriptionModel extends SteveModel {
   }
 
   get description() {
-    return this._description;
+    return _getDescription(this);
   }
 
   set description(value) {

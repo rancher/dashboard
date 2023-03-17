@@ -1,23 +1,14 @@
-import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { _getNameDisplay, _getDisplayPrincipal } from '@shell/plugins/steve/resourceUtils/management.cattle.io.globalrolebinding';
 
 export default class GRB extends HybridModel {
   get nameDisplay() {
-    const role = this.$getters['byId'](MANAGEMENT.GLOBAL_ROLE, this.globalRoleName);
-
-    if (!role) {
-      return this.globalRoleName;
-    }
-
-    const ownersName = this.groupPrincipalName ? this._displayPrincipal : this._displayUser;
-
-    return ownersName ? `${ role.displayName } (${ ownersName })` : role.displayName;
+    return _getNameDisplay(this, { byId: this.$getters['byId'] });
   }
 
   get _displayPrincipal() {
-    const principal = this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, this.groupPrincipalName);
-
-    return principal ? `${ principal.name } - ${ principal.displayType }` : null;
+    return _getDisplayPrincipal(this, { rancherById: this.$rootGetters['rancher/byId'] });
   }
 
   get _displayUser() {

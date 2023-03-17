@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
+import { colorForState } from '@shell/plugins/steve/resourceUtils/resource-class';
 import { NAME, NAMESPACE, STATE, TYPE } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';

@@ -1,8 +1,9 @@
-import { DEFAULT_PROJECT, SYSTEM_PROJECT } from '@shell/config/labels-annotations';
+import { SYSTEM_PROJECT } from '@shell/config/labels-annotations';
 import { MANAGEMENT, NAMESPACE, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import isEmpty from 'lodash/isEmpty';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import { _getIsDefault } from '@shell/plugins/steve/resourceUtils/management.cattle.io.project';
 
 function clearUnusedResourceQuotas(spec, types) {
   types.forEach((type) => {
@@ -44,7 +45,7 @@ export default class Project extends HybridModel {
   }
 
   get isDefault() {
-    return this.metadata?.labels?.[DEFAULT_PROJECT] === 'true';
+    return _getIsDefault(this);
   }
 
   get namespaces() {

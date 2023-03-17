@@ -8,6 +8,7 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 
 export default {
   name: ResourceListComponentName,
@@ -134,6 +135,19 @@ export default {
       return this.perfConfig?.incrementalLoading?.enabled;
     },
 
+    advancedWorker() {
+      return !!this.perfConfig?.advancedWorker?.enabled;
+    },
+    listLength() {
+      const { params: { resource: type } } = this.$route;
+
+      return this.$store.getters['cluster/listLength'](type);
+    },
+    totalLength() {
+      const { params: { resource: type } } = this.$route;
+
+      return this.$store.getters['cluster/totalLength'](type);
+    }
   },
 
   watch: {
@@ -148,6 +162,11 @@ export default {
      */
     namespaceFilter(neu) {
       if (neu && !this.hasFetch) {
+        this.$fetchType(this.resource);
+      }
+    },
+    resourceQuery(neu, old) {
+      if (hashObj(neu) !== hashObj(old) && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
     }
@@ -224,6 +243,10 @@ export default {
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :set-page-fn="resourceQueryMethods.setPage"
+      :set-search-fn="resourceQueryMethods.setSearch"
+      :set-sort-fn="resourceQueryMethods.setSort"
+      :list-length="listLength"
     />
   </div>
 </template>

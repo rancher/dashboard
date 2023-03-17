@@ -9,7 +9,7 @@ import Banner from '@components/Banner/Banner.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';
+import { PROVISIONER_OPTIONS } from '@shell/plugins/steve/resourceUtils/storage.k8s.io.storageclass';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
 import { CSI_DRIVER } from '@shell/config/types';
 import { LONGHORN_DRIVER } from '@shell/models/persistentvolume';

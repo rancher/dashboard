@@ -187,6 +187,10 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :set-page-fn="resourceQueryMethods.setPage"
+      :set-search-fn="resourceQueryMethods.setSearch"
+      :set-sort-fn="resourceQueryMethods.setSort"
+      :list-length="listLength"
     >
       <!-- Why are state column and subrow overwritten here? -->
       <!-- for rke1 clusters, where they try to use the mgmt cluster stateObj instead of prov cluster stateObj,  -->

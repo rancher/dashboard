@@ -40,7 +40,7 @@ const waitForManagement = (store) => {
 
 // We only create a worker for the cluster store
 export async function createWorker(store, ctx) {
-  const { getters, dispatch } = ctx;
+  const { getters, dispatch, rootGetters } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
@@ -78,12 +78,20 @@ export async function createWorker(store, ctx) {
     dispatch: (msg) => {
       dispatch(`ws.${ msg.name }`, msg);
     },
+    get: (msg) => {
+      store.$workers[storeName].postMessage({
+        cacheResponse: {
+          getter: msg,
+          cache:  rootGetters[msg]
+        }
+      });
+    },
     [EVENT_CONNECT_ERROR]: (e) => {
       dispatch('error', e );
     },
     [EVENT_DISCONNECT_ERROR]: (e) => {
       dispatch('error', e );
-    }
+    },
   };
 
   if (!store.$workers[storeName]) {
