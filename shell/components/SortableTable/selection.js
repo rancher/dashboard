@@ -445,7 +445,7 @@ export default {
         }
       });
 
-      if ( this.selectedRows.length < this.pagedRows.length ) {
+      if ( this.selectedRows.length < this.pagedRows.length && !this.selectedRows.includes(toAdd[0])) {
         this.selectedRows.push(...toAdd);
       }
 
