@@ -1,4 +1,4 @@
-import createWorker from './steve/worker/index.js';
+import steveCreateWorker from './steve/worker/index.js';
 
 /**
  * Link the steve worker creator to the store
@@ -10,5 +10,5 @@ import createWorker from './steve/worker/index.js';
  * Note - When rancher/steve store is spun out in to a extension this also needs to move out
  */
 export default function({ store }) {
-  store.steveCreateWorker = createWorker;
+  store.steveCreateWorker = steveCreateWorker;
 }

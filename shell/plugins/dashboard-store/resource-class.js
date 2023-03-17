@@ -981,7 +981,7 @@ export default class Resource {
       throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
     }
 
-    return this.$dispatch('request', { opt, type: this.type } );
+    return this.$dispatch('request', { opt } );
   }
 
   // ------------------------------------------------------------------
@@ -1144,6 +1144,7 @@ export default class Resource {
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
+        // TODO: RC https://github.com/rancher/dashboard/issues/8420
         await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
       }
     } catch (e) {
@@ -1176,6 +1177,7 @@ export default class Resource {
     const res = await this.$dispatch('request', { opt, type: this.type } );
 
     if ( res?._status === 204 ) {
+      // TODO: RC https://github.com/rancher/dashboard/issues/8420
       // If there's no body, assume the resource was immediately deleted
       // and drop it from the store as if a remove event happened.
       await this.$dispatch('ws.resource.remove', { data: this });

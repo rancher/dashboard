@@ -810,7 +810,7 @@ catalog:
       chartVersions:
         label: Chart 版本
         showMore: 显示更多
-        showLess: 显示较少
+        showLess: 显示更少
       home: 首页
       maintainers: 维护者
       related: 相关
@@ -818,6 +818,10 @@ catalog:
       keywords: 关键词
     errors:
       clusterToolExists: 此 Chart 含有固定的命名空间和名称。找到一个匹配的 <a href="{url}">应用</a>，任何修改都将应用于此应用。
+    banner:
+      legacy: 'PSP 删除：在将集群升级到 Kubernetes 1.25+ 之前，请确保你针对 PSP 检查了 Helm 应用程序并相应进行更新'
+    enablePSP: 启用 Pod 安全策略
+    global: 全局
   charts:
     all: 全部
     categories:
@@ -1073,7 +1077,6 @@ cis:
   testID: 测试 ID
   testsSkipped: 已跳过的测试
   testsToSkip: 要跳过的测试
-  workerProfile: CIS 配置文件
 
 cluster:
   addonChart:
@@ -1350,6 +1353,10 @@ cluster:
       availabilityZone:
         label: 可用区
         description: 可用区用于让应用程序免受 Azure 数据中心全面故障的影响。
+        publicIpAndSKUWarning: 可用区要求启用\"静态公共 IP\" 和\"为公共 IP 使用标准 SKU\"。
+        publicIpWarning: 可用区要求启用\"静态公共 IP\"。
+        standardSKUWarning: 可用区要求启用\"为公共 IP 使用标准 SKU\"。
+        managedDisksWarning: 可用区要求启用\"托管磁盘\"。
       dns:
         help: 公共 IP 地址的唯一 DNS 标签。
         label: DNS 标签
@@ -1385,8 +1392,15 @@ cluster:
           label: 没有公共 IP
         staticPublicIp:
           label: 静态公共 IP
+        standardSKU:
+          label: 为公共 IP 使用标准 SKU
       resourceGroup:
         label: 资源组
+      sections:
+        availabilitySetConfiguration: 可用性集配置
+        purchasePlan: 购买计划
+        network: 网络
+        disks: 磁盘
       size:
         label: 虚拟机大小
         tooltip: 启用加速网络后，并非所有大小都可用。
@@ -1617,7 +1631,6 @@ cluster:
     haveArgInfo: 所选 Kubernetes 版本的配置信息不可用。此屏幕中可用的选项将受到限制，你可能需要使用 YAML 编辑器。
     deprecatedPsp: Pod 安全策略自 Kubernetes v1.21 起已弃用，并已在 Kubernetes v1.25 中删除。
     removedPsp: Pod 安全策略已在 Kubernetes v1.25 中删除，请改用 PodSecurity Admission。
-
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
 
   availabilityWarnings:
@@ -1766,6 +1779,14 @@ cluster:
     create-template: 使用 Catalog 模板创建集群
     register-custom: 导入任意 Kubernetes 集群
   rke2:
+    banner:
+      psaChange: PSACT 现在自动设置为 Rancher 默认值
+      cisOverride: 更改此设置可能会影响集群安全，因为它会覆盖默认的 CIS 设置
+      cisUnsupported: 所选 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，请选择支持的配置文件。建议你查看 RKE2 文档评估更改 CIS 配置文件的影响。
+    modal:
+      pspChange:
+        title: 弃用 Pod 安全策略
+        body: 从 v1.25 版开始，Kubernetes 已经取消了对 Pod 安全策略 (PSP) 的支持。如果你的集群通过集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 启用了 PodSecurityPolicy 准入控制器，你必须在继续升级之前手动删除它。此外，集群中存在的任何 PSP 将不再可用或强制执行。是否继续？
     snapshots:
       suffix: 每个节点的快照
     systemService:
@@ -1783,12 +1804,18 @@ cluster:
         label: 默认 - 嵌入 RKE2
     security:
       header: 安全
+    cis:
+      server: Server CIS 配置文件
+      agent: CIS 配置文件
+      override: 使用 CIS 配置文件时允许覆盖 PSA 默认模板
     defaultPodSecurityPolicyTemplateName:
       label: 默认 Pod 安全策略
-      option: RKE 默认
+      option: 默认 - 嵌入 RKE2
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: 默认 Pod 安全准入
-      option: (None)
+      option: 
+        none: (None)
+        default: 默认 - 嵌入 RKE2
     cisProfile:
       option: (None)
     enableNetworkPolicy:
@@ -2080,9 +2107,10 @@ fleet:
       empty: 默认使用仓库的根目录。要使用一个或多个不同的目录，请在这里添加。
     repo:
       label: 仓库 URL
-      placeholder: '例如：https://github.com/rancher/fleet-examples.git'
+      placeholder: 例如 https://github.com/rancher/fleet-examples.git 或 git@github.com:rancher/fleet-examples.git
       addRepo: 添加仓库
       noRepos: 未添加任何仓库
+      protocolBanner: 输入指向 git 仓库的有效 HTTPS 或 SSH URL。
     add:
       steps:
         repoInfo:
@@ -2994,6 +3022,8 @@ monitoring:
       new: 创建默认配置
       radio:
         label: 配置密文
+    validation:
+      duplicatedReceiverName: 名称为 {name} 的接收器已存在。
     templates:
       keyLabel: 文件名称
       label: 模板文件
@@ -3455,6 +3485,9 @@ node:
     poolDescription:
       noSize: 没有大小
       noLocation: 没有位置
+    nodeLabels: 标签
+    hideLabels: 显示更少
+    showLabels: 显示更多
   detail:
     detailTop:
       containerRuntime: 容器运行时
@@ -3863,6 +3896,7 @@ podDisruptionBudget:
 
 # Rancher Extensions
 plugins:
+  incompatibleDisclaimer: "此扩展的最新版本 ({ version }) 与当前的 Rancher 版本 ({ rancherVersion }) 不兼容。"
   labels:
     builtin: 内置角色
     experimental: 实验功能
@@ -3896,6 +3930,7 @@ plugins:
     detail: 详情
     versions: 版本
     versionError: 无法加载版本信息
+    requiresVersion: "需要 Rancher {version}"
   empty:
     all: 扩展未安装或不可用
     available: 没有可用的扩展
@@ -3958,7 +3993,7 @@ podSecurityAdmission:
   name: Pod 安全准入
   description: 定义要用于 Pod 安全的准入控制模式
   banner: 
-    modifications: '注意：在集群更新之前，修改 Pod 安全准入配置模板不会影响任何引用它的下游集群'
+    modifications: '如果你更改正在使用的模板，在下次更新集群时会更新这些活动集群'
   labels:
     enforce: 执行
     audit: 审计
@@ -7121,7 +7156,7 @@ legacy:
   globalDnsProviders: 全局 DNS 提供商
   notifiers: Notifiers
   monitoring: 监控
-  psps: Pod 安全策略
+  psps: Pod 安全策略模板
   secrets: 密文
 
   project:

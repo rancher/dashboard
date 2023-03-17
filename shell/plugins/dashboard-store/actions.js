@@ -54,8 +54,9 @@ export async function loadSchemas(ctx, watch = true) {
 
   commit('loadAll', {
     ctx,
-    type: SCHEMA,
-    data: res.data
+    type:     SCHEMA,
+    data:     res.data,
+    revision: res.revision
   });
 
   if ( watch !== false ) {
@@ -137,12 +138,20 @@ export default {
     }
   },
 
+  // opt:
+  //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
+  //  limit: Number of records to return per page
+  //  sortBy: Sort by field
+  //  sortOrder: asc or desc
+  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
+  //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async findAll(ctx, { type, opt }) {
     const {
       getters, commit, dispatch, rootGetters
     } = ctx;
 
     opt = opt || {};
+
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -150,7 +159,11 @@ export default {
     }
 
     // No need to request the resources if we have them already
-    if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
+    if (
+      !getters.advancedWorkerCompatible &&
+      opt.force !== true &&
+      (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))
+    ) {
       const args = {
         type,
         revision:  '',
@@ -254,7 +267,7 @@ export default {
       const namespace = opt.watchNamespace || opt.namespaced;
 
       const res = await dispatch('request', {
-        opt, type, namespace
+        opt, type, namespace, load
       });
 
       if ( streamStarted ) {
@@ -312,6 +325,7 @@ export default {
           ctx,
           type,
           data:      out.data,
+          revision:  out.revision,
           skipHaveAll,
           namespace: opt.namespaced,
         });
@@ -377,8 +391,9 @@ export default {
     commit('loadSelector', {
       ctx,
       type,
-      entries: res.data,
-      selector
+      entries:  res.data,
+      selector,
+      revision: res.revision,
     });
 
     if ( opt.watch !== false ) {
@@ -395,13 +410,6 @@ export default {
     return getters.matching( type, selector, namespace );
   },
 
-  // opt:
-  //  filter: Filter by fields, e.g. {field: value, anotherField: anotherValue} (default: none)
-  //  limit: Number of records to return per page (default: 1000)
-  //  sortBy: Sort by field
-  //  sortOrder: asc or desc
-  //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
-  //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
     if (!id) {
       console.error('Attempting to find a resource with no id', type, id); // eslint-disable-line no-console
@@ -429,21 +437,8 @@ export default {
     opt = opt || {};
     opt.url = getters.urlFor(type, id, opt);
 
-    const schema = getters['schemaFor'](type);
-
-    const namespaceAndId = {};
-
-    if (schema.attributes?.namespaced) {
-      const [namespace, realId] = id.split('/');
-
-      namespaceAndId.namespace = namespace;
-      namespaceAndId.id = realId;
-    } else {
-      namespaceAndId.id = id;
-    }
-
     const res = await dispatch('request', {
-      opt, type, ...namespaceAndId
+      opt, type, id
     });
 
     await dispatch('load', { data: res });

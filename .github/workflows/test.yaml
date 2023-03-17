@@ -8,6 +8,7 @@ on:
     branches:
       - master
       - 'release-*'
+      - 'performance-dev'
   workflow_dispatch:
     environment:
       description: 'Environment to run tests against'

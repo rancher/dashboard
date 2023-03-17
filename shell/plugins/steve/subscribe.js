@@ -10,7 +10,6 @@
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { SCHEMA } from '@shell/config/types';
-import { CSRF } from '@shell/config/cookies';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
   EVENT_CONNECTED,
@@ -30,8 +29,6 @@ import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 
-import { BLANK_CLUSTER } from '@shell/store/index.js';
-
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
@@ -41,20 +38,6 @@ const waitForManagement = (store) => {
   return waitFor(managementReady, 'Management');
 };
 
-export const isAdvancedWorker = (ctx) => {
-  const { rootGetters, getters } = ctx;
-  const storeName = getters.storeName;
-  const clusterId = rootGetters.clusterId;
-
-  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
-    return false;
-  }
-
-  const perfSetting = getPerformanceSetting(rootGetters);
-
-  return perfSetting?.advancedWorker.enabled;
-};
-
 // We only create a worker for the cluster store
 export async function createWorker(store, ctx) {
   const { getters, dispatch } = ctx;
@@ -62,13 +45,13 @@ export async function createWorker(store, ctx) {
 
   store.$workers = store.$workers || {};
 
-  if (storeName !== 'cluster') {
+  if (!ctx.getters.workerCompatible) {
     return;
   }
 
   await waitForManagement(store);
   // getting perf setting in a separate constant here because it'll provide other values we'll want later.
-  const advancedWorker = isAdvancedWorker(ctx);
+  const advancedWorker = getters.advancedWorkerCompatible;
 
   const workerActions = {
     load: (resource) => {
@@ -80,8 +63,13 @@ export async function createWorker(store, ctx) {
         delete store.$workers[storeName];
       }
     },
-    awaitedResponse: ({ requestHash, response }) => {
-      store.$workers[storeName].requests[requestHash].resolves(response);
+    awaitedResponse: ({ requestHash, response, error }) => {
+      if (error) {
+        store.$workers[storeName].requests[requestHash].reject(error);
+      } else {
+        store.$workers[storeName].requests[requestHash].resolves(response);
+      }
+
       delete store.$workers[storeName].requests[requestHash];
     },
     batchChanges: (batch) => {
@@ -100,13 +88,9 @@ export async function createWorker(store, ctx) {
 
   if (!store.$workers[storeName]) {
     const workerMode = advancedWorker ? 'advanced' : 'basic';
-    const worker = store.steveCreateWorker(workerMode);
+    const worker = store.steveCreateWorker(ctx, workerMode);
 
     store.$workers[storeName] = worker;
-
-    if (workerMode === 'basic') {
-      worker.postMessage({ initWorker: { storeName } });
-    }
 
     /**
      * Covers message from Worker to UI thread
@@ -220,19 +204,12 @@ const sharedActions = {
     const maxTries = growlsDisabled(rootGetters) ? null : 3;
     const connectionMetadata = get(opt, 'metadata');
 
-    if (isAdvancedWorker(ctx)) {
+    if (ctx.getters.advancedWorkerCompatible) {
       if (!this.$workers[getters.storeName]) {
         await createWorker(this, ctx);
       }
-
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
-        configure: {
-          url:       `${ state.config.baseUrl }`,
-          csrf:      this.$cookies.get(CSRF, { parseJSON: false }),
-          config:    state.config,
-          storeName: getters.storeName
-        },
         createWatcher: {
           connectionMetadata,
           maxTries
@@ -393,7 +370,7 @@ const sharedActions = {
         stop: true, // Stops the watch on a type
       };
 
-      if (isAdvancedWorker(ctx)) {
+      if (ctx.getters.advancedWorkerCompatible) {
         dispatch('watch', obj); // Ask the backend to stop watching the type
       } else if (getters['watchStarted'](obj)) {
         // Set that we don't want to watch this type

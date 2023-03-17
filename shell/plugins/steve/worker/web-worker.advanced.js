@@ -9,7 +9,8 @@ import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@she
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import cacheClasses from '@shell/plugins/steve/caches';
-import SteveClient from '@shell/plugins/steve/api/utils';
+import ResourceRequest from '@shell/plugins/steve/api/resourceRequest';
+import Trace from '@shell/plugins/steve/trace';
 
 const caches = {};
 
@@ -24,14 +25,20 @@ const state = {
   watcherQueue: [],
   apiQueue:     [],
   batchChanges: {},
-  debugWorker:  false
+  debugWorker:  {
+    trace:   false,
+    watch:   false,
+    request: false,
+    cache:   false,
+  }
 };
 
-const trace = (...args) => {
-  state.debugWorker && console.info('Advanced Worker:', ...args); // eslint-disable-line no-console
-};
+const tracer = new Trace('Advanced Worker');
+const watchTracer = new Trace('Advanced Worker: Watch');
+const requestTracer = new Trace('Advanced Worker: Request');
 
-trace('created');
+tracer.setDebug(state.debugWorker.trace);
+tracer.trace('created');
 
 const makeResourceProps = (msg) => {
   const { resourceType, data: { type: rawType }, data } = msg;
@@ -54,7 +61,8 @@ const makeResourceProps = (msg) => {
  * Pass the EVENT_CONNECT_ERROR / EVENT_DISCONNECT_ERROR back to the UI thread
  */
 const handleConnectionError = (eventType, event, watcher) => {
-  trace('createWatcher', eventType, event);
+  watchTracer.trace('createWatcher', eventType, event);
+
   self.postMessage({
     [eventType]: {
       type:       event.type,
@@ -82,41 +90,75 @@ const removeFromWatcherQueue = (watchKey) => {
 /**
  * Creates a resourceCache with the appropriate type
  */
-
 const resourceCache = (type) => {
   const CacheClass = cacheClasses[`${ type }Cache`] || cacheClasses.resourceCache;
 
-  return new CacheClass(type);
+  const instance = new CacheClass(type, params => state.api?.request({ ...params, type }));
+
+  instance.setDebug(state.debugWorker.cache);
+
+  return instance;
+};
+
+/**
+ * Errors sent over the thread boundary must be clonable. The response to `fetch` isn't, so cater for that before we send it over
+ */
+const parseRequestError = (e) => {
+  const res = e?.cause?.response;
+
+  if (res) {
+    return {
+      response: {
+        status:     res.status,
+        statusText: res.statusText,
+      }
+    };
+  }
+
+  return e;
 };
 
 /**
  * These are things that we do when we get a message from the UI thread
  */
 const workerActions = {
+  /**
+   * The UI thread is responsible for supply all schemas, including spoofed ones.
+   *
+   * This should be the first action called
+   */
+  loadSchemas: (data) => {
+    workerActions.updateCache(SCHEMA, data); // This will create caches[SCHEMA]
+    workerActions.flushApiQueue();
+  },
+
+  /**
+   * Create the object that will make all api requests
+   */
   createApi: () => {
     if (!state.api) {
-      // the apiClient can only exist after schemas are loaded so we build it here.
-      state.api = new SteveClient(state.config, { loadCache: workerActions.loadCache });
       if (!caches[SCHEMA]) {
-        state.api.request({ type: SCHEMA })
-          .then((res) => {
-            // workerActions.loadCache(res.data);
-            state.api.loadWorkerMethods({
-              getSchema: (id) => {
-                return caches[SCHEMA].getSchema(id);
-              }
-            });
-            for (const [resourceKey, resourceCache] of Object.entries(caches)) {
-              resourceCache.loadWorkerMethods({ resourceGetter: params => state.api?.request({ ...params, type: resourceKey }) });
-            }
+        console.error('No schema cache. `loadSchemas` should be called before `createApi`'); // eslint-disable-line no-console
 
-            workerActions.flushApiQueue();
-          });
+        return;
+      }
+
+      // the apiClient can only exist after schemas are loaded so we build it here.
+      state.api = new ResourceRequest(state.config, {
+        updateCache: workerActions.updateCache,
+        getSchema:   (id) => {
+          return caches[SCHEMA].getSchema(id);
+        }
+      });
+      state.api.setDebug(state.debugWorker.request);
+
+      for (const [resourceKey, resourceCache] of Object.entries(caches)) {
+        resourceCache.loadWorkerMethods({ resourceRequest: params => state.api?.request({ ...params, type: resourceKey }) });
       }
     }
   },
   createWatcher: (metadata) => {
-    trace('createWatcher', metadata);
+    watchTracer.trace('createWatcher', metadata);
 
     const { connectionMetadata, maxTries } = metadata;
     const { url, csrf } = state.config;
@@ -150,7 +192,7 @@ const workerActions = {
         handleConnectionError(EVENT_DISCONNECT_ERROR, e, state.watcher);
       });
 
-      state.watcher.setDebug(state.debugWorker);
+      state.watcher.setDebug(state.debugWorker.watch);
 
       state.watcher.connect(connectionMetadata);
 
@@ -158,7 +200,13 @@ const workerActions = {
       workerActions.flushWatcherQueue();
     }
   },
+
+  /**
+   * Starting point for requests for resources
+   */
   waitingForResponse: (request) => {
+    requestTracer.trace('waitingForResponse', request);
+
     if (!caches[SCHEMA]) {
       state.apiQueue.push({ waitingForResponse: request });
 
@@ -166,51 +214,63 @@ const workerActions = {
     }
     const { params, requestHash } = request;
 
-    workerActions.request(params, response => self.postMessage({ awaitedResponse: { response, requestHash } }));
+    workerActions.request(params, (response, error) => self.postMessage({
+      awaitedResponse: {
+        response, requestHash, error
+      }
+    }));
   },
+
+  /**
+   * Either setup the resource type and make the request for the given params... or find the resource in the cache for the given params
+   */
   request: (params, resolver = () => {}) => {
     const {
-      type, namespace, id, filter, sortBy, sortOrder, limit
+      type, namespace, id, filter, sortBy, sortOrder, limit, force
     } = params;
 
+    requestTracer.trace('waitingForResponse --> request', params);
+
     if (!caches[type]) {
+      requestTracer.trace('waitingForResponse --> request. No Cache, created and requesting resources');
       state.api.request(params)
         .then((res) => {
-          resolver(res);
+          // Expected format of `{ data: res }`
+          return resolver(res);
+        })
+        .catch((e) => {
+          resolver(undefined, parseRequestError(e));
         });
     } else {
+      requestTracer.trace('waitingForResponse --> request. Have Cache');
       caches[type].find({
-        type, namespace, id, filter, sortBy, sortOrder, limit
+        type, namespace, id, filter, sortBy, sortOrder, limit, force
       })
         .then((res) => {
-          resolver(res);
+          return resolver(res);
+        })
+        .catch((e) => {
+          resolver(undefined, parseRequestError(e));
         });
     }
   },
   /**
-   * @param {[]} collection
+   * @param {[]} payload
    * Accepts an array of JSON objects representing resources
    * types the array and constructs a cache if none exists and then loads each resource in the array into the cache
    */
-  loadCache: (payload, detail = false) => {
+  updateCache: (type, payload, detail = false) => {
     const rawResources = detail ? [payload] : payload;
 
-    if (payload?.length === 0) {
-      return [];
-    }
-    const rawType = rawResources[0].type;
-
-    const type = normalizeType(rawType === 'counts' ? COUNT : rawType);
-
     if (!caches[type]) {
-      caches[type] = resourceCache(type, params => state.api?.request({ ...params, type }));
+      caches[type] = resourceCache(type);
     }
 
     return caches[type].load(rawResources, detail);
   },
   flushWatcherQueue: () => {
     while (state.watcherQueue.length > 0) {
-      trace('createWatcher', 'flushing watcherQueue', state.watcherQueue);
+      watchTracer.trace('createWatcher', 'flushing watcherQueue', state.watcherQueue);
 
       const workerMessage = state.watcherQueue.shift();
       const [action, msg] = Object.entries(workerMessage)[0];
@@ -222,10 +282,11 @@ const workerActions = {
       }
     }
   },
-  flushApiQueue: () => {
-    while (state.apiQueue.length > 0) {
-      trace('createApi', 'flushing apiQueue', state.apiQueue);
 
+  flushApiQueue: () => {
+    requestTracer.trace('flushApiQueue', 'flushing apiQueue', state.apiQueue);
+
+    while (state.apiQueue.length > 0) {
       const workerMessage = state.apiQueue.shift();
       const [action, msg] = Object.entries(workerMessage)[0];
 
@@ -236,11 +297,11 @@ const workerActions = {
       }
     }
   },
-  configure: (config) => {
+  initWorker: (config) => {
     state.config = config;
   },
   watch: (msg) => {
-    trace('watch', msg);
+    watchTracer.trace('watch', msg);
 
     const watchKey = watchKeyFromMessage(msg);
 
@@ -282,7 +343,7 @@ const workerActions = {
     state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
   },
   unwatch: (watchKey) => {
-    trace('unwatch', watchKey);
+    watchTracer.trace('unwatch', watchKey);
 
     removeFromWatcherQueue(watchKey);
 
@@ -292,13 +353,8 @@ const workerActions = {
 
     state.watcher.unwatch(watchKey);
   },
-  initWorker: ({ storeName }) => {
-    trace('initWorker', storeName);
-
-    state.store = storeName;
-  },
   destroyWorker: () => {
-    trace('destroyWorker');
+    tracer.trace('destroyWorker');
 
     clearInterval(maintenanceInterval);
 
@@ -315,8 +371,28 @@ const workerActions = {
     }
   },
   toggleDebug: ({ on }) => {
-    state.debugWorker = !!on;
-    state.watcher.setDebug(!!on);
+    console.debug('Setting Advanced Worker debug levels: ', on); // eslint-disable-line no-console
+
+    // Could be boolean... or object
+    const defaultDebug = Object.keys(on).length ? false : on;
+
+    const {
+      trace = defaultDebug, watch = defaultDebug, request = defaultDebug, cache = defaultDebug
+    } = on;
+
+    state.debugWorker = {
+      trace, watch, request, cache
+    };
+
+    tracer.setDebug(trace);
+
+    watchTracer.setDebug(watch);
+    state.watcher?.setDebug(watch);
+
+    requestTracer.setDebug(request);
+    state.api?.setDebug(request);
+
+    Object.values(caches).forEach(c => c.setDebug(cache));
   },
   updateBatch(type, id, change) {
     if (!state.batchChanges[type]) {
@@ -337,6 +413,8 @@ const workerActions = {
     }
   }
 };
+
+workerActions.toggleDebug({ on: state.debugWorker });
 
 /**
  * These are things that we do when we get a message from the resourceWatcher
@@ -390,6 +468,13 @@ const resourceWatcherActions = {
 
 const maintenanceInterval = setInterval(workerActions.sendBatch, 5000); // 5 seconds
 
+const actionPrecedence = {
+  configure:     1,
+  loadSchemas:   2,
+  createWatcher: 3,
+  createApi:     3
+};
+
 /**
  * Covers message from UI Thread to Worker
  */
@@ -397,12 +482,6 @@ onmessage = (e) => {
   /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
   // good enough for now considering that we never send more than one message action at a time right now */
   const messageActions = Object.keys(e?.data).sort((actionA, actionB) => {
-    const actionPrecedence = {
-      configure:     1,
-      createWatcher: 2,
-      createApi:     2
-    };
-
     const aPrecedence = actionPrecedence[actionA] || 3;
     const bPrecedence = actionPrecedence[actionB] || 3;
 

@@ -2,27 +2,40 @@
 import { keyFieldFor, normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 import { matches } from '@shell/utils/selector';
+import Trace from '@shell/plugins/steve/trace';
 
-export default class ResourceCache {
+/**
+ * Cache for a resource type. Has various create / update / remove style functions as well as a `find` which  will fetch the resource/s if missing
+ */
+export default class ResourceCache extends Trace {
   resources = {};
   type;
   keyField;
+
+  /**
+   * Params which represent the restrictions on the current `resource` cache (namespace, selector, etc)
+   */
   __currentParams = {};
-  __resourceGetter = () => {};
+
+  /**
+   * Makes the http request to fetch the resource. Links to ResourceRequest request
+   */
+  __resourceRequest = () => {};
 
   /**
    * This property stores named functions
    */
   preCacheFields = [];
 
-  constructor(type, resourceGetter) {
+  constructor(type, resourceRequest) {
+    super('Resource Cache');
     this.type = normalizeType(type);
     this.keyField = keyFieldFor(this.type);
-    this.__resourceGetter = resourceGetter || this.__resourceGetter;
+    this.__resourceRequest = resourceRequest || this.__resourceRequest;
   }
 
   loadWorkerMethods(methods) {
-    this.__resourceGetter = methods.resourceGetter || this.__resourceGetter;
+    this.__resourceRequest = methods.resourceRequest || this.__resourceRequest;
   }
 
   /**
@@ -70,7 +83,12 @@ export default class ResourceCache {
     return this.__currentParams;
   }
 
+  /**
+   * Sets the current cache with the payload
+   */
   load(payload = [], concat = false) {
+    this.trace('load', payload);
+
     const singleResource = payload.length === 1;
     let id;
 
@@ -97,28 +115,58 @@ export default class ResourceCache {
     return resourceArray;
   }
 
+  /**
+   * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
+   *
+   * Responses are expected in `{ data: res }` format, so anything from cache must behave like a http request
+   *
+   * // TODO: RC https://github.com/rancher/dashboard/issues/8420
+   */
   find(params) {
-    const { namespace, id, selector } = params;
-    const { currentNamespace, currentSelector } = this.__currentParams;
+    this.trace('find', params);
+    const {
+      namespace, id, selector, force
+    } = params;
+    const { currentNamespace, currentSelector } = this.__currentParams; // undefined means we haven't fetch any
+    const newNamespace = namespace || null;
+    const newSelector = selector || null;
 
-    this.__currentParams.namespace = namespace || null;
-    this.__currentParams.selector = selector || null;
-    if (id) {
+    let request;
+
+    if (force) {
+      request = this.__resourceRequest({
+        id, namespace, selector, force
+      });
+    } else if (id) {
       if (this.resources[id]) {
         return Promise.resolve(this.resources[id].resource);
+      } else {
+        request = this.__resourceRequest({
+          id, namespace, selector, force
+        });
       }
+    } else {
+      // Selectively made the http request. This covers the case where we have all resources and are interested in a subset of them
+      const changed = currentNamespace !== newNamespace || currentSelector !== newSelector;
+      const haveAll = currentNamespace === null && currentSelector === null;
+      const haveNone = currentNamespace === undefined && currentSelector === undefined;
 
-      return this.__resourceGetter({
-        id, namespace, selector
-      });
+      if (
+        !haveAll && (haveNone || changed)
+      ) {
+        request = this.__resourceRequest({
+          id, namespace, selector
+        });
+      }
     }
 
-    if (
-      (currentNamespace !== namespace || currentSelector !== selector) && // if either of these are different
-      !(currentNamespace === null && currentSelector === null) // if both are null then we've got a global request
-    ) {
-      return this.__resourceGetter({
-        id, namespace, selector
+    if (request) {
+      return request.then((res) => {
+        // Only set namespace/selectors if we've changed the resource cache, otherwise the state of the cache remains unchanged
+        this.__currentParams.currentNamespace = newNamespace;
+        this.__currentParams.currentSelector = newSelector;
+
+        return res;
       });
     }
 
@@ -132,7 +180,7 @@ export default class ResourceCache {
     }
 
     if (filterConditions.length === 0) {
-      return Promise.resolve(Object.values(this.resources).map(resource => resource.resource));
+      return Promise.resolve({ data: Object.values(this.resources).map(resource => resource.resource) });
     }
 
     return Promise.resolve({
@@ -144,7 +192,11 @@ export default class ResourceCache {
     });
   }
 
+  /**
+   * Change the given resource in the cache
+   */
   change(resource, callback) {
+    this.trace('change', resource);
     const preCacheResource = this.__addPreCacheFields(resource);
 
     const updatedCache = this.__updateCache(preCacheResource);
@@ -156,12 +208,21 @@ export default class ResourceCache {
     return this;
   }
 
+  /**
+   * Add the resource to the cache
+   */
   create(resource, callback) {
+    this.trace('create', resource);
+
     // ToDo: the logic for create is identical to change in these caches but the worker doesn't know that
     return this.change(resource, callback);
   }
 
+  /**
+   * Remove the resource with the given key from the cache
+   */
   remove(key, callback) {
+    this.trace('remove', key);
     if (this.resources[key]) {
       delete this.resources[key];
       callback();

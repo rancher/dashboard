@@ -14,10 +14,6 @@ export function _getSchemaGroup(schema) {
   return normalizeType(schema.attributes?.group);
 }
 
-export function _testFunc(schema) {
-  return 'bob';
-}
-
 /**
  * Inject special fields for indexing schemas
  *

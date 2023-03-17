@@ -48,16 +48,18 @@ export default {
       if (Object.keys(requests).length) {
         // this is the flag/variable that we need to apply to all places that rely on this data. Ex: LabeledSelect
         this.isLoadingSecondaryResources = true;
+        // TODO: RC CI - if any of these fail
         const hash = await allHashSettled(requests);
         const types = Object.keys(hash);
 
         for (let i = 0; i < types.length; i++) {
           const type = types[i];
-          const status = hash[type].status;
-          // if it's namespaced, we get the data on 'items' prop, for non-namespaced it's  'data' prop...
-          const requestData = hash[type].value.items || hash[type].value.data || hash[type].value;
+          const { status, reason } = hash[type];
 
           if (status === 'fulfilled' && resourceData.data[type] && resourceData.data[type].applyTo?.length) {
+            // if it's namespaced, we get the data on 'items' prop, for non-namespaced it's  'data' prop...
+            const requestData = hash[type].value.items || hash[type].value.data || hash[type].value;
+
             for (let y = 0; y < resourceData.data[type].applyTo.length; y++) {
               const apply = resourceData.data[type].applyTo[y];
               let resources = requestData;
@@ -73,7 +75,7 @@ export default {
               }
             }
           } else if (status === 'rejected') {
-            console.error(`Resource Manager - secondary data request for type ${ type } has failed`, status.error); // eslint-disable-line no-console
+            console.error(`Resource Manager - secondary data request for type ${ type } has failed`, status, reason); // eslint-disable-line no-console
           }
         }
 
