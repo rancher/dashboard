@@ -114,7 +114,6 @@ export default {
       // List of selected items in the table
       selectedRows: [],
       prevNode:     null,
-      stopCounter:  false,
     };
   },
 
@@ -459,7 +458,7 @@ export default {
         });
       }
 
-      if (toAdd.length && this.selectedRows.length < this.pagedRows.length ) {
+      if (toAdd.length && this.selectedRows.length <= this.pagedRows.length ) {
         this.$nextTick(() => {
           for ( let i = 0 ; i < toAdd.length ; i++ ) {
             this.updateInput(toAdd[i], true, this.keyField);

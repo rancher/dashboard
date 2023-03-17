@@ -885,7 +885,7 @@ export default {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
-    },
+    }
   }
 };
 </script>
