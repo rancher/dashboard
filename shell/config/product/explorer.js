@@ -18,7 +18,7 @@ import {
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
-  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, CLUSTER_USERS, GROUP_NAME, ROLE, RBAC_GROUPS, RBAC_ROLE, RBAC_USERS, RBAC_SERVICE_ACCOUNTS,
+  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, RBAC_GROUPS, RBAC_USERS, RBAC_SERVICE_ACCOUNTS, ROLE,
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
@@ -157,9 +157,9 @@ export function init(store) {
     listGroups: [
       {
         icon:       'icon-cluster',
-        value:      'node',
+        value:      'role',
         field:      'groupByNode',
-        hideColumn: NODE_COL.name,
+        hideColumn: 'groupByNode',
         tooltipKey: 'resourceTable.groupBy.node'
       }
     ]
@@ -221,12 +221,23 @@ export function init(store) {
   headers(RBAC.CLUSTER_ROLE_BINDING, [
     STATE,
     NAME_COL,
-    RBAC_ROLE,
     RBAC_GROUPS,
     RBAC_USERS,
     RBAC_SERVICE_ACCOUNTS, // groupname //roles // users// service accounts
     AGE
   ]);
+
+  configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, {
+    listGroups: [
+      {
+        icon:       'icon-cluster',
+        value:      'node',
+        field:      'roleDisplay',
+        hideColumn: ROLE.name,
+        tooltipKey: 'resourceTable.groupBy.node'
+      }
+    ]
+  });
 
   headers(MANAGEMENT.USER, [
     STATE,

@@ -249,7 +249,7 @@ export default {
     <Tabbed>
       <Tab
         name="cluster-membership"
-        label="Cluster Membership"
+        :label="t('members.clusterMemebership')"
       >
         <div
           v-if="canEditClusterMembers"
@@ -266,7 +266,8 @@ export default {
           :schema="schema"
           :headers="headers"
           :rows="filteredClusterRoleTemplateBindings"
-          :groupable="false"
+          :groupable="true"
+          :show-grouping="true"
           :namespaced="false"
           :loading="$fetchState.pending || !currentCluster || loadingClusterBindings"
           sub-search="subSearch"
@@ -276,7 +277,7 @@ export default {
       <Tab
         v-if="canManageProjectMembers"
         name="project-membership"
-        label="Project Membership"
+        :label="t('members.projectMemebership')"
       >
         <SortableTable
           group-by="projectId"

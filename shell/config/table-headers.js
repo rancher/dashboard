@@ -961,11 +961,11 @@ export const FLEET_BUNDLE_TYPE = {
   width:    100,
 };
 
-export const RBAC_ROLE = {
-  name:  'role',
-  value: 'roleRef.name',
-  sort:  ['roleRef.name'],
-};
+// export const RBAC_ROLE = {
+//   name:  'role',
+//   value: 'roleRef.name',
+//   sort:  ['roleRef.name'],
+// };
 
 export const RBAC_USERS = {
   name:     'users',

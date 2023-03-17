@@ -1,18 +1,16 @@
-import { CREATOR_ID } from '@shell/config/labels-annotations';
-import { _CREATE } from '@shell/config/query-params';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { GROUP, SERVICE_ACCOUNT, USER } from '@shell/config/types';
 
 export default class ClusterRoleBinding extends HybridModel {
   get users() {
-    return this.subjects.filter(({ kind }) => kind?.toLowerCase() === 'user');
+    return this.subjects?.filter(({ kind }) => kind?.toLowerCase() === USER);
   }
 
   get serviceAccounts() {
-    return this.subjects.filter(({ kind }) => kind?.toLowerCase() === 'serviceaccount');
+    return this.subjects?.filter(({ kind }) => kind?.toLowerCase() === SERVICE_ACCOUNT);
   }
 
   get groups() {
-    return this.subjects.filter(({ kind }) => kind?.toLowerCase() === 'group');
+    return this.subjects?.filter(({ kind }) => kind?.toLowerCase() === GROUP);
   }
 }

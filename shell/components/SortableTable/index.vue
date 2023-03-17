@@ -1319,36 +1319,6 @@ export default {
               </tr>
             </slot>
           </slot>
-          <slot
-            v-if="row.showSubRow"
-            name="sub-row"
-            :full-colspan="fullColspan"
-            :row="row.row"
-            :sub-matches="subMatches"
-            :onRowMouseEnter="onRowMouseEnter"
-            :onRowMouseLeave="onRowMouseLeave"
-          >
-            <tr
-              v-if="row.row.stateDescription"
-              :key="row.row[keyField] + '-description'"
-              :data-testid="componentTestid + '-' + i + '-row-description'"
-              class="state-description sub-row"
-              @mouseenter="onRowMouseEnter"
-              @mouseleave="onRowMouseLeave"
-            >
-              <td
-                v-if="tableActions"
-                class="row-check"
-                align="middle"
-              />
-              <td
-                :colspan="fullColspan - (tableActions ? 1: 0)"
-                :class="{ 'text-error' : row.row.stateObj.error }"
-              >
-                {{ row.row.stateDescription }}
-              </td>
-            </tr>
-          </slot>
         </template>
       </tbody>
     </table>
