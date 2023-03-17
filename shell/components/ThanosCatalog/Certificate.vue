@@ -69,7 +69,6 @@ export default {
 
 <template>
   <div>
-    <h2>{{ t('globalMonitoringPage.tls.header') }}</h2>
     <Banner
       v-if="value.thanos.tls.enabled"
       :closable="true"

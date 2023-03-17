@@ -103,8 +103,6 @@ export default {
 
 <template>
   <div>
-    <h2>{{ t('globalMonitoringPage.grafana.header') }}</h2>
-
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput

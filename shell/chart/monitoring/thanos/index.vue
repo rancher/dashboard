@@ -98,7 +98,7 @@ export default {
       replacement:  '$',
     }];
 
-    const sidecarEnabled = !!this.value.prometheus.prometheusSpec.thanos?.image;
+    const sidecarEnabled = !!this.value.prometheus.prometheusSpec.thanos?.version;
     const tlsEnabeled = (this.mode === 'create' && !this.value.prometheus.prometheusSpec.externalLabels.prometheus_from) ? true : !!this.value.prometheus.prometheusSpec.thanos?.grpcServerTlsConfig;
 
     return {

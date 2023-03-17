@@ -298,7 +298,6 @@ export default {
           label-key="globalMonitoringPage.thanos.title"
           :weight="98"
         >
-          <h2>{{ t('globalMonitoringPage.thanos.title') }}</h2>
           <Reservation
             :value="value"
             :component="thanosQuery"
@@ -384,8 +383,6 @@ export default {
           label-key="globalMonitoringPage.customAnswers.title"
           :weight="94"
         >
-          <h2>{{ t('globalMonitoringPage.customAnswers.title') }}</h2>
-
           <h3>{{ t('globalMonitoringPage.customAnswers.answer.label') }}</h3>
           <div class="row mb-20">
             <KeyValue

@@ -174,8 +174,6 @@ export default {
 
 <template>
   <div>
-    <h2>{{ t('globalMonitoringPage.store.title') }}</h2>
-
     <Banner
       v-if="objectStorageEnabled"
       :closable="true"
