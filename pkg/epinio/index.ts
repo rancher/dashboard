@@ -17,7 +17,7 @@ const onEnter: OnNavToPackage = async(store, config) => {
     data: {
       ...serverVersionSettings,
       type:  MANAGEMENT.SETTING,
-      value: res.version.match(semanticVersionRegex)[0] ?? 'v1.6.0'
+      value: res.version.match(semanticVersionRegex)?.[0] ?? 'v1.7.0'
     }
   });
 };
