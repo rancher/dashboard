@@ -465,8 +465,8 @@ export default {
 
     <template #group-by="{group: thisGroup}">
       <div
+        v-clean-html="thisGroup.ref"
         class="group-tab"
-        v-html="thisGroup.ref"
       />
     </template>
 

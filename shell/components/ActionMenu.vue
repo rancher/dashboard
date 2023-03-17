@@ -271,7 +271,7 @@ export default {
           class="icon"
           color="header"
         />
-        <span v-html="opt.label" />
+        <span v-clean-html="opt.label" />
       </li>
 
       <li

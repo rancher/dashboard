@@ -95,7 +95,7 @@ export default Vue.extend({
         <span v-else-if="messageLabel">{{ messageLabel }}</span>
         <span
           v-else
-          v-html="nlToBr(label)"
+          v-clean-html="nlToBr(label)"
         />
       </slot>
       <div
