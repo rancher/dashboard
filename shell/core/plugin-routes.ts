@@ -106,11 +106,11 @@ export class PluginRoutes {
         // Use the plugin name as the product, if the route does not have a name
         productName = productName || plugin.name;
 
-        // Replace the path - removing :product and using the actual product name instead - this avoid route collisions
+        // Replace the path - removing :product and using the actual product name instead - this avoids route collisions
         r.route.path = `/${ productName }${ r.route.path.substr(9) }`;
         r.route.meta = r.route.meta || {};
 
-        r.route.meta.product = r.route.meta.product || plugin.name;
+        r.route.meta.product = r.route.meta.product || productName;
         r.route.meta.cluster = r.route.meta.cluster || BLANK_CLUSTER;
       }
 
