@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import DOMPurify from 'dompurify';
 
 Vue.directive('focus', {
   inserted(_el, _binding, vnode) {
@@ -39,3 +40,30 @@ const getElement = (vnode) => {
     return componentInstance.$refs.input.$refs.value;
   }
 };
+
+const ALLOWED_TAGS = [
+  'code',
+  'li',
+  'a',
+  'p',
+  'b',
+  'br',
+  'ul',
+  'pre',
+  'span',
+  'div',
+  'i',
+  'em',
+  'strong',
+];
+
+const purifyHTML = value => DOMPurify.sanitize(value, { ALLOWED_TAGS });
+
+Vue.directive('clean-html', {
+  inserted(el, binding) {
+    el.innerHTML = purifyHTML(binding.value);
+  },
+  componentUpdated(el, binding) {
+    el.innerHTML = purifyHTML(binding.value);
+  }
+});
