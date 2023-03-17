@@ -1,9 +1,9 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, OnNavToPackage, OnNavAwayFromPackage } from '@shell/core/types';
-import epinioStore from './store/epinio-store';
-import epinioMgmtStore from './store/epinio-mgmt-store';
-import epinioRoutes from './routing/epinio-routing';
 import { MANAGEMENT } from '@shell/config/types';
+import { IPlugin, OnNavAwayFromPackage, OnNavToPackage } from '@shell/core/types';
+import epinioRoutes from './routing/epinio-routing';
+import epinioMgmtStore from './store/epinio-mgmt-store';
+import epinioStore from './store/epinio-store';
 
 const semanticVersionRegex = /v(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\.\d+)/;
 
@@ -13,14 +13,11 @@ const onEnter: OnNavToPackage = async(store, config) => {
   const serverVersionSettings = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
   const res = await store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
 
-  // If the version is a custom build, set it to 1.5.1
-  const version = !res.version.match(semanticVersionRegex) ? 'v1.5.1' : res.version;
-
   await store.dispatch('management/load', {
     data: {
       ...serverVersionSettings,
       type:  MANAGEMENT.SETTING,
-      value: version
+      value: res.version.match(semanticVersionRegex)?.[0] ?? 'v1.7.0'
     }
   });
 };
