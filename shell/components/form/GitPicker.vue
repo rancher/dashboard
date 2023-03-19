@@ -44,11 +44,6 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
-      loadingRecentRepos: true,
-      loadingBranches:    true,
-      loadingFiles:       true,
-      loadingCommits:     true,
-
       hasError: {
         repo:    false,
         branch:  false,
@@ -88,9 +83,9 @@ export default Vue.extend<Data, any, any, any>({
     'value.type': {
       handler(old, neu) {
         if (old !== neu) {
-        this.reset();
-      }
-    },
+          this.reset();
+        }
+      },
       immediate: true,
     }
   },
@@ -167,25 +162,23 @@ export default Vue.extend<Data, any, any, any>({
       });
     },
     async fetchRepos() {
-      try {
-        if (this.selectedAccOrOrg.length) {
-          this.selectedRepo = null;
+      if (this.selectedAccOrOrg.length) {
+        this.selectedRepo = null;
 
+        try {
           const res = await this.$store.dispatch(`${ this.type }/fetchRecentRepos`, { username: this.selectedAccOrOrg });
 
           this.repos = res;
+
           this.hasError.repo = false;
         } catch (error) {
-        this.hasError.repo = true;
-        this.hasError.message = error.message;
-        this.selectedBranch = null;
-      } finally {
-        this.loadingRecentRepos = false;
+          this.hasError.repo = true;
+          this.selectedBranch = null;
+        }
       }
     },
 
     async fetchBranches() {
-      this.loadingBranches = true;
       this.selectedBranch = null;
       this.selectedCommit = {};
 
@@ -198,13 +191,9 @@ export default Vue.extend<Data, any, any, any>({
         this.hasError.branch = false;
       } catch (error) {
         this.hasError.branch = true;
-        this.hasError.message = error.message;
-      } finally {
-        this.loadingBranches = false;
       }
     },
     async fetchCommits() {
-      this.loadingCommits = true;
       this.selectedCommit = {};
 
       this.communicateReset();
@@ -217,15 +206,11 @@ export default Vue.extend<Data, any, any, any>({
         });
 
         this.commits = res;
+
+        this.hasError.branch = false;
       } catch (error) {
         this.hasError.commits = true;
-        this.hasError.message = error.message;
-      } finally {
-        this.loadingCommits = false;
       }
-    },
-    resetFetchErrorMessage() {
-      this.hasError.message = null;
     },
 
     normalizeArray(elem: any, normalize: (v: any) => object) {
@@ -264,50 +249,44 @@ export default Vue.extend<Data, any, any, any>({
       }
     },
     async searchRepo(query: string) {
-        if (query.length) {
+      if (query.length) {
         // Check if the result is already in the fetched list.
-          const resultInCurrentState = some(this.repos, { name: query });
+        const resultInCurrentState = some(this.repos, { name: query });
 
-          if (!resultInCurrentState) {
+        if (!resultInCurrentState) {
           // Search for specific repo under the username
-            const res = await this.$store.dispatch(`${ this.type }/search`, { repo: query, username: this.selectedAccOrOrg });
+          const res = await this.$store.dispatch(`${ this.type }/search`, {
+            repo:     { id: query, name: query },
+            username: this.selectedAccOrOrg
+          });
 
-            if (res.message) {
-              this.hasError.repo = true;
-            } else {
-              if (res.length >= 1) {
-                this.repos = res;
-              } else {
-                return this.repos;
-              }
+          this.hasError.branches = !!res.hasError;
 
-              this.hasError.repo = false;
+          if (!res.hasError) {
+            if (res.length >= 1) {
+              this.repos = res;
             }
-          } else {
-            return resultInCurrentState;
           }
+        } else {
+          return resultInCurrentState;
         }
-      } catch (error) {
-        // this.hasError.repo = true;
-        this.hasError.message = `Could't find repository with the name of ${ query }`;
       }
     },
     async searchBranch(query: string) {
       const res = await this.$store.dispatch(`${ this.type }/search`, {
         repo:     this.selectedRepo,
-        branch:   query,
+        branch:   { name: query },
         username: this.selectedAccOrOrg,
       });
 
-      if (res.message) {
-        this.hasError.branch = true;
-      } else {
+      this.hasError.branch = !!res.hasError;
+
+      if (!this.hasError) {
         this.branches = res;
-        this.hasError.branch = false;
       }
     },
     status(value: boolean) {
-      return !value ? null : 'error';
+      return value ? 'error' : null;
     },
     reposRules() {
       return this.hasError.repo ? this.t(`gitPicker.${ this.type }.errors.noAccount`) : null;
@@ -348,7 +327,7 @@ export default Vue.extend<Data, any, any, any>({
           :clearable="true"
           :searchable="true"
           :reduce="(e) => e"
-          :rules="[branchesRules]"
+          :rules="[reposRules]"
           :status="status(hasError.repo)"
           :option-label="'name'"
           @search="onSearch"
@@ -368,6 +347,7 @@ export default Vue.extend<Data, any, any, any>({
           :clearable="false"
           :reduce="(e) => e"
           :searchable="true"
+          :rules="[branchesRules]"
           :status="status(hasError.branch)"
           :option-label="'name'"
           @search="onSearch"

@@ -112,10 +112,20 @@ export const actions = {
   },
 
   async search({ dispatch }, { repo, username, branch }) {
-    const res = await dispatch('apiList', {
-      username, endpoint: 'search', repo, branch
-    });
+    try {
+      const res = await dispatch('apiList', {
+        username, endpoint: 'search', repo: repo?.id, branch: branch?.name
+      });
 
-    return res;
+      return {
+        ...res,
+        hasError: false,
+      };
+    } catch (error) {
+      return {
+        message:  error.message,
+        hasError: true
+      };
+    }
   }
 };
