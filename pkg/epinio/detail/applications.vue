@@ -19,7 +19,8 @@ import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
 import { GitUtils, toLabel } from '../utils/git';
 import { isArray } from '@shell/utils/array';
-import startCase from 'lodash/startCase';
+import { ucFirst } from '@shell/utils/string';
+
 interface Data {
 }
 
@@ -139,7 +140,7 @@ export default Vue.extend<Data, any, any, any>({
 
       return from ? day(date).fromNow() : day(date).format('DD MMM YYYY');
     },
-    startCase,
+    ucFirst,
     toLabel,
   },
   computed: {
@@ -227,7 +228,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     originLabel() {
-      return this.value.sourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT ? startCase(this.gitType) : this.value.sourceInfo.label;
+      return this.value.sourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT ? ucFirst(this.gitType) : this.value.sourceInfo.label;
     }
   }
 });

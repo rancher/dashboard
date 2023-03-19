@@ -65,7 +65,7 @@ interface Data {
   gitUrl: GitUrl,
   builderImage: BuilderImage,
   types: any[],
-  unSafeType: string, // APPLICATION_SOURCE_TYPE || { } from the select component
+  type: string, // APPLICATION_SOURCE_TYPE || { } from the select component
   APPLICATION_SOURCE_TYPE: typeof APPLICATION_SOURCE_TYPE
 }
 
@@ -164,7 +164,7 @@ export default Vue.extend<Data, any, any, any>({
         value
       })),
 
-      unSafeType: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
+      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
       APPLICATION_SOURCE_TYPE
     };
   },
@@ -211,10 +211,10 @@ export default Vue.extend<Data, any, any, any>({
         const parsed: any = jsyaml.load(file);
 
         if (parsed.origin?.container) {
-          Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
+          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
           Vue.set(this.container, 'url', parsed.origin.container);
         } else if (parsed.origin.git?.repository && parsed.origin.git?.revision) {
-          Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.GIT_URL);
+          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.GIT_URL);
           Vue.set(this.gitUrl, 'url', parsed.origin.git.repository);
           Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
         }
@@ -403,12 +403,6 @@ export default Vue.extend<Data, any, any, any>({
         type: toLabel(this.type),
       };
     },
-
-    type() {
-      // TODO There's a bug in the select component which fires off the option ({ value, label}) instead of the value
-      // (possibly `reduce` related). This the workaround
-      return this.unSafeType.value || this.unSafeType;
-    },
   }
 });
 </script>
@@ -417,13 +411,12 @@ export default Vue.extend<Data, any, any, any>({
   <div class="appSource">
     <div class="button-row source">
       <LabeledSelect
-        v-model="unSafeType"
+        v-model="type"
         data-testid="epinio_app-source_type"
         label="Source Type"
         :options="types"
         :mode="mode"
         :clearable="false"
-        :reduce="(e) => e.value"
       />
       <FileSelector
         v-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"

@@ -162,17 +162,9 @@ export default class ApplicationActionResource extends Resource {
         },
       };
     case APPLICATION_SOURCE_TYPE.GIT_HUB:
-      return {
-        kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB,
-        git:  {
-          revision:   source.git.commit,
-          repository: source.git.url,
-          branch:     source.git.branch
-        },
-      };
     case APPLICATION_SOURCE_TYPE.GIT_LAB:
       return {
-        kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT_LAB,
+        kind: source.type,
         git:  {
           revision:   source.git.commit,
           repository: source.git.url,

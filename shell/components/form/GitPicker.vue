@@ -9,9 +9,24 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import some from 'lodash/some';
 import { GitUtils } from '@/pkg/epinio/utils/git';
 
-// TODO remove any types
+interface Data {
+  hasError: {
+    repo: boolean,
+    branch: boolean,
+    commits: boolean,
+  },
 
-export default Vue.extend<any, any, any, any>({
+  repos: object[],
+  branches: object[],
+  commits: object[],
+
+  selectedAccOrOrg: string| null,
+  selectedRepo: object| null,
+  selectedBranch: object| null,
+  selectedCommit: object | null,
+}
+
+export default Vue.extend<Data, any, any, any>({
 
   components: {
     LabeledSelect,
@@ -38,9 +53,7 @@ export default Vue.extend<any, any, any, any>({
         repo:    false,
         branch:  false,
         commits: false,
-        message: null,
       },
-      oldUsername: null,
 
       repos:    [],
       branches: [],
@@ -72,12 +85,14 @@ export default Vue.extend<any, any, any, any>({
   },
 
   watch: {
-    type(old, _new) {
-      if (_new && old !== _new) {
-        this.repos = [];
+    'value.type': {
+      handler(old, neu) {
+        if (old !== neu) {
         this.reset();
       }
     },
+      immediate: true,
+    }
   },
 
   computed: {
@@ -136,6 +151,8 @@ export default Vue.extend<any, any, any, any>({
   },
   methods: {
     reset() {
+      this.repos = [];
+      this.selectedAccOrOrg = null;
       this.selectedRepo = null;
       this.selectedBranch = null;
       this.selectedCommit = {};
@@ -158,19 +175,7 @@ export default Vue.extend<any, any, any, any>({
 
           this.repos = res;
           this.hasError.repo = false;
-          this.resetFetchErrorMessage();
-
-          // Reset selections once username changes
-          if (this.oldUsername !== this.selectedAccOrOrg) {
-            this.oldUsername = this.selectedAccOrOrg;
-
-            // Resets state, just in case. TODO to be removed because is called in reset()
-            this.communicateReset();
-
-            return this.reset();
-          }
-        }
-      } catch (error: any) {
+        } catch (error) {
         this.hasError.repo = true;
         this.hasError.message = error.message;
         this.selectedBranch = null;
@@ -191,8 +196,7 @@ export default Vue.extend<any, any, any, any>({
 
         this.branches = res;
         this.hasError.branch = false;
-        this.resetFetchErrorMessage();
-      } catch (error: any) {
+      } catch (error) {
         this.hasError.branch = true;
         this.hasError.message = error.message;
       } finally {
@@ -213,8 +217,7 @@ export default Vue.extend<any, any, any, any>({
         });
 
         this.commits = res;
-        this.resetFetchErrorMessage();
-      } catch (error: any) {
+      } catch (error) {
         this.hasError.commits = true;
         this.hasError.message = error.message;
       } finally {
@@ -225,14 +228,14 @@ export default Vue.extend<any, any, any, any>({
       this.hasError.message = null;
     },
 
-    normalizeArray(elem: any, normalize: (v: any) => any) {
-      const arr: any[] = isArray(elem) ? elem : [elem];
+    normalizeArray(elem: any, normalize: (v: any) => object) {
+      const arr = isArray(elem) ? elem : [elem];
 
-      return arr.map(item => normalize(item));
+      return arr.map((item: any) => normalize(item));
     },
 
     final(commitId: string) {
-      this.selectedCommit = this.preparedCommits.find((c: any) => c.commitId === commitId);
+      this.selectedCommit = this.preparedCommits.find((c: { commitId?: string }) => c.commitId === commitId);
 
       if (this.selectedAccOrOrg && this.selectedRepo && this.selectedCommit.commitId) {
         this.$emit('change', {
@@ -249,7 +252,7 @@ export default Vue.extend<any, any, any, any>({
         });
       }
     },
-    async searchForResult(query: any) {
+    async searchForResult(query: string) {
       if (!query.length) {
         return;
       }
@@ -260,8 +263,7 @@ export default Vue.extend<any, any, any, any>({
         await this.searchBranch(query);
       }
     },
-    async searchRepo(query: any) {
-      try {
+    async searchRepo(query: string) {
         if (query.length) {
         // Check if the result is already in the fetched list.
           const resultInCurrentState = some(this.repos, { name: query });
@@ -290,7 +292,7 @@ export default Vue.extend<any, any, any, any>({
         this.hasError.message = `Could't find repository with the name of ${ query }`;
       }
     },
-    async searchBranch(query: any) {
+    async searchBranch(query: string) {
       const res = await this.$store.dispatch(`${ this.type }/search`, {
         repo:     this.selectedRepo,
         branch:   query,
@@ -304,7 +306,7 @@ export default Vue.extend<any, any, any, any>({
         this.hasError.branch = false;
       }
     },
-    status(value: any) {
+    status(value: boolean) {
       return !value ? null : 'error';
     },
     reposRules() {

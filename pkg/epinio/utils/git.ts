@@ -1,5 +1,5 @@
+import { ucFirst } from '@shell/utils/string';
 import { EPINIO_APP_ENV_VAR_GIT } from '../types';
-import startCase from 'lodash/startCase';
 
 interface Repo {
   owner: any,
@@ -49,7 +49,7 @@ export function toLabel(type: string, options = { startCase: false }) {
   const res = type.replace('_', '');
 
   if (options?.startCase) {
-    return startCase(res);
+    return ucFirst(res);
   }
 
   return res;
@@ -61,9 +61,9 @@ export const GitUtils: Utils = {
     normalize:   {
       repo: (data: any) => ({
         owner: {
-          name:      data.owner.login,
-          htmlUrl:   data.owner.html_url,
-          avatarUrl: data.owner.avatar_url
+          name:      data.owner?.login,
+          htmlUrl:   data.owner?.html_url,
+          avatarUrl: data.owner?.avatar_url
         },
         description: data.description,
         created_at:  data.created_at,
@@ -77,9 +77,9 @@ export const GitUtils: Utils = {
         sha:      getShortHash(data.sha),
         commitId: data.sha,
         author:   {
-          name:      data.author.login,
-          avatarUrl: data.author.avatar_url,
-          htmlUrl:   data.author.htmlUrl
+          name:      data.author?.login,
+          avatarUrl: data.author?.avatar_url,
+          htmlUrl:   data.author?.htmlUrl
         },
         isChecked: false,
         date:      data.commit?.committer.date
