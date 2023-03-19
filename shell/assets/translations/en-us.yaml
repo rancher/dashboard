@@ -4511,6 +4511,7 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    role: Group by Role
     cluster: Group by Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
