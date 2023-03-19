@@ -9,15 +9,20 @@ export const ENFORCEMENT_ACTION_VALUES = {
 export default class GateKeeperConstraint extends SteveModel {
   async save() {
     let constraint;
+    let resourceVersion;
 
     if (this.constraint) {
       constraint = await this.findLatestConstraint();
+      resourceVersion = constraint?.metadata?.resourceVersion;
     } else {
       constraint = await this.$dispatch('cluster/create', { type: `constraints.gatekeeper.sh.${ this.kind.toLowerCase() }` }, { root: true });
     }
 
     constraint.spec = this.spec;
     constraint.metadata = this.metadata;
+    if (resourceVersion) {
+      constraint.metadata.resourceVersion = resourceVersion;
+    }
 
     await constraint.save();
   }
@@ -48,6 +53,10 @@ export default class GateKeeperConstraint extends SteveModel {
     return this.$dispatch('cluster/find', {
       type: this.constraint.type, id: this.constraint.id, opt: { force: true }
     }, { root: true });
+  }
+
+  get totalViolations() {
+    return this.status?.totalViolations || this.violations.length;
   }
 
   get violations() {

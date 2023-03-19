@@ -53,8 +53,9 @@ export async function loadSchemas(ctx, watch = true) {
 
   commit('loadAll', {
     ctx,
-    type: SCHEMA,
-    data: res.data
+    type:     SCHEMA,
+    data:     res.data,
+    revision: res.revision
   });
 
   if ( watch !== false ) {
@@ -148,11 +149,14 @@ export default {
       commit('registerType', type);
     }
 
+    // No need to request the resources if we have them already
     if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
       const args = {
         type,
         revision:  '',
-        namespace: opt.watchNamespace
+        // watchNamespace - used sometimes when we haven't fetched the results of a single namespace
+        // namespaced - used when we have fetched the result of a single namespace (see https://github.com/rancher/dashboard/pull/7329/files)
+        namespace: opt.watchNamespace || opt.namespaced
       };
 
       if (opt.watch !== false ) {
@@ -304,17 +308,20 @@ export default {
           ctx,
           type,
           data:      out.data,
+          revision:  out.revision,
           skipHaveAll,
           namespace: opt.namespaced,
         });
       }
     }
 
+    // ToDo: SM if we start a "bigger" watch (such as watch without a namespace vs a watch with a namespace), we should stop the stop the "smaller" watch so we don't have duplicate events coming back
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
         revision:  out.revision,
-        namespace: opt.watchNamespace,
+        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+        // ToDo: SM namespaced is sometimes a boolean and sometimes a string, I don't see it as especially broken but we should refactor that in the future
         force:     opt.forceWatch === true,
       });
     }
@@ -370,8 +377,9 @@ export default {
     commit('loadSelector', {
       ctx,
       type,
-      entries: res.data,
-      selector
+      entries:  res.data,
+      selector,
+      revision: res.revision,
     });
 
     if ( opt.watch !== false ) {
@@ -539,8 +547,10 @@ export default {
 
   // Forget a type in the store
   // Remove all entries for that type and stop watching it
-  forgetType({ commit, getters, dispatch }, type) {
-    dispatch('unwatch', type);
+  forgetType({ commit, dispatch, state }, type) {
+    state.started
+      .filter(entry => entry.type === type)
+      .forEach(entry => dispatch('unwatch', entry));
 
     commit('forgetType', type);
   },

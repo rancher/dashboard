@@ -340,6 +340,7 @@ export default {
 
       .plugin-versions {
         display: flex;
+        flex-wrap: wrap;
       }
 
       .plugin-description {
@@ -352,7 +353,8 @@ export default {
         padding: 2px 8px;
         border-radius: 5px;
         user-select: none;
-        margin-right: 5px;
+        margin: 0 5px 5px 0;
+        display: block;
 
         &.version-active {
           color: var(--link-text);

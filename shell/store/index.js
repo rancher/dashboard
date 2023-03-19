@@ -241,6 +241,12 @@ export const getters = {
     return out;
   },
 
+  getStoreNameByProductId(state) {
+    const products = state['type-map']?.products;
+
+    return (products.find(p => p.name === state.productId) || {})?.inStore || 'cluster';
+  },
+
   currentStore(state, getters) {
     return (type) => {
       const product = getters['currentProduct'];

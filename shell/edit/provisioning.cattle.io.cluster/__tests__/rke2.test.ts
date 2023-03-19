@@ -101,13 +101,14 @@ describe('component: rke2', () => {
   });
 
   it.each([
-    ['v1.25.0+rke2r1', '(None)'],
-    ['v1.24.0+rke2r1', 'Rancher Default'],
-    ['v1.23.0+rke2r1', 'Rancher Default'],
-    ['v1.25.0+k3s1', '(None)'],
-    ['v1.24.0+k3s1', 'Rancher Default'],
-    ['v1.23.0+k3s1', 'Rancher Default'],
-  ])('should display for version %p PSA option label %p', (k8s, label) => {
+    ['v1.25.0+rke2r1', 'none'],
+    ['v1.24.0+rke2r1', 'default'],
+    ['v1.23.0+rke2r1', 'default'],
+    ['v1.25.0+k3s1', 'none'],
+    ['v1.24.0+k3s1', 'default'],
+    ['v1.23.0+k3s1', 'default'],
+  ])('should display for version %p PSA option label %p', (k8s, partialLabel) => {
+    const label = `cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ partialLabel }`;
     const option = { label, value: label };
     const wrapper = mount(rke2, {
       propsData: {
@@ -188,7 +189,7 @@ describe('component: rke2', () => {
 
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
 
-    expect((select.vm as unknown as any).options[0].label).toBe(`${ label } (Current)`);
+    expect((select.vm as unknown as any).options[0].label).toStrictEqual(`${ label } (Current)`);
   });
 
   it.each([

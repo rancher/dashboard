@@ -212,10 +212,13 @@ export default {
 
         if (latestCompatible) {
           item.displayVersion = latestCompatible.version;
+          item.icon = latestCompatible.icon;
+        } else {
+          item.displayVersion = item.versions?.[0]?.version;
           item.icon = chart.icon || latestCompatible.annotations['catalog.cattle.io/ui-icon'];
         }
 
-        if (latestNotCompatible && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
+        if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
           item.incompatibleDisclaimer = this.t('plugins.incompatibleDisclaimer', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
         }
 

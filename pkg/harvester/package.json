@@ -10,8 +10,7 @@
     "registry": "http://localhost:4873"
   },
   "scripts": {
-    "dev": "./node_modules/.bin/nuxt dev",
-    "nuxt": "./node_modules/.bin/nuxt"
+    "dev": "./node_modules/.bin/vue-cli-service dev"
   },
   "engines": {
     "node": ">=14"

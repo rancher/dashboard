@@ -97,6 +97,15 @@ export function elapsedTime(seconds) {
     };
   }
 
+  const days = Math.floor(seconds / (3600 * 24));
+
+  if (days > 1) {
+    return {
+      diff:  60,
+      label: `${ days }d${ hours - (days * 24) }h`,
+    };
+  }
+
   if (hours > 7) {
     return {
       diff:  60,

@@ -54,14 +54,11 @@ export default {
     }
   },
   watch: {
-    currentUrl() {
+    currentUrl(neu) {
+      // Should consider changing `this.graphWindow?.angular` to something like `!loaded && !error`
+      // https://github.com/rancher/dashboard/pull/5802
       if (this.graphHistory && this.graphWindow?.angular) {
-        const angularElement = this.graphWindow.angular.element(this.graphDocument.querySelector('.grafana-app'));
-        const injector = angularElement.injector();
-
-        this.graphHistory.pushState({}, '', this.currentUrl);
-        injector.get('$route').updateParams(this.computeParams());
-        injector.get('$route').reload();
+        this.graphWindow.location.replace(neu);
       }
     },
 

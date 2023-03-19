@@ -17,16 +17,16 @@
     "rootDir": ".",
     "paths": {
       "~/*": [
-        "./*"
+        "../*"
       ],
       "@/*": [
-        "./*"
+        "../*"
       ],
       "@shell/*": [
-        "./shell/*"
+        "../shell/*"
       ],
       "@pkg/*": [
-        "./shell/pkg/*"
+        "../shell/pkg/*"
       ]
     },
     "typeRoots": [

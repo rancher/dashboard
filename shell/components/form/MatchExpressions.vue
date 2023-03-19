@@ -35,6 +35,18 @@ export default {
       default: false,
     },
 
+    // whether or not to show add rule button at bottom
+    showAddButton: {
+      type:    Boolean,
+      default: true
+    },
+
+    // whether or not to show remove rule button right side of the rule
+    showRemoveButton: {
+      type:    Boolean,
+      default: true
+    },
+
     // whether or not to show remove button in upper right
     showRemove: {
       type:    Boolean,
@@ -257,7 +269,10 @@ export default {
           @input="update"
         >
       </div>
-      <div class="remove-container">
+      <div
+        v-if="showRemoveButton"
+        class="remove-container"
+      >
         <button
           v-if="!isView"
           type="button"
@@ -272,7 +287,7 @@ export default {
       </div>
     </div>
     <div
-      v-if="!isView"
+      v-if="!isView && showAddButton"
       class="mt-20"
     >
       <button

@@ -1263,6 +1263,7 @@ cluster:
       affinity:
         namespaces:
           placeholder: e.g. default,system,base
+      installGuestAgent: Install guest agent
   description:
     label: Cluster Description
     placeholder: Any text you want that better describes this cluster
@@ -1619,7 +1620,7 @@ cluster:
     os: 'You are attemping to add a {newOS} worker node to a cluster with one or more {existingOS} worker nodes: some installed apps may need to be upgraded or removed.'
     rke2-k3-reprovisioning: 'Making changes to cluster configuration may result in nodes reprovisioning. For more information see the <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">documentation</a>.'
     desiredNodeGroupWarning: There are 0 nodes available to run the cluster agent. The cluster will not become active until at least one node is available.
-    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25.
+    invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25 and will be automatically removed.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
     removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
@@ -1774,7 +1775,7 @@ cluster:
     banner:
       psaChange: PSACT is now set to Rancher default automatically
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
-      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. It's recommended to review RKE2 documentation to evaluate the impact of changing CIS Profile.
+      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
     modal:
       pspChange:
         title: Pod Security Policy deprecation
@@ -1799,12 +1800,12 @@ cluster:
     cis:
       server: Server CIS Profile
       agent: CIS Profile
-      override: Allow PSA Default Template to be overridden when using a CIS Profile
+      override: Allow the default Pod Security Admission Configuration Template to be overridden when using a CIS Profile
     defaultPodSecurityPolicyTemplateName:
       label: Default Pod Security Policy
       option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
-      label: Default Pod Security Admission
+      label: Pod Security Admission Configuration Template
       option: 
         none: (None)
         default: Default - RKE2 Embedded
@@ -2221,13 +2222,21 @@ gatekeeperConstraint:
       editAsYaml: Edit as YAML
       title: Parameters
   template: Template
+  enforcement:
+    action: Enforcement Action
   violations:
-    title: Violations
+    title: "Violations: {total}"
+    notAll: Not all are shown - the constraint only includes details for {shown}
 
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
   violations: Violations
+
+gatekeeperInstall: 
+  auditInterval: Auto Interval
+  constraintViolationsLimit: Constraint Violations Limit
+  runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
 
 glance:
   created: Created
@@ -3433,6 +3442,8 @@ networkpolicy:
   labelsAnnotations:
     label: Labels & Annotations
   rules:
+    pod: Pod
+    namespace: Namespace
     ruleLabel: Rule {index}
     addPort: Add allowed port
     type: Rule type
@@ -3459,6 +3470,8 @@ networkpolicy:
       label: Pod Selector
     namespaceSelector:
       label: Namespace Selector
+    namespaceAndPodSelector:
+      label: Namespace/Pod Selector
   config:
     label: Configuration
   selectors:
@@ -3477,6 +3490,18 @@ networkpolicy:
           =0 {Matches 0 of {total, number} namespaces}
           =1 {Matches 1 of {total, number} namespaces: "{sample}"}
           other {Matches {matched, number} of {total, number} existing namespaces, including "{sample}"}
+        }
+    matchingNamespacesAndPods:
+      tooltip: A single entry rule that specifies both Namespace Selector and Pod Selector that selects particular Pods within particular namespaces
+      matchesSome: |-
+        {matchedPods, plural,
+          =0 {Matches 0 of {totalPods, number} pods}
+          =1 {Matches 1 of {totalPods, number} pods: "{samplePods}"}
+          other {Matches {matchedPods, number} of {totalPods, number} existing pods, including "{samplePods}"}
+        } in {matchedNamespaces, plural,
+          =0 {0 of {totalNamespaces, number} namespaces}
+          =1 {1 of {totalNamespaces, number} namespaces: "{sampleNamespaces}"}
+          other {{matchedNamespaces, number} of {totalNamespaces, number} existing namespaces, including "{sampleNamespaces}"}
         }
 node:
   list:

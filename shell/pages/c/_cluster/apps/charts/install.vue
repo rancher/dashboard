@@ -92,6 +92,8 @@ export default {
     */
     await this.fetchChart();
 
+    await this.fetchAutoInstallInfo();
+
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
@@ -360,6 +362,7 @@ export default {
       migratedApp:            false,
       defaultCmdOpts,
       customCmdOpts:          { ...defaultCmdOpts },
+      autoInstallInfo:        [],
 
       nameDisabled: false,
 
@@ -1165,56 +1168,7 @@ export default {
 
       const more = [];
 
-      /*
-        An example value for auto is ["rancher-monitoring-crd=match"].
-        It is an array of chart names that lets Rancher know of other
-        charts that should be auto-installed at the same time.
-      */
-      let auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
-
-      for ( const constraint of auto ) {
-        const provider = this.$store.getters['catalog/versionSatisfying']({
-          constraint,
-          repoName:     this.chart.repoName,
-          repoType:     this.chart.repoType,
-          chartVersion: this.version.version,
-        });
-
-        /*
-         An example return value for "provider":
-        [
-            {
-                "name": "rancher-monitoring-crd",
-                "version": "100.1.3+up19.0.3",
-                "description": "Installs the CRDs for rancher-monitoring.",
-                "apiVersion": "v1",
-                "annotations": {
-                    "catalog.cattle.io/certified": "rancher",
-                    "catalog.cattle.io/hidden": "true",
-                    "catalog.cattle.io/namespace": "cattle-monitoring-system",
-                    "catalog.cattle.io/release-name": "rancher-monitoring-crd"
-                },
-                "type": "application",
-                "urls": [
-                    "https://192.168.0.18:8005/k8s/clusters/c-m-hhpg69fv/v1/catalog.cattle.io.clusterrepos/rancher-charts?chartName=rancher-monitoring-crd&link=chart&version=100.1.3%2Bup19.0.3"
-                ],
-                "created": "2022-04-27T10:04:18.343124-07:00",
-                "digest": "ecf07ba23a9cdaa7ffbbb14345d94ea1240b7f3b8e0ce9be4640e3e585c484e2",
-                "key": "cluster/rancher-charts/rancher-monitoring-crd/100.1.3+up19.0.3",
-                "repoType": "cluster",
-                "repoName": "rancher-charts"
-            }
-        ]
-        */
-
-        if ( provider ) {
-          more.push(provider);
-        } else {
-          errors.push(`This chart requires ${ constraint } but no matching chart was found`);
-        }
-      }
-
-      auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
 
       for ( const gvr of auto ) {
         const provider = this.$store.getters['catalog/versionProviding']({
@@ -1230,9 +1184,20 @@ export default {
         }
       }
 
+      /* Chart custom UI components have the ability to edit CRD chart values
+        apply those values in addition to the global values being copied over frm the primary chart
+      */
+      for (const versionInfo of this.autoInstallInfo) {
+        out.charts.unshift({
+          chartName:   versionInfo.chart.name,
+          version:     versionInfo.chart.version,
+          releaseName: versionInfo.chart.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || chart.name,
+          projectId:   this.project,
+          values:      merge(this.addGlobalValuesTo({ global: values.global }), versionInfo.values)
+        });
+      }
       /*
-        'more' contains the values for the CRD chart, which needs the same
-        global and cattle values as the chart. It could also contain additional
+        'more' contains additional
         charts that may not be CRD charts but are also meant to be installed at
         the same time.
       */
@@ -1574,6 +1539,7 @@ export default {
                   :existing="existing"
                   :version="version"
                   :version-info="versionInfo"
+                  :auto-install-info="autoInstallInfo"
                   @warn="e=>errors.push(e)"
                   @register-before-hook="registerBeforeHook"
                   @register-after-hook="registerAfterHook"
@@ -1590,6 +1556,7 @@ export default {
                   :existing="existing"
                   :version="version"
                   :version-info="versionInfo"
+                  :auto-install-info="autoInstallInfo"
                   @warn="e=>errors.push(e)"
                   @register-before-hook="registerBeforeHook"
                   @register-after-hook="registerAfterHook"
