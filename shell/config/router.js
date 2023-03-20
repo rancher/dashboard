@@ -58,7 +58,7 @@ export const routerOptions = {
     name:      'support'
   }, {
     path:      '/account/create-key',
-    component: () => interopDefault(import('../pages/support/index.vue' /* webpackChunkName: "pages/support/index" */)),
+    component: () => interopDefault(import('../pages/account/create-key.vue' /* webpackChunkName: "pages/account/create-key" */)),
     name:      'account-create-key'
   }, {
     path:      '/auth/login',
@@ -82,7 +82,7 @@ export const routerOptions = {
     name:      'docs-toc'
   }, {
     path:      '/rio/mesh',
-    component: () => interopDefault(import('../pages/docs/toc.js' /* webpackChunkName: "pages/docs/toc" */)),
+    component: () => interopDefault(import('../pages/rio/mesh.vue' /* webpackChunkName: "pages/rio/mesh" */)),
     name:      'rio-mesh'
   }, {
     path:      '/c/:cluster',
@@ -118,7 +118,7 @@ export const routerOptions = {
     name:      'c-cluster-explorer'
   }, {
     path:      '/c/:cluster/fleet',
-    component: () => interopDefault(import('../pages/c/_cluster/explorer/index.vue' /* webpackChunkName: "pages/c/_cluster/explorer/index" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/fleet/index.vue' /* webpackChunkName: "pages/c/_cluster/fleet/index" */)),
     name:      'c-cluster-fleet'
   }, {
     path:      '/c/:cluster/gatekeeper',
@@ -126,7 +126,7 @@ export const routerOptions = {
     name:      'c-cluster-gatekeeper'
   }, {
     path:      '/c/:cluster/istio',
-    component: () => interopDefault(import('../pages/c/_cluster/gatekeeper/index.vue' /* webpackChunkName: "pages/c/_cluster/gatekeeper/index" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/istio/index.vue' /* webpackChunkName: "pages/c/_cluster/istio/index" */)),
     name:      'c-cluster-istio'
   }, {
     path:      '/c/:cluster/legacy',
@@ -138,7 +138,7 @@ export const routerOptions = {
     name:      'c-cluster-logging'
   }, {
     path:      '/c/:cluster/longhorn',
-    component: () => interopDefault(import('../pages/c/_cluster/logging/index.vue' /* webpackChunkName: "pages/c/_cluster/logging/index" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/longhorn/index.vue' /* webpackChunkName: "pages/c/_cluster/longhorn/index" */)),
     name:      'c-cluster-longhorn'
   }, {
     path:      '/c/:cluster/manager',
@@ -154,7 +154,7 @@ export const routerOptions = {
     name:      'c-cluster-monitoring'
   }, {
     path:      '/c/:cluster/neuvector',
-    component: () => interopDefault(import('../pages/c/_cluster/monitoring/index.vue' /* webpackChunkName: "pages/c/_cluster/monitoring/index" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/neuvector/index.vue' /* webpackChunkName: "pages/c/_cluster/neuvector/index" */)),
     name:      'c-cluster-neuvector'
   }, {
     path:      '/c/:cluster/settings',
@@ -170,7 +170,7 @@ export const routerOptions = {
     name:      'c-cluster-apps-charts'
   }, {
     path:      '/c/:cluster/auth/config',
-    component: () => interopDefault(import('../pages/c/_cluster/apps/charts/index.vue' /* webpackChunkName: "pages/c/_cluster/apps/charts/index" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/auth/config/index.vue' /* webpackChunkName: "pages/c/_cluster/auth/config/index" */)),
     name:      'c-cluster-auth-config'
   }, {
     path:      '/c/:cluster/auth/roles',
@@ -246,7 +246,7 @@ export const routerOptions = {
     name:      'c-cluster-uiplugins-DeveloperInstallDialog'
   }, {
     path:      '/c/:cluster/uiplugins/InstallDialog',
-    component: () => interopDefault(import('../pages/c/_cluster/uiplugins/DeveloperInstallDialog.vue' /* webpackChunkName: "pages/c/_cluster/uiplugins/DeveloperInstallDialog" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/uiplugins/InstallDialog.vue' /* webpackChunkName: "pages/c/_cluster/uiplugins/InstallDialog" */)),
     name:      'c-cluster-uiplugins-InstallDialog'
   }, {
     path:      '/c/:cluster/uiplugins/PluginInfoPanel',
@@ -258,7 +258,7 @@ export const routerOptions = {
     name:      'c-cluster-uiplugins-RemoveUIPlugins'
   }, {
     path:      '/c/:cluster/uiplugins/SetupUIPlugins',
-    component: () => interopDefault(import('../pages/c/_cluster/uiplugins/RemoveUIPlugins.vue' /* webpackChunkName: "pages/c/_cluster/uiplugins/RemoveUIPlugins" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/uiplugins/SetupUIPlugins.vue' /* webpackChunkName: "pages/c/_cluster/uiplugins/SetupUIPlugins" */)),
     name:      'c-cluster-uiplugins-SetupUIPlugins'
   }, {
     path:      '/c/:cluster/uiplugins/UninstallDialog',
@@ -338,7 +338,7 @@ export const routerOptions = {
     name:      'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver'
   }, {
     path:      '/c/:cluster/auth/roles/:resource/:id?',
-    component: () => interopDefault(import('../pages/c/_cluster/monitoring/alertmanagerconfig/_alertmanagerconfigid/receiver.vue' /* webpackChunkName: "pages/c/_cluster/monitoring/alertmanagerconfig/_alertmanagerconfigid/receiver" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/auth/roles/_resource/_id.vue' /* webpackChunkName: "/pages/c/_cluster/auth/roles/_resource/_id" */)),
     name:      'c-cluster-auth-roles-resource-id'
   }, {
     path:      '/c/:cluster/monitoring/monitor/:namespace/:id?',
