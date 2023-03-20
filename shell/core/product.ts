@@ -16,9 +16,12 @@ export class Product implements IProduct {
   private modern = false;
 
   // Track changes made via the IProduct API and apply them once
+  private rootDefinition: string = 'ROOT';
   private routes: RouteConfig[] = [];
   private nav: {[key: string]: any} = {};
   private virtualTypes: {[key: string]: any} = {};
+  private configureTypes: {[key: string]: any} = {};
+  private spoofedTypes: {[key: string]: any} = {};
   private basicTypes: string[] = [];
 
   constructor(store: any, public name: string) {
@@ -31,36 +34,40 @@ export class Product implements IProduct {
     // Use legacy type-map to create the product
 
     // TODO: Mangle ProductOptions
-
-    // Smallest set of defaults for the product to show up in 'Global Apps'
-    this.DSL.product({
+    const prodOptions = {
       icon:                'extension',
       category:            'global',
       inStore:             'management',
       removable:           false,
       showClusterSwitcher: false,
       ...options,
-      to:                  { name: this.name }
-    });
+      to:                  { name: this.name, path: `/${ this.name }` }
+    };
+
+    console.log('prodOptions on create', prodOptions);
+
+    // Smallest set of defaults for the product to show up in 'Global Apps'
+    this.DSL.product(prodOptions);
 
     // Products created via this interface should be consider 'modern' - versus the legacy products with legacy routes
     this.modern = true;
   }
 
   addRoutes(routes: RouteConfig[]): void {
+    console.log('*** addRoutes ***', routes);
     this.routes.push(...routes);
   }
 
   addNavigation(routes: Navigation | Navigation[], grp?: string): void {
     // Undefined group means the root group
-    const routesArray = Array.isArray(routes) ? routes : [routes];
-    const group = grp || 'ROOT';
+    const navigationItems = Array.isArray(routes) ? routes : [routes];
+    const group = grp || this.rootDefinition;
 
     if (!this.nav[group]) {
       this.nav[group] = [];
     }
 
-    routesArray.forEach((route) => {
+    navigationItems.forEach((route) => {
       if (typeof route === 'string') {
         // Type name
         this.nav[group].push(route);
@@ -68,20 +75,33 @@ export class Product implements IProduct {
       } else {
         const r = route as RouteLink;
 
+        // Ensure r has a label
+        if (!r.labelKey && !r.label) {
+          r.label = r.name;
+        }
+
         // RouteLink - so need to create a virtual type for the route
         // Store in a map, so other methods can update the virtual type
         // TODO: Do we allow user to configure a virtual type before adding the nav? If so, need to check here
         this.virtualTypes[r.name] = r;
 
-        // Ensure r has a label
-        if (!r.labelKey && !r.label) {
-          r.label = r.name;
+        if (r.type === 'resource') {
+          this.configureTypes[r.name] = r;
+        } else if (r.type === 'custom-page') {
+          this.virtualTypes[r.name] = r;
+        } else if (r.type === 'virtual-resource') {
+          this.spoofedTypes[r.name] = r;
         }
 
         // Add name to the navigation
         this.nav[group].push(r.name);
       }
     });
+
+    console.log('*** addNavigation this.configureTypes ***', this.configureTypes);
+    console.log('*** addNavigation this.virtualTypes ***', this.virtualTypes);
+    console.log('*** addNavigation this.spoofedTypes ***', this.spoofedTypes);
+    console.log('*** addNavigation this.nav ***', this.nav);
   }
 
   // Internal - not exposed by the IProduct interface
@@ -89,23 +109,68 @@ export class Product implements IProduct {
   _apply(addRoutes: Function) {
     // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
     // console.error('Applying product types');
-    // console.log(this.routes);
 
-    const baseName = this.modern ? this.name : `c-cluster-${ this.name }`;
+    const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-${ this.name }`;
+    const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/${ this.name }`;
+
+    // Go through the kube resource types (configureType) and register those
+    Object.keys(this.configureTypes).forEach((name) => {
+      const ct = this.configureTypes[name];
+      const options = ct.options || {};
+
+      this.DSL.configureType(ct.name, {
+        name:  ct.name,
+        ...options,
+        route: {
+          name:   `${ baseName }-${ ct.name }`,
+          params: {
+            product: this.name,
+            cluster: BLANK_CLUSTER,
+          }
+        }
+      });
+    });
 
     // Go through the virtual types and register those
     Object.keys(this.virtualTypes).forEach((name) => {
       const vt = this.virtualTypes[name];
+      const options = vt.options || {};
 
-      this.DSL.virtualType({
+      const vtOptions = {
         name:       vt.name,
         namespaced: false,
         labelKey:   vt.labelKey,
         icon:       'compass',
         weight:     100,
         label:      vt.name, // TODO: label key etc
+        ...options,
         route:      {
           name:   `${ baseName }-${ vt.name }`,
+          path:   `/${ basePath }/${ vt.name }`,
+          params: {
+            product: this.name,
+            cluster: BLANK_CLUSTER,
+          }
+        }
+      };
+
+      console.log('virtual type to be registered', vt);
+      console.log('virtual type options', vtOptions);
+
+      this.DSL.virtualType(vtOptions);
+    });
+
+    // Go through the spoofed types and register those
+    Object.keys(this.spoofedTypes).forEach((name) => {
+      const st = this.spoofedTypes[name];
+      const options = st.options || {};
+
+      this.DSL.spoofedType({
+        type:  st.name, // for spoofedType we need the 'type' param populated
+        name:  st.name,
+        ...options,
+        route: {
+          name:   `${ baseName }-${ st.name }`,
           params: {
             product: this.name,
             cluster: BLANK_CLUSTER,
@@ -116,24 +181,31 @@ export class Product implements IProduct {
 
     // Navigation
     Object.keys(this.nav).forEach((grp) => {
-      const group = grp === 'ROOT' ? undefined : grp;
+      const group = grp === this.rootDefinition ? undefined : grp;
       const items = this.nav[grp];
 
       this.DSL.basicType(items, group);
     });
 
     // Figure out the default route for the product
-    const defaultRoute: any = { component: DefaultProductComponent };
-    // let defaultRoute: any = {};
+    const defaultRoute: any = {};
 
-    if (this.nav['ROOT'] && this.nav['ROOT'].length > 0) {
-      const first = this.nav['ROOT'][0];
+    if (this.nav[this.rootDefinition] && this.nav[this.rootDefinition].length > 0) {
+      const first = this.nav[this.rootDefinition][0];
+
+      console.log('first route (on default route)', first);
 
       let redirect = first;
 
       // Can be a string or a Route
       if (typeof redirect === 'string') {
-        redirect = { name: `${ this.name }-${ redirect }` };
+        redirect = {
+          name:   `${ this.name }-c-cluster-${ redirect }`,
+          params: {
+            product: this.name,
+            cluster: BLANK_CLUSTER,
+          }
+        };
       } else {
         // TODO
         // console.log('*************************************************************************************************');
@@ -147,16 +219,11 @@ export class Product implements IProduct {
     defaultRoute.meta.product = this.name;
     defaultRoute.meta.cluster = BLANK_CLUSTER;
 
-    // Ensure the route has the blank cluster, otherwise the default layout won't think the cluster and won't load
-    defaultRoute.params = defaultRoute.params || {};
-    defaultRoute.params.product = this.name;
-    defaultRoute.params.cluster = BLANK_CLUSTER;
+    console.log('defaultRoute', defaultRoute);
 
     // Update the names of the child routes (should be recursive)
     // Names are always absolute - child names are not within the context of the parent
     // Prepend name
-    const basePath = this.modern ? `/${ this.name }` : `/c/:cluster/:product`;
-
     this.routes.forEach((r) => {
       if (r.name) {
         r.name = `${ baseName }-${ r.name }`;
@@ -167,14 +234,15 @@ export class Product implements IProduct {
 
     // Routes
     // Add top-level route for the product
-    const productRoutes = [{
+    const productBaseRoute = {
       route: {
-        name:     `${ this.name }`,
-        path:     `/${ this.name }`,
-        children: [],
-        ...defaultRoute,
+        name:      this.name,
+        path:      `/${ this.name }`,
+        component: DefaultProductComponent,
+        meta:      { ...defaultRoute.meta },
+        params:    { product: defaultRoute.meta.product, cluster: defaultRoute.meta.cluster },
       }
-    }];
+    };
 
     const allRoutesToAdd = [
       ...this.routes
@@ -213,6 +281,7 @@ export class Product implements IProduct {
 
     const extRoutes: any[] = [];
 
+    // add meta and params info to all routes
     allRoutesToAdd.forEach((r: any) => {
       r.params = {
         product: this.name,
@@ -228,8 +297,11 @@ export class Product implements IProduct {
       extRoutes.push({ route: r });
     });
 
+    console.log('--- PROD BASE ROUTE TO ADD! ---', [productBaseRoute]);
+    console.log('--- PROD ROUTES TO ADD! ---', extRoutes);
+
+    addRoutes([productBaseRoute]);
     addRoutes(extRoutes);
-    addRoutes(productRoutes);
   }
 
   // // NEW WORK!!!!

@@ -147,6 +147,7 @@ export interface RouteLocation {
 }
 
 export type RouteLink = {
+  type: string,
   name: string;
   label?: string;
   labelKey?: string;
@@ -169,6 +170,13 @@ export interface IProduct {
    * @param grp
    */
   addNavigation(routes: Navigation | Navigation[], grp?: string): void;
+
+  /**
+   * Configure a given page
+   * @param name
+   * @param options
+   */
+  configurePage(name: string, options?: object): void;
 }
 
 // export type ProductOptions = {

@@ -8,14 +8,28 @@ export default {
     return { product, top: false };
   },
   middleware({ redirect, route, store } ) {
+    console.log('ROUTE MIDDLEWARE ON DEFAULT PRODUCT COMPONENT', route);
+
     if (route.meta) {
       const m = Array.isArray(route.meta) ? route.meta[0] : route.meta;
 
+      console.log('scenario A!', m);
+
       if (m.redirect) {
+        console.log('scenario B!', m.redirect.name);
         const name = m.redirect.name;
 
         if (name !== route.name) {
-          return redirect(m.redirect);
+          console.log('scenario C!');
+
+          const redirectRoute = {
+            ...m.redirect,
+            params: { ...m }
+          };
+
+          console.log('redirectRoute', redirectRoute);
+
+          return redirect(redirectRoute);
         }
       }
     }
