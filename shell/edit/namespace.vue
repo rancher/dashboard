@@ -10,7 +10,7 @@ import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
-import { PROJECT_ID, _VIEW, FLAT_VIEW } from '@shell/config/query-params';
+import { PROJECT_ID, _VIEW, FLAT_VIEW, _CREATE } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
@@ -50,7 +50,7 @@ export default {
       originalQuotaId = `${ this.liveValue.metadata.name }/default-quota`;
     }
 
-    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID] || this.t('namespace.project.none');
+    const projectName = this.value?.metadata?.labels?.[PROJECT] || this.$route.query[PROJECT_ID];
 
     return {
       originalQuotaId,
@@ -67,6 +67,10 @@ export default {
   computed: {
     ...mapGetters(['isSingleProduct']),
 
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+
     isSingleHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
     },
@@ -77,7 +81,6 @@ export default {
 
       // Filter out projects not for the current cluster
       projects = projects.filter(c => c.spec?.clusterName === clusterId);
-
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
@@ -106,7 +109,7 @@ export default {
     },
 
     flatView() {
-      return this.$route.query[FLAT_VIEW];
+      return (this.$route.query[FLAT_VIEW] || false);
     }
   },
 
@@ -142,7 +145,6 @@ export default {
       }
 
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-
       const project = projects.find(p => p.id.includes(projectName));
 
       return project?.spec?.containerDefaultResourceLimit || {};
@@ -174,7 +176,7 @@ export default {
       :extra-columns="['project-col']"
     >
       <template
-        v-if="flatView || project"
+        v-if="flatView && isCreate"
         #project-col
       >
         <LabeledSelect
