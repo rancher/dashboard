@@ -56,15 +56,96 @@ export const plugins = [
 ];
 
 /**
+ * Get all the namespaces categories
+ * @returns Record<string, true>
+ */
+const getActiveNamespacesCategories = (getters, namespaces, filters) => {
+  // Split namespaces by category
+  const includeAll = getters.isAllNamespaces;
+  const includeSystem = filters.includes(ALL_SYSTEM);
+  const includeUser = filters.includes(ALL_USER);
+  const includeOrphans = filters.includes(ALL_ORPHANS);
+
+  // Categories to pull in all the user, system, or orphaned namespaces
+  const hasCategory = includeAll || includeOrphans || includeSystem || includeUser;
+
+  return hasCategory ? Object.values(namespaces).reduce((acc, ns) => {
+    if (
+      includeAll ||
+      (includeOrphans && !ns.projectId) ||
+      (includeUser && !ns.isSystem) ||
+      (includeSystem && ns.isSystem)
+    ) {
+      acc[ns.id] = true;
+    }
+
+    return acc;
+  }, {}) : {};
+};
+
+/**
+ * Get handpicked namespaces from the filters
+ * @returns Record<string, true>
+ */
+const getActiveSingleNamespaces = (getters, filters) => {
+  const activeNamespaces = {};
+
+  // Individual cases for stacked project and/or namespace filters
+  if ( !getters.isAllNamespaces ) {
+    const clusterId = getters['currentCluster']?.id;
+
+    for ( const filter of filters ) {
+      const [type, id] = filter.split('://', 2);
+
+      if ( !type ) {
+        continue;
+      }
+
+      if ( type === 'ns' ) {
+        activeNamespaces[id] = true;
+      } else if (type === 'project') {
+        // Set all the namespaces contained in the project
+        const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
+
+        if ( project ) {
+          for ( const projectNamespace of project.namespaces ) {
+            activeNamespaces[projectNamespace.id] = true;
+          }
+        }
+      }
+    }
+  }
+
+  return activeNamespaces;
+};
+
+/**
+ * Get only namespaces where the user can create resources
+ * @returns Record<string, true>
+ */
+const getReadOnlyActiveNamespaces = (namespaces, activeNamespaces) => {
+  const readonlyNamespaces = Object
+    .values(namespaces)
+    .filter(ns => !!ns.links.update)
+    .map(({ id }) => id);
+
+  return Object.keys(activeNamespaces)
+    .filter(ns => readonlyNamespaces.includes(ns))
+    .reduce((acc, ns) => ({
+      ...acc,
+      [ns]: true
+    }), {});
+};
+
+/**
  * Collect all the namespaces grouped by category, project or single pick
  * @returns Record<string, true>
  */
 const getActiveNamespaces = (state, getters, readonly = false) => {
-  const out = {};
   const product = getters['currentProduct'];
 
   if ( !product ) {
-    return out;
+    return {};
   }
 
   // TODO: Add comment with logic for fleet
@@ -81,9 +162,9 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
   const clusterId = getters['currentCluster']?.id;
 
   if ( !clusterId || !inStore ) {
-    updateActiveNamespaceCache(state, out);
+    updateActiveNamespaceCache(state, {});
 
-    return out;
+    return {};
   }
 
   // Use default "All Namespaces" category if no namespaces is found
@@ -92,78 +173,27 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
 
   // Filter out Rancher system namespaces
   const showRancherNamespaces = state.prefs.data['all-namespaces'];
-  const namespaces = allNamespaces.filter(ns => showRancherNamespaces ? true : !ns.isObscure);
+  const allowedNamespaces = allNamespaces.filter(ns => showRancherNamespaces ? true : !ns.isObscure);
 
   // Retrieve all the filters selected by the user
   const filters = state.namespaceFilters.filter(
     filters => !!filters && !`${ filters }`.startsWith(NAMESPACED_PREFIX)
   );
 
-  // Split namespaces by category
-  const includeAll = getters.isAllNamespaces;
-  const includeSystem = filters.includes(ALL_SYSTEM);
-  const includeUser = filters.includes(ALL_USER);
-  const includeOrphans = filters.includes(ALL_ORPHANS);
-
-  // Categories to pull in all the user, system, or orphaned namespaces
-  const hasCategory = includeAll || includeOrphans || includeSystem || includeUser;
-
-  if ( hasCategory ) {
-    for ( const ns of namespaces ) {
-      if (
-        includeAll ||
-        ( includeOrphans && !ns.projectId ) ||
-        ( includeUser && !ns.isSystem ) ||
-        ( includeSystem && ns.isSystem )
-      ) {
-        out[ns.id] = true;
-      }
-    }
-  }
-
-  // Individual cases for stacked project and/or namespace filters
-  if ( !includeAll ) {
-    for ( const filter of filters ) {
-      const [type, id] = filter.split('://', 2);
-
-      if ( !type ) {
-        continue;
-      }
-
-      if ( type === 'ns' ) {
-        out[id] = true;
-      } else if (type === 'project') {
-        // Set all the namespaces contained in the project
-        const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
-
-        if ( project ) {
-          for ( const projectNamespace of project.namespaces ) {
-            out[projectNamespace.id] = true;
-          }
-        }
-      }
-    }
-  }
+  const activeNamespaces = {
+    ...getActiveNamespacesCategories(getters, allowedNamespaces, filters),
+    ...getActiveSingleNamespaces(getters, filters),
+  };
 
   // Create map that can be used to efficiently check if a resource should be displayed
-  updateActiveNamespaceCache(state, out);
+  updateActiveNamespaceCache(state, activeNamespaces);
 
   // Exclude namespaces restricted to the user for writing
   if (readonly) {
-    const readonlyNamespaces = Object
-      .values(namespaces)
-      .filter(ns => !!ns.links.update)
-      .map(({ id }) => id);
-
-    return Object.keys(out)
-      .filter(ns => readonlyNamespaces.includes(ns))
-      .reduce((acc, ns) => ({
-        ...acc,
-        [ns]: true
-      }), {});
+    return getReadOnlyActiveNamespaces(allowedNamespaces, activeNamespaces);
   }
 
-  return out;
+  return activeNamespaces;
 };
 
 /**
