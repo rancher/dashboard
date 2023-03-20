@@ -1,7 +1,6 @@
 <script>
 import { Diff2Html } from 'diff2html';
 import { createPatch } from 'diff';
-import $ from 'jquery';
 
 export default {
   props: {
@@ -74,21 +73,21 @@ export default {
         return;
       }
 
-      const container = $(this.$refs.root);
+      const container = this.$refs.root;
 
-      if ( !container || !container.length ) {
+      if ( !container ) {
         return;
       }
 
-      const offset = container.offset();
+      const offset = container.getBoundingClientRect();
 
       if ( !offset ) {
         return;
       }
 
-      const desired = $(window).innerHeight() - offset.top - this.footerSpace;
+      const desired = window.innerHeight - offset.top - this.footerSpace;
 
-      container.css('height', `${ Math.max(0, desired) }px`);
+      container.style.height = `${ Math.max(0, desired) }px`;
     },
   },
 };
