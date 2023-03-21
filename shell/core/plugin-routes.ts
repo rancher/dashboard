@@ -111,7 +111,6 @@ export class PluginRoutes {
         r.route.meta = r.route.meta || {};
 
         r.route.meta.product = r.route.meta.product || productName;
-        r.route.meta.cluster = r.route.meta.cluster || BLANK_CLUSTER;
       }
 
       // See if the route exists
