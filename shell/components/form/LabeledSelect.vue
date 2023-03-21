@@ -278,7 +278,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
-      @option:selecting="$emit('selecting', $event)"
+      @option:selected="$emit('selecting', $event)"
       @option:deselecting="$emit('deselecting', $event)"
     >
       <template #option="option">
