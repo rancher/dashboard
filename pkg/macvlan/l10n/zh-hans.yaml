@@ -1,0 +1,121 @@
+typeLabel:
+  macvlan.cluster.cattle.io.macvlansubnet: |-
+    {count, plural,
+      one { 扁平网络(实验性) }
+      other { 扁平网络(实验性) }
+    }
+macvlan:
+  nav:
+    label: 扁平网络(实验性)
+  chart:
+    title: Rancher Macvlan
+    description: 'Macvlan 是一种虚拟网络技术，它允许一个主机拥有多个 MAC 地址，允许在一个物理网络中创建虚拟网络。Macvlan 通过将一个普通的网络接口分割为多个虚拟接口来实现，这些虚拟接口拥有不同的 MAC 地址。Macvlan 的优势在于可以在网络中实现虚拟隔离，并且在同一物理网络中。'
+    appInstall:
+      button: 安装 Macvlan
+  cidr:
+    cidrFormatError: CIDR 格式错误
+    cidrReq: CIDR 不能为空
+    label: CIDR
+    placeholder: 例如：192.168.2.0/24
+  defaultGateway:
+    info: canal-macvlan 默认网关设置 eth1，需要手动编辑 macvlan subnet YAML，subnet 中的部分路由信息需要根据主机网络环境设置。
+    label: 设置 eth1 为容器默认网关
+    yes: 启用
+    no: 禁用
+    serviceCidr:
+      label: ServiceCidr
+      placeholder: "例如: 10.43.0.0/16"
+      serviceCidrFormatError: ServiceCidr 格式错误
+      serviceCidrReq: ServiceCidr 不能为空
+  gateway:
+    gatewayFormatError: Gateway IP 格式错误
+    label: GATEWAY
+    placeholder: 例如：192.168.1.1
+  ipRange:
+    IPFormatError: IP 范围中，存在 IP 地址格式不正确的记录{info}
+    IPInCidrError: IP 范围中，存在 IP 地址不在子网范围内的记录{info}
+    IPRangeError: 开始地址 {min} 不能大于结束地址 {max}
+    IPRangeExist: 已经存在的 IP 范围
+    IPRangeExistWithOthers: 当前 IP 地址范围与已经存在的 IP 地址范围有冲突
+    add: 添加 IP 范围
+    end:
+      label: 结束 IP
+      placeholder: 例如：192.168.56.20
+    formInfoExist: Master 为 {master}, Vlan 为 {vlan}, CIDR 为 {cidr} 的记录已经存在
+    label: IP 范围
+    start:
+      label: 开始 IP
+      placeholder: 例如：192.168.56.10
+    remove: 移除
+  ipReuse:
+    ipReuseFormatError: 自动 IP 延迟回收 格式错误
+    ipReuseUnit: 分钟
+    label: 自动IP延迟回收
+    placeholder: 取值范围 1-3600 之间的整数
+  master:
+    label: Master
+    masterReq: master 不能为空
+    placeholder: 例如：eth0
+  mode:
+    label: 模式
+  name:
+    label: 名称
+    nameFormatError: 项目名称由字母、数字、和._-组成，长度不超过 62 且至少有两个字符并以字母或数字开头
+    nameReq: 名称不能为空
+    placeholder: 例如：testvlan
+  project:
+    label: 项目
+  route:
+    add: 添加自定义路由
+    dst:
+      label: Destination
+      placeholder: 例如：192.168.0.0/16
+    gw:
+      label: Gateway
+      placeholder: 例如：192.168.1.1
+    iface:
+      eth0: eth0
+      eth1: eth1
+      label: Iface
+    label: 自定义路由
+    routeDstFormatError: 自定义路由中，Destination 存在格式错误的记录
+    routeDstReq: 自定义路由中，Destination 存在为空的记录
+    routeGwFormatError: 自定义路由中，Gateway 存在格式错误的记录
+    routeGwInCidrError: 自定义路由中，Gateway 存在IP地址不在子网范围内的记录
+    remove: 移除
+  vlan:
+    label: VLAN
+    placeholder: 取值范围 2-4095 之间的整数
+    vlanRangeError: VLAN 值应该是 2 到 4095 之间的整数
+  tabs:
+    general: 基础信息
+    advanced: 高级选项
+    ipRange: Ip 范围设置
+    route: 自定义路由
+    defaultGateway: 设置 eth1 为容器默认网关
+  tableHeaders:
+    workload: 工作负载
+    ip: IP
+    master: Master
+    vlan: VLAN
+    cidr: CIDR
+    ipRange: IP 范围
+    route: 自定义路由
+    gateway: GATEWAY
+  macvlanIp:
+    count: "<div class='text-left'>{name}<br>共使用 IP 数：{total}</div>"
+    totalCount: 共使用 IP 数
+    tableHeaders:
+      ipType: IP 类型
+      mac: MAC
+      podId: Pod ID
+      workload: 工作负载
+      subnet: Subnet
+      address: Address
+    ipType:
+      auto: 自动
+      specific: 固定
+  promptRemove:
+    pod: 0 个 Pod
+    moreInfo: "{count} 条数据被隐藏，点击显示"
+

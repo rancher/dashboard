@@ -1,0 +1,81 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "jsx": "preserve",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "preserveSymlinks": true,
+    "typeRoots": [
+      "../../node_modules",
+      "../../node_modules/@rancher/shell/types"
+    ],    
+    "types": [
+      "node",
+      "webpack-env",
+      "@types/node",
+      "@types/jest",
+      "@types/lodash",
+      "@nuxt/types",
+      "rancher",
+      "shell"
+    ],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ],
+    "paths": {
+      "@shell/*": [
+        "../../node_modules/@rancher/shell/*",
+      ],
+      "@shell/core/*": [
+        "../../node_modules/@rancher/shell/core/*"
+      ],
+      "@shell/config/*": [
+        "../../node_modules/@rancher/shell/config/*"
+      ],
+      "@shell/components/*": [
+        "../../node_modules/@rancher/shell/components/*"
+      ],
+      "@shell/store/*": [
+        "../../node_modules/@rancher/shell/store/*"
+      ],
+      "@shell/plugins/*": [
+        "../../node_modules/@rancher/shell/plugins/*"
+      ],
+      "@shell/utils/*": [
+        "../../node_modules/@rancher/shell/utils/*"
+      ],
+      "@shell/models/*": [
+        "../../node_modules/@rancher/shell/models/*"
+      ],
+      "@shell/mixins/*": [
+        "../../node_modules/@rancher/shell/mixins/*"
+      ],
+      "@shell/pages/*": [
+        "../../node_modules/@rancher/shell/pages/*"
+      ],
+      "@components/*": [
+        "@rancher/components/*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts",
+    "**/*.tsx",
+    "**/*.vue"
+  ],
+  "exclude": [
+    "../../node_modules"
+  ]
+}

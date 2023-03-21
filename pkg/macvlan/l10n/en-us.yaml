@@ -1,0 +1,121 @@
+typeLabel:
+  macvlan.cluster.cattle.io.macvlansubnet: |-
+    {count, plural,
+      one { Flat Subnet(Experimental) }
+      other { Flat Subnets(Experimental) }
+    }
+macvlan:
+  nav:
+    label: Flat Subnet(Experimental)
+  chart:
+    title: Rancher Macvlan
+    description: 'Macvlan is a virtual networking technology that allows a host to have multiple MAC addresses and create virtual networks in a physical network. Macvlan is achieved by splitting a regular network interface into multiple virtual interfaces, each with a different MAC address. The advantage of Macvlan is that it can achieve virtual isolation in the network and in the same physical network.'
+    appInstall:
+      button: Install Macvlan
+  cidr:
+    cidrFormatError: "CIDR format error"
+    cidrReq: "CIDR cannot be empty"
+    label: CIDR
+    placeholder: e.g. 192.168.2.0/24
+  defaultGateway:
+    info: canal-macvlan default gateway setting eth1 requires manual editing of macvlan subnet YAML. Some routing information in subnet needs to be set according to the host network environment.
+    label: Set eth1 as the container default gateway
+    yes: Enabled
+    no: Disabled
+    serviceCidr:
+      label: ServiceCidr
+      placeholder: e.g. 10.43.0.0/16
+      serviceCidrFormatError: "ServiceCidr format error"
+      serviceCidrReq: "ServiceCidr cannot be empty"
+  gateway:
+    gatewayFormatError: "Gateway format error"
+    label: GATEWAY
+    placeholder: e.g. 192.168.1.1
+  ipRange:
+    IPFormatError: "IP Ranges There are records with incorrect IP address format{info}"
+    IPInCidrError: "IP Ranges There are records of IP addresses that are not in the subnet scope{info}"
+    IPRangeError: The starting address {min} cannot be greater than the ending address {max}
+    IPRangeExist: "IP Ranges already existed "
+    IPRangeExistWithOthers: The current IP address range conflicts with an existing IP address range.
+    add: Add IP Range
+    end:
+      label: Range End
+      placeholder: e.g. 192.168.56.20
+    formInfoExist: "Master: {master}, Vlan: {vlan}, CIDR: {cidr} already exists"
+    label: IP Range
+    start:
+      label: Range Start
+      placeholder: e.g. 192.168.56.10
+    remove: Remove
+  ipReuse:
+    ipReuseFormatError: "Ip Delay Reuse format error"
+    ipReuseUnit: minute
+    label: Ip Delay Reuse
+    placeholder: Values between 1 and 3600.
+  master:
+    label: Master
+    masterReq: "master cannot be empty"
+    placeholder: e.g. eth0
+  mode:
+    label: MODE
+  name:
+    label: Name
+    nameFormatError: "name consists of alphanumeric and ._-, not more than 62 characters in length and beginning with a letter or number"
+    nameReq: "name cannot be empty"
+    placeholder: e.g. testvlan
+  project:
+    label: Project
+  route:
+    add: Add Custom Route
+    dst:
+      label: Destination
+      placeholder: e.g. 192.168.0.0/16
+    gw:
+      label: Gateway
+      placeholder: e.g. 192.168.1.1
+    iface:
+      eth0: eth0
+      eth1: eth1
+      label: Iface
+    label: Custom Route
+    routeDstFormatError: "Custom Route: Destination format error"
+    routeDstReq: "Custom Route: Destination cannot be empty"
+    routeGwFormatError: "Custom Route: Gateway format error"
+    routeGwInCidrError: "Custom Route: Gateway There are records of IP addresses that are not in the subnet scope"
+    remove: Remove
+  vlan:
+    label: VLAN
+    placeholder: Values between 2 and 4095.
+    vlanRangeError: "VLAN should be between 2 and 4095"
+  tabs:
+    general: Basics
+    advanced: Advanced
+    ipRange: Ip Range
+    route: Custom Route
+    defaultGateway: Set eth1 as the container default gateway
+  tableHeaders:
+    workload: Workload
+    ip: IP
+    master: Master
+    vlan: VLAN
+    cidr: CIDR
+    ipRange: Ip Range
+    route: Custom Route
+    gateway: GATEWAY
+  macvlanIp:
+    count: "<div class='text-left'>{name}<br>Total IP number：{total}</div>"
+    totalCount: Total IP number
+    tableHeaders:
+      ipType: IP Type
+      mac: MAC
+      podId: Pod ID
+      workload: Workload
+      subnet: Subnet
+      address: Address
+    ipType:
+      auto: auto
+      specific: specific
+  promptRemove:
+    pod: 0 Pods
+    moreInfo: "{count} pieces of data are hidden, click to display"
+
