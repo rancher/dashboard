@@ -283,6 +283,9 @@ export default function({
         this.loadProducts([plugin]);
       }
 
+      // TO BE REMOVED!!!! ONLY FOR TESTING PURPOSES...
+      this.loadProducts([plugin]);
+
       // Register vuex stores
       plugin.stores.forEach(pStore => pStore.register()(store));
 

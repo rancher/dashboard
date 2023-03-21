@@ -152,6 +152,7 @@ export type RouteLink = {
   label?: string;
   labelKey?: string;
   route: string | RouteLocation;
+  options?: object;
 }
 
 export type Navigation = string | RouteLink;
@@ -169,7 +170,7 @@ export interface IProduct {
    * @param routes
    * @param grp
    */
-  addNavigation(routes: Navigation | Navigation[], grp?: string): void;
+  addNavigation(routes: Navigation | Navigation[], grp?: {[key: string]: any} | string): void;
 
   /**
    * Configure a given page

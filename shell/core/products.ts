@@ -12,15 +12,6 @@ export class Products implements IProducts {
   add(name: string, options?: ProductOptions): IProduct {
     const product = new Product(this.store, name);
 
-    // Set the default route
-    // const opts = {
-    //   to: {
-    //     name,
-    //     params: { product: name }
-    //   },
-    //   ...options
-    // };
-
     product.create(options);
 
     this.products.push(product);

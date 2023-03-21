@@ -3,6 +3,10 @@ import { IPlugin, IProducts } from '@shell/core/types';
 
 import Page1 from './pages/page1.vue';
 import Page2 from './pages/page2.vue';
+import Page3 from './pages/page3.vue';
+
+import { MANAGEMENT, CAPI } from '@shell/config/types';
+import { allHash } from '@shell/utils/promise';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -38,6 +42,11 @@ export default function(plugin: IPlugin) {
         name:      'page2',
         path:      'page2',
         component: Page2
+      },
+      {
+        name:      'page3',
+        path:      'page3',
+        component: Page3
       }
     ]);
 
@@ -58,15 +67,65 @@ export default function(plugin: IPlugin) {
     advancedProduct.addNavigation([
       {
         type:  'custom-page',
+        name:  'page1',
+        route: 'page1'
+      },
+      // {
+      //   type: 'resource',
+      //   name: 'provisioning.cattle.io.cluster',
+      // },
+      'provisioning.cattle.io.cluster'
+    ]);
+
+    advancedProduct.addNavigation([
+      {
+        type:  'custom-page',
         name:  'page2',
         route: 'page2'
       },
       {
         type:  'custom-page',
-        name:  'page1',
-        route: 'page1'
+        name:  'page3',
+        route: 'page3'
       },
-      // 'provisioning.cattle.io.cluster'
-    ]);
+      {
+        type:    'virtual-resource',
+        name:    'fake-resource',
+        route:   'fake-resource',
+        options: {
+          label:   'a-virtual-resource-label',
+          icon:    'gear',
+          weight:  -1,
+          schemas: [
+            {
+              id:                'fake-resource',
+              type:              'schema',
+              collectionMethods: [],
+              resourceFields:    {},
+              attributes:        { namespaced: true },
+            },
+          ],
+          getInstances: async() => { // method responsible for getting the instance data when we need to access it
+            const hash = {
+              rancherClusters: advancedProduct.store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+              clusters:        advancedProduct.store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+            };
+
+            if (advancedProduct.store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
+              hash.nodes = advancedProduct.store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+            }
+
+            const res = await allHash(hash);
+
+            return res.rancherClusters.map((c) => {
+              return {
+                ...c,
+                type: 'fake-resource',
+              };
+            });
+          },
+        },
+      }
+    ], { labelKey: 'tab.custom-group-label' });
   });
 }

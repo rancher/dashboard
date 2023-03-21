@@ -22,7 +22,6 @@ export class Product implements IProduct {
   private virtualTypes: {[key: string]: any} = {};
   private configureTypes: {[key: string]: any} = {};
   private spoofedTypes: {[key: string]: any} = {};
-  private basicTypes: string[] = [];
 
   constructor(store: any, public name: string) {
     this.store = store;
@@ -58,20 +57,28 @@ export class Product implements IProduct {
     this.routes.push(...routes);
   }
 
-  addNavigation(routes: Navigation | Navigation[], grp?: string): void {
+  addNavigation(routes: Navigation | Navigation[], grp?: {[key: string]: any} | string): void {
     // Undefined group means the root group
     const navigationItems = Array.isArray(routes) ? routes : [routes];
     const group = grp || this.rootDefinition;
+    let groupIdentifier: string;
 
-    if (!this.nav[group]) {
-      this.nav[group] = [];
+    // here we take care of any label or labelKey props on the group object, so that we can handle translation
+    if (typeof group === 'object' && !Array.isArray(group) && group !== null && (group.label || group.labelKey)) {
+      groupIdentifier = group.labelKey ? this.store.getters['i18n/t'](group.labelKey) : group.label;
+    } else {
+      groupIdentifier = group;
+    }
+
+    if (!this.nav[groupIdentifier]) {
+      this.nav[groupIdentifier] = [];
     }
 
     navigationItems.forEach((route) => {
+      // string-like notations should only be used for kube resources
       if (typeof route === 'string') {
-        // Type name
-        this.nav[group].push(route);
-        this.basicTypes.push(route);
+        this.nav[groupIdentifier].push(route);
+        this.configureTypes[route] = { name: route };
       } else {
         const r = route as RouteLink;
 
@@ -83,8 +90,6 @@ export class Product implements IProduct {
         // RouteLink - so need to create a virtual type for the route
         // Store in a map, so other methods can update the virtual type
         // TODO: Do we allow user to configure a virtual type before adding the nav? If so, need to check here
-        this.virtualTypes[r.name] = r;
-
         if (r.type === 'resource') {
           this.configureTypes[r.name] = r;
         } else if (r.type === 'custom-page') {
@@ -94,7 +99,7 @@ export class Product implements IProduct {
         }
 
         // Add name to the navigation
-        this.nav[group].push(r.name);
+        this.nav[groupIdentifier].push(r.name);
       }
     });
 
@@ -107,29 +112,14 @@ export class Product implements IProduct {
   // Internal - not exposed by the IProduct interface
   // Called by extensions system after product init - applies the routes and navigation to the store
   _apply(addRoutes: Function) {
-    // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-    // console.error('Applying product types');
+    // TODO LIST:
+    // handle "weightType"
+    // handle "weightGroup"
+    // handle "headers"
+    // check "label" and "labelKey" for all types
 
     const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-${ this.name }`;
     const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/${ this.name }`;
-
-    // Go through the kube resource types (configureType) and register those
-    Object.keys(this.configureTypes).forEach((name) => {
-      const ct = this.configureTypes[name];
-      const options = ct.options || {};
-
-      this.DSL.configureType(ct.name, {
-        name:  ct.name,
-        ...options,
-        route: {
-          name:   `${ baseName }-${ ct.name }`,
-          params: {
-            product: this.name,
-            cluster: BLANK_CLUSTER,
-          }
-        }
-      });
-    });
 
     // Go through the virtual types and register those
     Object.keys(this.virtualTypes).forEach((name) => {
@@ -137,14 +127,9 @@ export class Product implements IProduct {
       const options = vt.options || {};
 
       const vtOptions = {
-        name:       vt.name,
-        namespaced: false,
-        labelKey:   vt.labelKey,
-        icon:       'compass',
-        weight:     100,
-        label:      vt.name, // TODO: label key etc
+        name:  vt.name,
         ...options,
-        route:      {
+        route: {
           name:   `${ baseName }-${ vt.name }`,
           path:   `/${ basePath }/${ vt.name }`,
           params: {
@@ -154,10 +139,26 @@ export class Product implements IProduct {
         }
       };
 
-      console.log('virtual type to be registered', vt);
-      console.log('virtual type options', vtOptions);
-
       this.DSL.virtualType(vtOptions);
+    });
+
+    // Go through the kube resource types (configureType) and register those
+    // also the route for the default list/edit/create are added a bit below
+    Object.keys(this.configureTypes).forEach((name) => {
+      const ct = this.configureTypes[name];
+      const options = ct.options || {};
+
+      this.DSL.configureType(ct.name, {
+        ...options,
+        customRoute: {
+          name:   `${ baseName }-resource`,
+          params: {
+            product:  this.name,
+            cluster:  BLANK_CLUSTER,
+            resource: ct.name,
+          }
+        }
+      });
     });
 
     // Go through the spoofed types and register those
@@ -170,16 +171,17 @@ export class Product implements IProduct {
         name:  st.name,
         ...options,
         route: {
-          name:   `${ baseName }-${ st.name }`,
+          name:   `${ baseName }-resource`,
           params: {
-            product: this.name,
-            cluster: BLANK_CLUSTER,
+            product:  this.name,
+            cluster:  BLANK_CLUSTER,
+            resource: st.name,
           }
         }
       });
     });
 
-    // Navigation
+    // Navigation (basicType and weight's)
     Object.keys(this.nav).forEach((grp) => {
       const group = grp === this.rootDefinition ? undefined : grp;
       const items = this.nav[grp];
@@ -219,11 +221,7 @@ export class Product implements IProduct {
     defaultRoute.meta.product = this.name;
     defaultRoute.meta.cluster = BLANK_CLUSTER;
 
-    console.log('defaultRoute', defaultRoute);
-
-    // Update the names of the child routes (should be recursive)
-    // Names are always absolute - child names are not within the context of the parent
-    // Prepend name
+    // Prepend name and paths for routes coming from addRoutes method on this class
     this.routes.forEach((r) => {
       if (r.name) {
         r.name = `${ baseName }-${ r.name }`;
@@ -232,7 +230,6 @@ export class Product implements IProduct {
       r.path = `/${ basePath }/${ r.path }`;
     });
 
-    // Routes
     // Add top-level route for the product
     const productBaseRoute = {
       route: {
@@ -240,7 +237,10 @@ export class Product implements IProduct {
         path:      `/${ this.name }`,
         component: DefaultProductComponent,
         meta:      { ...defaultRoute.meta },
-        params:    { product: defaultRoute.meta.product, cluster: defaultRoute.meta.cluster },
+        params:    {
+          product: defaultRoute.meta.product,
+          cluster: defaultRoute.meta.cluster
+        }
       }
     };
 
@@ -248,11 +248,11 @@ export class Product implements IProduct {
       ...this.routes
     ];
 
-    // If basic types are used, then add routes for types - List, Detail, Edit
+    // If configureTypes or spoofedTypes types are used, then add routes for types - List, Detail, Edit
     // Make sure we don't do this for explorer
     const isExplorer = this.name === 'explorer';
 
-    if (!isExplorer && this.basicTypes.length > 0) {
+    if (!isExplorer && (Object.keys(this.configureTypes).length > 0 || Object.keys(this.spoofedTypes).length > 0)) {
       const typeRoutes: any[] = [
         {
           name:      `${ this.name }-c-cluster-resource`,
