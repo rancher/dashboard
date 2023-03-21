@@ -1,5 +1,4 @@
 import Router, { RouteConfig } from 'vue-router';
-import { BLANK_CLUSTER } from '@shell/store';
 
 interface RouteInfo {
   parent?: string;
