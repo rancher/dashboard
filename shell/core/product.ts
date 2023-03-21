@@ -118,8 +118,9 @@ export class Product implements IProduct {
     // handle "headers"
     // check "label" and "labelKey" for all types
 
-    const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-${ this.name }`;
-    const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/${ this.name }`;
+    const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-product`;
+    const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/:product`;
+    const currCluster = this.modern ? BLANK_CLUSTER : this.store.getters['currentCluster'] ? this.store.getters['currentCluster'] : BLANK_CLUSTER;
 
     // Go through the virtual types and register those
     Object.keys(this.virtualTypes).forEach((name) => {
@@ -134,7 +135,7 @@ export class Product implements IProduct {
           path:   `/${ basePath }/${ vt.name }`,
           params: {
             product: this.name,
-            cluster: BLANK_CLUSTER,
+            cluster: currCluster,
           }
         }
       };
@@ -154,7 +155,7 @@ export class Product implements IProduct {
           name:   `${ baseName }-resource`,
           params: {
             product:  this.name,
-            cluster:  BLANK_CLUSTER,
+            cluster:  currCluster,
             resource: ct.name,
           }
         }
@@ -174,7 +175,7 @@ export class Product implements IProduct {
           name:   `${ baseName }-resource`,
           params: {
             product:  this.name,
-            cluster:  BLANK_CLUSTER,
+            cluster:  currCluster,
             resource: st.name,
           }
         }
@@ -230,7 +231,7 @@ export class Product implements IProduct {
       r.path = `/${ basePath }/${ r.path }`;
     });
 
-    // Add top-level route for the product
+    // Add top-level route for the product (for creating a new product only)
     const productBaseRoute = {
       route: {
         name:      this.name,
@@ -285,13 +286,13 @@ export class Product implements IProduct {
     allRoutesToAdd.forEach((r: any) => {
       r.params = {
         product: this.name,
-        cluster: BLANK_CLUSTER,
+        cluster: currCluster,
       };
 
       // Add metadata
       r.meta = r.meta || {};
       r.meta.product = this.name;
-      r.meta.cluster = BLANK_CLUSTER;
+      r.meta.cluster = currCluster;
 
       // Route needs to be in an object in the key 'route'
       extRoutes.push({ route: r });
