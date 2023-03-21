@@ -171,9 +171,9 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
   const hasNamespaces = Array.isArray(state.allNamespaces) && state.allNamespaces.length > 0;
   const allNamespaces = hasNamespaces ? state.allNamespaces : getters[`${ inStore }/all`](NAMESPACE);
 
-  // Filter out Rancher system namespaces
-  const showRancherNamespaces = state.prefs.data['all-namespaces'];
-  const allowedNamespaces = allNamespaces.filter(ns => showRancherNamespaces ? true : !ns.isObscure);
+  const allowedNamespaces = allNamespaces
+    .filter(ns => state.prefs.data['all-namespaces'] ? true : !ns.isObscure) // Filter out Rancher system namespaces
+    .filter(ns => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
 
   // Retrieve all the filters selected by the user
   const filters = state.namespaceFilters.filter(
