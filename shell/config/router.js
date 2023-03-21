@@ -338,7 +338,7 @@ export const routerOptions = {
     name:      'c-cluster-monitoring-alertmanagerconfig-alertmanagerconfigid-receiver'
   }, {
     path:      '/c/:cluster/auth/roles/:resource/:id?',
-    component: () => interopDefault(import('../pages/c/_cluster/auth/roles/_resource/_id.vue' /* webpackChunkName: "/pages/c/_cluster/auth/roles/_resource/_id" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/auth/roles/_resource/_id.vue' /* webpackChunkName: "pages/c/_cluster/auth/roles/_resource/_id" */)),
     name:      'c-cluster-auth-roles-resource-id'
   }, {
     path:      '/c/:cluster/monitoring/monitor/:namespace/:id?',
