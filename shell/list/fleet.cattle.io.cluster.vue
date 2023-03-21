@@ -30,6 +30,8 @@ export default {
     this.$fetchType(FLEET.WORKSPACE);
     await this.$fetchType(this.resource);
     this.allMgmt = await this.$fetchType(MANAGEMENT.CLUSTER);
+
+    console.log(this.allMgmt)
   },
 
   data() {
