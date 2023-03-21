@@ -468,14 +468,14 @@ export default {
 
     warnings.forEach((warning) => {
       if (warning && !warning.includes('violate PodSecurity') && !warning.includes('- unknown field')) {
-        messages.push(warning.substr(2));
+        messages.push(warning.substr(3));
       }
     });
 
     if (messages.length) {
       ctx.dispatch('growl/warning', {
         title:   `${ capitalize(data?.type) }: ${ data?.metadata.name }`,
-        message: decodeURIComponent(messages.join().replace(/\+/g, '%20')),
+        message: decodeURIComponent(messages.join('').replace(/\+/g, '%20')),
         timeout: 0,
       }, { root: true });
     }
