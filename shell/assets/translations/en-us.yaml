@@ -4186,6 +4186,7 @@ projectNamespaces:
   label: Projects/Namespaces
   noNamespaces: There are no namespaces defined.
   noProjectNoNamespaces: All namespaces are in a project
+  isIstioInjectionEnabled: Istio automatic sidecar injection is enabled for this namespace
 
 prometheusRule:
   alertingRules:
