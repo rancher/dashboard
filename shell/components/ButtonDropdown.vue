@@ -3,7 +3,6 @@ import { createPopper } from '@popperjs/core';
 import { get } from '@shell/utils/object';
 import isString from 'lodash/isString';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
-import $ from 'jquery';
 
 export default {
   mixins: [VueSelectOverrides],
@@ -70,8 +69,8 @@ export default {
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.
        */
-      const componentWidth = $(component.$refs.search).width();
-      const dropWidth = $(dropdownList).width();
+      const componentWidth = component.$refs.search.clientWidth;
+      const dropWidth = dropdownList.clientWidth;
 
       if (dropWidth < componentWidth) {
         dropdownList.style.width = `${ componentWidth }px`;
