@@ -139,6 +139,8 @@ export default function(plugin: IPlugin) {
       }
     ], { labelKey: 'tab.custom-group-label', weight: 2 });
 
+    // **************************************************************************************************************
+    // **************************************************************************************************************
     // THIS PRODUCT HAS A POST-ADD NAVIGATION CONFIGURATION EXAMPLE...
     anotherProduct.addRoutes([
       {
