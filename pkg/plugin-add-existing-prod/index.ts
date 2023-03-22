@@ -25,8 +25,10 @@ export default function(plugin: IPlugin) {
 
     // Simple call to add a new product that shows up in the side nav
     const explorerProduct = products.get('explorer');
+    const fleetProduct = products.get('fleet');
 
     console.log('--- EXPLORER PRODUCTION DEFINITION ---', explorerProduct);
+    console.log('--- FLEET PRODUCTION DEFINITION ---', fleetProduct);
 
     if (explorerProduct) {
       // Add routes for this product
@@ -56,8 +58,63 @@ export default function(plugin: IPlugin) {
           name:  'page1',
           route: 'page1'
         },
-        'fleet.cattle.io.cluster'
+        {
+          type:  'custom-page',
+          name:  'page2',
+          route: 'page2'
+        }
       ]);
+
+      explorerProduct.addNavigation([
+        {
+          type:  'custom-page',
+          name:  'page3',
+          route: 'page3'
+        },
+        'harvesterhci.io.management.cluster'
+      ], 'My new product tab');
+    }
+
+    if (fleetProduct) {
+      fleetProduct.addRoutes([
+        {
+          name:      'page1',
+          path:      'page1',
+          component: Page1
+        },
+        {
+          name:      'page2',
+          path:      'page2',
+          component: Page2
+        },
+        {
+          name:      'page3',
+          path:      'page3',
+          component: Page3
+        }
+      ]);
+
+      fleetProduct.addNavigation([
+        {
+          type:  'custom-page',
+          name:  'page1',
+          route: 'page1'
+        },
+        {
+          type:  'custom-page',
+          name:  'page2',
+          route: 'page2'
+        }
+      ]);
+
+      fleetProduct.addNavigation([
+        {
+          type:  'custom-page',
+          name:  'page3',
+          route: 'page3'
+        },
+        'harvesterhci.io.management.cluster'
+      ], 'My new product tab');
     }
   });
 }
