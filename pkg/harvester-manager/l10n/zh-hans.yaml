@@ -7,3 +7,5 @@ harvesterManager:
     description: Harvester 是一个采用企业级开源技术，包括Kubernetes、Kubevirt和Longhorn，为裸金属服务器打造的现代超融合基础设施（HCI）解决方案。
   plugins:
     loadError: 加载 Harvester 插件时出错
+  rke:
+    templateError: 模版格式不正确

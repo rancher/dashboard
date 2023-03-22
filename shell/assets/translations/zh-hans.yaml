@@ -1271,6 +1271,7 @@ cluster:
       affinity:
         namespaces:
           placeholder: 例如：default,system,base
+      installGuestAgent: 安装访客代理
   description:
     label: 集群描述
     placeholder: 输入可以描述该集群的文本

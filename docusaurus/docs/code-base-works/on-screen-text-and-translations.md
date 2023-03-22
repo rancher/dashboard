@@ -1,7 +1,7 @@
 
 # On-screen Text and Translations
 
-This page covers Internationalisation (i18n) and localisation (i10n).
+This page covers Internationalisation (i18n) and localisation (l10n).
 
 
 ## Internationalization (i18n)
@@ -58,7 +58,7 @@ For example, if we want to dynamically fill in the description of a resource bas
 
 In this case, the quotation marks are required because some Secret types, such as `kubernetes.io/basic-auth`, include a slash.
 
-## i10n 
+## l10n 
 
 Localisation files can be found in `./assets/translations/en-us.yaml`.
 

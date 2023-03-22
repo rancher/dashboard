@@ -1,6 +1,10 @@
 <script>
 import draggable from 'vuedraggable';
 import isEmpty from 'lodash/isEmpty';
+import jsyaml from 'js-yaml';
+import YAML from 'yaml';
+import isBase64 from 'is-base64';
+
 import NodeAffinity from '@shell/components/form/NodeAffinity';
 // import PodAffinity from '@shell/components/form/PodAffinity';
 import InfoBox from '@shell/components/InfoBox';
@@ -10,9 +14,11 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
+import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
 
 import { get } from '@shell/utils/object';
+import { _CREATE } from '@shell/config/query-params';
 import { removeObject } from '@shell/utils/array';
 import { mapGetters } from 'vuex';
 import {
@@ -34,6 +40,20 @@ import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
+
+// init qemu guest agent
+export const QGA_JSON = {
+  package_update: true,
+  packages:       ['qemu-guest-agent'],
+  runcmd:         [
+    [
+      'systemctl',
+      'enable',
+      '--now',
+      'qemu-guest-agent.service'
+    ]
+  ]
+};
 
 export function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
@@ -62,7 +82,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, InfoBox
+    Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, InfoBox
   },
 
   mixins: [CreateEditView],
@@ -225,7 +245,9 @@ export default {
       }
 
       if (!this.value.diskInfo) {
-        this.isOldFormat = true;
+        if (this.mode !== _CREATE) {
+          this.isOldFormat = true;
+        }
 
         // Convert the old format to the new format
         const disk = {
@@ -246,7 +268,9 @@ export default {
       this.disks = JSON.parse(this.value.diskInfo).disks || [];
 
       if (!this.value.networkInfo) {
-        this.isOldFormat = true;
+        if (this.mode !== _CREATE) {
+          this.isOldFormat = true;
+        }
 
         const _interface = {
           networkName: this.value.networkName || '',
@@ -271,25 +295,46 @@ export default {
 
   data() {
     let vmAffinity = { affinity: {} };
-    let userData = '';
     let networkData = '';
+    const isCreate = this.mode === _CREATE;
 
     if (this.value.vmAffinity) {
       vmAffinity = { affinity: JSON.parse(base64Decode(this.value.vmAffinity)) };
     }
 
-    if (this.value.userData) {
-      userData = base64Decode(this.value.userData);
+    let userData = '';
+    let installAgent;
+    let userDataIsBase64 = true;
+    let networkDataIsBase64 = true;
+
+    if (isCreate) {
+      installAgent = true;
+      userData = this.addCloudConfigComment(QGA_JSON);
+      this.value.userData = base64Encode(userData);
+    } else {
+      if (isBase64(this.value.userData)) {
+        userData = base64Decode(this.value.userData);
+      } else {
+        userDataIsBase64 = false;
+        userData = this.value.userData;
+      }
+      installAgent = this.hasInstallAgent(userData, false);
     }
 
     if (this.value.networkData) {
-      networkData = base64Decode(this.value.networkData);
+      if (isBase64(this.value.networkData)) {
+        networkData = base64Decode(this.value.networkData);
+      } else {
+        networkDataIsBase64 = false;
+        networkData = this.value.networkData;
+      }
     }
 
     return {
       credential:         null,
       vmAffinity,
       userData,
+      userDataTemplate:   '',
       networkData,
       images:             [],
       storageClass:       [],
@@ -303,6 +348,9 @@ export default {
       disks:              [],
       interfaces:         [],
       isOldFormat:        false,
+      installAgent,
+      userDataIsBase64,
+      networkDataIsBase64,
       SOURCE_TYPE
     };
   },
@@ -407,7 +455,9 @@ export default {
     },
 
     userData(neu) {
-      this.$refs.userDataYamlEditor.refresh();
+      const hasInstall = this.hasInstallAgent(neu, this.installAgent);
+
+      this.installAgent = hasInstall;
       this.value.userData = base64Encode(neu);
     },
 
@@ -428,6 +478,14 @@ export default {
 
     test() {
       const errors = [];
+
+      if (!this.userDataIsBase64) {
+        this.value.userData = base64Decode(this.value.userData);
+      }
+
+      if (!this.networkDataIsBase64) {
+        this.value.networkData = base64Decode(this.value.networkData);
+      }
 
       if (!this.value.cpuCount) {
         const message = this.validatorRequiredField(
@@ -645,6 +703,225 @@ export default {
         [SOURCE_TYPE.Volume]: this.$store.getters['i18n/t']('cluster.credential.harvester.volume.volume'),
         [SOURCE_TYPE.IMAGE]:  this.$store.getters['i18n/t']('cluster.credential.harvester.volume.imageVolume'),
       }[type];
+    },
+
+    updateUserData(templateValue) {
+      try {
+        const templateJsonData = this.convertToJson(templateValue);
+
+        let userDataYaml;
+
+        if (this.installAgent) {
+          const mergedObj = Object.assign(templateJsonData, { ...QGA_JSON });
+
+          userDataYaml = this.addCloudConfigComment(mergedObj);
+        } else {
+          userDataYaml = templateValue;
+        }
+
+        this.$refs.userDataYamlEditor.updateValue(userDataYaml);
+        this.userData = userDataYaml;
+      } catch (e) {
+        this.$store.dispatch('growl/error', {
+          title:   this.t('generic.notification.title.error'),
+          message: this.t('harvesterManager.rke.templateError')
+        }, { root: true });
+      }
+    },
+
+    addCloudConfigComment(value) {
+      if (typeof value === 'object' && value !== null) {
+        return `#cloud-config\n${ jsyaml.dump(value) }`;
+      } else if (typeof value === 'string' && !value.startsWith('#cloud-config')) {
+        return `#cloud-config\n${ value }`;
+      } else if (typeof value === 'string') {
+        return value;
+      }
+    },
+
+    /**
+     * @param {striing || YAML.parseDocument} userScript
+     */
+    hasCloudConfigComment(userScript) {
+      /**
+       * Check that userData contains: #cloud-config
+       * case 1:
+            ## template: jinja
+            #cloud-config
+      */
+      const userDataDoc = userScript ? YAML.parseDocument(userScript) : YAML.parseDocument({});
+      const items = userDataDoc?.contents?.items || [];
+
+      let exist = false;
+
+      if (userDataDoc?.comment === 'cloud-config' || userDataDoc?.comment?.includes('cloud-config\n')) {
+        exist = true;
+      }
+
+      if (userDataDoc?.commentBefore === 'cloud-config' || userDataDoc?.commentBefore?.includes('cloud-config\n')) {
+        exist = true;
+      }
+
+      items.map((item) => {
+        const key = item.key;
+
+        if (key?.commentBefore?.includes('cloud-config')) {
+          exist = true;
+        }
+      });
+
+      return exist;
+    },
+
+    convertToJson(script = '') {
+      let out = {};
+
+      try {
+        out = jsyaml.load(script);
+      } catch (e) {
+        throw new Error('Function(convertToJson) error');
+      }
+
+      return out;
+    },
+
+    hasInstallAgent(userScript, installAgent) {
+      let dataFormat = {};
+
+      try {
+        dataFormat = this.convertToJson(userScript);
+      } catch {
+        // When the yaml cannot be converted to json, the previous installAgent value should be returned
+        return installAgent;
+      }
+
+      const hasInstall = dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => Array.isArray(S) && S.join('-') === QGA_JSON.runcmd[0].join('-'));
+
+      return !!hasInstall;
+    },
+
+    /**
+     * @param paths A Object path, e.g. 'a.b.c' => ['a', 'b', 'c']. Refer to https://eemeli.org/yaml/#scalar-values
+     * @returns
+     */
+    deleteYamlDocProp(doc, paths) {
+      try {
+        const item = doc.getIn([])?.items[0];
+        const key = item?.key;
+        const hasCloudConfigComment = !!key?.commentBefore?.includes('cloud-config');
+        const isMatchProp = key.source === paths[paths.length - 1];
+
+        if (key && hasCloudConfigComment && isMatchProp) {
+          // Comments are mounted on the next node and we should not delete the node containing cloud-config
+        } else {
+          doc.deleteIn(paths);
+        }
+      } catch (e) {}
+    },
+
+    addGuestAgent(userData) {
+      const userDataDoc = userData ? YAML.parseDocument(userData) : YAML.parseDocument({});
+      const userDataYAML = userDataDoc.toString();
+      const userDataJSON = YAML.parse(userDataYAML);
+      let packages = userDataJSON?.packages || [];
+      let runcmd = userDataJSON?.runcmd || [];
+
+      userDataDoc.setIn(['package_update'], true);
+
+      if (Array.isArray(packages)) {
+        if (!packages.includes('qemu-guest-agent')) {
+          packages.push('qemu-guest-agent');
+        }
+      } else {
+        packages = QGA_JSON.packages;
+      }
+
+      if (Array.isArray(runcmd)) {
+        const hasSameRuncmd = runcmd.find( S => Array.isArray(S) && S.join('-') === QGA_JSON.runcmd[0].join('-'));
+
+        if (!hasSameRuncmd) {
+          runcmd.push(QGA_JSON.runcmd[0]);
+        }
+      } else {
+        runcmd = QGA_JSON.runcmd;
+      }
+
+      if (packages.length > 0) {
+        userDataDoc.setIn(['packages'], packages);
+      } else {
+        userDataDoc.setIn(['packages'], []); // It needs to be set empty first, as it is possible that cloud-init comments are mounted on this node
+        this.deleteYamlDocProp(userDataDoc, ['packages']);
+        this.deleteYamlDocProp(userDataDoc, ['package_update']);
+      }
+
+      if (runcmd.length > 0) {
+        userDataDoc.setIn(['runcmd'], runcmd);
+      } else {
+        this.deleteYamlDocProp(userDataDoc, ['runcmd']);
+      }
+
+      return userDataDoc;
+    },
+
+    deleteGuestAgent(userData) {
+      const userDataDoc = userData ? YAML.parseDocument(userData) : YAML.parseDocument({});
+
+      const userDataYAML = userDataDoc.toString();
+      const userDataJSON = YAML.parse(userDataYAML);
+      const packages = userDataJSON?.packages || [];
+      const runcmd = userDataJSON?.runcmd || [];
+
+      if (Array.isArray(packages)) {
+        for (let i = 0; i < packages.length; i++) {
+          if (packages[i] === 'qemu-guest-agent') {
+            packages.splice(i, 1);
+          }
+        }
+      }
+
+      if (Array.isArray(runcmd)) {
+        for (let i = 0; i < runcmd.length; i++) {
+          if (Array.isArray(runcmd[i]) && runcmd[i].join('-') === QGA_JSON.runcmd[0].join('-')) {
+            runcmd.splice(i, 1);
+          }
+        }
+      }
+
+      if (packages.length > 0) {
+        userDataDoc.setIn(['packages'], packages);
+      } else {
+        userDataDoc.setIn(['packages'], []);
+        this.deleteYamlDocProp(userDataDoc, ['packages']);
+        this.deleteYamlDocProp(userDataDoc, ['package_update']);
+      }
+
+      if (runcmd.length > 0) {
+        userDataDoc.setIn(['runcmd'], runcmd);
+      } else {
+        this.deleteYamlDocProp(userDataDoc, ['runcmd']);
+      }
+
+      return userDataDoc;
+    },
+
+    updateAgent(isInstall) {
+      const userDataDoc = isInstall ? this.addGuestAgent(this.userData) : this.deleteGuestAgent(this.userData);
+
+      let userDataYaml = userDataDoc.toString();
+
+      if (userDataYaml === '{}\n') {
+        // When the YAML parsed value is '{}\n', it means that the userData is empty.
+        userDataYaml = '';
+      }
+
+      const hasCloudComment = this.hasCloudConfigComment(userDataYaml);
+
+      if (!hasCloudComment) {
+        userDataYaml = `#cloud-config\n${ userDataYaml }`;
+      }
+
+      this.$refs.userDataYamlEditor.updateValue(userDataYaml);
+      this.$set(this, 'userData', userDataYaml);
     },
   }
 };
@@ -928,22 +1205,30 @@ export default {
         <div>
           <LabeledSelect
             v-if="isCreate"
-            v-model="userData"
+            v-model="userDataTemplate"
             class="mb-10"
             :options="userDataOptions"
             label-key="cluster.credential.harvester.userData.label"
             :mode="mode"
             :disabled="disabled"
+            @input="updateUserData"
           />
 
           <YamlEditor
             ref="userDataYamlEditor"
-            :key="userData"
-            class="yaml-editor mb-20"
+            v-model="userData"
+            class="yaml-editor mb-10"
             :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-            :value="userData"
             :disabled="disabled"
-            @onInput="valuesChanged($event, 'userData')"
+          />
+
+          <Checkbox
+            v-model="installAgent"
+            class="check mb-20"
+            type="checkbox"
+            label-key="cluster.credential.harvester.installGuestAgent"
+            :mode="mode"
+            @input="updateAgent"
           />
         </div>
 
