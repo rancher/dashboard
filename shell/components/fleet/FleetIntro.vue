@@ -1,6 +1,5 @@
 <script>
 import { AS, _YAML } from '@shell/config/query-params';
-import { FLEET } from 'config/types';
 
 export default {
 
@@ -19,14 +18,10 @@ export default {
       query: { [AS]: _YAML },
     };
 
-    const gitRepoSchema = this.$store.getters['management/schemaFor'](FLEET.GIT_REPO);
-    const canCreateRepos = gitRepoSchema && gitRepoSchema.resourceMethods.includes('PUT');
-
     return {
       formRoute,
       yamlRoute,
       hasEditComponent,
-      canCreateRepos
     };
   },
 };
@@ -37,10 +32,7 @@ export default {
     <div class="title">
       {{ t('fleet.gitRepo.repo.noRepos') }}
     </div>
-    <div
-      v-if="canCreateRepos"
-      class="actions"
-    >
+    <div class="actions">
       <n-link
         :to="formRoute"
         class="btn role-secondary"
