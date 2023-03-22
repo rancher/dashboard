@@ -45,8 +45,6 @@ export class Product implements IProduct {
       to:                  { name: this.name, path: `/${ this.name }` }
     };
 
-    console.log('prodOptions on create', prodOptions);
-
     this.product = prodOptions;
 
     // Products created via this interface should be consider 'modern' - versus the legacy products with legacy routes
@@ -66,19 +64,31 @@ export class Product implements IProduct {
 
     // here we take care of any label or labelKey props on the group object, so that we can handle translation
     if (typeof group === 'object' && !Array.isArray(group) && group !== null && (group.label || group.labelKey)) {
-      groupIdentifier = group.labelKey ? this.store.getters['i18n/t'](group.labelKey) : group.label;
+      // TO BE DELETED!!! safeguard to at least have a meaningful string if groupIdentifier is undefined because there's no translation...
+      /* ------------ */
+      if (group.labelKey) {
+        groupIdentifier = this.store.getters['i18n/t'](group.labelKey) ? this.store.getters['i18n/t'](group.labelKey) : group.labelKey;
+      } else {
+        groupIdentifier = group.label;
+      }
+      /* ------------ */
+
+      // groupIdentifier = group.labelKey ? this.store.getters['i18n/t'](group.labelKey) : group.label;
     } else {
       groupIdentifier = group;
     }
 
     if (!this.nav[groupIdentifier]) {
-      this.nav[groupIdentifier] = [];
+      this.nav[groupIdentifier] = {
+        items:       [],
+        groupWeight: grp?.weight
+      };
     }
 
     navigationItems.forEach((route) => {
-      // string-like notations should only be used for kube resources
+      // string-like notations should only be used for kube resources , hence we push it to configureTypes
       if (typeof route === 'string') {
-        this.nav[groupIdentifier].push(route);
+        this.nav[groupIdentifier].items.push({ name: route });
         this.configureTypes[route] = { name: route };
       } else {
         const r = route as RouteLink;
@@ -100,33 +110,36 @@ export class Product implements IProduct {
         }
 
         // Add name to the navigation
-        this.nav[groupIdentifier].push(r.name);
+        this.nav[groupIdentifier].items.push({
+          name:   r.name,
+          weight: r.weight
+        });
       }
     });
-
-    console.log('*** addNavigation this.configureTypes ***', this.configureTypes);
-    console.log('*** addNavigation this.virtualTypes ***', this.virtualTypes);
-    console.log('*** addNavigation this.spoofedTypes ***', this.spoofedTypes);
-    console.log('*** addNavigation this.nav ***', this.nav);
+    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.configureTypes ***`, this.configureTypes);
+    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.virtualTypes ***`, this.virtualTypes);
+    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.spoofedTypes ***`, this.spoofedTypes);
+    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.nav ***`, this.nav);
+    console.log(`***************************** addNavigation END *****************************`);
   }
 
   _applyRoutes(addRoutes: Function) {
     // TODO: these should be defined once
 
     console.error('APPLY ROUTES');
-  
+
     const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-product`;
     const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/:product`;
     const currCluster = this.modern ? BLANK_CLUSTER : this.store.getters['currentCluster'] ? this.store.getters['currentCluster'] : BLANK_CLUSTER;
     // Figure out the default route for the product
     const defaultRoute: any = {};
 
-    if (this.nav[this.rootDefinition] && this.nav[this.rootDefinition].length > 0) {
-      const first = this.nav[this.rootDefinition][0];
+    if (this.nav[this.rootDefinition] && this.nav[this.rootDefinition].items?.length > 0) {
+      const firstRootNavItem = this.nav[this.rootDefinition].items[0];
 
-      console.log('first route (on default route)', first);
+      console.log('first route (on default route)', firstRootNavItem);
 
-      let redirect = first;
+      let redirect = firstRootNavItem.name;
 
       // Can be a string or a Route
       if (typeof redirect === 'string') {
@@ -239,9 +252,10 @@ export class Product implements IProduct {
     // Register the product
     this.DSL.product(this.product);
 
+    // NOTE: weightType doesn't seem to work... passing the weight's directly as options when
+    // configuring each type seems to do the trick
+
     // TODO LIST:
-    // handle "weightType"
-    // handle "weightGroup"
     // handle "headers"
     // check "label" and "labelKey" for all types
 
@@ -255,9 +269,10 @@ export class Product implements IProduct {
       const options = vt.options || {};
 
       const vtOptions = {
-        name:  vt.name,
+        name:   vt.name,
+        weight: vt.weight,
         ...options,
-        route: {
+        route:  {
           name:   `${ baseName }-${ vt.name }`,
           path:   `/${ basePath }/${ vt.name }`,
           params: {
@@ -277,6 +292,7 @@ export class Product implements IProduct {
       const options = ct.options || {};
 
       this.DSL.configureType(ct.name, {
+        weight:      ct.weight,
         ...options,
         customRoute: {
           name:   `${ baseName }-resource`,
@@ -295,10 +311,11 @@ export class Product implements IProduct {
       const options = st.options || {};
 
       this.DSL.spoofedType({
-        type:  st.name, // for spoofedType we need the 'type' param populated
-        name:  st.name,
+        type:   st.name, // for spoofedType we need the 'type' param populated
+        name:   st.name,
+        weight: st.weight,
         ...options,
-        route: {
+        route:  {
           name:   `${ baseName }-resource`,
           params: {
             product:  this.name,
@@ -312,9 +329,18 @@ export class Product implements IProduct {
     // Navigation (basicType and weight's)
     Object.keys(this.nav).forEach((grp) => {
       const group = grp === this.rootDefinition ? undefined : grp;
-      const items = this.nav[grp];
+      const items = this.nav[grp].items;
 
-      this.DSL.basicType(items, group);
+      if (items.length) {
+        const mappedItems = items.map((item:any) => item.name);
+
+        // set the basic type per group (menu nav entry)
+        this.DSL.basicType(mappedItems, group);
+      }
+
+      if (group && this.nav[grp].groupWeight) {
+        this.DSL.weightGroup(group, this.nav[grp].groupWeight, true);
+      }
     });
   }
 

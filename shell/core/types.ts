@@ -152,7 +152,8 @@ export type RouteLink = {
   label?: string;
   labelKey?: string;
   route: string | RouteLocation;
-  options?: object;
+  weight?: object;
+  options?: number;
 }
 
 export type Navigation = string | RouteLink;

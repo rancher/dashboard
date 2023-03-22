@@ -366,8 +366,12 @@ export async function applyProducts(store, $plugin) {
       impl.init(store);
     }
   }
+  console.error('INTERNAL STUFF LOADED before');
+
   // Load the products from all plugins
   $plugin.loadProducts();
+
+  console.error('INTERNAL STUFF LOADED after');
 }
 
 export function productsLoaded() {
