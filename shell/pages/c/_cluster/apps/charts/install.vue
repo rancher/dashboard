@@ -1938,8 +1938,6 @@ export default {
   .scroll {
     &__container {
       $yaml-height: 200px;
-      // display: flex;
-      // flex: 1;
       min-height: $yaml-height;
       height: 0;
     }

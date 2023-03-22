@@ -466,7 +466,6 @@ $spacer: 10px;
 .outer-container {
   display: flex;
   flex-direction: column;
-  // flex: 1;
   padding: 0;
   height: 100%;
   position: relative;
