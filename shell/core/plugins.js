@@ -21,6 +21,9 @@ export default function({
   // Track which plugin loaded what, so we can unload stuff
   const plugins = {};
 
+  // New-style products
+  const newProducts = {};
+
   const pluginRoutes = new PluginRoutes(app.router);
 
   const uiConfig = {};
@@ -278,6 +281,8 @@ export default function({
         });
       });
 
+      this.initNewProducts(plugin);
+
       // Initialize the product if the store is ready
       if (productsLoaded()) {
         this.loadProducts([plugin]);
@@ -296,6 +301,16 @@ export default function({
 
       // Routes
       pluginRoutes.addRoutes(plugin, plugin.routes);
+
+      // Need to add routes now so that refresh for an extension work can resolve the route
+      // Add routes for all new-style products
+      const products = newProducts[plugin.id] || [];
+
+      products.forEach((p) => {
+        p._applyRoutes((routes) => {
+          pluginRoutes.addRoutes(plugin, routes);
+        });
+      });
 
       // Validators
       Object.keys(plugin.validators).forEach((key) => {
@@ -403,26 +418,28 @@ export default function({
 
             if (impl.init) {
               impl.init(plugin, store);
-            } else if (typeof impl === 'function') {
-              // If it does not have the init function, then it is a pure function - which is the new approach
-
-              // Pass it an IProducts interface
-              const products = new Products(store);
-
-              impl(products);
-
-              products.products.forEach((p) => {
-                // Call apply on each product, passing a function that can register product routes
-                p._apply((routes) => {
-                  pluginRoutes.addRoutes(plugin, routes);
-                });
-              });
-
-              // DEBUG: console.error(app.router.getRoutes());
             }
           });
         }
+
+        // New style products - apply each so it can make it's changes to the store
+        const products = newProducts[plugin.id] || [];
+
+        products.forEach(p => p._apply());
       });
+    },
+
+    // For new-style products, track their products so we can add their routes and store changes later
+    initNewProducts(plugin) {
+      if (plugin.newProducts) {
+        // Pass it an IProducts interface
+        const products = new Products(store);
+
+        plugin.newProducts.forEach(p => p(products));
+
+        // Store the new-style products for this extension
+        newProducts[plugin.id] = products.products;
+      }
     },
   });
 }

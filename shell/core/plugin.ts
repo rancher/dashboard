@@ -23,6 +23,7 @@ export class Plugin implements IPlugin {
   public l10n: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
   public products: Function[] = [];
+  public newProducts: Function[] = [];
   public productNames: string[] = [];
   public routes: { parent?: string, route: RouteConfig }[] = [];
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
@@ -89,7 +90,7 @@ export class Plugin implements IPlugin {
 
   // New mechanism
   initProducts(product: Function): void {
-    this.products.push(product);
+    this.newProducts.push(product);
   }
 
   addLocale(locale: string, label: string): void {

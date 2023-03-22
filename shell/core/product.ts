@@ -14,6 +14,7 @@ export class Product implements IProduct {
   private store: any;
   private DSL: any;
   private modern = false;
+  private product: any;
 
   // Track changes made via the IProduct API and apply them once
   private rootDefinition: string = 'ROOT';
@@ -33,6 +34,7 @@ export class Product implements IProduct {
     // Use legacy type-map to create the product
 
     // TODO: Mangle ProductOptions
+    // Smallest set of defaults for the product to show up in 'Global Apps'
     const prodOptions = {
       icon:                'extension',
       category:            'global',
@@ -45,8 +47,7 @@ export class Product implements IProduct {
 
     console.log('prodOptions on create', prodOptions);
 
-    // Smallest set of defaults for the product to show up in 'Global Apps'
-    this.DSL.product(prodOptions);
+    this.product = prodOptions;
 
     // Products created via this interface should be consider 'modern' - versus the legacy products with legacy routes
     this.modern = true;
@@ -109,87 +110,14 @@ export class Product implements IProduct {
     console.log('*** addNavigation this.nav ***', this.nav);
   }
 
-  // Internal - not exposed by the IProduct interface
-  // Called by extensions system after product init - applies the routes and navigation to the store
-  _apply(addRoutes: Function) {
-    // TODO LIST:
-    // handle "weightType"
-    // handle "weightGroup"
-    // handle "headers"
-    // check "label" and "labelKey" for all types
+  _applyRoutes(addRoutes: Function) {
+    // TODO: these should be defined once
 
+    console.error('APPLY ROUTES');
+  
     const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-product`;
     const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/:product`;
     const currCluster = this.modern ? BLANK_CLUSTER : this.store.getters['currentCluster'] ? this.store.getters['currentCluster'] : BLANK_CLUSTER;
-
-    // Go through the virtual types and register those
-    Object.keys(this.virtualTypes).forEach((name) => {
-      const vt = this.virtualTypes[name];
-      const options = vt.options || {};
-
-      const vtOptions = {
-        name:  vt.name,
-        ...options,
-        route: {
-          name:   `${ baseName }-${ vt.name }`,
-          path:   `/${ basePath }/${ vt.name }`,
-          params: {
-            product: this.name,
-            cluster: currCluster,
-          }
-        }
-      };
-
-      this.DSL.virtualType(vtOptions);
-    });
-
-    // Go through the kube resource types (configureType) and register those
-    // also the route for the default list/edit/create are added a bit below
-    Object.keys(this.configureTypes).forEach((name) => {
-      const ct = this.configureTypes[name];
-      const options = ct.options || {};
-
-      this.DSL.configureType(ct.name, {
-        ...options,
-        customRoute: {
-          name:   `${ baseName }-resource`,
-          params: {
-            product:  this.name,
-            cluster:  currCluster,
-            resource: ct.name,
-          }
-        }
-      });
-    });
-
-    // Go through the spoofed types and register those
-    Object.keys(this.spoofedTypes).forEach((name) => {
-      const st = this.spoofedTypes[name];
-      const options = st.options || {};
-
-      this.DSL.spoofedType({
-        type:  st.name, // for spoofedType we need the 'type' param populated
-        name:  st.name,
-        ...options,
-        route: {
-          name:   `${ baseName }-resource`,
-          params: {
-            product:  this.name,
-            cluster:  currCluster,
-            resource: st.name,
-          }
-        }
-      });
-    });
-
-    // Navigation (basicType and weight's)
-    Object.keys(this.nav).forEach((grp) => {
-      const group = grp === this.rootDefinition ? undefined : grp;
-      const items = this.nav[grp];
-
-      this.DSL.basicType(items, group);
-    });
-
     // Figure out the default route for the product
     const defaultRoute: any = {};
 
@@ -303,6 +231,91 @@ export class Product implements IProduct {
 
     addRoutes([productBaseRoute]);
     addRoutes(extRoutes);
+  }
+
+  // Internal - not exposed by the IProduct interface
+  // Called by extensions system after product init - applies the routes and navigation to the store
+  _apply() {
+    // Register the product
+    this.DSL.product(this.product);
+
+    // TODO LIST:
+    // handle "weightType"
+    // handle "weightGroup"
+    // handle "headers"
+    // check "label" and "labelKey" for all types
+
+    const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-product`;
+    const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/:product`;
+    const currCluster = this.modern ? BLANK_CLUSTER : this.store.getters['currentCluster'] ? this.store.getters['currentCluster'] : BLANK_CLUSTER;
+
+    // Go through the virtual types and register those
+    Object.keys(this.virtualTypes).forEach((name) => {
+      const vt = this.virtualTypes[name];
+      const options = vt.options || {};
+
+      const vtOptions = {
+        name:  vt.name,
+        ...options,
+        route: {
+          name:   `${ baseName }-${ vt.name }`,
+          path:   `/${ basePath }/${ vt.name }`,
+          params: {
+            product: this.name,
+            cluster: currCluster,
+          }
+        }
+      };
+
+      this.DSL.virtualType(vtOptions);
+    });
+
+    // Go through the kube resource types (configureType) and register those
+    // also the route for the default list/edit/create are added a bit below
+    Object.keys(this.configureTypes).forEach((name) => {
+      const ct = this.configureTypes[name];
+      const options = ct.options || {};
+
+      this.DSL.configureType(ct.name, {
+        ...options,
+        customRoute: {
+          name:   `${ baseName }-resource`,
+          params: {
+            product:  this.name,
+            cluster:  currCluster,
+            resource: ct.name,
+          }
+        }
+      });
+    });
+
+    // Go through the spoofed types and register those
+    Object.keys(this.spoofedTypes).forEach((name) => {
+      const st = this.spoofedTypes[name];
+      const options = st.options || {};
+
+      this.DSL.spoofedType({
+        type:  st.name, // for spoofedType we need the 'type' param populated
+        name:  st.name,
+        ...options,
+        route: {
+          name:   `${ baseName }-resource`,
+          params: {
+            product:  this.name,
+            cluster:  currCluster,
+            resource: st.name,
+          }
+        }
+      });
+    });
+
+    // Navigation (basicType and weight's)
+    Object.keys(this.nav).forEach((grp) => {
+      const group = grp === this.rootDefinition ? undefined : grp;
+      const items = this.nav[grp];
+
+      this.DSL.basicType(items, group);
+    });
   }
 
   // // NEW WORK!!!!
