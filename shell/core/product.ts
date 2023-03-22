@@ -86,14 +86,22 @@ export class Product implements IProduct {
     }
 
     navigationItems.forEach((route) => {
-      // string-like notations should only be used for kube resources , hence we push it to configureTypes
+      // string-like notations should only be used for kube resources that already exist, hence we push it to configureTypes
       if (typeof route === 'string') {
         this.nav[groupIdentifier].items.push({ name: route });
         this.configureTypes[route] = { name: route };
       } else {
         const r = route as RouteLink;
 
-        // Ensure r has a label
+        // handle label translations for each type (labelKey)
+        if (r.labelKey || r.label) {
+          if (r.labelKey) {
+            r.label = this.store.getters['i18n/t'](r.labelKey) ? this.store.getters['i18n/t'](r.labelKey) : r.labelKey; // FALLBACK TO BE DELETED!!!!
+            delete r.labelKey;
+          }
+        }
+
+        // Ensure r has a label populated by the "name" prop if it doesn't exist yet
         if (!r.labelKey && !r.label) {
           r.label = r.name;
         }
@@ -116,11 +124,46 @@ export class Product implements IProduct {
         });
       }
     });
-    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.configureTypes ***`, this.configureTypes);
-    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.virtualTypes ***`, this.virtualTypes);
-    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.spoofedTypes ***`, this.spoofedTypes);
-    console.log(`*** addNavigation for product ${ this.product?.to?.name } this.nav ***`, this.nav);
-    console.log(`***************************** addNavigation END *****************************`);
+  }
+
+  configurePage(name: string, options?: object): void {
+    // should we only consider unique names?
+    const configArray = ['configureTypes', 'virtualTypes', 'spoofedTypes'];
+    let found = false;
+    let configArrayItem: string;
+
+    for (let i = 0; i < configArray.length; i++) {
+      const configType: string = configArray[i];
+
+      for (let x = 0; x < Object.keys(this[configType]).length; x++) {
+        const key = Object.keys(this[configType])[x];
+
+        if (key === name) {
+          found = true;
+          configArrayItem = configType;
+          break;
+        }
+      }
+
+      if (found) {
+        break;
+      }
+    }
+
+    if (found) {
+      const currentConfig = { ...this[configArrayItem][name] };
+
+      // we need the current options if we apply configurePage twice on the same resource...
+      const currentOptions = { ...this[configArrayItem][name].options };
+
+      this[configArrayItem][name] = {
+        ...currentConfig,
+        options: {
+          ...currentOptions,
+          ...options
+        }
+      };
+    }
   }
 
   _applyRoutes(addRoutes: Function) {
@@ -257,7 +300,6 @@ export class Product implements IProduct {
 
     // TODO LIST:
     // handle "headers"
-    // check "label" and "labelKey" for all types
 
     const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-product`;
     const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/:product`;
@@ -271,6 +313,7 @@ export class Product implements IProduct {
       const vtOptions = {
         name:   vt.name,
         weight: vt.weight,
+        label:  vt.label,
         ...options,
         route:  {
           name:   `${ baseName }-${ vt.name }`,
@@ -293,6 +336,7 @@ export class Product implements IProduct {
 
       this.DSL.configureType(ct.name, {
         weight:      ct.weight,
+        label:       ct.label,
         ...options,
         customRoute: {
           name:   `${ baseName }-resource`,
@@ -314,6 +358,7 @@ export class Product implements IProduct {
         type:   st.name, // for spoofedType we need the 'type' param populated
         name:   st.name,
         weight: st.weight,
+        label:  st.label,
         ...options,
         route:  {
           name:   `${ baseName }-resource`,
@@ -345,120 +390,9 @@ export class Product implements IProduct {
   }
 
   // // NEW WORK!!!!
-  // private _updateType(entry: any) {
-  //   const {
-  //     configureType,
-  //     virtualType,
-  //     weightType,
-  //     weightGroup,
-  //     headers,
-  //     basicType,
-  //     spoofedType
-  //   } = this.dslMethods;
-  //   // STILL MISSING: spoofedType...
-
-  //   console.log('******* START --------------------------------------------------- *************');
-  //   console.log('_updateType', entry);
-
-  //   // apply menu registration (types, headers, weights)
-  //   // no ID, no funny...
-  //   if (!entry.id) {
-  //     // eslint-disable-next-line no-console
-  //     console.error('you are missing the registration identifier (id)!');
-
-  //     return false;
-  //   }
-
-  //   // registering a resource
-  //   if (entry.type === 'resource') {
-  //     configureType(entry.id, entry.options || {});
-  //   // registering a custom page or a virtual resource
-  //   } else if (entry.type === 'custom-page' || entry.type === 'virtual-resource') {
-  //     const options = entry.options || {};
-
-  //     // inject the ID as name... needed for virtualType and spoofedType
-  //     if (entry.id && !options.name) {
-  //       options.name = entry.id;
-  //     }
-
-  //     if (entry.type === 'custom-page') {
-  //       virtualType(options);
-  //     } else if (entry.type === 'virtual-resource') {
-  //       if (entry.id && !options.type) {
-  //         options.type = entry.id;
-  //       }
-  //       spoofedType(options);
-  //     }
-  //   }
-
   //   // register headers
   //   if (entry.listCols && Array.isArray(entry.listCols)) {
   //     console.log('registering headers', entry.id, entry.listCols);
   //     headers(entry.id, entry.listCols);
   //   }
-
-  //   // prepare data for basicType (registering menu entries)
-  //   if (entry.menuGroupingId) {
-  //     if (!this.menuGrouping[entry.menuGroupingId]) {
-  //       this.menuGrouping[entry.menuGroupingId] = { menuItems: [entry.id] };
-  //     } else {
-  //       this.menuGrouping[entry.menuGroupingId].menuItems.push(entry.id);
-  //     }
-
-  //     if (entry.menuGroupingWeight && parseInt(entry.menuGroupingWeight) >= 0) {
-  //       this.menuGrouping[entry.menuGroupingId].weight = entry.menuGroupingWeight;
-  //     }
-  //   } else {
-  //     if (!this.singleMenuEntry[entry.id]) {
-  //       this.singleMenuEntry[entry.id] = {};
-  //     }
-
-  //     if (entry.options?.weight && parseInt(entry.options?.weight) >= 0) {
-  //       this.singleMenuEntry[entry.id].weight = entry.options?.weight;
-  //     }
-  //   }
-
-  //   // console.log('singleMenuEntry', this.singleMenuEntry);
-  //   // console.log('menuGrouping', this.menuGrouping);
-  //   console.log('******* --------------------------------------------------- END *************');
-
-  //   // register menu entries for non-grouped resources
-  //   Object.keys(this.singleMenuEntry).forEach((key) => {
-  //     basicType(Object.keys(this.singleMenuEntry));
-
-  //     if (this.singleMenuEntry[key].weight) {
-  //       weightType(key, this.singleMenuEntry[key].weight, true);
-  //     }
-  //   });
-
-  //   // register menu entries for grouped resources
-  //   Object.keys(this.menuGrouping).forEach((key) => {
-  //     basicType(this.menuGrouping[key].menuItems, key);
-
-  //     if (this.menuGrouping[key].weight) {
-  //       weightGroup(key, this.menuGrouping[key].weight, true);
-  //     }
-  //   });
-
-  //   return true;
-  // }
-
-  // // NEW WORK!!!!
-  // registerType(entries: [any]) {
-  //   console.log('registerType entries', entries);
-
-  //   // apply menu registration (types, headers, weights)
-  //   for (let i = 0; i < entries.length; i++) {
-  //     const res = this._updateType(entries[i]);
-
-  //     if (!res) {
-  //       continue;
-  //     }
-  //   }
-  // }
-
-  // // NEW WORK!!!!
-  // updateType(entry: any) {
-  //   this._updateType(entry);
-  // }
 }

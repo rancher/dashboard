@@ -80,24 +80,26 @@ export default function(plugin: IPlugin) {
 
     advancedProduct.addNavigation([
       {
-        type:   'custom-page',
-        name:   'page2',
-        route:  'page2',
-        weight: 1,
+        type:     'custom-page',
+        name:     'page2',
+        route:    'page2',
+        weight:   1,
+        labelKey: 'tab.custom-group-label'
       },
       {
-        type:   'custom-page',
-        name:   'page3',
-        route:  'page3',
-        weight: 2,
+        type:     'custom-page',
+        name:     'page3',
+        route:    'page3',
+        weight:   2,
+        labelKey: 'tab.custom-group-label'
       },
       {
-        type:    'virtual-resource',
-        name:    'fake-resource',
-        route:   'fake-resource',
-        weight:  3,
-        options: {
-          label:   'a-virtual-resource-label',
+        type:     'virtual-resource',
+        name:     'fake-resource',
+        route:    'fake-resource',
+        weight:   3,
+        labelKey: 'tab.custom-group-label',
+        options:  {
           icon:    'gear',
           schemas: [
             {
@@ -128,89 +130,100 @@ export default function(plugin: IPlugin) {
             });
           },
         },
+      },
+      {
+        type:     'resource',
+        name:     'provisioning.cattle.io.cluster',
+        weight:   -1, // doesn't work in this case has weight's are set globally and already defined before...
+        labelKey: 'tab.custom-group-label',
       }
-    ], { labelKey: 'tab.custom-group-label', weight: 100000000 });
+    ], { labelKey: 'tab.custom-group-label', weight: 2 });
 
-    // anotherProduct.addRoutes([
-    //   {
-    //     name:      'page1',
-    //     path:      'page1',
-    //     component: Page1
-    //   },
-    //   {
-    //     name:      'page2',
-    //     path:      'page2',
-    //     component: Page2
-    //   },
-    //   {
-    //     name:      'page3',
-    //     path:      'page3',
-    //     component: Page3
-    //   }
-    // ]);
+    // THIS PRODUCT HAS A POST-ADD NAVIGATION CONFIGURATION EXAMPLE...
+    anotherProduct.addRoutes([
+      {
+        name:      'page1',
+        path:      'page1',
+        component: Page1
+      },
+      {
+        name:      'page2',
+        path:      'page2',
+        component: Page2
+      },
+      {
+        name:      'page3',
+        path:      'page3',
+        component: Page3
+      }
+    ]);
 
-    // anotherProduct.addNavigation([
-    //   {
-    //     type:  'custom-page',
-    //     name:  'page1',
-    //     route: 'page1'
-    //   },
-    //   // {
-    //   //   type: 'resource',
-    //   //   name: 'provisioning.cattle.io.cluster',
-    //   // },
-    //   'provisioning.cattle.io.cluster'
-    // ]);
+    anotherProduct.addNavigation([
+      {
+        type:  'custom-page',
+        name:  'page1',
+        route: 'page1'
+      },
+      // {
+      //   type: 'resource',
+      //   name: 'provisioning.cattle.io.cluster',
+      // },
+      'provisioning.cattle.io.cluster'
+    ]);
 
-    // anotherProduct.addNavigation([
-    //   {
-    //     type:  'custom-page',
-    //     name:  'page2',
-    //     route: 'page2'
-    //   },
-    //   {
-    //     type:  'custom-page',
-    //     name:  'page3',
-    //     route: 'page3'
-    //   },
-    //   {
-    //     type:    'virtual-resource',
-    //     name:    'fake-resource',
-    //     route:   'fake-resource',
-    //     options: {
-    //       label:   'a-virtual-resource-label',
-    //       icon:    'gear',
-    //       weight:  -1,
-    //       schemas: [
-    //         {
-    //           id:                'fake-resource',
-    //           type:              'schema',
-    //           collectionMethods: [],
-    //           resourceFields:    {},
-    //           attributes:        { namespaced: true },
-    //         },
-    //       ],
-    //       getInstances: async() => { // method responsible for getting the instance data when we need to access it
-    //         const hash = {
-    //           rancherClusters: advancedProduct.store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-    //           clusters:        advancedProduct.store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
-    //         };
+    anotherProduct.addNavigation([
+      {
+        type:  'custom-page',
+        name:  'page2',
+        route: 'page2'
+      },
+      {
+        type:  'custom-page',
+        name:  'page3',
+        route: 'page3'
+      },
+      {
+        type:  'virtual-resource',
+        name:  'fake-resource',
+        route: 'fake-resource'
+      }
+    ], { labelKey: 'tab.custom-group-label' });
 
-    //         if (advancedProduct.store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
-    //           hash.nodes = advancedProduct.store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
-    //         }
+    anotherProduct.configurePage('fake-resource', {
+      schemas: [
+        {
+          id:                'fake-resource',
+          type:              'schema',
+          collectionMethods: [],
+          resourceFields:    {},
+          attributes:        { namespaced: true },
+        },
+      ],
+      getInstances: async() => { // method responsible for getting the instance data when we need to access it
+        const hash = {
+          rancherClusters: advancedProduct.store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+          clusters:        advancedProduct.store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
+        };
 
-    //         const res = await allHash(hash);
+        if (advancedProduct.store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
+          hash.nodes = advancedProduct.store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+        }
 
-    //         return res.rancherClusters.map((c) => {
-    //           return {
-    //             ...c,
-    //             type: 'fake-resource',
-    //           };
-    //         });
-    //       },
-    //     },
-    //   }
-    // ], { labelKey: 'tab.custom-group-label' });
+        const res = await allHash(hash);
+
+        return res.rancherClusters.map((c) => {
+          return {
+            ...c,
+            type: 'fake-resource',
+          };
+        });
+      },
+    });
+
+    anotherProduct.configurePage('page3', { weight: 3 });
+
+    anotherProduct.configurePage('fake-resource', { weight: 2 });
+
+    anotherProduct.configurePage('page2', { weight: 1 });
   });
 }

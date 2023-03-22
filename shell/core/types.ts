@@ -151,9 +151,9 @@ export type RouteLink = {
   name: string;
   label?: string;
   labelKey?: string;
-  route: string | RouteLocation;
-  weight?: object;
-  options?: number;
+  route?: string | RouteLocation; // optional because of kube resources already existing. ex: provisioning.cattle.io.cluster (used with old DSL configureType)
+  weight?: number;
+  options?: object;
 }
 
 export type Navigation = string | RouteLink;
