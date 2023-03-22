@@ -1628,7 +1628,7 @@ cluster:
     os: '你正在将 {newOS} worker 节点添加到具有一个或多个 {existingOS} worker 节点的集群。你可能需要升级或删除某些已安装的应用。'
     rke2-k3-reprovisioning: '更改集群配置可能导致节点重新配置。详情请参见 <a target="blank" href="{docsBase}/cluster-provisioning/rke-clusters/behavior-differences-between-rke1-and-rke2/" target="_blank" rel="noopener nofollow">文档</a>。'
     desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
-    invalidPsps: 你在此集群中有一个或多个 PSP 资源。Pod 安全策略将在 Kubernetes v1.25 中不可用。
+    invalidPsps: 你在此集群中有一个或多个 PSP 资源。Pod 安全策略在 Kubernetes v1.25 中不可用并将自动删除。
     haveArgInfo: 所选 Kubernetes 版本的配置信息不可用。此屏幕中可用的选项将受到限制，你可能需要使用 YAML 编辑器。
     deprecatedPsp: Pod 安全策略自 Kubernetes v1.21 起已弃用，并已在 Kubernetes v1.25 中删除。
     removedPsp: Pod 安全策略已在 Kubernetes v1.25 中删除，请改用 PodSecurity Admission。
@@ -1783,11 +1783,11 @@ cluster:
     banner:
       psaChange: PSACT 现在自动设置为 Rancher 默认值
       cisOverride: 更改此设置可能会影响集群安全，因为它会覆盖默认的 CIS 设置
-      cisUnsupported: 所选 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，请选择支持的配置文件。建议你查看 RKE2 文档评估更改 CIS 配置文件的影响。
+      cisUnsupported: 所选 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，请选择支持的配置文件。建议你查看<a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">文档</a>评估更改 CIS 配置文件的影响。
     modal:
       pspChange:
         title: 弃用 Pod 安全策略
-        body: 从 v1.25 版开始，Kubernetes 已经取消了对 Pod 安全策略 (PSP) 的支持。如果你的集群通过集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 启用了 PodSecurityPolicy 准入控制器，你必须在继续升级之前手动删除它。此外，集群中存在的任何 PSP 将不再可用或强制执行。是否继续？
+        body: 从 v1.25 版开始，Kubernetes 已经取消了对 Pod 安全策略 (PSP) 的支持。如果你的集群通过集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 启用了 PodSecurityPolicy 准入控制器，你必须在继续升级之前<i>手动</i>删除它。此外，集群中存在的任何 PSP 将不再可用或强制执行。是否继续操作？
     snapshots:
       suffix: 每个节点的快照
     systemService:
@@ -1808,12 +1808,12 @@ cluster:
     cis:
       server: Server CIS 配置文件
       agent: CIS 配置文件
-      override: 使用 CIS 配置文件时允许覆盖 PSA 默认模板
+      override: 当使用 CIS 配置文件时，允许覆盖默认 PSA 配置模板
     defaultPodSecurityPolicyTemplateName:
       label: 默认 Pod 安全策略
       option: 默认 - 嵌入 RKE2
     defaultPodSecurityAdmissionConfigurationTemplateName:
-      label: 默认 Pod 安全准入
+      label: PSA 配置模板
       option: 
         none: (None)
         default: 默认 - 嵌入 RKE2
@@ -2111,6 +2111,7 @@ fleet:
       placeholder: 例如 https://github.com/rancher/fleet-examples.git 或 git@github.com:rancher/fleet-examples.git
       addRepo: 添加仓库
       noRepos: 未添加任何仓库
+      noWorkspaces: 没有工作空间。<br/>请在添加仓库之前创建一个工作空间
       protocolBanner: 输入指向 git 仓库的有效 HTTPS 或 SSH URL。
     add:
       steps:
@@ -2162,6 +2163,7 @@ fleet:
       cluster: 没有可用的集群
     workspace:
       label: 工作空间
+      addWorkspace: 创建工作空间
   clusterGroup:
     selector:
       label: 集群选择器
@@ -2182,7 +2184,14 @@ fleet:
     error: 错误
     ready: 就绪
     errors: 错误
-
+  workspaces: 
+    tabs:
+      restrictions: 允许的目标命名空间
+    timeout: 工作空间创建超时。工作空间可能已创建，建议在创建另一个工作空间之前检查工作空间页面。
+  restrictions: 
+    addTitle: 'allowedTargetNamespaces'
+    addLabel: 添加
+    banner: "{count, plural, =0 { 在这里设置 allowedTargetNamespaces 会创建一个 GitRepoRestriction。} other { 只有 GitRepoRestriction.allowedTargetNamespaces 在此处管理，你可以进行其他更改。} }"
 footer:
   docs: Rancher 官方文档
   download: 下载 CLI
@@ -2221,13 +2230,21 @@ gatekeeperConstraint:
       editAsYaml: 以 YAML 文件编辑
       title: 参数
   template: 模板
+  enforcement:
+    action: 执行动作
   violations:
-    title: 违反规定
+    title: "违反规定：{total}"
+    notAll: 没有显示全部 - 仅包含 {shown} 的详细信息
 
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
   unavailable: OPA Gatekeeper 不在 system-charts 应用商店中.
   violations: 违反规定
+
+gatekeeperInstall: 
+  auditInterval: 自动间隔
+  constraintViolationsLimit: 约束违规限制
+  runtimeDefaultSeccompProfile: 启用运行时默认 Seccomp 配置文件
 
 glance:
   created: 创建时间
@@ -3431,6 +3448,8 @@ networkpolicy:
   labelsAnnotations:
     label: 标签 & 注释
   rules:
+    pod: Pod
+    namespace: 命名空间
     ruleLabel: 规则 {index}
     addPort: 添加允许的端口
     type: 规则类型
@@ -3457,6 +3476,8 @@ networkpolicy:
       label: Pod 选择器
     namespaceSelector:
       label: 命名空间选择器
+    namespaceAndPodSelector:
+      label: 命名空间/Pod 选择器
   config:
     label: 配置
   selectors:
@@ -3473,8 +3494,20 @@ networkpolicy:
       matchesSome: |-
         {matched, plural,
           =0 {匹配 {total, number} 个命名空间中的 0 个}
-          =1 {匹配 {total, number} 个 命名空间中的 1 个："{sample}"}
+          =1 {匹配 {total, number} 个命名空间中的 1 个："{sample}"}
           other {匹配 {total, number} 个命名空间中的 {matched, number} 个，包括 "{sample}"}
+        }
+    matchingNamespacesAndPods:
+      tooltip: 指定命名空间选择器和 Pod 选择器的单条规则，用于选择特定命名空间中的特定 Pod
+      matchesSome: |-
+        {matchedNamespaces, plural,
+          =0 { 在 0 个命名空间中（总共 {totalNamespaces, number} 个）}
+          =1 { 在 1 个命名空间（总共 {totalNamespaces, number} 个）"{sampleNamespaces}" 中}
+          other { 在 {matchedNamespaces, number} 个命名空间中（总共 {totalNamespaces, number} 个），包括 "{sampleNamespaces}"}
+        }，{matchedPods, plural,
+          =0 {匹配 {totalPods, number} 个 Pod 中的 0 个 }
+          =1 {匹配 {totalPods, number} 个 Pod 中的 1 个："{samplePods}"}
+          other {匹配 {totalPods, number} 个 Pod 中的 {matchedPods, number} 个，包括 "{samplePods}"}
         }
 node:
   list:
@@ -4752,8 +4785,8 @@ servicesPage:
       matchesSome: |-
         {matched, plural,
           =0 {与 {total, number} 个 Pod 中的 0 个匹配。如果没有创建选择器，则必须进行手动端点。}
-          =1 {与{total, number}个 Pod 中的1个匹配："{sample}"}
-          other {与 {total, number} 个 Pod 中的 {matched, number} 个匹配，包括"{sample}"}
+          =1 {与 {total, number} 个 Pod 中的 1 个匹配："{sample}"}
+          other {与 {total, number} 个 Pod 中的 {matched, number} 个匹配，包括 "{sample}"}
         }
   serviceTypes:
     clusterIp:
