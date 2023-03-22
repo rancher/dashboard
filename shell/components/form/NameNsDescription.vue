@@ -224,7 +224,7 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      const options = Object.keys(this.isView ? this.namespaces() : this.allowedNamespaces())
+      const options = Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces())
         .map(namespace => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || (obj => ({
           label: obj.nameDisplay,
@@ -260,11 +260,11 @@ export default {
     },
 
     isView() {
-      return this.mode === _CREATE;
+      return this.mode === _VIEW;
     },
 
     isCreate() {
-      return this.mode === _VIEW;
+      return this.mode === _CREATE;
     },
 
     colSpan() {

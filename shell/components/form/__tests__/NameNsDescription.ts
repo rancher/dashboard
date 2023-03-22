@@ -17,7 +17,8 @@ describe('component: NameNsDescription', () => {
       mocks: {
         $store: {
           getters: {
-            namespaces:          () => ({ [namespaceName]: true }),
+            namespaces:          jest.fn(),
+            allowedNamespaces:   () => ({ [namespaceName]: true }),
             currentStore:        () => 'cluster',
             'cluster/schemaFor': jest.fn(),
             'i18n/t':            jest.fn()
