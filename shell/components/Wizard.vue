@@ -466,8 +466,12 @@ $spacer: 10px;
 .outer-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  // flex: 1;
   padding: 0;
+  height: 100%;
+  position: relative;
+  justify-content: flex-start;
+  flex: 1;
 }
 
 .header {
@@ -643,9 +647,10 @@ $spacer: 10px;
   flex-direction: column;
 
   &__step {
-    display: flex;
-    flex-direction: column;
+    // display: flex;
+    // flex-direction: column;
     flex: 1;
+    overflow: auto;
   }
 }
 
@@ -656,11 +661,9 @@ $spacer: 10px;
     margin-right: -$space-m;
     margin-bottom: -$space-m;
     padding: $space-s $space-m;
-
     display: flex;
     justify-content: space-between;
     padding-top: $spacer;
-
     border-top: var(--header-border-size) solid var(--header-border);
 
     .controls-steps {
