@@ -866,14 +866,14 @@ export default {
               />
             </div>
 
-            <div class="col span-6">
+            <!-- <div class="col span-6">
               <LabeledInput
                 v-model="network.macAddress"
                 label-key="cluster.credential.harvester.network.macAddress"
                 :mode="mode"
                 @input="update"
               />
-            </div>
+            </div> -->
           </div>
         </InfoBox>
       </div>
