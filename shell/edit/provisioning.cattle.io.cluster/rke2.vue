@@ -1977,7 +1977,7 @@ export default {
         v-if="isEdit"
         color="warning"
       >
-        <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
+        <span v-clean-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
       </Banner>
     </div>
     <SelectCredential
@@ -2110,7 +2110,7 @@ export default {
             color="warning"
           >
             <span
-              v-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
+              v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
             />
           </Banner>
           <div class="row mb-10">
@@ -2215,7 +2215,7 @@ export default {
             v-if="showCisProfile && !isCisSupported && isEdit"
             color="info"
           >
-            <p v-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
+            <p v-clean-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
           </Banner>
 
           <div class="row mb-10">

@@ -727,11 +727,11 @@ export default {
               >
                 <div
                   v-if="group && group.ref"
-                  v-html="group.ref.groupByPoolShortLabel"
+                  v-clean-html="group.ref.groupByPoolShortLabel"
                 />
                 <div
                   v-else
-                  v-html="t('resourceTable.groupLabel.notInANodePool')"
+                  v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
                 />
                 <div
                   v-if="group.ref && group.ref.template"
@@ -812,11 +812,11 @@ export default {
               >
                 <div
                   v-if="group.ref"
-                  v-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)"
+                  v-clean-html="t('resourceTable.groupLabel.nodePool', { name: group.ref.spec.hostnamePrefix}, true)"
                 />
                 <div
                   v-else
-                  v-html="t('resourceTable.groupLabel.notInANodePool')"
+                  v-clean-html="t('resourceTable.groupLabel.notInANodePool')"
                 />
                 <div
                   v-if="group.ref && group.ref.nodeTemplate"
@@ -888,13 +888,13 @@ export default {
               >
                 <td
                   :key="line.id + '-time'"
+                  v-clean-html="format(line.time)"
                   class="time"
-                  v-html="format(line.time)"
                 />
                 <td
                   :key="line.id + '-msg'"
+                  v-clean-html="line.msg"
                   class="msg"
-                  v-html="line.msg"
                 />
               </tr>
             </template>
@@ -932,22 +932,22 @@ export default {
           @copied-windows="hasWindowsMachine ? null : showWindowsWarning = true"
         />
         <template v-else>
-          <h4 v-html="t('cluster.import.commandInstructions', null, true)" />
+          <h4 v-clean-html="t('cluster.import.commandInstructions', null, true)" />
           <CopyCode class="m-10 p-10">
             {{ clusterToken.command }}
           </CopyCode>
 
           <h4
+            v-clean-html="t('cluster.import.commandInstructionsInsecure', null, true)"
             class="mt-10"
-            v-html="t('cluster.import.commandInstructionsInsecure', null, true)"
           />
           <CopyCode class="m-10 p-10">
             {{ clusterToken.insecureCommand }}
           </CopyCode>
 
           <h4
+            v-clean-html="t('cluster.import.clusterRoleBindingInstructions', null, true)"
             class="mt-10"
-            v-html="t('cluster.import.clusterRoleBindingInstructions', null, true)"
           />
           <CopyCode class="m-10 p-10">
             {{ t('cluster.import.clusterRoleBindingCommand', null, true) }}

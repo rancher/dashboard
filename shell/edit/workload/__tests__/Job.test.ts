@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import Job from '@shell/edit/workload/Job.vue';
 import { _EDIT } from '@shell/config/query-params';
 import { WORKLOAD_TYPES } from '@shell/config/types';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: Job', () => {
   describe('given CronJob types', () => {
@@ -10,7 +11,8 @@ describe('component: Job', () => {
       'failed',
     ])('should emit an update on %p input', (field) => {
       const wrapper = mount(Job, {
-        propsData: {
+        directives: { cleanHtmlDirective },
+        propsData:  {
           mode: _EDIT,
           type: WORKLOAD_TYPES.CRON_JOB
         }

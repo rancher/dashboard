@@ -177,8 +177,8 @@ export default {
   >
     <template #message>
       <span
+        v-clean-html="t('resourceList.nsFiltering', { resource: $store.getters['type-map/labelFor'](schema, 2) || customTypeDisplay }, true)"
         class="filter"
-        v-html="t('resourceList.nsFiltering', { resource: $store.getters['type-map/labelFor'](schema, 2) || customTypeDisplay }, true)"
       />
     </template>
   </IconMessage>

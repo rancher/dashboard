@@ -1,5 +1,6 @@
 import { mount, Wrapper } from '@vue/test-utils';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: AsyncButton', () => {
   it('should render appropriately with default config', () => {
@@ -7,7 +8,8 @@ describe('component: AsyncButton', () => {
     const mockT = jest.fn().mockReturnValue('some-string');
 
     const wrapper: Wrapper<InstanceType<typeof AsyncButton> & { [key: string]: any }> = mount(AsyncButton, {
-      mocks: {
+      directives: { cleanHtmlDirective },
+      mocks:      {
         $store: {
           getters: {
             'i18n/exists': mockExists,

@@ -368,8 +368,8 @@ export default {
             class="group-tab"
           >
             <div
+              v-clean-html="projectLabel(group.group)"
               class="project-name"
-              v-html="projectLabel(group.group)"
             />
             <div
               v-if="projectDescription(group.group)"
