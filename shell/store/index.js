@@ -120,7 +120,7 @@ const getActiveSingleNamespaces = (getters, filters) => {
 };
 
 /**
- * Get only namespaces where the user can create resources
+ * Get only namespaces for user with roles "Cluster Member" and "View All Projects"
  * @returns Record<string, true>
  */
 const getReadOnlyActiveNamespaces = (namespaces, activeNamespaces) => {
