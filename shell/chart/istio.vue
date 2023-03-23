@@ -132,11 +132,10 @@ export default {
     <h3>
       {{ t('catalog.chart.global') }}
     </h3>
-    <div class="row mb-20">
-      <div class="col">
-        <ChartPsp :value="value" />
-      </div>
-    </div>
+
+    <!-- Conditionally display PSP checkbox -->
+    <ChartPsp :value="value" />
+
     <h3>
       {{ t('istio.titles.components') }}
     </h3>

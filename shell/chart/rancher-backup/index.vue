@@ -167,11 +167,9 @@ export default {
       label="Chart Options"
       name="chartOptions"
     >
-      <div class="row">
-        <div class="col">
-          <ChartPsp :value="value" />
-        </div>
-      </div>
+      <!-- Conditionally display PSP checkbox -->
+      <ChartPsp :value="value" />
+
       <Banner
         color="info"
         :label="t('backupRestoreOperator.deployment.storage.tip')"

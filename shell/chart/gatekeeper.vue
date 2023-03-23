@@ -56,11 +56,10 @@ export default {
         />
       </div>
     </div>
-    <div class="row mt-10">
-      <div class="col span-6">
-        <ChartPsp :value="value" />
-      </div>
-    </div>
+
+    <!-- Conditionally display PSP checkbox -->
+    <ChartPsp :value="value" />
+
     <template v-if="crdValues">
       <!-- gatekeeper versions <1.0.2 do not have this option -->
       <Checkbox

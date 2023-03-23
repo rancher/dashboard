@@ -31,6 +31,7 @@ export default {
 <template>
   <Checkbox
     v-model="value.global.cattle.psp.enabled"
+    class="mt-20 mb-20"
     :mode="mode"
     :label="t('catalog.chart.enablePSP')"
   />

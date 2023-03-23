@@ -261,11 +261,9 @@ export default {
             />
           </div>
         </div>
-        <div class="row mt-20">
-          <div class="col span-6">
-            <ChartPsp :value="value" />
-          </div>
-        </div>
+
+        <!-- Conditionally display PSP checkbox -->
+        <ChartPsp :value="value" />
       </div>
     </Tab>
     <Tab
