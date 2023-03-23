@@ -2188,8 +2188,6 @@ fleet:
           =0 { Adding namespaces here will create a GitRepoRestriction. }
           other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction} 
         }"
-    notAllowed: You must have permission to create Git Repo Restrictions to define allowed target namespaces.
-    readOnly: You must have permission to edit Git Repo Restrictions to manage the workspace's allowed target namespaces.
 footer:
   docs: Docs
   download: Download CLI
