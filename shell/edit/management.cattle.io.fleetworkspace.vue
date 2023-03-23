@@ -4,7 +4,7 @@ import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET, MANAGEMENT, SCHEMA } from '@shell/config/types';
 // import RoleBindings from '@shell/components/RoleBindings';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -39,11 +39,8 @@ export default {
     if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
       this.fleetClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     }
-    const repoRestrictionSchema = this.$store.getters['management/schemaFor']( FLEET.GIT_REPO_RESTRICTION );
 
-    this.canCreateRepoRestrictions = repoRestrictionSchema && repoRestrictionSchema.resourceMethods?.includes('PUT');
-    this.canViewRepoRestrictions = repoRestrictionSchema && repoRestrictionSchema.resourceMethods?.includes('GET');
-    if (repoRestrictionSchema) {
+    if (this.hasRepoRestrictionSchema) {
       const restrictions = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO_RESTRICTION });
 
       const workSpaceRestriction = restrictions.find((item) => {
@@ -63,16 +60,14 @@ export default {
     this.$set(this.value, 'spec', this.value.spec || {});
 
     return {
-      fleetClusters:             null,
-      rancherClusters:           null,
-      workSpaceRestriction:      null,
-      restrictions:              [],
-      targetNamespaces:          [],
-      restrictionsSchema:        { spec: {} },
-      namespace:                 this.$store.getters['prefs/get'](LAST_NAMESPACE),
-      canCreateRepoRestrictions: false,
-      canViewRepoRestrictions:   false
-
+      fleetClusters:            null,
+      rancherClusters:          null,
+      workSpaceRestriction:     null,
+      restrictions:             [],
+      targetNamespaces:         [],
+      restrictionsSchema:       { spec: {} },
+      namespace:                this.$store.getters['prefs/get'](LAST_NAMESPACE),
+      hasRepoRestrictionSchema: !!this.$store.getters['management/schemaFor']( FLEET.GIT_REPO_RESTRICTION )
     };
   },
 
@@ -90,6 +85,10 @@ export default {
 
         // If there is no restriction and targetnamespace is set then create it.
         if (!this.workSpaceRestriction && this.targetNamespaces.length) {
+          // For users with more limited permissions the gitreporestriction schema may not be visible until they create a workspace
+          if (!this.hasRepoRestrictionSchema) {
+            await this.$store.dispatch('management/find', { type: SCHEMA, id: FLEET.GIT_REPO_RESTRICTION }, { force: true });
+          }
           const model = await this.$store.dispatch(`management/create`, {
             type:                    FLEET.GIT_REPO_RESTRICTION,
             allowedTargetNamespaces: this.targetNamespaces,
@@ -208,45 +207,28 @@ export default {
         name="allowedtargetnamespaces"
         label-key="fleet.workspaces.tabs.restrictions"
       >
-        <template v-if="canViewRepoRestrictions">
-          <Banner
-            v-if="canCreateRepoRestrictions"
-            color="info"
-          >
-            <div>
-              <t
-                k="fleet.restrictions.banner"
-                :count="allowedTargetNamespaces.length"
-                :raw="true"
-              />
-              <a
-                v-if="!!allowedTargetNamespaces.length"
-                @click="workSpaceRestriction.goToEdit()"
-              >
-                {{ t('generic.here') }}
-              </a>
-            </div>
-          </Banner>
-          <Banner
-            v-else
-            color="warning"
-            label-key="fleet.restrictions.readOnly"
-          />
-
-          <ArrayList
-            key="labels"
-            v-model="allowedTargetNamespaces"
-            :add-label="t('fleet.restrictions.addLabel')"
-            :mode=" canCreateRepoRestrictions ? mode : 'view'"
-            :read-allowed="false"
-            :value-can-be-empty="true"
-          />
-        </template>
-
         <Banner
-          v-else
-          color="error"
-          label-key="fleet.restrictions.notAllowed"
+          color="info"
+        >
+          <div>
+            {{ t('fleet.restrictions.banner', { count: allowedTargetNamespaces.length }, true) }}
+            <a
+              v-if="!!allowedTargetNamespaces.length"
+              @click="workSpaceRestriction.goToDetail()"
+            >
+              {{ t('generic.here') }}
+            </a>
+          </div>
+        </Banner>
+
+        <ArrayList
+          key="labels"
+          v-model="allowedTargetNamespaces"
+          :add-label="t('fleet.restrictions.addLabel')"
+          :mode="mode"
+          :title="t('fleet.restrictions.addTitle')"
+          :read-allowed="false"
+          :value-can-be-empty="true"
         />
       </Tab>
     </Tabbed>
