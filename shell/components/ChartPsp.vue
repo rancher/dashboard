@@ -32,6 +32,12 @@ export default {
       default: null
     }
   },
+  data: () => {
+    return {
+      // This is required to keep the PSP visible also after unchecking the checkbox
+      hasPsp: false
+    };
+  },
   created() {
     if (!this.value.global.cattle) {
       this.$set(this.value.global, 'cattle', { psp: { enabled: false } });
@@ -39,6 +45,8 @@ export default {
     if (!this.value.global.cattle.psp) {
       this.$set(this.value.global.cattle, 'psp', { enabled: false });
     }
+
+    this.hasPsp = this.value.global.cattle.psp.enabled;
   },
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
@@ -47,12 +55,11 @@ export default {
      * Display checkbox only if contains PSP or K8S version is less than 1.25
      */
     hasCheckbox() {
-      const hasPsp = this.value.global.cattle?.psp?.enabled;
       const clusterVersion = this.cluster?.metadata?.annotations?.['management.cattle.io/current-cluster-controllers-version'] || '';
       const version = clusterVersion.match(/\d+/g);
       const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
 
-      return hasPsp || isRequiredVersion;
+      return this.hasPsp || isRequiredVersion;
     }
   }
 };

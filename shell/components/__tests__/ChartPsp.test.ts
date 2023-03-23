@@ -48,6 +48,20 @@ describe('component: ChartPsp', () => {
     expect(input).toBeUndefined();
   });
 
+  it('should display the checkbox after disabling PSP with K8S v1.25+', async() => {
+    const wrapper = mount(ChartPsp, {
+      propsData: {
+        value:   { global: { cattle: { psp: { enabled: true } } } },
+        cluster: { metadata: { annotations: { 'management.cattle.io/current-cluster-controllers-version': 'v1.25.11+rke2r1' } } },
+      }
+    });
+    const input = wrapper.find(`[data-testid="psp-checkbox"]`).element as HTMLInputElement;
+
+    await wrapper.find('.checkbox-container').trigger('click');
+
+    expect(input).toBeDefined();
+  });
+
   it('should update value.global.cattle.psp.enabled when checkbox is toggled', async() => {
     const chartValues = { global: {} } as any;
     const version = 'v1.24.11+rke2r1';
