@@ -211,7 +211,11 @@ export default {
           color="info"
         >
           <div>
-            {{ t('fleet.restrictions.banner', { count: allowedTargetNamespaces.length }, true) }}
+            <t
+              k="fleet.restrictions.banner"
+              :count="allowedTargetNamespaces.length"
+              :raw="true"
+            />
             <a
               v-if="!!allowedTargetNamespaces.length"
               @click="workSpaceRestriction.goToDetail()"
