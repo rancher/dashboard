@@ -430,7 +430,7 @@ export default function({
     initNewProducts(plugin) {
       if (plugin.newProducts) {
         // Pass it an IProducts interface
-        const products = new Products(store);
+        const products = new Products(store, app.router);
 
         plugin.newProducts.forEach(p => p(products));
 

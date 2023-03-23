@@ -57,20 +57,6 @@ export default function(plugin: IPlugin) {
       }
     ]);
 
-    // TODO
-    // Adds a nav item that goes to the list page for the specified resource
-    // advancedProduct.addNavigation('provisioning.cattle.io.cluster');
-
-    // Adds a navigation item to the specified group
-    // Creates the group if it does not already exist
-    // advancedProduct.addNavigation('catalog.cattle.io.uiplugin', 'advanced');
-
-    // Adds a nav item that goes to the route specified
-    // advancedProduct.addNavigation({
-    //   name:  'page2',
-    //   route: 'page2'
-    // });
-
     advancedProduct.addNavigation([
       {
         type:  'custom-page',

@@ -127,7 +127,15 @@ export type Tab = {
   component: Function;
 };
 
-/** Definition of the locationConfig object (used in extensions) */
+/**
+ * Definition of the LocationConfig object (used in extensions)
+ * @param {Array} [product] Array of product names
+ * @param {Array} [resource] Array of resource names
+ * @param {Array} [namespace] Array of namespace identifiers/names
+ * @param {Array} [cluster] Array of cluster identifiers/names
+ * @param {Array} [id] Array of resource instance id
+ * @param {Array} [mode] Array of modes which relate to the type of view on which the given enhancement should be applied (edit, config, detail, list)
+ */
 export type LocationConfig = {
   product?: string[],
   resource?: string[],
@@ -137,15 +145,30 @@ export type LocationConfig = {
   mode?: string[]
 };
 
+/**
+ * Definition of the RouteLocation object (used in extensions)
+ * @param {string} [name] Route name (based on vue-router)
+ * @param {string} [path] Route path (based on vue-router)
+ * @param {string} [params] Route params (based on vue-router)
+ * @param {string} [meta] Route meta (based on vue-router)
+ */
 export interface RouteLocation {
   name?: string,
   path?: string,
   params?: Dictionary<string>,
-
-  // TODO:
-  // label, weight etc - extract into common class?
+  meta?: Dictionary<string>,
 }
 
+/**
+ * Definition of the RouteLink object (used in extensions - product registration)
+ * @param {string} type navigation item type (resource, virtual-resource or custom-page)
+ * @param {string} name Unique identifier for the navigation item name
+ * @param {string} [label] navigation item label (displayed on side-menu entry)
+ * @param {string | RouteLocation} [labelKey] navigation item labelKey to be handled by translation (superseeds label)
+ * @param {number} [weight] navigation item order in side menu entry
+ * @param {options} [options] navigation item options
+ * @param {array} [listCols] navigation item list view definition for columns
+ */
 export type RouteLink = {
   type: string,
   name: string;
@@ -159,10 +182,16 @@ export type RouteLink = {
 
 export type Navigation = string | RouteLink;
 
+/**
+ * IProduct class definition
+ * @param {function} addRoutes Add routes for the product
+ * @param {function} addNavigation Add product navigation
+ * @param {function} configurePage Configure a given page/resource in a product
+ */
 export interface IProduct {
   /**
    * Add routes for the product
-   * @param routes Array of routes up for registration
+   * @param {RouteConfig[]} routes Array of routes up for registration
    */
   addRoutes(routes: RouteConfig[]): void;
 
@@ -170,15 +199,15 @@ export interface IProduct {
    * Add product navigation
    * String routes represent routes for existing kube resource types.
    * RouteLink routes represent routes for arbitrary pages/vue routes
-   * @param routes Array or String that represents a page/kube resource up for registration
-   * @param grp Group identifier if registered routes are to be inside a grouped tab as a menu entry
+   * @param {Navigation | Navigation[]} routes Array or String that represents a page/kube resource up for registration
+   * @param {array | string} grp Group identifier if registered routes are to be inside a grouped tab as a menu entry
    */
   addNavigation(routes: Navigation | Navigation[], grp?: {[key: string]: any} | string): void;
 
   /**
-   * Configure a given page/resource for extensions product registration
-   * @param name Name (unique identifier) for the given page/resource
-   * @param options Options object for the given page/resource
+   * Configure a given page/resource in a product
+   * @param {string} name Name (unique identifier) for the given page/resource
+   * @param {object} [options] Options object for the given page/resource
    */
   configurePage(name: string, options?: object): void;
 }
@@ -190,8 +219,22 @@ export interface IProduct {
 
 export type ProductOptions = any;
 
+/**
+ * IProducts class definition
+ * @param {function} add Adds an extension product to a given area of the UI
+ * @param {function} get Gets the products in a given area of the UI
+ */
 export interface IProducts {
+  /**
+   * Adds an extension product to a given area of the UI
+   * @param {string} name new extension product name
+   * @param {ProductOptions | any} [options] new extension product options
+   */
   add(name: string, options?: ProductOptions): IProduct;
+  /**
+   * Gets the products in a given area of the UI
+   * @param {string} name UI area name
+   */
   get(name: string): IProduct | undefined;
 }
 

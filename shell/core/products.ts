@@ -3,14 +3,16 @@ import { Product } from './product';
 
 export class Products implements IProducts {
   private store: any;
+  private router: any;
   public products:any[] = [];
 
-  constructor(store: any) {
+  constructor(store: any, router: any) {
     this.store = store;
+    this.router = router;
   }
 
   add(name: string, options?: ProductOptions): IProduct {
-    const product = new Product(this.store, name);
+    const product = new Product(this.store, name, this.router);
 
     product.create(options);
 
@@ -29,7 +31,7 @@ export class Products implements IProducts {
     const exists = all.find((p: any) => p.name === name);
 
     if (exists) {
-      const p = new Product(this.store, name);
+      const p = new Product(this.store, name, this.router);
 
       this.products.push(p);
 
