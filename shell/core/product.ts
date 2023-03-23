@@ -284,7 +284,20 @@ export class Product implements IProduct {
       addRoutes([productBaseRoute]);
     }
 
+    console.log('FINAL PRODUCT ROUTES TO BE APPLIED', extRoutes);
+
     addRoutes(extRoutes);
+
+    console.log('registeredRoutes AFTER APPLYING ROUTES', this.router.getRoutes().length);
+
+    const namedRoutes = this.router.getRoutes().map(route => route.name);
+    const pathedRoutes = this.router.getRoutes().map(route => route.path);
+
+    const filteredNamedRoutes = namedRoutes.filter((value, index, array) => array.indexOf(value) === index);
+    const filteredPathedRoutes = pathedRoutes.filter((value, index, array) => array.indexOf(value) === index);
+
+    console.log('unique named routes', filteredNamedRoutes.length);
+    console.log('unique pathed routes', filteredPathedRoutes.length);
   }
 
   // Internal - not exposed by the IProduct interface
