@@ -52,11 +52,12 @@ export class Product implements IProduct {
   }
 
   addRoutes(routes: RouteConfig[]): void {
-    console.log('*** addRoutes ***', routes);
+    console.log('*** ADD ROUTES ***', routes);
     this.routes.push(...routes);
   }
 
   addNavigation(routes: Navigation | Navigation[], grp?: {[key: string]: any} | string): void {
+    console.log('**** ADD NAVIGATION ***', routes, grp);
     // Undefined group means the root group
     const navigationItems = Array.isArray(routes) ? routes : [routes];
     const group = grp || this.rootDefinition;
@@ -127,11 +128,12 @@ export class Product implements IProduct {
   }
 
   configurePage(name: string, options?: object): void {
-    // should we only consider unique names?
+    // TODO: should we only consider unique names? currently not using the type to do this match here
     const configArray = ['configureTypes', 'virtualTypes', 'spoofedTypes'];
     let found = false;
     let configArrayItem: string;
 
+    // let's go over the different types to see if we can find where name has been registered
     for (let i = 0; i < configArray.length; i++) {
       const configType: string = configArray[i];
 
@@ -150,10 +152,9 @@ export class Product implements IProduct {
       }
     }
 
+    // we found it, then let's apply the configuration to that object
     if (found) {
       const currentConfig = { ...this[configArrayItem][name] };
-
-      // we need the current options if we apply configurePage twice on the same resource...
       const currentOptions = { ...this[configArrayItem][name].options };
 
       this[configArrayItem][name] = {
@@ -164,6 +165,8 @@ export class Product implements IProduct {
         }
       };
     }
+
+    return console.error(`Couldn't find the resource named ${ name } to apply the given configuration ::: configurePage`); // eslint-disable-line no-console
   }
 
   _applyRoutes(addRoutes: Function) {
@@ -235,6 +238,7 @@ export class Product implements IProduct {
 
     // If configureTypes or spoofedTypes types are used, then add routes for types - List, Detail, Edit
     // Make sure we don't do this for explorer
+    // TODO: CHANGE THIS TO COVER OTHER PRODUCTS!!! we should check if they have a c-cluster-resource route registered
     const isExplorer = this.name === 'explorer';
 
     if (!isExplorer && (Object.keys(this.configureTypes).length > 0 || Object.keys(this.spoofedTypes).length > 0)) {
@@ -292,14 +296,14 @@ export class Product implements IProduct {
   // Internal - not exposed by the IProduct interface
   // Called by extensions system after product init - applies the routes and navigation to the store
   _apply() {
+    // NOTE: weightType doesn't seem to work... passing the weight's directly as options when
+    // configuring each type seems to do the trick (also it gets registered "per product" for virtualTypes and SpoofedTypes)
+
+    // NOTE: changing list cols (DSL.headers) for a type 'resource' will override the early col definition
+    // on the other registration -> this may be due to the initialization steps for extensions vs internal products (ex: explorer)
+
     // Register the product
     this.DSL.product(this.product);
-
-    // NOTE: weightType doesn't seem to work... passing the weight's directly as options when
-    // configuring each type seems to do the trick
-
-    // TODO LIST:
-    // handle "headers"
 
     const baseName = this.modern ? `${ this.name }-c-cluster` : `c-cluster-product`;
     const basePath = this.modern ? `${ this.name }/c/:cluster` : `c/:cluster/:product`;
@@ -310,7 +314,7 @@ export class Product implements IProduct {
       const vt = this.virtualTypes[name];
       const options = vt.options || {};
 
-      const vtOptions = {
+      this.DSL.virtualType({
         name:   vt.name,
         weight: vt.weight,
         label:  vt.label,
@@ -323,9 +327,11 @@ export class Product implements IProduct {
             cluster: currCluster,
           }
         }
-      };
+      });
 
-      this.DSL.virtualType(vtOptions);
+      if (vt.listCols || vt.options?.listCols) {
+        this._handleListColsRegistration(vt.name, vt.listCols || vt.options?.listCols);
+      }
     });
 
     // Go through the kube resource types (configureType) and register those
@@ -347,6 +353,10 @@ export class Product implements IProduct {
           }
         }
       });
+
+      if (ct.listCols || ct.options?.listCols) {
+        this._handleListColsRegistration(ct.name, ct.listCols || ct.options?.listCols);
+      }
     });
 
     // Go through the spoofed types and register those
@@ -369,6 +379,10 @@ export class Product implements IProduct {
           }
         }
       });
+
+      if (st.listCols || st.options?.listCols) {
+        this._handleListColsRegistration(st.name, st.listCols || st.options?.listCols);
+      }
     });
 
     // Navigation (basicType and weight's)
@@ -389,10 +403,10 @@ export class Product implements IProduct {
     });
   }
 
-  // // NEW WORK!!!!
-  //   // register headers
-  //   if (entry.listCols && Array.isArray(entry.listCols)) {
-  //     console.log('registering headers', entry.id, entry.listCols);
-  //     headers(entry.id, entry.listCols);
-  //   }
+  // Internal function to handle list columns registration (DSL.headers)
+  _handleListColsRegistration(resourceName: string, listColsDefinition: []) {
+    if (listColsDefinition && Array.isArray(listColsDefinition)) {
+      this.DSL.headers(resourceName, listColsDefinition);
+    }
+  }
 }

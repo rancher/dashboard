@@ -8,6 +8,12 @@ import Page3 from './pages/page3.vue';
 import { MANAGEMENT, CAPI } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 
+import {
+  STATE,
+  AGE,
+  NAME as NAME_COL,
+} from '@shell/config/table-headers';
+
 // Init the package
 export default function(plugin: IPlugin) {
   // Auto-import model, detail, edit from the folders
@@ -167,8 +173,13 @@ export default function(plugin: IPlugin) {
         route: 'page1'
       },
       // {
-      //   type: 'resource',
-      //   name: 'provisioning.cattle.io.cluster',
+      //   type:     'resource',
+      //   name:     'provisioning.cattle.io.cluster',
+      //   listCols: [
+      //     STATE,
+      //     NAME_COL,
+      //     AGE
+      //   ]
       // },
       'provisioning.cattle.io.cluster'
     ]);
@@ -227,5 +238,13 @@ export default function(plugin: IPlugin) {
     anotherProduct.configurePage('fake-resource', { weight: 2 });
 
     anotherProduct.configurePage('page2', { weight: 1 });
+
+    anotherProduct.configurePage('fake-resource', {
+      listCols: [
+        STATE,
+        NAME_COL,
+        AGE
+      ]
+    });
   });
 }

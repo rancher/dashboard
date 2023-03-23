@@ -154,6 +154,7 @@ export type RouteLink = {
   route?: string | RouteLocation; // optional because of kube resources already existing. ex: provisioning.cattle.io.cluster (used with old DSL configureType)
   weight?: number;
   options?: object;
+  listCols?: [];
 }
 
 export type Navigation = string | RouteLink;
@@ -161,22 +162,23 @@ export type Navigation = string | RouteLink;
 export interface IProduct {
   /**
    * Add routes for the product
+   * @param routes Array of routes up for registration
    */
   addRoutes(routes: RouteConfig[]): void;
 
   /**
    * Add product navigation
-   * String routes represent routes for resource types.
+   * String routes represent routes for existing kube resource types.
    * RouteLink routes represent routes for arbitrary pages/vue routes
-   * @param routes
-   * @param grp
+   * @param routes Array or String that represents a page/kube resource up for registration
+   * @param grp Group identifier if registered routes are to be inside a grouped tab as a menu entry
    */
   addNavigation(routes: Navigation | Navigation[], grp?: {[key: string]: any} | string): void;
 
   /**
-   * Configure a given page
-   * @param name
-   * @param options
+   * Configure a given page/resource for extensions product registration
+   * @param name Name (unique identifier) for the given page/resource
+   * @param options Options object for the given page/resource
    */
   configurePage(name: string, options?: object): void;
 }
