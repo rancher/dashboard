@@ -85,6 +85,9 @@ export default {
     </div>
 
     <!-- Conditionally display PSP checkbox -->
-    <ChartPsp :value="value" />
+    <ChartPsp
+      :value="value"
+      :cluster="currentCluster"
+    />
   </div>
 </template>

@@ -2,6 +2,7 @@
 import UnitInput from '@shell/components/form/UnitInput';
 import ChartPsp from '@shell/components/ChartPsp';
 import { Checkbox } from '@components/Form/Checkbox';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -21,6 +22,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     crdValues: {
       get() {
         const crdInfo = this.autoInstallInfo.find(info => info.chart.name.includes('crd'));
@@ -58,7 +60,10 @@ export default {
     </div>
 
     <!-- Conditionally display PSP checkbox -->
-    <ChartPsp :value="value" />
+    <ChartPsp
+      :value="value"
+      :cluster="currentCluster"
+    />
 
     <template v-if="crdValues">
       <!-- gatekeeper versions <1.0.2 do not have this option -->

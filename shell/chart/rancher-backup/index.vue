@@ -86,8 +86,7 @@ export default {
       return { options, labels };
     },
 
-    ...mapGetters({ t: 'i18n/t' })
-
+    ...mapGetters(['currentCluster'], { t: 'i18n/t' }),
   },
 
   watch: {
@@ -168,7 +167,10 @@ export default {
       name="chartOptions"
     >
       <!-- Conditionally display PSP checkbox -->
-      <ChartPsp :value="value" />
+      <ChartPsp
+        :value="value"
+        :cluster="currentCluster"
+      />
 
       <Banner
         color="info"
