@@ -2,9 +2,10 @@ import { shallowMount, mount } from '@vue/test-utils';
 import ChartPsp from '@shell/components/ChartPsp.vue';
 
 describe('component: ChartPsp', () => {
-  it.each([[
-    { global: { cattle: { psp: { enabled: true } } } }, true
-  ], [{ global: { cattle: { psp: { enabled: false } } } }, false]])('should render checkbox referencing value.global.cattle.psp.enabled', (chartValue, checkboxValue) => {
+  it.each([
+    [{ global: { cattle: { psp: { enabled: true } } } }, true],
+    [{ global: { cattle: { psp: { enabled: false } } } }, false]
+  ])('should render checkbox referencing value.global.cattle.psp.enabled', (chartValue, checkboxValue) => {
     const wrapper = shallowMount(ChartPsp, { propsData: { value: chartValue } });
 
     expect(wrapper.findComponent({ name: 'Checkbox' }).props().value).toBe(checkboxValue);
