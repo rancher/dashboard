@@ -7,6 +7,13 @@ import { Card } from '@components/Card';
 import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { _EDIT } from '@shell/config/query-params';
+
+const PERMISSION_GROUP_MAP = {
+  'project-owner':  'owner',
+  'project-member': 'member',
+  'read-only':      'read-only'
+};
 
 export default {
   components: {
@@ -28,6 +35,11 @@ export default {
     useTwoColumnsForCustom: {
       type:    Boolean,
       default: false
+    },
+
+    initValue: {
+      type:    Object,
+      default: null
     }
   },
   async fetch() {
@@ -43,109 +55,113 @@ export default {
   data() {
     this.setRoleTemplateIds(this.value.permissionGroup);
 
+    const customPermissions = [
+      {
+        key:   'create-ns',
+        label: this.t('projectMembers.projectPermissions.createNs'),
+        value: false,
+      },
+      {
+        key:   'configmaps-manage',
+        label: this.t('projectMembers.projectPermissions.configmapsManage'),
+        value: false,
+      },
+      {
+        key:   'ingress-manage',
+        label: this.t('projectMembers.projectPermissions.ingressManage'),
+        value: false,
+      },
+      {
+        key:   'projectcatalogs-manage',
+        label: this.t('projectMembers.projectPermissions.projectcatalogsManage'),
+        value: false,
+      },
+      {
+        key:   'projectroletemplatebindings-manage',
+        label: this.t('projectMembers.projectPermissions.projectroletemplatebindingsManage'),
+        value: false,
+      },
+      {
+        key:   'secrets-manage',
+        label: this.t('projectMembers.projectPermissions.secretsManage'),
+        value: false,
+      },
+      {
+        key:   'serviceaccounts-manage',
+        label: this.t('projectMembers.projectPermissions.serviceaccountsManage'),
+        value: false,
+      },
+      {
+        key:   'services-manage',
+        label: this.t('projectMembers.projectPermissions.servicesManage'),
+        value: false,
+      },
+      {
+        key:   'persistentvolumeclaims-manage',
+        label: this.t('projectMembers.projectPermissions.persistentvolumeclaimsManage'),
+        value: false,
+      },
+      {
+        key:   'workloads-manage',
+        label: this.t('projectMembers.projectPermissions.workloadsManage'),
+        value: false,
+      },
+      {
+        key:   'configmaps-view',
+        label: this.t('projectMembers.projectPermissions.configmapsView'),
+        value: false,
+      },
+      {
+        key:   'ingress-view',
+        label: this.t('projectMembers.projectPermissions.ingressView'),
+        value: false,
+      },
+      {
+        key:   'monitoring-ui-view',
+        label: this.t('projectMembers.projectPermissions.monitoringUiView'),
+        value: false,
+      },
+      {
+        key:   'projectcatalogs-view',
+        label: this.t('projectMembers.projectPermissions.projectcatalogsView'),
+        value: false,
+      },
+      {
+        key:   'projectroletemplatebindings-view',
+        label: this.t('projectMembers.projectPermissions.projectroletemplatebindingsView'),
+        value: false,
+      },
+      {
+        key:   'secrets-view',
+        label: this.t('projectMembers.projectPermissions.secretsView'),
+        value: false,
+      },
+      {
+        key:   'serviceaccounts-view',
+        label: this.t('projectMembers.projectPermissions.serviceaccountsView'),
+        value: false,
+      },
+      {
+        key:   'services-view',
+        label: this.t('projectMembers.projectPermissions.servicesView'),
+        value: false,
+      },
+      {
+        key:   'persistentvolumeclaims-view',
+        label: this.t('projectMembers.projectPermissions.persistentvolumeclaimsView'),
+        value: false,
+      },
+      {
+        key:   'workloads-view',
+        label: this.t('projectMembers.projectPermissions.workloadsView'),
+        value: false,
+      },
+    ];
+
+    this.resetDefaultValue(this.value, customPermissions);
+
     return {
-      customPermissions: [
-        {
-          key:   'create-ns',
-          label: this.t('projectMembers.projectPermissions.createNs'),
-          value: false,
-        },
-        {
-          key:   'configmaps-manage',
-          label: this.t('projectMembers.projectPermissions.configmapsManage'),
-          value: false,
-        },
-        {
-          key:   'ingress-manage',
-          label: this.t('projectMembers.projectPermissions.ingressManage'),
-          value: false,
-        },
-        {
-          key:   'projectcatalogs-manage',
-          label: this.t('projectMembers.projectPermissions.projectcatalogsManage'),
-          value: false,
-        },
-        {
-          key:   'projectroletemplatebindings-manage',
-          label: this.t('projectMembers.projectPermissions.projectroletemplatebindingsManage'),
-          value: false,
-        },
-        {
-          key:   'secrets-manage',
-          label: this.t('projectMembers.projectPermissions.secretsManage'),
-          value: false,
-        },
-        {
-          key:   'serviceaccounts-manage',
-          label: this.t('projectMembers.projectPermissions.serviceaccountsManage'),
-          value: false,
-        },
-        {
-          key:   'services-manage',
-          label: this.t('projectMembers.projectPermissions.servicesManage'),
-          value: false,
-        },
-        {
-          key:   'persistentvolumeclaims-manage',
-          label: this.t('projectMembers.projectPermissions.persistentvolumeclaimsManage'),
-          value: false,
-        },
-        {
-          key:   'workloads-manage',
-          label: this.t('projectMembers.projectPermissions.workloadsManage'),
-          value: false,
-        },
-        {
-          key:   'configmaps-view',
-          label: this.t('projectMembers.projectPermissions.configmapsView'),
-          value: false,
-        },
-        {
-          key:   'ingress-view',
-          label: this.t('projectMembers.projectPermissions.ingressView'),
-          value: false,
-        },
-        {
-          key:   'monitoring-ui-view',
-          label: this.t('projectMembers.projectPermissions.monitoringUiView'),
-          value: false,
-        },
-        {
-          key:   'projectcatalogs-view',
-          label: this.t('projectMembers.projectPermissions.projectcatalogsView'),
-          value: false,
-        },
-        {
-          key:   'projectroletemplatebindings-view',
-          label: this.t('projectMembers.projectPermissions.projectroletemplatebindingsView'),
-          value: false,
-        },
-        {
-          key:   'secrets-view',
-          label: this.t('projectMembers.projectPermissions.secretsView'),
-          value: false,
-        },
-        {
-          key:   'serviceaccounts-view',
-          label: this.t('projectMembers.projectPermissions.serviceaccountsView'),
-          value: false,
-        },
-        {
-          key:   'services-view',
-          label: this.t('projectMembers.projectPermissions.servicesView'),
-          value: false,
-        },
-        {
-          key:   'persistentvolumeclaims-view',
-          label: this.t('projectMembers.projectPermissions.persistentvolumeclaimsView'),
-          value: false,
-        },
-        {
-          key:   'workloads-view',
-          label: this.t('projectMembers.projectPermissions.workloadsView'),
-          value: false,
-        },
-      ],
+      customPermissions,
       projects:      [],
       roleTemplates: [],
     };
@@ -233,6 +249,27 @@ export default {
       }
 
       return [permissionGroup];
+    },
+
+    resetDefaultValue(member, customPermissions) {
+      if (this.mode !== _EDIT || !this.initValue) {
+        return;
+      }
+      const {
+        roleTemplateId, groupPrincipalId, userPrincipalId, projectId
+      } = this.initValue;
+
+      member.permissionGroup = PERMISSION_GROUP_MAP[roleTemplateId] ?? 'custom';
+      member.projectId = projectId ?? '';
+      member.principalId = userPrincipalId ?? groupPrincipalId;
+      member.roleTemplateIds = [roleTemplateId];
+      if (member.permissionGroup === 'custom') {
+        const cp = customPermissions.find(p => roleTemplateId === p.key);
+
+        if (cp) {
+          cp.value = true;
+        }
+      }
     }
   }
 };
@@ -249,6 +286,7 @@ export default {
           class="mb-20"
           :mode="mode"
           :retain-selection="true"
+          :init-value="value.principalId"
           @add="onAdd"
         />
       </div>

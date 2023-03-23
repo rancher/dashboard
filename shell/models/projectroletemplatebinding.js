@@ -2,6 +2,14 @@ import { MANAGEMENT } from '@shell/config/types';
 import NormanModel from '@shell/plugins/steve/norman-class';
 
 export default class PRTB extends NormanModel {
+  get canCustomEdit() {
+    return true;
+  }
+
+  get canClone() {
+    return false;
+  }
+
   get principalId() {
     return this.userPrincipalId || this.groupPrincipalId;
   }
@@ -23,5 +31,13 @@ export default class PRTB extends NormanModel {
       type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
       id:   this.id?.replace(':', '/')
     }, { root: true });
+  }
+
+  goToEdit() {
+    this.$dispatch('promptModal', {
+      component:      'EditProjectMemberDialog',
+      componentProps: { value: this, saveInModal: true },
+      modalSticky:    true
+    });
   }
 }

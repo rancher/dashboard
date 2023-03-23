@@ -2,7 +2,7 @@
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Principal from '@shell/components/auth/Principal';
 import debounce from 'lodash/debounce';
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { NORMAN } from '@shell/config/types';
 
 export default {
@@ -40,6 +40,10 @@ export default {
     project: {
       type:    Boolean,
       default: false
+    },
+    initValue: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -53,11 +57,13 @@ export default {
   },
 
   data() {
+    const newValue = this.initValue ?? '';
+
     return {
       principals:     null,
       searchStr:      '',
       options:        [],
-      newValue:       '',
+      newValue,
       tooltipContent: null,
     };
   },
@@ -87,6 +93,10 @@ export default {
 
     placeholder() {
       return this.project ? this.t('projectMembers.projectPermissions.searchForMember') : this.t('cluster.memberRoles.addClusterMember.placeholder');
+    },
+
+    disabled() {
+      return this.mode === _EDIT || this.mode === _VIEW;
     }
   },
 
@@ -188,6 +198,7 @@ export default {
     :filterable="false"
     class="select-principal"
     :class="{'retain-selection': retainSelection}"
+    :disabled="disabled"
     @input="add"
     @search="onSearch"
     @on-open="resetTooltipContent()"

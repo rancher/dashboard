@@ -11,8 +11,12 @@ export default class CRTB extends HybridModel {
     }
   }
 
-  get canCustomEdit() {
-    return false;
+  // get canCustomEdit() {
+  //   return false;
+  // }
+
+  get canUpdate() {
+    return true;
   }
 
   get canYaml() {

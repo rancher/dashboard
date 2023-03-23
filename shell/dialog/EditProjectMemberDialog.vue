@@ -4,7 +4,7 @@ import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor';
 import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import { NORMAN } from '@shell/config/types';
-import { _CREATE } from '@shell/config/query-params';
+import { _EDIT } from '@shell/config/query-params';
 
 export default {
   components: {
@@ -25,8 +25,8 @@ export default {
       default: () => {}
     },
 
-    projectId: {
-      type:    String,
+    value: {
+      type:    Object,
       default: null
     },
 
@@ -37,7 +37,7 @@ export default {
   },
 
   data() {
-    return {
+    const d = {
       member: {
         permissionGroup: 'member',
         custom:          {},
@@ -45,8 +45,10 @@ export default {
         roleTemplateIds: []
       },
       error: null,
-      mode:  _CREATE
+      mode:  _EDIT
     };
+
+    return d;
   },
 
   computed: {
@@ -78,12 +80,19 @@ export default {
     },
 
     async createBindings() {
+      const { projectId } = this.value;
+
+      try {
+        await this.value.remove();
+      } catch (err) {
+        // do nothing
+      }
       const principalProperty = await this.principalProperty();
       const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`rancher/create`, {
         type:                NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateId,
         [principalProperty]: this.member.principalId,
-        projectId:           this.projectId,
+        projectId,
       }));
 
       return Promise.all(promises);
@@ -134,6 +143,7 @@ export default {
         v-model="member"
         :mode="mode"
         :use-two-columns-for-custom="true"
+        :init-value="value"
       />
     </div>
 
@@ -159,7 +169,7 @@ export default {
         class="btn role-primary"
         @click="apply"
       >
-        {{ t('generic.add') }}
+        {{ t('generic.save') }}
       </button>
     </div>
   </Card>

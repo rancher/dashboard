@@ -8,6 +8,12 @@ import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { _EDIT } from '@shell/config/query-params';
+
+const PERMISSION_GROUP_MAP = {
+  'cluster-owner':  'owner',
+  'cluster-member': 'member'
+};
 
 export function canViewClusterPermissionsEditor(store) {
   return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
@@ -40,6 +46,11 @@ export default {
     clusterName: {
       type:    String,
       default: null
+    },
+
+    initValue: {
+      type:    Object,
+      default: null
     }
   },
   async fetch() {
@@ -51,7 +62,7 @@ export default {
     this.roleTemplates = roleTemplates;
   },
   data() {
-    return {
+    const d = {
       customPermissions: [
         {
           label: this.t('members.clusterPermissions.createProjects'),
@@ -115,6 +126,10 @@ export default {
       principalId:     '',
       bindings:        []
     };
+
+    this.resetDefaultValue(d);
+
+    return d;
   },
   computed: {
     customRoles() {
@@ -207,6 +222,30 @@ export default {
 
         this.$emit('input', bindings);
       }
+    },
+
+    resetDefaultValue(data) {
+      if (this.mode !== _EDIT || !this.initValue) {
+        return;
+      }
+
+      const {
+        roleTemplateName,
+        userPrincipalName,
+        groupPrincipalName,
+        // userName,
+        // clusterName,
+      } = this.initValue;
+
+      data.permissionGroup = PERMISSION_GROUP_MAP[roleTemplateName] ?? 'custom';
+      data.principalId = userPrincipalName ?? groupPrincipalName;
+      if (data.permissionGroup === 'custom') {
+        const cp = data.customPermissions.find(p => roleTemplateName === p.key);
+
+        if (cp) {
+          cp.value = true;
+        }
+      }
     }
   }
 };
@@ -224,6 +263,7 @@ export default {
           class="mb-20"
           :mode="mode"
           :retain-selection="true"
+          :init-value="principalId"
           @add="onAdd"
         />
       </div>
