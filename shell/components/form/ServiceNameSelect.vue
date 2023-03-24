@@ -149,8 +149,8 @@ export default {
     <template v-if="serviceNameNew">
       <div class="row span-6">
         <Banner
+          v-clean-html="t('workload.serviceAccountName.createMessage', { name: serviceName }) "
           color="info"
-          v-html="t('workload.serviceAccountName.createMessage', { name: serviceName }) "
         ></Banner>
       </div>
     </template>

@@ -135,7 +135,7 @@ export default {
         class="modal-content"
         :show-actions="true"
       >
-        <h4 slot="title" v-html="t('epinio.namespace.create')" />
+        <h4 slot="title" v-clean-html="t('epinio.namespace.create')" />
         <div slot="body" class="model-body">
           <LabeledInput
             ref="namespaceName"

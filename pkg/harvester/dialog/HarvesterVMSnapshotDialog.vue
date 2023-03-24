@@ -112,8 +112,8 @@ export default {
   <Card :show-highlight-border="false">
     <h4
       slot="title"
+      v-clean-html="t('harvester.modal.vmSnapshot.title')"
       class="text-default-text"
-      v-html="t('harvester.modal.vmSnapshot.title')"
     />
 
     <template #body>

@@ -111,7 +111,7 @@ export default {
     <template #group-by="group">
       <div class="group-bar">
         <div class="group-tab">
-          <div class="project-name" v-html="templateLabel(group.group)" />
+          <div v-clean-html="templateLabel(group.group)" class="project-name" />
         </div>
 
         <div class="right">

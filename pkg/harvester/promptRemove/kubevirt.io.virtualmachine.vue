@@ -134,7 +134,7 @@ export default {
 <template>
   <div class="mt-10">
     {{ t('promptRemove.attemptingToRemove', {type}) }}
-    <span v-html="resourceNames(names, plusMore, t)"></span>
+    <span v-clean-html="resourceNames(names, plusMore, t)"></span>
 
     <div class="mt-10">
       {{ t('harvester.virtualMachine.promptRemove.title') }}

@@ -39,6 +39,6 @@ export default {
       :mode="mode"
       @input="value.setData('accessToken', $event);"
     />
-    <p class="text-muted mt-10" v-html="t('cluster.credential.digitalocean.accessToken.help', {}, true)" />
+    <p v-clean-html="t('cluster.credential.digitalocean.accessToken.help', {}, true)" class="text-muted mt-10" />
   </div>
 </template>

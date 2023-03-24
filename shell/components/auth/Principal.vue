@@ -62,7 +62,7 @@ export default {
           <i class="icon icon-spinner icon-lg" />
         </div>
       </div>
-      <div class="name" :class="{'text-muted': useMuted}" v-html="t('principal.loading', null, true)" />
+      <div v-clean-html="t('principal.loading', null, true)" class="name" :class="{'text-muted': useMuted}" />
       <div class="description" />
     </template>
 
