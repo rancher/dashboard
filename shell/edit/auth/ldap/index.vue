@@ -128,7 +128,7 @@ export default {
       </template>
       <div v-if="!model.enabled" class="row">
         <div class="col span-12">
-          <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
+          <Banner v-clean-html="t('authConfig.associatedWarning', tArgs, true)" color="info" />
         </div>
       </div>
     </CruResource>

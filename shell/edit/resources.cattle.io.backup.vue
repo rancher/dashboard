@@ -262,7 +262,7 @@ export default {
           </template>
         </template>
         <Banner v-else color="error">
-          <span v-html="t('backupRestoreOperator.noResourceSet')" />
+          <span v-clean-html="t('backupRestoreOperator.noResourceSet')" />
         </Banner>
       </template>
     </CruResource>

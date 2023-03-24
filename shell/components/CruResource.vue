@@ -416,7 +416,7 @@ export default {
                     <h5>
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
-                        v-html="t(subtype.label)"
+                        v-clean-html="t(subtype.label)"
                       ></span>
                       <span v-else>{{ subtype.label }}</span>
                     </h5>
@@ -426,7 +426,7 @@ export default {
                   <div v-if="subtype.description" class="description">
                     <span
                       v-if="$store.getters['i18n/exists'](subtype.description)"
-                      v-html="t(subtype.description, {}, true)"
+                      v-clean-html="t(subtype.description, {}, true)"
                     ></span>
                     <span v-else>{{ subtype.description }}</span>
                   </div>

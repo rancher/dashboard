@@ -212,7 +212,7 @@ export default {
     :scrollable="true"
   >
     <Card v-if="loaded" class="prompt-restore" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text" v-html="t('promptRestore.title', null, true)" />
+      <h4 slot="title" v-clean-html="t('promptRestore.title', null, true)" class="text-default-text" />
 
       <div slot="body" class="pl-10 pr-10">
         <form>
