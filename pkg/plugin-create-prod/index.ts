@@ -31,7 +31,7 @@ export default function(plugin: IPlugin) {
 
     // Simple call to add a new product that shows up in the side nav
     const advancedProduct = products.add('advanced');
-    const anotherProduct = products.add('another-product');
+    const anotherProduct = products.add('another');
 
     console.log('--- ADVANCED PRODUCTION DEFINITION ---', advancedProduct);
     console.log('--- ANOTHER PROD PRODUCTION DEFINITION ---', anotherProduct);
@@ -129,7 +129,7 @@ export default function(plugin: IPlugin) {
         weight:   -1, // doesn't work in this case has weight's are set globally and already defined before...
         labelKey: 'tab.custom-group-label',
       }
-    ], { labelKey: 'tab.custom-group-label', weight: 2 });
+    ], { labelKey: 'bananas', weight: 2 });
 
     // **************************************************************************************************************
     // **************************************************************************************************************

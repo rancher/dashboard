@@ -302,6 +302,8 @@ export default {
     },
 
     $route(a, b) {
+      console.error('to route', a);
+      console.error('from route', b);
       this.$nextTick(() => this.syncNav());
     },
 
@@ -316,6 +318,7 @@ export default {
   },
 
   mounted() {
+    console.error('LAYOUT MOUNTED!');
     // Sync the navigation tree on fresh load
     this.$nextTick(() => this.syncNav());
 
@@ -329,6 +332,7 @@ export default {
   },
 
   unmounted() {
+    console.error('LAYOUT REMOVED!');
     this.unwatchPin();
   },
 
@@ -390,6 +394,8 @@ export default {
           const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
 
           const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
+
+          console.log('MORE ROUTES', more);
 
           if ( productId === EXPLORER || !this.isExplorer ) {
             addObjects(out, more);

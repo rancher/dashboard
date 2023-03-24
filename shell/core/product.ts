@@ -10,6 +10,12 @@ import ViewResource from '@shell/pages/c/_cluster/_product/_resource/_id.vue';
 import ListNamespacedResource from '@shell/pages/c/_cluster/_product/_resource/_namespace/_id.vue';
 import { BLANK_CLUSTER } from '@shell/store';
 
+/* ************************************************************************************************ */
+/* MEGA NOTE: APPARENTLY "name", which should be unique identifier, needs to be unique per each extension
+/* otherwise we might end up get routed to the same page of a different product if the same extension if both have the same name
+/* to be checked again after code changes...
+/* ************************************************************************************************ */
+
 export class Product implements IProduct {
   private store: any;
   private DSL: any;
@@ -189,7 +195,7 @@ export class Product implements IProduct {
     const registeredRoutes = this.router.getRoutes();
 
     this.routes.forEach((route) => {
-      if (!registeredRoutes.find((regRoute:any) => regRoute.name === route.name)) {
+      if (!registeredRoutes.find((regRoute:any) => regRoute.name === route.name || regRoute.path === route.path)) {
         allRoutesToAdd.push(route);
       }
     });
