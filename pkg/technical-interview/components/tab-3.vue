@@ -61,7 +61,7 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div>
-    Tab 3
+    <h2>JSON swap values</h2>
 
     <div>
       <input
@@ -74,6 +74,7 @@ export default Vue.extend<Data, any, any, any>({
       </div>
       <button
         v-if="originalJson"
+        class="btn btn-sm role-primary"
         @click="swapKeysAndValues"
       >
         Swap Keys and Values

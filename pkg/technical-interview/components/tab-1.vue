@@ -24,13 +24,24 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div>
-    Tab 1
-    {{ counter }}
-    <button @click="increment">
-      Increment
+    <h2>Counter</h2>
+
+    <span
+      class="mr-3"
+    >
+      {{ counter }}
+    </span>
+    <button
+      class="btn btn-sm role-primary"
+      @click="increment"
+    >
+      +
     </button>
-    <button @click="decrement">
-      Decrement
+    <button
+      class="btn btn-sm role-primary"
+      @click="decrement"
+    >
+      -
     </button>
   </div>
 </template>

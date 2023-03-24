@@ -28,10 +28,10 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div>
-    Tab 4
+    <h2>Check palindrome</h2>
 
     <label>
-      Palindrome:
+      Type a word:
       <input
         v-model="word"
         type="text"

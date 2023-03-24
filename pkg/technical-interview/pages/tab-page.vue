@@ -37,28 +37,28 @@ export default Vue.extend<Data, any, any, any>({
 
     <Tabbed>
       <Tab
-        label="Tab 1"
+        label="Counter"
         name="tab1"
         :weight="4"
       >
         <Tab-1 />
       </Tab>
       <Tab
-        label="Tab 2"
+        label="Compare time"
         name="tab2"
         :weight="3"
       >
         <Tab-2 />
       </Tab>
       <Tab
-        label="Tab 3"
+        label="JSON swap values"
         name="tab3"
         :weight="2"
       >
         <Tab-3 />
       </Tab>
       <Tab
-        label="Tab 4"
+        label="Check palindrome"
         name="tab4"
         :weight="1"
       >
