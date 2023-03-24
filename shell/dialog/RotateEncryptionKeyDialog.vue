@@ -123,7 +123,7 @@ export default {
 
 <template>
   <Card class="prompt-rotate" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('promptRotateEncryptionKey.title')" />
+    <h4 slot="title" v-clean-html="t('promptRotateEncryptionKey.title')" class="text-default-text" />
 
     <div slot="body" class="pl-10 pr-10">
       <Banner color="warning" label-key="promptRotateEncryptionKey.warning" />

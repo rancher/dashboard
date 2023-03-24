@@ -99,13 +99,13 @@ export default {
         {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="display-name">{{ `${displayName}.` }}</span>
         <template v-if="!canSeeProjectlessNamespaces">
           <span class="delete-warning"> {{ t('promptRemove.willDeleteAssociatedNamespaces') }}</span> <br />
-          <div class="mt-10" v-html="resourceNames(names, plusMore, t)"></div>
+          <div v-clean-html="resourceNames(names, plusMore, t)" class="mt-10"></div>
         </template>
       </div>
       <div v-if="filteredNamespaces.length > 0 && canSeeProjectlessNamespaces" class="mt-20 remove-project-dialog">
         <Checkbox v-model="deleteProjectNamespaces" :label="t('promptRemove.deleteAssociatedNamespaces')" />
         <div class="mt-10 ml-20">
-          <span v-html="resourceNames(names, plusMore, t)"></span>
+          <span v-clean-html="resourceNames(names, plusMore, t)"></span>
         </div>
       </div>
     </div>

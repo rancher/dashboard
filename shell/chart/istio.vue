@@ -170,7 +170,7 @@ export default {
       <div class="custom-overlay">
         <Banner color="info">
           <span
-            v-html="t('istio.customOverlayFile.tip', {}, true)"
+            v-clean-html="t('istio.customOverlayFile.tip', {}, true)"
           ></span>
         </Banner>
         <YamlEditor

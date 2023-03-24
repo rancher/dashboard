@@ -65,7 +65,7 @@ export default Vue.extend({
     <slot>
       <t v-if="labelKey" :k="labelKey" :raw="true" />
       <span v-else-if="messageLabel">{{ messageLabel }}</span>
-      <span v-else v-html="nlToBr(label)" />
+      <span v-else v-clean-html="nlToBr(label)" />
     </slot>
     <div v-if="closable" class="closer" @click="$emit('close')">
       <i class="icon icon-2x icon-close closer-icon" />

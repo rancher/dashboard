@@ -512,7 +512,7 @@ export default {
 <template>
   <div ref="emberPage" class="ember-page">
     <Loading v-if="!inline" :loading="!loaded" mode="content" :no-delay="true" />
-    <div v-if="inline && !loaded" class="inline-loading" v-html="t('generic.loading', {}, true)" />
+    <div v-if="inline && !loaded" v-clean-html="t('generic.loading', {}, true)" class="inline-loading" />
     <div v-if="error" class="ember-page-error">
       <div>{{ t('embedding.unavailable') }}</div>
       <button class="btn role-primary" @click="initFrame()">

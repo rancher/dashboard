@@ -93,6 +93,6 @@ export default {
       :options="knownRegions"
       @input="value.setData('defaultRegion', $event);"
     />
-    <p class="text-muted mt-5" v-html="t('cluster.credential.aws.defaultRegion.help', {}, true)" />
+    <p v-clean-html="t('cluster.credential.aws.defaultRegion.help', {}, true)" class="text-muted mt-5" />
   </div>
 </template>

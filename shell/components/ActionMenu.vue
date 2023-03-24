@@ -241,7 +241,7 @@ export default {
         @click="execute(opt, $event)"
       >
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
-        <span v-html="opt.label" />
+        <span v-clean-html="opt.label" />
       </li>
       <li v-if="!hasOptions(menuOptions)" class="no-actions">
         <span v-t="'sortableTable.noActions'" />

@@ -99,7 +99,7 @@ export default {
   >
     <h4>{{ description }}</h4>
 
-    <h5 v-if="editHelp" class="edit-help" v-html="editHelp" />
+    <h5 v-if="editHelp" v-clean-html="editHelp" class="edit-help" />
 
     <div class="edit-change mt-20">
       <h5 v-t="'advancedSettings.edit.changeSetting'" />

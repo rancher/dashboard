@@ -388,7 +388,7 @@ export default {
         <div class="row">
           <div class="col span-12">
             <Banner :color="(matchingPods.none ? 'warning' : 'success')">
-              <span v-html="t('servicesPage.selectors.matchingPods.matchesSome', matchingPods)" />
+              <span v-clean-html="t('servicesPage.selectors.matchingPods.matchesSome', matchingPods)" />
             </Banner>
           </div>
         </div>

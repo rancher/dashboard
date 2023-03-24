@@ -97,7 +97,7 @@ export default {
 <template>
   <div>
     <resize-observer @notify="fit" />
-    <div ref="root" class="root" v-html="html" />
+    <div ref="root" v-clean-html="html" class="root" />
   </div>
 </template>
 

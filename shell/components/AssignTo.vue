@@ -113,7 +113,7 @@ export default {
     :scrollable="true"
   >
     <Card v-if="loaded" :show-highlight-border="false">
-      <h4 slot="title" class="text-default-text" v-html="t('assignTo.title', {count: resourceCount}, true)" />
+      <h4 slot="title" v-clean-html="t('assignTo.title', {count: resourceCount}, true)" class="text-default-text" />
 
       <div slot="body" class="pl-10 pr-10">
         <form>

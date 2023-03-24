@@ -108,7 +108,7 @@ export default {
         <button v-else type="button" class="btn btn-sm role-secondary mr-5" @click="e=>{enableGroup(group.rows); e.target.blur()}">
           {{ t('harvester.pci.enableGroup') }}
         </button>
-        <span v-html="group.key" />
+        <span v-clean-html="group.key" />
       </div>
     </template>
     <template #cell:claimed="{row}">

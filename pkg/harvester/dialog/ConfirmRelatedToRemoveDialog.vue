@@ -135,12 +135,12 @@ export default {
     </h4>
     <div slot="body" class="pl-10 pr-10">
       <span
-        v-html="t(warningMessageKey, { type, names: resourceNames }, true)"
+        v-clean-html="t(warningMessageKey, { type, names: resourceNames }, true)"
       ></span>
 
       <div class="mt-10 mb-10">
         <span
-          v-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
+          v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
         ></span>
       </div>
       <div class="mb-10">
