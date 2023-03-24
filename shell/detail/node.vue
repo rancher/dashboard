@@ -51,6 +51,7 @@ export default {
 
   async fetch() {
     this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [NODE_METRICS_DETAIL_URL, NODE_METRICS_SUMMARY_URL]);
+    this.showGpuMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [NODE_GPU_METRICS_SUMMARY_URL]);
 
     if (haveV1Monitoring(this.$store.getters)) {
       const v3Nodes = await this.$store.dispatch('rancher/request', {
@@ -95,7 +96,8 @@ export default {
       NODE_METRICS_DETAIL_URL,
       NODE_METRICS_SUMMARY_URL,
       NODE_GPU_METRICS_SUMMARY_URL,
-      showMetrics:     false
+      showMetrics:     false,
+      showGpuMetrics:  false,
     };
   },
 
@@ -168,7 +170,7 @@ export default {
       return { instance: this.value.metadata?.name };
     },
     hasGpu() {
-      return this.value?.labels['gpu.pandaria.io/monitoring-enabled'] === 'true';
+      return this.value?.labels['gpu.pandaria.io/monitoring-enabled'] === 'true' && this.showGpuMetrics;
     }
   },
 
