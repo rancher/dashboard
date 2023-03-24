@@ -32,6 +32,7 @@ import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-an
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { clone, diff, get, set } from '@shell/utils/object';
+import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -93,7 +94,6 @@ export default {
     await this.fetchChart();
 
     await this.fetchAutoInstallInfo();
-
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
@@ -427,6 +427,13 @@ export default {
   computed: {
     ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    /**
+     * Return list of variables to filter chart questions
+     */
+    ignoreVariables() {
+      return ignoreVariables(this.currentCluster, this.versionInfo);
+    },
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
@@ -1520,7 +1527,7 @@ export default {
         </div>
         <div class="scroll__container">
           <div class="scroll__content">
-            <!-- Values (as Custom Component) -->
+            <!-- Values (as Custom Component in ./shell/charts/) -->
             <template v-if="valuesComponent && showValuesComponent">
               <Tabbed
                 v-if="componentHasTabs"
@@ -1563,7 +1570,8 @@ export default {
                 />
               </template>
             </template>
-            <!-- Values (as Questions)  -->
+
+            <!-- Values (as Questions, abstracted component based on question.yaml configuration from repositories)  -->
             <Tabbed
               v-else-if="hasQuestions && showQuestions"
               ref="tabs"
@@ -1577,6 +1585,7 @@ export default {
                 :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
+                :ignore-variables="ignoreVariables"
                 tabbed="multiple"
                 :target-namespace="targetNamespace"
               />
