@@ -1416,6 +1416,11 @@ export default {
         return;
       }
 
+      // Remove null profile on machineGlobalConfig - https://github.com/rancher/dashboard/issues/8480
+      if (this.value.spec?.rkeConfig?.machineGlobalConfig?.profile === null) {
+        delete this.value.spec.rkeConfig.machineGlobalConfig.profile;
+      }
+
       await this.save(btnCb);
     },
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
