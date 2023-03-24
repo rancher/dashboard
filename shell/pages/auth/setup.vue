@@ -281,8 +281,8 @@ export default {
 
           <template v-if="mustChangePassword">
             <p
+              v-clean-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
               class="text-center mb-20 mt-20 setup-title"
-              v-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
             />
 
             <Password

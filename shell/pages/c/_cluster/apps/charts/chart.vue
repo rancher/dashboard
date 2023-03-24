@@ -159,14 +159,14 @@ export default {
           v-if="osWarning"
           color="error"
         >
-          <span v-html="osWarning" />
+          <span v-clean-html="osWarning" />
         </Banner>
         <Banner
           v-for="msg in requires"
           :key="msg"
           color="error"
         >
-          <span v-html="msg" />
+          <span v-clean-html="msg" />
         </Banner>
 
         <Banner
@@ -174,14 +174,14 @@ export default {
           :key="msg"
           color="warning"
         >
-          <span v-html="msg" />
+          <span v-clean-html="msg" />
         </Banner>
 
         <Banner
           v-if="targetedAppWarning"
           color="warning"
         >
-          <span v-html="targetedAppWarning" />
+          <span v-clean-html="targetedAppWarning" />
         </Banner>
       </div>
       <div

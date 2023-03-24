@@ -108,8 +108,8 @@ export default {
   <div class="mt-10">
     <div class="mb-30">
       {{ t('promptRemove.attemptingToRemove', { type }) }} <span
+        v-clean-html="podNames"
         class="machine-name"
-        v-html="podNames"
       />
     </div>
     <div class="mb-30">

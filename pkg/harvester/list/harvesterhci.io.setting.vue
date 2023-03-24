@@ -173,7 +173,7 @@ export default {
               Modified
             </span>
           </h1>
-          <h2 v-html="t(setting.description, {}, true)">
+          <h2 v-clean-html="t(setting.description, {}, true)">
           </h2>
         </div>
         <div v-if="setting.hasActions" :id="setting.id" class="action">

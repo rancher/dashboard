@@ -25,7 +25,7 @@ export default {
   <div class="intro-box">
     <i class="icon icon-repository" />
     <div class="title">
-      <span v-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
+      <span v-clean-html="t('fleet.gitRepo.repo.noWorkspaces', null, true)" />
     </div>
     <div
       v-if="canView"
