@@ -247,7 +247,7 @@ export default {
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
-            <span v-clean-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)" />
+            <span v-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)" />
           </Banner>
         </div>
       </div>
@@ -267,7 +267,7 @@ export default {
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
-            <span v-clean-html="t('networkpolicy.selectors.matchingNamespaces.matchesSome', matchingNamespaces)" />
+            <span v-html="t('networkpolicy.selectors.matchingNamespaces.matchesSome', matchingNamespaces)" />
           </Banner>
         </div>
       </div>

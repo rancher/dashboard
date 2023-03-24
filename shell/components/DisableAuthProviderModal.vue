@@ -49,7 +49,7 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          <p v-clean-html="t('promptRemove.attemptingToRemoveAuthConfig', null, true)" />
+          <p v-html="t('promptRemove.attemptingToRemoveAuthConfig', null, true)" />
         </div>
       </div>
       <template #actions>

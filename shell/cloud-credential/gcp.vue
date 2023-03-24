@@ -59,6 +59,6 @@ export default {
       @input="value.setData('authEncodedJson', $event);"
     />
     <FileSelector class="role-primary btn-sm mt-20 mb-20" :label="t('generic.readFromFile')" @selected="onFileSelected" />
-    <p v-clean-html="t('cluster.credential.gcp.authEncodedJson.help', {}, true)" class="text-muted" />
+    <p class="text-muted" v-html="t('cluster.credential.gcp.authEncodedJson.help', {}, true)" />
   </div>
 </template>

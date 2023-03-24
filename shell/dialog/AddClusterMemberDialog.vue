@@ -40,7 +40,7 @@ export default {
 
 <template>
   <Card class="prompt-rotate" :show-highlight-border="false">
-    <h4 slot="title" v-clean-html="t('addClusterMemberDialog.title')" class="text-default-text" />
+    <h4 slot="title" class="text-default-text" v-html="t('addClusterMemberDialog.title')" />
 
     <div slot="body" class="pl-10 pr-10">
       <ClusterPermissionsEditor v-model="bindings" :use-two-columns-for-custom="true" />

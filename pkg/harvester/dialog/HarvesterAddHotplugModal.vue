@@ -110,7 +110,7 @@ export default {
 
 <template>
   <Card ref="modal" name="modal" :show-highlight-border="false">
-    <h4 slot="title" v-clean-html="t('harvester.modal.hotplug.title')" class="text-default-text" />
+    <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.hotplug.title')" />
 
     <template #body>
       <LabeledInput

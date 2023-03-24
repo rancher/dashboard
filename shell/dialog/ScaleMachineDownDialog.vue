@@ -107,7 +107,7 @@ export default {
         </div>
         <div v-if="ignored.length" class="retained-machine">
           <span class="mb-20">{{ t('promptScaleMachineDown.retainedMachine1') }}</span>
-          <span v-for="i in ignored" :key="i.name" v-clean-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"></span>
+          <span v-for="i in ignored" :key="i.name" v-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"></span>
         </div>
       </div>
     </template>

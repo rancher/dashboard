@@ -87,7 +87,7 @@ export default {
           <p>
             {{ t('monitoring.installSteps.uninstallV1.warning1') }}
           </p>
-          <p v-clean-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)" class="mt-10">
+          <p class="mt-10" v-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)">
           </p>
         </template>
       </IconMessage>
@@ -108,7 +108,7 @@ export default {
         <p class="">
           {{ t('monitoring.installSteps.uninstallV1.success1') }}
         </p>
-        <p v-clean-html="t('monitoring.installSteps.uninstallV1.success2')" class="mt-10">
+        <p class="mt-10" v-html="t('monitoring.installSteps.uninstallV1.success2')">
         </p>
       </template>
     </IconMessage>

@@ -402,7 +402,7 @@ export default {
     </template>
 
     <template #group-by="{group: thisGroup}">
-      <div v-clean-html="thisGroup.ref" class="group-tab" />
+      <div class="group-tab" v-html="thisGroup.ref" />
     </template>
 
     <!-- Pass down templates provided by the caller -->

@@ -139,18 +139,18 @@ export default {
       </div>
       <div v-if="requires.length || warnings.length || targetedAppWarning || osWarning" class="mt-20">
         <Banner v-if="osWarning" color="error">
-          <span v-clean-html="osWarning" />
+          <span v-html="osWarning" />
         </Banner>
         <Banner v-for="msg in requires" :key="msg" color="error">
-          <span v-clean-html="msg" />
+          <span v-html="msg" />
         </Banner>
 
         <Banner v-for="msg in warnings" :key="msg" color="warning">
-          <span v-clean-html="msg" />
+          <span v-html="msg" />
         </Banner>
 
         <Banner v-if="targetedAppWarning" color="warning">
-          <span v-clean-html="targetedAppWarning" />
+          <span v-html="targetedAppWarning" />
         </Banner>
       </div>
       <div v-else-if="version && version.description" class="description mt-10">

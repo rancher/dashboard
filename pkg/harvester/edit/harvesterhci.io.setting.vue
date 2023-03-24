@@ -145,9 +145,9 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
-    <h4 v-clean-html="description"></h4>
+    <h4 v-html="description"></h4>
 
-    <h5 v-if="editHelp" v-clean-html="editHelp" class="edit-help" />
+    <h5 v-if="editHelp" class="edit-help" v-html="editHelp" />
 
     <div class="edit-change mt-20">
       <h5 v-t="'advancedSettings.edit.changeSetting'" />

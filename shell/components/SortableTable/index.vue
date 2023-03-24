@@ -858,7 +858,7 @@ export default {
                 @mouseleave="setBulkActionOfInterest(null)"
               >
                 <i v-if="act.icon" :class="act.icon" />
-                <span v-clean-html="act.label" />
+                <span v-html="act.label" />
               </button>
               <ActionDropdown :class="bulkActionsDropdownClass" class="bulk-actions-dropdown" :disable-button="!selectedRows.length" size="sm">
                 <template #button-content>
@@ -884,7 +884,7 @@ export default {
                       @mouseleave="setBulkActionOfInterest(null)"
                     >
                       <i v-if="act.icon" :class="act.icon" />
-                      <span v-clean-html="act.label" />
+                      <span v-html="act.label" />
                     </li>
                   </ul>
                 </template>

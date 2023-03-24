@@ -172,9 +172,9 @@ export default {
 
         <InfoBox :step="1" class="step-box">
           <ul class="step-list">
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.prefix.1`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.prefix.2`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.prefix.3`, tArgs, true)" />
           </ul>
         </InfoBox>
         <InfoBox :step="2" class="step-box">
@@ -182,9 +182,9 @@ export default {
             <li>
               {{ t(`authConfig.${NAME}.form.instruction`, tArgs, true) }}
               <ul class="mt-10">
-                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
                 <li><b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ serverUrl }} <CopyToClipboard label-as="tooltip" :text="serverUrl" class="icon-btn" action-color="bg-transparent" /></li>
-                <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-clean-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
                 <li><b>{{ t(`authConfig.${NAME}.form.callback.label`) }}</b>: {{ serverUrl }} <CopyToClipboard :text="serverUrl" label-as="tooltip" class="icon-btn" action-color="bg-transparent" /></li>
               </ul>
             </li>
@@ -192,8 +192,8 @@ export default {
         </InfoBox>
         <InfoBox :step="3" class="mb-20">
           <ul class="step-list">
-            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
-            <li v-clean-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.suffix.1`, tArgs, true)" />
+            <li v-html="t(`authConfig.${NAME}.form.suffix.2`, tArgs, true)" />
           </ul>
         </InfoBox>
 
@@ -216,7 +216,7 @@ export default {
         </div>
         <div v-if="!model.enabled" class="row">
           <div class="col span-12">
-            <Banner v-clean-html="t('authConfig.associatedWarning', tArgs, true)" color="info" />
+            <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
           </div>
         </div>
       </template>

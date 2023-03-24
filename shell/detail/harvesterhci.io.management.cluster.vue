@@ -77,17 +77,17 @@ export default {
       class="p-10"
     >
       <h4
-        v-clean-html="t('cluster.harvester.registration.step1', null, true)"
+        v-html="t('cluster.harvester.registration.step1', null, true)"
       />
 
       <h4
-        v-clean-html="t('cluster.harvester.registration.step2', null, true)"
         class="mt-10"
+        v-html="t('cluster.harvester.registration.step2', null, true)"
       />
 
       <h4
-        v-clean-html="t('cluster.harvester.registration.step3', null, true)"
         class="mt-10"
+        v-html="t('cluster.harvester.registration.step3', null, true)"
       />
       <CopyCode class="m-10 p-10">
         {{ registrationURL }}

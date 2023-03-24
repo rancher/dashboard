@@ -320,8 +320,8 @@ export default {
           <tbody class="logs-body">
             <template v-if="filtered.length">
               <tr v-for="line in filtered" :key="line.id">
-                <td :key="line.id + '-time'" v-clean-html="format(line.time)" class="time" />
-                <td :key="line.id + '-msg'" v-clean-html="line.msg" class="msg" />
+                <td :key="line.id + '-time'" class="time" v-html="format(line.time)" />
+                <td :key="line.id + '-msg'" class="msg" v-html="line.msg" />
               </tr>
             </template>
             <tr v-else-if="search">

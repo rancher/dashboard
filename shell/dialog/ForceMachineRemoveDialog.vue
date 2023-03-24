@@ -76,7 +76,7 @@ export default {
     </h4>
     <div slot="body" class="pl-10 pr-10">
       <span
-        v-clean-html="t('promptForceRemove.removeWarning', { nameToMatch }, true)"
+        v-html="t('promptForceRemove.removeWarning', { nameToMatch }, true)"
       ></span>
       <div class="mt-10 mb-10">
         {{ t('promptForceRemove.confirmName') }}

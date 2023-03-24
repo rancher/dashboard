@@ -288,7 +288,7 @@ export default {
           <div class="row mb-20">
             <div class="col span-12">
               <Banner v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete" class="mt-0" :color="hasAlertManager ? 'info' : 'warning'">
-                <span v-clean-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+                <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
               </banner>
               <Checkbox v-model="scanAlertRule.alertOnComplete" :mode="mode" :label="t('cis.alertOnComplete')" />
               <Checkbox v-model="scanAlertRule.alertOnFailure" :mode="mode" :label="t('cis.alertOnFailure')" />

@@ -38,9 +38,9 @@ export default {
     </div>
     <h1
       v-else-if="title"
-      v-clean-html="title"
       data-testid="banner-title"
       class="title"
+      v-html="title"
     ></h1>
     <div v-if="pref" class="close-button" @click="hide()">
       <i class="icon icon-close" />

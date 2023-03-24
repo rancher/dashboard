@@ -284,7 +284,7 @@ export default {
             color="info whats-new"
           >
             <div>{{ t('landing.seeWhatsNew') }}</div>
-            <a class="hand" @click.prevent.stop="showWhatsNew"><span v-clean-html="t('landing.whatsNewLink')" /></a>
+            <a class="hand" @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
       </div>
@@ -312,7 +312,7 @@ export default {
             <div class="col span-12">
               <Banner color="set-login-page" :closable="true" @close="closeSetLoginBanner()">
                 <div>{{ t('landing.landingPrefs.title') }}</div>
-                <a class="hand mr-20" @click.prevent.stop="showUserPrefs"><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
+                <a class="hand mr-20" @click.prevent.stop="showUserPrefs"><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
             </div>
           </div>
