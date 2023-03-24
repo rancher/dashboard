@@ -168,7 +168,7 @@ export default {
       return { instance: this.value.metadata?.name };
     },
     hasGpu() {
-      return this.value?.labels['gpu.cattle.io/monitoring-enabled'] === 'true';
+      return this.value?.labels['gpu.pandaria.io/monitoring-enabled'] === 'true';
     }
   },
 

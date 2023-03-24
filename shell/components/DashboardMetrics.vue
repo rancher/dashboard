@@ -29,10 +29,10 @@ export default {
       type:    Object,
       default: () => ({})
     },
-    graphHeight: {
-      type:     String,
-      required: true
-    },
+    // graphHeight: {
+    //   type:     String,
+    //   required: true
+    // },
     hasSummaryAndDetail: {
       type:    Boolean,
       default: true,
@@ -102,7 +102,7 @@ export default {
       />
       <GrafanaGPUDashboard
         v-if="hasGpu"
-        style="height: 944px;"
+        style="height: 980px;"
         class="col span-12 summary"
         :background-color="graphBackgroundColor"
         :theme="theme"

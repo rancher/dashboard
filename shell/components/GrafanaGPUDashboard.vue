@@ -2,6 +2,7 @@
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import { computeDashboardUrl } from '@shell/utils/grafana';
+import { CATALOG } from '@shell/config/types';
 
 export default {
   components: { Banner, Loading },
@@ -31,9 +32,15 @@ export default {
       default: 'dark'
     }
   },
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+    const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+
+    this.monitoringVersion = res?.currentVersion;
+  },
   data() {
     return {
-      loading: false, error: false, interval: null, initialUrl: this.computeUrl(), errorTimer: null
+      loading: false, error: false, interval: null, initialUrl: this.computeUrl(), errorTimer: null, monitoringVersion: null
     };
   },
   computed: {
@@ -54,14 +61,11 @@ export default {
     }
   },
   watch: {
-    currentUrl() {
+    currentUrl(neu) {
+      // Should consider changing `this.graphWindow?.angular` to something like `!loaded && !error`
+      // https://github.com/rancher/dashboard/pull/5802
       if (this.graphHistory && this.graphWindow?.angular) {
-        const angularElement = this.graphWindow.angular.element(this.graphDocument.querySelector('.grafana-app'));
-        const injector = angularElement.injector();
-
-        this.graphHistory.pushState({}, '', this.currentUrl);
-        injector.get('$route').updateParams(this.computeParams());
-        injector.get('$route').reload();
+        this.graphWindow.location.replace(neu);
       }
     },
 
@@ -134,7 +138,7 @@ export default {
       const clusterId = this.$store.getters['currentCluster'].id;
       const params = this.computeParams();
 
-      return computeDashboardUrl(embedUrl, clusterId, params);
+      return computeDashboardUrl(this.monitoringVersion, embedUrl, clusterId, params);
     },
     computeParams() {
       const params = {};
@@ -237,7 +241,7 @@ export default {
     <iframe
       v-show="!error"
       ref="frame"
-      :class="{loading}"
+      :class="{loading, frame: true}"
       :src="initialUrl"
       frameborder="0"
       scrolling="no"
@@ -285,7 +289,7 @@ export default {
     position: absolute;
     left: 0;
     right: 0;
-    top: 40px;
+    top: 40px !important;
     bottom: 0;
     width: 100%;
     height: calc(100% - 40px);
