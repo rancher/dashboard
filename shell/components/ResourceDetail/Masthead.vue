@@ -423,6 +423,7 @@ export default {
               :subtype="resourceSubtype"
               :name="displayName"
               :escapehtml="false"
+              class="mr-5"
             />
             <BadgeState
               v-if="!isCreate && parent.showState"
