@@ -148,7 +148,7 @@ export default {
 
     updateStyle() {
       if ( this.phase === SHOW && !this.useCustomTargetElement) {
-        const menu = this.$el.querySelector('.menu');
+        const menu = this.$el?.querySelector && this.$el.querySelector('.menu');
         const event = this.targetEvent;
         const elem = this.targetElem;
 
@@ -168,7 +168,7 @@ export default {
       }
 
       if ( this.open && this.useCustomTargetElement) {
-        const menu = this.$el.querySelector('.menu');
+        const menu = this.$el?.querySelector && this.$el.querySelector('.menu');
         const elem = this.customTargetElement;
 
         // If the action menu state is controlled with
