@@ -260,6 +260,15 @@ epinio:
     deleteWarning: All resources in a namespace will be deleted.
     validations:
       name: Namespace's name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc')
+  services:
+    applicationsNotBound: No applications bound to the Service Instance(s)
+    applicationsBound: |-
+      {count, plural,
+        =1 { Caution: There is 1 application bound to the Service Instance(s) about to be deleted. Do you want to proceed? }
+        other { Caution: There are {count} applications bound to the Service Instance(s) about to be deleted. Do you want to proceed? }
+      }
+    promptRemove:
+      attemptingToRemove: You are attempting to delete the Service Instance
   configurations:
     pairs:
       label: Config Data
