@@ -14,7 +14,7 @@ export const ignoreVariables = (cluster, data) => {
   const path = pspChartMap[data.chart.name];
 
   if (path) {
-    const clusterVersion = cluster?.metadata?.annotations?.['management.cattle.io/current-cluster-controllers-version'] || '';
+    const clusterVersion = cluster?.kubernetesVersion || '';
     const version = clusterVersion.match(/\d+/g);
     const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
     const hasPsp = get(data.values, path);

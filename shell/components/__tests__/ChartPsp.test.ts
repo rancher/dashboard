@@ -9,7 +9,7 @@ describe('component: ChartPsp', () => {
     const wrapper = shallowMount(ChartPsp, {
       propsData: {
         value:   { global: { cattle: { psp: { enabled: value } } } },
-        cluster: { metadata: { annotations: { 'management.cattle.io/current-cluster-controllers-version': version } } },
+        cluster: { kubernetesVersion: version }
       }
     });
 
@@ -24,7 +24,7 @@ describe('component: ChartPsp', () => {
     const wrapper = shallowMount(ChartPsp, {
       propsData: {
         value:   { global: { cattle: { psp: { enabled: value } } } },
-        cluster: { metadata: { annotations: { 'management.cattle.io/current-cluster-controllers-version': version } } },
+        cluster: { kubernetesVersion: version }
       }
     });
 
@@ -39,7 +39,7 @@ describe('component: ChartPsp', () => {
     const wrapper = shallowMount(ChartPsp, {
       propsData: {
         value:   { global: { cattle: { psp: { enabled: value } } } },
-        cluster: { metadata: { annotations: { 'management.cattle.io/current-cluster-controllers-version': version } } },
+        cluster: { kubernetesVersion: version }
       }
     });
 
@@ -52,7 +52,7 @@ describe('component: ChartPsp', () => {
     const wrapper = mount(ChartPsp, {
       propsData: {
         value:   { global: { cattle: { psp: { enabled: true } } } },
-        cluster: { metadata: { annotations: { 'management.cattle.io/current-cluster-controllers-version': 'v1.25.11+rke2r1' } } },
+        cluster: { kubernetesVersion: 'v1.25.11+rke2r1' }
       }
     });
     const input = wrapper.find(`[data-testid="psp-checkbox"]`).element as HTMLInputElement;
@@ -68,7 +68,7 @@ describe('component: ChartPsp', () => {
     const wrapper = mount(ChartPsp, {
       propsData: {
         value:   chartValues,
-        cluster: { metadata: { annotations: { 'management.cattle.io/current-cluster-controllers-version': version } } },
+        cluster: { kubernetesVersion: version }
       }
     });
 

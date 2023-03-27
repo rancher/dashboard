@@ -55,7 +55,7 @@ export default {
      * Display checkbox only if contains PSP or K8S version is less than 1.25
      */
     hasCheckbox() {
-      const clusterVersion = this.cluster?.metadata?.annotations?.['management.cattle.io/current-cluster-controllers-version'] || '';
+      const clusterVersion = this.cluster?.kubernetesVersion || '';
       const version = clusterVersion.match(/\d+/g);
       const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
 
