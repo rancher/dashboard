@@ -576,6 +576,7 @@ function proxyMetaOpts(target) {
     target,
     followRedirects: true,
     secure:          !dev,
+    changeOrigin:    true,
     onProxyReq,
     onProxyReqWs,
     onError,
