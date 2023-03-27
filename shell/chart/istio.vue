@@ -78,6 +78,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster'], { t: 'i18n/t' }),
     valuesYaml: {
       get() {
         try {
@@ -98,8 +99,6 @@ export default {
         }
       }, 500)
     },
-
-    ...mapGetters({ t: 'i18n/t' })
   },
 
   methods: {
@@ -129,14 +128,13 @@ export default {
 
 <template>
   <div>
-    <h3>
-      {{ t('catalog.chart.global') }}
-    </h3>
-    <div class="row mb-20">
-      <div class="col">
-        <ChartPsp :value="value" />
-      </div>
-    </div>
+    <!-- Conditionally display PSP checkbox -->
+    <ChartPsp
+      :value="value"
+      :title="t('catalog.chart.global')"
+      :cluster="currentCluster"
+    />
+
     <h3>
       {{ t('istio.titles.components') }}
     </h3>

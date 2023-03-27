@@ -14,7 +14,29 @@ export default {
     mode: {
       type:    String,
       default: 'edit'
+    },
+
+    /**
+     * Optional title section prior checkbox
+     */
+    title: {
+      type:    String,
+      default: null
+    },
+
+    /**
+     * Cluster information
+     */
+    cluster: {
+      type:    Object,
+      default: null
     }
+  },
+  data: () => {
+    return {
+      // This is required to keep the PSP visible also after unchecking the checkbox
+      hasPsp: false
+    };
   },
   created() {
     if (!this.value.global.cattle) {
@@ -23,15 +45,40 @@ export default {
     if (!this.value.global.cattle.psp) {
       this.$set(this.value.global.cattle, 'psp', { enabled: false });
     }
+
+    this.hasPsp = this.value.global.cattle.psp.enabled;
   },
-  computed: { ...mapGetters({ t: 'i18n/t' }) }
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    /**
+     * Display checkbox only if contains PSP or K8S version is less than 1.25
+     */
+    hasCheckbox() {
+      const clusterVersion = this.cluster?.kubernetesVersion || '';
+      const version = clusterVersion.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return this.hasPsp || isRequiredVersion;
+    }
+  }
 };
 </script>
 
 <template>
-  <Checkbox
-    v-model="value.global.cattle.psp.enabled"
-    :mode="mode"
-    :label="t('catalog.chart.enablePSP')"
-  />
+  <div
+    v-if="hasCheckbox"
+    class="mt-10 mb-10"
+  >
+    <h3 v-if="title">
+      {{ title }}
+    </h3>
+
+    <Checkbox
+      v-model="value.global.cattle.psp.enabled"
+      data-testid="psp-checkbox"
+      :mode="mode"
+      :label="t('catalog.chart.enablePSP')"
+    />
+  </div>
 </template>
