@@ -338,6 +338,7 @@ export default {
       resetValues:   false,
       openApi:       true,
       wait:          true,
+      debug:         false,
       timeout:       600,
       historyMax:    5,
     };
@@ -1160,6 +1161,7 @@ export default {
         noHooks:   this.cmdOptions.hooks === false,
         timeout:   this.cmdOptions.timeout > 0 ? `${ this.cmdOptions.timeout }s` : null,
         wait:      this.cmdOptions.wait === true,
+        debug:     this.cmdOptions.debug === true,
         namespace: form.metadata.namespace,
         projectId: this.project,
       };
@@ -1684,6 +1686,12 @@ export default {
           <Checkbox
             v-model="customCmdOpts.wait"
             :label="t('catalog.install.helm.wait')"
+          />
+        </div>
+        <div>
+          <Checkbox
+            v-model="customCmdOpts.debug"
+            label="Debug"
           />
         </div>
         <div
