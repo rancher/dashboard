@@ -1624,7 +1624,7 @@ cluster:
     invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25 and will be automatically removed.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
-    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
+    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use a Pod Security Admission Configuration Template instead.
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
   availabilityWarnings:
