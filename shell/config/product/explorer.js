@@ -239,7 +239,7 @@ export function init(store) {
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, {
     listGroups: [
       {
-        icon:       'icon-cluster',
+        icon:       'icon-role-binding',
         value:      'node',
         field:      'roleDisplay',
         hideColumn: ROLE.name,
