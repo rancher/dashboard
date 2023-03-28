@@ -1432,6 +1432,11 @@ export default {
         return;
       }
 
+      // Remove null profile on machineGlobalConfig - https://github.com/rancher/dashboard/issues/8480
+      if (this.value.spec?.rkeConfig?.machineGlobalConfig?.profile === null) {
+        delete this.value.spec.rkeConfig.machineGlobalConfig.profile;
+      }
+
       await this.save(btnCb);
     },
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
@@ -2220,7 +2225,7 @@ export default {
           />
 
           <Banner
-            v-if="showCisProfile && !isCisSupported"
+            v-if="showCisProfile && !isCisSupported && isEdit"
             color="info"
           >
             <p v-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />

@@ -89,6 +89,29 @@ export class PluginRoutes {
     // Despite what the docs say, routes are not replaced, so we use a workaround
     // Remove all routes that are being replaced
     routes.forEach((r: RouteInfo) => {
+      // Patch colliding legacy routes that start /:product
+      if (r.route.path?.startsWith('/:product')) {
+        // Legacy pattern used by extensions - routes may collide, so modify them not to
+        let productName;
+
+        // If the route has a name (which is always the case for the extensions we have written), use it to get the product name
+        if (r.route.name) {
+          const nameParts = r.route.name.split('-');
+
+          // First part of the route name is the product name
+          productName = nameParts[0];
+        }
+
+        // Use the plugin name as the product, if the route does not have a name
+        productName = productName || plugin.name;
+
+        // Replace the path - removing :product and using the actual product name instead - this avoids route collisions
+        r.route.path = `/${ productName }${ r.route.path.substr(9) }`;
+        r.route.meta = r.route.meta || {};
+
+        r.route.meta.product = r.route.meta.product || productName;
+      }
+
       // See if the route exists
       let existing: any;
 
