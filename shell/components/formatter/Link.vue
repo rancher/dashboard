@@ -139,7 +139,6 @@ export default {
     v-if="isInternal && href"
     :to="href"
     class="link-text-icon"
-
   >
     <i
       v-if="beforeIconClass"
