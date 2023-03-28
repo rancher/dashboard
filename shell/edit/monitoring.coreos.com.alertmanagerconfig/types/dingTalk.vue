@@ -20,7 +20,10 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <div class="col span-12">
+      <div
+        data-testid="input-config-proxy_url"
+        class="col span-12"
+      >
         <LabeledInput
           v-model="value.http_config.proxy_url"
           :mode="mode"
@@ -30,7 +33,10 @@ export default {
       </div>
     </div>
     <div class="row mb-20">
-      <div class="col span-12">
+      <div
+        data-testid="input-config-secret"
+        class="col span-12"
+      >
         <LabeledInput
           v-model="value.http_config.secret"
           type="password"
@@ -40,7 +46,10 @@ export default {
         />
       </div>
     </div>
-    <div class="row mb-20">
+    <div
+      data-testid="input-config-sendResolved"
+      class="row mb-20"
+    >
       <Checkbox
         v-model="value.sendResolved"
         :mode="mode"

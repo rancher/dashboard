@@ -71,7 +71,10 @@ export default {
       color="info"
       v-html="t('monitoringReceiver.pandariaWebhook.banner', {}, raw=true)"
     />
-    <div class="row mb-20">
+    <div
+      data-testid="input-config-webhook_type"
+      class="row mb-20"
+    >
       <LabeledSelect
         v-model="selectedWebhookType"
         :disabled="mode === view"
@@ -98,7 +101,10 @@ export default {
       v-if="showTargetUrl"
       class="row mb-20"
     >
-      <div class="col span-12">
+      <div
+        data-testid="input-config-webhook_url"
+        class="col span-12"
+      >
         <LabeledInput
           v-model="value.webhook_url"
           :required="true"
