@@ -2002,21 +2002,21 @@ cluster:
     cisProfile:
       option: (None)
     defaultPodSecurityAdmissionConfigurationTemplateName:
-      label: Default Pod Security Admission
+      label: Pod Security Admission Configuration Template
       option:
         default: Default - RKE2 Embedded
         none: (None)
     banner:
       cisOverride: Changing this setting may affect cluster security as it overrides default CIS settings
       psaChange: PSACT is now set to Rancher default automatically
-      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="{docsBase}/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
+      cisUnsupported: The selected Kubernetes Version no longer supports CIS Profile "{cisProfile}". Please select a supported profile. We recommend reviewing the <a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">documentation</a> to evaluate the impact of changing the CIS Profile.
     cis:
       agent: CIS Profile
-      override: Allow PSA Default Template to be overridden when using a CIS Profile
+      override: Allow the default Pod Security Admission Configuration Template to be overridden when using a CIS Profile
       server: Server CIS Profile
     modal:
       pspChange:
-        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be MANUALLY removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Proceed?
+        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?
         title: Pod Security Policy deprecation
   k3s:
     techPreview: K3s provisioning is in Tech Preview
@@ -7196,7 +7196,7 @@ legacy:
   notifiers: Notifiers
   monitoring: Monitoring
   pipelines: Pipelines
-  psps: Pod Security Policies
+  psps: Pod Security Policy Templates
   secrets: Secrets
   project:
     label: Project
@@ -7721,3 +7721,7 @@ registryMirrorRewrite:
   toolTip: Each mirror can have a set of rewrites. Rewrites can change the tag of an image based on a regular expression.
   valueLabel: Rewrite replacement
   valuePlaceholder: e.g. mirrorproject/rancher-images/$1
+gatekeeperInstall:
+  auditInterval: Auto Interval
+  constraintViolationsLimit: Constraint Violations Limit
+  runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
