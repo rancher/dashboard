@@ -1,4 +1,5 @@
 <script>
+import { Banner } from '@components/Banner';
 import GroupPanel from '@shell/components/GroupPanel';
 import PodAffinity from '@shell/components/form/PodAffinity';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
@@ -31,6 +32,7 @@ const GPU_KEY = 'nvidia.com/gpu';
 // Used for both Cluster Agent and Fleet Agent configuration
 export default {
   components: {
+    Banner,
     ContainerResourceLimit,
     GroupPanel,
     PodAffinity,
@@ -45,11 +47,19 @@ export default {
     mode: {
       type:     String,
       required: true,
+    },
+
+    type: {
+      type:     String,
+      required: true,
     }
+
   },
 
   data() {
-    return {};
+    const bannerMessageKey = `cluster.agentConfig.banners.${ this.type }Advanced`;
+
+    return { bannerMessageKey };
   },
 
   created() {
@@ -126,6 +136,11 @@ export default {
 
 <template>
   <div v-if="value && Object.keys(value).length">
+    <Banner
+      :closable="false"
+      color="info"
+      :label-key="bannerMessageKey"
+    />
     <GroupPanel
       label-key="cluster.agentConfig.groups.podAffinity"
       class="mt-20"

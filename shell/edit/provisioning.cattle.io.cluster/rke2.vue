@@ -2789,6 +2789,7 @@ export default {
         >
           <AgentConfiguration
             v-model="value.spec.clusterAgentDeploymentCustomization"
+            type="cluster"
             :mode="mode"
           />
         </Tab>
@@ -2799,6 +2800,7 @@ export default {
         >
           <AgentConfiguration
             v-model="value.spec.fleetAgentDeploymentCustomization"
+            type="fleet"
             :mode="mode"
           />
         </Tab>
