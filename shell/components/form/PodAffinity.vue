@@ -26,6 +26,13 @@ export default {
       }
     },
 
+    // Field key on the value object to store the pod affinity - typically this is 'affinity'
+    // Cluster Agent Configuration uses a different field
+    field: {
+      type:    String,
+      default: 'affinity'
+    },
+
     mode: {
       type:    String,
       default: 'create'
@@ -47,10 +54,10 @@ export default {
   },
 
   data() {
-    if (!this.value.affinity) {
-      this.$set(this.value, 'affinity', {});
+    if (!this.value[this.field]) {
+      this.$set(this.value, this.field, {});
     }
-    const { podAffinity = {}, podAntiAffinity = {} } = this.value.affinity;
+    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
     const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
       const out = clone(term);
 
@@ -154,7 +161,7 @@ export default {
         }
       });
 
-      Object.assign(this.value.affinity, { podAffinity, podAntiAffinity });
+      Object.assign(this.value[this.field], { podAffinity, podAntiAffinity });
       this.$emit('update', this.value);
     },
 
