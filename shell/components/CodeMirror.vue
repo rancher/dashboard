@@ -1,9 +1,18 @@
 <script>
 import { KEYMAP } from '@shell/store/prefs';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
   name:  'CodeMirror',
   props: {
+    /**
+     * Sets the edit mode for Text Area.
+     * @values _EDIT, _VIEW
+     */
+    mode: {
+      type:    String,
+      default: _EDIT
+    },
     value: {
       type:     String,
       required: true,
@@ -11,14 +20,22 @@ export default {
     options: {
       type:    Object,
       default: () => {}
-    }
+    },
   },
 
   data() {
-    return { loaded: false };
+    return {
+      cm:     null,
+      loaded: false
+    };
   },
 
   computed: {
+
+    isDisabled() {
+      return this.mode === _VIEW;
+    },
+
     combinedOptions() {
       const theme = this.$store.getters['prefs/theme'];
       const keymap = this.$store.getters['prefs/get'](KEYMAP);
@@ -43,6 +60,9 @@ export default {
 
       return out;
     },
+    markdownLineBreaks() {
+      return this.cm?.options.showMarkdownLineBreaks || false;
+    }
   },
 
   created() {
@@ -72,6 +92,7 @@ export default {
     onReady(cm) {
       this.$nextTick(() => {
         cm.refresh();
+        this.cm = cm;
       });
       this.$emit('onReady', cm);
     },
@@ -82,6 +103,14 @@ export default {
 
     onChanges(cm, changes) {
       this.$emit('onChanges', cm, changes);
+    },
+
+    onFocus() {
+      this.$emit('onFocus', true);
+    },
+
+    onBlur() {
+      this.$emit('onFocus', false);
     },
 
     updateValue(value) {
@@ -95,15 +124,21 @@ export default {
 
 <template>
   <client-only placeholder=" Loading...">
-    <div class="code-mirror">
+    <div
+      class="code-mirror"
+      :class="{['cm-markdown-line-breaks']: markdownLineBreaks}"
+    >
       <codemirror
         v-if="loaded"
         ref="cm"
         :value="value"
         :options="combinedOptions"
+        :disabled="isDisabled"
         @ready="onReady"
         @input="onInput"
         @changes="onChanges"
+        @focus="onFocus"
+        @blur="onBlur"
       />
       <div v-else>
         Loading...
@@ -120,5 +155,34 @@ export default {
       height: initial;
       background: none
     }
+
+    // 'showMarkdownLineBreaks' mode, defined in shell/plugins/codemirror.js
+    &.cm-markdown-line-breaks {
+      .CodeMirror-wrap pre {
+        word-break: break-word;
+      }
+      .CodeMirror-code {
+        .CodeMirror-line {
+          &:not(:last-child)>span:after,
+          .cm-markdown-single-trailing-space-odd:before,
+          .cm-markdown-single-trailing-space-even:before {
+            color: var(--muted);
+            position: absolute;
+            line-height: 20px;
+            pointer-events: none;
+          }
+          &:not(:last-child)>span:after {
+            content: '↵';
+            margin-left: 2px;
+          }
+          .cm-markdown-single-trailing-space-odd:before,
+          .cm-markdown-single-trailing-space-even:before {
+            font-weight: bold;
+            content: '·';
+          }
+        }
+      }
+    }
   }
+
 </style>
