@@ -47,10 +47,14 @@ export default Vue.extend<Data, any, any, any>({
       source: undefined,
       steps:  [
         {
-          name:    'source',
-          label:   this.t('epinio.applications.steps.source.label'),
-          subtext: this.t('epinio.applications.steps.source.subtext'),
-          ready:   false,
+          name:       'source',
+          label:      this.t('epinio.applications.steps.source.label'),
+          subtext:    this.t('epinio.applications.steps.source.subtext'),
+          ready:      false,
+          nextButton: {
+            labelKey: 'epinio.applications.steps.configurations.next',
+            style:    'btn role-primary bg-warning'
+          }
         }, {
           name:           'progress',
           label:          this.t('epinio.applications.steps.progress.label'),
