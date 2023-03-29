@@ -1223,9 +1223,6 @@ export const getters = {
 
   importCloudCredential(state, getters, rootState) {
     return (rawType, subType) => {
-      console.error('importCloudCredential');
-      console.error(rawType);
-      console.error(subType);
       return loadExtension(rootState, 'cloud-credential', getters.componentFor(rawType, subType), importCloudCredential);
     };
   },
