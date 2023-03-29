@@ -4,7 +4,7 @@ import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { FLEET, MANAGEMENT } from '@shell/config/types';
+import { FLEET, MANAGEMENT, SCHEMA } from '@shell/config/types';
 // import RoleBindings from '@shell/components/RoleBindings';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -40,7 +40,7 @@ export default {
       this.fleetClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     }
 
-    if (this.$store.getters['management/schemaFor']( FLEET.GIT_REPO_RESTRICTION )) {
+    if (this.hasRepoRestrictionSchema) {
       const restrictions = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO_RESTRICTION });
 
       const workSpaceRestriction = restrictions.find((item) => {
@@ -60,13 +60,14 @@ export default {
     this.$set(this.value, 'spec', this.value.spec || {});
 
     return {
-      fleetClusters:        null,
-      rancherClusters:      null,
-      workSpaceRestriction: null,
-      restrictions:         [],
-      targetNamespaces:     [],
-      restrictionsSchema:   { spec: {} },
-      namespace:            this.$store.getters['prefs/get'](LAST_NAMESPACE),
+      fleetClusters:            null,
+      rancherClusters:          null,
+      workSpaceRestriction:     null,
+      restrictions:             [],
+      targetNamespaces:         [],
+      restrictionsSchema:       { spec: {} },
+      namespace:                this.$store.getters['prefs/get'](LAST_NAMESPACE),
+      hasRepoRestrictionSchema: !!this.$store.getters['management/schemaFor']( FLEET.GIT_REPO_RESTRICTION )
     };
   },
 
@@ -84,6 +85,10 @@ export default {
 
         // If there is no restriction and targetnamespace is set then create it.
         if (!this.workSpaceRestriction && this.targetNamespaces.length) {
+          // For users with more limited permissions the gitreporestriction schema may not be visible until they create a workspace
+          if (!this.hasRepoRestrictionSchema) {
+            await this.$store.dispatch('management/find', { type: SCHEMA, id: FLEET.GIT_REPO_RESTRICTION }, { force: true });
+          }
           const model = await this.$store.dispatch(`management/create`, {
             type:                    FLEET.GIT_REPO_RESTRICTION,
             allowedTargetNamespaces: this.targetNamespaces,
@@ -206,12 +211,16 @@ export default {
           color="info"
         >
           <div>
-            {{ t('fleet.restrictions.banner', { count: allowedTargetNamespaces.length }) }}
+            <t
+              k="fleet.restrictions.banner"
+              :count="allowedTargetNamespaces.length"
+              :raw="true"
+            />
             <a
               v-if="!!allowedTargetNamespaces.length"
               @click="workSpaceRestriction.goToDetail()"
             >
-              Here
+              {{ t('generic.here') }}
             </a>
           </div>
         </Banner>
