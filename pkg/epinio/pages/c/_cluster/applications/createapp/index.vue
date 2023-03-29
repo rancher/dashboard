@@ -116,11 +116,7 @@ export default Vue.extend<Data, any, any, any>({
 
       if (changes.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
         this.value.configuration.environment = this.value.configuration.environment || {};
-        const githubEnvVar: EPINIO_APP_ENV_VAR_GITHUB = {
-          usernameOrOrg: changes.github.usernameOrOrg as string,
-          repo:          changes.github.repo,
-          branch:        changes.github.branch,
-        };
+        const githubEnvVar = this.value.gitEnvVars(changes);
 
         this.set(this.value.configuration.environment, {
           ...this.value.configuration.environment,

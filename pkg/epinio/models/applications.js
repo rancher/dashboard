@@ -397,6 +397,14 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     });
   }
 
+  gitEnvVars(changes) {
+    return {
+      usernameOrOrg: changes.github.usernameOrOrg,
+      repo:          changes.github.repo,
+      branch:        changes.github.branch,
+    };
+  }
+
   async gitFetch(url, rev) {
     this.trace('Downloading and storing git repo');
     const formData = new FormData();
