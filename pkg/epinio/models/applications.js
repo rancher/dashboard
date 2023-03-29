@@ -255,7 +255,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
       return {
         label:   'Git',
-        icon:    'icon-file',
+        icon:    'icon-github',
         details: [
           appChart, {
             label: 'Url',

@@ -48,6 +48,8 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   async fetch() {
+    const REDEPLOY_SOURCE = this.$router?.history.current.hash === '#source';
+
     const coreArgs: Partial<ApplicationAction & {
       application: EpinioApplication,
       bindings: EpinioAppBindings,
@@ -68,15 +70,17 @@ export default Vue.extend<Data, any, any, any>({
       );
     }
 
-    this.actions.push(
-      await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.CREATE,
-        index:  1, // index used for sorting
-        ...coreArgs,
-      })
-    );
+    if (!REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.CREATE,
+          index:  1, // index used for sorting
+          ...coreArgs,
+        })
+      );
+    }
 
-    if (this.bindings?.configurations?.length) {
+    if (this.bindings?.configurations?.length && !REDEPLOY_SOURCE) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
@@ -86,7 +90,7 @@ export default Vue.extend<Data, any, any, any>({
       );
     }
 
-    if (this.bindings?.services?.length) {
+    if (this.bindings?.services?.length && !REDEPLOY_SOURCE) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BIND_SERVICES,
@@ -142,9 +146,19 @@ export default Vue.extend<Data, any, any, any>({
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action: APPLICATION_ACTION_TYPE.DEPLOY,
       index:  7,
-      ...coreArgs,
+      ...coreArgs
     })
     );
+
+    if (REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.UPDATE_SOURCE,
+          index:  10, // index used for sorting
+          ...coreArgs,
+        })
+      );
+    }
 
     this.create();
   },

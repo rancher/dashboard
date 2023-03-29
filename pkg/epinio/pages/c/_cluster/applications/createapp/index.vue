@@ -4,7 +4,7 @@ import Application from '../../../../../models/applications';
 import CreateEditView from '@shell/mixins/create-edit-view/impl';
 import Loading from '@shell/components/Loading.vue';
 import Wizard from '@shell/components/Wizard.vue';
-import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_TYPES } from '../../../../../types';
+import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
@@ -171,14 +171,6 @@ export default Vue.extend<Data, any, any, any>({
       @cancel="cancel"
       @finish="finish"
     >
-      <template #basics>
-        <AppInfo
-          :application="value"
-          :mode="mode"
-          @change="updateInfo"
-          @valid="steps[1].ready = $event"
-        />
-      </template>
       <template #source>
         <AppSource
           :application="value"
@@ -189,6 +181,14 @@ export default Vue.extend<Data, any, any, any>({
           @changeAppInfo="updateInfo"
           @changeAppConfig="updateManifestConfigurations"
           @valid="steps[0].ready = $event"
+        />
+      </template>
+      <template #basics>
+        <AppInfo
+          :application="value"
+          :mode="mode"
+          @change="updateInfo"
+          @valid="steps[1].ready = $event"
         />
       </template>
       <template #configurations>

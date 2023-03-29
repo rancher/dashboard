@@ -178,11 +178,6 @@ export default Vue.extend<Data, any, any, any>({
 
     this.$emit('valid', false);
     this.update();
-
-    if (this.mode === _EDIT) {
-      console.log('this', this.application);
-      console.log('source', this.source);
-    }
   },
 
   methods: {

@@ -14,8 +14,8 @@ import { createEpinioRoute } from '../utils/custom-routing';
 import AppSource, { EpinioAppSource } from '../components/application/AppSource.vue';
 import { _EDIT } from '@shell/config/query-params';
 
-import AppProgressUpdateSource from '../components/application/AppProgressUpdateSource.vue';
-import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_TYPES } from '~/pkg/epinio/types';
+import AppProgress from '../components/application/AppProgress.vue';
+import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_TYPES } from '~/pkg/epinio/types';
 import { allHash } from '~/shell/utils/promise';
 interface Data {
   bindings: EpinioAppBindings,
@@ -27,7 +27,7 @@ interface Data {
 export default Vue.extend<Data, any, any, any>({
   components: {
     AppSource,
-    AppProgressUpdateSource,
+    AppProgress,
     Loading,
     CruResource,
     ResourceTabs,
@@ -234,7 +234,7 @@ export default Vue.extend<Data, any, any, any>({
             />
           </template>
           <template #progress="{step}">
-            <AppProgressUpdateSource
+            <AppProgress
               :application="value"
               :source="source"
               :bindings="bindings"
