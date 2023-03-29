@@ -10,11 +10,13 @@ import Select from '@shell/components/form/Select';
 import FileSelector from '@shell/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
+import CodeMirror from '@shell/components/CodeMirror';
 
 export default {
   name: 'KeyValue',
 
   components: {
+    CodeMirror,
     Select,
     TextAreaAutoGrow,
     FileSelector
@@ -139,6 +141,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    valueMarkdownMultiline: {
+      type:    Boolean,
+      default: false,
+    },
     valueMultiline: {
       type:    Boolean,
       default: true,
@@ -245,7 +251,17 @@ export default {
   data() {
     const rows = this.getRows(this.value);
 
-    return { rows };
+    return {
+      rows,
+      cmFocus:   {},
+      cmOptions: {
+        lineNumbers:            false,
+        tabSize:                0,
+        lineWrapping:           true,
+        showMarkdownLineBreaks: true,
+        styleSelectedText:      true,
+      },
+    };
   },
 
   computed: {
@@ -519,6 +535,13 @@ export default {
       return this.t('detailText.binary', { n }, true);
     },
     get,
+    onInputMarkdownMultiline(key, value) {
+      this.rows = this.rows.map(row => row.key === key ? { ...row, value } : row);
+      this.queueUpdate();
+    },
+    onFocusMarkdownMultiline(key, value) {
+      this.$set(this.cmFocus, key, value);
+    }
   }
 };
 </script>
@@ -635,6 +658,16 @@ export default {
             <div v-else-if="row.binary">
               {{ binaryTextSize(row.value) }}
             </div>
+            <CodeMirror
+              v-else-if="valueMarkdownMultiline"
+              ref="cm"
+              :class="{['focus']: cmFocus[row[keyName]]}"
+              :value="row[valueName]"
+              :options="cmOptions"
+              :mode="mode"
+              @onInput="onInputMarkdownMultiline(row[keyName], $event)"
+              @onFocus="onFocusMarkdownMultiline(row[keyName], $event)"
+            />
             <TextAreaAutoGrow
               v-else-if="valueMultiline"
               v-model="row[valueName]"
@@ -750,6 +783,63 @@ export default {
       &.value textarea{
         padding: 10px 10px 10px 10px;
       }
+
+      &.value .code-mirror {
+        min-height: 40px;
+        position: relative;
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        padding: 10px;
+        background-color: var(--input-bg);
+        border-radius: var(--border-radius);
+        border: solid var(--border-width) var(--input-border);
+        color: var(--input-text);
+
+        &:hover {
+          border-color: var(--input-hover-border);
+        }
+
+        &:focus, &.focus {
+          outline: none;
+          border-color: var(--outline);
+        }
+
+        .CodeMirror-lines {
+          // optional
+          // font-family: $body-font;
+          color: var(--input-text);
+          padding: 0;
+        }
+
+        .CodeMirror-sizer {
+          min-height: 20px;
+        }
+
+        .CodeMirror-selected {
+          background-color: var(--primary) !important;
+        }
+
+        .CodeMirror-selectedtext {
+          color: var(--primary-text);
+        }
+
+        .CodeMirror-line::selection,
+        .CodeMirror-line > span::selection,
+        .CodeMirror-line > span > span::selection {
+          color: var(--primary-text);
+          background-color: var(--primary);
+        }
+
+        .CodeMirror-line::-moz-selection,
+        .CodeMirror-line > span::-moz-selection,
+        .CodeMirror-line > span > span::-moz-selection {
+          color: var(--primary-text);
+          background-color: var(--primary);
+        }
+
+      }
+
       .text-monospace:not(.conceal) {
         font-family: monospace, monospace;
       }
