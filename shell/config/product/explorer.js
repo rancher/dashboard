@@ -243,7 +243,7 @@ export function init(store) {
         value:      'node',
         field:      'roleDisplay',
         hideColumn: ROLE.name,
-        tooltipKey: 'resourceTable.groupBy.node'
+        tooltipKey: 'resourceTable.groupBy.role'
       }
     ]
   });
