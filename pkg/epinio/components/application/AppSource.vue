@@ -13,7 +13,6 @@ import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
-import { _EDIT } from '~/shell/config/query-params';
 
 export const EPINIO_APP_MANIFEST = 'manifest';
 
@@ -288,8 +287,6 @@ export default Vue.extend<Data, any, any, any>({
         Vue.set(this.archive, 'fileName', folderName || 'folder');
 
         this.update();
-
-        // downloadFile('resources.zip', zip, 'application/zip');
       });
     },
 
@@ -398,8 +395,6 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     type() {
-      // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
-      // (possibly `reduce` related). This the workaround
       return this.unSafeType.value || this.unSafeType;
     },
   }

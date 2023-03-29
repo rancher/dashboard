@@ -52,7 +52,7 @@ export default Vue.extend<Data, any, any, any>({
           subtext:    this.t('epinio.applications.steps.source.subtext'),
           ready:      false,
           nextButton: {
-            labelKey: 'epinio.applications.steps.configurations.next',
+            labelKey: 'epinio.applications.steps.configurations.update',
             style:    'btn role-primary bg-warning'
           }
         }, {

@@ -198,6 +198,7 @@ epinio:
             placeholderWithOptions: Select services to bind app to
             placeholderNoOptions: There are no services in this namespace
         next: Create
+        update: Update Source
       progress:
         label: Progress
         subtext: Status of create
