@@ -134,11 +134,11 @@ epinio:
       label: Export App
       manifest:
         title: Export Manifest
-        description: Export the manifest for this application
+        description: Manifests contain basic application configuration like name, routes, number of instances, etc.
       chart:
-        title: Export Chart
-        description: Export the helm chart for this application
-        banner: This might take a while, as some images may have a reasonable size.
+        title: Export Chart and Images
+        description: Export the helm  chart and images for this application
+        banner: Container images can be large and take a long time to download.
     steps:
       basics:
         label: Details

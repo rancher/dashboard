@@ -1,12 +1,12 @@
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { downloadFile } from '@shell/utils/download';
 import { formatSi } from '@shell/utils/units';
+import JSZip from 'jszip';
 import { epiniofy } from '../store/epinio-store/actions';
 import {
   APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
 } from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
-import { generateZip } from '../utils/download';
 import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
@@ -371,6 +371,15 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return Object.values(APPLICATION_PARTS);
   }
 
+  // TODO: Remove after merging with master
+  get applyMode() {
+    return 'download';
+  }
+
+  get title() {
+    return this.t('epinio.applications.export.label');
+  }
+
   // ------------------------------------------------------------------
   // Change/handle changes of the app
 
@@ -498,7 +507,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
   exportApp(resources = this) {
     this.$dispatch('promptModal', {
-      resources:  [resources],
+      resources,
       component:  'ExportAppDialog',
       modalWidth: '450px',
     });
@@ -522,10 +531,43 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     }
   }
 
-  async chartZip(files) {
-    await generateZip(files).then(async(r) => {
-      await downloadFile(`${ this.meta.name }-helm-chart.zip`, r, 'application/zip');
-    });
+  async applyAction() {
+    const resource = this.resources[0];
+    const appPartsData = resource?.applicationParts.reduce((accumulator, currentValue) => {
+      accumulator[currentValue] = {};
+
+      return accumulator;
+    }, {});
+
+    const chartZip = async(files) => {
+      const zip = new JSZip();
+
+      for (const fileName in files) {
+        const extension = {
+          values: 'yml',
+          chart:  'tar.gz',
+          image:  'tar',
+        };
+
+        zip.file(`${ fileName }.${ extension[fileName] }`, files[fileName]);
+      }
+
+      const contents = await zip.generateAsync({ type: 'blob' });
+
+      await downloadFile(`${ resource.meta.name }-helm-chart.zip`, contents, 'application/zip');
+    };
+
+    if (this.$route.hash === '#manifest') {
+      await resource.createManifest();
+    } else {
+      await Promise.all(resource?.applicationParts.map(async(part) => {
+        const data = await resource.fetchPart(part);
+
+        appPartsData[part] = data;
+      }));
+
+      await chartZip(appPartsData);
+    }
   }
 
   get appShellId() {
