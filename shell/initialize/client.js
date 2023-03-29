@@ -557,6 +557,8 @@ function normalizeComponents(to, ___) {
 }
 
 function setLayoutForNextPage(to) {
+  console.error('setLayoutForNextPage', to); // eslint-disable-line no-console
+
   // Set layout
   let hasError = Boolean(this.$options.nuxt.err);
 
@@ -568,6 +570,8 @@ function setLayoutForNextPage(to) {
   if (typeof layout === 'function') {
     layout = layout(app.context);
   }
+
+  console.log('layout', layout); // eslint-disable-line no-console
 
   this.setLayout(layout);
 }

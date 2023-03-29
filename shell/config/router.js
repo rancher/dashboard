@@ -4,6 +4,16 @@ import { normalizeURL } from 'ufo';
 import { interopDefault } from '../utils/nuxt';
 import scrollBehavior from '../utils/router.scrollBehavior.js';
 
+// NEW STUFF ADDED
+import { BLANK_CLUSTER } from '@shell/store';
+import { NAME } from '../../pkg/extension-example-layout/config/extension-config.js';
+import ProductLayout from '../../pkg/extension-example-layout/layout/product-layout.vue';
+import Page1 from '../../pkg/extension-example-layout/pages/page1.vue';
+import Page2 from '../../pkg/extension-example-layout/pages/page2.vue';
+
+console.log('NAME', NAME);
+console.log('ProductLayout', ProductLayout);
+
 const emptyFn = () => {};
 
 Vue.use(Router);
@@ -17,6 +27,34 @@ export const routerOptions = {
   scrollBehavior,
 
   routes: [{
+    name: `${ NAME }`,
+    path: `/${ NAME }`,
+    meta: {
+      cluster: BLANK_CLUSTER,
+      product: NAME,
+    },
+    component: ProductLayout,
+    children:  [
+      {
+        name:      `${ NAME }-page1`,
+        path:      'page1',
+        component: Page1,
+        meta:      {
+          cluster: BLANK_CLUSTER,
+          product: NAME,
+        },
+      },
+      {
+        name:      `${ NAME }-page2`,
+        path:      'page2',
+        component: Page2,
+        meta:      {
+          cluster: BLANK_CLUSTER,
+          product: NAME,
+        },
+      },
+    ],
+  }, {
     path:      '/about',
     component: () => interopDefault(import('../pages/about.vue' /* webpackChunkName: "pages/about" */)),
     name:      'about'
@@ -389,9 +427,15 @@ export const routerOptions = {
   fallback: false
 };
 
+export function addRouteToMainRoutingArray(route) {
+  routerOptions.routes.push(route);
+}
+
 export function createRouter(ssrContext, config) {
   const base = (config._app && config._app.basePath) || routerOptions.base;
   const router = new Router({ ...routerOptions, base });
+
+  console.error('SETTING UP ROUTER', routerOptions);
 
   // TODO: remove in Nuxt 3
   const originalPush = router.push;

@@ -632,6 +632,14 @@ export default {
         v-if="clusterReady"
         class="side-nav"
       >
+        <!-- TO BE DELETED!!!!! JUST FOR TEST PURPOSES... -->
+        <n-link :to="{ name: 'extensionLayout-page1'}">
+          PAGE 1
+        </n-link>
+        <n-link :to="{ name: 'extensionLayout-page2'}">
+          PAGE 2
+        </n-link>
+        <!-- END OF DELETE -->
         <div class="nav">
           <template v-for="(g) in groups">
             <Group
