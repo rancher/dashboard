@@ -132,8 +132,9 @@ export default class CRTB extends HybridModel {
   }
 
   async remove() {
-    const norman = await this.norman;
-
-    await norman.remove({ url: `/v3/clusterRoleTemplateBindings/${ norman.id }` });
+    await this.$dispatch('rancher/request', {
+      url:    `/v3/clusterRoleTemplateBindings/${ this.id?.replace('/', ':') }`,
+      method: 'delete',
+    }, { root: true });
   }
 }

@@ -143,8 +143,9 @@ export default class PRTB extends HybridModel {
   }
 
   async remove() {
-    const norman = await this.norman;
-
-    await norman.remove({ url: `/v3/projectRoleTemplateBindings/${ norman.id }` });
+    await this.$dispatch('rancher/request', {
+      url:    `/v3/projectRoleTemplateBindings/${ this.id?.replace('/', ':') }`,
+      method: 'delete',
+    }, { root: true });
   }
 }
