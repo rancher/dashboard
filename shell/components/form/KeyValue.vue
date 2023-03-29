@@ -806,10 +806,18 @@ export default {
         }
 
         .CodeMirror-lines {
-          // optional
-          // font-family: $body-font;
           color: var(--input-text);
           padding: 0;
+
+          .CodeMirror-line > span > span {
+            &.cm-overlay {
+              font-family: monospace;
+            }
+          }
+
+          .CodeMirror-line > span {
+            font-family: $body-font;
+          }
         }
 
         .CodeMirror-sizer {
