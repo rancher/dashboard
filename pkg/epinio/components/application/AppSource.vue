@@ -13,6 +13,7 @@ import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
+import { _EDIT } from '~/shell/config/query-params';
 
 export const EPINIO_APP_MANIFEST = 'manifest';
 
@@ -177,6 +178,11 @@ export default Vue.extend<Data, any, any, any>({
 
     this.$emit('valid', false);
     this.update();
+
+    if (this.mode === _EDIT) {
+      console.log('this', this.application);
+      console.log('source', this.source);
+    }
   },
 
   methods: {

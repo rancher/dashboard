@@ -142,25 +142,18 @@ export default class ApplicationActionResource extends Resource {
    * @param {*} params
    */
   async updateSource(params) {
-    // // Filter out the EPINIO_APP_DATA env var if it's not a container image
     if (params.source.type !== 'git_hub') {
-      this.application.configuration.environment = Object.keys(this.application.configuration.environment).reduce((acc, key) => {
-        if (key !== 'EPINIO_APP_DATA') {
-          acc[key] = this.application.configuration.environment[key];
-        }
+      const { EPINIO_APP_DATA, ...rest } = this.application.configuration.environment;
 
-        return acc;
-      }, {});
+      this.application.configuration.environment = rest;
     } else {
-      const githubEnvVar = {
-        usernameOrOrg: params.source.github.usernameOrOrg,
-        repo:          params.source.github.repo,
-        branch:        params.source.github.branch,
-      };
-
       this.application.configuration.environment = {
         ...this.application.configuration.environment,
-        [APPLICATION_ENV_VAR]: JSON.stringify(githubEnvVar)
+        [APPLICATION_ENV_VAR]: JSON.stringify({
+          usernameOrOrg: params.source.github.usernameOrOrg,
+          repo:          params.source.github.repo,
+          branch:        params.source.github.branch,
+        })
       };
     }
 

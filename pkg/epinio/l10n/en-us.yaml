@@ -219,7 +219,7 @@ epinio:
         label: Bind Configurations
         description: Configurations will be bound to the new Application
       updateSource:
-        label: Updated
+        label: Updating
         description: Updates the application source and settings
       bind_services:
         label: Bind Services

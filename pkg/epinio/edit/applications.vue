@@ -12,6 +12,7 @@ import { epinioExceptionToErrorsArray } from '../utils/errors';
 import Wizard from '@shell/components/Wizard.vue';
 import { createEpinioRoute } from '../utils/custom-routing';
 import AppSource, { EpinioAppSource } from '../components/application/AppSource.vue';
+import { _EDIT } from '@shell/config/query-params';
 
 import AppProgressUpdateSource from '../components/application/AppProgressUpdateSource.vue';
 import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_TYPES } from '~/pkg/epinio/types';
@@ -89,9 +90,11 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   computed: {
-    // TODO hide buttons on #source
     shouldShowButtons() {
       return this.$route.hash === '#source' ? 'hide-buttons-deploy' : '';
+    },
+    showSourceTab() {
+      return this.mode === _EDIT;
     },
   },
   methods: {
@@ -207,7 +210,7 @@ export default Vue.extend<Data, any, any, any>({
       mode="mode"
     >
       <Tab
-        v-if="mode === 'edit'"
+        v-if="showSourceTab"
         label-key="epinio.applications.steps.source.label"
         name="source"
         :weight="30"
