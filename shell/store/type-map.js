@@ -1163,7 +1163,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'machine-config', key, key => resolveCloudCredentialComponent(key));
+      return hasCustom(state, rootState, 'cloud-credential', key, key => resolveCloudCredentialComponent(key));
     };
   },
 
@@ -1223,6 +1223,9 @@ export const getters = {
 
   importCloudCredential(state, getters, rootState) {
     return (rawType, subType) => {
+      console.error('importCloudCredential');
+      console.error(rawType);
+      console.error(subType);
       return loadExtension(rootState, 'cloud-credential', getters.componentFor(rawType, subType), importCloudCredential);
     };
   },
