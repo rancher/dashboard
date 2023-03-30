@@ -1,6 +1,6 @@
 <script>
 import { AS, _YAML } from '@shell/config/query-params';
-import { FLEET } from 'config/types';
+import { FLEET } from '@shell/config/types';
 
 export default {
 
