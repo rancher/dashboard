@@ -34,9 +34,11 @@ yarn install
 API=<Rancher Backend URL> yarn dev
 ```
 
-> Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it.
+> Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it. Setup instructions can be found [here](../getting-started/development_environment/#installing-rancher).
 
 You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your skeleton application is a full Rancher UI - but referenced via `npm`.
+
+## Creating an Extension as a top-level-product
 
 The next step is to create an extension.
 
@@ -50,6 +52,8 @@ Go ahead and run the following command to create a new extension:
 ```sh
 yarn create @rancher/pkg test
 ```
+
+> Note: If you run the rancher pkg creation script with the option `HERE!!!` like `yarn create @rancher/pkg test HERE!!!` a folder structure will be generated to better assist you with managing your extension files.
 
 This will create a new UI Package in the `./pkg/test` folder.
 
@@ -78,7 +82,7 @@ export default function(plugin: IPlugin) {
   plugin.metadata = require('./package.json');
 
   // Load a product
-  // plugin.addProduct(require('./product'));
+  plugin.addProduct(require('./product'));
 }
 ```
 
@@ -86,13 +90,17 @@ Next, create a new file `./pkg/test/product.js` with this content:
 
 ```ts
 export function init($plugin, store) {
+  const YOUR_PRODUCT_NAME = 'myProductName';
+
   const { product } = $plugin.DSL(store, $plugin.name);
 
   product({
-    icon:                  'gear',
-    inStore:               'management',
-    removable:             false,
-    showClusterSwitcher:   false,
+    icon: 'gear',
+    inStore: 'management',
+    weight: 100,
+    to: {
+      name: `${ YOUR_PRODUCT_NAME }-c-cluster`
+    }
   });
 }
 ```
