@@ -1,14 +1,11 @@
 name: storybook
-env: 
+env:
     STORYBOOK_TOKEN: ${{ secrets.STORYBOOK_TOKEN }}
 on:
   push:
     branches:
       - master
-  pull_request:
-    branches:
-      - master
-      - 'release-*'      
+
 jobs:
   storybook:
     runs-on: ubuntu-latest
