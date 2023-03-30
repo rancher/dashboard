@@ -1201,7 +1201,7 @@ export default {
           version:     versionInfo.chart.version,
           releaseName: versionInfo.chart.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || chart.name,
           projectId:   this.project,
-          values:      merge(this.addGlobalValuesTo({ global: values.global }), versionInfo.values)
+          values:      merge(versionInfo.values, this.addGlobalValuesTo({ global: values.global }))
         });
       }
       /*
