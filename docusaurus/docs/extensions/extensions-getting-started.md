@@ -10,14 +10,11 @@ You'll also need the yarn package manager installed, which can be done with `npm
 
 ## Creating the Application
 
-In order to develop a new Extension, you need an application UI to host it in during development. Rancher provides a helper to create a skeleton application for you. This
-gives you a full version of the Rancher UI that can be used to develop and test your extension.
-
-Rancher publishes two npm packages to help bootstrap the creation of the app and an extension. These are used in this example below.
+In order to develop a new Extension, you need an application UI to host it in during development. Rancher provides a helper to create a skeleton application for you.
 
 ### Creating the Skeleton App
 
-Create a new folder and run:
+`cd` to a folder not within the checkout and run:
 
 ```sh
 yarn create @rancher/app my-app
@@ -56,6 +53,8 @@ Go ahead and run the following command to create a new extension:
 yarn create @rancher/pkg test
 ```
 
+> Note: If you run the rancher pkg creation script with the option `HERE!!!` like `yarn create @rancher/pkg test HERE!!!` a folder structure will be generated to better assist you with managing your extension files.
+
 This will create a new UI Package in the `./pkg/test` folder.
 
 #### ___Extension Options___
@@ -68,7 +67,7 @@ There are two options that can be passed to the `@rancher/pkg` script:
 
 ### Configuring an Extension
 
-Replace the contents of the file `./pkg/test/index.ts` with:
+Replace the contents of the file `./pkg/test/index.js` with:
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
@@ -87,18 +86,21 @@ export default function(plugin: IPlugin) {
 }
 ```
 
-Next, create a new file `./pkg/test/product.ts` with this content:
+Next, create a new file `./pkg/test/product.js` with this content:
 
 ```ts
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProductName';
 
-  const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
+  const { product } = $plugin.DSL(store, $plugin.name);
 
   product({
-    icon:    'gear',
+    icon: 'gear',
     inStore: 'management',
-    weight:  100
+    weight: 100,
+    to: {
+      name: `${ YOUR_PRODUCT_NAME }-c-cluster`
+    }
   });
 }
 ```
@@ -120,7 +122,7 @@ Open a web browser to https://127.0.0.1:8005 and you'll see a new 'Example' nav 
 
 ## Building the Extension
 
-Up until now, we've run the extension inside of the skeleton application - this is the developer workflow.
+Up until now, we've run the extension inside of the skeleton application - this is the developer workload.
 
 To build the extension so we can use it independently, run:
 
