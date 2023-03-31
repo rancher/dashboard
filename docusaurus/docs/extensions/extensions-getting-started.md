@@ -53,8 +53,6 @@ Go ahead and run the following command to create a new extension:
 yarn create @rancher/pkg test
 ```
 
-> Note: If you run the rancher pkg creation script with the option `HERE!!!` like `yarn create @rancher/pkg test HERE!!!` a folder structure will be generated to better assist you with managing your extension files.
-
 This will create a new UI Package in the `./pkg/test` folder.
 
 #### ___Extension Options___
