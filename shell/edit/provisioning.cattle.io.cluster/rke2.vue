@@ -340,6 +340,15 @@ export default {
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
       truncateHostnames:     false,
+      pp:                    [{
+        id: 0, instanceNameLimit: ''
+      },
+      {
+        id: 1, instanceNameLimit: ''
+      },
+      {
+        id: 2, instanceNameLimit: ''
+      }],
     };
   },
 
@@ -1080,6 +1089,17 @@ export default {
     nlToBr,
     set,
 
+    truncateName() {
+      if(this.truncateHostnames) {
+        this.machinePools.find((pool) => {
+          pool.pool.instanceNameLimit = 15;
+        })
+      } else {
+        this.machinePools.find((pool) => {
+          pool.pool.instanceNameLimit = null;
+        })
+      }
+    },
     /**
      * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
      */
@@ -1093,7 +1113,6 @@ export default {
 
     async initMachinePools(existing) {
       const out = [];
-
       if ( existing?.length ) {
         for ( const pool of existing ) {
           let type;
@@ -1136,9 +1155,17 @@ export default {
             config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
             configMissing
           });
+
+          const truncateCheck = out.find((pool) => {
+            return pool.pool.instanceNameLimit;
+          })
+
+          if (truncateCheck) {
+            this.truncateHostnames = true;
+          }
         }
       }
-
+  
       this.machinePools = out;
     },
 
@@ -1176,6 +1203,7 @@ export default {
             kind: this.machineConfigSchema.attributes.kind,
             name: null,
           },
+          instanceNameLimit:    null,
         },
       };
 
@@ -1187,6 +1215,7 @@ export default {
         pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
       }
 
+      
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
@@ -2574,6 +2603,7 @@ export default {
                 class="mt-20"
                 :mode="mode"
                 :label="t('cluster.rke2.truncateHostnames')"
+                @input="truncateName"
               />
             </div>
           </div>
