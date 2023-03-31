@@ -4,7 +4,9 @@ on:
   push:
     branches:
       - master
-
+  pull_request:
+    branches:
+      - master
 jobs:
   deploy:
     name: Publish Docusaurus
@@ -25,7 +27,7 @@ jobs:
       # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
       - name: Publish Docusaurus
         uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' }}
+        if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher' }}
         with:
           deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
           # Build output to publish to the `gh-pages` branch:
