@@ -31,6 +31,15 @@ const routes = [
     },
   },
   {
+    name:      `${ YOUR_PRODUCT_NAME }-c-cluster-page3`,
+    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/page3`,
+    component: page2,
+    meta:      {
+      product: YOUR_PRODUCT_NAME,
+      cluster: BLANK_CLUSTER
+    },
+  },
+  {
     name:      `${ YOUR_PRODUCT_NAME }-c-cluster-resource`,
     path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/:resource`,
     component: ListResource,
