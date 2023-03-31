@@ -151,8 +151,8 @@ export default Vue.extend({
       <label
         v-if="label"
         :class="[ muteLabel ? 'text-muted' : '', 'radio-label', 'm-0']"
-        :for="name"
         v-clean-html="label"
+        :for="name"
       >
         <slot name="label">{{ label }}</slot>
       </label>
