@@ -37,11 +37,7 @@ pushd ${TMP}/container > /dev/null
 echo -e "${CYAN}Building container image ...${RESET}"
 
 if [ ! -z "${REGISTRY}" ]; then
-  if [ "${REGISTRY_ORG}" == 'ui-extension-' ]; then
-    ORG=${REGISTRY} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} ./scripts/package
-  else
-    REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} ./scripts/package
-  fi
+  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} ./scripts/package
 
   if [ "${PUSH}" == "--push" ]; then
     echo -e "${CYAN}Pushing container image ...${RESET}"
