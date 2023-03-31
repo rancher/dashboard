@@ -6,8 +6,8 @@ export function _getClusterName(resource) {
   return resource.metadata.labels[SNAPSHOT.CLUSTER_NAME];
 }
 
-export function _getCluster(resource, { mgmtAll }) {
-  return findBy(mgmtAll(CAPI.RANCHER_CLUSTER), 'metadata.name', resource.clusterName);
+export function _getCluster(resource, getters, rootGetters) {
+  return findBy(rootGetters['management/all'](CAPI.RANCHER_CLUSTER), 'metadata.name', resource.clusterName);
 }
 
 export function _getName(resource) {
@@ -25,7 +25,7 @@ export function _getClusterId(resource) {
 export const calculatedFields = [
   { name: 'clusterName', func: _getClusterName },
   {
-    name: 'cluser', func: _getCluster, tempCache: ['management']
+    name: 'cluser', func: _getCluster, caches: ['management']
   },
   { name: 'name', func: _getName },
   { name: 'nameDisplay', func: _getNameDisplay },

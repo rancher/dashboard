@@ -1,7 +1,7 @@
 import { MANAGEMENT } from '@shell/config/types';
 
-export function _getUser(resource, { mgmtById }) {
-  return mgmtById(MANAGEMENT.USER, resource.userName);
+export function _getUser(resource, getters, rootGetters) {
+  return rootGetters['management/byId'](MANAGEMENT.USER, resource.userName);
 }
 
 export function _getNameDisplay(resource) {
@@ -15,7 +15,7 @@ export function _getClusterId(resource) {
 
 export const calculatedFields = [
   {
-    name: 'user', func: _getUser, tempCache: ['management']
+    name: 'user', func: _getUser, caches: ['management']
   },
   { name: 'nameDisplay', func: _getNameDisplay },
   { name: 'clusterId', func: _getClusterId },

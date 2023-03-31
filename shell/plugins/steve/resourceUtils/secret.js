@@ -17,11 +17,11 @@ export const TYPES = {
   RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
 };
 
-export function _getSubTypeDisplay(resource, { translateWithFallback }) {
+export function _getSubTypeDisplay(resource, rootGetters) {
   const type = resource._type || '';
   const fallback = type.replace(/^kubernetes.io\//, '');
 
-  return translateWithFallback(`secret.types."${ type }"`, null, fallback);
+  return rootGetters['i18n/translateWithFallback'](`secret.types."${ type }"`, null, fallback);
 }
 
 export function _getKeysDisplay(resource) {

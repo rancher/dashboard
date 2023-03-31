@@ -24,10 +24,10 @@ export function _getProvider(resource) {
   return null;
 }
 
-export function _getProviderDisplay(resource, { translateWithFallback }) {
+export function _getProviderDisplay(resource, _, rootGetters) {
   const provider = (resource.provider || '').toLowerCase();
 
-  return translateWithFallback(`cluster.provider."${ provider }"`, null, provider);
+  return rootGetters['i18n/translateWithFallback'](`cluster.provider."${ provider }"`, null, provider);
 }
 
 export const calculatedFields = [

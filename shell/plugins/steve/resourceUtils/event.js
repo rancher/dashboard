@@ -1,5 +1,6 @@
-export function _getLastSeen(resource, { schemaFor, rowValueGetter }) {
-  const schema = schemaFor(resource.type);
+export function _getLastSeen(resource, getters, rootGetters) {
+  const schema = getters['schemaFor'](resource.type);
+  const rowValueGetter = rootGetters['type-map/rowValueGetter'];
 
   return schema && rowValueGetter ? rowValueGetter(schema, 'Last Seen')(resource) : null;
 }

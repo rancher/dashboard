@@ -5,7 +5,7 @@ import { _getNodes, _getNodeTemplate, _getProviderDisplay } from '@shell/plugins
 
 export default class MgmtNodePool extends HybridModel {
   get nodeTemplate() {
-    return _getNodeTemplate(this, { byId: this.$getters['byId'] });
+    return _getNodeTemplate(this, this.$getters, this.$rootGetters);
   }
 
   get provider() {
@@ -67,7 +67,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get nodes() {
-    return _getNodes(this, { all: this.$getters['all'] });
+    return _getNodes(this, this.$getters, this.$rootGetters);
   }
 
   get nodeSummary() {

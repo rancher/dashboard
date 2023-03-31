@@ -287,7 +287,9 @@ export default {
   },
 
   classify: (state, getters, rootState) => (obj) => {
-    return lookup(state.config.namespace, obj?.type, obj?.metadata?.name, rootState) || Resource;
+    const classy = lookup(state.config.namespace, obj?.type, obj?.metadata?.name, rootState) || Resource;
+
+    return classy;
   },
 
   cleanResource: () => (existing, data) => {

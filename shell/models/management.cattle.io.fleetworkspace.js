@@ -9,7 +9,7 @@ export default class Workspace extends HybridModel {
   }
 
   get counts() {
-    return _getCounts(this, { all: this.$rootGetters[`management/all`] });
+    return _getCounts(this, this.$getters, this.$rootGetters);
   }
 
   get clusters() {

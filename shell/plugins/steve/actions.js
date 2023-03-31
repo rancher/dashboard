@@ -1,7 +1,7 @@
 import https from 'https';
 import { addParam, parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
 import { handleSpoofedRequest, loadSchemas, _ALL } from '@shell/plugins/dashboard-store/actions';
-import { clone, set } from '@shell/utils/object';
+import { set } from '@shell/utils/object';
 import { deferred } from '@shell/utils/promise';
 import { streamJson, streamingSupported } from '@shell/utils/stream';
 import isObject from 'lodash/isObject';
@@ -130,7 +130,9 @@ export default {
 
       try {
         if (isAdvancedWorker) {
+          // ToDo: SM this gets called on hot-reloads sometimes, try to figure it out.
           if (!this.$workers[getters.storeName]) {
+            console.error('Advanced worker has not been created', getters.storeName, this.$workers); // eslint-disable-line no-console
             throw new Error('Advanced worker has not been created');
           }
 
@@ -231,15 +233,7 @@ export default {
       return worker.postMessageAndWait({
         type, namespace, namespaces, id, limit, page, pageSize, filter, searches, sortBy, force
       }).then((res) => {
-        const { secondaryResources } = clone(res);
-        const out = responseObject(clone(res));
-
-        if (secondaryResources?.length > 0) {
-          out.secondaryResources = [];
-          secondaryResources.forEach((secondaryResource) => {
-            out.secondaryResources.push(responseObject(secondaryResource));
-          });
-        }
+        const out = Array.isArray(res) ? res.map(response => responseObject(response)) : responseObject(res);
 
         finishDeferred(key, 'resolve', out);
 
@@ -261,7 +255,6 @@ export default {
 
     function responseObject(res) {
       let out = res.data;
-
       const fromHeader = res.headers?.['x-api-cattle-auth'];
 
       if ( fromHeader && fromHeader !== rootGetters['auth/fromHeader'] ) {
@@ -277,13 +270,14 @@ export default {
       }
 
       Object.defineProperties(out, {
-        _status:     { value: res.status },
-        _statusText: { value: res.statusText },
-        _headers:    { value: res.headers },
-        _req:        { value: res.request },
-        _url:        { value: opt.url },
-        listLength:  { value: res.listLength },
-        totalLength: { value: res.totalLength }
+        _status:      { value: res.status },
+        _statusText:  { value: res.statusText },
+        _headers:     { value: res.headers },
+        _req:         { value: res.request },
+        _url:         { value: opt.url },
+        listLength:   { value: res.listLength },
+        totalLength:  { value: res.totalLength },
+        resourceType: { value: res.resourceType },
       });
 
       return out;

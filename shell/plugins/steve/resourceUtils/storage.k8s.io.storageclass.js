@@ -77,11 +77,11 @@ export const PROVISIONER_OPTIONS = [
   }
 ];
 
-export function _getProvisionerDisplay(resource, { translate }) {
+export function _getProvisionerDisplay(resource, _, rootGetters) {
   const option = PROVISIONER_OPTIONS.find(option => option.value === resource.provisioner);
   const fallback = `${ resource.provisioner } ${ resource.t('persistentVolume.csi.drivers.suffix') }`;
 
-  return option ? translate(option.labelKey) : resource.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ resource.provisioner.replaceAll('.', '-') }`, null, fallback);
+  return option ? rootGetters['i18n/translate'](option.labelKey) : resource.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ resource.provisioner.replacegetters.all('.', '-') }`, null, fallback);
 }
 
 export function _getIsDefault(resource) {

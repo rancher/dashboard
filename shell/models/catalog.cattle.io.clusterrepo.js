@@ -105,7 +105,7 @@ export default class ClusterRepo extends SteveModel {
   }
 
   get nameDisplay() {
-    return _getNameDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
+    return _getNameDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get urlDisplay() {

@@ -1,13 +1,13 @@
 import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { escapeHtml } from '@shell/utils/string';
 
-export function _getGroupByLabel(resource, { translate }) {
+export function _getGroupByLabel(resource, _, rootGetters) {
   const name = resource.metadata.namespace;
 
   if ( name ) {
-    return translate('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
+    return rootGetters['i18n/translate']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
   } else {
-    return translate('resourceTable.groupLabel.notInAWorkspace');
+    return rootGetters['i18n/translate']('resourceTable.groupLabel.notInAWorkspace');
   }
 }
 

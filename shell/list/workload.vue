@@ -44,43 +44,50 @@ export default {
   },
 
   async fetch() {
-    if (!this.resourceQueryMethods.setPage) {
-      if (this.allTypes && this.loadResources.length) {
-        this.$initializeFetchData(this.loadResources[0], this.loadResources);
-      } else {
-        this.$initializeFetchData(this.$route.params.resource);
+    // if (!this.resourceQueryMethods?.setPage) {
+    if ( this.allTypes && this.loadResources.length && !this.advancedWorker ) {
+      // if (this.allTypes && this.loadResources.length) {
+      this.$initializeFetchData(this.loadResources[0], this.loadResources);
+    } else {
+      this.$initializeFetchData(this.$route.params.resource);
+    }
+
+    try {
+      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+
+      if (schema) {
+        this.$fetchType(NODE);
       }
+    } catch {}
 
-      try {
-        const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+    this.loadHeathResources();
 
-        if (schema) {
-          this.$fetchType(NODE);
-        }
-      } catch {}
+    if ( this.allTypes && this.loadResources.length && !this.advancedWorker ) {
+      this.resources = await Promise.all(this.loadResources.map((allowed) => {
+        return this.$fetchType(allowed, this.loadResources);
+      }));
+    } else if (this.allTypes && this.loadResources.length ) {
+      // workloads is a weird case, in this case we're just synthesizing a resource type on the backend and letting the worker create it
+      const res = await this.$store.dispatch('cluster/findAll', { type: 'workload', opt: { resourceQuery: this.resourceQuery(schema) } });
 
-      this.loadHeathResources();
-
-      if ( this.allTypes ) {
-        this.resources = await Promise.all(this.loadResources.map((allowed) => {
-          return this.$fetchType(allowed, this.loadResources);
-        }));
-      } else {
-        const type = this.$route.params.resource;
-
-        if ( this.$store.getters['cluster/schemaFor'](type) ) {
-          const resource = await this.$fetchType(type);
-
-          this.resources = [resource];
-        }
-      }
-      // ToDo: SM this is inelegant, come back to it
+      // resources = [res];
+      this.resources = [res];
     } else {
       const type = this.$route.params.resource;
-      const resource = await this.$fetchType(type);
 
-      this.resources = [resource];
+      if ( this.$store.getters['cluster/schemaFor'](type) ) {
+        const resource = await this.$fetchType(type);
+
+        this.resources = [resource];
+      }
     }
+    // ToDo: SM this is inelegant, come back to it
+    // } else {
+    //   const type = this.$route.params.resource;
+    //   const resource = await this.$fetchType(type);
+
+    //   this.resources = [resource];
+    // }
   },
 
   data() {
@@ -110,6 +117,12 @@ export default {
     },
 
     filteredRows() {
+      if (this.advancedWorker) {
+        const type = this.$route.params.resource;
+        const inStore = this.$store.getters['currentStore'](type);
+
+        return this.$store.getters[`${ inStore }/all`](type);
+      }
       const out = [];
 
       for ( const typeRows of this.resources ) {
@@ -126,6 +139,19 @@ export default {
 
       return out;
     },
+    advancedWorker() {
+      return !!this.perfConfig?.advancedWorker?.enabled;
+    },
+    listLength() {
+      const type = this.$route.params.resource;
+
+      return this.$store.getters['cluster/listLength'](type);
+    },
+    totalLength() {
+      const type = this.$route.params.resource;
+
+      return this.$store.getters['cluster/totalLength'](type);
+    }
   },
 
   // All of the resources that we will load that we need for the loading indicator
@@ -136,7 +162,7 @@ export default {
   methods: {
     loadHeathResources() {
       // Fetch these in the background to populate workload health
-      if ( this.allTypes ) {
+      if ( this.allTypes && !this.advancedWorker ) {
         this.$fetchType(POD);
         this.$fetchType(WORKLOAD_TYPES.JOB);
       } else {
@@ -144,13 +170,14 @@ export default {
 
         if (type === WORKLOAD_TYPES.JOB) {
           // Ignore job (we're fetching this anyway, plus they contain their own state)
-          return;
         }
 
-        if (type === WORKLOAD_TYPES.CRON_JOB) {
-          this.$fetchType(WORKLOAD_TYPES.JOB);
-        } else {
-          this.$fetchType(POD);
+        if (!this.perfConfig?.advancedWorker) {
+          if (type === WORKLOAD_TYPES.CRON_JOB) {
+            this.$fetchType(WORKLOAD_TYPES.JOB);
+          } else {
+            this.$fetchType(POD);
+          }
         }
       }
     }
@@ -170,16 +197,18 @@ export default {
 </script>
 
 <template>
-  <ResourceTable
-    :loading="$fetchState.pending"
-    :schema="schema"
-    :rows="filteredRows"
-    :overflow-y="true"
-    :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
-    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
-    :set-page-fn="resourceQueryMethods.setPage"
-    :set-search-fn="resourceQueryMethods.setSearch"
-    :set-sort-fn="resourceQueryMethods.setSort"
-    :list-length="listLength"
-  />
+  <span>
+    <ResourceTable
+      :loading="$fetchState.pending"
+      :schema="schema"
+      :rows="filteredRows"
+      :overflow-y="true"
+      :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :set-page-fn="resourceQueryMethods.setPage"
+      :set-search-fn="resourceQueryMethods.setSearch"
+      :set-sort-fn="resourceQueryMethods.setSort"
+      :list-length="listLength"
+    />
+  </span>
 </template>

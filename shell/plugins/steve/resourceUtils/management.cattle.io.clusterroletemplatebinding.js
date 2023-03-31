@@ -5,8 +5,8 @@ export function _getPrincipalId(resource) {
   return resource.principalName || resource.userPrincipalName || resource.groupPrincipalName;
 }
 
-export function _getUser(resource, { mgmtById }) {
-  return mgmtById(MANAGEMENT.USER, resource.userName);
+export function _getUser(resource, getters, rootGetters) {
+  return rootGetters['management/byId'](MANAGEMENT.USER, resource.userName);
 }
 
 export function _getNameDisplay(resource) {
@@ -16,7 +16,7 @@ export function _getNameDisplay(resource) {
 export const calculatedFields = [
   { name: 'principalId', func: _getPrincipalId },
   {
-    name: 'user', func: _getUser, tempCache: ['management']
+    name: 'user', func: _getUser, caches: ['management']
   },
   { name: 'nameDisplay', func: _getNameDisplay },
 ];

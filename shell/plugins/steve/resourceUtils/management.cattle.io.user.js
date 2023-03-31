@@ -40,8 +40,8 @@ export function _getNameDisplay(resource) {
   return resource.displayName || resource.username || resource.id;
 }
 
-export function _getProviderDisplay(resource, { translateWithFallback }) {
-  return translateWithFallback(`model.authConfig.provider."${ resource.provider }"`, null, resource.provider);
+export function _getProviderDisplay(resource, rootGetters) {
+  return rootGetters['i18n/translateWithFallback'](`model.authConfig.provider."${ resource.provider }"`, null, resource.provider);
 }
 
 export function _getDescription(resource) {

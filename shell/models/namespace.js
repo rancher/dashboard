@@ -113,13 +113,11 @@ export default class Namespace extends SteveModel {
   }
 
   get project() {
-    return _getProject(this, {
-      isRancher: this.$rootGetters['isRancher'], currentCluster: this.$rootGetters['currentCluster'], mgmtById: this.$rootGetters['management/byId']
-    });
+    return _getProject(this, this.$getters, this.$rootGetters);
   }
 
   get groupByLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 
   get projectNameSort() {

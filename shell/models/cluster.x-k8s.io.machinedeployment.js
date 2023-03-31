@@ -12,19 +12,19 @@ import {
 
 export default class CapiMachineDeployment extends SteveModel {
   get cluster() {
-    return _getCluster(this, { mgmtById: this.$rootGetters['management/byId'] });
+    return _getCluster(this, this.$getters, this.$rootGetters);
   }
 
   get groupByLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 
   get groupByPoolLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 
   get groupByPoolShortLabel() {
-    return _getGroupByPoolShortLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByPoolShortLabel(this, this.$getters, this.$rootGetters);
   }
 
   get infrastructureRefKind() {
@@ -36,7 +36,7 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get template() {
-    return _getTemplate(this, { mgmtById: this.$rootGetters['management/byId'] });
+    return _getTemplate(this, this.$getters, this.$rootGetters);
   }
 
   get providerName() {
@@ -44,7 +44,7 @@ export default class CapiMachineDeployment extends SteveModel {
   }
 
   get providerDisplay() {
-    return _getProviderDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
+    return _getProviderDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get providerLocation() {

@@ -1,9 +1,9 @@
 import { shortenedImage, escapeHtml } from '@shell/utils/string';
 
-export function _getGroupByNode(resource, { translate }) {
-  const name = resource.spec?.nodeName || translate('generic.none');
+export function _getGroupByNode(resource, _, rootGetters) {
+  const name = resource.spec?.nodeName || rootGetters['i18n/translate']('generic.none');
 
-  return translate('resourceTable.groupLabel.node', { name: escapeHtml(name) });
+  return rootGetters['i18n/translate']('resourceTable.groupLabel.node', { name: escapeHtml(name) });
 }
 
 export function _getIsRunning(resource) {

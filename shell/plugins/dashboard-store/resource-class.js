@@ -192,7 +192,7 @@ export default class Resource {
   }
 
   get schema() {
-    return _getSchema(this, { schemaFor: this.$getters['schemaFor'] });
+    return _getSchema(this, this.$getters, this.$rootGetters);
   }
 
   toString() {
@@ -200,7 +200,7 @@ export default class Resource {
   }
 
   get typeDisplay() {
-    return _getTypeDisplay(this, { labelFor: this.$rootGetters['type-map/labelFor'] });
+    return _getTypeDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get nameDisplay() {
@@ -220,7 +220,7 @@ export default class Resource {
   }
 
   get groupByLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 
   setLabels(/* val */) {
@@ -245,7 +245,7 @@ export default class Resource {
   }
 
   get stateColor() {
-    return _getStateColor(this, {
+    return _getStateColor(this, null, null, {
       colorForStateInModel: colorForState.call(
         this,
         this.state,

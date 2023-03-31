@@ -106,35 +106,35 @@ export const VOLUME_PLUGINS = [
   },
 ];
 
-export function _getClaim(resource, { all }) {
+export function _getClaim(resource, getters, rootGetters) {
   if (!resource.name) {
     return null;
   }
 
-  const allClaims = all(PVC);
+  const allClaims = getters.all(PVC);
 
   return allClaims.find(claim => claim.spec.volumeName === resource.name);
 }
 
-export function _getClaimName(resource, { translate }) {
-  return resource.claim?.nameDisplay || translate('generic.na');
+export function _getClaimName(resource, _, rootGetters) {
+  return resource.claim?.nameDisplay || rootGetters['i18n/translate']('generic.na');
 }
 
-export function _getSource(resource, { translateWithFallback, translate }) {
+export function _getSource(resource, _, rootGetters) {
   const csiDriver = resource.spec?.csi?.driver;
-  const fallback = `${ csiDriver } ${ translate('persistentVolume.csi.drivers.suffix') }`;
+  const fallback = `${ csiDriver } ${ rootGetters['i18n/translate']('persistentVolume.csi.drivers.suffix') }`;
 
   if (csiDriver) {
-    return translateWithFallback(`persistentVolume.csi.drivers.${ csiDriver.replaceAll('.', '-') }`, null, fallback);
+    return rootGetters['i18n/translateWithFallback'](`persistentVolume.csi.drivers.${ csiDriver.replacegetters.all('.', '-') }`, null, fallback);
   }
   const pluginDef = VOLUME_PLUGINS.find(plugin => resource.spec[plugin.value]);
 
   if (pluginDef) {
-    return translate(pluginDef.labelKey);
+    return rootGetters['i18n/translate'](pluginDef.labelKey);
   }
 
   // every source should be a csi driver or listed in VOLUME_PLUGIN but just in case..
-  return translate('generic.unknown');
+  return rootGetters['i18n/translate']('generic.unknown');
 }
 
 export const calculatedFields = [

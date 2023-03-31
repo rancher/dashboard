@@ -1,8 +1,8 @@
-export function _getNameDisplay(resource, { translateWithFallback }) {
+export function _getNameDisplay(resource, rootGetters) {
   const path = `rbac.globalRoles.role.${ resource.id }.label`;
   const label = resource.displayName || resource.metadata?.name || resource.id;
 
-  return translateWithFallback(path, label);
+  return rootGetters['i18n/translateWithFallback'](path, label);
 }
 
 export function _getDefault(resource) {

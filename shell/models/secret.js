@@ -157,7 +157,7 @@ export default class Secret extends SteveModel {
   }
 
   get subTypeDisplay() {
-    return _getSubTypeDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
+    return _getSubTypeDisplay(this, this.$getters, this.$rootGetters);
   }
 
   // parse TLS certs and return issuer, notAfter, cn, sans

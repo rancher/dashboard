@@ -293,7 +293,7 @@ export default class GitRepo extends SteveModel {
   }
 
   get groupByLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 
   get bundles() {

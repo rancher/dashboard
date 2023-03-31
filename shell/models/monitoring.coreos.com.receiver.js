@@ -79,7 +79,7 @@ export default class Receiver extends SteveModel {
   }
 
   get receiverTypes() {
-    return _getReceiverTypes(this, { translate: this.t });
+    return _getReceiverTypes(this, this.$getters, this.$rootGetters);
   }
 
   get updateReceivers() {

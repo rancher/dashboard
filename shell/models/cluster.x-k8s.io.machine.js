@@ -144,7 +144,7 @@ export default class CapiMachine extends SteveModel {
   }
 
   get cluster() {
-    return _getCluster(this, { mgmtById: this.$rootGetters['management/byId'] });
+    return _getCluster(this, null, this.$rootGetters);
   }
 
   get poolName() {

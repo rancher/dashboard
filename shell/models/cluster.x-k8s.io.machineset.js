@@ -3,10 +3,10 @@ import { _getCluster, _getGroupByLabel } from '@shell/plugins/steve/resourceUtil
 
 export default class CapiMachineSet extends SteveModel {
   get cluster() {
-    return _getCluster(this, { mgmtById: this.$rootGetters['management/byId'] });
+    return _getCluster(this, this.$getters, this.$rootGetters);
   }
 
   get groupByLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 }

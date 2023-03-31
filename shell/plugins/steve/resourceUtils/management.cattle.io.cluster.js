@@ -1,11 +1,11 @@
 import { MANAGEMENT } from '@shell/config/types';
 
-export function _getGroupByLabel(_, { translate }) {
-  return translate('resourceTable.groupLabel.notInAWorkspace');
+export function _getGroupByLabel(_, rootGetters) {
+  return rootGetters['i18n/translate']('resourceTable.groupLabel.notInAWorkspace');
 }
 
-export function _getKubernetesVersion(resource, { translate }) {
-  return resource.kubernetesVersionRaw || translate('generic.provisioning');
+export function _getKubernetesVersion(resource, _, rootGetters) {
+  return resource.kubernetesVersionRaw || rootGetters['i18n/translate']('generic.provisioning');
 }
 
 export function _getMachineProvider(resource) {
@@ -20,8 +20,8 @@ export function _getMachineProvider(resource) {
   return null;
 }
 
-export function _getNodes(resource, { all }) {
-  return all(MANAGEMENT.NODE).filter(node => node.id.startsWith(resource.id));
+export function _getNodes(resource, getters, rootGetters) {
+  return getters.all(MANAGEMENT.NODE).filter(node => node.id.startsWith(resource.id));
 }
 
 export const calculatedFields = [
@@ -29,6 +29,6 @@ export const calculatedFields = [
   { name: 'kubernetesVersion', func: _getKubernetesVersion },
   { name: 'machineProvider', func: _getMachineProvider },
   {
-    name: 'nodes', func: _getNodes, tempCache: ['management']
+    name: 'nodes', func: _getNodes, caches: ['management']
   }
 ];

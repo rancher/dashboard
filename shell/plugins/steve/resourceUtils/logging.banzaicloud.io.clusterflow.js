@@ -1,7 +1,7 @@
 import { LOGGING } from '@shell/config/types';
 
-export function _getAllOutputs(_, { all }) {
-  return all(LOGGING.CLUSTER_OUTPUT) || [];
+export function _getAllOutputs(_, getters) {
+  return getters.all(LOGGING.CLUSTER_OUTPUT) || [];
 }
 
 export function _getOutputs(resource) {

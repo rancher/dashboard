@@ -2,7 +2,7 @@ import merge from 'lodash/merge';
 import { get } from '@shell/utils/object';
 import en from '@shell/assets/translations/en-us.yaml';
 import { loadTranslation } from '@shell/utils/dynamic-importer';
-import { i18n } from '@shell/plugins/steve/caches/utils/translations';
+import { i18n } from '@shell/plugins/steve/storeUtils/i18n';
 
 const NONE = 'none';
 const DEFAULT_LOCALE = 'en-us';
@@ -56,6 +56,8 @@ export const getters = {
   },
 
   t: state => i18n(state).translate,
+
+  translate: state => i18n(state).translate,
 
   exists: state => i18n(state).exists,
 

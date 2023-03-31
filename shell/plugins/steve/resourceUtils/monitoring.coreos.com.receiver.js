@@ -48,10 +48,10 @@ export const RECEIVERS_TYPES = [
   },
 ];
 
-export function _getReceiverTypes(resource, { translate }) {
+export function _getReceiverTypes(resource, _, rootGetters) {
   const types = RECEIVERS_TYPES
     .filter(type => type.name !== 'custom' && resource.spec[type.key]?.length > 0)
-    .map(type => translate(type.label));
+    .map(type => rootGetters['i18n/translate'](type.label));
 
   const expectedKeys = RECEIVERS_TYPES.map(type => type.key).filter(key => key !== 'custom');
 
@@ -61,7 +61,7 @@ export function _getReceiverTypes(resource, { translate }) {
     .filter(key => !expectedKeys.includes(key));
 
   if (customKeys.length > 0) {
-    const customLabel = translate(RECEIVERS_TYPES.find(type => type.name === 'custom').label);
+    const customLabel = rootGetters['i18n/translate'](RECEIVERS_TYPES.find(type => type.name === 'custom').label);
 
     types.push(customLabel);
   }

@@ -127,7 +127,7 @@ export default {
       allClusters:          [],
       allClusterGroups:     [],
       allWorkspaces:        [],
-      tempCachedValues:     {},
+      externalCachedValues: {},
       username:             null,
       password:             null,
       publicKey:            null,
@@ -281,7 +281,7 @@ export default {
     },
 
     updateCachedAuthVal(val, key) {
-      this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
+      this.externalCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
     },
 
     updateAuth(val, key) {
@@ -363,12 +363,12 @@ export default {
     },
 
     async doCreateSecrets() {
-      if (this.tempCachedValues.clientSecretName) {
-        await this.doCreate('clientSecretName', this.tempCachedValues.clientSecretName);
+      if (this.externalCachedValues.clientSecretName) {
+        await this.doCreate('clientSecretName', this.externalCachedValues.clientSecretName);
       }
 
-      if (this.tempCachedValues.helmSecretName) {
-        await this.doCreate('helmSecretName', this.tempCachedValues.helmSecretName);
+      if (this.externalCachedValues.helmSecretName) {
+        await this.doCreate('helmSecretName', this.externalCachedValues.helmSecretName);
       }
     },
 
@@ -552,7 +552,7 @@ export default {
         :namespace="value.metadata.namespace"
         :delegate-create-to-parent="true"
         in-store="management"
-        :pre-select="tempCachedValues.clientSecretName"
+        :pre-select="externalCachedValues.clientSecretName"
         :mode="mode"
         generate-name="gitrepo-auth-"
         label-key="fleet.gitRepo.auth.git"
@@ -569,7 +569,7 @@ export default {
         :mode="mode"
         generate-name="helmrepo-auth-"
         label-key="fleet.gitRepo.auth.helm"
-        :pre-select="tempCachedValues.helmSecretName"
+        :pre-select="externalCachedValues.helmSecretName"
         @input="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />

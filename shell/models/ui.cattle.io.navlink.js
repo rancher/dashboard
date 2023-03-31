@@ -7,7 +7,7 @@ export default class extends SteveModel {
   }
 
   get link() {
-    return _getLink(this, { clusterId: this.$rootGetters['clusterId'] });
+    return _getLink(this, this.$getters, this.$rootGetters);
   }
 
   get normalizedGroup() {

@@ -1,7 +1,7 @@
 import { COUNT, FLEET } from '@shell/config/types';
 
-export function _getCounts(resource, { all }) {
-  const summary = all(COUNT)[0].counts || {};
+export function _getCounts(resource, getters, rootGetters) {
+  const summary = getters.all(COUNT)[0].counts || {};
   const name = resource.metadata.name;
 
   const out = {

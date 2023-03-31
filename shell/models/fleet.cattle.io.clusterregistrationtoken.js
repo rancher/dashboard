@@ -3,6 +3,6 @@ import { _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/fleet.cattl
 
 export default class FleetToken extends SteveModel {
   get groupByLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 }

@@ -271,7 +271,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmt() {
-    return _getMgmt(this, { mgmtById: this.$rootGetters['management/byId'] });
+    return _getMgmt(this, this.$getters, this.$rootGetters);
   }
 
   get isReady() {
@@ -334,7 +334,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get kubernetesVersion() {
-    return _getKubernetesVersion(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getKubernetesVersion(this, this.$getters, this.$rootGetters);
   }
 
   get machineProvider() {
@@ -356,7 +356,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get nodes() {
-    return _getNodes(this, { mgmtAll: this.$rootGetters['management/all'] });
+    return _getNodes(this, this.$getters, this.$rootGetters);
   }
 
   get machines() {

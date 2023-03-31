@@ -13,7 +13,7 @@ export default class Group extends Principal {
   }
 
   get principalNameDisplay() {
-    return _getPrincipalNameDisplay(this, { rancherById: this.$rootGetters['rancher/byId'] });
+    return _getPrincipalNameDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get detailLocation() {

@@ -5,14 +5,14 @@ export function _getIsRke2(resource) {
   return !!resource.spec?.rkeConfig;
 }
 
-export function _getMgmt(resource, { mgmtById }) {
+export function _getMgmt(resource, getters, rootGetters) {
   const name = resource.status?.clusterName;
 
   if ( !name ) {
     return null;
   }
 
-  const out = mgmtById(MANAGEMENT.CLUSTER, name);
+  const out = rootGetters['management/byId'](MANAGEMENT.CLUSTER, name);
 
   return out;
 }
@@ -55,8 +55,8 @@ export function _getCreationTimestamp(resource) {
   return resourceGetCreationTimestamp(resource);
 }
 
-export function _getKubernetesVersion(resource, { translate }) {
-  const unknown = translate('generic.unknown');
+export function _getKubernetesVersion(resource, _, rootGetters) {
+  const unknown = rootGetters['i18n/translate']('generic.unknown');
 
   if ( resource.isRke2 ) {
     const fromStatus = resource.status?.version?.gitVersion;
@@ -88,14 +88,14 @@ export function _getMachineProvider(resource) {
   return null;
 }
 
-export function _getNodes(resource, { mgmtAll }) {
-  return mgmtAll(MANAGEMENT.NODE).filter(node => node.id.startsWith(resource.mgmtClusterId));
+export function _getNodes(resource, getters, rootGetters) {
+  return rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(resource.mgmtClusterId));
 }
 
 export const calculatedFields = [
   { name: 'isRke2', func: _getIsRke2 },
   {
-    name: 'mgmt', func: _getMgmt, tempCache: ['management']
+    name: 'mgmt', func: _getMgmt, caches: ['management']
   },
   { name: 'provisioner', func: _getProvisioner },
   { name: 'isImported', func: _getIsImported },
@@ -104,6 +104,6 @@ export const calculatedFields = [
   { name: 'kubernetesVersion', func: _getKubernetesVersion },
   { name: 'machineProvider', func: _getMachineProvider },
   {
-    name: 'nodes', func: _getNodes, tempCache: ['management']
+    name: 'nodes', func: _getNodes, caches: ['management']
   }
 ];

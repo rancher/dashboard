@@ -197,7 +197,12 @@ export default {
 
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
-    opt.url = getters.urlFor(type, null, opt);
+    // ToDo: SM this needs to be better but for testing purposes
+    if (type !== 'workload') {
+      opt.url = getters.urlFor(type, null, opt);
+    } else {
+      opt.url = '';
+    }
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
 
@@ -298,7 +303,7 @@ export default {
       }
 
       return out;
-    } else if ( out.data ) {
+    } else if ( out.data || out[0].data ) {
       if ( load === _MULTI ) {
         // This has the effect of adding the response to the store,
         // without replacing all the existing content for that type,
@@ -321,34 +326,20 @@ export default {
           existing: true
         });
       } else {
-        commit('loadAll', {
-          ctx,
-          type,
-          data:        out.data,
-          revision:    out.revision,
-          skipHaveAll,
-          namespace:   opt.namespaced,
-          listLength:  out.listLength,
-          totalLength: out.totalLength
-        });
-        if (out.secondaryResources?.length > 0) {
-          out.secondaryResources.forEach((secondaryResource) => {
-            if (secondaryResource.data.length > 0) {
-              const { type } = secondaryResource.data[0];
+        const responses = Array.isArray(out) ? out : [out];
 
-              commit('loadAll', {
-                ctx,
-                type,
-                data:        secondaryResource.data,
-                revision:    secondaryResource.revision,
-                skipHaveAll,
-                namespace:   secondaryResource.namespaced,
-                listLength:  secondaryResource.listLength,
-                totalLength: secondaryResource.totalLength
-              });
-            }
+        responses.forEach((response) => {
+          commit('loadAll', {
+            ctx,
+            type:        response.resourceType || type,
+            data:        response.data,
+            revision:    response.revision,
+            skipHaveAll,
+            namespace:   opt.namespaced,
+            listLength:  response.listLength,
+            totalLength: response.totalLength
           });
-        }
+        });
       }
     }
 

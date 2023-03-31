@@ -4,11 +4,11 @@ import { _getNameDisplay, _getDisplayPrincipal } from '@shell/plugins/steve/reso
 
 export default class GRB extends HybridModel {
   get nameDisplay() {
-    return _getNameDisplay(this, { byId: this.$getters['byId'] });
+    return _getNameDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get _displayPrincipal() {
-    return _getDisplayPrincipal(this, { rancherById: this.$rootGetters['rancher/byId'] });
+    return _getDisplayPrincipal(this, this.$getters, this.$rootGetters);
   }
 
   get _displayUser() {

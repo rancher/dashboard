@@ -5,9 +5,9 @@ export function _getName(resource) {
   return resource.metadata.name;
 }
 
-export function _getPods(resource, { all }) {
+export function _getPods(resource, getters, rootGetters) {
   // ToDo: SM resource could/should be heavily optimized
-  const allPods = all(POD);
+  const allPods = getters.all(POD);
 
   return allPods.filter(pod => pod.spec.nodeName === resource.name);
 }
@@ -32,7 +32,7 @@ export function _getVersion(resource) {
 export const calculatedFields = [
   { name: 'name', func: _getName },
   {
-    name: 'pods', func: _getPods, cache: [POD]
+    name: 'pods', func: _getPods, caches: [POD]
   },
   { name: 'clusterId', func: _getClusterId },
   { name: 'version', func: _getVersion }

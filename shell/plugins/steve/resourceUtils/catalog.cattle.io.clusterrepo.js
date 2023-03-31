@@ -1,8 +1,8 @@
-export function _getNameDisplay(resource, { translateWithFallback }) {
+export function _getNameDisplay(resource, _, rootGetters) {
   const name = resource.metadata?.name;
   const key = `catalog.repo.name."${ name }"`;
 
-  return translateWithFallback(key, null, name);
+  return rootGetters['i18n/translateWithFallback'](key, null, name);
 }
 
 export function _getTypeDisplay(resource) {

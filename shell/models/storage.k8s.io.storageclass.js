@@ -8,7 +8,7 @@ import { _getIsDefault, _getProvisionerDisplay } from '@shell/plugins/steve/reso
 
 export default class extends SteveModel {
   get provisionerDisplay() {
-    return _getProvisionerDisplay(this, { translate: this.t });
+    return _getProvisionerDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get isDefault() {

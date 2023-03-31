@@ -1,12 +1,12 @@
 import uniq from 'lodash/uniq';
 import { LOGGING } from '@shell/config/types';
 
-export function _getAllOutputs(_, { all }) {
-  return all(LOGGING.OUTPUT) || [];
+export function _getAllOutputs(_, getters) {
+  return getters.all(LOGGING.OUTPUT) || [];
 }
 
-export function _getAllClusterOutputs(_, { all }) {
-  return all(LOGGING.CLUSTER_OUTPUT) || [];
+export function _getAllClusterOutputs(_, getters) {
+  return getters.all(LOGGING.CLUSTER_OUTPUT) || [];
 }
 
 export function _getOutputs(resource) {

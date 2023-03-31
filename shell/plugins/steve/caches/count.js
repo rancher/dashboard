@@ -1,10 +1,10 @@
 // ToDo: do counts get classified in Vuex-land?
 import { COUNT } from '@shell/config/types';
-import ResourceCache from '@shell/plugins/steve/caches/resource-class';
+import SteveCache from '@shell/plugins/steve/caches/steve-class';
 
-export default class CountsCache extends ResourceCache {
-  constructor() {
-    super(COUNT);
+export default class CountsCache extends SteveCache {
+  constructor(_, getters, rootGetters, api, uiApi, createCache) {
+    super(COUNT, getters, rootGetters, api, uiApi, createCache);
   }
 
   hash(resource) {

@@ -11,48 +11,31 @@ import Trace from '@shell/plugins/steve/trace';
  */
 export default class ResourceRequest extends Trace {
     /**
-     * Function that will fetch the schema for a given resource type
-     */
-    __getSchema;
-
-    /**
-     * Fetch and update the cache for the resource associated with the request
-     */
-    __loadIntoCache;
-
-    /**
      * Configuration required to make http requests
      */
     __config = {};
 
-    constructor(config, methods = {}) {
+    constructor(config) {
       super('Resource Requester');
       this.__config = { ...config };
-      this.__getSchema = methods.getSchema;
-      this.__loadIntoCache = methods.loadIntoCache;
     }
 
     get config() {
       return this.__config;
     }
 
-    loadWorkerMethods(methods) {
-      this.__getSchema = methods.getSchema || this.__getSchema;
-      this.__loadIntoCache = methods.loadIntoCache || this.__loadIntoCache;
-    }
-
     __resourceQuery(params) {
       return steveUrlOptions('', params);
     }
 
-    __resourceUrl(params) {
+    __resourceUrl(params, schemaFor) {
       const { type, id, namespace } = params;
 
       const resourceType = normalizeType(type);
       const opt = { url: resourceType === SCHEMA ? `${ this.__config.url }/${ resourceType }` : undefined };
 
       const resourceUrl = urlFor({
-        normalizeType, schemaFor: this.__getSchema, baseUrl: this.__config.url
+        normalizeType, schemaFor, baseUrl: this.__config.url
       }, {
         type, namespace, id, opt
       });
@@ -65,7 +48,8 @@ export default class ResourceRequest extends Trace {
     /**
      * Make the http request
      */
-    request(params) {
+    // ToDo: SM needs to detect duplicate requests and group them together...
+    request(params, schemaFor) {
       this.trace('Request', params);
 
       const opt = {
@@ -77,7 +61,7 @@ export default class ResourceRequest extends Trace {
         opt.headers['x-api-csrf'] = this.__config.csrf;
       }
 
-      const requestUrl = this.__resourceUrl(params);
+      const requestUrl = this.__resourceUrl(params, schemaFor);
 
       // fetch itself will reject a promise if the server fails to send a response (no connection, server not responding, etc)
       return fetch(requestUrl, opt)
@@ -93,15 +77,6 @@ export default class ResourceRequest extends Trace {
           }
 
           throw new Error(`Error making resource(s) http request: ${ params.type }`, { cause: { response: res } });
-        })
-        .then((res) => {
-          // TODO: RC https://github.com/rancher/dashboard/issues/8420
-          // ToDo: SM default resolver on request should fire off an update similar to a socket message.
-          const { type, id } = params;
-          const data = res.data?.data || res.data;
-
-          // this is actually the "load" method on the cache
-          return this.__loadIntoCache(type, data, !!id).find(params, { noRequest: true });
         });
     }
 }

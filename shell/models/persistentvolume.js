@@ -8,7 +8,7 @@ export const LONGHORN_PLUGIN = VOLUME_PLUGINS.find(plugin => plugin.value === 'l
 export default class PV extends SteveModel {
   // plugin display value table
   get source() {
-    return _getSource(this, { translate: this.t, translateWithFallback: this.$rootGetters['i18n/withFallback'] });
+    return _getSource(this, this.$getters, this.$rootGetters);
   }
 
   get isLonghorn() {
@@ -16,11 +16,11 @@ export default class PV extends SteveModel {
   }
 
   get claim() {
-    return _getClaim(this, { all: this.$rootGetters['cluster/all'] });
+    return _getClaim(this, this.$getters, this.$rootGetters);
   }
 
   get claimName() {
-    return _getClaimName(this, { translate: this.t });
+    return _getClaimName(this, this.$getters, this.$rootGetters);
   }
 
   get canDelete() {

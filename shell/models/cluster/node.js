@@ -388,7 +388,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get pods() {
-    return _getPods(this, { all: this.$rootGetters['cluster/all'] });
+    return _getPods(this, this.$getters, this.$rootGetters);
   }
 
   get confirmRemove() {

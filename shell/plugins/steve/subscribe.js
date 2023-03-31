@@ -80,7 +80,7 @@ export async function createWorker(store, ctx) {
     },
     get: (msg) => {
       store.$workers[storeName].postMessage({
-        cacheResponse: {
+        uiResponse: {
           getter: msg,
           cache:  rootGetters[msg]
         }
@@ -396,7 +396,9 @@ const sharedActions = {
     if ( getters.storeName === 'management' ) {
       const version = msg?.data?.version || null;
 
+      // if (msg?.data?.version) {
       dispatch('updateServerVersion', version, { root: true });
+      // }
       console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console
     }
   },

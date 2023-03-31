@@ -23,13 +23,13 @@ export function _getPodRelationship(resource) {
   return (relationships || []).filter(relationship => relationship.toType === POD)[0];
 }
 
-export function _getPods(resource, { matching }) {
-  return resource.podRelationship ? matching( POD, resource.podRelationship.selector, resource.namespace ) : [];
+export function _getPods(resource, getters) {
+  return resource.podRelationship ? getters.matching( POD, resource.podRelationship.selector, resource.namespace ) : [];
 }
 
 export const calculatedFields = [
   { name: 'podRelationship', func: _getPodRelationship },
   {
-    name: 'pods', func: _getPods, cache: [POD]
+    name: 'pods', func: _getPods, caches: [POD]
   }
 ];

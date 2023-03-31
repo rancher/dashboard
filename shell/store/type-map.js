@@ -144,11 +144,12 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
-import { applyMapping, labelForDefaultFn, stringToRegex } from '@shell/utils/type-map';
+import { applyMapping, stringToRegex } from '@shell/utils/type-map';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
+import { labelFor, _findColumnByName, _rowValueGetter } from '@shell/plugins/steve/storeUtils/type-map';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -166,8 +167,6 @@ export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
 const graphConfigMap = {};
-
-const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
   V1_MONITORING:       'v1-monitoring',
@@ -419,21 +418,8 @@ export const getters = {
   cacheRequest(state) {
     return state.typeMappings;
   },
-  // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
-  labelFor(state, getters, rootState, rootGetters) {
-    const translate = rootGetters['i18n/t'];
-    const exists = rootGetters['i18n/exists'];
 
-    return (schema, count, language) => {
-      return applyMapping(
-        schema,
-        state.typeMappings,
-        'id',
-        false,
-        labelForDefaultFn(schema, count, language, { translate, exists })
-      );
-    };
-  },
+  labelFor,
 
   // Turns a group name into a display label (e.g. management.cattle.io.v3.cluster -> Cluster)
   groupLabelFor(state) {
@@ -1766,32 +1752,6 @@ export function isAdminUser(getters) {
   const canPutHelmOperations = (getters['management/schemaFor'](CATALOG.OPERATION)?.resourceMethods || []).includes('PUT');
 
   return canEditSettings && canEditFeatureFlags && canInstallApps && canAddRepos && canPutHelmOperations;
-}
-
-function _findColumnByName(schema, colName) {
-  const attributes = schema.attributes || {};
-  const columns = attributes.columns || [];
-
-  return findBy(columns, 'name', colName);
-}
-
-function _rowValueGetter(col) {
-  // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
-  // We will use JsonPath to look up this value, which is costly - so if we can detect this format
-  // Use a more efficient function to get the value
-  const value = col.field.startsWith('.') ? `$${ col.field }` : col.field;
-
-  if (process.client) {
-    const found = value.match(FIELD_REGEX);
-
-    if (found && found.length === 2) {
-      const fieldIndex = parseInt(found[1], 10);
-
-      return row => row.metadata?.fields?.[fieldIndex];
-    }
-  }
-
-  return value;
 }
 
 // Is V1 Istio installed?

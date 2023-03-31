@@ -161,7 +161,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get groupByLabel() {
-    return _getGroupByLabel(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByLabel(this, this.$getters, this.$rootGetters);
   }
 
   get isReady() {
@@ -182,7 +182,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get kubernetesVersion() {
-    return _getKubernetesVersion(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getKubernetesVersion(this, this.$getters, this.$rootGetters);
   }
 
   get kubernetesVersionBase() {
@@ -428,7 +428,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get nodes() {
-    return _getNodes(this, { all: this.$getters['all'] });
+    return _getNodes(this, this.$getters, this.$rootGetters);
   }
 
   get provClusterId() {

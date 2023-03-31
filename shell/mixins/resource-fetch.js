@@ -161,6 +161,8 @@ export default {
       return this.$store.dispatch(`${ currStore }/findAll`, {
         type,
         opt
+      }).then((res) => {
+        return res;
       });
     },
 

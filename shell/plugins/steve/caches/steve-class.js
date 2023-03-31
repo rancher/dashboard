@@ -2,8 +2,8 @@ import HybridCache from '@shell/plugins/steve/caches/hybrid-class';
 import { calculatedFields } from '@shell/plugins/steve/resourceUtils/steve-class';
 
 export default class SteveCache extends HybridCache {
-  constructor(type, resourceRequest, cacheFieldGetters = {}) {
-    super(type, resourceRequest, cacheFieldGetters);
+  constructor(type, getters, rootGetters, api, uiApi, createCache) {
+    super(type, getters, rootGetters, api, uiApi, createCache);
 
     this.calculatedFields = [
       ...this.calculatedFields,

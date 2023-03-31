@@ -41,8 +41,8 @@ export function colorForState(state, isError, isTransitioning) {
   return `text-${ color }`;
 }
 
-export function _getSchema(resource, { schemaFor }) {
-  return schemaFor(resource.type);
+export function _getSchema(resource, getters, rootGetters) {
+  return getters['schemaFor'](resource.type);
 }
 
 export function _getStateDisplay({ state }) {
@@ -64,7 +64,7 @@ export function _getStateObj(resource) {
   return resource.metadata?.state;
 }
 
-export function _getStateColor(resource, { colorForStateInModel = null }) {
+export function _getStateColor(resource, _, __, { colorForStateInModel = null } = {}) {
   // this is a weird case wherein I couldn't figure out why the context binding was needed in the original so I did it this way just to be sure
   if (colorForStateInModel) {
     return colorForStateInModel;
@@ -106,24 +106,24 @@ export function _getNameSort(resource) {
   return sortableNumericSuffix(resource.nameDisplay).toLowerCase();
 }
 
-export function _getGroupByLabel(resource, { translate }) {
+export function _getGroupByLabel(resource, _, rootGetters) {
   const name = resource.metadata?.namespace;
   let out;
 
   if ( name ) {
-    out = translate ? translate('resourceTable.groupLabel.namespace', { name: escapeHtml(name) }) : name;
+    out = rootGetters['i18n/translate'] ? rootGetters['i18n/translate']('resourceTable.groupLabel.namespace', { name: escapeHtml(name) }) : name;
   } else {
-    out = translate ? translate('resourceTable.groupLabel.notInANamespace') : '';
+    out = rootGetters['i18n/translate'] ? rootGetters['i18n/translate']('resourceTable.groupLabel.notInANamespace') : '';
   }
 
   return out;
 }
 
-export function _getTypeDisplay(resource, { labelFor }) {
+export function _getTypeDisplay(resource, getters, rootGetters) {
   const schema = resource.schema;
 
   if ( schema ) {
-    return labelFor(schema);
+    return rootGetters['type-map/labelFor'](schema);
   }
 
   return '?';
@@ -150,6 +150,6 @@ export const calculatedFields = [
   },
   { name: 'groupByLabel', func: _getGroupByLabel },
   {
-    name: 'typeDisplay', func: _getTypeDisplay, dependsOn: ['schema'], temptempCache: ['type-map']
+    name: 'typeDisplay', func: _getTypeDisplay, dependsOn: ['schema'], caches: ['type-map']
   }
 ];

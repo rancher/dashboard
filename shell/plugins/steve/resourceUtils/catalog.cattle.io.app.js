@@ -61,7 +61,7 @@ export function _getVersionSort(resource) {
   return sortable(resource.versionDisplay);
 }
 
-export function _getUpgradeAvailable(resource, { currentCluster, prefGet, findChart }) {
+export function _getUpgradeAvailable(resource, _, rootGetters) {
   // false = does not apply (managed by fleet)
   // null = no upgrade found
   // object = version available to upgrade to
@@ -74,15 +74,15 @@ export function _getUpgradeAvailable(resource, { currentCluster, prefGet, findCh
     return false;
   }
 
-  const chart = matchingChart(resource, false, findChart);
+  const chart = matchingChart(resource, false, this.rootGetters['catalog/chart']);
 
   if ( !chart ) {
     return null;
   }
 
-  const workerOSs = currentCluster.workerOSs;
+  const workerOSs = rootGetters['currentCluster'].workerOSs;
 
-  const showPreRelease = prefGet(SHOW_PRE_RELEASE);
+  const showPreRelease = rootGetters['prefs/get'](SHOW_PRE_RELEASE);
 
   const thisVersion = resource.spec?.chart?.metadata?.version;
   let versions = chart.versions;
@@ -122,21 +122,12 @@ export function _getDeployedResources(resource) {
 }
 
 export const calculatedFields = [
-  // {
-  //   name: 'namespacedNameSort', func: _getNamespacedNameSort, dependsOn: ['namespacedName']
-  // },
-  // {
-  //   name: 'typeDisplay', func: _getTypeDisplay, dependsOn: ['schema'], tempCache: 'type-map'
-  // },
-  // {
-  //   name: 'pods', func: _getPods, cache: POD
-  // },
   { name: 'nameDisplay', func: _getNameDisplay },
   { name: 'versionDisplay', func: _getVersionDisplay },
   { name: 'chartDisplay', func: _getChartDisplay },
   { name: 'versionSort', func: _getVersionSort },
   {
-    name: 'upgradeAvailable', func: _getUpgradeAvailable, cache: ['root'], tempCache: ['prefs', 'catalog']
+    name: 'upgradeAvailable', func: _getUpgradeAvailable, caches: ['root', 'prefs', 'catalog']
   },
   { name: 'upgradeAvailableSort', func: _getUpgradeAvailableSort },
   { name: 'deployedResources', func: _getDeployedResources },

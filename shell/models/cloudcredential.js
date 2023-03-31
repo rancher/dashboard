@@ -42,7 +42,7 @@ export default class CloudCredential extends NormanModel {
   }
 
   get provider() {
-    return _getProvider(this, { credentialDriverFor: this.$rootGetters['plugins/credentialDriverFor'] });
+    return _getProvider(this, this.$getters, this.$rootGetters);
   }
 
   setProvider(neu) {
@@ -93,7 +93,7 @@ export default class CloudCredential extends NormanModel {
   }
 
   get providerDisplay() {
-    return _getProviderDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
+    return _getProviderDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get publicData() {

@@ -184,7 +184,7 @@ export default class Ingress extends SteveModel {
   }
 
   get defaultBackendPath() {
-    return _getDefaultBackendPath(this, { pathExistsInSchema: this.$rootGetters['cluster/pathExistsInSchema'] });
+    return _getDefaultBackendPath(this, this.$getters, this.$rootGetters);
   }
 
   get hasDefaultBackend() {

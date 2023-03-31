@@ -5,7 +5,7 @@ import Flow from './logging.banzaicloud.io.flow';
 
 export default class LogClusterFlow extends Flow {
   get allOutputs() {
-    return _getAllOutputs(this, { all: this.$rootGetters['cluster/all'] });
+    return _getAllOutputs(this, this.$getters, this.$rootGetters);
   }
 
   get outputs() {

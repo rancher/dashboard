@@ -144,7 +144,7 @@ export default class extends SteveModel {
   }
 
   get pods() {
-    return _getPods(this, { matching: this.$getters.matching });
+    return _getPods(this, this.$getters, this.$rootGetters);
   }
 
   get serviceType() {

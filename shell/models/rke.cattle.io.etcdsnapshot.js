@@ -36,7 +36,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get cluster() {
-    return _getCluster(this, { mgmtAll: this.$rootGetters['management/all'] });
+    return _getCluster(this, this.$getters, this.$rootGetters);
   }
 
   get rke2() {

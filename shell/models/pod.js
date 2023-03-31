@@ -169,7 +169,7 @@ export default class Pod extends WorkloadService {
 
   // Use by pod list to group the pods by node
   get groupByNode() {
-    return _getGroupByNode(this, { translate: this.$rootGetters['i18n/t'] });
+    return _getGroupByNode(this, this.$getters, this.$rootGetters);
   }
 
   get restartCount() {

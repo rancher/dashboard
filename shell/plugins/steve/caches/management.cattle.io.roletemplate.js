@@ -2,8 +2,8 @@ import SteveDescriptionCache from '@shell/plugins/steve/caches/steve-description
 import { calculatedFields } from '@shell/plugins/steve/resourceUtils/management.cattle.io.roletemplate';
 
 export default class RoleTemplateCache extends SteveDescriptionCache {
-  constructor(type, resourceRequest, cacheFieldGetters = {}) {
-    super(type, resourceRequest, cacheFieldGetters);
+  constructor(type, getters, rootGetters, api, uiApi, createCache) {
+    super(type, getters, rootGetters, api, uiApi, createCache);
 
     this.calculatedFields = [
       ...this.calculatedFields,

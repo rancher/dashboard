@@ -8,13 +8,13 @@ export function _getProjectId(resource) {
   return projectAnnotation.split(':')[1] || null;
 }
 
-export function _getProject(resource, { mgmtById, currentCluster, isRancher }) {
-  if ( !resource.projectId || !isRancher ) {
+export function _getProject(resource, _, rootGetters) {
+  if ( !resource.projectId || !rootGetters.isRancher ) {
     return null;
   }
 
-  const clusterId = currentCluster?.id;
-  const project = mgmtById(MANAGEMENT.PROJECT, `${ clusterId }/${ resource.projectId }`);
+  const clusterId = rootGetters.cluster.id;
+  const project = rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ resource.projectId }`);
 
   return project;
 }
@@ -23,20 +23,20 @@ export function _getProjectNameSort(resource) {
   return resource.project?.nameSort || '';
 }
 
-export function _getGroupByLabel(resource, { translate }) {
+export function _getGroupByLabel(resource, _, rootGetters) {
   const name = resource.project?.nameDisplay;
 
   if ( name ) {
-    return translate('resourceTable.groupLabel.project', { name: escapeHtml(name) });
+    return rootGetters['i18n/translate']('resourceTable.groupLabel.project', { name: escapeHtml(name) });
   } else {
-    return translate('resourceTable.groupLabel.notInAProject');
+    return rootGetters['i18n/translate']('resourceTable.groupLabel.notInAProject');
   }
 }
 
 export const calculatedFields = [
   { name: 'projectId', func: _getProjectId },
   {
-    name: 'project', func: _getProject, tempCache: ['management'], cache: ['root']
+    name: 'project', func: _getProject, caches: ['management', 'root']
   },
   { name: 'projectNameSort', func: _getProjectNameSort },
   { name: 'groupByLabel', func: _getGroupByLabel }

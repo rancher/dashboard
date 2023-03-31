@@ -1,12 +1,14 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { TIMESTAMP, CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
-import { get, set } from '@shell/utils/object';
+import { set } from '@shell/utils/object';
 import day from 'dayjs';
 import { convertSelectorObj, matching } from '@shell/utils/selector';
 import { SEPARATOR } from '@shell/components/DetailTop';
 import WorkloadService from '@shell/models/workload.service';
-import { _getDesired, _getPods, _getReady, _getRestartCount } from '@shell/plugins/steve/resourceUtils/workload';
+import {
+  _getDesired, _getJobRelationships, _getJobs, _getOwnedByWorkload, _getPods, _getReady, _getRestartCount
+} from '@shell/plugins/steve/resourceUtils/workload';
 
 export const defaultContainer = {
   imagePullPolicy: 'Always',
@@ -504,19 +506,7 @@ export default class Workload extends WorkloadService {
   }
 
   get ownedByWorkload() {
-    const types = Object.values(WORKLOAD_TYPES);
-
-    if (this.metadata?.ownerReferences) {
-      for (const owner of this.metadata.ownerReferences) {
-        const have = (`${ owner.apiVersion.replace(/\/.*/, '') }.${ owner.kind }`).toLowerCase();
-
-        if ( types.includes(have) ) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+    return _getOwnedByWorkload(this);
   }
 
   get isFromNorman() {
@@ -532,7 +522,7 @@ export default class Workload extends WorkloadService {
   }
 
   get pods() {
-    return _getPods(this, { podsByNamespace: this.$getters['podsByNamespace'] });
+    return _getPods(this, this.$getters, this.$rootGetters);
   }
 
   get podGauges() {
@@ -560,21 +550,11 @@ export default class Workload extends WorkloadService {
 
   // Job Specific
   get jobRelationships() {
-    if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
-      return undefined;
-    }
-
-    return (get(this, 'metadata.relationships') || []).filter(relationship => relationship.toType === WORKLOAD_TYPES.JOB);
+    return _getJobRelationships(this);
   }
 
   get jobs() {
-    if (this.type !== WORKLOAD_TYPES.CRON_JOB) {
-      return undefined;
-    }
-
-    return this.jobRelationships.map((obj) => {
-      return this.$getters['byId'](WORKLOAD_TYPES.JOB, obj.toId );
-    }).filter(x => !!x);
+    return _getJobs(this, this.$getters, this.$rootGetters);
   }
 
   get jobGauges() {

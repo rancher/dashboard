@@ -43,11 +43,7 @@ export default class CatalogApp extends SteveModel {
   }
 
   get upgradeAvailable() {
-    return _getUpgradeAvailable(this, {
-      currentCluster: this.$rootGetters['currentCluster'],
-      prefGet:        this.$rootGetters['prefs/get'],
-      findChart:      this.$rootGetters['catalog/chart']
-    });
+    return _getUpgradeAvailable(this, this.$getters, this.$rootGetters);
   }
 
   get upgradeAvailableSort() {

@@ -5,11 +5,11 @@ export function _getProviders(resource) {
     .filter(provider => provider !== 'loggingRef');
 }
 
-export function _getProvidersDisplay(resource, { translate }) {
+export function _getProvidersDisplay(resource, _, rootGetters) {
   return resource.providers.map((p) => {
-    const translation = translate(`logging.outputProviders.${ p }`);
+    const translation = rootGetters['i18n/translate'](`logging.outputProviders.${ p }`);
 
-    return translation || translate('logging.outputProviders.unknown');
+    return translation || rootGetters['i18n/translate']('logging.outputProviders.unknown');
   });
 }
 

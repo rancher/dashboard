@@ -25,7 +25,7 @@ export default class CRTB extends HybridModel {
   }
 
   get user() {
-    return _getUser(this, { mgmtById: this.$rootGetters['management/byId'] });
+    return _getUser(this, this.$getters, this.$rootGetters);
   }
 
   get principal() {

@@ -1,15 +1,12 @@
 import { insertAt } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
 import { WORKLOAD_TYPES } from '@shell/config/types';
+import { _getState } from '@shell/plugins/steve/resourceUtils/batch.cronjob';
 import Workload from './workload';
 
 export default class CronJob extends Workload {
   get state() {
-    if ( this.spec?.suspend ) {
-      return 'suspended';
-    }
-
-    return super.state;
+    return _getState(this);
   }
 
   get _availableActions() {

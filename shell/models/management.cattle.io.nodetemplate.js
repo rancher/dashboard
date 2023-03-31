@@ -85,7 +85,7 @@ export default class NodeTemplate extends HybridModel {
   }
 
   get providerDisplay() {
-    return _getProviderDisplay(this, { translateWithFallback: this.$rootGetters['i18n/withFallback'] });
+    return _getProviderDisplay(this, this.$getters, this.$rootGetters);
   }
 
   get providerLocation() {

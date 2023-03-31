@@ -18,13 +18,13 @@ export function _getLabelDisplay(resource) {
   return resource.spec?.label || resource.metadata.name || '?';
 }
 
-export function _getLink(resource, { clusterId }) {
+export function _getLink(resource, _, rootGetters) {
   if ( resource.spec?.toURL ) {
     return resource.spec.toURL;
   } else if ( resource.spec?.toService ) {
     const service = resource.spec.toService;
 
-    return proxyUrlFromParts(clusterId, service.namespace, service.name, service.scheme, service.port, service.path);
+    return proxyUrlFromParts(rootGetters.clusterId, service.namespace, service.name, service.scheme, service.port, service.path);
   } else {
     return null;
   }
