@@ -340,15 +340,6 @@ export default {
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
       truncateHostnames:     false,
-      pp:                    [{
-        id: 0, instanceNameLimit: ''
-      },
-      {
-        id: 1, instanceNameLimit: ''
-      },
-      {
-        id: 2, instanceNameLimit: ''
-      }],
     };
   },
 
@@ -1089,15 +1080,18 @@ export default {
     nlToBr,
     set,
 
+    /**
+     * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
+     */
     truncateName() {
-      if(this.truncateHostnames) {
+      if (this.truncateHostnames) {
         this.machinePools.find((pool) => {
           pool.pool.instanceNameLimit = 15;
-        })
+        });
       } else {
         this.machinePools.find((pool) => {
           pool.pool.instanceNameLimit = null;
-        })
+        });
       }
     },
     /**
@@ -1113,6 +1107,7 @@ export default {
 
     async initMachinePools(existing) {
       const out = [];
+
       if ( existing?.length ) {
         for ( const pool of existing ) {
           let type;
@@ -1158,14 +1153,14 @@ export default {
 
           const truncateCheck = out.find((pool) => {
             return pool.pool.instanceNameLimit;
-          })
+          });
 
           if (truncateCheck) {
             this.truncateHostnames = true;
           }
         }
       }
-  
+
       this.machinePools = out;
     },
 
@@ -1203,7 +1198,7 @@ export default {
             kind: this.machineConfigSchema.attributes.kind,
             name: null,
           },
-          instanceNameLimit:    null,
+          instanceNameLimit: null,
         },
       };
 
@@ -1215,7 +1210,6 @@ export default {
         pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
       }
 
-      
       this.machinePools.push(pool);
 
       this.$nextTick(() => {
