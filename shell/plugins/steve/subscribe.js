@@ -9,7 +9,7 @@
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, MANAGEMENT } from '@shell/config/types';
 import { CSRF } from '@shell/config/cookies';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
@@ -53,6 +53,53 @@ const isAdvancedWorker = (ctx) => {
   const perfSetting = getPerformanceSetting(rootGetters);
 
   return perfSetting?.advancedWorker.enabled;
+};
+
+let etcdBackupClusterNames = [];
+
+const etcdBackupPromptRke1 = (ctx, data) => {
+  const conditions = data.status?.conditions || [];
+
+  if (data?.annotations && conditions.length && conditions[conditions.length - 1 ]?.type === 'Completed') {
+    const time = new Date().getTime();
+    const CompletedTime = new Date(conditions[conditions.length - 1 ]?.lastUpdateTime).getTime();
+
+    if (time > CompletedTime + 60 * 1000) {
+      return;
+    }
+  } else {
+    return;
+  }
+
+  const t = ctx.rootGetters['i18n/t'];
+  const currentCluster = ctx.rootGetters['management/byId'](MANAGEMENT.CLUSTER, data.clusterId);
+  const state = data.state === 'failed' ? 'fail' : 'success';
+  const title = `${ t(`cluster.snapshot.${ state }.title`) }`;
+  const message = t(`cluster.snapshot.${ state }.message`, { name: currentCluster.nameDisplay });
+
+  ctx.dispatch(`growl/${ state === 'fail' ? 'fromError' : 'success' }`, {
+    title,
+    message,
+  }, { root: true });
+};
+
+const etcdBackupPromptRke2 = (ctx, data) => {
+  const t = ctx.rootGetters['i18n/t'];
+  const state = !!data.metadata.state.error ? 'fail' : 'success';
+  const title = `${ t(`cluster.snapshot.${ state }.title`) }`;
+  const message = t(`cluster.snapshot.${ state }.message`, { name: data.spec.clusterName });
+  const CompletedTime = new Date(data.metadata.creationTimestamp).getTime();
+  const time = new Date().getTime();
+
+  if (time > CompletedTime + 60 * 1000) {
+    return;
+  }
+
+  ctx.dispatch(`growl/${ state === 'fail' ? 'fromError' : 'success' }`, {
+    title,
+    message,
+    err: message,
+  }, { root: true });
 };
 
 // We only create a worker for the cluster store
@@ -811,6 +858,21 @@ const defaultActions = {
           },
         });
       });
+    }
+
+    if (type === 'rke.cattle.io.etcdsnapshot') {
+      if (!etcdBackupClusterNames.includes(data.spec.clusterName)) {
+        etcdBackupClusterNames.push(data.spec.clusterName);
+        setTimeout(() => {
+          etcdBackupClusterNames = etcdBackupClusterNames.filter(item => item !== data.spec.clusterName);
+        }, 3000);
+
+        etcdBackupPromptRke2(ctx, data);
+      }
+    }
+
+    if ( type === 'etcdBackup' && (data.state === 'failed' || data.state === 'active')) {
+      etcdBackupPromptRke1(ctx, data);
     }
   },
 

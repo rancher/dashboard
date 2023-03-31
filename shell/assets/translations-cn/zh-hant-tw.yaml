@@ -2054,6 +2054,12 @@ cluster:
     rke1:
       local: 本地
       s3: s3
+    success:
+      title: 快照已完成
+      message: "{name} 請求快照已完成"
+    fail:
+      title: 快照出錯
+      message: "{name} 請求快照出錯"
   tabs:
     ace: 授權端點
     addons: 附加配置

@@ -2046,6 +2046,12 @@ cluster:
     rke1:
       local: local
       s3: s3
+    success:
+      title: Snapshot Completed
+      message: "A snapshot has been completed for {name}"
+    fail:
+      title: Snapshot Error
+      message: "Error requesting snapshot {name}"
   tabs:
     ace: Authorized Endpoint
     addons: Add-On Config
