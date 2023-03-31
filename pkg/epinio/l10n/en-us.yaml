@@ -127,6 +127,7 @@ epinio:
         keyLabel: Name
         valueLabel: Value
         description: Changing the value of an existing Application Variable will also restart your application.
+        checkbox: Enables/Disables {name}
       envvar:
         title: Environment Variables
         keyLabel: Name

@@ -126,6 +126,7 @@ export default Vue.extend<Data, any, any, any>({
           }, {});
 
           this.set(this.value.configuration, { settings: customValues });
+          this.set(this.value, { chart: filterChart });
         }
       }
 

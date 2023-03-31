@@ -17,6 +17,7 @@ export interface EpinioAppInfo {
     name: string,
     namespace: string
   },
+  chart?: {},
   configuration: {
     configurations: string[],
     instances: number,
@@ -66,6 +67,7 @@ export default Vue.extend<Data, any, any, any>({
         name:      this.application.meta?.name,
         namespace: this.application.meta?.namespace || this.namespaces[0]?.metadata.name
       },
+      chart:         this.moveBooleansToFront(this.application.chart?.settings) || {},
       configuration: {
         instances:   this.application.configuration?.instances || 1,
         environment: this.application.configuration?.environment || {},
@@ -119,17 +121,68 @@ export default Vue.extend<Data, any, any, any>({
 
     showApplicationVariables() {
       return Object.keys(this.values?.configuration?.settings).length !== 0;
-    }
+    },
   },
 
   methods: {
     update() {
       this.$emit('change', {
         meta:          this.values.meta,
-        configuration: this.values.configuration,
+        configuration: {
+          ...this.values.configuration,
+          settings: this.objValuesToString(this.values.configuration.settings)
+        },
       });
     },
 
+    // Allows us to move the checkbox at the top of the list so layout-wise looks better
+    moveBooleansToFront(settingsObj: any) {
+      const entries = Object.entries(settingsObj);
+
+      entries.sort((a: any, b: any) => {
+        const aValue = a[1].type === 'bool' ? 0 : 1;
+        const bValue = b[1].type === 'bool' ? 0 : 1;
+
+        return aValue - bValue;
+      });
+
+      return Object.fromEntries(entries);
+    },
+
+    objValuesToString(obj: any) {
+      const copy = { ...obj };
+
+      for (const key in copy) {
+        if (typeof copy[key] !== 'string') {
+          copy[key] = String(copy[key]);
+        }
+      }
+
+      return copy;
+    },
+    placeholder(setting: any) {
+      if (setting.type === 'bool') {
+        return '';
+      } else if (setting.type === 'numeric') {
+        return this.numericPlaceholder(setting);
+      } else if (setting.type === 'string') {
+        return this.stringPlaceholder(setting);
+      } else {
+        return '';
+      }
+    },
+
+    numericPlaceholder(setting: any) {
+      if (setting.maximum && setting.minimum) {
+        return `${ setting.minimum } - ${ setting.maximum }`;
+      } else if (setting.maximum) {
+        return `<= ${ setting.maximum }`;
+      } else if (setting.minimum) {
+        return `>= ${ setting.minimum }`;
+      } else {
+        return '';
+      }
+    }
   },
 
 });
@@ -180,7 +233,7 @@ export default Vue.extend<Data, any, any, any>({
     />
     <div
       v-if="showApplicationVariables"
-      class="col span-8"
+      class="col span-8 settings"
     >
       <Banner
         v-if="mode === 'edit'"
@@ -189,16 +242,61 @@ export default Vue.extend<Data, any, any, any>({
         {{ t('epinio.applications.create.settingsVars.description') }}
       </Banner>
 
-      <KeyValue
-        v-model="values.configuration.settings"
-        data-testid="epinio_app-info_envs"
-        :mode="mode"
-        :title="t('epinio.applications.create.settingsVars.title')"
-        :key-label="t('epinio.applications.create.settingsVars.keyLabel')"
-        :value-label="t('epinio.applications.create.settingsVars.valueLabel')"
-        :parse-lines-from-file="true"
-      />
+      <h3>{{ t('epinio.applications.create.settingsVars.title') }}</h3>
+
+      <div
+        v-for="(setting, key) in values.chart"
+        :key="key"
+        class="settings-item"
+      >
+        <label
+          class="text-label"
+          :for="key"
+        >{{ key }}</label>
+        <span v-if="setting.type === 'number' || setting.type === 'integer'">
+          <input
+            :id="key"
+            v-model="values.configuration.settings[key]"
+            type="number"
+            :min="setting.minimum || 0"
+            :max="setting.maximum || null"
+            :placeholder="numericPlaceholder(setting)"
+          >
+        </span>
+        <span v-else-if="setting.type === 'bool'">
+          <span class="settings-item-checkbox">
+            <input
+              :id="key"
+              v-model="values.configuration.settings[key] "
+              type="checkbox"
+            >
+            <p>
+              {{ t('epinio.applications.create.settingsVars.checkbox', {name: key}) }}
+            </p>
+          </span>
+        </span>
+        <span
+          v-else-if="setting.type === 'string' && setting.enum"
+        >
+          <select
+            :id="key"
+            v-model="values.configuration.settings[key]"
+            class="v-select"
+          >
+            <option
+              v-for="(option, index) in setting.enum"
+              :key="option"
+              :value="option"
+              :selected="index === 0"
+            >
+              {{ option }}
+            </option>
+          </select>
+        </span>
+      </div>
     </div>
+
+    {{ JSON.stringify(values, null, 2) }}
     <div class="spacer" />
     <div class="col span-8">
       <KeyValue
@@ -213,3 +311,38 @@ export default Vue.extend<Data, any, any, any>({
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.settings {
+  display: flex;
+  flex-direction: column;
+
+  &-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 20px;
+
+    &-checkbox {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: -10px;
+    }
+  }
+
+  label {
+    text-transform: capitalize;
+  }
+
+  input {
+    height: 40px;
+    line-height: 1;
+  }
+
+  input#checkbox {
+    margin: 0;
+  }
+}
+</style>
