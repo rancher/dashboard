@@ -90,7 +90,7 @@ Next, create a new file `./pkg/test/product.js` with this content:
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProductName';
 
-  const { product } = $plugin.DSL(store, $plugin.name);
+  const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
     icon: 'gear',
