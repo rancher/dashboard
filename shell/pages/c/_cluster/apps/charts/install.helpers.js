@@ -1,5 +1,3 @@
-import { get } from '@shell/utils/object';
-
 /**
  * Return list of variables to filter chart questions
  */
@@ -17,10 +15,9 @@ export const ignoreVariables = (cluster, data) => {
     const clusterVersion = cluster?.kubernetesVersion || '';
     const version = clusterVersion.match(/\d+/g);
     const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
-    const hasPsp = get(data.values, path);
 
     // Provide path as question variable to be ignored
-    if (!isRequiredVersion && !hasPsp) {
+    if (!isRequiredVersion) {
       return [path];
     }
   }

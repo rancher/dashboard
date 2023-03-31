@@ -17,13 +17,11 @@ describe('component: ChartPsp', () => {
   });
 
   it.each([
-    ['v1.24.11+rke2r1', true],
-    ['v1.24.11+rke2r1', false],
-    ['v1.25.11+rke2r1', true],
-  ])('should display the checkbox for cluster with k8s version %p and psp.enabled as %p', (version, value) => {
+    ['v1.24.11+rke2r1'],
+  ])('should display the checkbox for cluster with k8s version %p', (version) => {
     const wrapper = shallowMount(ChartPsp, {
       propsData: {
-        value:   { global: { cattle: { psp: { enabled: value } } } },
+        value:   { global: { cattle: { psp: { enabled: false } } } },
         cluster: { kubernetesVersion: version }
       }
     });
@@ -34,11 +32,11 @@ describe('component: ChartPsp', () => {
   });
 
   it.each([
-    ['v1.25.11+rke2r1', false],
-  ])('should not display the checkbox for cluster with k8s version %p and psp.enabled as %p', (version, value) => {
+    ['v1.25.11+rke2r1'],
+  ])('should not display the checkbox for cluster with k8s version %p', (version) => {
     const wrapper = shallowMount(ChartPsp, {
       propsData: {
-        value:   { global: { cattle: { psp: { enabled: value } } } },
+        value:   { global: { cattle: { psp: { enabled: false } } } },
         cluster: { kubernetesVersion: version }
       }
     });
@@ -46,20 +44,6 @@ describe('component: ChartPsp', () => {
     const input = wrapper.find(`[data-testid="psp-checkbox"]`).element as HTMLInputElement;
 
     expect(input).toBeUndefined();
-  });
-
-  it('should display the checkbox after disabling PSP with K8S v1.25+', async() => {
-    const wrapper = mount(ChartPsp, {
-      propsData: {
-        value:   { global: { cattle: { psp: { enabled: true } } } },
-        cluster: { kubernetesVersion: 'v1.25.11+rke2r1' }
-      }
-    });
-    const input = wrapper.find(`[data-testid="psp-checkbox"]`).element as HTMLInputElement;
-
-    await wrapper.find('.checkbox-container').trigger('click');
-
-    expect(input).toBeDefined();
   });
 
   it('should update value.global.cattle.psp.enabled when checkbox is toggled', async() => {
