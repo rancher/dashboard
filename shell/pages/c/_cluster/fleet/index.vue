@@ -46,7 +46,7 @@ export default {
     this.fleetWorkspacesData = hash.fleetWorkspaces || [];
 
     try {
-      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO } }, this.$store.getters);
+      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO, schemaValidator: schema => schema.resourceMethods.includes('PUT') } }, this.$store.getters);
 
       this.permissions = permissions;
     } catch (e) {
@@ -322,15 +322,17 @@ export default {
           {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
         </a>
       </p>
-      <h3 class="mb-30">
-        {{ t('fleet.dashboard.noRepo', null, true) }}
-      </h3>
-      <n-link
-        :to="getStartedLink"
-        class="btn role-secondary"
-      >
-        {{ t('fleet.dashboard.getStarted') }}
-      </n-link>
+      <template v-if="permissions.gitRepos">
+        <h3 class="mb-30">
+          {{ t('fleet.dashboard.noRepo', null, true) }}
+        </h3>
+        <n-link
+          :to="getStartedLink"
+          class="btn role-secondary"
+        >
+          {{ t('fleet.dashboard.getStarted') }}
+        </n-link>
+      </template>
     </div>
     <!-- fleet dashboard with repos -->
     <div
