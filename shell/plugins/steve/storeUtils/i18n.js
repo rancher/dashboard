@@ -99,7 +99,7 @@ export const i18n = (config) => {
         return fallback;
       }
     },
-    translate: getTranslate(config),
+    translate: getTranslate(config), // TODO: RC test - different i18n features
     exists:    getExists(config)
   };
 };

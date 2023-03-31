@@ -1,16 +1,19 @@
-export function _getKeysDisplay(resource) {
-  const keys = [
-    ...Object.keys(resource.data || []),
-    ...Object.keys(resource.binaryData || [])
-  ];
+// TODO: RC make changes elsewhere... or revert
+export const fields = {
+  keysDisplay: (resource) => {
+    const keys = [
+      ...Object.keys(resource.data || []),
+      ...Object.keys(resource.binaryData || [])
+    ];
 
-  if ( !keys.length ) {
-    return '(none)';
+    if ( !keys.length ) {
+      return '(none)';
+    }
+
+    return keys.join(', ');
   }
-
-  return keys.join(', ');
-}
+};
 
 export const calculatedFields = [
-  { name: 'keysDisplay', func: _getKeysDisplay }
+  { name: fields.keysDisplay.name, func: fields.keysDisplay }
 ];

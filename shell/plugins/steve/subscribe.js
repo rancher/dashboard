@@ -79,6 +79,7 @@ export async function createWorker(store, ctx) {
       dispatch(`ws.${ msg.name }`, msg);
     },
     get: (msg) => {
+      // debugger; // TODO: RC test
       store.$workers[storeName].postMessage({
         uiResponse: {
           getter: msg,
@@ -218,6 +219,7 @@ const sharedActions = {
       }
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
+        updateWorker:  { url: state.config.baseUrl },
         createWatcher: {
           connectionMetadata,
           maxTries

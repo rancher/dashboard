@@ -13,4 +13,8 @@ export default class Trace {
   setDebug(on) {
     this.__debugWatcher = !!on;
   }
+
+  setTraceLabel(label) {
+    this.__label = label;
+  }
 }

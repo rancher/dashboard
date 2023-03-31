@@ -141,6 +141,8 @@ const removeFromWatcherQueue = (watchKey) => {
   });
 };
 
+// TODO: RC comment - parseRequestError needs to in request chain somewhere
+// TODO: RC test - error handling
 /**
  * Errors sent over the thread boundary must be clonable. The response to `fetch` isn't, so cater for that before we send it over
  */
@@ -278,6 +280,7 @@ const workerActions = {
 
     resolver(caches[type].find(params));
   },
+
   /**
    * @param {[]} payload
    * Accepts an array of JSON objects representing resources
@@ -299,6 +302,7 @@ const workerActions = {
 
     return caches[type].load(rawResources, params, detail);
   },
+
   flushWatcherQueue: () => {
     while (state.watcherQueue.length > 0) {
       watchTracer.trace('createWatcher', 'flushing watcherQueue', state.watcherQueue);
@@ -331,6 +335,12 @@ const workerActions = {
   initWorker: (config) => {
     state.config = config;
     workerActions.createCache('i18n').load(config.i18nConfig);
+  },
+  updateWorker: (partialConfig) => {
+    state.config = {
+      ...state.config,
+      ...partialConfig
+    };
   },
   watch: (msg) => {
     watchTracer.trace('watch', msg);
@@ -510,10 +520,12 @@ const resourceWatcherActions = {
 const maintenanceInterval = setInterval(workerActions.sendBatch, 5000); // 5 seconds
 
 const actionPrecedence = {
-  configure:     1,
-  loadSchemas:   2,
-  createWatcher: 3,
-  createApi:     3
+  initWorker:    1,
+  updateWorker:  2,
+  loadTypeMap:   3,
+  loadSchemas:   4,
+  createWatcher: 5,
+  createApi:     6
 };
 
 /**

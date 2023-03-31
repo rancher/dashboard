@@ -4,11 +4,22 @@ import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@sh
 import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { _getImageNames } from '@shell/plugins/steve/resourceUtils/workload.service';
+import { fields } from '@shell/plugins/steve/resourceUtils/workload.service';
 
 export default class WorkloadService extends SteveModel {
+  // TODO: RC remove me
+  // constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+  //   debugger;
+
+  //   super(data, ctx, rehydrateNamespace, setClone);
+
+  //   Object.entries(fields).forEach(([name, func]) => {
+  //     this[name] = () => func(this);
+  //   });
+  // }
+
   get imageNames() {
-    return _getImageNames(this);
+    return fields.imageNames(this);
   }
 
   get containers() {

@@ -4,6 +4,8 @@ import { get } from '@shell/utils/object';
 // Regexes can't be represented in state because they don't serialize to JSON..
 const regexCache = {};
 
+// TODO: RC test / review all this
+
 export function stringToRegex(str) {
   let out = regexCache[str];
 

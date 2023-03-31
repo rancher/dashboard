@@ -829,8 +829,7 @@ export const actions = {
     const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
 
     // Update the Steve client URLs
-    commit('cluster/applyConfig',
-      { baseUrl: clusterBase });
+    commit('cluster/applyConfig', { baseUrl: clusterBase });
 
     await Promise.all([
       dispatch('cluster/loadSchemas', true),

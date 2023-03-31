@@ -165,7 +165,7 @@ export default {
         this.$fetchType(this.resource);
       }
     },
-    resourceQuery(neu, old) {
+    resourceQuery(neu, old) { // TODO: RC test
       if (hashObj(neu) !== hashObj(old) && !this.hasFetch) {
         this.$fetchType(this.resource);
       }

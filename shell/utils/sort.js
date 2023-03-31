@@ -185,6 +185,8 @@ export function unparseField({ field, reverse }) {
   return `${ reverse ? '-' : '' }${ field }`;
 }
 
+// TODO: RC test all kinds of sorting
+
 export function sortBy(ary, keys, desc = false) {
   if ( !Array.isArray(keys) ) {
     keys = [keys];
