@@ -1,7 +1,12 @@
+// this is the definition of a "blank cluster" for Rancher Dashboard
 import { BLANK_CLUSTER } from '@shell/store';
 
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProd';
+  const YOUR_K8S_RESOURCE_NAME = 'apiregistration.k8s.io.apiservice';
+  const CUSTOM_PAGE_NAME_1 = 'page1';
+  const CUSTOM_PAGE_NAME_2 = 'page2';
+  const CUSTOM_PAGE_NAME_3 = 'page3';
 
   const {
     product,
@@ -18,16 +23,13 @@ export function init($plugin, store) {
     inStore: 'management',
     weight:  100,
     to:      {
-      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-page2`,
+      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME_2 }`,
       params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER
       }
     }
   });
-
-  // example of using an existing k8s resource as a page
-  const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
 
   // defining a k8s resource as page
   configureType(YOUR_K8S_RESOURCE_NAME, {
@@ -48,8 +50,6 @@ export function init($plugin, store) {
     }
   });
 
-  const CUSTOM_PAGE_NAME_1 = 'page1';
-
   // creating a custom page
   virtualType({
     labelKey: 'some.translation.key',
@@ -62,8 +62,6 @@ export function init($plugin, store) {
       }
     }
   });
-
-  const CUSTOM_PAGE_NAME_2 = 'page2';
 
   // creating yet another custom page
   virtualType({
@@ -78,17 +76,29 @@ export function init($plugin, store) {
     }
   });
 
+  virtualType({
+    labelKey: 'some.translation.key',
+    name:     CUSTOM_PAGE_NAME_3,
+    route:    {
+      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME_3 }`,
+      params: {
+        product: YOUR_PRODUCT_NAME,
+        cluster: BLANK_CLUSTER
+      }
+    }
+  });
+
   // registering some of the defined pages as side-menu entries in the root level
-  basicType([CUSTOM_PAGE_NAME_2]);
+  basicType([CUSTOM_PAGE_NAME_2, CUSTOM_PAGE_NAME_3]);
 
   // registering some of the defined pages as side-menu entries in a group
-  basicType([YOUR_K8S_RESOURCE_NAME, CUSTOM_PAGE_NAME_1], 'advanced');
+  basicType([YOUR_K8S_RESOURCE_NAME, CUSTOM_PAGE_NAME_1], 'myAdvancedGroup');
 
-  // => => => individual ordering of each menu entry
   weightType(CUSTOM_PAGE_NAME_1, 2, true);
   weightType(YOUR_K8S_RESOURCE_NAME, 1, true);
+  weightType(CUSTOM_PAGE_NAME_3, 2, true);
   weightType(CUSTOM_PAGE_NAME_2, 1, true);
 
   // => => => ordering of the grouped entry
-  weightGroup('advanced', 3, true);
+  weightGroup('myAdvancedGroup', 1001, true);
 }
