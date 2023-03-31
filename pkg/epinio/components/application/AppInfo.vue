@@ -77,6 +77,8 @@ export default Vue.extend<Data, any, any, any>({
     };
 
     this.$emit('valid', this.valid);
+
+    this.populateOnEdit();
   },
 
   watch: {
@@ -88,8 +90,11 @@ export default Vue.extend<Data, any, any, any>({
       this.update();
     },
 
-    'values.configuration.settings'() {
-      this.update();
+    'values.configuration.settings': {
+      handler() {
+        this.update();
+      },
+      deep: true
     },
 
     'values.configuration.routes'() {
@@ -120,7 +125,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     showApplicationVariables() {
-      return Object.keys(this.values?.configuration?.settings).length !== 0;
+      return Object.keys(this.values?.configuration?.settings).length !== 0 && this.mode !== 'edit';
     },
   },
 
@@ -135,8 +140,33 @@ export default Vue.extend<Data, any, any, any>({
       });
     },
 
+    async populateOnEdit() {
+      // We need to fetch the chart settings on edit mode.
+      if (this.mode !== 'edit' || !this.values) {
+        return;
+      }
+
+      const chartList = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS });
+
+      const filterChart = chartList?.find((chart: any) => chart.id === this.application.configuration.appchart);
+
+      if (filterChart?.settings ) {
+        const customValues = Object.keys(filterChart?.settings).reduce((acc:any, key: any) => {
+          acc[key] = this.application.configuration.settings[key] || '';
+
+          return acc;
+        }, {});
+
+        this.values.configuration.settings = customValues;
+        this.values.chart = this.moveBooleansToFront(filterChart.settings);
+      }
+    },
+
     // Allows us to move the checkbox at the top of the list so layout-wise looks better
     moveBooleansToFront(settingsObj: any) {
+      if (!settingsObj) {
+        return;
+      }
       const entries = Object.entries(settingsObj);
 
       entries.sort((a: any, b: any) => {
@@ -231,18 +261,17 @@ export default Vue.extend<Data, any, any, any>({
       v-if="showApplicationVariables"
       class="spacer"
     />
+    <h3>{{ t('epinio.applications.create.settingsVars.title') }}</h3>
     <div
       v-if="showApplicationVariables"
       class="col span-8 settings"
     >
       <Banner
-        v-if="mode === 'edit'"
+        v-if="mode === 'config'"
         color="info"
       >
         {{ t('epinio.applications.create.settingsVars.description') }}
       </Banner>
-
-      <h3>{{ t('epinio.applications.create.settingsVars.title') }}</h3>
 
       <div
         v-for="(setting, key) in values.chart"
@@ -296,7 +325,6 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </div>
 
-    {{ JSON.stringify(values, null, 2) }}
     <div class="spacer" />
     <div class="col span-8">
       <KeyValue
