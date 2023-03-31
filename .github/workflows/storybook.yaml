@@ -23,5 +23,5 @@ jobs:
       run: |
         yarn build-storybook
     - name: Publish Storybook
-      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && github.repository_owner == 'rancher' }}
+      if: ${{ github.event_name == 'push' && github.repository_owner == 'rancher'}}
       run: .github/workflows/scripts/publish-storybook
