@@ -125,8 +125,12 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     showApplicationVariables() {
-      return Object.keys(this.values?.configuration?.settings).length !== 0 && this.mode !== 'edit';
+      return Object.keys(this.values?.configuration?.settings).length !== 0;
     },
+
+    disableInputs() {
+      return this.mode === 'view';
+    }
   },
 
   methods: {
@@ -142,23 +146,21 @@ export default Vue.extend<Data, any, any, any>({
 
     async populateOnEdit() {
       // We need to fetch the chart settings on edit mode.
-      if (this.mode !== 'edit' || !this.values) {
-        return;
-      }
+      if (this.mode === 'edit' || this.mode === 'view') {
+        const chartList = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS });
 
-      const chartList = await this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS });
+        const filterChart = chartList?.find((chart: any) => chart.id === this.application.configuration.appchart);
 
-      const filterChart = chartList?.find((chart: any) => chart.id === this.application.configuration.appchart);
+        if (filterChart?.settings ) {
+          const customValues = Object.keys(filterChart?.settings).reduce((acc:any, key: any) => {
+            acc[key] = this.application.configuration.settings[key] || '';
 
-      if (filterChart?.settings ) {
-        const customValues = Object.keys(filterChart?.settings).reduce((acc:any, key: any) => {
-          acc[key] = this.application.configuration.settings[key] || '';
+            return acc;
+          }, {});
 
-          return acc;
-        }, {});
-
-        this.values.configuration.settings = customValues;
-        this.values.chart = this.moveBooleansToFront(filterChart.settings);
+          this.values.configuration.settings = customValues;
+          this.values.chart = this.moveBooleansToFront(filterChart.settings);
+        }
       }
     },
 
@@ -290,6 +292,7 @@ export default Vue.extend<Data, any, any, any>({
             :min="setting.minimum || 0"
             :max="setting.maximum || null"
             :placeholder="numericPlaceholder(setting)"
+            :disabled="disableInputs"
           >
         </span>
         <span v-else-if="setting.type === 'bool'">
@@ -297,6 +300,7 @@ export default Vue.extend<Data, any, any, any>({
             <input
               :id="key"
               v-model="values.configuration.settings[key] "
+              :disabled="disableInputs"
               type="checkbox"
             >
             <p>
@@ -311,6 +315,7 @@ export default Vue.extend<Data, any, any, any>({
             :id="key"
             v-model="values.configuration.settings[key]"
             class="v-select"
+            :disabled="disableInputs"
           >
             <option
               v-for="(option, index) in setting.enum"
