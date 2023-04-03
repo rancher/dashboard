@@ -292,7 +292,13 @@ export default {
       // use the first version provided by the Helm chart
       // as the default.
       if ( !this.query.versionName && this.chart.versions?.length ) {
-        this.query.versionName = this.chart.versions[0].version;
+        if (this.showPreRelease) {
+          this.query.versionName = this.chart.versions[0].version;
+        } else {
+          const firstRelease = this.chart.versions.find(v => !isPrerelease(v.version));
+
+          this.query.versionName = firstRelease?.version || this.chart.versions[0].version;
+        }
       }
 
       if ( !this.query.versionName ) {
@@ -426,7 +432,7 @@ export default {
         repoType: this.chart.repoType,
         repoName: this.chart.repoName,
         name:     this.chart.chartName,
-        version:  this.chart.versionName,
+        version:  this.query.versionName,
       };
 
       return {
