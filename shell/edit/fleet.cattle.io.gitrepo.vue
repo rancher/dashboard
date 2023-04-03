@@ -425,7 +425,7 @@ export default {
       await secret.save();
 
       await this.$nextTick(() => {
-        this.updateAuth(secret.id, name);
+        this.updateAuth(secret.metadata.name, name);
       });
 
       return secret;
