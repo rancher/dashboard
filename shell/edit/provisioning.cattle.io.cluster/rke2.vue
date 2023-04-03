@@ -732,7 +732,7 @@ export default {
         out.icon[role] = NODE_TOTAL.success.icon;
       }
 
-      for ( const row of this.machinePools ) {
+      for ( const row of this.machinePools || [] ) {
         if ( row.remove ) {
           continue;
         }
