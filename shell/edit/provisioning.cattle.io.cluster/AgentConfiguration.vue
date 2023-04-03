@@ -5,6 +5,8 @@ import PodAffinity from '@shell/components/form/PodAffinity';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import Tolerations from '@shell/components/form/Tolerations';
 import { cleanUp } from '@shell/utils/object';
+import { fetchSetting } from '@shell/utils/settings';
+import { RadioGroup } from '@components/Form/Radio';
 
 export function cleanAgentConfiguration(model, key) {
   if (!model || !model[key]) {
@@ -28,6 +30,10 @@ export function cleanAgentConfiguration(model, key) {
 
 const GPU_KEY = 'nvidia.com/gpu';
 
+// Affinity radio button choices
+const DEFAULT = 'default';
+const CUSTOM = 'custom';
+
 // This is the form for Agent Configuration
 // Used for both Cluster Agent and Fleet Agent configuration
 export default {
@@ -36,6 +42,7 @@ export default {
     ContainerResourceLimit,
     GroupPanel,
     PodAffinity,
+    RadioGroup,
     Tolerations,
   },
   props: {
@@ -53,13 +60,35 @@ export default {
       type:     String,
       required: true,
     }
+  },
 
+  async fetch() {
+    // Default affinity
+    const settingId = `${ this.type }-agent-default-setting`;
+    const setting = await fetchSetting(this.$store, settingId);
+
+    if (setting) {
+      try {
+        const parsed = JSON.parse(setting.value || setting.default);
+
+        this.defaultAffinity = parsed || {};
+      } catch (e) {
+        console.error('Could not parse agent default setting', e); // eslint-disable-line no-console
+        this.defaultAffinity = {};
+      }
+    }
   },
 
   data() {
     const bannerMessageKey = `cluster.agentConfig.banners.${ this.type }Advanced`;
 
-    return { bannerMessageKey };
+    // TODO: Set affinitySetting to CUSTOM if editing and affinity is not empty
+
+    return {
+      bannerMessageKey,
+      defaultAffinity: {},
+      affinitySetting: DEFAULT,
+    };
   },
 
   created() {
@@ -114,6 +143,20 @@ export default {
 
         this.$set(this.value, 'overrideResourceRequirements', cleanUp(out));
       },
+    },
+
+    affinityOptions() {
+      return [{
+        label: this.t('cluster.agentConfig.affinity.default'),
+        value: DEFAULT,
+      }, {
+        label: this.t('cluster.agentConfig.affinity.custom'),
+        value: CUSTOM,
+      }];
+    },
+
+    canEditAffinity() {
+      return this.affinitySetting === CUSTOM;
     }
   },
 
@@ -130,6 +173,15 @@ export default {
       this.value.appendTolerations = this.value.appendTolerations || [];
       this.value.overrideResourceRequirements = this.value.overrideResourceRequirements || {};
     },
+
+    affinitySettingChange() {
+      if (this.affinitySetting === CUSTOM) {
+        // Copy the default so that the user can edit it
+        this.$set(this.value, 'overrideAffinity', JSON.parse(JSON.stringify(this.defaultAffinity)));
+      } else {
+        this.$set(this.value, 'overrideAffinity', {});
+      }
+    }
   }
 };
 </script>
@@ -141,17 +193,6 @@ export default {
       color="info"
       :label-key="bannerMessageKey"
     />
-    <GroupPanel
-      label-key="cluster.agentConfig.groups.podAffinity"
-      class="mt-20"
-    >
-      <PodAffinity
-        v-model="value"
-        field="overrideAffinity"
-        :mode="mode"
-        class="mt-0"
-      />
-    </GroupPanel>
 
     <GroupPanel
       label-key="cluster.agentConfig.groups.podRequestsAndLimits"
@@ -166,9 +207,36 @@ export default {
     </GroupPanel>
 
     <GroupPanel
+      label-key="cluster.agentConfig.groups.podAffinity"
+      class="mt-20"
+    >
+      <RadioGroup
+        v-model="affinitySetting"
+        name="affinity-override"
+        :mode="mode"
+        :options="affinityOptions"
+        class="mt-10"
+        @input="affinitySettingChange"
+      />
+
+      <PodAffinity
+        v-if="canEditAffinity"
+        v-model="value"
+        field="overrideAffinity"
+        :mode="mode"
+        class="mt-0"
+      />
+    </GroupPanel>
+
+    <GroupPanel
       label-key="cluster.agentConfig.groups.podTolerations"
       class="mt-20"
     >
+      <Banner
+        :closable="false"
+        color="info"
+        label-key="cluster.agentConfig.banners.tolerations"
+      />
       <Tolerations
         v-model="value.appendTolerations"
         :mode="mode"

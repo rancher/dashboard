@@ -275,10 +275,9 @@ export default {
               @input="changeNamespaceMode(props.row.value, props.i)"
             />
           </div>
-          <div class="spacer" />
           <div
             v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')"
-            class="row mb-20"
+            class="row mt-10 mb-20"
           >
             <LabeledSelect
               v-if="hasNamespaces"
@@ -308,9 +307,8 @@ export default {
             :show-remove="false"
             @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
           />
-          <div class="spacer" />
-          <div class="row">
-            <div class="col span-12">
+          <div class="row mt-20">
+            <div class="col span-9">
               <LabeledSelect
                 v-if="hasNodes"
                 v-model="props.row.value.topologyKey"
@@ -336,11 +334,7 @@ export default {
                 @input="update"
               />
             </div>
-          </div>
-
-          <div class="spacer" />
-          <div class="row">
-            <div class="col span-6">
+            <div class="col span-3">
               <LabeledInput
                 v-model.number="props.row.value.weight"
                 :mode="mode"
