@@ -200,19 +200,19 @@ export default {
         <Checkbox
           v-model="value.pool.etcdRole"
           :mode="mode"
-          label="etcd"
+          :label="t('cluster.machinePool.role.etcd')"
           :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.controlPlaneRole"
           :mode="mode"
-          label="Control Plane"
+          :label="t('cluster.machinePool.role.controlPlane')"
           :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.workerRole"
           :mode="mode"
-          label="Worker"
+          :label="t('cluster.machinePool.role.worker')"
         />
       </div>
     </div>

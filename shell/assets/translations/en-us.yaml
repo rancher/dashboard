@@ -1681,6 +1681,9 @@ cluster:
       label: Drain Before Delete
     role:
       label: Roles
+      etcd: etcd
+      controlPlane: Control Plane
+      worker: Worker
     labels:
       label: Kubernetes Node Labels
     noAccessBanner: "You do not have access to see this machine pool's configuration."
