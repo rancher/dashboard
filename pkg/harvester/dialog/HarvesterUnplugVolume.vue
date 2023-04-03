@@ -81,8 +81,8 @@ export default {
   <Card ref="modal" name="modal" :show-highlight-border="false">
     <h4
       slot="title"
-      v-clean-html="t('harvester.virtualMachine.unplug.title', { name: diskName })"
       class="text-default-text"
+      v-html="t('harvester.virtualMachine.unplug.title', { name: diskName })"
     />
 
     <div slot="actions" class="actions">

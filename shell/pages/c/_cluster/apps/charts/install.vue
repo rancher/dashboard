@@ -1250,11 +1250,11 @@ export default {
           </Banner>
           <div v-if="requires.length || warnings.length" class="mb-15">
             <Banner v-for="msg in requires" :key="msg" color="error">
-              <span v-clean-html="msg" />
+              <span v-html="msg" />
             </Banner>
 
             <Banner v-for="msg in warnings" :key="msg" color="warning">
-              <span v-clean-html="msg" />
+              <span v-html="msg" />
             </Banner>
           </div>
           <div v-if="showSelectVersionOrChart" class="row mb-20">
@@ -1321,7 +1321,7 @@ export default {
           <div class="step__values__controls--spacer" style="flex:1">
 &nbsp;
           </div>
-          <Banner v-if="isNamespaceNew" v-clean-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " color="info">
+          <Banner v-if="isNamespaceNew" color="info" v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) ">
           </Banner>
 
           <Checkbox v-model="showCommandStep" class="mb-20" :label="t('catalog.install.steps.helmCli.checkbox', { action, existing: !!existing })" />
@@ -1541,14 +1541,14 @@ export default {
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
-          <span v-clean-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
+          <span v-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
           <nuxt-link :to="legacyFeatureRoute">
             {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
           </nuxt-link>
         </template>
         <template v-else>
           <nuxt-link :to="mcapp ? mcmRoute : legacyAppRoute">
-            <span v-clean-html="t('catalog.install.error.legacy.navigate', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true)" />
+            <span v-html="t('catalog.install.error.legacy.navigate', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true)" />
           </nuxt-link>
         </template>
       </Banner>

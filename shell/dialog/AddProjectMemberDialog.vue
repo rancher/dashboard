@@ -77,7 +77,7 @@ export default {
 
 <template>
   <Card class="prompt-rotate" :show-highlight-border="false" :sticky="true">
-    <h4 slot="title" v-clean-html="t('addProjectMemberDialog.title')" class="text-default-text" />
+    <h4 slot="title" class="text-default-text" v-html="t('addProjectMemberDialog.title')" />
 
     <div slot="body" class="pl-10 pr-10">
       <ProjectMemberEditor v-model="member" :use-two-columns-for-custom="true" />

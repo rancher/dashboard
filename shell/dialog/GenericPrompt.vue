@@ -58,11 +58,11 @@ export default {
 
 <template>
   <Card class="prompt-restore" :show-highlight-border="false">
-    <h4 slot="title" v-clean-html="title" class="text-default-text" />
+    <h4 slot="title" class="text-default-text" v-html="title" />
 
     <template slot="body">
       <slot name="body">
-        <div v-clean-html="body" class="pl-10 pr-10" style="min-height: 50px; display: flex;">
+        <div class="pl-10 pr-10" style="min-height: 50px; display: flex;" v-html="body">
         </div>
       </slot>
     </template>

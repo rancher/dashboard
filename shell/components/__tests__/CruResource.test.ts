@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: CruResource', () => {
   it('should hide Cancel button', () => {
@@ -34,8 +33,7 @@ describe('component: CruResource', () => {
   it('should display errors', () => {
     const errors = ['mistake!', 'BiG MiStAke11'];
     const wrapper = mount(CruResource, {
-      directives: { cleanHtmlDirective },
-      propsData:  {
+      propsData: {
         canYaml:  false,
         mode:     _EDIT,
         resource: {},

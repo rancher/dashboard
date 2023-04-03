@@ -337,7 +337,7 @@ export default {
         <div class="mb-10">
           <template v-if="!hasCustomRemove">
             {{ t('promptRemove.attemptingToRemove', { type }) }} <span
-              v-clean-html="resourceNames(names, plusMore, t)"
+              v-html="resourceNames(names, plusMore, t)"
             ></span>
           </template>
 
@@ -358,7 +358,7 @@ export default {
             />
             <div v-if="needsConfirm" class="mt-10">
               <span
-                v-clean-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
+                v-html="t('promptRemove.confirmName', { nameToMatch: escapeHtml(nameToMatch) }, true)"
               ></span>
             </div>
           </template>
