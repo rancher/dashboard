@@ -88,6 +88,7 @@ const sidebars = {
             'extensions/extension-api-methods/add-table-column',
           ]
         },
+        'extensions/miscellaneous',
         'extensions/advanced',
       ]
     },
