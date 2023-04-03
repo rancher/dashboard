@@ -36,7 +36,11 @@ export default {
     },
 
     bounded() {
-      return this.value.filter(row => row.boundapps?.length);
+      return this.value?.reduce((acc, svc) => {
+        const apps = svc?.boundapps ?? [];
+
+        return [...acc, ...apps];
+      }, []) || [];
     },
   },
 
