@@ -35,9 +35,12 @@ import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
-import { getClusterFromRoute, getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
 import { BLANK_CLUSTER } from '@shell/store';
+import {
+  getClusterFromRoute,
+  getProductFromRoute
+} from '@shell/utils/router';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 

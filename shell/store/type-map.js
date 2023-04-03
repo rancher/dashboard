@@ -354,6 +354,7 @@ export function DSL(store, product, module = 'type-map') {
 let called = false;
 
 export async function applyProducts(store, $plugin) {
+  console.error('LOADING INTERNAL PRODS!!!');
   if (called) {
     return;
   }
@@ -367,7 +368,7 @@ export async function applyProducts(store, $plugin) {
     }
   }
   // Load the products from all plugins
-  $plugin.loadProducts();
+  $plugin.loadProducts(null, false);
 }
 
 export function productsLoaded() {

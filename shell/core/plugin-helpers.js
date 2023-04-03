@@ -2,7 +2,8 @@ import { ActionLocation, CardLocation, ExtensionPoint } from '@shell/core/types'
 import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
 import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
-import { getProductFromRoute } from '@shell/middleware/authenticated';
+import { getProductFromRoute } from '@shell/utils/router';
+import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 
 function checkRouteProduct({ name, params, query }, locationConfigParam) {
   const product = getProductFromRoute({
@@ -171,4 +172,54 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
   }
 
   return extensionEnhancements;
+}
+
+export async function handlePackageRoutes(appContext, configParams, to, from) {
+  const {
+    clusterId,
+    pkg,
+    product,
+    oldPkg,
+    oldProduct
+  } = configParams;
+
+  // Leave an old pkg where we weren't before?
+  const oldPkgPlugin = oldPkg ? Object.values(appContext.$plugin.getPlugins()).find(p => p.name === oldPkg) : null;
+
+  if (oldPkg && oldPkg !== pkg ) {
+    // Execute anything optional the plugin wants to. For example resetting it's store to remove data
+    await oldPkgPlugin.onLeave(appContext.store, {
+      clusterId,
+      product,
+      oldProduct,
+      oldIsExt: !!oldPkg
+    });
+  }
+
+  // Entering a new package where we weren't before?
+  const newPkgPlugin = pkg ? Object.values(appContext.$plugin.getPlugins()).find(p => p.name === pkg) : null;
+
+  // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the `to` route
+  if (pkg && (oldPkg !== pkg || from.fullPath === to.fullPath)) {
+    // Execute anything optional the plugin wants to
+    await newPkgPlugin.onEnter(appContext.store, {
+      clusterId,
+      product,
+      oldProduct,
+      oldIsExt: !!oldPkg
+    });
+  }
+
+  let newLocation;
+
+  if (!to.matched?.length) {
+    // If a plugin claims the route and is loaded correctly we'll get a route back
+    newLocation = await dynamicPluginLoader.check({ to, store: appContext.store });
+  }
+
+  return {
+    oldPkgPlugin,
+    newPkgPlugin,
+    newLocation
+  };
 }

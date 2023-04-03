@@ -3,7 +3,7 @@ import Vuex from 'vuex';
 import Meta from 'vue-meta';
 import ClientOnly from 'vue-client-only';
 import NoSsr from 'vue-no-ssr';
-import { createRouter } from '../config/router.js';
+import { createRouter, setAppContextOnRouter } from '../config/router.js';
 import NuxtChild from './components/nuxt-child.js';
 import NuxtError from '../layouts/error.vue';
 import Nuxt from './components/nuxt.js';
@@ -103,6 +103,7 @@ function registerModule(path, rawModule, options = {}) {
 }
 
 async function createApp(ssrContext, config = {}) {
+  console.error('CREATING ROUTER INSTANCE...')
   const router = await createRouter(ssrContext, config);
 
   const store = createStore(ssrContext);
@@ -234,6 +235,9 @@ async function createApp(ssrContext, config = {}) {
 
   // Inject runtime config as $config
   inject('config', config);
+
+  // set app context on router (used to ease up the massive authenticated middleware and handle that logic on the router navigation guards, where it should belong)
+  setAppContextOnRouter(app);
 
   if (process.client) {
     // Replace store state before plugins execution

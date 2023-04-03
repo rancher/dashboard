@@ -4,9 +4,33 @@ import { normalizeURL } from 'ufo';
 import { interopDefault } from '../nuxt/utils';
 import scrollBehavior from '../utils/router.scrollBehavior.js';
 
+import { REDIRECTED } from '@shell/config/cookies';
+import { UPGRADED, _FLAGGED, _UNFLAG, SETUP } from '@shell/config/query-params';
+import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
+import { checkIfItsFirstLogin, tryInitialSetup, handleAuthentication } from '@shell/utils/auth';
+import { BACK_TO } from '@shell/config/local-storage';
+import {
+  getPackageFromRoute,
+  getClusterFromRoute,
+  getProductFromRoute,
+  setProduct
+} from '@shell/utils/router';
+import { get } from '@shell/utils/object';
+import { handlePackageRoutes } from '@shell/core/plugin-helpers';
+import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
+import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
+import { DEFAULT_WORKSPACE } from '@shell/config/types';
+import { ClusterNotFoundError } from '@shell/utils/error';
+import { applyProducts } from '@shell/store/type-map';
+
 const emptyFn = () => {};
+let appContext;
 
 Vue.use(Router);
+
+export function setAppContextOnRouter(app) {
+  appContext = app;
+}
 
 export const routerOptions = {
   mode:                 'history',
@@ -390,6 +414,7 @@ export const routerOptions = {
 };
 
 export function createRouter(ssrContext, config) {
+  console.log('CREATE ROUTER CONFIG', config);
   const base = (config._app && config._app.basePath) || routerOptions.base;
   const router = new Router({ ...routerOptions, base });
 
@@ -410,5 +435,212 @@ export function createRouter(ssrContext, config) {
     return resolve(to, current, append);
   };
 
+  // setting up beforeEach global navigation guard
+  _setBeforeEachNavigationGuard(router);
+
+  // setting up afterEach global navigation guard
+  if (process.client) {
+    _setAfterEachNavigationGuard(router);
+  }
+
   return router;
+}
+
+function _setBeforeEachNavigationGuard(router) {
+  router.beforeEach(async(to, from, next) => {
+    console.log('beforeEach route to', to);
+    console.log('beforeEach appContext', appContext);
+
+    // paths to ignore when routing... (webpack hot module and error page)
+    if ( to.path && typeof to.path === 'string') {
+      // Ignore webpack hot module reload requests
+      if ( to.path.startsWith('/__webpack_hmr/') ) {
+        return next({ name: 'home' }); // To home? I think that's a good compromise
+      }
+
+      // Ignore the error page
+      if ( to.path.startsWith('/fail-whale') ) {
+        return next({ name: 'home' }); // To home? I think that's a good compromise
+      }
+    }
+
+    // This tells Ember not to redirect back to us once you've already been to dashboard once.
+    // I THINK THIS MIGHT BE MOVED TO A HIGHER LEVEL JUST TO RUN ONCE...
+    if ( !appContext.$cookies.get(REDIRECTED) ) {
+      appContext.$cookies.set(REDIRECTED, 'true', {
+        path:     '/',
+        sameSite: true,
+        secure:   true,
+      });
+    }
+
+    // handle server upgrade with notification growl
+    const upgraded = to.query[UPGRADED] === _FLAGGED;
+
+    if ( upgraded ) {
+      router.applyQuery({ [UPGRADED]: _UNFLAG });
+
+      appContext.store.dispatch('growl/success', {
+        title:   appContext.store.getters['i18n/t']('serverUpgrade.title'),
+        message: appContext.store.getters['i18n/t']('serverUpgrade.message'),
+        timeout: 0,
+      });
+
+      return next({ name: 'home' });
+    }
+
+    // Set the favicon - use custom one from store if set
+    // I THINK THIS MIGHT BE MOVED TO A HIGHER LEVEL JUST TO RUN ONCE...
+    if (!haveSetFavIcon()) {
+      setFavIcon(appContext.store);
+    }
+
+    // Handle first login on Dashboard
+    let initialPass = to.query[SETUP];
+
+    const checkLogin = await checkIfItsFirstLogin(appContext.store);
+
+    if (!initialPass && checkLogin.plSetting?.value === 'Harvester') {
+      initialPass = 'admin';
+    }
+
+    // TODO: show error if firstLogin and default pass doesn't work
+    if ( checkLogin.firstLogin ) {
+      const ok = await tryInitialSetup(appContext.store, initialPass);
+
+      if (ok) {
+        if (initialPass) {
+          appContext.store.dispatch('auth/setInitialPass', initialPass);
+        }
+
+        return next({ name: 'auth-setup' });
+      } else {
+        return next({ name: 'auth-login' });
+      }
+    }
+
+    const checkRedirect = handleAuthentication(appContext, to);
+
+    if (checkRedirect?.redirect) {
+      return next(checkRedirect?.redirect);
+    }
+
+    // if we are not on a server setting, set a new url to get back to if it exists...
+    if (!process.server) {
+      const backTo = window.localStorage.getItem(BACK_TO);
+
+      if (backTo) {
+        window.localStorage.removeItem(BACK_TO);
+
+        window.location.href = backTo;
+      }
+    }
+
+    // set the product
+    setProduct(appContext.store, to);
+
+    // GC should be notified of route change before any find/get request is made that might be used for that page
+    appContext.store.dispatch('gcRouteChanged', to);
+
+    // // load internal products
+    // await applyProducts(appContext.store, appContext.$plugin);
+
+    try {
+      let clusterId = get(to, 'params.cluster');
+
+      // Route can provide cluster ID via metadata
+      if (!clusterId && to) {
+        clusterId = getClusterFromRoute(to);
+      }
+
+      // Sometimes this needs to happen before or alongside other things... but is always needed
+      // CHECK WHAT THIS DOES EXACTLY...
+      await appContext.store.dispatch('loadManagement');
+
+      const pkg = getPackageFromRoute(to);
+      const product = getProductFromRoute(to);
+
+      const oldPkg = getPackageFromRoute(from);
+      const oldProduct = getProductFromRoute(from);
+
+      const configParams = {
+        clusterId,
+        pkg,
+        product,
+        oldPkg,
+        oldProduct
+      };
+
+      const newPkgRouteObj = handlePackageRoutes(appContext, configParams, to, from);
+
+      // If we have a new location, double check that it's actually valid
+      const resolvedRoute = newPkgRouteObj.newLocation ? router.resolve(newPkgRouteObj.newLocation) : null;
+
+      if (resolvedRoute?.route.matched.length) {
+        return next(newPkgRouteObj.newLocation);
+      }
+
+      // Ensure that the activeNamespaceCache is updated given the change of context either from or to a place where it uses workspaces
+      // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
+      if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
+        appContext.store.commit('updateWorkspace', {
+          value:   appContext.store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
+          getters: appContext.store.getters
+        });
+      }
+
+      // loading current cluster
+      // CHECK WHAT THIS DOES EXACTLY...
+      await appContext.store.dispatch('loadCluster', {
+        id:     clusterId,
+        oldPkg: newPkgRouteObj.oldPkgPlugin,
+        newPkg: newPkgRouteObj.newPkgPlugin,
+        product,
+        oldProduct,
+      });
+
+      // if there's no clusterId, we might be in a single product
+      if (!clusterId) {
+        clusterId = appContext.store.getters['defaultClusterId']; // This needs the cluster list
+        const isSingleProduct = appContext.store.getters['isSingleProduct'];
+
+        if (isSingleProduct?.afterLoginRoute) {
+          const value = {
+            name:   'c-cluster-product',
+            ...isSingleProduct.afterLoginRoute,
+            params: {
+              cluster: clusterId,
+              ...isSingleProduct.afterLoginRoute?.params
+            },
+          };
+
+          await appContext.store.dispatch('prefs/set', {
+            key: AFTER_LOGIN_ROUTE,
+            value,
+          });
+        }
+
+        return next();
+      }
+
+      return next();
+    } catch (e) {
+      if ( e instanceof ClusterNotFoundError ) {
+        return next({ name: 'home' });
+      } else {
+        appContext.store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
+
+        next({ path: '/fail-whale' });
+      }
+    }
+  });
+}
+
+function _setAfterEachNavigationGuard(router) {
+  router.afterEach((to, from) => {
+    // Clear state used to record if back button was used for navigation
+    setTimeout(() => {
+      window._popStateDetected = false;
+    }, 1);
+  });
 }

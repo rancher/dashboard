@@ -110,6 +110,7 @@ export default function({
             this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
 
             // Load all of the types etc from the plugin
+            console.error('TRIGGERING APPLYPLUGIN FOR PLUGINS!', plugin.name);
             this.applyPlugin(plugin);
 
             // Add the plugin to the store
@@ -279,7 +280,8 @@ export default function({
 
       // Initialize the product if the store is ready
       if (productsLoaded()) {
-        this.loadProducts([plugin]);
+        console.error('ALL PRODS LOADED, LETS LOAD PLUGINS FROM APPLY PLUGIN');
+        this.loadProducts([plugin], true);
       }
 
       // Register vuex stores
@@ -387,7 +389,15 @@ export default function({
     },
 
     // Load all of the products provided by plugins
-    loadProducts(loadPlugins) {
+    loadProducts(loadPlugins, arg) {
+      if (arg) {
+        console.error('LOADING EXTERNAL PLUGINS...', loadPlugins);
+        console.error('FROM APPLY PLUGINS LOADING PROCEDURE');
+      } else {
+        console.error('LOADING INTERNAL PLUGINS...');
+        console.error('FROM TYPE MAP LOADING PROCEDURE');
+      }
+
       if (!loadPlugins) {
         loadPlugins = Object.values(plugins);
       }
