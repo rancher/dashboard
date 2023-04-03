@@ -25,6 +25,7 @@ import '../plugins/v-select';
 import '../plugins/directives';
 import '../plugins/transitions';
 import '../plugins/vue-js-modal';
+import '../plugins/vuelidate';
 import '../plugins/js-yaml';
 import '../plugins/resize';
 import '../plugins/shortkey';

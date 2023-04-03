@@ -39,6 +39,7 @@
     "tolerations",
     "userpreferences",
     "virtualmachine",
+    "Vuelidate",
     "vuex",
     "whatsnew"
   ],

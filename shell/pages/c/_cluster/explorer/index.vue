@@ -4,7 +4,9 @@ import { mapGetters } from 'vuex';
 import { setPromiseResult } from '@shell/utils/promise';
 import AlertTable from '@shell/components/AlertTable';
 import { Banner } from '@components/Banner';
+import { ErrorMessage } from '@components/ErrorMessage';
 import { parseSi, createMemoryValues } from '@shell/utils/units';
+import { required, minLength, between } from 'vuelidate/lib/validators';
 import {
   NAME,
   ROLES,
@@ -43,6 +45,7 @@ import { fetchClusterResources } from './explorer-utils';
 import SimpleBox from '@shell/components/SimpleBox';
 import { ExtensionPoint, CardLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import validations from '@shell/mixins/validations';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -63,6 +66,7 @@ export default {
   name: 'ClusterExplorerIndexPage',
 
   components: {
+    ErrorMessage,
     EtcdInfoBanner,
     DashboardMetrics,
     HardwareResourceGauge,
@@ -77,7 +81,7 @@ export default {
     SimpleBox,
   },
 
-  mixins: [metricPoller],
+  mixins: [metricPoller, validations],
 
   fetch() {
     fetchClusterResources(this.$store, NODE);
@@ -117,6 +121,10 @@ export default {
     ];
 
     return {
+
+      name: '',
+      age:  null,
+
       nodeHeaders,
       constraints:        [],
       events:             [],
@@ -144,6 +152,14 @@ export default {
     this.$store.dispatch('cluster/forgetType', ENDPOINTS); // Used by AlertTable to get alerts when v2 monitoring is installed
     this.$store.dispatch('cluster/forgetType', METRIC.NODE);
     this.$store.dispatch('cluster/forgetType', MANAGEMENT.NODE);
+  },
+
+  validations: {
+    name: {
+      required,
+      minLength: minLength(4),
+    },
+    age: { between: between(20, 30) },
   },
 
   computed: {
@@ -530,22 +546,55 @@ export default {
       v-if="!hasV1Monitoring && hasStats"
       class="hardware-resource-gauges"
     >
-      <HardwareResourceGauge
-        :name="t('clusterIndexPage.hardwareResourceGauge.pods')"
-        :used="podsUsed"
-      />
-      <HardwareResourceGauge
-        :name="t('clusterIndexPage.hardwareResourceGauge.cores')"
-        :reserved="cpuReserved"
-        :used="cpuUsed"
-        :units="cpuReserved.units"
-      />
-      <HardwareResourceGauge
-        :name="t('clusterIndexPage.hardwareResourceGauge.ram')"
-        :reserved="ramReserved"
-        :used="ramUsed"
-        :units="ramReserved.units"
-      />
+      <div class="application-general">
+        <div
+          id="name_field"
+          class="field"
+        >
+          <div
+            class="form-group"
+            :class="{ 'form-group--error': $v.name.$error }"
+          >
+            <label class="form__label">Name</label>
+            <input
+              v-model.trim="$v.name.$model"
+              class="form__input"
+            >
+            <div
+              v-if="!$v.name.required"
+              class="error"
+            >
+              Field is required
+            </div>
+            <div
+              v-if="!$v.name.minLength"
+              class="error"
+            >
+              Name must have at least {{ $v.name.$params.minLength.min }} letters.
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="age_field"
+          class="field"
+        >
+          <div
+            class="form-group"
+            :class="{ 'form-group--error': $v.age.$error }"
+          >
+            <label class="form__label">Age</label>
+            <input
+              v-model.trim="$v.age.$model"
+              class="form__input"
+            >
+
+            <ErrorMessage
+              :field="'age'"
+            />
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-if="!hasV1Monitoring && componentServices">
@@ -780,6 +829,27 @@ export default {
     > I {
       color: var(--success)
     }
+  }
+}
+
+.field {
+  margin-top: 2px;
+}
+
+.form__input {
+  margin: 5px;
+}
+
+.form-group--error {
+  color: red;
+
+  .form__input {
+    border-color: red;
+
+    outline-color: none;
+    outline-style: none;
+    outline-width: none;
+
   }
 }
 </style>

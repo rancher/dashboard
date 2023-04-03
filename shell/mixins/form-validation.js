@@ -163,7 +163,7 @@ export default {
      * Useful for throwing unreported errors into a generic banner
      * @returns
      */
-    fvUnreportedValidationErrors() { //
+    fvUnreportedValidationErrors() {
       const paths = this.fvRulesets
         .filter(ruleset => !!ruleset.formValidationRule && !this.fvReportedValidationPaths.includes(ruleset.path))
         .map(ruleset => ruleset.path);
