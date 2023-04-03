@@ -77,6 +77,24 @@ const ADVANCED = 'advanced';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
+/**
+ * Classes to be adopted by the node badges in Machine pools
+ */
+const NODE_TOTAL = {
+  error: {
+    color: 'bg-error',
+    icon:  'icon-x',
+  },
+  warning: {
+    color: 'bg-warning',
+    icon:  'icon-warning',
+  },
+  success: {
+    color: 'bg-success',
+    icon:  'icon-checkmark'
+  }
+};
+
 export default {
   components: {
     ACE,
@@ -703,8 +721,8 @@ export default {
 
       for ( const role of roles ) {
         counts[role] = 0;
-        out.color[role] = 'bg-success';
-        out.icon[role] = 'icon-checkmark';
+        out.color[role] = NODE_TOTAL.success.color;
+        out.icon[role] = NODE_TOTAL.success.icon;
       }
 
       for ( const row of this.machinePools ) {
@@ -729,27 +747,27 @@ export default {
       }
 
       if ( counts.etcd === 0 ) {
-        out.color.etcd = 'bg-error';
-        out.icon.etcd = 'icon-x';
+        out.color.etcd = NODE_TOTAL.error.color;
+        out.icon.etcd = NODE_TOTAL.error.icon;
       } else if ( counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7 ) {
-        out.color.etcd = 'bg-warning';
-        out.icon.etcd = 'icon-warning';
+        out.color.etcd = NODE_TOTAL.warning.color;
+        out.icon.etcd = NODE_TOTAL.warning.icon;
       }
 
       if ( counts.controlPlane === 0 ) {
-        out.color.controlPlane = 'bg-error';
-        out.icon.controlPlane = 'icon-x';
+        out.color.controlPlane = NODE_TOTAL.error.color;
+        out.icon.controlPlane = NODE_TOTAL.error.icon;
       } else if ( counts.controlPlane === 1 ) {
-        out.color.controlPlane = 'bg-warning';
-        out.icon.controlPlane = 'icon-warning';
+        out.color.controlPlane = NODE_TOTAL.warning.color;
+        out.icon.controlPlane = NODE_TOTAL.warning.icon;
       }
 
       if ( counts.worker === 0 ) {
-        out.color.worker = 'bg-error';
-        out.icon.worker = 'icon-x';
+        out.color.worker = NODE_TOTAL.error.color;
+        out.icon.worker = NODE_TOTAL.error.icon;
       } else if ( counts.worker === 1 ) {
-        out.color.worker = 'bg-warning';
-        out.icon.worker = 'icon-warning';
+        out.color.worker = NODE_TOTAL.warning.color;
+        out.icon.worker = NODE_TOTAL.warning.icon;
       }
 
       return out;
