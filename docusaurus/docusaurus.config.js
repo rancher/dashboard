@@ -40,7 +40,11 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
         },
-        blog:  false,
+        blog: {
+          showReadingTime:    true,
+          // Please change this to your repo.
+          // Remove this to remove the "edit this page" links.
+        },
         theme: { customCss: require.resolve('./src/css/custom.css') },
       }),
     ],
@@ -63,6 +67,7 @@ const config = {
             position: 'right',
             label:    'Docs',
           },
+          {to: '/blog', label: 'Blog', position: 'right'},
           {
             href:     'https://rancher.github.io/storybook/',
             position: 'right',
