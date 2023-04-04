@@ -1,8 +1,11 @@
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { downloadFile } from '@shell/utils/download';
 import { formatSi } from '@shell/utils/units';
+import JSZip from 'jszip';
 import { epiniofy } from '../store/epinio-store/actions';
-import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import {
+  APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+} from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
 import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
 
@@ -25,7 +28,6 @@ const STATES_MAPPED = {
 
 export default class EpinioApplicationModel extends EpinioNamespacedResource {
   buildCache = {};
-
   // ------------------------------------------------------------------
   // Dashboard plumbing
 
@@ -130,9 +132,10 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     },
     { divider: true },
     {
-      action: 'createManifest',
-      label:  this.t('epinio.applications.actions.createManifest.label'),
-      icon:   'icon icon-fw icon-download',
+      action:  'exportApp',
+      label:   this.t('epinio.applications.export.label'),
+      icon:    'icon icon-fw icon-download',
+      enabled: isRunning
     },
     { divider: true },
 
@@ -364,6 +367,15 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return createEpinioRoute(`c-cluster-applications`, {}) ;
   }
 
+  get applicationParts() {
+    return Object.values(APPLICATION_PARTS);
+  }
+
+  // TODO: Remove after merging with master
+  get applyMode() {
+    return 'export';
+  }
+
   // ------------------------------------------------------------------
   // Change/handle changes of the app
 
@@ -487,6 +499,72 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
     await this.forceFetch();
     this.showStagingLog(stage.id);
+  }
+
+  exportApp(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ExportAppDialog',
+      modalWidth: '450px',
+    });
+  }
+
+  async fetchPart(part) {
+    const responseType = part === 'values' ? 'text/plain' : 'blob';
+
+    const opt = { url: `${ this.linkFor('self') }/part/${ part }`, responseType };
+
+    const { data } = await this.$dispatch('request', { opt, type: this.type });
+
+    return data;
+  }
+
+  async downloadAppParts({ part, data, all = false }) {
+    if (part === 'values') {
+      await downloadFile(`${ this.meta.name }-${ part }.yaml`, data, 'text/plain');
+    } else {
+      await downloadFile(`${ this.meta.name }-${ part }`, data, 'application/gzip;charset=utf-8');
+    }
+  }
+
+  // TODO: Remove after merging with master
+  async applyAction() {
+    const resource = this.resources[0];
+    const appPartsData = resource?.applicationParts.reduce((accumulator, currentValue) => {
+      accumulator[currentValue] = {};
+
+      return accumulator;
+    }, {});
+
+    const chartZip = async(files) => {
+      const zip = new JSZip();
+
+      for (const fileName in files) {
+        const extension = {
+          [APPLICATION_PARTS.VALUES]: 'yml',
+          [APPLICATION_PARTS.CHART]:  'tar.gz',
+          [APPLICATION_PARTS.IMAGE]:  'tar',
+        };
+
+        zip.file(`${ fileName }.${ extension[fileName] }`, files[fileName]);
+      }
+
+      const contents = await zip.generateAsync({ type: 'blob' });
+
+      await downloadFile(`${ resource.meta.name }-helm-chart.zip`, contents, 'application/zip');
+    };
+
+    if (this.$route.hash === '#manifest') {
+      await resource.createManifest();
+    } else {
+      await Promise.all(resource?.applicationParts.map(async(part) => {
+        const data = await resource.fetchPart(part);
+
+        appPartsData[part] = data;
+      }));
+
+      await chartZip(appPartsData);
+    }
   }
 
   get appShellId() {

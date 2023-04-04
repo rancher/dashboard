@@ -40,6 +40,11 @@ typeDescription:
   configurations: Configurations are a way to provide data to applications. The data becomes available once the configuration is bound to them.
   appcharts: Application Templates define kube resources created by your application
   catalogservices: Catalog Services provide additional, common functionality to applications. For example an instance of a database Catalog Service can be bound to an application.
+asyncButton:
+  export:
+    action: Export
+    success: Exported
+    waiting: Exporting&hellip;
 epinio:
   label: Epinio
   about:
@@ -130,6 +135,15 @@ epinio:
         title: Routes
         tooltip: Replace the default route (<app name>.<epinio domain>) with one or more custom routes
         placeholder: e.g. my-custom-route.com/my-app
+    export:
+      label: Export App
+      manifest:
+        title: Manifest
+        description: Manifests contain basic application configuration like name, routes, number of instances, etc.
+      chart:
+        title: Chart and Images
+        description: Helm chart and images can be used to `helm install` your application.
+        banner: Container images can be large and take a long time to download.
     steps:
       basics:
         label: Details

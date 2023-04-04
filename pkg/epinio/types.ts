@@ -1,8 +1,8 @@
+import EpinioAppChartModel from './models/appcharts';
 import EpinioApplicationModel from './models/applications';
 import EpinioCatalogServiceModel from './models/catalogservices';
 import EpinioConfigurationModel from './models/configurations';
 import EpinioServiceModel from './models/services';
-import EpinioAppChartModel from './models/appcharts';
 
 export const EPINIO_PRODUCT_NAME = 'epinio';
 
@@ -56,6 +56,12 @@ export interface EPINIO_APP_ENV_VAR_GITHUB {
   repo: string,
   branch: string,
 }
+
+export const APPLICATION_PARTS = {
+  VALUES: 'values',
+  CHART:  'chart',
+  IMAGE:  'image',
+};
 
 // --------------------------------------
 // Temporary code until models are typed
