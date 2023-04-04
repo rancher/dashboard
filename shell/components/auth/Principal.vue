@@ -68,7 +68,9 @@ export default {
       <div
         class="name"
         :class="{'text-muted': useMuted}"
-      > {{ t('principal.loading', null, true)}} </div>
+      >
+        {{ t('principal.loading', null, true) }}
+      </div>
       <div class="description" />
     </template>
 
