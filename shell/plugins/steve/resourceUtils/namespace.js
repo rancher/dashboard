@@ -13,7 +13,7 @@ export function _getProject(resource, _, rootGetters) {
     return null;
   }
 
-  const clusterId = rootGetters.cluster.id;
+  const clusterId = rootGetters.currentCluster.id;
   const project = rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ resource.projectId }`);
 
   return project;
