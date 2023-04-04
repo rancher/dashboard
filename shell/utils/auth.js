@@ -288,6 +288,7 @@ function isLoggedIn(store, me) {
 
 function notLoggedIn(store, to) {
   store.commit('auth/hasAuth', true);
+  console.error('NOT LOGGED IN!!!!!');
 
   if ( to.name === 'index' ) {
     return { redirect: { path: '/auth/login' } };

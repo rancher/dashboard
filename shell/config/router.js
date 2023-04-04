@@ -448,6 +448,9 @@ export function createRouter(ssrContext, config) {
 
 function _setBeforeEachNavigationGuard(router) {
   router.beforeEach(async(to, from, next) => {
+    console.log('******************************************************');
+    console.log('******************************************************');
+    console.log('******************************************************');
     console.log('beforeEach route to', to);
     console.log('beforeEach appContext', appContext);
 
@@ -495,6 +498,11 @@ function _setBeforeEachNavigationGuard(router) {
       setFavIcon(appContext.store);
     }
 
+    // If we had a redirect to these routes, there's no point proceeding from here on out...
+    if (to.name === 'auth-setup' || to.name === 'auth-login') {
+      return next();
+    }
+
     // Handle first login on Dashboard
     let initialPass = to.query[SETUP];
 
@@ -506,6 +514,7 @@ function _setBeforeEachNavigationGuard(router) {
 
     // TODO: show error if firstLogin and default pass doesn't work
     if ( checkLogin.firstLogin ) {
+      console.error('FISRT LOGIN... SHOULD NOT RUN');
       const ok = await tryInitialSetup(appContext.store, initialPass);
 
       if (ok) {
@@ -519,9 +528,13 @@ function _setBeforeEachNavigationGuard(router) {
       }
     }
 
-    const checkRedirect = handleAuthentication(appContext, to);
+    const checkRedirect = await handleAuthentication(appContext, to);
+
+    console.error('checkRedirect', checkRedirect);
 
     if (checkRedirect?.redirect) {
+      console.error('REDIRECTING AGAIN AND AGAIN...');
+
       return next(checkRedirect?.redirect);
     }
 
@@ -620,11 +633,15 @@ function _setBeforeEachNavigationGuard(router) {
           });
         }
 
+        console.error('PATH 1');
+
         return next();
       }
+      console.error('PATH 2');
 
       return next();
     } catch (e) {
+      console.error('PATH 3');
       if ( e instanceof ClusterNotFoundError ) {
         return next({ name: 'home' });
       } else {
