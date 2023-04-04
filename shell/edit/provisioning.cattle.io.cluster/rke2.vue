@@ -366,13 +366,6 @@ export default {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
-    /**
-     * Ensure that all the existing node roles are at least 1 each
-     */
-    hasRequiredNodes() {
-      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every(color => color !== NODE_TOTAL.error.color);
-    },
-
     advancedTitleAlt() {
       const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
 
@@ -1294,8 +1287,15 @@ export default {
       }
     },
 
+    /**
+     * Ensure that all the existing node roles pool are at least 1 each
+     */
+    hasRequiredNodes() {
+      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every(color => color !== NODE_TOTAL.error.color);
+    },
+
     validationPassed() {
-      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && this.hasRequiredNodes;
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && this.hasRequiredNodes();
     },
 
     cancelCredential() {
