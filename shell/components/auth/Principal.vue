@@ -26,7 +26,7 @@ export default {
       return;
     }
 
-    const principalId = escape(this.value).replace(/\//g, '%2F');
+    const principalId = this.value.replace(/\//g, '%2F');
 
     try {
       this.principal = await this.$store.dispatch('rancher/find', {
@@ -66,10 +66,9 @@ export default {
         </div>
       </div>
       <div
-        v-clean-html="t('principal.loading', null, true)"
         class="name"
         :class="{'text-muted': useMuted}"
-      />
+      > {{ t('principal.loading', null, true)}} </div>
       <div class="description" />
     </template>
 
