@@ -26,7 +26,7 @@ export default {
       return;
     }
 
-    const principalId = this.value.replace(/\//g, '%2F');
+    const principalId = escape(this.value).replace(/\//g, '%2F');
 
     try {
       this.principal = await this.$store.dispatch('rancher/find', {
