@@ -31,7 +31,9 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { clone, diff, get, set } from '@shell/utils/object';
+import {
+  clone, diff, get, pickBy, set
+} from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
@@ -1191,16 +1193,29 @@ export default {
         }
       }
 
-      /* Chart custom UI components have the ability to edit CRD chart values
-        apply those values in addition to the global values being copied over frm the primary chart
+      /* Chart custom UI components have the ability to edit CRD chart values eg gatekeeper-crd has values.enableRuntimeDefaultSeccompProfile
+        like the main chart, only CRD values that differ from defaults should be sent on install/upgrade
+        CRDs should be installed with the same global values as the main chart
       */
       for (const versionInfo of this.autoInstallInfo) {
+        // allValues are the values potentially changed in the installation ui: any previously customized values + defaults
+        // values are default values from the chart
+        const { allValues, values: crdValues } = versionInfo;
+
+        // only save crd values that differ from the defaults defined in chart values.yaml
+        const customizedCrdValues = diff(crdValues, allValues);
+
+        // CRD globals should be overwritten by main chart globals
+        // we want to avoid including globals present on crd values and not main chart values
+        // that covers the scenario where a global value was customized on a previous install (and so is present in crd global vals) and the user has reverted it to default on this update (no longer present in main chart global vals)
+        const crdValuesToInstall = { ...customizedCrdValues, global: values.global };
+
         out.charts.unshift({
           chartName:   versionInfo.chart.name,
           version:     versionInfo.chart.version,
           releaseName: versionInfo.chart.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || chart.name,
           projectId:   this.project,
-          values:      merge(versionInfo.values, this.addGlobalValuesTo({ global: values.global }))
+          values:      crdValuesToInstall
         });
       }
       /*
