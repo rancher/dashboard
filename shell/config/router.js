@@ -453,6 +453,8 @@ function _setBeforeEachNavigationGuard(router) {
     console.log('******************************************************');
     console.log('beforeEach route to', to);
     console.log('beforeEach appContext', appContext);
+    // initialize translation module (needed before loading internal products)
+    await appContext.store.dispatch('i18n/init');
 
     // paths to ignore when routing... (webpack hot module and error page)
     if ( to.path && typeof to.path === 'string') {
@@ -556,7 +558,7 @@ function _setBeforeEachNavigationGuard(router) {
     appContext.store.dispatch('gcRouteChanged', to);
 
     // // load internal products
-    // await applyProducts(appContext.store, appContext.$plugin);
+    await applyProducts(appContext.store, appContext.$plugin);
 
     try {
       let clusterId = get(to, 'params.cluster');

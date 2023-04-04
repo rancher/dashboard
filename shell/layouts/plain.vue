@@ -26,8 +26,6 @@ export default {
     AzureWarning
   },
 
-  middleware: ['authenticated'],
-
   mixins: [Brand, BrowserTabVisibility],
 
   data() {

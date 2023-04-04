@@ -1,10 +1,7 @@
 <script>
 import Brand from '@shell/mixins/brand';
 
-export default {
-  middleware: ['authenticated'],
-  mixins:     [Brand],
-};
+export default { mixins: [Brand] };
 </script>
 
 <template>
