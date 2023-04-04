@@ -331,8 +331,8 @@ export default {
                 class="group-tab"
               >
                 <div
+                  v-clean-html="getProjectLabel(group)"
                   class="project-name"
-                  v-html="getProjectLabel(group)"
                 />
               </div>
               <div class="right">

@@ -1,8 +1,9 @@
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { CAPI, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
+import { _RKE2 } from '@shell/store/prefs';
+import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml } from '@shell/utils/string';
 import { insertAt } from '@shell/utils/array';
-import { FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
-import SteveModel from '@shell/plugins/steve/steve-class';
 
 export default class FleetCluster extends SteveModel {
   get _availableActions() {
@@ -32,14 +33,16 @@ export default class FleetCluster extends SteveModel {
       enabled:  !!this.links.update
     });
 
-    insertAt(out, 3, {
-      action:     'assignTo',
-      label:      'Change workspace',
-      icon:       'icon icon-copy',
-      bulkable:   true,
-      bulkAction: 'assignToBulk',
-      enabled:    !!this.links.update && !!this.mgmt,
-    });
+    if (!this.isRke2) {
+      insertAt(out, 3, {
+        action:     'assignTo',
+        label:      'Change workspace',
+        icon:       'icon icon-copy',
+        bulkable:   true,
+        bulkAction: 'assignToBulk',
+        enabled:    !!this.links.update && !!this.mgmt,
+      });
+    }
 
     insertAt(out, 4, { divider: true });
 
@@ -73,6 +76,12 @@ export default class FleetCluster extends SteveModel {
 
   get canDelete() {
     return false;
+  }
+
+  get isRke2() {
+    const provider = this?.metadata?.labels?.[CAPI.PROVIDER] || this?.status?.provider;
+
+    return provider === _RKE2;
   }
 
   get nameDisplay() {

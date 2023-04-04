@@ -3,6 +3,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { decodeHtml } from '@shell/utils/string';
 
 export default {
   components: {
@@ -41,6 +42,7 @@ export default {
   },
 
   methods: {
+    decodeHtml,
     close() {
       this.confirm(false);
       this.$emit('close', false);
@@ -57,7 +59,7 @@ export default {
         buttonDone(false);
       }
     }
-  }
+  },
 };
 </script>
 
@@ -68,16 +70,16 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="title"
       class="text-default-text"
-      v-html="title"
     />
 
     <template slot="body">
       <slot name="body">
         <div
+          v-clean-html="decodeHtml(body)"
           class="pl-10 pr-10"
           style="min-height: 50px; display: flex;"
-          v-html="body"
         />
       </slot>
     </template>

@@ -115,7 +115,7 @@ export default {
       :key="index"
       class="text-small"
     >
-      <span v-html="port.label" />
+      <span v-clean-html="port.label" />
     </div>
   </div>
 </template>

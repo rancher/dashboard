@@ -23,6 +23,7 @@ import '../plugins/tooltip';
 import '../plugins/vue-clipboard2';
 import '../plugins/v-select';
 import '../plugins/directives';
+import '../plugins/clean-html-directive';
 import '../plugins/transitions';
 import '../plugins/vue-js-modal';
 import '../plugins/js-yaml';

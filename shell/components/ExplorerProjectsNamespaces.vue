@@ -368,8 +368,8 @@ export default {
             class="group-tab"
           >
             <div
+              v-clean-html="projectLabel(group.group)"
               class="project-name"
-              v-html="projectLabel(group.group)"
             />
             <div
               v-if="projectDescription(group.group)"
@@ -415,6 +415,11 @@ export default {
           <span v-else>
             {{ row.name }}
           </span>
+          <i
+            v-if="row.injectionEnabled"
+            v-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+            class="icon icon-istio ml-5"
+          />
           <i
             v-if="row.hasSystemLabels"
             v-tooltip="getPsaTooltip(row)"
@@ -487,6 +492,10 @@ export default {
     .namespace-name {
       display: flex;
       align-items: center;
+
+      .icon-istio {
+        color: var(--primary);
+      }
     }
   }
 }

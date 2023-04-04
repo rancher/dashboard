@@ -281,7 +281,7 @@ export default Vue.extend({
     <span
       v-if="labelAs === 'text' && displayLabel"
       v-tooltip="tooltip"
-      v-html="displayLabel"
+      v-clean-html="displayLabel"
     />
   </button>
 </template>

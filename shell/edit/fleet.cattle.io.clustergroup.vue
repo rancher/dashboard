@@ -148,15 +148,15 @@ export default {
     >
       <span
         v-if="matchingClusters.isAll"
-        v-html="t('fleet.clusterGroup.selector.matchesAll', matchingClusters)"
+        v-clean-html="t('fleet.clusterGroup.selector.matchesAll', matchingClusters)"
       />
       <span
         v-else-if="matchingClusters.isNone"
-        v-html="t('fleet.clusterGroup.selector.matchesNone', matchingClusters)"
+        v-clean-html="t('fleet.clusterGroup.selector.matchesNone', matchingClusters)"
       />
       <span
         v-else
-        v-html="t('fleet.clusterGroup.selector.matchesSome', matchingClusters)"
+        v-clean-html="t('fleet.clusterGroup.selector.matchesSome', matchingClusters)"
       />
     </Banner>
 

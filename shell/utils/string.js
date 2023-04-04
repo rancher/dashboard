@@ -60,6 +60,19 @@ export function escapeHtml(html) {
   });
 }
 
+/**
+ * Return HTML markup from escaped HTML string, allowing specific tags
+ * @param text string
+ * @returns string
+ */
+export function decodeHtml(text) {
+  const div = document.createElement('div');
+
+  div.innerHTML = text;
+
+  return div.textContent || div.innerText || '';
+}
+
 export function escapeRegex(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }

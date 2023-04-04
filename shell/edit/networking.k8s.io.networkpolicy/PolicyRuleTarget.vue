@@ -269,7 +269,7 @@ export default {
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
-            <span v-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)" />
+            <span v-clean-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)" />
           </Banner>
         </div>
       </div>
@@ -289,7 +289,7 @@ export default {
       <div class="row">
         <div class="col span-12">
           <Banner color="success">
-            <span v-html="t('networkpolicy.selectors.matchingNamespaces.matchesSome', matchingNamespaces)" />
+            <span v-clean-html="t('networkpolicy.selectors.matchingNamespaces.matchesSome', matchingNamespaces)" />
           </Banner>
         </div>
       </div>
@@ -311,11 +311,11 @@ export default {
           <Banner color="success">
             <span
               v-if="!namespaceSelectorExpressions.length"
-              v-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)"
+              v-clean-html="t('networkpolicy.selectors.matchingPods.matchesSome', matchingPods)"
             />
             <span
               v-else
-              v-html="t('networkpolicy.selectors.matchingNamespacesAndPods.matchesSome', matchingNamespacesAndPods)"
+              v-clean-html="t('networkpolicy.selectors.matchingNamespacesAndPods.matchesSome', matchingNamespacesAndPods)"
             />
           </Banner>
         </div>

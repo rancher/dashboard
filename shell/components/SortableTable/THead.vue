@@ -242,7 +242,7 @@ export default {
             v-if="col.sort"
             v-tooltip="tooltip(col)"
           >
-            <span v-html="labelFor(col)" />
+            <span v-clean-html="labelFor(col)" />
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
               v-tooltip="t('sortableTable.tableHeader.noFilter')"

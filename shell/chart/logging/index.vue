@@ -70,8 +70,8 @@ export default {
           :tooltip="t('logging.install.tooltip', {}, true)"
         />
         <p
+          v-clean-html="t('logging.install.url', {}, true)"
           class="mt-6"
-          v-html="t('logging.install.url', {}, true)"
         />
       </div>
     </div>
@@ -83,10 +83,11 @@ export default {
         />
       </div>
     </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <ChartPsp :value="value" />
-      </div>
-    </div>
+
+    <!-- Conditionally display PSP checkbox -->
+    <ChartPsp
+      :value="value"
+      :cluster="currentCluster"
+    />
   </div>
 </template>

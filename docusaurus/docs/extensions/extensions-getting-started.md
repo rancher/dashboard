@@ -4,15 +4,15 @@ This guide will walk through creating a new extension from scratch.
 
 ## Prerequisites
 
-You will need a recent version of nodejs installed.
+You will need a recent version of nodejs installed (Tested with node version: `v16.19.1`).
 
 You'll also need the yarn package manager installed, which can be done with `npm install -g yarn`.
 
-## Creating a Skeleton Application
+## Creating the Application
 
-In order to develop a new Extension, you need an application UI to host it in during development.
+In order to develop a new Extension, you need an application UI to host it in during development. Rancher provides a helper to create a skeleton application for you.
 
-Rancher provides a helper to create a skeleton application for you.
+### Creating the Skeleton App
 
 `cd` to a folder not within the checkout and run:
 
@@ -36,11 +36,11 @@ API=<Rancher Backend URL> yarn dev
 
 > Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it.
 
-You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI.
-
-Your skeleton application is a full Rancher UI - but referenced via `npm`.
+You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your skeleton application is a full Rancher UI - but referenced via `npm`.
 
 The next step is to create an extension.
+
+### Creating an Extension
 
 Once again, Rancher provides a helper to add an extension. You can choose to have multiple extensions or a single extension within
 the parent folder.
@@ -52,6 +52,16 @@ yarn create @rancher/pkg test
 ```
 
 This will create a new UI Package in the `./pkg/test` folder.
+
+#### ___Extension Options___
+
+There are two options that can be passed to the `@rancher/pkg` script:
+- `-t`: Creates additional boilerplate directories for types, including: 'l10n', 'models', 'edit', 'list', and 'detail'
+- `-w`: Creates a workflow file ('build-extension.yml') to be used as a Github action. This will automatically build your extension and release a Helm chart.
+
+> Note: Using the `-w` option to create an automated workflow will require additonal prequesites, see the [Release](#creating-a-release) section.
+
+### Configuring an Extension
 
 Replace the contents of the file `./pkg/test/index.js` with:
 
@@ -87,6 +97,8 @@ export function init($plugin, store) {
 }
 ```
 
+## Running the App
+
 We've created a bare bones extension and exposed a new 'product' that will appear in the top-level slide-in menu. At this stage, it does
 nothing other than that!
 
@@ -112,12 +124,10 @@ yarn build-pkg test
 
 This will build the extension as a Vue library and the built extension will be placed in the `dist-pkg` folder.
 
-## Loading the Extension
+## Loading Into Rancher
 
-When we run `yarn dev` at the moment, our test extension will be automatically loaded in the application - this allows us to develop
-the extension with hot-reload.
-
-To test loading the extension dynamically, we can update configuration to tell Rancher not to include our extension.
+When we run `yarn dev`, our test extension will be automatically loaded into the application - this allows us to develop
+the extension with hot-reloading. To test loading the extension dynamically, we can update configuration to tell Rancher not to include our extension.
 
 To do this, create a new `.env` file in the root `test-app` folder, and add these contents:
 
@@ -155,11 +165,9 @@ This illustrates dynamically loading an extension.
 
 > Note that when we started the UI, it serves up any extensions in the `dist-pkg` folder under the `/pkg` route of the app. Also note that when we build extensions they are versioned, so you'll see that reflected in the URL we used.
 
-## Loading the Extension into another Rancher Instance
+### Loading into another Rancher Instance
 
-In the steps above, we were able to load the extension into our test application.
-
-We can load the extension into any running Rancher instance.
+In the steps above, we were able to load the extension into our test application. We can load the extension into any running Rancher instance.
 
 Run the following:
 
@@ -181,8 +189,38 @@ In a different Rancher UI, you should be able to follow the steps in the previou
 
 You'll notice that if you reload the Rancher UI, the extension is not persistent and will need to be added again. You can make it persistent by checking the `Persist extension by creating custom resource` checkbox in the Developer Load dialog.
 
+## Creating a Release
+
+Creating a Release for your extension is the official avenue for loading extensions into any Rancher instance. As mentioned in the [Introduction](./introduction.md), the extension can be packaged into a Helm chart and added as a Helm repository to be easily accessible from your Rancher Manager.
+
+We have created a workflow for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart. Then it will give your Github repository a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher. 
+
+### Release Prerequisites
+
+In order to have a Helm repository you will need to create the (`gh-pages`) on your Github repository.
+
+### Adding the Release Workflow
+
+To add the workflow to your extension, use the `-w` option when running the `@rancher/pkg` script. For instance:
+
+```sh
+yarn create @rancher/pkg test -w
+```
+
+This will create a `.github` directory within the root folder of your app which will contain the `build-extension.yml` workflow file. Initially the release is gated by a Push or Pull Request targeting the `main` branch. To update your workflow with different events to trigger the workflow, you can find more information in the [Github docs](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
+
+> Note: If you wish to build and publish the Helm chart manually or to a specific registry, you can follow the steps listed in the [Advanced section](./advanced#publishing-the-extension-manually).
+
+### Consuming the Helm chart
+
+After releasing the Helm chart you will be able to consume this from the Rancher UI by adding your Helm repository's URL to the App -> Repository list. If you used the automated workflow to release the Helm chart, you can find the URL within your Github repository under the "github-pages" Environment. 
+
+The URL should be listed as: `https://<organization>.github.io/<repository>`
+
+Once the URL has been added to the repository list, the extension should appear within the Extensions page.
+
 ## Wrap-up
 
 This guide has showed you how to create a skeleton application that helps you develop and test one or more extensions.
 
-We showed how we can develop and test those with hot-reload in the browser and how we can build our extensions into a package that we can dynamically load into Rancher at runtime.
+We showed how we can develop and test those with hot-reloading in the browser and how we can build our extensions into a package that we can dynamically load into Rancher at runtime. We also went over how to release our extensions as Helm charts using the automated workflow.

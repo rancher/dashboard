@@ -32,6 +32,7 @@ import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-an
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { clone, diff, get, set } from '@shell/utils/object';
+import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -93,7 +94,6 @@ export default {
     await this.fetchChart();
 
     await this.fetchAutoInstallInfo();
-
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
@@ -427,6 +427,13 @@ export default {
   computed: {
     ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    /**
+     * Return list of variables to filter chart questions
+     */
+    ignoreVariables() {
+      return ignoreVariables(this.currentCluster, this.versionInfo);
+    },
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
@@ -1193,7 +1200,7 @@ export default {
           version:     versionInfo.chart.version,
           releaseName: versionInfo.chart.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || chart.name,
           projectId:   this.project,
-          values:      merge(this.addGlobalValuesTo({ global: values.global }), versionInfo.values)
+          values:      merge(versionInfo.values, this.addGlobalValuesTo({ global: values.global }))
         });
       }
       /*
@@ -1331,7 +1338,7 @@ export default {
               :key="msg"
               color="error"
             >
-              <span v-html="msg" />
+              <span v-clean-html="msg" />
             </Banner>
 
             <Banner
@@ -1339,7 +1346,7 @@ export default {
               :key="msg"
               color="warning"
             >
-              <span v-html="msg" />
+              <span v-clean-html="msg" />
             </Banner>
           </div>
           <div
@@ -1442,7 +1449,7 @@ export default {
             v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
           >
-            <div v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
+            <div v-clean-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
           </Banner>
         </div>
       </template>
@@ -1520,7 +1527,7 @@ export default {
         </div>
         <div class="scroll__container">
           <div class="scroll__content">
-            <!-- Values (as Custom Component) -->
+            <!-- Values (as Custom Component in ./shell/charts/) -->
             <template v-if="valuesComponent && showValuesComponent">
               <Tabbed
                 v-if="componentHasTabs"
@@ -1563,7 +1570,8 @@ export default {
                 />
               </template>
             </template>
-            <!-- Values (as Questions)  -->
+
+            <!-- Values (as Questions, abstracted component based on question.yaml configuration from repositories)  -->
             <Tabbed
               v-else-if="hasQuestions && showQuestions"
               ref="tabs"
@@ -1577,6 +1585,7 @@ export default {
                 :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
+                :ignore-variables="ignoreVariables"
                 tabbed="multiple"
                 :target-namespace="targetNamespace"
               />
@@ -1767,17 +1776,17 @@ export default {
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
-          <span v-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
+          <span v-clean-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
           <nuxt-link :to="legacyFeatureRoute">
             {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
           </nuxt-link>
         </template>
         <template v-else-if="mcapp">
-          <span v-html="t('catalog.install.error.legacy.mcmNotSupported')" />
+          <span v-clean-html="t('catalog.install.error.legacy.mcmNotSupported')" />
         </template>
         <template v-else>
           <nuxt-link :to="legacyAppRoute">
-            <span v-html="t('catalog.install.error.legacy.navigate')" />
+            <span v-clean-html="t('catalog.install.error.legacy.navigate')" />
           </nuxt-link>
         </template>
       </Banner>

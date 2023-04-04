@@ -186,7 +186,7 @@ export default {
         <div>{{ t('harvesterManager.cluster.description') }}</div>
       </div>
       <div class="tagline sub-tagline">
-        <div v-html="t('harvesterManager.cluster.learnMore', {}, true)" />
+        <div v-clean-html="t('harvesterManager.cluster.learnMore', {}, true)" />
       </div>
     </div>
   </div>

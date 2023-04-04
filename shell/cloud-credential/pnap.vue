@@ -72,8 +72,8 @@ export default {
     </div>
     <div class="row mt-5">
       <p
+        v-clean-html="t('cluster.credential.pnap.clientSecret.help', {}, true)"
         class="text-muted mt-10"
-        v-html="t('cluster.credential.pnap.clientSecret.help', {}, true)"
       />
     </div>
   </div>
