@@ -4088,7 +4088,7 @@ prefs:
     scalingDownPrompt: Do not ask for confirmation when scaling down node pools.
 
 principal:
-  loading: Loading&hellip;
+  loading: Loading...
   error: Unable to fetch principal info
   name: Name
   loginName: Username
