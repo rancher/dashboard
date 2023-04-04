@@ -1,16 +1,23 @@
 import { shallowMount } from '@vue/test-utils';
 import { RadioButton } from './index';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('RadioButton.vue', () => {
   it('renders label slot contents', () => {
     const wrapper = shallowMount(RadioButton, { slots: { label: 'Test Label' } });
 
-    expect(wrapper.find('.labeling').text()).toBe('Test Label');
+    expect(wrapper.find('.radio-label').text()).toBe('Test Label');
   });
 
   it('renders label prop contents', () => {
-    const wrapper = shallowMount(RadioButton, { propsData: { label: 'Test Label' } });
+    const wrapper = shallowMount(
+      RadioButton,
+      {
+        directives: { cleanHtmlDirective },
+        propsData: { label: 'Test Label' }
+      });
 
+    console.log(wrapper.html())
     expect(wrapper.find('.radio-label').text()).toBe('Test Label');
   });
 
@@ -20,6 +27,6 @@ describe('RadioButton.vue', () => {
       propsData: { label: 'Test Label - Props' },
     });
 
-    expect(wrapper.find('.labeling').text()).toBe('Test Label - Slot');
+    expect(wrapper.find('.radio-label').text()).toBe('Test Label - Slot');
   });
 });
