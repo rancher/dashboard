@@ -169,9 +169,11 @@ export default {
   methods: {
     ensureValue() {
       // Ensure we have the model structure needed for the form controls
-      this.value.overrideAffinity = this.value.overrideAffinity || {};
-      this.value.appendTolerations = this.value.appendTolerations || [];
-      this.value.overrideResourceRequirements = this.value.overrideResourceRequirements || {};
+      if (this.value) {
+        this.value.overrideAffinity = this.value.overrideAffinity || {};
+        this.value.appendTolerations = this.value.appendTolerations || [];
+        this.value.overrideResourceRequirements = this.value.overrideResourceRequirements || {};
+      }
     },
 
     affinitySettingChange() {
