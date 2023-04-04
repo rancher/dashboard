@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils';
 import { Banner } from './index';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive'
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: Banner', () => {
   it('should display text based on label', () => {
@@ -8,10 +8,8 @@ describe('component: Banner', () => {
     const wrapper = mount(
       Banner,
       {
-        directives: {
-         cleanHtmlDirective 
-        },
-        propsData: { label }
+        directives: { cleanHtmlDirective },
+        propsData:  { label }
       });
 
     const element = wrapper.find('span').element;

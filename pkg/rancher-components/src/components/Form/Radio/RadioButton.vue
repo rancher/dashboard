@@ -152,7 +152,7 @@ export default Vue.extend({
       role="radio"
     />
     <div class="labeling">
-      <slot 
+      <slot
         v-if="hasLabelSlot"
         name="label"
       >
@@ -160,9 +160,9 @@ export default Vue.extend({
       </slot>
       <label
         v-else-if="label"
+        v-clean-html="label"
         :class="[ muteLabel ? 'text-muted' : '', 'radio-label', 'm-0']"
         :for="name"
-        v-clean-html="label"
       />
       <div
         v-if="descriptionKey || description"
