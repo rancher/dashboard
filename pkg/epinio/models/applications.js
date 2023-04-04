@@ -373,11 +373,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
   // TODO: Remove after merging with master
   get applyMode() {
-    return 'download';
-  }
-
-  get title() {
-    return this.t('epinio.applications.export.label');
+    return 'export';
   }
 
   // ------------------------------------------------------------------
@@ -531,6 +527,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     }
   }
 
+  // TODO: Remove after merging with master
   async applyAction() {
     const resource = this.resources[0];
     const appPartsData = resource?.applicationParts.reduce((accumulator, currentValue) => {
@@ -544,9 +541,9 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
       for (const fileName in files) {
         const extension = {
-          values: 'yml',
-          chart:  'tar.gz',
-          image:  'tar',
+          [APPLICATION_PARTS.VALUES]: 'yml',
+          [APPLICATION_PARTS.CHART]:  'tar.gz',
+          [APPLICATION_PARTS.IMAGE]:  'tar',
         };
 
         zip.file(`${ fileName }.${ extension[fileName] }`, files[fileName]);

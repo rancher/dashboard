@@ -27,12 +27,20 @@ export default {
     :resources="resources"
     @close="$emit('close')"
   >
+    <h4
+      slot="title"
+      class="text-default-text export-app-dialog__title"
+    >
+      {{ t('epinio.applications.export.label') }}
+    </h4>
+
     <template slot="body">
       <Tabbed>
         <Tab
           label-key="epinio.applications.export.manifest.title"
           name="manifest"
           :weight="3"
+          class="export-app-dialog__tab"
         >
           <p>
             {{ t('epinio.applications.export.manifest.description') }}
@@ -43,6 +51,7 @@ export default {
           label-key="epinio.applications.export.chart.title"
           name="chart"
           :weight="2"
+          class="export-app-dialog__tab"
         >
           <p>
             {{ t('epinio.applications.export.chart.description') }}
@@ -57,3 +66,13 @@ export default {
     </template>
   </GenericPrompt>
 </template>
+<style lang='scss' scoped>
+.export-app-dialog {
+  &__title {
+    margin-bottom: 0;
+  }
+  &__tab {
+    min-height: 110px;
+  }
+}
+</style>
