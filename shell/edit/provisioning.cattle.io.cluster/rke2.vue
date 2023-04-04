@@ -1093,8 +1093,8 @@ export default {
           pool.pool.instanceNameLimit = 15;
         });
       } else {
-          this.machinePools.filter((pool) => {
-            pool.pool.instanceNameLimit = null;
+        this.machinePools.filter((pool) => {
+          pool.pool.instanceNameLimit = null;
         });
       }
     },
@@ -1157,6 +1157,7 @@ export default {
 
           const truncateCheck = out.find((pool) => {
             this.truncateLimit = pool.pool.instanceNameLimit;
+
             return pool.pool.instanceNameLimit === 15;
           });
 
