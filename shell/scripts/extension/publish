@@ -81,6 +81,11 @@ echo -e "${CYAN}${BOLD}Publishing UI Plugins${RESET}"
 pushd ${BASE_DIR} > /dev/null
 
 if [ "${GITHUB_BUILD}" == "true" ]; then
+  if [[ "${GITHUB_BRANCH}" == "gh-pages" ]] && ! git show-ref -q --heads gh-pages; then
+    echo -e "${YELLOW}'gh-pages' branch not found, reverting to 'main' branch"
+    GITHUB_BRANCH="main"
+  fi
+
   echo -e "${CYAN}GitHub Repository: ${GITHUB_SOURCE}${RESET}"
   echo -e "${CYAN}GitHub Branch    : ${GITHUB_BRANCH}${RESET}"
 else
@@ -248,7 +253,7 @@ for d in pkg/*/ ; do
       rm *.yaml
       mv temp.cr cr.yaml
       ENDPOINT=https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/extensions/${pkg}/${PKG_VERSION}
-      sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml       
+      sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml
       rm *.bak
       popd > /dev/null
     fi
@@ -266,6 +271,15 @@ for d in pkg/*/ ; do
 
     if [ -f "${HELM_INDEX}" ]; then
       UPDATE="--merge ${HELM_INDEX}"
+    elif [ "${GITHUB_BUILD}" == "true" ] && [[ -n ${GITHUB_SOURCE} ]]; then
+      GITHUB_SOURCE=$(echo -e "${GITHUB_SOURCE}" | sed 's/https:\/\///g')
+
+      # Check if git branch contains index.yaml
+      wget -P ${BASE_DIR} https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml
+
+      if [ -f "${HELM_INDEX}" ]; then
+        UPDATE="--merge ${HELM_INDEX}"
+      fi
     fi
 
     # Base URL referencing assets directly from GitHub
@@ -306,9 +320,3 @@ rm -rf ${CHART_TMP}
 if [ "${GITHUB_BUILD}" == "false" ]; then
   rm -rf ${TMP}
 fi
-
-# If the user asked to create a commit, commit the changes
-# if [ "${COMMIT}" == "true" ]; then
-#   echo -e "${CYAN}${BOLD}Creating git commit${RESET}"
-#   git add --all
-# fi
