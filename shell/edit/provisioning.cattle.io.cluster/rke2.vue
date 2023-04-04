@@ -340,6 +340,7 @@ export default {
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
       truncateHostnames:     false,
+      truncateLimit:         null,
     };
   },
 
@@ -359,6 +360,9 @@ export default {
     /**
      * Check presence of PSPs as template or CLI creation
      */
+    isView() {
+      return this.mode === _EDIT;
+    },
     hasPsps() {
       return !!this.psps?.count;
     },
@@ -1085,12 +1089,12 @@ export default {
      */
     truncateName() {
       if (this.truncateHostnames) {
-        this.machinePools.find((pool) => {
+        this.machinePools.filter((pool) => {
           pool.pool.instanceNameLimit = 15;
         });
       } else {
-        this.machinePools.find((pool) => {
-          pool.pool.instanceNameLimit = null;
+          this.machinePools.filter((pool) => {
+            pool.pool.instanceNameLimit = null;
         });
       }
     },
@@ -1152,7 +1156,8 @@ export default {
           });
 
           const truncateCheck = out.find((pool) => {
-            return pool.pool.instanceNameLimit;
+            this.truncateLimit = pool.pool.instanceNameLimit;
+            return pool.pool.instanceNameLimit === 15;
           });
 
           if (truncateCheck) {
@@ -1198,7 +1203,6 @@ export default {
             kind: this.machineConfigSchema.attributes.kind,
             name: null,
           },
-          instanceNameLimit: null,
         },
       };
 
@@ -2595,13 +2599,21 @@ export default {
               <Checkbox
                 v-model="truncateHostnames"
                 class="mt-20"
+                :disabled="isView"
                 :mode="mode"
                 :label="t('cluster.rke2.truncateHostnames')"
                 @input="truncateName"
               />
+              <Banner
+                v-if="truncateLimit !== 15"
+                color="info"
+              >
+                <div class="text">
+                  {{ t('cluster.machinePool.truncationCluster') }} {{ truncateLimit }}
+                </div>
+              </Banner>
             </div>
           </div>
-
           <div
             v-if="serverArgs['tls-san']"
             class="row mb-20"

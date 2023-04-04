@@ -173,6 +173,14 @@ export default {
 
 <template>
   <div>
+    <Banner
+      v-if="value.pool.instanceNameLimit"
+      color="info"
+    >
+      <div class="text">
+        {{ t('cluster.machinePool.truncationPool') }} {{ value.pool.instanceNameLimit }}
+      </div>
+    </Banner>
     <div class="row">
       <div class="col span-4">
         <LabeledInput
@@ -294,7 +302,6 @@ export default {
         :read-allowed="false"
         :value-can-be-empty="true"
       />
-
       <div class="spacer" />
 
       <Taints
