@@ -112,7 +112,7 @@ Vue.config.$nuxt.$nuxt = true
 const errorHandler = Vue.config.errorHandler || console.error
 
 // Create and mount App
-console.error('CREATING VUE APP...')
+console.error('CREATING VUE APP...') // eslint-disable-line no-console
 createApp(null, nuxt.publicRuntimeConfig).then(mountApp).catch(errorHandler)
 
 function componentOption (component, key, ...args) {

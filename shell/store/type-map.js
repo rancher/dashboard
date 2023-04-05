@@ -354,7 +354,7 @@ export function DSL(store, product, module = 'type-map') {
 let called = false;
 
 export async function applyProducts(store, $plugin) {
-  console.error('LOADING INTERNAL PRODS!!!');
+  console.error('LOADING INTERNAL PRODS!!!'); // eslint-disable-line no-console
   if (called) {
     return;
   }

@@ -414,7 +414,7 @@ export const routerOptions = {
 };
 
 export function createRouter(ssrContext, config) {
-  console.log('CREATE ROUTER CONFIG', config);
+  console.error('CREATE ROUTER CONFIG', config); // eslint-disable-line no-console
   const base = (config._app && config._app.basePath) || routerOptions.base;
   const router = new Router({ ...routerOptions, base });
 
@@ -448,11 +448,11 @@ export function createRouter(ssrContext, config) {
 
 function _setBeforeEachNavigationGuard(router) {
   router.beforeEach(async(to, from, next) => {
-    console.log('******************************************************');
-    console.log('******************************************************');
-    console.log('******************************************************');
-    console.log('beforeEach route to', to);
-    console.log('beforeEach appContext', appContext);
+    console.log('******************************************************'); // eslint-disable-line no-console
+    console.log('******************************************************'); // eslint-disable-line no-console
+    console.log('******************************************************'); // eslint-disable-line no-console
+    console.log('beforeEach route to', to); // eslint-disable-line no-console
+    console.log('beforeEach appContext', appContext); // eslint-disable-line no-console
     // initialize translation module (needed before loading internal products)
     await appContext.store.dispatch('i18n/init');
 
@@ -516,7 +516,7 @@ function _setBeforeEachNavigationGuard(router) {
 
     // TODO: show error if firstLogin and default pass doesn't work
     if ( checkLogin.firstLogin ) {
-      console.error('FIRST LOGIN ON DASHBOARD');
+      console.error('FIRST LOGIN ON DASHBOARD'); // eslint-disable-line no-console
       const ok = await tryInitialSetup(appContext.store, initialPass);
 
       if (ok) {
@@ -533,11 +533,11 @@ function _setBeforeEachNavigationGuard(router) {
     // Handle authentication
     const checkRedirect = await handleAuthentication(appContext, to);
 
-    console.error('checkRedirect', checkRedirect);
+    console.error('checkRedirect', checkRedirect); // eslint-disable-line no-console
 
     // If the handleAuthentication throws out a redirect, handle it
     if (checkRedirect?.redirect) {
-      console.error('REDIRECTING AGAIN AND AGAIN...');
+      console.error('REDIRECTING AGAIN AND AGAIN...'); // eslint-disable-line no-console
 
       return next(checkRedirect?.redirect);
     }
@@ -636,20 +636,20 @@ function _setBeforeEachNavigationGuard(router) {
             value,
           });
 
-          console.error('PATH 4');
+          console.error('PATH 4'); // eslint-disable-line no-console
 
           return next();
         }
 
-        console.error('PATH 1');
+        console.error('PATH 1'); // eslint-disable-line no-console
 
         return next();
       }
-      console.error('PATH 2');
+      console.error('PATH 2'); // eslint-disable-line no-console
 
       return next();
     } catch (e) {
-      console.error('PATH 3');
+      console.error('PATH 3'); // eslint-disable-line no-console
       if ( e instanceof ClusterNotFoundError ) {
         return next({ name: 'home' });
       } else {

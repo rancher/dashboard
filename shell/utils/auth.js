@@ -288,7 +288,7 @@ function isLoggedIn(store, me) {
 
 function notLoggedIn(store, to) {
   store.commit('auth/hasAuth', true);
-  console.error('NOT LOGGED IN!!!!!');
+  console.error('NOT LOGGED IN!!!!!'); // eslint-disable-line no-console
 
   if ( to.name === 'index' ) {
     return { redirect: { path: '/auth/login' } };

@@ -110,7 +110,7 @@ export default function({
             this.removePlugin(plugin.name); // Removing this causes the plugin to not load on refresh
 
             // Load all of the types etc from the plugin
-            console.error('TRIGGERING APPLYPLUGIN FOR PLUGINS!', plugin.name);
+            console.error('TRIGGERING APPLYPLUGIN FOR PLUGINS!', plugin.name); // eslint-disable-line no-console
             this.applyPlugin(plugin);
 
             // Add the plugin to the store
@@ -280,7 +280,7 @@ export default function({
 
       // Initialize the product if the store is ready
       if (productsLoaded()) {
-        console.error('ALL PRODS LOADED, LETS LOAD PLUGINS FROM APPLY PLUGIN');
+        console.error('ALL PRODS LOADED, LETS LOAD PLUGINS FROM APPLY PLUGIN'); // eslint-disable-line no-console
         this.loadProducts([plugin], true);
       }
 
@@ -391,11 +391,11 @@ export default function({
     // Load all of the products provided by plugins
     loadProducts(loadPlugins, arg) {
       if (arg) {
-        console.error('LOADING EXTERNAL PLUGINS...', loadPlugins);
-        console.error('FROM APPLY PLUGINS LOADING PROCEDURE');
+        console.error('LOADING EXTERNAL PLUGINS...', loadPlugins); // eslint-disable-line no-console
+        console.error('FROM APPLY PLUGINS LOADING PROCEDURE'); // eslint-disable-line no-console
       } else {
-        console.error('LOADING INTERNAL PLUGINS...');
-        console.error('FROM TYPE MAP LOADING PROCEDURE');
+        console.error('LOADING INTERNAL PLUGINS...'); // eslint-disable-line no-console
+        console.error('FROM TYPE MAP LOADING PROCEDURE'); // eslint-disable-line no-console
       }
 
       if (!loadPlugins) {

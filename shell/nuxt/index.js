@@ -103,7 +103,7 @@ function registerModule(path, rawModule, options = {}) {
 }
 
 async function createApp(ssrContext, config = {}) {
-  console.error('CREATING ROUTER INSTANCE...')
+  console.error('CREATING ROUTER INSTANCE...') // eslint-disable-line no-console
   const router = await createRouter(ssrContext, config);
 
   const store = createStore(ssrContext);
