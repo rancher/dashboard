@@ -11,6 +11,10 @@ export const PRODUCT_NAME = 'harvester-manager';
 // Load a harvester plugin when navigating into a harvester cluster
 dynamicPluginLoader.register({
   load: async({ route, store }) => {
+    // no point in trying to load any harvester plugin if route is gibberish...
+    if (!route || (!route?.name && !route?.path)) {
+      return;
+    }
     // Check that we've either got here either
     // - directly (page refresh/load -> have path but no name)
     // - via router name (have name but no path)

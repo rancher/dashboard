@@ -8,3 +8,5 @@ export default async function({
 
   await store.dispatch('i18n/init');
 }
+
+// IS THIS MIDDLEWARE IN USE ANYWHERE?!?!?!?!?

@@ -285,12 +285,13 @@ export default {
 
     async currentProduct(a, b) {
       if ( !isEqual(a, b) ) {
-        if ((a.inStore !== b.inStore || a.inStore !== 'cluster') && this.clusterId && a.name) {
+        // added ? to prevent errors on UI with gibberish routes (non-existent routes)
+        if ((a?.inStore !== b?.inStore || a?.inStore !== 'cluster') && this.clusterId && a?.name) {
           const route = {
             name:   'c-cluster-product',
             params: {
               cluster: this.clusterId,
-              product: a.name,
+              product: a?.name,
             }
           };
 

@@ -516,7 +516,7 @@ function _setBeforeEachNavigationGuard(router) {
 
     // TODO: show error if firstLogin and default pass doesn't work
     if ( checkLogin.firstLogin ) {
-      console.error('FISRT LOGIN... SHOULD NOT RUN');
+      console.error('FIRST LOGIN ON DASHBOARD');
       const ok = await tryInitialSetup(appContext.store, initialPass);
 
       if (ok) {
@@ -530,10 +530,12 @@ function _setBeforeEachNavigationGuard(router) {
       }
     }
 
+    // Handle authentication
     const checkRedirect = await handleAuthentication(appContext, to);
 
     console.error('checkRedirect', checkRedirect);
 
+    // If the handleAuthentication throws out a redirect, handle it
     if (checkRedirect?.redirect) {
       console.error('REDIRECTING AGAIN AND AGAIN...');
 
@@ -633,6 +635,10 @@ function _setBeforeEachNavigationGuard(router) {
             key: AFTER_LOGIN_ROUTE,
             value,
           });
+
+          console.error('PATH 4');
+
+          return next();
         }
 
         console.error('PATH 1');
