@@ -136,6 +136,7 @@ export default {
     @error="e=>errors = e"
   >
     <Banner
+      v-if="harvesterLocation"
       color="info"
       :closable="true"
       class="mb-20"
@@ -143,7 +144,7 @@ export default {
     >
       <div>
         {{ t('cluster.harvester.importNotice') }}
-        <nuxt-link to="harvesterLocation">
+        <nuxt-link :to="harvesterLocation">
           {{ t('product.harvesterManager') }}
         </nuxt-link>
       </div>
