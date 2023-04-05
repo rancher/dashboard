@@ -38,12 +38,16 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    validationPassed() {
-      const nameErrors = validateKubernetesName(this.value.meta.name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      return nameErrors.length === 0;
-    },
     ...mapState('action-menu', ['showPromptRemove']),
+
+    validationPassed() {
+      /**
+       * Add here fields that need validation
+       */
+      const errors = this.getNamespaceErrors(this.value.meta.name);
+
+      return errors?.length === 0;
+    },
   },
   mounted() {
     // Opens the create namespace modal if the query is passed as query param
@@ -70,17 +74,7 @@ export default {
       }
     },
 
-    'value.meta.name'(neu) {
-      if (!neu?.length && !this.touched) {
-        this.touched = true;
-
-        return [];
-      }
-
-      const errors = validateKubernetesName(neu || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
-
-      this.errors = errors.length ? [errors.join(', ')] : [];
-    }
+    'value.meta.name': 'validateNamespace',
   },
 
   methods: {
@@ -108,6 +102,30 @@ export default {
         buttonCb(false);
       }
     },
+
+    validateNamespace(name) {
+      if (!name?.length && !this.touched) {
+        this.touched = true;
+      }
+
+      this.errors = this.getNamespaceErrors(name);
+    },
+
+    getNamespaceErrors(name) {
+      const kubernetesErrors = validateKubernetesName(name || '', this.t('epinio.namespace.name'), this.$store.getters, undefined, []);
+
+      if (kubernetesErrors.length) {
+        return [kubernetesErrors.join(', ')];
+      }
+
+      const validateName = name.match(/[a-z0-9]([-a-z0-9]*[a-z0-9])?/);
+
+      if (!validateName || validateName[0] !== name) {
+        return [this.t('epinio.namespace.validations.name')];
+      }
+
+      return [];
+    }
   }
 };
 </script>

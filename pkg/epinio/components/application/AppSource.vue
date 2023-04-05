@@ -179,7 +179,6 @@ export default Vue.extend<Data, any, any, any>({
       }
     }
 
-    this.$emit('valid', false);
     this.update();
   },
 
@@ -205,6 +204,7 @@ export default Vue.extend<Data, any, any, any>({
 
       return evalUrl();
     },
+
     onFileSelected(file: File) {
       this.archive.tarball = file;
       this.archive.fileName = file.name;
@@ -325,6 +325,7 @@ export default Vue.extend<Data, any, any, any>({
 
       this.update();
     },
+
     githubData({
       repo, selectedAccOrOrg, branch, commitSha, sourceData
     }: {
@@ -358,8 +359,11 @@ export default Vue.extend<Data, any, any, any>({
       this.update();
     },
 
-    valid() {
-      this.$emit('valid', this.valid);
+    valid: {
+      handler() {
+        this.$emit('valid', this.valid);
+      },
+      immediate: true
     }
   },
 

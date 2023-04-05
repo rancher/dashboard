@@ -211,6 +211,7 @@ export default Vue.extend<Data, any, any, any>({
           @valid="steps[0].ready = $event"
         />
       </template>
+
       <template #configurations>
         <AppConfiguration
           :application="value"
