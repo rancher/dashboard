@@ -7,6 +7,7 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Loading from '@shell/components/Loading.vue';
 import Banner from '@components/Banner/Banner.vue';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
@@ -129,8 +130,12 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     disableInputs() {
-      return this.mode === 'view';
-    }
+      return this.mode === _VIEW;
+    },
+
+    isEdit() {
+      return this.mode === _EDIT;
+    },
   },
 
   methods: {
@@ -192,21 +197,24 @@ export default Vue.extend<Data, any, any, any>({
 
       return copy;
     },
-    placeholder(setting: any) {
-      if (setting.type === 'bool') {
-        return '';
-      } else if (setting.type === 'numeric') {
-        return this.numericPlaceholder(setting);
-      } else if (setting.type === 'string') {
-        return this.stringPlaceholder(setting);
+
+    validateNumbers(e: Event & { target: HTMLInputElement }, min: Number, max: Number) {
+      if (!e) {
+        return;
+      }
+
+      const isValid = e.target.checkValidity();
+
+      if (!isValid) {
+        e.target.className = 'error';
       } else {
-        return '';
+        e.target.className = '';
       }
     },
 
     numericPlaceholder(setting: any) {
       if (setting.maximum && setting.minimum) {
-        return `${ setting.minimum } - ${ setting.maximum }`;
+        return `${ setting.minimum } to ${ setting.maximum }`;
       } else if (setting.maximum) {
         return `<= ${ setting.maximum }`;
       } else if (setting.minimum) {
@@ -263,18 +271,19 @@ export default Vue.extend<Data, any, any, any>({
       v-if="showApplicationVariables"
       class="spacer"
     />
-    <h3>{{ t('epinio.applications.create.settingsVars.title') }}</h3>
+
+    <Banner
+      v-if="isEdit && showApplicationVariables"
+      color="info"
+    >
+      {{ t('epinio.applications.create.settingsVars.description') }}
+    </Banner>
+
     <div
       v-if="showApplicationVariables"
-      class="col span-8 settings"
+      class="col span-6 settings"
     >
-      <Banner
-        v-if="mode === 'config'"
-        color="info"
-      >
-        {{ t('epinio.applications.create.settingsVars.description') }}
-      </Banner>
-
+      <h3>{{ t('epinio.applications.create.settingsVars.title') }}</h3>
       <div
         v-for="(setting, key) in values.chart"
         :key="key"
@@ -284,7 +293,10 @@ export default Vue.extend<Data, any, any, any>({
           class="text-label"
           :for="key"
         >{{ key }}</label>
-        <span v-if="setting.type === 'number' || setting.type === 'integer'">
+        <span
+          v-if="setting.type === 'number' || setting.type === 'integer'"
+          class=""
+        >
           <input
             :id="key"
             v-model="values.configuration.settings[key]"
@@ -293,12 +305,12 @@ export default Vue.extend<Data, any, any, any>({
             :max="setting.maximum || null"
             :placeholder="numericPlaceholder(setting)"
             :disabled="disableInputs"
+            @input="validateNumbers($event, setting.minimum, setting.maximum)"
           >
         </span>
         <span v-else-if="setting.type === 'bool'">
           <span class="settings-item-checkbox">
             <input
-              :id="key"
               v-model="values.configuration.settings[key] "
               :disabled="disableInputs"
               type="checkbox"
@@ -362,6 +374,11 @@ export default Vue.extend<Data, any, any, any>({
       gap: 8px;
       align-items: center;
       margin-bottom: -10px;
+    }
+
+    // if input has class error, show a red border when focused
+    input.error:focus {
+      border-color: var(--error);
     }
   }
 

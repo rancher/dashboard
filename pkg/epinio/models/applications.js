@@ -1,6 +1,7 @@
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { downloadFile } from '@shell/utils/download';
 import { formatSi } from '@shell/utils/units';
+import { identity, pickBy } from 'lodash';
 import { epiniofy } from '../store/epinio-store/actions';
 import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
@@ -388,7 +389,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         name:          this.meta.name,
         configuration: {
           appchart:       this.configuration.appchart,
-          settings:       this.configuration?.settings || null,
+          settings:       pickBy(this.configuration?.settings, identity) || null,
           instances:      this.configuration.instances,
           configurations: this.configuration.configurations,
           environment:    this.configuration.environment,
@@ -430,14 +431,14 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       data: {
         instances:      this.configuration.instances,
         configurations: this.configuration.configurations,
-        settings:       this.configuration.settings ?? null,
+        settings:       pickBy(this.configuration?.settings, identity) || null,
         environment:    this.configuration.environment,
         routes:         this.configuration.routes,
       }
     });
 
     // Restart app after applying new custom-values
-    if (this.configuration.settings) {
+    if (this.configuration?.settings) {
       await this.restart();
     }
   }
