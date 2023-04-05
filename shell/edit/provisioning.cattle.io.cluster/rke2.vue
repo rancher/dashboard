@@ -1155,13 +1155,16 @@ export default {
             configMissing
           });
 
-          const truncateCheck = out.find((pool) => {
-            this.truncateLimit = pool.pool.instanceNameLimit;
+          // Added instanceNameLimit manually to each pool for testing purpose
+          // out.map((pool) => {
+          //   pool.pool.instanceNameLimit = 17;
+          // });
 
-            return pool.pool.instanceNameLimit === 15;
+          const truncateCheck = out.filter((pool) => {
+            this.truncateLimit = pool.pool.instanceNameLimit;
           });
 
-          if (truncateCheck) {
+          if (truncateCheck && this.truncateLimit === 15 ) {
             this.truncateHostnames = true;
           }
         }
@@ -2606,11 +2609,11 @@ export default {
                 @input="truncateName"
               />
               <Banner
-                v-if="truncateLimit !== 15"
+                v-if="isView && truncateLimit !== 15 && truncateLimit"
                 color="info"
               >
                 <div class="text">
-                  {{ t('cluster.machinePool.truncationCluster') }} {{ truncateLimit }}
+                  {{ t('cluster.machinePool.truncationCluster') }}{{ truncateLimit }}
                 </div>
               </Banner>
             </div>
