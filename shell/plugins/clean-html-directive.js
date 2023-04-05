@@ -25,6 +25,9 @@ export const cleanHtmlDirective = {
   },
   componentUpdated(el, binding) {
     el.innerHTML = purifyHTML(binding.value);
+  },
+  unbind(el) {
+    el.innerHTML = '';
   }
 };
 
