@@ -5,8 +5,6 @@ import Vue from 'vue';
 import { matchesSomeRegex } from '@shell/utils/string';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 
-// TODO: RC review comment - to make things clearer this, resource-class, norman-class and steve-class should move in to a folder called models. that makes it clear these related to models and matches caches/hybrid-class
-
 // these are defined elsewhere in Steve models and will cause the error  "Cannot set property <whatever> of [object Object] which has only a getter" if defined at top-level
 export function cleanHybridResources(data) {
   const potentialNormanHoldovers = ['state', 'name', 'description', 'labels', 'annotations'];

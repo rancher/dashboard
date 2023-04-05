@@ -12,7 +12,7 @@ import { ensureRegex } from '@shell/utils/string';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { lookup } from '@shell/plugins/dashboard-store/model-loader';
-import { chart, preferSameRepo } from '@shell/utils/catalog.cattle.io.app'; // TODO: RC test / check moved code
+import { chart, preferSameRepo } from '@shell/utils/catalog.cattle.io.app';
 
 const ALLOWED_CATEGORIES = [
   'Storage',

@@ -15,6 +15,17 @@ import { CACHE_STATES } from '@shell/plugins/steve/caches/base-cache';
 
 const caches = {};
 
+// TODO: RC TEST - workloads. each pods
+// TODO: RC TEST - configmap search --> crt
+// TODO: RC TEST - run through all cluster models and check for super?
+// TODO: RC TEST - everything turned off
+// TODO: RC test podsByNamespace
+// TODO: RC test Work with intermedate loading / manual / project&ns forced filtering
+// TODO: RC test resourceUtils vs place they come from. Includes
+// - getters, etc.
+// - caches in calculated fields correct
+// TODO: RC test resourceUti
+
 const uiRequests = {};
 const uiApi = (getter) => {
   const cacheGetter = `${ getter }/cacheRequest`;
@@ -30,6 +41,7 @@ const uiApi = (getter) => {
     };
 
     if (cacheAge > 500 && (uiRequests[cacheGetter] || []).length < 1) {
+      // TODO: RC question If the cache of non-cluster resources changes... do we ned to bump anything that depends on them?
       self.postMessage({ get: cacheGetter });
 
       uiPromise.index = uiRequests[cacheGetter]?.length || 0;
@@ -141,7 +153,6 @@ const removeFromWatcherQueue = (watchKey) => {
   });
 };
 
-// TODO: RC comment - parseRequestError needs to in request chain somewhere
 // TODO: RC test - error handling
 /**
  * Errors sent over the thread boundary must be clonable. The response to `fetch` isn't, so cater for that before we send it over
@@ -269,16 +280,20 @@ const workerActions = {
   request: async(params, resolver = () => {}) => {
     const { type } = params;
 
-    requestTracer.trace('waitingForResponse --> request', params);
+    requestTracer.trace('waitingForResponse --> request', type, params);
 
     if (!caches[type]) {
       caches[type] = workerActions.createCache(type);
-      requestTracer.trace('waitingForResponse --> request. No Cache existed so one was created.');
+      requestTracer.trace('waitingForResponse --> request.', type, 'no Cache existed so one was created.');
     }
 
     await caches[type].request(params);
 
-    resolver(caches[type].find(params));
+    const res = caches[type].find(params);
+
+    requestTracer.trace('waitingForResponse --> request', type, 'res', res);
+
+    resolver(res);
   },
 
   /**
@@ -337,10 +352,11 @@ const workerActions = {
     workerActions.createCache('i18n').load(config.i18nConfig);
   },
   updateWorker: (partialConfig) => {
-    state.config = {
-      ...state.config,
-      ...partialConfig
-    };
+    // TODO: RC sean - this was the fix (uncommented) i added to get sockets working. initial state.config.url needed to be updated
+    // state.config = {
+    //   ...state.config,
+    //   ...partialConfig
+    // };
   },
   watch: (msg) => {
     watchTracer.trace('watch', msg);
@@ -513,7 +529,7 @@ const resourceWatcherActions = {
     self.postMessage({ dispatch: msg });
   },
   resync: () => {
-
+    // TODO: RC this should be covered by https://github.com/rancher/dashboard/issues/8296
   }
 };
 

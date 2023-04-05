@@ -30,6 +30,7 @@ export default function steveCreateWorker(ctx, mode) {
    * The returned promise will be resolved once we receive notification of a result from the worker thread
    */
   const postMessageAndWait = function(params) {
+    // TODO: RC check these are still correct
     // The rough chain of events are..
     // 1) `postMessageAndWait`
     // - This creates a promise with a hash to identify the request

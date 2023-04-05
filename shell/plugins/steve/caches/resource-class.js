@@ -71,6 +71,8 @@ export default class ResourceCache extends BaseCache {
 
         subRequest.type = cacheName;
 
+        this.trace('request', params.type, 'secondary resource type', cacheName);
+
         return subRequest;
       });
 
@@ -81,6 +83,8 @@ export default class ResourceCache extends BaseCache {
    * Requests data from the cache's data source
    */
   async request(params = {}) {
+    this.trace('request', params);
+
     const {
       type, namespace, id, selector, force
     } = params;
@@ -98,12 +102,16 @@ export default class ResourceCache extends BaseCache {
     let mainRequest;
 
     if (cacheRefresh) {
+      this.trace('request', type, 'making http request for primary resource');
+
       mainRequest = this.api.request({ ...requestParams, type: this.type }, this.getters['schemaFor'])
         .then((res) => {
           return res;
         });
       this.state = CACHE_STATES.REQUESTING;
     } else {
+      this.trace('request', type, 'skipping http request for primary resource');
+
       mainRequest = { data: {} };
     }
 
@@ -120,14 +128,18 @@ export default class ResourceCache extends BaseCache {
           }
         }] = responses;
 
-        if (cacheRefresh) {
+        if (cacheRefresh) { // TODO: RC test ties in to `load` param
           this.state = CACHE_STATES.LOADING;
           this.load(data, params, false, revision, {
             links, status, statusText
           });
         }
 
-        return responses.filter(response => response?.data?.resourceType);
+        const response = responses.filter(response => response?.data?.resourceType); // TODO: RC question why is this needed?
+
+        this.trace('request', type, 'result', response );
+
+        return response;
       } else {
         const [{ data, status, statusText }] = responses;
 
@@ -135,6 +147,8 @@ export default class ResourceCache extends BaseCache {
           this.state = CACHE_STATES.LOADING;
           this.load(data, undefined, true, undefined, { status, statusText });
         }
+
+        this.trace('request', type, 'result', responses );
 
         return responses;
       }

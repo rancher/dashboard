@@ -12,6 +12,11 @@ import ReplicationcontrollerCache from '@/shell/plugins/steve/caches/replication
 import CronJobCache from '@/shell/plugins/steve/caches/batch.cronjob';
 import JobCache from '@/shell/plugins/steve/caches/batch.job';
 import WorkloadCombinedCache from '@shell/plugins/steve/caches/workload.combined';
+import ConfigMapCache from '@shell/plugins/steve/caches/configmap';
+
+// TODO: RC note - calc fields are worked out within advanced worker (to paginate). resources without calc fields sent back to ui thread WITH list of resources required to re-calc calc fields
+// - 20k pods sent over to work out page size's deployment's pods
+// - need to ensure we still classify page... but keep calcs?
 
 export default {
   schema:                SchemaCache,
@@ -27,5 +32,7 @@ export default {
   replicationcontroller: ReplicationcontrollerCache,
   'batch.cronjob':       CronJobCache,
   'batch.job':           JobCache,
-  workload:              WorkloadCombinedCache
+  workload:              WorkloadCombinedCache,
+
+  configmap: ConfigMapCache
 };

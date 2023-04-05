@@ -79,7 +79,7 @@ export async function createWorker(store, ctx) {
       dispatch(`ws.${ msg.name }`, msg);
     },
     get: (msg) => {
-      // debugger; // TODO: RC test
+      // TODO: RC test
       store.$workers[storeName].postMessage({
         uiResponse: {
           getter: msg,
@@ -398,7 +398,7 @@ const sharedActions = {
     if ( getters.storeName === 'management' ) {
       const version = msg?.data?.version || null;
 
-      // if (msg?.data?.version) {
+      // if (msg?.data?.version) { //
       dispatch('updateServerVersion', version, { root: true });
       // }
       console.info(`Ping [${ getters.storeName }] from ${ version || 'unknown version' }`); // eslint-disable-line no-console

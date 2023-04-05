@@ -31,12 +31,10 @@ const searchesToFilters = (searches) => {
   });
 };
 
-// TODO: RC comment - This is a c&p of resource-class
 /**
  * Cache for a resource type. Has various create / update / remove style functions as well as a `find` which  will fetch the resource/s if missing
  */
 export default class BaseCache extends Trace {
-  // TODO: RC comment - these need jsdocs
   type;
   api = null;
   uiApi = null;
@@ -49,7 +47,7 @@ export default class BaseCache extends Trace {
   __currentParams = {};
   __lastSent = null;
 
-  constructor(type, getters = {}, rootGetters = {}, api, uiApi) { // TODO: RC comment there's enough params now to warrant this as an object
+  constructor(type, getters = {}, rootGetters = {}, api, uiApi) {
     super('Base Cache');
 
     this.setTraceLabel(this.constructor.name);// This won't work well with minified code, but is for debug / dev only anyway
@@ -86,8 +84,6 @@ export default class BaseCache extends Trace {
    * Requests data from the cache's data source
    */
   async request() {
-    // TODO: RC comment shouldn't these be just `    throw new Error('Not Implemented');`
-    // TODO: RC await does nothing
     await setTimeout(() => console.warn(`Cache Class ${ this.type } did not specify a method for requesting cache content from its source, nothing happened`), 0); // eslint-disable-line no-console
 
     return this;
@@ -153,8 +149,6 @@ export default class BaseCache extends Trace {
   }
 
   /**
-   *
-   * // TODO: RC jsdoc update
    * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
    *
    * Responses are expected in `{ data: res }` format, so anything from cache must behave like a http request
@@ -168,7 +162,6 @@ export default class BaseCache extends Trace {
     } = params;
 
     if (id) {
-      // TODO: RC comment shouldn't responce to id and ids have calculated fields added as per below? Do these only apply for sorting/filtering locally and therefore aren't needed? (if so there's no pointing in adding them if there's no sort / filter / etc)
       const resource = this.byId(namespace ? `${ namespace }/${ id }` : id, false);
 
       return { data: resource };
@@ -269,7 +262,7 @@ export default class BaseCache extends Trace {
    * Change the given resource in the cache
    */
   change(resource, callback) {
-    this.trace('change', resource);
+    // this.trace('change', resource);
     const calculatedFields = this.__addCalculatedFields(resource);
 
     const updatedCache = this.__updateCache(resource, calculatedFields);
