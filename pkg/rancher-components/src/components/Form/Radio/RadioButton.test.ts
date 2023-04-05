@@ -17,7 +17,6 @@ describe('RadioButton.vue', () => {
         propsData: { label: 'Test Label' }
       });
 
-    console.log(wrapper.html())
     expect(wrapper.find('.radio-label').text()).toBe('Test Label');
   });
 
