@@ -13,7 +13,6 @@ import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
-import { _CREATE } from '~/shell/config/query-params';
 
 export const EPINIO_APP_MANIFEST = 'manifest';
 
@@ -176,12 +175,6 @@ export default Vue.extend<Data, any, any, any>({
       Vue.set(this, 'appChart', this.appCharts[0].value);
     }
 
-    this.$emit('valid', false);
-    // Enables next button if we're in create mode and we have a source
-    if (this.mode === _CREATE && this.valid) {
-      this.$emit('valid', true);
-    }
-
     this.update();
   },
 
@@ -207,6 +200,7 @@ export default Vue.extend<Data, any, any, any>({
 
       return evalUrl();
     },
+
     onFileSelected(file: File) {
       this.archive.tarball = file;
       this.archive.fileName = file.name;
@@ -327,6 +321,7 @@ export default Vue.extend<Data, any, any, any>({
 
       this.update();
     },
+
     githubData({
       repo, selectedAccOrOrg, branch, commitSha, sourceData
     }: {
@@ -360,8 +355,11 @@ export default Vue.extend<Data, any, any, any>({
       this.update();
     },
 
-    valid() {
-      this.$emit('valid', this.valid);
+    valid: {
+      handler() {
+        this.$emit('valid', this.valid);
+      },
+      immediate: true
     }
   },
 
