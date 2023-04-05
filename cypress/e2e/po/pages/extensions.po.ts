@@ -1,4 +1,10 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import AsyncButtonPo from '~/cypress/e2e/po/components/async-button.po';
+import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
+import TabPo from '~/cypress/e2e/po/components/tab.po';
+import ActionMenuPo from '~/cypress/e2e/po/components/action-menu.po';
+import NameNsDescriptionPo from '~/cypress/e2e/po/components/name-ns-description.po';
+import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 
 export default class ExtensionsPo extends PagePo {
   static url: string = '/c/local/uiplugins'
@@ -25,7 +31,7 @@ export default class ExtensionsPo extends PagePo {
       return;
     }
     if (Cypress.$('[data-testid="extension-enable-operator"]').length > 0) {
-      cy.get('[data-testid="extension-enable-operator"]').click();
+      new AsyncButtonPo(this.self().find('[data-testid="extension-enable-operator"]')).click();
       this.enableExtensionModalEnableClick();
     } else {
       cy.wait(250).then(() => { // eslint-disable-line
@@ -88,9 +94,11 @@ export default class ExtensionsPo extends PagePo {
   }
 
   installModalSelectVersionClick(optionIndex: number): Cypress.Chainable {
-    this.extensionInstallModal().getId('install-ext-modal-select-version').click();
+    const selectVersion = new LabeledSelectPo(this.extensionInstallModal().getId('install-ext-modal-select-version'));
 
-    return this.self().get(`.vs__dropdown-menu .vs__dropdown-option:nth-child(${ optionIndex })`).click();
+    selectVersion.toggle();
+
+    return selectVersion.clickOption(optionIndex);
   }
 
   installModalCancelClick(): Cypress.Chainable {
@@ -137,19 +145,19 @@ export default class ExtensionsPo extends PagePo {
   }
 
   extensionTabInstalledClick(): Cypress.Chainable {
-    return this.extensionTabs().get('li:nth-child(1) a').click();
+    return new TabPo(this.extensionTabs()).clickNthTab(1);
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
-    return this.extensionTabs().get('li:nth-child(2) a').click();
+    return new TabPo(this.extensionTabs()).clickNthTab(2);
   }
 
   extensionTabUpdatesClick(): Cypress.Chainable {
-    return this.extensionTabs().get('li:nth-child(3) a').click();
+    return new TabPo(this.extensionTabs()).clickNthTab(3);
   }
 
   extensionTabAllClick(): Cypress.Chainable {
-    return this.extensionTabs().get('li:nth-child(4) a').click();
+    return new TabPo(this.extensionTabs()).clickNthTab(4);
   }
 
   // extension reload banner
@@ -171,7 +179,7 @@ export default class ExtensionsPo extends PagePo {
   }
 
   manageReposClick(): Cypress.Chainable {
-    return this.self().getId('action-menu-0-item').click();
+    return new ActionMenuPo(this.self()).clickMenuItem(0);
   }
 
   // this will only appear with developer mode enabled
@@ -180,7 +188,7 @@ export default class ExtensionsPo extends PagePo {
   // }
 
   disableExtensionsClick(): Cypress.Chainable {
-    return this.self().getId('action-menu-2-item').click();
+    return new ActionMenuPo(this.self()).clickMenuItem(2);
   }
 
   // disable extensions OVERALL modal
@@ -228,11 +236,11 @@ export default class ExtensionsPo extends PagePo {
   }
 
   enterClusterRepoName(name: string) {
-    return cy.get('[data-testid="name-ns-description-name"] input').type(name);
+    return new NameNsDescriptionPo(this.self()).name().set(name);
   }
 
   enterGitRepoName(name: string) {
-    return cy.get('[data-testid="clusterrepo-git-repo-input"]').type(name);
+    return new LabeledInputPo(cy.get('[data-testid="clusterrepo-git-repo-input"]')).set(name);
   }
 
   enterGitBranchName(name: string) {
