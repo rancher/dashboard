@@ -89,15 +89,6 @@ export default Vue.extend<Data, any, any, any>({
     };
   },
 
-  watch: {
-    source: {
-      handler() {
-        this.steps[0].ready = !!this.source?.type;
-      },
-      deep: true
-    }
-  },
-
   methods: {
     set(obj: { [key: string]: string}, changes: { [key: string]: string}) {
       Object.entries(changes).forEach(([key, value]: [string, any]) => {
@@ -184,6 +175,14 @@ export default Vue.extend<Data, any, any, any>({
       @cancel="cancel"
       @finish="finish"
     >
+      <template #basics>
+        <AppInfo
+          :application="value"
+          :mode="mode"
+          @change="updateInfo"
+          @valid="steps[1].ready = $event"
+        />
+      </template>
       <template #source>
         <AppSource
           :application="value"
@@ -196,14 +195,7 @@ export default Vue.extend<Data, any, any, any>({
           @valid="steps[0].ready = $event"
         />
       </template>
-      <template #basics>
-        <AppInfo
-          :application="value"
-          :mode="mode"
-          @change="updateInfo"
-          @valid="steps[1].ready = $event"
-        />
-      </template>
+
       <template #configurations>
         <AppConfiguration
           :application="value"
