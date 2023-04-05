@@ -13,6 +13,7 @@ import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
+import { _EDIT } from '~/shell/config/query-params';
 
 export const EPINIO_APP_MANIFEST = 'manifest';
 
@@ -171,6 +172,10 @@ export default Vue.extend<Data, any, any, any>({
     };
   },
   mounted() {
+    if (!this.source?.type && this.mode === _EDIT) {
+      this.getInitType(this.application?.origin?.Kind);
+    }
+
     if (!this.appChart) {
       Vue.set(this, 'appChart', this.appCharts[0]?.value);
     }
@@ -180,6 +185,23 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   methods: {
+    getInitType(kind: number) {
+      let _kind = '';
+
+      if (kind === 1) {
+        _kind = APPLICATION_SOURCE_TYPE.ARCHIVE;
+      } else if (kind === 2) {
+        _kind = APPLICATION_SOURCE_TYPE.GIT_URL;
+      } else if (kind === 3) {
+        _kind = APPLICATION_SOURCE_TYPE.CONTAINER_URL;
+      } else if (kind === 4) {
+        _kind = APPLICATION_SOURCE_TYPE.GIT_HUB;
+      } else {
+        _kind = APPLICATION_SOURCE_TYPE.FOLDER;
+      }
+
+      this.unSafeType = _kind;
+    },
     urlRule() {
       const gitRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gm;
 
@@ -395,6 +417,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     type() {
+      // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
       return this.unSafeType.value || this.unSafeType;
     },
   }
