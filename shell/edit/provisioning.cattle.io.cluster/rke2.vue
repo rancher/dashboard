@@ -1160,11 +1160,11 @@ export default {
           //   pool.pool.instanceNameLimit = 17;
           // });
 
-          const truncateCheck = out.filter((pool) => {
+          out.filter((pool) => {
             this.truncateLimit = pool.pool.instanceNameLimit;
           });
 
-          if (truncateCheck && this.truncateLimit === 15 ) {
+          if (this.truncateLimit === 15 ) {
             this.truncateHostnames = true;
           }
         }
@@ -2613,7 +2613,7 @@ export default {
                 color="info"
               >
                 <div class="text">
-                  {{ t('cluster.machinePool.truncationCluster') }}{{ truncateLimit }}
+                  {{ t('cluster.machinePool.truncationCluster') }} {{ truncateLimit }}
                 </div>
               </Banner>
             </div>
