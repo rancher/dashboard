@@ -178,7 +178,7 @@ export default Vue.extend<Data, any, any, any>({
 
     this.$emit('valid', false);
     // Enables next button if we're in create mode and we have a source
-    if (this.mode === _CREATE && this.source?.type) {
+    if (this.mode === _CREATE && this.valid) {
       this.$emit('valid', true);
     }
 
