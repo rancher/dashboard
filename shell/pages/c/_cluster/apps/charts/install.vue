@@ -31,9 +31,7 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import {
-  clone, diff, get, pickBy, set
-} from '@shell/utils/object';
+import { clone, diff, get, set } from '@shell/utils/object';
 import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
