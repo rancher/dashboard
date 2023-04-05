@@ -238,7 +238,7 @@ export default {
         <div class="col span-12">
           <Banner color="info">
             <span
-              v-html="t('istio.pilotRequired', {}, true)"
+              v-clean-html="t('istio.pilotRequired', {}, true)"
             />
           </Banner>
         </div>
