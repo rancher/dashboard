@@ -1,7 +1,7 @@
 {
   "name": "macvlan",
-  "description": "macvlan plugin",
-  "version": "0.1.1",
+  "description": "A high-performance network solution based on a multi-NIC expansion mechanism.",
+  "version": "0.1.0",
   "private": false,
   "rancher": true,
   "scripts": {
