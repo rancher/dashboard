@@ -52,7 +52,7 @@ export default function(plugin: IPlugin) {
 }
 ```
 
-But as for a basic example of a product definition of your extension on your `product.js` file would be something along these lines:
+But as for a basic example of a product definition of your extension on your `product.ts` file would be something along these lines:
 
 ```ts
 export function init($plugin, store) {
@@ -187,7 +187,7 @@ export function init($plugin, store) {
 }
 ```
 
-With the route definition in the router (check the [Extension Routing](#extension-routing-definition) chapter), you can define which Vue component will be loaded as a custom page. That will act as a "blank canvas" to render anything you want.
+With the route definition in the router (check the [Extension Routing](#routes-definition-for-an-extension-as-a-top-level-product)) chapter, you can define which Vue component will be loaded as a custom page. That will act as a "blank canvas" to render anything you want.
 
 The acceptable parameters for the `virtualType` function are defined here:
 
@@ -602,7 +602,7 @@ Extensions should use a `pages` directory, as the shell currently does, but rout
 
 As touched on above, cluster and product information used to connect to the cluster and define navigation is determined from the route. Consequently, while extensions have a lot of control over their own routing, anything tied into one kubernetes cluster should be nested in `pages/c/_cluster`.
 
-> Note: All of the routes defined when setting up your Extension product (`product.js`) need to be defined as routes with the `addRoutes` method.
+> Note: All of the routes defined when setting up your Extension product (`product.ts`) need to be defined as routes with the `addRoutes` method.
 
 Within the `index.ts` in your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
 
@@ -626,7 +626,7 @@ export default function(plugin: IPlugin) {
 }
 ```
 
-Let's then take into consideration the following example a of `product.js` config:
+Let's then take into consideration the following example a of `product.ts` config:
 
 ```ts
 // this is the definition of a "blank cluster" for Rancher Dashboard
@@ -819,7 +819,7 @@ if a user wants a custom `list` view for the resource `your-custom-crd-name`, on
 
 For a `detail` view, just create a folder called `detail` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`.
 
-For an `edit` view, just create a folder called `edit` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`. The edit will dub as a `create` view also, so need to add a `create` folder. It can even dub as a `detail` view if you don't wish to duplicate it. 
+For an `edit` view, just create a folder called `edit` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`. The edit will dub as a `create` view also, so no need to add a `create` folder. It can even dub as a `detail` view if you don't wish to duplicate it. 
 
 The routing definition on this example for `/routing/extension-routing.ts` is based on Vue Router. Don't forget to check the official documentation [here](https://router.vuejs.org/guide/).
 
