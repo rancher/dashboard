@@ -96,6 +96,10 @@ export default Vue.extend({
     hasDescriptionSlot(): boolean {
       return !!this.$slots.description;
     },
+
+    hasLabelSlot(): boolean {
+      return !!this.$slots.label || !!this.$scopedSlots.label;
+    }
   },
 
   watch: {
@@ -149,12 +153,19 @@ export default Vue.extend({
     />
     <div class="labeling">
       <label
-        v-if="label"
-        v-clean-html="label"
         :class="[ muteLabel ? 'text-muted' : '', 'radio-label', 'm-0']"
         :for="name"
       >
-        <slot name="label">{{ label }}</slot>
+        <slot
+          v-if="hasLabelSlot"
+          name="label"
+        >
+          <!-- slot content -->
+        </slot>
+        <span
+          v-else-if="label"
+          v-clean-html="label"
+        />
       </label>
       <div
         v-if="descriptionKey || description"

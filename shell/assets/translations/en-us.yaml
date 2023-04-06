@@ -2607,6 +2607,7 @@ istio:
   kiali: Enable Kiali
   pilot: Enable Pilot
   policy: Enable Policy
+  pilotRequired: Pilot must be enabled in order to enable Kiali
   poweredBy: Powered by <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>
   telemetry: Enable Telemetry
   titles:
