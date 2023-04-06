@@ -65,7 +65,7 @@ There are two options that can be passed to the `@rancher/pkg` script:
 
 ### Configuring an Extension
 
-Replace the contents of the file `./pkg/test/index.js` with:
+Replace the contents of the file `./pkg/test/index.ts` with:
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
@@ -84,7 +84,7 @@ export default function(plugin: IPlugin) {
 }
 ```
 
-Next, create a new file `./pkg/test/product.js` with this content:
+Next, create a new file `./pkg/test/product.ts` with this content:
 
 ```ts
 export function init($plugin, store) {
@@ -93,12 +93,9 @@ export function init($plugin, store) {
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
-    icon: 'gear',
+    icon:    'gear',
     inStore: 'management',
-    weight: 100,
-    to: {
-      name: `${ YOUR_PRODUCT_NAME }-c-cluster`
-    }
+    weight:  100
   });
 }
 ```
