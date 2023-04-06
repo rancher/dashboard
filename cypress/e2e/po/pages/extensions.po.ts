@@ -240,7 +240,8 @@ export default class ExtensionsPo extends PagePo {
   }
 
   enterGitRepoName(name: string) {
-    return new LabeledInputPo(cy.get('[data-testid="clusterrepo-git-repo-input"]')).set(name);
+    // return cy.get('[data-testid="clusterrepo-git-repo-input"]').type(name);
+    return new LabeledInputPo(this.self().get('[data-testid="clusterrepo-git-repo-input"]')).set(name);
   }
 
   enterGitBranchName(name: string) {
