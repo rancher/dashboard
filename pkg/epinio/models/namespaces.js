@@ -1,4 +1,4 @@
-import { EPINIO_TYPES } from '~/pkg/epinio/types';
+import { EPINIO_TYPES } from '../types';
 import EpinioMetaResource from './epinio-namespaced-resource';
 
 export default class EpinioNamespace extends EpinioMetaResource {

@@ -1,8 +1,6 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import Vue from 'vue';
-import {
-  APPLICATION_ACTION_STATE, APPLICATION_ENV_VAR, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME
-} from '../types';
+import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME } from '../types';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 
 export const APPLICATION_ACTION_TYPE = {
@@ -142,20 +140,7 @@ export default class ApplicationActionResource extends Resource {
    * @param {*} params
    */
   async updateSource(params) {
-    if (params.source.type !== 'git_hub') {
-      const { EPINIO_APP_DATA, ...rest } = this.application.configuration.environment;
-
-      this.application.configuration.environment = rest;
-    } else {
-      this.application.configuration.environment = {
-        ...this.application.configuration.environment,
-        [APPLICATION_ENV_VAR]: JSON.stringify({
-          usernameOrOrg: params.source.github.usernameOrOrg,
-          repo:          params.source.github.repo,
-          branch:        params.source.github.branch,
-        })
-      };
-    }
+    this.application.setEnvVarFromSource(params.source);
 
     await this.application.update();
   }

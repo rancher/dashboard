@@ -80,11 +80,21 @@ export default Vue.extend<Data, any, any, any>({
       );
     }
 
+    if (REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.UPDATE_SOURCE,
+          index:  2, // index used for sorting
+          ...coreArgs,
+        })
+      );
+    }
+
     if (this.bindings?.configurations?.length && !REDEPLOY_SOURCE) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
-          index:  2,
+          index:  3,
           ...coreArgs,
         })
       );
@@ -94,7 +104,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BIND_SERVICES,
-          index:  3,
+          index:  4,
           ...coreArgs,
         })
       );
@@ -105,7 +115,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.UPLOAD,
-          index:  4,
+          index:  5,
           ...coreArgs,
         })
       );
@@ -115,7 +125,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.GIT_FETCH,
-          index:  4,
+          index:  5,
           ...coreArgs,
         })
       );
@@ -124,7 +134,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.GIT_FETCH,
-          index:  5,
+          index:  6,
           ...coreArgs,
         })
       );
@@ -137,7 +147,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BUILD,
-          index:  6,
+          index:  7,
           ...coreArgs,
         })
       );
@@ -145,20 +155,10 @@ export default Vue.extend<Data, any, any, any>({
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action: APPLICATION_ACTION_TYPE.DEPLOY,
-      index:  7,
+      index:  8,
       ...coreArgs
     })
     );
-
-    if (REDEPLOY_SOURCE) {
-      this.actions.push(
-        await this.$store.dispatch('epinio/create', {
-          action: APPLICATION_ACTION_TYPE.UPDATE_SOURCE,
-          index:  10, // index used for sorting
-          ...coreArgs,
-        })
-      );
-    }
 
     this.create();
   },

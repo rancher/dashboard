@@ -15,8 +15,8 @@ typeLabel:
     }
   appcharts: |-
     {count, plural,
-      one { Application Templates }
-      other { Application Templates }
+      one { Application Charts }
+      other { Application Charts }
     }
   "services": |-
     {count, plural,
@@ -38,7 +38,7 @@ typeDescription:
   applications: Epinio uses Applications to transition your code, through build, to being deployed.
   services: Epinio can create instances of your services. Instances can be bound to your applications to provide data, for example a database service bound to an application might provide connection credentials.
   configurations: Configurations are a way to provide data to applications. The data becomes available once the configuration is bound to them.
-  appcharts: Application Templates define kube resources created by your application
+  appcharts: Application Charts define kube resources created by your application. Templates for active applications cannot be changed
   catalogservices: Catalog Services provide additional, common functionality to applications. For example an instance of a database Catalog Service can be bound to an application.
 asyncButton:
   export:
@@ -174,7 +174,7 @@ epinio:
             default: Default Image
             custom: Custom Image
           appchart:
-            label: Application Template
+            label: Application Chart
         containerUrl:
           label: Container Image
           url:

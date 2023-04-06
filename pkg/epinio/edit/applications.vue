@@ -15,8 +15,8 @@ import AppSource, { EpinioAppSource } from '../components/application/AppSource.
 import { _EDIT } from '@shell/config/query-params';
 
 import AppProgress from '../components/application/AppProgress.vue';
-import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_TYPES } from '~/pkg/epinio/types';
-import { allHash } from '~/shell/utils/promise';
+import { EPINIO_TYPES } from '../types';
+import { allHash } from '@shell/utils/promise';
 interface Data {
   bindings: EpinioAppBindings,
   source?: EpinioAppSource,
@@ -83,6 +83,7 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
   },
+
   async fetch() {
     const hash: { [key:string]: any } = await allHash({
       ns:     this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
@@ -101,6 +102,7 @@ export default Vue.extend<Data, any, any, any>({
       return this.mode === _EDIT;
     },
   },
+
   methods: {
     async save(saveCb: (success: boolean) => void) {
       this.errors = [];
@@ -173,15 +175,7 @@ export default Vue.extend<Data, any, any, any>({
         this.set(this.value.configuration, { appchart: appChart });
       }
 
-      if (changes.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
-        this.value.configuration.environment = this.value.configuration.environment || {};
-        const githubEnvVar = this.value.gitEnvVars(changes);
-
-        this.set(this.value.configuration.environment, {
-          ...this.value.configuration.environment,
-          [APPLICATION_ENV_VAR]: JSON.stringify(githubEnvVar)
-        });
-      }
+      this.value.setEnvVarFromSource(changes);
 
       this.set(this.source, cleanChanges);
     },
@@ -190,6 +184,17 @@ export default Vue.extend<Data, any, any, any>({
       this.set(this.value.configuration, { configurations: changes });
     },
   },
+
+  watch: {
+    value: {
+      handler(neu, old) {
+        if (!old && !!neu && !this.source) {
+          this.source = this.value.sourceFromEnvVar();
+        }
+      },
+      immediate: true
+    }
+  }
 });
 </script>
 
