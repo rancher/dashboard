@@ -3,7 +3,7 @@ import AsyncButtonPo from '~/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 import TabPo from '~/cypress/e2e/po/components/tab.po';
 import ActionMenuPo from '~/cypress/e2e/po/components/action-menu.po';
-import NameNsDescriptionPo from '~/cypress/e2e/po/components/name-ns-description.po';
+// import NameNsDescriptionPo from '~/cypress/e2e/po/components/name-ns-description.po';
 // import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 
 export default class ExtensionsPo extends PagePo {
@@ -236,7 +236,8 @@ export default class ExtensionsPo extends PagePo {
   }
 
   enterClusterRepoName(name: string) {
-    return new NameNsDescriptionPo(this.self()).name().set(name);
+    return cy.get('[data-testid="name-ns-description-name"] input').type(name);
+    // return new NameNsDescriptionPo(this.self()).name().set(name);
   }
 
   enterGitRepoName(name: string) {
