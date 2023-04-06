@@ -4,7 +4,7 @@ import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 import TabPo from '~/cypress/e2e/po/components/tab.po';
 import ActionMenuPo from '~/cypress/e2e/po/components/action-menu.po';
 import NameNsDescriptionPo from '~/cypress/e2e/po/components/name-ns-description.po';
-import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
+// import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 
 export default class ExtensionsPo extends PagePo {
   static url: string = '/c/local/uiplugins'
