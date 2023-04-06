@@ -225,11 +225,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
   get applicationType() {
     // TODO: Adjust after merge for Gitlab
-    if (this.configuration?.environment[APPLICATION_ENV_VAR]) {
-      return true;
-    } else {
-      return false;
-    }
+    return this.configuration?.environment[APPLICATION_ENV_VAR];
   }
 
   get desiredInstances() {
