@@ -4,7 +4,9 @@ import { formatSi } from '@shell/utils/units';
 import JSZip from 'jszip';
 import { epiniofy } from '../store/epinio-store/actions';
 import {
-  APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+  APPLICATION_ACTION_STATE,
+  APPLICATION_ENV_VAR,
+  APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
 } from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
 import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
@@ -221,6 +223,15 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return formatSi(this.deployment?.memoryBytes);
   }
 
+  get applicationType() {
+    // TODO: Adjust after merge for Gitlab
+    if (this.configuration?.environment[APPLICATION_ENV_VAR]) {
+      return 'Github';
+    } else {
+      return 'Git';
+    }
+  }
+
   get desiredInstances() {
     return this.deployment?.desiredreplicas;
   }
@@ -278,20 +289,6 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
           appChart, {
             label: 'Image',
             value: this.origin.Container || this.origin.container
-          }]
-      };
-    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB:
-      return {
-        label:   'GitHub',
-        icon:    'icon-github',
-        details: [
-          appChart, {
-            label: 'Url',
-            value: this.origin.git.repository
-          }, {
-            label: 'Revision',
-            icon:  'icon-github',
-            value: this.origin.git.revision
           }]
       };
     default:
