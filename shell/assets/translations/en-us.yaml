@@ -1598,6 +1598,23 @@ cluster:
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
+  agentConfig:
+    tabs:
+      cluster: Cluster Agent
+      fleet: Fleet Agent
+    groups:
+      deploymentLabels: Deployment Labels
+      selector: Selector
+      podAffinity: Pod Affinity
+      podTolerations: Pod Tolerations
+      podRequestsAndLimits: Pod Requests and Limits
+    banners:
+      clusterAdvanced: This is advanced configuration for the  Cluster agent deployment. You should generally leave this as is.
+      fleetAdvanced: This is advanced configuration for the Fleet agent deployment. You should generally leave this as is.
+      tolerations: Pod Tolerations added here will be combined with default Tolerations applied by Rancher
+    affinity:
+      default: Use default affinity rules defined by Rancher
+      custom: Use custom affinity rules
   advanced:
     argInfo:
       title: Additional Kubelet Args

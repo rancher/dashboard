@@ -69,6 +69,7 @@ import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
+import AgentConfiguration, { cleanAgentConfiguration } from './AgentConfiguration';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -96,6 +97,8 @@ const NODE_TOTAL = {
     icon:  'icon-checkmark'
   }
 };
+const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
+const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
 export default {
   components: {
@@ -107,6 +110,7 @@ export default {
     BadgeState,
     Banner,
     Checkbox,
+    AgentConfiguration,
     ClusterMembershipEditor,
     CruResource,
     DrainOptions,
@@ -274,6 +278,18 @@ export default {
 
       this.userChartValues[key] = value;
     });
+
+    // Ensure we have empty models for the two agent configurations
+
+    // Cluster Agent Configuration
+    if ( !this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]) {
+      set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, {});
+    }
+
+    // Fleet Agent Configuration
+    if ( !this.value.spec[FLEET_AGENT_CUSTOMIZATION] ) {
+      set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, {});
+    }
   },
 
   data() {
@@ -1477,6 +1493,17 @@ export default {
       if (this.value.spec?.rkeConfig?.machineGlobalConfig?.profile === null) {
         delete this.value.spec.rkeConfig.machineGlobalConfig.profile;
       }
+
+      const clusterAgentDeploymentCustomization = JSON.parse(JSON.stringify(this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]));
+      const fleetAgentDeploymentCustomization = JSON.parse(JSON.stringify(this.value.spec[FLEET_AGENT_CUSTOMIZATION]));
+
+      // Clean agent configuration objects, so we only send values when the user has configured something
+      cleanAgentConfiguration(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION);
+      cleanAgentConfiguration(this.value.spec, FLEET_AGENT_CUSTOMIZATION);
+
+      // Ensure the agent configuration is set back to the values before we changed (cleaned) it
+      set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, clusterAgentDeploymentCustomization);
+      set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, fleetAgentDeploymentCustomization);
 
       await this.save(btnCb);
     },
@@ -2831,6 +2858,30 @@ export default {
               class="yaml-editor"
             />
           </div>
+        </Tab>
+
+        <!-- Cluster Agent Configuration -->
+        <Tab
+          name="clusteragentconfig"
+          label-key="cluster.agentConfig.tabs.cluster"
+        >
+          <AgentConfiguration
+            v-model="value.spec.clusterAgentDeploymentCustomization"
+            type="cluster"
+            :mode="mode"
+          />
+        </Tab>
+
+        <!-- Fleet Agent Configuration -->
+        <Tab
+          name="fleetagentconfig"
+          label-key="cluster.agentConfig.tabs.fleet"
+        >
+          <AgentConfiguration
+            v-model="value.spec.fleetAgentDeploymentCustomization"
+            type="fleet"
+            :mode="mode"
+          />
         </Tab>
 
         <!-- Advanced -->

@@ -26,6 +26,13 @@ export default {
       }
     },
 
+    // Field key on the value object to store the pod affinity - typically this is 'affinity'
+    // Cluster Agent Configuration uses a different field
+    field: {
+      type:    String,
+      default: 'affinity'
+    },
+
     mode: {
       type:    String,
       default: 'create'
@@ -47,10 +54,10 @@ export default {
   },
 
   data() {
-    if (!this.value.affinity) {
-      this.$set(this.value, 'affinity', {});
+    if (!this.value[this.field]) {
+      this.$set(this.value, this.field, {});
     }
-    const { podAffinity = {}, podAntiAffinity = {} } = this.value.affinity;
+    const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
     const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
       const out = clone(term);
 
@@ -154,7 +161,7 @@ export default {
         }
       });
 
-      Object.assign(this.value.affinity, { podAffinity, podAntiAffinity });
+      Object.assign(this.value[this.field], { podAffinity, podAntiAffinity });
       this.$emit('update', this.value);
     },
 
@@ -233,7 +240,7 @@ export default {
         class="mt-20"
         :default-add-value="{ matchExpressions: [] }"
         :mode="mode"
-        :add-label="t('workload.scheduling.affinity.addNodeSelector')"
+        :add-label="t('podAffinity.addLabel')"
         @remove="remove"
       >
         <template #default="props">
@@ -268,10 +275,9 @@ export default {
               @input="changeNamespaceMode(props.row.value, props.i)"
             />
           </div>
-          <div class="spacer" />
           <div
             v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')"
-            class="row mb-20"
+            class="row mt-10 mb-20"
           >
             <LabeledSelect
               v-if="hasNamespaces"
@@ -301,9 +307,8 @@ export default {
             :show-remove="false"
             @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
           />
-          <div class="spacer" />
-          <div class="row">
-            <div class="col span-12">
+          <div class="row mt-20">
+            <div class="col span-9">
               <LabeledSelect
                 v-if="hasNodes"
                 v-model="props.row.value.topologyKey"
@@ -329,11 +334,7 @@ export default {
                 @input="update"
               />
             </div>
-          </div>
-
-          <div class="spacer" />
-          <div class="row">
-            <div class="col span-6">
+            <div class="col span-3">
               <LabeledInput
                 v-model.number="props.row.value.weight"
                 :mode="mode"
