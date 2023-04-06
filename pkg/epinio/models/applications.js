@@ -226,9 +226,9 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
   get applicationType() {
     // TODO: Adjust after merge for Gitlab
     if (this.configuration?.environment[APPLICATION_ENV_VAR]) {
-      return 'Github';
+      return true;
     } else {
-      return 'Git';
+      return false;
     }
   }
 
@@ -268,7 +268,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       };
     case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
       return {
-        label:   'Git',
+        label:   this.applicationType ? 'GitHub' : 'Git',
         icon:    'icon-github',
         details: [
           appChart, {

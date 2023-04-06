@@ -394,7 +394,7 @@ export default Vue.extend<Data, any, any, any>({
                 <ul>
                   <li>
                     <h4>{{ t('epinio.applications.detail.deployment.details.origin') }}</h4>
-                    <span>{{ value.applicationType }}</span>
+                    <span>{{ value.sourceInfo.label }}</span>
                   </li>
 
                   <li
