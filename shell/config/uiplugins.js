@@ -38,6 +38,13 @@ export const UI_PLUGIN_CHART_ANNOTATIONS = {
   DISPLAY_NAME:       'catalog.cattle.io/display-name',
 };
 
+// Extension catalog labels
+export const UI_PLUGIN_LABELS = {
+  CATALOG_IMAGE: 'catalog.cattle.io/ui-extensions-catalog-image',
+  REPOSITORY:    'catalog.cattle.io/ui-extensions-repository',
+  CATALOG:       'catalog.cattle.io/ui-extensions-catalog'
+};
+
 // Plugin Metadata properties
 export const UI_PLUGIN_METADATA = {
   RANCHER_VERSION:   'rancherVersion',
@@ -97,6 +104,10 @@ export function shouldNotLoadPlugin(plugin, rancherVersion) {
     if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
     }
+  }
+
+  if (plugin.metadata?.[UI_PLUGIN_LABELS.CATALOG]) {
+    return true;
   }
 
   return false;

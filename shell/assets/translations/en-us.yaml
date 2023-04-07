@@ -3994,12 +3994,14 @@ plugins:
     builtin: Built-in
     experimental: Experimental
     third-party: Third-Party
+    image: Image
     installing: Installing ...
     uninstalling: Uninstalling ...
   descriptions:
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
     built-in: This Extension is built-in
+    image: This Extension Image has been loaded manually
   error:
     title: Error loading extension
     message: Could not load extension code
@@ -4029,12 +4031,52 @@ plugins:
     available: No Extensions available
     installed: No Extensions installed
     updates: No updates available for installed Extensions
+    images: No Extension Images installed
   loadError: An error occurred loading the code for this extension
   helmError: "An error occurred installing the extension via Helm"
   manageRepos: Manage Repositories
+  manageCharts: Manage Extension Charts
+  manageCatalog:
+    label: Manage Extension Catalog
+    title: Extension Catalog
+    imageLoad:
+      load: Import Extension Catalog
+      prompt: An Extension Catalog contains extension assets bundled into an image, importing will take the image and host a Helm repository to act as a catalog for custom built Extensions. 
+      fields:
+        image:
+          label: Catalog Image Reference
+          placeholder: "e.g. hub.docker.io/example-org/my-image:latest"
+        secrets:
+          banner: "If the registry that hosts the Catalog Image requires Pull Secrets, they must be created in the following namespace:<pre>cattle-ui-plugin-system</pre>"
+      banner: This will create an Deployment, Service, and Helm repository to serve the extension charts. 
+      imageVersion:
+        title: Image Version Not Found
+        message: Unable to determine image version from {image}, defaulting to latest
+      error:
+        exists:
+          deployment:
+            title: Deployment Conflict
+            message: A container with the image {image} already exists
+          service:
+            title: Service Conflict
+            message: A service with the name {svc} already exists
+          repo:
+            title: Helm Repository Conflict
+            message: A repository with the name {repo} already exists
+      success:
+        title: Loaded extension image {name}
+        message: Extension image was loaded successfully
+    headers:
+      image:
+        name: images
+        label: Deployment Image
+      cacheState:
+        name: cacheState
+        label: Cache State
   tabs:
     all: All
     available: Available
+    images: Images
     installed: Installed
     updates: Updates
   title: Extensions
@@ -4057,6 +4099,7 @@ plugins:
     label: Uninstall
     title: "Uninstall Extension: {name}"
     prompt: "Are you sure that you want to uninstall this Extension?"
+    custom: "Are you sure that you want to uninstall this Extension Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available
   reload: Extensions changed - reload required
   safeMode:

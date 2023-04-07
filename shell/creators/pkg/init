@@ -114,14 +114,21 @@ if (addWorkflowFolder) {
     fs.mkdirSync(workflowDir, { recursive: true });
   }
 
-  const workflowFile = path.join(workflowDir, 'build-extension.yml');
+  const files = [
+    'build-extension.yml',
+    'build-container.yml'
+  ];
 
-  if (!fs.existsSync(workflowFile)) {
-    const src = path.join(__dirname, 'files/.github/workflows', 'build-extension.yml');
+  files.forEach((fileName) => {
+    const file = path.join(workflowDir, fileName);
 
-    console.log(`  Adding file 'build-extension.yml' to root workflows`);
-    fs.copySync(src, workflowFile);
-  }
+    if (!fs.existsSync(file)) {
+      const src = path.join(__dirname, 'files/.github/workflows', fileName);
+
+      console.log(`  Adding file ${ fileName } to root workflows`);
+      fs.copySync(src, file);
+    }
+  });
 }
 
 // Copy base files

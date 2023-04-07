@@ -994,3 +994,37 @@ export const RBAC_SERVICE_ACCOUNTS = {
   sort:     ['serviceAccount'],
   getValue: row => row.serviceAccounts?.map(({ name }) => name),
 };
+
+export const UI_PLUGIN_CATALOG = [
+  {
+    name:          'state',
+    labelKey:      'tableHeaders.state',
+    sort:          ['stateSort', 'nameSort'],
+    value:         'state',
+    width:         100,
+    default:       'unknown',
+    formatter:     'BadgeStateFormatter',
+    formatterOpts: { arbitrary: true }
+  },
+  {
+    name:      'name',
+    labelKey:  'tableHeaders.name',
+    value:     'name',
+    sort:      ['nameSort'],
+    formatter: 'LinkDetail'
+  },
+  {
+    name:     'image',
+    sort:     ['image'],
+    labelKey: 'plugins.manageCatalog.headers.image.label',
+    value:    'deploymentImage'
+  },
+  {
+    name:          'cacheState',
+    sort:          ['cacheState'],
+    labelKey:      'plugins.manageCatalog.headers.cacheState.label',
+    value:         'cacheState',
+    formatter:     'BadgeStateFormatter',
+    formatterOpts: { arbitrary: true }
+  }
+];

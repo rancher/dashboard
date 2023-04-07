@@ -252,7 +252,7 @@ yarn create @rancher/pkg test -w
 
 This will create a `.github` directory within the root folder of your app which will contain the `build-extension.yml` workflow file. Initially the release is gated by a Push or Pull Request targeting the `main` branch. To update your workflow with different events to trigger the workflow, you can find more information in the [Github docs](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
 
-> Note: If you wish to build and publish the Helm chart manually or to a specific registry, you can follow the steps listed in the [Advanced section](./advanced#publishing-the-extension-manually).
+> Note: If you wish to build and publish the Helm chart manually or to a specific registry, you can follow the steps listed in the [Publishing an Extension section](./publishing#manually-publishing-an-extension).
 
 ### Consuming the Helm chart
 
