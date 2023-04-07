@@ -165,6 +165,7 @@ module.exports = function(dir, _appConfig) {
   const autoImportTypes = {};
   const VirtualModulesPlugin = require('webpack-virtual-modules');
   let reqs = '';
+  let extensionConfigure = '';
   const pkgFolder = path.relative(dir, './pkg');
 
   if (fs.existsSync(pkgFolder)) {
@@ -176,7 +177,12 @@ module.exports = function(dir, _appConfig) {
 
       // Package file must have rancher field to be a plugin
       if (includePkg(name) && f.rancher) {
-        reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
+        // Use the new version of extension configuration if configure.ts exists in the package
+        if (fs.existsSync(path.join(dir, 'pkg', name, 'configure.ts'))) {
+          extensionConfigure += `$extension.configure(require(\'~/pkg/${ name }/configure\')); `;
+        } else {
+          reqs += `$plugin.initPlugin('${ name }', require(\'~/pkg/${ name }\')); `;
+        }
       }
 
       // // Serve the code for the UI package in case its used for dynamic loading (but not if the same package was provided in node_modules)
@@ -195,8 +201,9 @@ module.exports = function(dir, _appConfig) {
   });
 
   // Generate a virtual module '@rancher/dyanmic.js` which imports all of the packages that should be built into the application
-  // This is imported in 'shell/extensions/extension-loader.js` which ensures the all code for plugins to be included is imported in the application
+  // This is imported in 'shell/core/plugins-loader.js` which ensures the all code for plugins to be included is imported in the application
   const virtualModules = new VirtualModulesPlugin({ 'node_modules/@rancher/dynamic.js': `export default function ($plugin) { ${ reqs } };` });
+  const extensionsConfigurationVirtualModule = new VirtualModulesPlugin({ 'node_modules/@rancher/extensionsConfiguration.js': `export default function ($extension) { ${ extensionConfigure } };` });
   const autoImport = new webpack.NormalModuleReplacementPlugin(/^@rancher\/auto-import$/, (resource) => {
     const ctx = resource.context.split('/');
     const pkg = ctx[ctx.length - 1];
@@ -387,6 +394,7 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@components'] = COMPONENTS_DIR;
       config.resolve.modules.push(__dirname);
       config.plugins.push(virtualModules);
+      config.plugins.push(extensionsConfigurationVirtualModule);
       config.plugins.push(autoImport);
       config.plugins.push(new VirtualModulesPlugin(autoImportTypes));
       config.plugins.push(pkgImport);
