@@ -123,6 +123,7 @@ const sidebars = {
           type:  'category',
           label: 'Advanced',
           items: [
+            'extensions/advanced/air-gapped-environments',
             'extensions/advanced/localization',
             'extensions/advanced/hooks',
             'extensions/advanced/stores',

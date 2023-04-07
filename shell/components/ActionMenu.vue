@@ -60,7 +60,7 @@ export default {
     customTargetEvent: {
       // The event details from the user's click can be used
       // for positioning the menu on the page.
-      type:    PointerEvent,
+      type:    [PointerEvent, MouseEvent],
       default: null
     },
 
