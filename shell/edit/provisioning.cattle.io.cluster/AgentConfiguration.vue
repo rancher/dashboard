@@ -2,6 +2,7 @@
 import { Banner } from '@components/Banner';
 import GroupPanel from '@shell/components/GroupPanel';
 import PodAffinity from '@shell/components/form/PodAffinity';
+import NodeAffinity from '@shell/components/form/NodeAffinity';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import Tolerations from '@shell/components/form/Tolerations';
 import { cleanUp } from '@shell/utils/object';
@@ -42,6 +43,7 @@ export default {
     ContainerResourceLimit,
     GroupPanel,
     PodAffinity,
+    NodeAffinity,
     RadioGroup,
     Tolerations,
   },
@@ -88,6 +90,7 @@ export default {
       bannerMessageKey,
       defaultAffinity: {},
       affinitySetting: DEFAULT,
+      nodeAffinity: {}
     };
   },
 
@@ -173,16 +176,29 @@ export default {
         this.value.overrideAffinity = this.value.overrideAffinity || {};
         this.value.appendTolerations = this.value.appendTolerations || [];
         this.value.overrideResourceRequirements = this.value.overrideResourceRequirements || {};
+
+        this.nodeAffinity = this.value?.overrideAffinity?.nodeAffinity || {};
       }
     },
 
     affinitySettingChange() {
       if (this.affinitySetting === CUSTOM) {
+        const parsedDefaultAffinites = JSON.parse(JSON.stringify(this.defaultAffinity));
         // Copy the default so that the user can edit it
-        this.$set(this.value, 'overrideAffinity', JSON.parse(JSON.stringify(this.defaultAffinity)));
+        // this will cover the pod affinities
+        this.$set(this.value, 'overrideAffinity', parsedDefaultAffinites);
+
+        // in order not to break the node affinity component, let's go for a slightly different way of handling the logic here
+        if (parsedDefaultAffinites.nodeAffinity) {
+          this.nodeAffinity = parsedDefaultAffinites.nodeAffinity;
+        }
+        
       } else {
         this.$set(this.value, 'overrideAffinity', {});
       }
+    },
+    updateNodeAffinity(val) {
+      this.$set(this.value.overrideAffinity, 'nodeAffinity', val);
     }
   }
 };
@@ -200,10 +216,16 @@ export default {
       label-key="cluster.agentConfig.groups.podRequestsAndLimits"
       class="mt-20"
     >
+    <Banner
+      :closable="false"
+      color="info"
+      label-key="cluster.agentConfig.banners.limits"
+    />
       <ContainerResourceLimit
         v-model="flatResources"
         :mode="mode"
         :show-tip="false"
+        :handle-gpu-limit="false"
         class="mt-10"
       />
     </GroupPanel>
@@ -221,13 +243,32 @@ export default {
         @input="affinitySettingChange"
       />
 
+      <Banner
+        v-if="canEditAffinity"
+        :closable="false"
+        color="warning"
+      >
+        <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)"></p>
+      </Banner>
+
       <PodAffinity
         v-if="canEditAffinity"
         v-model="value"
         field="overrideAffinity"
         :mode="mode"
         class="mt-0"
+        :all-namespaces-option-available="true"
+        :force-input-namespace-selection="true"
       />
+
+      <NodeAffinity
+        v-if="canEditAffinity"
+        v-model="nodeAffinity"
+        @input="updateNodeAffinity"
+        :mode="mode"
+        class="mt-0"
+      />
+      
     </GroupPanel>
 
     <GroupPanel

@@ -1611,7 +1611,9 @@ cluster:
     banners:
       clusterAdvanced: This is advanced configuration for the  Cluster agent deployment. You should generally leave this as is.
       fleetAdvanced: This is advanced configuration for the Fleet agent deployment. You should generally leave this as is.
-      tolerations: Pod Tolerations added here will be combined with default Tolerations applied by Rancher
+      tolerations: Pod Tolerations added here will be combined with default Tolerations applied by Rancher.
+      limits: Pod Requests and Limits don't make use of a default configuration.
+      windowsCompatibility: "We highly recommended to not remove the Node Affinity rule that prevents <b>cattle-cluster-agent</b> from running on Windows nodes as it's not officially supported on Windows."
     affinity:
       default: Use default affinity rules defined by Rancher
       custom: Use custom affinity rules
@@ -5963,6 +5965,7 @@ workload:
       schedulingRules: Run pods on node(s) matching scheduling rules
       specificNode: Run pods on specific node(s)
       thisPodNamespace: This pod's namespace
+      allNamespaces: All namespaces
       topologyKey:
         label: Topology Key
         placeholder: e.g. failure-domain.beta.kubernetes.io/zone

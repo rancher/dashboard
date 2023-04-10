@@ -26,6 +26,11 @@ export default {
       }
     },
 
+    handleGpuLimit: {
+      type:    Boolean,
+      default: true
+    },
+
     registerBeforeHook: {
       type:    Function,
       default: null
@@ -223,7 +228,10 @@ export default {
         />
       </span>
     </div>
-    <div class="row">
+    <div
+      v-if="handleGpuLimit"
+      class="row"
+    >
       <span class="col span-6">
         <UnitInput
           v-model="limitsGpu"
