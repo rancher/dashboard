@@ -1167,7 +1167,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'machine-config', key, key => resolveCloudCredentialComponent(key));
+      return hasCustom(state, rootState, 'cloud-credential', key, key => resolveCloudCredentialComponent(key));
     };
   },
 
