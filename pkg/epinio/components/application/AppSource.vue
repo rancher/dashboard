@@ -11,10 +11,12 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
-import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
+import {
+  APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo, AppSourceArchive, AppSourceContainer, AppSourceGit, AppSourceGitUrl, AppSourceBuilderImage, EpinioAppSource, GitAPIData
+} from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 import camelCase from 'lodash/camelCase';
-import { toLabel } from '../../utils/git';
+import { gitUtilsToLabel } from '../../utils/git';
 import { _EDIT } from '@shell/config/query-params';
 
 const GIT_BASE_URL = {
@@ -24,60 +26,16 @@ const GIT_BASE_URL = {
 
 export const EPINIO_APP_MANIFEST = 'manifest';
 
-interface Archive{
-  tarball: string,
-  fileName: string
-}
-
-interface Container {
-  url: string,
-}
-
-interface GitUrl {
-  url: string,
-  branch: string
-}
-
-type GitAPIData = {
-  repos: any[],
-  branches: any[],
-  commits: any[]
-}
-export interface Git {
-  type: 'git_hub' | 'git_lab',
-  usernameOrOrg?: string,
-  repo: { id?: string, name: string },
-  commit: string,
-  branch: { id?: string, name: string },
-  url: string,
-  sourceData: GitAPIData
-}
-
-interface BuilderImage {
-  value: string,
-  default: boolean,
-}
-
 interface Data {
   open: boolean,
-  archive: Archive,
-  container: Container,
-  git: Git,
-  gitUrl: GitUrl,
-  builderImage: BuilderImage,
+  archive: AppSourceArchive,
+  container: AppSourceContainer,
+  git: AppSourceGit,
+  gitUrl: AppSourceGitUrl,
+  builderImage: AppSourceBuilderImage,
   types: any[],
-  type: string, // APPLICATION_SOURCE_TYPE || { } from the select component
+  type: APPLICATION_SOURCE_TYPE ;// || { } from the select component
   APPLICATION_SOURCE_TYPE: typeof APPLICATION_SOURCE_TYPE
-}
-
-export interface EpinioAppSource {
-  type: string // APPLICATION_SOURCE_TYPE,
-  archive: Archive,
-  container: Container,
-  git: Git,
-  gitUrl: GitUrl,
-  builderImage: BuilderImage,
-  appChart: string,
 }
 
 interface FileWithRelativePath extends File {
@@ -122,7 +80,7 @@ export default Vue.extend<Data, any, any, any>({
     const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
-    const sourceType = this.application.sourceType || APPLICATION_SOURCE_TYPE.FOLDER;
+    const sourceType = this.application.sourceType as APPLICATION_SOURCE_TYPE || APPLICATION_SOURCE_TYPE.FOLDER;
 
     return {
       open: false,
@@ -142,7 +100,6 @@ export default Vue.extend<Data, any, any, any>({
       },
 
       git: {
-        type:          this.source?.git.type || '',
         usernameOrOrg: this.source?.git.usernameOrOrg || '',
         repo:          this.source?.git.repo || '',
         commit:        this.source?.git.commit || '',
@@ -167,7 +124,7 @@ export default Vue.extend<Data, any, any, any>({
         value
       })),
 
-      type: sourceType,
+      type: sourceType as APPLICATION_SOURCE_TYPE,
       APPLICATION_SOURCE_TYPE,
       EDIT: _EDIT
     };
@@ -330,11 +287,9 @@ export default Vue.extend<Data, any, any, any>({
       branch: string,
       sourceData: GitAPIData
     }) {
-      debugger; // commit or commitSha // TODO: RC
       if (!!selectedAccOrOrg && !!repo && !!commit && !!branch) {
-        const url = `${ GIT_BASE_URL[this.type] }/${ selectedAccOrOrg }/${ repo.name }`;
+        const url = `${ GIT_BASE_URL[this.type as APPLICATION_SOURCE_TYPE.GIT_HUB | APPLICATION_SOURCE_TYPE.GIT_LAB] }/${ selectedAccOrOrg }/${ repo.name }`;
 
-        this.git.type = this.type;
         this.git.usernameOrOrg = selectedAccOrOrg;
         this.git.url = url;
         this.git.commit = commit;
@@ -404,10 +359,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     sourceValue() {
-      return {
-        ...this.source.git,
-        type: toLabel(this.type),
-      };
+      return { ...this.source.git };
     },
   }
 });
@@ -528,6 +480,7 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else>
       <KeepAlive>
         <GitPicker
+          :gh-type="type"
           :value="sourceValue"
           @change="gitUpdate"
         />

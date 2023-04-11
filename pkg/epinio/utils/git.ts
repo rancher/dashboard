@@ -1,5 +1,4 @@
 import { ucFirst } from '@shell/utils/string';
-import { EPINIO_APP_ENV_VAR_GIT } from '../types';
 
 interface Repo {
   owner: any,
@@ -23,9 +22,6 @@ interface Commit {
 }
 
 type Utils = Record<string, {
-  application: {
-    env: (data: object) => EPINIO_APP_ENV_VAR_GIT
-  },
   normalize: {
     repo: (data: object) => Repo,
     commit: (data: object) => Commit
@@ -36,16 +32,7 @@ function getShortHash(commit: string) {
   return !!commit ? commit.slice(0, 7) : undefined;
 }
 
-function applicationEnv(data: any) {
-  return {
-    type:          toLabel(data.type),
-    usernameOrOrg: data.usernameOrOrg as string,
-    repo:          data.repo,
-    branch:        data.branch,
-  };
-}
-
-export function toLabel(type: string, options = { startCase: false }) {
+export function gitUtilsToLabel(type: string, options = { startCase: false }) {
   const res = type.replace('_', '');
 
   if (options?.startCase) {
@@ -57,8 +44,7 @@ export function toLabel(type: string, options = { startCase: false }) {
 
 export const GitUtils: Utils = {
   github: {
-    application: { env: applicationEnv },
-    normalize:   {
+    normalize: {
       repo: (data: any) => ({
         owner: {
           name:      data.owner?.login,
@@ -87,8 +73,7 @@ export const GitUtils: Utils = {
     },
   },
   gitlab: {
-    application: { env: applicationEnv },
-    normalize:   {
+    normalize: {
       repo: (data: any) => ({
         owner: {
           name:      data.namespace.name,
@@ -98,7 +83,7 @@ export const GitUtils: Utils = {
         description: data.description,
         created_at:  data.created_at,
         updated_at:  data.last_activity_at,
-        htmlUrl:     data.http_url_to_repo,
+        htmlUrl:     data.web_url,
         name:        data.name
       }),
       commit: (data: any) => ({

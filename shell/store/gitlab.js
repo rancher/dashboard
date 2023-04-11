@@ -108,7 +108,7 @@ export const actions = {
       }
     }
 
-    return commits.length === 1 ? commits[0] : commits;
+    return commits;
   },
 
   async search({ dispatch }, { repo, username, branch }) {

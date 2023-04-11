@@ -251,7 +251,9 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
   }
 
   /**
-   * Convert the App Env Var to EpinioAppSource (opposite of setEnvVarFromSource)
+   * Convert the EPINIO_APP_DATA (persisted App Env Var object) to EpinioAppSource (UI object)
+   *
+   * (opposite of setEnvVarFromSource)
    *
    * @returns EpinioAppSource
    */
@@ -272,10 +274,8 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
       switch (this.sourceType) {
       case APPLICATION_SOURCE_TYPE.GIT_HUB:
-        appSource.github = appEnvVar.source[this.sourceType];
-        break;
       case APPLICATION_SOURCE_TYPE.GIT_LAB:
-        appSource.gitLab = appEnvVar.source[this.sourceType]; // TODO: RC
+        appSource.git = appEnvVar.source[this.sourceType];
         break;
       case APPLICATION_SOURCE_TYPE.GIT_URL:
         appSource.gitUrl = appEnvVar.source[this.sourceType];
@@ -290,10 +290,12 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
   }
 
   /**
-   * Convert EpinioAppSource to the App Env Var (opposite of sourceFromEnvVar)
+   * Convert EpinioAppSource (UI object) to EPINIO_APP_DATA (persisted App Env Var object)
+   *
+   * (opposite of sourceFromEnvVar)
    *
    * These are  ui specific properties we'd like to use at other points
-   * @param {EpinioAppSource} source
+   * @param {EPINIO_APP_DATA} source
    */
   setEnvVarFromSource(source) {
     const envVarSource = {
@@ -301,16 +303,13 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       builderImage: source.builderImage.value
     };
 
-    const { sourceData: misc1, ...glSource } = source.gitlab || {};
-    const { sourceData: misc2, ...ghSource } = source.github || {};
+    const { sourceData: misc1, ...gSource } = source.git || {};
     const { tarball, ...aSource } = source.archive || {};
 
     switch (source.type) {
     case APPLICATION_SOURCE_TYPE.GIT_HUB:
-      envVarSource[source.type] = ghSource;
-      break;
     case APPLICATION_SOURCE_TYPE.GIT_LAB:
-      envVarSource[source.type] = glSource;
+      envVarSource[source.type] = gSource;
       break;
     case APPLICATION_SOURCE_TYPE.GIT_URL:
       envVarSource[source.type] = source.gitUrl;
@@ -368,7 +367,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     };
     const builderImage = {
       label: 'Builder Image',
-      value: appEnvVarSource.builderImage
+      value: appEnvVarSource?.builderImage
     };
     const source = appEnvVarSource?.[this.sourceType] || {};
 
@@ -387,7 +386,6 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       };
     case APPLICATION_SOURCE_TYPE.GIT_URL:
       return {
-        kind:    this.origin.Kind,
         label:   'Git',
         icon:    'icon-file',
         details: [
@@ -397,7 +395,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
           }, {
             label: 'Revision',
             icon:  'icon-commit',
-            value: source?.branch || this.origin.git.revision
+            value: source?.branch?.name || source.branch.id || this.origin.git.revision
           }, appChart, builderImage
         ]
       };
@@ -416,7 +414,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
           }, {
             label: 'Branch',
             icon:  'icon-commit',
-            value: source.branch,
+            value: source?.branch?.name || source.branch.id || this.origin.git.revision
           }, appChart, builderImage
         ]
       };
@@ -435,7 +433,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
           }, {
             label: 'Branch',
             icon:  'icon-commit',
-            value: source.branch,
+            value: source?.branch?.name || source.branch.id || this.origin.git.revision
           }, appChart, builderImage
         ]
       };

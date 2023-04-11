@@ -7,8 +7,13 @@ import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import some from 'lodash/some';
-import { GitUtils } from '@/pkg/epinio/utils/git';
+import { GitUtils, gitUtilsToLabel } from '@/pkg/epinio/utils/git';
+import { APPLICATION_SOURCE_TYPE } from '~/pkg/epinio/types';
 
+interface commit {
+  [key: string]: any,
+  sha: string,
+}
 interface Data {
   hasError: {
     repo: boolean,
@@ -18,7 +23,7 @@ interface Data {
 
   repos: object[],
   branches: object[],
-  commits: object[],
+  commits: commit[],
 
   selectedAccOrOrg: string| null,
   selectedRepo: object| null,
@@ -36,6 +41,10 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   props: {
+    ghType: {
+      type:    String, // APPLICATION_SOURCE_TYPE
+      default: null
+    },
     value: {
       type:    Object,
       default: null
@@ -52,7 +61,7 @@ export default Vue.extend<Data, any, any, any>({
 
       repos:    [],
       branches: [],
-      commits:  [],
+      commits:  [] as commit[],
 
       selectedAccOrOrg: null,
       selectedRepo:     null,
@@ -66,21 +75,56 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   mounted() {
-    // Keeps the repo/branch/commit when the user switches between steps
-    if (this.value) {
+    debugger;
+    if (!this.value) {
+      return;
+    }
+
+    if (this.value.sourceData) {
+      // API calls data - from cache
+
       this.selectedAccOrOrg = this.value.usernameOrOrg;
       this.selectedRepo = this.value.repo;
       this.selectedBranch = this.value.branch;
+      this.selectedCommit = { sha: this.value.commit };
 
-      // API calls data
       this.repos = this.value.sourceData.repos;
       this.branches = this.value.sourceData.branches;
       this.commits = this.value.sourceData.commits;
+    } else {
+      // API calls data - from remote
+      debugger;
+
+      this.selectedAccOrOrg = this.value.usernameOrOrg;
+      if (this.selectedAccOrOrg) {
+        this.fetchRepos()
+          .then(() => {
+            if (this.repos.length && !this.hasError.repo) {
+              this.selectedRepo = this.value.repo;
+
+              return this.fetchBranches();
+            }
+          })
+          .then(() => {
+            if (this.branches.length && !this.hasError.branch) {
+              this.selectedBranch = this.value.branch;
+
+              return this.fetchCommits();
+            }
+          })
+          .then(() => {
+            debugger;
+            if (this.commits.length && this.commits.find((c: commit) => c.sha === this.value.commit || c.id === this.value.commit)) {
+              this.selectedCommit = { sha: this.value.commit };
+              this.final(this.value.commit);
+            }
+          });
+      }
     }
   },
 
   watch: {
-    'value.type': {
+    ghType: {
       handler(old, neu) {
         if (old !== neu) {
           this.reset();
@@ -92,7 +136,7 @@ export default Vue.extend<Data, any, any, any>({
 
   computed: {
     type() {
-      return this.value?.type;
+      return gitUtilsToLabel(this.ghType);
     },
 
     commitHeaders() {
@@ -144,6 +188,7 @@ export default Vue.extend<Data, any, any, any>({
       return this.normalizeArray(this.commits, (c: any) => GitUtils[this.type].normalize.commit(c));
     },
   },
+
   methods: {
     reset() {
       this.repos = [];
@@ -205,7 +250,7 @@ export default Vue.extend<Data, any, any, any>({
           branch:   this.selectedBranch,
         });
 
-        this.commits = res;
+        this.commits = res as commit[];
 
         this.hasError.branch = false;
       } catch (error) {
