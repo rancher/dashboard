@@ -353,7 +353,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     // This should move to the component
     const appEnvVarSource = this.appEnvVar?.source;
 
-    if (!this.origin && !appEnvVarSource) {
+    if (!this.origin || !appEnvVarSource) {
       return undefined;
     }
     const appChart = {
