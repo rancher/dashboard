@@ -275,9 +275,10 @@ export default {
         _headers:     { value: res.headers },
         _req:         { value: res.request },
         _url:         { value: opt.url },
+        revision:     { value: res.revision || out.revision },
         listLength:   { value: res.listLength },
         totalLength:  { value: res.totalLength },
-        resourceType: { value: res.resourceType },
+        resourceType: { value: res.resourceType || out.resourceType },
       });
 
       return out;

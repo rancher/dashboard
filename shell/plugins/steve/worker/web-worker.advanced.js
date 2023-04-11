@@ -47,7 +47,7 @@ const uiApi = (getter) => {
       uiPromise.index = uiRequests[cacheGetter]?.length || 0;
       uiRequests[cacheGetter] = [...(uiRequests[cacheGetter] || []), uiPromise];
     } else {
-      uiPromise.resolves({ cache: caches[getter].data });
+      uiPromise.resolves({ cache: caches[getter].resources });
     }
   });
 
@@ -76,7 +76,7 @@ const getters = {
   schemaFor:          type => caches[SCHEMA]?.getSchema(type),
   pathExistsInSchema: (type, path) => caches[SCHEMA]?.pathExistsInSchema(type, path),
   apiCache:           type => caches[type]?.source === 'api',
-  podsByNamespace:    namespace => caches[POD]?.byNamespace(namespace),
+  podsByNamespace:    namespace => caches[POD]?.byNamespace(namespace).data.data,
   caches
 };
 
@@ -268,6 +268,7 @@ const workerActions = {
     workerActions.request(params, (response, error) => {
       self.postMessage({
         awaitedResponse: {
+          // ToDo: SM okay, need to wrap the response in "one more" data property...
           response, requestHash, error
         }
       });
@@ -289,7 +290,15 @@ const workerActions = {
 
     await caches[type].request(params);
 
-    const res = caches[type].find(params);
+    let res;
+
+    if (!!params.id) {
+      res = caches[type].byId(params);
+    } else if (!!params.page) {
+      res = caches[type].byPage(params);
+    } else {
+      res = caches[type].all();
+    }
 
     requestTracer.trace('waitingForResponse --> request', type, 'res', res);
 
@@ -304,18 +313,10 @@ const workerActions = {
   createCache: (type) => {
     if (type && !caches[type]) {
       caches[type] = resourceCache(type, getters, rootGetters, state.api, uiApi, workerActions.createCache);
+      caches[type].createSubCaches();
     }
 
     return caches[type];
-  },
-  loadIntoCache: (type, payload, params = {}, detail = false) => {
-    const rawResources = detail ? [payload] : payload;
-
-    if (!caches[type]) {
-      caches[type] = workerActions.createCache(type);
-    }
-
-    return caches[type].load(rawResources, params, detail);
   },
 
   flushWatcherQueue: () => {

@@ -416,7 +416,7 @@ export const getters = {
   // 1 ) Getting info
   // ----------------------------------------------------------------------------
   cacheRequest(state) {
-    return state.typeMappings;
+    return { typeMappings: state.typeMappings };
   },
 
   labelFor,

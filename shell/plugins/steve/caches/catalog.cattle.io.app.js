@@ -1,4 +1,3 @@
-
 import SteveCache from '@shell/plugins/steve/caches/steve-class';
 import { calculatedFields } from '@shell/plugins/steve/resourceUtils/catalog.cattle.io.app';
 

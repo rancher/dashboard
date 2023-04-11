@@ -2,6 +2,7 @@ import WorkloadCache from '@shell/plugins/steve/caches/workload';
 import { WORKLOAD_TYPES } from '~/shell/config/types';
 import { CACHE_STATES } from '@shell/plugins/steve/caches/base-cache';
 import { waitFor } from '@shell/utils/async';
+import { hashObj } from '~/shell/utils/crypto/browserHashUtils';
 
 export default class WorkloadCombinedCache extends WorkloadCache {
   async request(params = {}) {
@@ -28,15 +29,24 @@ export default class WorkloadCombinedCache extends WorkloadCache {
     return allRequests;
   }
 
-  resourceList() {
-    return Object.values(WORKLOAD_TYPES).reduce((acc, cacheType) => {
+  __list({ namespace, selector, id } = {}) {
+    const cacheKey = hashObj({
+      namespace, selector, id
+    });
+    const list = Object.values(WORKLOAD_TYPES).reduce((acc, cacheType) => {
       return [
         ...acc,
         ...this.getters.caches[cacheType]
-          .resourceList()
+          .__list({
+            namespace, selector, id
+          })
           .filter(({ wholeResource }) => !wholeResource.ownedByWorkload)
       ];
     }, []);
+
+    this.__requests[cacheKey] = { totalLength: list.length };
+
+    return list;
   }
 
   byId(id, wholeResource = true) {
@@ -49,7 +59,7 @@ export default class WorkloadCombinedCache extends WorkloadCache {
     return Object.values(WORKLOAD_TYPES).reduce((acc, cacheType) => {
       return [
         ...acc,
-        ...this.getters.caches[cacheType].byIds(ids, wholeResource)
+        ...this.getters.caches[cacheType].byIds(ids, {}, wholeResource) // params being passed in here poorly...
       ];
     }, []);
   }

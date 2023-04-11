@@ -1,7 +1,7 @@
 import BaseCache from '@shell/plugins/steve/caches/base-cache';
 
 export default class ExternalCache extends BaseCache {
-  data = null;
+  resources = null;
   uiApi = null;
   loadedTimestamp = null;
   source = 'ui';
@@ -22,8 +22,8 @@ export default class ExternalCache extends BaseCache {
     return { ...uiRequest, data: { ...uiRequest.data, storeType: type } };
   }
 
-  load(data) {
-    this.data = data;
+  load(payload) {
+    this.resources = payload;
     this.loadedTimestamp = Date.now();
   }
 }

@@ -30,18 +30,22 @@ export default class ResourceCache extends BaseCache {
   /**
    * Checks new hash against existing hash and updates it if different, returns boolean indicating if a change was made
    */
-  __updateCache(resource, calculatedFields) {
+  __updateCache(resource, calculatedFields, cacheKey) {
     const resourceKey = resource[this.keyField];
-    const existingResourceHash = this.resources[resourceKey];
+    const existingResourceHash = this.resources[resourceKey]?.hash;
+    const existingRequests = this.resources[resourceKey]?.requests || [];
+    const requests = existingRequests.includes(cacheKey) ? existingRequests : [...existingRequests, cacheKey];
     const newResourceHash = hashObj(resource);
 
-    if (!newResourceHash || existingResourceHash !== newResourceHash) {
+    if (existingResourceHash !== newResourceHash) {
       this.resources[resourceKey] = {
-        hash: newResourceHash, resource, calculatedFields
+        hash: newResourceHash, resource, calculatedFields, requests
       };
 
       return true;
     }
+
+    this.resources[resourceKey].requests = requests;
 
     return false;
   }
@@ -65,9 +69,7 @@ export default class ResourceCache extends BaseCache {
           return subRequest;
         }
 
-        const subRequest = waitFor(() => ![CACHE_STATES.REQUESTING, CACHE_STATES.LOADING].includes(cache.state)
-          // !cache.cacheIsInvalid({ ...params, type: cacheName })
-        );
+        const subRequest = waitFor(() => ![CACHE_STATES.REQUESTING, CACHE_STATES.LOADING].includes(cache.state));
 
         subRequest.type = cacheName;
 
@@ -82,15 +84,15 @@ export default class ResourceCache extends BaseCache {
   /**
    * Requests data from the cache's data source
    */
-  async request(params = {}) {
-    this.trace('request', params);
-
-    const {
-      type, namespace, id, selector, force
-    } = params;
+  async request({
+    namespace, id, selector, force
+  } = {}) {
+    this.trace('request', {
+      namespace, id, selector, force, type: this.type
+    });
 
     const requestParams = {
-      type, namespace, id, selector, force
+      type: this.type, namespace, id, selector, force
     };
 
     const subResourceParams = {
@@ -102,7 +104,7 @@ export default class ResourceCache extends BaseCache {
     let mainRequest;
 
     if (cacheRefresh) {
-      this.trace('request', type, 'making http request for primary resource');
+      this.trace('request', this.type, 'making http request for primary resource');
 
       mainRequest = this.api.request({ ...requestParams, type: this.type }, this.getters['schemaFor'])
         .then((res) => {
@@ -110,7 +112,7 @@ export default class ResourceCache extends BaseCache {
         });
       this.state = CACHE_STATES.REQUESTING;
     } else {
-      this.trace('request', type, 'skipping http request for primary resource');
+      this.trace('request', this.type, 'skipping http request for primary resource');
 
       mainRequest = { data: {} };
     }
@@ -122,33 +124,43 @@ export default class ResourceCache extends BaseCache {
 
     const allRequests = await Promise.all(requestArray).then((responses) => {
       if (!id) {
-        const [{
-          data: {
-            data, revision, links, status, statusText
-          }
-        }] = responses;
+        const [{ status, statusText, data: { data, revision, links } }] = responses;
 
         if (cacheRefresh) { // TODO: RC test ties in to `load` param
           this.state = CACHE_STATES.LOADING;
-          this.load(data, params, false, revision, {
-            links, status, statusText
-          });
+          this.load(
+            data,
+            {
+              namespace, id, selector
+            },
+            revision,
+            {
+              links, status, statusText
+            }
+          );
         }
 
         const response = responses.filter(response => response?.data?.resourceType); // TODO: RC question why is this needed?
 
-        this.trace('request', type, 'result', response );
+        this.trace('request', this.type, 'result', response );
 
         return response;
       } else {
-        const [{ data, status, statusText }] = responses;
+        const [{ status, statusText, data: { data } }] = responses;
 
         if (cacheRefresh) {
           this.state = CACHE_STATES.LOADING;
-          this.load(data, undefined, true, undefined, { status, statusText });
+          this.load(
+            data,
+            {
+              namespace, id, selector
+            },
+            undefined,
+            { status, statusText }
+          );
         }
 
-        this.trace('request', type, 'result', responses );
+        this.trace('request', this.type, 'result', responses );
 
         return responses;
       }
@@ -173,55 +185,39 @@ export default class ResourceCache extends BaseCache {
   /**
    * Sets the current cache with the payload
    */
-  load(payload = [], params = {}, concat = false, revision, responseExtras = {}, indexer) {
+  load(payload = [], { namespace, selector, id } = {}, revision, { links, status, statusText } = {}, indexer) {
     this.trace('load', payload);
-    if (!Array.isArray(payload) && !!concat) {
-      // if we're in this block then we're loading a single resource
-      const calculatedFields = this.__addCalculatedFields(payload);
+    const cacheKey = hashObj({
+      namespace, selector, id
+    });
 
-      this.__updateCache(payload, calculatedFields);
-      this.resources[payload[this.keyField]] = {
-        ...this.resources[payload[this.keyField]],
-        ...responseExtras
-      };
+    this.__requests[cacheKey] = {
+      ...this.__requests[cacheKey],
+      totalLength: payload?.length || 1,
+      ids:         this.__requests[cacheKey]?.ids || [],
+      revision:    revision || this.__requests[cacheKey]?.revision,
+      links:       links || this.__requests[cacheKey]?.links,
+      status:      status || this.__requests[cacheKey]?.status,
+      statusText:  statusText || this.__requests[cacheKey]?.statusText,
+      namespace,
+      selector,
+      id,
+      updated:     Date.now()
+    };
+    // ToDo: SM split this into two seperate private methods for __loadSingle vs __loadList
+    const resources = !Array.isArray(payload) ? [payload] : payload;
 
-      if (indexer) {
-        indexer({ ...payload, ...calculatedFields });
-      }
-
-      this.state = CACHE_STATES.READY;
-
-      return this;
-    }
-    const { links, status, statusText } = responseExtras;
-    let didUpdate = false;
-    const { namespace: currentNamespace = null, selector: currentSelector = null } = params;
-
-    this.__currentParams = { currentNamespace, currentSelector };
-
-    if (!concat) {
-      this.resources = {};
-    }
-    for (let i = 0; i < payload.length; i++) {
-      const resource = payload[i];
+    for (let i = 0; i < resources.length; i++) {
+      const resource = resources[i];
       const calculatedFields = this.__addCalculatedFields(resource);
 
-      const updated = this.__updateCache(resource, calculatedFields);
+      this.__updateCache(resource, calculatedFields, cacheKey);
 
       if (indexer) {
         indexer({ ...resource, ...calculatedFields });
       }
 
-      if (updated) {
-        didUpdate = updated;
-      }
-    }
-    if (didUpdate) {
-      this.__lastUpdated = Date.now();
-      this.__revision = revision || this.__revision;
-      this.__links = links || this.__links;
-      this.__status = status || this.__status;
-      this.__statusText = statusText || this.__statusText;
+      this.__requests[cacheKey].ids.push(resource[this.keyField]);
     }
 
     this.state = CACHE_STATES.READY;
@@ -230,21 +226,24 @@ export default class ResourceCache extends BaseCache {
   }
 
   // checks the cache's currentParams against the new params and determines if a new request would be required to re-request from the API in order to satisfy it
-  cacheIsInvalid(params) {
-    const {
-      namespace, id, selector, force: forceParam
-    } = params;
+  cacheIsInvalid({
+    namespace, id, selector, force: forceParam
+  }) {
+    if (forceParam) {
+      return true;
+    }
+    if (id && this.resources[id]) {
+      return false;
+    }
+    const cacheKey = hashObj({
+      namespace, selector, id
+    });
+    const haveAll = false; // ToDo: SM infer this from an existing cacheKey for "{}"
 
-    const idMissing = id && !this.resources[id];
+    if (this.__requests[cacheKey] || haveAll) { // ToDo: SM also make a check to make sure the watch is up to date...
+      return false;
+    }
 
-    const newNamespace = namespace || null;
-    const newSelector = selector || null;
-
-    const { currentNamespace, currentSelector } = this.__currentParams; // undefined means we haven't fetch any
-    const haveAll = currentNamespace === null && currentSelector === null;
-    const changed = currentNamespace !== newNamespace || currentSelector !== newSelector;
-    const haveNone = currentNamespace === undefined && currentSelector === undefined;
-
-    return forceParam || idMissing || !haveAll || haveNone || changed;
+    return true;
   }
 }

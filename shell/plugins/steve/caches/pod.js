@@ -13,13 +13,10 @@ export default class PodCache extends WorkloadServiceCache {
   }
 
   byNamespace(namespace) {
-    return this.byIds(this.namespaceIndex[namespace]);
+    return this.byIds(this.namespaceIndex[namespace], {});
   }
 
-  load(payload = [], params = {}, concat = false, revision, links) {
-    if (!concat) {
-      this.namespaceIndex = {};
-    }
+  load(payload = [], { namespace, selector, id } = {}, revision, links) {
     const indexer = (pod) => {
       if (!(this.namespaceIndex[pod.namespace] || []).includes(pod.id)) {
         this.namespaceIndex = {
@@ -32,7 +29,9 @@ export default class PodCache extends WorkloadServiceCache {
       }
     };
 
-    super.load(payload, params, concat, revision, links, indexer);
+    super.load(payload, {
+      namespace, selector, id
+    }, revision, links, indexer);
 
     return this;
   }

@@ -3,7 +3,8 @@ import { matches } from '@shell/utils/selector';
 import { get } from '@shell/utils/object';
 import Trace from '@shell/plugins/steve/trace';
 import { sortBy, parseField, unparseField } from '@shell/utils/sort';
-import { calculatedFields } from '@shell/plugins/steve/resourceUtils/resource-class';
+import { isNull } from 'lodash';
+import { hashObj } from '@shell/utils/crypto/browserHashUtils';
 
 export const CACHE_STATES = {
   NEW:         'new',
@@ -31,6 +32,14 @@ const searchesToFilters = (searches) => {
   });
 };
 
+const dedupCacheNamesReducer = (cacheNames, cacheName) => {
+  if (cacheNames.includes(cacheName)) {
+    return cacheNames;
+  }
+
+  return [...cacheNames, cacheName];
+};
+
 /**
  * Cache for a resource type. Has various create / update / remove style functions as well as a `find` which  will fetch the resource/s if missing
  */
@@ -43,11 +52,15 @@ export default class BaseCache extends Trace {
   rootGetters = {};
   calculatedFields = [];
   state = CACHE_STATES.NEW;
-  __lastUpdated = null;
+  __requests = {};
   __currentParams = {};
   __lastSent = null;
+  __immediateSubCaches = null;
+  __allSubCaches = null;
+  __currentParentCaches = null;
+  createCache = () => console.warn(`No method for creating sub-resource caches provided to cache ${ this.type }`); // eslint-disable-line no-console
 
-  constructor(type, getters = {}, rootGetters = {}, api, uiApi) {
+  constructor(type, getters = {}, rootGetters = {}, api, uiApi, createCache) {
     super('Base Cache');
 
     this.setTraceLabel(this.constructor.name);// This won't work well with minified code, but is for debug / dev only anyway
@@ -57,10 +70,56 @@ export default class BaseCache extends Trace {
     this.uiApi = uiApi;
     this.rootGetters = rootGetters;
     this.getters = getters;
+    this.createCache = createCache;
+  }
+
+  createSubCaches() {
+    this.getImmediateCacheDependencies().forEach((cacheName) => {
+      // this.__immediateSubCaches = [...this.__immediateSubCaches.filter(subCache => subCache !== cacheName), cacheName];
+      if (!this.__immediateSubCaches.includes(cacheName)) {
+        this.__immediateSubCaches = this.__immediateSubCaches.concat(cacheName);
+      }
+      if (!this.getters.caches[cacheName]) {
+        this.createCache(cacheName);
+      }
+    });
+
+    return true;
   }
 
   get currentParams() {
     return this.__currentParams;
+  }
+
+  getImmediateCacheDependencies() {
+    if (isNull(this.__immediateSubCaches)) {
+      this.__immediateSubCaches = this.calculatedFields
+        .filter(field => !!field.caches)
+        .map(field => field.caches)
+        .flat(1)
+        .filter(cacheName => cacheName !== this.type);
+    }
+
+    return this.__immediateSubCaches;
+  }
+
+  getAllCacheDependencies({ except = [] } = {}) {
+    if (isNull(this.__allSubCaches)) {
+      this.__allSubCaches = this.__immediateSubCaches
+        .reduce((cacheNames, cacheName) => {
+          const newCacheNames = [...new Set([...cacheNames, cacheName])];
+          const subCaches = this.getters.caches[cacheName]
+            .getAllCacheDependencies({ except: newCacheNames })
+            .filter(subCacheName => !cacheNames.includes(subCacheName));
+
+          return [...newCacheNames, ...subCaches];
+        }, [])
+        .flat(1) // flatten the above should make just a flat array of strings
+        .reduce(dedupCacheNamesReducer, []) // simple deduplication of cacheName strings
+        .sort(); // ToDo: SM need to figure out some type of load order algorithm here...
+    }
+
+    return this.__allSubCaches.filter(cacheName => except.length === 0 || !except.includes(cacheName));
   }
 
   __addCalculatedFields(resource) {
@@ -78,6 +137,23 @@ export default class BaseCache extends Trace {
 
   __updateCache() {
     console.warn(`Cache Class ${ this.type } did not specify a method for updating cache, nothing happened`); // eslint-disable-line no-console
+  }
+
+  __formatListResponse(listLength, data, cacheKey) {
+    const {
+      totalLength, revision, status, statusText, links
+    } = this.__requests[cacheKey];
+
+    return {
+      data:         { data },
+      revision,
+      totalLength,
+      listLength,
+      resourceType: this.type,
+      status,
+      statusText,
+      links
+    };
   }
 
   /**
@@ -106,47 +182,123 @@ export default class BaseCache extends Trace {
   }
 
   // get the full list of resources with both the raw resource and the whole resource (with calculated fields)
-  resourceList() {
-    return Object.values(this.resources)
-      .map(({ resource, calculatedFields }) => {
-        const resourceCombo = {
-          resource,
-          wholeResource: {
-            ...resource,
-            ...calculatedFields
-          }
-        };
+  __list({ namespace, selector, id } = {}) {
+    const cacheKey = hashObj({
+      namespace, selector, id
+    });
 
-        return resourceCombo;
-      });
+    return this.__requests[cacheKey].ids.map((id) => {
+      const { resource, calculatedFields } = this.resources[id];
+      const resourceCombo = {
+        resource,
+        wholeResource: {
+          ...resource,
+          ...calculatedFields
+        }
+      };
+
+      return resourceCombo;
+    });
   }
 
   // gets the full list of wholeResources as an array from the cache
-  all(returnWholeResource = true) {
-    return this.resourceList()
+  all(returnWholeResource = false) {
+    const cacheKey = hashObj({});
+    const resources = this.__list({})
       .map(({ resource, wholeResource }) => {
         return returnWholeResource ? wholeResource : resource;
       });
+
+    return this.__formatListResponse(resources.length, resources, cacheKey);
   }
 
   // gets a specific id from the cache and returns it as a whole resource if it exists
-  byId(id, wholeResource = true) {
+  byId(id, wholeResource = false) {
     const resource = this.resources[id];
 
     if (resource) {
-      return {
-        ...resource?.resource,
-        ...(wholeResource ? calculatedFields : {}),
-      };
+      if (resource.resource) {
+        return {
+          ...resource?.resource,
+          ...(wholeResource ? resource.calculatedFields : {}),
+        };
+      }
+
+      return resource;
     }
   }
 
   // gets a specific list of ids from the cache and returns it as a whole resource if it exists
-  byIds(ids, wholeResource = true) {
-    return ids
+  byIds(ids, { namespace, selector, id } = {}, wholeResource = false) {
+    const cacheKey = hashObj({
+      namespace, selector, id
+    });
+    const resources = ids
       .map(id => this.byId(id, wholeResource))
       .filter(resource => resource);
+
+    return this.__formatListResponse(resources.length, resources, cacheKey);
   }
+
+  byPage(params) {
+    const {
+      page, pageSize, namespace, selector, id
+    } = params;
+    const cacheKey = hashObj({
+      namespace, selector, id
+    });
+    const secondaryResourceParams = { namespace, selector };
+    const foundResources = this.__findAndSort(params);
+
+    const pageStart = (page - 1) * pageSize;
+    const pageEnd = pageStart + pageSize;
+
+    const pagedResources = page ? foundResources.slice(pageStart, pageEnd) : foundResources;
+
+    const secondaryResourceMap = pagedResources.reduce((acc, { wholeResource }) => {
+      const subResources = wholeResource.subResources;
+      const resourceNames = Object.keys(subResources || {});
+      const subResourceIds = { ...acc };
+
+      resourceNames.forEach((resourceName) => {
+        subResourceIds[resourceName] = [...new Set([
+          ...subResourceIds[resourceName] || [],
+          ...subResources[resourceName]
+        ])];
+      });
+
+      return subResourceIds;
+    }, {});
+
+    const secondaryResources = Object.keys(secondaryResourceMap)
+      .map((resourceName) => {
+        return this.getters.caches[resourceName].byIds(secondaryResourceMap[resourceName], secondaryResourceParams, false);
+      });
+
+    const finalResources = pagedResources.map(({ resource }) => resource);
+
+    const formattedResponse = this.__formatListResponse(foundResources.length, finalResources, cacheKey);
+
+    const response = secondaryResources.length > 0 ? [formattedResponse, ...secondaryResources] : formattedResponse;
+
+    return response;
+  }
+
+  // ToDo: SM not actually used by anything?
+  // bySelector(selector, { namespace, id } = {}, returnWholeResource = true) {
+  //   // ToDo: SM make this a real thing...
+  //   const cacheKey = hashObj({
+  //     namespace, selector, id
+  //   });
+  //   const resources = this.__list({
+  //     namespace, selector, id
+  //   })
+  //     .map(({ resource, wholeResource }) => {
+  //       return returnWholeResource ? wholeResource : resource;
+  //     });
+
+  //   return this.__formatListResponse(resources.length, resources, cacheKey);
+  // }
 
   /**
    * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
@@ -155,31 +307,12 @@ export default class BaseCache extends Trace {
    *
    * // TODO: RC https://github.com/rancher/dashboard/issues/8420
    */
-  find(params) {
-    this.trace('find', params);
-    const {
-      namespace, id, ids, selector, searches, sortBy: sortByFields = [], page, pageSize
-    } = params;
-
-    if (id) {
-      const resource = this.byId(namespace ? `${ namespace }/${ id }` : id, false);
-
-      return { data: resource };
-    }
-
-    if (ids) {
-      // const resources = ids.map(id => this.resources[id].resource);
-      const resources = this.byIds(ids, false);
-
-      return {
-        totalLength:  resources.length,
-        listLength:   resources.length,
-        data:         resources,
-        revision:     this.__revision,
-        links:        this.__links,
-        resourceType: this.type
-      };
-    }
+  __findAndSort({
+    namespace, selector, searches, sortBy: sortByFields = []
+  }) {
+    this.trace('findAndSort', {
+      namespace, selector, searches, sortByFields
+    });
 
     const filterConditions = [];
 
@@ -194,7 +327,7 @@ export default class BaseCache extends Trace {
     }
 
     // spread the raw resource and the calculatedFields together for the filterCondition which doesn't care about the difference
-    const resources = this.resourceList();
+    const resources = this.__list({ namespace, selector });
 
     const filteredResources = filterConditions.length === 0 ? resources : resources
       .filter(({ wholeResource }) => {
@@ -214,48 +347,51 @@ export default class BaseCache extends Trace {
       });
     });
 
-    // ToDo: namesort not throwing an error but certainly not working either...
-    const sortedResources = sortByFields.length > 0 ? sortBy(filteredResources, sortByWholeResourceFields) : filteredResources;
+    return sortByFields.length > 0 ? sortBy(filteredResources, sortByWholeResourceFields) : filteredResources;
+    // ToDo: SM namesort not throwing an error but certainly not working either...
+    // const sortedResources = sortByFields.length > 0 ? sortBy(filteredResources, sortByWholeResourceFields) : filteredResources;
 
-    const pageStart = (page - 1) * pageSize;
-    const pageEnd = pageStart + pageSize;
+    // const pageStart = (page - 1) * pageSize;
+    // const pageEnd = pageStart + pageSize;
 
-    const pagedResources = page ? sortedResources.slice(pageStart, pageEnd) : sortedResources;
-    const secondaryResourceMap = pagedResources.reduce((acc, { wholeResource }) => {
-      const subResources = wholeResource.subResources;
-      const resourceNames = Object.keys(subResources || {});
-      const subResourceIds = { ...acc };
+    // const pagedResources = page ? sortedResources.slice(pageStart, pageEnd) : sortedResources;
+    // const secondaryResourceMap = pagedResources.reduce((acc, { wholeResource }) => {
+    //   const subResources = wholeResource.subResources;
+    //   const resourceNames = Object.keys(subResources || {});
+    //   const subResourceIds = { ...acc };
 
-      resourceNames.forEach((resourceName) => {
-        subResourceIds[resourceName] = [...new Set([
-          ...subResourceIds[resourceName] || [],
-          ...subResources[resourceName]
-        ])];
-      });
+    //   resourceNames.forEach((resourceName) => {
+    //     subResourceIds[resourceName] = [...new Set([
+    //       ...subResourceIds[resourceName] || [],
+    //       ...subResources[resourceName]
+    //     ])];
+    //   });
 
-      return subResourceIds;
-    }, {});
+    //   return subResourceIds;
+    // }, {});
 
-    const secondaryResources = Object.keys(secondaryResourceMap)
-      .map((resourceName) => {
-        return this.getters.findByIds(resourceName, secondaryResourceMap[resourceName]);
-      });
+    // const secondaryResources = Object.keys(secondaryResourceMap)
+    //   .map((resourceName) => {
+    //     return this.getters.findByIds(resourceName, secondaryResourceMap[resourceName]);
+    //   });
 
-    const finalResources = pagedResources.map(({ resource }) => resource);
-    const primaryResource = {
-      totalLength:  resources.length,
-      listLength:   filteredResources.length,
-      data:         finalResources,
-      revision:     this.__revision,
-      resourceType: this.type,
-      status:       this.__status,
-      statusText:   this.__statusText,
+    // const finalResources = pagedResources.map(({ resource }) => resource);
+    // const primaryResource = {
+    //   data: {
+    //     totalLength:  resources.length,
+    //     listLength:   filteredResources.length,
+    //     data:         finalResources,
+    //     revision:     this.__revision,
+    //     resourceType: this.type,
+    //     status:       this.__status,
+    //     statusText:   this.__statusText,
 
-    };
+    //   }
+    // };
 
-    const response = secondaryResources.length > 0 ? [primaryResource, ...secondaryResources] : primaryResource;
+    // const response = secondaryResources.length > 0 ? [primaryResource, ...secondaryResources] : primaryResource;
 
-    return response;
+    // return response;
   }
 
   /**
