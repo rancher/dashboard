@@ -78,9 +78,7 @@ export default Vue.extend<Data, any, any, any>({
           ...coreArgs,
         })
       );
-    }
-
-    if (REDEPLOY_SOURCE) {
+    } else {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.UPDATE_SOURCE,
