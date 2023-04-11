@@ -127,6 +127,12 @@ epinio:
       title: Application
       titleSubText: Epinio
       instances: Instances
+      settingsVars:
+        title: Application Variables
+        keyLabel: Name
+        valueLabel: Value
+        description: Changes to Application and Environment Variables are applied when the Application has been restarted.
+        checkbox: Enables/Disables {name}
       envvar:
         title: Environment Variables
         keyLabel: Name

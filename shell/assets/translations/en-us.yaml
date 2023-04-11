@@ -5177,8 +5177,8 @@ validation:
       tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
   minLength: '"{key}" must contain more than {min} characters'
   maxLength: '"{key}" must contain less than {max} characters'
-  minValue: '"{key}" must be higher than {min}'
-  maxValue: '"{key}" must be lower than {max}'
+  minValue: '"{key}" must be equal or higher than {min}'
+  maxValue: '"{key}" must be equal or lower than {max}'
   betweenLengths: '"{key}" must contain between {min} and {max} characters'
   betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
