@@ -1295,7 +1295,9 @@ export default {
     },
 
     validationPassed() {
-      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && this.hasRequiredNodes();
+      const validMachinePools = this.hasMachinePools ? this.hasRequiredNodes() : true;
+
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && validMachinePools;
     },
 
     cancelCredential() {
