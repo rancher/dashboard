@@ -7,7 +7,11 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Loading from '@shell/components/Loading.vue';
 import Banner from '@components/Banner/Banner.vue';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT } from '@shell/config/query-params';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import capitalize from 'lodash/capitalize';
+import formRulesGenerator from '@shell/utils/validators/formRules';
 
 import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
@@ -41,7 +45,9 @@ export default Vue.extend<Data, any, any, any>({
     LabeledInput,
     KeyValue,
     Loading,
-    Banner
+    Banner,
+    Checkbox,
+    LabeledSelect
   },
 
   props: {
@@ -57,8 +63,10 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
-      errors: [],
-      values: undefined
+      errors:        [],
+      values:        undefined,
+      capitalize,
+      validSettings: {}
     };
   },
 
@@ -76,6 +84,8 @@ export default Vue.extend<Data, any, any, any>({
         routes:      this.application.configuration?.routes || [],
       },
     };
+
+    this.validSettings = {};
 
     this.$emit('valid', this.valid);
 
@@ -122,15 +132,11 @@ export default Vue.extend<Data, any, any, any>({
       const validNamespace = nsErrors.length === 0;
       const validInstances = typeof this.values.configuration?.instances !== 'string' && this.values.configuration?.instances >= 0;
 
-      return validName && validNamespace && validInstances;
+      return validName && validNamespace && validInstances && Object.values(this.validSettings).every(v => !!v) ;
     },
 
     showApplicationVariables() {
       return Object.keys(this.values?.configuration?.settings).length !== 0;
-    },
-
-    disableInputs() {
-      return this.mode === _VIEW;
     },
 
     isEdit() {
@@ -198,18 +204,31 @@ export default Vue.extend<Data, any, any, any>({
       return copy;
     },
 
-    validateNumbers(e: Event & { target: HTMLInputElement }, min: Number, max: Number) {
-      if (!e) {
-        return;
-      }
+    validSettingsRule(key: string, min: any, max: any) {
+      const frg = formRulesGenerator(this.$store.getters['i18n/t'], { key });
+      const minRule = frg.minValue(min);
+      const maxRule = frg.maxValue(max);
 
-      const isValid = e.target.checkValidity();
+      return (value: string) => {
+        const messages = [];
 
-      if (!isValid) {
-        e.target.className = 'error';
-      } else {
-        e.target.className = '';
-      }
+        if (value) {
+          const minRes = minRule(value);
+
+          if (minRes) {
+            messages.push(minRes);
+          }
+
+          const maxRes = maxRule(value);
+
+          if (maxRes) {
+            messages.push(maxRes);
+          }
+        }
+        Vue.set(this.validSettings, key, !messages.length);
+
+        return messages.join(',');
+      };
     },
 
     numericPlaceholder(setting: any) {
@@ -267,18 +286,17 @@ export default Vue.extend<Data, any, any, any>({
         :value-placeholder="t('epinio.applications.create.routes.placeholder')"
       />
     </div>
+    <div class="spacer" />
     <div
-      v-if="showApplicationVariables"
-      class="spacer"
-    />
-
-    <Banner
-      v-if="isEdit && showApplicationVariables"
-      color="info"
+      v-if="isEdit"
+      class="col span-8"
     >
-      {{ t('epinio.applications.create.settingsVars.description') }}
-    </Banner>
-
+      <Banner
+        color="info"
+      >
+        {{ t('epinio.applications.create.settingsVars.description') }}
+      </Banner>
+    </div>
     <div
       v-if="showApplicationVariables"
       class="col span-6 settings"
@@ -289,60 +307,44 @@ export default Vue.extend<Data, any, any, any>({
         :key="key"
         class="settings-item"
       >
-        <label
-          class="text-label"
-          :for="key"
-        >{{ key }}</label>
-        <span
+        <LabeledInput
           v-if="setting.type === 'number' || setting.type === 'integer'"
-          class=""
-        >
-          <input
-            :id="key"
-            v-model="values.configuration.settings[key]"
-            type="number"
-            :min="setting.minimum || 0"
-            :max="setting.maximum || null"
-            :placeholder="numericPlaceholder(setting)"
-            :disabled="disableInputs"
-            @input="validateNumbers($event, setting.minimum, setting.maximum)"
-          >
-        </span>
-        <span v-else-if="setting.type === 'bool'">
-          <span class="settings-item-checkbox">
-            <input
-              v-model="values.configuration.settings[key] "
-              :disabled="disableInputs"
-              type="checkbox"
-            >
-            <p>
-              {{ t('epinio.applications.create.settingsVars.checkbox', {name: key}) }}
-            </p>
-          </span>
-        </span>
-        <span
+          :id="key"
+          v-model="values.configuration.settings[key]"
+          :label="capitalize(key)"
+          type="number"
+          :min="setting.minimum"
+          :max="setting.maximum"
+          :rules="[validSettingsRule(key, setting.minimum, setting.maximum)]"
+          :tooltip="numericPlaceholder(setting)"
+          :mode="mode"
+        />
+        <Checkbox
+          v-else-if="setting.type === 'bool'"
+          :id="key"
+          :value="values.configuration.settings[key] === 'true'"
+          :label="capitalize(key)"
+          :mode="mode"
+          @input="values.configuration.settings[key] = $event ? 'true' : 'false'"
+        />
+        <LabeledSelect
           v-else-if="setting.type === 'string' && setting.enum"
-        >
-          <select
-            :id="key"
-            v-model="values.configuration.settings[key]"
-            class="v-select"
-            :disabled="disableInputs"
-          >
-            <option
-              v-for="(option, index) in setting.enum"
-              :key="option"
-              :value="option"
-              :selected="index === 0"
-            >
-              {{ option }}
-            </option>
-          </select>
-        </span>
+          :id="key"
+          v-model="values.configuration.settings[key]"
+          :label="capitalize(key)"
+          :options="setting.enum"
+          :mode="mode"
+        />
+        <LabeledInput
+          v-else-if="setting.type === 'string'"
+          :id="key"
+          v-model="values.configuration.settings[key]"
+          :label="capitalize(key)"
+          :mode="mode"
+        />
       </div>
+      <div class="spacer" />
     </div>
-
-    <div class="spacer" />
     <div class="col span-8">
       <KeyValue
         v-model="values.configuration.environment"
@@ -353,46 +355,18 @@ export default Vue.extend<Data, any, any, any>({
         :value-label="t('epinio.applications.create.envvar.valueLabel')"
         :parse-lines-from-file="true"
       />
+      <div class="mb-20" /> <!-- allow a small amount of padding at bottom -->
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .settings {
   display: flex;
   flex-direction: column;
 
-  &-item {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+  &-item:not(:last-of-type) {
     margin-bottom: 20px;
-
-    &-checkbox {
-      display: flex;
-      flex-direction: row;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: -10px;
-    }
-
-    // if input has class error, show a red border when focused
-    input.error:focus {
-      border-color: var(--error);
-    }
-  }
-
-  label {
-    text-transform: capitalize;
-  }
-
-  input {
-    height: 40px;
-    line-height: 1;
-  }
-
-  input#checkbox {
-    margin: 0;
   }
 }
 </style>
