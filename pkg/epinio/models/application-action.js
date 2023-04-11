@@ -6,6 +6,7 @@ import { epinioExceptionToErrorsArray } from '../utils/errors';
 export const APPLICATION_ACTION_TYPE = {
   CREATE_NS:           'create_namespace',
   CREATE:              'create',
+  UPDATE_SOURCE:       'updateSource',
   GIT_FETCH:           'gitFetch',
   UPLOAD:              'upload',
   BIND_CONFIGURATIONS: 'bind_configurations',
@@ -72,6 +73,9 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
+    case APPLICATION_ACTION_TYPE.UPDATE_SOURCE:
+      await this.updateSource(params);
+      break;
     case APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS:
       await this.bindConfigurations(params);
       break;
@@ -131,6 +135,16 @@ export default class ApplicationActionResource extends Resource {
     await this.application.waitForStaging(stage.id);
   }
 
+  /**
+   * Updates the application information
+   * @param {*} params
+   */
+  async updateSource(params) {
+    this.application.setEnvVarFromSource(params.source);
+
+    await this.application.update();
+  }
+
   async deploy({ source }) {
     const stageId = source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ? this.application.buildCache.stage.stage.id : null;
     const image = source.type === APPLICATION_SOURCE_TYPE.CONTAINER_URL ? source.container.url : this.application.buildCache.stage.image;
@@ -164,7 +178,7 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_SOURCE_TYPE.GIT_HUB:
     case APPLICATION_SOURCE_TYPE.GIT_LAB:
       return {
-        kind: source.type,
+        kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT,
         git:  {
           revision:   source.git.commit,
           repository: source.git.url,

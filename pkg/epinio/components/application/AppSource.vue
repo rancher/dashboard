@@ -15,6 +15,7 @@ import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, 
 import { EpinioAppInfo } from './AppInfo.vue';
 import camelCase from 'lodash/camelCase';
 import { toLabel } from '../../utils/git';
+import { _EDIT } from '@shell/config/query-params';
 
 const GIT_BASE_URL = {
   [APPLICATION_SOURCE_TYPE.GIT_HUB]: 'https://github.com',
@@ -121,6 +122,8 @@ export default Vue.extend<Data, any, any, any>({
     const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
+    const sourceType = this.application.sourceType || APPLICATION_SOURCE_TYPE.FOLDER;
+
     return {
       open: false,
       defaultBuilderImage,
@@ -164,16 +167,16 @@ export default Vue.extend<Data, any, any, any>({
         value
       })),
 
-      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
-      APPLICATION_SOURCE_TYPE
+      type: sourceType,
+      APPLICATION_SOURCE_TYPE,
+      EDIT: _EDIT
     };
   },
   mounted() {
     if (!this.appChart) {
-      Vue.set(this, 'appChart', this.appCharts[0].value);
+      Vue.set(this, 'appChart', this.appCharts[0]?.value);
     }
 
-    this.$emit('valid', false);
     this.update();
   },
 
@@ -199,6 +202,7 @@ export default Vue.extend<Data, any, any, any>({
 
       return evalUrl();
     },
+
     onFileSelected(file: File) {
       this.archive.tarball = file;
       this.archive.fileName = file.name;
@@ -285,8 +289,6 @@ export default Vue.extend<Data, any, any, any>({
         Vue.set(this.archive, 'fileName', folderName || 'folder');
 
         this.update();
-
-        // downloadFile('resources.zip', zip, 'application/zip');
       });
     },
 
@@ -328,6 +330,7 @@ export default Vue.extend<Data, any, any, any>({
       branch: string,
       sourceData: GitAPIData
     }) {
+      debugger; // commit or commitSha // TODO: RC
       if (!!selectedAccOrOrg && !!repo && !!commit && !!branch) {
         const url = `${ GIT_BASE_URL[this.type] }/${ selectedAccOrOrg }/${ repo.name }`;
 
@@ -353,8 +356,11 @@ export default Vue.extend<Data, any, any, any>({
       this.update();
     },
 
-    valid() {
-      this.$emit('valid', this.valid);
+    valid: {
+      handler() {
+        this.$emit('valid', this.valid);
+      },
+      immediate: true
     }
   },
 
@@ -533,6 +539,7 @@ export default Vue.extend<Data, any, any, any>({
       class="mt-30 mb-30 source"
     >
       <template>
+        <!-- Unable to change app chart of active app, so disable -->
         <LabeledSelect
           v-model="appChart"
           data-testid="epinio_app-source_appchart"
@@ -543,6 +550,7 @@ export default Vue.extend<Data, any, any, any>({
           :required="true"
           :tooltip="t('typeDescription.appcharts')"
           :reduce="(e) => e.value"
+          :disabled="mode === EDIT"
           @input="update"
         />
         <template v-if="showBuilderImage">

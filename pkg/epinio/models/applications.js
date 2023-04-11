@@ -1,8 +1,14 @@
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { downloadFile } from '@shell/utils/download';
 import { formatSi } from '@shell/utils/units';
+import JSZip from 'jszip';
 import { epiniofy } from '../store/epinio-store/actions';
-import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import {
+  APPLICATION_ACTION_STATE,
+  APPLICATION_ENV_VAR,
+  APPLICATION_SOURCE_TYPE,
+  APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+} from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
 import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
 
@@ -25,7 +31,6 @@ const STATES_MAPPED = {
 
 export default class EpinioApplicationModel extends EpinioNamespacedResource {
   buildCache = {};
-
   // ------------------------------------------------------------------
   // Dashboard plumbing
 
@@ -130,9 +135,10 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     },
     { divider: true },
     {
-      action: 'createManifest',
-      label:  this.t('epinio.applications.actions.createManifest.label'),
-      icon:   'icon icon-fw icon-download',
+      action:  'exportApp',
+      label:   this.t('epinio.applications.export.label'),
+      icon:    'icon icon-fw icon-download',
+      enabled: isRunning
     },
     { divider: true },
 
@@ -206,10 +212,6 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return Object.keys(this.configuration?.environment || []).length;
   }
 
-  get envDetails() {
-    return this.configuration?.environment;
-  }
-
   get routeCount() {
     return this.configuration?.routes.length;
   }
@@ -234,63 +236,218 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return this.deployment?.millicpus;
   }
 
+  get appEnvVar() {
+    const envVar = this.configuration?.environment?.[APPLICATION_ENV_VAR];
+
+    if (envVar) {
+      if (envVar !== this.cachedEnvVar) {
+        this.cachedEppEnvVar = JSON.parse(envVar);
+      }
+
+      return this.cachedEppEnvVar;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Convert the App Env Var to EpinioAppSource (opposite of setEnvVarFromSource)
+   *
+   * @returns EpinioAppSource
+   */
+  sourceFromEnvVar() {
+    const appSource = {
+      type:      this.sourceType,
+      appChart:  this.configuration?.appchart,
+      github:    {},
+      gitUrl:    {},
+      container: {},
+      archive:   {},
+    };
+
+    const appEnvVar = this.appEnvVar;
+
+    if (appEnvVar?.source) {
+      appSource.builderImage = { value: appEnvVar.source.builderImage };
+
+      switch (this.sourceType) {
+      case APPLICATION_SOURCE_TYPE.GIT_HUB:
+        appSource.github = appEnvVar.source[this.sourceType];
+        break;
+      case APPLICATION_SOURCE_TYPE.GIT_LAB:
+        appSource.gitLab = appEnvVar.source[this.sourceType]; // TODO: RC
+        break;
+      case APPLICATION_SOURCE_TYPE.GIT_URL:
+        appSource.gitUrl = appEnvVar.source[this.sourceType];
+        break;
+      case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+        appSource.container = appEnvVar.source[this.sourceType];
+        break;
+      }
+    }
+
+    return appSource;
+  }
+
+  /**
+   * Convert EpinioAppSource to the App Env Var (opposite of sourceFromEnvVar)
+   *
+   * These are  ui specific properties we'd like to use at other points
+   * @param {EpinioAppSource} source
+   */
+  setEnvVarFromSource(source) {
+    const envVarSource = {
+      type:         source.type,
+      builderImage: source.builderImage.value
+    };
+
+    const { sourceData: misc1, ...glSource } = source.gitlab || {};
+    const { sourceData: misc2, ...ghSource } = source.github || {};
+    const { tarball, ...aSource } = source.archive || {};
+
+    switch (source.type) {
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+      envVarSource[source.type] = ghSource;
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
+      envVarSource[source.type] = glSource;
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
+      envVarSource[source.type] = source.gitUrl;
+      break;
+    case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+      envVarSource[source.type] = source.container;
+      break;
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
+    case APPLICATION_SOURCE_TYPE.FOLDER:
+      envVarSource[source.type] = aSource;
+      break;
+    }
+
+    const appEnvVar = { source: envVarSource };
+
+    this.configuration = this.configuration || {};
+    this.configuration.environment = this.configuration.environment || {};
+    this.configuration.environment[APPLICATION_ENV_VAR] = JSON.stringify(appEnvVar);
+  }
+
+  /**
+   * Extract ui specific source properties stored in the applications env vars
+   * returns APPLICATION_SOURCE_TYPE
+   */
+  get sourceType() {
+    const sourceType = this.appEnvVar?.source?.type;
+
+    if (sourceType) {
+      return sourceType;
+    }
+
+    switch (this.origin?.Kind) { // APPLICATION_MANIFEST_SOURCE_TYPE
+    case APPLICATION_MANIFEST_SOURCE_TYPE.PATH:
+      return APPLICATION_SOURCE_TYPE.ARCHIVE; // Best Guess
+    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
+      return APPLICATION_SOURCE_TYPE.GIT_URL; // Best Guess
+    case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
+      return APPLICATION_SOURCE_TYPE.CONTAINER_URL;
+    case APPLICATION_MANIFEST_SOURCE_TYPE.NONE:
+    default:
+      return undefined;
+    }
+  }
+
   get sourceInfo() {
-    if (!this.origin) {
+    // This should move to the component
+    const appEnvVarSource = this.appEnvVar?.source;
+
+    if (!this.origin && !appEnvVarSource) {
       return undefined;
     }
     const appChart = {
       label: 'App Chart',
       value: this.configuration.appchart
     };
+    const builderImage = {
+      label: 'Builder Image',
+      value: appEnvVarSource.builderImage
+    };
+    const source = appEnvVarSource?.[this.sourceType] || {};
 
-    switch (this.origin.Kind) { // APPLICATION_MANIFEST_SOURCE_TYPE
-    case APPLICATION_MANIFEST_SOURCE_TYPE.PATH:
+    switch (this.sourceType) { // APPLICATION_SOURCE_TYPE
+    case APPLICATION_SOURCE_TYPE.FOLDER:
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
       return {
         label:   'File system',
         icon:    'icon-file',
         details: [
-          appChart
+          {
+            label: 'Original Name',
+            value: source?.fileName
+          }, appChart, builderImage
         ]
       };
-    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
       return {
         kind:    this.origin.Kind,
         label:   'Git',
         icon:    'icon-file',
         details: [
-          appChart, {
+          {
+            label: 'Url',
+            value: source?.url || this.origin.git.repository
+          }, {
+            label: 'Revision',
+            icon:  'icon-commit',
+            value: source?.branch || this.origin.git.revision
+          }, appChart, builderImage
+        ]
+      };
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+      return {
+        label:   'GitHub',
+        icon:    'icon-github',
+        details: [
+          {
             label: 'Url',
             value: this.origin.git.repository
           }, {
             label: 'Revision',
             icon:  'icon-commit',
             value: this.origin.git.revision
-          },
+          }, {
+            label: 'Branch',
+            icon:  'icon-commit',
+            value: source.branch,
+          }, appChart, builderImage
         ]
       };
-    case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
       return {
-        label:   'Container',
-        icon:    'icon-docker',
+        label:   'GitLab',
+        icon:    'icon-gitlab',
         details: [
-          appChart, {
-            label: 'Image',
-            value: this.origin.Container || this.origin.container
-          }]
-      };
-    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT_HUB:
-      return {
-        label:   'GitHub',
-        icon:    'icon-github',
-        details: [
-          appChart, {
+          {
             label: 'Url',
             value: this.origin.git.repository
           }, {
             label: 'Revision',
-            icon:  'icon-github',
+            icon:  'icon-commit',
             value: this.origin.git.revision
-          }]
+          }, {
+            label: 'Branch',
+            icon:  'icon-commit',
+            value: source.branch,
+          }, appChart, builderImage
+        ]
+      };
+    case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+      return {
+        label:   'Container',
+        icon:    'icon-docker',
+        details: [{
+          label: 'Image',
+          value: source?.url || this.origin.Container || this.origin.container
+        }, appChart
+        ]
       };
     case APPLICATION_MANIFEST_SOURCE_TYPE.GIT_LAB:
       return {
@@ -379,6 +536,15 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return createEpinioRoute(`c-cluster-applications`, {}) ;
   }
 
+  get applicationParts() {
+    return Object.values(APPLICATION_PARTS);
+  }
+
+  // TODO: Remove after merging with master
+  get applyMode() {
+    return 'export';
+  }
+
   // ------------------------------------------------------------------
   // Change/handle changes of the app
 
@@ -442,6 +608,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         accept:         'application/json'
       },
       data: {
+        appchart:       this.configuration.appchart,
         instances:      this.configuration.instances,
         configurations: this.configuration.configurations,
         environment:    this.configuration.environment,
@@ -502,6 +669,72 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
     await this.forceFetch();
     this.showStagingLog(stage.id);
+  }
+
+  exportApp(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ExportAppDialog',
+      modalWidth: '450px',
+    });
+  }
+
+  async fetchPart(part) {
+    const responseType = part === 'values' ? 'text/plain' : 'blob';
+
+    const opt = { url: `${ this.linkFor('self') }/part/${ part }`, responseType };
+
+    const { data } = await this.$dispatch('request', { opt, type: this.type });
+
+    return data;
+  }
+
+  async downloadAppParts({ part, data, all = false }) {
+    if (part === 'values') {
+      await downloadFile(`${ this.meta.name }-${ part }.yaml`, data, 'text/plain');
+    } else {
+      await downloadFile(`${ this.meta.name }-${ part }`, data, 'application/gzip;charset=utf-8');
+    }
+  }
+
+  // TODO: Remove after merging with master
+  async applyAction() {
+    const resource = this.resources[0];
+    const appPartsData = resource?.applicationParts.reduce((accumulator, currentValue) => {
+      accumulator[currentValue] = {};
+
+      return accumulator;
+    }, {});
+
+    const chartZip = async(files) => {
+      const zip = new JSZip();
+
+      for (const fileName in files) {
+        const extension = {
+          [APPLICATION_PARTS.VALUES]: 'yml',
+          [APPLICATION_PARTS.CHART]:  'tar.gz',
+          [APPLICATION_PARTS.IMAGE]:  'tar',
+        };
+
+        zip.file(`${ fileName }.${ extension[fileName] }`, files[fileName]);
+      }
+
+      const contents = await zip.generateAsync({ type: 'blob' });
+
+      await downloadFile(`${ resource.meta.name }-helm-chart.zip`, contents, 'application/zip');
+    };
+
+    if (this.$route.hash === '#manifest') {
+      await resource.createManifest();
+    } else {
+      await Promise.all(resource?.applicationParts.map(async(part) => {
+        const data = await resource.fetchPart(part);
+
+        appPartsData[part] = data;
+      }));
+
+      await chartZip(appPartsData);
+    }
   }
 
   get appShellId() {

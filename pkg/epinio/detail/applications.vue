@@ -70,8 +70,10 @@ export default Vue.extend<Data, any, any, any>({
       envs:          this.value?.envDetails,
       gitSource:     null,
       gitDeployment: {
-        deployedCommit: null,
-        commits:        null,
+        // deployedCommit: null,
+        // commits:        null, // TODO: RC test
+        deployedCommit: '',
+        commitsArray:   null,
       },
       appInstance: {
         schema:  appInstanceSchema,
@@ -106,8 +108,10 @@ export default Vue.extend<Data, any, any, any>({
       return `${ matchGit?.[4] }/${ matchGit?.[5] }`;
     },
     async fetchRepoDetails() {
-      if (this.envs[APPLICATION_ENV_VAR] ) {
-        const { usernameOrOrg, repo } = JSON.parse(this.envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GIT;
+      const gitSource = this.value?.appEnvVar?.[this.gitType]; // TODO: RC check
+
+      if (gitSource) {
+        const { usernameOrOrg, repo } = gitSource as EPINIO_APP_ENV_VAR_GIT;
         const res = await this.$store.dispatch(`${ this.gitType }/fetchRepoDetails`, { username: usernameOrOrg, repo });
 
         this.gitSource = GitUtils[this.gitType].normalize.repo(res);
@@ -125,11 +129,13 @@ export default Vue.extend<Data, any, any, any>({
       await this.fetchCommits();
     },
     async fetchCommits() {
-      if (!this.envs[APPLICATION_ENV_VAR]) {
+      const gitSource = this.value?.appEnvVar?.[this.gitType]; // TODO: RC check
+
+      if (!gitSource) {
         return;
       }
 
-      const { usernameOrOrg, repo, branch } = JSON.parse(this.envs[APPLICATION_ENV_VAR]);
+      const { usernameOrOrg, repo, branch } = gitSource;
 
       this.gitDeployment.commits = await this.$store.dispatch(`${ this.gitType }/fetchCommits`, {
         username: usernameOrOrg, repo, branch
@@ -145,7 +151,7 @@ export default Vue.extend<Data, any, any, any>({
   },
   computed: {
     gitType() {
-      if (this.envs[APPLICATION_ENV_VAR]) {
+      if (this.envs[APPLICATION_ENV_VAR]) { // TODO: RC search for APPLICATION_ENV_VAR
         const { type } = JSON.parse(this.envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GIT;
 
         if (type) {
@@ -211,11 +217,19 @@ export default Vue.extend<Data, any, any, any>({
 
       let idx = null;
 
-      this.preparedCommits.map((commit: any, i: number) => {
-        if (commit.commitId === this.gitDeployment.deployedCommit.long) {
-          idx = i - 1;
-        }
-      });
+      // this.preparedCommits.map((commit: any, i: number) => {
+      //   if (commit.commitId === this.gitDeployment.deployedCommit.long) {
+      //     idx = i - 1;
+      //   }
+      // });
+      // TODO: RC test
+      if (this.gitDeployment.commitsArray) {
+        this.gitDeployment.commitsArray.map((ele: { sha: any; }, i: number) => {
+          if (ele.sha === this.gitDeployment?.deployedCommit?.long) {
+            idx = i - 1;
+          }
+        });
+      }
 
       if (!idx) {
         return idx;

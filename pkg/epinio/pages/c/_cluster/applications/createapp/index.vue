@@ -3,7 +3,7 @@ import Vue from 'vue';
 import Application from '../../../../../models/applications';
 import Loading from '@shell/components/Loading.vue';
 import Wizard from '@shell/components/Wizard.vue';
-import { APPLICATION_ENV_VAR, APPLICATION_SOURCE_TYPE, EPINIO_TYPES } from '../../../../../types';
+import { EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
 import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
@@ -11,7 +11,6 @@ import AppConfiguration, { EpinioAppBindings } from '../../../../../components/a
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
 import { allHash } from '@shell/utils/promise';
-import { GitUtils, toLabel } from '../../../../../utils/git';
 
 interface Data {
   value?: Application,
@@ -110,21 +109,7 @@ export default Vue.extend<Data, any, any, any>({
         this.set(this.value.configuration, { appchart: appChart });
       }
 
-      if (changes.type === APPLICATION_SOURCE_TYPE.GIT_HUB || changes.type === APPLICATION_SOURCE_TYPE.GIT_LAB) {
-        this.value.configuration.environment = this.value.configuration.environment || {};
-        const type = toLabel(changes.type);
-        const gitEnvVar = GitUtils[type].application.env(changes.git);
-
-        this.set(
-          this.value.configuration.environment,
-          {
-            ...this.value.configuration.environment,
-            [APPLICATION_ENV_VAR]: JSON.stringify(gitEnvVar)
-          }
-        );
-      } else {
-        delete this.value.configuration?.environment?.[APPLICATION_ENV_VAR];
-      }
+      this.value.setEnvVarFromSource(changes);
 
       this.set(this.source, cleanChanges);
     },
@@ -171,14 +156,6 @@ export default Vue.extend<Data, any, any, any>({
       @cancel="cancel"
       @finish="finish"
     >
-      <template #basics>
-        <AppInfo
-          :application="value"
-          :mode="mode"
-          @change="updateInfo"
-          @valid="steps[1].ready = $event"
-        />
-      </template>
       <template #source>
         <AppSource
           :application="value"
@@ -189,6 +166,14 @@ export default Vue.extend<Data, any, any, any>({
           @changeAppInfo="updateInfo"
           @changeAppConfig="updateManifestConfigurations"
           @valid="steps[0].ready = $event"
+        />
+      </template>
+      <template #basics>
+        <AppInfo
+          :application="value"
+          :mode="mode"
+          @change="updateInfo"
+          @valid="steps[1].ready = $event"
         />
       </template>
       <template #configurations>

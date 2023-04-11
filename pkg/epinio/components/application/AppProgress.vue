@@ -48,6 +48,8 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   async fetch() {
+    const REDEPLOY_SOURCE = this.$router?.history.current.hash === '#source';
+
     const coreArgs: Partial<ApplicationAction & {
       application: EpinioApplication,
       bindings: EpinioAppBindings,
@@ -68,29 +70,41 @@ export default Vue.extend<Data, any, any, any>({
       );
     }
 
-    this.actions.push(
-      await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.CREATE,
-        index:  1, // index used for sorting
-        ...coreArgs,
-      })
-    );
-
-    if (this.bindings?.configurations?.length) {
+    if (!REDEPLOY_SOURCE) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
-          action: APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
-          index:  2,
+          action: APPLICATION_ACTION_TYPE.CREATE,
+          index:  1, // index used for sorting
           ...coreArgs,
         })
       );
     }
 
-    if (this.bindings?.services?.length) {
+    if (REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.UPDATE_SOURCE,
+          index:  2, // index used for sorting
+          ...coreArgs,
+        })
+      );
+    }
+
+    if (this.bindings?.configurations?.length && !REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
+          index:  3,
+          ...coreArgs,
+        })
+      );
+    }
+
+    if (this.bindings?.services?.length && !REDEPLOY_SOURCE) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BIND_SERVICES,
-          index:  3,
+          index:  4,
           ...coreArgs,
         })
       );
@@ -101,7 +115,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.UPLOAD,
-          index:  4,
+          index:  5,
           ...coreArgs,
         })
       );
@@ -111,7 +125,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.GIT_FETCH,
-          index:  4,
+          index:  5,
           ...coreArgs,
         })
       );
@@ -121,7 +135,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.GIT_FETCH,
-          index:  5,
+          index:  6,
           ...coreArgs,
         })
       );
@@ -135,7 +149,7 @@ export default Vue.extend<Data, any, any, any>({
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BUILD,
-          index:  6,
+          index:  7,
           ...coreArgs,
         })
       );
@@ -143,8 +157,8 @@ export default Vue.extend<Data, any, any, any>({
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action: APPLICATION_ACTION_TYPE.DEPLOY,
-      index:  7,
-      ...coreArgs,
+      index:  8,
+      ...coreArgs
     })
     );
 
