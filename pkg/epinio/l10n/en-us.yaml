@@ -131,7 +131,7 @@ epinio:
         title: Application Variables
         keyLabel: Name
         valueLabel: Value
-        description: Changing the value of an existing Application Variable or Environment Variables will also restart your application.
+        description: Changes to Application and Environment Variables are applied when the Application has been restarted.
         checkbox: Enables/Disables {name}
       envvar:
         title: Environment Variables

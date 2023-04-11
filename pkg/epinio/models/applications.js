@@ -448,11 +448,6 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         routes:         this.configuration.routes,
       }
     });
-
-    // Restart app after applying new custom-values
-    if (this.configuration?.settings) {
-      await this.restart();
-    }
   }
 
   async storeArchive(data) {
