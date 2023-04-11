@@ -81,13 +81,6 @@ export default {
         this.resources = [resource];
       }
     }
-    // ToDo: SM this is inelegant, come back to it
-    // } else {
-    //   const type = this.$route.params.resource;
-    //   const resource = await this.$fetchType(type);
-
-    //   this.resources = [resource];
-    // }
   },
 
   data() {

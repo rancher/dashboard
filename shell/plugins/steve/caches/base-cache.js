@@ -58,6 +58,8 @@ export default class BaseCache extends Trace {
   __immediateSubCaches = null;
   __allSubCaches = null;
   __currentParentCaches = null;
+  __currentPageResources = null;
+  __currentPageParams = null;
   createCache = () => console.warn(`No method for creating sub-resource caches provided to cache ${ this.type }`); // eslint-disable-line no-console
 
   constructor(type, getters = {}, rootGetters = {}, api, uiApi, createCache) {
@@ -116,7 +118,7 @@ export default class BaseCache extends Trace {
         }, [])
         .flat(1) // flatten the above should make just a flat array of strings
         .reduce(dedupCacheNamesReducer, []) // simple deduplication of cacheName strings
-        .sort(); // ToDo: SM need to figure out some type of load order algorithm here...
+        .sort();
     }
 
     return this.__allSubCaches.filter(cacheName => except.length === 0 || !except.includes(cacheName));
@@ -187,7 +189,7 @@ export default class BaseCache extends Trace {
       namespace, selector, id
     });
 
-    return this.__requests[cacheKey].ids.map((id) => {
+    return (this.__requests[cacheKey]?.ids || Object.keys(this.resources)).map((id) => {
       const { resource, calculatedFields } = this.resources[id];
       const resourceCombo = {
         resource,
@@ -241,14 +243,18 @@ export default class BaseCache extends Trace {
   }
 
   byPage(params) {
+    // if params are undefined then we just use whatever's in __currentPageParams, essentially repeating the page to see if it changed
+    if (params) {
+      this.__currentPageParams = params;
+    }
     const {
       page, pageSize, namespace, selector, id
-    } = params;
+    } = this.__currentPageParams;
     const cacheKey = hashObj({
       namespace, selector, id
     });
     const secondaryResourceParams = { namespace, selector };
-    const foundResources = this.__findAndSort(params);
+    const foundResources = this.__findAndSort(this.__currentPageParams);
 
     const pageStart = (page - 1) * pageSize;
     const pageEnd = pageStart + pageSize;
@@ -281,24 +287,23 @@ export default class BaseCache extends Trace {
 
     const response = secondaryResources.length > 0 ? [formattedResponse, ...secondaryResources] : formattedResponse;
 
+    this.__currentPageResources = (Array.isArray(response) ? response : [response]).reduce((pageResourceMap, resourceResponse) => {
+      const { resourceType, data: { data: resources } } = resourceResponse;
+
+      return {
+        ...pageResourceMap,
+        [resourceType]: resources.map(resource => resource.id)
+      };
+    }, {});
+
     return response;
   }
 
-  // ToDo: SM not actually used by anything?
-  // bySelector(selector, { namespace, id } = {}, returnWholeResource = true) {
-  //   // ToDo: SM make this a real thing...
-  //   const cacheKey = hashObj({
-  //     namespace, selector, id
-  //   });
-  //   const resources = this.__list({
-  //     namespace, selector, id
-  //   })
-  //     .map(({ resource, wholeResource }) => {
-  //       return returnWholeResource ? wholeResource : resource;
-  //     });
-
-  //   return this.__formatListResponse(resources.length, resources, cacheKey);
-  // }
+  matching(selector, namespace) {
+    return this.__list({ namespace, selector }).filter(({ wholeResource }) => {
+      matches();
+    });
+  }
 
   /**
    * Find the resource/s associated with the params in the cache. IF we don't have the resource/s for the params we'll fetch them
@@ -348,57 +353,13 @@ export default class BaseCache extends Trace {
     });
 
     return sortByFields.length > 0 ? sortBy(filteredResources, sortByWholeResourceFields) : filteredResources;
-    // ToDo: SM namesort not throwing an error but certainly not working either...
-    // const sortedResources = sortByFields.length > 0 ? sortBy(filteredResources, sortByWholeResourceFields) : filteredResources;
-
-    // const pageStart = (page - 1) * pageSize;
-    // const pageEnd = pageStart + pageSize;
-
-    // const pagedResources = page ? sortedResources.slice(pageStart, pageEnd) : sortedResources;
-    // const secondaryResourceMap = pagedResources.reduce((acc, { wholeResource }) => {
-    //   const subResources = wholeResource.subResources;
-    //   const resourceNames = Object.keys(subResources || {});
-    //   const subResourceIds = { ...acc };
-
-    //   resourceNames.forEach((resourceName) => {
-    //     subResourceIds[resourceName] = [...new Set([
-    //       ...subResourceIds[resourceName] || [],
-    //       ...subResources[resourceName]
-    //     ])];
-    //   });
-
-    //   return subResourceIds;
-    // }, {});
-
-    // const secondaryResources = Object.keys(secondaryResourceMap)
-    //   .map((resourceName) => {
-    //     return this.getters.findByIds(resourceName, secondaryResourceMap[resourceName]);
-    //   });
-
-    // const finalResources = pagedResources.map(({ resource }) => resource);
-    // const primaryResource = {
-    //   data: {
-    //     totalLength:  resources.length,
-    //     listLength:   filteredResources.length,
-    //     data:         finalResources,
-    //     revision:     this.__revision,
-    //     resourceType: this.type,
-    //     status:       this.__status,
-    //     statusText:   this.__statusText,
-
-    //   }
-    // };
-
-    // const response = secondaryResources.length > 0 ? [primaryResource, ...secondaryResources] : primaryResource;
-
-    // return response;
   }
 
   /**
    * Change the given resource in the cache
    */
   change(resource, callback) {
-    // this.trace('change', resource);
+    this.trace('change', resource);
     const calculatedFields = this.__addCalculatedFields(resource);
 
     const updatedCache = this.__updateCache(resource, calculatedFields);

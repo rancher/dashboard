@@ -5,7 +5,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { CATALOG, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { compatibleVersionsFor } from '@shell/store/catalog';
+import { compatibleVersionsFor } from '@shell/plugins/steve/storeUtils/catalog';
 import {
   _getChartDisplay, _getNameDisplay, _getVersionSort, matchingChart, _getUpgradeAvailable, _getDeployedResources, _getVersionDisplay, _getUpgradeAvailableSort
 } from '@shell/plugins/steve/resourceUtils/catalog.cattle.io.app';

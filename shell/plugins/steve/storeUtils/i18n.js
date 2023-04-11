@@ -3,7 +3,6 @@ import IntlMessageFormat from 'intl-messageformat';
 import { getProduct, getVendor, DOCS_BASE } from '@shell/config/private-label';
 const NONE = 'none';
 
-// ToDo: SM need to find a better and more central location for this
 const intlCache = {};
 
 const getTranslate = ({ selected, translations, default: defaultLocale }) => (key, args, language) => {

@@ -204,7 +204,6 @@ export default class ResourceCache extends BaseCache {
       id,
       updated:     Date.now()
     };
-    // ToDo: SM split this into two seperate private methods for __loadSingle vs __loadList
     const resources = !Array.isArray(payload) ? [payload] : payload;
 
     for (let i = 0; i < resources.length; i++) {
@@ -238,9 +237,9 @@ export default class ResourceCache extends BaseCache {
     const cacheKey = hashObj({
       namespace, selector, id
     });
-    const haveAll = false; // ToDo: SM infer this from an existing cacheKey for "{}"
+    const haveAll = this.__requests[hashObj({})];
 
-    if (this.__requests[cacheKey] || haveAll) { // ToDo: SM also make a check to make sure the watch is up to date...
+    if (this.__requests[cacheKey] || haveAll) {
       return false;
     }
 

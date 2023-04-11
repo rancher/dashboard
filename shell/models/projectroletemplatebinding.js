@@ -1,21 +1,22 @@
 import { MANAGEMENT } from '@shell/config/types';
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { _getPrincipalId, _getRoleDisplay, _getRoleDescription, _getRoleTemplate } from '~/shell/plugins/steve/resourceUtils/projectemplaterolebinding';
 
 export default class PRTB extends NormanModel {
   get principalId() {
-    return this.userPrincipalId || this.groupPrincipalId;
+    return _getPrincipalId(this);
   }
 
   get roleDisplay() {
-    return this.roleTemplate?.nameDisplay;
+    return _getRoleDisplay(this);
   }
 
   get roleDescription() {
-    return this.roleTemplate?.description;
+    return _getRoleDescription(this);
   }
 
   get roleTemplate() {
-    return this.$rootGetters['management/byId'](MANAGEMENT.ROLE_TEMPLATE, this.roleTemplateId);
+    return _getRoleTemplate(this, this.$getters, this.$rootGetters);
   }
 
   get steve() {

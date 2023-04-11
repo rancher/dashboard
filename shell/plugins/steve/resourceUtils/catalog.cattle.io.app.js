@@ -2,7 +2,7 @@ import { compare, sortable, isPrerelease } from '@shell/utils/version';
 import { filterBy } from '@shell/utils/array';
 import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@shell/config/labels-annotations';
 import { SHOW_PRE_RELEASE } from '@shell/store/prefs';
-import { compatibleVersionsFor } from '@shell/store/catalog';
+import { compatibleVersionsFor } from '@shell/plugins/steve/storeUtils/catalog';
 
 export function cleanupVersion(version) {
   if ( !version ) {

@@ -12,7 +12,7 @@ import { isEmpty } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { LINUX, WINDOWS } from '@shell/plugins/steve/storeUtils/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 import { _getKubernetesVersion, _getMachineProvider, _getNodes } from '@shell/plugins/steve/resourceUtils/management.cattle.io.cluster';
 import { _getGroupByLabel } from '@shell/plugins/steve/resourceUtils/cluster.x-k8s.io.machineset';

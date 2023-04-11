@@ -1,8 +1,8 @@
 import Identicon from 'identicon.js';
 import { md5 } from '@shell/utils/crypto';
 import { addParam } from '@shell/utils/url';
-import { ucFirst } from '@shell/utils/string';
 import NormanModel from '@shell/plugins/steve/norman-class';
+import { _getDisplayType } from '~/shell/plugins/steve/resourceUtils/principal';
 
 export default class Principal extends NormanModel {
   get avatarSrc() {
@@ -35,8 +35,6 @@ export default class Principal extends NormanModel {
   }
 
   get displayType() {
-    const provider = this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
-
-    return `${ provider } ${ ucFirst(this.providerSpecificType) }`;
+    return _getDisplayType(this, this.$getters, this.$rootGetters);
   }
 }

@@ -15,6 +15,7 @@ export default class ExternalCache extends BaseCache {
       .then((res) => {
         return res;
       });
+
     const { data: { data } } = uiRequest;
 
     this.load(data);

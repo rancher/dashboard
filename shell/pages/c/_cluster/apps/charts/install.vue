@@ -35,7 +35,7 @@ import { clone, diff, get, set } from '@shell/utils/object';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { LINUX, WINDOWS } from '@shell/plugins/steve/storeUtils/catalog';
 
 const VALUES_STATE = {
   FORM: 'FORM',

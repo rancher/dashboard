@@ -133,7 +133,6 @@ export default {
   schemaFor: (state, getters) => (type, fuzzy = false, allowThrow = true) => {
     const schemas = state.types[SCHEMA];
 
-    // ToDo: SM why do we put normalizeType in a getter anyway? it's an imported function with no dependency on the store
     type = getters.normalizeType(type);
 
     if ( !schemas ) {

@@ -36,8 +36,8 @@ export default class SchemaCache extends ResourceCache {
 
   pathExistsInSchema(typeParam, path) {
     const type = normalizeType(typeParam);
-    const schema = this.getSchema(type);
+    const schema = this.resources[type]?.resource;
 
-    return pathExistsInSchema(schema, path, this.getSchema);
+    return pathExistsInSchema(schema, path, id => this.getSchema(id));
   }
 }

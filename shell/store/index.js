@@ -180,6 +180,9 @@ export const state = () => {
 };
 
 export const getters = {
+  cacheRequest(state) {
+    return state;
+  },
   clusterReady(state) {
     return state.clusterReady === true;
   },
@@ -845,7 +848,6 @@ export const actions = {
       }
     };
 
-    // ToDo: SM this looks like it can be replaced by a waitFor on management
     const fetchProjects = async() => {
       let limit = 30000;
       const sleep = 100;
@@ -860,7 +862,6 @@ export const actions = {
       }
     };
 
-    // ToDo: SM can we fire these off way earlier in the worker and just let this all happen faster?
     const res = await allHash({
       projects:   fetchProjects(),
       counts:     dispatch('cluster/findAll', { type: COUNT }),

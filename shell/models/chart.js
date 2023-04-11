@@ -1,4 +1,4 @@
-import { compatibleVersionsFor } from '@shell/store/catalog';
+import { compatibleVersionsFor } from '@shell/plugins/steve/storeUtils/catalog';
 import {
   REPO_TYPE, REPO, CHART, VERSION, _FLAGGED, HIDE_SIDE_NAV
 } from '@shell/config/query-params';

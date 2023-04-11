@@ -197,7 +197,6 @@ export default {
 
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
-    // ToDo: SM this needs to be better but for testing purposes
     if (type !== 'workload') {
       opt.url = getters.urlFor(type, null, opt);
     } else {
@@ -344,11 +343,15 @@ export default {
     }
 
     if ( opt.watch !== false ) {
-      dispatch('watch', {
-        type,
-        revision:  out.revision,
-        namespace: opt.watchNamespace || opt.namespaced, // it could be either
-        force:     opt.forceWatch === true,
+      const responses = Array.isArray(out) ? out : [out];
+
+      responses.forEach((response) => {
+        dispatch('watch', {
+          type:      response.resourceType || type,
+          revision:  response.revision,
+          namespace: response.watchNamespace || opt.namespaced, // it could be either
+          force:     opt.forceWatch === true,
+        });
       });
     }
 

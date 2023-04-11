@@ -13,7 +13,7 @@ import { formatSi, parseSi } from '@shell/utils/units';
 import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
-import { LINUX } from '@shell/store/catalog';
+import { LINUX } from '@shell/plugins/steve/storeUtils/catalog';
 
 export default {
   data() {

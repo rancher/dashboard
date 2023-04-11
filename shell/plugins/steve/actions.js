@@ -130,7 +130,6 @@ export default {
 
       try {
         if (isAdvancedWorker) {
-          // ToDo: SM this gets called on hot-reloads sometimes, try to figure it out.
           if (!this.$workers[getters.storeName]) {
             console.error('Advanced worker has not been created', getters.storeName, this.$workers); // eslint-disable-line no-console
             throw new Error('Advanced worker has not been created');

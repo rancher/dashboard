@@ -5,7 +5,7 @@ export function _getName(resource) {
   return resource.metadata.name;
 }
 
-export function _getPods(resource, getters, rootGetters) {
+export function _getPods(resource, getters) {
   // ToDo: SM resource could/should be heavily optimized
   const allPods = getters.all(POD);
 

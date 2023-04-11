@@ -11,6 +11,8 @@ export function _getHasDefaultBackend(resource) {
 }
 
 export const calculatedFields = [
-  { name: 'defaultBackendPath', func: _getDefaultBackendPath },
+  {
+    name: 'defaultBackendPath', func: _getDefaultBackendPath, caches: ['cluster']
+  },
   { name: 'hasDefaultBackend', func: _getHasDefaultBackend }
 ];

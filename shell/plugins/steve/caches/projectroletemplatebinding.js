@@ -1,5 +1,5 @@
 import HybridModel from '@shell/plugins/steve/caches/hybrid-class';
-import { calculatedFields } from '@shell/plugins/steve/resourceUtils/projectroletemplatebinding';
+import { calculatedFields } from '@shell/plugins/steve/resourceUtils/projectemplaterolebinding';
 
 export default class PRTBCache extends HybridModel {
   constructor(type, getters, rootGetters, api, uiApi, createCache) {

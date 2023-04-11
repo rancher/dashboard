@@ -48,7 +48,6 @@ export default class ResourceRequest extends Trace {
     /**
      * Make the http request
      */
-    // ToDo: SM needs to detect duplicate requests and group them together...
     request(params, schemaFor) {
       this.trace('Request', params);
 

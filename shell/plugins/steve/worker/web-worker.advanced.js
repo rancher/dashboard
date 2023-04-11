@@ -3,7 +3,9 @@
  * relocates cluster resource sockets off the UI thread and into a webworker
  */
 
-import { SCHEMA, COUNT, POD } from '@shell/config/types';
+import {
+  SCHEMA, COUNT, POD, WORKLOAD, WORKLOAD_TYPES
+} from '@shell/config/types';
 import ResourceWatcher, { watchKeyFromMessage } from '@shell/plugins/steve/resourceWatcher';
 import { EVENT_MESSAGE, EVENT_CONNECT_ERROR, EVENT_DISCONNECT_ERROR } from '@shell/utils/socket';
 import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/normalize';
@@ -12,6 +14,7 @@ import cacheClasses from '@shell/plugins/steve/caches';
 import ResourceRequest from '@shell/plugins/steve/api/resourceRequest';
 import Trace from '@shell/plugins/steve/trace';
 import { CACHE_STATES } from '@shell/plugins/steve/caches/base-cache';
+import { hashObj } from '~/shell/utils/crypto/browserHashUtils';
 
 const caches = {};
 
@@ -69,9 +72,11 @@ const resourceCache = (type) => {
 const rootGetters = {};
 
 const getters = {
-  all:                type => caches[type]?.all(),
-  byId:               (type, id) => caches[type]?.byId(id),
-  findByIds:          (type, ids) => caches[type]?.find({ ids }),
+  all:       type => caches[type]?.all()?.data?.data,
+  byId:      (type, id) => caches[type]?.byId(id),
+  findByIds: (type, ids) => {
+    return caches[type]?.find({ ids });
+  },
   matching:           (type, selector, namespace) => caches[type]?.matching(selector, namespace),
   schemaFor:          type => caches[SCHEMA]?.getSchema(type),
   pathExistsInSchema: (type, path) => caches[SCHEMA]?.pathExistsInSchema(type, path),
@@ -268,7 +273,6 @@ const workerActions = {
     workerActions.request(params, (response, error) => {
       self.postMessage({
         awaitedResponse: {
-          // ToDo: SM okay, need to wrap the response in "one more" data property...
           response, requestHash, error
         }
       });
@@ -381,25 +385,52 @@ const workerActions = {
       return;
     }
 
-    const {
-      resourceType,
-      namespace,
-      id,
-      selector,
-      resourceVersion
-    } = msg;
+    if (msg.resourceType === WORKLOAD) {
+      const { namespace, selector, id } = msg;
 
-    const resourceVersionTime = resourceVersion ? Date.now() : undefined;
-    const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType);
+      Object.values(WORKLOAD_TYPES).forEach((resourceType) => {
+        const workloadTypeRequest = caches[resourceType].__requests[hashObj({
+          namespace, selector, id
+        })];
+        const resourceVersion = workloadTypeRequest.revision;
+        const watchMsg = {
+          ...msg,
+          resourceType,
+          resourceVersion
+        };
+        const resourceVersionTime = resourceVersion ? Date.now() : undefined;
+        const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType);
+        const watchKey = watchKeyFromMessage(watchMsg);
 
-    const watchObject = {
-      resourceType,
-      id,
-      namespace,
-      selector
-    };
+        const watchObject = {
+          resourceType,
+          id,
+          namespace,
+          selector
+        };
 
-    state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
+        state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
+      });
+    } else {
+      const {
+        resourceType,
+        namespace,
+        id,
+        selector,
+        resourceVersion
+      } = msg;
+      const resourceVersionTime = resourceVersion ? Date.now() : undefined;
+      const skipResourceVersion = [SCHEMA, COUNT].includes(resourceType);
+
+      const watchObject = {
+        resourceType,
+        id,
+        namespace,
+        selector
+      };
+
+      state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
+    }
   },
   unwatch: (watchKey) => {
     watchTracer.trace('unwatch', watchKey);
@@ -453,12 +484,6 @@ const workerActions = {
 
     Object.values(caches).forEach(c => c.setDebug(cache));
   },
-  // singleUpdateBatch(type, id, change) {
-  //   if (!state.batchChanges[type]) {
-  //     state.batchChanges[type] = {};
-  //   }
-  //   state.batchChanges[type][id] = change;
-  // },
   singleUpdateBatch(type, id, change) {
     if (!state.batchChanges[type]) {
       state.batchChanges[type] = {};
@@ -467,7 +492,71 @@ const workerActions = {
   },
   sendBatch(requestHash) {
     if (Object.keys(state.batchChanges).length) {
-      const batchPayload = { batchChanges: state.batchChanges };
+      const relevantCaches = Object.keys(caches).filter((cacheKey) => {
+        const cache = caches[cacheKey];
+        const currentPageResources = cache.__currentPageResources;
+
+        if (!currentPageResources) {
+          return false;
+        }
+        const matchingResourceTypes = Object.keys(state.batchChanges).filter((batchResource) => {
+          return Object.keys(currentPageResources).includes(batchResource);
+        });
+
+        if (matchingResourceTypes.length === 0) {
+          return false;
+        }
+
+        return true;
+      });
+
+      const filteredBatchChanges = relevantCaches.map((cacheKey) => {
+        const cache = caches[cacheKey];
+        const currentPageResourceTypes = Object.keys(cache.__currentPageResources);
+        const cachePageResources = currentPageResourceTypes.reduce((pageResourceMap, pageResourceType) => {
+          const resourcePageIds = cache.__currentPageResources[pageResourceType];
+          const changeResourceTypeIdMap = state.batchChanges[pageResourceType];
+
+          if (changeResourceTypeIdMap) {
+            const resourceBatchChangeIds = Object.keys(changeResourceTypeIdMap);
+
+            return {
+              ...pageResourceMap,
+              [pageResourceType]: resourceBatchChangeIds
+                .filter(changeId => resourcePageIds.includes(changeId)) // so we know the remaining ids are in the currentPage somewhere
+                .reduce((resourceProperties, changeId) => {
+                  return {
+                    ...resourceProperties,
+                    [changeId]: state.batchChanges[pageResourceType][changeId]
+                  };
+                }, {})
+            };
+          }
+
+          return { ...pageResourceMap };
+        }, {});
+
+        return cachePageResources;
+      }).reduce((newBatchChanges, batchChangesPerCache) => {
+        const batchChangeKeys = Object.keys(batchChangesPerCache);
+        const batchChanges = { ...newBatchChanges };
+
+        batchChangeKeys.forEach((batchChangeKey) => {
+          batchChanges[batchChangeKey] = {
+            ...batchChanges[batchChangeKey],
+            ...batchChangesPerCache[batchChangeKey]
+          };
+        });
+
+        return batchChanges;
+      }, {});
+
+      const batchPayload = {
+        batchChanges: {
+          ...filteredBatchChanges,
+          ...state.batchChanges.count ? { count: state.batchChanges.count } : {}
+        }
+      };
 
       if (requestHash) {
         self.postMessage({ awaitedResponse: { ...batchPayload, requestHash } });
@@ -494,7 +583,6 @@ const resourceWatcherActions = {
 
     caches[type].change(data, () => workerActions.singleUpdateBatch(type, id, data));
   },
-  // ToDo: SM create is functionally identical to change in the cache but the worker isn't supposed to know that hence the near-duplicate code
   'resource.create': (msg) => {
     const { type, id, data } = makeResourceProps(msg);
 

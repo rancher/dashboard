@@ -3,14 +3,13 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
 import { clone } from '@shell/utils/object';
-import { findBy, addObject, isArray } from '@shell/utils/array';
+import { findBy, addObject } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { sortBy } from '@shell/utils/sort';
 import { importChart } from '@shell/utils/dynamic-importer';
 import { ensureRegex } from '@shell/utils/string';
-import { isPrerelease } from '@shell/utils/version';
-import difference from 'lodash/difference';
+import { compatibleVersionsFor } from '@shell/plugins/steve/storeUtils/catalog';
 import { lookup } from '@shell/plugins/dashboard-store/model-loader';
 import { chart, preferSameRepo } from '@shell/utils/catalog.cattle.io.app';
 
@@ -32,9 +31,6 @@ const CERTIFIED_SORTS = {
   [CATALOG_ANNOTATIONS._PARTNER]:      2,
   other:                               3,
 };
-
-export const WINDOWS = 'windows';
-export const LINUX = 'linux';
 
 export const state = function() {
   return {
@@ -528,34 +524,6 @@ function filterCategories(categories) {
 
 function normalizeCategory(c) {
   return c.replace(/\s+/g, '').toLowerCase();
-}
-
-/*
-catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
-  default: nothing
-catalog.cattle.io/permits-os: OS -> will break on clusters containing nodes that are not OS
-  default if not found: catalog.cattle.io/permits-os: linux
-*/
-export function compatibleVersionsFor(chart, os, includePrerelease = true) {
-  const versions = chart.versions;
-
-  if (os && !isArray(os)) {
-    os = [os];
-  }
-
-  return versions.filter(({ annotations, version } = {}) => {
-    const osPermitted = (annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
-
-    if ( !includePrerelease && isPrerelease(version) ) {
-      return false;
-    }
-
-    if ( !os || difference(os, osPermitted).length === 0) {
-      return true;
-    }
-
-    return false;
-  });
 }
 
 export function filterAndArrangeCharts(charts, {

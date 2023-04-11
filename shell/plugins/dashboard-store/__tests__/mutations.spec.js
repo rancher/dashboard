@@ -31,8 +31,10 @@ describe('dashboard-store: mutations', () => {
     haveNamespace: undefined,
     haveSelector:  {},
     list:          [],
+    listLength:    0,
     loadCounter:   0,
     revision:      0,
+    totalLength:   0,
     map:           new Map(),
     ...props
   });
