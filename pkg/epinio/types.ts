@@ -36,12 +36,12 @@ export const APPLICATION_MANIFEST_SOURCE_TYPE = {
 
 // ------------ App Source Info (used within the UI) --------------
 export enum APPLICATION_SOURCE_TYPE {
-  CONTAINER_URL = 'container_url',
-  ARCHIVE = 'archive',
-  FOLDER = 'folder',
-  GIT_URL = 'git_url',
-  GIT_HUB = 'git_hub',
-  GIT_LAB = 'git_lab',
+  CONTAINER_URL = 'container_url', // eslint-disable-line no-unused-vars
+  ARCHIVE = 'archive', // eslint-disable-line no-unused-vars
+  FOLDER = 'folder', // eslint-disable-line no-unused-vars
+  GIT_URL = 'git_url', // eslint-disable-line no-unused-vars
+  GIT_HUB = 'git_hub', // eslint-disable-line no-unused-vars
+  GIT_LAB = 'git_lab', // eslint-disable-line no-unused-vars
 }
 
 export interface AppSourceArchive {

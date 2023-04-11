@@ -16,7 +16,6 @@ import {
 } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 import camelCase from 'lodash/camelCase';
-import { gitUtilsToLabel } from '../../utils/git';
 import { _EDIT } from '@shell/config/query-params';
 
 const GIT_BASE_URL = {

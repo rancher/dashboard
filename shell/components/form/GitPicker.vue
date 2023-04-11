@@ -8,7 +8,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import some from 'lodash/some';
 import { GitUtils, gitUtilsToLabel } from '@/pkg/epinio/utils/git';
-import { APPLICATION_SOURCE_TYPE } from '~/pkg/epinio/types';
 
 interface commit {
   [key: string]: any,
@@ -75,7 +74,6 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   mounted() {
-    debugger;
     if (!this.value) {
       return;
     }
@@ -93,8 +91,6 @@ export default Vue.extend<Data, any, any, any>({
       this.commits = this.value.sourceData.commits;
     } else {
       // API calls data - from remote
-      debugger;
-
       this.selectedAccOrOrg = this.value.usernameOrOrg;
       if (this.selectedAccOrOrg) {
         this.fetchRepos()
@@ -113,7 +109,6 @@ export default Vue.extend<Data, any, any, any>({
             }
           })
           .then(() => {
-            debugger;
             if (this.commits.length && this.commits.find((c: commit) => c.sha === this.value.commit || c.id === this.value.commit)) {
               this.selectedCommit = { sha: this.value.commit };
               this.final(this.value.commit);
