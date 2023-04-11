@@ -251,15 +251,24 @@ export default {
         <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)"></p>
       </Banner>
 
+      <h4 v-if="canEditAffinity">{{ t('cluster.agentConfig.subGroups.podAffinityAnti') }}</h4>
+
       <PodAffinity
         v-if="canEditAffinity"
         v-model="value"
         field="overrideAffinity"
         :mode="mode"
-        class="mt-0"
+        class="mt-0 mb-20"
         :all-namespaces-option-available="true"
         :force-input-namespace-selection="true"
       />
+
+      <div 
+        v-if="canEditAffinity"
+        class="separator" />
+      <h4 
+        v-if="canEditAffinity"
+        class="mt-20">{{ t('cluster.agentConfig.subGroups.nodeAffinity') }}</h4>
 
       <NodeAffinity
         v-if="canEditAffinity"
@@ -290,4 +299,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.separator {
+  width: 100%;
+  border-top: 1px solid var(--border);
+}
 </style>

@@ -1605,15 +1605,18 @@ cluster:
     groups:
       deploymentLabels: Deployment Labels
       selector: Selector
-      podAffinity: Pod Affinity
-      podTolerations: Pod Tolerations
-      podRequestsAndLimits: Pod Requests and Limits
+      podAffinity: Affinity
+      podTolerations: Tolerations
+      podRequestsAndLimits: Requests and Limits
+    subGroups:
+      podAffinityAnti: Pod Affinity/Anti-Affinity
+      nodeAffinity: Node Affinity
     banners:
       clusterAdvanced: This is advanced configuration for the  Cluster agent deployment. You should generally leave this as is.
       fleetAdvanced: This is advanced configuration for the Fleet agent deployment. You should generally leave this as is.
       tolerations: Pod Tolerations added here will be combined with default Tolerations applied by Rancher.
       limits: Pod Requests and Limits don't make use of a default configuration.
-      windowsCompatibility: "We highly recommended to not remove the Node Affinity rule that prevents <b>cattle-cluster-agent</b> from running on Windows nodes as it's not officially supported on Windows."
+      windowsCompatibility: "We highly recommended to not remove the Node Affinity rule that prevents the <b>agent</b> from running on Windows nodes as it's not officially supported on Windows."
     affinity:
       default: Use default affinity rules defined by Rancher
       custom: Use custom affinity rules
