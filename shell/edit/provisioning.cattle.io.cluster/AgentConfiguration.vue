@@ -90,7 +90,7 @@ export default {
       bannerMessageKey,
       defaultAffinity: {},
       affinitySetting: DEFAULT,
-      nodeAffinity: {}
+      nodeAffinity:    {}
     };
   },
 
@@ -184,6 +184,7 @@ export default {
     affinitySettingChange() {
       if (this.affinitySetting === CUSTOM) {
         const parsedDefaultAffinites = JSON.parse(JSON.stringify(this.defaultAffinity));
+
         // Copy the default so that the user can edit it
         // this will cover the pod affinities
         this.$set(this.value, 'overrideAffinity', parsedDefaultAffinites);
@@ -192,7 +193,6 @@ export default {
         if (parsedDefaultAffinites.nodeAffinity) {
           this.nodeAffinity = parsedDefaultAffinites.nodeAffinity;
         }
-        
       } else {
         this.$set(this.value, 'overrideAffinity', {});
       }
@@ -216,11 +216,11 @@ export default {
       label-key="cluster.agentConfig.groups.podRequestsAndLimits"
       class="mt-20"
     >
-    <Banner
-      :closable="false"
-      color="info"
-      label-key="cluster.agentConfig.banners.limits"
-    />
+      <Banner
+        :closable="false"
+        color="info"
+        label-key="cluster.agentConfig.banners.limits"
+      />
       <ContainerResourceLimit
         v-model="flatResources"
         :mode="mode"
@@ -248,10 +248,12 @@ export default {
         :closable="false"
         color="warning"
       >
-        <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)"></p>
+        <p v-clean-html="t('cluster.agentConfig.banners.windowsCompatibility', {}, true)" />
       </Banner>
 
-      <h4 v-if="canEditAffinity">{{ t('cluster.agentConfig.subGroups.podAffinityAnti') }}</h4>
+      <h4 v-if="canEditAffinity">
+        {{ t('cluster.agentConfig.subGroups.podAffinityAnti') }}
+      </h4>
 
       <PodAffinity
         v-if="canEditAffinity"
@@ -263,22 +265,25 @@ export default {
         :force-input-namespace-selection="true"
       />
 
-      <div 
+      <div
         v-if="canEditAffinity"
-        class="separator" />
-      <h4 
+        class="separator"
+      />
+      <h4
         v-if="canEditAffinity"
-        class="mt-20">{{ t('cluster.agentConfig.subGroups.nodeAffinity') }}</h4>
+        class="mt-20"
+      >
+        {{ t('cluster.agentConfig.subGroups.nodeAffinity') }}
+      </h4>
 
       <NodeAffinity
         v-if="canEditAffinity"
-        :matching-selector-display="true"
         v-model="nodeAffinity"
-        @input="updateNodeAffinity"
+        :matching-selector-display="true"
         :mode="mode"
         class="mt-0"
+        @input="updateNodeAffinity"
       />
-      
     </GroupPanel>
 
     <GroupPanel
