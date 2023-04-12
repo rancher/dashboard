@@ -29,6 +29,13 @@ export default {
       default: NODE
     },
 
+    // has select for matching fields or expressions (used for node affinity)
+    // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#nodeselectorterm-v1-core
+    matchingSelectorDisplay: {
+      type:    Boolean,
+      default: false,
+    },
+
     // whether or not to show an initial empty row of inputs when value is empty in editing modes
     initialEmptyRow: {
       type:    Boolean,
@@ -83,28 +90,39 @@ export default {
 
     let rules;
 
-    if ( isArray(this.value) ) {
+    // special case for matchFields and matchExpressions
+    // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#nodeselectorterm-v1-core
+    if ( this.matchingSelectorDisplay) {
+      const rulesByType = {
+        matchFields:      [],
+        matchExpressions: []
+      };
+
+      ['matchFields', 'matchExpressions'].forEach((type) => {
+        rulesByType[type] = this.parseRules(this.value[type], type);
+      });
+
+      rules = [...rulesByType.matchFields, ...rulesByType.matchExpressions];
+    } else if ( isArray(this.value) ) {
       rules = [...this.value];
+      rules = this.parseRules(rules);
     } else {
       rules = convert(this.value.matchLabels, this.value.matchExpressions);
+      rules = this.parseRules(rules);
     }
 
-    rules = rules.map((rule) => {
-      const newRule = clone(rule);
-
-      if (newRule.values && typeof newRule.values !== 'string') {
-        newRule.values = newRule.values.join(', ');
-      }
-
-      return newRule;
-    });
-
     if (!rules.length && this.initialEmptyRow && !this.isView) {
-      rules.push({
+      const newRule = {
         key:      '',
         operator: 'In',
         values:   ''
-      });
+      };
+
+      if (this.matchingSelectorDisplay) {
+        newRule.matching = 'matchExpressions';
+      }
+
+      rules.push(newRule);
     }
 
     return {
@@ -131,27 +149,71 @@ export default {
       return !!this.keysSelectOptions?.length;
     },
 
+    matchingSelectOptions() {
+      return [
+        {
+          label: this.t('workload.scheduling.affinity.matchExpressions.label'),
+          value: 'matchExpressions',
+        },
+        {
+          label: this.t('workload.scheduling.affinity.matchFields.label'),
+          value: 'matchFields',
+        },
+      ];
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
   methods: {
+    parseRules(rules, matching) {
+      if (rules?.length) {
+        return rules.map((rule) => {
+          const newRule = clone(rule);
+
+          if (newRule.values && typeof newRule.values !== 'string') {
+            newRule.values = newRule.values.join(', ');
+          }
+
+          if (matching) {
+            newRule.matching = matching;
+          }
+
+          return newRule;
+        });
+      }
+
+      return [];
+    },
+
     removeRule(row) {
       removeObject(this.rules, row);
       this.update();
     },
 
     addRule() {
-      this.rules.push({
+      const newRule = {
         key:      '',
         operator: 'In',
         values:   ''
-      });
+      };
+
+      if (this.matchingSelectorDisplay) {
+        newRule.matching = 'matchExpressions';
+      }
+
+      this.rules.push(newRule);
     },
 
     update() {
       this.$nextTick(() => {
         const out = this.rules.map((rule) => {
-          const matchExpression = { key: rule.key, operator: rule.operator };
+          const expression = { key: rule.key, operator: rule.operator };
+
+          if (this.matchingSelectorDisplay) {
+            expression.matching = rule.matching;
+          }
+
           let val = (rule.values || '').trim();
 
           if ( rule.operator === 'Exists' || rule.operator === 'DoesNotExist') {
@@ -161,13 +223,13 @@ export default {
           }
 
           if ( val !== null ) {
-            matchExpression.values = val.split(/\s*,\s*/).filter(x => !!x);
+            expression.values = val.split(/\s*,\s*/).filter(x => !!x);
           }
 
-          return matchExpression;
+          return expression;
         }).filter(x => !!x);
 
-        if ( isArray(this.value) ) {
+        if ( isArray(this.value) || this.matchingSelectorDisplay ) {
           this.$emit('input', out);
         } else {
           this.$emit('input', simplify(out));
@@ -192,8 +254,11 @@ export default {
     <div
       v-if="rules.length"
       class="match-expression-header"
-      :class="{'view':isView}"
+      :class="{ 'view':isView, 'match-expression-header-matching': matchingSelectorDisplay }"
     >
+      <label v-if="matchingSelectorDisplay">
+        {{ t('workload.scheduling.affinity.matchExpressions.matching') }}
+      </label>
       <label>
         {{ t('workload.scheduling.affinity.matchExpressions.key') }}
       </label>
@@ -209,8 +274,24 @@ export default {
       v-for="(row, index) in rules"
       :key="row.id"
       class="match-expression-row"
-      :class="{'view':isView, 'mb-10': index !== rules.length - 1}"
+      :class="{'view':isView, 'mb-10': index !== rules.length - 1, 'match-expression-row-matching': matchingSelectorDisplay}"
     >
+      <!-- Select for matchFields and matchExpressions -->
+      <div
+        v-if="matchingSelectorDisplay"
+        :data-testid="`input-match-matching-type-key-${index}`"
+      >
+        <div v-if="isView">
+          {{ row.matching }}
+        </div>
+        <LabeledSelect
+          v-else
+          v-model="row.matching"
+          :mode="mode"
+          :options="matchingSelectOptions"
+          @selecting="update"
+        />
+      </div>
       <div
         :data-testid="`input-match-expression-key-${index}`"
       >
@@ -342,6 +423,12 @@ export default {
 
     &:not(.view){
       grid-template-columns: repeat(3, 1fr) 50px;
+    }
+  }
+  .match-expression-row-matching, .match-expression-header-matching {
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    &:not(.view){
+      grid-template-columns: 1fr 1fr 1fr 1fr 100px !important;
     }
   }
 </style>

@@ -272,6 +272,7 @@ export default {
 
       <NodeAffinity
         v-if="canEditAffinity"
+        :matching-selector-display="true"
         v-model="nodeAffinity"
         @input="updateNodeAffinity"
         :mode="mode"

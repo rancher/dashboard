@@ -410,7 +410,10 @@ export default {
                 @input="update"
               />
             </div>
-            <div class="col span-3">
+            <div
+              v-if="props.row.value.weight"
+              class="col span-3"
+            >
               <LabeledInput
                 v-model.number="props.row.value.weight"
                 :mode="mode"

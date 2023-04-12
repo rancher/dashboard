@@ -5944,7 +5944,10 @@ workload:
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
       affinityOption: Affinity
       antiAffinityOption: Anti-Affinity
+      matchFields:
+        label: Fields
       matchExpressions:
+        label: Expressions
         addRule: Add Rule
         doesNotExist: is not set
         exists: is set
@@ -5953,6 +5956,7 @@ workload:
         inNamespaces: "Pods in these namespaces:"
         key: Key
         lessThan: <
+        matching: Matching
         namespaces: Namespaces
         notIn: not in list
         operator: Operator
