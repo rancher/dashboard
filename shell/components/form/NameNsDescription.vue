@@ -330,7 +330,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', !val || (this.namespaces && !this.namespaces.find(n => n.value === val)));
+        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find(n => n.value === val)));
       }
 
       if (this.namespaceKey) {
