@@ -9,6 +9,7 @@ describe('Local authentication', () => {
 
     cy.wait('@loginReq').then((login) => {
       expect(login.response?.statusCode).to.equal(200);
+      // expect(login.request?.body).has.property('responseType', 'cookie');
       cy.url().should('not.equal', `${ Cypress.config().baseUrl }/auth/login`);
     });
   });
