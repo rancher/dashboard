@@ -77,6 +77,8 @@ const ADVANCED = 'advanced';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
+const NETBIOS_TRUNCATION_LENGTH = 15;
+
 /**
  * Classes to be adopted by the node badges in Machine pools
  */
@@ -310,6 +312,8 @@ export default {
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
     const previousKubernetesVersion = this.value.spec.kubernetesVersion;
 
+    const truncateLimit = this.value.machinePoolDefaults?.hostnameLengthLimit;
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
@@ -345,8 +349,8 @@ export default {
       cisOverride:           false,
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
-      truncateHostnames:     false,
-      truncateLimit:         '',
+      truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
+      truncateLimit,
     };
   },
 
@@ -363,12 +367,13 @@ export default {
       return this.value.spec.rkeConfig;
     },
 
+    hostnameTruncationManuallySet() {
+      return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
+    },
+
     /**
      * Check presence of PSPs as template or CLI creation
      */
-    isView() {
-      return this.mode === _EDIT;
-    },
     hasPsps() {
       return !!this.psps?.count;
     },
@@ -1095,9 +1100,14 @@ export default {
      */
     truncateName() {
       if (this.truncateHostnames) {
+        this.value.machinePoolDefaults = this.value.machinePoolDefaults || {};
         this.value.machinePoolDefaults.hostnameLengthLimit = 15;
       } else {
-        delete this.value.machinePoolDefaults;
+        delete this.value.machinePoolDefaults.hostnameLengthLimit;
+
+        if (Object.keys(this.value.machinePoolDefaults).length === 0) {
+          delete this.value.machinePoolDefaults;
+        }
       }
     },
     /**
@@ -1156,16 +1166,6 @@ export default {
             config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
             configMissing
           });
-
-          // Added hostnameLengthLimit manually to each pool for testing purpose
-          this.value.machinePoolDefaults.hostnameLengthLimit = 15;
-          out.map((pool) => {
-            pool.pool.hostnameLengthLimit = 15;
-          });
-
-          if (this.truncateLimit === 15 ) {
-            this.truncateHostnames = true;
-          }
         }
       }
 
@@ -2599,19 +2599,20 @@ export default {
             </div>
             <div class="col span-6">
               <Checkbox
+                v-if="!isView || isView && !hostnameTruncationManuallySet"
                 v-model="truncateHostnames"
                 class="mt-20"
-                :disabled="isView"
+                :disabled="isEdit || isView || hostnameTruncationManuallySet"
                 :mode="mode"
                 :label="t('cluster.rke2.truncateHostnames')"
                 @input="truncateName"
               />
               <Banner
-                v-if="isView && truncateLimit !== 15 && truncateLimit"
+                v-if="hostnameTruncationManuallySet"
                 color="info"
               >
                 <div class="text">
-                  {{ t('cluster.machinePool.truncationCluster') }} {{ truncateLimit }}
+                  {{ t('cluster.machinePool.truncationCluster', { limit: truncateLimit }) }}
                 </div>
               </Banner>
             </div>

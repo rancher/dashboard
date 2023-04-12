@@ -1689,8 +1689,8 @@ cluster:
     noAccessBanner: "You do not have access to see this machine pool's configuration."
     configNotFound: "We could not find this machine pool's configuration. We recommend that you create a new cluster with the desired configuration."
     noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
-    truncationPool: "Hostname truncation has been manually configured for this pool to"
-    truncationCluster: "Hostname truncation has been manually configured for this cluster to"
+    truncationPool: "Hostname truncation has been manually configured for this pool to {limit}"
+    truncationCluster: "Hostname truncation has been manually configured for this cluster to {limit}"
 
     autoReplace:
       label: Auto Replace
