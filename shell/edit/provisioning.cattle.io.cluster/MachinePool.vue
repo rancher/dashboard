@@ -178,7 +178,7 @@ export default {
       color="info"
     >
       <div class="text">
-        {{ t('cluster.machinePool.truncationPool') }} {{ value.pool.hostnameLengthLimit }}
+        {{ t('cluster.machinePool.truncationPool', { limit: value.pool.hostnameLengthLimit }) }}
       </div>
     </Banner>
     <div class="row">
