@@ -13,6 +13,7 @@ import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
 import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
+import { _EDIT } from '@shell/config/query-params';
 
 export const EPINIO_APP_MANIFEST = 'manifest';
 
@@ -113,6 +114,8 @@ export default Vue.extend<Data, any, any, any>({
     const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
+    const sourceType = this.application.sourceType || APPLICATION_SOURCE_TYPE.FOLDER;
+
     return {
       open: false,
       defaultBuilderImage,
@@ -166,8 +169,9 @@ export default Vue.extend<Data, any, any, any>({
         label: this.t('epinio.applications.steps.source.gitHub.label'),
         value: APPLICATION_SOURCE_TYPE.GIT_HUB
       }],
-      unSafeType: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
-      APPLICATION_SOURCE_TYPE
+      unSafeType: sourceType,
+      APPLICATION_SOURCE_TYPE,
+      EDIT:       _EDIT
     };
   },
   mounted() {
@@ -291,8 +295,6 @@ export default Vue.extend<Data, any, any, any>({
         Vue.set(this.archive, 'fileName', folderName || 'folder');
 
         this.update();
-
-        // downloadFile('resources.zip', zip, 'application/zip');
       });
     },
 
@@ -406,7 +408,6 @@ export default Vue.extend<Data, any, any, any>({
 
     type() {
       // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
-      // (possibly `reduce` related). This the workaround
       return this.unSafeType.value || this.unSafeType;
     },
   }
@@ -540,6 +541,7 @@ export default Vue.extend<Data, any, any, any>({
       class="mt-30 mb-30 source"
     >
       <template>
+        <!-- Unable to change app chart of active app, so disable -->
         <LabeledSelect
           v-model="appChart"
           data-testid="epinio_app-source_appchart"
@@ -550,6 +552,7 @@ export default Vue.extend<Data, any, any, any>({
           :required="true"
           :tooltip="t('typeDescription.appcharts')"
           :reduce="(e) => e.value"
+          :disabled="mode === EDIT"
           @input="update"
         />
         <template v-if="showBuilderImage">

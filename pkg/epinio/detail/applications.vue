@@ -5,7 +5,7 @@ import Vue, { PropType } from 'vue';
 import Application from '../models/applications';
 import SimpleBox from '@shell/components/SimpleBox.vue';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
-import { APPLICATION_ENV_VAR, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import { APPLICATION_SOURCE_TYPE, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
@@ -63,7 +63,7 @@ export default Vue.extend<Data, any, any, any>({
       saving:        false,
       gitSource:     null,
       gitDeployment: {
-        deployedCommit: null,
+        deployedCommit: '',
         commitsArray:   null,
       },
       appInstance: {
@@ -126,10 +126,10 @@ export default Vue.extend<Data, any, any, any>({
       return `${ matchGithub?.[4] }/${ matchGithub?.[5] }`;
     },
     async fetchRepoDetails() {
-      const envs = this.value?.envDetails;
+      const githubSource = this.value?.appEnvVar?.source?.[APPLICATION_SOURCE_TYPE.GIT_HUB];
 
-      if (envs[APPLICATION_ENV_VAR] ) {
-        const { usernameOrOrg, repo } = JSON.parse(envs[APPLICATION_ENV_VAR]) as EPINIO_APP_ENV_VAR_GITHUB;
+      if (githubSource ) {
+        const { usernameOrOrg, repo } = githubSource as EPINIO_APP_ENV_VAR_GITHUB;
         const res = await this.$store.dispatch('github/fetchRepoDetails', { username: usernameOrOrg, repo });
 
         const {
@@ -159,13 +159,13 @@ export default Vue.extend<Data, any, any, any>({
       await this.fetchCommits();
     },
     async fetchCommits() {
-      const envs = this.value?.envDetails;
+      const githubSource = this.value?.appEnvVar?.source?.[APPLICATION_SOURCE_TYPE.GIT_HUB];
 
-      if (!envs[APPLICATION_ENV_VAR]) {
+      if (!githubSource) {
         return;
       }
 
-      const { usernameOrOrg, repo, branch } = JSON.parse(envs[APPLICATION_ENV_VAR]);
+      const { usernameOrOrg, repo, branch } = githubSource;
 
       this.gitDeployment.commitsArray = await this.$store.dispatch('github/fetchCommits', {
         username: usernameOrOrg, repo, branch
@@ -209,7 +209,7 @@ export default Vue.extend<Data, any, any, any>({
 
       if (this.gitDeployment.commitsArray) {
         this.gitDeployment.commitsArray.map((ele: { sha: any; }, i: number) => {
-          if (ele.sha === this.gitDeployment.deployedCommit.long) {
+          if (ele.sha === this.gitDeployment?.deployedCommit?.long) {
             idx = i - 1;
           }
         });

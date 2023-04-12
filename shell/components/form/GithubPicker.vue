@@ -87,16 +87,49 @@ export default {
   },
 
   mounted() {
+    if (!this.selection) {
+      return;
+    }
     // Keeps the selected repo/branch/commit when the user switches between steps
-    if (this.selection) {
+
+    if (this.selection.sourceData) {
+      // API calls data - from cache
+
       this.selectedAccOrOrg = this.selection.usernameOrOrg;
       this.selectedRepo = this.selection.repo;
       this.selectedBranch = this.selection.branch;
+      this.selectedCommit = { sha: this.selection.commit };
 
-      // API calls data
       this.repos = this.selection.sourceData.repos;
       this.branches = this.selection.sourceData.branches;
       this.commits = this.selection.sourceData.commits;
+    } else {
+      // API calls data - from remote
+
+      this.selectedAccOrOrg = this.selection.usernameOrOrg;
+      if (this.selectedAccOrOrg) {
+        this.fetchRepos()
+          .then(() => {
+            if (this.repos.length && !this.hasError.repo) {
+              this.selectedRepo = this.selection.repo;
+
+              return this.fetchBranches();
+            }
+          })
+          .then(() => {
+            if (this.branches.length && !this.hasError.branch) {
+              this.selectedBranch = this.selection.branch;
+
+              return this.fetchCommits();
+            }
+          })
+          .then(() => {
+            if (this.commits.length && this.commits.find(c => c.sha === this.selection.commit)) {
+              this.selectedCommit = { sha: this.selection.commit };
+              this.final(this.selection.commit);
+            }
+          });
+      }
     }
   },
   computed: {

@@ -32,7 +32,6 @@ export const APPLICATION_MANIFEST_SOURCE_TYPE = {
   PATH:      1,
   GIT:       2,
   CONTAINER: 3,
-  GIT_HUB:   4,
 };
 
 export const APPLICATION_SOURCE_TYPE = {
