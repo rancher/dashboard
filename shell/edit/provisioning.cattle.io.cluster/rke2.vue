@@ -249,6 +249,12 @@ export default {
       set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
     }
 
+    if ( !this.value.machinePoolDefaults ) {
+      set(this.value, 'machinePoolDefaults', {});
+    } else {
+      this.truncateLimit = this.value.machinePoolDefaults.hostnameLengthLimit;
+    }
+
     if ( !this.machinePools ) {
       await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
       if ( this.mode === _CREATE && !this.machinePools.length ) {
@@ -340,7 +346,7 @@ export default {
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
       truncateHostnames:     false,
-      truncateLimit:         null,
+      truncateLimit:         '',
     };
   },
 
@@ -1089,13 +1095,9 @@ export default {
      */
     truncateName() {
       if (this.truncateHostnames) {
-        this.machinePools.filter((pool) => {
-          pool.pool.instanceNameLimit = 15;
-        });
+        this.value.machinePoolDefaults.hostnameLengthLimit = 15;
       } else {
-        this.machinePools.filter((pool) => {
-          pool.pool.instanceNameLimit = null;
-        });
+        delete this.value.machinePoolDefaults;
       }
     },
     /**
@@ -1155,13 +1157,10 @@ export default {
             configMissing
           });
 
-          // Added instanceNameLimit manually to each pool for testing purpose
-          // out.map((pool) => {
-          //   pool.pool.instanceNameLimit = 17;
-          // });
-
-          out.filter((pool) => {
-            this.truncateLimit = pool.pool.instanceNameLimit;
+          // Added hostnameLengthLimit manually to each pool for testing purpose
+          this.value.machinePoolDefaults.hostnameLengthLimit = 15;
+          out.map((pool) => {
+            pool.pool.hostnameLengthLimit = 15;
           });
 
           if (this.truncateLimit === 15 ) {
@@ -1269,7 +1268,6 @@ export default {
         }
 
         await this.syncMachineConfigWithLatest(entry);
-
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
 

@@ -174,11 +174,11 @@ export default {
 <template>
   <div>
     <Banner
-      v-if="value.pool.instanceNameLimit"
+      v-if="value.pool.hostnameLengthLimit"
       color="info"
     >
       <div class="text">
-        {{ t('cluster.machinePool.truncationPool') }} {{ value.pool.instanceNameLimit }}
+        {{ t('cluster.machinePool.truncationPool') }} {{ value.pool.hostnameLengthLimit }}
       </div>
     </Banner>
     <div class="row">
