@@ -58,7 +58,7 @@ export default {
       return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
     },
 
-    columns() {
+    columnsClass() {
       return `${ this.displaySideBySide ? 'col span-6' : 'row' }`.trim();
     }
   }
@@ -82,7 +82,7 @@ export default {
         <p class="mt-10 mb-10">
           <t k="labels.labels.description" />
         </p>
-        <div :class="columns">
+        <div :class="columnsClass">
           <KeyValue
             key="labels"
             :value="value.labels"
