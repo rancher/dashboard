@@ -173,10 +173,8 @@ export function parseField(str) {
   const parts = str.split(/:/);
   const descSuffix = (parts.length === 2 && parts[1] === 'desc');
   const descPrefix = str[0] === '-';
-  // this is as close to an exclusive or as JS gets I think
-  const reverse = !!(descSuffix ^ descPrefix);
-  // `/^-/` matches the "-" character but only if it's the first character
-  const field = parts[0].replace(/^-/, '');
+  const reverse = !!(descSuffix ^ descPrefix); // ^ is an exclusive or operator
+  const field = parts[0].replace(/^-/, ''); // `/^-/` matches the "-" character but only if it's the first character
 
   return { field, reverse };
 }

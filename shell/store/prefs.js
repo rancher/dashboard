@@ -159,6 +159,7 @@ export const getters = {
 
   //   return def;
   // },
+  cacheRequest: state => state,
 
   get: (state) => {
     const prefsDefinitions = state.definitions;

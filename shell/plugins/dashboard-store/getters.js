@@ -14,8 +14,8 @@ import { getPerformanceSetting } from '@shell/utils/settings';
 import { BLANK_CLUSTER } from '@shell/store';
 
 export default {
-
-  all: (state, getters, rootState) => (type) => {
+  cacheRequest: ({ types, config }) => ({ types, config }),
+  all:          (state, getters, rootState) => (type) => {
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {

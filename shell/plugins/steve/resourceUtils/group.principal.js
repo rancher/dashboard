@@ -1,7 +1,7 @@
 import { NORMAN } from '@shell/config/types';
 
 export function _getPrincipalNameDisplay(resource, _, rootGetters) {
-  const principal = rootGetters.rancherById(NORMAN.PRINCIPAL, resource.id);
+  const principal = rootGetters['rancher/byId'](NORMAN.PRINCIPAL, resource.id);
 
   return `${ principal.name } (${ principal.displayType })`;
 }

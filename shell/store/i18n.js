@@ -81,7 +81,9 @@ export const getters = {
 
   config: state => () => {
     return state;
-  }
+  },
+
+  cacheRequest: state => state,
 
 };
 

@@ -112,6 +112,10 @@ export const state = function() {
 };
 
 export const getters = {
+  cacheRequest(state) {
+    return state;
+  },
+
   credentialOptions() {
     return (name) => {
       name = (name || '').toLowerCase();

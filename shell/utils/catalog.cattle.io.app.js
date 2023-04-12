@@ -1,4 +1,4 @@
-import { filterBy } from '@shell/utils/array';
+import { filterBy, sortBy } from '@shell/utils/array';
 
 export function preferSameRepo(matching, repoType, repoName) {
   matching.sort((a, b) => {
@@ -23,6 +23,39 @@ export function parseKey(key) {
     repoName:  parts[1],
     chartName: parts[2],
   };
+}
+
+export function repos(state) {
+  const clustered = state.clusterRepos || [];
+  const namespaced = state.namespacedRepos || [];
+
+  return [...clustered, ...namespaced];
+}
+
+export function charts(state, getters, rootGetters) {
+  const repoKeys = getters.repos.map(x => x._key);
+  let cluster = rootGetters['currentCluster'];
+
+  if ( rootGetters['currentProduct']?.inStore === 'management' ) {
+    cluster = null;
+  }
+
+  // Filter out charts for repos that are no longer in the store, rather
+  // than trying to clear them when a repo is removed.
+  // And ones that are for the wrong kind of cluster
+  const out = Object.values(state.charts).filter((chart) => {
+    if ( !repoKeys.includes(chart.repoKey) ) {
+      return false;
+    }
+
+    if ( cluster && chart.scope && chart.scope !== cluster.scope ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return sortBy(out, ['certifiedSort', 'repoName', 'chartName']);
 }
 
 export function chart(charts) {

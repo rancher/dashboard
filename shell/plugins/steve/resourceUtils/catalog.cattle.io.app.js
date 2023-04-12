@@ -74,7 +74,7 @@ export function _getUpgradeAvailable(resource, _, rootGetters) {
     return false;
   }
 
-  const chart = matchingChart(resource, false, this.rootGetters['catalog/chart']);
+  const chart = matchingChart(resource, false, rootGetters['catalog/chart']);
 
   if ( !chart ) {
     return null;

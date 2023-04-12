@@ -11,7 +11,7 @@ import { importChart } from '@shell/utils/dynamic-importer';
 import { ensureRegex } from '@shell/utils/string';
 import { compatibleVersionsFor } from '@shell/plugins/steve/storeUtils/catalog';
 import { lookup } from '@shell/plugins/dashboard-store/model-loader';
-import { chart, preferSameRepo } from '@shell/utils/catalog.cattle.io.app';
+import { chart, charts, preferSameRepo, repos } from '@shell/utils/catalog.cattle.io.app';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -45,6 +45,10 @@ export const state = function() {
 };
 
 export const getters = {
+  cacheRequest(state) {
+    return state;
+  },
+
   isLoaded(state) {
     return (repo) => {
       return !!state.loaded[repo._key];
@@ -52,10 +56,7 @@ export const getters = {
   },
 
   repos(state) {
-    const clustered = state.clusterRepos || [];
-    const namespaced = state.namespacedRepos || [];
-
-    return [...clustered, ...namespaced];
+    return repos(state);
   },
 
   // Raw charts
@@ -72,29 +73,7 @@ export const getters = {
   },
 
   charts(state, getters, rootState, rootGetters) {
-    const repoKeys = getters.repos.map(x => x._key);
-    let cluster = rootGetters['currentCluster'];
-
-    if ( rootGetters['currentProduct']?.inStore === 'management' ) {
-      cluster = null;
-    }
-
-    // Filter out charts for repos that are no longer in the store, rather
-    // than trying to clear them when a repo is removed.
-    // And ones that are for the wrong kind of cluster
-    const out = Object.values(state.charts).filter((chart) => {
-      if ( !repoKeys.includes(chart.repoKey) ) {
-        return false;
-      }
-
-      if ( cluster && chart.scope && chart.scope !== cluster.scope ) {
-        return false;
-      }
-
-      return true;
-    });
-
-    return sortBy(out, ['certifiedSort', 'repoName', 'chartName']);
+    return charts(state, getters, rootGetters);
   },
 
   chart(state, getters) {
