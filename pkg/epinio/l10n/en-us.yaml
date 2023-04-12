@@ -109,7 +109,7 @@ epinio:
         details:
           label: Deployment Details
           origin: Origin
-          gitHub:
+          git:
             created: Created
             updated: Updated
             deployed: Deployed
@@ -119,7 +119,7 @@ epinio:
         services: Services
         configs: Configurations
         overview: Overview
-        githubCommits: Github commits
+        gitCommits: Git commits
     gitSource:
       latestCommit: Latest commit deployed
       behindCommits: Commits behind
@@ -204,6 +204,8 @@ epinio:
             label: Invalid URL, please check the URL and try again.
         gitHub:
           label: GitHub
+        gitLab:
+          label: GitLab
 
       configurations:
         label: Bindings

@@ -34,13 +34,85 @@ export const APPLICATION_MANIFEST_SOURCE_TYPE = {
   CONTAINER: 3,
 };
 
-export const APPLICATION_SOURCE_TYPE = {
-  CONTAINER_URL: 'container_url',
-  ARCHIVE:       'archive',
-  FOLDER:        'folder',
-  GIT_URL:       'git_url',
-  GIT_HUB:       'git_hub',
-};
+// ------------ App Source Info (used within the UI) --------------
+export enum APPLICATION_SOURCE_TYPE {
+  CONTAINER_URL = 'container_url', // eslint-disable-line no-unused-vars
+  ARCHIVE = 'archive', // eslint-disable-line no-unused-vars
+  FOLDER = 'folder', // eslint-disable-line no-unused-vars
+  GIT_URL = 'git_url', // eslint-disable-line no-unused-vars
+  GIT_HUB = 'git_hub', // eslint-disable-line no-unused-vars
+  GIT_LAB = 'git_lab', // eslint-disable-line no-unused-vars
+}
+
+export interface AppSourceArchive {
+  tarball: string,
+  fileName: string
+}
+
+export interface AppSourceContainer {
+  url: string,
+}
+
+export interface AppSourceGitUrl {
+  url: string,
+  branch: string
+}
+
+export type GitAPIData = {
+  repos: any[],
+  branches: any[],
+  commits: any[]
+}
+
+export interface AppSourceGit {
+  usernameOrOrg?: string,
+  repo: { id?: string, name: string },
+  commit: string,
+  branch: { id?: string, name: string },
+  url: string,
+  sourceData: GitAPIData
+}
+
+export interface AppSourceBuilderImage {
+  value: string,
+  default: boolean,
+}
+
+/**
+ * Contains information used within a UI session to represent where an application came from
+ */
+export interface EpinioAppSource {
+  type: string // APPLICATION_SOURCE_TYPE,
+  archive: AppSourceArchive,
+  container: AppSourceContainer,
+  git: AppSourceGit,
+  gitUrl: AppSourceGitUrl,
+  builderImage: AppSourceBuilderImage,
+  appChart: string,
+}
+
+// ------------ App Env Var Data (persisted as env var) --------------
+export const APPLICATION_ENV_VAR = 'EPINIO_APP_DATA';
+
+export type EPINIO_APP_ENV_VAR_GIT = Omit<AppSourceGit, 'sourceData'>;
+
+/**
+ * Contains persisted information that provides applications an understanding of where they came from
+ */
+export interface EPINIO_APP_DATA {
+  source: {
+    type: APPLICATION_SOURCE_TYPE,
+    builderImage: string,
+    container_url?: AppSourceContainer, // eslint-disable-line camelcase
+    archive?: Omit<AppSourceArchive, 'tarball'>,
+    folder?: Omit<AppSourceArchive, 'tarball'>,
+    git_url?: AppSourceGitUrl, // eslint-disable-line camelcase
+    git_hub?: EPINIO_APP_ENV_VAR_GIT, // eslint-disable-line camelcase
+    git_lab?: EPINIO_APP_ENV_VAR_GIT, // eslint-disable-line camelcase
+  }
+}
+
+// ------------  --------------
 
 export const APPLICATION_ACTION_STATE = {
   SUCCESS: 'success',
@@ -48,13 +120,6 @@ export const APPLICATION_ACTION_STATE = {
   FAIL:    'fail',
   PENDING: 'pending',
 };
-
-export const APPLICATION_ENV_VAR = 'EPINIO_APP_DATA';
-export interface EPINIO_APP_ENV_VAR_GITHUB {
-  usernameOrOrg: string,
-  repo: string,
-  branch: string,
-}
 
 export const APPLICATION_PARTS = {
   VALUES: 'values',

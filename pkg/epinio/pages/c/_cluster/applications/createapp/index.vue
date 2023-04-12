@@ -1,13 +1,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import Application from '../../../../../models/applications';
-import CreateEditView from '@shell/mixins/create-edit-view/impl';
 import Loading from '@shell/components/Loading.vue';
 import Wizard from '@shell/components/Wizard.vue';
-import { EPINIO_TYPES } from '../../../../../types';
+import { EpinioAppSource, EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
-import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
+import AppSource from '../../../../../components/application/AppSource.vue';
 import AppConfiguration, { EpinioAppBindings } from '../../../../../components/application/AppConfiguration.vue';
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
@@ -33,10 +32,6 @@ export default Vue.extend<Data, any, any, any>({
     AppConfiguration,
     AppProgress,
   },
-
-  mixins: [
-    CreateEditView,
-  ],
 
   async fetch() {
     const hash: { [key:string]: any } = await allHash({

@@ -11,11 +11,11 @@ import AppConfiguration, { EpinioAppBindings } from '../components/application/A
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import Wizard from '@shell/components/Wizard.vue';
 import { createEpinioRoute } from '../utils/custom-routing';
-import AppSource, { EpinioAppSource } from '../components/application/AppSource.vue';
+import AppSource from '../components/application/AppSource.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 import AppProgress from '../components/application/AppProgress.vue';
-import { EPINIO_TYPES } from '../types';
+import { EpinioAppSource, EPINIO_TYPES } from '../types';
 import { allHash } from '@shell/utils/promise';
 interface Data {
   bindings: EpinioAppBindings,

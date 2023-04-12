@@ -5,7 +5,9 @@ import Vue, { PropType } from 'vue';
 import Application from '../models/applications';
 import SimpleBox from '@shell/components/SimpleBox.vue';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
-import { APPLICATION_SOURCE_TYPE, EPINIO_APP_ENV_VAR_GITHUB, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import {
+  APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_APP_DATA, EPINIO_APP_ENV_VAR_GIT, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+} from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
@@ -13,8 +15,11 @@ import ApplicationCard from '@shell/components/cards/ApplicationCard.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
-import AppGitHubDeployment from '../components/application/AppGitHubDeployment.vue';
+import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
+import { GitUtils, gitUtilsToLabel } from '../utils/git';
+import { isArray } from '@shell/utils/array';
+import { ucFirst } from '@shell/utils/string';
 
 interface Data {
 }
@@ -28,7 +33,7 @@ export default Vue.extend<Data, any, any, any>({
     ResourceTable,
     PlusMinus,
     ApplicationCard,
-    AppGitHubDeployment,
+    AppGitDeployment,
     Tabbed,
     Tab,
     Link
@@ -60,11 +65,13 @@ export default Vue.extend<Data, any, any, any>({
     const configsHeaders: [] = this.$store.getters['type-map/headersFor'](configsSchema);
 
     return {
+      APPLICATION_MANIFEST_SOURCE_TYPE,
       saving:        false,
+      envs:          this.value?.envDetails,
       gitSource:     null,
       gitDeployment: {
         deployedCommit: '',
-        commitsArray:   null,
+        commits:        null,
       },
       appInstance: {
         schema:  appInstanceSchema,
@@ -78,36 +85,9 @@ export default Vue.extend<Data, any, any, any>({
         schema:  configsSchema,
         headers: configsHeaders.filter((h: any) => !['namespace', 'boundApps', 'service'].includes(h.name)),
       },
-      commitsTableHeaders: [{
-        name:  'sha',
-        label: this.t('githubPicker.tableHeaders.sha.label'),
-        width: 100,
-      },
-      {
-        name:  'author',
-        label: this.t('githubPicker.tableHeaders.author.label'),
-        width: 190,
-        value: 'author.login',
-        sort:  'author.login',
-      },
-      {
-        name:  'message',
-        label: this.t('githubPicker.tableHeaders.message.label'),
-        value: 'message',
-        sort:  'message',
-      },
-      {
-        name:        'date',
-        width:       220,
-        label:       this.t('githubPicker.tableHeaders.date.label'),
-        value:       'date',
-        sort:        ['date:desc'],
-        formatter:   'Date',
-        defaultSort: true,
-      },
-      ]
     };
   },
+
   methods: {
     async updateInstances(newInstances: number) {
       this.$set(this, 'saving', true);
@@ -121,53 +101,39 @@ export default Vue.extend<Data, any, any, any>({
       this.$set(this, 'saving', false);
     },
     formatURL(str: string) {
-      const matchGithub = str.match('^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)(.git)*$');
+      const matchGit = str.match('^(https|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+)(.git)*$');
 
-      return `${ matchGithub?.[4] }/${ matchGithub?.[5] }`;
+      return `${ matchGit?.[4] }/${ matchGit?.[5] }`;
     },
     async fetchRepoDetails() {
-      const githubSource = this.value?.appEnvVar?.source?.[APPLICATION_SOURCE_TYPE.GIT_HUB];
+      if (!this.envVarGitSource) {
+        return;
+      }
 
-      if (githubSource ) {
-        const { usernameOrOrg, repo } = githubSource as EPINIO_APP_ENV_VAR_GITHUB;
-        const res = await this.$store.dispatch('github/fetchRepoDetails', { username: usernameOrOrg, repo });
+      const { usernameOrOrg, repo } = this.envVarGitSource;
+      const res = await this.$store.dispatch(`${ this.gitType }/fetchRepoDetails`, { username: usernameOrOrg, repo });
 
-        const {
-          // eslint-disable-next-line camelcase
-          owner, description, created_at, updated_at, html_url, name
-        } = res;
+      this.gitSource = GitUtils[this.gitType].normalize.repo(res);
 
-        this.gitSource = {
-          owner,
-          description,
-          created_at,
-          updated_at,
-          html_url,
-          name
+      const commit = this.value.sourceInfo?.details.filter((ele: { label: string; }) => ele.label === 'Revision')[0]?.value;
+
+      if (commit) {
+        this.gitDeployment.deployedCommit = {
+          short: commit?.slice(0, 7),
+          long:  commit
         };
-
-        const commit = this.value.sourceInfo?.details.filter((ele: { label: string; }) => ele.label === 'Revision')[0]?.value;
-
-        if (commit) {
-          this.gitDeployment.deployedCommit = {
-            short: commit?.slice(0, 7),
-            long:  commit
-          };
-        }
       }
 
       await this.fetchCommits();
     },
     async fetchCommits() {
-      const githubSource = this.value?.appEnvVar?.source?.[APPLICATION_SOURCE_TYPE.GIT_HUB];
-
-      if (!githubSource) {
+      if (!this.envVarGitSource) {
         return;
       }
 
-      const { usernameOrOrg, repo, branch } = githubSource;
+      const { usernameOrOrg, repo, branch } = this.envVarGitSource;
 
-      this.gitDeployment.commitsArray = await this.$store.dispatch('github/fetchCommits', {
+      this.gitDeployment.commits = await this.$store.dispatch(`${ this.gitType }/fetchCommits`, {
         username: usernameOrOrg, repo, branch
       });
     },
@@ -175,41 +141,88 @@ export default Vue.extend<Data, any, any, any>({
       day.extend(relativeTime);
 
       return from ? day(date).fromNow() : day(date).format('DD MMM YYYY');
-    }
+    },
+    ucFirst,
   },
   computed: {
-    prepareCommitArray() {
-      if (this.gitDeployment.commitsArray.length) {
-        return this.gitDeployment.commitsArray.reduce((acc: any, cur: any) => {
-          acc.push({
-            message:   cur.commit.message,
-            html_url:  cur.html_url,
-            sha:       cur.sha.slice(0, 7),
-            commitId:  cur?.sha,
-            author:    cur.author,
-            isChecked: false,
-            date:      cur?.commit.committer.date
-          });
+    envVar(): EPINIO_APP_DATA {
+      return this.value?.appEnvVar as EPINIO_APP_DATA;
+    },
 
-          return acc;
-        }, []);
+    envVarGitSource(): EPINIO_APP_ENV_VAR_GIT {
+      return this.envVar.source?.[this.envVarGitType] as EPINIO_APP_ENV_VAR_GIT;
+    },
+
+    envVarGitType(): APPLICATION_SOURCE_TYPE {
+      return this.envVar.source?.type;
+    },
+
+    gitType() {
+      if (this.envVarGitType) {
+        return gitUtilsToLabel(this.envVarGitType);
       }
 
-      return [];
+      return undefined;
     },
+
+    preparedCommits() {
+      const commits = this.gitDeployment.commits;
+
+      if (!commits) {
+        return [];
+      }
+
+      const arr: any[] = isArray(commits) ? commits : [commits];
+
+      return arr.map(c => GitUtils[this.gitType].normalize.commit(c));
+    },
+
+    commitsHeaders() {
+      return [
+        {
+          name:  'sha',
+          label: this.t(`gitPicker.${ this.gitType }.tableHeaders.sha.label`),
+          width: 100,
+        },
+        {
+          name:  'author',
+          label: this.t(`gitPicker.${ this.gitType }.tableHeaders.author.label`),
+          width: 190,
+          value: 'author.login',
+          sort:  'author.login',
+        },
+        {
+          name:  'message',
+          label: this.t(`gitPicker.${ this.gitType }.tableHeaders.message.label`),
+          value: 'message',
+          sort:  'message',
+        },
+        {
+          name:        'date',
+          width:       220,
+          label:       this.t(`gitPicker.${ this.gitType }.tableHeaders.date.label`),
+          value:       'date',
+          sort:        ['date:desc'],
+          formatter:   'Date',
+          defaultSort: true,
+        },
+      ];
+    },
+
     sourceIcon(): string {
       return this.value.sourceInfo?.icon || 'icon-epinio';
     },
+
     commitPosition() {
-      if (!this.gitDeployment?.commitsArray && !this.gitDeployment.deployedCommit) {
+      if (!this.preparedCommits.length && !this.gitDeployment.deployedCommit) {
         return;
       }
 
       let idx = null;
 
-      if (this.gitDeployment.commitsArray) {
-        this.gitDeployment.commitsArray.map((ele: { sha: any; }, i: number) => {
-          if (ele.sha === this.gitDeployment?.deployedCommit?.long) {
+      if (this.preparedCommits) {
+        this.preparedCommits.map((ele: { commitId: any; }, i: number) => {
+          if (ele.commitId === this.gitDeployment?.deployedCommit?.long) {
             idx = i - 1;
           }
         });
@@ -223,6 +236,10 @@ export default Vue.extend<Data, any, any, any>({
         text:     ( idx - 1) >= 0 ? `${ idx } ${ this.t('epinio.applications.gitSource.behindCommits') }` : this.t('epinio.applications.gitSource.latestCommit'),
         position: idx
       };
+    },
+
+    originLabel() {
+      return this.value.sourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT ? ucFirst(this.gitType) : this.value.sourceInfo.label;
     }
   }
 });
@@ -375,15 +392,19 @@ export default Vue.extend<Data, any, any, any>({
               </div>
             </SimpleBox>
             <SimpleBox v-if="value.sourceInfo">
-              <h4 class="mb-10">
-                {{ t('epinio.applications.detail.deployment.details.label') }}
-              </h4>
-
+              <div class="mb-10 deployment__details__header">
+                <i
+                  v-if="value.sourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT"
+                  class="icon git-icon"
+                  :class="{[`icon-${gitType}`]: true}"
+                />
+                <h4>{{ t('epinio.applications.detail.deployment.details.label') }}</h4>
+              </div>
               <div
                 v-if="gitSource"
                 class="repo-info"
               >
-                <AppGitHubDeployment
+                <AppGitDeployment
                   :git-deployment="gitDeployment"
                   :git-source="gitSource"
                   :commit-position="commitPosition"
@@ -394,7 +415,7 @@ export default Vue.extend<Data, any, any, any>({
                 <ul>
                   <li>
                     <h4>{{ t('epinio.applications.detail.deployment.details.origin') }}</h4>
-                    <span>{{ value.sourceInfo.label }}</span>
+                    <span>{{ originLabel }}</span>
                   </li>
 
                   <li
@@ -410,7 +431,7 @@ export default Vue.extend<Data, any, any, any>({
                     </span>
                     <span v-else-if="gitSource && d.value && d.value.match(/^[a-f0-9]{40}$/)">
                       <a
-                        :href="`${gitSource.html_url}/commit/${d.value}`"
+                        :href="`${gitSource.htmlUrl}/commit/${d.value}`"
                         target="_blank"
                       >{{ d.value }}</a>
                     </span>
@@ -428,14 +449,14 @@ export default Vue.extend<Data, any, any, any>({
         </Tab>
         <Tab
           v-if="gitSource"
-          label-key="epinio.applications.detail.tables.githubCommits"
-          name="githubCommits"
+          label-key="epinio.applications.detail.tables.gitCommits"
+          name="gitCommits"
           :weight="2"
         >
           <SortableTable
-            v-if="gitDeployment.commitsArray"
-            :rows="prepareCommitArray"
-            :headers="commitsTableHeaders"
+            v-if="preparedCommits"
+            :rows="preparedCommits"
+            :headers="commitsHeaders"
             mode="view"
             key-field="sha"
             :search="true"
@@ -448,19 +469,19 @@ export default Vue.extend<Data, any, any, any>({
               <div class="sortable-table-avatar">
                 <template v-if="row.author">
                   <img
-                    :src="row.author.avatar_url"
+                    :src="row.author.avatarUrl"
                     alt=""
                   >
                   <a
-                    :href="row.author.html_url"
+                    :href="row.author.htmlUrl"
                     target="_blank"
                     rel="nofollow noopener noreferrer"
                   >
-                    {{ row.author.login }}
+                    {{ row.author.name }}
                   </a>
                 </template>
                 <template v-else>
-                  {{ t('githubPicker.tableHeaders.author.unknown') }}
+                  {{ t(`gitPicker.${ gitType }.tableHeaders.author.unknown`) }}
                 </template>
               </div>
             </template>
@@ -469,12 +490,12 @@ export default Vue.extend<Data, any, any, any>({
               <div class="sortable-table-commit">
                 <Link
                   :row="row"
-                  url-key="html_url"
+                  url-key="htmlUrl"
                   :value="row.sha"
                 />
                 <i
-                  v-if="row.sha === gitDeployment.deployedCommit.short"
-                  v-tooltip="t('epinio.applications.detail.deployment.details.gitHub.deployed')"
+                  v-if="row.commitId === gitDeployment.deployedCommit.long"
+                  v-tooltip="t('epinio.applications.detail.deployment.details.git.deployed')"
                   class="icon icon-fw icon-commit"
                 />
               </div>
@@ -683,6 +704,19 @@ export default Vue.extend<Data, any, any, any>({
   }
 
 }
+
+.deployment__details__header {
+  display: flex;
+  align-items: center;
+  h4 {
+    margin: 0
+  }
+  .git-icon {
+    margin: 0 3px 0 -3px;
+    font-size: 25px;
+  }
+}
+
 .deployment__origin__list {
   ul {
     margin: 0;

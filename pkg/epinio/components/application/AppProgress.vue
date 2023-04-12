@@ -6,8 +6,9 @@ import SortableTable from '@shell/components/SortableTable/index.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import BadgeState from '@components/BadgeState/BadgeState.vue';
 import { STATE, DESCRIPTION } from '@shell/config/table-headers';
-import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication } from '../../types';
-import { EpinioAppSource } from '../../components/application/AppSource.vue';
+import {
+  EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication, EpinioAppSource
+} from '../../types';
 import { EpinioAppBindings } from '../../components/application/AppConfiguration.vue';
 import EpinioNamespace from '../../models/namespaces';
 
@@ -128,7 +129,8 @@ export default Vue.extend<Data, any, any, any>({
         })
       );
     }
-    if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
+    if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB ||
+      this.source.type === APPLICATION_SOURCE_TYPE.GIT_LAB) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.GIT_FETCH,
@@ -141,7 +143,8 @@ export default Vue.extend<Data, any, any, any>({
     if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
     this.source.type === APPLICATION_SOURCE_TYPE.FOLDER ||
     this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL ||
-    this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB) {
+    this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB ||
+    this.source.type === APPLICATION_SOURCE_TYPE.GIT_LAB) {
       this.actions.push(
         await this.$store.dispatch('epinio/create', {
           action: APPLICATION_ACTION_TYPE.BUILD,
