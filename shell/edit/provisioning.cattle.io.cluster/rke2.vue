@@ -251,12 +251,6 @@ export default {
       set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
     }
 
-    if ( !this.value.machinePoolDefaults ) {
-      set(this.value, 'machinePoolDefaults', {});
-    } else {
-      this.truncateLimit = this.value.machinePoolDefaults.hostnameLengthLimit;
-    }
-
     if ( !this.machinePools ) {
       await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
       if ( this.mode === _CREATE && !this.machinePools.length ) {
