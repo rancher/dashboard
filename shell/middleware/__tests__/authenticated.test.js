@@ -36,16 +36,14 @@ describe('middleware: authenticated', () => {
 
   it('should call encryptPassword method', async() => {
     const dispatchMock = jest.fn(() => ({ _status: 200 }));
-    const gettersModck = jest.fn(() => {
-      return {
+
+    const store = {
+      dispatch: dispatchMock,
+      getters:  {
         'management/byId'() {
           return { value: 'false' };
         }
-      };
-    });
-    const store = {
-      dispatch: dispatchMock,
-      getters:  gettersModck
+      }
     };
 
     await tryInitialSetup(store, 'test');
@@ -54,16 +52,14 @@ describe('middleware: authenticated', () => {
   });
   it('should not call encryptPassword method', async() => {
     const dispatchMock = jest.fn(() => ({ _status: 200 }));
-    const gettersModck = jest.fn(() => {
-      return {
+
+    const store = {
+      dispatch: dispatchMock,
+      getters:  {
         'management/byId'() {
           return { value: 'true' };
         }
-      };
-    });
-    const store = {
-      dispatch: dispatchMock,
-      getters:  gettersModck
+      }
     };
 
     await tryInitialSetup(store, 'test');
