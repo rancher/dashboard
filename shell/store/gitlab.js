@@ -97,15 +97,23 @@ export const actions = {
 
     let commits = [];
 
+    // Get and cache Avatar URLs
     if (res) {
       commits = isArray(res) ? res : [res];
 
+      const avatars = {};
       for (const c of commits) {
-        const avatar = await dispatch('apiList', {
-          username, endpoint: 'avatar', email: c.author_email
-        });
+        const found = avatars[c.author_email];
+        if (found) {
+          c.avatar_url = found;
+        } else {
+          const newAvatar = await dispatch('apiList', {
+            username, endpoint: 'avatar', email: c.author_email
+          });
 
-        c.avatar_url = avatar?.avatar_url;
+          c.avatar_url = newAvatar?.avatar_url;
+          avatars[c.author_email] = c.avatar_url;
+        }
       }
     }
 
