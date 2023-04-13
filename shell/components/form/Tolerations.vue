@@ -119,8 +119,14 @@ export default {
       const rules = this.rules.map((rule) => {
         const newRule = { ...rule };
 
+        // prevent vKey from being sent as data
         if (newRule.vKey) {
           delete newRule.vKey;
+        }
+
+        // let's clear the value field if operator is Exists
+        if (newRule.operator === 'Exists' && newRule.value) {
+          newRule.value = null;
         }
 
         return newRule;
@@ -137,6 +143,8 @@ export default {
       if (neu !== 'NoExecute' && rule.tolerationSeconds) {
         delete rule.tolerationSeconds;
       }
+
+      this.update();
     }
   }
 
@@ -166,6 +174,7 @@ export default {
           v-model="rule.key"
           :mode="mode"
           :data-testid="`toleration-key-index${ index }`"
+          @input="update"
         />
       </div>
       <div class="col">
@@ -193,6 +202,7 @@ export default {
             v-model="rule.value"
             :mode="mode"
             :data-testid="`toleration-value-index${ index }`"
+            @input="update"
           />
         </div>
       </template>
@@ -212,6 +222,7 @@ export default {
           :mode="mode"
           suffix="Seconds"
           :data-testid="`toleration-seconds-index${ index }`"
+          @input="update"
         />
       </div>
       <div class="col remove">
