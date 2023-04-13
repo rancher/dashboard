@@ -3,6 +3,7 @@ import { isArray } from '@shell/utils/array';
 const API_VERSION = 'v4';
 const GITLAB_BASE_API = 'https://gitlab.com/api';
 const TOKEN = '';
+const MAX_RESULTS = 100; // max number of results is 100
 
 const fetchGitLabAPI = async(endpoint) => {
   const response = await fetch(`${ GITLAB_BASE_API }/${ API_VERSION }/${ endpoint }${ TOKEN }`);
@@ -30,16 +31,16 @@ export const actions = {
     try {
       switch (endpoint) {
       case 'branches': {
-        return await fetchGitLabAPI(`projects/${ repo }/repository/branches?order_by=updated_at&per_page=100`);
+        return await fetchGitLabAPI(`projects/${ repo }/repository/branches?order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'repo': {
         return await fetchGitLabAPI(`projects/${ repo }?`);
       }
       case 'commits': {
-        return await fetchGitLabAPI(`projects/${ repo }/repository/commits/${ branch }?order_by=updated_at&per_page=100`);
+        return await fetchGitLabAPI(`projects/${ repo }/repository/commits?ref_name=${ branch }&order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'recentRepos': {
-        return await fetchGitLabAPI(`users/${ username }/projects?order_by=updated_at&per_page=100`);
+        return await fetchGitLabAPI(`users/${ username }/projects?order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'avatar': {
         return await fetchGitLabAPI(`avatar?email=${ email }`);
