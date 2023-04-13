@@ -79,6 +79,8 @@ export const getters = {
 
   withFallback: state => i18n(state).translateWithFallback,
 
+  translateWithFallback: state => i18n(state).translateWithFallback,
+
   config: state => () => {
     return state;
   },

@@ -143,8 +143,8 @@ export default class BaseCache extends Trace {
 
   __formatListResponse(listLength, data, cacheKey) {
     const {
-      totalLength, revision, status, statusText, links
-    } = this.__requests[cacheKey];
+      totalLength = 0, revision, status, statusText, links
+    } = this.__requests[cacheKey] || {};
 
     return {
       data:         { data },
@@ -156,6 +156,10 @@ export default class BaseCache extends Trace {
       statusText,
       links
     };
+  }
+
+  __formatDetailResponse(data, cacheKey) {
+    return { data };
   }
 
   /**

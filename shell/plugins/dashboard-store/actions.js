@@ -330,7 +330,7 @@ export default {
         responses.forEach((response) => {
           commit('loadAll', {
             ctx,
-            type:        response.resourceType || type,
+            type:        getters.normalizeType(response.resourceType) || type,
             data:        response.data,
             revision:    response.revision,
             skipHaveAll,
@@ -347,7 +347,7 @@ export default {
 
       responses.forEach((response) => {
         dispatch('watch', {
-          type:      response.resourceType || type,
+          type:      getters.normalizeType(response.resourceType) || type,
           revision:  response.revision,
           namespace: response.watchNamespace || opt.namespaced, // it could be either
           force:     opt.forceWatch === true,
@@ -569,7 +569,9 @@ export default {
     return classify(ctx, data);
   },
 
-  clone(ctx, { resource } = {}) {
+  clone(ctx, payload) {
+    const { resource } = payload;
+
     return classify(ctx, resource.toJSON(), true);
   },
 

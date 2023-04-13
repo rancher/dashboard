@@ -7,5 +7,7 @@ export function _getDisplayType(resource, _, rootGetters) {
 }
 
 export const calculatedFields = [
-  { name: 'displayType', func: _getDisplayType }
+  {
+    name: 'displayType', func: _getDisplayType, caches: ['i18n']
+  }
 ];

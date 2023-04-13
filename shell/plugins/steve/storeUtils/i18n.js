@@ -5,7 +5,7 @@ const NONE = 'none';
 
 const intlCache = {};
 
-const getTranslate = ({ selected, translations, default: defaultLocale }) => (key, args, language) => {
+const getTranslate = ({ selected, translations, default: defaultLocale } = {}) => (key, args, language) => {
   if (selected === NONE && !language) {
     return `%${ key }%`;
   }

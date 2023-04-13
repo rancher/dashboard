@@ -27,6 +27,17 @@ export default class ResourceCache extends BaseCache {
     ];
   }
 
+  byId(params, wholeResource = false) {
+    const id = !!params.namespace ? `${ params.namespace }/${ params.id }` : params.id;
+    const cacheKey = hashObj(params);
+
+    const resource = super.byId(id, wholeResource);
+
+    if (resource) {
+      return this.__formatDetailResponse(resource, cacheKey);
+    }
+  }
+
   /**
    * Checks new hash against existing hash and updates it if different, returns boolean indicating if a change was made
    */
@@ -146,7 +157,7 @@ export default class ResourceCache extends BaseCache {
 
         return response;
       } else {
-        const [{ status, statusText, data: { data } }] = responses;
+        const [{ status, statusText, data }] = responses;
 
         if (cacheRefresh) {
           this.state = CACHE_STATES.LOADING;

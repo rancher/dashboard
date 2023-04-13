@@ -1,4 +1,4 @@
-export function _getNameDisplay(resource, rootGetters) {
+export function _getNameDisplay(resource, _, rootGetters) {
   const path = `rbac.globalRoles.role.${ resource.id }.label`;
   const label = resource.displayName || resource.metadata?.name || resource.id;
 

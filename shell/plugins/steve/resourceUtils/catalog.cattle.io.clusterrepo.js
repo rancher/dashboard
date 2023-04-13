@@ -20,7 +20,9 @@ export function _getUrlDisplay(resource) {
 }
 
 export const calculatedFields = [
-  { name: 'nameDisplay', func: _getNameDisplay },
+  {
+    name: 'nameDisplay', func: _getNameDisplay, caches: ['i18n']
+  },
   { name: 'typeDisplay', func: _getTypeDisplay },
   { name: 'urlDisplay', func: _getUrlDisplay },
 ];

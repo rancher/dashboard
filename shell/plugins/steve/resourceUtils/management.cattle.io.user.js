@@ -40,7 +40,7 @@ export function _getNameDisplay(resource) {
   return resource.displayName || resource.username || resource.id;
 }
 
-export function _getProviderDisplay(resource, rootGetters) {
+export function _getProviderDisplay(resource, _, rootGetters) {
   return rootGetters['i18n/translateWithFallback'](`model.authConfig.provider."${ resource.provider }"`, null, resource.provider);
 }
 

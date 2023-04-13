@@ -17,7 +17,7 @@ export const TYPES = {
   RKE_AUTH_CONFIG:  'rke.cattle.io/auth-config'
 };
 
-export function _getSubTypeDisplay(resource, rootGetters) {
+export function _getSubTypeDisplay(resource, _, rootGetters) {
   const type = resource._type || '';
   const fallback = type.replace(/^kubernetes.io\//, '');
 

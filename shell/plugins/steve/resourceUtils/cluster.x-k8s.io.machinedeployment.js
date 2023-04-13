@@ -43,7 +43,7 @@ export function _getTemplate(resource, getters, rootGetters) {
   return template;
 }
 
-export function _getProviderDisplay(resource, rootGetters) {
+export function _getProviderDisplay(resource, _, rootGetters) {
   const provider = (resource.template?.provider || '').toLowerCase();
 
   return rootGetters['i18n/translateWithFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);

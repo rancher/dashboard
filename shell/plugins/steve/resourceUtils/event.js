@@ -10,6 +10,8 @@ export function _getEventType(resource) {
 }
 
 export const calculatedFields = [
-  { name: 'lastSeen', func: _getLastSeen },
+  {
+    name: 'lastSeen', func: _getLastSeen, caches: ['type-map']
+  },
   { name: 'eventType', func: _getEventType }
 ];

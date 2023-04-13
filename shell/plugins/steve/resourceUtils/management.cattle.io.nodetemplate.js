@@ -12,7 +12,7 @@ export function _getProvider(resource) {
   return null;
 }
 
-export function _getProviderDisplay(resource, rootGetters) {
+export function _getProviderDisplay(resource, _, rootGetters) {
   const provider = (resource.provider || '').toLowerCase();
 
   return rootGetters['i18n/translateWithFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);

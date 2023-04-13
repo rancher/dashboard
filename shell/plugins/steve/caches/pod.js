@@ -13,7 +13,7 @@ export default class PodCache extends WorkloadServiceCache {
   }
 
   byNamespace(namespace) {
-    return this.byIds(this.namespaceIndex[namespace], {});
+    return this.byIds(this.namespaceIndex[namespace], { namespace });
   }
 
   load(payload = [], { namespace, selector, id } = {}, revision, links) {

@@ -1,4 +1,5 @@
-import { filterBy, sortBy } from '@shell/utils/array';
+import { filterBy } from '@shell/utils/array';
+import { sortBy } from '@shell/utils/sort';
 
 export function preferSameRepo(matching, repoType, repoName) {
   matching.sort((a, b) => {
