@@ -41,7 +41,7 @@ export default Vue.extend<Data, any, any, any>({
     });
 
     this.epinioInfo = hash.info;
-
+    this.appChart.chartsList = hash.charts;
     this.originalModel = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.APP });
     // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
     this.value = await this.$store.dispatch(`epinio/clone`, { resource: this.originalModel });
@@ -80,6 +80,7 @@ export default Vue.extend<Data, any, any, any>({
         ready:          false,
         previousButton: { disable: true }
       }],
+      appChart:   { chartsList: undefined },
       epinioInfo: undefined
     };
   },
@@ -95,6 +96,7 @@ export default Vue.extend<Data, any, any, any>({
       this.value.meta = this.value.meta || {};
       this.value.configuration = this.value.configuration || {};
       this.set(this.value.meta, changes.meta);
+      this.set(this.value.configuration, { settings: this.appChart.settings });
       this.set(this.value.configuration, changes.configuration);
     },
 
@@ -102,11 +104,25 @@ export default Vue.extend<Data, any, any, any>({
       this.source = {};
       const { appChart, ...cleanChanges } = changes;
 
+      this.appChart.selectedChart = appChart;
       this.value.configuration = this.value.configuration || {};
+      this.value.configuration.settings = undefined;
 
       if (appChart) {
         // app chart actually belongs in config, so stick it in there
         this.set(this.value.configuration, { appchart: appChart });
+        const filterChart = this.appChart.chartsList?.find((chart: any) => chart.id === appChart);
+
+        if (filterChart?.settings ) {
+          const customValues = Object.keys(filterChart?.settings).reduce((acc:any, key: any) => {
+            acc[key] = '';
+
+            return acc;
+          }, {});
+
+          this.set(this.value.configuration, { settings: customValues });
+          this.set(this.value, { chart: filterChart });
+        }
       }
 
       this.value.setEnvVarFromSource(changes);

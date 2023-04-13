@@ -5,8 +5,25 @@ const GITLAB_BASE_API = 'https://gitlab.com/api';
 const TOKEN = '';
 const MAX_RESULTS = 100; // max number of results is 100
 
+const getResponse = endpoint => fetch(`${ GITLAB_BASE_API }/${ API_VERSION }/${ endpoint }${ TOKEN }`);
+
+function fetchUserOrOrganization(endpoint) {
+  return Promise.all([
+    getResponse(`users/${ endpoint }`),
+    getResponse(`groups/${ endpoint }`),
+  ]).then((responses) => {
+    const found = responses.find(r => r.ok);
+
+    if (!found) {
+      throw responses[0];
+    }
+
+    return found.json();
+  });
+}
+
 const fetchGitLabAPI = async(endpoint) => {
-  const response = await fetch(`${ GITLAB_BASE_API }/${ API_VERSION }/${ endpoint }${ TOKEN }`);
+  const response = await getResponse(endpoint);
 
   // If rate-limit is exceeded, we should wait until the rate limit is reset
   if (response.status === 403) {
@@ -40,7 +57,7 @@ export const actions = {
         return await fetchGitLabAPI(`projects/${ repo }/repository/commits?ref_name=${ branch }&order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'recentRepos': {
-        return await fetchGitLabAPI(`users/${ username }/projects?order_by=updated_at&per_page=${ MAX_RESULTS }`);
+        return await fetchUserOrOrganization(`${ username }/projects?order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'avatar': {
         return await fetchGitLabAPI(`avatar?email=${ email }`);
