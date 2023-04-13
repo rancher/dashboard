@@ -66,19 +66,21 @@ export default {
 
   async fetch() {
     // Default affinity
-    const settingId = `${ this.type }-agent-default-setting`;
-    const setting = await fetchSetting(this.$store, settingId);
+    // const settingId = `${ this.type }-agent-default-setting`;
+    // const setting = await fetchSetting(this.$store, settingId);
 
-    if (setting) {
-      try {
-        const parsed = JSON.parse(setting.value || setting.default);
+    // // if (setting) {
+    // //   try {
+    // //     const parsed = JSON.parse(setting.value || setting.default);
 
-        this.defaultAffinity = parsed || {};
-      } catch (e) {
-        console.error('Could not parse agent default setting', e); // eslint-disable-line no-console
-        this.defaultAffinity = {};
-      }
-    }
+    // //     this.defaultAffinity = parsed || {};
+    // //   } catch (e) {
+    // //     console.error('Could not parse agent default setting', e); // eslint-disable-line no-console
+    // //     this.defaultAffinity = {};
+    // //   }
+    // // }
+
+    this.defaultAffinity = {};
   },
 
   data() {
@@ -240,6 +242,7 @@ export default {
         :mode="mode"
         :options="affinityOptions"
         class="mt-10"
+        data-testid="affinity-options"
         @input="affinitySettingChange"
       />
 
@@ -263,6 +266,7 @@ export default {
         class="mt-0 mb-20"
         :all-namespaces-option-available="true"
         :force-input-namespace-selection="true"
+        data-testid="pod-affinity"
       />
 
       <div
@@ -282,6 +286,7 @@ export default {
         :matching-selector-display="true"
         :mode="mode"
         class="mt-0"
+        data-testid="node-affinity"
         @input="updateNodeAffinity"
       />
     </GroupPanel>

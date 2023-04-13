@@ -279,7 +279,7 @@ export default {
       <!-- Select for matchFields and matchExpressions -->
       <div
         v-if="matchingSelectorDisplay"
-        :data-testid="`input-match-matching-type-key-${index}`"
+        :data-testid="`input-match-type-field-${index}`"
       >
         <div v-if="isView">
           {{ row.matching }}
@@ -289,6 +289,7 @@ export default {
           v-model="row.matching"
           :mode="mode"
           :options="matchingSelectOptions"
+          :data-testid="`input-match-type-field-control-${index}`"
           @selecting="update"
         />
       </div>
@@ -302,6 +303,7 @@ export default {
           v-else-if="!hasKeySelectOptions"
           v-model="row.key"
           :mode="mode"
+          :data-testid="`input-match-expression-key-control-${index}`"
           @input="update"
         >
         <LabeledSelect
@@ -309,6 +311,7 @@ export default {
           v-model="row.key"
           :mode="mode"
           :options="keysSelectOptions"
+          :data-testid="`input-match-expression-key-control-select-${index}`"
         />
       </div>
       <div
@@ -325,6 +328,7 @@ export default {
           :clearable="false"
           :reduce="opt=>opt.value"
           :mode="mode"
+          :data-testid="`input-match-expression-operator-control-${index}`"
           @input="update"
         />
       </div>
@@ -347,6 +351,7 @@ export default {
           v-model="row.values"
           :mode="mode"
           :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'"
+          :data-testid="`input-match-expression-values-control-${index}`"
           @input="update"
         >
       </div>
@@ -361,6 +366,7 @@ export default {
           :style="{padding:'0px'}"
 
           :disabled="mode==='view'"
+          :data-testid="`input-match-expression-remove-control-${index}`"
           @click="removeRule(row)"
         >
           <t k="generic.remove" />
@@ -374,6 +380,7 @@ export default {
       <button
         type="button"
         class="btn role-tertiary add"
+        :data-testid="`input-match-expression-add-rule`"
         @click="addRule"
       >
         <t k="workload.scheduling.affinity.matchExpressions.addRule" />

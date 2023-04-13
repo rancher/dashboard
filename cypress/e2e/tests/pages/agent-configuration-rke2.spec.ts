@@ -1,4 +1,10 @@
 import AgentConfigurationRke2 from '~/cypress/e2e/po/pages/agent-configuration-rke2.po';
+import {
+  podAffinityData,
+  requestAndLimitsData,
+  tolerationsData,
+  nodeAffinityData
+} from '@/cypress/e2e/tests/pages/data/agent-configuration-rke2-data';
 
 describe('Agent Configuration for RKE2', () => {
   beforeEach(() => {
@@ -9,33 +15,29 @@ describe('Agent Configuration for RKE2', () => {
   it('Should send the correct payload to the server', () => {
     const agentConfigurationRke2 = new AgentConfigurationRke2();
 
-    // we should be on the custom cluster creation screen
+    /*
+      TODOS:
+      - missing cluster name fill
+      - move to fleet agent tab
+      - fill all fleet agent forms
+    */
+
+    // we should be on the custom cluster creation screen (starts on cluster agent tab as per url of goTo)
     agentConfigurationRke2.title().should('contain', 'Cluster: Create Custom');
 
-    agentConfigurationRke2.fillRequestandLimitsForm('cluster', {
-      request: {
-        cpu:    1,
-        memory: 1
-      },
-      limit: {
-        cpu:    2,
-        memory: 2
-      },
-    });
+    // // fill requests and limits form
+    // agentConfigurationRke2.fillRequestandLimitsForm('cluster', requestAndLimitsData);
 
-    agentConfigurationRke2.fillTolerationsForm('cluster', [
-      {
-        key:      'key1',
-        operator: 2,
-        value:    'val1',
-        effect:   2
-      },
-      {
-        key:      'key2',
-        operator: 2,
-        value:    'val2',
-        effect:   2
-      }
-    ]);
+    // // fill tolerations form
+    // agentConfigurationRke2.fillTolerationsForm('cluster', tolerationsData);
+
+    // Select custom affinity rules
+    agentConfigurationRke2.selectAffinityOption('cluster', 1);
+
+    // // fill form for pod affinity/anti-affinity
+    // agentConfigurationRke2.fillPodSelectorForm('cluster', podAffinityData);
+
+    // fill form for pod affinity/anti-affinity
+    agentConfigurationRke2.fillNodeSelectorForm('cluster', nodeAffinityData);
   });
 });

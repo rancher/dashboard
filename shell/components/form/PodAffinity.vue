@@ -327,6 +327,7 @@ export default {
                 :options="[t('workload.scheduling.affinity.affinityOption'),t('workload.scheduling.affinity.antiAffinityOption')]"
                 :value="props.row.value._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
                 :label="t('workload.scheduling.affinity.type')"
+                :data-testid="`pod-affinity-type-index${props.i}`"
                 @input="$set(props.row.value, '_anti',!props.row.value._anti)"
               />
             </div>
@@ -337,6 +338,7 @@ export default {
                 :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
+                :data-testid="`pod-affinity-priority-index${props.i}`"
                 @input="changePriority(props.row.value, props.i)"
               />
             </div>
@@ -348,6 +350,7 @@ export default {
               :name="`namespaces-${props.row.value._id}`"
               :mode="mode"
               :value="props.row.value._namespaceOption"
+              :data-testid="`pod-affinity-namespacetype-index${props.i}`"
               @input="changeNamespaceMode($event, props.row.value, props.i)"
             />
           </div>
@@ -363,6 +366,7 @@ export default {
               :taggable="true"
               :options="allNamespacesOptions"
               :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              :data-testid="`pod-affinity-namespace-select-index${props.i}`"
               @input="updateNamespaces(props.row.value, props.row.value.namespaces)"
             />
             <LabeledInput
@@ -371,6 +375,7 @@ export default {
               :mode="mode"
               :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
               :placeholder="t('cluster.credential.harvester.affinity.namespaces.placeholder')"
+              :data-testid="`pod-affinity-namespace-input-index${props.i}`"
               @input="updateNamespaces(props.row.value, props.row.value._namespaces)"
             />
           </div>
@@ -381,6 +386,7 @@ export default {
             :type="pod"
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
+            :data-testid="`pod-affinity-expressions-index${props.i}`"
             @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
           />
           <div class="row mt-20">
@@ -398,6 +404,7 @@ export default {
                 :options="existingNodeLabels"
                 :disabled="mode==='view'"
                 :loading="loading"
+                :data-testid="`pod-affinity-topology-select-index${props.i}`"
                 @input="update"
               />
               <LabeledInput
@@ -407,6 +414,7 @@ export default {
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
                 :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
                 required
+                :data-testid="`pod-affinity-topology-input-index${props.i}`"
                 @input="update"
               />
             </div>
@@ -422,6 +430,7 @@ export default {
                 max="100"
                 :label="t('workload.scheduling.affinity.weight.label')"
                 :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
+                :data-testid="`pod-affinity-weight-index${props.i}`"
               />
             </div>
           </div>

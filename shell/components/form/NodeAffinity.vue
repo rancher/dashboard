@@ -190,6 +190,7 @@ export default {
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
                 :mode="mode"
+                :data-testid="`node-affinity-priority-index${props.i}`"
                 @input="(changePriority(props.row.value))"
               />
             </div>
@@ -205,6 +206,7 @@ export default {
                 max="100"
                 :label="t('workload.scheduling.affinity.weight.label')"
                 :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
+                :data-testid="`node-affinity-weight-index${props.i}`"
               />
             </div>
           </div>
@@ -216,6 +218,7 @@ export default {
             class="col span-12 mt-20"
             :type="node"
             :show-remove="false"
+            :data-testid="`node-affinity-expressions-index${props.i}`"
             @input="(updateExpressions(props.row.value, $event))"
           />
         </template>

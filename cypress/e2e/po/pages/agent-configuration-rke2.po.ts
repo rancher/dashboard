@@ -1,6 +1,21 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import UnitInputPo from '~/cypress/e2e/po/components/unit-input.po';
 import SelectPo from '~/cypress/e2e/po/components/select.po';
+import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
+
+function _parseArea(area:string) {
+  let areaId: string;
+
+  if (area === 'cluster') {
+    areaId = 'clusteragentconfig';
+  } else if (area === 'fleet') {
+    areaId = 'fleetagentconfig';
+  } else {
+    throw new Error(`Area identifier not recognized ::: ${ area }`);
+  }
+
+  return areaId;
+}
 
 export default class AgentConfigurationRke2 extends PagePo {
   static url: string = '/c/_/manager/provisioning.cattle.io.cluster/create?type=custom#clusteragentconfig'
@@ -16,16 +31,35 @@ export default class AgentConfigurationRke2 extends PagePo {
     return this.self().find('.primaryheader h1').invoke('text');
   }
 
-  fillRequestandLimitsForm(area: string, data: any) {
-    let areaId: string;
+  selectAffinityOption(area: string, optionIndex: number) {
+    const areaId = _parseArea(area);
 
-    if (area === 'cluster') {
-      areaId = 'clusteragentconfig';
-    } else if (area === 'fleet') {
-      areaId = 'fleetagentconfig';
-    } else {
-      throw new Error(`Area for fillRequestandLimitsForm not recognized ::: ${ area }`);
-    }
+    new RadioGroupInputPo(this.self().find(`#${ areaId } [data-testid="affinity-options"]`)).set(optionIndex);
+  }
+
+  // NICE TO HAVE FOR NOW...
+  // clearOutPrefilledPodAffinityRules(area: string) {
+  //   const areaId = _parseArea(area);
+
+  //   cy.get(`#${ areaId } [data-testid="pod-affinity"] .btn.role-link.close.btn-sm`).then(($elements) => {
+  //     const count = $elements.length;
+
+  //     cy.log('THIS HAS RUN!!!', $elements.length);
+  //     if (count > 0) {
+  //       cy.get(`#${ areaId } [data-testid="pod-affinity"] .btn.role-link.close.btn-sm`).click({ force: true, multiple: true });
+  //     }
+  //   });
+
+  //   // if (cy.get(`#${ areaId } [data-testid="pod-affinity"] [data-testid="array-list-box"]`).length > 0) {
+  //   //   alert('here!');
+  //   //   cy.get(`#${ areaId } [data-testid="pod-affinity"] [data-testid="array-list-box"]`).each(($el) => {
+  //   //     $el.find('data-testid="remove-item-0"').click();
+  //   //   });
+  //   // }
+  // }
+
+  fillRequestandLimitsForm(area: string, data: any) {
+    const areaId = _parseArea(area);
 
     new UnitInputPo(this.self().find(`#${ areaId } [data-testid="cpu-reservation"]`)).setValue(data.request?.cpu);
     new UnitInputPo(this.self().find(`#${ areaId } [data-testid="memory-reservation"]`)).setValue(data.request?.memory);
@@ -33,16 +67,121 @@ export default class AgentConfigurationRke2 extends PagePo {
     new UnitInputPo(this.self().find(`#${ areaId } [data-testid="memory-limit"]`)).setValue(data.limit?.memory);
   }
 
-  fillTolerationsForm(area: string, data: any) {
-    let areaId: string;
+  fillPodSelectorForm(area: string, data: any) {
+    const areaId = _parseArea(area);
 
-    if (area === 'cluster') {
-      areaId = 'clusteragentconfig';
-    } else if (area === 'fleet') {
-      areaId = 'fleetagentconfig';
+    if (data.length) {
+      data.forEach((dataPoint:any, index: number) => {
+        // add a new pod selector
+        this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="array-list-button"]`).click();
+
+        // fill form
+        // type
+        const affinityType = new SelectPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-type-index${ index }"]`));
+
+        affinityType.toggle();
+        affinityType.clickOption(dataPoint.affinityType);
+
+        // priority
+        const priority = new SelectPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-priority-index${ index }"]`));
+
+        priority.toggle();
+        priority.clickOption(dataPoint.priority);
+
+        // namespace type
+        new RadioGroupInputPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-namespacetype-index${ index }"]`)).set(dataPoint.namespaceType);
+
+        if (dataPoint.namespaces) {
+          // namespace input (selected namespaces)
+          this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-namespace-input-index${ index }"]`).type(dataPoint.namespaces);
+        }
+
+        // expressions
+        if (dataPoint.expressions?.length) {
+          dataPoint.expressions.forEach((expression:any, i: number) => {
+            // add a new expression
+            this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-expressions-index${ index }"] [data-testid="input-match-expression-add-rule"]`).click();
+
+            // key
+            this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-expressions-index${ index }"] [data-testid="input-match-expression-key-control-${ i }"]`).type(expression.key);
+
+            // operator
+            const selectOperator = new SelectPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-expressions-index${ index }"] [data-testid="input-match-expression-operator-control-${ i }"]`));
+
+            selectOperator.toggle();
+            selectOperator.clickOption(expression.operator);
+
+            // value
+            if (expression.value) {
+              this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-expressions-index${ index }"] [data-testid="input-match-expression-values-control-${ i }"]`).type(expression.value);
+            }
+          });
+        }
+
+        // typology
+        this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-topology-input-index${ index }"]`).type(dataPoint.topology);
+
+        if (dataPoint.weight) {
+          // this first part is to make sure we select all the prefilled data
+          this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-weight-index${ index }"]`).type('{selectall}');
+          this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-weight-index${ index }"]`).type(dataPoint.weight);
+        }
+      });
     } else {
-      throw new Error(`Area for fillRequestandLimitsForm not recognized ::: ${ area }`);
+      throw new Error(`No data passed for fillPodSelectorForm!`);
     }
+  }
+
+  fillNodeSelectorForm(area: string, data: any) {
+    const areaId = _parseArea(area);
+
+    if (data.length) {
+      data.forEach((dataPoint:any, index: number) => {
+        // add a new node selector
+        this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="array-list-button"]`).click();
+
+        // fill form
+        // priority
+        const priority = new SelectPo(this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-priority-index${ index }"]`));
+
+        priority.toggle();
+        priority.clickOption(dataPoint.priority);
+
+        // expressions
+        if (dataPoint.expressions?.length) {
+          dataPoint.expressions.forEach((expression:any, i: number) => {
+            // add a new expression
+            this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-add-rule"]`).click();
+
+            // key
+            this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-key-control-${ i }"]`).type(expression.key);
+
+            // operator
+            const selectOperator = new SelectPo(this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-operator-control-${ i }"]`));
+
+            selectOperator.toggle();
+            selectOperator.clickOption(expression.operator);
+
+            // value
+            if (expression.value) {
+              this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-values-control-${ i }"]`).type(expression.value);
+            }
+          });
+        }
+
+        if (dataPoint.weight) {
+          // this first part is to make sure we select all the prefilled data
+          this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-weight-index${ index }"]`).type('{selectall}');
+          this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-weight-index${ index }"]`).type(dataPoint.weight);
+        }
+      });
+    } else {
+      throw new Error(`No data passed for fillNodeSelectorForm!`);
+    }
+  }
+
+  fillTolerationsForm(area: string, data: any) {
+    const areaId = _parseArea(area);
 
     if (data.length) {
       data.forEach((dataPoint:any, index: number) => {
@@ -60,16 +199,21 @@ export default class AgentConfigurationRke2 extends PagePo {
         selectOperator.clickOption(dataPoint.operator);
 
         // value
-        this.self().find(`#${ areaId } [data-testid="toleration-value-index${ index }"]`).type(dataPoint.value);
+        if (dataPoint.value) {
+          this.self().find(`#${ areaId } [data-testid="toleration-value-index${ index }"]`).type(dataPoint.value);
+        }
 
         // effect
         const selectEffect = new SelectPo(this.self().find(`#${ areaId } [data-testid="toleration-effect-index${ index }"]`));
 
         selectEffect.toggle();
         selectEffect.clickOption(dataPoint.effect);
-      });
 
-    // fill toleration 1
+        // seconds
+        if (dataPoint.seconds) {
+          this.self().find(`#${ areaId } [data-testid="toleration-seconds-index${ index }"] input`).type(dataPoint.seconds);
+        }
+      });
     } else {
       throw new Error(`No data passed for fillTolerationsForm!`);
     }
