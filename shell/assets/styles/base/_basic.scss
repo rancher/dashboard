@@ -114,7 +114,7 @@ HR.vertical {
 
 // --------------------------------------------------------------------------------------------------------
 // These were declared in _mixins, but that results in these styles being declared for every Vue component
-// Moved here, as these are styles and mixing should only include mixing definitions, not style definitions
+// Moved here, as these are styles and mixins should only include mixing definitions, not style definitions
 // --------------------------------------------------------------------------------------------------------
 
 .clearfix         { @include clearfix; }
