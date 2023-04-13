@@ -187,6 +187,7 @@ export const podAffinityData = [
   priority: 1-preferred (has weight); 2-required;
   expressions: [
     {
+      matching: 1-expressions; 2-fields
       operator: 1-in list; 2-not in list; 3-is set (no value) ; 4-is not set (no value); 5-less than; 6-greather than
     }
   ]
@@ -196,29 +197,35 @@ export const nodeAffinityData = [
     priority:    1,
     expressions: [
       {
+        matching: 1,
         key:      'key1',
         operator: 1,
         value:    'val1'
       },
       {
+        matching: 1,
         key:      'key2',
         operator: 2,
         value:    'val2'
       },
       {
+        matching: 1,
         key:      'key3',
         operator: 3,
       },
       {
+        matching: 1,
         key:      'key4',
         operator: 4,
       },
       {
+        matching: 1,
         key:      'key5',
         operator: 5,
         value:    'val5'
       },
       {
+        matching: 1,
         key:      'key6',
         operator: 6,
         value:    'val6'
@@ -230,29 +237,35 @@ export const nodeAffinityData = [
     priority:    2,
     expressions: [
       {
+        matching: 2,
         key:      'key1',
         operator: 1,
         value:    'val1'
       },
       {
+        matching: 2,
         key:      'key2',
         operator: 2,
         value:    'val2'
       },
       {
+        matching: 2,
         key:      'key3',
         operator: 3,
       },
       {
+        matching: 2,
         key:      'key4',
         operator: 4,
       },
       {
+        matching: 2,
         key:      'key5',
         operator: 5,
         value:    'val5'
       },
       {
+        matching: 2,
         key:      'key6',
         operator: 6,
         value:    'val6'

@@ -115,7 +115,18 @@ export default {
     },
 
     update() {
-      this.$emit('input', this.rules);
+      // let's delete the vKey prop as it's only poluting the data
+      const rules = this.rules.map((rule) => {
+        const newRule = { ...rule };
+
+        if (newRule.vKey) {
+          delete newRule.vKey;
+        }
+
+        return newRule;
+      });
+
+      this.$emit('input', rules);
     },
 
     addToleration() {

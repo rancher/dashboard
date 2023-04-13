@@ -153,6 +153,14 @@ export default class AgentConfigurationRke2 extends PagePo {
             // add a new expression
             this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-add-rule"]`).click();
 
+            // matching
+            if (expression.matching) {
+              const selectMatching = new SelectPo(this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-type-field-control-${ i }"]`));
+
+              selectMatching.toggle();
+              selectMatching.clickOption(expression.matching);
+            }
+
             // key
             this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-key-control-${ i }"]`).type(expression.key);
 
