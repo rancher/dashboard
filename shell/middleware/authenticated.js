@@ -459,7 +459,7 @@ async function findMe(store) {
   return me;
 }
 
-async function tryInitialSetup(store, password = 'admin') {
+export async function tryInitialSetup(store, password = 'admin') {
   try {
     const res = await store.dispatch('auth/login', {
       provider: 'local',
@@ -477,7 +477,7 @@ async function tryInitialSetup(store, password = 'admin') {
   }
 }
 
-function encryptPassword(store, password) {
+export function encryptPassword(store, password) {
   const disabledEncryption = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.DISABLE_PASSWORD_ENCRYPT);
 
   if (disabledEncryption?.value === 'true') {
