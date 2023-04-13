@@ -1,17 +1,15 @@
 ---
-slug: welcome
-title: Welcome
-authors: [kwwii]
+title: The Rancher UX/UI team  
+authors: [neil, kwwii, cody, nancy, sean, jordon, phil, giuseppe, shavin, alex, sorin, eden, richa, manuele, francesco, richard]
 tags: [team, Rancher, Manager, Epinio, Opni, Desktop, Harvester, Fleet, Elemental]
 ---
 
-## Rancher UX/UI team
-
+<!--truncate-->
 As a team, we are dedicated to creating intuitive, user-friendly interfaces that make it easy for our customers to manage their containerized applications at scale. Our goal is to provide a seamless experience that simplifies complex tasks and enables users to focus on what matters most - their business objectives. 
 
-We believe that good design is a combination of empathy, user research, and iterative prototyping, and we are committed to constantly improving our designs based on user feedback. We look forward to working together to create the best possible user experience for our customers.
+We believe that good UX is a combination of empathy, user research, and iterative prototyping, and we are committed to constantly improving our UI based on user feedback. We look forward to working together to create the best possible user experience for our customers.
 
-## Team Goals
+## Our Goals
 
    - Improve productivity: make it easier for users to complete tasks quickly and efficiently. This can lead to improved productivity and a more efficient use of time and resources.
 

@@ -1,19 +1,15 @@
 ---
-title: 'Inactive socket timeouts'
+title: 'Socket Timeout UX'
 description: Inactivity notification and timeout settings in the UI
-slug: Inactivity Timeout Modal
 authors: [eden]
 tags: [Manager, Modal, Timeout, Inactivity]
 ---
 
-## Overview
-
 As part of Rancher Manager's wider performance improvement work, we looked at simple ways to improve the browser's performance.
 
-
-## User flow
-
 Users often have many tabs open in their browser, each connecting to the Rancher backend via sockets. To reduce this load when browser tabs go unnoticed, we will implement a user-configurable time-out to disconnect any sockets the UI has open to the backend. 
+
+<!--truncate-->
 
 Once implemented, after a given time, the user will receive an intitial modal dialogue warning them of the pending socket time-out and allow them to reset the timer, signalling that the sockets should stay connected and a time-out modal when the time-out has expired.
 

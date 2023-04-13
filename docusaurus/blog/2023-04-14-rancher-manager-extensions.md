@@ -1,19 +1,23 @@
 ---
-title: 'Rancher Manager extensions'
-description: Extend the functionality of the platform using extensions
-slug: Rancher Manager extensions
+title: 'Enhancing Rancher Manager'
+description: Enhancing Rancher Manager
 authors: [neil, alex, jordon]
 tags: [Manager, Extensions]
 ---
 
-## Overview
+Rancher Manager Extensions are a new feature in Rancher Manager that allows organizations to extend its functionality by adding custom tools and integrations. Extensions can be developed and deployed to Rancher Manager using a simple API, making it easy to customize and enhance the platform to meet specific requirements.
 
-One of the key features of Rancher Manager is its extensibility. With Rancher Manager extensions, users can extend the functionality of the platform to meet their specific needs.
+<!--truncate-->
 
-Rancher Manager extensions are custom-built plugins that can be integrated into the Rancher Manager platform. These plugins are designed to provide additional functionality that is not available out-of-the-box. For example, an extension could be created to provide additional monitoring and logging capabilities, or to add custom security features.
+Rancher Manager Extensions allow organizations to streamline Kubernetes management tasks by integrating with other Kubernetes tools, such as Helm and Istio. They can also be used to create custom dashboards and monitoring tools, add support for specific cloud providers, and enhance security and compliance.
+Developing Rancher Manager Extensions is a straightforward process. Extensions are developed using standard web technologies, such as HTML, CSS, and JavaScript, and can be deployed to Rancher Manager using a simple API. Rancher provides extensive documentation and examples to help developers get started with Rancher Manager Extensions.
 
-Extensions are built using the Rancher CLI (Command Line Interface) and are packaged as Docker containers. Once an extension is packaged, it can be uploaded to Rancher Manager and installed with just a few clicks. Once installed, the extension will be integrated seamlessly into the Rancher Manager interface.
+To create a Rancher Manager Extension, developers need to define the extension’s user interface, create the necessary backend functionality using the Rancher API, and package the extension as a container image. Once the extension is packaged, it can be deployed to Rancher Manager using the Rancher API, and users can access it through the Rancher Manager UI.
+Rancher Manager Extensions are a powerful tool for enhancing Kubernetes management workflows. By integrating with other Kubernetes tools and adding custom functionality, organizations can streamline their Kubernetes management tasks and improve operational efficiency. 
 
-One of the key benefits of Rancher Manager extensions is that they can be easily customized to meet the needs of individual users or organizations. This makes Rancher Manager a flexible and adaptable tool for managing containerized applications. With the ability to add custom functionality through extensions, users can tailor the platform to their specific requirements.
+To learn more about Rancher Manager Extensions and how to develop them, check out the following resources:
+ - Rancher Manager Extensions Documentation: https://rancher.com/docs/rancher/v2.x/en/extend-rancher/
+ - Rancher Manager Extensions GitHub Repository: https://github.com/rancher/rancher-catalog
+ - Rancher Manager Extensions Example Repository: https://github.com/rancher/longhorn-manager-extensions
 
-In conclusion, Rancher Manager extensions are a powerful feature of the Rancher Manager platform that allow users to extend the functionality of the platform to meet their specific needs. By providing a flexible and customizable tool for managing containerized applications, Rancher Manager is an ideal solution for organizations looking to streamline their container management processes.
+In conclusion, Rancher Manager Extensions are a powerful feature of Rancher Manager that allow organizations to customize and enhance their Kubernetes management workflows. With a simple API and extensive documentation and examples, developing Rancher Manager Extensions is a straightforward process. By leveraging Rancher Manager Extensions, organizations can improve operational efficiency and streamline their Kubernetes management tasks.
