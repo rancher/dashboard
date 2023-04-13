@@ -13,9 +13,14 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import capitalize from 'lodash/capitalize';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
-import { EPINIO_TYPES } from '../../types';
+import { APPLICATION_ENV_VAR, EPINIO_APP_DATA, EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
+
+type environment = {
+  [key: string] : any,
+  [APPLICATION_ENV_VAR]?: EPINIO_APP_DATA
+ }
 
 export interface EpinioAppInfo {
   meta: {
@@ -26,7 +31,8 @@ export interface EpinioAppInfo {
   configuration: {
     configurations: string[],
     instances: number,
-    environment: {},
+    environment: environment
+    settings: { [key: string] : any }
     routes: string[]
   }
 }
@@ -66,23 +72,34 @@ export default Vue.extend<Data, any, any, any>({
       errors:        [],
       values:        undefined,
       capitalize,
-      validSettings: {}
+      validSettings: {},
+      sanitisedEnvs: {}
     };
   },
 
   mounted() {
-    this.values = {
+    const values: EpinioAppInfo = {
       meta: {
         name:      this.application.meta?.name,
         namespace: this.application.meta?.namespace || this.namespaces[0]?.metadata.name
       },
       chart:         this.moveBooleansToFront(this.application.chart?.settings) || {},
       configuration: {
-        instances:   this.application.configuration?.instances || 1,
-        environment: this.application.configuration?.environment || {},
-        settings:    this.application.configuration?.settings || {},
-        routes:      this.application.configuration?.routes || [],
+        configurations: this.application.configuration?.configurations || [],
+        instances:      this.application.configuration?.instances || 1,
+        environment:    this.application.configuration?.environment || {},
+        settings:       this.application.configuration?.settings || {},
+        routes:         this.application.configuration?.routes || [],
       },
+    };
+
+    this.values = values;
+
+    const { [APPLICATION_ENV_VAR]:appEnvVar = '', ...otherEnvVars } = values.configuration.environment;
+
+    this.sanitisedEnvs = {
+      appEnvVar,
+      otherEnvVars
     };
 
     this.validSettings = {};
@@ -241,6 +258,13 @@ export default Vue.extend<Data, any, any, any>({
       } else {
         return '';
       }
+    },
+
+    envsChanged(env: environment, b: any) {
+      this.values.configuration.environment = {
+        ...env,
+        [APPLICATION_ENV_VAR]: this.sanitisedEnvs.appEnvVar
+      };
     }
   },
 
@@ -347,13 +371,14 @@ export default Vue.extend<Data, any, any, any>({
     </div>
     <div class="col span-8">
       <KeyValue
-        v-model="values.configuration.environment"
+        :value="sanitisedEnvs.otherEnvVars"
         data-testid="epinio_app-info_envs"
         :mode="mode"
         :title="t('epinio.applications.create.envvar.title')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
         :value-label="t('epinio.applications.create.envvar.valueLabel')"
         :parse-lines-from-file="true"
+        @input="envsChanged"
       />
       <div class="mb-20" /> <!-- allow a small amount of padding at bottom -->
     </div>

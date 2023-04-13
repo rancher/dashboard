@@ -192,9 +192,10 @@ export default Vue.extend<Data, any, any, any>({
             namespace: this.namespaces?.[0]?.name || ''
           },
           configuration: {
-            configurations: parsed.configuration?.configurations || [],
+            configurations: parsed.configuration?.configurations as string[] || [],
             instances:      parsed.configuration.instances || 1,
             environment:    parsed.configuration.environment || {},
+            settings:       parsed.configuration?.settings || {},
             routes:         parsed.configuration.routes || []
           }
         };
