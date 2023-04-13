@@ -102,8 +102,10 @@ export const actions = {
       commits = isArray(res) ? res : [res];
 
       const avatars = {};
+
       for (const c of commits) {
         const found = avatars[c.author_email];
+
         if (found) {
           c.avatar_url = found;
         } else {
