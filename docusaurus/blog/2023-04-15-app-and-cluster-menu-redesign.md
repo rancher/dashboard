@@ -1,5 +1,5 @@
 ---
-title: 'Rethinking the Application Menu'
+title: 'Rethinking the App Menu'
 description: Allow the user to quickly change between apps and clusters
 authors: [eden, kwwii]
 tags: [Manager, Navigation]
@@ -8,8 +8,6 @@ tags: [Manager, Navigation]
 As part of our usability review, we learned that the top level context switching mechanism for our application is hidden behine a burger menu.
 
 In order to select an application or explore a cluster the user must first expand a hidden menu. As this is an action users perform often, offering a persistent way to change between app and cluster context will improve usability.
-
-<!--truncate-->
 
 ## UX Design
 
