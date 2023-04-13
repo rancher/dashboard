@@ -3,6 +3,7 @@ import { isArray } from '@shell/utils/array';
 const API_VERSION = 'v4';
 const GITLAB_BASE_API = 'https://gitlab.com/api';
 const TOKEN = '';
+const MAX_RESULTS = 100; // max number of results is 100
 
 const getResponse = endpoint => fetch(`${ GITLAB_BASE_API }/${ API_VERSION }/${ endpoint }${ TOKEN }`);
 
@@ -47,16 +48,16 @@ export const actions = {
     try {
       switch (endpoint) {
       case 'branches': {
-        return await fetchGitLabAPI(`projects/${ repo }/repository/branches?order_by=updated_at&per_page=100`);
+        return await fetchGitLabAPI(`projects/${ repo }/repository/branches?order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'repo': {
         return await fetchGitLabAPI(`projects/${ repo }?`);
       }
       case 'commits': {
-        return await fetchGitLabAPI(`projects/${ repo }/repository/commits/${ branch }?order_by=updated_at&per_page=100`);
+        return await fetchGitLabAPI(`projects/${ repo }/repository/commits?ref_name=${ branch }&order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'recentRepos': {
-        return await fetchUserOrOrganization(`${ username }/projects?order_by=updated_at&per_page=100`);
+        return await fetchUserOrOrganization(`${ username }/projects?order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'avatar': {
         return await fetchGitLabAPI(`avatar?email=${ email }`);
@@ -113,15 +114,25 @@ export const actions = {
 
     let commits = [];
 
+    // Get and cache Avatar URLs
     if (res) {
       commits = isArray(res) ? res : [res];
 
-      for (const c of commits) {
-        const avatar = await dispatch('apiList', {
-          username, endpoint: 'avatar', email: c.author_email
-        });
+      const avatars = {};
 
-        c.avatar_url = avatar?.avatar_url;
+      for (const c of commits) {
+        const found = avatars[c.author_email];
+
+        if (found) {
+          c.avatar_url = found;
+        } else {
+          const newAvatar = await dispatch('apiList', {
+            username, endpoint: 'avatar', email: c.author_email
+          });
+
+          c.avatar_url = newAvatar?.avatar_url;
+          avatars[c.author_email] = c.avatar_url;
+        }
       }
     }
 

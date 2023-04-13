@@ -1,4 +1,5 @@
 const GITHUB_BASE_API = 'https://api.github.com';
+const MAX_RESULTS = 100; // max number of results is 100
 
 const fetchGithubAPI = async(endpoint) => {
   const response = await fetch(`${ GITHUB_BASE_API }/${ endpoint }`);
@@ -26,16 +27,16 @@ export const actions = {
     try {
       switch (endpoint) {
       case 'branches': {
-        return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=100&direction=desc`);
+        return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=${ MAX_RESULTS }&direction=desc`);
       }
       case 'repo': {
         return await fetchGithubAPI(`repos/${ username }/${ repo }`);
       }
       case 'commits': {
-        return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=100`);
+        return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=${ MAX_RESULTS }`);
       }
       case 'recentRepos': {
-        return await fetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=100&direction=desc`);
+        return await fetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=${ MAX_RESULTS }&direction=desc`);
       }
       case 'search': {
         // Fetch for a specific branches
