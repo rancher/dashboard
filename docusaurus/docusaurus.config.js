@@ -42,6 +42,11 @@ const config = {
         },
         blog: {
           showReadingTime:    true,
+          blogTitle: 'Rancher UX/UI Blog',
+          blogDescription: 'Recent and upcoming changes to Rancher Manager and associated projects and products',
+          postsPerPage: 'ALL',
+          blogSidebarCount: 'ALL',
+          blogSidebarTitle: 'All blog posts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
         },
