@@ -81,8 +81,9 @@ echo -e "${CYAN}${BOLD}Publishing UI Plugins${RESET}"
 pushd ${BASE_DIR} > /dev/null
 
 if [ "${GITHUB_BUILD}" == "true" ]; then
+  # Determine if gh-pages build is possible
   if [[ "${GITHUB_BRANCH}" == "gh-pages" ]] && ! git show-ref -q --heads gh-pages; then
-    echo -e "${YELLOW}'gh-pages' branch not found, reverting to 'main' branch"
+    echo -e "${YELLOW}'gh-pages' branch not found, reverting to 'main' branch${RESET}"
     GITHUB_BRANCH="main"
   fi
 
@@ -193,27 +194,22 @@ for d in pkg/*/ ; do
     echo -e "${CYAN}Building plugin from source code${RESET}"
     FORCE_COLOR=1 yarn build-pkg $pkg | cat
 
-    if [ "${GITHUB_BUILD}" == "false" ]; then
-      # Build the docker image
-      ${SCRIPT_DIR}/bundle ${pkg} ${PKG_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
-    else
-      echo -e "${CYAN}Adding plugin code ...${RESET}"
+    echo -e "${CYAN}Adding plugin code ...${RESET}"
 
-      EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
-      PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
+    EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
+    PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
 
-      rm -rf ${EXT_FOLDER}
+    rm -rf ${EXT_FOLDER}
 
-      mkdir -p ${EXT_FOLDER}/plugin
+    mkdir -p ${EXT_FOLDER}/plugin
 
-      # Copy the code into the folder
-      cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
+    # Copy the code into the folder
+    cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
 
-      pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
-      rm -f plugin/report.html
-      find plugin -type f | sort > files.txt
-      popd > /dev/null
-    fi
+    pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
+    rm -f plugin/report.html
+    find plugin -type f | sort > files.txt
+    popd > /dev/null
 
     rm -rf ${TMP}/container
 
@@ -306,6 +302,28 @@ for d in pkg/*/ ; do
   fi
 done
 
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  BASE=$(basename `git rev-parse --show-toplevel`)
+  EXT_VERSION=$(jq -r .version ${BASE_DIR}/package.json)
+
+  if [ -z ${BASE} ]; then
+    BASE=$(basename `${BASE_DIR}`)
+  fi
+  if [ -z ${EXT_VERSION} ]; then
+    EXT_VERSION="0.0.0"
+  fi
+
+  echo -e "${CYAN}Base extension: ${BASE}${RESET}"
+  echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
+
+  # if [ -f ${ASSETS}/index.yaml ]; then
+  #   cp ${ASSETS}/index.yaml ${BASE_DIR}
+  # fi
+
+  # Build the docker image
+  ${SCRIPT_DIR}/bundle ${BASE} ${EXT_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
+fi
+
 if [ "${GITHUB_BUILD}" == "true" ]; then
   cp index.yaml tmp
 fi
@@ -319,4 +337,5 @@ rm -rf ${CHART_TMP}
 
 if [ "${GITHUB_BUILD}" == "false" ]; then
   rm -rf ${TMP}
+  rm -rf tmp
 fi
