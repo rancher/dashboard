@@ -1,7 +1,7 @@
 import Masthead from '@shell/components/ResourceDetail/Masthead.vue';
 import { mount } from '@vue/test-utils';
 
-describe('plugin: subscribe, actions: ws.resource.change', () => {
+describe('Test navlink name nowrap', () => {
   it('should have name-display class', () => {
     const wrapper = mount(Masthead, {
       stubs: { 'nuxt-link': true },
