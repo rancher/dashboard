@@ -1,3 +1,13 @@
+---
+toc_max_heading_level: 4
+---
+
+# Cards
+
+Cards present information with a bordered box.
+
+Cards are added to Rancher via the `addCard` method.
+
 # addCard
 
 *(Rancher version v2.7.2)*
@@ -27,7 +37,7 @@ _Arguments_
 <br/>
 <br/>
 
-## `'CardLocation.CLUSTER_DASHBOARD_CARD'` options
+## CardLocation.CLUSTER_DASHBOARD_CARD options
 
 ![Cluster Dashboard Card](../screenshots/cluster-cards.png)
 

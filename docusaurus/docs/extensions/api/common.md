@@ -1,59 +1,6 @@
----
-toc_max_heading_level: 4
----
+# Common Types
 
-# Extensions API
-
-## Introduction
-
-Rancher Extensions provides a mechanism to add new functionality to the Dashboard UI at runtime. This is covered mostly by the Extensions API which provides several methods on the `plugin` object to enhance the Rancher Dashboard UI in key areas of the interface. They should be defined where the extension is initialized.
-
-You can find an installable extension providing some usage examples of the Extensions API here: https://github.com/rancher/ui-plugin-examples.
-
-These are the currently available methods of the Extension API:
-
-| Method | Rancher Version support |
-| --- | --- |
-| [addAction](extension-api-methods/add-action) | v2.7.2 |
-| [addCard](extension-api-methods/add-card) | v2.7.2 |
-| [addPanel](extension-api-methods/add-panel) | v2.7.2 |
-| [addTab](extension-api-methods/add-tab) | v2.7.2 |
-| [addTableColumn](extension-api-methods/add-table-column) | v2.7.2 |
-
-<br/>
-
-To start off how to use the Extensions API, it's important to mention that most of these methods will need 3 arguments which are important to know:
-
-**where** - this defines which area of the UI the extension method will apply to.
-
-**when** - this defines the exact product, resource, cluster, mode, etc, which the extension method will apply to and it's based on a `LocationConfig` object, which is explained on the next chapter.
-
-**options** - set of options needed for each specific method.
-
-Example: 
-
-```ts
-plugin.addPanel(
-  where,
-  when,
-  options
-);
-```
-
-or
-
-```ts
-plugin.addPanel(
-  PanelLocation.DETAIL_TOP,
-  { resource: ['catalog.cattle.io.clusterrepo'] },
-  { component: () => import('./DetailTopComponent.vue') }
-);
-```
-
-<br/>
-<br/>
-
-## `where` string definition
+## Where
 
 The `where` defines which area of the UI the extension method will apply to and they depend on which method they are applied to. This means that each method will only accept a given subset of the the following list (documented per each method).
 
@@ -70,10 +17,8 @@ The admissable string values for the `where` are:
 |`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page. Check [screenshot](extension-api-methods/add-card/#cardlocationcluster_dashboard_card-options) for location. |
 |`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page. Check [screenshot](extension-api-methods/add-table-column/#tablecolumnlocationresource-options) for location. |
 
-<br/>
-<br/>
 
-## `LocationConfig` object definition (`when`)
+## LocationConfig
 
 The `LocationConfig` object defines **when** (product, resource, cluster...) these UI enhancement methods are applied on the UI. The **when** is based on the current routing system employed on Rancher Dashboard. Let's take on a simple example to try and understand the routing structure.
 
@@ -120,7 +65,7 @@ The admissable parameters for the `LocationConfig` object are:
 |`id`| Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
 |`mode`| Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissable values are: `edit`, `config`, `detail` and `list` |
 
-## `LocationConfig` Examples
+### LocationConfig Examples
 
 Example 1:
 ```ts

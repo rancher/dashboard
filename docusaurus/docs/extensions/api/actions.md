@@ -2,7 +2,13 @@
 toc_max_heading_level: 4
 ---
 
-# addAction
+# Actions
+
+An action is typically represented as a button or icon and can be invoked by a user to execute a particular function.
+
+Actions are added to Rancher via the `addAction` method.
+
+## addAction
 
 *(Rancher version v2.7.2)*
 
@@ -32,7 +38,7 @@ _Arguments_
 <br/>
 <br/>
 
-### `'ActionLocation.HEADER'` options
+### ActionLocation.HEADER options
 
 ![Header Actions](../screenshots/header-actions.png)
 
@@ -92,7 +98,7 @@ plugin.addAction(
 <br/>
 <br/>
 
-### `'ActionLocation.TABLE'` options
+### ActionLocation.TABLE options
 
 _INLINE TABLE ACTION_
 

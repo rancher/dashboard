@@ -1,4 +1,8 @@
-# addTableColumn
+# Table Columns
+
+Table Columns are added to Rancher via the `addTableColumn` method.
+
+## addTableColumn
 
 *(Rancher version v2.7.2)*
 
@@ -27,7 +31,7 @@ _Arguments_
 <br/>
 <br/>
 
-## `'TableColumnLocation.RESOURCE'` options
+### TableColumnLocation.RESOURCE options
 
 ![Table Col](../screenshots/table-cols.png)
 

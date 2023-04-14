@@ -1,4 +1,11 @@
-# addTab
+# Tabs
+
+Tabs present custom content inside a new Tab of an existing Tabbed Area section
+within the Rancher UI.
+
+Tabs are added to Rancher via the `addTab` method.
+
+## addTab
 
 *(Rancher version v2.7.2)*
 
@@ -27,7 +34,7 @@ _Arguments_
 <br/>
 <br/>
 
-## `'TabLocation.RESOURCE_DETAIL'` options
+### TabLocation.RESOURCE_DETAIL options
 
 ![Tabs](../screenshots/add-tab.png)
 

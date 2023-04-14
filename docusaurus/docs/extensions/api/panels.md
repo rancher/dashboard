@@ -1,4 +1,10 @@
-# addPanel
+# Panels
+
+A Panel is a defined area in the Rancher UI where custom UI components can be shown.
+
+Panels are added to Rancher via the `addPanel` method.
+
+## addPanel
 
 *(Rancher version v2.7.2)*
 
@@ -29,7 +35,7 @@ _Arguments_
 <br/>
 <br/>
 
-## `'PanelLocation.DETAILS_MASTHEAD'` options
+### PanelLocation.DETAILS_MASTHEAD options
 
 ![Details Masthead](../screenshots/masthead.png)
 
@@ -52,7 +58,7 @@ plugin.addPanel(
 <br/>
 <br/>
 
-## `'PanelLocation.DETAIL_TOP'` options
+### PanelLocation.DETAIL_TOP options
 
 ![DetailTop](../screenshots/detailtop.png)
 
@@ -75,7 +81,7 @@ plugin.addPanel(
 <br/>
 <br/>
 
-## `'PanelLocation.RESOURCE_LIST'` options
+### PanelLocation.RESOURCE_LIST options
 
 ![List View](../screenshots/list-view.png)
 
