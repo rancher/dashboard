@@ -78,17 +78,13 @@ export default Vue.extend<Data, any, any, any>({
       return;
     }
 
+    if (this.value.type && this.value.type !== this.type) {
+      return;
+    }
+
     if (this.value.sourceData) {
       // API calls data - from cache
-
-      this.selectedAccOrOrg = this.value.usernameOrOrg;
-      this.selectedRepo = this.value.repo;
-      this.selectedBranch = this.value.branch;
-      this.selectedCommit = { sha: this.value.commit };
-
-      this.repos = this.value.sourceData.repos;
-      this.branches = this.value.sourceData.branches;
-      this.commits = this.value.sourceData.commits;
+      this.loadSourceCache();
     } else {
       // API calls data - from remote
       this.selectedAccOrOrg = this.value.usernameOrOrg;
@@ -125,6 +121,9 @@ export default Vue.extend<Data, any, any, any>({
       handler(old, neu) {
         if (old !== neu) {
           this.reset();
+          if (neu === this.value.type) {
+            this.loadSourceCache();
+          }
         }
       },
       immediate: true,
@@ -208,6 +207,18 @@ export default Vue.extend<Data, any, any, any>({
         commit:           this.selectedCommit,
       });
     },
+
+    loadSourceCache() {
+      this.selectedAccOrOrg = this.value.usernameOrOrg;
+      this.selectedRepo = this.value.repo;
+      this.selectedBranch = this.value.branch;
+      this.selectedCommit = { sha: this.value.commit };
+
+      this.repos = this.value.sourceData.repos;
+      this.branches = this.value.sourceData.branches;
+      this.commits = this.value.sourceData.commits;
+    },
+
     async fetchRepos() {
       if (this.selectedAccOrOrg.length) {
         this.selectedRepo = null;
