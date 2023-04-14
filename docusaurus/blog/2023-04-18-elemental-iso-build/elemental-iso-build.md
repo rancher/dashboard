@@ -14,4 +14,4 @@ To simplify this workflow we've added the ability to build an ISO image preconfi
 
 Users can also build images directly on the dashboard for any registration endpoint.
 
-![Dasahboard ISO Build](./image2.png)
+![Dashboard ISO Build](./image2.png)
