@@ -204,7 +204,7 @@ export default Vue.extend<Data, any, any, any>({
       }
 
       if (!idx) {
-        return idx;
+        return null;
       }
 
       return {
