@@ -24,8 +24,6 @@ export const fields = {
   }
 };
 
-// TODO: RC test column live reload
-
 export const calculatedFields = [
   { name: fields.imageNames.name, func: fields.imageNames }
 ];

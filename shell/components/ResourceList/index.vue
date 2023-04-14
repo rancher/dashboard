@@ -139,12 +139,12 @@ export default {
       return !!this.perfConfig?.advancedWorker?.enabled;
     },
     listLength() {
-      const { params: { resource: type } } = this.$route; // TODO: RC type is already available via `this.resource`
+      const { params: { resource: type } } = this.$route;
 
       return this.$store.getters['cluster/listLength'](type);
     },
     totalLength() {
-      const { params: { resource: type } } = this.$route; // TODO: RC type is already available via `this.resource`
+      const { params: { resource: type } } = this.$route;
 
       return this.$store.getters['cluster/totalLength'](type);
     }
@@ -168,11 +168,8 @@ export default {
 
     /**
      * When the list changes pagination settings ensure we refresh the resources to reflect them
-     *
-     * // TODO: RC sean - this is similar to namespaceFilter, there's a couple of different use cases that had to cover (see comment)
-     * // TODO: RC test - does this fire as well as namespaceFilter? how do the two work together
      */
-    resourceQuery(neu, old) { // TODO: RC test
+    resourceQuery(neu, old) {
       if (hashObj(neu) !== hashObj(old) && !this.hasFetch) {
         this.$fetchType(this.resource);
       }

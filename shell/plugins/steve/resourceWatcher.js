@@ -67,7 +67,6 @@ const {
   WATCH_PENDING, WATCH_REQUESTED, WATCHING, STOPPED, REMOVE_PENDING, REQUESTED_REMOVE
 } = WATCH_STATUSES;
 
-// TODO: RC jsdocs
 export default class ResourceWatcher extends Socket {
   watches = {};
   status = '';

@@ -80,9 +80,6 @@ export const correctSort = (sort) => {
   return correctedSort;
 };
 
-// TODO: RC review all of these against original code
-
-// TODO: RC remove me - used in sortable table and mixin
 export const defaultSortBy = ({ headers }) => {
   const markedColumn = headers.find(header => !!header.defaultSort);
   const nameColumn = headers.find( header => header.name === 'name');
@@ -93,7 +90,6 @@ export const defaultSortBy = ({ headers }) => {
   return sortName;
 };
 
-// TODO: RC remove me - used in sortable table and mixin
 export const groupAndSort = ({
   groupBy, groupSort, columns, headers, sortBy, sortDesc
 }) => {
@@ -262,9 +258,6 @@ export const searchRows = ({
   return processSearches({ resources, searches });
 };
 
-// TODO: RC Review all this
-// TODO: RC Test all this
-
 /**
  * ToDo: SM description goes here...
  */
@@ -286,10 +279,10 @@ export default {
   computed: {
     ...mapGetters(['isAllNamespaces', 'namespaces', 'isMultipleNamespaces']),
     pageSize:        mapPref(ROWS_PER_PAGE),
+    // TODO: comment needs to be jsoc
     // selectedGroupBy is the value that controls "computedGroupBy" so it doesn't make sense to throw it into resourceParams
     selectedGroupBy: mapPref(GROUP_RESOURCES),
     selectedNamespaces() {
-      // TODO: RC TEST ... how do we differentiate local ns filtering and request ns filtering
       const namespacesMap = this.isAllNamespaces ? {} : this.namespaces();
 
       return Object.keys(namespacesMap).filter(key => namespacesMap[key]);

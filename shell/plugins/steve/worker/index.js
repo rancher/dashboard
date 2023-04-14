@@ -49,7 +49,7 @@ export default function steveCreateWorker(ctx, mode) {
 
     const {
       type, id, namespace, namespaces, selector, limit, page, pageSize, filter, sortBy, searches, force
-    } = params; // TODO: RC test / review namespace vs namespaces
+    } = params;
 
     try {
       const requestParams = JSON.parse(JSON.stringify({
@@ -121,7 +121,7 @@ export default function steveCreateWorker(ctx, mode) {
         csrf:       this.$cookies.get(CSRF, { parseJSON: false }), // steveCreateWorker is in the root store
         config:     ctx.state.config,
         storeName:  ctx.getters.storeName,
-        i18nConfig: this.getters['i18n/config']() // TODO: RC `state` part of vuex store. this won't have dynamic i18n
+        i18nConfig: this.getters['i18n/config']()
       },
     });
   } else {

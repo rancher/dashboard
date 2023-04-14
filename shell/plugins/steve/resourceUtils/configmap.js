@@ -1,4 +1,3 @@
-// TODO: RC make changes elsewhere... or revert
 export const fields = {
   keysDisplay: (resource) => {
     const keys = [

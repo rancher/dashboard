@@ -65,10 +65,6 @@ import TypeMapCache from '@shell/plugins/steve/caches/type-map';
 import NavLinkCache from '@shell/plugins/steve/caches/ui.cattle.io.navlink';
 import WorkloadCombinedCache from '@shell/plugins/steve/caches/workload.combined';
 
-// TODO: RC note - calc fields are worked out within advanced worker (to paginate). resources without calc fields sent back to ui thread WITH list of resources required to re-calc calc fields
-// - 20k pods sent over to work out page size's deployment's pods
-// - need to ensure we still classify page... but keep calcs?
-
 export default {
   'apps.daemonset':                                  DaemonSetCache,
   'apps.deployment':                                 DeploymentCache,

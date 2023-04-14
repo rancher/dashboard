@@ -79,7 +79,6 @@ export async function createWorker(store, ctx) {
       dispatch(`ws.${ msg.name }`, msg);
     },
     get: (msg) => {
-      // TODO: RC test
       store.$workers[storeName].postMessage({
         uiResponse: {
           getter: msg,

@@ -84,8 +84,6 @@ export default class ResourceCache extends BaseCache {
 
         subRequest.type = cacheName;
 
-        this.trace('request', params.type, 'secondary resource type', cacheName);
-
         return subRequest;
       });
 
@@ -115,18 +113,9 @@ export default class ResourceCache extends BaseCache {
     let mainRequest;
 
     if (cacheRefresh) {
-      this.trace('request', this.type, 'making http request for primary resource');
-
-      mainRequest = this.api.request({ ...requestParams, type: this.type }, this.getters['schemaFor'])
-        .then((res) => {
-          this.trace('request', this.type, 'making http request for primary resource', 'result', res);
-
-          return res;
-        });
+      mainRequest = this.api.request({ ...requestParams, type: this.type }, this.getters['schemaFor']);
       this.state = CACHE_STATES.REQUESTING;
     } else {
-      this.trace('request', this.type, 'skipping http request for primary resource');
-
       mainRequest = { data: {} };
     }
 
@@ -135,13 +124,11 @@ export default class ResourceCache extends BaseCache {
       ...this.__requestSubResources(subResourceParams)
     ];
 
-    this.trace('request', this.type, '!!!!', requestArray);
-
     const allRequests = await Promise.all(requestArray).then((responses) => {
       if (!id) {
         const [{ status, statusText, data: { data, revision, links } }] = responses;
 
-        if (cacheRefresh) { // TODO: RC test ties in to `load` param
+        if (cacheRefresh) {
           this.state = CACHE_STATES.LOADING;
           this.load(
             data,
@@ -155,11 +142,7 @@ export default class ResourceCache extends BaseCache {
           );
         }
 
-        const response = responses.filter(response => response?.data?.resourceType); // TODO: RC question why is this needed?
-
-        this.trace('request', this.type, 'result not id', response );
-
-        return response;
+        return responses.filter(response => response?.data?.resourceType);
       } else {
         const [{ status, statusText, data }] = responses;
 
@@ -175,13 +158,9 @@ export default class ResourceCache extends BaseCache {
           );
         }
 
-        this.trace('request', this.type, 'result id', responses );
-
         return responses;
       }
     });
-
-    this.trace('request', this.type, 'actua response', allRequests);
 
     const flattenRequest = (request) => {
       const type = request?.data?.resourceType || request?.data?.type;
@@ -209,7 +188,7 @@ export default class ResourceCache extends BaseCache {
     });
 
     this.__requests[cacheKey] = {
-      ...this.__requests[cacheKey], // TODO: RC question why?
+      ...this.__requests[cacheKey],
       totalLength: payload?.length || 1,
       ids:         this.__requests[cacheKey]?.ids || [],
       revision:    revision || this.__requests[cacheKey]?.revision,

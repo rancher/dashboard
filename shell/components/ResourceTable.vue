@@ -412,7 +412,6 @@ export default {
 };
 </script>
 
-// TODO: RC test `default-sort-by` honoured
 <template>
   <span>
     <SortableTable

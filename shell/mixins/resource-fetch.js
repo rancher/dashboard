@@ -72,7 +72,7 @@ export default {
       return this.rows.length ? false : this.$fetchState.pending;
     },
     advancedWorker() {
-      return !!this.perfConfig?.advancedWorker?.enabled; // TODO: RC check description of perf setting
+      return !!this.perfConfig?.advancedWorker?.enabled;
     },
 
     listLength() {

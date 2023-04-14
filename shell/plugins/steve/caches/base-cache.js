@@ -158,7 +158,7 @@ export default class BaseCache extends Trace {
     };
   }
 
-  __formatDetailResponse(data, cacheKey) { // TODO: RC only used once, simply, is it needed?
+  __formatDetailResponse(data, cacheKey) {
     return { data };
   }
 

@@ -570,7 +570,7 @@ export default {
   },
 
   clone(ctx, payload) {
-    const { resource } = payload; // TODO: RC comment not needed
+    const { resource } = payload;
 
     return classify(ctx, resource.toJSON(), true);
   },
