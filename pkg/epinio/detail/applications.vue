@@ -149,17 +149,21 @@ export default Vue.extend<Data, any, any, any>({
       return this.value?.appEnvVar as EPINIO_APP_DATA;
     },
 
-    envVarGitSource(): EPINIO_APP_ENV_VAR_GIT {
-      return this.envVar.source?.[this.envVarGitType] as EPINIO_APP_ENV_VAR_GIT;
+    envVarGitSource(): EPINIO_APP_ENV_VAR_GIT | null {
+      if (this.envVarSourceType === APPLICATION_SOURCE_TYPE.GIT_HUB || this.envVarSourceType === APPLICATION_SOURCE_TYPE.GIT_LAB ) {
+        return this.envVar.source?.[this.envVarSourceType] as EPINIO_APP_ENV_VAR_GIT;
+      }
+
+      return null;
     },
 
-    envVarGitType(): APPLICATION_SOURCE_TYPE {
+    envVarSourceType(): APPLICATION_SOURCE_TYPE {
       return this.envVar.source?.type;
     },
 
     gitType() {
-      if (this.envVarGitType) {
-        return gitUtilsToLabel(this.envVarGitType);
+      if (this.envVarGitSource) {
+        return gitUtilsToLabel(this.envVarSourceType);
       }
 
       return undefined;

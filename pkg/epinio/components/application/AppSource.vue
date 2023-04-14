@@ -86,25 +86,25 @@ export default Vue.extend<Data, any, any, any>({
       defaultBuilderImage,
 
       archive: {
-        tarball:  this.source?.archive.tarball || '',
-        fileName: this.source?.archive.fileName || '',
+        tarball:  this.source?.archive?.tarball || '',
+        fileName: this.source?.archive?.fileName || '',
       },
 
-      container: { url: this.source?.container.url },
+      container: { url: this.source?.container?.url },
 
       gitUrl: {
-        url:         this.source?.gitUrl.url || '',
-        branch:      this.source?.gitUrl.branch || '',
+        url:         this.source?.gitUrl?.url || '',
+        branch:      this.source?.gitUrl?.branch || '',
         validGitUrl: false,
       },
 
       git: {
-        usernameOrOrg: this.source?.git.usernameOrOrg || '',
-        repo:          this.source?.git.repo || '',
-        commit:        this.source?.git.commit || '',
-        branch:        this.source?.git.branch || '',
-        url:           this.source?.git.url || '',
-        sourceData:    this.source?.git.sourceData || {
+        usernameOrOrg: this.source?.git?.usernameOrOrg || '',
+        repo:          this.source?.git?.repo || '',
+        commit:        this.source?.git?.commit || '',
+        branch:        this.source?.git?.branch || '',
+        url:           this.source?.git?.url || '',
+        sourceData:    this.source?.git?.sourceData || {
           repos:    [],
           branches: [],
           commits:  []
