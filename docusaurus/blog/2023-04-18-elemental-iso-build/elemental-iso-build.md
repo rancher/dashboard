@@ -10,4 +10,4 @@ Currently, when users want to install an edge comuting machine and include it in
 
 To simplify this workflow we've added the ability to preconfigure an iso image build  for a given Elemental endpoint. After booting the image, the machine will be available to the Rancher for inclusion in a cluster.
 
-![ISO Build](./image.png)
+![ISO Build](./image1.png)
