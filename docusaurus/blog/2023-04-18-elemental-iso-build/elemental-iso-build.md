@@ -6,8 +6,8 @@ tags: [Manager, Elemental, Extensions]
 ---
 ## Configure and build ISOs via the UI
 
-Currently, when users want to install an edge comuting machine and include it in an Elemental cluster they have to create an iso image which is properly configured with the endpoint information. 
+Currently, when users want to add an Edge machine to an Elemental cluster they have to create an ISO image which is properly configured with the registration endpoint information by hand. 
 
-To simplify this workflow we've added the ability to preconfigure an iso image build  for a given Elemental endpoint. After booting the image, the machine will be available to the Rancher for inclusion in a cluster.
+To simplify this workflow we've added the ability to build an ISO image preconfigured for a given Elemental endpoint. After booting this image, the machine will be available to Rancher for inclusion in a cluster.
 
 ![ISO Build](./image1.png)
