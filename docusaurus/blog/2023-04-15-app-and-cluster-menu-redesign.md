@@ -4,7 +4,7 @@ description: Allow the user to quickly change between apps and clusters
 authors: [eden, kwwii]
 tags: [Manager, Navigation]
 ---
-## Allow the user to quickly change between apps and clusters
+## Allow users to quickly change between apps and clusters
 
 As part of our usability review, we learned from users that the top level context-switching mechanism could be more easily available. Currently, users have to expand a menu first, in order to change application or cluster context.
 

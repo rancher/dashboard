@@ -4,7 +4,7 @@ description: Allow the user to configure and build Elemental ISO images
 authors: [alex, kwwii]
 tags: [Manager, Elemental, Extensions]
 ---
-## Configure and build ISOs via the UI
+## Easily configure and build ISOs via the UI
 
 Currently, when users want to add an Edge machine to an Elemental cluster they have to create an ISO image which is properly configured with the registration endpoint information by hand. 
 
