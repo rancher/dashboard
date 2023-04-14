@@ -114,7 +114,6 @@ export default {
           labelKey: 'tableHeaders.role',
           value:    'roleTemplate.nameDisplay'
         },
-        { ...AGE, value: 'createdTS' }
       ],
       loadingProjectBindings: true,
       loadingClusterBindings: true
@@ -185,7 +184,25 @@ export default {
         };
       });
 
-      return [...fakeRows, ...this.filteredProjectRoleTemplateBindings];
+      // We need to group each of the TemplateRoleBindings by the user + project
+      const userRoles = [...fakeRows, ...this.filteredProjectRoleTemplateBindings].reduce((rows, curr) => {
+        const { userId, roleTemplate, projectId } = curr;
+
+        const userKey = userId + projectId;
+
+        if (!rows[userKey] && userId ) {
+          rows[userKey] = curr;
+          rows[userKey].allRoles = [];
+        }
+
+        if (roleTemplate && userId) {
+          rows[userKey].allRoles.push(curr.roleTemplate);
+        }
+
+        return rows;
+      }, {});
+
+      return Object.values(userRoles);
     },
     canManageMembers() {
       return canViewClusterPermissionsEditor(this.$store);
@@ -223,6 +240,26 @@ export default {
         modalSticky: true
       });
     },
+
+    getProjectRoleBinding(row, role) {
+      // Each row is a combination of user and project
+      // So find the specfic roleBindingTemplate corresponding to the specific role + project
+      return this.projectRoleTemplateBindings.find(r => r.roleTemplateId === role.id && r.userId === row.userId);
+    },
+
+    async removeRole(row, role, event) {
+      const resource = this.getProjectRoleBinding(row, role);
+
+      await resource.promptRemove();
+    },
+
+    viewRoleInAPI(row, role) {
+      const resource = this.getProjectRoleBinding(row, role);
+
+      if (resource?.canViewInApi) {
+        resource.viewInApi();
+      }
+    },
     slotName(project) {
       return `main-row:${ project.id }`;
     },
@@ -249,7 +286,7 @@ export default {
     <Tabbed>
       <Tab
         name="cluster-membership"
-        label="Cluster Membership"
+        :label="t('members.clusterMemebership')"
       >
         <div
           v-if="canEditClusterMembers"
@@ -266,7 +303,8 @@ export default {
           :schema="schema"
           :headers="headers"
           :rows="filteredClusterRoleTemplateBindings"
-          :groupable="false"
+          :groupable="true"
+          :show-grouping="true"
           :namespaced="false"
           :loading="$fetchState.pending || !currentCluster || loadingClusterBindings"
           sub-search="subSearch"
@@ -276,13 +314,15 @@ export default {
       <Tab
         v-if="canManageProjectMembers"
         name="project-membership"
-        label="Project Membership"
+        :label="t('members.projectMembership')"
       >
         <SortableTable
           group-by="projectId"
           :loading="$fetchState.pending || !currentCluster || loadingProjectBindings"
           :rows="rowsWithFakeProjects"
           :headers="projectRoleTemplateColumns"
+          :table-actions="false"
+          :row-actions="false"
         >
           <template #group-by="group">
             <div class="group-bar">
@@ -308,6 +348,31 @@ export default {
             </div>
           </template>
           <template
+            #cell:role="{row}"
+          >
+            <span
+              v-for="(role, j) in row.allRoles"
+              :key="j"
+
+              ref="value"
+              :data-testid="`role-value-${j}`"
+              class="role"
+            >
+              <span
+                class="role-value"
+                :class="{'text-link-enabled' : row.canViewInApi}"
+                @click="viewRoleInAPI(row, role)"
+              >
+                {{ role.nameDisplay }}
+              </span>
+              <i
+                class="icon icon-close"
+                :data-testid="`role-values-close-${j}`"
+                @click="removeRole(row, role, $event)"
+              />
+            </span>
+          </template>
+          <template
             v-for="project in projectsWithoutRoles"
             v-slot:[slotName(project)]
           >
@@ -330,6 +395,36 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+
+.role {
+  align-items: center;
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--header-border);
+    border-radius: 5px;
+    color: var(--tag-text);
+    line-height: 20px;
+    padding: 2px 5px;
+    white-space: nowrap;
+    display: inline-flex;
+    margin-right: 3px;
+}
+
+.role-value {
+  &.text-link-enabled {
+    cursor: pointer;
+    &:hover {
+      color: var(--primary);
+    }
+  }
+  + .icon-close {
+    margin-left: 3px;
+    cursor: pointer;
+    &:hover {
+      color: var(--primary);
+    }
+  }
+}
+
 .project-members {
   & ::v-deep .group-bar{
     display: flex;

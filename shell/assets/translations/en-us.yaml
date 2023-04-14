@@ -2980,6 +2980,8 @@ members:
   clusterMembers: Cluster Members
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
+  clusterMemebership: Cluster Membership
+  projectMembership: Project Memebership
   clusterPermissions:
     noDescription: User created - no description
     label: Cluster Permissions
@@ -4541,6 +4543,7 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    role: Group by Role
     cluster: Group by Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
