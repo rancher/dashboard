@@ -1558,6 +1558,9 @@ cluster:
       label: Drain Before Delete
     role:
       label: Roles
+      etcd: etcd
+      controlPlane: Control Plane
+      worker: Worker
     labels:
       label: Kubernetes Node Labels
     autoReplace:
