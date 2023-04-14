@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import UnitInputPo from '~/cypress/e2e/po/components/unit-input.po';
 import SelectPo from '~/cypress/e2e/po/components/select.po';

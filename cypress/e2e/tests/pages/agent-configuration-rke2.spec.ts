@@ -1,3 +1,4 @@
+/* eslint-disable cypress/no-unnecessary-waiting */
 import AgentConfigurationRke2 from '~/cypress/e2e/po/pages/agent-configuration-rke2.po';
 import {
   podAffinityData,
