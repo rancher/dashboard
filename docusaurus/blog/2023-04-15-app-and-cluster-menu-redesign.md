@@ -4,12 +4,17 @@ description: Allow the user to quickly change between apps and clusters
 authors: [eden, kwwii]
 tags: [Manager, Navigation]
 ---
+## Allow the user to quickly change between apps and clusters
 
-As part of our usability review, we learned that the top level context switching mechanism for our application is hidden behine a burger menu.
+As part of our usability review, we learned from users that the top level context-switching mechanism could be more easily available. Currently, users have to expand a menu first, in order to change application or cluster context.
 
-In order to select an application or explore a cluster the user must first expand a hidden menu. As this is an action users perform often, offering a persistent way to change between app and cluster context will improve usability.
+As this is an action users perform often, offering a persistent easy way to change between app and cluster context will improve usability.
 
-## UX Design
+Sounds too good to be true? Can't believe you're eyes?
+
+Wait! There's more!!!
+
+## Title
 
 **Overview**
 

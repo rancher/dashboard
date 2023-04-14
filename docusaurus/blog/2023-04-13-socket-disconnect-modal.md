@@ -4,6 +4,7 @@ description: Inactivity notification and timeout settings in the UI
 authors: [eden]
 tags: [Manager, Modal, Timeout, Inactivity]
 ---
+## Inactivity notification and timeout settings in the UI
 
 As part of Rancher Manager's wider performance improvement work, we looked at simple ways to improve the browser's performance.
 
@@ -11,7 +12,7 @@ Users often have many tabs open in their browser, each connecting to the Rancher
 
 Once implemented, after a given time, the user will receive an intitial modal dialogue warning them of the pending socket time-out and allow them to reset the timer, signalling that the sockets should stay connected and a time-out modal when the time-out has expired.
 
-## UX Design
+## Workflow
 
 
 Initially, the user will receive a modal dialogue with a countdown showing the time remaining until the sockets disconnect and a button allowing them to resume the session.
