@@ -225,6 +225,7 @@ export default {
         v-for="(row, idx) in rows"
         :key="idx"
         data-testid="array-list-box"
+        :testid="`array-list-box${ idx }`"
         class="box"
       >
         <slot

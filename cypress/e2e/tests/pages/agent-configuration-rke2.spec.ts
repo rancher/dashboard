@@ -31,6 +31,10 @@ describe('Agent Configuration for RKE2', () => {
     // Select custom affinity rules (cluster agent)
     agentConfigurationRke2.selectAffinityOption('cluster', 1);
 
+    // Clear out any prefilled affinity rules so that we start from scratch
+    agentConfigurationRke2.clearOutPrefilledAffinityRules('cluster', 'pod');
+    agentConfigurationRke2.clearOutPrefilledAffinityRules('cluster', 'node');
+
     // fill form for pod affinity/anti-affinity (cluster agent)
     agentConfigurationRke2.fillPodSelectorForm('cluster', podAffinityData);
 
@@ -49,6 +53,10 @@ describe('Agent Configuration for RKE2', () => {
     // Select custom affinity rules (fleet agent)
     agentConfigurationRke2.selectAffinityOption('fleet', 1);
 
+    // Clear out any prefilled affinity rules so that we start from scratch
+    agentConfigurationRke2.clearOutPrefilledAffinityRules('fleet', 'pod');
+    agentConfigurationRke2.clearOutPrefilledAffinityRules('fleet', 'node');
+
     // fill form for pod affinity/anti-affinity (fleet agent)
     agentConfigurationRke2.fillPodSelectorForm('fleet', podAffinityData);
 
@@ -61,7 +69,8 @@ describe('Agent Configuration for RKE2', () => {
     // data assertion
     cy.intercept('POST', '/v1/provisioning.cattle.io.clusters*').as('customRKE2ClusterCreation');
 
-    // need to do a wait to make sure intercept doesn't fail on cy.wait
+    // need to do a wait to make sure intercept doesn't fail on cy.wait for request
+    // https://github.com/cypress-io/cypress/issues/19975
     cy.wait(10000);
 
     cy.wait('@customRKE2ClusterCreation').then((req) => {

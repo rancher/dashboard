@@ -37,26 +37,28 @@ export default class AgentConfigurationRke2 extends PagePo {
     new RadioGroupInputPo(this.self().find(`#${ areaId } [data-testid="affinity-options"]`)).set(optionIndex);
   }
 
-  // NICE TO HAVE FOR NOW...
-  // clearOutPrefilledPodAffinityRules(area: string) {
-  //   const areaId = _parseArea(area);
+  clearOutPrefilledAffinityRules(area: string, type: string) {
+    const areaId = _parseArea(area);
 
-  //   cy.get(`#${ areaId } [data-testid="pod-affinity"] .btn.role-link.close.btn-sm`).then(($elements) => {
-  //     const count = $elements.length;
+    cy.document().then(($document) => {
+      const documentResult = $document.querySelectorAll(`#${ areaId } [data-testid="${ type }-affinity"] [data-testid="array-list-box"]`);
 
-  //     cy.log('THIS HAS RUN!!!', $elements.length);
-  //     if (count > 0) {
-  //       cy.get(`#${ areaId } [data-testid="pod-affinity"] .btn.role-link.close.btn-sm`).click({ force: true, multiple: true });
-  //     }
-  //   });
+      if (documentResult.length) {
+        cy.get(`#${ areaId } [data-testid="${ type }-affinity"] [data-testid="array-list-box"]`).then(($elements) => {
+          const count = $elements.length;
 
-  //   // if (cy.get(`#${ areaId } [data-testid="pod-affinity"] [data-testid="array-list-box"]`).length > 0) {
-  //   //   alert('here!');
-  //   //   cy.get(`#${ areaId } [data-testid="pod-affinity"] [data-testid="array-list-box"]`).each(($el) => {
-  //   //     $el.find('data-testid="remove-item-0"').click();
-  //   //   });
-  //   // }
-  // }
+          if (count > 0) {
+            cy.wrap($elements).each(() => {
+              cy.get(`#${ areaId } [data-testid="${ type }-affinity"] [testid="array-list-box0"] .btn.role-link.close.btn-sm`).click();
+
+              // we need this delay here in order to wait for DOM to be updated (items removed)
+              cy.wait(1000);
+            });
+          }
+        });
+      }
+    });
+  }
 
   fillRequestandLimitsForm(area: string, data: any) {
     const areaId = _parseArea(area);

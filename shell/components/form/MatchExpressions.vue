@@ -432,10 +432,15 @@ export default {
       grid-template-columns: repeat(3, 1fr) 50px;
     }
   }
+
+  .match-expression-row > div > input {
+    min-height: 40px !important;
+  }
   .match-expression-row-matching, .match-expression-header-matching {
-    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+
     &:not(.view){
-      grid-template-columns: 1fr 1fr 1fr 1fr 100px !important;
+      grid-template-columns: 1fr 1fr 1fr 1fr 100px;
     }
   }
 </style>

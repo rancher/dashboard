@@ -174,6 +174,7 @@ export default {
           v-model="rule.key"
           :mode="mode"
           :data-testid="`toleration-key-index${ index }`"
+          class="height-adjust-input"
           @input="update"
         />
       </div>
@@ -193,6 +194,7 @@ export default {
             value="n/a"
             :mode="mode"
             disabled
+            class="height-adjust-input"
           />
         </div>
       </template>
@@ -202,6 +204,7 @@ export default {
             v-model="rule.value"
             :mode="mode"
             :data-testid="`toleration-value-index${ index }`"
+            class="height-adjust-input"
             @input="update"
           />
         </div>
@@ -222,6 +225,7 @@ export default {
           :mode="mode"
           suffix="Seconds"
           :data-testid="`toleration-seconds-index${ index }`"
+          class="height-adjust-input"
           @input="update"
         />
       </div>
@@ -275,5 +279,8 @@ export default {
 }
 .remove BUTTON {
   padding: 0px;
+}
+.height-adjust-input {
+  min-height: 42px;
 }
 </style>

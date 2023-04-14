@@ -66,21 +66,19 @@ export default {
 
   async fetch() {
     // Default affinity
-    // const settingId = `${ this.type }-agent-default-setting`;
-    // const setting = await fetchSetting(this.$store, settingId);
+    const settingId = `${ this.type }-agent-default-setting`;
+    const setting = await fetchSetting(this.$store, settingId);
 
-    // // if (setting) {
-    // //   try {
-    // //     const parsed = JSON.parse(setting.value || setting.default);
+    if (setting) {
+      try {
+        const parsed = JSON.parse(setting.value || setting.default);
 
-    // //     this.defaultAffinity = parsed || {};
-    // //   } catch (e) {
-    // //     console.error('Could not parse agent default setting', e); // eslint-disable-line no-console
-    // //     this.defaultAffinity = {};
-    // //   }
-    // // }
-
-    this.defaultAffinity = {};
+        this.defaultAffinity = parsed || {};
+      } catch (e) {
+        console.error('Could not parse agent default setting', e); // eslint-disable-line no-console
+        this.defaultAffinity = {};
+      }
+    }
   },
 
   data() {
