@@ -10,11 +10,14 @@ You'll also need the yarn package manager installed, which can be done with `npm
 
 ## Creating the Application
 
-In order to develop a new Extension, you need an application UI to host it in during development. Rancher provides a helper to create a skeleton application for you.
+In order to develop a new Extension, you need an application UI to host it in during development. Rancher provides a helper to create a skeleton application for you. This
+gives you a full version of the Rancher UI that can be used to develop and test your extension.
+
+Rancher publishes two npm packages to help bootstrap the creation of the app and an extension. These are used in this example below.
 
 ### Creating the Skeleton App
 
-`cd` to a folder not within the checkout and run:
+Create a new folder and run:
 
 ```sh
 yarn create @rancher/app my-app
@@ -117,7 +120,7 @@ Open a web browser to https://127.0.0.1:8005 and you'll see a new 'Example' nav 
 
 ## Building the Extension
 
-Up until now, we've run the extension inside of the skeleton application - this is the developer workload.
+Up until now, we've run the extension inside of the skeleton application - this is the developer workflow.
 
 To build the extension so we can use it independently, run:
 
