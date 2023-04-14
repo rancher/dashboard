@@ -490,6 +490,8 @@ const workerActions = {
     }
     state.batchChanges[type][id] = change;
   },
+  // TODO: RC comment v important code block, needs jsdoc and comments
+  // TODO: RC comment this doesn't re-paginate (byPage) .. looks like this just pushes in-page resource updates
   sendBatch(requestHash) {
     if (Object.keys(state.batchChanges).length) {
       const relevantCaches = Object.keys(caches).filter((cacheKey) => {

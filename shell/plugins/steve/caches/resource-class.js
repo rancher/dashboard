@@ -119,6 +119,8 @@ export default class ResourceCache extends BaseCache {
 
       mainRequest = this.api.request({ ...requestParams, type: this.type }, this.getters['schemaFor'])
         .then((res) => {
+          this.trace('request', this.type, 'making http request for primary resource', 'result', res);
+
           return res;
         });
       this.state = CACHE_STATES.REQUESTING;
@@ -132,6 +134,8 @@ export default class ResourceCache extends BaseCache {
       mainRequest,
       ...this.__requestSubResources(subResourceParams)
     ];
+
+    this.trace('request', this.type, '!!!!', requestArray);
 
     const allRequests = await Promise.all(requestArray).then((responses) => {
       if (!id) {
@@ -153,7 +157,7 @@ export default class ResourceCache extends BaseCache {
 
         const response = responses.filter(response => response?.data?.resourceType); // TODO: RC question why is this needed?
 
-        this.trace('request', this.type, 'result', response );
+        this.trace('request', this.type, 'result not id', response );
 
         return response;
       } else {
@@ -171,11 +175,13 @@ export default class ResourceCache extends BaseCache {
           );
         }
 
-        this.trace('request', this.type, 'result', responses );
+        this.trace('request', this.type, 'result id', responses );
 
         return responses;
       }
     });
+
+    this.trace('request', this.type, 'actua response', allRequests);
 
     const flattenRequest = (request) => {
       const type = request?.data?.resourceType || request?.data?.type;
@@ -203,7 +209,7 @@ export default class ResourceCache extends BaseCache {
     });
 
     this.__requests[cacheKey] = {
-      ...this.__requests[cacheKey],
+      ...this.__requests[cacheKey], // TODO: RC question why?
       totalLength: payload?.length || 1,
       ids:         this.__requests[cacheKey]?.ids || [],
       revision:    revision || this.__requests[cacheKey]?.revision,
