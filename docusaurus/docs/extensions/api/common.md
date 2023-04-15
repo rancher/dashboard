@@ -8,14 +8,14 @@ The admissable string values for the `where` are:
 
 | Key | Type | Description |
 |---|---|---|
-|`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard. Check [screenshot](extension-api-methods/add-action/#actionlocationheader-options) for location. |
-|`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard. Check [screenshot](extension-api-methods/add-action/#actionlocationtable-options) for location. |
-|`TabLocation.RESOURCE_DETAIL`| String | Location for a Tab on a Resource Detail page. Check [screenshot](extension-api-methods/add-tab/#tablocationresource_detail-options) for location. |
-|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page. Check [screenshot](extension-api-methods/add-panel/#panellocationdetails_masthead-options) for location. |
-|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page. Check [screenshot](extension-api-methods/add-panel/#panellocationdetail_top-options) for location. |
-|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area). Check [screenshot](extension-api-methods/add-panel/#panellocationresource_list-options) for location. |
-|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page. Check [screenshot](extension-api-methods/add-card/#cardlocationcluster_dashboard_card-options) for location. |
-|`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page. Check [screenshot](extension-api-methods/add-table-column/#tablecolumnlocationresource-options) for location. |
+|`ActionLocation.HEADER`| String | Location for an action on the Header of Rancher Dashboard. Check [screenshot](./actions/#actionlocationheader-options) for location. |
+|`ActionLocation.TABLE`| String | Location for an action on a List View Table of Rancher Dashboard. Check [screenshot](./actions/#actionlocationtable-options) for location. |
+|`TabLocation.RESOURCE_DETAIL`| String | Location for a Tab on a Resource Detail page. Check [screenshot](./tabs/#tablocationresource_detail-options) for location. |
+|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page. Check [screenshot](./panels/#panellocationdetails_masthead-options) for location. |
+|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page. Check [screenshot](./panels/#panellocationdetail_top-options) for location. |
+|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area). Check [screenshot](./panels#panellocationresource_list-options) for location. |
+|`CardLocation.CLUSTER_DASHBOARD_CARD`| String | Location for a card on the Cluster Dashboard page. Check [screenshot](./cards/#cardlocationcluster_dashboard_card-options) for location. |
+|`TableColumnLocation.RESOURCE`| String | Location for a table column on a Resource List View page. Check [screenshot](./table-columns/#tablecolumnlocationresource-options) for location. |
 
 
 ## LocationConfig

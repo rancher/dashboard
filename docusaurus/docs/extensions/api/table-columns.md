@@ -26,7 +26,7 @@ _Arguments_
 
 `when` Object admissable values:
 
-`LocationConfig` as described above for the [LocationConfig object](../extensions-api#locationconfig-object-definition-when).
+`LocationConfig` as described above for the [LocationConfig object](./common#locationconfig).
 
 <br/>
 <br/>
