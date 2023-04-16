@@ -39,8 +39,8 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   props: {
-    type: {
-      type:    String, // APPLICATION_SOURCE_TYPE
+    initValue: {
+      type:    Object,
       default: null
     },
     value: {
@@ -78,7 +78,7 @@ export default Vue.extend<Data, any, any, any>({
       return;
     }
 
-    if (this.value.type && this.value.type !== this.type) {
+    if (this.initValue.type && this.initValue.type !== this.value.type) {
       return;
     }
 
@@ -117,16 +117,13 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   watch: {
-    type: {
-      handler(old, neu) {
-        if (old !== neu) {
-          this.reset();
-          if (neu === this.value.type) {
-            this.loadSourceCache();
-          }
+    'value.type'(neu, old) {
+      if (neu !== old) {
+        this.reset();
+        if (old && neu && neu === this.initValue.type) {
+          this.loadSourceCache();
         }
-      },
-      immediate: true,
+      }
     }
   },
 

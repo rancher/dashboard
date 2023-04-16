@@ -108,6 +108,8 @@ export default Vue.extend<Data, any, any, any>({
         }
       },
 
+      initValue: { type: this.application?.cachedEppEnvVar?.source.type },
+
       builderImage: {
         value:   builderImage,
         default: builderImage === defaultBuilderImage,
@@ -360,7 +362,10 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     sourceValue() {
-      return { ...this.source.git };
+      return {
+        ...this.source.git,
+        type: this.type
+      };
     },
   }
 });
@@ -481,7 +486,7 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else>
       <KeepAlive>
         <GitPicker
-          :type="type"
+          :init-value="initValue"
           :value="sourceValue"
           @change="gitUpdate"
         />
