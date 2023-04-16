@@ -79,7 +79,8 @@ export default Vue.extend<Data, any, any, any>({
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
     return {
-      open: false,
+      open:  false,
+      valid: this.validate(),
       defaultBuilderImage,
 
       archive: {
@@ -262,6 +263,7 @@ export default Vue.extend<Data, any, any, any>({
         appChart:     this.appChart,
         git:          this.git,
       });
+      this.valid = this.validate();
     },
 
     updateAppInfo(info: EpinioAppInfo) {
@@ -306,39 +308,35 @@ export default Vue.extend<Data, any, any, any>({
         this.update();
         this.$emit('valid', false);
       }
-    }
-  },
-
-  watch: {
-    type() {
-      this.update();
     },
 
-    valid: {
-      handler() {
-        this.$emit('valid', this.valid);
-      },
-    }
-  },
-
-  computed: {
-    valid() {
+    validate() {
       switch (this.type) {
       case APPLICATION_SOURCE_TYPE.ARCHIVE:
-      case APPLICATION_SOURCE_TYPE.FOLDER:
+      case APPLICATION_SOURCE_TYPE.FOLDER: {
         return !!this.archive.tarball && !!this.builderImage.value;
+      }
       case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
         return !!this.container.url;
       case APPLICATION_SOURCE_TYPE.GIT_URL:
         return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value && !!this.gitUrl.validGitUrl;
       case APPLICATION_SOURCE_TYPE.GIT_HUB:
       case APPLICATION_SOURCE_TYPE.GIT_LAB:
-        return this.initValue === this.type && !!this.git.usernameOrOrg && !!this.git.url && !!this.git.commit;
+        return !!this.git.usernameOrOrg && !!this.git.url && !!this.git.repo && !!this.git.branch && !!this.git.commit;
       }
-
-      return false;
     },
+  },
 
+  watch: {
+    type() {
+      this.update();
+    },
+    valid(neu) {
+      this.$emit('valid', neu);
+    }
+  },
+
+  computed: {
     showBuilderImage() {
       return [
         APPLICATION_SOURCE_TYPE.ARCHIVE,
