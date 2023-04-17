@@ -18,7 +18,7 @@ describe('Agent Configuration for RKE2', () => {
     const agentConfigurationRke2 = new AgentConfigurationRke2();
 
     // cluster name
-    cy.get('[data-testid="name-ns-description-name"] input').type('test-cluster');
+    cy.get('[data-testid="name-ns-description-name"] input').type(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
 
     // we should be on the custom cluster creation screen (starts on cluster agent tab as per url of goTo)
     agentConfigurationRke2.title().should('contain', 'Cluster: Create Custom');
