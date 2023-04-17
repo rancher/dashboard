@@ -261,10 +261,10 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     envsChanged(env: environment) {
-      this.values.configuration.environment = {
-        ...env,
-        [APPLICATION_ENV_VAR]: this.sanitizedEnvs?.appEnvVar
-      };
+      this.values.configuration.environment = { ...env };
+      if (this.sanitizedEnvs?.appEnvVar) {
+        this.values.configuration.environment[APPLICATION_ENV_VAR] = this.sanitizedEnvs.appEnvVar;
+      }
     }
   },
 
