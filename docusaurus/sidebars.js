@@ -102,7 +102,7 @@ const sidebars = {
             {
               type:  'category',
               label: 'Components',
-              link: {
+              link:  {
                 type: 'doc',
                 id:   'extensions/api/components/components',
               },
