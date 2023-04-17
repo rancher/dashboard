@@ -262,6 +262,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     const appSource = {
       type:      this.sourceType,
       appChart:  this.configuration?.appchart,
+      git:       {},
       github:    {},
       gitUrl:    {},
       container: {},
@@ -396,7 +397,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
           }, {
             label: 'Revision',
             icon:  'icon-commit',
-            value: source?.branch?.name || source.branch.id || this.origin.git.revision
+            value: source?.branch?.name || source?.branch?.id || this.origin.git.revision
           }, appChart, builderImage
         ]
       };
@@ -415,7 +416,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
           }, {
             label: 'Branch',
             icon:  'icon-commit',
-            value: source?.branch?.name || source.branch.id || this.origin.git.revision
+            value: source?.branch?.name || source?.branch?.id || this.origin.git.revision
           }, appChart, builderImage
         ]
       };
@@ -434,7 +435,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
           }, {
             label: 'Branch',
             icon:  'icon-commit',
-            value: source?.branch?.name || source.branch.id || this.origin.git.revision
+            value: source?.branch?.name || source?.branch?.id || this.origin.git.revision
           }, appChart, builderImage
         ]
       };
