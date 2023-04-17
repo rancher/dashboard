@@ -17,6 +17,9 @@ describe('Agent Configuration for RKE2', () => {
   it('Should send the correct payload to the server', () => {
     const agentConfigurationRke2 = new AgentConfigurationRke2();
 
+    // intercept 
+    cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('customRKE2ClusterCreation');
+
     // cluster name
     cy.get('[data-testid="name-ns-description-name"] input').type(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
 
@@ -67,12 +70,10 @@ describe('Agent Configuration for RKE2', () => {
     // hit create button
     cy.get('[data-testid="rke2-custom-create-save"]').click();
 
-    // data assertion
-    cy.intercept('POST', '/v1/provisioning.cattle.io.clusters*').as('customRKE2ClusterCreation');
-
     // need to do a wait to make sure intercept doesn't fail on cy.wait for request
+    // ci/cd pipelines are notoriously slow... let's wait longer than usual
     // https://github.com/cypress-io/cypress/issues/19975
-    cy.wait(10000);
+    cy.wait(60000);
 
     cy.wait('@customRKE2ClusterCreation').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
