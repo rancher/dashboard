@@ -148,7 +148,7 @@
     "@nuxtjs/eslint-module": "1.2.0",
     "@nuxtjs/style-resources": "1.2.1",
     "@types/copy-webpack-plugin": "^5.0.3",
-    "@types/dompurify": "^3.0.0",
+    "@types/dompurify": "3.0.0",
     "@types/jest": "27.4.1",
     "@types/lodash": "4.14.184",
     "@types/node": "16.4.3",
