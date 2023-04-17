@@ -11,6 +11,44 @@ import FileSelector from '@shell/components/form/FileSelector';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import config from '@shell/edit/auth/ldap/config';
 
+export const SHIBBOLETH = 'shibboleth';
+export const OKTA = 'okta';
+
+// Standard LDAP defaults
+const LDAP_DEFAULTS = {
+  connectionTimeout:            5000,
+  groupDNAttribute:             'entryDN',
+  groupMemberMappingAttribute:  'member',
+  groupMemberUserAttribute:     'entryDN',
+  groupNameAttribute:           'cn',
+  groupObjectClass:             'groupOfNames',
+  groupSearchAttribute:         'cn',
+  nestedGroupMembershipEnabled: false,
+  port:                         389,
+  servers:                      [],
+  starttls:                     false,
+  tls:                          false,
+  disabledStatusBitmask:        0,
+  userLoginAttribute:           'uid',
+  userMemberAttribute:          'memberOf',
+  userNameAttribute:            'cn',
+  userObjectClass:              'inetOrgPerson',
+  userSearchAttribute:          'uid|sn|givenName'
+};
+
+// Change the LDAP defaults for Okta
+const LDAP_OKTA_DEFAULTS = {
+  ...LDAP_DEFAULTS,
+  groupMemberMappingAttribute: 'member',
+  groupMemberUserAttribute:    'uniqueMember',
+  groupObjectClass:            'groupofUniqueNames',
+  groupSearchFilter:           '(objectclass=groupOfUniqueNames)',
+  userSearchFilter:            '(objectclass=inetOrgPerson)',
+  port:                        636,
+  starttls:                    true,
+  // userNameAttribute:           'uid',
+};
+
 export default {
   components: {
     Loading,
@@ -42,30 +80,15 @@ export default {
       return { enabled: true, ...this.model };
     },
 
+    // Does the auth provider support LDAP for search in addition to SAML?
+    supportsLDAPSearch() {
+      return this.NAME === SHIBBOLETH || this.NAME === OKTA;
+    }
   },
   watch: {
     showLdap(neu, old) {
       if (neu && !this.model.openLdapConfig) {
-        const config = {
-          connectionTimeout:            5000,
-          groupDNAttribute:             'entryDN',
-          groupMemberMappingAttribute:  'member',
-          groupMemberUserAttribute:     'entryDN',
-          groupNameAttribute:           'cn',
-          groupObjectClass:             'groupOfNames',
-          groupSearchAttribute:         'cn',
-          nestedGroupMembershipEnabled: false,
-          port:                         389,
-          servers:                      [],
-          starttls:                     false,
-          tls:                          false,
-          disabledStatusBitmask:        0,
-          userLoginAttribute:           'uid',
-          userMemberAttribute:          'memberOf',
-          userNameAttribute:            'cn',
-          userObjectClass:              'inetOrgPerson',
-          userSearchAttribute:          'uid|sn|givenName'
-        };
+        const config = this.NAME === OKTA ? LDAP_OKTA_DEFAULTS : LDAP_DEFAULTS;
 
         this.$set(this.model, 'openLdapConfig', config);
       }
@@ -233,7 +256,7 @@ export default {
             />
           </div>
         </div>
-        <div v-if="NAME === 'shibboleth'">
+        <div v-if="supportsLDAPSearch">
           <div class="row">
             <Checkbox
               v-model="showLdap"
