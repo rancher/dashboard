@@ -76,7 +76,7 @@ const sidebars = {
       items: [
         'extensions/introduction',
         'extensions/extensions-getting-started',
-        //'extensions/extensions-configuration',
+        // 'extensions/extensions-configuration',
         {
           type:  'category',
           label: 'Extensions API',
@@ -85,7 +85,7 @@ const sidebars = {
             id:   'extensions/api/overview',
           },
           items: [
-            //'extensions/api/concepts',
+            // 'extensions/api/concepts',
             'extensions/api/metadata',
             {
               type:  'category',
