@@ -90,7 +90,8 @@ export default {
       if (neu && !this.model.openLdapConfig) {
         const config = this.NAME === OKTA ? LDAP_OKTA_DEFAULTS : LDAP_DEFAULTS;
 
-        this.$set(this.model, 'openLdapConfig', config);
+        // Use a spread of config, so that if don't make changes to the defaults if the user edits them
+        this.$set(this.model, 'openLdapConfig', { ...config });
       }
     }
   }

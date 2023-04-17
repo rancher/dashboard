@@ -51,8 +51,8 @@ export default {
   },
 
   computed: {
-    // Does the auth provider support LDAP for search in addition to SAML
-    samlProvider() {
+    // Does the auth provider support LDAP for search in addition to SAML?
+    isSamlProvider() {
       return this.type === SHIBBOLETH || this.type === OKTA;
     }
   },
@@ -369,7 +369,7 @@ export default {
           />
         </div>
         <div
-          v-if="!samlProvider"
+          v-if="!isSamlProvider"
           class=" col span-6"
         >
           <RadioGroup
