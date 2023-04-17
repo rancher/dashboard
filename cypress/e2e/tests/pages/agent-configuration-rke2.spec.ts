@@ -17,7 +17,7 @@ describe('Agent Configuration for RKE2', () => {
   it('Should send the correct payload to the server', () => {
     const agentConfigurationRke2 = new AgentConfigurationRke2();
 
-    // intercept 
+    // intercept
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('customRKE2ClusterCreation');
 
     // cluster name
