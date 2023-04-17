@@ -233,7 +233,7 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledSelect
-              v-model="value.global.cattle.clusterId"
+              v-model="value.global.clusterId"
               :mode="mode"
               :disabled="installed"
               required

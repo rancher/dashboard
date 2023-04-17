@@ -519,7 +519,7 @@ export default {
       const useDefaultToken = this.getUseDefaultToken();
 
       obj.useDefaultToken = useDefaultToken.toString();
-      obj.clusterId = this.value.global.cattle.clusterId;
+      obj.clusterId = this.value.global.clusterId;
       obj.enabled = 'true';
 
       return obj;
@@ -723,8 +723,8 @@ export default {
         }
       }));
 
-      if (!this?.value?.global?.cattle?.clusterId) {
-        set(this, 'value.global.cattle.clusterId', this.currentCluster?.id || 'local');
+      if (!this?.value?.global?.clusterId) {
+        set(this, 'value.global.clusterId', this.currentCluster?.id || 'local');
       }
 
       this.initServerUrl();
