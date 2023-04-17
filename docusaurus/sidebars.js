@@ -69,27 +69,50 @@ const sidebars = {
     {
       type:  'category',
       label: 'Extensions',
+      link:  {
+        type: 'doc',
+        id:   'extensions/home',
+      },
       items: [
         'extensions/introduction',
         'extensions/extensions-getting-started',
-        'extensions/initializing-extensions',
+        // 'extensions/extensions-configuration',
         {
           type:  'category',
           label: 'Extensions API',
           link:  {
             type: 'doc',
-            id:   'extensions/extensions-api',
+            id:   'extensions/api/overview',
           },
           items: [
-            'extensions/extension-api-methods/add-action',
-            'extensions/extension-api-methods/add-card',
-            'extensions/extension-api-methods/add-panel',
-            'extensions/extension-api-methods/add-tab',
-            'extensions/extension-api-methods/add-table-column',
+            // 'extensions/api/concepts',
+            'extensions/api/metadata',
+            {
+              type:  'category',
+              label: 'Navigation & Pages',
+              items: [
+                'extensions/api/nav/products',
+              ]
+            },
+            'extensions/api/actions',
+            'extensions/api/cards',
+            'extensions/api/panels',
+            'extensions/api/tabs',
+            'extensions/api/table-columns',
+            'extensions/api/common',
           ]
         },
-        'extensions/miscellaneous',
-        'extensions/advanced',
+        {
+          type:  'category',
+          label: 'Advanced',
+          items: [
+            'extensions/advanced/localization',
+            'extensions/advanced/hooks',
+            'extensions/advanced/stores',
+            'extensions/advanced/yarn-link'
+          ]
+        },
+        'extensions/publishing',
       ]
     },
     'storybook',
