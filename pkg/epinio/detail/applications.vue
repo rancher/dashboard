@@ -151,14 +151,14 @@ export default Vue.extend<Data, any, any, any>({
 
     envVarGitSource(): EPINIO_APP_ENV_VAR_GIT | null {
       if (this.envVarSourceType === APPLICATION_SOURCE_TYPE.GIT_HUB || this.envVarSourceType === APPLICATION_SOURCE_TYPE.GIT_LAB ) {
-        return this.envVar.source?.[this.envVarSourceType] as EPINIO_APP_ENV_VAR_GIT;
+        return this.envVar?.source?.[this.envVarSourceType] as EPINIO_APP_ENV_VAR_GIT;
       }
 
       return null;
     },
 
     envVarSourceType(): APPLICATION_SOURCE_TYPE {
-      return this.envVar.source?.type;
+      return this.envVar?.source?.type;
     },
 
     gitType() {

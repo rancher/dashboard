@@ -73,7 +73,7 @@ export default Vue.extend<Data, any, any, any>({
       values:        undefined,
       capitalize,
       validSettings: {},
-      sanitisedEnvs: {}
+      sanitizedEnvs: {}
     };
   },
 
@@ -97,7 +97,7 @@ export default Vue.extend<Data, any, any, any>({
 
     const { [APPLICATION_ENV_VAR]:appEnvVar = '', ...otherEnvVars } = values.configuration.environment;
 
-    this.sanitisedEnvs = {
+    this.sanitizedEnvs = {
       appEnvVar,
       otherEnvVars
     };
@@ -260,10 +260,10 @@ export default Vue.extend<Data, any, any, any>({
       }
     },
 
-    envsChanged(env: environment, b: any) {
+    envsChanged(env: environment) {
       this.values.configuration.environment = {
         ...env,
-        [APPLICATION_ENV_VAR]: this.sanitisedEnvs.appEnvVar
+        [APPLICATION_ENV_VAR]: this.sanitizedEnvs?.appEnvVar
       };
     }
   },
@@ -371,7 +371,7 @@ export default Vue.extend<Data, any, any, any>({
     </div>
     <div class="col span-8">
       <KeyValue
-        :value="sanitisedEnvs.otherEnvVars"
+        :value="sanitizedEnvs.otherEnvVars"
         data-testid="epinio_app-info_envs"
         :mode="mode"
         :title="t('epinio.applications.create.envvar.title')"
