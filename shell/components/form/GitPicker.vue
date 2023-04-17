@@ -73,57 +73,17 @@ export default Vue.extend<Data, any, any, any>({
     this.onSearchBranch = this.searchForResult(this.searchBranch);
   },
 
-  mounted() {
-    if (!this.value) {
-      return;
-    }
-
-    if (this.initValue.type && this.initValue.type !== this.value.type) {
-      return;
-    }
-
-    if (this.value.sourceData) {
-      // API calls data - from cache
-      this.loadSourceCache();
-    } else {
-      // API calls data - from remote
-      this.selectedAccOrOrg = this.value.usernameOrOrg;
-      if (this.selectedAccOrOrg) {
-        this.fetchRepos()
-          .then(() => {
-            if (this.repos.length && !this.hasError.repo) {
-              const { name, id } = this.repos.find((r: any) => r.name === this.value.repo?.name) || {};
-
-              this.selectedRepo = { name, id };
-
-              return this.fetchBranches();
-            }
-          })
-          .then(() => {
-            if (this.branches.length && !this.hasError.branch) {
-              this.selectedBranch = this.value.branch;
-
-              return this.fetchCommits();
-            }
-          })
-          .then(() => {
-            if (this.commits.length && this.commits.find((c: commit) => c.sha === this.value.commit || c.id === this.value.commit)) {
-              this.selectedCommit = { sha: this.value.commit };
-              this.final(this.value.commit);
-            }
-          });
-      }
-    }
-  },
-
   watch: {
-    'value.type'(neu, old) {
-      if (neu !== old) {
-        this.reset();
-        if (old && neu && neu === this.initValue.type) {
-          this.loadSourceCache();
+    'value.type': {
+      async handler(neu, old) {
+        if (neu !== old) {
+          this.reset();
+          if (neu === this.initValue.type) {
+            await this.loadSourceCache();
+          }
         }
-      }
+      },
+      immediate: true,
     }
   },
 
@@ -205,20 +165,39 @@ export default Vue.extend<Data, any, any, any>({
       });
     },
 
-    loadSourceCache() {
-      this.selectedAccOrOrg = this.value.usernameOrOrg;
-      this.selectedRepo = this.value.repo;
-      this.selectedBranch = this.value.branch;
-      this.selectedCommit = { sha: this.value.commit };
+    async loadSourceCache() {
+      this.selectedAccOrOrg = this.initValue.selectedAccOrOrg;
+      if (this.selectedAccOrOrg) {
+        await this.fetchRepos()
+          .then(() => {
+            if (this.repos.length && !this.hasError.repo) {
+              this.selectedRepo = this.initValue.selectedRepo;
 
-      this.repos = this.value.sourceData.repos;
-      this.branches = this.value.sourceData.branches;
-      this.commits = this.value.sourceData.commits;
+              return this.fetchBranches();
+            }
+          })
+          .then(() => {
+            if (this.branches.length && !this.hasError.branch) {
+              this.selectedBranch = this.initValue.selectedBranch;
+
+              return this.fetchCommits();
+            }
+          });
+
+        const commit = this.commits.find((c: commit) => c.sha === this.initValue.selectedCommit.sha || c.id === this.initValue.selectedCommit.id);
+
+        if (commit) {
+          this.final(commit.sha);
+        }
+      }
     },
 
     async fetchRepos() {
       if (this.selectedAccOrOrg.length) {
         this.selectedRepo = null;
+        this.selectedCommit = {};
+
+        this.communicateReset();
 
         try {
           const res = await this.$store.dispatch(`${ this.type }/fetchRecentRepos`, { username: this.selectedAccOrOrg });

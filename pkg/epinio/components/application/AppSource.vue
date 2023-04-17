@@ -78,6 +78,19 @@ export default Vue.extend<Data, any, any, any>({
     const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
+    const git = {
+      usernameOrOrg: this.source?.git?.usernameOrOrg || '',
+      repo:          this.source?.git?.repo || '',
+      commit:        this.source?.git?.commit || '',
+      branch:        this.source?.git?.branch || '',
+      url:           this.source?.git?.url || '',
+      sourceData:    this.source?.git?.sourceData || {
+        repos:    [],
+        branches: [],
+        commits:  []
+      }
+    };
+
     return {
       open:  false,
       valid: this.validate(),
@@ -96,20 +109,18 @@ export default Vue.extend<Data, any, any, any>({
         validGitUrl: false,
       },
 
-      git: {
-        usernameOrOrg: this.source?.git?.usernameOrOrg || '',
-        repo:          this.source?.git?.repo || '',
-        commit:        this.source?.git?.commit || '',
-        branch:        this.source?.git?.branch || '',
-        url:           this.source?.git?.url || '',
-        sourceData:    this.source?.git?.sourceData || {
-          repos:    [],
-          branches: [],
-          commits:  []
-        }
-      },
+      git,
 
-      initValue: { type: this.application?.cachedEppEnvVar?.source.type },
+      initValue: {
+        type:             this.source?.type,
+        selectedAccOrOrg: git.usernameOrOrg,
+        selectedRepo:     git.repo,
+        selectedBranch:   git.branch,
+        selectedCommit:   { sha: git.commit },
+        repos:            git.sourceData.repos,
+        branches:         git.sourceData.branches,
+        commits:          git.sourceData.commits,
+      },
 
       builderImage: {
         value:   builderImage,
