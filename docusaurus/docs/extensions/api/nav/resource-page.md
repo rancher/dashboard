@@ -5,7 +5,9 @@ One of the most common view types in Rancher Dashboard is the list view for a ku
 
 ```ts
 // this is the definition of a "blank cluster" for Rancher Dashboard
-import { BLANK_CLUSTER } from '@shell/store';
+// definition of a "blank cluster" in Rancher Dashboard
+const BLANK_CLUSTER = '_';
+
 
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProductName';

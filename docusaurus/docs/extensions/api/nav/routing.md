@@ -33,7 +33,9 @@ Let's then take into consideration the following example a of `product.ts` confi
 
 ```ts
 // this is the definition of a "blank cluster" for Rancher Dashboard
-import { BLANK_CLUSTER } from '@shell/store';
+// definition of a "blank cluster" in Rancher Dashboard
+const BLANK_CLUSTER = '_';
+
 
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProductName';
@@ -106,7 +108,9 @@ The `/routing/extension-routing.ts` would then have to defined like:
 
 ```ts
 // custom pages should be created as VueJS components. Usually stored on the /pages folder on the extension
-import { BLANK_CLUSTER } from '@shell/store';
+// definition of a "blank cluster" in Rancher Dashboard
+const BLANK_CLUSTER = '_';
+
 import MyCustomPage from '../pages/myCustomPage.vue';
 
 // to achieve naming consistency throughout the extension
@@ -142,7 +146,9 @@ As you can see, we've added a `meta` parameter with the product and cluster name
 Now, for a resource page like `YOUR_K8S_RESOURCE_NAME`, one can leverage the usage of the default components for a list/create/edit routes used on Rancher Dashboard in such a way:
 
 ```ts
-import { BLANK_CLUSTER } from '@shell/store';
+// definition of a "blank cluster" in Rancher Dashboard
+const BLANK_CLUSTER = '_';
+
 import MyCustomPage from '../pages/myCustomPage.vue';
 import ListResource from '@shell/pages/c/_cluster/_product/_resource/index.vue';
 import CreateResource from '@shell/pages/c/_cluster/_product/_resource/create.vue';

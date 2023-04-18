@@ -6,7 +6,9 @@ With the `virtualType` and `configureType` we have learned how to configure a pa
 
 ```ts
 // this is the definition of a "blank cluster" for Rancher Dashboard
-import { BLANK_CLUSTER } from '@shell/store';
+// definition of a "blank cluster" in Rancher Dashboard
+const BLANK_CLUSTER = '_';
+
 
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProductName';
@@ -92,7 +94,9 @@ How about if you wanted to change the side-menu ordering for your Extension prod
 
 ```ts
 // this is the definition of a "blank cluster" for Rancher Dashboard
-import { BLANK_CLUSTER } from '@shell/store';
+// definition of a "blank cluster" in Rancher Dashboard
+const BLANK_CLUSTER = '_';
+
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
@@ -198,7 +202,9 @@ If we wanted to define some custom ordering for these menu entries, we would nee
 
 ```ts
 // this is the definition of a "blank cluster" for Rancher Dashboard
-import { BLANK_CLUSTER } from '@shell/store';
+// definition of a "blank cluster" in Rancher Dashboard
+const BLANK_CLUSTER = '_';
+
 export function init($plugin, store) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';

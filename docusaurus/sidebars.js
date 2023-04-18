@@ -130,6 +130,17 @@ const sidebars = {
           ]
         },
         'extensions/publishing',
+        {
+          type:  'category',
+          label: 'Usecases/Examples',
+          link:  {
+            type: 'doc',
+            id:   'extensions/usecases/overview',
+          },
+          items: [
+            'extensions/usecases/top-level-product',
+          ]
+        }
       ]
     },
     'storybook',
