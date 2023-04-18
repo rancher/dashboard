@@ -1,7 +1,5 @@
 # Concepts
 
-Extensions largely work the same as the rest of the dashboard. There are a set of top-level folders that can be defined and used as they are in the dashboard: `chart`, `cloud-credential`, `content`, `detail`, `edit`, `list`, `machine-config`, `models`, `promptRemove`, `l10n`, `windowComponents`, `dialog`, and `formatters`. You can read about what each of these folders does [here](../../code-base-works/directory-structure.md).
-
 ## Overview on routing structure for a top-level Extension product
 
 To become familiar with routing on VueJS and route definition we recommend that you should give a read about the [Essentials on Vue Router](https://v3.router.vuejs.org/guide/) and also the definition of a [Vue Router route](https://v3.router.vuejs.org/api/#routes).
