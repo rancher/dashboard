@@ -2,6 +2,8 @@
 As a full example of an Extension as top-level product, let's start with the definition of `product.ts` config:
 
 ```ts
+import { importTypes } from '@rancher/auto-import';
+import { IPlugin } from '@shell/core/types';
 import extensionRouting from './routing/extension-routing';
 
 // Init the package
@@ -81,7 +83,7 @@ export function init($plugin, store) {
     labelKey: 'some.translation.key',
     name:     CUSTOM_PAGE_NAME,
     route:    {
-      name:   `${ PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
       params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER

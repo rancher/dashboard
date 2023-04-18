@@ -62,7 +62,7 @@ export function init($plugin, store) {
     labelKey: 'some.translation.key',
     name:     CUSTOM_PAGE_NAME,
     route:    {
-      name:   `${ PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
       params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER

@@ -10,6 +10,8 @@ As touched on above, cluster and product information used to connect to the clus
 Within the `index.ts` in your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
 
 ```ts
+import { importTypes } from '@rancher/auto-import';
+import { IPlugin } from '@shell/core/types';
 import extensionRouting from './routing/extension-routing';
 
 // Init the package
@@ -89,7 +91,7 @@ export function init($plugin, store) {
     labelKey: 'some.translation.key',
     name:     CUSTOM_PAGE_NAME,
     route:    {
-      name:   `${ PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+      name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
       params: {
         product: YOUR_PRODUCT_NAME,
         cluster: BLANK_CLUSTER
@@ -158,7 +160,7 @@ import ViewNamespacedResource from '@shell/pages/c/_cluster/_product/_resource/_
 // to achieve naming consistency throughout the extension
 // we recommend this to be defined on a config file and exported
 // so that the developer can import it wherever it needs to be used
-const YOUR_PRODUCT_NAME = 'the-name-of-your-product';
+const YOUR_PRODUCT_NAME = 'myProductName';
 const CUSTOM_PAGE_NAME = 'page1';
 
 const routes = [
