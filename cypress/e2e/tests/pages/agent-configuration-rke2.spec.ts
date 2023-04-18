@@ -73,7 +73,7 @@ describe('Agent Configuration for RKE2', () => {
     // need to do a wait to make sure intercept doesn't fail on cy.wait for request
     // ci/cd pipelines are notoriously slow... let's wait longer than usual
     // https://github.com/cypress-io/cypress/issues/19975
-    cy.wait(60000);
+    cy.wait(10000);
 
     cy.wait('@customRKE2ClusterCreation').then((req) => {
       expect(req.response?.statusCode).to.equal(201);
