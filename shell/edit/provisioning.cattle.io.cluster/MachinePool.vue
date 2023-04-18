@@ -173,6 +173,14 @@ export default {
 
 <template>
   <div>
+    <Banner
+      v-if="value.pool.hostnameLengthLimit"
+      color="info"
+    >
+      <div class="text">
+        {{ t('cluster.machinePool.truncationPool', { limit: value.pool.hostnameLengthLimit }) }}
+      </div>
+    </Banner>
     <div class="row">
       <div class="col span-4">
         <LabeledInput
@@ -294,7 +302,6 @@ export default {
         :read-allowed="false"
         :value-can-be-empty="true"
       />
-
       <div class="spacer" />
 
       <Taints

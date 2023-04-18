@@ -77,6 +77,8 @@ const ADVANCED = 'advanced';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
+const NETBIOS_TRUNCATION_LENGTH = 15;
+
 /**
  * Classes to be adopted by the node badges in Machine pools
  */
@@ -304,6 +306,8 @@ export default {
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
     const previousKubernetesVersion = this.value.spec.kubernetesVersion;
 
+    const truncateLimit = this.value.machinePoolDefaults?.hostnameLengthLimit;
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
@@ -339,6 +343,8 @@ export default {
       cisOverride:           false,
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
+      truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
+      truncateLimit,
     };
   },
 
@@ -353,6 +359,10 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    hostnameTruncationManuallySet() {
+      return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
 
     /**
@@ -1080,6 +1090,21 @@ export default {
     set,
 
     /**
+     * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
+     */
+    truncateName() {
+      if (this.truncateHostnames) {
+        this.value.machinePoolDefaults = this.value.machinePoolDefaults || {};
+        this.value.machinePoolDefaults.hostnameLengthLimit = 15;
+      } else {
+        delete this.value.machinePoolDefaults.hostnameLengthLimit;
+
+        if (Object.keys(this.value.machinePoolDefaults).length === 0) {
+          delete this.value.machinePoolDefaults;
+        }
+      }
+    },
+    /**
      * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
      */
     getNeedsPSP(value = this.value) {
@@ -1237,7 +1262,6 @@ export default {
         }
 
         await this.syncMachineConfigWithLatest(entry);
-
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
 
@@ -2567,8 +2591,26 @@ export default {
                 :label="t('cluster.rke2.address.nodePortRange.label')"
               />
             </div>
+            <div class="col span-6">
+              <Checkbox
+                v-if="!isView || isView && !hostnameTruncationManuallySet"
+                v-model="truncateHostnames"
+                class="mt-20"
+                :disabled="isEdit || isView || hostnameTruncationManuallySet"
+                :mode="mode"
+                :label="t('cluster.rke2.truncateHostnames')"
+                @input="truncateName"
+              />
+              <Banner
+                v-if="hostnameTruncationManuallySet"
+                color="info"
+              >
+                <div class="text">
+                  {{ t('cluster.machinePool.truncationCluster', { limit: truncateLimit }) }}
+                </div>
+              </Banner>
+            </div>
           </div>
-
           <div
             v-if="serverArgs['tls-san']"
             class="row mb-20"
