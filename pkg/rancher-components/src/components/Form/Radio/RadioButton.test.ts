@@ -14,7 +14,7 @@ describe('RadioButton.vue', () => {
       RadioButton,
       {
         directives: { cleanHtmlDirective },
-        propsData: { label: 'Test Label' }
+        propsData:  { label: 'Test Label' }
       });
 
     expect(wrapper.find('.radio-label').text()).toBe('Test Label');
