@@ -85,13 +85,17 @@ const sidebars = {
             id:   'extensions/api/overview',
           },
           items: [
-            // 'extensions/api/concepts',
+            'extensions/api/concepts',
             'extensions/api/metadata',
             {
               type:  'category',
               label: 'Navigation & Pages',
               items: [
                 'extensions/api/nav/products',
+                'extensions/api/nav/custom-page',
+                'extensions/api/nav/resource-page',
+                'extensions/api/nav/side-menu',
+                'extensions/api/nav/routing',
               ]
             },
             'extensions/api/actions',
@@ -126,6 +130,17 @@ const sidebars = {
           ]
         },
         'extensions/publishing',
+        {
+          type:  'category',
+          label: 'Usecases/Examples',
+          link:  {
+            type: 'doc',
+            id:   'extensions/usecases/overview',
+          },
+          items: [
+            'extensions/usecases/top-level-product',
+          ]
+        }
       ]
     },
     'storybook',

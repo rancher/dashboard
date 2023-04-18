@@ -10,6 +10,7 @@ These are the currently available Extension APIs available in Rancher:
 | --- | --- |
 | [Metadata](./metadata) | v2.7.0 |
 | [Products](./nav/products) | v2.7.0 |
+| [Routes](./nav/routing) | v2.7.0 |
 | [Actions](./actions) | v2.7.2 |
 | [Cards](./cards) | v2.7.2 |
 | [Panels](./panels) | v2.7.2 |

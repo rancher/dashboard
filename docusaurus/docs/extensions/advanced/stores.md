@@ -45,6 +45,8 @@ In the `store` folder you just need to create the `getters.js`, `actions.js` and
 And on the `index.ts` on your root folder, where you define your extension configuration, you can just use the `addDashboardStore` extension method, such as:
 
 ```ts
+import { importTypes } from '@rancher/auto-import';
+import { IPlugin } from '@shell/core/types';
 import extensionStore from './store';
 
 // Init the package
