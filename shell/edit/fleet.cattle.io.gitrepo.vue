@@ -611,12 +611,12 @@ export default {
         {{ t('fleet.gitRepo.resources.resourceBanner') }}
       </Banner>
       <Checkbox
-          v-model="value.spec.keepResources"
-          class="check"
-          type="checkbox"
-          label-key="fleet.gitRepo.resources.keepResources"
-          :mode="mode"
-        />
+        v-model="value.spec.keepResources"
+        class="check"
+        type="checkbox"
+        label-key="fleet.gitRepo.resources.keepResources"
+        :mode="mode"
+      />
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
