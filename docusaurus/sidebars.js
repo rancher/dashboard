@@ -123,6 +123,7 @@ const sidebars = {
         'testing/unit-test',
         'testing/e2e-test',
         'testing/stress-test',
+        'testing/extensions-test',
       ],
     },
     'terminology',
