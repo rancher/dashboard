@@ -2113,7 +2113,7 @@ fleet:
     resources:
       label: 'Resource Handling'
       keepResources: Keep resources after deletion
-      resourceBanner: Resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
     add:
       steps:
         repoInfo:
