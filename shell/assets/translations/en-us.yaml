@@ -2111,9 +2111,9 @@ fleet:
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     resources:
-      label: 'Resources'
-      keepResources: 'Keep Resources after deletion'
-      resourceBanner: Resources will be kept after deleting the GitRepo or Bundle. Helm release secrets will be removed instead.
+      label: 'Resource Handling'
+      keepResources: Keep resources after deletion
+      resourceBanner: Resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
     add:
       steps:
         repoInfo:
