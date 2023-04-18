@@ -4,7 +4,7 @@ import { nlToBr } from '@shell/utils/string';
 import { stringify } from '@shell/utils/error';
 
 export default Vue.extend({
-  name:  'RancherComponentsBanner',
+  name:  'RancherBanner',
   props: {
     /**
      * A color class that represents the color of the banner.

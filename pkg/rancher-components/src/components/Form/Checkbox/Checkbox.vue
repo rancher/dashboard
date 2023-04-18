@@ -5,7 +5,7 @@ import { addObject, removeObject } from '@shell/utils/array';
 import cloneDeep from 'lodash/cloneDeep';
 
 export default Vue.extend({
-  name: 'RancherComponentsCheckbox',
+  name: 'RancherCheckbox',
 
   props: {
     /**

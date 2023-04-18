@@ -32,7 +32,7 @@ const CLASS = {
 export default Vue.extend({
   components: { LabeledInput },
 
-  name: 'StringList',
+  name: 'RancherStringList',
 
   props: {
     /**

@@ -1,6 +1,7 @@
 <script lang="ts">
 import Vue from 'vue';
 export default Vue.extend({
+  name:  'RancherToggleSwitch',
   props: {
     value: {
       type:    [Boolean, String, Number],

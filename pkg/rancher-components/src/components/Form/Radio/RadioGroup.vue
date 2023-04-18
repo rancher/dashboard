@@ -9,6 +9,7 @@ interface Option {
 }
 
 export default Vue.extend({
+  name:       'RancherRadioGroup',
   components: { RadioButton },
   props:      {
     /**

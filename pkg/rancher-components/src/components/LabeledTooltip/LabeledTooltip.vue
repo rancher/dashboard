@@ -2,6 +2,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  name:  'RancherLabeledTooltip',
   props: {
     /**
      * The Labeled Tooltip value.

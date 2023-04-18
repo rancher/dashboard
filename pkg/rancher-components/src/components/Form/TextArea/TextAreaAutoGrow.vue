@@ -11,6 +11,8 @@ declare module 'vue/types/vue' {
 }
 
 export default Vue.extend({
+  name: 'RancherTextAreaAutoGrow',
+
   inheritAttrs: false,
 
   props: {

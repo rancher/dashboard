@@ -12,6 +12,7 @@ interface Badge {
  * from the label and color properties. The state property takes precedence.</p>
  */
 export default Vue.extend({
+  name:  'RancherBadge',
   props: {
     /**
      * A value having the properties `stateBackground` and `stateDisplay`

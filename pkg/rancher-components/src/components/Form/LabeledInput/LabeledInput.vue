@@ -12,8 +12,11 @@ import { debounce } from 'lodash';
 export default (
   Vue as VueConstructor<Vue & InstanceType<typeof LabeledFormElement> & InstanceType<typeof CompactInput>>
 ).extend({
+  name: 'RancherLabeledInput',
+
   components: { LabeledTooltip, TextAreaAutoGrow },
-  mixins:     [LabeledFormElement, CompactInput],
+
+  mixins: [LabeledFormElement, CompactInput],
 
   props: {
     /**
