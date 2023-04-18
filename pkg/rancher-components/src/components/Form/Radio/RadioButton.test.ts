@@ -13,7 +13,7 @@ describe('RadioButton.vue', () => {
     const wrapper = shallowMount(
       RadioButton,
       {
-        directives: { cleanHtmlDirective },
+        directives: { 'clean-html': cleanHtmlDirective },
         propsData:  { label: 'Test Label' }
       });
 

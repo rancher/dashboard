@@ -3,7 +3,7 @@ import Vue from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 
 export default Vue.extend({
-  name:  'RancherRadioButton',
+  name: 'RancherRadioButton',
   props: {
     /**
      * The name of the input, for grouping.

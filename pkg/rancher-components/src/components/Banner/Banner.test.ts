@@ -8,7 +8,7 @@ describe('component: Banner', () => {
     const wrapper = mount(
       Banner,
       {
-        directives: { cleanHtmlDirective },
+        directives: { 'clean-html': cleanHtmlDirective },
         propsData:  { label }
       });
 

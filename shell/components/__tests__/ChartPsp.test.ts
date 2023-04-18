@@ -13,7 +13,7 @@ describe('component: ChartPsp', () => {
       }
     });
 
-    expect(wrapper.findComponent({ name: 'Checkbox' }).props().value).toBe(value);
+    expect(wrapper.findComponent({ name: 'RancherCheckbox' }).props().value).toBe(value);
   });
 
   it.each([
