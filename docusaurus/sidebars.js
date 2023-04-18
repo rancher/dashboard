@@ -99,6 +99,19 @@ const sidebars = {
             'extensions/api/panels',
             'extensions/api/tabs',
             'extensions/api/table-columns',
+            {
+              type:  'category',
+              label: 'Components',
+              link:  {
+                type: 'doc',
+                id:   'extensions/api/components/components',
+              },
+              items: [
+                'extensions/api/components/resources',
+                'extensions/api/components/node-drivers',
+                'extensions/api/components/auto-import',
+              ]
+            },
             'extensions/api/common',
           ]
         },
