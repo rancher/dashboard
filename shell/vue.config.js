@@ -87,31 +87,13 @@ module.exports = function(dir, _appConfig) {
 
   const appConfig = _appConfig || {};
   const excludes = appConfig.excludes || [];
-  const autoLoad = appConfig.autoLoad || [];
 
   const serverMiddleware = [];
-  const autoLoadPackages = [];
   const watcherIgnores = [
     /.shell/,
     /dist-pkg/,
     /scripts\/standalone/
   ];
-
-  autoLoad.forEach((pkg) => {
-    // Need the version number of each file
-    const pkgPackageFile = require(path.join(dir, 'pkg', pkg, 'package.json'));
-    const pkgRef = `${ pkg }-${ pkgPackageFile.version }`;
-
-    autoLoadPackages.push({
-      name:    `app-autoload-${ pkgRef }`,
-      content: `/pkg/${ pkgRef }/${ pkgRef }.umd.min.js`
-    });
-
-    // Anything auto-loaded should also be excluded
-    if (!excludes.includes(pkg)) {
-      excludes.push(pkg);
-    }
-  });
 
   // Find any UI packages in node_modules
   const NM = path.join(dir, 'node_modules');
