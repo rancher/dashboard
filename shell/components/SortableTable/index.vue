@@ -357,7 +357,7 @@ export default {
 
     const $main = document.querySelector('main');
 
-    $main.removeEventListener('scroll', this._onScroll);
+    $main?.removeEventListener('scroll', this._onScroll);
   },
 
   watch: {
