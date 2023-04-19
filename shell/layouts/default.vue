@@ -203,9 +203,11 @@ export default {
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
      */
     clusterAndRouteReady() {
+      const targetRoute = this.$store.getters['targetRoute'];
+      const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
+
       return this.clusterReady &&
-        this.clusterId === getClusterFromRoute(this.$route) &&
-        this.currentProduct?.name === getProductFromRoute(this.$route);
+        this.clusterId === getClusterFromRoute(this.$route) && routeReady;
     },
 
     pinClass() {

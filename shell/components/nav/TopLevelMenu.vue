@@ -361,7 +361,7 @@ export default {
                 <nuxt-link
                   v-if="c.ready"
                   class="cluster selector option"
-                  :to="{ name: 'c-cluster', params: { cluster: c.id } }"
+                  :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                 >
                   <ClusterProviderIcon
                     :small="true"

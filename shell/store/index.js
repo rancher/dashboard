@@ -242,7 +242,8 @@ export const state = () => {
     serverVersion:             null,
     systemNamespaces:          [],
     isSingleProduct:           undefined,
-    openRancherManagerSupport: false
+    openRancherManagerSupport: false,
+    targetRoute:               null
   };
 };
 
@@ -561,6 +562,10 @@ export const getters = {
     return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
   },
 
+  targetRoute(state) {
+    return state.targetRoute;
+  },
+
   ...gcGetters
 };
 
@@ -656,6 +661,9 @@ export const mutations = {
     state.isSingleProduct = isSingleProduct;
   },
 
+  targetRoute(state, route) {
+    state.targetRoute = route;
+  }
 };
 
 export const actions = {
@@ -769,8 +777,9 @@ export const actions = {
   async loadCluster({
     state, commit, dispatch, getters
   }, {
-    id, product, oldProduct, oldPkg, newPkg
+    id, product, oldProduct, oldPkg, newPkg, targetRoute
   }) {
+    commit('targetRoute', targetRoute);
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
     const isMultiCluster = getters['isMultiCluster'];
