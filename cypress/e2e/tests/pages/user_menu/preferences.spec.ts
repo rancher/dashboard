@@ -136,7 +136,7 @@ describe('Standard user can update their preferences', () => {
       const map = Cypress.$.map($els, el => el.innerText.trim());
 
       for (const i in map) {
-        // expect(map[i]).to.match(/([0-9]+(:[0-9]+)+)/)
+        expect(map[i]).to.match(/([0-9]+(:[0-9]+)+)/)
         prefPage.listBox().set(map[i]);
         prefPage.listBox().isClosed();
         prefPage.dropdownMenu().open(dropBoxIndex);
