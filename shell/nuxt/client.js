@@ -21,6 +21,7 @@ import {
 import { createApp, NuxtError } from './index.js'
 import fetchMixin from './mixins/fetch.client'
 import NuxtLink from './components/nuxt-link.client.js' // should be included after ./index.js
+import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 
 // Fetch mixin
 if (!Vue.__nuxt__fetch__mixin__) {
@@ -332,6 +333,12 @@ async function render (to, from, next) {
     await callMiddleware.call(this, Components, app.context, layout)
     if (nextCalled) {
       return
+    }
+
+    const pluginRouteCheck = dynamicPluginLoader.check({route: to });
+
+    if (pluginRouteCheck) {
+      return next()
     }
 
     // Show error page
@@ -737,6 +744,7 @@ async function mountApp (__app) {
   // Mounts Vue app to DOM element
   const mount = () => {
     _app.$mount('#app')
+    console.error('OH NO!!!...')
 
     // Add afterEach router hooks
     router.afterEach(normalizeComponents)

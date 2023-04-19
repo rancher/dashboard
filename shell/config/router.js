@@ -588,10 +588,14 @@ function _setBeforeEachNavigationGuard(router) {
         oldProduct
       };
 
-      const newPkgRouteObj = handlePackageRoutes(appContext, configParams, to, from);
+      const newPkgRouteObj = await handlePackageRoutes(appContext, configParams, to, from);
+
+      console.error('newPkgRouteObj', newPkgRouteObj);
 
       // If we have a new location, double check that it's actually valid
       const resolvedRoute = newPkgRouteObj.newLocation ? router.resolve(newPkgRouteObj.newLocation) : null;
+
+      console.error('resolvedRoute', resolvedRoute);
 
       if (resolvedRoute?.route.matched.length) {
         return next(newPkgRouteObj.newLocation);

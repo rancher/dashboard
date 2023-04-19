@@ -214,7 +214,9 @@ export async function handlePackageRoutes(appContext, configParams, to, from) {
 
   if (!to.matched?.length) {
     // If a plugin claims the route and is loaded correctly we'll get a route back
-    newLocation = await dynamicPluginLoader.check({ to, store: appContext.store });
+    newLocation = await dynamicPluginLoader.check({ route: to, store: appContext.store });
+
+    console.error('newLocation', newLocation);
   }
 
   return {

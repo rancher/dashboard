@@ -8,28 +8,35 @@ import { HARVESTER_NAME } from '@shell/config/features';
 
 export const PRODUCT_NAME = 'harvester-manager';
 
+const check = ({ route }) => {
+  // no point in trying to load any harvester plugin if route is gibberish...
+  if (!route || (!route?.name && !route?.path)) {
+    return;
+  }
+  // Check that we've either got here either
+  // - directly (page refresh/load -> have path but no name)
+  // - via router name (have name but no path)
+  let clusterId;
+  const pathParts = route.path.split('/');
+
+  if (pathParts?.[1] === HARVESTER_NAME && pathParts?.[3] ) {
+    clusterId = pathParts?.[3];
+  } else {
+    const nameParts = route.name?.split('-');
+
+    if (nameParts?.[0] === HARVESTER_NAME) {
+      clusterId = route.params?.cluster;
+    }
+  }
+
+  return clusterId;
+};
+
 // Load a harvester plugin when navigating into a harvester cluster
 dynamicPluginLoader.register({
+  check,
   load: async({ route, store }) => {
-    // no point in trying to load any harvester plugin if route is gibberish...
-    if (!route || (!route?.name && !route?.path)) {
-      return;
-    }
-    // Check that we've either got here either
-    // - directly (page refresh/load -> have path but no name)
-    // - via router name (have name but no path)
-    let clusterId;
-    const pathParts = route.path.split('/');
-
-    if (pathParts?.[1] === HARVESTER_NAME && pathParts?.[3] ) {
-      clusterId = pathParts?.[3];
-    } else {
-      const nameParts = route.name?.split('-');
-
-      if (nameParts?.[0] === HARVESTER_NAME) {
-        clusterId = route.params?.cluster;
-      }
-    }
+    const clusterId = check({ route });
 
     // If we have a cluster id, try to load the plugin via the harvester cluster's `loadClusterPlugin`
     if (clusterId) {
@@ -59,6 +66,67 @@ dynamicPluginLoader.register({
     }
   }
 });
+
+// export const PRODUCT_NAME = 'harvester-manager';
+
+// // Load a harvester plugin when navigating into a harvester cluster
+// dynamicPluginLoader.register({
+//   load: async({ route, store }) => {
+//     console.error('route', route);
+//     // no point in trying to load any harvester plugin if route is gibberish...
+//     if (!route || (!route?.name && !route?.path)) {
+//       return;
+//     }
+//     // Check that we've either got here either
+//     // - directly (page refresh/load -> have path but no name)
+//     // - via router name (have name but no path)
+//     let clusterId;
+//     const pathParts = route.path.split('/');
+
+//     if (pathParts?.[1] === HARVESTER_NAME && pathParts?.[3] ) {
+//       clusterId = pathParts?.[3];
+//     } else {
+//       const nameParts = route.name?.split('-');
+
+//       if (nameParts?.[0] === HARVESTER_NAME) {
+//         clusterId = route.params?.cluster;
+//       }
+//     }
+
+//     console.error('clusterId', clusterId);
+
+//     // If we have a cluster id, try to load the plugin via the harvester cluster's `loadClusterPlugin`
+//     if (clusterId) {
+//       const provClusters = await store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+//       const provCluster = provClusters.find(p => p.mgmt.id === clusterId);
+
+//       console.error('provCluster', provCluster);
+
+//       if (provCluster) {
+//         const harvCluster = await store.dispatch('management/create', {
+//           ...provCluster,
+//           type: HCI.CLUSTER
+//         });
+
+//         if (harvCluster) {
+//           try {
+//             console.error('TRY!!!', harvCluster, route);
+//             await harvCluster.loadClusterPlugin();
+
+//             return route;
+//           } catch (err) {
+//             // If we've failed to load the harvester plugin nav to the harvester cluster list (probably got here from a bookmarked
+//             // harvester instance that hasn't been updated to serve a plugin)
+//             console.error('Failed to load harvester package: ', typeof error === 'object' ? JSON.stringify(err) : err); // eslint-disable-line no-console
+//             console.error('CATCH!!!', harvesterClustersLocation);
+
+//             return harvesterClustersLocation;
+//           }
+//         }
+//       }
+//     }
+//   }
+// });
 
 export const NAME = 'harvesterManager';
 

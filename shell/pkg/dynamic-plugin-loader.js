@@ -14,6 +14,25 @@ class DynamicPluginLoader {
   async check({ route, store }) {
     for (const dpl of this.dynamicPluginLoaders) {
       // Check that the route is valid and then load the plugin associated with it
+
+      const res = await dpl.check({ route, store });
+
+      if (res) {
+        return res;
+      }
+    }
+  }
+
+  async load({ route, store }) {
+    for (const dpl of this.dynamicPluginLoaders) {
+      // Check that the route is valid and then load the plugin associated with it
+
+      const check = await dpl.check({ route, store });
+
+      if (!check) {
+        continue;
+      }
+
       const res = await dpl.load({ route, store });
 
       if (res) {
