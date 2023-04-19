@@ -226,14 +226,14 @@ export default {
     async onRowClick(e) {
       const node = this.nodeForEvent(e);
       const td = e.target.closest('TD');
-      const skipSelect = td.classList.contains('skip-select');
+      const skipSelect = td?.classList.contains('skip-select');
 
       if (skipSelect) {
         return;
       }
       const selection = this.selectedRows;
-      const isCheckbox = this.isSelectionCheckbox(e.target) || td.classList.contains('row-check');
-      const isExpand = td.classList.contains('row-expand');
+      const isCheckbox = this.isSelectionCheckbox(e.target) || td?.classList.contains('row-check');
+      const isExpand = td?.classList.contains('row-expand');
       const content = this.pagedRows;
 
       this.$emit('rowClick', e);
