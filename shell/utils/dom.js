@@ -1,5 +1,15 @@
 export function getParent(el, parentSelector) {
-  while ((el = el.parentElement) && !((el.matches || el.matchesSelector).call(el, parentSelector))) { }
+  el = el?.parentElement;
+
+  if (!el) {
+    return null;
+  }
+
+  const matchFn = el.matches || el.matchesSelector;
+
+  if (!matchFn.call(el, parentSelector)) {
+    return getParent(el, parentSelector);
+  }
 
   return el;
 }
