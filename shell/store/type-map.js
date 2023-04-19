@@ -152,6 +152,9 @@ import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 
+import { FLAT_NETWORKS_UI_EXTENSION } from '@shell/store/features';
+
+export const MACVLAN_PRODUCT_NAME = 'macvlan.cluster.cattle.io.macvlansubnet';
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
 export const BOTH = 'both';
@@ -966,6 +969,14 @@ export const getters = {
           }
 
           out[id] = item;
+        }
+      }
+
+      if (out[MACVLAN_PRODUCT_NAME]) {
+        const macvlanFeauter = rootGetters['features/get'](FLAT_NETWORKS_UI_EXTENSION);
+
+        if (!macvlanFeauter) {
+          delete out[MACVLAN_PRODUCT_NAME];
         }
       }
 

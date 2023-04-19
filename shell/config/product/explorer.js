@@ -23,6 +23,7 @@ import {
 
 import { DSL } from '@shell/store/type-map';
 import { SETTING } from '@shell/config/settings';
+import { FLAT_NETWORKS_UI_EXTENSION } from '@shell/store/features';
 
 export const NAME = 'explorer';
 
@@ -332,6 +333,9 @@ export function init(store) {
 
   // macvlan
   virtualType({
+    showMenuFun(state, getters, rootState, rootGetters) {
+      return !rootGetters['features/get'](FLAT_NETWORKS_UI_EXTENSION);
+    },
     label:      'macvlan',
     labelKey:   'nav.vlanSubnet.label',
     name:       'macvlan-subnet',

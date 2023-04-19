@@ -32,6 +32,7 @@ export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
 export const VIRTAITECH_GPU_SERVICE_UI = create('virtaitech-gpu-service-ui', false);
 export const EXPLORER_HARVESTER_CLUSTER = create('explorer-harvester-cluster', false);
+export const FLAT_NETWORKS_UI_EXTENSION = create('flat-networks-ui-extension', false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);
