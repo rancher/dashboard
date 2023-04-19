@@ -4,6 +4,8 @@ This guide will walk through creating a new extension from scratch.
 
 ## Prerequisites
 
+> Note: Extensions development is only currently supported on Mac and Linux. Windows is not currently supported.
+
 You will need a recent version of nodejs installed (Tested with node version: `v16.19.1`).
 
 You'll also need the yarn package manager installed, which can be done with `npm install -g yarn`.
