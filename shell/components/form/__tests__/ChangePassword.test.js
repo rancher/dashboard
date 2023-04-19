@@ -1,6 +1,7 @@
 import ChangePassword from '@shell/components/form/ChangePassword.vue';
-
+import PasswordStrength from '@shell/components/PasswordStrength.vue';
 import AESEncrypt from '@shell/utils/aes-encrypt';
+import { shallowMount } from '@vue/test-utils';
 
 jest.mock('@shell/utils/aes-encrypt', () => {
   return {
@@ -62,5 +63,11 @@ describe('component: form/ChangePassword', () => {
     await ChangePassword.methods.changePassword.call(localThis, btnCbMock);
 
     expect(encryptPasswordMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('should contian PasswordStrength component', () => {
+    const wrapper = shallowMount(ChangePassword, { computed: { 'i18n/t': jest.fn() } });
+
+    expect(wrapper.findComponent(PasswordStrength).exists()).toBe(true);
   });
 });

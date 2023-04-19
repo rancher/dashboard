@@ -1,5 +1,7 @@
 import setup from '@shell/pages/auth/setup.vue';
 import AESEncrypt from '@shell/utils/aes-encrypt';
+import PasswordStrength from '@shell/components/PasswordStrength.vue';
+import { shallowMount } from '@vue/test-utils';
 
 jest.mock('@shell/utils/aes-encrypt', () => {
   return {
@@ -43,5 +45,29 @@ describe('page: auth/setup', () => {
     await setup.methods.save.call(localThis, btnCbMock);
 
     expect(encryptPasswordMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('should contian PasswordStrength component', () => {
+    const wrapper = shallowMount(setup, {
+      data() {
+        return {
+          mustChangePassword: true,
+          isFirstLogin:       true,
+          errors:             [],
+          eula:               false,
+          mcmEnabled:         false,
+          password:           '',
+          confirm:            '',
+          telemetry:          false,
+          useRandom:          true,
+          username:           'admin',
+          haveCurrent:        false,
+          current:            '',
+          product:            '',
+        };
+      }
+    });
+
+    expect(wrapper.findComponent(PasswordStrength).exists()).toBe(true);
   });
 });
