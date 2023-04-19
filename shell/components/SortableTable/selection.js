@@ -334,7 +334,7 @@ export default {
 
       this.$store.commit(`action-menu/show`, {
         resources,
-        event: e.originalEvent,
+        event: e,
       });
     },
 
