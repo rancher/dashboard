@@ -6852,7 +6852,7 @@ modalDownLoadFileComponent:
 ##############################
 advancedSettings:
   label: Settings
-  subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'. If there are no configuration items you need here, please view <a href="/v3/setting" target="_blank">More Settings</a>.
+  subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'. If there are no configuration items you need here, please view <a href="/v1/management.cattle.io.setting" target="_blank">More Settings</a>.
   show: Show
   hide: Hide
   none: None

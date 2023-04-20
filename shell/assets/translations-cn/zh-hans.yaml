@@ -6887,7 +6887,7 @@ modalDownLoadFileComponent:
 ##############################
 advancedSettings:
   label: 设置
-  subtext: 一般用户不需要修改此处的设置。请谨慎操作，不正确的值会破坏 {appName} 的安装。与默认不同的设置会标记为“已修改”。
+  subtext: 一般用户不需要修改此处的设置。请谨慎操作，不正确的值会破坏 {appName} 的安装。与默认不同的设置会标记为“已修改”。如果这里没有您需要的配置项，请查看<a href="/v1/management.cattle.io.setting" target="_blank">更多设置</a>。
   show: 显示
   hide: 隐藏
   none: 无
