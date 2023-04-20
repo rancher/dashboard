@@ -27,7 +27,7 @@ export default class ExtensionsPo extends PagePo {
     // so that the attemps aren't on a blank page
     this.title();
 
-    if (attempt > 20) {
+    if (attempt > 30) {
       return;
     }
     if (Cypress.$('[data-testid="extension-enable-operator"]').length > 0) {
