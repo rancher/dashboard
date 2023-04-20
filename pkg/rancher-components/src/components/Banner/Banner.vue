@@ -164,6 +164,7 @@ $icon-size: 24px;
     width: 100%;
     border-left: solid $left-border-size transparent;
     display: flex;
+    gap: 3px;
 
     .primary & {
       background: var(--primary);
