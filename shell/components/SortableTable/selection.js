@@ -1,7 +1,7 @@
-import $ from 'jquery';
 import { isMore, isRange, suppressContextMenu, isAlternate } from '@shell/utils/platform';
 import { get } from '@shell/utils/object';
 import { filterBy } from '@shell/utils/array';
+import { getParent } from '@shell/utils/dom';
 
 export const ALL = 'all';
 export const SOME = 'some';
@@ -9,23 +9,23 @@ export const NONE = 'none';
 
 export default {
   mounted() {
-    const $table = $('> TABLE', this.$el);
+    const table = this.$el.querySelector('TABLE');
 
     this._onRowClickBound = this.onRowClick.bind(this);
     this._onRowMousedownBound = this.onRowMousedown.bind(this);
     this._onRowContextBound = this.onRowContext.bind(this);
 
-    $table.on('click', '> TBODY > TR', this._onRowClickBound);
-    $table.on('mousedown', '> TBODY > TR', this._onRowMousedownBound);
-    $table.on('contextmenu', '> TBODY > TR', this._onRowContextBound);
+    table.addEventListener('click', this._onRowClickBound);
+    table.addEventListener('mousedown', this._onRowMousedownBound);
+    table.addEventListener('contextmenu', this._onRowContextBound);
   },
 
   beforeDestroy() {
-    const $table = $('> TABLE', this.$el);
+    const table = this.$el.querySelector('TABLE');
 
-    $table.off('click', '> TBODY > TR', this._onRowClickBound);
-    $table.off('mousedown', '> TBODY > TR', this._onRowMousedownBound);
-    $table.off('contextmenu', '> TBODY > TR', this._onRowContextBound);
+    table.removeEventListener('click', this._onRowClickBound);
+    table.removeEventListener('mousedown', this._onRowMousedownBound);
+    table.removeEventListener('contextmenu', this._onRowContextBound);
   },
 
   computed: {
@@ -156,31 +156,31 @@ export default {
     },
 
     onRowMouseEnter(e) {
-      const tr = $(e.target).closest('TR');
+      const tr = e.target.closest('TR');
 
-      if (tr.hasClass('sub-row')) {
-        const trMainRow = tr.prev('TR');
+      if (tr.classList.contains('sub-row')) {
+        const trMainRow = tr.previousElementSibling;
 
-        trMainRow.toggleClass('sub-row-hovered', true);
+        trMainRow.classList.add('sub-row-hovered');
       }
     },
 
     onRowMouseLeave(e) {
-      const tr = $(e.target).closest('TR');
+      const tr = e.target.closest('TR');
 
-      if (tr.hasClass('sub-row')) {
-        const trMainRow = tr.prev('TR');
+      if (tr.classList.contains('sub-row')) {
+        const trMainRow = tr.previousElementSibling;
 
-        trMainRow.toggleClass('sub-row-hovered', false);
+        trMainRow.classList.remove('sub-row-hovered');
       }
     },
 
     nodeForEvent(e) {
       const tagName = e.target.tagName;
-      const tgt = $(e.target);
-      const actionElement = tgt.closest('.actions')[0];
+      const tgt = e.target;
+      const actionElement = tgt.closest('.actions');
 
-      if ( tgt.hasClass('select-all-check') ) {
+      if ( tgt.classList.contains('select-all-check') ) {
         return;
       }
 
@@ -188,31 +188,31 @@ export default {
         if (
           tagName === 'A' ||
           tagName === 'BUTTON' ||
-          tgt.parents('.btn').length
+          getParent(tgt, '.btn')
         ) {
           return;
         }
       }
 
-      const tgtRow = $(e.currentTarget);
+      const tgtRow = e.target.closest('TR');
 
       return this.nodeForRow(tgtRow);
     },
 
     nodeForRow(tgtRow) {
-      if ( tgtRow?.hasClass('separator-row') ) {
+      if ( tgtRow?.classList.contains('separator-row') ) {
         return;
       }
 
-      while ( tgtRow && tgtRow.length && !tgtRow.hasClass('main-row') ) {
-        tgtRow = tgtRow.prev();
+      while ( tgtRow && !tgtRow.classList.contains('main-row') ) {
+        tgtRow = tgtRow.previousElementSibling;
       }
 
-      if ( !tgtRow || !tgtRow.length ) {
+      if ( !tgtRow ) {
         return;
       }
 
-      const nodeId = tgtRow.data('node-id');
+      const nodeId = tgtRow.dataset.nodeId;
 
       if ( !nodeId ) {
         return;
@@ -225,15 +225,15 @@ export default {
 
     async onRowClick(e) {
       const node = this.nodeForEvent(e);
-      const td = $(e.target).closest('TD');
-      const skipSelect = td.hasClass('skip-select');
+      const td = e.target.closest('TD');
+      const skipSelect = td?.classList.contains('skip-select');
 
       if (skipSelect) {
         return;
       }
       const selection = this.selectedRows;
-      const isCheckbox = this.isSelectionCheckbox(e.target) || td.hasClass('row-check');
-      const isExpand = td.hasClass('row-expand');
+      const isCheckbox = this.isSelectionCheckbox(e.target) || td?.classList.contains('row-check');
+      const isExpand = td?.classList.contains('row-expand');
       const content = this.pagedRows;
 
       this.$emit('rowClick', e);
@@ -248,28 +248,30 @@ export default {
         return;
       }
 
-      const actionElement = $(e.target).closest('.actions')[0];
+      const actionElement = e.target.closest('.actions');
 
       if ( actionElement ) {
         let resources = [node];
 
         if ( this.mangleActionResources ) {
-          const i = $('i', actionElement);
+          const i = actionElement.querySelector('i');
 
-          i.removeClass('icon-actions');
-          i.addClass(['icon-spinner', 'icon-spin']);
+          i.classList.remove('icon-actions');
+          i.classList.add('icon-spinner');
+          i.classList.add('icon-spin');
 
           try {
             resources = await this.mangleActionResources(resources);
           } finally {
-            i.removeClass(['icon-spinner', 'icon-spin']);
-            i.addClass('icon-actions');
+            i.classList.remove('icon-spinner');
+            i.classList.remove('icon-spin');
+            i.classList.add('icon-actions');
           }
         }
 
         this.$store.commit(`action-menu/show`, {
           resources,
-          event: e.originalEvent || e, // Handle jQuery event and raw event
+          event: e,
           elem:  actionElement
         });
 
@@ -332,7 +334,7 @@ export default {
 
       this.$store.commit(`action-menu/show`, {
         resources,
-        event: e.originalEvent,
+        event: e,
       });
     },
 
@@ -356,7 +358,7 @@ export default {
     isSelectionCheckbox(element) {
       return element.tagName === 'INPUT' &&
         element.type === 'checkbox' &&
-        ($(element).closest('.selection-checkbox').length > 0);
+        element.closest('.selection-checkbox') !== null;
     },
 
     nodesBetween(a, b) {
@@ -474,20 +476,24 @@ export default {
 
       if ( id ) {
         // Note: This is looking for the checkbox control for the row
-        const input = $(`div[data-checkbox-ctrl][data-node-id="${ id }"]`);
+        const input = this.$el.querySelector(`div[data-checkbox-ctrl][data-node-id="${ id }"]`);
 
-        if ( input && input.length && !input[0].disabled ) {
-          const label = $(input[0]).find('label');
+        if ( input && !input.disabled ) {
+          const label = input.querySelector('label');
 
           if (label) {
-            label.prop('value', on);
+            label.value = on;
           }
           let tr = input.closest('tr');
           let first = true;
 
-          while ( tr && (first || tr.hasClass('sub-row') ) ) {
-            tr.toggleClass('row-selected', on);
-            tr = tr.next();
+          while ( tr && (first || tr.classList.contains('sub-row') ) ) {
+            if (on) {
+              tr.classList.add('row-selected');
+            } else {
+              tr.classList.remove('row-selected');
+            }
+            tr = tr.nextElementSibling;
             first = false;
           }
         }
@@ -497,9 +503,9 @@ export default {
     select(nodes) {
       nodes.forEach((node) => {
         const id = get(node, this.keyField);
-        const input = $(`label[data-node-id="${ id }"]`);
+        const input = this.$el.querySelector(`label[data-node-id="${ id }"]`);
 
-        input.trigger('click');
+        input.dispatchEvent(new Event('click'));
       });
     },
 

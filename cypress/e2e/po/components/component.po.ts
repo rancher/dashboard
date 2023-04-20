@@ -4,7 +4,7 @@ export default class ComponentPo {
   public self: () => CypressChainable
 
   constructor(self: CypressChainable);
-  constructor(selector: string, parent?: CypressChainable);// selector should be jquery.Selector
+  constructor(selector: string, parent?: CypressChainable);
   constructor(...args: Array<any>) {
     if (typeof args[0] === 'string') {
       const [selector, parent] = args as [string, CypressChainable];
