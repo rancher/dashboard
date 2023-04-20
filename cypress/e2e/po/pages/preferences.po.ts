@@ -22,8 +22,8 @@ export default class PreferencesPagePo extends ComponentPo {
     return new ListBoxPo('.vs__dropdown-menu');
   }
 
-  button(label: string): ButtonGroupPo {
-    return ButtonGroupPo.byLabel(this.self(), label);
+  button(): ButtonGroupPo {
+    return new ButtonGroupPo('.btn-group');
   }
 
   checkbox(label: string): CheckboxInputPo {

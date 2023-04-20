@@ -74,15 +74,15 @@ describe('Standard user can update their preferences', () => {
     PagePo.goTo(endpoint);
     for (const [key, value] of Object.entries(themeOptions)) {
       PagePo.goTo(endpoint);
-      prefPage.button(key).set();
-      prefPage.button(key).isSelected();
+      prefPage.button().set(key);
+      prefPage.button().isSelected(key);
       prefPage.checkThemeDomElement(value);
       userMenu.open();
       userMenu.checkOpen();
       userMenu.clickMenuLink('Log Out');
       cy.login();
       PagePo.goTo(endpoint);
-      prefPage.button(key).isSelected();
+      prefPage.button().isSelected(key);
       prefPage.checkThemeDomElement(value);
     }
   });
@@ -336,14 +336,14 @@ describe('Standard user can update their preferences', () => {
 
     PagePo.goTo(endpoint);
     for (const i in buttonOptions) {
-      prefPage.button(buttonOptions[i]).set();
-      prefPage.button(buttonOptions[i]).isSelected();
+      prefPage.button().set(buttonOptions[i]);
+      prefPage.button().isSelected(buttonOptions[i]);
       userMenu.open();
       userMenu.checkOpen();
       userMenu.clickMenuLink('Log Out');
       cy.login();
       PagePo.goTo(endpoint);
-      prefPage.button(buttonOptions[i]).isSelected();
+      prefPage.button().isSelected(buttonOptions[i]);
     }
   });
 
@@ -355,14 +355,14 @@ describe('Standard user can update their preferences', () => {
 
     for (const i in buttonOptions) {
       PagePo.goTo(endpoint);
-      prefPage.button(buttonOptions[i]).set();
-      prefPage.button(buttonOptions[i]).isSelected();
+      prefPage.button().set(buttonOptions[i]);
+      prefPage.button().isSelected(buttonOptions[i]);
       userMenu.open();
       userMenu.checkOpen();
       userMenu.clickMenuLink('Log Out');
       cy.login();
       PagePo.goTo(endpoint);
-      prefPage.button(buttonOptions[i]).isSelected();
+      prefPage.button().isSelected(buttonOptions[i]);
     }
   });
 });
