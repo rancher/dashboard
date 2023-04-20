@@ -66,7 +66,7 @@ export default {
 
   async fetch() {
     // Default affinity
-    const settingId = `${ this.type }-agent-default-setting`;
+    const settingId = `${ this.type }-agent-default-affinity`;
     const setting = await fetchSetting(this.$store, settingId);
 
     if (setting) {
