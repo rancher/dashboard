@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { compile } from '../utils'
+import { compile } from '../../utils/nuxt'
 
 import NuxtError from '../../layouts/error.vue'
 

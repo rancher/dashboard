@@ -1,4 +1,4 @@
-import { getMatchedComponents, setScrollRestoration } from '../nuxt/utils';
+import { getMatchedComponents, setScrollRestoration } from './nuxt';
 
 if (process.client) {
   if ('scrollRestoration' in window.history) {
