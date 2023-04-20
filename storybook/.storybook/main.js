@@ -1,30 +1,15 @@
 const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
-const NM_REGEX  = /node_modules\/(.*)/
-
+const NM_REGEX = /node_modules\/(.*)/;
 module.exports = {
-  "stories": [
-    "../stories/**/Welcome.stories.mdx",
-    "../stories/**/*.stories.mdx",
-    "../stories/**/*.stories.@(js|jsx|ts|tsx)"
-  ],
-  "addons": [
-    "@storybook/addon-links",
-    "@storybook/addon-essentials",
-    "@storybook/addon-a11y",
-    "storybook-dark-mode",
-    "@storybook/addon-actions"
-  ],
-
-  staticDirs: [
-    'public',
-    '../../shell/assets'
-  ],
-
-  webpackFinal: async (config, { configType }) => {
+  "stories": ["../stories/**/Welcome.stories.mdx", "../stories/**/*.stories.mdx", "../stories/**/*.stories.@(js|jsx|ts|tsx)"],
+  "addons": ["@storybook/addon-links", "@storybook/addon-essentials", "@storybook/addon-a11y", "storybook-dark-mode", "@storybook/addon-actions", '@storybook/addon-mdx-gfm'],
+  staticDirs: ['public', '../../shell/assets'],
+  webpackFinal: async (config, {
+    configType
+  }) => {
     const baseFolder = path.resolve(__dirname, '..', '..');
-
     const sassLoader = {
       loader: 'sass-loader',
       options: {
@@ -33,26 +18,28 @@ module.exports = {
           importer: (url, prev, done) => {
             if (url.indexOf('~/') === 0) {
               const file = path.resolve(baseFolder, url.substr(2));
-              return fs.exists(file, (ok) => {
+              return fs.exists(file, ok => {
                 if (ok) {
-                  return done({ file });
+                  return done({
+                    file
+                  });
                 }
                 return done(null);
               });
             } else if (url.indexOf('@/node_modules') === 0) {
               const file = path.resolve(baseFolder, url.substr(2));
-
-              return done({ file });
+              return done({
+                file
+              });
             }
-
             done(null);
           }
         }
-      },
-    }
+      }
+    };
 
     // Replace js-modal and xterm imports with absolute paths
-    const nmrp = new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, function(resource) {
+    const nmrp = new webpack.NormalModuleReplacementPlugin(/js-modal|xterm|diff2html/, function (resource) {
       const split = resource.request.split('!');
       const p = split.pop();
       const match = p.match(NM_REGEX);
@@ -61,22 +48,21 @@ module.exports = {
       } else {
         split.push(p);
       }
-
       resource.request = split.join('!');
     });
-
     config.plugins.unshift(nmrp);
 
     config.module.rules.push({
       test: /\.scss$/,
       use: ['style-loader', 'css-loader', sassLoader],
-      include: baseFolder,
+      include: baseFolder
     });
-
     config.module.rules.unshift({
-      test:    /\.ya?ml$/i,
-      loader:  'js-yaml-loader',
-      options: { name: '[path][name].[ext]' },
+      test: /\.ya?ml$/i,
+      loader: 'js-yaml-loader',
+      options: {
+        name: '[path][name].[ext]'
+      }
     });
 
     // Root path
@@ -97,7 +83,13 @@ module.exports = {
         }
       });
     });
-
     return config;
-  },  
-}
+  },
+  framework: {
+    name: '@storybook/vue-webpack5',
+    options: {}
+  },
+  docs: {
+    autodocs: true
+  }
+};

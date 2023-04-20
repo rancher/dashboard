@@ -10,20 +10,30 @@
     "node": ">=12"
   },
   "scripts": {
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook -o ../storybook-static"
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build -o ../storybook-static"
   },
   "devDependencies": {
-    "@storybook/addon-a11y": "^6.3.8",
-    "@storybook/addon-actions": "^6.3.8",
-    "@storybook/addon-essentials": "^6.3.8",
-    "@storybook/addon-links": "^6.3.8",
-    "@storybook/vue": "^6.3.8",
+    "@babel/preset-env": "^7.21.4",
+    "@babel/preset-react": "^7.18.6",
+    "@babel/preset-typescript": "^7.21.4",
+    "@storybook/addon-a11y": "^7.0.6",
+    "@storybook/addon-actions": "^7.0.6",
+    "@storybook/addon-essentials": "^7.0.6",
+    "@storybook/addon-links": "^7.0.6",
+    "@storybook/addon-mdx-gfm": "^7.0.6",
+    "@storybook/cli": "^7.0.6",
+    "@storybook/vue": "^7.0.6",
+    "@storybook/vue-webpack5": "^7.0.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "shell": "file:./..",
+    "storybook": "^7.0.6",
     "storybook-auto-events": "^0.1.1",
-    "storybook-dark-mode": "^1.0.8"
+    "storybook-dark-mode": "^3.0.0"
   },
   "dependencies": {
-    "tsconfig-paths-webpack-plugin": "^4.0.0"
+    "tsconfig-paths-webpack-plugin": "^4.0.0",
+    "vue-loader": "^16.1.2"
   }
 }
