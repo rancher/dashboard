@@ -15,13 +15,13 @@ Users can create application deployments from Gitlab repositories:
 
 ---
 
-The application deployment creation UI now supports custom application variables (based on schema-ish metadata). 
+The application deployment creation UI now supports custom application variables (based on schema-ish metadata). Where possible, the UI informs the user about boundaries such as min/max allowed values.
 
 ![Step 2](./image2.png)
 
 ---
 
-It's now possible to change the source of an existing application.
+It's now possible to change the source of an existing application. For example, if an application was initially deployed from a GitHub repository, we can now update the source to point to Gitlab instead.
 
 ![Overview](./image3.png)
 
