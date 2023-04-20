@@ -33,12 +33,12 @@ describe('Extensions page', () => {
 
     // let's wait for the install button to become visible and re-install
     // the extensions operator
-    extensionsPo.installOperatorBtn().should('be.visible');
-    extensionsPo.installOperatorBtnClick();
+    extensionsPo.installOperatorBtn().checkVisible();
+    extensionsPo.installOperatorBtn().click();
     extensionsPo.enableExtensionModalEnableClick();
 
     // wait for operation to finish and refresh...
-    extensionsPo.extensionTabs().should('be.visible');
+    extensionsPo.extensionTabs.checkVisible();
     ExtensionsPo.goTo();
 
     // let's make sure all went good
@@ -46,7 +46,7 @@ describe('Extensions page', () => {
     extensionsPo.extensionCard(extensionName).should('be.visible');
   });
 
-  it('Should toogle the extension details', () => {
+  it('Should toggle the extension details', () => {
     const extensionsPo = new ExtensionsPo();
 
     extensionsPo.extensionTabAvailableClick();
