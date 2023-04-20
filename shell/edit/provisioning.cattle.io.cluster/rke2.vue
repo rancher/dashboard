@@ -308,6 +308,11 @@ export default {
 
     const truncateLimit = this.value.machinePoolDefaults?.hostnameLengthLimit;
 
+    // Is hostname truncation supported by the backend?
+    const provSchema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+    const specSchemaName = provSchema?.resourceFields?.spec?.type;
+    const specSchema = specSchemaName ? this.$store.getters['management/schemaFor'](specSchemaName) : {};
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
@@ -345,6 +350,7 @@ export default {
       psps:                  null, // List of policies if any
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
+      supportsTruncation:    !!specSchema?.resourceFields?.machinePoolDefaults,
     };
   },
 
@@ -2591,7 +2597,10 @@ export default {
                 :label="t('cluster.rke2.address.nodePortRange.label')"
               />
             </div>
-            <div class="col span-6">
+            <div
+              v-if="supportsTruncation"
+              class="col span-6"
+            >
               <Checkbox
                 v-if="!isView || isView && !hostnameTruncationManuallySet"
                 v-model="truncateHostnames"
