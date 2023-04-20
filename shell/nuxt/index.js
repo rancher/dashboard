@@ -18,6 +18,7 @@ import cookieUniversalNuxt from './cookie-universal-nuxt.js';
 import axios from './axios.js';
 import plugins from '../core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
+import extensionsLoader from '../core/extensions/loader.js';
 import axiosShell from '../plugins/axios';
 import '../plugins/tooltip';
 import '../plugins/vue-clipboard2';
@@ -309,6 +310,12 @@ async function createApp(ssrContext, config = {}) {
 
   if (process.client && typeof steveCreateWorker === 'function') {
     await steveCreateWorker(app.context, inject);
+  }
+
+  // This needs to be loaded after the 'pluginsLoader' and 'plugin' calls because they trample all over the vue router and will erase
+  // anything this extension loader changes
+  if (typeof extensionsLoader === 'function') {
+    await extensionsLoader(app.context, inject);
   }
 
   // if (process.client && typeof formatters === 'function') {
