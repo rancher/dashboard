@@ -7767,6 +7767,7 @@ globalMonitoringPage:
     custom:
       label: 自定義 token
       placeholder: 請配置自定義 token
+      yamlRequired: apiToken 字段必須配置
   customAddress:
     add: 添加地址
     otherHeader: 自定義其他地址

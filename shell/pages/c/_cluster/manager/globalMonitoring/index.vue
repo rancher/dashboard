@@ -126,6 +126,7 @@ export default {
         timeout:       600,
         historyMax:    5,
       },
+      useDefaultToken: true,
     };
   },
   watch: {
@@ -416,7 +417,10 @@ export default {
     },
     async save(btnCb) {
       this.validate();
-      this.$set(this, 'errors', this.value.errors || []);
+
+      const errors = this.errors.concat(this.value.errors || []);
+
+      this.$set(this, 'errors', errors);
       delete this.value.errors;
 
       try {
@@ -530,10 +534,12 @@ export default {
         const useDefaultToken = this.$refs.thanosCatalog.useDefaultToken;
 
         return useDefaultToken;
-      } else {
+      } else if (this.value?.ui?.apiToken) {
         const apiToken = this.value.ui.apiToken;
 
         return !apiToken;
+      } else {
+        return this.useDefaultToken;
       }
     },
 
@@ -737,6 +743,8 @@ export default {
     initApiToken() {
       const useDefaultToken = this.monitoringSettings?.useDefaultToken === 'true';
 
+      this.useDefaultToken = useDefaultToken;
+
       if (useDefaultToken) {
         this.$set(this.value.ui, 'apiToken', '');
       }
@@ -801,6 +809,13 @@ export default {
     },
 
     validate() {
+      this.errors = [];
+
+      if (!this.showValuesComponent) {
+        if (!this.useDefaultToken && !this.value.ui.apiToken) {
+          this.errors.push(this.t('globalMonitoringPage.token.custom.yamlRequired', true));
+        }
+      }
       if (this.$refs.thanosCatalog) {
         this.$refs.thanosCatalog.validate();
       }
@@ -809,6 +824,10 @@ export default {
     updateWarning: throttle(function() {
       this.getStoreWarnings();
     }, 1500, { trailing: true }),
+
+    updateUseDefaultToken(neu) {
+      this.useDefaultToken = neu;
+    },
 
     getStoreWarnings() {
       const warnings = [];
@@ -976,6 +995,7 @@ export default {
               :monitoring-settings="monitoringSettings"
               @updateVersion="updateVersion"
               @updateWarning="updateWarning"
+              @updateUseDefaultToken="updateUseDefaultToken"
             />
           </template>
           <template v-else>
