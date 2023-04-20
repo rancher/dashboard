@@ -7486,7 +7486,6 @@ globalMonitoringPage:
     custom:
       label: Custom token
       placeholder: Please configure a custom token
-      yamlRequired: The apiToken field must be configured
   customAddress:
     add: Add Address
     otherHeader: Customize other addresses

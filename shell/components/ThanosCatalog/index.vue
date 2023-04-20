@@ -195,8 +195,7 @@ export default {
         return item;
       }));
     },
-    updateApiToken(val) {
-      this.$emit('updateUseDefaultToken', val);
+    updateApiToken() {
       if (this.useDefaultToken) {
         this.$set(this.value.ui, 'apiToken', '');
       }
