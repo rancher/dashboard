@@ -5,7 +5,6 @@ import PagePo from '~/cypress/e2e/po/pages/page.po';
 import ClusterRepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
 
-const endpoint = '/prefs';
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
 const repoList = new ClusterRepoListPo('tr');
@@ -26,7 +25,7 @@ describe('Standard user can update their preferences', () => {
     userMenu.checkOpen();
     userMenu.clickMenuLink('Preferences');
     userMenu.checkClosed();
-    cy.url().should('include', endpoint);
+    prefPage.checkIsCurrentPage();
     prefPage.title();
   });
 
@@ -39,7 +38,7 @@ describe('Standard user can update their preferences', () => {
       English: '[lang="en-us"]'
     };
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     for (const [key, value] of Object.entries(languages)) {
       prefPage.dropdownMenu().open(0);
       prefPage.listBox().isOpened();
@@ -71,9 +70,9 @@ describe('Standard user can update their preferences', () => {
       (key === 'Auto' && hour < 7 || hour >= 18) ? themeOptions['Auto'] = 'theme-dark' : themeOptions['Auto'] = 'theme-light';
     }
 
-    PagePo.goTo(endpoint);
     for (const [key, value] of Object.entries(themeOptions)) {
-      PagePo.goTo(endpoint);
+      prefPage.goTo();
+      prefPage.waitForPage();
       prefPage.button().set(key);
       prefPage.button().isSelected(key);
       prefPage.checkThemeDomElement(value);
@@ -81,7 +80,7 @@ describe('Standard user can update their preferences', () => {
       userMenu.checkOpen();
       userMenu.clickMenuLink('Log Out');
       cy.login();
-      PagePo.goTo(endpoint);
+      prefPage.goTo();
       prefPage.button().isSelected(key);
       prefPage.checkThemeDomElement(value);
     }
@@ -100,7 +99,7 @@ describe('Standard user can update their preferences', () => {
     };
 
     for (const [key, value] of Object.entries(landingPageOptions)) {
-      PagePo.goTo(endpoint);
+      prefPage.goTo();
       prefPage.radioButton().set(key);
       prefPage.radioButton().isChecked(key);
 
@@ -117,7 +116,7 @@ describe('Standard user can update their preferences', () => {
       cy.login();
       cy.visit(Cypress.config().baseUrl);
       cy.url().should('include', value);
-      PagePo.goTo(endpoint);
+      prefPage.goTo();
       prefPage.radioButton().isChecked(key);
     }
   });
@@ -129,7 +128,7 @@ describe('Standard user can update their preferences', () => {
     */
     const dropBoxIndex = 2;
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.dropdownMenu().open(dropBoxIndex);
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 5).then(($els) => {
@@ -152,7 +151,7 @@ describe('Standard user can update their preferences', () => {
     */
     const dropBoxIndex = 3;
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.dropdownMenu().open(dropBoxIndex);
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 2).then(($els) => {
@@ -176,7 +175,7 @@ describe('Standard user can update their preferences', () => {
     const dropBoxIndex = 4;
     const options = ['10', '25', '50', '100'];
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     for (const i in options) {
       prefPage.dropdownMenu().open(dropBoxIndex);
       prefPage.listBox().isOpened();
@@ -201,7 +200,7 @@ describe('Standard user can update their preferences', () => {
     const dropBoxIndex = 5;
     const options = ['2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     for (const i in options) {
       prefPage.dropdownMenu().open(dropBoxIndex);
       prefPage.listBox().isOpened();
@@ -224,14 +223,14 @@ describe('Standard user can update their preferences', () => {
     */
     const checkboxLabel = 'Do not ask for confirmation when scaling down node pools.';
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isChecked();
     userMenu.open();
     userMenu.checkOpen();
     userMenu.clickMenuLink('Log Out');
     cy.login();
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isUnchecked();
   });
@@ -243,7 +242,7 @@ describe('Standard user can update their preferences', () => {
     */
     const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     const checkboxLabel = 'Enable "View in API"';
 
     prefPage.checkbox(checkboxLabel).set();
@@ -254,7 +253,7 @@ describe('Standard user can update their preferences', () => {
     cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isUnchecked();
 
@@ -267,7 +266,7 @@ describe('Standard user can update their preferences', () => {
     /*
     Select checkbox option and verify state is preserved after logout/login
     */
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     const checkboxLabel = 'Show system Namespaces managed by Rancher (not intended for editing or deletion)';
 
     prefPage.checkbox(checkboxLabel).set();
@@ -276,7 +275,7 @@ describe('Standard user can update their preferences', () => {
     userMenu.checkOpen();
     userMenu.clickMenuLink('Log Out');
     cy.login();
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.checkbox(checkboxLabel).isChecked();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isUnchecked();
@@ -286,7 +285,7 @@ describe('Standard user can update their preferences', () => {
     /*
     Select checkbox option and verify state is preserved after logout/login
     */
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     const checkboxLabel = 'Enable Dark/Light Theme keyboard shortcut toggle (shift+T)';
 
     prefPage.checkbox(checkboxLabel).set();
@@ -295,7 +294,7 @@ describe('Standard user can update their preferences', () => {
     userMenu.checkOpen();
     userMenu.clickMenuLink('Log Out');
     cy.login();
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.checkbox(checkboxLabel).isChecked();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isUnchecked();
@@ -310,7 +309,7 @@ describe('Standard user can update their preferences', () => {
     const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
     const checkboxLabel = 'Hide All Type Descriptions';
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isChecked();
 
@@ -319,7 +318,7 @@ describe('Standard user can update their preferences', () => {
     cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
     banners.banner().should('not.exist');
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isUnchecked();
 
@@ -334,7 +333,7 @@ describe('Standard user can update their preferences', () => {
     */
     const buttonOptions = ['Emacs', 'Vim', 'Normal human'];
 
-    PagePo.goTo(endpoint);
+    prefPage.goTo();
     for (const i in buttonOptions) {
       prefPage.button().set(buttonOptions[i]);
       prefPage.button().isSelected(buttonOptions[i]);
@@ -342,7 +341,7 @@ describe('Standard user can update their preferences', () => {
       userMenu.checkOpen();
       userMenu.clickMenuLink('Log Out');
       cy.login();
-      PagePo.goTo(endpoint);
+      prefPage.goTo();
       prefPage.button().isSelected(buttonOptions[i]);
     }
   });
@@ -354,14 +353,14 @@ describe('Standard user can update their preferences', () => {
     const buttonOptions = ['Include Prerelease Versions', 'Show Releases Only'];
 
     for (const i in buttonOptions) {
-      PagePo.goTo(endpoint);
+      prefPage.goTo();
       prefPage.button().set(buttonOptions[i]);
       prefPage.button().isSelected(buttonOptions[i]);
       userMenu.open();
       userMenu.checkOpen();
       userMenu.clickMenuLink('Log Out');
       cy.login();
-      PagePo.goTo(endpoint);
+      prefPage.goTo();
       prefPage.button().isSelected(buttonOptions[i]);
     }
   });
