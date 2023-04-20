@@ -109,8 +109,9 @@ export default {
     },
     saveSettings(done) {
       const t = this.$store.getters['i18n/t'];
-      const isLokiHttps = this.value.spec['loki'].url ? this.value.spec['loki'].url.toLowerCase().startsWith('https://') : undefined;
-
+      const urlCheck = ['https://', 'http://'].some(checkValue => this.value.spec['loki'].url.toLowerCase().startsWith(checkValue));
+      const isLokiHttps = this.value.spec['loki'].url ? urlCheck : undefined;
+  
       if (this.selectedProvider === 'loki' && !isLokiHttps) {
         this.errors = [t('logging.loki.urlInvalid')];
 
