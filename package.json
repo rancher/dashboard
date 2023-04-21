@@ -200,8 +200,7 @@
     "yarn": "1.22.18"
   },
   "resolutions": {
-    "**/webpack": "4",
-    "@types/node": "^16"
+    "**/webpack": "4"
   },
   "nyc": {
     "reporter": [
