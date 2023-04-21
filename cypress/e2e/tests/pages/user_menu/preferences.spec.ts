@@ -182,6 +182,7 @@ describe('Standard user can update their preferences', () => {
       prefPage.listBox().getListBoxItems().should('have.length', 4);
       prefPage.listBox().set(options[i]);
       prefPage.listBox().isClosed();
+      prefPage.dropdownMenu().checkOptionSelected(dropBoxIndex, options[i])
       cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
       cy.wait(`@prefUpdate${ i }`).then(({request, response}) => {
         expect(response?.statusCode).to.eq(200)
