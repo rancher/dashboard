@@ -170,10 +170,10 @@ describe('Standard user can update their preferences', () => {
   it('Can select Table Rows per Page', () => {
     /*
     Select each option
-    Get values of options available and compare them to 'options' list
+    Validate http request's payload & response contain correct values per selection
     */
     const dropBoxIndex = 4;
-    const options = ['10', '25', '50', '100'];
+    const options = ['25', '50', '100', '10'];
 
     prefPage.goTo();
     for (const i in options) {
@@ -181,14 +181,13 @@ describe('Standard user can update their preferences', () => {
       prefPage.listBox().isOpened();
       prefPage.listBox().getListBoxItems().should('have.length', 4);
       prefPage.listBox().set(options[i]);
-      prefPage.dropdownMenu().checkOptionSelected(dropBoxIndex, options[i]).then((selectedOption) => {
-        const map = Cypress.$.map(selectedOption, text => text.innerText.trim());
-
-        for (const v in map) {
-          expect(map[v]).to.eq(options[i]);
-        }
-      });
       prefPage.listBox().isClosed();
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
+      cy.wait(`@prefUpdate${ i }`).then(({request, response}) => {
+        expect(response?.statusCode).to.eq(200)
+        expect(request.body.data).to.have.property('per-page', options[i])
+        expect(response?.body.data).to.have.property('per-page', options[i])
+      });
     }
   });
 
