@@ -42,6 +42,11 @@ function load(data) {
   self.postMessage({ load: data });
 }
 
+// used for dispatching a function in the worker, primarily for redirecting messages intended for the advanced worker back to the UI thread
+function redispatch(msg) {
+  self.postMessage({ redispatch: msg });
+}
+
 const workerActions = {
   onmessage: (e) => {
     /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
@@ -75,7 +80,6 @@ const workerActions = {
 
       state.schemas[schema.id] = hashObj(schema);
     });
-    // console.log(JSON.parse(JSON.stringify(state.resources.schemas)));
   },
 
   // Called when schema is updated
@@ -91,6 +95,12 @@ const workerActions = {
 
     // Delete the schema from the map, so if it comes back we don't ignore it if the hash is the same
     delete state.schemas[id];
+  },
+  watch: (msg) => {
+    redispatch({ send: msg });
+  },
+  createWatcher: (msg) => {
+    redispatch({ subscribe: msg });
   }
 };
 

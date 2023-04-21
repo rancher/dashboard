@@ -7,8 +7,8 @@ import Socket, {
   NO_SCHEMA,
   EVENT_MESSAGE,
   EVENT_CONNECTED,
+  REVISION_TOO_OLD
 } from '@shell/utils/socket';
-import { addParam } from '@shell/utils/url';
 
 export const WATCH_STATUSES = {
   /**
@@ -110,7 +110,7 @@ export default class ResourceWatcher extends Socket {
     return !!this.watches?.[watchKey];
   }
 
-  async watch(watchKey, providedResourceVersion, providedResourceVersionTime, providedKeyParts = {}, providedSkipResourceVersion) {
+  watch(watchKey, providedResourceVersion, providedResourceVersionTime, providedKeyParts = {}, providedSkipResourceVersion) {
     const {
       resourceType: providedResourceType,
       id: providedId,
@@ -136,7 +136,7 @@ export default class ResourceWatcher extends Socket {
     const id = providedId || this.watches?.[watchKey]?.id;
     const namespace = providedNamespace || this.watches?.[watchKey]?.namespace;
     const selector = providedSelector || this.watches?.[watchKey]?.selector;
-    let skipResourceVersion = this.watches?.[watchKey]?.skipResourceVersion || providedSkipResourceVersion;
+    const skipResourceVersion = this.watches?.[watchKey]?.skipResourceVersion || providedSkipResourceVersion;
 
     const watchObject = {
       resourceType,
@@ -145,47 +145,8 @@ export default class ResourceWatcher extends Socket {
       selector
     };
 
-    let resourceVersionTime = providedResourceVersionTime || this.watches?.[watchKey]?.resourceVersionTime;
-    let resourceVersion = providedResourceVersion || this.watches?.[watchKey]?.resourceVersion;
-
-    if (!skipResourceVersion && (!resourceVersion || Date.now() - resourceVersionTime > 300000)) { // 300000ms is 5minutes
-      this.trace('watch:', 'revision update required', watchKey);
-
-      const resourceUrl = this.baseUrl + resourceType;
-      const limitedResourceUrl = addParam(resourceUrl, 'limit', 1);
-      const opt = {
-        method:  'get',
-        headers: { accept: 'application/json' },
-      };
-
-      if (this.csrf) {
-        opt.headers['x-api-csrf'] = this.csrf;
-      }
-
-      await fetch(limitedResourceUrl, opt)
-        .then((res) => {
-          this.watches[watchKey] = { ...watchObject };
-          if (!res.ok) {
-            this.watches[watchKey].error = res.json();
-            console.warn(`Resource error retrieving resourceVersion`, resourceType, ':', res.json()); // eslint-disable-line no-console
-          } else {
-            this.watches[watchKey].error = undefined;
-          }
-
-          return res.json();
-        })
-        .then((res) => {
-          if (res.revision) {
-            resourceVersionTime = Date.now();
-            resourceVersion = res.revision;
-          } else if (!this.watches[watchKey].error) {
-            // if there wasn't a revision in the response and there wasn't an error we wrote to the watch then the resource doesn't get a revision and we can skip it on subsequent rewatches
-            skipResourceVersion = true;
-          }
-        });
-      // When this fails we should re-fetch all resources (aka same as resyncWatch, or we actually call it). #7917
-      // This would match the old approach
-    }
+    const resourceVersionTime = providedResourceVersionTime || this.watches?.[watchKey]?.resourceVersionTime;
+    const resourceVersion = providedResourceVersion || this.watches?.[watchKey]?.resourceVersion;
 
     const success = this.send(JSON.stringify({
       ...watchObject,
@@ -262,13 +223,12 @@ export default class ResourceWatcher extends Socket {
 
         this.watches[watchKey].error = { type: resourceType, reason: NO_SCHEMA };
       } else if ( err.includes('too old') ) {
-        // We don't actually know the gap between the requested revision and the oldest available revision.
-        // For this case we should re-fetch all resources (aka same as resyncWatch, or we actually call it). #7917
-        // This would match the old approach
+        console.log('too old!!!', resourceType);
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;
         delete this.watches[watchKey].skipResourceVersion;
-        this.watch(watchKey);
+        this.watches[watchKey].error = { type: resourceType, reason: REVISION_TOO_OLD };
+        this.dispatchEvent(new CustomEvent('resync', { detail: event }));
       }
     }
 

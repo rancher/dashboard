@@ -9,7 +9,8 @@
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import { CSRF } from '@shell/config/cookies';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
@@ -35,18 +36,21 @@ import { BLANK_CLUSTER } from '@shell/store/index.js';
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
-const waitForManagement = (store) => {
-  const managementReady = () => store.state?.managementReady;
+const workerQueues = {};
 
-  return waitFor(managementReady, 'Management');
+const waitForSettingsSchema = (store) => {
+  return waitFor(() => !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
+};
+
+const waitForSettings = (store) => {
+  return waitFor(() => !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE));
 };
 
 const isAdvancedWorker = (ctx) => {
-  const { rootGetters, getters } = ctx;
-  const storeName = getters.storeName;
+  const { rootGetters } = ctx;
   const clusterId = rootGetters.clusterId;
 
-  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
+  if (clusterId === BLANK_CLUSTER) {
     return false;
   }
 
@@ -55,19 +59,27 @@ const isAdvancedWorker = (ctx) => {
   return perfSetting?.advancedWorker.enabled;
 };
 
-// We only create a worker for the cluster store
 export async function createWorker(store, ctx) {
   const { getters, dispatch } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
 
-  if (storeName !== 'cluster') {
-    return;
+  if (!store.$workers[storeName]) {
+    store.$workers[storeName] = {
+      postMessage: (msg) => {
+        if (workerQueues[storeName]) {
+          workerQueues[storeName].push(msg);
+        } else {
+          workerQueues[storeName] = [msg];
+        }
+      },
+      mode: 'waiting'
+    };
   }
 
-  await waitForManagement(store);
-  // getting perf setting in a separate constant here because it'll provide other values we'll want later.
+  await waitForSettingsSchema(store);
+  await waitForSettings(store);
   const advancedWorker = isAdvancedWorker(ctx);
 
   const workerActions = {
@@ -86,6 +98,12 @@ export async function createWorker(store, ctx) {
     dispatch: (msg) => {
       dispatch(`ws.${ msg.name }`, msg);
     },
+    // this handler allows the worker to send a message back to the UI thread to be disaptched as a UI vuex action directly
+    redispatch: (msg) => {
+      Object.entries(msg).forEach(([action, params]) => {
+        dispatch(action, params);
+      });
+    },
     [EVENT_CONNECT_ERROR]: (e) => {
       dispatch('error', e );
     },
@@ -94,7 +112,7 @@ export async function createWorker(store, ctx) {
     }
   };
 
-  if (!store.$workers[storeName]) {
+  if (!store.$workers[storeName] || store.$workers[storeName].mode === 'waiting') {
     const workerMode = advancedWorker ? 'advanced' : 'basic';
     const worker = store.steveCreateWorker(workerMode);
 
@@ -114,6 +132,12 @@ export async function createWorker(store, ctx) {
         workerActions[action](e?.data[action]);
       });
     };
+  }
+
+  while (workerQueues[storeName]?.length) {
+    const message = workerQueues[storeName].shift();
+
+    store.$workers[storeName].postMessage(message);
   }
 }
 
@@ -212,7 +236,7 @@ const sharedActions = {
 
     const url = `${ state.config.baseUrl }/subscribe`;
     const maxTries = growlsDisabled(rootGetters) ? null : 3;
-    const connectionMetadata = get(opt, 'metadata');
+    const metadata = get(opt, 'metadata');
 
     if (isAdvancedWorker(ctx)) {
       if (!this.$workers[getters.storeName]) {
@@ -222,16 +246,18 @@ const sharedActions = {
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
         createWatcher: {
-          connectionMetadata,
+          metadata,
           url:  `${ state.config.baseUrl }/subscribe`,
           csrf: this.$cookies.get(CSRF, { parseJSON: false }),
           maxTries
         }
       });
+      // ToDo: SM need to handle this use-case as well...
+    // ToDo: everything below here needs to be it's own action?
     } else if ( socket ) {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
-      socket.connect(connectionMetadata);
+      socket.connect(metadata);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
@@ -263,7 +289,7 @@ const sharedActions = {
           }
         }
       });
-      socket.connect(connectionMetadata);
+      socket.connect(metadata);
     }
   },
 
@@ -356,7 +382,7 @@ const sharedActions = {
 
     const worker = this.$workers?.[getters.storeName] || {};
 
-    if (worker.mode === 'advanced') {
+    if (worker.mode === 'advanced' || worker.mode === 'waiting') {
       if ( force ) {
         msg.force = true;
       }
@@ -944,19 +970,7 @@ const defaultGetters = {
     if ( !revision ) {
       const cache = state.types[type];
 
-      if ( !cache ) {
-        return null;
-      }
-
       revision = cache.revision; // This is always zero.....
-
-      for ( const obj of cache.list ) {
-        if ( obj && obj.metadata ) {
-          const neu = parseInt(obj.metadata.resourceVersion, 10);
-
-          revision = Math.max(revision, neu);
-        }
-      }
     }
 
     if ( revision ) {

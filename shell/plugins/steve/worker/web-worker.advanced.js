@@ -93,12 +93,12 @@ const workerActions = {
     }
     caches[SCHEMA].load(collection);
   },
-  createWatcher: (metadata) => {
-    trace('createWatcher', metadata);
+  createWatcher: (opt) => {
+    trace('createWatcher', opt);
 
     const {
-      connectionMetadata, maxTries, url, csrf
-    } = metadata;
+      metadata, maxTries, url, csrf
+    } = opt;
 
     if (!state.watcher) {
       state.watcher = new ResourceWatcher(url, true, null, null, maxTries, csrf);
@@ -119,6 +119,10 @@ const workerActions = {
         }
       });
 
+      state.watcher.addEventListener('resync', (e) => {
+        self.postMessage({ redispatch: { resyncWatch: e } });
+      });
+
       state.watcher.addEventListener(EVENT_CONNECT_ERROR, (e) => {
         handleConnectionError(EVENT_CONNECT_ERROR, e, state.watcher);
       });
@@ -129,7 +133,7 @@ const workerActions = {
 
       state.watcher.setDebug(state.debugWorker);
 
-      state.watcher.connect(connectionMetadata);
+      state.watcher.connect(metadata);
 
       // Flush the workerQueue
       while (state.workerQueue.length > 0) {
