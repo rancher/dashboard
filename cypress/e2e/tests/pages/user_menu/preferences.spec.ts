@@ -4,7 +4,6 @@ import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import PagePo from '~/cypress/e2e/po/pages/page.po';
 import ClusterRepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
-import { reverse } from 'cypress/types/lodash';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
@@ -122,28 +121,29 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it.only('Can select date format', () => {
+  it('Can select date format', () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
     const dropBoxIndex = 2;
-    const formats = ['YYYY-MM-DD', 'M/D/YYYY', 'D/M/YYYY', 'ddd, D MMM YYYY', 'ddd, MMM D YYYY']
+    const formats = ['YYYY-MM-DD', 'M/D/YYYY', 'D/M/YYYY', 'ddd, D MMM YYYY', 'ddd, MMM D YYYY'];
 
     prefPage.goTo();
     prefPage.dropdownMenu().open(dropBoxIndex);
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 5).then(($els) => {
       const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
+
       for (const i in map) {
         prefPage.listBox().set(map[i]);
         prefPage.listBox().isClosed();
         cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
         cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('date-format', formats[i])
-        expect(response?.body.data).to.have.property('date-format', formats[i])
-      });
+          expect(response?.statusCode).to.eq(200);
+          expect(request.body.data).to.have.property('date-format', formats[i]);
+          expect(response?.body.data).to.have.property('date-format', formats[i]);
+        });
         prefPage.dropdownMenu().open(dropBoxIndex);
         prefPage.listBox().isOpened();
       }
@@ -156,22 +156,23 @@ describe('Standard user can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     const dropBoxIndex = 3;
-    const formats = ['HH:mm:ss', 'h:mm:ss a']
+    const formats = ['HH:mm:ss', 'h:mm:ss a'];
 
     prefPage.goTo();
     prefPage.dropdownMenu().open(dropBoxIndex);
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 2).then(($els) => {
       const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
+
       for (const i in map) {
         prefPage.listBox().set(map[i]);
         prefPage.listBox().isClosed();
         cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
         cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('time-format', formats[i])
-        expect(response?.body.data).to.have.property('time-format', formats[i])
-      });
+          expect(response?.statusCode).to.eq(200);
+          expect(request.body.data).to.have.property('time-format', formats[i]);
+          expect(response?.body.data).to.have.property('time-format', formats[i]);
+        });
         prefPage.dropdownMenu().open(dropBoxIndex);
         prefPage.listBox().isOpened();
       }
@@ -197,8 +198,8 @@ describe('Standard user can update their preferences', () => {
       cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
       cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('per-page', options[i])
-        expect(response?.body.data).to.have.property('per-page', options[i])
+        expect(request.body.data).to.have.property('per-page', options[i]);
+        expect(response?.body.data).to.have.property('per-page', options[i]);
       });
     }
   });
@@ -222,8 +223,8 @@ describe('Standard user can update their preferences', () => {
       cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
       cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('menu-max-clusters', options[i])
-        expect(response?.body.data).to.have.property('menu-max-clusters', options[i])
+        expect(request.body.data).to.have.property('menu-max-clusters', options[i]);
+        expect(response?.body.data).to.have.property('menu-max-clusters', options[i]);
       });
     }
   });
@@ -316,26 +317,27 @@ describe('Standard user can update their preferences', () => {
     Select the checkbox and verify description banner hidden
     Deselect the checkbox and verify description banner displays
     */
-    const banners = new BannersPo();
+    const banners = new BannersPo('header > .banner');
     const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
     const checkboxLabel = 'Hide All Type Descriptions';
 
     prefPage.goTo();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isChecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
 
-    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos').as('clusterRepos');
     PagePo.goTo(clusterRepoEndpoint);
-    cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
-    banners.banner().should('not.exist');
+    banners.self().should('not.exist');
 
     prefPage.goTo();
     prefPage.checkbox(checkboxLabel).set();
     prefPage.checkbox(checkboxLabel).isUnchecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
+    cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
 
     PagePo.goTo(clusterRepoEndpoint);
-    cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
-    banners.banner().should('exist');
+    banners.self().should('exist');
   });
 
   it('Can select a YAML Editor Key Mapping option', () => {
