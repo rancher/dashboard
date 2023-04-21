@@ -4,6 +4,7 @@ import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import PagePo from '~/cypress/e2e/po/pages/page.po';
 import ClusterRepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
+import { reverse } from 'cypress/types/lodash';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
@@ -147,20 +148,26 @@ describe('Standard user can update their preferences', () => {
   it('Can select time format', () => {
     /*
     Select each option
-    Get values of options available and compare them to Regex
+    Validate http request's payload & response contain correct values per selection
     */
     const dropBoxIndex = 3;
+    const formats = ['HH:mm:ss', 'h:mm:ss a']
 
     prefPage.goTo();
     prefPage.dropdownMenu().open(dropBoxIndex);
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 2).then(($els) => {
-      const map = Cypress.$.map($els, el => el.innerText.trim());
-
+      const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
       for (const i in map) {
         expect(map[i]).to.match(/([0-9]+(:[0-9]+)+)/);
         prefPage.listBox().set(map[i]);
         prefPage.listBox().isClosed();
+        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
+        cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('time-format', formats[i])
+        expect(response?.body.data).to.have.property('time-format', formats[i])
+      });
         prefPage.dropdownMenu().open(dropBoxIndex);
         prefPage.listBox().isOpened();
       }
