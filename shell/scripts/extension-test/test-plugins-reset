@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+
+// Reset the top-level package file and remove the extra script that may have been added
+const fs = require('fs-extra');
+const path = require('path');
+const dir = path.resolve('.');
+const topFile = path.join(dir, 'package.json');
+const mainPkg = JSON.parse(fs.readFileSync(topFile));
+
+if (mainPkg.scripts['publish-pkgs']) {
+  delete mainPkg.scripts['publish-pkgs'];
+  fs.writeFileSync(topFile, JSON.stringify(mainPkg, undefined, 2) + '\n');
+}

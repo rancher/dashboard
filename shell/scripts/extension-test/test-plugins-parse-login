@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+
+const readline = require('readline');
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+let jsonData = '';
+
+rl.on('line', (line) => {
+    jsonData += `${line}\n`;
+});
+
+rl.once('close', () => {
+    const data = JSON.parse(jsonData);
+
+    if (data.error) {
+      console.error(`ERROR creating user in Verdaccio: ${data.error}`);
+      process.exitCode = 1;
+    } else {
+      console.log(data.token);
+    }
+});
