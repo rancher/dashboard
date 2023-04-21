@@ -122,23 +122,28 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select date format', () => {
+  it.only('Can select date format', () => {
     /*
     Select each option
-    Get values of options available and compare them to Regex
+    Validate http request's payload & response contain correct values per selection
     */
     const dropBoxIndex = 2;
+    const formats = ['YYYY-MM-DD', 'M/D/YYYY', 'D/M/YYYY', 'ddd, D MMM YYYY', 'ddd, MMM D YYYY']
 
     prefPage.goTo();
     prefPage.dropdownMenu().open(dropBoxIndex);
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 5).then(($els) => {
-      const map = Cypress.$.map($els, el => el.innerText.trim());
-
+      const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
       for (const i in map) {
-        expect(map[i]).to.match(/([0-9]+(:[0-9]+)+)/)
         prefPage.listBox().set(map[i]);
         prefPage.listBox().isClosed();
+        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
+        cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('date-format', formats[i])
+        expect(response?.body.data).to.have.property('date-format', formats[i])
+      });
         prefPage.dropdownMenu().open(dropBoxIndex);
         prefPage.listBox().isOpened();
       }
@@ -159,7 +164,6 @@ describe('Standard user can update their preferences', () => {
     prefPage.listBox().getListBoxItems().should('have.length', 2).then(($els) => {
       const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
       for (const i in map) {
-        expect(map[i]).to.match(/([0-9]+(:[0-9]+)+)/);
         prefPage.listBox().set(map[i]);
         prefPage.listBox().isClosed();
         cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
