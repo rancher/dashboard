@@ -3,14 +3,14 @@ import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 import ButtonGroupPo from '~/cypress/e2e/po/components/button-group.po';
 import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
 import ListBoxPo from '~/cypress/e2e/po/components/dropdown-listbox.po';
-import DropBoxPo from '~/cypress/e2e/po/components/dropbox-menu.po';
+import DropBoxPo from '~/cypress/e2e/po/components/labeled-select.po';
 
 export default class PreferencesPagePo extends PagePo {
   static url: string = '/prefs'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(PreferencesPagePo.url);
   }
-  
+
   constructor() {
     super(PreferencesPagePo.url);
   }
@@ -19,8 +19,24 @@ export default class PreferencesPagePo extends PagePo {
     return this.self().get('h1').should('have.text', 'Preferences');
   }
 
-  dropdownMenu(): DropBoxPo {
-    return new DropBoxPo('.vs__dropdown-toggle');
+  languageDropdownMenu(): DropBoxPo {
+    return new DropBoxPo('[data-testid=prefs__languageSelector]');
+  }
+
+  dateFormateDropdownMenu(): DropBoxPo {
+    return new DropBoxPo('[data-testid=prefs__displaySetting__dateFormat]');
+  }
+
+  timeFormateDropdownMenu(): DropBoxPo {
+    return new DropBoxPo('[data-testid=prefs__displaySetting__timeFormat]');
+  }
+
+  perPageDropdownMenu(): DropBoxPo {
+    return new DropBoxPo('[data-testid=prefs__displaySetting__perPage]');
+  }
+
+  clustersDropdownMenu(): DropBoxPo {
+    return new DropBoxPo('[data-testid=prefs__displaySetting__menuMaxClusters]');
   }
 
   listBox(): ListBoxPo {

@@ -163,7 +163,9 @@ export default {
       <h4 v-t="'prefs.language'" />
       <div class="row">
         <div class="col span-4">
-          <LocaleSelector />
+          <LocaleSelector
+            data-testid="prefs__languageSelector"
+          />
         </div>
       </div>
     </div>
@@ -203,6 +205,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model="dateFormat"
+            data-testid="prefs__displaySetting__dateFormat"
             :label="t('prefs.dateFormat.label')"
             :options="dateOptions"
           />
@@ -210,6 +213,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model="timeFormat"
+            data-testid="prefs__displaySetting__timeFormat"
             :label="t('prefs.timeFormat.label')"
             :options="timeOptions"
           />
@@ -220,6 +224,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model.number="perPage"
+            data-testid="prefs__displaySetting__perPage"
             :label="t('prefs.perPage.label')"
             :options="perPageOptions"
             option-key="value"
@@ -230,6 +235,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model.number="menuMaxClusters"
+            data-testid="prefs__displaySetting__menuMaxClusters"
             :label="t('prefs.clusterToShow.label')"
             :options="menuClusterOptions"
             option-key="value"

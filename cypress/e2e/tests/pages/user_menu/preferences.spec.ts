@@ -40,15 +40,15 @@ describe('Standard user can update their preferences', () => {
 
     prefPage.goTo();
     for (const [key, value] of Object.entries(languages)) {
-      prefPage.dropdownMenu().open(0);
+      prefPage.languageDropdownMenu().open();
       prefPage.listBox().isOpened();
       prefPage.listBox().getListBoxItems().should('have.length', 2);
       prefPage.listBox().set(key);
-      prefPage.dropdownMenu().checkOptionSelected(0, key);
+      prefPage.languageDropdownMenu().checkOptionSelected(key);
       prefPage.listBox().isClosed();
       prefPage.checkLangDomElement(value);
       cy.reload();
-      prefPage.dropdownMenu().checkOptionSelected(0, key);
+      prefPage.languageDropdownMenu().checkOptionSelected(key);
       prefPage.checkLangDomElement(value);
     }
   });
@@ -126,11 +126,10 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const dropBoxIndex = 2;
     const formats = ['YYYY-MM-DD', 'M/D/YYYY', 'D/M/YYYY', 'ddd, D MMM YYYY', 'ddd, MMM D YYYY'];
 
     prefPage.goTo();
-    prefPage.dropdownMenu().open(dropBoxIndex);
+    prefPage.dateFormateDropdownMenu().open();
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 5).then(($els) => {
       const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
@@ -144,7 +143,7 @@ describe('Standard user can update their preferences', () => {
           expect(request.body.data).to.have.property('date-format', formats[i]);
           expect(response?.body.data).to.have.property('date-format', formats[i]);
         });
-        prefPage.dropdownMenu().open(dropBoxIndex);
+        prefPage.dateFormateDropdownMenu().open();
         prefPage.listBox().isOpened();
       }
     });
@@ -155,11 +154,10 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const dropBoxIndex = 3;
     const formats = ['HH:mm:ss', 'h:mm:ss a'];
 
     prefPage.goTo();
-    prefPage.dropdownMenu().open(dropBoxIndex);
+    prefPage.timeFormateDropdownMenu().open();
     prefPage.listBox().isOpened();
     prefPage.listBox().getListBoxItems().should('have.length', 2).then(($els) => {
       const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
@@ -173,7 +171,7 @@ describe('Standard user can update their preferences', () => {
           expect(request.body.data).to.have.property('time-format', formats[i]);
           expect(response?.body.data).to.have.property('time-format', formats[i]);
         });
-        prefPage.dropdownMenu().open(dropBoxIndex);
+        prefPage.timeFormateDropdownMenu().open();
         prefPage.listBox().isOpened();
       }
     });
@@ -184,17 +182,16 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const dropBoxIndex = 4;
     const options = ['25', '50', '100', '10'];
 
     prefPage.goTo();
     for (const i in options) {
-      prefPage.dropdownMenu().open(dropBoxIndex);
+      prefPage.perPageDropdownMenu().open();
       prefPage.listBox().isOpened();
       prefPage.listBox().getListBoxItems().should('have.length', 4);
       prefPage.listBox().set(options[i]);
       prefPage.listBox().isClosed();
-      prefPage.dropdownMenu().checkOptionSelected(dropBoxIndex, options[i]);
+      prefPage.perPageDropdownMenu().checkOptionSelected(options[i]);
       cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
       cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -209,17 +206,16 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const dropBoxIndex = 5;
     const options = ['2', '3', '4', '5', '6', '7', '8', '9', '10'];
 
     prefPage.goTo();
     for (const i in options) {
-      prefPage.dropdownMenu().open(dropBoxIndex);
+      prefPage.clustersDropdownMenu().open();
       prefPage.listBox().isOpened();
       prefPage.listBox().getListBoxItems().should('have.length', 9);
       prefPage.listBox().set(options[i]);
       prefPage.listBox().isClosed();
-      prefPage.dropdownMenu().checkOptionSelected(dropBoxIndex, options[i]);
+      prefPage.clustersDropdownMenu().checkOptionSelected(options[i]);
       cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
       cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
