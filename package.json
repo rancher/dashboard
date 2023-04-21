@@ -199,6 +199,10 @@
     "yaml-lint": "1.7.0",
     "yarn": "1.22.18"
   },
+  "resolutions": {
+    "**/webpack": "4",
+    "@types/node": "^16"
+  },
   "nyc": {
     "reporter": [
       "json"
