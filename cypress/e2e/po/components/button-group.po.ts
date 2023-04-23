@@ -2,16 +2,21 @@ import ComponentPo from '~/cypress/e2e/po/components/component.po';
 
 export default class ButtonGroupPo extends ComponentPo {
   /**
-   * Click on the button
+   * Clicks on the button
+   * @param label
+   * @returns
    */
   set(label: string): Cypress.Chainable {
-    return this.self().find('.btn').contains(label).click();
+    return this.self().contains(label).click();
   }
 
   /**
-   * Check is button is highlighted
+   * Checks button is highlighted
+   * @param label
+   * @returns
    */
   isSelected(label: string): Cypress.Chainable {
-    return this.self().find('.btn').contains(label).parent().should('have.class', 'bg-primary');
+    return this.self().find('.btn').contains(label).parent()
+      .should('have.class', 'bg-primary');
   }
 }

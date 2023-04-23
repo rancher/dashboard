@@ -43,8 +43,16 @@ export default class PreferencesPagePo extends PagePo {
     return new ListBoxPo('.vs__dropdown-menu');
   }
 
-  button(): ButtonGroupPo {
-    return new ButtonGroupPo('.btn-group');
+  themeButtons(): ButtonGroupPo {
+    return new ButtonGroupPo('[data-testid=prefs__themeOptions]');
+  }
+
+  keymapButtons(): ButtonGroupPo {
+    return new ButtonGroupPo('[data-testid=prefs__keymapOptions]');
+  }
+
+  helmButtons(): ButtonGroupPo {
+    return new ButtonGroupPo('[data-testid=prefs__helmOptions]');
   }
 
   checkbox(label: string): CheckboxInputPo {

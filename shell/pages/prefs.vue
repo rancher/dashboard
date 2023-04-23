@@ -175,6 +175,7 @@ export default {
       <h4 v-t="'prefs.theme.label'" />
       <ButtonGroup
         v-model="theme"
+        data-testid="prefs__themeOptions"
         :options="themeOptions"
       />
       <div class="mt-10">
@@ -298,6 +299,7 @@ export default {
       <h4 v-t="'prefs.keymap.label'" />
       <ButtonGroup
         v-model="keymap"
+        data-testid="prefs__keymapOptions"
         :options="keymapOptions"
       />
     </div>
@@ -310,6 +312,7 @@ export default {
       <h4 v-t="'prefs.helm.label'" />
       <ButtonGroup
         v-model="showPreRelease"
+        data-testid="prefs__helmOptions"
         :options="helmOptions"
       />
     </div>

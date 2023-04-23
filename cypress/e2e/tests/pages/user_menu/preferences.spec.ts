@@ -25,6 +25,7 @@ describe('Standard user can update their preferences', () => {
     userMenu.checkOpen();
     userMenu.clickMenuLink('Preferences');
     userMenu.checkClosed();
+    prefPage.waitForPage();
     prefPage.checkIsCurrentPage();
     prefPage.title();
   });
@@ -56,33 +57,32 @@ describe('Standard user can update their preferences', () => {
   it('Can select a theme', () => {
     /*
     Select theme and verify that its highlighted
-    Verify selection and mode ('Light' or 'Dark') is preserved after logout/login
+    Validate http request's payload & response contain correct values per selection
     */
     const themeOptions = {
-      Light: 'theme-light',
-      Dark:  'theme-dark',
-      Auto:  ''
+      Light: ['"ui-light"', 'theme-light'],
+      Dark:  ['"ui-dark"', 'theme-dark'],
+      Auto:  ['"ui-auto"', '']
     };
     // Set theme for 'Auto' mode based on time of day
     const hour = new Date().getHours();
 
     for (const key in themeOptions) {
-      (key === 'Auto' && hour < 7 || hour >= 18) ? themeOptions['Auto'] = 'theme-dark' : themeOptions['Auto'] = 'theme-light';
+      (key === 'Auto' && hour < 7 || hour >= 18) ? themeOptions['Auto'][1] = 'theme-dark' : themeOptions['Auto'][1] = 'theme-light';
     }
 
     for (const [key, value] of Object.entries(themeOptions)) {
       prefPage.goTo();
       prefPage.waitForPage();
-      prefPage.button().set(key);
-      prefPage.button().isSelected(key);
-      prefPage.checkThemeDomElement(value);
-      userMenu.open();
-      userMenu.checkOpen();
-      userMenu.clickMenuLink('Log Out');
-      cy.login();
-      prefPage.goTo();
-      prefPage.button().isSelected(key);
-      prefPage.checkThemeDomElement(value);
+      prefPage.themeButtons().set(key);
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('theme', value[0]);
+        expect(response?.body.data).to.have.property('theme', value[0]);
+      });
+      prefPage.themeButtons().isSelected(key);
+      prefPage.checkThemeDomElement(value[1]);
     }
   });
 
@@ -338,39 +338,48 @@ describe('Standard user can update their preferences', () => {
 
   it('Can select a YAML Editor Key Mapping option', () => {
     /*
-    Select key mapping option and verify state is preserved after logout/login
+    Select key mapping option
+    Validate http request's payload & response contain correct values per selection
     */
-    const buttonOptions = ['Emacs', 'Vim', 'Normal human'];
+    const buttonOptions = {
+      'Normal human': 'sublime',
+      Emacs:          'emacs',
+      Vim:            'vim',
+    };
 
     prefPage.goTo();
-    for (const i in buttonOptions) {
-      prefPage.button().set(buttonOptions[i]);
-      prefPage.button().isSelected(buttonOptions[i]);
-      userMenu.open();
-      userMenu.checkOpen();
-      userMenu.clickMenuLink('Log Out');
-      cy.login();
-      prefPage.goTo();
-      prefPage.button().isSelected(buttonOptions[i]);
+    for (const [key, value] of Object.entries(buttonOptions)) {
+      prefPage.keymapButtons().set(key);
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('keymap', value);
+        expect(response?.body.data).to.have.property('keymap', value);
+      });
+      prefPage.keymapButtons().isSelected(key);
     }
   });
 
   it('Can select a Helm Charts option', () => {
     /*
-    Select Helm Charts mapping option and verify state is preserved after logout/login
+    Select Helm Charts mapping option
+    Validate http request's payload & response contain correct values per selection
     */
-    const buttonOptions = ['Include Prerelease Versions', 'Show Releases Only'];
+    const buttonOptions = {
+      'Include Prerelease Versions': 'true',
+      'Show Releases Only':          'false'
+    };
 
-    for (const i in buttonOptions) {
+    for (const [key, value] of Object.entries(buttonOptions)) {
       prefPage.goTo();
-      prefPage.button().set(buttonOptions[i]);
-      prefPage.button().isSelected(buttonOptions[i]);
-      userMenu.open();
-      userMenu.checkOpen();
-      userMenu.clickMenuLink('Log Out');
-      cy.login();
-      prefPage.goTo();
-      prefPage.button().isSelected(buttonOptions[i]);
+      prefPage.helmButtons().set(key);
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('show-pre-release', value);
+        expect(response?.body.data).to.have.property('show-pre-release', value);
+      });
+      prefPage.helmButtons().isSelected(key);
     }
   });
 });
