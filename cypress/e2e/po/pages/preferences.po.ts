@@ -59,8 +59,8 @@ export default class PreferencesPagePo extends PagePo {
     return CheckboxInputPo.byLabel(this.self(), label);
   }
 
-  radioButton(): RadioGroupInputPo {
-    return new RadioGroupInputPo('.radio-group');
+  landingPageRadioBtn(): RadioGroupInputPo {
+    return new RadioGroupInputPo('[data-testid=prefs__landingPagePreference]');
   }
 
   checkLangDomElement(label: string) {

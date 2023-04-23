@@ -193,7 +193,9 @@ export default {
     >
       <hr>
       <h4 v-t="'prefs.landing.label'" />
-      <LandingPagePreference />
+      <LandingPagePreference
+        data-testid="prefs__landingPagePreference"
+      />
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">

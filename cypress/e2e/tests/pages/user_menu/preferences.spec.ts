@@ -89,19 +89,26 @@ describe('Standard user can update their preferences', () => {
   it('Can select login landing page', () => {
     /*
     Select each radio button and verify its highlighted
+    Validate http request's payload & response contain correct values per selection
     Verify user is landing on correct page after login
     Verify selection is preserved after logout/login
     */
-    const landingPageOptions: {[key: number]: string} = {
-      0: '/home',
-      1: 'c/_/manager/provisioning.cattle.io.cluster',
-      // 2: '/explore' // TODO this option only works when there is an existing cluster (not for standard user)
+    const landingPageOptions = {
+      0: ['"home"', '/home'],
+      1: ['"last-visited"', 'c/_/manager/provisioning.cattle.io.cluster'],
+      // 2: ['{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', '/explore'] // TODO this option only works when there is an existing cluster (not for standard user)
     };
 
     for (const [key, value] of Object.entries(landingPageOptions)) {
       prefPage.goTo();
-      prefPage.radioButton().set(key);
-      prefPage.radioButton().isChecked(key);
+      prefPage.landingPageRadioBtn().set(key);
+      prefPage.landingPageRadioBtn().isChecked(key);
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('after-login-route', value[0]);
+        expect(response?.body.data).to.have.property('after-login-route', value[0]);
+      });
 
       // if key is 1, navigate to cluster manager page and then do validations, else just do validations
       if (key == 1) {
@@ -115,9 +122,9 @@ describe('Standard user can update their preferences', () => {
       userMenu.clickMenuLink('Log Out');
       cy.login();
       cy.visit(Cypress.config().baseUrl);
-      cy.url().should('include', value);
+      cy.url().should('include', value[1]);
       prefPage.goTo();
-      prefPage.radioButton().isChecked(key);
+      prefPage.landingPageRadioBtn().isChecked(key);
     }
   });
 
