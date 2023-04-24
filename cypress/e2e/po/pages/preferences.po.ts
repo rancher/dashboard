@@ -55,8 +55,24 @@ export default class PreferencesPagePo extends PagePo {
     return new ButtonGroupPo('[data-testid=prefs__helmOptions]');
   }
 
-  checkbox(label: string): CheckboxInputPo {
-    return CheckboxInputPo.byLabel(this.self(), label);
+  scalingDownPromptCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid=prefs__scalingDownPrompt]');
+  }
+
+  viewInApiCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid=prefs__viewInApi]');
+  }
+
+  allNamespacesCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid=prefs__allNamespaces]');
+  }
+
+  themeShortcutCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid=prefs__themeShortcut]');
+  }
+
+  hideDescriptionsCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid=prefs__hideDescriptions]');
   }
 
   landingPageRadioBtn(): RadioGroupInputPo {

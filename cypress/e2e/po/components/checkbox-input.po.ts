@@ -29,10 +29,10 @@ export default class CheckboxInputPo extends ComponentPo {
   }
 
   isChecked(): Cypress.Chainable {
-    return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'true')
+    return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'true');
   }
 
   isUnchecked(): Cypress.Chainable {
-    return this.input().find('span.checkbox-custom').should('not.have.attr', 'aria-checked', 'true')
+    return this.input().find('span.checkbox-custom').should('not.have.attr', 'aria-checked', 'true');
   }
 }

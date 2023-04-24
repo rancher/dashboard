@@ -236,18 +236,23 @@ describe('Standard user can update their preferences', () => {
     /*
     Select the checkbox and verify state is preserved after logout/login
     */
-    const checkboxLabel = 'Do not ask for confirmation when scaling down node pools.';
+    prefPage.goTo();
+    prefPage.scalingDownPromptCheckbox().set();
+    prefPage.scalingDownPromptCheckbox().isChecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('scale-pool-prompt', 'true');
+      expect(response?.body.data).to.have.property('scale-pool-prompt', 'true');
+    });
 
-    prefPage.goTo();
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isChecked();
-    userMenu.open();
-    userMenu.checkOpen();
-    userMenu.clickMenuLink('Log Out');
-    cy.login();
-    prefPage.goTo();
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isUnchecked();
+    prefPage.scalingDownPromptCheckbox().set();
+    prefPage.scalingDownPromptCheckbox().isUnchecked();
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('scale-pool-prompt', 'false');
+      expect(response?.body.data).to.have.property('scale-pool-prompt', 'false');
+    });
   });
 
   it('Can select Enable "View in API"', () => {
@@ -258,10 +263,14 @@ describe('Standard user can update their preferences', () => {
     const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
 
     prefPage.goTo();
-    const checkboxLabel = 'Enable "View in API"';
-
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isChecked();
+    prefPage.viewInApiCheckbox().set();
+    prefPage.viewInApiCheckbox().isChecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('view-in-api', 'true');
+      expect(response?.body.data).to.have.property('view-in-api', 'true');
+    });
 
     cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos').as('clusterRepos');
     PagePo.goTo(clusterRepoEndpoint);
@@ -269,8 +278,14 @@ describe('Standard user can update their preferences', () => {
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
     prefPage.goTo();
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isUnchecked();
+    prefPage.viewInApiCheckbox().set();
+    prefPage.viewInApiCheckbox().isUnchecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
+    cy.wait('@prefUpdate2').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('view-in-api', 'false');
+      expect(response?.body.data).to.have.property('view-in-api', 'false');
+    });
 
     PagePo.goTo(clusterRepoEndpoint);
     cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
@@ -282,18 +297,23 @@ describe('Standard user can update their preferences', () => {
     Select checkbox option and verify state is preserved after logout/login
     */
     prefPage.goTo();
-    const checkboxLabel = 'Show system Namespaces managed by Rancher (not intended for editing or deletion)';
+    prefPage.allNamespacesCheckbox().set();
+    prefPage.allNamespacesCheckbox().isChecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('all-namespaces', 'true');
+      expect(response?.body.data).to.have.property('all-namespaces', 'true');
+    });
 
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isChecked();
-    userMenu.open();
-    userMenu.checkOpen();
-    userMenu.clickMenuLink('Log Out');
-    cy.login();
-    prefPage.goTo();
-    prefPage.checkbox(checkboxLabel).isChecked();
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isUnchecked();
+    prefPage.allNamespacesCheckbox().set();
+    prefPage.allNamespacesCheckbox().isUnchecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('all-namespaces', 'false');
+      expect(response?.body.data).to.have.property('all-namespaces', 'false');
+    });
   });
 
   it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', () => {
@@ -301,18 +321,23 @@ describe('Standard user can update their preferences', () => {
     Select checkbox option and verify state is preserved after logout/login
     */
     prefPage.goTo();
-    const checkboxLabel = 'Enable Dark/Light Theme keyboard shortcut toggle (shift+T)';
+    prefPage.themeShortcutCheckbox().set();
+    prefPage.themeShortcutCheckbox().isChecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme-shortcut', 'true');
+      expect(response?.body.data).to.have.property('theme-shortcut', 'true');
+    });
 
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isChecked();
-    userMenu.open();
-    userMenu.checkOpen();
-    userMenu.clickMenuLink('Log Out');
-    cy.login();
-    prefPage.goTo();
-    prefPage.checkbox(checkboxLabel).isChecked();
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isUnchecked();
+    prefPage.themeShortcutCheckbox().set();
+    prefPage.themeShortcutCheckbox().isUnchecked();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('theme-shortcut', 'false');
+      expect(response?.body.data).to.have.property('theme-shortcut', 'false');
+    });
   });
 
   it('Can select Hide All Type Description Boxes', () => {
@@ -322,11 +347,10 @@ describe('Standard user can update their preferences', () => {
     */
     const banners = new BannersPo('header > .banner');
     const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
-    const checkboxLabel = 'Hide All Type Descriptions';
 
     prefPage.goTo();
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isChecked();
+    prefPage.hideDescriptionsCheckbox().set();
+    prefPage.hideDescriptionsCheckbox().isChecked();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
 
@@ -334,8 +358,8 @@ describe('Standard user can update their preferences', () => {
     banners.self().should('not.exist');
 
     prefPage.goTo();
-    prefPage.checkbox(checkboxLabel).set();
-    prefPage.checkbox(checkboxLabel).isUnchecked();
+    prefPage.hideDescriptionsCheckbox().set();
+    prefPage.hideDescriptionsCheckbox().isUnchecked();
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
 

@@ -254,6 +254,7 @@ export default {
       <h4 v-t="'prefs.confirmationSetting.title'" />
       <Checkbox
         v-model="scalingDownPrompt"
+        data-testid="prefs__scalingDownPrompt"
         :label="t('prefs.confirmationSetting.scalingDownPrompt')"
         class="mt-10"
       />
@@ -264,18 +265,21 @@ export default {
       <h4 v-t="'prefs.advFeatures.title'" />
       <Checkbox
         v-model="viewInApi"
+        data-testid="prefs__viewInApi"
         :label="t('prefs.advFeatures.viewInApi', {}, true)"
         class="mt-10"
       />
       <br>
       <Checkbox
         v-model="allNamespaces"
+        data-testid="prefs__allNamespaces"
         :label="t('prefs.advFeatures.allNamespaces', {}, true)"
         class="mt-20"
       />
       <br>
       <Checkbox
         v-model="themeShortcut"
+        data-testid="prefs__themeShortcut"
         :label="t('prefs.advFeatures.themeShortcut', {}, true)"
         class="mt-20"
       />
@@ -283,6 +287,7 @@ export default {
       <Checkbox
         v-if="!isSingleProduct"
         v-model="hideDescriptions"
+        data-testid="prefs__hideDescriptions"
         :label="t('prefs.hideDesc.label')"
         class="mt-20"
       />
