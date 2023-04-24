@@ -36,19 +36,6 @@ const LDAP_DEFAULTS = {
   userSearchAttribute:          'uid|sn|givenName'
 };
 
-// Change the LDAP defaults for Okta
-const LDAP_OKTA_DEFAULTS = {
-  ...LDAP_DEFAULTS,
-  groupMemberMappingAttribute: 'member',
-  groupMemberUserAttribute:    'uniqueMember',
-  groupObjectClass:            'groupofUniqueNames',
-  groupSearchFilter:           '(objectclass=groupOfUniqueNames)',
-  userSearchFilter:            '(objectclass=inetOrgPerson)',
-  port:                        636,
-  starttls:                    true,
-  // userNameAttribute:           'uid',
-};
-
 export default {
   components: {
     Loading,
@@ -64,7 +51,10 @@ export default {
 
   mixins: [CreateEditView, AuthConfig],
   data() {
-    return { showLdap: false };
+    return {
+      showLdap:        false,
+      showLdapDetails: false,
+    };
   },
 
   computed: {
@@ -83,15 +73,29 @@ export default {
     // Does the auth provider support LDAP for search in addition to SAML?
     supportsLDAPSearch() {
       return this.NAME === SHIBBOLETH || this.NAME === OKTA;
+    },
+
+    ldapHosts() {
+      const hosts = this.model?.openLdapConfig.servers || [];
+
+      return hosts.join(',');
+    },
+
+    ldapProtocol() {
+      if (this.model.openLdapConfig.starttls) {
+        return this.t('authConfig.ldap.starttls');
+      } else if (this.model.openLdapConfig.tls) {
+        return this.t('authConfig.ldap.protocols.tls');
+      }
+
+      return this.t('authConfig.ldap.protocols.ldap');
     }
   },
   watch: {
     showLdap(neu, old) {
       if (neu && !this.model.openLdapConfig) {
-        const config = this.NAME === OKTA ? LDAP_OKTA_DEFAULTS : LDAP_DEFAULTS;
-
         // Use a spread of config, so that if don't make changes to the defaults if the user edits them
-        this.$set(this.model, 'openLdapConfig', { ...config });
+        this.$set(this.model, 'openLdapConfig', { ...LDAP_DEFAULTS });
       }
     }
   }
@@ -122,13 +126,56 @@ export default {
           :disable="disable"
           :edit="goToEdit"
         >
-          <template slot="rows">
+          <template
+            slot="rows"
+          >
             <tr><td>{{ t(`authConfig.saml.displayName`) }}: </td><td>{{ model.displayNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.userName`) }}: </td><td>{{ model.userNameField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.UID`) }}: </td><td>{{ model.uidField }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
             <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
+          </template>
+
+          <template
+            v-if="supportsLDAPSearch"
+            slot="footer"
+          >
+            <Banner
+              v-if="showLdap"
+              color="success"
+              class="banner"
+            >
+              <div
+                class="advanced-ldap-banner"
+              >
+                <div>{{ t('authConfig.saml.search.on') }}</div>
+                <div>
+                  <a
+                    class="toggle-btn"
+                    @click="showLdapDetails = !showLdapDetails"
+                  >
+                    <template v-if="showLdapDetails">{{ t('authConfig.saml.search.hide') }}</template>
+                    <template v-else>{{ t('authConfig.saml.search.show') }}</template>
+                  </a>
+                </div>
+              </div>
+            </Banner>
+            <Banner
+              v-else
+              color="info"
+            >
+              {{ t('authConfig.saml.search.off') }}
+            </Banner>
+
+            <table v-if="showLdapDetails && model.openLdapConfig">
+              <tr><td>{{ t('authConfig.ldap.hostname.label') }}:</td><td>{{ ldapHosts }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.port') }}:</td><td>{{ model.openLdapConfig.port }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.protocol') }}:</td><td>{{ ldapProtocol }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.serviceAccountDN') }}:</td><td>{{ model.openLdapConfig.serviceAccountDistinguishedName }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.userSearchBase.label') }}:</td><td>{{ model.openLdapConfig.userSearchBase }}</td></tr>
+              <tr><td>{{ t('authConfig.ldap.groupSearchBase.label') }}:</td><td>{{ model.openLdapConfig.groupSearchBase }}</td></tr>
+            </table>
           </template>
         </AuthBanner>
 
@@ -257,7 +304,26 @@ export default {
             />
           </div>
         </div>
+        <div
+          v-if="!model.enabled"
+          class="row"
+        >
+          <div class="col span-12">
+            <Banner color="info">
+              <div v-clean-html="t('authConfig.associatedWarning', tArgs, true)" />
+            </Banner>
+          </div>
+        </div>
         <div v-if="supportsLDAPSearch">
+          <div class="row">
+            <h2>{{ t('authConfig.saml.search.title') }}</h2>
+          </div>
+          <div class="row">
+            <Banner
+              label-key="authConfig.saml.search.message"
+              color="info"
+            />
+          </div>
           <div class="row">
             <Checkbox
               v-model="showLdap"
@@ -271,21 +337,11 @@ export default {
               v-model="model.openLdapConfig"
               :type="NAME"
               :mode="mode"
+              :is-create="!model.enabled"
             />
           </div>
         </div>
       </template>
-      <div
-        v-if="!model.enabled"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner
-            v-clean-html="t('authConfig.associatedWarning', tArgs, true)"
-            color="info"
-          />
-        </div>
-      </div>
     </CruResource>
   </div>
 </template>
@@ -296,6 +352,21 @@ export default {
     &::v-deep code {
       padding: 0 3px;
       margin: 0 3px;
+    }
+  }
+
+  // Banner shows message and link formatted right aligned
+  .advanced-ldap-banner {
+    display: flex;
+    flex: 1;
+
+    > :first-child {
+      flex: 1;
+    }
+
+    .toggle-btn {
+      cursor: pointer;
+      user-select: none;
     }
   }
 </style>

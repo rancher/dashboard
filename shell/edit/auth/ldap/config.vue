@@ -34,6 +34,11 @@ export default {
     type: {
       type:     String,
       required: true
+    },
+
+    isCreate: {
+      type:    Boolean,
+      default: false
     }
 
   },
@@ -47,6 +52,7 @@ export default {
       model:         this.value,
       hostname:      this.value.servers.join(','),
       serverSetting: null,
+      OKTA
     };
   },
 
@@ -240,6 +246,12 @@ export default {
       <div class="row">
         <h3>  {{ t('authConfig.ldap.customizeSchema') }}</h3>
       </div>
+      <Banner
+        v-if="type === OKTA && isCreate"
+        class="row"
+        color="info"
+        label-key="authConfig.ldap.oktaSchema"
+      />
       <div class="row">
         <div class="col span-6">
           <h4>{{ t('authConfig.ldap.users') }}</h4>

@@ -455,7 +455,13 @@ authConfig:
     objectClass: Object Class
     password: Password
     port: Port
+    protocol: Protocol
+    protocols:
+      starttls: Start TLS
+      ldap: LDAP
+      tls: LDAPS (TLS)
     customizeSchema: Customize Schema
+    oktaSchema: 'The defaults below are for a generic OpenLDAP server. For more information on the values to use when using the Okta LDAP interface, see: <a target="_blank" rel="noopener noreferrer nofollow" href="https://help.okta.com/en-us/Content/Topics/Directory/LDAP-interface-connection-settings.htm">Okta LDAP Interface connection settings</a>'
     users: Users
     groups: Groups
     searchAttribute: Search Attribute
@@ -500,6 +506,13 @@ authConfig:
     shibboleth: Configure a Shibboleth account
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
+    search:
+      title: User and Group Search
+      message: The SAML Protocol does not support search or lookup for users or groups. In order to enabled search, an OpenLDAP server must be configured.
+      on: LDAP User and Group search has been configured
+      off: LDAP User and Group search is not configured
+      show: Show details
+      hide: Hide details
   azuread:
     tenantId: Tenant ID
     applicationId: Application ID
