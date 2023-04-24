@@ -220,7 +220,6 @@ export const state = () => {
   return {
     managementReady:         false,
     clusterReady:            false,
-    isMultiCluster:          false,
     isRancher:               false,
     namespaceFilters:        [],
     activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
@@ -245,8 +244,14 @@ export const getters = {
     return state.clusterReady === true;
   },
 
-  isMultiCluster(state) {
-    return state.isMultiCluster === true;
+  isMultiCluster(state, getters) {
+    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
+
+    if (clusters.length === 1 && clusters[0].metadata?.name === 'local') {
+      return false;
+    } else {
+      return true;
+    }
   },
 
   isRancher(state) {
@@ -586,9 +591,8 @@ export const getters = {
 };
 
 export const mutations = {
-  managementChanged(state, { ready, isMultiCluster, isRancher }) {
+  managementChanged(state, { ready, isRancher }) {
     state.managementReady = ready;
-    state.isMultiCluster = isMultiCluster;
     state.isRancher = isRancher;
   },
 
@@ -743,11 +747,7 @@ export const actions = {
 
     res = await allHash(promises);
     dispatch('i18n/init');
-    let isMultiCluster = true;
-
-    if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {
-      isMultiCluster = false;
-    }
+    const isMultiCluster = getters['isMultiCluster'];
 
     const pl = res.settings?.find(x => x.id === 'ui-pl')?.value;
     const brand = res.settings?.find(x => x.id === SETTING.BRAND)?.value;
@@ -769,7 +769,6 @@ export const actions = {
 
     commit('managementChanged', {
       ready: true,
-      isMultiCluster,
       isRancher,
     });
 
