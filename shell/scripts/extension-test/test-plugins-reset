@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Reset the top-level package file and remove the extra script that may have been added
-const fs = require('fs-extra');
+const fs = require('fs');
 const path = require('path');
 const dir = path.resolve('.');
 const topFile = path.join(dir, 'package.json');
