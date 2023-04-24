@@ -303,12 +303,9 @@ for d in pkg/*/ ; do
 done
 
 if [ "${GITHUB_BUILD}" == "false" ]; then
-  BASE=$(basename `git rev-parse --show-toplevel`)
+  BASE=$(basename ${BASE_DIR})
   EXT_VERSION=$(jq -r .version ${BASE_DIR}/package.json)
 
-  if [ -z ${BASE} ]; then
-    BASE=$(basename `${BASE_DIR}`)
-  fi
   if [ -z ${EXT_VERSION} ]; then
     EXT_VERSION="0.0.0"
   fi
