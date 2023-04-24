@@ -2,7 +2,10 @@
 import { mapGetters } from 'vuex';
 import { NAME, CHART_NAME } from '@shell/config/product/istio';
 import InstallRedirect from '@shell/utils/install-redirect';
-import { SERVICE } from '@shell/config/types';
+// Added by Verrazzano Start
+// import { SERVICE } from '@shell/config/types';
+import { INGRESS } from '@shell/config/types';
+// Added by Verrazzano End
 export default {
   components: {},
 
@@ -10,15 +13,24 @@ export default {
 
   async fetch() {
     try {
-      this.kialiService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/kiali' });
+      // Added by Verrazzano Start
+      // this.kialiService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/kiali' });
+      this.kialiIngress = await this.$store.dispatch('cluster/find', { type: INGRESS, id: 'verrazzano-system/vmi-system-kiali' });
+      // Added by Verrazzano End
     } catch {}
     try {
-      this.jaegerService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/tracing' });
+      // Added by Verrazzano Start
+      // this.jaegerService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/tracing' });
+      this.jaegerIngress = await this.$store.dispatch('cluster/find', { type: INGRESS, id: 'verrazzano-system/verrazzano-jaeger' });
+      // Added by Verrazzano End
     } catch {}
   },
 
   data() {
-    return { kialiService: null, jaegerService: null };
+    // Added by Verrazzano Start
+    // return { kialiService: null, jaegerService: null };
+    return { kialiIngress: null, jaegerIngress: null };
+    // Added by Verrazzano End
   },
 
   computed: {
@@ -30,7 +42,12 @@ export default {
     },
 
     kialiUrl() {
-      return this.kialiService ? this.kialiService.proxyUrl('http', '20001') : null;
+      // Added by Verrazzano Start
+      // return this.kialiService ? this.kialiService.proxyUrl('http', '20001') : null;
+      const kialiIngressHost = this.kialiIngress?.spec?.tls?.[0]?.hosts?.[0];
+
+      return kialiIngressHost ? `https://${ kialiIngressHost }` : null;
+      // Added by Verrazzano End
     },
 
     jaegerLogo() {
@@ -38,7 +55,12 @@ export default {
     },
 
     jaegerUrl() {
-      return this.jaegerService ? `${ this.jaegerService.proxyUrl('http', '16686') }/jaeger/search` : null;
+      // Added by Verrazzano Start
+      // return this.jaegerService ? `${ this.jaegerService.proxyUrl('http', '16686') }/jaeger/search` : null;
+      const jaegerIngressHost = this.jaegerIngress?.spec?.tls?.[0]?.hosts?.[0];
+
+      return jaegerIngressHost ? `https://${ jaegerIngressHost }` : null;
+      // Added by Verrazzano End
     },
 
     monitoringUrl() {
