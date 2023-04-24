@@ -445,10 +445,10 @@ export default {
         }
       });
 
-      if ( this.selectedRows.length < this.pagedRows.length ) {
+      if ( toAdd ) {
         this.selectedRows.push(...toAdd);
       }
-
+     
       // Uncheck and check the checkboxes of nodes that have been added/removed
       if (toRemove.length) {
         this.$nextTick(() => {
@@ -458,7 +458,7 @@ export default {
         });
       }
 
-      if (toAdd.length && this.selectedRows.length <= this.pagedRows.length ) {
+      if (toAdd.length) {
         this.$nextTick(() => {
           for ( let i = 0 ; i < toAdd.length ; i++ ) {
             this.updateInput(toAdd[i], true, this.keyField);
