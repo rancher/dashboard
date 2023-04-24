@@ -109,13 +109,15 @@ export default {
     },
     saveSettings(done) {
       const t = this.$store.getters['i18n/t'];
-      const urlCheck = ['https://', 'http://'].some(checkValue => this.value.spec['loki'].url.toLowerCase().startsWith(checkValue));
-      const isLokiHttps = this.value.spec['loki'].url ? urlCheck : undefined;
 
-      if (this.selectedProvider === 'loki' && !isLokiHttps) {
-        this.errors = [t('logging.loki.urlInvalid')];
-
-        return done(false);
+      if (this.selectedProvider === 'loki') {
+        const urlCheck = ['https://', 'http://'].some(checkValue => this.value.spec['loki'].url.toLowerCase().startsWith(checkValue));
+        const isLokiHttps = this.value.spec['loki'].url ? urlCheck : undefined;
+       
+        if (!isLokiHttps) {
+          this.errors = [t('logging.loki.urlInvalid')];
+          return done(false);
+        }
       }
 
       this.errors = [];
