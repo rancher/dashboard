@@ -234,7 +234,8 @@ describe('Standard user can update their preferences', () => {
 
   it('Can select Confirmation Setting', () => {
     /*
-    Select the checkbox and verify state is preserved after logout/login
+    Select the checkbox
+    Validate http request's payload & response contain correct values per selection
     */
     prefPage.goTo();
     prefPage.scalingDownPromptCheckbox().set();
@@ -259,6 +260,7 @@ describe('Standard user can update their preferences', () => {
     /*
     Select the checkbox and verify 'View in API' is enabled
     Deselect the checkbox and verify 'View in API' is hidden
+    Validate http request's payload & response contain correct values per selection
     */
     const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
 
@@ -294,7 +296,8 @@ describe('Standard user can update their preferences', () => {
 
   it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', () => {
     /*
-    Select checkbox option and verify state is preserved after logout/login
+    Select checkbox option
+    Validate http request's payload & response contain correct values per selection
     */
     prefPage.goTo();
     prefPage.allNamespacesCheckbox().set();
@@ -318,7 +321,8 @@ describe('Standard user can update their preferences', () => {
 
   it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', () => {
     /*
-    Select checkbox option and verify state is preserved after logout/login
+    Select checkbox option
+    Validate http request's payload & response contain correct values per selection
     */
     prefPage.goTo();
     prefPage.themeShortcutCheckbox().set();
