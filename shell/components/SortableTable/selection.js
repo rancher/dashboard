@@ -448,7 +448,7 @@ export default {
       if ( toAdd ) {
         this.selectedRows.push(...toAdd);
       }
-     
+
       // Uncheck and check the checkboxes of nodes that have been added/removed
       if (toRemove.length) {
         this.$nextTick(() => {

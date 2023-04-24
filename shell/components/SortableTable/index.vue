@@ -837,16 +837,19 @@ export default {
 
       if ( idx < 1 ) { // Don't go up to the check all button
         idx = 1;
+
         return null;
       }
 
       if ( idx >= all.length ) {
         idx = all.length - 1;
+
         return null;
       }
 
       if ( all[idx] ) {
         all[idx].focus();
+
         return all[idx];
       }
     },
@@ -854,8 +857,8 @@ export default {
     focusNext: throttle(function(event, more = false) {
       const elem = this.focusAdjacent(true);
       const row = $(elem).parents('tr');
-     
-      if(row.hasClass('row-selected')) {
+
+      if (row.hasClass('row-selected')) {
         return;
       }
 
@@ -866,7 +869,7 @@ export default {
       const elem = this.focusAdjacent(false);
       const row = $(elem).parents('tr');
 
-      if(row.hasClass('row-selected')) {
+      if (row.hasClass('row-selected')) {
         return;
       }
 
