@@ -1236,7 +1236,7 @@ cluster:
       memory: Memory
       disk: Disk
       image: Image
-      network: 
+      network:
         title: Networks
         network: Network
         addNetwork: Add Network
@@ -1814,7 +1814,7 @@ cluster:
       option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Pod Security Admission Configuration Template
-      option: 
+      option:
         none: (None)
         default: Default - RKE2 Embedded
     cisProfile:
@@ -2189,16 +2189,16 @@ fleet:
     error: Error
     ready: Ready
     errors: Errors
-  workspaces: 
+  workspaces:
     tabs:
       restrictions: Allowed Target Namespaces
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
-  restrictions: 
+  restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
     banner: "{count, plural,
           =0 { Adding namespaces here will create a GitRepoRestriction. }
-          other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction} 
+          other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
 footer:
   docs: Docs
@@ -2246,7 +2246,7 @@ gatekeeperIndex:
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
   violations: Violations
 
-gatekeeperInstall: 
+gatekeeperInstall:
   auditInterval: Auto Interval
   constraintViolationsLimit: Constraint Violations Limit
   runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
@@ -2311,6 +2311,15 @@ growl:
   podSecurity:
     message: "The creation of this Pod would violate existing restricted policies for the adopted Namespace"
     title: PodSecurity violation
+
+inactivity:
+  title: Session expiring
+  banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
+  bannerExpired: Your session has expired in this tab due to inactivity.
+  content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
+  contentExpired: Refresh the tab to return to this page.
+  cta: Resume Session
+  ctaExpired: Refresh Page
 
 hpa:
   detail:
@@ -4037,7 +4046,7 @@ plugins:
 podSecurityAdmission:
   name: Pod Security Admission
   description: Define the admission control mode you want to use for the pod security
-  banner: 
+  banner:
     modifications: 'Changing any template that is currently in use will cause an update to those live clusters the next time the cluster is updated'
   labels:
     enforce: Enforce
@@ -4051,7 +4060,7 @@ podSecurityAdmission:
     restricted: restricted
   version:
     placeholder: 'Version (default: latest)'
-  exemptions: 
+  exemptions:
     title: Exemptions
     description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
     placeholder: Enter a comma separated list of {psaExemptionsControl}
@@ -5172,7 +5181,7 @@ storageClass:
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
   harvesterhci:
     title: Harvester (CSI)
-    warning: 
+    warning:
       unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
     hostStorageClass:
       label: Host Storage Class
@@ -6762,7 +6771,7 @@ typeLabel:
     {count, plural,
       one { Cluster Registration Token }
       other { Cluster Registration Tokens }
-    } 
+    }
 
 action:
   clone: Clone
