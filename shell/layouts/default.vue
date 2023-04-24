@@ -32,6 +32,10 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
+// Added by Verrazzano Start
+import { getVerrazzanoVersion } from '@pkg/verrazzano/utils/version';
+// Added by Verrazzano End
+
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
@@ -71,9 +75,20 @@ export default {
       unwatchPin:       undefined,
       wmPin:            null,
       draggable:        false,
+      // Added by Verrazzano Start
+      vzVersion:        '',
+      // Added by Verrazzano End
     };
   },
 
+  // Added by Verrazzano Start
+  fetch() {
+    getVerrazzanoVersion().then((versionInfo) => {
+      this.vzVersion = versionInfo;
+    });
+  },
+
+  // Added by Verrazzano End
   // Note - These will run on route change
   middleware: [
     'authenticated'
@@ -706,7 +721,10 @@ export default {
           v-else
           class="version text-muted"
         >
-          {{ displayVersion }}
+          <!-- Added by Verrazzano Start -->
+          <!-- {{ displayVersion }} -->
+          {{ vzVersion }}
+          <!-- Added by Verrazzano End -->
         </div>
       </nav>
       <main

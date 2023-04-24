@@ -1,0 +1,13 @@
+{
+    "comment": "Added by Verrazzano",
+    "hideCharts":[
+      "citrix-adc-istio-ingress-gateway",
+      "citrix-cpx-istio-sidecar-injector",
+      "cost-analyzer",
+      "rancher-istio",
+      "rancher-monitoring",
+      "prometheus-federator",
+      "rancher-alerting-drivers",
+      "rancher-backup"
+    ]
+}

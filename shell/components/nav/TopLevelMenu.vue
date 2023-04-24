@@ -14,6 +14,9 @@ import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { isRancherPrime } from '@shell/config/version';
+// Added by Verrazzano Start
+import { getVerrazzanoVersion } from '@pkg/verrazzano/utils/version';
+// Added by Verrazzano End
 
 export default {
 
@@ -33,6 +36,9 @@ export default {
       fullVersion,
       clusterFilter: '',
       hasProvCluster,
+      // Added by Verrazzano Start
+      vzVersion:     '',
+      // Added by Verrazzano End
     };
   },
 
@@ -40,6 +46,12 @@ export default {
     if (this.hasProvCluster) {
       this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     }
+
+    // Added by Verrazzano Start
+    getVerrazzanoVersion(this.$store).then((version) => {
+      this.vzVersion = version;
+    });
+    // Added by Verrazzano End
   },
 
   computed: {
@@ -400,21 +412,31 @@ export default {
           <div class="pad" />
         </div>
         <div class="footer">
-          <div
+          <!-- Added by Verrazzano Start -->
+          <!-- <div
             v-if="canEditSettings"
             @click="hide()"
           >
             <nuxt-link :to="{name: 'support'}">
               {{ t('nav.support', {hasSupport}) }}
             </nuxt-link>
-          </div>
+          </div> -->
+          <!-- Added by Verrazzano End -->
           <div @click="hide()">
-            <nuxt-link
+            <!-- Added by Verrazzano Start -->
+            <!-- nuxt-link
               :to="{ name: 'about' }"
               class="version"
             >
               {{ t('about.title') }}
-            </nuxt-link>
+            </nuxt-link -->
+
+            <div
+              v-tooltip="{ content: vzVersion, classes: 'footer-tooltip' }"
+              class="version"
+              v-html="vzVersion"
+            />
+            <!-- Added by Verrazzano End -->
           </div>
         </div>
       </div>

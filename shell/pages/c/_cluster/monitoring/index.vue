@@ -15,6 +15,13 @@ import { haveV1MonitoringWorkloads } from '@shell/utils/monitoring';
 
 const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
+// Added by Verrazzano Start
+const VERRAZZANO_SYSTEM_NAMESPACE = 'verrazzano-system';
+const VERRAZZANO_MONITORING_NAMESPACE = 'verrazzano-monitoring';
+const VERRAZZANO = 'install.verrazzano.io.Verrazzano';
+const PROMETHEUS_URL_PLACE_HOLDER = '##prometheusUrl##';
+// Added by Verrazzano End
+
 export default {
   components: {
     Banner,
@@ -50,7 +57,10 @@ export default {
           label:       'monitoring.overview.linkedList.alertManager.label',
           description:
             'monitoring.overview.linkedList.alertManager.description',
-          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
+          link:   `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
+          // Added by Verrazzano Start
+          vzlink: ``
+          // Added by Verrazzano End
         },
         {
           enabled:     false,
@@ -59,6 +69,9 @@ export default {
           label:       'monitoring.overview.linkedList.grafana.label',
           description: 'monitoring.overview.linkedList.grafana.description',
           link:        `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
+          // Added by Verrazzano Start
+          vzlink:      ``
+          // Added by Verrazzano End
         },
         {
           enabled:     false,
@@ -67,7 +80,10 @@ export default {
           label:       'monitoring.overview.linkedList.prometheusPromQl.label',
           description:
             'monitoring.overview.linkedList.prometheusPromQl.description',
-          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
+          link:   `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
+          // Added by Verrazzano Start
+          vzlink: `${ PROMETHEUS_URL_PLACE_HOLDER }/graph`
+          // Added by Verrazzano End
         },
         {
           enabled:     false,
@@ -76,7 +92,10 @@ export default {
           label:       'monitoring.overview.linkedList.prometheusRules.label',
           description:
             'monitoring.overview.linkedList.prometheusRules.description',
-          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
+          link:   `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
+          // Added by Verrazzano Start
+          vzlink: `${ PROMETHEUS_URL_PLACE_HOLDER }/rules`
+          // Added by Verrazzano End
         },
         {
           enabled:     false,
@@ -85,9 +104,15 @@ export default {
           label:       'monitoring.overview.linkedList.prometheusTargets.label',
           description:
             'monitoring.overview.linkedList.prometheusTargets.description',
-          link: `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
+          link:   `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
+          // Added by Verrazzano Start
+          vzlink: `${ PROMETHEUS_URL_PLACE_HOLDER }/targets`
+          // Added by Verrazzano End
         },
-      ]
+      ],
+      // Added by Verrazzano Start
+      links: {}
+      // Added by Verrazzano End
     };
   },
 
@@ -97,7 +122,13 @@ export default {
 
       this.v1Installed = await haveV1MonitoringWorkloads($store);
 
-      const hash = await allHash({ endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }) });
+      // Added by Verrazzano Start
+      // const hash = await allHash({ endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }) });
+      const hash = await allHash({
+        endpoints:   this.$store.dispatch('cluster/findAll', { type: ENDPOINTS }),
+        verrazzanos: this.$store.dispatch('cluster/findAll', { type: VERRAZZANO })
+      });
+      // Added by Verrazzano End
 
       if (!isEmpty(hash.endpoints)) {
         const amMatch = findBy(externalLinks, 'group', 'alertmanager');
@@ -121,16 +152,46 @@ export default {
           `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-prometheus`
         );
 
+        // Added by Verrazzano Start
+        const vzGrafana = findBy(
+          hash.endpoints,
+          'id',
+          `${ VERRAZZANO_SYSTEM_NAMESPACE }/vmi-system-grafana`
+        );
+        const vzPrometheus = findBy(
+          hash.endpoints,
+          'id',
+          `${ VERRAZZANO_MONITORING_NAMESPACE }/prometheus-operated`
+        );
+
+        if (hash.verrazzanos) {
+          // There should really never be more than one of these so...
+          this.links = { ...(hash.verrazzanos[0]?.status?.instance || {}) };
+        }
+        // Added by Verrazzano End
+
         if (!isEmpty(alertmanager) && !isEmpty(alertmanager.subsets)) {
           amMatch.enabled = true;
         }
         if (!isEmpty(grafana) && !isEmpty(grafana.subsets)) {
           grafanaMatch.enabled = true;
+        // Added by Verrazzano Start
+        } else if (!isEmpty(vzGrafana) && !isEmpty(vzGrafana.subsets)) {
+          grafanaMatch.enabled = true;
+          grafanaMatch.link = this.links['grafanaUrl'];
+        // Added by Verrazzano End
         }
         if (!isEmpty(prometheus) && !isEmpty(prometheus.subsets)) {
           promeMatch.forEach((match) => {
             match.enabled = true;
           });
+        // Added by Verrazzano Start
+        } else if (!isEmpty(vzPrometheus) && !isEmpty(vzPrometheus.subsets)) {
+          promeMatch.forEach((match) => {
+            match.enabled = true;
+            match.link = match.vzlink.replaceAll(PROMETHEUS_URL_PLACE_HOLDER, this.links['prometheusUrl']);
+          });
+        // Added by Verrazzano End
         }
       }
     },
