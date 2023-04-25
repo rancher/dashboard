@@ -1570,6 +1570,9 @@ cluster:
       label: 删除前清空
     role:
       label: 角色
+      etcd: ETCD
+      controlPlane: Control Plane
+      worker: Worker
     labels:
       label: Kubernetes 节点标签
     autoReplace:
@@ -1591,7 +1594,7 @@ cluster:
     mode:
       public: 从公共 DockerHub 中为 {vendor} 拉取镜像
       private: 从私有仓库中为 {vendor} 拉取镜像
-      advanced: 配置高级容器 Mirror 和仓库验证选项
+      advanced: 配置高级 Containerd Mirror 和仓库认证选项
   provider:
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
@@ -2803,7 +2806,7 @@ members:
     custom:
       label: 自定义
       description: 为该用户自定义角色。
-  localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管​​理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
+  localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
 
 membershipEditor:
   label: 成员
