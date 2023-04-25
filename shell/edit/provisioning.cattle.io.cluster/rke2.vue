@@ -78,28 +78,8 @@ const ADVANCED = 'advanced';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
-const NETBIOS_TRUNCATION_LENGTH = 15;
-
-/**
- * Classes to be adopted by the node badges in Machine pools
- */
-const NODE_TOTAL = {
-  error: {
-    color: 'bg-error',
-    icon:  'icon-x',
-  },
-  warning: {
-    color: 'bg-warning',
-    icon:  'icon-warning',
-  },
-  success: {
-    color: 'bg-success',
-    icon:  'icon-checkmark'
-  }
-};
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
-
 export default {
   components: {
     ACE,
@@ -330,7 +310,7 @@ export default {
       allPSPs:                         null,
       allPSAs:                         [],
       nodeComponent:                   null,
-      credentialId:                    null,
+      credentialId:                    '',
       credential:                      null,
       machinePools:                    null,
       rke2Versions:                    null,
@@ -359,8 +339,8 @@ export default {
       cisOverride:           false,
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
-      truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
-      truncateLimit,
+      busy:                  false,
+      machinePoolValidation: {} // map of validation states for each machine pool
     };
   },
 
@@ -375,10 +355,6 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
-    },
-
-    hostnameTruncationManuallySet() {
-      return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
 
     /**
@@ -706,7 +682,17 @@ export default {
         return false;
       }
 
+      if (this.customCredentialComponentRequired === false) {
+        return false;
+      }
+
       return true;
+    },
+
+    // Only for extensions - extension can register a 'false' cloud credential to indicate that a cloud credential is not needed
+    // Need to look this up directly in order to get the 'false' value
+    customCredentialComponentRequired() {
+      return this.$plugin.getDynamic('cloud-credential', this.provider);
     },
 
     hasMachinePools() {
@@ -747,11 +733,11 @@ export default {
 
       for ( const role of roles ) {
         counts[role] = 0;
-        out.color[role] = NODE_TOTAL.success.color;
-        out.icon[role] = NODE_TOTAL.success.icon;
+        out.color[role] = 'bg-success';
+        out.icon[role] = 'icon-checkmark';
       }
 
-      for ( const row of this.machinePools || [] ) {
+      for ( const row of this.machinePools ) {
         if ( row.remove ) {
           continue;
         }
@@ -773,27 +759,27 @@ export default {
       }
 
       if ( counts.etcd === 0 ) {
-        out.color.etcd = NODE_TOTAL.error.color;
-        out.icon.etcd = NODE_TOTAL.error.icon;
+        out.color.etcd = 'bg-error';
+        out.icon.etcd = 'icon-x';
       } else if ( counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7 ) {
-        out.color.etcd = NODE_TOTAL.warning.color;
-        out.icon.etcd = NODE_TOTAL.warning.icon;
+        out.color.etcd = 'bg-warning';
+        out.icon.etcd = 'icon-warning';
       }
 
       if ( counts.controlPlane === 0 ) {
-        out.color.controlPlane = NODE_TOTAL.error.color;
-        out.icon.controlPlane = NODE_TOTAL.error.icon;
+        out.color.controlPlane = 'bg-error';
+        out.icon.controlPlane = 'icon-x';
       } else if ( counts.controlPlane === 1 ) {
-        out.color.controlPlane = NODE_TOTAL.warning.color;
-        out.icon.controlPlane = NODE_TOTAL.warning.icon;
+        out.color.controlPlane = 'bg-warning';
+        out.icon.controlPlane = 'icon-warning';
       }
 
       if ( counts.worker === 0 ) {
-        out.color.worker = NODE_TOTAL.error.color;
-        out.icon.worker = NODE_TOTAL.error.icon;
+        out.color.worker = 'bg-error';
+        out.icon.worker = 'icon-x';
       } else if ( counts.worker === 1 ) {
-        out.color.worker = NODE_TOTAL.warning.color;
-        out.icon.worker = NODE_TOTAL.warning.icon;
+        out.color.worker = 'bg-warning';
+        out.icon.worker = 'icon-warning';
       }
 
       return out;
@@ -1016,6 +1002,15 @@ export default {
         return false;
       }
     },
+
+    validationPassed() {
+      let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
+
+      // and in all of the validation statuses for each machine pool
+      Object.values(this.machinePoolValidation).forEach(v => (base = base && v));
+
+      return base;
+    },
   },
 
   watch: {
@@ -1209,6 +1204,7 @@ export default {
         remove: false,
         create: true,
         update: false,
+        uid:    name,
         pool:   {
           name,
           etcdRole:             numCurrentPools === 0,
@@ -1284,6 +1280,7 @@ export default {
         }
 
         await this.syncMachineConfigWithLatest(entry);
+
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
 
@@ -1331,19 +1328,6 @@ export default {
       if (this.membershipUpdate.save) {
         await this.membershipUpdate.save(this.value.mgmt.id);
       }
-    },
-
-    /**
-     * Ensure that all the existing node roles pool are at least 1 each
-     */
-    hasRequiredNodes() {
-      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every(color => color !== NODE_TOTAL.error.color);
-    },
-
-    validationPassed() {
-      const validMachinePools = this.hasMachinePools ? this.hasRequiredNodes() : true;
-
-      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && validMachinePools;
     },
 
     cancelCredential() {
@@ -1398,7 +1382,18 @@ export default {
       });
     },
 
+    // Set busy before save and clear after save
     async saveOverride(btnCb) {
+      this.$set(this, 'busy', true);
+
+      return await this._doSaveOverride((done) => {
+        this.$set(this, 'busy', false);
+
+        return btnCb(done);
+      });
+    },
+
+    async _doSaveOverride(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -2048,6 +2043,14 @@ export default {
       this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
 
+    // Track Machine Pool validation status
+    machinePoolValidationChanged(uid, value) {
+      if (value === undefined) {
+        this.$delete(this.machinePoolValidation, uid);
+      } else {
+        this.$set(this.machinePoolValidation, uid, value);
+      }
+    }
   },
 };
 </script>
@@ -2063,7 +2066,7 @@ export default {
     v-else
     ref="cruresource"
     :mode="mode"
-    :validation-passed="validationPassed() && fvFormIsValid"
+    :validation-passed="validationPassed && fvFormIsValid"
     :resource="value"
     :errors="errors"
     :cancel-event="true"
@@ -2086,14 +2089,14 @@ export default {
       </Banner>
     </div>
     <SelectCredential
-      v-if="needCredential"
+      v-if="needCredential && !isView && !credentialId"
       v-model="credentialId"
       :mode="mode"
       :provider="provider"
       :cancel="cancelCredential"
       :showing-form="showForm"
+      class="mt-20"
     />
-
     <div
       v-if="showForm"
       class="mt-20"
@@ -2108,7 +2111,18 @@ export default {
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
         :rules="{name:fvGetAndReportPathRules('metadata.name')}"
-      />
+      >
+        <template slot="prefix">
+          <SelectCredential
+            v-if="needCredential"
+            v-model="credentialId"
+            :mode="mode"
+            :provider="provider"
+            :cancel="cancelCredential"
+            :showing-form="showForm"
+          />
+        </template>
+      </NameNsDescription>
 
       <Banner
         v-if="appsOSWarning"
@@ -2166,6 +2180,7 @@ export default {
               :name="obj.id"
               :label="obj.pool.name || '(Not Named)'"
               :show-header="false"
+              :error="!machinePoolValidation[obj.uid]"
             >
               <MachinePool
                 ref="pool"
@@ -2176,7 +2191,9 @@ export default {
                 :credential-id="credentialId"
                 :idx="idx"
                 :machine-pools="machinePools"
+                :busy="busy"
                 @error="e=>errors = e"
+                @validationChanged="v=>machinePoolValidationChanged(obj.uid, v)"
               />
             </Tab>
           </template>
@@ -2631,28 +2648,8 @@ export default {
                 :label="t('cluster.rke2.address.nodePortRange.label')"
               />
             </div>
-            <div
-              class="col span-6"
-            >
-              <Checkbox
-                v-if="!isView || isView && !hostnameTruncationManuallySet"
-                v-model="truncateHostnames"
-                class="mt-20"
-                :disabled="isEdit || isView || hostnameTruncationManuallySet"
-                :mode="mode"
-                :label="t('cluster.rke2.truncateHostnames')"
-                @input="truncateName"
-              />
-              <Banner
-                v-if="hostnameTruncationManuallySet"
-                color="info"
-              >
-                <div class="text">
-                  {{ t('cluster.machinePool.truncationCluster', { limit: truncateLimit }) }}
-                </div>
-              </Banner>
-            </div>
           </div>
+
           <div
             v-if="serverArgs['tls-san']"
             class="row mb-20"

@@ -59,6 +59,12 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    // Is the UI busy (e.g. during save)
+    busy: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -133,6 +139,11 @@ export default {
     }
   },
 
+  beforeDestroy() {
+    // Ensure we emit validation event so parent can forget any validation for this Machine Pool when it is removed
+    this.$emit('validationChanged', undefined);
+  },
+
   methods: {
     async test() {
       if ( typeof this.$refs.configComponent?.test === 'function' ) {
@@ -166,6 +177,11 @@ export default {
       if (advancedComponent && !advancedComponent.show) {
         advancedComponent.toggle();
       }
+    },
+
+    // Propagate up validation status for this Machine Pool
+    validationChanged(val) {
+      this.$emit('validationChanged', val);
     }
   }
 };
@@ -173,14 +189,6 @@ export default {
 
 <template>
   <div>
-    <Banner
-      v-if="value.pool.hostnameLengthLimit"
-      color="info"
-    >
-      <div class="text">
-        {{ t('cluster.machinePool.truncationPool', { limit: value.pool.hostnameLengthLimit }) }}
-      </div>
-    </Banner>
     <div class="row">
       <div class="col span-4">
         <LabeledInput
@@ -188,7 +196,7 @@ export default {
           :mode="mode"
           :label="t('cluster.machinePool.name.label')"
           :required="true"
-          :disabled="!value.config || !!value.config.id"
+          :disabled="!value.config || !!value.config.id || busy"
         />
       </div>
       <div class="col span-4">
@@ -196,6 +204,7 @@ export default {
           v-model.number="value.pool.quantity"
           :mode="mode"
           :label="t('cluster.machinePool.quantity.label')"
+          :disabled="busy"
           type="number"
           min="0"
           :required="true"
@@ -208,19 +217,20 @@ export default {
         <Checkbox
           v-model="value.pool.etcdRole"
           :mode="mode"
-          :label="t('cluster.machinePool.role.etcd')"
-          :disabled="isWindows"
+          label="etcd"
+          :disabled="isWindows || busy"
         />
         <Checkbox
           v-model="value.pool.controlPlaneRole"
           :mode="mode"
-          :label="t('cluster.machinePool.role.controlPlane')"
-          :disabled="isWindows"
+          label="Control Plane"
+          :disabled="isWindows || busy"
         />
         <Checkbox
           v-model="value.pool.workerRole"
           :mode="mode"
-          :label="t('cluster.machinePool.role.worker')"
+          label="Worker"
+          :disabled="busy"
         />
       </div>
     </div>
@@ -237,9 +247,11 @@ export default {
       :credential-id="credentialId"
       :pool-index="idx"
       :machine-pools="machinePools"
+      :busy="busy"
       @error="e=>errors = e"
       @updateMachineCount="updateMachineCount"
       @expandAdvanced="expandAdvanced"
+      @validationChanged="validationChanged"
     />
     <Banner
       v-else-if="value.configMissing"
@@ -302,6 +314,7 @@ export default {
         :read-allowed="false"
         :value-can-be-empty="true"
       />
+
       <div class="spacer" />
 
       <Taints
