@@ -12,6 +12,14 @@
       "webRoot": "${workspaceFolder}",
       "envFile": "${workspaceFolder}/.env",
     },
+     {
+      "name": "Debug in Brave - MacOS",
+      "request": "launch",
+      "type": "chrome",
+      "url": "https://localhost:8005",
+      "runtimeExecutable": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+      "webRoot": "${workspaceFolder}",
+    },
     {
       "type": "node",
       "request": "launch",

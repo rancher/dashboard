@@ -52,7 +52,6 @@
 </template>
 
 <script>
-
 import ModalWithCard from '@/shell/components/ModalWithCard';
 import { Banner } from '@/pkg/rancher-components/src';
 import PercentageBar from '@/shell/components/PercentageBar.vue';
@@ -96,8 +95,6 @@ export default {
   },
   beforeDestroy() {
     this.removeIdleListeners();
-
-    clearTimeout(this.inactivityTimeoutId);
   },
   methods: {
     trackInactivity() {
@@ -105,7 +102,7 @@ export default {
         return;
       }
 
-      clearTimeout(this.inactivityTimeoutId);
+      this.clearAllTimeouts();
       this.inactivityTimeoutId = setTimeout(() => {
         this.isOpen = true;
         this.startCountdown();
@@ -115,10 +112,9 @@ export default {
     },
     startCountdown() {
       // Display the current time with seconds
-
       const update = () => {
         if (this.courtesyCountdown > 0) {
-          console.log('update', new Date());
+          // console.log('update', new Date());
 
           this.courtesyCountdown--;
           this.courtesyTimerId = setTimeout(update, 1000);
@@ -143,16 +139,12 @@ export default {
       document.removeEventListener('keypress', this.trackInactivity);
       document.removeEventListener('touchmove', this.trackInactivity);
       document.addEventListener('visibilitychange', this.trackInactivity);
-
-      clearTimeout(this.inactivityTimeoutId);
     },
 
     resume() {
       this.isInactive = false;
       this.courtesyCountdown = this.courtesyTimer;
-      clearInterval(this.courtesyTimerId);
-      clearInterval(this.inactivityTimeoutId);
-
+      this.clearAllTimeouts();
       this.trackInactivity();
 
       this.isOpen = false;
@@ -167,7 +159,13 @@ export default {
       this.$store.dispatch('rancher/unsubscribe');
       this.$store.dispatch('management/unsubscribe');
       this.$store.dispatch('cluster/unsubscribe');
+
+      this.clearAllTimeouts();
     },
+    clearAllTimeouts() {
+      clearTimeout(this.inactivityTimeoutId);
+      clearTimeout(this.courtesyTimerId);
+    }
 
   },
   computed: {
