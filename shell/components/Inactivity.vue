@@ -103,6 +103,7 @@ export default {
       }
 
       this.clearAllTimeouts();
+
       this.inactivityTimeoutId = setTimeout(() => {
         this.isOpen = true;
         this.startCountdown();
@@ -111,20 +112,24 @@ export default {
       }, this.showModalAfter * 1000);
     },
     startCountdown() {
-      // Display the current time with seconds
-      const update = () => {
-        if (this.courtesyCountdown > 0) {
-          // console.log('update', new Date());
+      const endDate = new Date();
 
-          this.courtesyCountdown--;
-          this.courtesyTimerId = setTimeout(update, 1000);
-        } else {
+      endDate.setSeconds(endDate.getSeconds() + this.courtesyCountdown);
+
+      const checkCountdown = () => {
+        const now = new Date();
+
+        if (now >= endDate) {
           this.isInactive = true;
+          // Disable pulling based on timestamps and not just intervals.
           this.disablePulling();
+        } else {
+          this.courtesyCountdown--;
+          this.courtesyTimerId = setTimeout(checkCountdown, 1000);
         }
       };
 
-      update();
+      checkCountdown();
     },
     addIdleListeners() {
       document.addEventListener('mousemove', this.trackInactivity);
