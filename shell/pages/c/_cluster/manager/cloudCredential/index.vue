@@ -81,7 +81,7 @@ export default {
         {{ row.id.replace('cattle-global-data:','') }}
       </template>
       <template #cell:apikey="{row}">
-        <span v-if="row.publicData" v-html="row.publicData" />
+        <span v-if="row.publicData" v-clean-html="row.publicData" />
         <span v-else class="text-muted">&mdash;</span>
       </template>
     </ResourceTable>

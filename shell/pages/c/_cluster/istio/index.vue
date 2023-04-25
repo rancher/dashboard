@@ -72,7 +72,7 @@ export default {
 <template>
   <div>
     <h1>Overview</h1>
-    <h4 v-html="t('istio.poweredBy', {}, true)" />
+    <h4 v-clean-html="t('istio.poweredBy', {}, true)" />
     <div class="links">
       <div :class="{'disabled':!kialiUrl}" class="box link-container">
         <span
@@ -96,12 +96,12 @@ export default {
             </a>
             <hr />
             <div class="description">
-              <span v-html="t('istio.links.kiali.description', {link: monitoringUrl}, true)" />
+              <span v-clean-html="t('istio.links.kiali.description', {link: monitoringUrl}, true)" />
             </div>
           </div>
         </span>
         <div v-if="!kialiUrl" class="disabled-msg">
-          <span v-html="t('istio.links.disabled', {app: 'Kiali'})" />
+          <span v-clean-html="t('istio.links.disabled', {app: 'Kiali'})" />
         </div>
       </div>
       <div :class="{'disabled':!jaegerUrl}" class="box link-container">
@@ -126,12 +126,12 @@ export default {
             </a>
             <hr />
             <div class="description">
-              <span v-html="t('istio.links.jaeger.description', true)" />
+              <span v-clean-html="t('istio.links.jaeger.description', true)" />
             </div>
           </div>
         </span>
         <div v-if="!jaegerUrl" class="disabled-msg">
-          <span v-html="t('istio.links.disabled', {app: 'Jaeger'})" />
+          <span v-clean-html="t('istio.links.disabled', {app: 'Jaeger'})" />
         </div>
       </div>
     </div>

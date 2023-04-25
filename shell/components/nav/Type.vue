@@ -85,7 +85,7 @@ export default {
       @mouseleave="setNear(false)"
     >
       <span v-if="type.labelKey" class="label"><t :k="type.labelKey" /></span>
-      <span v-else class="label" :class="{'no-icon': !type.icon}" v-html="type.labelDisplay || type.label" />
+      <span v-else v-clean-html="type.labelDisplay || type.label" class="label" :class="{'no-icon': !type.icon}" />
       <span v-if="showFavorite || showCount" class="count">
         <Favorite v-if="showFavorite" :resource="type.name" />
         {{ type.count }}

@@ -30,7 +30,7 @@ module.exports = {
     'unicorn/no-new-buffer':    'off',
     'vue/html-self-closing':    'off',
     'vue/no-unused-components': 'warn',
-    'vue/no-v-html':            'off',
+    'vue/no-v-html':            'error',
     'wrap-iife':                'off',
 
     'array-bracket-spacing':             'warn',

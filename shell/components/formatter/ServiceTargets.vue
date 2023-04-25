@@ -103,7 +103,7 @@ export default {
       <Endpoints v-model="parsed" :row="{}" :col="{}" />
     </div>
     <div v-for="(port, index) in parsed" v-else :key="index" class="text-small">
-      <span v-html="port.label"></span>
+      <span v-clean-html="port.label"></span>
     </div>
   </div>
 </template>

@@ -328,7 +328,7 @@ export default {
       <template #group-by="group">
         <div class="project-bar" :class="{'has-description': projectDescription(group.group)}">
           <div v-trim-whitespace class="group-tab">
-            <div class="project-name" v-html="projectLabel(group.group)" />
+            <div v-clean-html="projectLabel(group.group)" class="project-name" />
             <div v-if="projectDescription(group.group)" class="description text-muted text-small">
               {{ projectDescription(group.group) }}
             </div>

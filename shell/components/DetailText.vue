@@ -157,7 +157,7 @@ export default {
       :class="{'conceal': concealed}"
     />
 
-    <span v-else :class="{'conceal': concealed, 'monospace': monospace && !isBinary}" v-html="bodyHtml" />
+    <span v-else v-clean-html="bodyHtml" :class="{'conceal': concealed, 'monospace': monospace && !isBinary}" />
 
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">
       <a href="#" @click.prevent="expand">{{ plusMore }}</a>

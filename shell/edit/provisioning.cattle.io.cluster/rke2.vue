@@ -1699,7 +1699,7 @@ export default {
       v-if="isEdit"
       color="warning"
     >
-      <span v-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
+      <span v-clean-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
     </Banner>
     <SelectCredential
       v-if="needCredential"
@@ -1793,7 +1793,7 @@ export default {
             color="warning"
           >
             <span
-              v-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
+              v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
             />
           </Banner>
           <div class="row mb-10">

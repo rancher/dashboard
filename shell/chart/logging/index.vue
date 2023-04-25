@@ -57,7 +57,7 @@ export default {
           :label="t('logging.install.systemdLogPath')"
           :tooltip="t('logging.install.tooltip', {}, true)"
         />
-        <p class="mt-6" v-html="t('logging.install.url', {}, true)">
+        <p v-clean-html="t('logging.install.url', {}, true)" class="mt-6">
         </p>
       </div>
     </div>
