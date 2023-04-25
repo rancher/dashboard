@@ -173,6 +173,7 @@ if [ $SKIP_SETUP == false ]; then
     fi
 
     # Remove old creds from .npmrc
+    touch ~/.npmrc
     sed -i.bak -e '/127\.0\.0\.1:4873/d' ~/.npmrc
     sed -i.bak -e '/localhost:4873/d' ~/.npmrc
 
