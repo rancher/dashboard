@@ -1379,12 +1379,6 @@ export default {
       return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every(color => color !== NODE_TOTAL.error.color);
     },
 
-    validationPassed() {
-      const validMachinePools = this.hasMachinePools ? this.hasRequiredNodes() : true;
-
-      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && validMachinePools;
-    },
-
     cancelCredential() {
       if ( this.$refs.cruresource ) {
         this.$refs.cruresource.emitOrRoute();
