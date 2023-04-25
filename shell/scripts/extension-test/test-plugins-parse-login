@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 
+// This small helper reads JSON from stdin and parses the JSON object
+// looking for either the .error or .token properties.
+
+// This is used by the extensions test script, passing in the output of the
+// curl command to POST to the registry auth endpoint to log the user in
+// NOTE: We can not just use `npm login` as there is no way to non-interactively supply the password
+
 const readline = require('readline');
 
 const rl = readline.createInterface({
