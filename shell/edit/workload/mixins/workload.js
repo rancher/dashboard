@@ -25,7 +25,7 @@ import Loading from '@shell/components/Loading';
 import Networking from '@shell/components/form/Networking';
 import VolumeClaimTemplate from '@shell/edit/workload/VolumeClaimTemplate';
 import Job from '@shell/edit/workload/Job';
-import { _EDIT, _CREATE, _VIEW } from '@shell/config/query-params';
+import { _EDIT, _CREATE, _VIEW, _CLONE } from '@shell/config/query-params';
 import WorkloadPorts from '@shell/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import KeyValue from '@shell/components/form/KeyValue';
@@ -177,10 +177,9 @@ export default {
 
     // EDIT view for POD
     // Transform it from POD world to workload
-    if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
+    if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
       const podSpec = { ...this.value.spec };
       const metadata = { ...this.value.metadata };
-
       this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
     }
 
@@ -197,6 +196,7 @@ export default {
     if (
       this.mode === _CREATE ||
       this.mode === _VIEW ||
+      this.realMode === _CLONE ||
       (!createSidecar && !this.value.hasSidecars) // hasSideCars = containers.length > 1 || initContainers.length;
     ) {
       container = containers[0];
