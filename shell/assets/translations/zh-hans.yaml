@@ -1689,11 +1689,17 @@ cluster:
       label: 删除前清空
     role:
       label: 角色
+      etcd: ETCD
+      controlPlane: Control Plane
+      worker: Worker
     labels:
       label: Kubernetes 节点标签
     noAccessBanner: "你没有查看此主机池配置的权限。"
     configNotFound: "找不到这个主机池的配置。建议你创建一个具有所需配置的新集群。"
     noPoolsDisclaimer: 你没有定义任何主机池，请单击加号进行添加。
+    truncationPool: "已手动将此主机池的主机名截断配置为 {limit}"
+    truncationCluster: "已手动将此集群的主机名截断配置为 {limit}"
+
     autoReplace:
       label: 自动替换
       toolTip: 如果大于 0，则在此期间无法访问的节点将被自动删除和替换。
@@ -1836,6 +1842,7 @@ cluster:
       label: 清空节点
       toolTip: 清空操作预先移除每个节点上的 Pod，使得升级中的节点上没有运行的工作负载。不清空的升级速度更快，造成的混乱更少，但是 Pod 仍可能根据进行中的升级进行重启。
     deleteEmptyDir: "默认情况下，使用 emptyDir 卷的 pod 会在升级时被删除。在 pod 生命周期中依赖于 emptyDir 持久卷的操作可能会受到影响。"
+    truncateHostnames: 将主机名截断为 15 个字符来兼容 NetBIOS。
     address:
       tooltip: 创建集群后无法更改集群网络值。
       header: 寻址
@@ -2115,6 +2122,10 @@ fleet:
       noRepos: 未添加任何仓库
       noWorkspaces: 没有工作空间。<br/>请在添加仓库之前创建一个工作空间
       protocolBanner: 输入指向 git 仓库的有效 HTTPS 或 SSH URL。
+    resources:
+      label: '资源处理'
+      keepResources: 删除后保留资源
+      resourceBanner: 启用时，删除 GitRepo 或 Bundle 后将保留资源，只会删除 Helm Release Secret。
     add:
       steps:
         repoInfo:
@@ -2615,6 +2626,7 @@ istio:
   kiali: 启用 Kiali
   pilot: 启用 Pilot
   policy: 启用 Policy
+  pilotRequired: 必须启用 Pilot 才能启用 Kiali
   poweredBy: 由 <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a> 提供支持
   telemetry: 启用遥测
   titles:
@@ -2984,6 +2996,8 @@ members:
   clusterMembers: 集群成员
   clusterAndProject: 集群和项目成员
   createActionLabel: 添加
+  clusterMemebership: 集群成员
+  projectMembership: 项目成员
   clusterPermissions:
     noDescription: 已创建用户 - 没有描述
     label: 集群权限
@@ -3008,6 +3022,7 @@ members:
     custom:
       label: 自定义
       description: 为该用户自定义角色。
+      lockedRole: 该角色已锁定。
   localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
   noRolesAssigned: 没有分配给该项目的用户。
 
@@ -3350,6 +3365,7 @@ namespace:
   resourceQuotas: 资源配额
   project:
     label: 项目
+    none: (None)
   resources: 资源
   enableAutoInjection: 启用 Istio 自动注入
   disableAutoInjection: 禁用 Istio 自动注入
@@ -4545,6 +4561,7 @@ resourceTable:
     namespace: 按命名空间分组
     project: 按项目分组
     node: 按节点分组
+    role: 按角色分组
     cluster: 按集群分组
   groupLabel:
     cluster: "<span>集群：</span> {name}"
