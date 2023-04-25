@@ -468,6 +468,9 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
+  height: 100%;
+  position: relative;
+  justify-content: flex-start;
 }
 
 .header {
@@ -643,9 +646,8 @@ $spacer: 10px;
   flex-direction: column;
 
   &__step {
-    display: flex;
-    flex-direction: column;
     flex: 1;
+    overflow: auto;
   }
 }
 
