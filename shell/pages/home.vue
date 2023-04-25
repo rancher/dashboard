@@ -312,7 +312,7 @@ export default {
             <a
               class="hand"
               @click.prevent.stop="showWhatsNew"
-            ><span v-html="t('landing.whatsNewLink')" /></a>
+            ><span v-clean-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
       </div>
@@ -335,7 +335,7 @@ export default {
                 <a
                   class="hand mr-20"
                   @click.prevent.stop="showUserPrefs"
-                ><span v-html="t('landing.landingPrefs.userPrefs')" /></a>
+                ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
             </div>
           </div>

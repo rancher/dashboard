@@ -116,7 +116,7 @@ export default {
           <span
             v-for="i in ignored"
             :key="i.name"
-            v-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"
+            v-clean-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"
           />
         </div>
       </div>

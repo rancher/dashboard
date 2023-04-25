@@ -322,7 +322,7 @@ export default {
                 class="mt-0"
                 :color="hasAlertManager ? 'info' : 'warning'"
               >
-                <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+                <span v-clean-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
               </banner>
               <Checkbox
                 v-model="scanAlertRule.alertOnComplete"

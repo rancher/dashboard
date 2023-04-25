@@ -122,8 +122,8 @@ export default {
 
     <h5
       v-if="editHelp"
+      v-clean-html="editHelp"
       class="edit-help"
-      v-html="editHelp"
     />
 
     <div class="edit-change mt-20">

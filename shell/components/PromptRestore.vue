@@ -218,8 +218,8 @@ export default {
     >
       <h4
         slot="title"
+        v-clean-html="t('promptRestore.title', null, true)"
         class="text-default-text"
-        v-html="t('promptRestore.title', null, true)"
       />
 
       <div
