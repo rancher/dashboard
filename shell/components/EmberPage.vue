@@ -256,11 +256,13 @@ export default {
         iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
 
         if (this.inline) {
+          console.log('e2e inline iframe');
           const frameParent = document.getElementById(this.inline);
 
           frameParent.appendChild(iframeEl);
         } else {
           document.body.append(iframeEl);
+          console.log('e2e iframe appended to: ', document.body);
         }
         iframeEl.setAttribute('src', this.src);
       } else {
@@ -380,8 +382,10 @@ export default {
 
     // We use PostMessage between the Embedded Ember UI and the Dashboard UI
     receiveMessage(event) {
+      console.log('e2e iframe message event received: ', event);
       const msg = event.data;
 
+      console.log('e2e emberpage iframe message received: ', msg);
       if (msg.action === 'navigate') {
         this.$router.replace({
           name:   'c-cluster-explorer',
@@ -444,12 +448,14 @@ export default {
 
     setLoaded(loaded) {
       this.loaded = loaded;
+      console.log('e2e setting loaded to: ', loaded);
       if (this.iframeEl) {
         this.iframeEl.setAttribute('data-loaded', loaded);
       }
     },
 
     updateFrameVisibility() {
+      console.log('e2e updating frame visibility, loaded: ', this.loaded);
       if (this.loaded) {
         if (this.iframeEl) {
           this.iframeEl.classList.remove(EMBER_FRAME_HIDE_CLASS);
