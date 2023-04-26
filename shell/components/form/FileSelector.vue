@@ -58,12 +58,7 @@ export default {
     rawData: {
       type:    Boolean,
       default: false
-    },
-
-    includeFile: {
-      type:    Boolean,
-      default: false
-    },
+    }
   },
 
   computed: {
@@ -105,13 +100,6 @@ export default {
         const asyncFileContents = files.map(this.getFileContents);
         const fileContents = await Promise.all(asyncFileContents);
         const unboxedContents = !this.multiple && fileContents.length === 1 ? fileContents[0] : fileContents;
-
-        if (this.includeFile) {
-          return this.$emit('selected', {
-            file: !this.multiple && fileContents.length === 1 ? files[0] : files,
-            data: unboxedContents
-          });
-        }
 
         this.$emit('selected', unboxedContents);
       } catch (error) {

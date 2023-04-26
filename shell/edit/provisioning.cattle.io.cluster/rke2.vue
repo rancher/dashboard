@@ -2138,7 +2138,7 @@ export default {
       </Banner>
     </div>
     <SelectCredential
-      v-if="needCredential && !isView && !credentialId"
+      v-if="needCredential"
       v-model="credentialId"
       :mode="mode"
       :provider="provider"
@@ -2161,18 +2161,7 @@ export default {
         description-label="cluster.description.label"
         description-placeholder="cluster.description.placeholder"
         :rules="{name:fvGetAndReportPathRules('metadata.name')}"
-      >
-        <template slot="prefix">
-          <SelectCredential
-            v-if="needCredential"
-            v-model="credentialId"
-            :mode="mode"
-            :provider="provider"
-            :cancel="cancelCredential"
-            :showing-form="showForm"
-          />
-        </template>
-      </NameNsDescription>
+      />
 
       <Banner
         v-if="appsOSWarning"
