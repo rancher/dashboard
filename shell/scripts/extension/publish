@@ -83,8 +83,8 @@ pushd ${BASE_DIR} > /dev/null
 if [ "${GITHUB_BUILD}" == "true" ]; then
   # Determine if gh-pages build is possible
   if [[ "${GITHUB_BRANCH}" == "gh-pages" ]] && ! git show-ref -q --heads gh-pages; then
-    echo -e "${YELLOW}'gh-pages' branch not found, reverting to 'main' branch${RESET}"
-    GITHUB_BRANCH="main"
+    echo -e "${YELLOW}'gh-pages' branch not found, this branch must exist before running this script${RESET}"
+    exit 1
   fi
 
   echo -e "${CYAN}GitHub Repository: ${GITHUB_SOURCE}${RESET}"
@@ -313,10 +313,6 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
   echo -e "${CYAN}Base extension: ${BASE}${RESET}"
   echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
 
-  # if [ -f ${ASSETS}/index.yaml ]; then
-  #   cp ${ASSETS}/index.yaml ${BASE_DIR}
-  # fi
-
   # Build the docker image
   ${SCRIPT_DIR}/bundle ${BASE} ${EXT_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
 fi
@@ -334,5 +330,4 @@ rm -rf ${CHART_TMP}
 
 if [ "${GITHUB_BUILD}" == "false" ]; then
   rm -rf ${TMP}
-  rm -rf tmp
 fi
