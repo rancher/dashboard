@@ -90,8 +90,8 @@ export default {
   <Card :show-highlight-border="false">
     <h4
       slot="title"
+      v-clean-html="t('harvester.modal.backup.addBackup')"
       class="text-default-text"
-      v-html="t('harvester.modal.backup.addBackup')"
     />
 
     <template #body>

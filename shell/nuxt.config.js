@@ -610,6 +610,7 @@ export default function(dir, _appConfig) {
       path.join(NUXT_SHELL, 'plugins/vue-clipboard2'),
       path.join(NUXT_SHELL, 'plugins/v-select'),
       path.join(NUXT_SHELL, 'plugins/directives'),
+      path.join(NUXT_SHELL, 'plugins/clean-html-directive'),
       path.join(NUXT_SHELL, 'plugins/transitions'),
       { src: path.join(NUXT_SHELL, 'plugins/vue-js-modal') },
       { src: path.join(NUXT_SHELL, 'plugins/js-yaml'), ssr: false },

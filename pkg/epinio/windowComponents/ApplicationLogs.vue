@@ -361,13 +361,13 @@ export default {
               >
                 <td
                   :key="line.id + '-time'"
+                  v-clean-html="format(line.time)"
                   class="time"
-                  v-html="format(line.time)"
                 />
                 <td
                   :key="line.id + '-msg'"
+                  v-clean-html="line.msg"
                   class="msg"
-                  v-html="line.msg"
                 />
               </tr>
             </template>

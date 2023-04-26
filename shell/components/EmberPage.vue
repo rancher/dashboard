@@ -548,8 +548,8 @@ export default {
     />
     <div
       v-if="inline && !loaded"
+      v-clean-html="t('generic.loading', {}, true)"
       class="inline-loading"
-      v-html="t('generic.loading', {}, true)"
     />
     <div
       v-if="error"

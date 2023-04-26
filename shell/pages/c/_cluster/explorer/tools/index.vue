@@ -420,7 +420,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="options.length">
-    <h1 v-html="t('catalog.tools.header')" />
+    <h1 v-clean-html="t('catalog.tools.header')" />
     <TypeDescription
       v-if="!legacyEnabled"
       resource="chart"
@@ -470,8 +470,8 @@ export default {
         </div>
         <div class="description">
           <div
+            v-clean-html="opt.chart.chartDescription"
             class="description-content"
-            v-html="opt.chart.chartDescription"
           />
         </div>
         <div
@@ -487,16 +487,16 @@ export default {
         <div class="action">
           <template v-if="opt.blocked">
             <button
+              v-clean-html="t('catalog.tools.action.install')"
               disabled="true"
               class="btn btn-sm role-primary"
-              v-html="t('catalog.tools.action.install')"
             />
           </template>
           <template v-else-if="opt.app && opt.chart.legacy">
             <button
+              v-clean-html="t('catalog.tools.action.manage')"
               class="btn btn-sm role-secondary"
               @click="openV1Tool(opt.chart.legacyPage)"
-              v-html="t('catalog.tools.action.manage')"
             />
           </template>
           <template v-else-if="opt.app && opt.upgradeAvailable && !opt.chart.legacy">
@@ -507,9 +507,9 @@ export default {
               <i class="icon icon-delete icon-lg" />
             </button>
             <button
+              v-clean-html="t('catalog.tools.action.upgrade')"
               class="btn btn-sm role-secondary"
               @click="edit(opt.app, opt.app.upgradeAvailable)"
-              v-html="t('catalog.tools.action.upgrade')"
             />
           </template>
           <template v-else-if="opt.app">
@@ -520,23 +520,23 @@ export default {
               <i class="icon icon-delete icon-lg" />
             </button>
             <button
+              v-clean-html="t('catalog.tools.action.edit')"
               class="btn btn-sm role-secondary"
               @click="edit(opt.app)"
-              v-html="t('catalog.tools.action.edit')"
             />
           </template>
           <template v-else-if="opt.chart.legacy">
             <button
+              v-clean-html="t('catalog.tools.action.install')"
               class="btn btn-sm role-primary"
               @click="openV1Tool(opt.chart.legacyPage)"
-              v-html="t('catalog.tools.action.install')"
             />
           </template>
           <template v-else>
             <button
+              v-clean-html="t('catalog.tools.action.install')"
               class="btn btn-sm role-primary"
               @click="install(opt.chart)"
-              v-html="t('catalog.tools.action.install')"
             />
           </template>
         </div>

@@ -70,15 +70,16 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="title"
       class="text-default-text"
-      v-html="title"
     />
 
     <template slot="body">
       <slot name="body">
         <div
+          v-clean-html="decodeHtml(body)"
           class="pl-10 pr-10"
-          v-html="decodeHtml(body)"
+          style="min-height: 50px; display: flex;"
         />
       </slot>
     </template>

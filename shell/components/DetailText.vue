@@ -169,8 +169,8 @@ export default {
 
     <span
       v-else
+      v-clean-html="bodyHtml"
       :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
-      v-html="bodyHtml"
     />
 
     <template v-if="!isBinary && !jsonStr && isLong && !expanded">

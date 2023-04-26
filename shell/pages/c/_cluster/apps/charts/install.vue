@@ -1355,7 +1355,7 @@ export default {
               :key="msg"
               color="error"
             >
-              <span v-html="msg" />
+              <span v-clean-html="msg" />
             </Banner>
 
             <Banner
@@ -1363,7 +1363,7 @@ export default {
               :key="msg"
               color="warning"
             >
-              <span v-html="msg" />
+              <span v-clean-html="msg" />
             </Banner>
           </div>
           <div
@@ -1466,7 +1466,7 @@ export default {
             v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
           >
-            <div v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
+            <div v-clean-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
           </Banner>
         </div>
       </template>
@@ -1793,17 +1793,17 @@ export default {
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
-          <span v-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
+          <span v-clean-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
           <nuxt-link :to="legacyFeatureRoute">
             {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
           </nuxt-link>
         </template>
         <template v-else-if="mcapp">
-          <span v-html="t('catalog.install.error.legacy.mcmNotSupported')" />
+          <span v-clean-html="t('catalog.install.error.legacy.mcmNotSupported')" />
         </template>
         <template v-else>
           <nuxt-link :to="legacyAppRoute">
-            <span v-html="t('catalog.install.error.legacy.navigate')" />
+            <span v-clean-html="t('catalog.install.error.legacy.navigate')" />
           </nuxt-link>
         </template>
       </Banner>

@@ -926,7 +926,7 @@ export default {
                   v-if="act.icon"
                   :class="act.icon"
                 />
-                <span v-html="act.label" />
+                <span v-clean-html="act.label" />
               </button>
               <ActionDropdown
                 :class="bulkActionsDropdownClass"
@@ -964,7 +964,7 @@ export default {
                         v-if="act.icon"
                         :class="act.icon"
                       />
-                      <span v-html="act.label" />
+                      <span v-clean-html="act.label" />
                     </li>
                   </ul>
                 </template>

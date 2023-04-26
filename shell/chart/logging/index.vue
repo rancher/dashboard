@@ -124,8 +124,8 @@ export default {
           :tooltip="t('logging.install.tooltip', {}, true)"
         />
         <p
+          v-clean-html="t('logging.install.url', {}, true)"
           class="mt-6"
-          v-html="t('logging.install.url', {}, true)"
         />
       </div>
     </div>

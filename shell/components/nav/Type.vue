@@ -118,9 +118,9 @@ export default {
       ><t :k="type.labelKey" /></span>
       <span
         v-else
+        v-clean-html="type.labelDisplay || type.label"
         class="label"
         :class="{'no-icon': !type.icon}"
-        v-html="type.labelDisplay || type.label"
       />
       <span
         v-if="showFavorite || showCount"
