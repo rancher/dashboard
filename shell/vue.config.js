@@ -583,7 +583,7 @@ module.exports = function(dir, _appConfig) {
       // Need to find the vue loader in the webpack config and update the setting
       config.module.rules.forEach((loader) => {
         if (loader.use) {
-          loaders.use.forEach((use) => {
+          loader.use.forEach((use) => {
             if (use.loader.includes('vue-loader')) {
               use.options.compilerOptions.whitespace = 'preserve';
             }
