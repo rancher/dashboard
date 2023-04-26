@@ -82,9 +82,9 @@ export default {
     },
 
     ldapProtocol() {
-      if (this.model.openLdapConfig.starttls) {
+      if (this.model?.openLdapConfig?.starttls) {
         return this.t('authConfig.ldap.starttls');
-      } else if (this.model.openLdapConfig.tls) {
+      } else if (this.model?.openLdapConfig?.tls) {
         return this.t('authConfig.ldap.protocols.tls');
       }
 
@@ -333,7 +333,7 @@ export default {
           </div>
           <div class="row mt-20 mb-20">
             <config
-              v-if="showLdap"
+              v-if="showLdap && model.openLdapConfig"
               v-model="model.openLdapConfig"
               :type="NAME"
               :mode="mode"
