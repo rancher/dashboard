@@ -69,7 +69,7 @@ export default {
     },
     courtesyTimer: {
       type:    Number,
-      default: 15, // in seconds
+      default: 69, // in seconds
     },
     enabled: {
       type:    Boolean,
@@ -121,10 +121,9 @@ export default {
 
         if (now >= endDate) {
           this.isInactive = true;
-          // Disable pulling based on timestamps and not just intervals.
           this.disablePulling();
         } else {
-          this.courtesyCountdown--;
+          this.courtesyCountdown = Math.floor((endDate - now) / 1000);
           this.courtesyTimerId = setTimeout(checkCountdown, 1000);
         }
       };
