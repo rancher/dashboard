@@ -1689,6 +1689,9 @@ cluster:
     noAccessBanner: "You do not have access to see this machine pool's configuration."
     configNotFound: "We could not find this machine pool's configuration. We recommend that you create a new cluster with the desired configuration."
     noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
+    truncationPool: "Hostname truncation has been manually configured for this pool to {limit}"
+    truncationCluster: "Hostname truncation has been manually configured for this cluster to {limit}"
+
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
@@ -1831,6 +1834,7 @@ cluster:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
     deleteEmptyDir: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+    truncateHostnames: Truncate hostnames to 15 characters for NetBIOS compatibility.
     address:
       tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
@@ -2110,6 +2114,10 @@ fleet:
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
+    resources:
+      label: 'Resource Handling'
+      keepResources: Keep resources after deletion
+      resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
     add:
       steps:
         repoInfo:

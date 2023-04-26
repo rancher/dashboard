@@ -9,6 +9,7 @@ const DONE_LABEL = '[zube]: Done';
 const BACKEND_BLOCKED_LABEL = '[zube]: Backend Blocked';
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 const DEV_VALIDATE_LABEL = 'status/dev-validate';
+const QA_NONE_LABEL = 'QA/None';
 
 // The event object
 const event = require(process.env.GITHUB_EVENT_PATH);
@@ -132,8 +133,8 @@ async function processClosedAction() {
         console.log('Processing Issue #' + i + ' - ' + iss.title);
 
         // If the issue is a tech debt issue or says dev will validate then don't move it to 'To Test'
-        if(hasLabel(iss, TECH_DEBT_LABEL) || hasLabel(iss, DEV_VALIDATE_LABEL)) {
-            console.log('  Issue is tech debt/dev validate - ignoring');
+        if(hasLabel(iss, TECH_DEBT_LABEL) || hasLabel(iss, DEV_VALIDATE_LABEL) || hasLabel(iss, QA_NONE_LABEL)) {
+            console.log('  Issue is tech debt/dev validate/qa none - ignoring');
         } else {
             console.log('  Updating labels to move issue to Test');
 

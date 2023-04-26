@@ -4,17 +4,22 @@ This guide will walk through creating a new extension from scratch.
 
 ## Prerequisites
 
+> Note: Extensions development is only currently supported on Mac and Linux. Windows is not currently supported.
+
 You will need a recent version of nodejs installed (Tested with node version: `v16.19.1`).
 
 You'll also need the yarn package manager installed, which can be done with `npm install -g yarn`.
 
 ## Creating the Application
 
-In order to develop a new Extension, you need an application UI to host it in during development. Rancher provides a helper to create a skeleton application for you.
+In order to develop a new Extension, you need an application UI to host it in during development. Rancher provides a helper to create a skeleton application for you. This
+gives you a full version of the Rancher UI that can be used to develop and test your extension.
+
+Rancher publishes two npm packages to help bootstrap the creation of the app and an extension. These are used in this example below.
 
 ### Creating the Skeleton App
 
-`cd` to a folder not within the checkout and run:
+Create a new folder and run:
 
 ```sh
 yarn create @rancher/app my-app
@@ -34,9 +39,11 @@ yarn install
 API=<Rancher Backend URL> yarn dev
 ```
 
-> Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it.
+> Note: You will need to have a Rancher backend available and the `API` environment variable above set correctly to reference it. Setup instructions can be found [here](../getting-started/development_environment/#installing-rancher).
 
 You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your skeleton application is a full Rancher UI - but referenced via `npm`.
+
+## Creating an Extension as a top-level-product
 
 The next step is to create an extension.
 
@@ -63,7 +70,7 @@ There are two options that can be passed to the `@rancher/pkg` script:
 
 ### Configuring an Extension
 
-Replace the contents of the file `./pkg/test/index.js` with:
+Replace the contents of the file `./pkg/test/index.ts` with:
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
@@ -78,21 +85,22 @@ export default function(plugin: IPlugin) {
   plugin.metadata = require('./package.json');
 
   // Load a product
-  // plugin.addProduct(require('./product'));
+  plugin.addProduct(require('./product'));
 }
 ```
 
-Next, create a new file `./pkg/test/product.js` with this content:
+Next, create a new file `./pkg/test/product.ts` with this content:
 
 ```ts
 export function init($plugin, store) {
-  const { product } = $plugin.DSL(store, $plugin.name);
+  const YOUR_PRODUCT_NAME = 'myProductName';
+
+  const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
-    icon:                  'gear',
-    inStore:               'management',
-    removable:             false,
-    showClusterSwitcher:   false,
+    icon:    'gear',
+    inStore: 'management',
+    weight:  100
   });
 }
 ```
@@ -114,7 +122,7 @@ Open a web browser to https://127.0.0.1:8005 and you'll see a new 'Example' nav 
 
 ## Building the Extension
 
-Up until now, we've run the extension inside of the skeleton application - this is the developer workload.
+Up until now, we've run the extension inside of the skeleton application - this is the developer workflow.
 
 To build the extension so we can use it independently, run:
 

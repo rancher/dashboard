@@ -4,7 +4,6 @@
     "types": [
       "@types/node",
       "@types/jest",
-      "@nuxt/types"
     ]
   },
   "exclude": [

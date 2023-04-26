@@ -4,7 +4,16 @@ const serveStatic = require('serve-static');
 const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+// Suppress info level logging messages from http-proxy-middleware
+// This hides all of the "[HPM Proxy created] ..." messages
+const oldInfoLogger = console.info; // eslint-disable-line no-console
+
+console.info = () => {}; // eslint-disable-line no-console
+
 const { createProxyMiddleware } = require('http-proxy-middleware');
+
+console.info = oldInfoLogger; // eslint-disable-line no-console
 
 // This is currently hardcoded to avoid importing the TS
 // const { STANDARD } = require('./config/private-label');
@@ -321,6 +330,13 @@ module.exports = function(dir, _appConfig) {
       before(app, server) {
         const socketProxies = {};
 
+        // Close down quickly in response to CTRL + C
+        process.once('SIGINT', () => {
+          server.close();
+          console.log('\n'); // eslint-disable-line no-console
+          process.exit(1);
+        });
+
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
             ...proxy[p],
@@ -371,7 +387,7 @@ module.exports = function(dir, _appConfig) {
 
     pages: {
       index: {
-        entry:    path.join(SHELL_ABS, '/nuxt/client.js'),
+        entry:    path.join(SHELL_ABS, '/initialize/client.js'),
         template: path.join(SHELL_ABS, '/public/index.html')
       }
     },
