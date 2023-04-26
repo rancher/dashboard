@@ -34,12 +34,14 @@ export default function(plugin: IPlugin) {
 Let's then take into consideration the following example a of `product.ts` config:
 
 ```ts
+import { IPlugin } from '@shell/core/types';
+
 // this is the definition of a "blank cluster" for Rancher Dashboard
 // definition of a "blank cluster" in Rancher Dashboard
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin, store) {
+export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';

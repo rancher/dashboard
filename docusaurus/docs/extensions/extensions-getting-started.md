@@ -92,7 +92,9 @@ export default function(plugin: IPlugin) {
 Next, create a new file `./pkg/test/product.ts` with this content:
 
 ```ts
-export function init($plugin, store) {
+import { IPlugin } from '@shell/core/types';
+
+export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
 
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);

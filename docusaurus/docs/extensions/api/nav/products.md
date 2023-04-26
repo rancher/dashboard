@@ -41,7 +41,9 @@ The module registered via `addProduct` must export an `init` method. This is inv
 An example `init` function for creating a new product is shown below:
 
 ```ts
-export function init($plugin, store) {
+import { IPlugin } from '@shell/core/types';
+
+export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);

@@ -26,12 +26,14 @@ export default function(plugin: IPlugin) {
 The `product.ts` config will then define the product and which "pages/views" we want to add, such as:
 
 ```ts
+import { IPlugin } from '@shell/core/types';
+
 // this is the definition of a "blank cluster" for Rancher Dashboard
 // definition of a "blank cluster" in Rancher Dashboard
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin, store) {
+export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
   const CUSTOM_PAGE_NAME = 'page1';
