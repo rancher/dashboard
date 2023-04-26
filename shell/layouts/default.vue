@@ -767,7 +767,7 @@ export default {
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
-    <Inactivity enabled />
+    <Inactivity />
     <DraggableZone ref="draggableZone" />
   </div>
 </template>

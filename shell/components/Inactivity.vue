@@ -69,7 +69,7 @@ export default {
     },
     courtesyTimer: {
       type:    Number,
-      default: 69, // in seconds
+      default: 10, // in seconds
     },
     enabled: {
       type:    Boolean,
