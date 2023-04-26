@@ -577,6 +577,19 @@ module.exports = function(dir, _appConfig) {
       ];
 
       config.module.rules.push(...loaders);
+
+      // Update vue-loader to set whitespace to 'preserve'
+      // This was the setting with nuxt, but is not the default with vue cli
+      // Need to find the vue loader in the webpack config and update the setting
+      config.module.rules.forEach((loader) => {
+        if (loader.use) {
+          loader.use.forEach((use) => {
+            if (use.loader.includes('vue-loader')) {
+              use.options.compilerOptions.whitespace = 'preserve';
+            }
+          });
+        }
+      });
     },
   };
 
