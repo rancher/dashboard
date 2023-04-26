@@ -181,8 +181,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('modalDownLoadFileComponent.title')"
       class="text-default-text"
-      v-html="t('modalDownLoadFileComponent.title')"
     />
     <template #body>
       <LabeledSelect

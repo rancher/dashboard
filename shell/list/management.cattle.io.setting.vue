@@ -88,7 +88,7 @@ export default {
       color="warning"
       class="settings-banner"
     >
-      <div v-html="t('advancedSettings.subtext')" />
+      <div v-clean-html="t('advancedSettings.subtext')" />
     </Banner>
     <div
       v-for="setting in settings"
@@ -108,7 +108,7 @@ export default {
               class="modified"
             >{{ t('advancedSettings.modified') }}</span>
           </h1>
-          <h2 v-html="t(`advancedSettings.descriptions.${setting.id}`)" />
+          <h2 v-clean-html="t(`advancedSettings.descriptions.${setting.id}`)" />
         </div>
         <div
           v-if="setting.hasActions"

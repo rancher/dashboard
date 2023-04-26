@@ -125,8 +125,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('addProjectMemberDialog.title')"
       class="text-default-text"
-      v-html="t('addProjectMemberDialog.title')"
     />
 
     <div

@@ -159,7 +159,7 @@ export default {
     @finish="saveSettings"
     @cancel="done"
   >
-    <h4 v-html="description" />
+    <h4 v-clean-html="description" />
 
     <h5
       v-if="editHelp"

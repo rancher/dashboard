@@ -429,7 +429,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.migStrategy.tip', {}, true)" />
+                  <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.migStrategy.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -441,7 +441,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.failOnInitError.tip', {}, true)" />
+                  <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.failOnInitError.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -453,7 +453,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.nvidiaDriverRoot.tip', {}, true)" />
+                  <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.nvidiaDriverRoot.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -465,7 +465,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.passDeviceSpecs.tip', {}, true)" />
+                  <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.passDeviceSpecs.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -478,7 +478,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceListStrategy.tip', {}, true)" />
+                  <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceListStrategy.tip', {}, true)" />
                 </div>
               </div>
               <div class="row mb-10">
@@ -491,7 +491,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceIDStrategy.tip', {}, true)" />
+                  <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.deviceIDStrategy.tip', {}, true)" />
                 </div>
               </div>
               <hr class="mb-20 mt-20">
@@ -504,7 +504,7 @@ export default {
                   />
                 </div>
                 <div class="col span-6">
-                  <span v-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.sharedAccess.tip', {}, true)" />
+                  <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.devicePluginOptions.sharedAccess.tip', {}, true)" />
                 </div>
               </div>
               <div v-show="sharedAccessEnabledMap[c.id]">
@@ -555,7 +555,7 @@ export default {
           />
         </div>
         <div class="col span-6">
-          <span v-html="t('rancher-nvidia-k8s-device-plugin.gfdOptions.enabled.tip', {}, true)" />
+          <span v-clean-html="t('rancher-nvidia-k8s-device-plugin.gfdOptions.enabled.tip', {}, true)" />
         </div>
       </div>
     </Tab>

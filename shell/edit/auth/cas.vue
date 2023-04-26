@@ -263,8 +263,8 @@ export default {
     >
       <div class="col span-12">
         <Banner
+          v-clean-html="t('authConfig.associatedWarning', tArgs, true)"
           color="info"
-          v-html="t('authConfig.associatedWarning', tArgs, true)"
         />
       </div>
     </div>
