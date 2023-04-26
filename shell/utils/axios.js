@@ -1,4 +1,5 @@
-import Axios from 'axios';
+import Axios, { CancelToken, isCancel } from 'axios';
+
 import defu from 'defu';
 import axiosRetry from 'axios-retry';
 
@@ -60,8 +61,8 @@ const createAxiosInstance = (axiosOptions) => {
   // Create new axios instance
   const axios = Axios.create(axiosOptions);
 
-  axios.CancelToken = Axios.CancelToken;
-  axios.isCancel = Axios.isCancel;
+  axios.CancelToken = CancelToken;
+  axios.isCancel = isCancel;
 
   // Extend axios proto
   extendAxiosInstance(axios);
@@ -122,7 +123,7 @@ const setupProgress = (axios) => {
 
     currentRequests--;
 
-    if (Axios.isCancel(error)) {
+    if (isCancel(error)) {
       return;
     }
 
