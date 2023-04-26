@@ -180,6 +180,7 @@ export default {
     if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
       const podSpec = { ...this.value.spec };
       const metadata = { ...this.value.metadata };
+
       this.$set(this.value.spec, 'template', { spec: podSpec, metadata });
     }
 
