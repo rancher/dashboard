@@ -142,12 +142,10 @@ export default {
       class="mb-20"
       @close="hideHarvesterNotice"
     >
-      <div>
-        {{ t('cluster.harvester.importNotice') }}
-        <nuxt-link :to="harvesterLocation">
-          {{ t('product.harvesterManager') }}
-        </nuxt-link>
-      </div>
+      {{ t('cluster.harvester.importNotice') }}
+      <nuxt-link :to="harvesterLocation">
+        {{ t('product.harvesterManager') }}
+      </nuxt-link>
     </Banner>
 
     <NameNsDescription
