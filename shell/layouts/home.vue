@@ -7,6 +7,7 @@ import { mapPref, THEME_SHORTCUT } from '@shell/store/prefs';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
+import Inactivity from '@shell/components/Inactivity';
 import { mapState } from 'vuex';
 
 export default {
@@ -16,7 +17,8 @@ export default {
     FixedBanner,
     GrowlManager,
     AzureWarning,
-    AwsComplianceBanner
+    AwsComplianceBanner,
+    Inactivity
   },
 
   mixins: [Brand, BrowserTabVisibility],
@@ -51,6 +53,7 @@ export default {
 <template>
   <div class="dashboard-root">
     <FixedBanner :header="true" />
+    <Inactivity />
     <AwsComplianceBanner />
     <AzureWarning />
 
