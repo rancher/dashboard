@@ -83,7 +83,7 @@ export default {
 
     ldapProtocol() {
       if (this.model?.openLdapConfig?.starttls) {
-        return this.t('authConfig.ldap.starttls');
+        return this.t('authConfig.ldap.protocols.starttls');
       } else if (this.model?.openLdapConfig?.tls) {
         return this.t('authConfig.ldap.protocols.tls');
       }
