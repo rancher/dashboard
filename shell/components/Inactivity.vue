@@ -53,7 +53,7 @@
 
 <script>
 import ModalWithCard from '@/shell/components/ModalWithCard';
-import { Banner } from '@/pkg/rancher-components/src';
+import { Banner } from '@components/Banner';
 import PercentageBar from '@/shell/components/PercentageBar.vue';
 
 export default {
