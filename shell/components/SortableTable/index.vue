@@ -837,10 +837,14 @@ export default {
 
       if ( idx < 1 ) { // Don't go up to the check all button
         idx = 1;
+
+        return null;
       }
 
       if ( idx >= all.length ) {
         idx = all.length - 1;
+
+        return null;
       }
 
       if ( all[idx] ) {
@@ -854,12 +858,20 @@ export default {
       const elem = this.focusAdjacent(true);
       const row = getParent(elem, 'tr');
 
+      if (row.hasClass('row-selected')) {
+        return;
+      }
+
       this.keySelectRow(row, more);
     }, 50),
 
     focusPrevious: throttle(function(event, more = false) {
       const elem = this.focusAdjacent(false);
       const row = getParent(elem, 'tr');
+
+      if (row.hasClass('row-selected')) {
+        return;
+      }
 
       this.keySelectRow(row, more);
     }, 50),
