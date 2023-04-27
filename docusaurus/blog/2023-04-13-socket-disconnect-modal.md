@@ -1,10 +1,10 @@
 ---
-title: 'Socket Timeout UX'
+title: 'Inactivity notification and timeout settings in the UI'
 description: Inactivity notification and timeout settings in the UI
 authors: [eden]
 tags: [Manager, Modal, Timeout, Inactivity]
 ---
-## Inactivity notification and timeout settings in the UI
+## Socket Timeout UX
 
 As part of Rancher Manager's wider performance improvement work, we looked at simple ways to improve the browser's performance.
 

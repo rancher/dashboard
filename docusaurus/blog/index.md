@@ -1,7 +1,7 @@
 ---
 title: The Rancher UX/UI team  
-authors: [neil, kwwii, cody, nancy, sean, jordon, phil, giuseppe, shavin, alex, sorin, eden, richa, manuele, francesco, richard]
-tags: [team, Rancher, Manager, Epinio, Opni, Desktop, Harvester, Fleet, Elemental]
+authors: [kwwii]
+tags: [Team, Rancher, Manager, Epinio, Opni, Desktop, Harvester, Fleet, Elemental]
 ---
 ## Our Team
 

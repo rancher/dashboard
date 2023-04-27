@@ -1,10 +1,10 @@
 ---
-title: 'Epinio Applications Updates'
+title: 'Flexibily create, update, and export apps with Epinio.'
 description: Allowing the user more flexibility in how they create and export apps
 authors: [sorin, richard, francesco]
 tags: [Epinio]
 ---
-## More flexibility in application creation, update, and export
+## Epinio Applications Workflow Updates
 
 Based on user feedback, we've made 4 improvements to the Epinio UI which make it easier to create, update and export applications.
 
