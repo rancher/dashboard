@@ -19,7 +19,7 @@ import CruResource from '@shell/components/CruResource';
 import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
-import { clone } from '@shell/utils/object';
+import { clone, set } from '@shell/utils/object';
 import { POD, CAPI } from '@shell/config/types';
 import { matching } from '@shell/utils/selector';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
@@ -38,6 +38,8 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 };
 
 const SESSION_STICKY_TIME_DEFAULT = 10800;
+
+const IP_ADDRESS_ANNOTATION = 'field.cattle.io/ipAddresses';
 
 export default {
   // Props are found in CreateEditView
@@ -128,6 +130,10 @@ export default {
 
         if (serviceType) {
           if (serviceType === CLUSTERIP && clusterIp === 'None') {
+            if (this.value?.metadata?.annotations?.[IP_ADDRESS_ANNOTATION]) {
+              return EXTERNALIP;
+            }
+
             return HEADLESS;
           } else {
             return serviceType;
@@ -203,7 +209,7 @@ export default {
       const serviceType = this.value?.spec?.type;
       const clusterIp = this.value?.spec?.clusterIP;
 
-      return (serviceType === CLUSTERIP && clusterIp === 'None' && this.value?.metadata?.annotations?.['field.cattle.io/ipAddresses']) ||
+      return (serviceType === CLUSTERIP && clusterIp === 'None' && this.value?.metadata?.annotations?.[IP_ADDRESS_ANNOTATION]) ||
         this.selectedServiceType === EXTERNALIP;
     }
   },
@@ -244,8 +250,11 @@ export default {
         let ips = [];
 
         if (val) {
+          if (!this.value?.metadata?.annotations?.[IP_ADDRESS_ANNOTATION]) {
+            set(this, `value.metadata.annotations.'${ IP_ADDRESS_ANNOTATION }'`, '[]');
+          }
           try {
-            ips = JSON.parse(this.value?.metadata?.annotations?.['field.cattle.io/ipAddresses'] ?? '[]');
+            ips = JSON.parse(this.value?.metadata?.annotations?.[IP_ADDRESS_ANNOTATION] ?? '[]');
           } catch (err) {}
         }
         this.ipAddresses = ips;

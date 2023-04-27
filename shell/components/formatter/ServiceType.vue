@@ -21,7 +21,11 @@ export default {
     let cloned = this.value.toLowerCase();
 
     if (this.value === 'ClusterIP' && row?.spec?.clusterIP === 'None') {
-      cloned = 'headless';
+      if (row?.metadata?.annotations?.['field.cattle.io/ipAddresses']) {
+        cloned = 'externalip';
+      } else {
+        cloned = 'headless';
+      }
     }
 
     const match = DEFAULT_SERVICE_TYPES.find(s => s.id.toLowerCase() === cloned);

@@ -167,6 +167,10 @@ export default class extends SteveModel {
 
     if (serviceType) {
       if (serviceType === CLUSTERIP && clusterIp === 'None') {
+        if (this.metadata?.annotations?.['field.cattle.io/ipAddresses']) {
+          return EXTERNALIP;
+        }
+
         return HEADLESS;
       } else {
         return serviceType;
