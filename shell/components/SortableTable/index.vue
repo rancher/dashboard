@@ -858,8 +858,10 @@ export default {
       const elem = this.focusAdjacent(true);
       const row = getParent(elem, 'tr');
 
-      if (row.hasClass('row-selected')) {
-        return;
+      if (row !== null) {
+        if (row.classList.contains('row-selected')) {
+          return;
+        }
       }
 
       this.keySelectRow(row, more);
@@ -869,8 +871,10 @@ export default {
       const elem = this.focusAdjacent(false);
       const row = getParent(elem, 'tr');
 
-      if (row.hasClass('row-selected')) {
-        return;
+      if (row !== null) {
+        if (row.classList.contains('row-selected')) {
+          return;
+        }
       }
 
       this.keySelectRow(row, more);
