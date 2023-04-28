@@ -93,12 +93,22 @@ export default {
   data() {
     const bannerMessageKey = `cluster.agentConfig.banners.${ this.type }Advanced`;
 
-    // TODO: Set affinitySetting to CUSTOM if editing and affinity is not empty
+    const nodeAffinity = this.value?.overrideAffinity?.nodeAffinity;
+    const podAffinity = this.value?.overrideAffinity?.podAffinity;
+    const podAntiAffinity = this.value?.overrideAffinity?.podAntiAffinity;
+
+    let hasAffinityPopulated = false;
+
+    if ((nodeAffinity && Object.keys(nodeAffinity).length) ||
+      (podAffinity && Object.keys(podAffinity).length) ||
+      (podAntiAffinity && Object.keys(podAntiAffinity).length)) {
+      hasAffinityPopulated = true;
+    }
 
     return {
       bannerMessageKey,
       defaultAffinity: {},
-      affinitySetting: DEFAULT,
+      affinitySetting: hasAffinityPopulated ? CUSTOM : DEFAULT,
       nodeAffinity:    {}
     };
   },

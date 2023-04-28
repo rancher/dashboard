@@ -112,7 +112,6 @@ export default {
         out.requiredDuringSchedulingIgnoredDuringExecution = requiredDuringSchedulingIgnoredDuringExecution;
       }
 
-      // console.log('whole data structure for node affinity', out);
       this.$emit('input', out);
     },
 

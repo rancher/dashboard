@@ -1612,7 +1612,7 @@ cluster:
       podAffinityAnti: Pod Affinity/Anti-Affinity
       nodeAffinity: Node Affinity
     banners:
-      clusterAdvanced: This is advanced configuration for the  Cluster agent deployment. You should generally leave this as is.
+      clusterAdvanced: This is advanced configuration for the Cluster agent deployment. You should generally leave this as is.
       fleetAdvanced: This is advanced configuration for the Fleet agent deployment. You should generally leave this as is.
       tolerations: Pod Tolerations added here will be combined with default Tolerations applied by Rancher.
       limits: Pod Requests and Limits don't make use of a default configuration.

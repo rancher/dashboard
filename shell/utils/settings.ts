@@ -22,9 +22,11 @@ export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: st
   return setting;
 };
 
-// Fetch a specific setting that might not exist
-// We fetch all settings - reality is Rancher will have done this already, so there's no overhead in doing
-// this - but if we fetch a specific setting that does not exist, we will get a 404, which we don't want
+/**
+  * Fetch a specific setting that might not exist
+  * We fetch all settings - reality is Rancher will have done this already, so there's no overhead in doing
+  * this - but if we fetch a specific setting that does not exist, we will get a 404, which we don't want
+  */
 export const fetchSetting = async(store: Store<any>, id: string) => {
   const all = await store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   const setting = (all || []).find((setting: any) => setting.id === id);
