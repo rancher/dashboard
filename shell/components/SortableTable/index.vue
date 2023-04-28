@@ -858,7 +858,7 @@ export default {
       const elem = this.focusAdjacent(true);
       const row = getParent(elem, 'tr');
 
-      if (row.hasClass('row-selected')) {
+      if (row?.classList.contains('row-selected')) {
         return;
       }
 
@@ -869,7 +869,7 @@ export default {
       const elem = this.focusAdjacent(false);
       const row = getParent(elem, 'tr');
 
-      if (row.hasClass('row-selected')) {
+      if (row?.classList.contains('row-selected')) {
         return;
       }
 
