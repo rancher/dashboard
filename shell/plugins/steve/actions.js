@@ -8,16 +8,19 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
+import pAndNFiltering from './projectAndNamespaceFiltering.utils';
+
 
 export default {
 
-  // Need to override this, so that thhe 'this' context is correct (this class not the base class)
+  // Need to override this, so that the 'this' context is correct (this class not the base class)
   async loadSchemas(ctx, watch = true) {
     return await loadSchemas(ctx, watch);
   },
 
   async request({ state, dispatch, rootGetters }, pOpt ) {
     const opt = pOpt.opt || pOpt;
+    const type = pOpt.type;
 
     const spoofedRes = await handleSpoofedRequest(rootGetters, 'cluster', opt);
 
@@ -124,6 +127,10 @@ export default {
           out = res;
         } else {
           out = responseObject(res);
+        }
+
+        if (pAndNFiltering.isApplicable(opt)) {
+          out = pAndNFiltering.convertResourceResponse(out, opt, type)
         }
 
         finishDeferred(key, 'resolve', out);

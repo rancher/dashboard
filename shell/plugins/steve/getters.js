@@ -8,6 +8,7 @@ import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
+import pAndNFiltering from './projectAndNamespaceFiltering.utils';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -73,9 +74,12 @@ export default {
     let url = urlFor(state, getters)(type, id, opt);
 
     if (opt.namespaced) {
-      const parts = url.split('/');
-
-      url = `${ parts.join('/') }/${ opt.namespaced }`;
+      if (pAndNFiltering.isApplicable(opt)) {
+        url = pAndNFiltering.convertUrl(url, opt.namespaced)
+      } else {
+        const parts = url.split('/');
+        url = `${ parts.join('/') }/${ opt.namespaced }`;
+      }
 
       return url;
     }

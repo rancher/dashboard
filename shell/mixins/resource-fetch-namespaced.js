@@ -1,5 +1,8 @@
+import { NAMESPACE_FILTER_KINDS, NAMESPACE_FILTER_NS_PREFIX, NAMESPACE_FILTER_P_PREFIX } from 'utils/namespace-filter';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
+import richardsLogger from '@shell/utils/richards-logger';
+
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -11,40 +14,44 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster', 'isSingleNamespace']),
+    ...mapGetters(['currentProduct', 'currentCluster', 'namespaceFilters']),
 
     /**
      * Does the user need to update the filter to supply a single namespace?
      */
     namespaceFilterRequired() {
-      return this.__namespaceRequired && !this.__singleNamespaceFilter;
+      richardsLogger.warn('rfn', 'namespaceFilterRequired', this.__namespaceRequired, this.__validFilter)
+
+      return this.__namespaceRequired && !this.__validFilter;
     },
 
     /**
      * Returns the namespace that requests should be filtered by
      */
     namespaceFilter() {
-      return this.__namespaceRequired ? this.__singleNamespaceFilter : '';
+      richardsLogger.warn('rfn', 'namespaceFilters', this.namespaceFilters)
+
+      return this.__namespaceRequired ? this.__validFilter : '';
     },
 
     /**
-     * If the Project/Namespace filter from the header contains a single NS... return it
+     * If the Project/Namespace filter from the header contains a valid ns / project filter ... return it
      */
-    __singleNamespaceFilter() {
-      const ns = this.isSingleNamespace;
-
-      return ns ? ns.replace('ns://', '') : '';
+    __validFilter() {
+      const valid = this.namespaceFilters.every(f => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX))
+      richardsLogger.warn('rfn', '__validFilter', valid, this.namespaceFilters)
+      return valid ? this.namespaceFilters : null;
     },
 
     /**
      * Do we need to filter the list by a namespace?
      */
     __namespaceRequired() {
-      if (!this.forceNsFilter?.enabled || this.perfConfig.forceNsFilter.threshold === undefined) {
+      if (!this.perfConfig.forceNsFilterV2?.enabled) {
         return false;
       }
 
-      return !this.currentProduct.showWorkspaceSwitcher && this.__areResourcesNamespaced && this.__areResourcesTooMany;
+      return !this.currentProduct.showWorkspaceSwitcher && this.__areResourcesNamespaced;
     },
 
     /**
@@ -52,20 +59,10 @@ export default {
      */
     __areResourcesNamespaced() {
       return (this.loadResources || []).every((type) => {
-        const schema = this.$store.getters['cluster/schemaFor'](type);
+        const schema = this.$store.getters['cluster/schemaFor'](type);// TODO: RC test fleet, cluster management isn't included
 
         return schema?.attributes?.namespaced;
       });
-    },
-
-    /**
-     * Are there too many core list resources to show in the list?
-     */
-    __areResourcesTooMany() {
-      // __getCountForResources is defined on resource-fetch mixin...
-      const count = this.__getCountForResources(this.loadResources);
-
-      return count > this.perfConfig.forceNsFilter.threshold;
     },
 
   },
@@ -73,7 +70,8 @@ export default {
   watch: {
     __namespaceRequired: {
       handler(neu) {
-        this.$store.dispatch('setNamespaceFilterMode', neu ? 'namespace' : null, { root: true });
+        richardsLogger.warn('rfn', 'watch __namespaceRequired', neu);
+        this.$store.dispatch('setNamespaceFilterMode', neu ? [NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT]: null, { root: true });
       },
       immediate: true,
     },

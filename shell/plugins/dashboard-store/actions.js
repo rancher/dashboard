@@ -7,6 +7,7 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
+import richardsLogger from '@shell/utils/richards-logger';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -149,8 +150,11 @@ export default {
       commit('registerType', type);
     }
 
+    richardsLogger.warn('ds', 'findAll', 3, type)
     // No need to request the resources if we have them already
     if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
+      richardsLogger.warn('ds', 'findAll', 4, type)
+
       const args = {
         type,
         revision:  '',
@@ -160,6 +164,7 @@ export default {
       };
 
       if (opt.watch !== false ) {
+        richardsLogger.warn('ds', 'findAll', 5, type, 'watching', args)
         dispatch('watch', args);
       }
 
@@ -317,13 +322,16 @@ export default {
 
     // ToDo: SM if we start a "bigger" watch (such as watch without a namespace vs a watch with a namespace), we should stop the stop the "smaller" watch so we don't have duplicate events coming back
     if ( opt.watch !== false ) {
-      dispatch('watch', {
+      const args  = {
         type,
         revision:  out.revision,
         namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
         // ToDo: SM namespaced is sometimes a boolean and sometimes a string, I don't see it as especially broken but we should refactor that in the future
         force:     opt.forceWatch === true,
-      });
+      }
+      richardsLogger.warn('ds', 'findAll', 20, type, 'watching', args)
+
+      dispatch('watch', args);
     }
 
     const all = getters.all(type);

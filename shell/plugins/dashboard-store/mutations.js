@@ -5,6 +5,7 @@ import { normalizeType, keyFieldFor } from '@shell/plugins/dashboard-store/norma
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import garbageCollect from '@shell/utils/gc/gc';
+import richardsLogger from '@shell/utils/richards-logger';
 
 function registerType(state, type) {
   let cache = state.types[type];
@@ -295,8 +296,10 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
+    
     cache.haveNamespace = namespace;
     cache.haveAll = !namespace;
+    richardsLogger.warn('ds', 'loadAll', type, cache.haveNamespace, cache.haveAll )
   }
 
   return proxies;

@@ -8,6 +8,7 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import { sameContents } from 'utils/array';
 
 export default {
   name: ResourceListComponentName,
@@ -146,8 +147,12 @@ export default {
      *
      * This covers case 1
      */
-    namespaceFilter(neu) {
-      if (neu && !this.hasFetch) {
+    namespaceFilter(neu, old) {
+      if (sameContents(neu, old)) {
+        return;
+      }
+
+      if (neu &&  !this.hasFetch) {
         this.$fetchType(this.resource);
       }
     }
@@ -191,7 +196,6 @@ export default {
       :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
-      :load-namespace="namespaceFilter"
     >
       <template slot="extraActions">
         <slot name="extraActions" />

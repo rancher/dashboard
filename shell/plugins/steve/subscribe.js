@@ -31,6 +31,8 @@ import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import richardsLogger from '@shell/utils/richards-logger';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
 import { STORE } from '@shell/store/store-types';
@@ -104,7 +106,7 @@ export async function createWorker(store, ctx) {
       }
     },
     batchChanges: (batch) => {
-      dispatch('batchChanges', batch);
+      dispatch('batchChanges', namespaceHandler.validateBatchChange(ctx, batch));
     },
     dispatch: (msg) => {
       dispatch(`ws.${ msg.name }`, msg);
@@ -178,7 +180,76 @@ export function equivalentWatch(a, b) {
   return true;
 }
 
-function queueChange({ getters, state }, { data, revision }, load, label) {
+/**
+ * Sockets will not be able to subscribe to more than one namespace. If this is requested we pretend to handle it
+ * - Changes to all resources are monitored (no namespace provided in sub)
+ * - We ignore any events not from a required namespace (we have the conversion of project --> namespaces already)
+ */
+const namespaceHandler = {
+  /**
+   * Note - namespace can be a list of projects or namespaces
+   */
+  subscribeNamespace: (namespace) => {
+    if (pAndNFiltering.isApplicable({ namespaced: namespace }) && namespace.length) {
+      return undefined; // AKA sub to everything
+    }
+
+    return namespace;
+  },
+
+  validChange: ({ getters, rootGetters }, type, data) => {
+    const haveNamespace = getters.haveNamespace(type);
+
+    richardsLogger.warn('sub', type, 'queueChange', 'haveNamespace', haveNamespace);
+    if (haveNamespace?.length) {
+      const namespaces = rootGetters.activeNamespaceCache;
+
+      if (!namespaces[data.metadata.namespace]) {
+        richardsLogger.warn('sub', type, 'queueChange', 'skipping', namespaces);
+
+        return false;
+      }
+      richardsLogger.warn('sub', type, 'queueChange', 'doing', namespaces);
+    }
+
+    return true;
+  },
+
+  validateBatchChange: ({ getters, rootGetters }, batch) => {
+    const namespaces = rootGetters.activeNamespaceCache;
+    // richardsLogger.warn('sub', 'validBatchChange start', 'batch', batch, 'namespaces', namespaces)
+
+    Object.entries(batch).forEach(([type, entries]) => {
+      const haveNamespace = getters.haveNamespace(type);
+
+      if (!haveNamespace?.length) {
+        return;
+      }
+
+      const schema = getters.schemaFor(type);
+
+      if (!schema?.attributes?.namespaced) {
+        return;
+      }
+
+      Object.keys(entries).forEach((id) => {
+        const namespace = id.split('/')[0];
+
+        if (!namespace || !namespaces[namespace]) {
+          richardsLogger.warn('sub', type, 'validBatchChange', 'bskipping', id, haveNamespace, namespaces);
+          delete entries[id];
+        } else {
+          richardsLogger.warn('sub', type, 'validBatchChange', 'bdoing', id, haveNamespace, namespaces);
+        }
+      });
+    });
+
+    // richardsLogger.warn('sub', 'validBatchChange end', 'batch', batch, 'namespaces', namespaces)
+    return batch;
+  }
+};
+
+function queueChange({ getters, state, rootGetters }, { data, revision }, load, label) {
   const type = getters.normalizeType(data.type);
 
   const entry = getters.typeEntry(type);
@@ -190,6 +261,11 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
   }
 
   // console.log(`${ label } Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
+
+  richardsLogger.warn('sub', type, 'queueChange', data, state);
+  if (!namespaceHandler.validChange({ getters, rootGetters }, type, data)) {
+    return;
+  }
 
   if ( load ) {
     state.queue.push({
@@ -335,6 +411,7 @@ const sharedActions = {
       type, selector, id, revision, namespace, stop, force
     } = params;
 
+    namespace = namespaceHandler.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
 
     if (rootGetters['type-map/isSpoofed'](type)) {
@@ -413,6 +490,8 @@ const sharedActions = {
     const { commit, getters, dispatch } = ctx;
 
     if (getters['schemaFor'](type)) {
+      namespace = namespaceHandler.subscribeNamespace(namespace);
+
       const obj = {
         type,
         id,

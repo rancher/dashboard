@@ -10,6 +10,7 @@ import mutations from './mutations';
 import { keyFieldFor, normalizeType } from './normalize';
 import { lookup } from './model-loader';
 import garbageCollect from '@shell/utils/gc/gc';
+import richardsLogger from '@shell/utils/richards-logger';
 
 export const urlFor = (state, getters) => (type, id, opt) => {
   opt = opt || {};
@@ -268,10 +269,16 @@ export default {
     const entry = state.types[type];
 
     if ( entry ) {
+      richardsLogger.warn('ds', 'getter', 'haveAllNamespace', entry.haveNamespace, namespace, entry.haveNamespace === namespace)
       return entry.haveNamespace === namespace;
     }
 
     return false;
+  },
+
+  haveNamespace: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+    return state.types[type]?.haveNamespace || null;
   },
 
   haveSelector: (state, getters) => (type, selector) => {
