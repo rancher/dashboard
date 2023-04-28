@@ -147,6 +147,7 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
+
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
@@ -287,8 +288,8 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/ignoreType`, regexOrString);
     },
 
-    ignoreGroup(regexOrString) {
-      store.commit(`${ module }/ignoreGroup`, regexOrString);
+    ignoreGroup(regexOrString, cb) {
+      store.commit(`${ module }/ignoreGroup`, { regexOrString, cb });
     },
 
     weightGroup(input, weight, forBasic) {
@@ -1260,18 +1261,19 @@ export const getters = {
     };
   },
 
-  isIgnored(state) {
+  isIgnored(state, getters, rootState, rootGetters) {
     return (schema) => {
-      if ( state.cache.ignore[schema.id] !== undefined ) {
-        return state.cache.ignore[schema.id];
-      }
-
       let out = false;
 
       for ( const rule of state.groupIgnore ) {
         const group = schema?.attributes?.group;
 
-        if ( group && group.match(stringToRegex(rule)) ) {
+        if (group && group.match(stringToRegex(rule.type) && isObject(rule) && rule.type)) {
+          out = rule.cb(rootGetters);
+          break;
+        }
+
+        if ( group && typeof rule === 'string' && group.match(stringToRegex(rule)) ) {
           out = true;
           break;
         }
@@ -1518,10 +1520,13 @@ export const mutations = {
     }
   },
 
-  ignoreGroup(state, match) {
+  ignoreGroup(state, { regexOrString: match, cb }) {
     match = ensureRegex(match);
     // State shouldn't contain actual RegExp objects, because they don't serialize
-    state.groupIgnore.push(regexToString(match));
+    cb ? state.groupIgnore.push({
+      type: regexToString(match),
+      cb
+    }) : state.groupIgnore.push(regexToString(match));
   },
 
   ignoreType(state, match) {

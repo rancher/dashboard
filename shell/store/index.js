@@ -225,23 +225,24 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
 
 export const state = () => {
   return {
-    managementReady:         false,
-    clusterReady:            false,
-    isRancher:               false,
-    namespaceFilters:        [],
-    activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
-    activeNamespaceCacheKey: '', // Fingerprint of activeNamespaceCache
-    allNamespaces:           [],
-    allWorkspaces:           [],
-    clusterId:               null,
-    productId:               null,
-    workspace:               null,
-    error:                   null,
-    cameFromError:           false,
-    pageActions:             [],
-    serverVersion:           null,
-    systemNamespaces:        [],
-    isSingleProduct:         undefined,
+    managementReady:           false,
+    clusterReady:              false,
+    isRancher:                 false,
+    namespaceFilters:          [],
+    activeNamespaceCache:      {}, // Used to efficiently check if a resource should be displayed
+    activeNamespaceCacheKey:   '', // Fingerprint of activeNamespaceCache
+    allNamespaces:             [],
+    allWorkspaces:             [],
+    clusterId:                 null,
+    productId:                 null,
+    workspace:                 null,
+    error:                     null,
+    cameFromError:             false,
+    pageActions:               [],
+    serverVersion:             null,
+    systemNamespaces:          [],
+    isSingleProduct:           undefined,
+    openRancherManagerSupport: false
   };
 };
 
@@ -550,6 +551,10 @@ export const getters = {
     return false;
   },
 
+  openRancherManagerSupport(state) {
+    return state.openRancherManagerSupport;
+  },
+
   isVirtualCluster(state, getters) {
     const cluster = getters['currentCluster'];
 
@@ -568,13 +573,16 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
+  openRancherManagerSupport(state, neu) {
+    state.openRancherManagerSupport = neu;
+  },
+
   updateNamespaces(state, { filters, all }) {
     state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {
       state.allNamespaces = all;
     }
-
     // Create map that can be used to efficiently check if a
     // resource should be displayed
     getActiveNamespaces(state, getters);
@@ -712,6 +720,17 @@ export const actions = {
     res = await allHash(promises);
     dispatch('i18n/init');
     const isMultiCluster = getters['isMultiCluster'];
+
+    // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
+    const localCluster = res.clusters?.find(c => c.id === 'local');
+
+    if (localCluster?.isHarvester) {
+      const harvesterSetting = await dispatch('cluster/findAll', { type: HCI.SETTING, opt: { url: `/v1/harvester/${ HCI.SETTING }s` } });
+      const rancherManagerSupport = harvesterSetting.find(setting => setting.id === 'rancher-manager-support');
+      const openRancherManagerSupport = (rancherManagerSupport?.value || rancherManagerSupport?.default) === 'true';
+
+      commit('openRancherManagerSupport', openRancherManagerSupport);
+    }
 
     const pl = res.settings?.find(x => x.id === 'ui-pl')?.value;
     const brand = res.settings?.find(x => x.id === SETTING.BRAND)?.value;
@@ -902,10 +921,11 @@ export const actions = {
     await dispatch('cleanNamespaces');
 
     const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
+    const allNamespaces = res.namespaces;
 
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
-      all:     res.namespaces,
+      all:     allNamespaces,
     });
 
     commit('clusterReady', true);
@@ -923,6 +943,7 @@ export const actions = {
         [key]: ids
       }
     });
+
     commit('updateNamespaces', { filters: ids });
   },
 
