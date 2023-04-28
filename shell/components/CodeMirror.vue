@@ -60,23 +60,15 @@ export default {
         showCursorWhenSelecting: true,
       };
 
-      Object.assign(out, this.options);
-
       if (this.asTextArea) {
-        Object.assign(out, {
-          lineNumbers:            false,
-          tabSize:                0,
-          lineWrapping:           true,
-          showMarkdownLineBreaks: true,
-          styleSelectedText:      true,
-        });
+        out.lineNumbers = false;
+        out.tabSize = 0;
       }
+
+      Object.assign(out, this.options);
 
       return out;
     },
-    markdownLineBreaks() {
-      return this.codeMirrorRef?.options.showMarkdownLineBreaks || false;
-    }
   },
 
   created() {
@@ -140,7 +132,7 @@ export default {
   <client-only placeholder=" Loading...">
     <div
       class="code-mirror"
-      :class="{['cm-markdown-line-breaks']: markdownLineBreaks}"
+      :class="{['as-text-area']: asTextArea}"
     >
       <codemirror
         v-if="loaded"
@@ -170,8 +162,27 @@ export default {
       background: none
     }
 
-    // 'showMarkdownLineBreaks' mode, defined in shell/plugins/codemirror.js
-    &.cm-markdown-line-breaks {
+    &.as-text-area {
+      min-height: 40px;
+      position: relative;
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      background-color: var(--input-bg);
+      border-radius: var(--border-radius);
+      border: solid var(--border-width) var(--input-border);
+      color: var(--input-text);
+
+      &:hover {
+        border-color: var(--input-hover-border);
+      }
+
+      &:focus, &.focus {
+        outline: none;
+        border-color: var(--outline);
+      }
+
       .CodeMirror-wrap pre {
         word-break: break-word;
       }
@@ -196,7 +207,49 @@ export default {
           }
         }
       }
+
+      .CodeMirror-lines {
+        color: var(--input-text);
+        padding: 0;
+
+        .CodeMirror-line > span > span {
+          &.cm-overlay {
+            font-family: monospace;
+          }
+        }
+
+        .CodeMirror-line > span {
+          font-family: $body-font;
+        }
+      }
+
+      .CodeMirror-sizer {
+        min-height: 20px;
+      }
+
+      .CodeMirror-selected {
+        background-color: var(--primary) !important;
+      }
+
+      .CodeMirror-selectedtext {
+        color: var(--primary-text);
+      }
+
+      .CodeMirror-line::selection,
+      .CodeMirror-line > span::selection,
+      .CodeMirror-line > span > span::selection {
+        color: var(--primary-text);
+        background-color: var(--primary);
+      }
+
+      .CodeMirror-line::-moz-selection,
+      .CodeMirror-line > span::-moz-selection,
+      .CodeMirror-line > span > span::-moz-selection {
+        color: var(--primary-text);
+        background-color: var(--primary);
+      }
     }
+
   }
 
 </style>

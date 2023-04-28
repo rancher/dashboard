@@ -170,7 +170,7 @@ CodeMirror.registerHelper('fold', 'yamlcomments', (cm, start) => {
 
 /**
  * It display a dot for each space character in the text;
- * used in combination with 'cm-markdown-line-breaks' in CodeMirror.vue to display line break markdowns
+ * used in combination with 'as-text-area' css properties in CodeMirror.vue to display line break markdowns
  */
 CodeMirror.defineOption('showMarkdownLineBreaks', false, (codeMirror) => {
   codeMirror.addOverlay({
