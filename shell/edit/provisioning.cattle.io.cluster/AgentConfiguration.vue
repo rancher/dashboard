@@ -20,7 +20,16 @@ export function cleanAgentConfiguration(model, key) {
     delete model[key];
   } else if (v && typeof v === 'object') {
     Object.keys(v).forEach((k) => {
-      cleanAgentConfiguration(v, k);
+      // delete these auxiliary props used in podAffinity and nodeAffinity that shouldn't be sent to the server
+      if (k === '_namespaceOption' || k === '_namespaces' || k === '_anti' || k === '_id') {
+        delete v[k];
+      }
+
+      // prevent cleanup of namespaceSelector when an empty object because it represents all namespaces in pod/node affinity
+      // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
+      if (k !== 'namespaceSelector') {
+        cleanAgentConfiguration(v, k);
+      }
     });
 
     if (Object.keys(v).length === 0) {
@@ -231,6 +240,22 @@ export default {
     </GroupPanel>
 
     <GroupPanel
+      label-key="cluster.agentConfig.groups.podTolerations"
+      class="mt-20"
+    >
+      <Banner
+        :closable="false"
+        color="info"
+        label-key="cluster.agentConfig.banners.tolerations"
+      />
+      <Tolerations
+        v-model="value.appendTolerations"
+        :mode="mode"
+        class="mt-10"
+      />
+    </GroupPanel>
+
+    <GroupPanel
       label-key="cluster.agentConfig.groups.podAffinity"
       class="mt-20"
     >
@@ -264,6 +289,7 @@ export default {
         class="mt-0 mb-20"
         :all-namespaces-option-available="true"
         :force-input-namespace-selection="true"
+        :remove-labeled-input-namespace-label="true"
         data-testid="pod-affinity"
       />
 
@@ -286,22 +312,6 @@ export default {
         class="mt-0"
         data-testid="node-affinity"
         @input="updateNodeAffinity"
-      />
-    </GroupPanel>
-
-    <GroupPanel
-      label-key="cluster.agentConfig.groups.podTolerations"
-      class="mt-20"
-    >
-      <Banner
-        :closable="false"
-        color="info"
-        label-key="cluster.agentConfig.banners.tolerations"
-      />
-      <Tolerations
-        v-model="value.appendTolerations"
-        :mode="mode"
-        class="mt-10"
       />
     </GroupPanel>
   </div>

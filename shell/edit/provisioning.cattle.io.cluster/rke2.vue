@@ -1103,6 +1103,7 @@ export default {
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
+    this.registerBeforeHook(this.agentConfigurationCleanup, 'cleanup-agent-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
@@ -1110,6 +1111,12 @@ export default {
   methods: {
     nlToBr,
     set,
+
+    agentConfigurationCleanup() {
+      // Clean agent configuration objects, so we only send values when the user has configured something
+      cleanAgentConfiguration(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION);
+      cleanAgentConfiguration(this.value.spec, FLEET_AGENT_CUSTOMIZATION);
+    },
 
     /**
      * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
@@ -1494,18 +1501,22 @@ export default {
         delete this.value.spec.rkeConfig.machineGlobalConfig.profile;
       }
 
-      const clusterAgentDeploymentCustomization = JSON.parse(JSON.stringify(this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]));
-      const fleetAgentDeploymentCustomization = JSON.parse(JSON.stringify(this.value.spec[FLEET_AGENT_CUSTOMIZATION]));
+      // store the current data for fleet and cluster agent so that we can re-apply it later if the save fails
+      // we also have a before hook (check created() hooks) where the cleanup of the data occurs
+      const clusterAgentDeploymentCustomization = Object.assign({}, JSON.parse(JSON.stringify(this.value.spec[CLUSTER_AGENT_CUSTOMIZATION])));
+      const fleetAgentDeploymentCustomization = Object.assign({}, JSON.parse(JSON.stringify(this.value.spec[FLEET_AGENT_CUSTOMIZATION])));
 
-      // Clean agent configuration objects, so we only send values when the user has configured something
-      cleanAgentConfiguration(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION);
-      cleanAgentConfiguration(this.value.spec, FLEET_AGENT_CUSTOMIZATION);
-
-      // Ensure the agent configuration is set back to the values before we changed (cleaned) it
-      set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, clusterAgentDeploymentCustomization);
-      set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, fleetAgentDeploymentCustomization);
+      console.log('SAVING start');
 
       await this.save(btnCb);
+
+      // comes from createEditView mixin
+      // if there are any errors saving, restore the agent config data
+      if (this.errors?.length) {
+        // Ensure the agent configuration is set back to the values before we changed (cleaned) it
+        set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, clusterAgentDeploymentCustomization);
+        set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, fleetAgentDeploymentCustomization);
+      }
     },
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
     async createKubeconfigSecret(kubeconfig = '') {

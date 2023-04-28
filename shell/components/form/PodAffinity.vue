@@ -64,6 +64,11 @@ export default {
       type:    Boolean
     },
 
+    removeLabeledInputNamespaceLabel: {
+      default: false,
+      type:    Boolean
+    },
+
     loading: {
       default: false,
       type:    Boolean
@@ -148,6 +153,10 @@ export default {
 
     node() {
       return NODE;
+    },
+
+    labeledInputNamespaceLabel() {
+      return this.removeLabeledInputNamespaceLabel ? '' : this.t('workload.scheduling.affinity.matchExpressions.inNamespaces');
     },
 
     allNamespacesOptions() {
@@ -373,7 +382,7 @@ export default {
               v-else
               v-model="props.row.value._namespaces"
               :mode="mode"
-              :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              :label="labeledInputNamespaceLabel"
               :placeholder="t('cluster.credential.harvester.affinity.namespaces.placeholder')"
               :data-testid="`pod-affinity-namespace-input-index${props.i}`"
               @input="updateNamespaces(props.row.value, props.row.value._namespaces)"

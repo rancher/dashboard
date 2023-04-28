@@ -257,7 +257,7 @@ export default {
       :class="{ 'view':isView, 'match-expression-header-matching': matchingSelectorDisplay }"
     >
       <label v-if="matchingSelectorDisplay">
-        {{ t('workload.scheduling.affinity.matchExpressions.matching') }}
+        {{ t('workload.scheduling.affinity.matchExpressions.matchType') }}
       </label>
       <label>
         {{ t('workload.scheduling.affinity.matchExpressions.key') }}

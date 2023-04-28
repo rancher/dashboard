@@ -5953,10 +5953,10 @@ workload:
         exists: is set
         greaterThan: ">"
         in: in list
-        inNamespaces: "Pods in these namespaces:"
+        inNamespaces: "Specific namespaces"
         key: Key
         lessThan: <
-        matching: Matching
+        matchType: Match Type
         namespaces: Namespaces
         notIn: not in list
         operator: Operator
@@ -6000,7 +6000,7 @@ workload:
       effectOptions:
         all: All
         noExecute: NoExecute
-        noSchedule: "NoSchedule,"
+        noSchedule: "NoSchedule"
         preferNoSchedule: PreferNoSchedule
       labelKey: Label Key
       operator: Operator
