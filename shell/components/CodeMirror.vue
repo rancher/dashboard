@@ -21,6 +21,10 @@ export default {
       type:    Object,
       default: () => {}
     },
+    asTextArea: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -57,6 +61,16 @@ export default {
       };
 
       Object.assign(out, this.options);
+
+      if (this.asTextArea) {
+        Object.assign(out, {
+          lineNumbers:            false,
+          tabSize:                0,
+          lineWrapping:           true,
+          showMarkdownLineBreaks: true,
+          styleSelectedText:      true,
+        });
+      }
 
       return out;
     },

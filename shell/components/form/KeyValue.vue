@@ -253,14 +253,7 @@ export default {
 
     return {
       rows,
-      codeMirrorFocus:   {},
-      codeMirrorOptions: {
-        lineNumbers:            false,
-        tabSize:                0,
-        lineWrapping:           true,
-        showMarkdownLineBreaks: true,
-        styleSelectedText:      true,
-      },
+      codeMirrorFocus: {},
     };
   },
 
@@ -663,7 +656,7 @@ export default {
               ref="cm"
               :class="{['focus']: codeMirrorFocus[i]}"
               :value="row[valueName]"
-              :options="codeMirrorOptions"
+              :as-text-area="true"
               :mode="mode"
               @onInput="onInputMarkdownMultiline(i, $event)"
               @onFocus="onFocusMarkdownMultiline(i, $event)"
