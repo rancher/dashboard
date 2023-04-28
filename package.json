@@ -10,7 +10,9 @@
     "node": ">=14"
   },
   "workspaces": [
-    "pkg/rancher-components"
+    "pkg/rancher-components",
+    "pkg/harvester",
+    "shell/*"
   ],
   "scripts": {
     "build-pkg": "yarn lint && ./shell/scripts/build-pkg.sh",
