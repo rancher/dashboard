@@ -2749,6 +2749,7 @@ logging:
     clientKeyPass: Client Key Pass from Secret
     verifySsl: Verify SSL
     sslVersion: SSL Version
+    suppressTypeName: Suppress Type Name
   redis:
     host: Host
     port: Port
