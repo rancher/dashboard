@@ -1,3 +1,153 @@
+<script>
+import ModalWithCard from '@shell/components/ModalWithCard';
+import { Banner } from '@components/Banner';
+import PercentageBar from '@shell/components/PercentageBar.vue';
+import throttle from 'lodash/throttle';
+
+export default {
+  name:       'Inactivity',
+  components: {
+    ModalWithCard, Banner, PercentageBar
+  },
+
+  props: {
+    showModalAfter: {
+      type:    Number,
+      default: 5, //  seconds
+    },
+    courtesyTimer: {
+      type:    Number,
+      default: 10, // seconds
+    },
+    enabled: {
+      type:    Boolean,
+      default: false,
+    }
+  },
+
+  data() {
+    return {
+      isOpen:              false,
+      isInactive:          false,
+      inactivityTimeoutId: null,
+      courtesyCountdown:   this.courtesyTimer,
+      courtesyTimerId:     null,
+      trackInactivity:     throttle(this._trackInactivity, 1000)
+    };
+  },
+  mounted() {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.addIdleListeners();
+  },
+  beforeDestroy() {
+    this.removeEventListener();
+  },
+  methods: {
+    _trackInactivity() {
+      if (this.isInactive || this.isOpen) {
+        return;
+      }
+
+      this.clearAllTimeouts();
+      const endTime = Date.now() + this.showModalAfter * 1000;
+
+      const checkInactivityTimer = () => {
+        const now = Date.now();
+
+        if (now >= endTime) {
+          this.isOpen = true;
+          this.startCountdown();
+
+          this.$modal.show('inactivityModal');
+        } else {
+          this.inactivityTimeoutId = setTimeout(checkInactivityTimer, 1000);
+        }
+      };
+
+      checkInactivityTimer();
+    },
+    startCountdown() {
+      const endTime = Date.now() + this.courtesyCountdown * 1000;
+
+      const checkCountdown = () => {
+        const now = Date.now();
+
+        if (now >= endTime) {
+          this.isInactive = true;
+          this.unsubscribe();
+          this.clearAllTimeouts();
+        } else {
+          this.courtesyCountdown = Math.floor((endTime - now) / 1000);
+          this.courtesyTimerId = setTimeout(checkCountdown, 1000);
+        }
+      };
+
+      checkCountdown();
+    },
+    addIdleListeners() {
+      document.addEventListener('mousemove', this.trackInactivity);
+      document.addEventListener('mousedown', this.trackInactivity);
+      document.addEventListener('keypress', this.trackInactivity);
+      document.addEventListener('touchmove', this.trackInactivity);
+      document.addEventListener('visibilitychange', this.trackInactivity);
+    },
+    removeEventListener() {
+      document.removeEventListener('mousemove', this.trackInactivity);
+      document.removeEventListener('mousedown', this.trackInactivity);
+      document.removeEventListener('keypress', this.trackInactivity);
+      document.removeEventListener('touchmove', this.trackInactivity);
+      document.addEventListener('visibilitychange', this.trackInactivity);
+    },
+
+    resume() {
+      this.isInactive = false;
+      this.isOpen = false;
+      this.courtesyCountdown = this.courtesyTimer;
+      this.clearAllTimeouts();
+
+      this.$modal.hide('inactivityModal');
+    },
+
+    refresh() {
+      window.location.reload();
+    },
+
+    unsubscribe() {
+      this.$store.dispatch('unsubscribe');
+    },
+    clearAllTimeouts() {
+      clearTimeout(this.inactivityTimeoutId);
+      clearTimeout(this.courtesyTimerId);
+    }
+
+  },
+  computed: {
+    isInactiveTexts() {
+      return this.isInactive ? {
+        title:   this.t('inactivity.titleExpired'),
+        banner:  this.t('inactivity.bannerExpired'),
+        content: this.t('inactivity.contentExpired'),
+      } : {
+        title:   this.t('inactivity.title'),
+        banner:  this.t('inactivity.banner'),
+        content: this.t('inactivity.content'),
+      };
+    },
+    showPercentage() {
+      return Math.floor((this.courtesyCountdown / this.courtesyTimer ) * 100);
+    },
+    colorStops() {
+      return {
+        0: '--info', 30: '--info', 70: '--info'
+      };
+    },
+  }
+};
+</script>
+
 <template>
   <ModalWithCard
     ref="inactivityModal"
@@ -7,7 +157,7 @@
     @finish="resume"
   >
     <template #title>
-      {{ t('inactivity.title') }}
+      {{ isInactiveTexts.title }}
     </template>
 
     <template #content>
@@ -21,7 +171,7 @@
 
       <PercentageBar
         v-if="!isInactive"
-        style="margin-top: 20px;"
+        class="mt-20"
         :value="showPercentage"
         :color-stops="colorStops"
       />
@@ -50,149 +200,6 @@
     </template>
   </ModalWithCard>
 </template>
-
-<script>
-import ModalWithCard from '@/shell/components/ModalWithCard';
-import { Banner } from '@components/Banner';
-import PercentageBar from '@/shell/components/PercentageBar.vue';
-
-export default {
-  name:       'Inactivity',
-  components: {
-    ModalWithCard, Banner, PercentageBar
-  },
-
-  props: {
-    showModalAfter: {
-      type:    Number,
-      default: 5, // in seconds
-    },
-    courtesyTimer: {
-      type:    Number,
-      default: 10, // in seconds
-    },
-    enabled: {
-      type:    Boolean,
-      default: false,
-    }
-  },
-
-  data() {
-    return {
-      isOpen:              false,
-      isInactive:          false,
-      inactivityTimeoutId: null,
-      courtesyCountdown:   this.courtesyTimer,
-      courtesyTimerId:     null,
-    };
-  },
-  mounted() {
-    if (!this.enabled) {
-      return;
-    }
-
-    this.addIdleListeners();
-  },
-  beforeDestroy() {
-    this.removeIdleListeners();
-  },
-  methods: {
-    trackInactivity() {
-      if (this.isInactive || this.isOpen) {
-        return;
-      }
-
-      this.clearAllTimeouts();
-
-      this.inactivityTimeoutId = setTimeout(() => {
-        this.isOpen = true;
-        this.startCountdown();
-
-        this.$modal.show('inactivityModal');
-      }, this.showModalAfter * 1000);
-    },
-    startCountdown() {
-      const endDate = new Date();
-
-      endDate.setSeconds(endDate.getSeconds() + this.courtesyCountdown);
-
-      const checkCountdown = () => {
-        const now = new Date();
-
-        if (now >= endDate) {
-          this.isInactive = true;
-          this.disablePulling();
-        } else {
-          this.courtesyCountdown = Math.floor((endDate - now) / 1000);
-          this.courtesyTimerId = setTimeout(checkCountdown, 1000);
-        }
-      };
-
-      checkCountdown();
-    },
-    addIdleListeners() {
-      document.addEventListener('mousemove', this.trackInactivity);
-      document.addEventListener('mousedown', this.trackInactivity);
-      document.addEventListener('keypress', this.trackInactivity);
-      document.addEventListener('touchmove', this.trackInactivity);
-      document.addEventListener('visibilitychange', this.trackInactivity);
-    },
-    removeIdleListeners() {
-      document.removeEventListener('mousemove', this.trackInactivity);
-      document.removeEventListener('mousedown', this.trackInactivity);
-      document.removeEventListener('keypress', this.trackInactivity);
-      document.removeEventListener('touchmove', this.trackInactivity);
-      document.addEventListener('visibilitychange', this.trackInactivity);
-    },
-
-    resume() {
-      this.isInactive = false;
-      this.courtesyCountdown = this.courtesyTimer;
-      this.clearAllTimeouts();
-      this.trackInactivity();
-
-      this.isOpen = false;
-      this.$modal.hide('inactivityModal');
-    },
-
-    refresh() {
-      window.location.reload();
-    },
-
-    disablePulling() {
-      this.$store.dispatch('rancher/unsubscribe');
-      this.$store.dispatch('management/unsubscribe');
-      this.$store.dispatch('cluster/unsubscribe');
-
-      this.clearAllTimeouts();
-    },
-    clearAllTimeouts() {
-      clearTimeout(this.inactivityTimeoutId);
-      clearTimeout(this.courtesyTimerId);
-    }
-
-  },
-  computed: {
-    isInactiveTexts() {
-      return this.isInactive ? {
-        banner:  this.t('inactivity.bannerExpired'),
-        content: this.t('inactivity.contentExpired'),
-      } : {
-        banner:  this.t('inactivity.banner'),
-        content: this.t('inactivity.content'),
-      };
-    },
-    showPercentage() {
-      return Math.floor((this.courtesyCountdown / this.courtesyTimer ) * 100);
-    },
-    colorStops() {
-      return {
-        0: '--info', 30: '--info', 70: '--info'
-      };
-    },
-  }
-};
-</script>
 
 <style lang="scss" scoped>
 .card-actions {

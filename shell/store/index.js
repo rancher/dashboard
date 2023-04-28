@@ -1,32 +1,37 @@
-import Steve from '@shell/plugins/steve';
-import {
-  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET, UI, VIRTUAL_HARVESTER_PROVIDER, DEFAULT_WORKSPACE
-} from '@shell/config/types';
-import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
-import { allHash, allHashSettled } from '@shell/utils/promise';
-import { ClusterNotFoundError, ApiError } from '@shell/utils/error';
-import { sortBy } from '@shell/utils/sort';
-import { filterBy, findBy } from '@shell/utils/array';
-import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
-import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { TIMED_OUT, LOGGED_OUT, _FLAGGED, UPGRADED } from '@shell/config/query-params';
-import { setBrand, setVendor } from '@shell/config/private-label';
-import { addParam } from '@shell/utils/url';
-import { SETTING } from '@shell/config/settings';
-import semver from 'semver';
 import { BACK_TO } from '@shell/config/local-storage';
-import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
-import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
+import { setBrand, setVendor } from '@shell/config/private-label';
+import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { LOGGED_OUT, TIMED_OUT, UPGRADED, _FLAGGED } from '@shell/config/query-params';
+import { SETTING } from '@shell/config/settings';
 import {
-  NAMESPACE_FILTER_ALL_USER as ALL_USER,
-  NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
+  COUNT,
+  DEFAULT_WORKSPACE,
+  FLEET,
+  MANAGEMENT,
+  NAMESPACE, NORMAN,
+  UI, VIRTUAL_HARVESTER_PROVIDER
+} from '@shell/config/types';
+import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
+import Steve from '@shell/plugins/steve';
+import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
+import { CLUSTER as CLUSTER_PREF, LAST_NAMESPACE, NAMESPACE_FILTERS, WORKSPACE } from '@shell/store/prefs';
+import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
+import { filterBy, findBy } from '@shell/utils/array';
+import { ApiError, ClusterNotFoundError } from '@shell/utils/error';
+import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
+import {
   NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
+  NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
+  NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
+  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
   splitNamespaceFilterKey,
 } from '@shell/utils/namespace-filter';
-import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
+import { allHash, allHashSettled } from '@shell/utils/promise';
+import { sortBy } from '@shell/utils/sort';
+import { addParam } from '@shell/utils/url';
+import semver from 'semver';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -591,7 +596,6 @@ export const mutations = {
     state.isMultiCluster = isMultiCluster;
     state.isRancher = isRancher;
   },
-
   clusterReady(state, ready) {
     state.clusterReady = ready;
   },
@@ -1120,6 +1124,17 @@ export const actions = {
 
   setIsSingleProduct({ commit }, isSingleProduct) {
     commit(`setIsSingleProduct`, isSingleProduct);
+  },
+
+  unsubscribe( { state, dispatch }) {
+    // It would be nice to grab all vuex module stores that we've registered, apparently this is only possible via the
+    // internal properties store._modules.root._children.
+    // So instead loop through all state entries to find stores
+    return Object.entries(state).filter(([storeName, storeState]) => {
+      if (storeState?.allowStreaming) {
+        dispatch(`${ storeName }/unsubscribe`);
+      }
+    });
   },
 
   ...gcActions

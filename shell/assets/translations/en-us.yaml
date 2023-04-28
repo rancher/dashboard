@@ -2314,12 +2314,13 @@ growl:
 
 inactivity:
   title: Session expiring
+  titleExpired: Session expired
   banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
   bannerExpired: Your session has expired in this tab due to inactivity.
   content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
-  contentExpired: Refresh the tab to return to this page.
+  contentExpired: To return to this page click “Refresh” below or refresh the browser.
   cta: Resume Session
-  ctaExpired: Refresh Page
+  ctaExpired: Refresh
 
 hpa:
   detail:
