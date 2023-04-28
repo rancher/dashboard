@@ -188,13 +188,6 @@ EOF
   fi
 fi
 
-# Clear out old Rancher packages fro Verdaccio
-if [ -d ~/.local/share/verdaccio/storage/@rancher ]; then 
-  rm -rf ~/.local/share/verdaccio/storage/@rancher/*
-else
-  rm -rf ~/.config/verdaccio/storage/@rancher/*
-fi
-
 export YARN_REGISTRY=http://localhost:4873
 export NUXT_TELEMETRY_DISABLED=1
 
@@ -206,6 +199,16 @@ if [ "$WHOAMI" != "${REG_USER}" ]; then
   echo -e "User: ${WHOAMI}${RESET}"
   exit 1
 fi
+
+# ---- Remove old published packages ------------------------------------------------------------------------------------------------------
+
+# Clear out old Rancher packages from Verdaccio
+
+npm unpublish @rancher/shell@7.7.7 --registry=http://127.0.0.1:4873
+npm unpublish @rancher/components@7.7.7 --registry=http://127.0.0.1:4873
+npm unpublish @rancher/create-app@7.7.7 --registry=http://127.0.0.1:4873
+npm unpublish @rancher/create-pkg@7.7.7 --registry=http://127.0.0.1:4873
+npm unpublish @rancher/create-update@7.7.7 --registry=http://127.0.0.1:4873
 
 # ---- Test preparation -------------------------------------------------------------------------------------------------------------------
 
