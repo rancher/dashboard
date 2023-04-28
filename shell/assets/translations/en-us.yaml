@@ -2208,6 +2208,7 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
+  downloadViolations: Download Violations
   match:
     title: Match
   tab:
@@ -2239,7 +2240,7 @@ gatekeeperConstraint:
     action: Enforcement Action
   violations:
     title: "Violations: {total}"
-    notAll: Not all are shown - the constraint only includes details for {shown}
+    notAll: Not all are shown due to the configured OPA Gatekeeper constraint violation limit - the constraint only includes details for {shown}
 
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
@@ -5224,6 +5225,7 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
+  constraint: Constraint
   completions: Completions
   count: Count
   createdAt: Created At
@@ -5389,6 +5391,7 @@ tableHeaders:
   target: Target
   targetKind: Target Type
   targetPort: Target
+  template: Template
   type: Type
   updated: Updated
   up-to-date: Up To Date

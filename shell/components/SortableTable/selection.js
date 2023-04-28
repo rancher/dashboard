@@ -447,7 +447,9 @@ export default {
         }
       });
 
-      this.selectedRows.push(...toAdd);
+      if ( toAdd ) {
+        this.selectedRows.push(...toAdd);
+      }
 
       // Uncheck and check the checkboxes of nodes that have been added/removed
       if (toRemove.length) {

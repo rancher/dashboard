@@ -2,18 +2,26 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SortableTable from '@shell/components/SortableTable';
 import Banner from '@components/Banner/Banner.vue';
-import { CONSTRAINT_VIOLATION_RESOURCE_LINK, CONSTRAINT_VIOLATION_MESSAGE, CONSTRAINT_VIOLATION_TYPE } from '@shell/config/table-headers';
+import {
+  CONSTRAINT_VIOLATION_RESOURCE_LINK,
+  CONSTRAINT_VIOLATION_MESSAGE,
+  CONSTRAINT_VIOLATION_TYPE,
+  CONSTRAINT_VIOLATION_NAMESPACE,
+} from '@shell/config/table-headers';
 
 export default {
   components: { Banner, SortableTable },
   mixins:     [CreateEditView],
   data() {
+    const headers = [
+      CONSTRAINT_VIOLATION_TYPE,
+      CONSTRAINT_VIOLATION_NAMESPACE,
+      CONSTRAINT_VIOLATION_RESOURCE_LINK,
+      CONSTRAINT_VIOLATION_MESSAGE
+    ];
+
     return {
-      headers: [
-        CONSTRAINT_VIOLATION_TYPE,
-        CONSTRAINT_VIOLATION_RESOURCE_LINK,
-        CONSTRAINT_VIOLATION_MESSAGE
-      ],
+      headers,
       violations: this.value.violations.map((violation, i) => ({ ...violation, id: i }))
     };
   }
@@ -46,7 +54,6 @@ export default {
         <SortableTable
           :headers="headers"
           :rows="violations"
-          :search="false"
           :table-actions="false"
           :row-actions="false"
           :paging="true"
