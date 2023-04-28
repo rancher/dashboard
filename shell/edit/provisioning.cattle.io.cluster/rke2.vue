@@ -1506,8 +1506,6 @@ export default {
       const clusterAgentDeploymentCustomization = Object.assign({}, JSON.parse(JSON.stringify(this.value.spec[CLUSTER_AGENT_CUSTOMIZATION])));
       const fleetAgentDeploymentCustomization = Object.assign({}, JSON.parse(JSON.stringify(this.value.spec[FLEET_AGENT_CUSTOMIZATION])));
 
-      console.log('SAVING start');
-
       await this.save(btnCb);
 
       // comes from createEditView mixin
