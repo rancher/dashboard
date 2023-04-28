@@ -535,12 +535,12 @@ export default {
       return this.t('detailText.binary', { n }, true);
     },
     get,
-    onInputMarkdownMultiline(key, value) {
-      this.rows = this.rows.map(row => row.key === key ? { ...row, value } : row);
+    onInputMarkdownMultiline(idx, value) {
+      this.rows = this.rows.map((row, i) => i === idx ? { ...row, value } : row);
       this.queueUpdate();
     },
-    onFocusMarkdownMultiline(key, value) {
-      this.$set(this.cmFocus, key, value);
+    onFocusMarkdownMultiline(idx, value) {
+      this.$set(this.cmFocus, idx, value);
     }
   }
 };
@@ -661,12 +661,12 @@ export default {
             <CodeMirror
               v-else-if="valueMarkdownMultiline"
               ref="cm"
-              :class="{['focus']: cmFocus[row[keyName]]}"
+              :class="{['focus']: cmFocus[i]}"
               :value="row[valueName]"
               :options="cmOptions"
               :mode="mode"
-              @onInput="onInputMarkdownMultiline(row[keyName], $event)"
-              @onFocus="onFocusMarkdownMultiline(row[keyName], $event)"
+              @onInput="onInputMarkdownMultiline(i, $event)"
+              @onFocus="onFocusMarkdownMultiline(i, $event)"
             />
             <TextAreaAutoGrow
               v-else-if="valueMultiline"
