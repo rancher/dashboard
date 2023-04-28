@@ -253,8 +253,8 @@ export default {
 
     return {
       rows,
-      cmFocus:   {},
-      cmOptions: {
+      codeMirrorFocus:   {},
+      codeMirrorOptions: {
         lineNumbers:            false,
         tabSize:                0,
         lineWrapping:           true,
@@ -540,7 +540,7 @@ export default {
       this.queueUpdate();
     },
     onFocusMarkdownMultiline(idx, value) {
-      this.$set(this.cmFocus, idx, value);
+      this.$set(this.codeMirrorFocus, idx, value);
     }
   }
 };
@@ -661,9 +661,9 @@ export default {
             <CodeMirror
               v-else-if="valueMarkdownMultiline"
               ref="cm"
-              :class="{['focus']: cmFocus[i]}"
+              :class="{['focus']: codeMirrorFocus[i]}"
               :value="row[valueName]"
-              :options="cmOptions"
+              :options="codeMirrorOptions"
               :mode="mode"
               @onInput="onInputMarkdownMultiline(i, $event)"
               @onFocus="onFocusMarkdownMultiline(i, $event)"

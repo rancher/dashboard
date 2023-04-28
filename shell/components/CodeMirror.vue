@@ -25,8 +25,8 @@ export default {
 
   data() {
     return {
-      cm:     null,
-      loaded: false
+      codeMirrorRef: null,
+      loaded:        false
     };
   },
 
@@ -61,7 +61,7 @@ export default {
       return out;
     },
     markdownLineBreaks() {
-      return this.cm?.options.showMarkdownLineBreaks || false;
+      return this.codeMirrorRef?.options.showMarkdownLineBreaks || false;
     }
   },
 
@@ -78,31 +78,31 @@ export default {
   methods: {
 
     focus() {
-      if ( this.$refs.cm ) {
-        this.$refs.cm.codemirror.focus();
+      if ( this.$refs.codeMirrorRef ) {
+        this.$refs.codeMirrorRef.codemirror.focus();
       }
     },
 
     refresh() {
-      if ( this.$refs.cm ) {
-        this.$refs.cm.refresh();
+      if ( this.$refs.codeMirrorRef ) {
+        this.$refs.codeMirrorRef.refresh();
       }
     },
 
-    onReady(cm) {
+    onReady(codeMirrorRef) {
       this.$nextTick(() => {
-        cm.refresh();
-        this.cm = cm;
+        codeMirrorRef.refresh();
+        this.codeMirrorRef = codeMirrorRef;
       });
-      this.$emit('onReady', cm);
+      this.$emit('onReady', codeMirrorRef);
     },
 
     onInput(newCode) {
       this.$emit('onInput', newCode);
     },
 
-    onChanges(cm, changes) {
-      this.$emit('onChanges', cm, changes);
+    onChanges(codeMirrorRef, changes) {
+      this.$emit('onChanges', codeMirrorRef, changes);
     },
 
     onFocus() {
@@ -114,8 +114,8 @@ export default {
     },
 
     updateValue(value) {
-      if ( this.$refs.cm ) {
-        this.$refs.cm.codemirror.doc.setValue(value);
+      if ( this.$refs.codeMirrorRef ) {
+        this.$refs.codeMirrorRef.codemirror.doc.setValue(value);
       }
     }
   }
@@ -130,7 +130,7 @@ export default {
     >
       <codemirror
         v-if="loaded"
-        ref="cm"
+        ref="codeMirrorRef"
         :value="value"
         :options="combinedOptions"
         :disabled="isDisabled"
