@@ -55,7 +55,7 @@ the parent folder.
 Go ahead and run the following command to create a new extension:
 
 ```sh
-yarn create @rancher/pkg test
+yarn create @rancher/pkg test [OPTIONS]
 ```
 
 This will create a new UI Package in the `./pkg/test` folder.
@@ -115,12 +115,19 @@ nothing other than that!
 You should now be able to run the UI again with:
 
 ```sh
-yarn dev
+API=<Rancher Backend URL> yarn dev
 ```
 
-Open a web browser to https://127.0.0.1:8005 and you'll see a new 'Example' nav item in the top-level slide-in menu.
+Open a web browser to https://127.0.0.1:8005 and you'll see a new 'MyProductName' nav item in the top-level slide-in menu.
+<div style={{textAlign: 'center'}}>
+
+![MyProductName Nav Item](./screenshots/global-nav.png)
+
+</div>
 
 > Note: You should be able to make changes to the extension and the UI will hot-reload and update in the browser.
+
+To further develop a product, add new pages and add new types here's an [example](./usecases/top-level-product.md).
 
 ## Building the Extension
 
@@ -136,7 +143,7 @@ This will build the extension as a Vue library and the built extension will be p
 
 ## Loading Into Rancher
 
-When we run `yarn dev`, our test extension will be automatically loaded into the application - this allows us to develop
+When we run `API=<Rancher Backend URL> yarn dev`, our test extension will be automatically loaded into the application - this allows us to develop
 the extension with hot-reloading. To test loading the extension dynamically, we can update configuration to tell Rancher not to include our extension.
 
 To do this, create a new `.env` file in the root `test-app` folder, and add these contents:
@@ -150,7 +157,7 @@ If necessary, bring in the environment variables by running `source .env`.
 Now, run the UI with:
 
 ```sh
-yarn dev
+API=<Rancher Backend URL> yarn dev
 ```
 
 Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav item is not present - since the extension was not loaded.
@@ -208,6 +215,30 @@ We have created a workflow for [Github Actions](https://docs.github.com/en/actio
 ### Release Prerequisites
 
 In order to have a Helm repository you will need to create the (`gh-pages`) on your Github repository.
+
+1. Go to the repository of the extension and click the `Settings` tab in the top navigation bar.
+
+<div style={{textAlign: 'center'}}>
+
+![Repo Settings Tab](./screenshots/repo-settings-tab.png)
+
+</div>
+
+2. Then on the left navigation bar of the settings page click the `Pages` tab.
+
+<div style={{textAlign: 'center'}}>
+
+![Repo Pages Tab](./screenshots/repo-pages-tab.png)
+
+</div>
+
+3. Lastly, select `GitHub Actions` from the `Source` dropdown.
+
+<div style={{textAlign: 'center'}}>
+
+![Repo Pages Dropdown](./screenshots/repo-pages-dropdown.png)
+
+</div>
 
 ### Adding the Release Workflow
 
