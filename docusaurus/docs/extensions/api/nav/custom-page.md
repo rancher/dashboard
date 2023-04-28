@@ -4,12 +4,14 @@
 As we've seen from the previous chapter, a developer can register a top-level product with the `product` function. How about adding a custom page to your extension product? To do that, we can use the function `virtualType` coming from `$plugin.DSL`. As an example usage of that method, one could do the following:
 
 ```ts
+import { IPlugin } from '@shell/core/types';
+
 // this is the definition of a "blank cluster" for Rancher Dashboard
 // definition of a "blank cluster" in Rancher Dashboard
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin, store) {
+export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   const CUSTOM_PAGE_NAME = 'page1';
   

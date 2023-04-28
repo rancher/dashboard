@@ -16,13 +16,15 @@ import {
   PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from '@shell/core/types';
 
+export type ProductFunction = (plugin: IPlugin, store: any) => void;
+
 export class Plugin implements IPlugin {
   public id: string;
   public name: string;
   public types: any = {};
   public l10n: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
-  public products: Function[] = [];
+  public products: ProductFunction[] = [];
   public productNames: string[] = [];
   public routes: { parent?: string, route: RouteConfig }[] = [];
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
@@ -83,7 +85,7 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: Function): void {
+  addProduct(product: ProductFunction): void {
     this.products.push(product);
   }
 

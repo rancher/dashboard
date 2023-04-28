@@ -4,12 +4,14 @@
 One of the most common view types in Rancher Dashboard is the list view for a kubernetes resource. What if you wanted to include a similiar view on your Extension product for a given resource? For that we can use the function `configureType` coming from `$plugin.DSL`. As an example usage of that method, one could do the following:
 
 ```ts
+import { IPlugin } from '@shell/core/types';
+
 // this is the definition of a "blank cluster" for Rancher Dashboard
 // definition of a "blank cluster" in Rancher Dashboard
 const BLANK_CLUSTER = '_';
 
 
-export function init($plugin, store) {
+export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
   // example of using an existing k8s resource as a page
   const YOUR_K8S_RESOURCE_NAME = 'provisioning.cattle.io.cluster';
