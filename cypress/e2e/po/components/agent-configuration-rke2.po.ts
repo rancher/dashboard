@@ -1,8 +1,11 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import UnitInputPo from '~/cypress/e2e/po/components/unit-input.po';
 import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
+import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
+import ArrayList from '@/cypress/e2e/po/components/array-list.po';
 
 function _parseArea(area:string) {
   let areaId: string;
@@ -18,24 +21,27 @@ function _parseArea(area:string) {
   return areaId;
 }
 
-export default class AgentConfigurationRke2 extends PagePo {
-  static url: string = '/c/_/manager/provisioning.cattle.io.cluster/create?type=custom#clusteragentconfig'
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(AgentConfigurationRke2.url);
-  }
-
-  constructor() {
-    super(AgentConfigurationRke2.url);
+export default class AgentConfigurationRke2 extends ComponentPo {
+  constructor(selector: string = '.dashboard-root') {
+    super(selector);
   }
 
   title(): Cypress.Chainable<string> {
     return this.self().find('.primaryheader h1').invoke('text');
   }
 
+  nameNsDescription() {
+    return new NameNsDescription(this.self());
+  }
+
+  clickTab(selector: string) {
+    new TabbedPo().clickTabWithSelector(selector);
+  }
+
   selectAffinityOption(area: string, optionIndex: number) {
     const areaId = _parseArea(area);
 
-    new RadioGroupInputPo(this.self().find(`#${ areaId } [data-testid="affinity-options"]`)).set(optionIndex);
+    new RadioGroupInputPo(`#${ areaId } [data-testid="affinity-options"]`, this.self()).set(optionIndex);
   }
 
   clearOutPrefilledAffinityRules(area: string, type: string) {
@@ -50,7 +56,8 @@ export default class AgentConfigurationRke2 extends PagePo {
 
           if (count > 0) {
             cy.wrap($elements).each(() => {
-              cy.get(`#${ areaId } [data-testid="${ type }-affinity"] [data-testid="array-list-box0"] .btn.role-link.close.btn-sm`).click();
+              new ArrayList(`#${ areaId } [data-testid="${ type }-affinity"]`).closeArrayListItem(0);
+              // cy.get(`#${ areaId } [data-testid="${ type }-affinity"] [data-testid="array-list-box0"] .btn.role-link.close.btn-sm`).click();
 
               // we need this delay here in order to wait for DOM to be updated (items removed)
               cy.wait(1000);
@@ -64,10 +71,10 @@ export default class AgentConfigurationRke2 extends PagePo {
   fillRequestandLimitsForm(area: string, data: any) {
     const areaId = _parseArea(area);
 
-    new UnitInputPo(this.self().find(`#${ areaId } [data-testid="cpu-reservation"]`)).setValue(data.request?.cpu);
-    new UnitInputPo(this.self().find(`#${ areaId } [data-testid="memory-reservation"]`)).setValue(data.request?.memory);
-    new UnitInputPo(this.self().find(`#${ areaId } [data-testid="cpu-limit"]`)).setValue(data.limit?.cpu);
-    new UnitInputPo(this.self().find(`#${ areaId } [data-testid="memory-limit"]`)).setValue(data.limit?.memory);
+    new UnitInputPo(`#${ areaId } [data-testid="cpu-reservation"]`, this.self()).setValue(data.request?.cpu);
+    new UnitInputPo(`#${ areaId } [data-testid="memory-reservation"]`, this.self()).setValue(data.request?.memory);
+    new UnitInputPo(`#${ areaId } [data-testid="cpu-limit"]`, this.self()).setValue(data.limit?.cpu);
+    new UnitInputPo(`#${ areaId } [data-testid="memory-limit"]`, this.self()).setValue(data.limit?.memory);
   }
 
   fillPodSelectorForm(area: string, data: any) {
@@ -80,19 +87,19 @@ export default class AgentConfigurationRke2 extends PagePo {
 
         // fill form
         // type
-        const affinityType = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-type-index${ index }"]`));
+        const affinityType = new LabeledSelectPo(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-type-index${ index }"]`, this.self());
 
         affinityType.toggle();
         affinityType.clickOption(dataPoint.affinityType);
 
         // priority
-        const priority = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-priority-index${ index }"]`));
+        const priority = new LabeledSelectPo(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-priority-index${ index }"]`, this.self());
 
         priority.toggle();
         priority.clickOption(dataPoint.priority);
 
         // namespace type
-        new RadioGroupInputPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-namespacetype-index${ index }"]`)).set(dataPoint.namespaceType);
+        new RadioGroupInputPo(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-namespacetype-index${ index }"]`, this.self()).set(dataPoint.namespaceType);
 
         if (dataPoint.namespaces) {
           // namespace input (selected namespaces)
@@ -109,7 +116,7 @@ export default class AgentConfigurationRke2 extends PagePo {
             this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-expressions-index${ index }"] [data-testid="input-match-expression-key-control-${ i }"]`).type(expression.key);
 
             // operator
-            const selectOperator = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-expressions-index${ index }"] [data-testid="input-match-expression-operator-control-${ i }"]`));
+            const selectOperator = new LabeledSelectPo(`#${ areaId } [data-testid="pod-affinity"] [data-testid="pod-affinity-expressions-index${ index }"] [data-testid="input-match-expression-operator-control-${ i }"]`, this.self());
 
             selectOperator.toggle();
             selectOperator.clickOption(expression.operator);
@@ -145,7 +152,7 @@ export default class AgentConfigurationRke2 extends PagePo {
 
         // fill form
         // priority
-        const priority = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-priority-index${ index }"]`));
+        const priority = new LabeledSelectPo(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-priority-index${ index }"]`, this.self());
 
         priority.toggle();
         priority.clickOption(dataPoint.priority);
@@ -158,7 +165,7 @@ export default class AgentConfigurationRke2 extends PagePo {
 
             // matching
             if (expression.matching) {
-              const selectMatching = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-type-field-control-${ i }"]`));
+              const selectMatching = new LabeledSelectPo(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-type-field-control-${ i }"]`, this.self());
 
               selectMatching.toggle();
               selectMatching.clickOption(expression.matching);
@@ -168,7 +175,7 @@ export default class AgentConfigurationRke2 extends PagePo {
             this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-key-control-${ i }"]`).type(expression.key);
 
             // operator
-            const selectOperator = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-operator-control-${ i }"]`));
+            const selectOperator = new LabeledSelectPo(`#${ areaId } [data-testid="node-affinity"] [data-testid="node-affinity-expressions-index${ index }"] [data-testid="input-match-expression-operator-control-${ i }"]`, this.self());
 
             selectOperator.toggle();
             selectOperator.clickOption(expression.operator);
@@ -204,7 +211,7 @@ export default class AgentConfigurationRke2 extends PagePo {
         this.self().find(`#${ areaId } [data-testid="toleration-key-index${ index }"]`).type(dataPoint.key);
 
         // operator
-        const selectOperator = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="toleration-operator-index${ index }"]`));
+        const selectOperator = new LabeledSelectPo(`#${ areaId } [data-testid="toleration-operator-index${ index }"]`, this.self());
 
         selectOperator.toggle();
         selectOperator.clickOption(dataPoint.operator);
@@ -215,7 +222,7 @@ export default class AgentConfigurationRke2 extends PagePo {
         }
 
         // effect
-        const selectEffect = new LabeledSelectPo(this.self().find(`#${ areaId } [data-testid="toleration-effect-index${ index }"]`));
+        const selectEffect = new LabeledSelectPo(`#${ areaId } [data-testid="toleration-effect-index${ index }"]`, this.self());
 
         selectEffect.toggle();
         selectEffect.clickOption(dataPoint.effect);

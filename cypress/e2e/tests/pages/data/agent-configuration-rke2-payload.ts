@@ -1,181 +1,6 @@
 export const payloadComparisonData = {
   clusterAgentDeploymentCustomization: {
     overrideAffinity: {
-      podAffinity: {
-        requiredDuringSchedulingIgnoredDuringExecution: [
-          {
-            _namespaceOption:  'all',
-            matchExpressions:  [],
-            namespaceSelector: {},
-            namespaces:        null,
-            _namespaces:       null,
-            labelSelector:     {
-              matchExpressions: [
-                {
-                  key:      'key1',
-                  operator: 'In',
-                  values:   [
-                    'val1'
-                  ]
-                },
-                {
-                  key:      'key2',
-                  operator: 'NotIn',
-                  values:   [
-                    'val2'
-                  ]
-                },
-                {
-                  key:      'key3',
-                  operator: 'Exists'
-                },
-                {
-                  key:      'key4',
-                  operator: 'DoesNotExist'
-                }
-              ]
-            },
-            topologyKey: 'some-topology2'
-          },
-          {
-            _namespaceOption:  'selected',
-            matchExpressions:  [],
-            namespaces:        'system,fleet-default',
-            _namespaces:       'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
-          }
-        ],
-        preferredDuringSchedulingIgnoredDuringExecution: [
-          {
-            podAffinityTerm: {
-              _namespaceOption:  'pod',
-              matchExpressions:  [],
-              weight:            10,
-              namespaces:        null,
-              _namespaces:       null,
-              namespaceSelector: null,
-              labelSelector:     {
-                matchExpressions: [
-                  {
-                    key:      'key1',
-                    operator: 'In',
-                    values:   [
-                      'val1'
-                    ]
-                  },
-                  {
-                    key:      'key2',
-                    operator: 'NotIn',
-                    values:   [
-                      'val2'
-                    ]
-                  },
-                  {
-                    key:      'key3',
-                    operator: 'Exists'
-                  },
-                  {
-                    key:      'key4',
-                    operator: 'DoesNotExist'
-                  }
-                ]
-              },
-              topologyKey: 'some-topology1'
-            },
-            weight: 10
-          }
-        ]
-      },
-      podAntiAffinity: {
-        requiredDuringSchedulingIgnoredDuringExecution: [
-          {
-            _namespaceOption:  'all',
-            matchExpressions:  [],
-            _anti:             true,
-            namespaceSelector: {},
-            namespaces:        null,
-            _namespaces:       null,
-            labelSelector:     {
-              matchExpressions: [
-                {
-                  key:      'key1',
-                  operator: 'In',
-                  values:   [
-                    'val1'
-                  ]
-                },
-                {
-                  key:      'key2',
-                  operator: 'NotIn',
-                  values:   [
-                    'val2'
-                  ]
-                },
-                {
-                  key:      'key3',
-                  operator: 'Exists'
-                },
-                {
-                  key:      'key4',
-                  operator: 'DoesNotExist'
-                }
-              ]
-            },
-            topologyKey: 'some-topology2'
-          },
-          {
-            _namespaceOption:  'selected',
-            matchExpressions:  [],
-            _anti:             true,
-            namespaces:        'system,fleet-default',
-            _namespaces:       'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
-          }
-        ],
-        preferredDuringSchedulingIgnoredDuringExecution: [
-          {
-            podAffinityTerm: {
-              _namespaceOption:  'pod',
-              matchExpressions:  [],
-              _anti:             true,
-              weight:            10,
-              namespaces:        null,
-              _namespaces:       null,
-              namespaceSelector: null,
-              labelSelector:     {
-                matchExpressions: [
-                  {
-                    key:      'key1',
-                    operator: 'In',
-                    values:   [
-                      'val1'
-                    ]
-                  },
-                  {
-                    key:      'key2',
-                    operator: 'NotIn',
-                    values:   [
-                      'val2'
-                    ]
-                  },
-                  {
-                    key:      'key3',
-                    operator: 'Exists'
-                  },
-                  {
-                    key:      'key4',
-                    operator: 'DoesNotExist'
-                  }
-                ]
-              },
-              topologyKey: 'some-topology1'
-            },
-            weight: 10
-          }
-        ]
-      },
       nodeAffinity: {
         preferredDuringSchedulingIgnoredDuringExecution: [
           {
@@ -232,8 +57,7 @@ export const payloadComparisonData = {
         requiredDuringSchedulingIgnoredDuringExecution: {
           nodeSelectorTerms: [
             {
-              matchExpressions: [],
-              matchFields:      [
+              matchFields: [
                 {
                   key:      'key1',
                   operator: 'In',
@@ -280,6 +104,160 @@ export const payloadComparisonData = {
             }
           ]
         }
+      },
+      podAntiAffinity: {
+        requiredDuringSchedulingIgnoredDuringExecution: [
+          {
+            namespaceSelector: {},
+            namespaces:        null,
+            labelSelector:     {
+              matchExpressions: [
+                {
+                  key:      'key1',
+                  operator: 'In',
+                  values:   [
+                    'val1'
+                  ]
+                },
+                {
+                  key:      'key2',
+                  operator: 'NotIn',
+                  values:   [
+                    'val2'
+                  ]
+                },
+                {
+                  key:      'key3',
+                  operator: 'Exists'
+                },
+                {
+                  key:      'key4',
+                  operator: 'DoesNotExist'
+                }
+              ]
+            },
+            topologyKey: 'some-topology2'
+          },
+          {
+            namespaces:        'system,fleet-default',
+            namespaceSelector: null,
+            topologyKey:       'some-topology3'
+          }
+        ],
+        preferredDuringSchedulingIgnoredDuringExecution: [
+          {
+            podAffinityTerm: {
+              weight:            10,
+              namespaces:        null,
+              namespaceSelector: null,
+              labelSelector:     {
+                matchExpressions: [
+                  {
+                    key:      'key1',
+                    operator: 'In',
+                    values:   [
+                      'val1'
+                    ]
+                  },
+                  {
+                    key:      'key2',
+                    operator: 'NotIn',
+                    values:   [
+                      'val2'
+                    ]
+                  },
+                  {
+                    key:      'key3',
+                    operator: 'Exists'
+                  },
+                  {
+                    key:      'key4',
+                    operator: 'DoesNotExist'
+                  }
+                ]
+              },
+              topologyKey: 'some-topology1'
+            },
+            weight: 10
+          }
+        ]
+      },
+      podAffinity: {
+        requiredDuringSchedulingIgnoredDuringExecution: [
+          {
+            namespaceSelector: {},
+            namespaces:        null,
+            labelSelector:     {
+              matchExpressions: [
+                {
+                  key:      'key1',
+                  operator: 'In',
+                  values:   [
+                    'val1'
+                  ]
+                },
+                {
+                  key:      'key2',
+                  operator: 'NotIn',
+                  values:   [
+                    'val2'
+                  ]
+                },
+                {
+                  key:      'key3',
+                  operator: 'Exists'
+                },
+                {
+                  key:      'key4',
+                  operator: 'DoesNotExist'
+                }
+              ]
+            },
+            topologyKey: 'some-topology2'
+          },
+          {
+            namespaces:        'system,fleet-default',
+            namespaceSelector: null,
+            topologyKey:       'some-topology3'
+          }
+        ],
+        preferredDuringSchedulingIgnoredDuringExecution: [
+          {
+            podAffinityTerm: {
+              weight:            10,
+              namespaces:        null,
+              namespaceSelector: null,
+              labelSelector:     {
+                matchExpressions: [
+                  {
+                    key:      'key1',
+                    operator: 'In',
+                    values:   [
+                      'val1'
+                    ]
+                  },
+                  {
+                    key:      'key2',
+                    operator: 'NotIn',
+                    values:   [
+                      'val2'
+                    ]
+                  },
+                  {
+                    key:      'key3',
+                    operator: 'Exists'
+                  },
+                  {
+                    key:      'key4',
+                    operator: 'DoesNotExist'
+                  }
+                ]
+              },
+              topologyKey: 'some-topology1'
+            },
+            weight: 10
+          }
+        ]
       }
     },
     appendTolerations: [
@@ -327,181 +305,6 @@ export const payloadComparisonData = {
   },
   fleetAgentDeploymentCustomization: {
     overrideAffinity: {
-      podAffinity: {
-        requiredDuringSchedulingIgnoredDuringExecution: [
-          {
-            _namespaceOption:  'all',
-            matchExpressions:  [],
-            namespaceSelector: {},
-            namespaces:        null,
-            _namespaces:       null,
-            labelSelector:     {
-              matchExpressions: [
-                {
-                  key:      'key1',
-                  operator: 'In',
-                  values:   [
-                    'val1'
-                  ]
-                },
-                {
-                  key:      'key2',
-                  operator: 'NotIn',
-                  values:   [
-                    'val2'
-                  ]
-                },
-                {
-                  key:      'key3',
-                  operator: 'Exists'
-                },
-                {
-                  key:      'key4',
-                  operator: 'DoesNotExist'
-                }
-              ]
-            },
-            topologyKey: 'some-topology2'
-          },
-          {
-            _namespaceOption:  'selected',
-            matchExpressions:  [],
-            namespaces:        'system,fleet-default',
-            _namespaces:       'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
-          }
-        ],
-        preferredDuringSchedulingIgnoredDuringExecution: [
-          {
-            podAffinityTerm: {
-              _namespaceOption:  'pod',
-              matchExpressions:  [],
-              weight:            10,
-              namespaces:        null,
-              _namespaces:       null,
-              namespaceSelector: null,
-              labelSelector:     {
-                matchExpressions: [
-                  {
-                    key:      'key1',
-                    operator: 'In',
-                    values:   [
-                      'val1'
-                    ]
-                  },
-                  {
-                    key:      'key2',
-                    operator: 'NotIn',
-                    values:   [
-                      'val2'
-                    ]
-                  },
-                  {
-                    key:      'key3',
-                    operator: 'Exists'
-                  },
-                  {
-                    key:      'key4',
-                    operator: 'DoesNotExist'
-                  }
-                ]
-              },
-              topologyKey: 'some-topology1'
-            },
-            weight: 10
-          }
-        ]
-      },
-      podAntiAffinity: {
-        requiredDuringSchedulingIgnoredDuringExecution: [
-          {
-            _namespaceOption:  'all',
-            matchExpressions:  [],
-            _anti:             true,
-            namespaceSelector: {},
-            namespaces:        null,
-            _namespaces:       null,
-            labelSelector:     {
-              matchExpressions: [
-                {
-                  key:      'key1',
-                  operator: 'In',
-                  values:   [
-                    'val1'
-                  ]
-                },
-                {
-                  key:      'key2',
-                  operator: 'NotIn',
-                  values:   [
-                    'val2'
-                  ]
-                },
-                {
-                  key:      'key3',
-                  operator: 'Exists'
-                },
-                {
-                  key:      'key4',
-                  operator: 'DoesNotExist'
-                }
-              ]
-            },
-            topologyKey: 'some-topology2'
-          },
-          {
-            _namespaceOption:  'selected',
-            matchExpressions:  [],
-            _anti:             true,
-            namespaces:        'system,fleet-default',
-            _namespaces:       'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
-          }
-        ],
-        preferredDuringSchedulingIgnoredDuringExecution: [
-          {
-            podAffinityTerm: {
-              _namespaceOption:  'pod',
-              matchExpressions:  [],
-              _anti:             true,
-              weight:            10,
-              namespaces:        null,
-              _namespaces:       null,
-              namespaceSelector: null,
-              labelSelector:     {
-                matchExpressions: [
-                  {
-                    key:      'key1',
-                    operator: 'In',
-                    values:   [
-                      'val1'
-                    ]
-                  },
-                  {
-                    key:      'key2',
-                    operator: 'NotIn',
-                    values:   [
-                      'val2'
-                    ]
-                  },
-                  {
-                    key:      'key3',
-                    operator: 'Exists'
-                  },
-                  {
-                    key:      'key4',
-                    operator: 'DoesNotExist'
-                  }
-                ]
-              },
-              topologyKey: 'some-topology1'
-            },
-            weight: 10
-          }
-        ]
-      },
       nodeAffinity: {
         preferredDuringSchedulingIgnoredDuringExecution: [
           {
@@ -558,8 +361,7 @@ export const payloadComparisonData = {
         requiredDuringSchedulingIgnoredDuringExecution: {
           nodeSelectorTerms: [
             {
-              matchExpressions: [],
-              matchFields:      [
+              matchFields: [
                 {
                   key:      'key1',
                   operator: 'In',
@@ -606,6 +408,160 @@ export const payloadComparisonData = {
             }
           ]
         }
+      },
+      podAffinity: {
+        requiredDuringSchedulingIgnoredDuringExecution: [
+          {
+            namespaceSelector: {},
+            namespaces:        null,
+            labelSelector:     {
+              matchExpressions: [
+                {
+                  key:      'key1',
+                  operator: 'In',
+                  values:   [
+                    'val1'
+                  ]
+                },
+                {
+                  key:      'key2',
+                  operator: 'NotIn',
+                  values:   [
+                    'val2'
+                  ]
+                },
+                {
+                  key:      'key3',
+                  operator: 'Exists'
+                },
+                {
+                  key:      'key4',
+                  operator: 'DoesNotExist'
+                }
+              ]
+            },
+            topologyKey: 'some-topology2'
+          },
+          {
+            namespaces:        'system,fleet-default',
+            namespaceSelector: null,
+            topologyKey:       'some-topology3'
+          }
+        ],
+        preferredDuringSchedulingIgnoredDuringExecution: [
+          {
+            podAffinityTerm: {
+              weight:            10,
+              namespaces:        null,
+              namespaceSelector: null,
+              labelSelector:     {
+                matchExpressions: [
+                  {
+                    key:      'key1',
+                    operator: 'In',
+                    values:   [
+                      'val1'
+                    ]
+                  },
+                  {
+                    key:      'key2',
+                    operator: 'NotIn',
+                    values:   [
+                      'val2'
+                    ]
+                  },
+                  {
+                    key:      'key3',
+                    operator: 'Exists'
+                  },
+                  {
+                    key:      'key4',
+                    operator: 'DoesNotExist'
+                  }
+                ]
+              },
+              topologyKey: 'some-topology1'
+            },
+            weight: 10
+          }
+        ]
+      },
+      podAntiAffinity: {
+        requiredDuringSchedulingIgnoredDuringExecution: [
+          {
+            namespaceSelector: {},
+            namespaces:        null,
+            labelSelector:     {
+              matchExpressions: [
+                {
+                  key:      'key1',
+                  operator: 'In',
+                  values:   [
+                    'val1'
+                  ]
+                },
+                {
+                  key:      'key2',
+                  operator: 'NotIn',
+                  values:   [
+                    'val2'
+                  ]
+                },
+                {
+                  key:      'key3',
+                  operator: 'Exists'
+                },
+                {
+                  key:      'key4',
+                  operator: 'DoesNotExist'
+                }
+              ]
+            },
+            topologyKey: 'some-topology2'
+          },
+          {
+            namespaces:        'system,fleet-default',
+            namespaceSelector: null,
+            topologyKey:       'some-topology3'
+          }
+        ],
+        preferredDuringSchedulingIgnoredDuringExecution: [
+          {
+            podAffinityTerm: {
+              weight:            10,
+              namespaces:        null,
+              namespaceSelector: null,
+              labelSelector:     {
+                matchExpressions: [
+                  {
+                    key:      'key1',
+                    operator: 'In',
+                    values:   [
+                      'val1'
+                    ]
+                  },
+                  {
+                    key:      'key2',
+                    operator: 'NotIn',
+                    values:   [
+                      'val2'
+                    ]
+                  },
+                  {
+                    key:      'key3',
+                    operator: 'Exists'
+                  },
+                  {
+                    key:      'key4',
+                    operator: 'DoesNotExist'
+                  }
+                ]
+              },
+              topologyKey: 'some-topology1'
+            },
+            weight: 10
+          }
+        ]
       }
     },
     appendTolerations: [
@@ -650,5 +606,5 @@ export const payloadComparisonData = {
         memory: '2Mi'
       }
     }
-  },
+  }
 };

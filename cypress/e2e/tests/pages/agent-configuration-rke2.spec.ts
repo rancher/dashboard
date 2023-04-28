@@ -1,5 +1,6 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
-import AgentConfigurationRke2 from '~/cypress/e2e/po/components/agent-configuration-rke2.po';
+import AgentConfigurationRke2Po from '~/cypress/e2e/po/components/agent-configuration-rke2.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 import {
   podAffinityData,
   requestAndLimitsData,
@@ -11,17 +12,17 @@ import { payloadComparisonData } from '@/cypress/e2e/tests/pages/data/agent-conf
 describe('Agent Configuration for RKE2', () => {
   beforeEach(() => {
     cy.login();
-    AgentConfigurationRke2.goTo();
+    PagePo.goTo('/c/_/manager/provisioning.cattle.io.cluster/create?type=custom#clusteragentconfig');
   });
 
   it('Should send the correct payload to the server', () => {
-    const agentConfigurationRke2 = new AgentConfigurationRke2();
+    const agentConfigurationRke2 = new AgentConfigurationRke2Po();
 
     // intercept
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('customRKE2ClusterCreation');
 
     // cluster name
-    cy.get('[data-testid="name-ns-description-name"] input').type(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
+    agentConfigurationRke2.nameNsDescription().name().set(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
 
     // we should be on the custom cluster creation screen (starts on cluster agent tab as per url of goTo)
     agentConfigurationRke2.title().should('contain', 'Create Custom');
@@ -46,7 +47,7 @@ describe('Agent Configuration for RKE2', () => {
     agentConfigurationRke2.fillNodeSelectorForm('cluster', nodeAffinityData);
 
     // navigate to the fleet agent area
-    cy.get('#fleetagentconfig').click();
+    agentConfigurationRke2.clickTab('#fleetagentconfig');
 
     // fill requests and limits form (fleet agent)
     agentConfigurationRke2.fillRequestandLimitsForm('fleet', requestAndLimitsData);
@@ -72,10 +73,7 @@ describe('Agent Configuration for RKE2', () => {
 
     // need to do a wait to make sure intercept doesn't fail on cy.wait for request
     // ci/cd pipelines are notoriously slow... let's wait longer than usual
-    // https://github.com/cypress-io/cypress/issues/19975
-    cy.wait(10000);
-
-    cy.wait('@customRKE2ClusterCreation').then((req) => {
+    cy.wait('@customRKE2ClusterCreation', { requestTimeout: 10000 }).then((req) => {
       expect(req.response?.statusCode).to.equal(201);
       expect(req.request?.body?.spec.clusterAgentDeploymentCustomization).to.deep.equal(payloadComparisonData.clusterAgentDeploymentCustomization);
       expect(req.request?.body?.spec.fleetAgentDeploymentCustomization).to.deep.equal(payloadComparisonData.fleetAgentDeploymentCustomization);
