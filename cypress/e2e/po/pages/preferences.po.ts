@@ -2,8 +2,7 @@ import PagePo from '~/cypress/e2e/po/pages/page.po';
 import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 import ButtonGroupPo from '~/cypress/e2e/po/components/button-group.po';
 import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
-import ListBoxPo from '~/cypress/e2e/po/components/dropdown-listbox.po';
-import DropBoxPo from '~/cypress/e2e/po/components/labeled-select.po';
+import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 
 export default class PreferencesPagePo extends PagePo {
   static url: string = '/prefs'
@@ -19,28 +18,24 @@ export default class PreferencesPagePo extends PagePo {
     return this.self().get('h1').should('have.text', 'Preferences');
   }
 
-  languageDropdownMenu(): DropBoxPo {
-    return new DropBoxPo('[data-testid=prefs__languageSelector]');
+  languageDropdownMenu(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid=prefs__languageSelector]');
   }
 
-  dateFormateDropdownMenu(): DropBoxPo {
-    return new DropBoxPo('[data-testid=prefs__displaySetting__dateFormat]');
+  dateFormateDropdownMenu(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid=prefs__displaySetting__dateFormat]');
   }
 
-  timeFormateDropdownMenu(): DropBoxPo {
-    return new DropBoxPo('[data-testid=prefs__displaySetting__timeFormat]');
+  timeFormateDropdownMenu(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid=prefs__displaySetting__timeFormat]');
   }
 
-  perPageDropdownMenu(): DropBoxPo {
-    return new DropBoxPo('[data-testid=prefs__displaySetting__perPage]');
+  perPageDropdownMenu(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid=prefs__displaySetting__perPage]');
   }
 
-  clustersDropdownMenu(): DropBoxPo {
-    return new DropBoxPo('[data-testid=prefs__displaySetting__menuMaxClusters]');
-  }
-
-  listBox(): ListBoxPo {
-    return new ListBoxPo('.vs__dropdown-menu');
+  clustersDropdownMenu(): LabeledSelectPo {
+    return new LabeledSelectPo('[data-testid=prefs__displaySetting__menuMaxClusters]');
   }
 
   themeButtons(): ButtonGroupPo {

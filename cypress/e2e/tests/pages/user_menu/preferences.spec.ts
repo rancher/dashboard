@@ -35,22 +35,18 @@ describe('Standard user can update their preferences', () => {
     Select language and verify its preserved after page reload
     */
     const languages = {
-      简体中文:    '[lang="zh-hans"]',
-      English: '[lang="en-us"]'
+      '[lang="en-us"]':   1,
+      '[lang="zh-hans"]': 2
     };
 
     prefPage.goTo();
     for (const [key, value] of Object.entries(languages)) {
-      prefPage.languageDropdownMenu().open();
-      prefPage.listBox().isOpened();
-      prefPage.listBox().getListBoxItems().should('have.length', 2);
-      prefPage.listBox().set(key);
-      prefPage.languageDropdownMenu().checkOptionSelected(key);
-      prefPage.listBox().isClosed();
-      prefPage.checkLangDomElement(value);
-      cy.reload();
-      prefPage.languageDropdownMenu().checkOptionSelected(key);
-      prefPage.checkLangDomElement(value);
+      prefPage.languageDropdownMenu().toggle();
+      prefPage.languageDropdownMenu().isOpened();
+      prefPage.languageDropdownMenu().getOptions().should('have.length', 2);
+      prefPage.languageDropdownMenu().clickOption(value);
+      prefPage.languageDropdownMenu().isClosed();
+      prefPage.checkLangDomElement(key);
     }
   });
 
@@ -133,27 +129,28 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const formats = ['YYYY-MM-DD', 'M/D/YYYY', 'D/M/YYYY', 'ddd, D MMM YYYY', 'ddd, MMM D YYYY'];
+    const dateOptions = {
+      'YYYY-MM-DD':      5,
+      'M/D/YYYY':        4,
+      'D/M/YYYY':        3,
+      'ddd, D MMM YYYY': 2,
+      'ddd, MMM D YYYY': 1
+    };
 
     prefPage.goTo();
-    prefPage.dateFormateDropdownMenu().open();
-    prefPage.listBox().isOpened();
-    prefPage.listBox().getListBoxItems().should('have.length', 5).then(($els) => {
-      const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
-
-      for (const i in map) {
-        prefPage.listBox().set(map[i]);
-        prefPage.listBox().isClosed();
-        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
-        cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(request.body.data).to.have.property('date-format', formats[i]);
-          expect(response?.body.data).to.have.property('date-format', formats[i]);
-        });
-        prefPage.dateFormateDropdownMenu().open();
-        prefPage.listBox().isOpened();
-      }
-    });
+    for (const [key, value] of Object.entries(dateOptions)) {
+      prefPage.dateFormateDropdownMenu().toggle();
+      prefPage.dateFormateDropdownMenu().isOpened();
+      prefPage.dateFormateDropdownMenu().getOptions().should('have.length', 5);
+      prefPage.dateFormateDropdownMenu().clickOption(value);
+      prefPage.dateFormateDropdownMenu().isClosed();
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('date-format', key);
+        expect(response?.body.data).to.have.property('date-format', key);
+      });
+    }
   });
 
   it('Can select time format', () => {
@@ -161,27 +158,25 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const formats = ['HH:mm:ss', 'h:mm:ss a'];
+    const formatOptions = {
+      'HH:mm:ss':  2,
+      'h:mm:ss a': 1
+    };
 
     prefPage.goTo();
-    prefPage.timeFormateDropdownMenu().open();
-    prefPage.listBox().isOpened();
-    prefPage.listBox().getListBoxItems().should('have.length', 2).then(($els) => {
-      const map = Cypress.$.map($els, el => el.innerText.trim()).reverse();
-
-      for (const i in map) {
-        prefPage.listBox().set(map[i]);
-        prefPage.listBox().isClosed();
-        cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
-        cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(200);
-          expect(request.body.data).to.have.property('time-format', formats[i]);
-          expect(response?.body.data).to.have.property('time-format', formats[i]);
-        });
-        prefPage.timeFormateDropdownMenu().open();
-        prefPage.listBox().isOpened();
-      }
-    });
+    for (const [key, value] of Object.entries(formatOptions)) {
+      prefPage.timeFormateDropdownMenu().toggle();
+      prefPage.timeFormateDropdownMenu().isOpened();
+      prefPage.timeFormateDropdownMenu().getOptions().should('have.length', 2);
+      prefPage.timeFormateDropdownMenu().clickOption(value);
+      prefPage.timeFormateDropdownMenu().isClosed();
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body.data).to.have.property('time-format', key);
+        expect(response?.body.data).to.have.property('time-format', key);
+      });
+    }
   });
 
   it('Can select Table Rows per Page', () => {
@@ -189,21 +184,26 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const options = ['25', '50', '100', '10'];
+    const perPageOptions = {
+      10:  1,
+      25:  2,
+      50:  3,
+      100: 4
+    };
 
     prefPage.goTo();
-    for (const i in options) {
-      prefPage.perPageDropdownMenu().open();
-      prefPage.listBox().isOpened();
-      prefPage.listBox().getListBoxItems().should('have.length', 4);
-      prefPage.listBox().set(options[i]);
-      prefPage.listBox().isClosed();
-      prefPage.perPageDropdownMenu().checkOptionSelected(options[i]);
-      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
-      cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
+    for (const [key, value] of Object.entries(perPageOptions)) {
+      prefPage.perPageDropdownMenu().toggle();
+      prefPage.perPageDropdownMenu().isOpened();
+      prefPage.perPageDropdownMenu().getOptions().should('have.length', 4);
+      prefPage.perPageDropdownMenu().clickOption(value);
+      prefPage.perPageDropdownMenu().isClosed();
+      prefPage.perPageDropdownMenu().checkOptionSelected(key);
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('per-page', options[i]);
-        expect(response?.body.data).to.have.property('per-page', options[i]);
+        expect(request.body.data).to.have.property('per-page', key);
+        expect(response?.body.data).to.have.property('per-page', key);
       });
     }
   });
@@ -213,21 +213,31 @@ describe('Standard user can update their preferences', () => {
     Select each option
     Validate http request's payload & response contain correct values per selection
     */
-    const options = ['2', '3', '4', '5', '6', '7', '8', '9', '10'];
+    const clustersOptions = {
+      2:  1,
+      3:  2,
+      4:  3,
+      5:  4,
+      6:  5,
+      7:  6,
+      8:  7,
+      9:  8,
+      10: 9
+    };
 
     prefPage.goTo();
-    for (const i in options) {
-      prefPage.clustersDropdownMenu().open();
-      prefPage.listBox().isOpened();
-      prefPage.listBox().getListBoxItems().should('have.length', 9);
-      prefPage.listBox().set(options[i]);
-      prefPage.listBox().isClosed();
-      prefPage.clustersDropdownMenu().checkOptionSelected(options[i]);
-      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ i }`);
-      cy.wait(`@prefUpdate${ i }`).then(({ request, response }) => {
+    for (const [key, value] of Object.entries(clustersOptions)) {
+      prefPage.clustersDropdownMenu().toggle();
+      prefPage.clustersDropdownMenu().isOpened();
+      prefPage.clustersDropdownMenu().getOptions().should('have.length', 9);
+      prefPage.clustersDropdownMenu().clickOption(value);
+      prefPage.clustersDropdownMenu().isClosed();
+      prefPage.clustersDropdownMenu().checkOptionSelected(key);
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
+      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('menu-max-clusters', options[i]);
-        expect(response?.body.data).to.have.property('menu-max-clusters', options[i]);
+        expect(request.body.data).to.have.property('menu-max-clusters', key);
+        expect(response?.body.data).to.have.property('menu-max-clusters', key);
       });
     }
   });
