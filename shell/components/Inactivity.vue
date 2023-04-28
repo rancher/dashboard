@@ -40,6 +40,7 @@ export default {
       return;
     }
 
+    this.trackInactivity();
     this.addIdleListeners();
   },
   beforeDestroy() {
