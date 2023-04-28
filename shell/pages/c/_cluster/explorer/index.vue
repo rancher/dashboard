@@ -268,7 +268,7 @@ export default {
 
       return {
         total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
-        useful: pods.total
+        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
       };
     },
 
