@@ -344,7 +344,7 @@ export default {
     const $main = document.querySelector('main');
 
     this._onScroll = this.onScroll.bind(this);
-    $main.addEventListener('scroll', this._onScroll);
+    $main?.addEventListener('scroll', this._onScroll);
   },
 
   beforeDestroy() {
