@@ -528,10 +528,16 @@ export default {
       return this.t('detailText.binary', { n }, true);
     },
     get,
+    /**
+     * Update 'rows' variable with the user's input and prevents to update queue before the row model is updated
+     */
     onInputMarkdownMultiline(idx, value) {
       this.rows = this.rows.map((row, i) => i === idx ? { ...row, value } : row);
       this.queueUpdate();
     },
+    /**
+     * Set focus on CodeMirror fields
+     */
     onFocusMarkdownMultiline(idx, value) {
       this.$set(this.codeMirrorFocus, idx, value);
     }

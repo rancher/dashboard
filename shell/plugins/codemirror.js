@@ -191,6 +191,10 @@ CodeMirror.defineOption('showMarkdownLineBreaks', false, (codeMirror) => {
 
 /**
  * It enables the text color selection in CodeMirror.vue
+ * references:
+ *   demo:   https://codemirror.net/5/demo/markselection.html#
+ *   add-on: https://codemirror.net/5/doc/manual.html#addon_mark-selection
+ *   source: https://codemirror.net/5/addon/selection/mark-selection.js
  */
 CodeMirror.defineOption('styleSelectedText', false, (cm, val, old) => {
   const prev = old && old !== CodeMirror.Init;

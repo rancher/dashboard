@@ -410,8 +410,12 @@ export function saferDump(obj) {
  * @param {*} data the multiline block
  * @param {*} options blocks indicators, see: https://yaml-multiline.info
  *
- * - scalarStyle: default '|', one of '|', '>'
- * - chomping: default null, one of: null, '-', '+'
+ * - scalarStyle:
+ *     one of '|', '>'
+ *     default '|'
+ * - chomping:
+ *     one of: null, '-', '+'
+ *     default: null
  * @returns the result of jsyaml.dump with the addition of multiline indicators
  */
 export function dumpBlock(data, options = {}) {
