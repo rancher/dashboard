@@ -2,12 +2,13 @@ import HomePagePo from '~/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import PagePo from '~/cypress/e2e/po/pages/page.po';
-import ClusterRepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
+import ReposListPagePo from '~/cypress/e2e/po/pages/cluster-manager/advanced/repositories.po';
+import AppRepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
-const repoList = new ClusterRepoListPo('tr');
+const repoList = new AppRepoListPo('tr');
 
 describe('Standard user can update their preferences', () => {
   beforeEach(() => {
@@ -272,8 +273,6 @@ describe('Standard user can update their preferences', () => {
     Deselect the checkbox and verify 'View in API' is hidden
     Validate http request's payload & response contain correct values per selection
     */
-    const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
-
     prefPage.goTo();
     prefPage.viewInApiCheckbox().set();
     prefPage.viewInApiCheckbox().isChecked();
@@ -285,7 +284,7 @@ describe('Standard user can update their preferences', () => {
     });
 
     cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos').as('clusterRepos');
-    PagePo.goTo(clusterRepoEndpoint);
+    ReposListPagePo.goTo('_');
     cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
@@ -299,7 +298,7 @@ describe('Standard user can update their preferences', () => {
       expect(response?.body.data).to.have.property('view-in-api', 'false');
     });
 
-    PagePo.goTo(clusterRepoEndpoint);
+    ReposListPagePo.goTo('_');
     cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
@@ -360,7 +359,6 @@ describe('Standard user can update their preferences', () => {
     Deselect the checkbox and verify description banner displays
     */
     const banners = new BannersPo('header > .banner');
-    const clusterRepoEndpoint = 'c/_/manager/catalog.cattle.io.clusterrepo';
 
     prefPage.goTo();
     prefPage.hideDescriptionsCheckbox().set();
@@ -368,7 +366,7 @@ describe('Standard user can update their preferences', () => {
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
 
-    PagePo.goTo(clusterRepoEndpoint);
+    ReposListPagePo.goTo('_');
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -377,7 +375,7 @@ describe('Standard user can update their preferences', () => {
     cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
 
-    PagePo.goTo(clusterRepoEndpoint);
+    ReposListPagePo.goTo('_');
     banners.self().should('exist');
   });
 
