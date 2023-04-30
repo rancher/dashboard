@@ -1,10 +1,10 @@
 import HomePagePo from '~/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import PagePo from '~/cypress/e2e/po/pages/page.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
 import ReposListPagePo from '~/cypress/e2e/po/pages/cluster-manager/advanced/repositories.po';
 import AppRepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
+import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
@@ -110,7 +110,8 @@ describe('Standard user can update their preferences', () => {
       // if key is 1, navigate to cluster manager page and then do validations, else just do validations
       if (key == 1) {
         cy.intercept('GET', '/v3/clusters').as('clusters');
-        PagePo.goTo('c/_/manager/provisioning.cattle.io.cluster');
+        // PagePo.goTo('c/_/manager/provisioning.cattle.io.cluster');
+        ClusterManagerListPagePo.goTo('_');
         cy.wait('@clusters').its('response.statusCode').should('eq', 200);
       }
 
