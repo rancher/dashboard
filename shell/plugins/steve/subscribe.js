@@ -30,6 +30,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
+import { WORKERMODES } from './worker';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
 
@@ -47,10 +48,11 @@ const waitForSettings = (store) => {
 };
 
 const isAdvancedWorker = (ctx) => {
-  const { rootGetters } = ctx;
+  const { rootGetters, getters } = ctx;
+  const storeName = getters.storeName;
   const clusterId = rootGetters.clusterId;
 
-  if (clusterId === BLANK_CLUSTER) {
+  if (clusterId === BLANK_CLUSTER || !['cluster', 'rancher', 'management'].includes(storeName)) {
     return false;
   }
 
@@ -65,7 +67,15 @@ export async function createWorker(store, ctx) {
 
   store.$workers = store.$workers || {};
 
+  if (!['cluster', 'rancher', 'management'].includes(storeName)) {
+    return;
+  }
+
   if (!store.$workers[storeName]) {
+    /**
+     * we know we need a worker at this point but we don't know which one so we're creating a mock interface
+     * it will simply queue up any messages for the real worker to process when it loads up
+     */
     store.$workers[storeName] = {
       postMessage: (msg) => {
         if (workerQueues[storeName]) {
@@ -74,7 +84,7 @@ export async function createWorker(store, ctx) {
           workerQueues[storeName] = [msg];
         }
       },
-      mode: 'waiting'
+      mode: WORKERMODES.WAITING
     };
   }
 
@@ -98,8 +108,11 @@ export async function createWorker(store, ctx) {
     dispatch: (msg) => {
       dispatch(`ws.${ msg.name }`, msg);
     },
-    // this handler allows the worker to send a message back to the UI thread to be disaptched as a UI vuex action directly
     redispatch: (msg) => {
+      /**
+       * because we had to queue up some messages prior to loading the worker:
+       * the basic worker will need to redispatch some of the queued messages back to the UI thread
+       */
       Object.entries(msg).forEach(([action, params]) => {
         dispatch(action, params);
       });
@@ -112,8 +125,8 @@ export async function createWorker(store, ctx) {
     }
   };
 
-  if (!store.$workers[storeName] || store.$workers[storeName].mode === 'waiting') {
-    const workerMode = advancedWorker ? 'advanced' : 'basic';
+  if (!store.$workers[storeName] || store.$workers[storeName].mode === WORKERMODES.WAITING) {
+    const workerMode = advancedWorker ? WORKERMODES.ADVANCED : WORKERMODES.BASIC;
     const worker = store.steveCreateWorker(workerMode);
 
     store.$workers[storeName] = worker;
@@ -252,8 +265,6 @@ const sharedActions = {
           maxTries
         }
       });
-      // ToDo: SM need to handle this use-case as well...
-    // ToDo: everything below here needs to be it's own action?
     } else if ( socket ) {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
@@ -382,7 +393,7 @@ const sharedActions = {
 
     const worker = this.$workers?.[getters.storeName] || {};
 
-    if (worker.mode === 'advanced' || worker.mode === 'waiting') {
+    if (worker.mode === WORKERMODES.ADVANCED || worker.mode === WORKERMODES.WAITING) {
       if ( force ) {
         msg.force = true;
       }
@@ -970,7 +981,19 @@ const defaultGetters = {
     if ( !revision ) {
       const cache = state.types[type];
 
+      if ( !cache ) {
+        return null;
+      }
+
       revision = cache.revision; // This is always zero.....
+
+      for ( const obj of cache.list ) {
+        if ( obj && obj.metadata ) {
+          const neu = parseInt(obj.metadata.resourceVersion, 10);
+
+          revision = Math.max(revision, neu);
+        }
+      }
     }
 
     if ( revision ) {

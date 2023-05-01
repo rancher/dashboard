@@ -223,7 +223,6 @@ export default class ResourceWatcher extends Socket {
 
         this.watches[watchKey].error = { type: resourceType, reason: NO_SCHEMA };
       } else if ( err.includes('too old') ) {
-        console.log('too old!!!', resourceType);
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;
         delete this.watches[watchKey].skipResourceVersion;
