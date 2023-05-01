@@ -2,33 +2,49 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class UserMenuPo extends ComponentPo {
   constructor() {
-    super('.user.user-menu');
+    super('[data-testid=nav_header_showUserMenu]');
   }
 
-  // open user menu
-  open(): Cypress.Chainable {
-    return this.self().click({ force: true });
+  userMenuDropdown(): Cypress.Chainable {
+    return cy.getId('user-menu-dropdown');
   }
 
-  // get user menu
-  getUserMenu(): Cypress.Chainable {
-    return cy.get('.tooltip > div > .tooltip-inner');
+  /**
+   * Toggle user menu
+   * @returns
+   */
+  toggle(): Cypress.Chainable {
+    return this.self().click();
   }
 
-  getMenuLinks(): Cypress.Chainable {
-    return this.getUserMenu().find('.user-menu-item').should('have.length', 3);
+  /**
+   * Check if menu is open
+   */
+  isOpen() {
+    this.userMenuDropdown().should('exist');
   }
 
-  // menu link labels: 'Preferences', 'Account & API Keys', or 'Log Out'
-  clickMenuLink(label: string) {
-    return this.getMenuLinks().contains(label).click({ force: true });
+  /**
+   * Check if menu is closed
+   */
+  isClosed() {
+    this.userMenuDropdown().should('not.exist');
   }
 
-  checkOpen() {
-    this.getUserMenu().should('exist');
+  /**
+   * Get menu items
+   * @returns
+   */
+  getMenuItems(): Cypress.Chainable {
+    return this.userMenuDropdown().find('li').should('be.visible').and('have.length', 4);
   }
 
-  checkClosed() {
-    this.getUserMenu().should('not.exist');
+  /**
+   * label: 'Preferences', 'Account & API Keys', or 'Log Out'
+   * @param label
+   * @returns
+   */
+  clickMenuItem(label: string) {
+    return this.getMenuItems().contains(label).click({ force: true });
   }
 }

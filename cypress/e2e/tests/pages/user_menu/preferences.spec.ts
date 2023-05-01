@@ -22,10 +22,10 @@ describe('Standard user can update their preferences', () => {
     Verify preference page title
     */
     HomePagePo.goTo();
-    userMenu.open();
-    userMenu.checkOpen();
-    userMenu.clickMenuLink('Preferences');
-    userMenu.checkClosed();
+    userMenu.toggle();
+    userMenu.isOpen();
+    userMenu.clickMenuItem('Preferences');
+    userMenu.isClosed();
     prefPage.waitForPage();
     prefPage.checkIsCurrentPage();
     prefPage.title();
@@ -110,14 +110,13 @@ describe('Standard user can update their preferences', () => {
       // if key is 1, navigate to cluster manager page and then do validations, else just do validations
       if (key == 1) {
         cy.intercept('GET', '/v3/clusters').as('clusters');
-        // PagePo.goTo('c/_/manager/provisioning.cattle.io.cluster');
         ClusterManagerListPagePo.goTo('_');
         cy.wait('@clusters').its('response.statusCode').should('eq', 200);
       }
 
-      userMenu.open();
-      userMenu.checkOpen();
-      userMenu.clickMenuLink('Log Out');
+      userMenu.toggle();
+      userMenu.isOpen();
+      userMenu.clickMenuItem('Log Out');
       cy.login();
       cy.visit(Cypress.config().baseUrl);
       cy.url().should('include', value[1]);
