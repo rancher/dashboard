@@ -2322,6 +2322,13 @@ inactivity:
   contentExpired: To return to this page click “Refresh” below or refresh the browser.
   cta: Resume Session
   ctaExpired: Refresh
+  settings:
+    title: Inactivity
+    checkboxLabel: Enable inactivity session expiration
+    inputLabel: Inactivity timeout (minutes)
+    information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (auth-user-session-ttl-minutes and auth-token-max-ttl-minutes) in the general settings.
+    description: When enabled and the user is inactive past the specified timeout, the UI will no longer fresh page content and the user must reload the page to continue.
+    authUserTTL: This timeout cannot be lower than the user session timeout auth-user-session-ttl-minutes, which is currently {current} minutes.
 
 hpa:
   detail:

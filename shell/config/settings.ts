@@ -140,6 +140,10 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
 };
 
 export const DEFAULT_PERF_SETTING = {
+  inactivity: {
+    enabled:   false,
+    threshold: 900,
+  },
   incrementalLoading: {
     enabled:   true,
     threshold: 1500,

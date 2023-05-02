@@ -3,52 +3,48 @@ import ModalWithCard from '@shell/components/ModalWithCard';
 import { Banner } from '@components/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
+import { MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 
 export default {
   name:       'Inactivity',
   components: {
     ModalWithCard, Banner, PercentageBar
   },
-
-  props: {
-    showModalAfter: {
-      type:    Number,
-      default: 5, //  seconds
-    },
-    courtesyTimer: {
-      type:    Number,
-      default: 10, // seconds
-    },
-    enabled: {
-      type:    Boolean,
-      default: false,
-    }
-  },
-
   data() {
     return {
+      enabled:             null,
       isOpen:              false,
       isInactive:          false,
+      showModalAfter:      null,
       inactivityTimeoutId: null,
-      courtesyCountdown:   this.courtesyTimer,
+      courtesyTimer:       null,
       courtesyTimerId:     null,
-      trackInactivity:     throttle(this._trackInactivity, 1000)
+      courtesyCountdown:   null,
+      trackInactivity:     throttle(this._trackInactivity, 1000),
     };
   },
-  mounted() {
-    if (!this.enabled) {
-      return;
-    }
+  async mounted() {
+    const _settings = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
 
-    this.trackInactivity();
-    this.addIdleListeners();
+    const settings = JSON.parse(_settings.value).inactivity;
+
+    this.enabled = settings.enabled;
+    this.showModalAfter = parseInt(settings.threshold * 60); // convert minutes
+    this.courtesyTimer = Math.floor(this.showModalAfter * 0.1); // 10% of the threshold in minutes
+    this.courtesyCountdown = this.courtesyTimer;
+
+    if (settings.enabled) {
+      this.trackInactivity();
+      this.addIdleListeners();
+    }
   },
   beforeDestroy() {
     this.removeEventListener();
   },
   methods: {
     _trackInactivity() {
-      if (this.isInactive || this.isOpen) {
+      if (this.isInactive || this.isOpen || !this.showModalAfter) {
         return;
       }
 
@@ -71,7 +67,7 @@ export default {
       checkInactivityTimer();
     },
     startCountdown() {
-      const endTime = Date.now() + this.courtesyCountdown * 1000;
+      const endTime = Date.now() + (this.courtesyCountdown * 1000);
 
       const checkCountdown = () => {
         const now = Date.now();
@@ -100,7 +96,7 @@ export default {
       document.removeEventListener('mousedown', this.trackInactivity);
       document.removeEventListener('keypress', this.trackInactivity);
       document.removeEventListener('touchmove', this.trackInactivity);
-      document.addEventListener('visibilitychange', this.trackInactivity);
+      document.removeEventListener('visibilitychange', this.trackInactivity);
     },
 
     resume() {
@@ -137,7 +133,7 @@ export default {
         content: this.t('inactivity.content'),
       };
     },
-    showPercentage() {
+    timerPercentageLeft() {
       return Math.floor((this.courtesyCountdown / this.courtesyTimer ) * 100);
     },
     colorStops() {
@@ -154,12 +150,13 @@ export default {
     ref="inactivityModal"
     name="inactivityModal"
     save-text="Continue"
-    width="580px"
+    :v-if="isOpen"
     @finish="resume"
   >
     <template #title>
       {{ isInactiveTexts.title }}
     </template>
+    <span>{{ courtesyCountdown }}</span>
 
     <template #content>
       <Banner color="info">
@@ -173,7 +170,7 @@ export default {
       <PercentageBar
         v-if="!isInactive"
         class="mt-20"
-        :value="showPercentage"
+        :value="timerPercentageLeft"
         :color-stops="colorStops"
       />
     </template>

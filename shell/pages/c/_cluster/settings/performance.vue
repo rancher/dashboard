@@ -23,6 +23,7 @@ export default {
   async fetch() {
     try {
       this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
+      this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
     } catch (e) {
       this.uiPerfSetting = await this.$store.dispatch('management/create', { type: MANAGEMENT.SETTING }, { root: true });
       // Setting does not exist - create a new one
@@ -43,6 +44,7 @@ export default {
   data() {
     return {
       uiPerfSetting:    DEFAULT_PERF_SETTING,
+      authUserTTL:      null,
       bannerVal:        {},
       value:            {},
       errors:           [],
@@ -56,6 +58,16 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
+    validateInactivityThreshold() {
+      if (parseInt(this.value.inactivity.threshold) > parseInt(this.authUserTTL.value)) {
+        return {
+          show:    true,
+          message: this.t('inactivity.settings.authUserTTL', { current: this.authUserTTL.value })
+        };
+      } else {
+        return { show: false };
+      }
+    }
   },
 
   methods: {
@@ -89,8 +101,39 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
-        <!-- Websocket Notifications -->
         <div class="mt-20">
+          <h2>{{ t('inactivity.settings.title') }}</h2>
+          <p>{{ t('inactivity.settings.description') }}</p>
+          <Checkbox
+            v-model="value.inactivity.enabled"
+            :mode="mode"
+            :label="t('inactivity.settings.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+          <div class="ml-20">
+            <LabeledInput
+              v-model="value.inactivity.threshold"
+              :mode="mode"
+              :label="t('inactivity.settings.inputLabel')"
+              :disabled="!value.inactivity.enabled"
+              class="input mb-10"
+              type="number"
+              min="0"
+            />
+            <Banner
+              v-if="validateInactivityThreshold.show"
+              color="error"
+            >
+              {{ validateInactivityThreshold.message }}
+            </Banner>
+            <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
+              {{ t('inactivity.settings.information') }}
+            </p>
+          </div>
+        </div>
+        <!-- Websocket Notifications -->
+        <div class="mt-40">
           <h2>{{ t('performance.websocketNotification.label') }}</h2>
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
