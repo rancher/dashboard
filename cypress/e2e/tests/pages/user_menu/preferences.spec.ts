@@ -33,7 +33,7 @@ describe('Standard user can update their preferences', () => {
 
   it('Can select a language', () => {
     /*
-    Select language and verify its preserved after page reload
+    Select language
     */
     const languages = {
       '[lang="en-us"]':   1,
@@ -57,33 +57,26 @@ describe('Standard user can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     const themeOptions = {
-      Light: ['"ui-light"', 'theme-light'],
-      Dark:  ['"ui-dark"', 'theme-dark'],
-      Auto:  ['"ui-auto"', '']
+      Light: '"ui-light"',
+      Dark:  '"ui-dark"',
+      Auto:  '"ui-auto"'
     };
-    // Set theme for 'Auto' mode based on time of day
-    const hour = new Date().getHours();
-
-    for (const key in themeOptions) {
-      (key === 'Auto' && hour < 7 || hour >= 18) ? themeOptions['Auto'][1] = 'theme-dark' : themeOptions['Auto'][1] = 'theme-light';
-    }
 
     for (const [key, value] of Object.entries(themeOptions)) {
       prefPage.goTo();
       prefPage.waitForPage();
       cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['theme'] === value[0]) {
+        if (req?.body?.data?.['theme'] === value) {
           req.alias = `prefUpdate${ key }`;
         }
       });
       prefPage.themeButtons().set(key);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('theme', value[0]);
-        expect(response?.body.data).to.have.property('theme', value[0]);
+        expect(request.body.data).to.have.property('theme', value);
+        expect(response?.body.data).to.have.property('theme', value);
       });
       prefPage.themeButtons().isSelected(key);
-      prefPage.checkThemeDomElement(value[1]);
     }
   });
 

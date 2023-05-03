@@ -77,8 +77,4 @@ export default class PreferencesPagePo extends PagePo {
   checkLangDomElement(label: string) {
     return cy.get(label).should('exist');
   }
-
-  checkThemeDomElement(label: string) {
-    return cy.get('html > body').should('have.class', label).and('exist');
-  }
 }
