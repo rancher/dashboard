@@ -4,7 +4,7 @@ import { Banner } from '@components/Banner';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
 import { MANAGEMENT } from '@shell/config/types';
-import { SETTING } from '@shell/config/settings';
+import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 
 export default {
   name:       'Inactivity',
@@ -27,7 +27,7 @@ export default {
   async mounted() {
     const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
 
-    const settings = JSON.parse(settingsString?.value);
+    const settings = settingsString?.value ? JSON.parse(settingsString.value) : DEFAULT_PERF_SETTING;
 
     if (!settings || !settings?.inactivity || !settings?.inactivity.enabled) {
       return;
