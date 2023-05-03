@@ -25,16 +25,20 @@ export default {
     };
   },
   async mounted() {
-    const _settings = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
+    const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
 
-    const settings = JSON.parse(_settings.value).inactivity;
+    const settings = JSON.parse(settingsString.value);
 
-    this.enabled = settings.enabled;
-    this.showModalAfter = parseInt(settings.threshold * 60); // convert minutes
+    if (!settings?.inactivity || !settings?.inactivity.enabled) {
+      return;
+    }
+
+    this.enabled = settings?.inactivity.enabled;
+    this.showModalAfter = parseInt(settings?.inactivity.threshold * 60); // convert minutes
     this.courtesyTimer = Math.floor(this.showModalAfter * 0.1); // 10% of the threshold in minutes
     this.courtesyCountdown = this.courtesyTimer;
 
-    if (settings.enabled) {
+    if (settings?.inactivity.enabled) {
       this.trackInactivity();
       this.addIdleListeners();
     }
