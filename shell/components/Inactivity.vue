@@ -27,15 +27,18 @@ export default {
   async mounted() {
     const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
 
-    const settings = JSON.parse(settingsString.value);
+    const settings = JSON.parse(settingsString?.value);
 
-    if (!settings?.inactivity || !settings?.inactivity.enabled) {
+    if (!settings || !settings?.inactivity || !settings?.inactivity.enabled) {
       return;
     }
 
     this.enabled = settings?.inactivity.enabled;
-    this.showModalAfter = parseInt(settings?.inactivity.threshold * 60); // convert minutes
-    this.courtesyTimer = Math.floor(this.showModalAfter * 0.1); // 10% of the threshold in minutes
+
+    const thresholdToMinutes = settings?.inactivity.threshold * 60;
+
+    this.showModalAfter = parseInt(thresholdToMinutes * 0.9); // convert minutes, triggers at 90% completion
+    this.courtesyTimer = Math.floor(thresholdToMinutes * 0.1); // 10% of the threshold in minutes, goes by for the remaining 10% of the threshold
     this.courtesyCountdown = this.courtesyTimer;
 
     if (settings?.inactivity.enabled) {
