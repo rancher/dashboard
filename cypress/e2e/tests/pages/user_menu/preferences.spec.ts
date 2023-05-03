@@ -117,9 +117,9 @@ describe('Standard user can update their preferences', () => {
 
       // if key is 1, navigate to cluster manager page and then do validations, else just do validations
       if (key == 1) {
-        cy.intercept('GET', '/v3/clusters').as('clusters');
+        cy.intercept('PUT', 'v1/userpreferences/*').as('userPref');
         ClusterManagerListPagePo.goTo('_');
-        cy.wait('@clusters').its('response.statusCode').should('eq', 200);
+        cy.wait('@userPref').its('response.statusCode').should('eq', 200);
       }
 
       userMenu.toggle();

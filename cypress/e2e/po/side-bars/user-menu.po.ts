@@ -2,7 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class UserMenuPo extends ComponentPo {
   constructor() {
-    super('[data-testid=nav_header_showUserMenu]');
+    super('[data-testid="nav_header_showUserMenu"]');
   }
 
   userMenuDropdown(): Cypress.Chainable {

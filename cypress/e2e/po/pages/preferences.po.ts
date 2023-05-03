@@ -19,59 +19,59 @@ export default class PreferencesPagePo extends PagePo {
   }
 
   languageDropdownMenu(): LabeledSelectPo {
-    return new LabeledSelectPo('[data-testid=prefs__languageSelector]');
+    return new LabeledSelectPo('[data-testid="prefs__languageSelector"]');
   }
 
   dateFormateDropdownMenu(): LabeledSelectPo {
-    return new LabeledSelectPo('[data-testid=prefs__displaySetting__dateFormat]');
+    return new LabeledSelectPo('[data-testid="prefs__displaySetting__dateFormat"]');
   }
 
   timeFormateDropdownMenu(): LabeledSelectPo {
-    return new LabeledSelectPo('[data-testid=prefs__displaySetting__timeFormat]');
+    return new LabeledSelectPo('[data-testid="prefs__displaySetting__timeFormat"]');
   }
 
   perPageDropdownMenu(): LabeledSelectPo {
-    return new LabeledSelectPo('[data-testid=prefs__displaySetting__perPage]');
+    return new LabeledSelectPo('[data-testid="prefs__displaySetting__perPage"]');
   }
 
   clustersDropdownMenu(): LabeledSelectPo {
-    return new LabeledSelectPo('[data-testid=prefs__displaySetting__menuMaxClusters]');
+    return new LabeledSelectPo('[data-testid="prefs__displaySetting__menuMaxClusters"]');
   }
 
   themeButtons(): ButtonGroupPo {
-    return new ButtonGroupPo('[data-testid=prefs__themeOptions]');
+    return new ButtonGroupPo('[data-testid="prefs__themeOptions"]');
   }
 
   keymapButtons(): ButtonGroupPo {
-    return new ButtonGroupPo('[data-testid=prefs__keymapOptions]');
+    return new ButtonGroupPo('[data-testid="prefs__keymapOptions"]');
   }
 
   helmButtons(): ButtonGroupPo {
-    return new ButtonGroupPo('[data-testid=prefs__helmOptions]');
+    return new ButtonGroupPo('[data-testid="prefs__helmOptions"]');
   }
 
   scalingDownPromptCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo('[data-testid=prefs__scalingDownPrompt]');
+    return new CheckboxInputPo('[data-testid="prefs__scalingDownPrompt"]');
   }
 
   viewInApiCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo('[data-testid=prefs__viewInApi]');
+    return new CheckboxInputPo('[data-testid="prefs__viewInApi"]');
   }
 
   allNamespacesCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo('[data-testid=prefs__allNamespaces]');
+    return new CheckboxInputPo('[data-testid="prefs__allNamespaces"]');
   }
 
   themeShortcutCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo('[data-testid=prefs__themeShortcut]');
+    return new CheckboxInputPo('[data-testid="prefs__themeShortcut"]');
   }
 
   hideDescriptionsCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo('[data-testid=prefs__hideDescriptions]');
+    return new CheckboxInputPo('[data-testid="prefs__hideDescriptions"]');
   }
 
   landingPageRadioBtn(): RadioGroupInputPo {
-    return new RadioGroupInputPo('[data-testid=prefs__landingPagePreference]');
+    return new RadioGroupInputPo('[data-testid="prefs__landingPagePreference"]');
   }
 
   checkLangDomElement(label: string) {
