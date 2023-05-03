@@ -33,9 +33,9 @@ export default {
       return;
     }
 
-    this.enabled = settings?.inactivity.enabled;
+    this.enabled = settings?.inactivity?.enabled || false;
 
-    const thresholdToMinutes = settings?.inactivity.threshold * 60;
+    const thresholdToMinutes = settings?.inactivity?.threshold * 60;
 
     this.showModalAfter = parseInt(thresholdToMinutes * 0.9); // convert minutes, triggers at 90% completion
     this.courtesyTimer = Math.floor(thresholdToMinutes * 0.1); // 10% of the threshold in minutes, goes by for the remaining 10% of the threshold
