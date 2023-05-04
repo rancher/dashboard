@@ -705,7 +705,7 @@ export default {
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
-        this.mode === _CREATE
+        (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
         Object.assign(this.value.metadata.labels, this.value.workloadSelector);
@@ -723,7 +723,7 @@ export default {
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
-        this.mode === _CREATE
+        (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
         if (!template.metadata) {
           template.metadata = { labels: this.value.workloadSelector };
@@ -785,6 +785,13 @@ export default {
       this.fixPodSecurityContext(this.podTemplateSpec);
 
       template.metadata.namespace = this.value.metadata.namespace;
+
+      // Handle the case where the user has changed the name of the workload
+      // Only do this for clone. Not allowed for edit
+      if(this.realMode === _CLONE) {
+        template.metadata.name = this.value.metadata.name;
+        template.metadata.description = this.value.metadata.description;
+      }
 
       // delete this.value.kind;
       if (this.container && !this.container.name) {
