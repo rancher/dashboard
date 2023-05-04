@@ -102,12 +102,12 @@ export default {
     <div>
       <div class="ui-perf-setting">
         <div class="mt-20">
-          <h2>{{ t('inactivity.settings.title') }}</h2>
-          <p>{{ t('inactivity.settings.description') }}</p>
+          <h2>{{ t('performance.inactivity.settings.title') }}</h2>
+          <p>{{ t('performance.inactivity.settings.description') }}</p>
           <Checkbox
             v-model="value.inactivity.enabled"
             :mode="mode"
-            :label="t('inactivity.settings.checkboxLabel')"
+            :label="t('performance.inactivity.settings.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
           />
@@ -115,7 +115,7 @@ export default {
             <LabeledInput
               v-model="value.inactivity.threshold"
               :mode="mode"
-              :label="t('inactivity.settings.inputLabel')"
+              :label="t('performance.inactivity.settings.inputLabel')"
               :disabled="!value.inactivity.enabled"
               class="input mb-10"
               type="number"
@@ -123,13 +123,13 @@ export default {
             />
             <Banner
               v-if="validateInactivityThreshold.show"
+              v-clean-html="validateInactivityThreshold.message"
               color="error"
-            >
-              {{ validateInactivityThreshold.message }}
-            </Banner>
-            <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
-              {{ t('inactivity.settings.information') }}
-            </p>
+            />
+            <span
+              v-clean-html="t('performance.inactivity.settings.information', {}, true)"
+              :class="{ 'text-muted': !value.incrementalLoading.enabled }"
+            />
           </div>
         </div>
         <!-- Websocket Notifications -->

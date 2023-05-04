@@ -25,6 +25,7 @@ export default {
     };
   },
   async mounted() {
+    // Info: normally, this is done in the fetch hook but for some reasons while awaiting for things that will take a while, it won't be ready by the time mounted() is called.
     const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
 
     const settings = settingsString?.value ? JSON.parse(settingsString.value) : DEFAULT_PERF_SETTING;
@@ -48,6 +49,7 @@ export default {
   },
   beforeDestroy() {
     this.removeEventListener();
+    this.clearAllTimeouts();
   },
   methods: {
     _trackInactivity() {
@@ -131,13 +133,13 @@ export default {
   computed: {
     isInactiveTexts() {
       return this.isInactive ? {
-        title:   this.t('inactivity.titleExpired'),
-        banner:  this.t('inactivity.bannerExpired'),
-        content: this.t('inactivity.contentExpired'),
+        title:   this.t('performance.inactivity.titleExpired'),
+        banner:  this.t('performance.inactivity.bannerExpired'),
+        content: this.t('performance.inactivity.contentExpired'),
       } : {
-        title:   this.t('inactivity.title'),
-        banner:  this.t('inactivity.banner'),
-        content: this.t('inactivity.content'),
+        title:   this.t('performance.inactivity.title'),
+        banner:  this.t('performance.inactivity.banner'),
+        content: this.t('performance.inactivity.content'),
       };
     },
     timerPercentageLeft() {
@@ -191,7 +193,7 @@ export default {
           class="btn role-tertiary bg-primary"
           @click.prevent="resume"
         >
-          <t k="inactivity.cta" />
+          <t k="performance.inactivity.cta" />
         </button>
 
         <button
@@ -199,7 +201,7 @@ export default {
           class="btn role-tertiary bg-primary"
           @click.prevent="refresh"
         >
-          <t k="inactivity.ctaExpired" />
+          <t k="performance.inactivity.ctaExpired" />
         </button>
       </div>
     </template>

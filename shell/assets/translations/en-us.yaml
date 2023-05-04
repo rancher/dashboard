@@ -2313,23 +2313,6 @@ growl:
     message: "The creation of this Pod would violate existing restricted policies for the adopted Namespace"
     title: PodSecurity violation
 
-inactivity:
-  title: Session expiring
-  titleExpired: Session expired
-  banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
-  bannerExpired: Your session has expired in this tab due to inactivity.
-  content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
-  contentExpired: To return to this page click “Refresh” below or refresh the browser.
-  cta: Resume Session
-  ctaExpired: Refresh
-  settings:
-    title: Inactivity
-    checkboxLabel: Enable inactivity session expiration
-    inputLabel: Inactivity timeout (minutes)
-    information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (auth-user-session-ttl-minutes and auth-token-max-ttl-minutes) in the general settings.
-    description: When enabled and the user is inactive past the specified timeout, the UI will no longer fresh page content and the user must reload the page to continue.
-    authUserTTL: This timeout cannot be lower than the user session timeout auth-user-session-ttl-minutes, which is currently {current} minutes.
-
 hpa:
   detail:
     currentMetrics:
@@ -7006,6 +6989,23 @@ performance:
     label: Websocket Web Worker
     description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
     checkboxLabel: Enable Advanced Websocket Web Worker
+  inactivity:
+    title: Session expiring
+    titleExpired: Session expired
+    banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
+    bannerExpired: Your session has expired in this tab due to inactivity.
+    content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
+    contentExpired: To return to this page click “Refresh” below or refresh the browser.
+    cta: Resume Session
+    ctaExpired: Refresh
+    settings:
+      title: Inactivity
+      checkboxLabel: Enable inactivity session expiration
+      inputLabel: Inactivity timeout (minutes)
+      information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (<code>auth-user-session-ttl-minutes</code> and <code>auth-token-max-ttl-minutes</code>) in the general settings.
+      description: When enabled and the user is inactive past the specified timeout, the UI will no longer fresh page content and the user must reload the page to continue.
+      authUserTTL: This timeout cannot be lower than the user session timeout  auth-user-session-ttl-minutes, which is currently {current} minutes.
+
 
 banner:
   label: Fixed Banners
