@@ -214,9 +214,11 @@ We have created a workflow for [Github Actions](https://docs.github.com/en/actio
 
 ### Release Prerequisites
 
-In order to have a Helm repository you will need to create the (`gh-pages`) on your Github repository.
+In order to have a Helm repository you will need to enable Github Pages on your Github repository. Just follow these steps:
 
-1. Go to the repository of the extension and click the `Settings` tab in the top navigation bar.
+1. Create a branch called `gh-pages` on your Github repository for the extension
+
+2. Go to the repository of the extension and click the `Settings` tab in the top navigation bar.
 
 <div style={{textAlign: 'center'}}>
 
@@ -224,7 +226,7 @@ In order to have a Helm repository you will need to create the (`gh-pages`) on y
 
 </div>
 
-2. Then on the left navigation bar of the settings page click the `Pages` tab.
+3. Then on the left navigation bar of the settings page click the `Pages` tab.
 
 <div style={{textAlign: 'center'}}>
 
@@ -232,7 +234,7 @@ In order to have a Helm repository you will need to create the (`gh-pages`) on y
 
 </div>
 
-3. Lastly, select `GitHub Actions` from the `Source` dropdown.
+4. Lastly, select `GitHub Actions` from the `Source` dropdown.
 
 <div style={{textAlign: 'center'}}>
 
