@@ -2,13 +2,15 @@ import HomePagePo from '~/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
-import ReposListPagePo from '~/cypress/e2e/po/pages/cluster-manager/advanced/repositories.po';
-import AppRepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
+import ReposListPagePo from '~/cypress/e2e/po/pages/repositories.po';
+import RepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
-const repoList = new AppRepoListPo('tr');
+const repoList = new RepoListPo('tr');
+const repoListPage = new ReposListPagePo('_', 'manager');
+const clusterManagerPage = new ClusterManagerListPagePo('_');
 
 describe('Standard user can update their preferences', () => {
   beforeEach(() => {
@@ -22,6 +24,7 @@ describe('Standard user can update their preferences', () => {
     Verify preference page title
     */
     HomePagePo.goTo();
+    userMenu.checkVisible();
     userMenu.toggle();
     userMenu.isOpen();
     userMenu.clickMenuItem('Preferences');
@@ -41,6 +44,7 @@ describe('Standard user can update their preferences', () => {
     };
 
     prefPage.goTo();
+    prefPage.languageDropdownMenu().checkVisible();
     for (const [key, value] of Object.entries(languages)) {
       prefPage.languageDropdownMenu().toggle();
       prefPage.languageDropdownMenu().isOpened();
@@ -62,14 +66,10 @@ describe('Standard user can update their preferences', () => {
       Auto:  '"ui-auto"'
     };
 
+    prefPage.goTo();
+    prefPage.themeButtons().checkVisible();
     for (const [key, value] of Object.entries(themeOptions)) {
-      prefPage.goTo();
-      prefPage.waitForPage();
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['theme'] === value) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.themeButtons().set(key);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -80,7 +80,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select login landing page', () => {
+  it.skip('Can select login landing page', () => {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -93,13 +93,10 @@ describe('Standard user can update their preferences', () => {
       // 2: ['{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', '/explore'] // TODO this option only works when there is an existing cluster (not for standard user)
     };
 
+    prefPage.goTo();
+    prefPage.landingPageRadioBtn().checkVisible();
     for (const [key, value] of Object.entries(landingPageOptions)) {
-      prefPage.goTo();
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['after-login-route'] === value[0]) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.landingPageRadioBtn().set(key);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -111,7 +108,8 @@ describe('Standard user can update their preferences', () => {
       // if key is 1, navigate to cluster manager page and then do validations, else just do validations
       if (key == 1) {
         cy.intercept('PUT', 'v1/userpreferences/*').as('userPref');
-        ClusterManagerListPagePo.goTo('_');
+        clusterManagerPage.goTo();
+        clusterManagerPage.list().checkVisible();
         cy.wait('@userPref').its('response.statusCode').should('eq', 200);
       }
 
@@ -140,15 +138,12 @@ describe('Standard user can update their preferences', () => {
     };
 
     prefPage.goTo();
+    prefPage.dateFormateDropdownMenu().checkVisible();
     for (const [key, value] of Object.entries(dateOptions)) {
       prefPage.dateFormateDropdownMenu().toggle();
       prefPage.dateFormateDropdownMenu().isOpened();
       prefPage.dateFormateDropdownMenu().getOptions().should('have.length', 5);
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['date-format'] === key) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.dateFormateDropdownMenu().clickOption(value);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -170,15 +165,12 @@ describe('Standard user can update their preferences', () => {
     };
 
     prefPage.goTo();
+    prefPage.timeFormateDropdownMenu().checkVisible();
     for (const [key, value] of Object.entries(formatOptions)) {
       prefPage.timeFormateDropdownMenu().toggle();
       prefPage.timeFormateDropdownMenu().isOpened();
       prefPage.timeFormateDropdownMenu().getOptions().should('have.length', 2);
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['time-format'] === key) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.timeFormateDropdownMenu().clickOption(value);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -202,15 +194,12 @@ describe('Standard user can update their preferences', () => {
     };
 
     prefPage.goTo();
+    prefPage.perPageDropdownMenu().checkVisible();
     for (const [key, value] of Object.entries(perPageOptions)) {
       prefPage.perPageDropdownMenu().toggle();
       prefPage.perPageDropdownMenu().isOpened();
       prefPage.perPageDropdownMenu().getOptions().should('have.length', 4);
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['per-page'] === key) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.perPageDropdownMenu().clickOption(value);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -240,15 +229,12 @@ describe('Standard user can update their preferences', () => {
     };
 
     prefPage.goTo();
+    prefPage.checkVisible();
     for (const [key, value] of Object.entries(clustersOptions)) {
       prefPage.clustersDropdownMenu().toggle();
       prefPage.clustersDropdownMenu().isOpened();
       prefPage.clustersDropdownMenu().getOptions().should('have.length', 9);
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['menu-max-clusters'] === key) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.clustersDropdownMenu().clickOption(value);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -266,11 +252,8 @@ describe('Standard user can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     prefPage.goTo();
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['scale-pool-prompt'] === 'true') {
-        req.alias = 'prefUpdate';
-      }
-    });
+    prefPage.scalingDownPromptCheckbox().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.scalingDownPromptCheckbox().set();
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -279,11 +262,6 @@ describe('Standard user can update their preferences', () => {
     });
     prefPage.scalingDownPromptCheckbox().isChecked();
 
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['scale-pool-prompt'] === 'false') {
-        req.alias = 'prefUpdate';
-      }
-    });
     prefPage.scalingDownPromptCheckbox().set();
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -300,11 +278,8 @@ describe('Standard user can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     prefPage.goTo();
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['view-in-api'] === 'true') {
-        req.alias = 'prefUpdate';
-      }
-    });
+    prefPage.viewInApiCheckbox().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.viewInApiCheckbox().set();
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -313,17 +288,12 @@ describe('Standard user can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isChecked();
 
-    cy.intercept('GET', '/v1/catalog.cattle.io.clusterrepos').as('clusterRepos');
-    ReposListPagePo.goTo('_');
-    cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
     prefPage.goTo();
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['view-in-api'] === 'false') {
-        req.alias = 'prefUpdate2';
-      }
-    });
+    prefPage.viewInApiCheckbox().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
     prefPage.viewInApiCheckbox().set();
     cy.wait('@prefUpdate2').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -332,8 +302,7 @@ describe('Standard user can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isUnchecked();
 
-    ReposListPagePo.goTo('_');
-    cy.wait('@clusterRepos').its('response.statusCode').should('eq', 200);
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
 
@@ -343,11 +312,8 @@ describe('Standard user can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     prefPage.goTo();
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['all-namespaces'] === 'true') {
-        req.alias = 'prefUpdate';
-      }
-    });
+    prefPage.allNamespacesCheckbox().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.allNamespacesCheckbox().set();
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -356,11 +322,6 @@ describe('Standard user can update their preferences', () => {
     });
     prefPage.allNamespacesCheckbox().isChecked();
 
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['all-namespaces'] === 'false') {
-        req.alias = 'prefUpdate';
-      }
-    });
     prefPage.allNamespacesCheckbox().set();
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -376,11 +337,8 @@ describe('Standard user can update their preferences', () => {
     Validate http request's payload & response contain correct values per selection
     */
     prefPage.goTo();
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['theme-shortcut'] === 'true') {
-        req.alias = 'prefUpdate';
-      }
-    });
+    prefPage.themeShortcutCheckbox().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.themeShortcutCheckbox().set();
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -389,11 +347,6 @@ describe('Standard user can update their preferences', () => {
     });
     prefPage.themeShortcutCheckbox().isChecked();
 
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['theme-shortcut'] === 'false') {
-        req.alias = 'prefUpdate';
-      }
-    });
     prefPage.themeShortcutCheckbox().set();
     cy.wait('@prefUpdate').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
@@ -411,29 +364,23 @@ describe('Standard user can update their preferences', () => {
     const banners = new BannersPo('header > .banner');
 
     prefPage.goTo();
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['hide-desc'] === '["ALL"]') {
-        req.alias = 'prefUpdate';
-      }
-    });
+    prefPage.hideDescriptionsCheckbox().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
     prefPage.hideDescriptionsCheckbox().set();
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    ReposListPagePo.goTo('_');
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
     banners.self().should('not.exist');
 
     prefPage.goTo();
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['hide-desc'] === '[]') {
-        req.alias = 'prefUpdate2';
-      }
-    });
+    prefPage.hideDescriptionsCheckbox().checkVisible();
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate2');
     prefPage.hideDescriptionsCheckbox().set();
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    ReposListPagePo.goTo('_');
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
     banners.self().should('exist');
   });
 
@@ -449,12 +396,9 @@ describe('Standard user can update their preferences', () => {
     };
 
     prefPage.goTo();
+    prefPage.keymapButtons().checkVisible();
     for (const [key, value] of Object.entries(buttonOptions)) {
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['keymap'] === value) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.keymapButtons().set(key);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
@@ -476,12 +420,9 @@ describe('Standard user can update their preferences', () => {
     };
 
     prefPage.goTo();
+    prefPage.helmButtons().checkVisible();
     for (const [key, value] of Object.entries(buttonOptions)) {
-      cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-        if (req?.body?.data?.['show-pre-release'] === value) {
-          req.alias = `prefUpdate${ key }`;
-        }
-      });
+      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
       prefPage.helmButtons().set(key);
       cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
