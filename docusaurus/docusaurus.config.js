@@ -41,10 +41,10 @@ const config = {
           // Remove this to remove the "edit this page" links.
         },
         blog: {
-          showReadingTime:    true,
-          blogTitle: 'Rancher UX/UI Blog',
-          blogDescription: 'Recent and upcoming changes to Rancher Manager and associated projects and products',
-          postsPerPage: 'ALL',
+          showReadingTime:  true,
+          blogTitle:        'Rancher UX/UI Blog',
+          blogDescription:  'Recent and upcoming changes to Rancher Manager and associated projects and products',
+          postsPerPage:     'ALL',
           blogSidebarCount: 'ALL',
           blogSidebarTitle: 'All Posts',
           // Please change this to your repo.
@@ -72,7 +72,9 @@ const config = {
             position: 'right',
             label:    'Docs',
           },
-          {to: '/blog', label: 'Blog', position: 'right'},
+          {
+            to: '/blog', label: 'Blog', position: 'right'
+          },
           {
             href:     'https://rancher.github.io/storybook/',
             position: 'right',
