@@ -82,7 +82,7 @@ pushd ${BASE_DIR} > /dev/null
 
 if [ "${GITHUB_BUILD}" == "true" ]; then
   # Determine if gh-pages build is possible
-  if [[ "${GITHUB_BRANCH}" == "gh-pages" ]] && ! git show-ref -q --heads gh-pages; then
+  if [[ "${GITHUB_BRANCH}" == "gh-pages" ]] && ! git show-ref -q gh-pages; then
     echo -e "${YELLOW}'gh-pages' branch not found, this branch must exist before running this script${RESET}"
     exit 1
   fi
