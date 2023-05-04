@@ -403,6 +403,10 @@ export default class ProvCluster extends SteveModel {
     this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit = value;
   }
 
+ get defaultHostnameLengthLimit() {
+  return this.spec.rkeConfig?.machinePoolDefaults?.hostnameLengthLimit;
+  }
+
   removeDefaultHostnameLengthLimit() {
     if (this.machinePoolDefaults?.hostnameLengthLimit) {
       delete this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit;
