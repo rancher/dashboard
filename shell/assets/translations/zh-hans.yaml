@@ -22,6 +22,7 @@ generic:
   disabled: 禁用
   done: 完成
   enabled: 启用
+  here: 此处
   id: ID
   ignored: 忽略
   invalidCron: 无效的 cron 调度
@@ -1321,8 +1322,9 @@ cluster:
   manageAction: 管理
   kubernetesVersion:
     label: Kubernetes 版本
-    experimental: 实验功能
-    deprecated: 已弃用
+    current: （当前）
+    experimental: （实验功能）
+    deprecated: （已弃用）
     deprecatedPatches: 显示已弃用的 Kubernetes 补丁版本
     deprecatedPatchWarning: 建议为每个 Kubernetes 次要版本使用最新的补丁版本，已弃用的补丁版本可能对迁移有用。
   toolsTip: 使用新集群工具来管理和安装 Monitoring、Logging 等工具。
@@ -1631,7 +1633,7 @@ cluster:
     invalidPsps: 你在此集群中有一个或多个 PSP 资源。Pod 安全策略在 Kubernetes v1.25 中不可用并将自动删除。
     haveArgInfo: 所选 Kubernetes 版本的配置信息不可用。此屏幕中可用的选项将受到限制，你可能需要使用 YAML 编辑器。
     deprecatedPsp: Pod 安全策略自 Kubernetes v1.21 起已弃用，并已在 Kubernetes v1.25 中删除。
-    removedPsp: Pod 安全策略已在 Kubernetes v1.25 中删除，请改用 PodSecurity Admission。
+    removedPsp: Pod 安全策略已在 Kubernetes v1.25 中删除，请改用 Pod Security Admission。
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
 
   availabilityWarnings:
@@ -1658,15 +1660,15 @@ cluster:
       tooltip:
         controlPlane: |-
           {count, plural,
-            =0 { 一个集群需要至少1个可用的 Control Plane 节点。}
-            =1 { 只有1个 Control Plane 节点的集群是不具备容错能力的。}
+            =0 { 一个集群需要至少 1 个可用的 Control Plane 节点。}
+            =1 { 只有 1 个 Control Plane 节点的集群是不具备容错能力的。}
             other {}
           }
         etcd: |-
           {count, plural,
-            =0 { 一个集群需要至少1个可用的 ETCD 节点。}
-            =1 { 只有1个 ETCD 节点的集群是不具备容错能力的。}
-            =2 { 集群的节点数需要是奇数。只有2个 ETCD 节点的集群是不具备容错能力的。}
+            =0 { 一个集群需要至少 1 个可用的 ETCD 节点。}
+            =1 { 只有 1 个 ETCD 节点的集群是不具备容错能力的。}
+            =2 { 集群的节点数需要是奇数。只有 2 个 ETCD 节点的集群是不具备容错能力的。}
             =3 {}
             =4 { 集群的节点数需要是奇数。}
             =5 {}
@@ -1677,7 +1679,7 @@ cluster:
         worker: |-
           {count, plural,
             =0 { 一个集群需要至少 1 个可用的 Worker 节点。}
-            =1 { 只有1个 Worker 节点的集群是不具备容错能力的。}
+            =1 { 只有 1 个 Worker 节点的集群是不具备容错能力的。}
             other {}
           }
     quantity:
@@ -1687,11 +1689,17 @@ cluster:
       label: 删除前清空
     role:
       label: 角色
+      etcd: ETCD
+      controlPlane: Control Plane
+      worker: Worker
     labels:
       label: Kubernetes 节点标签
     noAccessBanner: "你没有查看此主机池配置的权限。"
     configNotFound: "找不到这个主机池的配置。建议你创建一个具有所需配置的新集群。"
     noPoolsDisclaimer: 你没有定义任何主机池，请单击加号进行添加。
+    truncationPool: "已手动将此主机池的主机名截断配置为 {limit}"
+    truncationCluster: "已手动将此集群的主机名截断配置为 {limit}"
+
     autoReplace:
       label: 自动替换
       toolTip: 如果大于 0，则在此期间无法访问的节点将被自动删除和替换。
@@ -1834,6 +1842,7 @@ cluster:
       label: 清空节点
       toolTip: 清空操作预先移除每个节点上的 Pod，使得升级中的节点上没有运行的工作负载。不清空的升级速度更快，造成的混乱更少，但是 Pod 仍可能根据进行中的升级进行重启。
     deleteEmptyDir: "默认情况下，使用 emptyDir 卷的 pod 会在升级时被删除。在 pod 生命周期中依赖于 emptyDir 持久卷的操作可能会受到影响。"
+    truncateHostnames: 将主机名截断为 15 个字符来兼容 NetBIOS。
     address:
       tooltip: 创建集群后无法更改集群网络值。
       header: 寻址
@@ -2113,6 +2122,10 @@ fleet:
       noRepos: 未添加任何仓库
       noWorkspaces: 没有工作空间。<br/>请在添加仓库之前创建一个工作空间
       protocolBanner: 输入指向 git 仓库的有效 HTTPS 或 SSH URL。
+    resources:
+      label: '资源处理'
+      keepResources: 删除后保留资源
+      resourceBanner: 启用时，删除 GitRepo 或 Bundle 后将保留资源，只会删除 Helm Release Secret。
     add:
       steps:
         repoInfo:
@@ -2191,7 +2204,7 @@ fleet:
   restrictions: 
     addTitle: 'allowedTargetNamespaces'
     addLabel: 添加
-    banner: "{count, plural, =0 { 在这里设置 allowedTargetNamespaces 会创建一个 GitRepoRestriction。} other { 只有 GitRepoRestriction.allowedTargetNamespaces 在此处管理，你可以进行其他更改。} }"
+    banner: "{count, plural, =0 { 在这里添加命名空间会创建一个 GitRepoRestriction。} other { 只有 Git Repo Restriction 的 <code>allowedTargetNamespaces</code> 在此处管理，你可以对 Git Repo Restriction 进行其他更改。} }"
 footer:
   docs: Rancher 官方文档
   download: 下载 CLI
@@ -2613,6 +2626,7 @@ istio:
   kiali: 启用 Kiali
   pilot: 启用 Pilot
   policy: 启用 Policy
+  pilotRequired: 必须启用 Pilot 才能启用 Kiali
   poweredBy: 由 <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a> 提供支持
   telemetry: 启用遥测
   titles:
@@ -2982,6 +2996,8 @@ members:
   clusterMembers: 集群成员
   clusterAndProject: 集群和项目成员
   createActionLabel: 添加
+  clusterMemebership: 集群成员
+  projectMembership: 项目成员
   clusterPermissions:
     noDescription: 已创建用户 - 没有描述
     label: 集群权限
@@ -3006,6 +3022,7 @@ members:
     custom:
       label: 自定义
       description: 为该用户自定义角色。
+      lockedRole: 该角色已锁定。
   localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
   noRolesAssigned: 没有分配给该项目的用户。
 
@@ -3348,6 +3365,7 @@ namespace:
   resourceQuotas: 资源配额
   project:
     label: 项目
+    none: (None)
   resources: 资源
   enableAutoInjection: 启用 Istio 自动注入
   disableAutoInjection: 禁用 Istio 自动注入
@@ -4194,6 +4212,7 @@ projectNamespaces:
   label: 项目/命名空间
   noNamespaces: 没有定义的命名空间。
   noProjectNoNamespaces: 所有命名空间都在一个项目中
+  isIstioInjectionEnabled: 为此命名空间启用了 Istio 自动 Sidecar 注入
 
 prometheusRule:
   alertingRules:
@@ -4542,6 +4561,7 @@ resourceTable:
     namespace: 按命名空间分组
     project: 按项目分组
     node: 按节点分组
+    role: 按角色分组
     cluster: 按集群分组
   groupLabel:
     cluster: "<span>集群：</span> {name}"

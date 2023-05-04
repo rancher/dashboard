@@ -15,7 +15,7 @@ REGISTRY=""
 REGISTRY_ORG=""
 IMAGE_PREFIX="ui-extension-"
 FORCE="false"
-GITHUB_BUILD="false"
+GITHUB_BUILD="true"
 
 GITHUB_SOURCE=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
 GITHUB_BRANCH="main"
@@ -28,13 +28,13 @@ usage() {
   echo "  -r <name>    Specify destination container registry for built images"
   echo "  -o <name>    Specify destination container registry organization for built images"
   echo "  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')"
-  echo "  -g           Publish to the GitHub repository rather than using container image"
-  echo "  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin (implies -g)"
-  echo "  -b <branch>  Specify destination GitHub branch (implies -g)"
+  echo "  -c           Build as a container image rather than publishing to Github"
+  echo "  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin"
+  echo "  -b <branch>  Specify destination GitHub branch"
   exit 1
 }
 
-while getopts "hvr:o:pi:fgb:s:" opt; do
+while getopts "hvr:o:pi:fcb:s:" opt; do
   case $opt in
     h)
       usage
@@ -54,8 +54,8 @@ while getopts "hvr:o:pi:fgb:s:" opt; do
     f)
       FORCE="true"
       ;;      
-    g)
-      GITHUB_BUILD="true"
+    c)
+      GITHUB_BUILD="false"
       ;;
     s)
       GITHUB_BUILD="true"
@@ -81,6 +81,12 @@ echo -e "${CYAN}${BOLD}Publishing UI Plugins${RESET}"
 pushd ${BASE_DIR} > /dev/null
 
 if [ "${GITHUB_BUILD}" == "true" ]; then
+  # Determine if gh-pages build is possible
+  if [[ "${GITHUB_BRANCH}" == "gh-pages" ]] && ! git show-ref -q --heads gh-pages; then
+    echo -e "${YELLOW}'gh-pages' branch not found, this branch must exist before running this script${RESET}"
+    exit 1
+  fi
+
   echo -e "${CYAN}GitHub Repository: ${GITHUB_SOURCE}${RESET}"
   echo -e "${CYAN}GitHub Branch    : ${GITHUB_BRANCH}${RESET}"
 else
@@ -188,60 +194,22 @@ for d in pkg/*/ ; do
     echo -e "${CYAN}Building plugin from source code${RESET}"
     FORCE_COLOR=1 yarn build-pkg $pkg | cat
 
-    # --------------------------------------------------------------------------------
-    # Create the container image
-    # --------------------------------------------------------------------------------
-    mkdir -p ${TMP}/container
-    cp -R ${CHART_TEMPLATE}/* ${TMP}/container/    
+    echo -e "${CYAN}Adding plugin code ...${RESET}"
 
-    # Copy the plugin assets
-    rm -rf ${TMP}/container/plugin
-    mkdir ${TMP}/container/plugin
+    EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
+    PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
 
-    cp -R ${BASE_DIR}/dist-pkg/${PKG_NAME}/* ${TMP}/container/plugin
-    rm -f ${TMP}/container/plugin/report.html
+    rm -rf ${EXT_FOLDER}
 
-    if [ "${GITHUB_BUILD}" == "false" ]; then
-      # Build the docker image
-      pushd ${TMP}/container > /dev/null
-      echo -e "${CYAN}Building container image ...${RESET}"
+    mkdir -p ${EXT_FOLDER}/plugin
 
-      REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${pkg} TAG=${PKG_VERSION} ./scripts/package
+    # Copy the code into the folder
+    cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
 
-      if [ "${PUSH}" == "--push" ]; then
-        echo -e "${CYAN}Pushing container image ...${RESET}"
-
-        # Ensure that you do not overwrite production images
-        if [[ "${REGISTRY_ORG}" == "rancher" ]]; then
-          IMAGE=${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${pkg}:${PKG_VERSION}
-          if docker manifest inspect 2>&1 1>/dev/null; then
-            echo -e "${RED}Cannot overwrite production image ${IMAGE} since it already exists${RESET}"
-            exit 1
-          fi
-        fi
-
-        docker push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${pkg}:${PKG_VERSION}
-      fi
-
-      popd > /dev/null
-    else
-      echo -e "${CYAN}Adding plugin code ...${RESET}"
-
-      EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
-      PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
-
-      rm -rf ${EXT_FOLDER}
-
-      mkdir -p ${EXT_FOLDER}/plugin
-
-      # Copy the code into the folder
-      cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
-
-      pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
-      rm -f plugin/report.html
-      find plugin -type f | sort > files.txt
-      popd > /dev/null
-    fi
+    pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
+    rm -f plugin/report.html
+    find plugin -type f | sort > files.txt
+    popd > /dev/null
 
     rm -rf ${TMP}/container
 
@@ -281,7 +249,7 @@ for d in pkg/*/ ; do
       rm *.yaml
       mv temp.cr cr.yaml
       ENDPOINT=https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/extensions/${pkg}/${PKG_VERSION}
-      sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml       
+      sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml
       rm *.bak
       popd > /dev/null
     fi
@@ -299,6 +267,15 @@ for d in pkg/*/ ; do
 
     if [ -f "${HELM_INDEX}" ]; then
       UPDATE="--merge ${HELM_INDEX}"
+    elif [ "${GITHUB_BUILD}" == "true" ] && [[ -n ${GITHUB_SOURCE} ]]; then
+      GITHUB_SOURCE=$(echo -e "${GITHUB_SOURCE}" | sed 's/https:\/\///g')
+
+      # Check if git branch contains index.yaml
+      wget -P ${BASE_DIR} https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml
+
+      if [ -f "${HELM_INDEX}" ]; then
+        UPDATE="--merge ${HELM_INDEX}"
+      fi
     fi
 
     # Base URL referencing assets directly from GitHub
@@ -312,22 +289,45 @@ for d in pkg/*/ ; do
 
     cp ${CHART_TMP}/index.yaml ${HELM_INDEX}
 
+    if [ "${GITHUB_BUILD}" == "true" ]; then
+      # Make temp directory for workflow build artifact
+      mkdir -p tmp/{assets,charts,extensions}/$pkg
+
+      cp -r ${PKG_ASSET} tmp/assets/$pkg
+      cp -r ${CHARTS}/${pkg}/${PKG_VERSION} tmp/charts/$pkg
+      cp -r ${EXT_FOLDER} tmp/extensions/$pkg
+    fi
+
     BUILT="true"
   fi
 done
+
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  BASE=$(basename ${BASE_DIR})
+  EXT_VERSION=$(jq -r .version ${BASE_DIR}/package.json)
+
+  if [ -z ${EXT_VERSION} ]; then
+    EXT_VERSION="0.0.0"
+  fi
+
+  echo -e "${CYAN}Base extension: ${BASE}${RESET}"
+  echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
+
+  # Build the docker image
+  ${SCRIPT_DIR}/bundle ${BASE} ${EXT_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
+fi
+
+if [ "${GITHUB_BUILD}" == "true" ]; then
+  cp index.yaml tmp
+fi
 
 if [ "${BUILT}" == "true" ]; then
   echo -e "${CYAN}${BOLD}${CHECK} One or more packages built${RESET}"
 fi
 
-popd > /dev/null
-
 # Clean up
 rm -rf ${CHART_TMP}
-rm -rf ${TMP}
 
-# If the user asked to create a commit, commit the changes
-# if [ "${COMMIT}" == "true" ]; then
-#   echo -e "${CYAN}${BOLD}Creating git commit${RESET}"
-#   git add --all
-# fi
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  rm -rf ${TMP}
+fi

@@ -24,6 +24,7 @@ import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
 import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -33,6 +34,7 @@ export default {
   name: 'CruGitRepo',
 
   components: {
+    Checkbox,
     ArrayList,
     Banner,
     CruResource,
@@ -425,7 +427,7 @@ export default {
       await secret.save();
 
       await this.$nextTick(() => {
-        this.updateAuth(secret.id, name);
+        this.updateAuth(secret.metadata.name, name);
       });
 
       return secret;
@@ -601,7 +603,20 @@ export default {
         </div>
       </template>
       <div class="spacer" />
-
+      <h2 v-t="'fleet.gitRepo.resources.label'" />
+      <Checkbox
+        v-model="value.spec.keepResources"
+        class="check"
+        type="checkbox"
+        label-key="fleet.gitRepo.resources.keepResources"
+        :mode="mode"
+      />
+      <Banner
+        color="info"
+      >
+        {{ t('fleet.gitRepo.resources.resourceBanner') }}
+      </Banner>
+      <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model="value.spec.paths"

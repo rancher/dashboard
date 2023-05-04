@@ -83,10 +83,11 @@ export default {
         />
       </div>
     </div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <ChartPsp :value="value" />
-      </div>
-    </div>
+
+    <!-- Conditionally display PSP checkbox -->
+    <ChartPsp
+      :value="value"
+      :cluster="currentCluster"
+    />
   </div>
 </template>

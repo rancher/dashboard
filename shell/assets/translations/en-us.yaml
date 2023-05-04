@@ -22,6 +22,7 @@ generic:
   disabled: Disabled
   done: Done
   enabled: Enabled
+  here: here
   id: ID
   ignored: Ignored
   invalidCron: Invalid cron schedule
@@ -454,7 +455,13 @@ authConfig:
     objectClass: Object Class
     password: Password
     port: Port
+    protocol: Protocol
+    protocols:
+      starttls: Start TLS
+      ldap: LDAP
+      tls: LDAPS (TLS)
     customizeSchema: Customize Schema
+    oktaSchema: 'The defaults below are for a generic OpenLDAP server. For more information on the values to use when using the Okta LDAP interface, see: <a target="_blank" rel="noopener noreferrer nofollow" href="https://help.okta.com/en-us/Content/Topics/Directory/LDAP-interface-connection-settings.htm">Okta LDAP Interface connection settings</a>'
     users: Users
     groups: Groups
     searchAttribute: Search Attribute
@@ -499,6 +506,13 @@ authConfig:
     shibboleth: Configure a Shibboleth account
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
+    search:
+      title: User and Group Search
+      message: The SAML Protocol does not support search or lookup for users or groups. In order to enabled search, an OpenLDAP server must be configured.
+      on: LDAP User and Group search has been configured
+      off: LDAP User and Group search is not configured
+      show: Show details
+      hide: Hide details
   azuread:
     tenantId: Tenant ID
     applicationId: Application ID
@@ -1624,7 +1638,7 @@ cluster:
     invalidPsps: You have one or more PodSecurityPolicy resource(s) in this cluster. Pod Security Policies are not available in Kubernetes v1.25 and will be automatically removed.
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available in this screen will be limited, you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
-    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use PodSecurity Admission instead.
+    removedPsp: Pod Security Policies have been removed in Kubernetes v1.25, use Pod Security Admission instead.
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
   availabilityWarnings:
@@ -1680,11 +1694,17 @@ cluster:
       label: Drain Before Delete
     role:
       label: Roles
+      etcd: etcd
+      controlPlane: Control Plane
+      worker: Worker
     labels:
       label: Kubernetes Node Labels
     noAccessBanner: "You do not have access to see this machine pool's configuration."
     configNotFound: "We could not find this machine pool's configuration. We recommend that you create a new cluster with the desired configuration."
     noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
+    truncationPool: "Hostname truncation has been manually configured for this pool to {limit}"
+    truncationCluster: "Hostname truncation has been manually configured for this cluster to {limit}"
+
     autoReplace:
       label: Auto Replace
       toolTip: If greater than 0, nodes that are unreachable for this duration will be automatically deleted and replaced.
@@ -1827,6 +1847,7 @@ cluster:
       label: Drain Nodes
       toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
     deleteEmptyDir: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+    truncateHostnames: Truncate hostnames to 15 characters for NetBIOS compatibility.
     address:
       tooltip: Cluster networking values cannot be changed after the cluster is created.
       header: Addressing
@@ -2106,6 +2127,10 @@ fleet:
       noRepos: No repositories have been added
       noWorkspaces: There are no workspaces. <br/> Please create a workspace before adding repositories
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
+    resources:
+      label: 'Resource Handling'
+      keepResources: Keep resources after deletion
+      resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
     add:
       steps:
         repoInfo:
@@ -2185,8 +2210,8 @@ fleet:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
     banner: "{count, plural,
-          =0 { Setting allowedTargetNamespaces here will create a GitRepoRestriction. }
-          other { Only GitRepoRestriction.allowedTargetNamespaces is managed here. You can make additional changes} 
+          =0 { Adding namespaces here will create a GitRepoRestriction. }
+          other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction} 
         }"
 footer:
   docs: Docs
@@ -2196,6 +2221,7 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
+  downloadViolations: Download Violations
   match:
     title: Match
   tab:
@@ -2227,7 +2253,7 @@ gatekeeperConstraint:
     action: Enforcement Action
   violations:
     title: "Violations: {total}"
-    notAll: Not all are shown - the constraint only includes details for {shown}
+    notAll: Not all are shown due to the configured OPA Gatekeeper constraint violation limit - the constraint only includes details for {shown}
 
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
@@ -2606,6 +2632,7 @@ istio:
   kiali: Enable Kiali
   pilot: Enable Pilot
   policy: Enable Policy
+  pilotRequired: Pilot must be enabled in order to enable Kiali
   poweredBy: Powered by <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>
   telemetry: Enable Telemetry
   titles:
@@ -2774,6 +2801,7 @@ logging:
     sslClientCertKey: Cert Key from Secret
   loki:
     url: URL
+    urlInvalid: Incorrect URL format. Please  check and correct your URL format before saving.
     tenant: Tenant
     username: User from Secret
     password: Password from Secret
@@ -2975,6 +3003,8 @@ members:
   clusterMembers: Cluster Members
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
+  clusterMemebership: Cluster Membership
+  projectMembership: Project Memebership
   clusterPermissions:
     noDescription: User created - no description
     label: Cluster Permissions
@@ -2999,6 +3029,7 @@ members:
     custom:
       label: Custom
       description: Choose individual roles for this user.
+      lockedRole: This role is locked.
   localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any part of this installation."
   noRolesAssigned: There are no users assigned to this project.
 
@@ -3341,6 +3372,7 @@ namespace:
   resourceQuotas: Resource Quotas
   project:
     label: Project
+    none: (None)
   resources: Resources
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
@@ -4536,6 +4568,7 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
     node: Group by Node
+    role: Group by Role
     cluster: Group by Cluster
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
@@ -5195,6 +5228,7 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
+  constraint: Constraint
   completions: Completions
   count: Count
   createdAt: Created At
@@ -5360,6 +5394,7 @@ tableHeaders:
   target: Target
   targetKind: Target Type
   targetPort: Target
+  template: Template
   type: Type
   updated: Updated
   up-to-date: Up To Date

@@ -4,7 +4,16 @@ const serveStatic = require('serve-static');
 const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+// Suppress info level logging messages from http-proxy-middleware
+// This hides all of the "[HPM Proxy created] ..." messages
+const oldInfoLogger = console.info; // eslint-disable-line no-console
+
+console.info = () => {}; // eslint-disable-line no-console
+
 const { createProxyMiddleware } = require('http-proxy-middleware');
+
+console.info = oldInfoLogger; // eslint-disable-line no-console
 
 // This is currently hardcoded to avoid importing the TS
 // const { STANDARD } = require('./config/private-label');
@@ -78,31 +87,13 @@ module.exports = function(dir, _appConfig) {
 
   const appConfig = _appConfig || {};
   const excludes = appConfig.excludes || [];
-  const autoLoad = appConfig.autoLoad || [];
 
   const serverMiddleware = [];
-  const autoLoadPackages = [];
   const watcherIgnores = [
     /.shell/,
     /dist-pkg/,
     /scripts\/standalone/
   ];
-
-  autoLoad.forEach((pkg) => {
-    // Need the version number of each file
-    const pkgPackageFile = require(path.join(dir, 'pkg', pkg, 'package.json'));
-    const pkgRef = `${ pkg }-${ pkgPackageFile.version }`;
-
-    autoLoadPackages.push({
-      name:    `app-autoload-${ pkgRef }`,
-      content: `/pkg/${ pkgRef }/${ pkgRef }.umd.min.js`
-    });
-
-    // Anything auto-loaded should also be excluded
-    if (!excludes.includes(pkg)) {
-      excludes.push(pkg);
-    }
-  });
 
   // Find any UI packages in node_modules
   const NM = path.join(dir, 'node_modules');
@@ -321,6 +312,13 @@ module.exports = function(dir, _appConfig) {
       before(app, server) {
         const socketProxies = {};
 
+        // Close down quickly in response to CTRL + C
+        process.once('SIGINT', () => {
+          server.close();
+          console.log('\n'); // eslint-disable-line no-console
+          process.exit(1);
+        });
+
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
             ...proxy[p],
@@ -371,7 +369,7 @@ module.exports = function(dir, _appConfig) {
 
     pages: {
       index: {
-        entry:    path.join(SHELL_ABS, '/nuxt/client.js'),
+        entry:    path.join(SHELL_ABS, '/initialize/client.js'),
         template: path.join(SHELL_ABS, '/public/index.html')
       }
     },
@@ -561,6 +559,19 @@ module.exports = function(dir, _appConfig) {
       ];
 
       config.module.rules.push(...loaders);
+
+      // Update vue-loader to set whitespace to 'preserve'
+      // This was the setting with nuxt, but is not the default with vue cli
+      // Need to find the vue loader in the webpack config and update the setting
+      config.module.rules.forEach((loader) => {
+        if (loader.use) {
+          loader.use.forEach((use) => {
+            if (use.loader.includes('vue-loader')) {
+              use.options.compilerOptions.whitespace = 'preserve';
+            }
+          });
+        }
+      });
     },
   };
 
@@ -576,6 +587,7 @@ function proxyMetaOpts(target) {
     target,
     followRedirects: true,
     secure:          !dev,
+    changeOrigin:    true,
     onProxyReq,
     onProxyReqWs,
     onError,

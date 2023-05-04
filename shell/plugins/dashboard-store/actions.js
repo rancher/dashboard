@@ -475,6 +475,11 @@ export default {
         commit('registerType', type);
       }
     }
+    // Inject special fields for indexing schemas
+    if ( type === SCHEMA ) {
+      addSchemaIndexFields(data);
+    }
+
     const keyField = getters.keyFieldForType(type);
     const id = data?.[keyField] || existing?.[keyField];
 

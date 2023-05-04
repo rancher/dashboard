@@ -198,7 +198,7 @@ export default {
           suffix="Seconds"
         />
       </div>
-      <div class="col">
+      <div class="col remove">
         <button
           v-if="!isView"
           type="button"
@@ -243,5 +243,8 @@ export default {
 .toleration-headers SPAN {
   color: var(--input-label);
   margin-bottom: 10px;
+}
+.remove BUTTON {
+  padding: 0px;
 }
 </style>

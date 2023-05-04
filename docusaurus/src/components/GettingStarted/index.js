@@ -18,7 +18,7 @@ const GettingStartedList = [
   },
   {
     title:       'Extensions',
-    link:        'extensions/introduction',
+    link:        'extensions/home',
     target:      '',
     Svg:         require('@site/static/img/extensions.svg').default,
     classname:   'jungle-green',

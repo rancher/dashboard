@@ -718,7 +718,7 @@ export const APP_SUMMARY = {
 
 export const CONSTRAINT_VIOLATION_CONSTRAINT_LINK = {
   name:          'Constraint',
-  label:         'Constraint',
+  labelKey:      'tableHeaders.constraint',
   value:         'constraintLink',
   sort:          `constraintLink.text`,
   formatter:     'Link',
@@ -727,30 +727,39 @@ export const CONSTRAINT_VIOLATION_CONSTRAINT_LINK = {
 
 export const CONSTRAINT_VIOLATION_RESOURCE_LINK = {
   name:          'Name',
-  label:         'Name',
+  labelKey:      'tableHeaders.name',
   value:         'resourceLink',
   sort:          `resourceLink.text`,
+  search:        `resourceLink.text`,
   formatter:     'Link',
   formatterOpts: { options: { internal: true } },
 };
 
 export const CONSTRAINT_VIOLATION_TYPE = {
-  name:  'Type',
-  label: 'Type',
-  value: `kind`,
-  sort:  `kind`
+  name:     'Type',
+  labelKey: 'tableHeaders.type',
+  value:    `kind`,
+  sort:     `kind`
+};
+
+export const CONSTRAINT_VIOLATION_NAMESPACE = {
+  name:     'Namespace',
+  labelKey: 'tableHeaders.namespace',
+  value:    `namespace`,
+  sort:     `namespace`,
+  search:   `namespace`,
 };
 
 export const CONSTRAINT_VIOLATION_MESSAGE = {
-  name:  'Message',
-  label: 'Message',
-  value: `message`,
-  sort:  `message`
+  name:     'Message',
+  labelKey: 'tableHeaders.message',
+  value:    `message`,
+  sort:     `message`
 };
 
 export const CONSTRAINT_VIOLATION_TEMPLATE_LINK = {
   name:          'TemplateLink',
-  label:         'Template',
+  labelKey:      'tableHeaders.template',
   value:         `templateLink`,
   sort:          `templateLink.text`,
   formatter:     'Link',
@@ -759,7 +768,7 @@ export const CONSTRAINT_VIOLATION_TEMPLATE_LINK = {
 
 export const CONSTRAINT_VIOLATION_COUNT = {
   name:          'Count',
-  label:         'Count',
+  labelKey:      'tableHeaders.count',
   value:         `count`,
   sort:          `count`,
   formatter:     'QualityText',
@@ -959,4 +968,29 @@ export const FLEET_BUNDLE_TYPE = {
   value:    'bundleType',
   sort:     ['bundleType'],
   width:    100,
+};
+
+// export const RBAC_ROLE = {
+//   name:  'role',
+//   value: 'roleRef.name',
+//   sort:  ['roleRef.name'],
+// };
+
+export const RBAC_USERS = {
+  name:     'users',
+  sort:     ['users'],
+  getValue: row => row.users?.map(({ name }) => name),
+};
+
+export const RBAC_GROUPS = {
+  name: 'groups',
+  sort: ['groups'],
+
+  getValue: row => row.groups?.map(({ name }) => name),
+};
+
+export const RBAC_SERVICE_ACCOUNTS = {
+  name:     'serviceAccount',
+  sort:     ['serviceAccount'],
+  getValue: row => row.serviceAccounts?.map(({ name }) => name),
 };

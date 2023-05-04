@@ -3,15 +3,19 @@ import { Banner } from '@components/Banner';
 import Loading from '@shell/components/Loading';
 import { mapGetters } from 'vuex';
 import { hasLeader, leaderChanges, failedProposals } from '@shell/utils/grafana';
+import { CATALOG } from '@shell/config/types';
 
 export default {
   components: { Banner, Loading },
   async fetch() {
-    const leader = await hasLeader(this.$store.dispatch, this.currentCluster.id);
+    const inStore = this.$store.getters['currentProduct'].inStore;
+    const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+    const monitoringVersion = res?.currentVersion;
+    const leader = await hasLeader(monitoringVersion, this.$store.dispatch, this.currentCluster.id);
 
     this.hasLeader = leader ? this.t('generic.yes') : this.t('generic.no');
-    this.leaderChanges = await leaderChanges(this.$store.dispatch, this.currentCluster.id);
-    this.failedProposals = await failedProposals(this.$store.dispatch, this.currentCluster.id);
+    this.leaderChanges = await leaderChanges(monitoringVersion, this.$store.dispatch, this.currentCluster.id);
+    this.failedProposals = await failedProposals(monitoringVersion, this.$store.dispatch, this.currentCluster.id);
   },
   data() {
     return {

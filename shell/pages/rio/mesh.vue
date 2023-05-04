@@ -1,5 +1,4 @@
 <script>
-import $ from 'jquery';
 import { escapeHtml } from '@shell/utils/string';
 
 const RADIUS = 5;
@@ -399,7 +398,7 @@ export default {
     },
 
     clicked(event) {
-      const path = $(event.target).closest('.edgePath');
+      const path = event.target.closest('.edgePath');
 
       console.log(path); // eslint-disable-line no-console
     }

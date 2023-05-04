@@ -7,7 +7,7 @@
   "private": true,
   "version": "0.0.0",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "scripts": {
     "storybook": "start-storybook -p 6006",
@@ -24,6 +24,7 @@
     "storybook-dark-mode": "^1.0.8"
   },
   "dependencies": {
-    "tsconfig-paths-webpack-plugin": "^4.0.0"
+    "tsconfig-paths-webpack-plugin": "^4.0.0",
+    "vue-loader": "15.10.1"
   }
 }

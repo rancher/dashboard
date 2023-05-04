@@ -10,7 +10,7 @@ import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
-import { PROJECT_ID, _VIEW } from '@shell/config/query-params';
+import { PROJECT_ID, _VIEW, FLAT_VIEW, _CREATE } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
@@ -67,6 +67,10 @@ export default {
   computed: {
     ...mapGetters(['isSingleProduct']),
 
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+
     isSingleHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
     },
@@ -77,7 +81,6 @@ export default {
 
       // Filter out projects not for the current cluster
       projects = projects.filter(c => c.spec?.clusterName === clusterId);
-
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
@@ -86,7 +89,7 @@ export default {
       });
 
       out.unshift({
-        label: '(None)',
+        label: this.t('namespace.project.none'),
         value: null,
       });
 
@@ -105,11 +108,14 @@ export default {
       return !this.isSingleHarvester;
     },
 
+    flatView() {
+      return (this.$route.query[FLAT_VIEW] || false);
+    }
   },
 
   watch: {
-    project(newProject) {
-      const limits = this.getDefaultContainerResourceLimits(newProject);
+    project() {
+      const limits = this.getDefaultContainerResourceLimits(this.projectName);
 
       this.$set(this, 'containerResourceLimits', limits);
     },
@@ -139,13 +145,11 @@ export default {
       }
 
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-
       const project = projects.find(p => p.id.includes(projectName));
 
       return project?.spec?.containerDefaultResourceLimit || {};
     }
-  }
-
+  },
 };
 </script>
 
@@ -169,9 +173,10 @@ export default {
       :value="value"
       :namespaced="false"
       :mode="mode"
+      :extra-columns="['project-col']"
     >
       <template
-        v-if="project"
+        v-if="flatView && isCreate"
         #project-col
       >
         <LabeledSelect
@@ -181,7 +186,6 @@ export default {
         />
       </template>
     </NameNsDescription>
-
     <Tabbed :side-tabs="true">
       <Tab
         v-if="showResourceQuota"

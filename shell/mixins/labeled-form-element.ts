@@ -122,7 +122,7 @@ export default Vue.extend({
     },
     validationMessage(): string | undefined {
       // we want to grab the required rule passed in if we can but if it's not there then we can just grab it from the formRulesGenerator
-      const requiredRule = this.rules.find((rule: any) => rule?.name === 'required');
+      const requiredRule = this.rules.find((rule: any) => rule?.name === 'required') as Function;
       const ruleMessages = [];
       const value = this?.value;
 
@@ -134,7 +134,7 @@ export default Vue.extend({
         }
       }
 
-      for (const rule of this.rules) {
+      for (const rule of this.rules as Function[]) {
         const message = rule(value);
 
         if (!!message && rule.name !== 'required') { // we're catching 'required' above so we can ignore it here

@@ -14,6 +14,8 @@ import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { LINUX } from '@shell/store/catalog';
+import { clone } from 'utils/object';
+import { merge } from 'lodash';
 
 export default {
   data() {
@@ -292,7 +294,13 @@ export default {
       // use the first version provided by the Helm chart
       // as the default.
       if ( !this.query.versionName && this.chart.versions?.length ) {
-        this.query.versionName = this.chart.versions[0].version;
+        if (this.showPreRelease) {
+          this.query.versionName = this.chart.versions[0].version;
+        } else {
+          const firstRelease = this.chart.versions.find(v => !isPrerelease(v.version));
+
+          this.query.versionName = firstRelease?.version || this.chart.versions[0].version;
+        }
       }
 
       if ( !this.query.versionName ) {
@@ -385,7 +393,6 @@ export default {
           */
 
         if ( provider ) {
-          // more.push(provider);
           try {
             const crdVersionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
               repoType:    provider.repoType,
@@ -393,6 +400,33 @@ export default {
               chartName:   provider.name,
               versionName: provider.version
             });
+            let existingCRDApp;
+
+            // search for an existing crd app to track any non-default values used on the previous install/upgrade
+            if (this.mode === _EDIT) {
+              const targetNamespace = crdVersionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE];
+              const targetName = crdVersionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+
+              if (targetName && targetNamespace) {
+                existingCRDApp = await this.$store.dispatch('cluster/find', {
+                  type: CATALOG.APP,
+                  id:   `${ targetNamespace }/${ targetName }`,
+                });
+              }
+            }
+            if (existingCRDApp) {
+              // spec.values are any non-default values the user configured
+              // the installation form should show these, as well as any default values from the chart
+              const existingValues = clone(existingCRDApp.spec?.values || {});
+              const defaultValues = clone(existingCRDApp.spec?.chart?.values || {});
+
+              crdVersionInfo.existingValues = existingValues;
+              crdVersionInfo.allValues = merge(defaultValues, existingValues);
+            } else {
+              // allValues will potentially be updated in the UI - we want to track this separately from values to avoid mutating the chart object in the store
+              // this is similar to userValues for the main chart
+              crdVersionInfo.allValues = clone(crdVersionInfo.values);
+            }
 
             out.push(crdVersionInfo);
           } catch (e) {
@@ -426,7 +460,7 @@ export default {
         repoType: this.chart.repoType,
         repoName: this.chart.repoName,
         name:     this.chart.chartName,
-        version:  this.chart.versionName,
+        version:  this.query.versionName,
       };
 
       return {

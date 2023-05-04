@@ -77,6 +77,26 @@ const ADVANCED = 'advanced';
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
+const NETBIOS_TRUNCATION_LENGTH = 15;
+
+/**
+ * Classes to be adopted by the node badges in Machine pools
+ */
+const NODE_TOTAL = {
+  error: {
+    color: 'bg-error',
+    icon:  'icon-x',
+  },
+  warning: {
+    color: 'bg-warning',
+    icon:  'icon-warning',
+  },
+  success: {
+    color: 'bg-success',
+    icon:  'icon-checkmark'
+  }
+};
+
 export default {
   components: {
     ACE,
@@ -286,6 +306,13 @@ export default {
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
     const previousKubernetesVersion = this.value.spec.kubernetesVersion;
 
+    const truncateLimit = this.value.machinePoolDefaults?.hostnameLengthLimit;
+
+    // Is hostname truncation supported by the backend?
+    const provSchema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
+    const specSchemaName = provSchema?.resourceFields?.spec?.type;
+    const specSchema = specSchemaName ? this.$store.getters['management/schemaFor'](specSchemaName) : {};
+
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
@@ -321,6 +348,9 @@ export default {
       cisOverride:           false,
       cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
+      truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
+      truncateLimit,
+      supportsTruncation:    !!specSchema?.resourceFields?.machinePoolDefaults,
     };
   },
 
@@ -335,6 +365,10 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+
+    hostnameTruncationManuallySet() {
+      return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
 
     /**
@@ -703,11 +737,11 @@ export default {
 
       for ( const role of roles ) {
         counts[role] = 0;
-        out.color[role] = 'bg-success';
-        out.icon[role] = 'icon-checkmark';
+        out.color[role] = NODE_TOTAL.success.color;
+        out.icon[role] = NODE_TOTAL.success.icon;
       }
 
-      for ( const row of this.machinePools ) {
+      for ( const row of this.machinePools || [] ) {
         if ( row.remove ) {
           continue;
         }
@@ -729,27 +763,27 @@ export default {
       }
 
       if ( counts.etcd === 0 ) {
-        out.color.etcd = 'bg-error';
-        out.icon.etcd = 'icon-x';
+        out.color.etcd = NODE_TOTAL.error.color;
+        out.icon.etcd = NODE_TOTAL.error.icon;
       } else if ( counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7 ) {
-        out.color.etcd = 'bg-warning';
-        out.icon.etcd = 'icon-warning';
+        out.color.etcd = NODE_TOTAL.warning.color;
+        out.icon.etcd = NODE_TOTAL.warning.icon;
       }
 
       if ( counts.controlPlane === 0 ) {
-        out.color.controlPlane = 'bg-error';
-        out.icon.controlPlane = 'icon-x';
+        out.color.controlPlane = NODE_TOTAL.error.color;
+        out.icon.controlPlane = NODE_TOTAL.error.icon;
       } else if ( counts.controlPlane === 1 ) {
-        out.color.controlPlane = 'bg-warning';
-        out.icon.controlPlane = 'icon-warning';
+        out.color.controlPlane = NODE_TOTAL.warning.color;
+        out.icon.controlPlane = NODE_TOTAL.warning.icon;
       }
 
       if ( counts.worker === 0 ) {
-        out.color.worker = 'bg-error';
-        out.icon.worker = 'icon-x';
+        out.color.worker = NODE_TOTAL.error.color;
+        out.icon.worker = NODE_TOTAL.error.icon;
       } else if ( counts.worker === 1 ) {
-        out.color.worker = 'bg-warning';
-        out.icon.worker = 'icon-warning';
+        out.color.worker = NODE_TOTAL.warning.color;
+        out.icon.worker = NODE_TOTAL.warning.icon;
       }
 
       return out;
@@ -1062,6 +1096,21 @@ export default {
     set,
 
     /**
+     * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
+     */
+    truncateName() {
+      if (this.truncateHostnames) {
+        this.value.machinePoolDefaults = this.value.machinePoolDefaults || {};
+        this.value.machinePoolDefaults.hostnameLengthLimit = 15;
+      } else {
+        delete this.value.machinePoolDefaults.hostnameLengthLimit;
+
+        if (Object.keys(this.value.machinePoolDefaults).length === 0) {
+          delete this.value.machinePoolDefaults;
+        }
+      }
+    },
+    /**
      * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
      */
     getNeedsPSP(value = this.value) {
@@ -1219,7 +1268,6 @@ export default {
         }
 
         await this.syncMachineConfigWithLatest(entry);
-
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
 
@@ -1269,8 +1317,17 @@ export default {
       }
     },
 
+    /**
+     * Ensure that all the existing node roles pool are at least 1 each
+     */
+    hasRequiredNodes() {
+      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every(color => color !== NODE_TOTAL.error.color);
+    },
+
     validationPassed() {
-      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
+      const validMachinePools = this.hasMachinePools ? this.hasRequiredNodes() : true;
+
+      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && validMachinePools;
     },
 
     cancelCredential() {
@@ -2540,8 +2597,29 @@ export default {
                 :label="t('cluster.rke2.address.nodePortRange.label')"
               />
             </div>
+            <div
+              v-if="supportsTruncation"
+              class="col span-6"
+            >
+              <Checkbox
+                v-if="!isView || isView && !hostnameTruncationManuallySet"
+                v-model="truncateHostnames"
+                class="mt-20"
+                :disabled="isEdit || isView || hostnameTruncationManuallySet"
+                :mode="mode"
+                :label="t('cluster.rke2.truncateHostnames')"
+                @input="truncateName"
+              />
+              <Banner
+                v-if="hostnameTruncationManuallySet"
+                color="info"
+              >
+                <div class="text">
+                  {{ t('cluster.machinePool.truncationCluster', { limit: truncateLimit }) }}
+                </div>
+              </Banner>
+            </div>
           </div>
-
           <div
             v-if="serverArgs['tls-san']"
             class="row mb-20"

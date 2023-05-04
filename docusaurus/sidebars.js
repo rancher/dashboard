@@ -69,26 +69,78 @@ const sidebars = {
     {
       type:  'category',
       label: 'Extensions',
+      link:  {
+        type: 'doc',
+        id:   'extensions/home',
+      },
       items: [
         'extensions/introduction',
         'extensions/extensions-getting-started',
-        'extensions/initializing-extensions',
+        // 'extensions/extensions-configuration',
         {
           type:  'category',
           label: 'Extensions API',
           link:  {
             type: 'doc',
-            id:   'extensions/extensions-api',
+            id:   'extensions/api/overview',
           },
           items: [
-            'extensions/extension-api-methods/add-action',
-            'extensions/extension-api-methods/add-card',
-            'extensions/extension-api-methods/add-panel',
-            'extensions/extension-api-methods/add-tab',
-            'extensions/extension-api-methods/add-table-column',
+            'extensions/api/concepts',
+            'extensions/api/metadata',
+            {
+              type:  'category',
+              label: 'Navigation & Pages',
+              items: [
+                'extensions/api/nav/products',
+                'extensions/api/nav/custom-page',
+                'extensions/api/nav/resource-page',
+                'extensions/api/nav/side-menu',
+                'extensions/api/nav/routing',
+              ]
+            },
+            'extensions/api/actions',
+            'extensions/api/cards',
+            'extensions/api/panels',
+            'extensions/api/tabs',
+            'extensions/api/table-columns',
+            {
+              type:  'category',
+              label: 'Components',
+              link:  {
+                type: 'doc',
+                id:   'extensions/api/components/components',
+              },
+              items: [
+                'extensions/api/components/resources',
+                'extensions/api/components/node-drivers',
+                'extensions/api/components/auto-import',
+              ]
+            },
+            'extensions/api/common',
           ]
         },
-        'extensions/advanced',
+        {
+          type:  'category',
+          label: 'Advanced',
+          items: [
+            'extensions/advanced/localization',
+            'extensions/advanced/hooks',
+            'extensions/advanced/stores',
+            'extensions/advanced/yarn-link'
+          ]
+        },
+        'extensions/publishing',
+        {
+          type:  'category',
+          label: 'Usecases/Examples',
+          link:  {
+            type: 'doc',
+            id:   'extensions/usecases/overview',
+          },
+          items: [
+            'extensions/usecases/top-level-product',
+          ]
+        }
       ]
     },
     'storybook',

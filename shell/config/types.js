@@ -66,6 +66,8 @@ export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
 export const CSI_DRIVER = 'storage.k8s.io.csidriver';
 export const OBJECT_META = 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta';
 export const NETWORK_ATTACHMENT = 'k8s.cni.cncf.io.networkattachmentdefinition';
+export const USER = 'user';
+export const GROUP = 'group';
 
 export const RBAC = {
   ROLE:                 'rbac.authorization.k8s.io.role',
@@ -92,6 +94,11 @@ const {
 } = WORKLOAD_TYPES;
 
 export const SCALABLE_WORKLOAD_TYPES = scalableWorkloads;
+
+export const LIST_WORKLOAD_TYPES = {
+  ...WORKLOAD_TYPES,
+  POD
+};
 
 export const METRIC = {
   NODE: 'metrics.k8s.io.nodemetrics',

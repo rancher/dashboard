@@ -32,6 +32,7 @@ import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-an
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { clone, diff, get, set } from '@shell/utils/object';
+import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -93,7 +94,6 @@ export default {
     await this.fetchChart();
 
     await this.fetchAutoInstallInfo();
-
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
@@ -427,6 +427,13 @@ export default {
   computed: {
     ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
     mcm: mapFeature(MULTI_CLUSTER),
+
+    /**
+     * Return list of variables to filter chart questions
+     */
+    ignoreVariables() {
+      return ignoreVariables(this.currentCluster, this.versionInfo);
+    },
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
@@ -1184,16 +1191,29 @@ export default {
         }
       }
 
-      /* Chart custom UI components have the ability to edit CRD chart values
-        apply those values in addition to the global values being copied over frm the primary chart
+      /* Chart custom UI components have the ability to edit CRD chart values eg gatekeeper-crd has values.enableRuntimeDefaultSeccompProfile
+        like the main chart, only CRD values that differ from defaults should be sent on install/upgrade
+        CRDs should be installed with the same global values as the main chart
       */
       for (const versionInfo of this.autoInstallInfo) {
+        // allValues are the values potentially changed in the installation ui: any previously customized values + defaults
+        // values are default values from the chart
+        const { allValues, values: crdValues } = versionInfo;
+
+        // only save crd values that differ from the defaults defined in chart values.yaml
+        const customizedCrdValues = diff(crdValues, allValues);
+
+        // CRD globals should be overwritten by main chart globals
+        // we want to avoid including globals present on crd values and not main chart values
+        // that covers the scenario where a global value was customized on a previous install (and so is present in crd global vals) and the user has reverted it to default on this update (no longer present in main chart global vals)
+        const crdValuesToInstall = { ...customizedCrdValues, global: values.global };
+
         out.charts.unshift({
           chartName:   versionInfo.chart.name,
           version:     versionInfo.chart.version,
           releaseName: versionInfo.chart.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || chart.name,
           projectId:   this.project,
-          values:      merge(this.addGlobalValuesTo({ global: values.global }), versionInfo.values)
+          values:      crdValuesToInstall
         });
       }
       /*
@@ -1480,47 +1500,49 @@ export default {
         </div>
       </template>
       <template #helmValues>
-        <Banner
-          v-if="step2Description"
-          color="info"
-          class="description"
-        >
-          {{ step2Description }}
-        </Banner>
-        <div class="step__values__controls">
-          <ButtonGroup
-            v-model="preFormYamlOption"
-            :options="formYamlOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
-            :disabled="preFormYamlOption != formYamlOption"
-          />
-          <div class="step__values__controls--spacer">
-&nbsp;
-          </div>
-          <ButtonGroup
-            v-if="showDiff"
-            v-model="diffMode"
-            :options="yamlDiffModeOptions"
-            inactive-class="bg-disabled btn-sm"
-            active-class="bg-primary btn-sm"
-          />
-          <div
-            v-if="hasReadme && !showingReadmeWindow"
-            class="btn-group"
+        <div class="sticky-header">
+          <Banner
+            v-if="step2Description"
+            color="info"
+            class="description"
           >
-            <button
-              type="button"
-              class="btn bg-primary btn-sm"
-              @click="showSlideIn = !showSlideIn"
+            {{ step2Description }}
+          </Banner>
+          <div class="step__values__controls">
+            <ButtonGroup
+              v-model="preFormYamlOption"
+              :options="formYamlOptions"
+              inactive-class="bg-disabled btn-sm"
+              active-class="bg-primary btn-sm"
+              :disabled="preFormYamlOption != formYamlOption"
+            />
+            <div class="step__values__controls--spacer">
+  &nbsp;
+            </div>
+            <ButtonGroup
+              v-if="showDiff"
+              v-model="diffMode"
+              :options="yamlDiffModeOptions"
+              inactive-class="bg-disabled btn-sm"
+              active-class="bg-primary btn-sm"
+            />
+            <div
+              v-if="hasReadme && !showingReadmeWindow"
+              class="btn-group"
             >
-              {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
-            </button>
+              <button
+                type="button"
+                class="btn bg-primary btn-sm"
+                @click="showSlideIn = !showSlideIn"
+              >
+                {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
+              </button>
+            </div>
           </div>
         </div>
         <div class="scroll__container">
           <div class="scroll__content">
-            <!-- Values (as Custom Component) -->
+            <!-- Values (as Custom Component in ./shell/charts/) -->
             <template v-if="valuesComponent && showValuesComponent">
               <Tabbed
                 v-if="componentHasTabs"
@@ -1563,7 +1585,8 @@ export default {
                 />
               </template>
             </template>
-            <!-- Values (as Questions)  -->
+
+            <!-- Values (as Questions, abstracted component based on question.yaml configuration from repositories)  -->
             <Tabbed
               v-else-if="hasQuestions && showQuestions"
               ref="tabs"
@@ -1577,6 +1600,7 @@ export default {
                 :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
+                :ignore-variables="ignoreVariables"
                 tabbed="multiple"
                 :target-namespace="targetNamespace"
               />
@@ -1936,8 +1960,6 @@ export default {
   .scroll {
     &__container {
       $yaml-height: 200px;
-      display: flex;
-      flex: 1;
       min-height: $yaml-height;
       height: 0;
     }
@@ -2034,6 +2056,15 @@ export default {
   background-color: var(--warning-banner-bg);
   color:var(--warning);
   margin-top: 5px;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  background: var(--primary-text);
 }
 
 </style>

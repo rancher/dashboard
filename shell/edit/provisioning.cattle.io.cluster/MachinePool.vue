@@ -173,6 +173,14 @@ export default {
 
 <template>
   <div>
+    <Banner
+      v-if="value.pool.hostnameLengthLimit"
+      color="info"
+    >
+      <div class="text">
+        {{ t('cluster.machinePool.truncationPool', { limit: value.pool.hostnameLengthLimit }) }}
+      </div>
+    </Banner>
     <div class="row">
       <div class="col span-4">
         <LabeledInput
@@ -200,19 +208,19 @@ export default {
         <Checkbox
           v-model="value.pool.etcdRole"
           :mode="mode"
-          label="etcd"
+          :label="t('cluster.machinePool.role.etcd')"
           :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.controlPlaneRole"
           :mode="mode"
-          label="Control Plane"
+          :label="t('cluster.machinePool.role.controlPlane')"
           :disabled="isWindows"
         />
         <Checkbox
           v-model="value.pool.workerRole"
           :mode="mode"
-          label="Worker"
+          :label="t('cluster.machinePool.role.worker')"
         />
       </div>
     </div>
@@ -294,7 +302,6 @@ export default {
         :read-allowed="false"
         :value-can-be-empty="true"
       />
-
       <div class="spacer" />
 
       <Taints

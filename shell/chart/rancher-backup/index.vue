@@ -86,8 +86,7 @@ export default {
       return { options, labels };
     },
 
-    ...mapGetters({ t: 'i18n/t' })
-
+    ...mapGetters(['currentCluster'], { t: 'i18n/t' }),
   },
 
   watch: {
@@ -167,11 +166,12 @@ export default {
       label="Chart Options"
       name="chartOptions"
     >
-      <div class="row">
-        <div class="col">
-          <ChartPsp :value="value" />
-        </div>
-      </div>
+      <!-- Conditionally display PSP checkbox -->
+      <ChartPsp
+        :value="value"
+        :cluster="currentCluster"
+      />
+
       <Banner
         color="info"
         :label="t('backupRestoreOperator.deployment.storage.tip')"
