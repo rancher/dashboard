@@ -344,7 +344,7 @@ export default {
     const $main = document.querySelector('main');
 
     this._onScroll = this.onScroll.bind(this);
-    $main.addEventListener('scroll', this._onScroll);
+    $main?.addEventListener('scroll', this._onScroll);
   },
 
   beforeDestroy() {
@@ -858,7 +858,7 @@ export default {
       const elem = this.focusAdjacent(true);
       const row = getParent(elem, 'tr');
 
-      if (row.hasClass('row-selected')) {
+      if (row?.classList.contains('row-selected')) {
         return;
       }
 
@@ -869,7 +869,7 @@ export default {
       const elem = this.focusAdjacent(false);
       const row = getParent(elem, 'tr');
 
-      if (row.hasClass('row-selected')) {
+      if (row?.classList.contains('row-selected')) {
         return;
       }
 

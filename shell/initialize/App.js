@@ -8,14 +8,15 @@ import NuxtLoading from '../components/nav/GlobalLoading.vue';
 
 import '../assets/styles/app.scss';
 
-import _77180f1e from '../layouts/blank.vue';
-import _6f6c098b from '../layouts/default.vue';
-import _2d2495d5 from '../layouts/home.vue';
-import _77dd5794 from '../layouts/plain.vue';
-import _44002f80 from '../layouts/unauthenticated.vue';
+import blank from '../layouts/blank.vue';
+import defaultLayout from '../layouts/default.vue';
+import home from '../layouts/home.vue';
+import plain from '../layouts/plain.vue';
+import unauthenticated from '../layouts/unauthenticated.vue';
+import standalone from '../layouts/standalone.vue';
 
 const layouts = {
-  _blank: sanitizeComponent(_77180f1e), _default: sanitizeComponent(_6f6c098b), _home: sanitizeComponent(_2d2495d5), _plain: sanitizeComponent(_77dd5794), _unauthenticated: sanitizeComponent(_44002f80)
+  _blank: sanitizeComponent(blank), _default: sanitizeComponent(defaultLayout), _home: sanitizeComponent(home), _plain: sanitizeComponent(plain), _unauthenticated: sanitizeComponent(unauthenticated), _standalone: sanitizeComponent(standalone)
 };
 
 export default {
