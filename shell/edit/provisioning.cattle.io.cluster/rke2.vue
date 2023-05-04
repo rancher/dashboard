@@ -306,7 +306,7 @@ export default {
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
     const previousKubernetesVersion = this.value.spec.kubernetesVersion;
 
-    const truncateLimit = this.value.machinePoolDefaults?.hostnameLengthLimit;
+    const truncateLimit = this.value.defaultHostnameLengthLimit;
 
     return {
       loadedOnce:                      false,
