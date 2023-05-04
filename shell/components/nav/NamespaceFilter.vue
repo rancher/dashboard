@@ -78,17 +78,9 @@ export default {
       }, {});
 
       // Need final backend changes (for bug fixes, testing, etc)
-      // TODO: RC (BE FIX REQUIRED) list fails
-      // - resources.project.cattle.io.networking.k8s.io.ingresses 502 Bad Gateway
-      // - resources.project.cattle.io.catalog.cattle.io.apps 502 Bad Gateway
-      // TODO: RC (BE FIX REQUIRED) missing permissions objects - lists top level. .actions. data[].links. permissions
-      // TODO: RC (BE FIX REQUIRED) missing metadata.fields
-      // TODO: RC test downstream cluster
-      // TODO: RC test rewrite of links
       // TODO: RC remove console.warn's
-      // TODO: RC test incremental loading / force . works with AW? works with forced ns off?
-      // TODO: RC test fleet
-      // TODO: RC test create/edit/remove
+      // TODO: RC (BE FIX REQUIRED) validate resources.x aren't available when x isn't (even if zero results returned)
+      // TODO: RC (BE FIX REQUIRED) feature only works if resources schema's available
 
 
       // Mark all of the selected options

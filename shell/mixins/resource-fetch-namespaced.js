@@ -51,15 +51,21 @@ export default {
         return false;
       }
 
-      return !this.currentProduct.showWorkspaceSwitcher && this.__areResourcesNamespaced;
+      return  !this.currentProduct.showWorkspaceSwitcher && this.__areResourcesNamespaced;
     },
 
     /**
      * Are all core list resources namespaced?
      */
     __areResourcesNamespaced() {
+      // Only enable for the cluster store at the moment. In theory this should work in management as well, as they're both 'steve' stores
+      if (this.currentProduct.inStore !== 'cluster') {
+        return false;
+      }
+
       return (this.loadResources || []).every((type) => {
-        const schema = this.$store.getters['cluster/schemaFor'](type);// TODO: RC test fleet, cluster management isn't included
+        richardsLogger.warn('rfn', '__areResourcesNamespaced', type)
+        const schema = this.$store.getters['cluster/schemaFor'](type);
 
         return schema?.attributes?.namespaced;
       });
