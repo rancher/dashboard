@@ -48,12 +48,13 @@ export default {
 
   data() {
     return {
-      uiPerfSetting:    DEFAULT_PERF_SETTING,
-      authUserTTL:      null,
-      bannerVal:        {},
-      value:            {},
-      errors:           [],
-      gcStartedEnabled: null
+      uiPerfSetting:              DEFAULT_PERF_SETTING,
+      authUserTTL:                null,
+      bannerVal:                  {},
+      value:                      {},
+      errors:                     [],
+      gcStartedEnabled:           null,
+      isInactivityThresholdValid: false,
     };
   },
 
@@ -63,19 +64,22 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
-    validateInactivityThreshold() {
-      if (parseInt(this.value.inactivity.threshold) > parseInt(this.authUserTTL.value)) {
-        return {
-          show:    true,
-          message: this.t('performance.inactivity.settings.authUserTTL', { current: this.authUserTTL.value })
-        };
-      } else {
-        return { show: false };
-      }
+
+    canSave() {
+      return this.value.inactivity.enabled ? this.isInactivityThresholdValid : true;
     }
   },
 
   methods: {
+    validateInactivityThreshold(value) {
+      if (parseInt(value) > parseInt(this.authUserTTL.value)) {
+        this.isInactivityThresholdValid = false;
+
+        return this.t('performance.inactivity.settings.authUserTTL', { current: this.authUserTTL.value });
+      }
+      this.isInactivityThresholdValid = true;
+    },
+
     async save(btnCB) {
       this.uiPerfSetting.value = JSON.stringify(this.value);
       this.errors = [];
@@ -106,6 +110,7 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
+        <!-- Inactivity -->
         <div class="mt-20">
           <h2>{{ t('performance.inactivity.settings.title') }}</h2>
           <p>{{ t('performance.inactivity.settings.description') }}</p>
@@ -125,13 +130,8 @@ export default {
               class="input mb-10"
               type="number"
               min="0"
+              :rules="[validateInactivityThreshold]"
             />
-            <Banner
-              v-if="validateInactivityThreshold.show"
-              color="error"
-            >
-              {{ validateInactivityThreshold.message }}
-            </Banner>
             <span
               v-clean-html="t('performance.inactivity.settings.information', {}, true)"
               :class="{ 'text-muted': !value.incrementalLoading.enabled }"
@@ -345,6 +345,7 @@ export default {
       <AsyncButton
         class="pull-right mt-20"
         mode="apply"
+        :disabled="!canSave"
         @click="save"
       />
     </div>
