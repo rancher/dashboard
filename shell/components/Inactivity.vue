@@ -26,9 +26,13 @@ export default {
   },
   async mounted() {
     // Info: normally, this is done in the fetch hook but for some reasons while awaiting for things that will take a while, it won't be ready by the time mounted() is called, pending for investigation.
-    const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
+    let settings;
 
-    const settings = settingsString?.value ? JSON.parse(settingsString.value) : DEFAULT_PERF_SETTING;
+    try {
+      const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
+
+      settings = settingsString?.value ? JSON.parse(settingsString.value) : DEFAULT_PERF_SETTING;
+    } catch { }
 
     if (!settings || !settings?.inactivity || !settings?.inactivity.enabled) {
       return;
@@ -46,7 +50,7 @@ export default {
     // Note - time before warning is shown + time warning is shown = settings threshold (total amount of time)
     this.showModalAfter = thresholdToSeconds - this.courtesyTimer;
 
-    console.debug(`Inactivty modal will show after ${ this.showModalAfter }(s) and be shown for ${ this.courtesyTimer }(s)`); // eslint-disable-line no-console
+    console.debug(`Inactivty modal will show after ${ this.showModalAfter / 60 }(m) and be shown for ${ this.courtesyTimer / 60 }(m)`); // eslint-disable-line no-console
 
     this.courtesyCountdown = this.courtesyTimer;
 

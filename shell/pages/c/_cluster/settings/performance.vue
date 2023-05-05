@@ -23,7 +23,7 @@ export default {
   async fetch() {
     try {
       this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
-    } catch (e) {
+    } catch {
       this.uiPerfSetting = await this.$store.dispatch('management/create', { type: MANAGEMENT.SETTING }, { root: true });
       // Setting does not exist - create a new one
       this.uiPerfSetting.value = JSON.stringify(DEFAULT_PERF_SETTING);
@@ -32,7 +32,7 @@ export default {
 
     try {
       this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
-    } catch (error) {}
+    } catch {}
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
 
@@ -71,7 +71,7 @@ export default {
   methods: {
     validateInactivityThreshold(value) {
       if (!this.authUserTTL?.value) {
-        this.isInactivityThresholdValid = false;
+        this.isInactivityThresholdValid = true;
 
         return;
       }
