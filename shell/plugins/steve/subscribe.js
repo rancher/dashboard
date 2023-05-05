@@ -30,7 +30,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
-import { WORKERMODES } from './worker';
+import { WORKER_MODES } from './worker';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
 
@@ -38,6 +38,8 @@ import { BLANK_CLUSTER } from '@shell/store/index.js';
 const MINIMUM_TIME_NOTIFIED = 3000;
 
 const workerQueues = {};
+
+const supportedStores = ['cluster', 'rancher', 'management'];
 
 const waitForSettingsSchema = (store) => {
   return waitFor(() => !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
@@ -52,7 +54,7 @@ const isAdvancedWorker = (ctx) => {
   const storeName = getters.storeName;
   const clusterId = rootGetters.clusterId;
 
-  if (clusterId === BLANK_CLUSTER || !['cluster', 'rancher', 'management'].includes(storeName)) {
+  if (clusterId === BLANK_CLUSTER || !supportedStores.includes(storeName)) {
     return false;
   }
 
@@ -67,7 +69,7 @@ export async function createWorker(store, ctx) {
 
   store.$workers = store.$workers || {};
 
-  if (!['cluster', 'rancher', 'management'].includes(storeName)) {
+  if (!supportedStores.includes(storeName)) {
     return;
   }
 
@@ -84,7 +86,7 @@ export async function createWorker(store, ctx) {
           workerQueues[storeName] = [msg];
         }
       },
-      mode: WORKERMODES.WAITING
+      mode: WORKER_MODES.WAITING
     };
   }
 
@@ -125,8 +127,8 @@ export async function createWorker(store, ctx) {
     },
   };
 
-  if (!store.$workers[storeName] || store.$workers[storeName].mode === WORKERMODES.WAITING) {
-    const workerMode = advancedWorker ? WORKERMODES.ADVANCED : WORKERMODES.BASIC;
+  if (!store.$workers[storeName] || store.$workers[storeName].mode === WORKER_MODES.WAITING) {
+    const workerMode = advancedWorker ? WORKER_MODES.ADVANCED : WORKER_MODES.BASIC;
     const worker = store.steveCreateWorker(workerMode);
 
     store.$workers[storeName] = worker;
@@ -393,7 +395,7 @@ const sharedActions = {
 
     const worker = this.$workers?.[getters.storeName] || {};
 
-    if (worker.mode === WORKERMODES.ADVANCED || worker.mode === WORKERMODES.WAITING) {
+    if (worker.mode === WORKER_MODES.ADVANCED || worker.mode === WORKER_MODES.WAITING) {
       if ( force ) {
         msg.force = true;
       }
