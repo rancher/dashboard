@@ -408,8 +408,8 @@ module.exports = function(dir, _appConfig) {
         }),
       }));
 
-      // The static assets need to be in the built public folder in order to get served (primarily the favicon for now)
-      config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: 'public' }]));
+      // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
+      config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: '.' }]));
 
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
       config.watchOptions = config.watchOptions || {};
