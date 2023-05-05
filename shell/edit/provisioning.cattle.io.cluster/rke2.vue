@@ -306,12 +306,7 @@ export default {
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
     const previousKubernetesVersion = this.value.spec.kubernetesVersion;
 
-    const truncateLimit = this.value.machinePoolDefaults?.hostnameLengthLimit;
-
-    // Is hostname truncation supported by the backend?
-    const provSchema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
-    const specSchemaName = provSchema?.resourceFields?.spec?.type;
-    const specSchema = specSchemaName ? this.$store.getters['management/schemaFor'](specSchemaName) : {};
+    const truncateLimit = this.value.defaultHostnameLengthLimit;
 
     return {
       loadedOnce:                      false,
@@ -350,7 +345,6 @@ export default {
       psps:                  null, // List of policies if any
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
-      supportsTruncation:    !!specSchema?.resourceFields?.machinePoolDefaults,
     };
   },
 
@@ -1100,14 +1094,9 @@ export default {
      */
     truncateName() {
       if (this.truncateHostnames) {
-        this.value.machinePoolDefaults = this.value.machinePoolDefaults || {};
-        this.value.machinePoolDefaults.hostnameLengthLimit = 15;
+        this.value.defaultHostnameLengthLimit = NETBIOS_TRUNCATION_LENGTH;
       } else {
-        delete this.value.machinePoolDefaults.hostnameLengthLimit;
-
-        if (Object.keys(this.value.machinePoolDefaults).length === 0) {
-          delete this.value.machinePoolDefaults;
-        }
+        this.value.removeDefaultHostnameLengthLimit();
       }
     },
     /**
@@ -2598,7 +2587,6 @@ export default {
               />
             </div>
             <div
-              v-if="supportsTruncation"
               class="col span-6"
             >
               <Checkbox
