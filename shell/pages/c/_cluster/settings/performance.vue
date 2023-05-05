@@ -32,9 +32,7 @@ export default {
 
     try {
       this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
-    } catch (error) {
-      return;
-    }
+    } catch (error) {}
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
 
@@ -73,6 +71,8 @@ export default {
   methods: {
     validateInactivityThreshold(value) {
       if (!this.authUserTTL?.value) {
+        this.isInactivityThresholdValid = false;
+
         return;
       }
 

@@ -7000,7 +7000,7 @@ performance:
     title: Inactivity
     checkboxLabel: Enable inactivity session expiration
     inputLabel: Inactivity timeout (minutes)
-    information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (<code>auth-user-session-ttl-minutes</code> and <code>auth-token-max-ttl-minutes</code>) in the General settings page.
+    information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (<code>auth-user-session-ttl-minutes</code> and <code>auth-token-max-ttl-minutes</code>) in the Settings page.
     description: When enabled and the user is inactive past the specified timeout, the UI will no longer fresh page content and the user must reload the page to continue.
     authUserTTL: This timeout cannot be lower than the user session timeout  auth-user-session-ttl-minutes, which is currently {current} minutes.
 
