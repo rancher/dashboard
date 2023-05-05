@@ -76,8 +76,7 @@ export default {
       checkInactivityTimer();
     },
     startCountdown() {
-      const fiveMinutes = 5 * 60; // 5 minutes in seconds, top cap
-      const endTime = Date.now() + (Math.min(this.courtesyCountdown, fiveMinutes) * 1000);
+      const endTime = Date.now() + (this.courtesyCountdown * 1000);
 
       const checkCountdown = () => {
         const now = Date.now();
