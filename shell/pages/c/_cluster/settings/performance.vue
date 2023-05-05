@@ -23,12 +23,16 @@ export default {
   async fetch() {
     try {
       this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
-    } catch (e) {
+    } catch {
       this.uiPerfSetting = await this.$store.dispatch('management/create', { type: MANAGEMENT.SETTING }, { root: true });
       // Setting does not exist - create a new one
       this.uiPerfSetting.value = JSON.stringify(DEFAULT_PERF_SETTING);
       this.uiPerfSetting.metadata = { name: SETTING.UI_PERFORMANCE };
     }
+
+    try {
+      this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
+    } catch {}
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
 
@@ -42,11 +46,13 @@ export default {
 
   data() {
     return {
-      uiPerfSetting:    DEFAULT_PERF_SETTING,
-      bannerVal:        {},
-      value:            {},
-      errors:           [],
-      gcStartedEnabled: null
+      uiPerfSetting:              DEFAULT_PERF_SETTING,
+      authUserTTL:                null,
+      bannerVal:                  {},
+      value:                      {},
+      errors:                     [],
+      gcStartedEnabled:           null,
+      isInactivityThresholdValid: false,
     };
   },
 
@@ -56,9 +62,28 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
+
+    canSave() {
+      return this.value.inactivity.enabled ? this.isInactivityThresholdValid : true;
+    }
   },
 
   methods: {
+    validateInactivityThreshold(value) {
+      if (!this.authUserTTL?.value) {
+        this.isInactivityThresholdValid = true;
+
+        return;
+      }
+
+      if (parseInt(value) > parseInt(this.authUserTTL?.value)) {
+        this.isInactivityThresholdValid = false;
+
+        return this.t('performance.inactivity.authUserTTL', { current: this.authUserTTL.value });
+      }
+      this.isInactivityThresholdValid = true;
+    },
+
     async save(btnCB) {
       this.uiPerfSetting.value = JSON.stringify(this.value);
       this.errors = [];
@@ -89,8 +114,36 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
-        <!-- Websocket Notifications -->
+        <!-- Inactivity -->
         <div class="mt-20">
+          <h2>{{ t('performance.inactivity.title') }}</h2>
+          <p>{{ t('performance.inactivity.description') }}</p>
+          <Checkbox
+            v-model="value.inactivity.enabled"
+            :mode="mode"
+            :label="t('performance.inactivity.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+          <div class="ml-20">
+            <LabeledInput
+              v-model="value.inactivity.threshold"
+              :mode="mode"
+              :label="t('performance.inactivity.inputLabel')"
+              :disabled="!value.inactivity.enabled"
+              class="input mb-10"
+              type="number"
+              min="0"
+              :rules="[validateInactivityThreshold]"
+            />
+            <span
+              v-clean-html="t('performance.inactivity.information', {}, true)"
+              :class="{ 'text-muted': !value.incrementalLoading.enabled }"
+            />
+          </div>
+        </div>
+        <!-- Websocket Notifications -->
+        <div class="mt-40">
           <h2>{{ t('performance.websocketNotification.label') }}</h2>
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
@@ -296,6 +349,7 @@ export default {
       <AsyncButton
         class="pull-right mt-20"
         mode="apply"
+        :disabled="!canSave"
         @click="save"
       />
     </div>
