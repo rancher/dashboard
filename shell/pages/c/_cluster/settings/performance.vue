@@ -23,12 +23,17 @@ export default {
   async fetch() {
     try {
       this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
-      this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
     } catch (e) {
       this.uiPerfSetting = await this.$store.dispatch('management/create', { type: MANAGEMENT.SETTING }, { root: true });
       // Setting does not exist - create a new one
       this.uiPerfSetting.value = JSON.stringify(DEFAULT_PERF_SETTING);
       this.uiPerfSetting.metadata = { name: SETTING.UI_PERFORMANCE };
+    }
+
+    try {
+      this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
+    } catch (error) {
+      this.authUserTTL = 960;
     }
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
@@ -62,7 +67,7 @@ export default {
       if (parseInt(this.value.inactivity.threshold) > parseInt(this.authUserTTL.value)) {
         return {
           show:    true,
-          message: this.t('inactivity.settings.authUserTTL', { current: this.authUserTTL.value })
+          message: this.t('performance.inactivity.settings.authUserTTL', { current: this.authUserTTL.value })
         };
       } else {
         return { show: false };
@@ -123,9 +128,10 @@ export default {
             />
             <Banner
               v-if="validateInactivityThreshold.show"
-              v-clean-html="validateInactivityThreshold.message"
               color="error"
-            />
+            >
+              {{ validateInactivityThreshold.message }}
+            </Banner>
             <span
               v-clean-html="t('performance.inactivity.settings.information', {}, true)"
               :class="{ 'text-muted': !value.incrementalLoading.enabled }"

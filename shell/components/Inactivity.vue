@@ -25,7 +25,7 @@ export default {
     };
   },
   async mounted() {
-    // Info: normally, this is done in the fetch hook but for some reasons while awaiting for things that will take a while, it won't be ready by the time mounted() is called.
+    // Info: normally, this is done in the fetch hook but for some reasons while awaiting for things that will take a while, it won't be ready by the time mounted() is called, pending for investigation.
     const settingsString = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
 
     const settings = settingsString?.value ? JSON.parse(settingsString.value) : DEFAULT_PERF_SETTING;
