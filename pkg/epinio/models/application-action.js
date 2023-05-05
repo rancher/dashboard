@@ -182,7 +182,7 @@ export default class ApplicationActionResource extends Resource {
         git:  {
           revision:   source.git.commit,
           repository: source.git.url,
-          branch:     source.git.branch.name,
+          branch:     source.git.branch?.name,
           provider:   source.type
         }
       };
