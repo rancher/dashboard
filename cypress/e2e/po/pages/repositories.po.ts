@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import RepoListPo from '/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
+import RepoListPo from '@/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
 
 /**
  * List page for catalog.cattle.io.clusterrepo resources
@@ -34,9 +34,10 @@ export default class ReposListPagePo extends PagePo {
   }
 
   waitForGoTo(endpoint: string) {
-    cy.intercept('GET', endpoint).as('validateGoTo');
+    const interceptName = `validateGoTo${ Date.now() }`;
+
+    cy.intercept('GET', endpoint).as(interceptName);
     this.goTo();
-    this.waitForPage();
-    cy.wait('@validateGoTo').its('response.statusCode').should('eq', 200);
+    cy.wait(`@${ interceptName }`, { timeout: 10000 }).its('response.statusCode').should('eq', 200);
   }
 }
