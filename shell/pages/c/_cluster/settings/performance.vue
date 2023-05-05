@@ -33,7 +33,7 @@ export default {
     try {
       this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
     } catch (error) {
-      this.authUserTTL = 960;
+      return;
     }
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
@@ -72,10 +72,14 @@ export default {
 
   methods: {
     validateInactivityThreshold(value) {
-      if (parseInt(value) > parseInt(this.authUserTTL.value)) {
+      if (!this.authUserTTL?.value) {
+        return;
+      }
+
+      if (parseInt(value) > parseInt(this.authUserTTL?.value)) {
         this.isInactivityThresholdValid = false;
 
-        return this.t('performance.inactivity.settings.authUserTTL', { current: this.authUserTTL.value });
+        return this.t('performance.inactivity.authUserTTL', { current: this.authUserTTL.value });
       }
       this.isInactivityThresholdValid = true;
     },
@@ -112,12 +116,12 @@ export default {
       <div class="ui-perf-setting">
         <!-- Inactivity -->
         <div class="mt-20">
-          <h2>{{ t('performance.inactivity.settings.title') }}</h2>
-          <p>{{ t('performance.inactivity.settings.description') }}</p>
+          <h2>{{ t('performance.inactivity.title') }}</h2>
+          <p>{{ t('performance.inactivity.description') }}</p>
           <Checkbox
             v-model="value.inactivity.enabled"
             :mode="mode"
-            :label="t('performance.inactivity.settings.checkboxLabel')"
+            :label="t('performance.inactivity.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
           />
@@ -125,7 +129,7 @@ export default {
             <LabeledInput
               v-model="value.inactivity.threshold"
               :mode="mode"
-              :label="t('performance.inactivity.settings.inputLabel')"
+              :label="t('performance.inactivity.inputLabel')"
               :disabled="!value.inactivity.enabled"
               class="input mb-10"
               type="number"
@@ -133,7 +137,7 @@ export default {
               :rules="[validateInactivityThreshold]"
             />
             <span
-              v-clean-html="t('performance.inactivity.settings.information', {}, true)"
+              v-clean-html="t('performance.inactivity.information', {}, true)"
               :class="{ 'text-muted': !value.incrementalLoading.enabled }"
             />
           </div>

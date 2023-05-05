@@ -76,7 +76,8 @@ export default {
       checkInactivityTimer();
     },
     startCountdown() {
-      const endTime = Date.now() + (this.courtesyCountdown * 1000);
+      const fiveMinutes = 5 * 60; // 5 minutes in seconds, top cap
+      const endTime = Date.now() + (Math.min(this.courtesyCountdown, fiveMinutes) * 1000);
 
       const checkCountdown = () => {
         const now = Date.now();
@@ -133,13 +134,13 @@ export default {
   computed: {
     isInactiveTexts() {
       return this.isInactive ? {
-        title:   this.t('performance.inactivity.titleExpired'),
-        banner:  this.t('performance.inactivity.bannerExpired'),
-        content: this.t('performance.inactivity.contentExpired'),
+        title:   this.t('inactivity.titleExpired'),
+        banner:  this.t('inactivity.bannerExpired'),
+        content: this.t('inactivity.contentExpired'),
       } : {
-        title:   this.t('performance.inactivity.title'),
-        banner:  this.t('performance.inactivity.banner'),
-        content: this.t('performance.inactivity.content'),
+        title:   this.t('inactivity.title'),
+        banner:  this.t('inactivity.banner'),
+        content: this.t('inactivity.content'),
       };
     },
     timerPercentageLeft() {
@@ -193,7 +194,7 @@ export default {
           class="btn role-tertiary bg-primary"
           @click.prevent="resume"
         >
-          <t k="performance.inactivity.cta" />
+          <t k="inactivity.cta" />
         </button>
 
         <button
@@ -201,7 +202,7 @@ export default {
           class="btn role-tertiary bg-primary"
           @click.prevent="refresh"
         >
-          <t k="performance.inactivity.ctaExpired" />
+          <t k="inactivity.ctaExpired" />
         </button>
       </div>
     </template>
