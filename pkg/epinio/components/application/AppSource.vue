@@ -79,8 +79,6 @@ export default Vue.extend<Data, any, any, any>({
     const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
-    const sourceType = this.application.sourceType as APPLICATION_SOURCE_TYPE || APPLICATION_SOURCE_TYPE.FOLDER;
-
     return {
       open: false,
       defaultBuilderImage,
@@ -123,7 +121,7 @@ export default Vue.extend<Data, any, any, any>({
         value
       })),
 
-      type: sourceType as APPLICATION_SOURCE_TYPE,
+      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
       APPLICATION_SOURCE_TYPE,
       EDIT: _EDIT
     };

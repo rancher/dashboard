@@ -13,14 +13,9 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import capitalize from 'lodash/capitalize';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
-import { APPLICATION_ENV_VAR, EPINIO_APP_DATA, EPINIO_TYPES } from '../../types';
+import { EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
-
-type environment = {
-  [key: string] : any,
-  [APPLICATION_ENV_VAR]?: EPINIO_APP_DATA
- }
 
 export interface EpinioAppInfo {
   meta: {
@@ -31,7 +26,7 @@ export interface EpinioAppInfo {
   configuration: {
     configurations: string[],
     instances: number,
-    environment: environment
+    environment: { [key: string] : any }
     settings: { [key: string] : any }
     routes: string[]
   }
@@ -72,8 +67,7 @@ export default Vue.extend<Data, any, any, any>({
       errors:        [],
       values:        undefined,
       capitalize,
-      validSettings: {},
-      sanitizedEnvs: {}
+      validSettings: {}
     };
   },
 
@@ -94,13 +88,6 @@ export default Vue.extend<Data, any, any, any>({
     };
 
     this.values = values;
-
-    const { [APPLICATION_ENV_VAR]:appEnvVar = '', ...otherEnvVars } = values.configuration.environment;
-
-    this.sanitizedEnvs = {
-      appEnvVar,
-      otherEnvVars
-    };
 
     this.validSettings = {};
 
@@ -259,13 +246,6 @@ export default Vue.extend<Data, any, any, any>({
         return '';
       }
     },
-
-    envsChanged(env: environment) {
-      this.values.configuration.environment = { ...env };
-      if (this.sanitizedEnvs?.appEnvVar) {
-        this.values.configuration.environment[APPLICATION_ENV_VAR] = this.sanitizedEnvs.appEnvVar;
-      }
-    }
   },
 
 });
@@ -371,14 +351,13 @@ export default Vue.extend<Data, any, any, any>({
     </div>
     <div class="col span-8">
       <KeyValue
-        :value="sanitizedEnvs.otherEnvVars"
+        v-model="values.configuration.environment"
         data-testid="epinio_app-info_envs"
         :mode="mode"
         :title="t('epinio.applications.create.envvar.title')"
         :key-label="t('epinio.applications.create.envvar.keyLabel')"
         :value-label="t('epinio.applications.create.envvar.valueLabel')"
         :parse-lines-from-file="true"
-        @input="envsChanged"
       />
       <div class="mb-20" /> <!-- allow a small amount of padding at bottom -->
     </div>

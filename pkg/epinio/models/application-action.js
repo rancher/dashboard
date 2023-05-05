@@ -74,7 +74,7 @@ export default class ApplicationActionResource extends Resource {
       await this.create(params);
       break;
     case APPLICATION_ACTION_TYPE.UPDATE_SOURCE:
-      await this.updateSource(params);
+      await this.updateSource();
       break;
     case APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS:
       await this.bindConfigurations(params);
@@ -135,13 +135,7 @@ export default class ApplicationActionResource extends Resource {
     await this.application.waitForStaging(stage.id);
   }
 
-  /**
-   * Updates the application information
-   * @param {*} params
-   */
-  async updateSource(params) {
-    this.application.setEnvVarFromSource(params.source);
-
+  async updateSource() {
     await this.application.update();
   }
 
@@ -154,9 +148,15 @@ export default class ApplicationActionResource extends Resource {
     this.application.showAppLog();
   }
 
+  // Todo move to utils
   createDeployOrigin(source) {
     switch (source.type) {
     case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      return {
+        kind:    APPLICATION_MANIFEST_SOURCE_TYPE.PATH,
+        archive: true,
+        path:    source.archive.fileName
+      };
     case APPLICATION_SOURCE_TYPE.FOLDER:
       return {
         kind: APPLICATION_MANIFEST_SOURCE_TYPE.PATH,
@@ -182,8 +182,9 @@ export default class ApplicationActionResource extends Resource {
         git:  {
           revision:   source.git.commit,
           repository: source.git.url,
-          branch:     source.git.branch
-        },
+          branch:     source.git.branch.name,
+          provider:   source.type
+        }
       };
     }
   }
