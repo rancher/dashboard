@@ -36,6 +36,7 @@ export default class ReposListPagePo extends PagePo {
   waitForGoTo(endpoint: string) {
     cy.intercept('GET', endpoint).as('validateGoTo');
     this.goTo();
+    this.waitForPage();
     cy.wait('@validateGoTo').its('response.statusCode').should('eq', 200);
   }
 }

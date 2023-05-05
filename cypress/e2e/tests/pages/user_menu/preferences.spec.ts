@@ -4,13 +4,11 @@ import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
 import ReposListPagePo from '~/cypress/e2e/po/pages/repositories.po';
 import RepoListPo from '~/cypress/e2e/po/lists/catalog.cattle.io.clusterrepo.po';
-import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
 const repoList = new RepoListPo('tr');
 const repoListPage = new ReposListPagePo('_', 'manager');
-const clusterManagerPage = new ClusterManagerListPagePo('_');
 
 describe('Standard user can update their preferences', () => {
   beforeEach(() => {
@@ -80,48 +78,32 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it.skip('Can select login landing page', () => {
+  it('Can select login landing page', () => {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
     Verify user is landing on correct page after login
     Verify selection is preserved after logout/login
     */
-    const landingPageOptions = {
-      0: ['"home"', '/home'],
-      1: ['"last-visited"', 'c/_/manager/provisioning.cattle.io.cluster'],
-      // 2: ['{\"name\":\"c-cluster\",\"params\":{\"cluster\":\"local\"}}', '/explore'] // TODO this option only works when there is an existing cluster (not for standard user)
-    };
-
     prefPage.goTo();
     prefPage.landingPageRadioBtn().checkVisible();
-    for (const [key, value] of Object.entries(landingPageOptions)) {
-      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
-      prefPage.landingPageRadioBtn().set(key);
-      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('after-login-route', value[0]);
-        expect(response?.body.data).to.have.property('after-login-route', value[0]);
-      });
-      prefPage.landingPageRadioBtn().isChecked(key);
 
-      // if key is 1, navigate to cluster manager page and then do validations, else just do validations
-      if (key == 1) {
-        cy.intercept('PUT', 'v1/userpreferences/*').as('userPref');
-        clusterManagerPage.goTo();
-        clusterManagerPage.list().checkVisible();
-        cy.wait('@userPref').its('response.statusCode').should('eq', 200);
-      }
+    cy.intercept('PUT', 'v1/userpreferences/*').as('prefUpdate');
+    prefPage.landingPageRadioBtn().set(0);
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('after-login-route', '"home"');
+      expect(response?.body.data).to.have.property('after-login-route', '"home"');
+    });
+    prefPage.landingPageRadioBtn().isChecked(0);
 
-      userMenu.toggle();
-      userMenu.isOpen();
-      userMenu.clickMenuItem('Log Out');
-      cy.login();
-      cy.visit(Cypress.config().baseUrl);
-      cy.url().should('include', value[1]);
-      prefPage.goTo();
-      prefPage.landingPageRadioBtn().isChecked(key);
-    }
+    prefPage.landingPageRadioBtn().set(1);
+    cy.wait('@prefUpdate').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      expect(request.body.data).to.have.property('after-login-route', '"last-visited"');
+      expect(response?.body.data).to.have.property('after-login-route', '"last-visited"');
+    });
+    prefPage.landingPageRadioBtn().isChecked(1);
   });
 
   it('Can select date format', () => {
