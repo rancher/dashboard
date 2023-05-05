@@ -38,8 +38,6 @@ export function cleanAgentConfiguration(model, key) {
   }
 }
 
-const GPU_KEY = 'nvidia.com/gpu';
-
 // Affinity radio button choices
 const DEFAULT = 'default';
 const CUSTOM = 'custom';
@@ -124,7 +122,6 @@ export default {
         const {
           cpu: limitsCpu,
           memory: limitsMemory,
-          [GPU_KEY]: limitsGpu,
         } = limits;
         const { cpu: requestsCpu, memory: requestsMemory } = requests;
 
@@ -133,7 +130,6 @@ export default {
           limitsMemory,
           requestsCpu,
           requestsMemory,
-          limitsGpu,
         };
       },
       set(neu) {
@@ -142,7 +138,6 @@ export default {
           limitsMemory,
           requestsCpu,
           requestsMemory,
-          limitsGpu,
         } = neu;
 
         const existing = this.value?.overrideResourceRequirements || {};
@@ -157,9 +152,8 @@ export default {
             memory: requestsMemory,
           },
           limits: {
-            cpu:       limitsCpu,
-            memory:    limitsMemory,
-            [GPU_KEY]: limitsGpu,
+            cpu:    limitsCpu,
+            memory: limitsMemory,
           },
         };
 

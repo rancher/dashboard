@@ -141,11 +141,7 @@ export default {
 
       if (expressions.length) {
         expressions.forEach((expression) => {
-          if (expression.matching) {
-            expressionsMatching[expression.matching].push(expression);
-          } else {
-            expressionsMatching['matchExpressions'].push(expression);
-          }
+          expressionsMatching[expression.matching || 'matchExpressions'].push(expression);
         });
 
         if (expressionsMatching.matchFields.length) {
