@@ -36,10 +36,18 @@ export default {
 
     this.enabled = settings?.inactivity?.enabled || false;
 
-    const thresholdToMinutes = settings?.inactivity?.threshold * 60;
+    // Total amount of time before the user's session is lost
+    const thresholdToSeconds = settings?.inactivity?.threshold * 60;
 
-    this.showModalAfter = parseInt(thresholdToMinutes * 0.9); // convert minutes, triggers at 90% completion
-    this.courtesyTimer = Math.floor(thresholdToMinutes * 0.1); // 10% of the threshold in minutes, goes by for the remaining 10% of the threshold
+    // Amount of time the user sees the inactivty warning
+    this.courtesyTimer = Math.floor(thresholdToSeconds * 0.1);
+    this.courtesyTimer = Math.min(this.courtesyTimer, 60 * 5); // Never show the modal more than 5 minutes
+    // Amount of time before the user sees the inactivity warning
+    // Note - time before warning is shown + time warning is shown = settings threshold (total amount of time)
+    this.showModalAfter = thresholdToSeconds - this.courtesyTimer;
+
+    console.debug(`Inactivty modal will show after ${ this.showModalAfter }(s) and be shown for ${ this.courtesyTimer }(s)`); // eslint-disable-line no-console
+
     this.courtesyCountdown = this.courtesyTimer;
 
     if (settings?.inactivity.enabled) {
