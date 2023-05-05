@@ -81,51 +81,33 @@ export default {
     }
     const { podAffinity = {}, podAntiAffinity = {} } = this.value[this.field];
     const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
-      const out = clone(term);
+      let out = clone(term);
 
       out._id = randomStr(4);
       out._anti = false;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
+        out = this.parsePodAffinityTerm(out);
 
-        // parse podAffinityTerm namespaces to populate _namespaceOption
-        if (term.podAffinityTerm.namespaceSelector && term.podAffinityTerm.namespaceSelector === {} && this.allNamespacesOptionAvailable) {
-          out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.ALL;
-        } else if (term.podAffinityTerm.namespaces?.length) {
-          out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.SELECTED;
-        } else {
-          out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.POD;
-        }
-
-        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
         delete out.podAffinityTerm;
       } else {
-        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.POD;
+        out = this.parsePodAffinityTerm(out);
       }
 
       return out;
     });
     const allAntiTerms = [...(podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
-      const out = clone(term);
+      let out = clone(term);
 
       out._id = randomStr(4);
       out._anti = true;
       if (term.podAffinityTerm) {
         Object.assign(out, term.podAffinityTerm);
+        out = this.parsePodAffinityTerm(out);
 
-        // parse podAffinityTerm namespaces to populate _namespaceOption
-        if (term.podAffinityTerm.namespaceSelector && term.podAffinityTerm.namespaceSelector === {} && this.allNamespacesOptionAvailable) {
-          out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.ALL;
-        } else if (term.podAffinityTerm.namespaces?.length) {
-          out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.SELECTED;
-        } else {
-          out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.POD;
-        }
-
-        out._namespaces = (term.podAffinityTerm.namespaces || []).toString();
         delete out.podAffinityTerm;
       } else {
-        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.POD;
+        out = this.parsePodAffinityTerm(out);
       }
 
       return out;
@@ -135,11 +117,17 @@ export default {
 
     return {
       allSelectorTerms,
-      defaultWeight: 1,
+      defaultWeight:   1,
       // rules in MatchExpressions.vue can not catch changes what happens on parent component
       // we need re-render it via key changing
-      rerenderNums:  randomStr(4),
-      NAMESPACE_SELECTION_OPTION_VALUES
+      rerenderNums:    randomStr(4),
+      NAMESPACE_SELECTION_OPTION_VALUES,
+      defaultAddValue: {
+        _namespaceOption: NAMESPACE_SELECTION_OPTION_VALUES.POD,
+        matchExpressions: [],
+        namespaces:       null,
+        _namespaces:      null,
+      }
     };
   },
   computed: {
@@ -221,6 +209,20 @@ export default {
   },
 
   methods: {
+    parsePodAffinityTerm(out) {
+      if (out.namespaceSelector && typeof out.namespaceSelector === 'object' && !Object.keys(out.namespaceSelector).length && this.allNamespacesOptionAvailable) {
+        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.ALL;
+      } else if (out.namespaces?.length) {
+        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.SELECTED;
+      } else {
+        out._namespaceOption = NAMESPACE_SELECTION_OPTION_VALUES.POD;
+      }
+
+      out._namespaces = (out.namespaces || []).toString();
+
+      return out;
+    },
+
     update() {
       const podAffinity = { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] };
       const podAntiAffinity = { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] };
@@ -274,18 +276,31 @@ export default {
       case NAMESPACE_SELECTION_OPTION_VALUES.POD:
         term.namespaces = null;
         term._namespaces = null;
-        term.namespaceSelector = null;
+
+        if (term.namespaceSelector || term.namespaceSelector === null) {
+          delete term.namespaceSelector;
+        }
         break;
       case NAMESPACE_SELECTION_OPTION_VALUES.ALL:
         term.namespaceSelector = {};
-        term.namespaces = null;
-        term._namespaces = null;
+
+        if (term.namespaces || term.namespaces === null) {
+          delete term.namespaces;
+        }
+
+        if (term._namespaces || term._namespaces === null) {
+          delete term._namespaces;
+        }
         break;
 
       default:
         this.$set(term, 'namespaces', []);
         this.$set(term, '_namespaces', '');
-        this.$set(term, 'namespaceSelector', null);
+
+        if (term.namespaceSelector || term.namespaceSelector === null) {
+          delete term.namespaceSelector;
+        }
+
         break;
       }
 
@@ -297,7 +312,7 @@ export default {
       let nsArray = namespaces;
 
       // namespaces would be String if there is no namespace
-      if (!this.hasNamespaces) {
+      if (typeof namespaces === 'string') {
         nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
       }
 
@@ -323,7 +338,7 @@ export default {
       <ArrayListGrouped
         v-model="allSelectorTerms"
         class="mt-20"
-        :default-add-value="{ _namespaceOption: NAMESPACE_SELECTION_OPTION_VALUES.POD, matchExpressions: [] }"
+        :default-add-value="defaultAddValue"
         :mode="mode"
         :add-label="t('podAffinity.addLabel')"
         @remove="remove"

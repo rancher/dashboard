@@ -109,7 +109,6 @@ export const payloadComparisonData = {
         requiredDuringSchedulingIgnoredDuringExecution: [
           {
             namespaceSelector: {},
-            namespaces:        null,
             labelSelector:     {
               matchExpressions: [
                 {
@@ -139,18 +138,19 @@ export const payloadComparisonData = {
             topologyKey: 'some-topology2'
           },
           {
-            namespaces:        'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
+            namespaces: [
+              'system',
+              'fleet-default'
+            ],
+            topologyKey: 'some-topology3'
           }
         ],
         preferredDuringSchedulingIgnoredDuringExecution: [
           {
             podAffinityTerm: {
-              weight:            10,
-              namespaces:        null,
-              namespaceSelector: null,
-              labelSelector:     {
+              namespaces:    null,
+              weight:        10,
+              labelSelector: {
                 matchExpressions: [
                   {
                     key:      'key1',
@@ -186,7 +186,6 @@ export const payloadComparisonData = {
         requiredDuringSchedulingIgnoredDuringExecution: [
           {
             namespaceSelector: {},
-            namespaces:        null,
             labelSelector:     {
               matchExpressions: [
                 {
@@ -216,18 +215,19 @@ export const payloadComparisonData = {
             topologyKey: 'some-topology2'
           },
           {
-            namespaces:        'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
+            namespaces: [
+              'system',
+              'fleet-default'
+            ],
+            topologyKey: 'some-topology3'
           }
         ],
         preferredDuringSchedulingIgnoredDuringExecution: [
           {
             podAffinityTerm: {
-              weight:            10,
-              namespaces:        null,
-              namespaceSelector: null,
-              labelSelector:     {
+              namespaces:    null,
+              weight:        10,
+              labelSelector: {
                 matchExpressions: [
                   {
                     key:      'key1',
@@ -413,7 +413,6 @@ export const payloadComparisonData = {
         requiredDuringSchedulingIgnoredDuringExecution: [
           {
             namespaceSelector: {},
-            namespaces:        null,
             labelSelector:     {
               matchExpressions: [
                 {
@@ -443,18 +442,19 @@ export const payloadComparisonData = {
             topologyKey: 'some-topology2'
           },
           {
-            namespaces:        'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
+            namespaces: [
+              'system',
+              'fleet-default'
+            ],
+            topologyKey: 'some-topology3'
           }
         ],
         preferredDuringSchedulingIgnoredDuringExecution: [
           {
             podAffinityTerm: {
-              weight:            10,
-              namespaces:        null,
-              namespaceSelector: null,
-              labelSelector:     {
+              namespaces:    null,
+              weight:        10,
+              labelSelector: {
                 matchExpressions: [
                   {
                     key:      'key1',
@@ -490,7 +490,6 @@ export const payloadComparisonData = {
         requiredDuringSchedulingIgnoredDuringExecution: [
           {
             namespaceSelector: {},
-            namespaces:        null,
             labelSelector:     {
               matchExpressions: [
                 {
@@ -520,18 +519,19 @@ export const payloadComparisonData = {
             topologyKey: 'some-topology2'
           },
           {
-            namespaces:        'system,fleet-default',
-            namespaceSelector: null,
-            topologyKey:       'some-topology3'
+            namespaces: [
+              'system',
+              'fleet-default'
+            ],
+            topologyKey: 'some-topology3'
           }
         ],
         preferredDuringSchedulingIgnoredDuringExecution: [
           {
             podAffinityTerm: {
-              weight:            10,
-              namespaces:        null,
-              namespaceSelector: null,
-              labelSelector:     {
+              namespaces:    null,
+              weight:        10,
+              labelSelector: {
                 matchExpressions: [
                   {
                     key:      'key1',
