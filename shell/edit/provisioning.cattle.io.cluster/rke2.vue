@@ -26,6 +26,7 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
+
 import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
@@ -1284,11 +1285,9 @@ export default {
 
     async syncMachineConfigWithLatest(machinePool) {
       if (machinePool?.config?.id) {
-        const latestConfig = await this.$store.dispatch('management/find', {
-          type: machinePool.config.type,
-          id:   machinePool.config.id,
-          opt:  { force: true },
-        });
+        const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
+        const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
+
         const clonedCurrentConfig = await this.$store.dispatch('management/clone', { resource: machinePool.config });
         const clonedLatestConfig = await this.$store.dispatch('management/clone', { resource: latestConfig });
 
