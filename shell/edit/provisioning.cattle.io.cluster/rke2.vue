@@ -1993,6 +1993,11 @@ export default {
 
           this.previousKubernetesVersion = value;
         }
+
+        // If Harvester driver, reset cloud provider if not compatible
+        if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
+          this.setHarvesterDefaultCloudProvider();
+        }
       }
     },
 
