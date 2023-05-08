@@ -337,3 +337,5 @@ model:
   authConfig:
     provider:
       epinio: Dex
+login:
+  genericProvider: Log in with SSO
