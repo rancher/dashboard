@@ -101,6 +101,11 @@ export default {
       default: null,
     },
 
+    preventEnterSubmit: {
+      type:    Boolean,
+      default: false,
+    },
+
     applyHooks: {
       type:    Function,
       default: null,
@@ -380,6 +385,12 @@ export default {
           throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
       }
+    },
+
+    onPressEnter(event) {
+      if (this.preventEnterSubmit) {
+        event.preventDefault();
+      }
     }
   }
 };
@@ -398,7 +409,7 @@ export default {
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
       @submit.prevent
-      @keydown.enter.prevent
+      @keydown.enter="onPressEnter($event)"
     >
       <div
         v-if="hasErrors"
