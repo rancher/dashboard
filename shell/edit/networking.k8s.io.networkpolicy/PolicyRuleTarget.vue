@@ -74,6 +74,7 @@ export default {
       POD,
       TARGET_OPTIONS,
       targetOptions:      Object.values(TARGET_OPTIONS),
+      throttleTime:       250,
     };
   },
   computed: {
@@ -139,7 +140,7 @@ export default {
         handler: throttle(function() {
           this.matchingNamespaces = this.getMatchingNamespaces();
           this.matchingPods = this.getMatchingPods();
-        }, 250, { leading: true }),
+        }, this.throttle, { leading: true }),
         immediate: true
       };
     },
