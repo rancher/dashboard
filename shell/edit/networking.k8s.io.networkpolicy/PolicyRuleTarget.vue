@@ -213,6 +213,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="targetType"
+          data-testid="labeled-select-type-selector"
           :mode="mode"
           :tooltip="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? t('networkpolicy.selectors.matchingNamespacesAndPods.tooltip') : null"
           :options="selectTargetOptions"
@@ -226,6 +227,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="value[TARGET_OPTIONS.IP_BLOCK].cidr"
+            data-testid="labeled-input-ip-block-selector"
             :mode="mode"
             :placeholder="t('networkpolicy.rules.ipBlock.cidr.placeholder')"
             :label="t('networkpolicy.rules.ipBlock.cidr.label')"
@@ -277,6 +279,7 @@ export default {
         <div class="col span-12">
           <MatchExpressions
             v-model="podSelectorExpressions"
+            data-testid="match-expression-pod-selector"
             :mode="mode"
             :show-remove="false"
             :initial-empty-row="true"
@@ -297,6 +300,7 @@ export default {
         <div class="col span-12">
           <MatchExpressions
             v-model="namespaceSelectorExpressions"
+            data-testid="match-expression-namespace-selector"
             :mode="mode"
             :show-remove="false"
             :initial-empty-row="true"
@@ -329,6 +333,7 @@ export default {
         <div class="col span-11">
           <MatchExpressions
             v-model="namespaceSelectorExpressions"
+            data-testid="match-expression-namespace-and-pod-selector-ns-rule"
             :mode="mode"
             :show-add-button="false"
             :show-remove-button="false"
@@ -347,6 +352,7 @@ export default {
         <div class="col span-11">
           <MatchExpressions
             v-model="podSelectorExpressions"
+            data-testid="match-expression-namespace-and-pod-selector-pod-rule"
             :mode="mode"
             :show-add-button="false"
             :show-remove-button="false"
