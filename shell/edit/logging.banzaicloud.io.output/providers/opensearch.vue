@@ -206,7 +206,8 @@ export default {
         />
         <Checkbox
           v-model="value.suppress_type_name"
-          :label="t('logging.elasticsearch.suppressTypeName')"
+          :label="t('logging.elasticsearch.suppressTypeName.label')"
+          :tooltip="t('logging.elasticsearch.suppressTypeName.openSearchTips')"
           :disabled="disabled"
           :mode="mode"
         />
