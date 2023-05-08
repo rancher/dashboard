@@ -362,13 +362,14 @@ export default {
 
 <style lang='scss' scoped>
   .namespace-pod-rule {
+    display: table;
     width: 100px;
-    margin: 0;
+    padding: 0, 10px, 0, 0;
     text-align: center;
 
     .label {
-      display: block;
-      margin-top: 32px;
+      display:table-cell;
+      vertical-align:middle;
     }
   }
 </style>
