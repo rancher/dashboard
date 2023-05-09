@@ -370,6 +370,43 @@ function serializeSimpleValue(data) {
   return jsyaml.dump(data).trim();
 }
 
+function getBlockDescriptor(value, key) {
+  const header = getBlockHeader(value, key);
+
+  return {
+    header,
+    indentation: getBlockIndentation(header),
+  };
+}
+
+/**
+ *
+ * @param {string} value the block of text to be parsed
+ * @param {*} blockKey the key of the block
+ * @returns the key + the block scalar indicators, see https://yaml-multiline.info - Block Scalars
+ */
+function getBlockHeader(value, blockKey) {
+  const card = `(${ blockKey })[\\:][\\s|\\t]+[\\|\\>][\\d]*[\\-\\+]?`;
+  const re = new RegExp(card, 'gi');
+
+  const found = value.match(re);
+
+  return found?.[0] || '';
+}
+
+/**
+ *
+ * @param {string} blockHeader the key + the block scalar indicators
+ * @returns the indentation indicator from the block header, see https://yaml-multiline.info - Indentation
+ */
+function getBlockIndentation(blockHeader) {
+  const blockScalars = blockHeader.substr(blockHeader.indexOf(':') + 1);
+
+  const indentation = blockScalars.match(/\d+/);
+
+  return indentation?.[0] || '';
+}
+
 export function typeRef(type, str) {
   const re = new RegExp(`^${ type }\\[(.*)\\]$`);
   const match = str.match(re);
@@ -430,10 +467,12 @@ export function dumpBlock(data, options = {}) {
       const scalarStyle = options[key]?.scalarStyle ?? '|';
       const chomping = options[key]?.chomping ?? '';
 
-      const card = `(${ key })[\\:][\\s|\\t]+[\\|\\>][\\-\\+]?`;
-      const re = new RegExp(card, 'gi');
+      const desc = getBlockDescriptor(out, key);
 
-      out = out.replace(re, `${ key }: ${ scalarStyle }${ chomping }`);
+      /**
+       * Replace the original block indicators with the ones provided in the options param
+       */
+      out = out.replace(desc.header, `${ key }: ${ scalarStyle }${ chomping }${ desc.indentation }`);
     }
   }
 
