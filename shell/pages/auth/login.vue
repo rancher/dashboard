@@ -303,6 +303,7 @@ export default {
         </h1>
         <div
           class="login-messages"
+          data-testid="login__messages"
           :class="{'login-messages--hasContent': hasLoginMessage}"
         >
           <Banner
