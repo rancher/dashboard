@@ -21,9 +21,9 @@ describe('User can logout of Rancher', () => {
     userMenu.toggle();
     userMenu.isOpen();
     userMenu.clickMenuItem('Log Out');
+    loginPage.waitForPage();
     loginPage.username().checkVisible();
     loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
-    loginPage.waitForPage();
     HomePagePo.goTo();
     loginPage.loginPageMessage().contains('Log in again to continue.').should('be.visible');
     loginPage.waitForPage();
