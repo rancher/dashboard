@@ -63,6 +63,7 @@ export default {
       if (this.asTextArea) {
         out.lineNumbers = false;
         out.tabSize = 0;
+        out.extraKeys = { Tab: false };
       }
 
       Object.assign(out, this.options);
