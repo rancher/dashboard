@@ -274,10 +274,13 @@ const resourceWatcherActions = {
     }
   },
   'resource.stop': (msg) => {
-    // State is handled in the resourceWatcher, no need to bubble out to UI thread
+    // ToDo: SM until we can resolve the resourceVersion within the resourceWatcher internally, we'll want to bubble this out to the UI thread
     const watchKey = watchKeyFromMessage(msg);
 
     removeFromWorkerQueue(watchKey);
+
+    // ToDo: SM this won't be needed once we can handle unexpected stops inside the resourceWatcher itself
+    resourceWatcherActions.dispatch(msg);
   },
   'resource.error': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
@@ -291,7 +294,7 @@ const resourceWatcherActions = {
 /**
  * Covers message from UI Thread to Worker
  */
-onmessage = (e) => {
+self.onmessage = (e) => {
   /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
   // good enough for now considering that we never send more than one message action at a time right now */
   const messageActions = Object.keys(e?.data);

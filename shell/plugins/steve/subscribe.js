@@ -122,7 +122,7 @@ export async function createWorker(store, ctx) {
     },
     [EVENT_DISCONNECT_ERROR]: (e) => {
       dispatch('error', e );
-    }
+    },
   };
 
   if (!store.$workers[storeName] || store.$workers[storeName].mode === WORKERMODES.WAITING) {

@@ -5,7 +5,6 @@
 import Socket, {
   NO_WATCH,
   NO_SCHEMA,
-  EVENT_MESSAGE,
   EVENT_CONNECTED,
   REVISION_TOO_OLD
 } from '@shell/utils/socket';
@@ -64,7 +63,7 @@ export const watchKeyFromMessage = (msg) => {
 };
 
 const {
-  WATCH_PENDING, WATCH_REQUESTED, WATCHING, STOPPED, REMOVE_PENDING, REQUESTED_REMOVE
+  WATCH_PENDING, WATCH_REQUESTED, WATCHING, REMOVE_PENDING, REQUESTED_REMOVE
 } = WATCH_STATUSES;
 
 export default class ResourceWatcher extends Socket {
@@ -202,15 +201,20 @@ export default class ResourceWatcher extends Socket {
     if (eventName === 'resource.start' && this.watches?.[watchKey]?.status === WATCH_REQUESTED) {
       this.watches[watchKey].status = WATCHING;
     } else if (eventName === 'resource.stop' && this.watches?.[watchKey]) {
-      if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
-        delete this.watches[watchKey];
-      } else {
-        this.watches[watchKey].status = STOPPED;
-        delete this.watches[watchKey].resourceVersion;
-        delete this.watches[watchKey].resourceVersionTime;
-        this.watch(watchKey);
-        this.dispatchEvent(new CustomEvent(EVENT_MESSAGE, { detail: event }));
-      }
+      /**
+       * ToDo: SM find some way to resolve the correct resourceVersion from within the resourceWatcher until then:
+       * * delete the watch in the resourceWatcher, we'll handle recovery up the chain for now
+       * * dispatch the event to the host process which should have a handler for resource.stop
+       *  */
+      // if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
+      delete this.watches[watchKey];
+      // } else {
+      //   this.watches[watchKey].status = STOPPED;
+      //   delete this.watches[watchKey].resourceVersion;
+      //   delete this.watches[watchKey].resourceVersionTime;
+      //   this.watch(watchKey);
+      //   this.dispatchEvent(new CustomEvent(EVENT_MESSAGE, { detail: event }));
+      // }
     } else if (eventName === 'resource.error') {
       const err = data?.error?.toLowerCase();
 
@@ -226,6 +230,7 @@ export default class ResourceWatcher extends Socket {
         delete this.watches[watchKey].resourceVersion;
         delete this.watches[watchKey].resourceVersionTime;
         delete this.watches[watchKey].skipResourceVersion;
+        // ToDo: SM waitasecond... does this work?
         this.watches[watchKey].error = { type: resourceType, reason: REVISION_TOO_OLD };
         this.dispatchEvent(new CustomEvent('resync', { detail: event }));
       }

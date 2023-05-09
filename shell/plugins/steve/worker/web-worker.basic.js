@@ -104,4 +104,4 @@ const workerActions = {
   }
 };
 
-onmessage = workerActions.onmessage; // bind everything to the worker's onmessage handler via the workerAction
+self.onmessage = workerActions.onmessage; // bind everything to the worker's onmessage handler via the workerAction
