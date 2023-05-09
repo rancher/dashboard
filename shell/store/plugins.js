@@ -55,6 +55,9 @@ const driverMap = {
   oci:                             'oracle',
   opentelekomcloudcontainerengine: 'otc',
   oraclecontainerengine:           'oracle',
+  // Added by Verrazzano Start
+  ociocne:                         'oracle',
+  // Added by Verrazzano End
 };
 
 // Map a driver component back to the cloud credential field name their data has to be stored in

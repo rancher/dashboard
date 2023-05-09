@@ -1744,6 +1744,9 @@ cluster:
     otccce: Open Telekom Cloud CCE
     oracle: Oracle
     oracleoke: Oracle OKE
+    # Added by Verrazzano Start
+    ociocne: OCI OCNE
+    # Added by Verrazzano End
     otc: Open Telekom Cloud
     other: Other
     packet: Equinix Metal

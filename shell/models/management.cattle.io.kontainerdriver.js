@@ -18,6 +18,9 @@ export const KONTAINER_TO_DRIVER = {
   lkeengine:                        'linodelke',
   okeengine:                        'oracleoke',
   oraclecontainerengine:            'oracleoke', // Does this actually exist?
+  // Added by Verrazzano Start
+  ociocneengine:                    'ociocne',
+  // Added by Verrazzano End
   rke2:                             'rke2',
   tencentengine:                    'tencenttke',
   tencentkubernetesengine:          'tencenttke', // Does this actually exist?
