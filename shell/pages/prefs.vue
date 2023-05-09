@@ -163,7 +163,9 @@ export default {
       <h4 v-t="'prefs.language'" />
       <div class="row">
         <div class="col span-4">
-          <LocaleSelector />
+          <LocaleSelector
+            data-testid="prefs__languageSelector"
+          />
         </div>
       </div>
     </div>
@@ -173,6 +175,7 @@ export default {
       <h4 v-t="'prefs.theme.label'" />
       <ButtonGroup
         v-model="theme"
+        data-testid="prefs__themeOptions"
         :options="themeOptions"
       />
       <div class="mt-10">
@@ -190,7 +193,9 @@ export default {
     >
       <hr>
       <h4 v-t="'prefs.landing.label'" />
-      <LandingPagePreference />
+      <LandingPagePreference
+        data-testid="prefs__landingPagePreference"
+      />
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">
@@ -203,6 +208,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model="dateFormat"
+            data-testid="prefs__displaySetting__dateFormat"
             :label="t('prefs.dateFormat.label')"
             :options="dateOptions"
           />
@@ -210,6 +216,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model="timeFormat"
+            data-testid="prefs__displaySetting__timeFormat"
             :label="t('prefs.timeFormat.label')"
             :options="timeOptions"
           />
@@ -220,6 +227,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model.number="perPage"
+            data-testid="prefs__displaySetting__perPage"
             :label="t('prefs.perPage.label')"
             :options="perPageOptions"
             option-key="value"
@@ -230,6 +238,7 @@ export default {
         <div class="col span-4">
           <LabeledSelect
             v-model.number="menuMaxClusters"
+            data-testid="prefs__displaySetting__menuMaxClusters"
             :label="t('prefs.clusterToShow.label')"
             :options="menuClusterOptions"
             option-key="value"
@@ -245,6 +254,7 @@ export default {
       <h4 v-t="'prefs.confirmationSetting.title'" />
       <Checkbox
         v-model="scalingDownPrompt"
+        data-testid="prefs__scalingDownPrompt"
         :label="t('prefs.confirmationSetting.scalingDownPrompt')"
         class="mt-10"
       />
@@ -255,18 +265,21 @@ export default {
       <h4 v-t="'prefs.advFeatures.title'" />
       <Checkbox
         v-model="viewInApi"
+        data-testid="prefs__viewInApi"
         :label="t('prefs.advFeatures.viewInApi', {}, true)"
         class="mt-10"
       />
       <br>
       <Checkbox
         v-model="allNamespaces"
+        data-testid="prefs__allNamespaces"
         :label="t('prefs.advFeatures.allNamespaces', {}, true)"
         class="mt-20"
       />
       <br>
       <Checkbox
         v-model="themeShortcut"
+        data-testid="prefs__themeShortcut"
         :label="t('prefs.advFeatures.themeShortcut', {}, true)"
         class="mt-20"
       />
@@ -274,6 +287,7 @@ export default {
       <Checkbox
         v-if="!isSingleProduct"
         v-model="hideDescriptions"
+        data-testid="prefs__hideDescriptions"
         :label="t('prefs.hideDesc.label')"
         class="mt-20"
       />
@@ -292,6 +306,7 @@ export default {
       <h4 v-t="'prefs.keymap.label'" />
       <ButtonGroup
         v-model="keymap"
+        data-testid="prefs__keymapOptions"
         :options="keymapOptions"
       />
     </div>
@@ -304,6 +319,7 @@ export default {
       <h4 v-t="'prefs.helm.label'" />
       <ButtonGroup
         v-model="showPreRelease"
+        data-testid="prefs__helmOptions"
         :options="helmOptions"
       />
     </div>

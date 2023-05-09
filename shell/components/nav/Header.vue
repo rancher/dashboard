@@ -621,6 +621,7 @@ export default {
       <div
         v-if="showUserMenu"
         class="user user-menu"
+        data-testid="nav_header_showUserMenu"
         tabindex="0"
         @blur="showMenu(false)"
         @click="showMenu(true)"
@@ -654,6 +655,7 @@ export default {
           >
             <ul
               class="list-unstyled dropdown"
+              data-testid="user-menu-dropdown"
               @click.stop="showMenu(false)"
             >
               <li
