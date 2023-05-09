@@ -43,7 +43,11 @@ export default {
           [key]: { chomping: '+' },
         }), {}),
       };
-    }
+    },
+
+    validationPassed() {
+      return !!this.value.name;
+    },
   },
 
   watch: {
@@ -81,7 +85,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
-    :validation-passed="true"
+    :validation-passed="validationPassed"
     :yaml-modifiers="yamlModifiers"
     :errors="errors"
     @error="e=>errors = e"
