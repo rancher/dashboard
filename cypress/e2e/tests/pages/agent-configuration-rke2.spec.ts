@@ -1,6 +1,5 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
-import AgentConfigurationRke2Po from '~/cypress/e2e/po/components/agent-configuration-rke2.po';
-import PagePo from '@/cypress/e2e/po/pages/page.po';
+import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
 import {
   podAffinityData,
   requestAndLimitsData,
@@ -12,61 +11,66 @@ import { payloadComparisonData } from '@/cypress/e2e/tests/pages/data/agent-conf
 describe('Agent Configuration for RKE2', () => {
   beforeEach(() => {
     cy.login();
-    PagePo.goTo('/c/_/manager/provisioning.cattle.io.cluster/create?type=custom#clusteragentconfig');
   });
 
   it('Should send the correct payload to the server', () => {
-    const agentConfigurationRke2 = new AgentConfigurationRke2Po();
+    const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+
+    createCustomClusterPage.goTo();
+    createCustomClusterPage.waitForPage();
 
     // intercept
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('customRKE2ClusterCreation');
 
     // cluster name
-    agentConfigurationRke2.nameNsDescription().name().set(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
+    createCustomClusterPage.nameNsDescription().name().set(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
 
     // we should be on the custom cluster creation screen (starts on cluster agent tab as per url of goTo)
-    agentConfigurationRke2.title().should('contain', 'Create Custom');
+    createCustomClusterPage.title().should('contain', 'Create Custom');
+
+    // navigate to the cluster agent area
+    createCustomClusterPage.agentConfiguration().clickTab('#clusteragentconfig');
 
     // fill requests and limits form (cluster agent)
-    agentConfigurationRke2.fillRequestandLimitsForm('cluster', requestAndLimitsData);
+    createCustomClusterPage.agentConfiguration().fillRequestandLimitsForm('cluster', requestAndLimitsData);
 
     // fill tolerations form (cluster agent)
-    agentConfigurationRke2.fillTolerationsForm('cluster', tolerationsData);
+    createCustomClusterPage.agentConfiguration().fillTolerationsForm('cluster', tolerationsData);
 
     // Select custom affinity rules (cluster agent)
-    agentConfigurationRke2.selectAffinityOption('cluster', 1);
+    createCustomClusterPage.agentConfiguration().selectAffinityOption('cluster', 1);
 
     // Clear out any prefilled affinity rules so that we start from scratch
-    agentConfigurationRke2.clearOutPrefilledAffinityRules('cluster', 'pod');
-    agentConfigurationRke2.clearOutPrefilledAffinityRules('cluster', 'node');
+    createCustomClusterPage.agentConfiguration().clearOutPrefilledAffinityRules('cluster', 'pod');
+    createCustomClusterPage.agentConfiguration().clearOutPrefilledAffinityRules('cluster', 'node');
 
     // fill form for pod affinity/anti-affinity (cluster agent)
-    agentConfigurationRke2.fillPodSelectorForm('cluster', podAffinityData);
+    createCustomClusterPage.agentConfiguration().fillPodSelectorForm('cluster', podAffinityData);
 
     // fill form for pod affinity/anti-affinity (cluster agent)
-    agentConfigurationRke2.fillNodeSelectorForm('cluster', nodeAffinityData);
+    createCustomClusterPage.agentConfiguration().fillNodeSelectorForm('cluster', nodeAffinityData);
 
     // navigate to the fleet agent area
-    agentConfigurationRke2.clickTab('#fleetagentconfig');
+    createCustomClusterPage.agentConfiguration().clickTab('#fleetagentconfig');
 
     // fill requests and limits form (fleet agent)
-    agentConfigurationRke2.fillRequestandLimitsForm('fleet', requestAndLimitsData);
+    createCustomClusterPage.agentConfiguration().fillRequestandLimitsForm('fleet', requestAndLimitsData);
 
     // fill tolerations form (fleet agent)
-    agentConfigurationRke2.fillTolerationsForm('fleet', tolerationsData);
+    createCustomClusterPage.agentConfiguration().fillTolerationsForm('fleet', tolerationsData);
 
     // Select custom affinity rules (fleet agent)
-    agentConfigurationRke2.selectAffinityOption('fleet', 1);
+    createCustomClusterPage.agentConfiguration().selectAffinityOption('fleet', 1);
 
     // Clear out any prefilled affinity rules so that we start from scratch
-    agentConfigurationRke2.clearOutPrefilledAffinityRules('fleet', 'pod');
-    agentConfigurationRke2.clearOutPrefilledAffinityRules('fleet', 'node');
+    createCustomClusterPage.agentConfiguration().clearOutPrefilledAffinityRules('fleet', 'pod');
+    createCustomClusterPage.agentConfiguration().clearOutPrefilledAffinityRules('fleet', 'node');
 
     // fill form for pod affinity/anti-affinity (fleet agent)
-    agentConfigurationRke2.fillPodSelectorForm('fleet', podAffinityData);
+    createCustomClusterPage.agentConfiguration().fillPodSelectorForm('fleet', podAffinityData);
 
     // fill form for pod affinity/anti-affinity (fleet agent)
-    agentConfigurationRke2.fillNodeSelectorForm('fleet', nodeAffinityData);
+    createCustomClusterPage.agentConfiguration().fillNodeSelectorForm('fleet', nodeAffinityData);
 
     // hit create button
     cy.get('[data-testid="rke2-custom-create-save"]').click();

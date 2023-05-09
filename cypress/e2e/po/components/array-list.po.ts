@@ -1,6 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
-export default class FormPo extends ComponentPo {
+export default class ArrayListPo extends ComponentPo {
   /**
    * Return a given array list item by index
    * @returns

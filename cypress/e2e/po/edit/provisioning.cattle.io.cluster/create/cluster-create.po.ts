@@ -8,6 +8,7 @@ export default abstract class ClusterManagerCreatePagePo extends ClusterManagerC
   static url: string = '/c/local/manager/provisioning.cattle.io.cluster/create'
 
   constructor() {
+    cy.log('URL1', ClusterManagerCreatePagePo.url);
     super(ClusterManagerCreatePagePo.url);
   }
 
