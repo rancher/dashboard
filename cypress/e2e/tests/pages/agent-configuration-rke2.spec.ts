@@ -16,7 +16,7 @@ describe('Agent Configuration for RKE2', () => {
   it('Should send the correct payload to the server', () => {
     const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();
 
-    createCustomClusterPage.goTo();
+    createCustomClusterPage.goToCustomClusterCreation();
     createCustomClusterPage.waitForPage();
 
     // intercept
