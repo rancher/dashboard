@@ -1,0 +1,240 @@
+harborConfig:
+  access:
+    subtitle: Set up the Harbor visiting address and account.
+    title: Harbor Access Configuration
+  advanced:
+    label:
+      create: NEW LABEL
+      createTime: Creation Time
+      describe: Description
+      name: Label
+      nodata: No Data
+      subtitle: Label Management
+      title: Labels
+    titleLeft: Other advanced options are configured in the
+    titleRight: .
+  btn:
+    createProject: NEW
+  errorInfo: Server connection error. Please reconfigure Harbor account.
+  form:
+    accessLevel:
+      checkPrivate: Priv
+      checkPublic: Pub
+      info: When the project is set to public, anyone with read access to the image under this item can pull the image under this item without "docker login".
+      label: Access Level
+    addMember:
+      role:
+        label: Role
+      title: Add Member
+      username:
+        label: Username
+        placeholder: username
+    address:
+      label: Address
+      placeholder: Access the URL of the Harbor.
+    confirmPw:
+      label: Confirm
+      placeholder: Confirm your website password
+    creator:
+      admin: Admin
+      all: All
+    email:
+      label: Email
+      placeholder: Email
+    image:
+      all: All Projects
+      private: Private Projects
+      public: Public Projects
+    newPw:
+      label: New
+      placeholder: New Harbor password
+    projectName:
+      label: Project Name
+    pw:
+      label: Password
+      placeholder: The password to access the Harbor.
+    search:
+      operation: Operation
+      placeholder: Search
+      resource: Resource
+      store: Store
+      tag: Tag
+      type: Resource Type
+      username: Username
+    storage:
+      label: Storage quota
+    username:
+      label: Username
+      placeholder: The username of access the Harbor.
+    version:
+      label: Version
+  formTag:
+    btn:
+      add: New Tag
+    color:
+      label: Color
+    description: Tag Description
+    name:
+      label: Tag Name
+      nameExist: "\"Tag Name\" already existed "
+      nameReq: "\"Tag Name\" cannot be empty"
+    titleAdd: New Tag
+    titleEdit: Edit Tag
+  image: Image Management
+  info: Please configure your Harbor account before visiting this page.
+  log: Logs
+  newProject: New Project
+  setting:
+    subtitle: Set the mailbox and access password
+    title: Harbor Account Settings
+  summary:
+    count: Artifact count
+    infinity: unlimited
+    projectImageRepo: Project repositories
+    projectMember: Project members
+    projectQuota: Project quotas
+    storage: Storage used
+  sync:
+    subtitle: Synchronizes the current user information to Harbor
+    title: Harbor Account synchronous
+  tab:
+    accessLevel: Access Level
+    copy: Copy
+    log: Log
+    member: Member
+    store: Image Store
+    summary: Summary
+    tag: Tag
+  table:
+    addUser: Add User
+    annotations: Annotations
+    artifacts: Artifacts
+    author: Author
+    count: Number of image store
+    dockerVersion: Docker Version
+    downCount: Down Count
+    entityName: Name
+    entityType: Member Type
+    imageTag: Image Tag
+    imagename: Image Name
+    label: Label
+    labels: Labels
+    level: Access Level
+    name: Name
+    operation: Operation
+    otherOperation:
+      removeMembers: Remove
+      setRole: Set Role
+      title: Others
+    projectName: Project name
+    pullCommand: Pull Command
+    pullTime: Pull Time
+    pushImg:
+      btn: PUSH
+      markedImg: Mark the image in the project
+      pushImgToProject: Push the image to the current project
+      title: Push Image
+    pushTime: Push Time
+    resource: Resource
+    role: Role
+    roleItem:
+      admin: Manager
+      developer: Developer
+      limitedGuest: Limited Guest
+      maintainer: Maintainer
+      master: Master
+      user: User
+      visitor: Visitors
+    size: Size
+    storeStatus:
+      message: When the project is set to public, anyone with read access to the image under this item can pull the image under this item without docker login.
+      private: Private
+      public: Public
+    tag: Tag
+    tagCount: Tag Count
+    tags: Tags
+    timestamp: Timestamp
+    type: Resource Type
+    username: Username
+  title: Harbor Configuration
+  validate:
+    accountUnavailable: Harbor Account unavailable
+    addressError: Access address error
+    confirmError: The new password and the confirmation password must be the same
+    emailFromReq: Please enter the email source
+    emailHostReq: Please enter the mail server address
+    emailPortFormatError: Please enter the correct port number
+    emailPortReq: Please enter the mail server port
+    emailReq: Please enter your email address
+    emailUrlError: Please use the correct email address，e.g. name@example.com
+    errorAndResetHarbor: The original password is wrong, and the password cannot be changed.
+    errorOldPwdSameAsNew: The new password can not be same with the old one.
+    formatError: Passwords should be between 8 and 20 in length and contain at least one uppercase character, one lowercase character, and one number
+    harborInfoError: Harbor Website address、 username or password incorrect
+    harborInfoVersionError: Harbor version does not match. Please configure the correct version
+    harborNeedUpdate: Please save harbor config again for better use Rancher integration with harbor server.
+    notAdmin: Configure Harbor with the user of the administrator role
+    numAndReq: Token expiration time must be filled, and is a number
+    projectNameExist: The project name already exists
+    projectNameFormatError: The project name consists of a lowercase character number and "._-", and has at least two characters beginning with a letter or number
+    projectNameReq: Please enter the project name
+    pwReq: Password cannot be empty
+    pwdError: Password incorrect
+    unableAccess: Unable to access Harbor services
+    updateEmailServerError: Failed to update mail server configuration, error
+    updateEmailServerOk: The updated mail server configuration was successful
+    updateSystemError: Failed to update system Settings, error
+    updateSystemOk: System Settings were updated successfully
+    urlFormatError: URL address format error，e.g. http(s)://example.com
+    urlReq: Address cannot be empty
+    usernameReq: Username cannot be empty
+    validateEmailServerError: Verify that the mail server failed, error
+    validateEmailServerOk: Verify that the mail server was successful
+  wait: Please wait for the administrator to configure the mirror library.
+imageRepoSection:
+  action:
+    changePwd: Change Password
+    edit: Edit
+    editAccount: Edit Account
+  adminConfigPage:
+    gcSchedule: Clean up
+    methodNotSupported: Rancher({rancherAuthMode}) does not support harbor server with {auth} authorization, does not support sync with harbor user.
+    removeHarborConfig: REMOVE Harbor Config
+    saveHarborConfig: SAVE
+    testEmailServer: Test mail server
+  common:
+    reset: Reset
+  labelPage:
+    table:
+      noData: No Data
+      noMatch: No Match Conditions
+  projectsPage:
+    addProject: New Project
+    porjectPrivate: Pricate
+    projectPublic: Public
+    projectRoles:
+      admin: Project Admin
+      developer: Developer
+      guest: Guest
+      master: Master
+    removeProject: Remove Project
+    table:
+      noData: No Data
+      noMatch: No Data Match
+  tagPage:
+    action:
+      addLabel: Add Tag
+      copyDigest: Copy Summary
+      retag: Copy Image
+    addLabel: Add Label
+    copy: COPY
+    copyDigest: Copy Summary
+    table:
+      addLabel: Add Tag
+      noData: No Data
+      noMatch: No Match Conditions
+  userConfigPage:
+    keyCloakAuthWarning: You need to use your KeyCloak account to synchronize in Harbor. Please enter your password to initialize (you can use your account and the initialized password to log in to the Harbor service later). If you have already synchronized your account in the Harbor service, enter your password to Synchronize
+    methodNotSupported: Rancher({rancherAuthMode}) does not support harbor server with {auth} authorization.
+    reSyncAccount: Resynchronize Account
+    syncAccount: Synchronous Account

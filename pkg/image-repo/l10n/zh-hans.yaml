@@ -1,0 +1,240 @@
+harborConfig:
+  access:
+    subtitle: 对邮箱和访问密码进行设置
+    title: Harbor 访问配置
+  advanced:
+    label:
+      create: 新建标签
+      createTime: 创建时间
+      describe: 描述
+      name: 标签
+      nodata: 暂无数据
+      subtitle: 标签管理
+      title: 标签
+    titleLeft: 其他高级选项在
+    titleRight: 中进行配置
+  btn:
+    createProject: 新建仓库项目
+  errorInfo: 服务器连接出错请重新配置 Harbor 账号
+  form:
+    accessLevel:
+      checkPrivate: 私有
+      checkPublic: 公开
+      info: "注：当项目设为公开后，任何人都有此项目下镜像的读权限。命令行用户不需要“docker login”就可以拉取此项目下的镜像。"
+      label: 访问级别
+    addMember:
+      role:
+        label: 角色
+      title: 新建成员
+      username:
+        label: 用户名
+        placeholder: 用户名
+    address:
+      label: 访问地址
+      placeholder: 访问 Harbor 的 URL
+    confirmPw:
+      label: 确认密码
+      placeholder: 确认 Harbor 密码
+    creator:
+      admin: 仅管理员
+      all: 所有人
+    email:
+      label: 邮箱地址
+      placeholder: 邮箱地址
+    image:
+      all: 所有仓库项目
+      private: 私有项目
+      public: 公开项目
+    newPw:
+      label: 新密码
+      placeholder: 新的 Harbor 密码
+    projectName:
+      label: 项目名称
+    pw:
+      label: 密码
+      placeholder: 访问 Harbor 的密码
+    search:
+      operation: 操作
+      placeholder: 搜索
+      resource: 资源
+      store: 仓库
+      tag: 标签
+      type: 资源类型
+      username: 用户名
+    storage:
+      label: 存储容量
+    username:
+      label: 用户名
+      placeholder: 访问 Harbor 的用户名
+    version:
+      label: 版本
+  formTag:
+    btn:
+      add: 新建标签
+    color:
+      label: 颜色
+    description: 标签描述
+    name:
+      label: 标签名称
+      nameExist: 标签名称已经存在
+      nameReq: 请输入标签名称
+    titleAdd: 新建标签
+    titleEdit: 编辑标签
+  image: 仓库项目
+  info: 请先配置 Harbor 账号再访问此页面
+  log: 日志
+  newProject: 新建项目
+  setting:
+    subtitle: 对邮箱和访问密码进行设置
+    title: Harbor 账号设置
+  summary:
+    count: Artifact 数量
+    infinity: 无限制
+    projectImageRepo: 项目镜像仓库
+    projectMember: 项目成员
+    projectQuota: 项目容量
+    storage: 存储消耗
+  sync:
+    subtitle: 将当前的用户信息同步到 Harbor 中
+    title: Harbor 账号同步
+  tab:
+    accessLevel: 访问级别
+    copy: 复制
+    log: 日志
+    member: 成员
+    store: 镜像仓库
+    summary: 概要
+    tag: 标签
+  table:
+    addUser: 添加用户
+    annotations: 注解
+    artifacts: Artifacts
+    author: 作者
+    count: 镜像仓库数
+    dockerVersion: Docker版本
+    downCount: 下载数
+    entityName: 姓名
+    entityType: 成员类型
+    imageTag: 镜像标签
+    imagename: 镜像名称
+    label: 标签
+    labels: 标签
+    level: 访问级别
+    name: 名称
+    operation: 操作
+    otherOperation:
+      removeMembers: 移除成员
+      setRole: 设置角色
+      title: 其他操作
+    projectName: 仓库项目名称
+    pullCommand: pull命令
+    pullTime: 拉取时间
+    pushImg:
+      btn: 推送镜像
+      markedImg: 在项目中标记镜像
+      pushImgToProject: 推送镜像到当前项目
+      title: 推送镜像
+    pushTime: 推送时间
+    resource: 资源
+    role: 角色
+    roleItem:
+      admin: 项目管理员
+      developer: 开发人员
+      limitedGuest: 受限访客
+      maintainer: 维护人员
+      master: 维护人员
+      user: 用户
+      visitor: 访客
+    size: 大小
+    storeStatus:
+      message: 当项目设为公开后，任何人都有此项目下镜像的读权限。命令行用户不需要“docker login”就可以拉取此项目下的镜像。
+      private: 私有
+      public: 公开
+    tag: 标签
+    tagCount: 标签数
+    tags: Tags
+    timestamp: 时间戳
+    type: 资源类型
+    username: 用户名
+  title: Harbor 配置
+  validate:
+    accountUnavailable: Harbor 账号无法使用
+    addressError: 访问地址错误
+    confirmError: 新密码和确认密码必须相同
+    emailFromReq: 请输入邮件来源
+    emailHostReq: 请输入邮件服务器地址
+    emailPortFormatError: 请输入正确的端口号
+    emailPortReq: 请输入邮件服务器端口
+    emailReq: 请输入邮箱地址
+    emailUrlError: "请使用正确的邮箱地址，例如: name@example.com"
+    errorAndResetHarbor: 原始密码错误, 无法修改密码.
+    errorOldPwdSameAsNew: 新密码不能与旧密码相同.
+    formatError: 密码长度在8到20之间且需包含至少一个大写字符，一个小写字符和一个数字。
+    harborInfoError: Harbor 地址、用户名或密码错误
+    harborInfoVersionError: Harbor 版本不匹配，请配置正确版本
+    harborNeedUpdate: 本次版本优化了对接 Harbor 服务的体验，为了更好的使用本功能，请重新保存一次 Harbor 配置。
+    notAdmin: 请使用管理员角色的用户配置 Harbor
+    numAndReq: 令牌过期时间必填，且为数字
+    projectNameExist: 项目名称已经存在
+    projectNameFormatError: 项目名称由小写字符、数字、和._-组成，且至少有两个字符并以字母或数字开头
+    projectNameReq: 请输入项目名称
+    pwReq: 密码不能为空
+    pwdError: 密码错误
+    unableAccess: 无法访问 Harbor 服务
+    updateEmailServerError: 更新邮件服务器配置失败, 错误
+    updateEmailServerOk: 更新邮件服务器配置成功
+    updateSystemError: 更新系统设置失败, 错误
+    updateSystemOk: 更新系统设置成功
+    urlFormatError: URL 地址格式错误，正确格式如：http(s)://example.com
+    urlReq: 访问地址不能为空
+    usernameReq: 用户名不能为空
+    validateEmailServerError: 验证邮件服务器失败, 错误
+    validateEmailServerOk: 验证邮件服务器成功
+  wait: 请等待管理员配置镜像库
+imageRepoSection:
+  action:
+    changePwd: 修改密码
+    edit: 编辑
+    editAccount: 修改账号
+  adminConfigPage:
+    gcSchedule: 立即清理垃圾
+    methodNotSupported: Rancher {rancherAuthMode}认证暂不支持对接{auth}认证类型的 Harbor 服务，暂不支持普通用户同步，admin用户使用不受影响。
+    removeHarborConfig: 移除 Harbor 配置
+    saveHarborConfig: 保存
+    testEmailServer: 测试邮件服务器
+  common:
+    reset: 重置
+  labelPage:
+    table:
+      noData: 暂无数据
+      noMatch: 没有Label匹配当前搜索
+  projectsPage:
+    addProject: 新建项目
+    porjectPrivate: 私有
+    projectPublic: 公开
+    projectRoles:
+      admin: Project Admin
+      developer: Developer
+      guest: Guest
+      master: Master
+    removeProject: 删除项目
+    table:
+      noData: 暂无数据
+      noMatch: 暂无数据
+  tagPage:
+    action:
+      addLabel: 添加标签
+      copyDigest: 复制摘要
+      retag: 复制镜像
+    addLabel: 添加标签
+    copy: 复制
+    copyDigest: 复制摘要
+    table:
+      addLabel: 添加标签
+      noData: 暂无数据
+      noMatch: 没有TAG匹配当前搜索
+  userConfigPage:
+    keyCloakAuthWarning: 需要使用您的 KeyCloak 账号在 Harbor 中同步，请输入密码以初始化(后续您可以使用您的账号与初始化的密码登录 Harbor 服务)，如果您已经在 Harbor 服务中同步了账户，请输入您的密码以同步
+    methodNotSupported: Rancher {rancherAuthMode} 认证暂不支持对接 {auth} 认证类型的 Harbor 服务。
+    reSyncAccount: 重新同步账号
+    syncAccount: 同步账号

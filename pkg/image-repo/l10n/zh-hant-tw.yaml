@@ -1,0 +1,240 @@
+harborConfig:
+  access:
+    subtitle: 對郵箱和訪問密碼進行設定
+    title: Harbor 訪問配置
+  advanced:
+    label:
+      create: 新建標籤
+      createTime: 建立時間
+      describe: 描述
+      name: 標籤
+      nodata: 暫無資料
+      subtitle: 標籤管理
+      title: 標籤
+    titleLeft: 其他高階選項在
+    titleRight: 中進行配置
+  btn:
+    createProject: 新建倉庫專案
+  errorInfo: 伺服器連接出錯請重新配置 Harbor 賬號
+  form:
+    accessLevel:
+      checkPrivate: 私有
+      checkPublic: 公開
+      info: "注：當專案設為公開後，任何人都有此專案下映象的讀許可權。命令列使用者不需要“docker login”就可以拉取此專案下的映象。"
+      label: 訪問級別
+    addMember:
+      role:
+        label: 角色
+      title: 新建成員
+      username:
+        label: 使用者名稱
+        placeholder: 使用者名稱
+    address:
+      label: 訪問地址
+      placeholder: 訪問 Harbor 的 URL
+    confirmPw:
+      label: 確認密碼
+      placeholder: 確認 Harbor 密碼
+    creator:
+      admin: 僅管理員
+      all: 所有人
+    email:
+      label: 郵箱地址
+      placeholder: 郵箱地址
+    image:
+      all: 所有倉庫專案
+      private: 私有專案
+      public: 公開專案
+    newPw:
+      label: 新密碼
+      placeholder: 新的 Harbor 密碼
+    projectName:
+      label: 專案名稱
+    pw:
+      label: 密碼
+      placeholder: 訪問 Harbor 的密碼
+    search:
+      operation: 操作
+      placeholder: 搜尋
+      resource: 資源
+      store: 倉庫
+      tag: 標籤
+      type: 資源型別
+      username: 使用者名稱
+    storage:
+      label: 儲存容量
+    username:
+      label: 使用者名稱
+      placeholder: 訪問 Harbor 的使用者名稱
+    version:
+      label: 版本
+  formTag:
+    btn:
+      add: 新建標籤
+    color:
+      label: 顏色
+    description: 標籤描述
+    name:
+      label: 標籤名稱
+      nameExist: 標籤名稱已經存在
+      nameReq: 請輸入標籤名稱
+    titleAdd: 新建標籤
+    titleEdit: 編輯標籤
+  image: 倉庫專案
+  info: 請先配置 Harbor 賬號再訪問此頁面
+  log: 日誌
+  newProject: 新建專案
+  setting:
+    subtitle: 對郵箱和訪問密碼進行設定
+    title: Harbor 賬號設定
+  summary:
+    count: Artifact 數量
+    infinity: 無限制
+    projectImageRepo: 專案映象倉庫
+    projectMember: 專案成員
+    projectQuota: 專案容量
+    storage: 儲存消耗
+  sync:
+    subtitle: 將當前的使用者資訊同步到 Harbor 中
+    title: Harbor 賬號同步
+  tab:
+    accessLevel: 訪問級別
+    copy: 複製
+    log: 日誌
+    member: 成員
+    store: 映象倉庫
+    summary: 概要
+    tag: 標籤
+  table:
+    addUser: 新增使用者
+    annotations: 註解
+    artifacts: Artifacts
+    author: 作者
+    count: 映象倉庫數
+    dockerVersion: Docker版本
+    downCount: 下載數
+    entityName: 姓名
+    entityType: 成員型別
+    imageTag: 映象標籤
+    imagename: 映象名稱
+    label: 標籤
+    labels: 標籤
+    level: 訪問級別
+    name: 名稱
+    operation: 操作
+    otherOperation:
+      removeMembers: 移除成員
+      setRole: 設定角色
+      title: 其他操作
+    projectName: 倉庫專案名稱
+    pullCommand: pull命令
+    pullTime: 拉取時間
+    pushImg:
+      btn: 推送映象
+      markedImg: 在專案中標記映象
+      pushImgToProject: 推送映象到當前專案
+      title: 推送映象
+    pushTime: 推送時間
+    resource: 資源
+    role: 角色
+    roleItem:
+      admin: 專案管理員
+      developer: 開發人員
+      limitedGuest: 受限訪客
+      maintainer: 維護人員
+      master: 維護人員
+      user: 使用者
+      visitor: 訪客
+    size: 大小
+    storeStatus:
+      message: 當專案設為公開後，任何人都有此專案下映象的讀許可權。命令列使用者不需要“docker login”就可以拉取此專案下的映象。
+      private: 私有
+      public: 公開
+    tag: 標籤
+    tagCount: 標籤數
+    tags: Tags
+    timestamp: 時間戳
+    type: 資源型別
+    username: 使用者名稱
+  title: Harbor 配置
+  validate:
+    accountUnavailable: Harbor 賬號無法使用
+    addressError: 訪問地址錯誤
+    confirmError: 新密碼和確認密碼必須相同
+    emailFromReq: 請輸入郵件來源
+    emailHostReq: 請輸入郵件伺服器地址
+    emailPortFormatError: 請輸入正確的埠號
+    emailPortReq: 請輸入郵件伺服器埠
+    emailReq: 請輸入郵箱地址
+    emailUrlError: "請使用正確的郵箱地址，例如: name@example.com"
+    errorAndResetHarbor: 原始密碼錯誤, 無法修改密碼.
+    errorOldPwdSameAsNew: 新密碼不能與舊密碼相同.
+    formatError: 密碼長度在8到20之間且需包含至少一個大寫字元，一個小寫字元和一個數字。
+    harborInfoError: Harbor 地址、使用者名稱或密碼錯誤
+    harborInfoVersionError: Harbor 版本不匹配，請配置正確版本
+    harborNeedUpdate: 本次版本優化了對接 Harbor 服務的體驗，為了更好的使用本功能，請重新儲存一次 Harbor 配置。
+    notAdmin: 請使用管理員角色的使用者配置 Harbor
+    numAndReq: 令牌過期時間必填，且為數字
+    projectNameExist: 專案名稱已經存在
+    projectNameFormatError: 專案名稱由小寫字元、數字、和._-組成，且至少有兩個字元並以字母或數字開頭
+    projectNameReq: 請輸入專案名稱
+    pwReq: 密碼不能為空
+    pwdError: 密碼錯誤
+    unableAccess: 無法訪問 Harbor 服務
+    updateEmailServerError: 更新郵件伺服器配置失敗, 錯誤
+    updateEmailServerOk: 更新郵件伺服器配置成功
+    updateSystemError: 更新系統設定失敗, 錯誤
+    updateSystemOk: 更新系統設定成功
+    urlFormatError: URL 地址格式錯誤，正確格式如：http(s)://example.com
+    urlReq: 訪問地址不能為空
+    usernameReq: 使用者名稱不能為空
+    validateEmailServerError: 驗證郵件伺服器失敗, 錯誤
+    validateEmailServerOk: 驗證郵件伺服器成功
+  wait: 請等待管理員配置映象庫
+imageRepoSection:
+  action:
+    changePwd: 修改密碼
+    edit: 編輯
+    editAccount: 修改賬號
+  adminConfigPage:
+    gcSchedule: 立即清理垃圾
+    methodNotSupported: Rancher {rancherAuthMode} 認證暫不支援對接 {auth} 認證型別的 Harbor 服務，暫不支援普通使用者同步，admin 使用者使用不受影響。
+    removeHarborConfig: 移除 Harbor 配置
+    saveHarborConfig: 儲存
+    testEmailServer: 測試郵件伺服器
+  common:
+    reset: 重置
+  labelPage:
+    table:
+      noData: 暫無資料
+      noMatch: 沒有Label匹配當前搜尋
+  projectsPage:
+    addProject: 新建專案
+    porjectPrivate: 私有
+    projectPublic: 公開
+    projectRoles:
+      admin: Project Admin
+      developer: Developer
+      guest: Guest
+      master: Master
+    removeProject: 刪除專案
+    table:
+      noData: 暫無資料
+      noMatch: 暫無資料
+  tagPage:
+    action:
+      addLabel: 新增標籤
+      copyDigest: 複製摘要
+      retag: 複製映象
+    addLabel: 新增標籤
+    copy: 複製
+    copyDigest: 複製摘要
+    table:
+      addLabel: 添加標籤
+      noData: 暫無資料
+      noMatch: 沒有TAG匹配當前搜尋
+  userConfigPage:
+    keyCloakAuthWarning: 需要使用您的 KeyCloak 賬號在 Harbor 中同步，請輸入密碼以初始化(後續您可以使用您的賬號與初始化的密碼登入 Harbor 服務)，如果您已經在 Harbor 服務中同步了賬戶，請輸入您的密碼以同步
+    methodNotSupported: Rancher {rancherAuthMode} 認證暫不支援對接 {auth} 認證型別的 Harbor 服務。
+    reSyncAccount: 重新同步賬號
+    syncAccount: 同步賬號
