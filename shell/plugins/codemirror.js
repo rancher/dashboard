@@ -167,3 +167,161 @@ CodeMirror.registerHelper('fold', 'yamlcomments', (cm, start) => {
     };
   }
 });
+
+/**
+ * It display a dot for each space character in the text;
+ * used in combination with 'as-text-area' css properties in CodeMirror.vue to display line break markdowns
+ */
+CodeMirror.defineOption('showMarkdownLineBreaks', false, (codeMirror) => {
+  codeMirror.addOverlay({
+    name:  'show-markdown-line-breaks',
+    token: (stream) => {
+      if (stream.string[stream.pos].match(/\s/)) {
+        stream.next();
+
+        return stream.pos % 2 === 0 ? 'markdown-single-trailing-space-even' : 'markdown-single-trailing-space-odd';
+      }
+
+      stream.next();
+
+      return null;
+    }
+  });
+});
+
+/**
+ * It enables the text color selection in CodeMirror.vue
+ * references:
+ *   demo:   https://codemirror.net/5/demo/markselection.html#
+ *   add-on: https://codemirror.net/5/doc/manual.html#addon_mark-selection
+ *   source: https://codemirror.net/5/addon/selection/mark-selection.js
+ */
+CodeMirror.defineOption('styleSelectedText', false, (cm, val, old) => {
+  const prev = old && old !== CodeMirror.Init;
+
+  if (val && !prev) {
+    cm.state.markedSelection = [];
+    cm.state.markedSelectionStyle = typeof val === 'string' ? val : 'CodeMirror-selectedtext';
+    reset(cm);
+    cm.on('cursorActivity', onCursorActivity);
+    cm.on('change', onChange);
+  } else if (!val && prev) {
+    cm.off('cursorActivity', onCursorActivity);
+    cm.off('change', onChange);
+    clear(cm);
+    cm.state.markedSelection = cm.state.markedSelectionStyle = null;
+  }
+});
+
+function onCursorActivity(cm) {
+  if (cm.state.markedSelection) {
+    cm.operation(() => {
+      update(cm);
+    });
+  }
+}
+
+function onChange(cm) {
+  if (cm.state.markedSelection && cm.state.markedSelection.length) {
+    cm.operation(() => {
+      clear(cm);
+    });
+  }
+}
+
+const CHUNK_SIZE = 8;
+const Pos = CodeMirror.Pos;
+const cmp = CodeMirror.cmpPos;
+
+function coverRange(cm, from, to, addAt) {
+  if (cmp(from, to) === 0) {
+    return;
+  }
+  const array = cm.state.markedSelection;
+  const cls = cm.state.markedSelectionStyle;
+
+  for (let line = from.line;;) {
+    const start = line === from.line ? from : Pos(line, 0);
+    const endLine = line + CHUNK_SIZE; const atEnd = endLine >= to.line;
+    const end = atEnd ? to : Pos(endLine, 0);
+    const mark = cm.markText(start, end, { className: cls });
+
+    if (addAt === null || addAt === undefined) {
+      array.push(mark);
+    } else {
+      array.splice(addAt++, 0, mark);
+    }
+    if (atEnd) {
+      break;
+    }
+    line = endLine;
+  }
+}
+
+function clear(cm) {
+  const array = cm.state.markedSelection;
+
+  for (let i = 0; i < array.length; ++i) {
+    array[i].clear();
+  }
+  array.length = 0;
+}
+
+function reset(cm) {
+  clear(cm);
+  const ranges = cm.listSelections();
+
+  for (let i = 0; i < ranges.length; i++) {
+    coverRange(cm, ranges[i].from(), ranges[i].to());
+  }
+}
+
+function update(cm) {
+  if (!cm.somethingSelected()) {
+    return clear(cm);
+  }
+  if (cm.listSelections().length > 1) {
+    return reset(cm);
+  }
+
+  const from = cm.getCursor('start'); const to = cm.getCursor('end');
+
+  const array = cm.state.markedSelection;
+
+  if (!array.length) {
+    return coverRange(cm, from, to);
+  }
+
+  let coverStart = array[0].find(); let coverEnd = array[array.length - 1].find();
+
+  if (!coverStart || !coverEnd || to.line - from.line <= CHUNK_SIZE ||
+      cmp(from, coverEnd.to) >= 0 || cmp(to, coverStart.from) <= 0) {
+    return reset(cm);
+  }
+
+  while (cmp(from, coverStart.from) > 0) {
+    array.shift().clear();
+    coverStart = array[0].find();
+  }
+  if (cmp(from, coverStart.from) < 0) {
+    if (coverStart.to.line - from.line < CHUNK_SIZE) {
+      array.shift().clear();
+      coverRange(cm, from, coverStart.to, 0);
+    } else {
+      coverRange(cm, from, coverStart.from, 0);
+    }
+  }
+
+  while (cmp(to, coverEnd.to) < 0) {
+    array.pop().clear();
+    coverEnd = array[array.length - 1].find();
+  }
+  if (cmp(to, coverEnd.to) > 0) {
+    if (to.line - coverEnd.from.line < CHUNK_SIZE) {
+      array.pop().clear();
+      coverRange(cm, coverEnd.from, to);
+    } else {
+      coverRange(cm, coverEnd.to, to);
+    }
+  }
+}

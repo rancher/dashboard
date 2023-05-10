@@ -1,6 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import { createYaml } from '@shell/utils/create-yaml';
+import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
@@ -146,6 +146,11 @@ export default {
     description: {
       type:    String,
       default: ''
+    },
+
+    yamlModifiers: {
+      type:    Object,
+      default: undefined
     }
   },
 
@@ -301,7 +306,7 @@ export default {
       }
     },
 
-    createResourceYaml() {
+    createResourceYaml(modifiers) {
       const resource = this.resource;
 
       if ( typeof this.generateYaml === 'function' ) {
@@ -311,7 +316,7 @@ export default {
         const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
         const clonedResource = clone(resource);
 
-        const out = createYaml(schemas, resource.type, clonedResource);
+        const out = createYamlWithOptions(schemas, resource.type, clonedResource, modifiers);
 
         return out;
       }
@@ -322,7 +327,7 @@ export default {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
       }
 
-      const resourceYaml = this.createResourceYaml();
+      const resourceYaml = this.createResourceYaml(this.yamlModifiers);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
