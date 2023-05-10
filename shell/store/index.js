@@ -32,7 +32,7 @@ import { allHash, allHashSettled } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
-import { STORE } from 'store/store-types';
+import { STORE } from '@shell/store/store-types';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.

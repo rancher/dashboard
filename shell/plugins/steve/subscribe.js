@@ -33,7 +33,7 @@ import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
-import { STORE } from 'store/store-types';
+import { STORE } from '@shell/store/store-types';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
