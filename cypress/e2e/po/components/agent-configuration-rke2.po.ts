@@ -52,16 +52,8 @@ export default class AgentConfigurationRke2 extends ComponentPo {
 
       if (documentResult.length) {
         cy.get(`#${ areaId } [data-testid="${ type }-affinity"] [data-testid^="array-list-box"]`).then(($elements) => {
-          const count = $elements.length;
-
-          if (count > 0) {
-            cy.wrap($elements).each(() => {
-              new ArrayList(`#${ areaId } [data-testid="${ type }-affinity"]`).closeArrayListItem(0);
-              // cy.get(`#${ areaId } [data-testid="${ type }-affinity"] [data-testid="array-list-box0"] .btn.role-link.close.btn-sm`).click();
-
-              // we need this delay here in order to wait for DOM to be updated (items removed)
-              cy.wait(1000);
-            });
+          for (let index = $elements.length - 1; index >= 0 ; index--) {
+            new ArrayList(`#${ areaId } [data-testid="${ type }-affinity"]`).closeArrayListItem(index);
           }
         });
       }

@@ -22,11 +22,11 @@ describe('Agent Configuration for RKE2', () => {
     // intercept
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('customRKE2ClusterCreation');
 
-    // cluster name
-    createCustomClusterPage.nameNsDescription().name().set(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
-
     // we should be on the custom cluster creation screen (starts on cluster agent tab as per url of goTo)
     createCustomClusterPage.title().should('contain', 'Create Custom');
+
+    // cluster name
+    createCustomClusterPage.nameNsDescription().name().set(`test-cluster-${ Math.random().toString(36).substr(2, 6) }`);
 
     // navigate to the cluster agent area
     createCustomClusterPage.agentConfiguration().clickTab('#clusteragentconfig');
