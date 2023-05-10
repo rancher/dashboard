@@ -14,7 +14,7 @@ import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { LINUX } from '@shell/store/catalog';
-import { clone } from 'utils/object';
+import { clone } from '@shell/utils/object';
 import { merge } from 'lodash';
 
 export default {
