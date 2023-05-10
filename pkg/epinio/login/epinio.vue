@@ -60,7 +60,7 @@ export default {
       :disabled="$fetchState.pending"
       @click="login"
     >
-      {{ t('login.loginWithProvider', {provider: displayName}) }}
+      {{ t('login.genericProvider') }}
     </button>
   </div>
 </template>
