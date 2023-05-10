@@ -65,7 +65,26 @@ export const ACTIVELY_REMOVE = [
 
 const INDENT = 2;
 
-export function createYaml(schemas, type, data, processAlwaysAdd = true, depth = 0, path = '', rootType = null) {
+export function createYamlWithOptions(schemas, type, data, options) {
+  return createYaml(
+    schemas,
+    type,
+    data,
+    true, 0, '', null,
+    options
+  );
+}
+
+export function createYaml(
+  schemas,
+  type,
+  data,
+  processAlwaysAdd = true,
+  depth = 0,
+  path = '',
+  rootType = null,
+  dataOptions = {}
+) {
   const schema = findBy(schemas, 'id', type);
 
   if ( !rootType ) {
@@ -220,25 +239,25 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if (data[key]) {
         try {
           const cleaned = cleanUp(data);
-          const parsedData = jsyaml.dump(cleaned[key]);
+          const parsedData = dumpBlock(cleaned[key], dataOptions[key]);
 
-          out += `\n${ indent(parsedData.trim()) }`;
+          out += `\n${ indent(parsedData) }`;
         } catch (e) {
           console.error(`Error: Unable to parse map data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
       if ( SIMPLE_TYPES.includes(mapOf) ) {
-        out += `\n#  key: ${ mapOf }`;
+        out += `#  key: ${ mapOf }`;
       } else {
         // If not a simple type ie some sort of object/array, recusively build out commented fields (note data = null here) per the type's (mapOf's) schema
-        const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
+        const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions);
         let indented = indent(chunk);
 
         // convert "#    foo" to "#foo"
         indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
 
-        out += `\n${ indented }`;
+        out += `${ indented }`;
       }
 
       return out;
@@ -263,7 +282,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if ( SIMPLE_TYPES.includes(arrayOf) ) {
         out += `\n#  - ${ arrayOf }`;
       } else {
-        const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
+        const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions);
         let indented = indent(chunk, 2);
 
         // turn "#        foo" into "#  - foo"
@@ -318,7 +337,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       let chunk;
 
       if (subDef?.resourceFields && !isEmpty(subDef?.resourceFields)) {
-        chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType);
+        chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key), rootType, dataOptions);
       } else if (data[key]) {
         // if there are no fields defined on the schema but there are in the data, just format data as yaml and add to output yaml
         try {
@@ -351,6 +370,43 @@ function serializeSimpleValue(data) {
   return jsyaml.dump(data).trim();
 }
 
+function getBlockDescriptor(value, key) {
+  const header = getBlockHeader(value, key);
+
+  return {
+    header,
+    indentation: getBlockIndentation(header),
+  };
+}
+
+/**
+ *
+ * @param {string} value the block of text to be parsed
+ * @param {*} blockKey the key of the block
+ * @returns the key + the block scalar indicators, see https://yaml-multiline.info - Block Scalars
+ */
+function getBlockHeader(value, blockKey) {
+  const card = `(${ blockKey })[\\:][\\s|\\t]+[\\|\\>][\\d]*[\\-\\+]?`;
+  const re = new RegExp(card, 'gi');
+
+  const found = value.match(re);
+
+  return found?.[0] || '';
+}
+
+/**
+ *
+ * @param {string} blockHeader the key + the block scalar indicators
+ * @returns the indentation indicator from the block header, see https://yaml-multiline.info - Indentation
+ */
+function getBlockIndentation(blockHeader) {
+  const blockScalars = blockHeader.substr(blockHeader.indexOf(':') + 1);
+
+  const indentation = blockScalars.match(/\d+/);
+
+  return indentation?.[0] || '';
+}
+
 export function typeRef(type, str) {
   const re = new RegExp(`^${ type }\\[(.*)\\]$`);
   const match = str.match(re);
@@ -377,6 +433,47 @@ export function saferDump(obj) {
 
   if ( out === '{}\n' ) {
     return '';
+  }
+
+  return out;
+}
+
+/**
+ * Handles newlines indicators in the multiline blocks.
+ *
+ * this is required since jsyaml.dump doesn't support chomping and scalar style at the moment.
+ * see: https://github.com/nodeca/js-yaml/issues/171
+ *
+ * @param {*} data the multiline block
+ * @param {*} options blocks indicators, see: https://yaml-multiline.info
+ *
+ * - scalarStyle:
+ *     one of '|', '>'
+ *     default '|'
+ * - chomping:
+ *     one of: null, '-', '+'
+ *     default: null
+ * @returns the result of jsyaml.dump with the addition of multiline indicators
+ */
+export function dumpBlock(data, options = {}) {
+  const parsed = jsyaml.dump(data);
+
+  let out = parsed;
+
+  const blockFields = Object.keys(data).filter(k => data[k].includes('\n'));
+
+  if (blockFields.length) {
+    for (const key of blockFields) {
+      const scalarStyle = options[key]?.scalarStyle ?? '|';
+      const chomping = options[key]?.chomping ?? '';
+
+      const desc = getBlockDescriptor(out, key);
+
+      /**
+       * Replace the original block indicators with the ones provided in the options param
+       */
+      out = out.replace(desc.header, `${ key }: ${ scalarStyle }${ chomping }${ desc.indentation }`);
+    }
   }
 
   return out;

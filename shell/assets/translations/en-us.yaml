@@ -455,7 +455,13 @@ authConfig:
     objectClass: Object Class
     password: Password
     port: Port
+    protocol: Protocol
+    protocols:
+      starttls: Start TLS
+      ldap: LDAP
+      tls: LDAPS (TLS)
     customizeSchema: Customize Schema
+    oktaSchema: 'The defaults below are for a generic OpenLDAP server. For more information on the values to use when using the Okta LDAP interface, see: <a target="_blank" rel="noopener noreferrer nofollow" href="https://help.okta.com/en-us/Content/Topics/Directory/LDAP-interface-connection-settings.htm">Okta LDAP Interface connection settings</a>'
     users: Users
     groups: Groups
     searchAttribute: Search Attribute
@@ -500,6 +506,13 @@ authConfig:
     shibboleth: Configure a Shibboleth account
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
+    search:
+      title: User and Group Search
+      message: The SAML Protocol does not support search or lookup for users or groups. In order to enabled search, an OpenLDAP server must be configured.
+      on: LDAP User and Group search has been configured
+      off: LDAP User and Group search is not configured
+      show: Show details
+      hide: Hide details
   azuread:
     tenantId: Tenant ID
     applicationId: Application ID
@@ -1236,7 +1249,7 @@ cluster:
       memory: Memory
       disk: Disk
       image: Image
-      network: 
+      network:
         title: Networks
         network: Network
         addNetwork: Add Network
@@ -1814,7 +1827,7 @@ cluster:
       option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Pod Security Admission Configuration Template
-      option: 
+      option:
         none: (None)
         default: Default - RKE2 Embedded
     cisProfile:
@@ -2189,16 +2202,16 @@ fleet:
     error: Error
     ready: Ready
     errors: Errors
-  workspaces: 
+  workspaces:
     tabs:
       restrictions: Allowed Target Namespaces
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
-  restrictions: 
+  restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
     banner: "{count, plural,
           =0 { Adding namespaces here will create a GitRepoRestriction. }
-          other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction} 
+          other { Only the Git Repo Restriction's <code>allowedTargetNamespaces</code> is managed here. You can make additional changes to the Git Repo Restriction}
         }"
 footer:
   docs: Docs
@@ -2247,7 +2260,7 @@ gatekeeperIndex:
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
   violations: Violations
 
-gatekeeperInstall: 
+gatekeeperInstall:
   auditInterval: Auto Interval
   constraintViolationsLimit: Constraint Violations Limit
   runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
@@ -3939,6 +3952,15 @@ podDisruptionBudget:
   maxUnavailable:
     label: Max. unavailable Pods
 
+inactivity:
+  title: Session expiring
+  titleExpired: Session expired
+  banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
+  bannerExpired: Your session has expired in this tab due to inactivity.
+  content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
+  contentExpired: To return to this page click “Refresh” below or refresh the browser.
+  cta: Resume Session
+  ctaExpired: Refresh
 
 # Rancher Extensions
 plugins:
@@ -4038,7 +4060,7 @@ plugins:
 podSecurityAdmission:
   name: Pod Security Admission
   description: Define the admission control mode you want to use for the pod security
-  banner: 
+  banner:
     modifications: 'Changing any template that is currently in use will cause an update to those live clusters the next time the cluster is updated'
   labels:
     enforce: Enforce
@@ -4052,7 +4074,7 @@ podSecurityAdmission:
     restricted: restricted
   version:
     placeholder: 'Version (default: latest)'
-  exemptions: 
+  exemptions:
     title: Exemptions
     description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
     placeholder: Enter a comma separated list of {psaExemptionsControl}
@@ -5173,7 +5195,7 @@ storageClass:
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
   harvesterhci:
     title: Harvester (CSI)
-    warning: 
+    warning:
       unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
     hostStorageClass:
       label: Host Storage Class
@@ -6118,8 +6140,6 @@ workload:
       pod: Pod
       containers: Containers
 
-
-
 ##############################
 # Model Properties
 ##############################
@@ -6765,7 +6785,7 @@ typeLabel:
     {count, plural,
       one { Cluster Registration Token }
       other { Cluster Registration Tokens }
-    } 
+    }
 
 action:
   clone: Clone
@@ -6989,6 +7009,14 @@ performance:
     label: Websocket Web Worker
     description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
     checkboxLabel: Enable Advanced Websocket Web Worker
+  inactivity:
+    title: Inactivity
+    checkboxLabel: Enable inactivity session expiration
+    inputLabel: Inactivity timeout (minutes)
+    information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (<code>auth-user-session-ttl-minutes</code> and <code>auth-token-max-ttl-minutes</code>) in the Settings page.
+    description: When enabled and the user is inactive past the specified timeout, the UI will no longer fresh page content and the user must reload the page to continue.
+    authUserTTL: This timeout cannot be higher than the user session timeout auth-user-session-ttl-minutes, which is currently {current} minutes.
+
 
 banner:
   label: Fixed Banners

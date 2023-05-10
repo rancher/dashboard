@@ -26,7 +26,7 @@ import Loading from '@shell/components/Loading';
 import Networking from '@shell/components/form/Networking';
 import VolumeClaimTemplate from '@shell/edit/workload/VolumeClaimTemplate';
 import Job from '@shell/edit/workload/Job';
-import { _EDIT, _CREATE, _VIEW } from '@shell/config/query-params';
+import { _EDIT, _CREATE, _VIEW, _CLONE } from '@shell/config/query-params';
 import WorkloadPorts from '@shell/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import KeyValue from '@shell/components/form/KeyValue';
@@ -178,7 +178,7 @@ export default {
 
     // EDIT view for POD
     // Transform it from POD world to workload
-    if ((this.mode === _EDIT || this.mode === _VIEW ) && this.value.type === 'pod' ) {
+    if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
       const podSpec = { ...this.value.spec };
       const metadata = { ...this.value.metadata };
 
@@ -198,6 +198,7 @@ export default {
     if (
       this.mode === _CREATE ||
       this.mode === _VIEW ||
+      this.realMode === _CLONE ||
       (!createSidecar && !this.value.hasSidecars) // hasSideCars = containers.length > 1 || initContainers.length;
     ) {
       container = containers[0];
@@ -703,7 +704,7 @@ export default {
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
-        this.mode === _CREATE
+        (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
         this.spec.selector = { matchLabels: this.value.workloadSelector };
         Object.assign(this.value.metadata.labels, this.value.workloadSelector);
@@ -721,7 +722,7 @@ export default {
       if (
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
-        this.mode === _CREATE
+        (this.mode === _CREATE || this.realMode === _CLONE)
       ) {
         if (!template.metadata) {
           template.metadata = { labels: this.value.workloadSelector };
@@ -783,6 +784,13 @@ export default {
       this.fixPodSecurityContext(this.podTemplateSpec);
 
       template.metadata.namespace = this.value.metadata.namespace;
+
+      // Handle the case where the user has changed the name of the workload
+      // Only do this for clone. Not allowed for edit
+      if (this.realMode === _CLONE) {
+        template.metadata.name = this.value.metadata.name;
+        template.metadata.description = this.value.metadata.description;
+      }
 
       // delete this.value.kind;
       if (this.container && !this.container.name) {

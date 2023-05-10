@@ -4,7 +4,7 @@ import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '~/cypress/e2e/po/components/action-menu.po';
 import NameNsDescriptionPo from '~/cypress/e2e/po/components/name-ns-description.po';
-import AppReposListPagePo from '~/cypress/e2e/po/pages/apps/app-repos.po';
+import ReposListPagePo from '~/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '~/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 export default class ExtensionsPo extends PagePo {
@@ -75,7 +75,7 @@ export default class ExtensionsPo extends PagePo {
 
     this.manageReposClick();
 
-    const appRepoList = new AppReposListPagePo('local');
+    const appRepoList = new ReposListPagePo('local', 'apps');
 
     // create a new clusterrepo
     appRepoList.waitForPage();
