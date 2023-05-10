@@ -33,13 +33,14 @@ import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
+import { STORE } from 'store/store-types';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
 const workerQueues = {};
 
-const supportedStores = ['cluster', 'rancher', 'management'];
+const supportedStores = [STORE.CLUSTER, STORE.RANCHER, STORE.MANAGEMENT];
 
 const waitForSettingsSchema = (store) => {
   return waitFor(() => !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
@@ -54,7 +55,7 @@ const isAdvancedWorker = (ctx) => {
   const storeName = getters.storeName;
   const clusterId = rootGetters.clusterId;
 
-  if (clusterId === BLANK_CLUSTER || !supportedStores.includes(storeName)) {
+  if (!supportedStores.includes(storeName) || (clusterId === BLANK_CLUSTER && storeName === STORE.CLUSTER)) {
     return false;
   }
 
@@ -799,8 +800,18 @@ const defaultActions = {
     }
 
     // If we're trying to watch this event, attempt to re-watch
-    if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
-      commit('setWatchStopped', obj);
+    //
+    // To make life easier in the advanced worker `resource.stop` --> `watch` is handled here (basically for access to getters.nextResourceVersion)
+    // This means the concept of resource sub watch state needs massaging
+    const advancedWorker = msg.advancedWorker;
+    const localState = !advancedWorker;
+    const watchStarted = localState ? getters['watchStarted'](obj) : advancedWorker;
+
+    if ( getters['schemaFor'](type) && watchStarted) {
+      if (localState) {
+        commit('setWatchStopped', obj);
+      }
+
       dispatch('watch', obj);
     }
   },

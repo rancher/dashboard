@@ -280,7 +280,10 @@ const resourceWatcherActions = {
     removeFromWorkerQueue(watchKey);
 
     // ToDo: SM this won't be needed once we can handle unexpected stops inside the resourceWatcher itself
-    resourceWatcherActions.dispatch(msg);
+    resourceWatcherActions.dispatch({
+      ...msg,
+      advancedWorker: true,
+    });
   },
   'resource.error': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread

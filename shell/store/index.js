@@ -27,6 +27,7 @@ import {
   splitNamespaceFilterKey,
 } from '@shell/utils/namespace-filter';
 import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
+import { STORE } from 'store/store-types';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -36,19 +37,19 @@ export const BLANK_CLUSTER = '_';
 
 export const plugins = [
   Steve({
-    namespace:      'management',
+    namespace:      STORE.MANAGEMENT,
     baseUrl:        '/v1',
     modelBaseClass: BY_TYPE,
     supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
   Steve({
-    namespace:      'cluster',
+    namespace:      STORE.CLUSTER,
     baseUrl:        '', // URL is dynamically set for the selected cluster
     supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
     supportsGc:     true, // Enable garbage collection for this store only
   }),
   Steve({
-    namespace:      'rancher',
+    namespace:      STORE.RANCHER,
     baseUrl:        '/v3',
     supportsStream: false, // The norman API doesn't support streaming
     modelBaseClass: STEVE_MODEL_TYPES.NORMAN,
