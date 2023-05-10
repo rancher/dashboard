@@ -11,6 +11,7 @@ import { mapPref, GROUP_RESOURCES, DEV } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
 import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
+import DOMPurify from 'dompurify';
 
 export default {
   name:       'ListProjectNamespace',
@@ -271,7 +272,10 @@ export default {
       const row = group.rows[0];
 
       if (row.isFake) {
-        return this.t('resourceTable.groupLabel.project', { name: row.project?.nameDisplay }, true);
+        return DOMPurify.sanitize(
+          this.t('resourceTable.groupLabel.project', { name: row.project?.nameDisplay }, true),
+          { ALLOWED_TAGS: ['span'] }
+        );
       }
 
       return row.groupByLabel;
