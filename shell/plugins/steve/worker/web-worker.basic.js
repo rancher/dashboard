@@ -6,7 +6,7 @@ const SCHEMA_FLUSH_TIMEOUT = 2500;
 
 const state = {
   store:      '', // Store name
-  flushTimer: undefined, // Timer to flush the schema chaneg queue
+  flushTimer: undefined, // Timer to flush the schema change queue
   queue:      [], // Schema change queue
   schemas:    {} // Map of schema id to hash to track when a schema actually changes
 };
@@ -46,6 +46,20 @@ function load(data) {
 function redispatch(msg) {
   self.postMessage({ redispatch: msg });
 }
+
+/**
+ * These actions aren't applicable to the basic worker, so bounce back to ui thread
+ *
+ * These are called when a queue of actions is flushed. Queue is populated from requests made before we know if worker is basic or advanced.
+ */
+const advancedWorkerActions = {
+  watch: (msg) => {
+    redispatch({ send: msg });
+  },
+  createWatcher: (msg) => {
+    redispatch({ subscribe: msg });
+  }
+};
 
 const workerActions = {
   onmessage: (e) => {
@@ -96,12 +110,7 @@ const workerActions = {
     // Delete the schema from the map, so if it comes back we don't ignore it if the hash is the same
     delete state.schemas[id];
   },
-  watch: (msg) => {
-    redispatch({ send: msg });
-  },
-  createWatcher: (msg) => {
-    redispatch({ subscribe: msg });
-  }
+  ...advancedWorkerActions
 };
 
 self.onmessage = workerActions.onmessage; // bind everything to the worker's onmessage handler via the workerAction

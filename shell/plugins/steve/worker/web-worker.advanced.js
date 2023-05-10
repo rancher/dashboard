@@ -274,12 +274,14 @@ const resourceWatcherActions = {
     }
   },
   'resource.stop': (msg) => {
-    // ToDo: SM until we can resolve the resourceVersion within the resourceWatcher internally, we'll want to bubble this out to the UI thread
+    // State is handled in the resourceWatcher....
     const watchKey = watchKeyFromMessage(msg);
 
     removeFromWorkerQueue(watchKey);
 
-    // ToDo: SM this won't be needed once we can handle unexpected stops inside the resourceWatcher itself
+    // ... however we still want to bubble out to UI thread
+    // See comment in resourceWatcher 'resource.stop' handler, until we can resolve the resourceVersion within the resourceWatcher
+    // internally, we'll want to bubble this out to the UI thread. When that's resolved this won't be needed
     resourceWatcherActions.dispatch({
       ...msg,
       advancedWorker: true,

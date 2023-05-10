@@ -75,10 +75,8 @@ export async function createWorker(store, ctx) {
   }
 
   if (!store.$workers[storeName]) {
-    /**
-     * we know we need a worker at this point but we don't know which one so we're creating a mock interface
-     * it will simply queue up any messages for the real worker to process when it loads up
-     */
+    // we know we need a worker at this point but we don't know which one so we're creating a mock interface
+    // it will simply queue up any messages for the real worker to process when it loads up
     store.$workers[storeName] = {
       postMessage: (msg) => {
         if (workerQueues[storeName]) {
