@@ -468,8 +468,8 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
-  height: 100%;
-  position: relative;
+  height: 87%;
+  // position: relative;
   justify-content: flex-start;
 }
 
@@ -646,8 +646,9 @@ $spacer: 10px;
   flex-direction: column;
 
   &__step {
-    flex: 1;
     overflow: auto;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -656,7 +657,7 @@ $spacer: 10px;
     // Overrides outlet padding
     margin-left: -$space-m;
     margin-right: -$space-m;
-    margin-bottom: -$space-m;
+    // margin-bottom: -$space-m;
     padding: $space-s $space-m;
 
     display: flex;
@@ -664,7 +665,10 @@ $spacer: 10px;
     padding-top: $spacer;
 
     border-top: var(--header-border-size) solid var(--header-border);
-
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: var(--body-bg);
     .controls-steps {
 
       .btn {

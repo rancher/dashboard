@@ -1816,7 +1816,7 @@ export default {
 
   .install-steps {
     padding-top: 0;
-
+    height: 0; //new
     position: relative;
     overflow: hidden;
 
@@ -1959,16 +1959,18 @@ export default {
 
   .scroll {
     &__container {
-      $yaml-height: 200px;
+      $yaml-height: 200px;;
       min-height: $yaml-height;
-      height: 0;
+      margin-bottom: 60px;
+      overflow: auto;
+      display: flex;
+      flex: 1;
     }
     &__content {
       display: flex;
       flex: 1;
       overflow: auto;
     }
-
   }
 
   ::v-deep .yaml-editor {
@@ -1978,8 +1980,9 @@ export default {
 .outer-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  // flex: 1;
   padding: 0;
+  height: calc(100% - 112px);
 }
 
 .header {
@@ -2064,7 +2067,7 @@ export default {
   z-index: 10;
   display: flex;
   flex-direction: column;
-  background: var(--primary-text);
+  background: var(--body-bg);
 }
 
 </style>
