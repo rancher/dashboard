@@ -1611,6 +1611,27 @@ cluster:
     additionalManifest:
       title: Additional Manifest
       tooltip: 'Additional Kubernetes Manifest YAML to be applied to the cluster on startup.'
+  agentConfig:
+    tabs:
+      cluster: Cluster Agent
+      fleet: Fleet Agent
+    groups:
+      deploymentLabels: Deployment Labels
+      selector: Selector
+      podAffinity: Affinity
+      podTolerations: Tolerations
+      podRequestsAndLimits: Requests and Limits
+    subGroups:
+      podAffinityAnti: Pod Affinity/Anti-Affinity
+      nodeAffinity: Node Affinity
+    banners:
+      advanced: These are advanced configuration options. Generally, they should be left as-is.
+      tolerations: Additional Pod Tolerations will be added to the default Tolerations applied by Rancher.
+      limits: Pod Requests and Limits do not have a default configuration.
+      windowsCompatibility: "We do not recommended removing the Node Affinity rule that prevents the <b>agent</b> from running on Windows nodes as this is not a supported configuration."
+    affinity:
+      default: Use default affinity rules defined by Rancher
+      custom: Use custom affinity rules
   advanced:
     argInfo:
       title: Additional Kubelet Args
@@ -5944,15 +5965,19 @@ workload:
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
       affinityOption: Affinity
       antiAffinityOption: Anti-Affinity
+      matchFields:
+        label: Fields
       matchExpressions:
+        label: Expressions
         addRule: Add Rule
         doesNotExist: is not set
         exists: is set
         greaterThan: ">"
         in: in list
-        inNamespaces: "Pods in these namespaces:"
+        inNamespaces: "Specific namespaces"
         key: Key
         lessThan: <
+        matchType: Match Type
         namespaces: Namespaces
         notIn: not in list
         operator: Operator
@@ -5968,6 +5993,7 @@ workload:
       schedulingRules: Run pods on node(s) matching scheduling rules
       specificNode: Run pods on specific node(s)
       thisPodNamespace: This pod's namespace
+      allNamespaces: All namespaces
       topologyKey:
         label: Topology Key
         placeholder: e.g. failure-domain.beta.kubernetes.io/zone
@@ -5995,7 +6021,7 @@ workload:
       effectOptions:
         all: All
         noExecute: NoExecute
-        noSchedule: "NoSchedule,"
+        noSchedule: "NoSchedule"
         preferNoSchedule: PreferNoSchedule
       labelKey: Label Key
       operator: Operator

@@ -83,7 +83,12 @@ export const SETTING = {
    * both pre and post log in. If not present defaults to the usual process
    */
   THEME:                                'ui-theme',
-  SYSTEM_NAMESPACES:                    'system-namespaces'
+  SYSTEM_NAMESPACES:                    'system-namespaces',
+  /**
+   * Cluster Agent configuration
+   */
+  CLUSTER_AGENT_DEFAULT_AFFINITY:       'cluster-agent-default-affinity',
+  FLEET_AGENT_DEFAULT_AFFINITY:         'fleet-agent-default-affinity',
 };
 
 // These are the settings that are allowed to be edited via the UI

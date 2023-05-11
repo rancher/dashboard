@@ -115,7 +115,24 @@ export default {
     },
 
     update() {
-      this.$emit('input', this.rules);
+      // let's delete the vKey prop as it's only poluting the data
+      const rules = this.rules.map((rule) => {
+        const newRule = { ...rule };
+
+        // prevent vKey from being sent as data
+        if (newRule.vKey) {
+          delete newRule.vKey;
+        }
+
+        // let's clear the value field if operator is Exists
+        if (newRule.operator === 'Exists' && newRule.value) {
+          newRule.value = null;
+        }
+
+        return newRule;
+      });
+
+      this.$emit('input', rules);
     },
 
     addToleration() {
@@ -126,6 +143,8 @@ export default {
       if (neu !== 'NoExecute' && rule.tolerationSeconds) {
         delete rule.tolerationSeconds;
       }
+
+      this.update();
     }
   }
 
@@ -146,7 +165,7 @@ export default {
       <span />
     </div>
     <div
-      v-for="rule in rules"
+      v-for="(rule, index) in rules"
       :key="rule.vKey"
       class="rule"
     >
@@ -154,6 +173,9 @@ export default {
         <LabeledInput
           v-model="rule.key"
           :mode="mode"
+          :data-testid="`toleration-key-index${ index }`"
+          class="height-adjust-input"
+          @input="update"
         />
       </div>
       <div class="col">
@@ -162,6 +184,7 @@ export default {
           v-model="rule.operator"
           :options="operatorOpts"
           :mode="mode"
+          :data-testid="`toleration-operator-index${ index }`"
           @input="update"
         />
       </div>
@@ -171,6 +194,7 @@ export default {
             value="n/a"
             :mode="mode"
             disabled
+            class="height-adjust-input"
           />
         </div>
       </template>
@@ -179,6 +203,9 @@ export default {
           <LabeledInput
             v-model="rule.value"
             :mode="mode"
+            :data-testid="`toleration-value-index${ index }`"
+            class="height-adjust-input"
+            @input="update"
           />
         </div>
       </template>
@@ -187,6 +214,7 @@ export default {
           v-model="rule.effect"
           :options="effectOpts"
           :mode="mode"
+          :data-testid="`toleration-effect-index${ index }`"
           @input="e=>updateEffect(e, rule)"
         />
       </div>
@@ -196,6 +224,9 @@ export default {
           :disabled="rule.effect !== 'NoExecute'"
           :mode="mode"
           suffix="Seconds"
+          :data-testid="`toleration-seconds-index${ index }`"
+          class="height-adjust-input"
+          @input="update"
         />
       </div>
       <div class="col remove">
@@ -204,6 +235,7 @@ export default {
           type="button"
           class="btn role-link"
           :disabled="mode==='view'"
+          :data-testid="`toleration-remove-index${ index }`"
           @click="remove(rule)"
         >
           <t k="generic.remove" />
@@ -214,6 +246,7 @@ export default {
       v-if="!isView"
       type="button"
       class="btn role-tertiary"
+      data-testid="add-toleration-btn"
       @click="addToleration"
     >
       <t k="workload.scheduling.tolerations.addToleration" />
@@ -228,8 +261,8 @@ export default {
 
 .rule, .toleration-headers{
   display: grid;
-  grid-template-columns: 20% 10% 20% 15% 20% 10%;
-  grid-gap: $column-gutter;
+  grid-template-columns: 20% 10% 20% 15% 20% 15%;
+  grid-gap: 10px;
   align-items: center;
 }
 
@@ -246,5 +279,8 @@ export default {
 }
 .remove BUTTON {
   padding: 0px;
+}
+.height-adjust-input {
+  min-height: 42px;
 }
 </style>

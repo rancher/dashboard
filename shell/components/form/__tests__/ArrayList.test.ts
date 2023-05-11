@@ -23,7 +23,7 @@ describe('the ArrayList', () => {
         initialEmptyRow: true
       },
     });
-    const arrayListBoxes = wrapper.findAll('[data-testid="array-list-box"]');
+    const arrayListBoxes = wrapper.findAll('[data-testid^="array-list-box"]');
 
     expect(arrayListBoxes).toHaveLength(1);
   });
@@ -40,7 +40,7 @@ describe('the ArrayList', () => {
 
     await arrayListButton.click();
     await arrayListButton.click();
-    const arrayListBoxes = wrapper.findAll('[data-testid="array-list-box"]');
+    const arrayListBoxes = wrapper.findAll('[data-testid^="array-list-box"]');
 
     expect(arrayListBoxes).toHaveLength(2);
   });
@@ -55,7 +55,7 @@ describe('the ArrayList', () => {
     const deleteButton = wrapper.get('[data-testid^="remove-item"]').element as HTMLElement;
 
     await deleteButton.click();
-    const arrayListBoxes = wrapper.findAll('[data-testid="array-list-box"]');
+    const arrayListBoxes = wrapper.findAll('[data-testid^="array-list-box"]');
 
     expect(arrayListBoxes).toHaveLength(1);
   });
