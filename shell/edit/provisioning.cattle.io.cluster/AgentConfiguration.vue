@@ -89,8 +89,6 @@ export default {
   },
 
   data() {
-    const bannerMessageKey = `cluster.agentConfig.banners.${ this.type }Advanced`;
-
     const nodeAffinity = this.value?.overrideAffinity?.nodeAffinity;
     const podAffinity = this.value?.overrideAffinity?.podAffinity;
     const podAntiAffinity = this.value?.overrideAffinity?.podAntiAffinity;
@@ -104,7 +102,6 @@ export default {
     }
 
     return {
-      bannerMessageKey,
       defaultAffinity: {},
       affinitySetting: hasAffinityPopulated ? CUSTOM : DEFAULT,
       nodeAffinity:    {}
@@ -222,7 +219,7 @@ export default {
     <Banner
       :closable="false"
       color="info"
-      :label-key="bannerMessageKey"
+      label-key="cluster.agentConfig.banners.advanced"
     />
 
     <GroupPanel
