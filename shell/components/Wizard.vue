@@ -644,10 +644,11 @@ $spacer: 10px;
   flex-direction: column;
 
   &__step {
-    overflow: auto;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     height: 100%;
+    flex: 1;
   }
 }
 
