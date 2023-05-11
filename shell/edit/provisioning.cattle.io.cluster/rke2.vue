@@ -716,8 +716,9 @@ export default {
       return true;
     },
 
-    // Only for extensions - extension can register a 'false' cloud credential to indicate that a cloud credential is not needed
-    // Need to look this up directly in order to get the 'false' value
+    /**
+     * Only for extensions - extension can register a 'false' cloud credential to indicate that a cloud credential is not needed
+     */
     customCredentialComponentRequired() {
       return this.$plugin.getDynamic('cloud-credential', this.provider);
     },
@@ -1246,7 +1247,6 @@ export default {
         remove: false,
         create: true,
         update: false,
-        uid:    name,
         pool:   {
           name,
           etcdRole:             numCurrentPools === 0,
@@ -2092,12 +2092,14 @@ export default {
       this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
 
-    // Track Machine Pool validation status
-    machinePoolValidationChanged(uid, value) {
+    /**
+     * Track Machine Pool validation status
+     */
+    machinePoolValidationChanged(id, value) {
       if (value === undefined) {
-        this.$delete(this.machinePoolValidation, uid);
+        this.$delete(this.machinePoolValidation, id);
       } else {
-        this.$set(this.machinePoolValidation, uid, value);
+        this.$set(this.machinePoolValidation, id, value);
       }
     }
   },
@@ -2219,7 +2221,7 @@ export default {
               :name="obj.id"
               :label="obj.pool.name || '(Not Named)'"
               :show-header="false"
-              :error="!machinePoolValidation[obj.uid]"
+              :error="!machinePoolValidation[obj.id]"
             >
               <MachinePool
                 ref="pool"
@@ -2232,7 +2234,7 @@ export default {
                 :machine-pools="machinePools"
                 :busy="busy"
                 @error="e=>errors = e"
-                @validationChanged="v=>machinePoolValidationChanged(obj.uid, v)"
+                @validationChanged="v=>machinePoolValidationChanged(obj.id, v)"
               />
             </Tab>
           </template>

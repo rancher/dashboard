@@ -1,7 +1,7 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
-import { _EDIT } from '@shell/config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 import Taints from '@shell/components/form/Taints.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
@@ -123,8 +123,11 @@ export default {
 
     isWindows() {
       return this.value?.config?.os === 'windows';
-    }
+    },
 
+    modeWithBusy() {
+      return this.busy ? _VIEW : this.mode;
+    }
   },
 
   watch: {
@@ -137,6 +140,13 @@ export default {
         this.value.pool.machineOS = 'linux';
       }
     }
+  },
+
+  /**
+   * On creation, ensure that the pool is marked valid - custom machine pools can emit further validation events
+   */
+  created() {
+    this.$emit('validationChanged', true);
   },
 
   beforeDestroy() {
@@ -299,6 +309,7 @@ export default {
             :mode="mode"
             :output-modifier="true"
             :base-unit="t('cluster.machinePool.autoReplace.unit')"
+            :disabled="busy"
             @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}s`"
           />
         </div>
@@ -310,6 +321,7 @@ export default {
             v-model="value.pool.drainBeforeDelete"
             :mode="mode"
             :label="t('cluster.machinePool.drain.label')"
+            :disabled="busy"
           />
         </div>
       </div>
@@ -317,7 +329,7 @@ export default {
       <KeyValue
         v-model="value.pool.labels"
         :add-label="t('labels.addLabel')"
-        :mode="mode"
+        :disabled="busy"
         :title="t('cluster.machinePool.labels.label')"
         :read-allowed="false"
         :value-can-be-empty="true"
@@ -328,6 +340,7 @@ export default {
       <Taints
         v-model="value.pool.taints"
         :mode="mode"
+        :disabled="busy"
       />
 
       <portal-target
