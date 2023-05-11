@@ -1500,46 +1500,45 @@ export default {
         </div>
       </template>
       <template #helmValues>
-        <div class="sticky-header">
-          <Banner
-            v-if="step2Description"
-            color="info"
-            class="description"
+        <Banner
+          v-if="step2Description"
+          color="info"
+          class="description"
+        >
+          {{ step2Description }}
+        </Banner>
+        <div class="step__values__controls">
+          <ButtonGroup
+            v-model="preFormYamlOption"
+            :options="formYamlOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            :disabled="preFormYamlOption != formYamlOption"
+          />
+          <div class="step__values__controls--spacer">
+&nbsp;
+          </div>
+          <ButtonGroup
+            v-if="showDiff"
+            v-model="diffMode"
+            :options="yamlDiffModeOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+          />
+          <div
+            v-if="hasReadme && !showingReadmeWindow"
+            class="btn-group"
           >
-            {{ step2Description }}
-          </Banner>
-          <div class="step__values__controls">
-            <ButtonGroup
-              v-model="preFormYamlOption"
-              :options="formYamlOptions"
-              inactive-class="bg-disabled btn-sm"
-              active-class="bg-primary btn-sm"
-              :disabled="preFormYamlOption != formYamlOption"
-            />
-            <div class="step__values__controls--spacer">
-  &nbsp;
-            </div>
-            <ButtonGroup
-              v-if="showDiff"
-              v-model="diffMode"
-              :options="yamlDiffModeOptions"
-              inactive-class="bg-disabled btn-sm"
-              active-class="bg-primary btn-sm"
-            />
-            <div
-              v-if="hasReadme && !showingReadmeWindow"
-              class="btn-group"
+            <button
+              type="button"
+              class="btn bg-primary btn-sm"
+              @click="showSlideIn = !showSlideIn"
             >
-              <button
-                type="button"
-                class="btn bg-primary btn-sm"
-                @click="showSlideIn = !showSlideIn"
-              >
-                {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
-              </button>
-            </div>
+              {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
+            </button>
           </div>
         </div>
+
         <div class="scroll__container">
           <div class="scroll__content">
             <!-- Values (as Custom Component in ./shell/charts/) -->
@@ -1782,7 +1781,6 @@ export default {
           </div>
         </div>
       </div>
-
       <Banner
         color="warning"
         class="description"
@@ -2058,15 +2056,6 @@ export default {
   background-color: var(--warning-banner-bg);
   color:var(--warning);
   margin-top: 5px;
-}
-
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  background: var(--body-bg);
 }
 
 </style>
