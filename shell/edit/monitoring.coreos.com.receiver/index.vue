@@ -48,6 +48,7 @@ export default {
       for (let i = 0; i < this.value.spec.email_configs.length; i++) {
         if (this.value.spec.email_configs[i].smarthost) {
           const hostPort = this.value.spec.email_configs[i].smarthost.split(':');
+
           this.$set(this.value.spec.email_configs[i], 'host', hostPort[0] || '');
           this.$set(this.value.spec.email_configs[i], 'port', hostPort[1] || '');
           delete this.value.spec.email_configs[i]['smarthost'];
