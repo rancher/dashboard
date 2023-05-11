@@ -20,7 +20,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import jsyaml from 'js-yaml';
 import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
-import { _EDIT, _VIEW } from 'config/query-params';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 export default {
   components: {
@@ -43,7 +43,7 @@ export default {
 
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
-    console.log('this.mode', this.mode);
+
     if (this.mode === _EDIT || this.mode === _VIEW) {
       for (let i = 0; i < this.value.spec.email_configs.length; i++) {
         if (this.value.spec.email_configs[i].smarthost) {
