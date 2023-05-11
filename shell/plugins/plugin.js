@@ -40,7 +40,12 @@ export default async function(context) {
         });
       }
     } catch (e) {
-      console.error('Could not load UI Plugin list', e); // eslint-disable-line no-console
+      if (e?.code === 404) {
+        // Not found, so extensions operator probably not installed
+        console.log('Could not load UI Extensions list (Extensions Operator may not be installed)'); // eslint-disable-line no-console
+      } else {
+        console.error('Could not load UI Extensions list', e); // eslint-disable-line no-console
+      }
     }
 
     // Load all of the plugins
