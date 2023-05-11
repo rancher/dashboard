@@ -43,14 +43,28 @@ export default {
     const configMap = this.value.spec.rkeConfig?.registries?.configs || {};
     const entries = [];
 
+    const defaultAddValue = {
+      hostname:             '',
+      authConfigSecretName: null,
+      caBundle:             '',
+      insecureSkipVerify:   false,
+      tlsSecretName:        null,
+    };
+
     for ( const hostname in configMap ) {
+      if (configMap[hostname]) {
+        configMap[hostname].insecureSkipVerify = configMap[hostname].insecureSkipVerify ?? defaultAddValue.insecureSkipVerify;
+        configMap[hostname].authConfigSecretName = configMap[hostname].authConfigSecretName ?? defaultAddValue.authConfigSecretName;
+        configMap[hostname].caBundle = configMap[hostname].caBundle ?? defaultAddValue.caBundle;
+        configMap[hostname].tlsSecretName = configMap[hostname].tlsSecretName ?? defaultAddValue.tlsSecretName;
+      }
       entries.push({
         hostname,
         ...configMap[hostname],
       });
     }
 
-    return { entries };
+    return { entries, defaultAddValue };
   },
 
   computed: {
@@ -58,16 +72,6 @@ export default {
       get() {
         return TYPES.TLS;
       },
-    },
-
-    defaultAddValue() {
-      return {
-        hostname:             '',
-        authConfigSecretName: null,
-        caBundle:             '',
-        insecureSkipVerify:   false,
-        tlsSecretName:        null,
-      };
     },
   },
 
