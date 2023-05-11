@@ -1816,7 +1816,7 @@ export default {
 
   .install-steps {
     padding-top: 0;
-    height: 0; //new
+    height: 0;
     position: relative;
     overflow: hidden;
 

@@ -468,8 +468,7 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
-  height: 87%;
-  // position: relative;
+  height: 0;
   justify-content: flex-start;
 }
 
@@ -641,7 +640,6 @@ $spacer: 10px;
   height: 0;
   overflow-y: auto;
   padding: 20px 2px 2px 2px; // Handle borders flush against edge
-
   display: flex;
   flex-direction: column;
 
@@ -649,6 +647,7 @@ $spacer: 10px;
     overflow: auto;
     display: flex;
     flex-direction: column;
+    height: 100%;
   }
 }
 
