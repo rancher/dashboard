@@ -1959,7 +1959,7 @@ export default {
 
   .scroll {
     &__container {
-      $yaml-height: 200px;;
+      $yaml-height: 200px;
       min-height: $yaml-height;
       margin-bottom: 60px;
       overflow: auto;
@@ -1980,7 +1980,6 @@ export default {
 .outer-container {
   display: flex;
   flex-direction: column;
-  // flex: 1;
   padding: 0;
   height: calc(100% - 112px);
 }

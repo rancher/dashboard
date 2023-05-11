@@ -657,7 +657,6 @@ $spacer: 10px;
     // Overrides outlet padding
     margin-left: -$space-m;
     margin-right: -$space-m;
-    // margin-bottom: -$space-m;
     padding: $space-s $space-m;
 
     display: flex;
