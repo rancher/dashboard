@@ -6,7 +6,6 @@ import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import some from 'lodash/some';
 import { GitUtils, gitUtilsToLabel } from '@/pkg/epinio/utils/git';
 
 interface commit {
@@ -70,7 +69,8 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   created() {
-    this.onSearch = debounce(this.searchForResult, 1000);
+    this.onSearchRepo = this.searchForResult(this.searchRepo);
+    this.onSearchBranch = this.searchForResult(this.searchBranch);
   },
 
   mounted() {
@@ -96,7 +96,9 @@ export default Vue.extend<Data, any, any, any>({
         this.fetchRepos()
           .then(() => {
             if (this.repos.length && !this.hasError.repo) {
-              this.selectedRepo = this.value.repo;
+              const { name, id } = this.repos.find((r: any) => r.name === this.value.repo?.name) || {};
+
+              this.selectedRepo = { name, id };
 
               return this.fetchBranches();
             }
@@ -185,6 +187,15 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   methods: {
+    searchForResult(callback: (query: string) => any) {
+      return debounce(async(query: string) => {
+        if (!query.length) {
+          return;
+        }
+
+        return await callback(query);
+      }, 1000);
+    },
     reset() {
       this.repos = [];
       this.selectedAccOrOrg = null;
@@ -277,23 +288,12 @@ export default Vue.extend<Data, any, any, any>({
         });
       }
     },
-    async searchForResult(query: string) {
-      if (!query.length) {
-        return;
-      }
-
-      if (!this.selectedBranch) {
-        await this.searchRepo(query);
-      } else {
-        await this.searchBranch(query);
-      }
-    },
     async searchRepo(query: string) {
       if (query.length) {
         // Check if the result is already in the fetched list.
-        const resultInCurrentState = some(this.repos, { name: query });
+        const resultInCurrentState = this.repos.filter((r: any) => r.name.startsWith(query));
 
-        if (!resultInCurrentState) {
+        if (!resultInCurrentState.length) {
           // Search for specific repo under the username
           const res = await this.$store.dispatch(`${ this.type }/search`, {
             repo:     { id: query, name: query },
@@ -370,7 +370,7 @@ export default Vue.extend<Data, any, any, any>({
           :rules="[reposRules]"
           :status="status(hasError.repo)"
           :option-label="'name'"
-          @search="onSearch"
+          @search="onSearchRepo"
           @input="fetchBranches"
         />
       </div>
@@ -390,7 +390,7 @@ export default Vue.extend<Data, any, any, any>({
           :rules="[branchesRules]"
           :status="status(hasError.branch)"
           :option-label="'name'"
-          @search="onSearch"
+          @search="onSearchBranch"
           @input="fetchCommits"
         />
       </div>

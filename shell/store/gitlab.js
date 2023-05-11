@@ -48,13 +48,13 @@ export const actions = {
     try {
       switch (endpoint) {
       case 'branches': {
-        return await fetchGitLabAPI(`projects/${ repo }/repository/branches?order_by=updated_at&per_page=${ MAX_RESULTS }`);
+        return await fetchGitLabAPI(`projects/${ username }%2F${ repo }/repository/branches?order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'repo': {
-        return await fetchGitLabAPI(`projects/${ repo }?`);
+        return await fetchGitLabAPI(`projects/${ username }%2F${ repo }`);
       }
       case 'commits': {
-        return await fetchGitLabAPI(`projects/${ repo }/repository/commits?ref_name=${ branch }&order_by=updated_at&per_page=${ MAX_RESULTS }`);
+        return await fetchGitLabAPI(`projects/${ username }%2F${ repo }/repository/commits?ref_name=${ branch }&order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'recentRepos': {
         return await fetchUserOrOrganization(`${ username }/projects?order_by=updated_at&per_page=${ MAX_RESULTS }`);
@@ -65,7 +65,7 @@ export const actions = {
       case 'search': {
         // Fetch for a specific branches
         if (username && repo && branch) {
-          const response = await fetchGitLabAPI(`repos/${ username }/${ repo }/branches/${ branch }?`);
+          const response = await fetchGitLabAPI(`projects/${ repo }/repository/branches/${ branch }`);
 
           return [response];
         }
@@ -91,7 +91,7 @@ export const actions = {
 
   async fetchRepoDetails({ commit, dispatch }, { username, repo } = {}) {
     const res = await dispatch('apiList', {
-      username, endpoint: 'repo', repo: repo.id
+      username, endpoint: 'repo', repo: repo.name
     });
 
     return res;
@@ -99,7 +99,7 @@ export const actions = {
 
   async fetchBranches({ commit, dispatch }, { repo, username }) {
     const res = await dispatch('apiList', {
-      username, endpoint: 'branches', repo: repo.id
+      username, endpoint: 'branches', repo: repo.name
     });
 
     return res;
@@ -109,7 +109,7 @@ export const actions = {
     const { dispatch } = ctx;
 
     const res = await dispatch('apiList', {
-      username, endpoint: 'commits', repo: repo.id, branch: branch.name
+      username, endpoint: 'commits', repo: repo.name, branch: branch.name
     });
 
     let commits = [];
