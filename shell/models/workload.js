@@ -296,7 +296,7 @@ export default class Workload extends WorkloadService {
   }
 
   get endpoint() {
-    return this?.metadata?.annotations[CATTLE_PUBLIC_ENDPOINTS];
+    return this?.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS];
   }
 
   get desired() {
