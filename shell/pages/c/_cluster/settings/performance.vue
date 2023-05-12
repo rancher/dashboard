@@ -10,16 +10,16 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
 
 const incompatible = {
-  'incrementalLoading': ['forceNsFilterV2'],
-  'manualRefresh': ['forceNsFilterV2'],
-  'forceNsFilterV2': ['incrementalLoading', 'manualRefresh'],
-}
+  incrementalLoading: ['forceNsFilterV2'],
+  manualRefresh:      ['forceNsFilterV2'],
+  forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
+};
 
 const l10n = {
-  'incrementalLoading': 'incrementalLoad',
-  'manualRefresh': 'manualRefresh',
-  'forceNsFilterV2': 'nsFiltering',
-}
+  incrementalLoading: 'incrementalLoad',
+  manualRefresh:      'manualRefresh',
+  forceNsFilterV2:    'nsFiltering',
+};
 
 export default {
   layout:     'authenticated',
@@ -120,6 +120,7 @@ export default {
       if (!enabled) {
         // Disabling a preference won't automatically turn on an incompatible one, so just set and exit
         this.value[property].enabled = false;
+
         return;
       }
 
@@ -127,6 +128,7 @@ export default {
       if ((incompatible[property] || []).every(p => !this.value[p].enabled)) {
         // No, just set and exit
         this.value[property].enabled = true;
+
         return;
       }
 
@@ -135,15 +137,15 @@ export default {
         component:      'GenericPrompt',
         componentProps: {
           applyMode:   'enable',
-          applyAction: buttonDone => {
+          applyAction: (buttonDone) => {
             this.value[property].enabled = true;
-            (incompatible[property] || []).forEach(incompatible => {
-              this.value[incompatible].enabled = false
-            })
+            (incompatible[property] || []).forEach((incompatible) => {
+              this.value[incompatible].enabled = false;
+            });
             buttonDone(true);
           },
           title: this.t('promptRemove.title', {}, true),
-          body:  this.t(`performance.${l10n[property]}.incompatibleDescription`, {}, true),
+          body:  this.t(`performance.${ l10n[property] }.incompatibleDescription`, {}, true),
         },
       });
     }

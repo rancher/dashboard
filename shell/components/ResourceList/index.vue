@@ -152,7 +152,7 @@ export default {
         return;
       }
 
-      if (neu &&  !this.hasFetch) {
+      if (neu && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
     }
@@ -181,7 +181,7 @@ export default {
     icon="icon-filter_alt"
   >
     <template #message>
-      {{t('resourceList.nsFiltering')}}
+      {{ t('resourceList.nsFiltering') }}
     </template>
   </IconMessage>
   <div v-else>

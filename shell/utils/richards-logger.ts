@@ -7,10 +7,9 @@ class RichardsLogger {
 
   warn() {
     if (this.enabled) {
-      console.warn('CUSTOM', ...arguments)//, new Error()
+      console.warn('CUSTOM', ...arguments);//, new Error()
     }
   }
-
 }
 
 const logger = new RichardsLogger();

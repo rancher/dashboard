@@ -50,7 +50,7 @@ export default {
     const namespaceProjectFilter = pAndNFiltering.checkAndCreateParam(opt);
 
     if (namespaceProjectFilter) {
-      url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter}`;
+      url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter }`;
     }
     // End: Filter
 
@@ -87,6 +87,7 @@ export default {
     // - an array of namespaces or projects - add restriction as a param
     if (opt.namespaced && !pAndNFiltering.isApplicable(opt)) {
       const parts = url.split('/');
+
       url = `${ parts.join('/') }/${ opt.namespaced }`;
     }
 

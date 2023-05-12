@@ -4,7 +4,6 @@ import { getPerformanceSetting } from 'utils/settings';
 type Opt = { [key: string]: any, namespaced?: string[]}
 
 class ProjectAndNamespaceFiltering {
-
   static param = 'projectsornamespaces'
 
   /**
@@ -15,7 +14,8 @@ class ProjectAndNamespaceFiltering {
   }
 
   isEnabled(rootGetters: any): boolean {
-    const currentProduct = rootGetters['currentProduct']
+    const currentProduct = rootGetters['currentProduct'];
+
     // Only enable for the cluster store at the moment. In theory this should work in management as well, as they're both 'steve' stores
     if (currentProduct?.inStore !== 'cluster') {
       return false;
@@ -25,7 +25,8 @@ class ProjectAndNamespaceFiltering {
       return false;
     }
 
-    const perfConfig = getPerformanceSetting(rootGetters)
+    const perfConfig = getPerformanceSetting(rootGetters);
+
     if (!perfConfig.forceNsFilterV2?.enabled) {
       return false;
     }
@@ -38,7 +39,7 @@ class ProjectAndNamespaceFiltering {
    */
   checkAndCreateParam(opt: Opt): string {
     if (!this.isApplicable(opt)) {
-      return ''
+      return '';
     }
 
     return this.createParam(opt.namespaced);
@@ -51,12 +52,11 @@ class ProjectAndNamespaceFiltering {
 
     const projectsOrNamespaces = namespaceFilter
       .map(f => f.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
-      .replace(NAMESPACE_FILTER_P_FULL_PREFIX, ''))
+        .replace(NAMESPACE_FILTER_P_FULL_PREFIX, ''))
       .join(',');
 
-    return `${ProjectAndNamespaceFiltering.param}=${projectsOrNamespaces}`;
+    return `${ ProjectAndNamespaceFiltering.param }=${ projectsOrNamespaces }`;
   }
-
 }
 
 export default new ProjectAndNamespaceFiltering();

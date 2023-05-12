@@ -269,7 +269,8 @@ export default {
     const entry = state.types[type];
 
     if ( entry ) {
-      richardsLogger.warn('ds', 'getter', 'haveAllNamespace', entry.haveNamespace, namespace, entry.haveNamespace === namespace)
+      richardsLogger.warn('ds', 'getter', 'haveAllNamespace', entry.haveNamespace, namespace, entry.haveNamespace === namespace);
+
       return entry.haveNamespace === namespace;
     }
 
@@ -278,6 +279,7 @@ export default {
 
   haveNamespace: (state, getters) => (type) => {
     type = getters.normalizeType(type);
+
     return state.types[type]?.haveNamespace || null;
   },
 

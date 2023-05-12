@@ -159,8 +159,6 @@ export const DEFAULT_PERF_SETTING = {
   },
   disableWebsocketNotification: true,
   garbageCollection:            GC_DEFAULTS,
-  forceNsFilterV2:                {
-    enabled:   false,
-  },
-  advancedWorker: { enabled: false },
+  forceNsFilterV2:              { enabled: false },
+  advancedWorker:               { enabled: false },
 };

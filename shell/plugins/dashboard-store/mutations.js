@@ -296,10 +296,9 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
-    
     cache.haveNamespace = namespace;
     cache.haveAll = !namespace;
-    richardsLogger.warn('ds', 'loadAll', type, cache.haveNamespace, cache.haveAll )
+    richardsLogger.warn('ds', 'loadAll', type, cache.haveNamespace, cache.haveAll );
   }
 
   return proxies;

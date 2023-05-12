@@ -65,7 +65,6 @@ export default {
       default: false
     },
 
-
     showIncrementalLoadingIndicator: {
       type:    Boolean,
       default: false

@@ -99,7 +99,7 @@ export default {
     },
     // data fetching for the mechanism
     $fetchType(type, multipleResources = [], storeType) {
-      richardsLogger.warn('fs', type, '$fetchType')
+      richardsLogger.warn('fs', type, '$fetchType');
       const currStore = storeType || this.$store.getters['currentStore']();
 
       this.$initializeFetchData(type, multipleResources, currStore);

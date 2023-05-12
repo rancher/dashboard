@@ -20,7 +20,7 @@ export default {
      * Does the user need to update the filter to supply a single namespace?
      */
     namespaceFilterRequired() {
-      richardsLogger.warn('rfn', 'namespaceFilterRequired', this.__namespaceRequired, this.__validFilter)
+      richardsLogger.warn('rfn', 'namespaceFilterRequired', this.__namespaceRequired, this.__validFilter);
 
       return this.__namespaceRequired && !this.__validFilter;
     },
@@ -29,7 +29,7 @@ export default {
      * Returns the namespace that requests should be filtered by
      */
     namespaceFilter() {
-      richardsLogger.warn('rfn', 'namespaceFilters', this.namespaceFilters)
+      richardsLogger.warn('rfn', 'namespaceFilters', this.namespaceFilters);
 
       return this.__namespaceRequired ? this.__validFilter : '';
     },
@@ -38,22 +38,24 @@ export default {
      * If the Project/Namespace filter from the header contains a valid ns / project filter ... return it
      */
     __validFilter() {
-      const valid = this.namespaceFilters.length && this.namespaceFilters.every(f => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX))
-      richardsLogger.warn('rfn', '__validFilter', valid, this.namespaceFilters)
+      const valid = this.namespaceFilters.length && this.namespaceFilters.every(f => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX));
+
+      richardsLogger.warn('rfn', '__validFilter', valid, this.namespaceFilters);
+
       return valid ? this.namespaceFilters : null;
     },
 
     /**
      * Do we need to filter the list by a namespace? This will control whether the user is shown an error
-     * 
+     *
      * We shouldn't show an error on pages with resources that aren't namespaced
      */
     __namespaceRequired() {
       if (!pAndNFiltering.isEnabled(this.$store.getters)) {
         return false;
-       }
+      }
 
-       return this.__areResourcesNamespaced;
+      return this.__areResourcesNamespaced;
     },
 
     /**
@@ -66,7 +68,7 @@ export default {
       }
 
       return (this.loadResources || []).every((type) => {
-        richardsLogger.warn('rfn', '__areResourcesNamespaced', type)
+        richardsLogger.warn('rfn', '__areResourcesNamespaced', type);
         const schema = this.$store.getters['cluster/schemaFor'](type);
 
         return schema?.attributes?.namespaced;

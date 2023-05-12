@@ -20,7 +20,7 @@ import { KEY } from '@shell/utils/platform';
 import richardsLogger from '@shell/utils/richards-logger';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 
-const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE]
+const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
 export default {
   data() {
@@ -51,7 +51,7 @@ export default {
     },
 
     filtered() {
-      richardsLogger.warn('ns filter component', 'filtered', 1, this.namespaceFilterMode)
+      richardsLogger.warn('ns filter component', 'filtered', 1, this.namespaceFilterMode);
       let out = this.options;
 
       out = out.filter((item) => {
@@ -60,6 +60,7 @@ export default {
           // We always show dividers, projects and namespaces
           if (!forcedNamespaceValidTypes.includes(item.kind)) {
             const validCustomType = this.namespaceFilterMode.find(prefix => item.kind.startsWith(prefix));
+
             if (!validCustomType) {
               // Hide any invalid option that's not selected
               return this.value.findIndex(v => v.id === item.id) >= 0;
@@ -94,13 +95,14 @@ export default {
         i.elementId = (i.id || '').replace('://', '_');
         i.enabled = true;
         // Are we in restricted resource type mode, if so is this an allowed type?
-        if(this.namespaceFilterMode?.length) {
+        if (this.namespaceFilterMode?.length) {
           const isLastSelected = i.selected && (i.id === ALL || this.value.length === 1);
-          i.enabled = !isLastSelected && this.namespaceFilterMode.find(f => f === i.kind)
+
+          i.enabled = !isLastSelected && this.namespaceFilterMode.find(f => f === i.kind);
         }
       });
 
-      richardsLogger.warn('ns filter component', 'filtered', 10, out)
+      richardsLogger.warn('ns filter component', 'filtered', 10, out);
 
       return out;
     },
@@ -252,7 +254,7 @@ export default {
           }
 
           out.push({
-            id:    `${NAMESPACE_FILTER_P_FULL_PREFIX}${ id }`,
+            id:    `${ NAMESPACE_FILTER_P_FULL_PREFIX }${ id }`,
             kind:  NAMESPACE_FILTER_KINDS.PROJECT,
             label: t('nav.ns.project', { name: project.nameDisplay }),
           });
@@ -295,7 +297,7 @@ export default {
           out,
           namespaces.map((namespace) => {
             return {
-              id:    `${NAMESPACE_FILTER_NS_FULL_PREFIX}${ namespace.id }`,
+              id:    `${ NAMESPACE_FILTER_NS_FULL_PREFIX }${ namespace.id }`,
               kind:  NAMESPACE_FILTER_KINDS.NAMESPACE,
               label: t('nav.ns.namespace', { name: namespace.nameDisplay }),
             };
@@ -624,12 +626,13 @@ export default {
 
       // Remove invalid
       if (!!this.namespaceFilterMode?.length) {
-        this.value.forEach(v => {
+        this.value.forEach((v) => {
           if (!this.namespaceFilterMode.find(f => f === v.kind)) {
             const index = current.findIndex(c => c.id === v.id);
+
             current.splice(index, 1);
           }
-        })
+        });
       }
 
       const exists = current.findIndex(v => v.id === option.id);
@@ -672,7 +675,7 @@ export default {
         return [];
       }
 
-      return  [ALL_USER];
+      return [ALL_USER];
     }
   }
 };
