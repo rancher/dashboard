@@ -1,8 +1,8 @@
-import { NAMESPACE_FILTER_KINDS, NAMESPACE_FILTER_NS_PREFIX, NAMESPACE_FILTER_P_PREFIX } from 'utils/namespace-filter';
+import { NAMESPACE_FILTER_NS_PREFIX, NAMESPACE_FILTER_P_PREFIX } from 'utils/namespace-filter';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 import richardsLogger from '@shell/utils/richards-logger';
-
+import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
@@ -38,20 +38,22 @@ export default {
      * If the Project/Namespace filter from the header contains a valid ns / project filter ... return it
      */
     __validFilter() {
-      const valid = this.namespaceFilters.every(f => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX))
+      const valid = this.namespaceFilters.length && this.namespaceFilters.every(f => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX))
       richardsLogger.warn('rfn', '__validFilter', valid, this.namespaceFilters)
       return valid ? this.namespaceFilters : null;
     },
 
     /**
-     * Do we need to filter the list by a namespace?
+     * Do we need to filter the list by a namespace? This will control whether the user is shown an error
+     * 
+     * We shouldn't show an error on pages with resources that aren't namespaced
      */
     __namespaceRequired() {
-      if (!this.perfConfig.forceNsFilterV2?.enabled) {
+      if (!pAndNFiltering.isEnabled(this.$store.getters)) {
         return false;
-      }
+       }
 
-      return  !this.currentProduct.showWorkspaceSwitcher && this.__areResourcesNamespaced;
+       return this.__areResourcesNamespaced;
     },
 
     /**
@@ -74,14 +76,6 @@ export default {
   },
 
   watch: {
-    __namespaceRequired: {
-      handler(neu) {
-        richardsLogger.warn('rfn', 'watch __namespaceRequired', neu);
-        this.$store.dispatch('setNamespaceFilterMode', neu ? [NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT]: null, { root: true });
-      },
-      immediate: true,
-    },
-
     async namespaceFilter(neu) {
       if (neu) {
         // When a NS filter is required and the user selects a different one, kick off a new set of API requests

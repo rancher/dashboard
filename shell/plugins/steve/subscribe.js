@@ -31,7 +31,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
-import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 import richardsLogger from '@shell/utils/richards-logger';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';

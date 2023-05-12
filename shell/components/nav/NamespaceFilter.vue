@@ -18,7 +18,7 @@ import {
 } from '@shell/utils/namespace-filter';
 import { KEY } from '@shell/utils/platform';
 import richardsLogger from '@shell/utils/richards-logger';
-
+import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE]
 
@@ -37,6 +37,14 @@ export default {
 
   computed: {
     ...mapGetters(['currentProduct', 'namespaceFilterMode']),
+
+    namespaceFilterMode() {
+      if (pAndNFiltering.isEnabled(this.$store.getters)) { // Note - not reactive
+        return [NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT];
+      }
+
+      return null;
+    },
 
     hasFilter() {
       return this.filter.length > 0;
@@ -77,11 +85,8 @@ export default {
         return m;
       }, {});
 
-      // Need final backend changes (for bug fixes, testing, etc)
-      // TODO: RC remove console.warn's
-      // TODO: RC (BE FIX REQUIRED) validate resources.x aren't available when x isn't (even if zero results returned)
-      // TODO: RC (BE FIX REQUIRED) feature only works if resources schema's available
-
+      // TODO: RC Need final backend changes (for bug fixes, testing, etc)
+      // TODO: RC remove console.warn's / richardsLogger
 
       // Mark all of the selected options
       out.forEach((i) => {
@@ -309,11 +314,11 @@ export default {
 
     value: {
       get() {
+        richardsLogger.warn('ns filter component', 'value', 'get')
+
         // Use last picked filter from user preferences
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
-
-        const prefDefault = this.currentProduct?.customNamespaceFilter ? [] : [ALL_USER];
-        const values = prefs && prefs[this.key] ? prefs[this.key] : prefDefault;
+        const values = prefs && prefs[this.key] ? prefs[this.key] : this.defaultOption();
         const options = this.options;
 
         // Remove values that are not valid options
@@ -327,6 +332,7 @@ export default {
       },
 
       set(neu) {
+        richardsLogger.warn('ns filter component', 'value', 'set', neu)
         const old = (this.value || []).slice();
 
         neu = neu.filter(x => !!x.id);
@@ -353,7 +359,7 @@ export default {
         // If there was something selected and you remove it, go back to user by default
         // Unless it was user or all
         if (neu.length === 0 && !hadUser && !hadAll) {
-          ids = this.currentProduct?.customNamespaceFilter ? [] : [ALL_USER];
+          ids = this.defaultOption();
         } else {
           ids = neu.map(x => x.id);
         }
@@ -643,6 +649,20 @@ export default {
       this.selectOption(ns);
       event.preventDefault();
       event.stopPropagation();
+    },
+
+    defaultOption() {
+      // Note - This is one place where a default ns/project filter value is provided (ALL_USER)
+      // There's also..
+      // - dashboard root store `loadCluster` --> when `updateNamespaces` is dispatched
+      // - harvester root store `loadCluster` --> when `updateNamespaces` is dispatched (can be discarded)
+      // Due to this, we can't really set a nicer default when forced ns/project filtering is on (ALL_USER is invalid)
+
+      if (this.currentProduct?.customNamespaceFilter) {
+        return [];
+      }
+
+      return  [ALL_USER];
     }
   }
 };

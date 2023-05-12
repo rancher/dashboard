@@ -8,7 +8,7 @@ import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import pAndNFiltering from './projectAndNamespaceFiltering.utils';
+import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
