@@ -100,6 +100,8 @@ export default {
         }
       });
 
+      richardsLogger.warn('ns filter component', 'filtered', 10, out)
+
       return out;
     },
 
@@ -280,6 +282,8 @@ export default {
         addNamespace(out, namespaces);
       }
 
+      // richardsLogger.warn('ns filter component', 'options', 10,out)
+
       return out;
 
       function addNamespace(out, namespaces) {
@@ -314,7 +318,7 @@ export default {
 
     value: {
       get() {
-        richardsLogger.warn('ns filter component', 'value', 'get')
+        // richardsLogger.warn('ns filter component', 'value', 'get')
 
         // Use last picked filter from user preferences
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
@@ -332,7 +336,7 @@ export default {
       },
 
       set(neu) {
-        richardsLogger.warn('ns filter component', 'value', 'set', neu)
+        // richardsLogger.warn('ns filter component', 'value', 'set', neu)
         const old = (this.value || []).slice();
 
         neu = neu.filter(x => !!x.id);
@@ -396,9 +400,15 @@ export default {
      * To break this multiple-render per cycle behaviour detatch `filtered` from the value used in `v-for`.
      *
      */
-    filtered(neu) {
-      if (!!neu) {
-        this.cachedFiltered = neu;
+    filtered: {
+      immediate: true,
+      handler(neu) {
+        // richardsLogger.warn('ns filter component', 'watch', 'filtered', 1)
+
+        if (!!neu) {
+        // richardsLogger.warn('ns filter component', 'watch', 'filtered', neu)
+          this.cachedFiltered = neu;
+        }
       }
     }
   },
