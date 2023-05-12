@@ -148,7 +148,7 @@ export class PluginRoutes {
     this.updateMatcher(routes, allRoutes);
   }
 
-  private updateMatcher(newRoutes: any, allRoutes: RouteConfig[]) {
+  private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {
     // Note - Always use a new router and replace the existing router's matching
     // Using the existing router and adding routes to it will force nuxt middleware (specifically authenticated on default layout) to
     // execute many times (nuxt middleware boils down to router.beforeEach). This issue was seen refreshing in a harvester cluster with a
