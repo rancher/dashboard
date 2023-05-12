@@ -1,4 +1,4 @@
-import { NAMESPACE_FILTER_NS_PREFIX, NAMESPACE_FILTER_P_PREFIX } from 'utils/namespace-filter';
+import { NAMESPACE_FILTER_NS_PREFIX, NAMESPACE_FILTER_P_PREFIX } from '@shell/utils/namespace-filter';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';

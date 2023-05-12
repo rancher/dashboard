@@ -18,32 +18,36 @@ import {
 } from '@shell/utils/namespace-filter';
 import { KEY } from '@shell/utils/platform';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import { SETTING } from '@shell/config/settings';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
 
 export default {
+
   data() {
     return {
-      isOpen:         false,
-      filter:         '',
-      hidden:         0,
-      total:          0,
-      activeElement:  null,
-      cachedFiltered: [],
+      isOpen:              false,
+      filter:              '',
+      hidden:              0,
+      total:               0,
+      activeElement:       null,
+      cachedFiltered:      [],
       NAMESPACE_FILTER_KINDS,
+      namespaceFilterMode: undefined,
     };
   },
 
+  async fetch() {
+    // Determine if filtering by specific namespaces/projects is required
+    // This is done once and up front
+    // - it doesn't need to be re-active
+    // - added it as a computed caused massive amounts of churn around the `filtered` watcher
+    await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
+    this.namespaceFilterMode = this.calcNamespaceFilterMode();
+  },
+
   computed: {
-    ...mapGetters(['currentProduct', 'namespaceFilterMode']),
-
-    namespaceFilterMode() {
-      if (pAndNFiltering.isEnabled(this.$store.getters)) { // Note - not reactive
-        return [NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT];
-      }
-
-      return null;
-    },
+    ...mapGetters(['currentProduct']),
 
     hasFilter() {
       return this.filter.length > 0;
@@ -390,12 +394,9 @@ export default {
      * To break this multiple-render per cycle behaviour detatch `filtered` from the value used in `v-for`.
      *
      */
-    filtered: {
-      immediate: true,
-      handler(neu) {
-        if (!!neu) {
-          this.cachedFiltered = neu;
-        }
+    filtered(neu) {
+      if (!!neu) {
+        this.cachedFiltered = neu;
       }
     }
   },
@@ -655,19 +656,27 @@ export default {
       // - dashboard root store `loadCluster` --> when `updateNamespaces` is dispatched
       // - harvester root store `loadCluster` --> when `updateNamespaces` is dispatched (can be discarded)
       // Due to this, we can't really set a nicer default when forced ns/project filtering is on (ALL_USER is invalid)
-
       if (this.currentProduct?.customNamespaceFilter) {
         return [];
       }
 
       return [ALL_USER];
-    }
+    },
+
+    calcNamespaceFilterMode() {
+      if (pAndNFiltering.isEnabled(this.$store.getters)) {
+        return [NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT];
+      }
+
+      return null;
+    },
   }
 };
 </script>
 
 <template>
   <div
+    v-if="!$fetchState.pending"
     class="ns-filter"
     data-testid="namespaces-filter"
     tabindex="0"

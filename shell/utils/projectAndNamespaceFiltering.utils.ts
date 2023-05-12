@@ -1,5 +1,5 @@
-import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from 'utils/namespace-filter';
-import { getPerformanceSetting } from 'utils/settings';
+import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
+import { getPerformanceSetting } from '@shell/utils/settings';
 
 type Opt = { [key: string]: any, namespaced?: string[]}
 
@@ -21,7 +21,7 @@ class ProjectAndNamespaceFiltering {
       return false;
     }
 
-    if (currentProduct.showWorkspaceSwitcher) {
+    if (currentProduct?.showWorkspaceSwitcher) {
       return false;
     }
 
