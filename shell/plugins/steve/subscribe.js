@@ -32,7 +32,6 @@ import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
-import richardsLogger from '@shell/utils/richards-logger';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
 import { STORE } from '@shell/store/store-types';
@@ -200,16 +199,12 @@ const namespaceHandler = {
   validChange: ({ getters, rootGetters }, type, data) => {
     const haveNamespace = getters.haveNamespace(type);
 
-    richardsLogger.warn('sub', type, 'queueChange', 'haveNamespace', haveNamespace);
     if (haveNamespace?.length) {
       const namespaces = rootGetters.activeNamespaceCache;
 
       if (!namespaces[data.metadata.namespace]) {
-        richardsLogger.warn('sub', type, 'queueChange', 'skipping', namespaces);
-
         return false;
       }
-      richardsLogger.warn('sub', type, 'queueChange', 'doing', namespaces);
     }
 
     return true;
@@ -217,7 +212,6 @@ const namespaceHandler = {
 
   validateBatchChange: ({ getters, rootGetters }, batch) => {
     const namespaces = rootGetters.activeNamespaceCache;
-    // richardsLogger.warn('sub', 'validBatchChange start', 'batch', batch, 'namespaces', namespaces)
 
     Object.entries(batch).forEach(([type, entries]) => {
       const haveNamespace = getters.haveNamespace(type);
@@ -236,15 +230,11 @@ const namespaceHandler = {
         const namespace = id.split('/')[0];
 
         if (!namespace || !namespaces[namespace]) {
-          richardsLogger.warn('sub', type, 'validBatchChange', 'bskipping', id, haveNamespace, namespaces);
           delete entries[id];
-        } else {
-          richardsLogger.warn('sub', type, 'validBatchChange', 'bdoing', id, haveNamespace, namespaces);
         }
       });
     });
 
-    // richardsLogger.warn('sub', 'validBatchChange end', 'batch', batch, 'namespaces', namespaces)
     return batch;
   }
 };
@@ -262,7 +252,6 @@ function queueChange({ getters, state, rootGetters }, { data, revision }, load, 
 
   // console.log(`${ label } Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
 
-  richardsLogger.warn('sub', type, 'queueChange', data, state);
   if (!namespaceHandler.validChange({ getters, rootGetters }, type, data)) {
     return;
   }

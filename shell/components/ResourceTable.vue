@@ -6,7 +6,6 @@ import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
-import richardsLogger from '@shell/utils/richards-logger';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -177,7 +176,6 @@ export default {
       return acc;
     }, {});
 
-    richardsLogger.warn('rt', 'data', this.schema, this);
     // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
 
@@ -251,8 +249,6 @@ export default {
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
 
-      richardsLogger.warn('RC', 'rt', 'filteredRows', this.inStore, this.schema?.id);
-
       // Do we need to filter by namespace like things?
       if (
         !this.isNamespaced || // Resource type isn't namespaced
@@ -260,12 +256,8 @@ export default {
         (isAll && !this.currentProduct?.hideSystemResources) || // Need all
         (this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false)// Store reports type has namespace filter, so rows already contain the correctly filtered resources
       ) {
-        richardsLogger.warn('RC', 'rt', 'filteredRows', this.schema?.id, 'SKIPPING', !this.isNamespaced, this.ignoreFilter, isAll && !this.currentProduct?.hideSystemResources, this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false);
-
         return this.rows || [];
       }
-
-      richardsLogger.warn('RC', 'rt', 'filteredRows', this.schema?.id, 'FILTERING', this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false, this.rows);
 
       const includedNamespaces = this.$store.getters['namespaces']();
 

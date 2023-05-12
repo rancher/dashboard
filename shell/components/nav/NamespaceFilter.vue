@@ -17,7 +17,6 @@ import {
   NAMESPACE_FILTER_P_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import { KEY } from '@shell/utils/platform';
-import richardsLogger from '@shell/utils/richards-logger';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];
@@ -51,7 +50,6 @@ export default {
     },
 
     filtered() {
-      richardsLogger.warn('ns filter component', 'filtered', 1, this.namespaceFilterMode);
       let out = this.options;
 
       out = out.filter((item) => {
@@ -86,9 +84,6 @@ export default {
         return m;
       }, {});
 
-      // TODO: RC Need final backend changes (for bug fixes, testing, etc)
-      // TODO: RC remove console.warn's / richardsLogger
-
       // Mark all of the selected options
       out.forEach((i) => {
         i.selected = !!mapped[i.id] || (i.id === ALL && this.value && this.value.length === 0);
@@ -101,8 +96,6 @@ export default {
           i.enabled = !isLastSelected && this.namespaceFilterMode.find(f => f === i.kind);
         }
       });
-
-      richardsLogger.warn('ns filter component', 'filtered', 10, out);
 
       return out;
     },
@@ -284,8 +277,6 @@ export default {
         addNamespace(out, namespaces);
       }
 
-      // richardsLogger.warn('ns filter component', 'options', 10,out)
-
       return out;
 
       function addNamespace(out, namespaces) {
@@ -320,8 +311,6 @@ export default {
 
     value: {
       get() {
-        // richardsLogger.warn('ns filter component', 'value', 'get')
-
         // Use last picked filter from user preferences
         const prefs = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
         const values = prefs && prefs[this.key] ? prefs[this.key] : this.defaultOption();
@@ -338,7 +327,6 @@ export default {
       },
 
       set(neu) {
-        // richardsLogger.warn('ns filter component', 'value', 'set', neu)
         const old = (this.value || []).slice();
 
         neu = neu.filter(x => !!x.id);
@@ -405,10 +393,7 @@ export default {
     filtered: {
       immediate: true,
       handler(neu) {
-        // richardsLogger.warn('ns filter component', 'watch', 'filtered', 1)
-
         if (!!neu) {
-        // richardsLogger.warn('ns filter component', 'watch', 'filtered', neu)
           this.cachedFiltered = neu;
         }
       }

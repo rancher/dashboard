@@ -1,7 +1,6 @@
 import { NAMESPACE_FILTER_NS_PREFIX, NAMESPACE_FILTER_P_PREFIX } from 'utils/namespace-filter';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
-import richardsLogger from '@shell/utils/richards-logger';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 
 /**
@@ -20,8 +19,6 @@ export default {
      * Does the user need to update the filter to supply a single namespace?
      */
     namespaceFilterRequired() {
-      richardsLogger.warn('rfn', 'namespaceFilterRequired', this.__namespaceRequired, this.__validFilter);
-
       return this.__namespaceRequired && !this.__validFilter;
     },
 
@@ -29,8 +26,6 @@ export default {
      * Returns the namespace that requests should be filtered by
      */
     namespaceFilter() {
-      richardsLogger.warn('rfn', 'namespaceFilters', this.namespaceFilters);
-
       return this.__namespaceRequired ? this.__validFilter : '';
     },
 
@@ -39,8 +34,6 @@ export default {
      */
     __validFilter() {
       const valid = this.namespaceFilters.length && this.namespaceFilters.every(f => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX));
-
-      richardsLogger.warn('rfn', '__validFilter', valid, this.namespaceFilters);
 
       return valid ? this.namespaceFilters : null;
     },
@@ -68,7 +61,6 @@ export default {
       }
 
       return (this.loadResources || []).every((type) => {
-        richardsLogger.warn('rfn', '__areResourcesNamespaced', type);
         const schema = this.$store.getters['cluster/schemaFor'](type);
 
         return schema?.attributes?.namespaced;

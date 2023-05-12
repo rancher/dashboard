@@ -2,7 +2,6 @@ import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
-import richardsLogger from '@shell/utils/richards-logger';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
@@ -99,7 +98,6 @@ export default {
     },
     // data fetching for the mechanism
     $fetchType(type, multipleResources = [], storeType) {
-      richardsLogger.warn('fs', type, '$fetchType');
       const currStore = storeType || this.$store.getters['currentStore']();
 
       this.$initializeFetchData(type, multipleResources, currStore);
