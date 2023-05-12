@@ -1,57 +1,40 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from 'utils/namespace-filter';
-import richardsLogger from '@shell/utils/richards-logger';
+
+type Opt = { [key: string]: any, namespaced?: string[]}
 
 class ProjectAndNamespaceFiltering {
 
-  static urlResourcePrefix = 'resources.project.cattle.io.'
+  static param = 'projectsornamespaces'
 
   /**
-   * Is the resource requested in multiple namespaces (only)
+   * Does the request `opt` definition require resources are fetched from a specific set namespaces/projects?
    */
-  isApplicable(opt: any): boolean {
+  isApplicable(opt: Opt): boolean {
     return Array.isArray(opt.namespaced);
   }
 
   /**
-   * Takes the standard url for a resource e.g. `v1/pod` and converts it to one that supports filtering by the provided projects and namespaces
-   * e.g. `v1/resources.project.cattle.io.pod?fieldSelector=projectsornamespaces=kube-system,kube-public`
-   *
+   * Check if `opt` requires resources from specific ns/projects, if so return the required query param (x=y)
    */
-  convertUrl(url: string, namespaceFilter: string[]): string  {
-    const obj =
-    new URL(url);
+  checkAndCreateParam(opt: Opt): string {
+    if (!this.isApplicable(opt)) {
+      return ''
+    }
 
-    // Change resource in path
-    const parts = obj.pathname.split('/');
-    parts[parts.length - 1] = ProjectAndNamespaceFiltering.urlResourcePrefix + parts[parts.length - 1];
-    obj.pathname = parts.join('/');
-
-    // add ns / project filter param
-    const projectsOrNamespaces = namespaceFilter
-      .map(f => f.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '').replace(NAMESPACE_FILTER_P_FULL_PREFIX, ''))
-      .join(',');
-
-    // NOTE - This replaces the whole `fieldSelector`
-    obj.searchParams.set('fieldSelector', `projectsornamespaces=${projectsOrNamespaces}`);
-
-    return obj.toString();
+    return this.createParam(opt.namespaced);
   }
 
-  /**
-   * Results from `resources.project.cattle.io.<type>` endpoint contains content referring to it's own endpoint.
-   * We always want these resources to represent their original type
-   */
-  convertResourceResponse(res: any, opt: any, type: string) {
-    richardsLogger.warn('pAndNUtils', 'updateNamespaceProjectResult', 1, opt, res, type);
+  private createParam(namespaceFilter: string[] | undefined): string {
+    if (!namespaceFilter || !namespaceFilter.length) {
+      return '';
+    }
 
-    // Originally this was more, but at the moment it's just the type
-    res.resourceType = type;
-    res.data.forEach((d: any) => {
-      d.type = type;
-    });
+    const projectsOrNamespaces = namespaceFilter
+      .map(f => f.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
+      .replace(NAMESPACE_FILTER_P_FULL_PREFIX, ''))
+      .join(',');
 
-    richardsLogger.warn('pAndNUtils', 'updateNamespaceProjectResult', 2, res);
-    return res;
+    return `${ProjectAndNamespaceFiltering.param}=${projectsOrNamespaces}`;
   }
 
 }

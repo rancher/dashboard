@@ -8,8 +8,6 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
-import pAndNFiltering from './projectAndNamespaceFiltering.utils';
-
 
 export default {
 
@@ -127,10 +125,6 @@ export default {
           out = res;
         } else {
           out = responseObject(res);
-        }
-
-        if (pAndNFiltering.isApplicable(opt)) {
-          out = pAndNFiltering.convertResourceResponse(out, opt, type)
         }
 
         finishDeferred(key, 'resolve', out);

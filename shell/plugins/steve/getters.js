@@ -43,6 +43,15 @@ export default {
         });
       });
     }
+
+    // `opt.namespaced` is either
+    // - a string representing a single namespace - add restriction to the url
+    // - an array of namespaces or projects - add restriction as a param
+    const namespaceProjectFilter = pAndNFiltering.checkAndCreateParam(opt);
+
+    if (namespaceProjectFilter) {
+      url += `${ (url.includes('?') ? '&' : '?') + namespaceProjectFilter}`;
+    }
     // End: Filter
 
     // Limit
@@ -73,15 +82,12 @@ export default {
   urlFor: (state, getters) => (type, id, opt) => {
     let url = urlFor(state, getters)(type, id, opt);
 
-    if (opt.namespaced) {
-      if (pAndNFiltering.isApplicable(opt)) {
-        url = pAndNFiltering.convertUrl(url, opt.namespaced)
-      } else {
-        const parts = url.split('/');
-        url = `${ parts.join('/') }/${ opt.namespaced }`;
-      }
-
-      return url;
+    // `namespaced` is either
+    // - a string representing a single namespace - add restriction to the url
+    // - an array of namespaces or projects - add restriction as a param
+    if (opt.namespaced && !pAndNFiltering.isApplicable(opt)) {
+      const parts = url.split('/');
+      url = `${ parts.join('/') }/${ opt.namespaced }`;
     }
 
     return url;
