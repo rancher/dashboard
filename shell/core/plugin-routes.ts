@@ -148,23 +148,42 @@ export class PluginRoutes {
     this.updateMatcher(routes, allRoutes);
   }
 
-  private updateMatcher(newRoutes: RouteInfo[], allRoutes: RouteConfig[]) {
+  private updateMatcher(newRoutes: any, allRoutes: RouteConfig[]) {
     // Note - Always use a new router and replace the existing router's matching
     // Using the existing router and adding routes to it will force nuxt middleware (specifically authenticated on default layout) to
     // execute many times (nuxt middleware boils down to router.beforeEach). This issue was seen refreshing in a harvester cluster with a
     // dynamically loaded cluster
-    const newRouter: Router = new Router({
-      mode:   'history',
-      routes: allRoutes
+
+    const pluginRoutesWithParents: any[] = [];
+    const orderedPluginRoutes: any[] = [];
+
+    // separate plugin routes that have parent and not
+    newRoutes.forEach((r: any) => {
+      let foundParentRoute;
+
+      if (r.parent) {
+        foundParentRoute = allRoutes.find(route => route.name === r.parent);
+
+        if (foundParentRoute) {
+          pluginRoutesWithParents.push(r);
+        }
+      }
+
+      if (!foundParentRoute) {
+        orderedPluginRoutes.push(r.route);
+      }
+
+      this.pluginRoutes.push(r.route);
     });
 
-    newRoutes.forEach((r: any) => {
-      if (r.parent) {
-        newRouter.addRoute(r.parent, r.route);
-      } else {
-        newRouter.addRoute(r.route);
-      }
-      this.pluginRoutes.push(r.route);
+    const newRouter: Router = new Router({
+      mode:   'history',
+      routes: [...orderedPluginRoutes, ...allRoutes]
+    });
+
+    // handle plugin routes with parent
+    pluginRoutesWithParents.forEach((r: any) => {
+      newRouter.addRoute(r.parent, r.route);
     });
 
     // Typing is incorrect
