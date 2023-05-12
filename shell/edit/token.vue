@@ -273,6 +273,7 @@ export default {
       <div class="right">
         <button
           type="button"
+          data-testid="done_create_button"
           class="btn role-primary"
           @click="doneCreate"
         >

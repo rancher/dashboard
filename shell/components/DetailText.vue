@@ -170,6 +170,7 @@ export default {
     <span
       v-else
       v-clean-html="bodyHtml"
+      data-testid="api_key_info"
       :class="{'conceal': concealed, 'monospace': monospace && !isBinary}"
     />
 
