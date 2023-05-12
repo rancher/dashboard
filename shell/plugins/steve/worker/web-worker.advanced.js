@@ -120,7 +120,7 @@ const workerActions = {
       });
 
       state.watcher.addEventListener('resync', (e) => {
-        self.postMessage({ redispatch: { resyncWatch: e } });
+        self.postMessage({ redispatch: { resyncWatch: e.detail.data } });
       });
 
       state.watcher.addEventListener(EVENT_CONNECT_ERROR, (e) => {
@@ -187,7 +187,8 @@ const workerActions = {
       resourceType,
       id,
       namespace,
-      selector
+      selector,
+      force: msg.force,
     };
 
     state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
@@ -274,18 +275,23 @@ const resourceWatcherActions = {
     }
   },
   'resource.stop': (msg) => {
+    trace('resource.stop', msg);
+
     // State is handled in the resourceWatcher....
     const watchKey = watchKeyFromMessage(msg);
 
     removeFromWorkerQueue(watchKey);
 
     // ... however we still want to bubble out to UI thread
-    // See comment in resourceWatcher 'resource.stop' handler, until we can resolve the resourceVersion within the resourceWatcher
-    // internally, we'll want to bubble this out to the UI thread. When that's resolved this won't be needed
-    resourceWatcherActions.dispatch({
-      ...msg,
-      advancedWorker: true,
-    });
+    // We'll save some hassle and ignore any resource.stop bubble if we're in error. the only thing that will clear that is a resync
+    if (!state.watcher?.watches[watchKey]?.error) {
+      // See comment in resourceWatcher 'resource.stop' handler, until we can resolve the resourceVersion within the resourceWatcher
+      // internally, we'll want to bubble this out to the UI thread. When that's resolved this won't be needed
+      resourceWatcherActions.dispatch({
+        ...msg,
+        advancedWorker: true,
+      });
+    }
   },
   'resource.error': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread

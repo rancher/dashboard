@@ -114,7 +114,8 @@ export default class ResourceWatcher extends Socket {
       resourceType: providedResourceType,
       id: providedId,
       namespace: providedNamespace,
-      selector: providedSelector
+      selector: providedSelector,
+      force: providedForce,
     } = providedKeyParts;
 
     this.trace('watch:', 'requested', watchKey);
@@ -125,8 +126,10 @@ export default class ResourceWatcher extends Socket {
       return;
     }
 
-    if (this.watches?.[watchKey]?.error) {
-      this.trace('watch:', 'in error, aborting', watchKey);
+    if (!providedForce && this.watches?.[watchKey]?.error) {
+      if (this.watches?.[watchKey]?.error.reason !== REVISION_TOO_OLD) {
+        this.trace('watch:', 'in error, aborting', watchKey);
+      }
 
       return;
     }
@@ -200,13 +203,14 @@ export default class ResourceWatcher extends Socket {
 
     if (eventName === 'resource.start' && this.watches?.[watchKey]?.status === WATCH_REQUESTED) {
       this.watches[watchKey].status = WATCHING;
+      delete this.watches[watchKey].error;
     } else if (eventName === 'resource.stop' && this.watches?.[watchKey]) {
       // Find some way to resolve the correct resourceVersion from within the resourceWatcher until then:
-      // delete the watch in the resourceWatcher, we'll handle recovery up the chain for now
+      // reset the watch in the resourceWatcher, we'll handle recovery up the chain. For now
       // dispatch the event to the host process which should have a handler for resource.stop
 
       // if (this.watches?.[watchKey]?.status === REQUESTED_REMOVE) {
-      delete this.watches[watchKey];
+      this.watches[watchKey] = { error: this.watches[watchKey]?.error };
       // } else {
       //   this.watches[watchKey].status = STOPPED;
       //   delete this.watches[watchKey].resourceVersion;
@@ -230,8 +234,16 @@ export default class ResourceWatcher extends Socket {
         delete this.watches[watchKey].resourceVersionTime;
         delete this.watches[watchKey].skipResourceVersion;
         this.watches[watchKey].error = { type: resourceType, reason: REVISION_TOO_OLD };
-        this.dispatchEvent(new CustomEvent('resync', { detail: event }));
+        // Needs to match sub resyncWatch params
+        this.dispatchEvent(new CustomEvent('resync', {
+          detail: {
+            data: {
+              resourceType, id, namespace, selector
+            }
+          }
+        }));
       }
+      this.trace('_onmessage:', 'new error', this.watches[watchKey].error);
     }
 
     super._onmessage(event);
