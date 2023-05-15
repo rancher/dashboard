@@ -30,6 +30,8 @@ describe('rke1-provisioning', () => {
       // TODO nb is rke1 or rke2 toggled by default?
       // createClusterPage.rkeToggle().toggle();
       createClusterPage.selectCustom(0);
+
+      createClusterPage.name().set('fart');
     });
   });
 });
