@@ -2783,6 +2783,10 @@ logging:
     clientKeyPass: Client Key Pass from Secret
     verifySsl: Verify SSL
     sslVersion: SSL Version
+    suppressTypeName:
+      label: Suppress Type Names
+      elasticSearchTips: Suppress type names by default to be compatible with log server. You should enable it for Elasticsearch >= 8.0.0
+      openSearchTips: Suppress type names by default to be compatible with log server. You should enable it for OpenSearch >= 2.0.0
   redis:
     host: Host
     port: Port
