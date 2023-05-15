@@ -32,20 +32,18 @@ export default {
       default: 'dark'
     }
   },
-  async fetch() {
-    const inStore = this.$store.getters['currentProduct'].inStore;
-    const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
-
-    this.monitoringVersion = res?.currentVersion;
-  },
   data() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+    const monitoring = this.$store.getters[`${ inStore }/byId`](CATALOG.APP, 'cattle-monitoring-system/rancher-monitoring');
+    const monitoringVersion = monitoring?.currentVersion;
+
     return {
-      loading: false, error: false, interval: null, initialUrl: this.computeUrl(), errorTimer: null, monitoringVersion: null
+      loading: false, error: false, interval: null, monitoringVersion, initialUrl: this.computeUrl(monitoringVersion), errorTimer: null
     };
   },
   computed: {
     currentUrl() {
-      return this.computeUrl();
+      return this.computeUrl(this.monitoringVersion);
     },
     grafanaUrl() {
       return this.currentUrl.replace('&kiosk', '');
@@ -133,12 +131,12 @@ export default {
         to:   `now`
       };
     },
-    computeUrl() {
+    computeUrl(monitoringVersion) {
       const embedUrl = this.url;
       const clusterId = this.$store.getters['currentCluster'].id;
       const params = this.computeParams();
 
-      return computeDashboardUrl(this.monitoringVersion, embedUrl, clusterId, params);
+      return computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params);
     },
     computeParams() {
       const params = {};
