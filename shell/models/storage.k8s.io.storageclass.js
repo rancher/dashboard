@@ -80,9 +80,8 @@ export const PROVISIONER_OPTIONS = [
     hideCustomize: true,
   },
   {
-    labelKey:  'storageClass.outscale-bsu.title',
-    value:     'bsu.csi.outscale.com',
-    supported: true,
+    labelKey: 'storageClass.outscale-bsu.title',
+    value:    'bsu.csi.outscale.com',
   }
 ];
 
