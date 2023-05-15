@@ -2,9 +2,11 @@ import { mount } from '@vue/test-utils';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 
 /**
- * DISCLAIMER:
- * Declarations should not be done outside the tests, although the component itself is huge and requires too much initialization.
- * This would also help to focus on actual required configuration and increase readability.
+ * DISCLAIMER ***************************************************************************************
+ * Declarations should not be done outside the tests!!
+ * This component is overwhelming for test and requires too much initialization.
+ * In this way the tests are more readable and we can avoid annoying repetitions.
+ ****************************************************************************************************
  */
 const defaultStubs = {
   CruResource:              { template: '<div><slot></slot></div>' }, // Required to render the slot content
@@ -41,9 +43,6 @@ const defaultComputed = {
   showForm() {
     return true;
   },
-  hasMachinePools() {
-    return false;
-  },
   showk8s21LegacyWarning() {
     return false;
   },
@@ -65,8 +64,17 @@ const defaultMocks = {
   },
 };
 
+const defaultSpec = {
+  rkeConfig:   { etcd: { disableSnapshots: false } },
+  chartValues: {},
+};
+
 describe('component: rke2', () => {
-  // Disable existing log to avoid pollution
+  /**
+   * DISCLAIMER ***************************************************************************************
+   * Logs are prevented to avoid polluting the test output.
+   ****************************************************************************************************
+  */
   // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -87,14 +95,12 @@ describe('component: rke2', () => {
         mode:  'create',
         value: {
           spec: {
-            rkeConfig:                                            { etcd: { disableSnapshots: false } },
-            chartValues:                                          {},
+            ...defaultSpec,
             defaultPodSecurityAdmissionConfigurationTemplateName: label,
             kubernetesVersion:                                    k8s
           }
         },
         provider: 'whatever',
-        resource: {}
       },
       computed: defaultComputed,
       mocks:    {
@@ -130,14 +136,12 @@ describe('component: rke2', () => {
         mode:  'create',
         value: {
           spec: {
-            rkeConfig:                                            { etcd: { disableSnapshots: false } },
-            chartValues:                                          {},
+            ...defaultSpec,
             defaultPodSecurityAdmissionConfigurationTemplateName: label,
             kubernetesVersion:                                    k8s
           }
         },
         provider: 'whatever',
-        resource: {}
       },
       computed: defaultComputed,
       mocks:    {
@@ -172,14 +176,12 @@ describe('component: rke2', () => {
         value: {
           agentConfig: { profile: cis },
           spec:        {
-            rkeConfig:                                            { etcd: { disableSnapshots: false } },
-            chartValues:                                          {},
+            ...defaultSpec,
             defaultPodSecurityAdmissionConfigurationTemplateName: label,
             kubernetesVersion:                                    k8s
           }
         },
         provider: 'custom',
-        resource: {}
       },
       computed: {
         ...defaultComputed,
@@ -211,5 +213,58 @@ describe('component: rke2', () => {
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
 
     expect((select.vm as unknown as any).disabled).toBe(disabled);
+  });
+
+  it.each([
+    ['custom', true],
+    ['anything else', false] // without proper data, machine pool is always not present
+  ])('should allow creation of RKE2 cluster with provider %p if pool machines are missing (%p)', (provider, result) => {
+    const k8s = 'v1.25.0+rke2r1';
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  'create',
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s,
+
+          }
+        },
+        provider,
+      },
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    expect(wrapper.vm.validationPassed()).toBe(result);
+  });
+
+  it('should allow creation of K3 clusters if pool machines are missing', () => {
+    const k8s = 'v1.25.0+k3s1';
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  'create',
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          }
+        },
+        provider: 'custom'
+      },
+      data:     () => ({ credentialId: 'I am authenticated' }),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    expect(wrapper.vm.validationPassed()).toBe(true);
   });
 });
