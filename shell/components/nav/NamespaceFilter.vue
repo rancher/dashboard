@@ -96,8 +96,10 @@ export default {
         // Are we in restricted resource type mode, if so is this an allowed type?
         if (this.namespaceFilterMode?.length) {
           const isLastSelected = i.selected && (i.id === ALL || this.value.length === 1);
+          const kindAllowed = this.namespaceFilterMode.find(f => f === i.kind);
+          const isNotInProjectGroup = i.id === ALL_ORPHANS;
 
-          i.enabled = !isLastSelected && this.namespaceFilterMode.find(f => f === i.kind);
+          i.enabled = (!isLastSelected && kindAllowed) && !isNotInProjectGroup;
         }
       });
 
