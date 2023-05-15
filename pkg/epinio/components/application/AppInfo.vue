@@ -10,7 +10,6 @@ import Banner from '@components/Banner/Banner.vue';
 import { _EDIT } from '@shell/config/query-params';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import capitalize from 'lodash/capitalize';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
 import { APPLICATION_ENV_VAR, EPINIO_APP_DATA, EPINIO_TYPES } from '../../types';
@@ -71,7 +70,6 @@ export default Vue.extend<Data, any, any, any>({
     return {
       errors:        [],
       values:        undefined,
-      capitalize,
       validSettings: {},
       sanitizedEnvs: {}
     };
@@ -335,7 +333,7 @@ export default Vue.extend<Data, any, any, any>({
           v-if="setting.type === 'number' || setting.type === 'integer'"
           :id="key"
           v-model="values.configuration.settings[key]"
-          :label="capitalize(key)"
+          :label="key"
           type="number"
           :min="setting.minimum"
           :max="setting.maximum"
@@ -347,7 +345,7 @@ export default Vue.extend<Data, any, any, any>({
           v-else-if="setting.type === 'bool'"
           :id="key"
           :value="values.configuration.settings[key] === 'true'"
-          :label="capitalize(key)"
+          :label="key"
           :mode="mode"
           @input="values.configuration.settings[key] = $event ? 'true' : 'false'"
         />
@@ -355,7 +353,7 @@ export default Vue.extend<Data, any, any, any>({
           v-else-if="setting.type === 'string' && setting.enum"
           :id="key"
           v-model="values.configuration.settings[key]"
-          :label="capitalize(key)"
+          :label="key"
           :options="setting.enum"
           :mode="mode"
         />
@@ -363,7 +361,7 @@ export default Vue.extend<Data, any, any, any>({
           v-else-if="setting.type === 'string'"
           :id="key"
           v-model="values.configuration.settings[key]"
-          :label="capitalize(key)"
+          :label="key"
           :mode="mode"
         />
       </div>
