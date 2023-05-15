@@ -1,7 +1,7 @@
 import PagePo from '~/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import ApiKeysListPo from '@/cypress/e2e/po/lists/account-api-keys-list.po';
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import PasswordPo from '~/cypress/e2e/po/components/password.po';
 
 export default class AccountPagePo extends PagePo {
   static url: string = '/account'
@@ -17,12 +17,12 @@ export default class AccountPagePo extends PagePo {
     return this.self().get('h1').should('have.text', 'Account and API Keys');
   }
 
-  private createApiKeyButton(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="account_create_api_keys"]', this.self());
+  createApiKeyButton() {
+    return this.self().getId('account_create_api_keys');
   }
 
-  private changePasswordButton(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="account_change_password"]', this.self());
+  changePasswordButton() {
+    return this.self().getId('account_change_password');
   }
 
   create(): Cypress.Chainable {
@@ -45,15 +45,15 @@ export default class AccountPagePo extends PagePo {
     return this.applyButton().click();
   }
 
-  currentPassword(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Current Password');
+  currentPassword(): PasswordPo {
+    return new PasswordPo('[data-testid="account__current_password"]');
   }
 
-  newPassword(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'New Password');
+  newPassword(): PasswordPo {
+    return new PasswordPo('[data-testid="account__new_password"]');
   }
 
-  confirmPassword(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Confirm Password');
+  confirmPassword(): PasswordPo {
+    return new PasswordPo('[data-testid="account__confirm_password"]');
   }
 }

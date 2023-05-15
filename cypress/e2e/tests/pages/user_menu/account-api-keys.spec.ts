@@ -14,29 +14,20 @@ describe('User can make changes to their account', () => {
     cy.login();
   });
 
-  it('Can navigate to Account and API Keys page', () => {
-    /*
-    Open user menu and navigate to Account and API Keys page
-    Verify url includes endpoint '/account'
-    Verify page title
-    */
-    HomePagePo.goTo();
-    userMenu.checkVisible();
-    userMenu.toggle();
-    userMenu.isOpen();
-    userMenu.clickMenuItem('Account & API Keys');
-    userMenu.isClosed();
-    accountPage.waitForPage();
-    accountPage.checkIsCurrentPage();
-    accountPage.title();
-  });
-
-  it('Can change their password', () => {
+  it('Can navigate to Account and API Keys page and change their password', () => {
     /**
+     * Open user menu and navigate to Account and API Keys page
+     * Verify url includes endpoint '/account'
+     * Verify page title
      * Verify user can change their password and change it back
      */
 
-    accountPage.goTo();
+    HomePagePo.goTo();
+    userMenu.toggle();
+    userMenu.clickMenuItem('Account & API Keys');
+    accountPage.waitForPage();
+    accountPage.checkIsCurrentPage();
+    accountPage.title();
 
     accountPage.changePassword();
     accountPage.currentPassword().set(Cypress.env('password'));
@@ -83,10 +74,8 @@ describe('User can make changes to their account', () => {
     });
     const promptRemove = new PromptRemove();
 
-    promptRemove.self().then(() => {
-      cy.intercept('DELETE', `/v3/tokens/${ accessKey[0] }`).as('deleteApiKey');
-      promptRemove.remove();
-      cy.wait('@deleteApiKey').its('response.statusCode').should('eq', 204);
-    });
+    cy.intercept('DELETE', '/v3/tokens/*').as('deleteApiKey');
+    promptRemove.remove();
+    cy.wait('@deleteApiKey').its('response.statusCode').should('eq', 204);
   });
 });

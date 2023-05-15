@@ -25,7 +25,7 @@ export default class CreateKeyPagePo extends PagePo {
   }
 
   doneButton(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="done_create_button"]', this.self());
+    return new AsyncButtonPo('[data-testid="token_done_create_button"]', this.self());
   }
 
   apiAccessKey() {
