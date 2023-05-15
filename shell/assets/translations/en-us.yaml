@@ -7285,3 +7285,7 @@ auth:
 vncConsole:
   error:
     message: Web VNC console connection is disconnected
+
+networkAttachmentDefinition:
+  tabs:
+    config: Config
