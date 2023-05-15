@@ -722,7 +722,7 @@ export default {
           >
             <button
               type="button"
-              :disabled="isView || isProtected(row.key) || disabled"
+              :disabled="isView || isProtected(row.key) || disabled"
               class="btn role-link"
               @click="remove(i)"
             >
