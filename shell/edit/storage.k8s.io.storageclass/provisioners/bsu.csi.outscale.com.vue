@@ -92,6 +92,9 @@ export default {
       }
     },
     keySecrets: {
+      get() {
+        return `${ this.value.parameters['csi.storage.k8s.io/node-stage-secret-namespace'] }/${ this.value.parameters['csi.storage.k8s.io/node-stage-secret-name'] }`;
+      },
       set(value) {
         const secret = value.split('/', 2);
 
