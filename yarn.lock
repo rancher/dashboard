@@ -2011,10 +2011,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@cypress/code-coverage@3.10.0":
-  version "3.10.0"
-  resolved "https://registry.yarnpkg.com/@cypress/code-coverage/-/code-coverage-3.10.0.tgz#2132dbb7ae068cab91790926d50a9bf85140cab4"
-  integrity sha512-K5pW2KPpK4vKMXqxd6vuzo6m9BNgpAv1LcrrtmqAtOJ1RGoEILXYZVost0L6Q+V01NyY7n7jXIIfS7LR3nP6YA==
+"@cypress/code-coverage@3.10.4":
+  version "3.10.4"
+  resolved "https://registry.yarnpkg.com/@cypress/code-coverage/-/code-coverage-3.10.4.tgz#536183f7a5866bf759d92c10656853059f7d01a5"
+  integrity sha512-FTB6ftXjO87KlqXiR/55UaniXwPia6+CcaO7I6aZDbB9u7Zz2InBx5iakpKB28CJoqmk1sywblOP57QHd6weLQ==
   dependencies:
     "@cypress/webpack-preprocessor" "^5.11.0"
     chalk "4.1.2"
@@ -2023,7 +2023,7 @@
     execa "4.1.0"
     globby "11.0.4"
     istanbul-lib-coverage "3.0.0"
-    js-yaml "3.14.1"
+    js-yaml "4.1.0"
     nyc "15.1.0"
 
 "@cypress/request@^2.88.10":
@@ -2050,17 +2050,15 @@
     tunnel-agent "^0.6.0"
     uuid "^8.3.2"
 
-"@cypress/vue@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@cypress/vue/-/vue-4.0.0.tgz#e0689d34c16ffd0874911de92d674fa30d3a559e"
-  integrity sha512-IFskspGdC8O/Ukeog+TrnhfN+rL8kg4ue0dbLNXdGBWMHVMvZin1Y47KbZf++0kjogDmPmSqKIbrNUK3bs+RuQ==
-  dependencies:
-    "@vue/test-utils" "2.0.0-rc.19"
+"@cypress/vue@5.0.5":
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/@cypress/vue/-/vue-5.0.5.tgz#dabd4c8a4c2ade95d1be8a3289fdcd11793abee5"
+  integrity sha512-gjE0LKixK6XT4lPDFaEc8G6qNzm8YELgmbOiMVDxbVMuTtjYjorWQcIgzQ62uBX90/s7JrldXJ0W23gskoH4Ng==
 
-"@cypress/webpack-dev-server@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@cypress/webpack-dev-server/-/webpack-dev-server-2.0.0.tgz#6379b28f2047bd8e6f7bf8027d4f693a545992d4"
-  integrity sha512-N3NOwe+tX+jEgl0+ljxGfbIbeXi/h46JvA2nTGUCGFUfyOGElfBtBPjS5KeCix2k7wM2f4L4StkzlpDkIRBlcg==
+"@cypress/webpack-dev-server@3.4.1":
+  version "3.4.1"
+  resolved "https://registry.yarnpkg.com/@cypress/webpack-dev-server/-/webpack-dev-server-3.4.1.tgz#d706437624a386022d75fd9c326b9f010fd3a854"
+  integrity sha512-S6IUklDXIkcajtkjtLZz8nzVMuG/kjEKnRVkAiIyJL3EZ+EHcXgrUQegfRb15poFlk4SZ/AMLRMqLSB6KCCxkg==
   dependencies:
     find-up "6.3.0"
     fs-extra "9.1.0"
@@ -3422,11 +3420,6 @@
     dom-event-types "^1.0.0"
     lodash "^4.17.15"
     pretty "^2.0.0"
-
-"@vue/test-utils@2.0.0-rc.19":
-  version "2.0.0-rc.19"
-  resolved "https://registry.yarnpkg.com/@vue/test-utils/-/test-utils-2.0.0-rc.19.tgz#cd10480b695027481981085c3f705081495a7ca0"
-  integrity sha512-vQ/34z9NH/pqJzl9YTWtTq/vrx5JzLbMojcBB0qydeb7FtGqxp11nLYCgVso+pa8ZOSn2j+OQfjc5aBnb32uzw==
 
 "@vue/vue2-jest@27.0.0":
   version "27.0.0"
@@ -10468,20 +10461,20 @@ js-yaml-loader@1.2.2:
     loader-utils "^1.2.3"
     un-eval "^1.2.0"
 
-js-yaml@3.14.1, js-yaml@^3.13.1:
-  version "3.14.1"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz#dae812fdb3825fa306609a8717383c50c36a0537"
-  integrity sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==
-  dependencies:
-    argparse "^1.0.7"
-    esprima "^4.0.0"
-
 js-yaml@4.1.0, js-yaml@^4.0.0, js-yaml@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
   integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
   dependencies:
     argparse "^2.0.1"
+
+js-yaml@^3.13.1:
+  version "3.14.1"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz#dae812fdb3825fa306609a8717383c50c36a0537"
+  integrity sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==
+  dependencies:
+    argparse "^1.0.7"
+    esprima "^4.0.0"
 
 jsbn@~0.1.0:
   version "0.1.1"
