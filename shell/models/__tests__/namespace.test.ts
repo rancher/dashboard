@@ -1,11 +1,5 @@
 import Namespace from '@shell/models/namespace';
 
-// // Mock Harvester import to avoid webworker execution
-// jest.mock('@shell/config/product/harvester-manager', () => ({
-//   onmessage:      jest.fn(),
-//   HARVESTER_NAME: 'harvester'
-// }));
-
 describe('class Namespace', () => {
   describe('checking if isSystem', () => {
     it.each([
