@@ -88,6 +88,7 @@ export default {
       checkInactivityTimer();
     },
     startCountdown() {
+      console.log('💠 called');
       const endTime = Date.now() + (this.courtesyCountdown * 1000);
 
       const checkCountdown = () => {
@@ -134,6 +135,8 @@ export default {
     },
 
     unsubscribe() {
+      console.log('💠 unsubscribe');
+
       this.$store.dispatch('unsubscribe');
     },
     clearAllTimeouts() {
