@@ -61,7 +61,7 @@
     "cron-validator": "1.2.0",
     "cronstrue": "1.95.0",
     "cross-env": "6.0.3",
-    "css-loader": "4.3.0",
+    "css-loader": "6.7.3",
     "csv-loader": "3.0.3",
     "cypress": "10.3.1",
     "d3": "7.3.0",
