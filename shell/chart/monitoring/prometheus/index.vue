@@ -72,7 +72,7 @@ export default {
         let matchExpressions;
 
         if (selector && selector?.matchExpressions) {
-          matchExpressions = convert((selector?.matchLabels || {}), selector.matchExpressions);
+          matchExpressions = convert((selector?.matchLabels || {}), selector?.matchExpressions);
 
           return matchExpressions;
         } else {
@@ -311,6 +311,7 @@ export default {
         <div class="col span-6">
           <Checkbox
             v-model="enablePersistentStorage"
+            data-testid="checkbox-chart-enable-persistent-storage"
             :label="t('monitoring.prometheus.storage.label')"
           />
         </div>
@@ -325,7 +326,10 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <div v-if="showStorageClasses">
+            <div
+              v-if="showStorageClasses"
+              data-testid="select-chart-prometheus-storage-class"
+            >
               <StorageClassSelector
                 :mode="mode"
                 :options="storageClasses"

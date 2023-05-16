@@ -139,6 +139,7 @@ export default {
         <button
           v-if="!requires.length"
           type="button"
+          data-testid="btn-chart-install"
           class="btn role-primary"
           @click.prevent="install"
         >

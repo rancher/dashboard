@@ -9,6 +9,12 @@ export default class LabeledSelectPo extends ComponentPo {
     return this.self().get(`.vs__dropdown-menu .vs__dropdown-option:nth-child(${ optionIndex })`).click();
   }
 
+  clickOptionWithLabel(label: string) {
+      return this.getOptions().contains('li', label).invoke('index').then((index) => {
+        return this.clickOption(index + 1);
+      });
+  }
+
   /**
    * Checks selected option displays on dropdown
    * @param label

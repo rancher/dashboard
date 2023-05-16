@@ -480,6 +480,7 @@ export default {
             v-if="showKubeShell"
             v-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
             v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
+            data-testid="btn-kubectl"
             :disabled="!shellEnabled"
             type="button"
             class="btn header-btn role-tertiary"

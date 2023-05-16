@@ -912,7 +912,7 @@ catalog:
     project: Install into Project
     section:
       chartOptions: Edit Options
-      valuesYaml: Edit YAML
+      valuesYaml: Edit YAML 3
       diff: Compare Changes
     slideIn:
       dock: Dock to shell
@@ -4631,7 +4631,7 @@ resourceYaml:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
   buttons:
     continue: Continue Editing
-    edit: Edit YAML
+    edit: Edit YAML 2
     diff: Show Diff
     hideDiff: Hide Diff
     unified: Unified
