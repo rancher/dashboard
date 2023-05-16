@@ -10,7 +10,7 @@ describe('Performance', () => {
     cy.login();
   });
 
-  it.skip('Can navigate to Performance Page', () => {
+  it('Can navigate to Performance Page', () => {
     HomePagePo.goTo();
 
     const burgerMenu = new BurgerMenuPo();
@@ -76,6 +76,10 @@ describe('Performance', () => {
       expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('be.visible'));
       expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('contain', 'Session expired'));
       expect(performancePage.inactivityModal().get("[data-testid='card-body-slot']").should('contain', ' Your session has expired in this tab due to inactivity'));
+
+      // Clicking the refresh button should close the modal and restart the page
+      performancePage.inactivityModal().get("[data-testid='card-actions-slot']").contains('Refresh').click();
+      expect(performancePage.inactivityModal().should('be.not.visible'));
     });
 
     it('should reset the settings', () => {
