@@ -74,6 +74,7 @@ export default {
       POD,
       TARGET_OPTIONS,
       targetOptions:      Object.values(TARGET_OPTIONS),
+      throttleTime:       250,
     };
   },
   computed: {
@@ -139,7 +140,7 @@ export default {
         handler: throttle(function() {
           this.matchingNamespaces = this.getMatchingNamespaces();
           this.matchingPods = this.getMatchingPods();
-        }, 250, { leading: true }),
+        }, this.throttle, { leading: true }),
         immediate: true
       };
     },
@@ -213,6 +214,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="targetType"
+          data-testid="labeled-select-type-selector"
           :mode="mode"
           :tooltip="targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? t('networkpolicy.selectors.matchingNamespacesAndPods.tooltip') : null"
           :options="selectTargetOptions"
@@ -226,6 +228,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="value[TARGET_OPTIONS.IP_BLOCK].cidr"
+            data-testid="labeled-input-ip-block-selector"
             :mode="mode"
             :placeholder="t('networkpolicy.rules.ipBlock.cidr.placeholder')"
             :label="t('networkpolicy.rules.ipBlock.cidr.label')"
@@ -277,6 +280,7 @@ export default {
         <div class="col span-12">
           <MatchExpressions
             v-model="podSelectorExpressions"
+            data-testid="match-expression-pod-selector"
             :mode="mode"
             :show-remove="false"
             :initial-empty-row="true"
@@ -297,6 +301,7 @@ export default {
         <div class="col span-12">
           <MatchExpressions
             v-model="namespaceSelectorExpressions"
+            data-testid="match-expression-namespace-selector"
             :mode="mode"
             :show-remove="false"
             :initial-empty-row="true"
@@ -329,6 +334,7 @@ export default {
         <div class="col span-11">
           <MatchExpressions
             v-model="namespaceSelectorExpressions"
+            data-testid="match-expression-namespace-and-pod-selector-ns-rule"
             :mode="mode"
             :show-add-button="false"
             :show-remove-button="false"
@@ -347,6 +353,7 @@ export default {
         <div class="col span-11">
           <MatchExpressions
             v-model="podSelectorExpressions"
+            data-testid="match-expression-namespace-and-pod-selector-pod-rule"
             :mode="mode"
             :show-add-button="false"
             :show-remove-button="false"
@@ -362,13 +369,14 @@ export default {
 
 <style lang='scss' scoped>
   .namespace-pod-rule {
+    display: table;
     width: 100px;
-    margin: 0;
+    padding: 0, 10px, 0, 0;
     text-align: center;
 
     .label {
-      display: block;
-      margin-top: 32px;
+      display:table-cell;
+      vertical-align:middle;
     }
   }
 </style>
