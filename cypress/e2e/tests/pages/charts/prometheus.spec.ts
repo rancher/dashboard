@@ -1,5 +1,4 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
-import PagePo from '@/cypress/e2e/po/pages/page.po';
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
@@ -17,9 +16,6 @@ describe('Charts', () => {
     const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring&${ monitoringVersion }`;
 
     const chartsPage: ChartsPage = new ChartsPage(chartsMonitoringPage);
-
-    let installButton: AsyncButtonPo;
-    let nextButton: AsyncButtonPo;
 
     before(() => {
       cy.login();
@@ -49,9 +45,6 @@ describe('Charts', () => {
       };
 
       beforeEach(() => {
-        installButton = new AsyncButtonPo('[data-testid="btn-install"]');
-        nextButton = new AsyncButtonPo('[data-testid="btn-next"]');
-
         cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install', mockSuccessResponse).as('prometheusChartCreation');
       });
 
@@ -77,11 +70,10 @@ describe('Charts', () => {
         chartsPage.installChart();
 
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
-          console.log('BODY', req.request?.body);
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
-          console.log(monitoringChart.values.prometheus.prometheusSpec);
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
+          return
         });
       });
     });

@@ -1,5 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';

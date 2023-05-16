@@ -764,7 +764,6 @@ export default {
         this.showValuesComponent = false;
         this.showQuestions = false;
 
-        console.log('diff', this.valuesYaml, this.previousYamlValues);
         this.updateValue(this.valuesYaml);
         this.showDiff = true;
         break;
@@ -1251,8 +1250,6 @@ export default {
           },
         });
       }
-
-      console.log(values, out);
 
       return { errors, input: out };
     },

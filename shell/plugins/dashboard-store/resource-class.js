@@ -1445,6 +1445,7 @@ export default class Resource {
 
     const parsed = ary[0];
     */
+
     const parsed = jsyaml.load(yaml); // will throw on invalid yaml, and return one or more documents (usually one)
 
     if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
