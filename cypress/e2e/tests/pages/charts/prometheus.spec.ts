@@ -2,7 +2,6 @@
 import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import CheckboxPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
@@ -73,7 +72,6 @@ describe('Charts', () => {
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
           expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
-          return
         });
       });
     });
