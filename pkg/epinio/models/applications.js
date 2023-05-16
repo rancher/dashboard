@@ -4,9 +4,13 @@ import { formatSi } from '@shell/utils/units';
 import JSZip from 'jszip';
 import { identity, pickBy } from 'lodash';
 import { epiniofy } from '../store/epinio-store/actions';
-import { APPLICATION_ACTION_STATE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import {
+  APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+} from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
 import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
+import { isGitRepo } from '../utils/git';
+import { AppUtils } from '../utils/application';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -230,6 +234,151 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
   get cpu() {
     return this.deployment?.millicpus;
+  }
+
+  get appData() {
+    const type = AppUtils.getSourceType(this.origin);
+
+    const opt = {};
+
+    switch (type) {
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      opt.archive = { fileName: this.origin.path };
+      break;
+    case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+      opt.container_url = { url: this.origin.container };
+      break;
+    case APPLICATION_SOURCE_TYPE.FOLDER:
+      opt.folder = { fileName: this.origin.path };
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
+      opt.git_url = {
+        branch: this.origin.git?.branch || '',
+        url:    this.origin.git?.repository || ''
+      };
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
+      opt[type] = AppUtils.getGitData(this.origin.git);
+      break;
+    default:
+      break;
+    }
+
+    return {
+      source: {
+        ...opt,
+        type,
+        builderImage: this.staging.builder,
+        appchart:     this.configuration.appchart,
+      },
+    };
+  }
+
+  get appSource() {
+    const { source } = this.appData;
+
+    return {
+      type:      source.type,
+      appChart:  source.appchart,
+      git:       isGitRepo(source.type) ? source[source.type] : null,
+      gitUrl:    source.git_url,
+      container: source.container_url,
+      archive:   source.archive
+    };
+  }
+
+  get appSourceInfo() {
+    const { source } = this.appData;
+
+    const appChart = {
+      label: 'App Chart',
+      value: source.appchart
+    };
+    const builderImage = {
+      label: 'Builder Image',
+      value: source.builderImage
+    };
+
+    switch (source.type) {
+    case APPLICATION_SOURCE_TYPE.FOLDER:
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      return {
+        label:   'File system',
+        icon:    'icon-file',
+        details: [
+          {
+            label: 'Original Name',
+            value: source.archive?.fileName
+          }, appChart, builderImage
+        ]
+      };
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
+      return {
+        label:   'Git',
+        icon:    'icon-file',
+        details: [
+          {
+            label: 'Url',
+            value: source.git_url?.url
+          }, {
+            label: 'Revision',
+            icon:  'icon-commit',
+            value: source.git_url?.branch
+          }, appChart, builderImage
+        ]
+      };
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+      return {
+        label:   'GitHub',
+        icon:    'icon-github',
+        details: [
+          {
+            label: 'Url',
+            value: source.git_hub?.url
+          }, {
+            label: 'Revision',
+            icon:  'icon-commit',
+            value: source.git_hub?.commit
+          }, {
+            label: 'Branch',
+            icon:  'icon-commit',
+            value: source.git_hub?.branch.name
+          }, appChart, builderImage
+        ]
+      };
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
+      return {
+        label:   'GitLab',
+        icon:    'icon-gitlab',
+        details: [
+          {
+            label: 'Url',
+            value: source.git_lab?.url
+          }, {
+            label: 'Revision',
+            icon:  'icon-commit',
+            value: source.git_lab?.commit
+          }, {
+            label: 'Branch',
+            icon:  'icon-commit',
+            value: source.git_lab?.branch.name
+          }, appChart, builderImage
+        ]
+      };
+    case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+      return {
+        label:   'Container',
+        icon:    'icon-docker',
+        details: [{
+          label: 'Image',
+          value: source.container_url?.url
+        }, appChart
+        ]
+      };
+    default:
+      return undefined;
+    }
   }
 
   get instances() {

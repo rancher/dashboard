@@ -17,7 +17,6 @@ import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
 import { GitUtils, gitUtilsToLabel } from '../utils/git';
 import { isArray } from '@shell/utils/array';
-import { AppUtils } from '@/pkg/epinio/utils/application';
 
 interface Data {
 }
@@ -54,7 +53,7 @@ export default Vue.extend<Data, any, any, any>({
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
 
-    if (this.source.git) {
+    if (this.value.appSource.git) {
       this.fetchRepoDetails();
     }
   },
@@ -68,8 +67,6 @@ export default Vue.extend<Data, any, any, any>({
     return {
       APPLICATION_MANIFEST_SOURCE_TYPE,
       saving:        false,
-      source:        AppUtils.getAppSource(this.value),
-      sourceInfo:    AppUtils.getAppSourceInfo(this.value),
       gitSource:     null,
       gitDeployment: {
         deployedCommit: '',
@@ -108,13 +105,13 @@ export default Vue.extend<Data, any, any, any>({
       return `${ matchGit?.[4] }/${ matchGit?.[5] }`;
     },
     async fetchRepoDetails() {
-      const { usernameOrOrg, repo } = this.source.git;
+      const { usernameOrOrg, repo } = this.value.appSource.git;
 
       const res = await this.$store.dispatch(`${ this.gitType }/fetchRepoDetails`, { username: usernameOrOrg, repo });
 
       this.gitSource = GitUtils[this.gitType].normalize.repo(res);
 
-      const commit = this.sourceInfo?.details.filter((ele: { label: string; }) => ele.label === 'Revision')[0]?.value;
+      const commit = this.value.appSourceInfo?.details.filter((ele: { label: string; }) => ele.label === 'Revision')[0]?.value;
 
       if (commit) {
         this.gitDeployment.deployedCommit = {
@@ -126,7 +123,7 @@ export default Vue.extend<Data, any, any, any>({
       await this.fetchCommits();
     },
     async fetchCommits() {
-      const { usernameOrOrg, repo, branch } = this.source.git;
+      const { usernameOrOrg, repo, branch } = this.value.appSource.git;
 
       this.gitDeployment.commits = await this.$store.dispatch(`${ this.gitType }/fetchCommits`, {
         username: usernameOrOrg, repo, branch
@@ -140,7 +137,7 @@ export default Vue.extend<Data, any, any, any>({
   },
   computed: {
     gitType() {
-      return this.source?.type ? gitUtilsToLabel(this.source?.type) : null;
+      return this.value.appSource?.type ? gitUtilsToLabel(this.value.appSource?.type) : null;
     },
 
     preparedCommits() {
@@ -188,7 +185,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     sourceIcon(): string {
-      return this.sourceInfo?.icon || 'icon-epinio';
+      return this.value.appSourceInfo?.icon || 'icon-epinio';
     },
 
     commitPosition() {
@@ -365,10 +362,10 @@ export default Vue.extend<Data, any, any, any>({
                 </div>
               </div>
             </SimpleBox>
-            <SimpleBox v-if="sourceInfo">
+            <SimpleBox v-if="value.appSourceInfo">
               <div class="mb-10 deployment__details__header">
                 <i
-                  v-if="sourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT"
+                  v-if="value.appSourceInfo.kind === APPLICATION_MANIFEST_SOURCE_TYPE.GIT"
                   class="icon git-icon"
                   :class="{[`icon-${gitType}`]: true}"
                 />
@@ -389,11 +386,11 @@ export default Vue.extend<Data, any, any, any>({
                 <ul>
                   <li>
                     <h4>{{ t('epinio.applications.detail.deployment.details.origin') }}</h4>
-                    <span>{{ sourceInfo.label }}</span>
+                    <span>{{ value.appSourceInfo.label }}</span>
                   </li>
 
                   <li
-                    v-for="d of sourceInfo.details"
+                    v-for="d of value.appSourceInfo.details"
                     :key="d.label"
                   >
                     <h4>{{ d.label }}</h4>

@@ -17,7 +17,6 @@ import { _EDIT } from '@shell/config/query-params';
 import AppProgress from '../components/application/AppProgress.vue';
 import { EpinioAppSource, EPINIO_TYPES } from '../types';
 import { allHash } from '@shell/utils/promise';
-import { AppUtils } from '../utils/application';
 
 interface Data {
   bindings: EpinioAppBindings,
@@ -46,7 +45,7 @@ export default Vue.extend<Data, any, any, any>({
         services:       []
       },
       errors: [],
-      source: AppUtils.getAppSource(this.value),
+      source: this.value.appSource,
       steps:  [
         {
           name:       'source',
