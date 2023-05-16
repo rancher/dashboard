@@ -25,17 +25,17 @@ describe.only('Charts', () => {
       const provisionerVersion = 'v0.0.24';
 
       // Install the chart and navigate to the edit options page
-      // before(() => {
+      before(() => {
       //   // Open terminal
-      //   const terminal = new Kubectl();
+         const terminal = new Kubectl();
 
-      //   terminal.openTerminal();
+         terminal.openTerminal();
 
-      //   // kubectl commands
-      //   terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${ provisionerVersion }/deploy/local-path-storage.yaml`)
-      //     .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pvc/pvc.yaml')
-      //     .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pod/pod.yaml');
-      // });
+         // kubectl commands
+         terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${ provisionerVersion }/deploy/local-path-storage.yaml`)
+           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pvc/pvc.yaml')
+           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pod/pod.yaml');
+       });
 
       // Don't actually install the chart
       const mockSuccessResponse = {
@@ -44,7 +44,7 @@ describe.only('Charts', () => {
       };
 
       beforeEach(() => {
-        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install', mockSuccessResponse).as('prometheusChartCreation');
+        cy.intercept('POST', 'v1/catalog.cattle.io.clusterrepos/rancher-charts?action=install').as('prometheusChartCreation');
       });
 
       it('Should not include empty prometheus selector when installing.', () => {
@@ -57,22 +57,22 @@ describe.only('Charts', () => {
 
         expect(el).to.exist
 
-        // chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
+        chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
 
-        // const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
+        const enableStorageCheckbox = new CheckboxPo('[data-testid="checkbox-chart-enable-persistent-storage"]');
 
-        // enableStorageCheckbox.set();
+        enableStorageCheckbox.set();
 
-        // const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
+        const labeledSelectPo = new LabeledSelectPo('[data-testid="select-chart-prometheus-storage-class"]');
 
-        // labeledSelectPo.toggle();
-        // labeledSelectPo.clickOptionWithLabel('local-path');
+        labeledSelectPo.toggle();
+        labeledSelectPo.clickOptionWithLabel('local-path');
 
         // // Click on YAML. In YAML mode, the prometheus selector is present but empty
         // // It should not be sent to the API
-        // chartsPage.editYaml();
+        chartsPage.editYaml();
 
-        // chartsPage.installChart();
+        chartsPage.installChart();
 
         // cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
         //   const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
