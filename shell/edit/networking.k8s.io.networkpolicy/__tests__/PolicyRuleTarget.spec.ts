@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils';
-import PolicyRuleTarget from '../PolicyRuleTarget.vue';
+import PolicyRuleTarget from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRuleTarget';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
-import mock from './mock.json';
+import mock from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/mock.json';
 
 class Selectors {
   private wrapper;
