@@ -370,7 +370,7 @@ function serializeSimpleValue(data) {
   return jsyaml.dump(data).trim();
 }
 
-function getBlockDescriptor(value, key) {
+export function getBlockDescriptor(value, key) {
   const header = getBlockHeader(value, key);
 
   return {
@@ -451,7 +451,7 @@ export function saferDump(obj) {
  *     one of '|', '>'
  *     default '|'
  * - chomping:
- *     one of: null, '-', '+'
+ *     one of: null, '', '-', '+'
  *     default: null
  * @returns the result of jsyaml.dump with the addition of multiline indicators
  */
@@ -464,15 +464,15 @@ export function dumpBlock(data, options = {}) {
 
   if (blockFields.length) {
     for (const key of blockFields) {
+      const { header, indentation } = getBlockDescriptor(out, key);
+
       const scalarStyle = options[key]?.scalarStyle ?? '|';
       const chomping = options[key]?.chomping ?? '';
-
-      const desc = getBlockDescriptor(out, key);
 
       /**
        * Replace the original block indicators with the ones provided in the options param
        */
-      out = out.replace(desc.header, `${ key }: ${ scalarStyle }${ chomping }${ desc.indentation }`);
+      out = out.replace(header, `${ key }: ${ scalarStyle }${ chomping }${ indentation }`);
     }
   }
 

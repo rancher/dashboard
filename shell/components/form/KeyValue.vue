@@ -660,6 +660,7 @@ export default {
             <CodeMirror
               v-else-if="valueMarkdownMultiline"
               ref="cm"
+              data-testid="code-mirror-multiline-field"
               :class="{['focus']: codeMirrorFocus[i]}"
               :value="row[valueName]"
               :as-text-area="true"

@@ -4,6 +4,22 @@ This repo is configured for end-to-end testing with [Cypress](https://docs.cypre
 
 Because of this, we extend the [Cypress best practices](https://docs.cypress.io/guides/references/best-practices#How-It-Works), so be sure to read them before write any test.
 
+## Quick start
+
+> This covers running E2E tests locally in a vanilla environment
+
+### Pre-requisites
+- Instance of Rancher deployed and set up (passed setup pages)
+- Dashboard running locally at the default address (`https://localhost:8005`) pointing to the set up rancher
+
+### Run the tests
+
+This will start the cypress test runner, where you can select which tests to run
+
+```
+TEST_PASSWORD=<rancher admin password> TEST_SKIP_SETUP=true yarn cy:open
+```
+
 ## Initial Setup
 
 For the cypress test runner to consume the UI, you should specify the environment variables. This may change based on the type of tests you may want to run.
