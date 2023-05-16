@@ -30,7 +30,7 @@ describe('component: Storage', () => {
           },
         },
         mocks: {
-          t:      (text: string) => text, // Fixes another issue with another i18n logic not from the getters
+          t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
           $store: {
             getters: {
               'i18n/t':      jest.fn(),
@@ -60,7 +60,7 @@ describe('component: Storage', () => {
           },
         },
         mocks: {
-          t:      (text: string) => text, // Fixes another issue with another i18n logic not from the getters
+          t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
           $store: {
             getters: {
               'i18n/t':      jest.fn(),
@@ -82,7 +82,7 @@ describe('component: Storage', () => {
     const wrapper = mount(Storage, {
       propsData: { savePvcHookName: '' },
       mocks:     {
-        t:      (text: string) => text, // Fixes another issue with another i18n logic not from the getters
+        t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
         $store: { getters: { 'i18n/t': jest.fn() } }
       },
     });
