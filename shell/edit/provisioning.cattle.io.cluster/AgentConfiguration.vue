@@ -25,9 +25,11 @@ export function cleanAgentConfiguration(model, key) {
         delete v[k];
       }
 
-      // prevent cleanup of namespaceSelector when an empty object because it represents all namespaces in pod/node affinity
+      // prevent cleanup of "namespaceSelector" when an empty object because it represents all namespaces in pod/node affinity
       // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
-      if (k !== 'namespaceSelector') {
+      // same for "effect" on Tolerations as an empty string means "All"
+      // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#toleration-v1-core
+      if (k !== 'namespaceSelector' || k !== 'effect') {
         cleanAgentConfiguration(v, k);
       }
     });
