@@ -93,23 +93,6 @@ export interface EpinioAppSource {
 
 export type EPINIO_APP_GIT_SOURCE = Omit<AppSourceGit, 'sourceData'>;
 
-/**
- * Contains persisted information that provides applications an understanding of where they came from
- */
-export interface EPINIO_APP_DATA {
-  source: {
-    type: APPLICATION_SOURCE_TYPE,
-    builderImage: string,
-    appchart?: string,
-    container_url?: AppSourceContainer, // eslint-disable-line camelcase
-    archive?: Omit<AppSourceArchive, 'tarball'>,
-    folder?: Omit<AppSourceArchive, 'tarball'>,
-    git_url?: AppSourceGitUrl, // eslint-disable-line camelcase
-    git_hub?: EPINIO_APP_GIT_SOURCE, // eslint-disable-line camelcase
-    git_lab?: EPINIO_APP_GIT_SOURCE, // eslint-disable-line camelcase
-  }
-}
-
 // ------------  --------------
 
 export const APPLICATION_ACTION_STATE = {

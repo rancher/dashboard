@@ -597,7 +597,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
   async fetchPart(part) {
     const responseType = part === 'values' || part === 'manifest' ? 'text/plain' : 'blob';
 
-    const opt = { url: `${ this.getUrl() }/part/${ part }`, responseType };
+    const opt = { url: `${ this.linkFor('self') }/part/${ part }`, responseType };
 
     const { data } = await this.$dispatch('request', { opt, type: this.type });
 
