@@ -15,4 +15,21 @@ describe('component: KeyValue', () => {
 
     expect(inputValue.value).toBe(value);
   });
+
+  it('should display a markdown-multiline field with new lines visible', () => {
+    const wrapper = mount(KeyValue, {
+      propsData: {
+        value:                  'test',
+        valueMarkdownMultiline: true,
+      },
+      mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
+      directives: { t }
+    });
+
+    const inputFieldTextArea = wrapper.find('textarea').element;
+    const inputFieldMultiline = wrapper.find('[data-testid="code-mirror-multiline-field"]').element;
+
+    expect(inputFieldTextArea).toBeUndefined();
+    expect(inputFieldMultiline).toBeDefined();
+  });
 });
