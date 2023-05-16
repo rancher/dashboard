@@ -12,7 +12,7 @@ export class ChartsPage extends PagePo {
   }
 
   goToInstall() {
-    const btn = new AsyncButtonPo('[data-testid="btn-chart-install"]');
+    const btn = new AsyncButtonPo('.chart-header .btn.role-primary');
 
     btn.click();
 
