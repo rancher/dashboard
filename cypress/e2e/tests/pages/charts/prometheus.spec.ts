@@ -7,7 +7,7 @@ import CheckboxPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
 import { prometheusSpec } from '@/cypress/e2e/tests/pages/data/apps/charts/apps-charts-prometheus-request.ts';
 
-describe('Charts', () => {
+describe.only('Charts', () => {
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
   describe('Monitoring', () => {
