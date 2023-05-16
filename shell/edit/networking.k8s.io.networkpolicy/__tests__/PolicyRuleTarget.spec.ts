@@ -1,8 +1,8 @@
 import { mount } from '@vue/test-utils';
 import PolicyRuleTarget from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRuleTarget';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
-import mock from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/mock.json';
-import { PolicyRuleTargetSelectors } from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/selectors';
+import mock from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/mock.json';
+import { PolicyRuleTargetSelectors } from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/selectors';
 
 describe.each([
   'view',
