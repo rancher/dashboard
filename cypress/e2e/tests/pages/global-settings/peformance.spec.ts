@@ -38,85 +38,56 @@ describe('Performance', () => {
   });
 
   context('Inactivity', () => {
-    it('disabled by default', () => {
-      cy.clock(); // Starts the clock
+    it('should be disabled by default', () => {
       const performancePage = new PerformancePagePo();
 
       performancePage.goTo();
 
-      performancePage.inactivityCheckbox().isDisabled();
-      performancePage.inactivityCheckbox().set();
-      performancePage.inactivityCheckbox().isChecked();
-      performancePage.applyButton().click();
-
-      // Continue with your assertions and further test steps
-
-      // performancePage.inactivityCheckbox().isChecked();
-      // performancePage.inactivityCheckbox().set();
-      // performancePage.applyButton().click();
+      performancePage.inactivityCheckbox().isUnchecked();
     });
 
-    it.only('should show the modal', () => {
+    it('should show the modal after 6 seconds', () => {
       const performancePage = new PerformancePagePo();
 
       performancePage.goTo();
 
-      // performancePage.inactivityCheckbox().isDisabled();
-      // performancePage.inactivityCheckbox().set();
+      // Enables the inactivity timeout and sets it to 6 seconds
+      performancePage.inactivityCheckbox().set();
       performancePage.inactivityCheckbox().isChecked();
-      // performancePage.applyButton().click();
+      performancePage.inactivityInput().clear().type('0.10');
+      performancePage.applyButton().click();
 
-      // cy.reload();
+      // We need to reload the page to get the new settings to take effect.
+      cy.reload();
 
-      // Advance time by 1 minute
-      const currentTime = new Date();
-      const futureTime = new Date(currentTime.getTime() + 50000); // Add 60,000 milliseconds (1 minute)
+      // INFO: The idea here is to set the clock to a future time and then tick it forward to trigger the modal, but it doesn't work and I'm not sure why.
+      // const currentTime = new Date();
+      // const futureTime = new Date(currentTime.getTime() + 6000); // Add 60,000 milliseconds (1 minute)
 
-      cy.clock(futureTime); // Sets the clock to the future time
+      // cy.clock(futureTime); // Sets the clock to the future time
+      // cy.tick(6000); // Tick the clock forward by 1 minute
 
-      // Perform your test actions that should trigger the banner
-
-      cy.tick(50000); // Tick the clock forward by 1 minute
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(6000); // We wait for the modal to show
 
       expect(performancePage.inactivityModal().should('exist'));
       expect(performancePage.inactivityModal().should('be.visible'));
-      // expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('exist'));
+      expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('exist'));
+      expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('be.visible'));
+      expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('contain', 'Session expired'));
+      expect(performancePage.inactivityModal().get("[data-testid='card-body-slot']").should('contain', ' Your session has expired in this tab due to inactivity'));
+    });
 
-      // expect(performancePage.inactivityModal().should('exist'));
+    it('should reset the settings', () => {
+      const performancePage = new PerformancePagePo();
 
-      // Continue with your assertions and further test steps
+      performancePage.goTo();
 
-      // performancePage.inactivityCheckbox().isChecked();
-      // performancePage.inactivityCheckbox().set();
-      // performancePage.applyButton().click();
+      performancePage.restoresSettings();
+
+      cy.reload();
+
+      performancePage.inactivityCheckbox().isUnchecked();
     });
   });
-
-  // it('Inactivity Label', () => {
-  //   const performancePage = new PerformancePagePo();
-
-  //   performancePage.goTo();
-
-  //   performancePage.inactivityCheckbox().set();
-
-  //   performancePage.applyButton().click();
-  //   cy.intercept('PUT', 'v1/management.cattle.io.settings/ui-performance').as('perfUpdate');
-
-  //   cy.wait('@perfUpdate').then(({ request, response }) => {
-  //     console.log('🚀 ~ file: peformance.spec.ts:52 ~ cy.wait ~ response:', response);
-  //     expect(response?.statusCode).to.eq(200);
-  //     // expect(request.body.metadata).to.have.property('fields', 'true');
-  //   });
-  // });
-
-  // it('Inactivity show modal ', () => {
-  //   const performancePage = new PerformancePagePo();
-
-  //   performancePage.goTo();
-
-  //   performancePage.inactivityCheckbox().set();
-
-  //   performancePage.applyButton().click();
-  //   cy.reload();
-  // });
 });

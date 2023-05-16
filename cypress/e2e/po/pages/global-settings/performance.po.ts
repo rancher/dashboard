@@ -13,7 +13,7 @@ export class PerformancePagePo extends RootClusterPage {
     super(PerformancePagePo.url);
   }
 
-  inactivityCheckbox() {
+  inactivityCheckbox(): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), 'Enable inactivity session expiration ');
   }
 
@@ -31,5 +31,11 @@ export class PerformancePagePo extends RootClusterPage {
 
   applyButton() {
     return new AsyncButtonPo('[data-testid="performance__save-btn"]', this.self());
+  }
+
+  restoresSettings() {
+    this.inactivityInput().clear().type('900');
+    this.inactivityCheckbox().set();
+    this.applyButton().click();
   }
 }

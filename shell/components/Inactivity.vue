@@ -88,7 +88,6 @@ export default {
       checkInactivityTimer();
     },
     startCountdown() {
-      console.log('💠 called');
       const endTime = Date.now() + (this.courtesyCountdown * 1000);
 
       const checkCountdown = () => {
@@ -135,8 +134,7 @@ export default {
     },
 
     unsubscribe() {
-      console.log('💠 unsubscribe');
-
+      console.debug('Unsubscribing from all websocket events'); // eslint-disable-line no-console
       this.$store.dispatch('unsubscribe');
     },
     clearAllTimeouts() {
