@@ -96,7 +96,6 @@ export type EPINIO_APP_GIT_SOURCE = Omit<AppSourceGit, 'sourceData'>;
 /**
  * Contains persisted information that provides applications an understanding of where they came from
  */
-// Todo Use it
 export interface EPINIO_APP_DATA {
   source: {
     type: APPLICATION_SOURCE_TYPE,

@@ -45,11 +45,8 @@ function getGitLabData(git: any): EPINIO_APP_GIT_SOURCE {
     usernameOrOrg: parts[1],
     branch:        { name: git.branch },
     commit:        git.revision,
-    repo:          {
-      name: parts[2],
-      id:   '' // Todo get id from somewhere
-    },
-    url: git.repository,
+    repo:          { name: parts[2] },
+    url:           git.repository,
   };
 }
 
