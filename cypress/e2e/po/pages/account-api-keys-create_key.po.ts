@@ -29,7 +29,7 @@ export default class CreateKeyPagePo extends PagePo {
   }
 
   apiAccessKey() {
-    return cy.getId('api_key_info').first();
+    return cy.getId('detail-top_html').first();
   }
 
   done(): Cypress.Chainable {

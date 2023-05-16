@@ -3,6 +3,7 @@ import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import AccountPagePo from '~/cypress/e2e/po/pages/account-api-keys.po';
 import CreateKeyPagePo from '~/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 
 const userMenu = new UserMenuPo();
 const accountPage = new AccountPagePo();
@@ -47,13 +48,23 @@ describe('User can make changes to their account', () => {
 
   it('Can create and delete API keys', () => {
     /**
-     * Verify user can create API key
+     * Bulk delete existing API keys (to make this a deterministic test)
+     * Verify empty state message displays
+     * Verify user can create API key and verify number of rows on table is 1
      * Grab access key after creation and validate API key details
-     * Verify user can delete API key
+     * Verify user can delete API key and verify empty state message displays
      */
     const keyDesc = `keyDescription${ Date.now() }`;
 
     accountPage.goTo();
+    apiKeysList.resourceTable().sortableTable().selectAllCheckbox().set();
+    apiKeysList.deleteButton().click();
+
+    const promptRemove = new PromptRemove();
+
+    promptRemove.remove();
+    apiKeysList.resourceTable().sortableTable().checkRowCount(true, 1);
+
     accountPage.create();
     createKeyPage.waitForPage();
     createKeyPage.isCurrentPage();
@@ -68,14 +79,16 @@ describe('User can make changes to their account', () => {
 
       createKeyPage.done();
       apiKeysList.checkVisible();
+      apiKeysList.resourceTable().sortableTable().checkRowCount(false, 1);
       apiKeysList.details(accessKey[0], 2).should('include.text', accessKey[0]);
       apiKeysList.details(accessKey[0], 3).should('include.text', keyDesc);
       apiKeysList.actionMenu(accessKey[0]).getMenuItem('Delete').click();
     });
-    const promptRemove = new PromptRemove();
 
     cy.intercept('DELETE', '/v3/tokens/*').as('deleteApiKey');
     promptRemove.remove();
     cy.wait('@deleteApiKey').its('response.statusCode').should('eq', 204);
+
+    apiKeysList.resourceTable().sortableTable().checkRowCount(true, 1);
   });
 });
