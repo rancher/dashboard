@@ -400,6 +400,13 @@ export default {
   },
 
   methods: {
+    async refreshCharts() {
+      await this.$store.dispatch('catalog/load');
+      const c = this.$store.getters['catalog/rawCharts'];
+
+      this.charts = Object.values(c);
+    },
+
     async updateInstallStatus() {
       let hasService;
 
@@ -413,6 +420,10 @@ export default {
         hasService = !!service;
       } catch (e) {
         hasService = false;
+      }
+
+      if (hasService) {
+        this.refreshCharts();
       }
 
       Vue.set(this, 'hasService', hasService);
