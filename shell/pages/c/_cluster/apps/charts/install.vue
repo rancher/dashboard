@@ -1041,7 +1041,7 @@ export default {
         isEmpty(selector?.matchLabels)
       ) {
         delete values.prometheus.prometheusSpec.storageSpec
-          .volumeClaimTemplate.spec.selector
+          .volumeClaimTemplate.spec.selector;
       }
 
       return values;
@@ -1087,8 +1087,6 @@ export default {
       if ( !Object.keys(values.global || {}).length ) {
         delete values.global;
       }
-
-
 
       return values;
 
@@ -1255,7 +1253,6 @@ export default {
       }
 
       console.log(values, out);
-
 
       return { errors, input: out };
     },

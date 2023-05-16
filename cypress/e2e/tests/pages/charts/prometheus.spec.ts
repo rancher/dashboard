@@ -7,14 +7,14 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import CheckboxPo from '@/cypress/e2e/po/components/checkbox-input.po';
 
-import { prometheusSpec } from '@/cypress/e2e/tests/pages/data/apps/charts/apps-charts-prometheus-request.ts'
+import { prometheusSpec } from '@/cypress/e2e/tests/pages/data/apps/charts/apps-charts-prometheus-request.ts';
 
 describe('Charts', () => {
   const chartsPageUrl = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts';
 
   describe('Monitoring', () => {
     const monitoringVersion = '102.0.1%2Bup40.1.2';
-    const chartsMonitoringPage = `${chartsPageUrl}&chart=rancher-monitoring&${monitoringVersion}`;
+    const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring&${ monitoringVersion }`;
 
     const chartsPage: ChartsPage = new ChartsPage(chartsMonitoringPage);
 
@@ -22,36 +22,31 @@ describe('Charts', () => {
     let nextButton: AsyncButtonPo;
 
     before(() => {
-
       cy.login();
       chartsPage.goTo();
-
-    })
-
+    });
 
     describe('Promethus local provisioner config', () => {
       const provisionerVersion = 'v0.0.24';
 
       // Install the chart and navigate to the edit options page
       before(() => {
-
         // Open terminal
         const terminal = new Kubectl();
 
         terminal.openTerminal();
 
         // kubectl commands
-        terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${provisionerVersion}/deploy/local-path-storage.yaml`)
+        terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${ provisionerVersion }/deploy/local-path-storage.yaml`)
           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pvc/pvc.yaml')
           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pod/pod.yaml');
-
-      })
+      });
 
       // Don't actually install the chart
       const mockSuccessResponse = {
         statusCode: 200,
-        body: { message: 'Success' }
-      }
+        body:       { message: 'Success' }
+      };
 
       beforeEach(() => {
         installButton = new AsyncButtonPo('[data-testid="btn-install"]');
@@ -61,8 +56,6 @@ describe('Charts', () => {
       });
 
       it('Should not include empty prometheus selector when installing.', () => {
-
-
         const tabbedOptions = new TabbedPo();
 
         // Set prometheus storage class
@@ -84,11 +77,11 @@ describe('Charts', () => {
         chartsPage.installChart();
 
         cy.wait('@prometheusChartCreation', { requestTimeout: 10000 }).then((req) => {
-          console.log('BODY', req.request?.body)
+          console.log('BODY', req.request?.body);
           const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
-          console.log(monitoringChart.values.prometheus.prometheusSpec)
-          expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus)
+          console.log(monitoringChart.values.prometheus.prometheusSpec);
+          expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
         });
       });
     });
