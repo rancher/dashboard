@@ -55,6 +55,8 @@ describe.only('Charts', () => {
 
         const el = cy.get('.chart-header').find('.btn.role-primary')
 
+        el.should('exist').should('exist')
+
         expect(el).to.exist
 
         chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
