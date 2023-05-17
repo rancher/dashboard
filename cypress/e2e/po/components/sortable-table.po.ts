@@ -79,7 +79,7 @@ export default class SortableTablePo extends ComponentPo {
         expect(el).to.have.attr('class', 'no-rows');
       } else {
         expect(el).to.have.length(expected);
-        expect(el).to.have.attr('data-testid');
+        expect(el).to.have.attr('data-node-id');
       }
     });
   }
