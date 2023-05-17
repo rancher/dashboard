@@ -34,7 +34,7 @@ function getShortHash(commit: string) {
 }
 
 export function isGitRepo(type: APPLICATION_SOURCE_TYPE) {
-  return type === APPLICATION_SOURCE_TYPE.GIT_URL || type === APPLICATION_SOURCE_TYPE.GIT_HUB || type === APPLICATION_SOURCE_TYPE.GIT_LAB;
+  return type === APPLICATION_SOURCE_TYPE.GIT_HUB || type === APPLICATION_SOURCE_TYPE.GIT_LAB;
 }
 
 export function gitUtilsToLabel(type: string, options = { startCase: false }) {
