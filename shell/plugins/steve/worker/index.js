@@ -3,10 +3,16 @@ import basicWorkerConstructor from '@shell/plugins/steve/worker/web-worker.basic
 // eslint-disable-next-line no-unused-vars
 import advancedWorkerConstructor from '@shell/plugins/steve/worker/web-worker.advanced.js';
 
+export const WORKER_MODES = {
+  WAITING:  'waiting',
+  BASIC:    'basic',
+  ADVANCED: 'advanced'
+};
+
 export default function storeWorker(mode, options = {}, closures = {}) {
   let worker;
 
-  if (mode === 'advanced') {
+  if (mode === WORKER_MODES.ADVANCED) {
     worker = new advancedWorkerConstructor();
   } else {
     worker = new basicWorkerConstructor();
