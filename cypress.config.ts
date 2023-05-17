@@ -72,7 +72,7 @@ export default defineConfig({
   },
   env: {
     baseUrl,
-    coverage:     false,
+    coverage:     process.env.TEST_COVERAGE === 'true',
     codeCoverage: {
       exclude: [
         'cypress/**/*.*',
