@@ -27,15 +27,15 @@ describe.only('Charts', () => {
       // Install the chart and navigate to the edit options page
       before(() => {
       //   // Open terminal
-         const terminal = new Kubectl();
+        const terminal = new Kubectl();
 
-         terminal.openTerminal();
+        terminal.openTerminal();
 
-         // kubectl commands
-         terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${ provisionerVersion }/deploy/local-path-storage.yaml`)
-           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pvc/pvc.yaml')
-           .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pod/pod.yaml');
-       });
+        // kubectl commands
+        terminal.executeCommand(`apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/${ provisionerVersion }/deploy/local-path-storage.yaml`)
+          .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pvc/pvc.yaml')
+          .executeCommand('create -f https://raw.githubusercontent.com/rancher/local-path-provisioner/master/examples/pod/pod.yaml');
+      });
 
       // Don't actually install the chart
       const mockSuccessResponse = {
@@ -52,12 +52,11 @@ describe.only('Charts', () => {
 
         // Set prometheus storage class
 
+        const el = cy.get('.chart-header').find('.btn.role-primary');
 
-        const el = cy.get('.chart-header').find('.btn.role-primary')
+        el.should('exist').should('exist');
 
-        el.should('exist').should('exist')
-
-        expect(el).to.exist
+        expect(el).to.exist;
 
         chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
 
@@ -80,7 +79,7 @@ describe.only('Charts', () => {
         //   const monitoringChart = req.request?.body.charts.find((chart: any) => chart.chartName === 'rancher-monitoring');
 
         //   expect(monitoringChart.values.prometheus).to.deep.equal(prometheusSpec.values.prometheus);
-          
+
         // });
       });
     });
