@@ -116,7 +116,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <TypeDescription resource="chart" />
-
     <div
       v-if="chart"
       class="chart-header"
