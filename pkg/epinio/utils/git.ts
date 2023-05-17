@@ -1,5 +1,4 @@
 import { APPLICATION_SOURCE_TYPE } from '../types';
-import { ucFirst } from '@shell/utils/string';
 
 interface Repo {
   owner: any,
@@ -35,16 +34,6 @@ function getShortHash(commit: string) {
 
 export function isGitRepo(type: APPLICATION_SOURCE_TYPE) {
   return type === APPLICATION_SOURCE_TYPE.GIT_HUB || type === APPLICATION_SOURCE_TYPE.GIT_LAB;
-}
-
-export function gitUtilsToLabel(type: string, options = { startCase: false }) {
-  const res = type.replace('_', '');
-
-  if (options?.startCase) {
-    return ucFirst(res);
-  }
-
-  return res;
 }
 
 export const GitUtils: Utils = {

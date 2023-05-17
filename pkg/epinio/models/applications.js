@@ -329,40 +329,22 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         ]
       };
     case APPLICATION_SOURCE_TYPE.GIT_HUB:
-      return {
-        label:   'GitHub',
-        icon:    'icon-github',
-        details: [
-          {
-            label: 'Url',
-            value: source.git_hub?.url
-          }, {
-            label: 'Revision',
-            icon:  'icon-commit',
-            value: source.git_hub?.commit
-          }, {
-            label: 'Branch',
-            icon:  'icon-commit',
-            value: source.git_hub?.branch.name
-          }, appChart, builderImage
-        ]
-      };
     case APPLICATION_SOURCE_TYPE.GIT_LAB:
       return {
-        label:   'GitLab',
-        icon:    'icon-gitlab',
+        label:   this.t(`epinio.applications.gitSource.${ source.type }.label`),
+        icon:    `icon-${ source.type }`,
         details: [
           {
             label: 'Url',
-            value: source.git_lab?.url
+            value: source[source.type]?.url
           }, {
             label: 'Revision',
             icon:  'icon-commit',
-            value: source.git_lab?.commit
+            value: source[source.type]?.commit
           }, {
             label: 'Branch',
             icon:  'icon-commit',
-            value: source.git_lab?.branch.name
+            value: source[source.type]?.branch.name
           }, appChart, builderImage
         ]
       };

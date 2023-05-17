@@ -40,8 +40,18 @@ export enum APPLICATION_SOURCE_TYPE {
   ARCHIVE = 'archive', // eslint-disable-line no-unused-vars
   FOLDER = 'folder', // eslint-disable-line no-unused-vars
   GIT_URL = 'git_url', // eslint-disable-line no-unused-vars
-  GIT_HUB = 'git_hub', // eslint-disable-line no-unused-vars
-  GIT_LAB = 'git_lab', // eslint-disable-line no-unused-vars
+  GIT_HUB = 'github', // eslint-disable-line no-unused-vars
+  GIT_LAB = 'gitlab', // eslint-disable-line no-unused-vars
+}
+
+export enum GitProvider {
+  // eslint-disable-next-line no-unused-vars
+  GIT = 'git', // eslint-disable-next-line no-unused-vars
+  GIT_HUB = 'github', // eslint-disable-next-line no-unused-vars
+  GIT_HUB_ENTERPRISE = 'github_enterprise', // eslint-disable-next-line no-unused-vars
+  GIT_LAB = 'gitlab', // eslint-disable-next-line no-unused-vars
+  GIT_LAB_ENTERPRISE = 'gitlab_enterprise', // eslint-disable-next-line no-unused-vars
+  UNKNOWN = 'unknown'
 }
 
 export interface AppSourceArchive {
@@ -141,7 +151,7 @@ export interface EpinioApplicationResource {
     container: any,
     path: string
     git?: {
-      provider: string,
+      provider: GitProvider,
       repository: string,
       branch: string,
       revision: string,

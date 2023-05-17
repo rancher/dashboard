@@ -15,7 +15,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
 import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
-import { GitUtils, gitUtilsToLabel } from '../utils/git';
+import { GitUtils } from '../utils/git';
 import { isArray } from '@shell/utils/array';
 
 interface Data {
@@ -137,7 +137,7 @@ export default Vue.extend<Data, any, any, any>({
   },
   computed: {
     gitType() {
-      return this.value.appSource?.type ? gitUtilsToLabel(this.value.appSource?.type) : null;
+      return this.value.appSource?.type || null;
     },
 
     preparedCommits() {

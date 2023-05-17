@@ -121,6 +121,10 @@ epinio:
         overview: Overview
         gitCommits: Git commits
     gitSource:
+      github:
+        label: GitHub
+      gitlab:
+        label: GitLab
       latestCommit: Latest commit deployed
       behindCommits: Commits behind
     create:
@@ -181,7 +185,7 @@ epinio:
             custom: Custom Image
           appchart:
             label: Application Chart
-        containerUrl:
+        container_url:
           label: Container Image
           url:
             label: Container Image
@@ -190,7 +194,7 @@ epinio:
         manifest:
           button: From Manifest
           tooltip: Manifests can provide app configuration from another app
-        gitUrl:
+        git_url:
           label: Git URL
           url:
             label: URL
@@ -202,9 +206,9 @@ epinio:
             tooltip: Branch to deploy
           error:
             label: Invalid URL, please check the URL and try again.
-        gitHub:
+        github:
           label: GitHub
-        gitLab:
+        gitlab:
           label: GitLab
 
       configurations:
