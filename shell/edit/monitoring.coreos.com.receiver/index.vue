@@ -161,8 +161,33 @@ export default {
 
     createAddOptions(receiverType) {
       return receiverType.addOptions.map();
+    },
+
+    createSmarthost() {
+      if (this.value.spec.email_configs.length > 0) {
+        for (let i = 0; i < this.value.spec.email_configs.length; i++) {
+          if (this.value.spec.email_configs[i]['port'] || this.value.spec.email_configs[i]['host']) {
+            this.value.spec.email_configs[i].smarthost = `${ this.value.spec.email_configs[i].host }:${ this.value.spec.email_configs[i].port }`;
+          }
+        }
+      }
+    },
+    deletePortHost() {
+      if (this.value.spec.email_configs.length > 0) {
+        for (let i = 0; i < this.value.spec.email_configs.length; i++) {
+          if (this.value.spec.email_configs[i]['port'] || this.value.spec.email_configs[i]['host']) {
+            delete this.value.spec.email_configs[i]['port'];
+            delete this.value.spec.email_configs[i]['host'];
+          }
+        }
+      }
     }
-  }
+  },
+
+  created() {
+    this.registerBeforeHook(this.createSmarthost, 'create-smarthost');
+    this.registerAfterHook(this.deletePortHost, 'delete-port-host');
+  },
 };
 </script>
 

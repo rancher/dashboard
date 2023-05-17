@@ -72,17 +72,6 @@ export default class Receiver extends SteveModel {
       return Promise.reject(errors);
     }
 
-    if (this.spec.email_configs.length > 0) {
-      for (let i = 0; i < this.spec.email_configs.length; i++) {
-        if (this.spec.email_configs[i]['port'] || this.spec.email_configs[i]['host']) {
-          this.spec.email_configs[i].smarthost = `${ this.spec.email_configs[i].host }:${ this.spec.email_configs[i].port }`;
-
-          delete this.spec.email_configs[i]['port'];
-          delete this.spec.email_configs[i]['host'];
-        }
-      }
-    }
-
     await this.updateReceivers((currentReceivers) => {
       const existingReceiver = currentReceivers.find(r => r.name === this.spec?.name);
 
