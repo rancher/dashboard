@@ -1,12 +1,24 @@
-export const NAMESPACE_FILTER_SPECIAL = 'special';
+export const NAMESPACE_FILTER_ALL_PREFIX = 'all';
+export const NAMESPACE_FILTER_NS_PREFIX = 'ns';
+export const NAMESPACE_FILTER_P_PREFIX = 'project';
 
-export const NAMESPACE_FILTER_ALL = 'all';
-export const NAMESPACE_FILTER_ALL_SYSTEM = 'all://system';
-export const NAMESPACE_FILTER_ALL_USER = 'all://user';
-export const NAMESPACE_FILTER_ALL_ORPHANS = 'all://orphans';
+export const NAMESPACE_FILTER_NS_FULL_PREFIX = `${ NAMESPACE_FILTER_NS_PREFIX }://`;
+export const NAMESPACE_FILTER_P_FULL_PREFIX = `${ NAMESPACE_FILTER_P_PREFIX }://`;
+
+export const NAMESPACE_FILTER_ALL = NAMESPACE_FILTER_ALL_PREFIX;
+export const NAMESPACE_FILTER_ALL_SYSTEM = `${ NAMESPACE_FILTER_ALL_PREFIX }://system`;
+export const NAMESPACE_FILTER_ALL_USER = `${ NAMESPACE_FILTER_ALL_PREFIX }://user`;
+export const NAMESPACE_FILTER_ALL_ORPHANS = `${ NAMESPACE_FILTER_ALL_PREFIX }://orphans`;
 export const NAMESPACE_FILTER_NAMESPACED_PREFIX = 'namespaced://';
 export const NAMESPACE_FILTER_NAMESPACED_YES = 'namespaced://true';
 export const NAMESPACE_FILTER_NAMESPACED_NO = 'namespaced://false';
+
+export const NAMESPACE_FILTER_KINDS = {
+  DIVIDER:   'divider',
+  PROJECT:   'project',
+  NAMESPACE: 'namespace',
+  SPECIAL:   'special'
+};
 
 const SEPARATOR = '__%%__';
 

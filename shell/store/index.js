@@ -27,6 +27,7 @@ import {
   NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
   NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
   splitNamespaceFilterKey,
+  NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import { allHash, allHashSettled } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
@@ -242,7 +243,6 @@ export const state = () => {
     serverVersion:           null,
     systemNamespaces:        [],
     isSingleProduct:         undefined,
-    namespaceFilterMode:     null,
   };
 };
 
@@ -277,15 +277,6 @@ export const getters = {
 
   systemNamespaces(state) {
     return state.systemNamespaces;
-  },
-
-  /**
-   * Namespace Filter Mode supplies a resource type to the NamespaceFilter.
-   *
-   * Only one of the resource type is allowed to be selected
-   */
-  namespaceFilterMode(state) {
-    return state.namespaceFilterMode;
   },
 
   currentCluster(state, getters) {
@@ -373,34 +364,6 @@ export const getters = {
     return state.namespaceFilters.filter(x => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
   },
 
-  isSingleNamespace(state, getters) {
-    const product = getters['currentProduct'];
-
-    if ( !product ) {
-      return false;
-    }
-
-    if ( product.showWorkspaceSwitcher ) {
-      return false;
-    }
-
-    if ( getters.isAllNamespaces ) {
-      return false;
-    }
-
-    const filters = state.namespaceFilters;
-
-    if ( filters.length !== 1 ) {
-      return false;
-    }
-
-    if (filters[0].startsWith('ns://')) {
-      return filters[0];
-    }
-
-    return false;
-  },
-
   isMultipleNamespaces(state, getters) {
     const product = getters['currentProduct'];
 
@@ -422,7 +385,7 @@ export const getters = {
       return true;
     }
 
-    return !filters[0].startsWith('ns://');
+    return !filters[0].startsWith(NAMESPACE_FILTER_NS_FULL_PREFIX);
   },
 
   namespaceFilters(state) {
@@ -620,10 +583,6 @@ export const mutations = {
     // const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
     // const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
     state.allNamespaces = namespace;
-  },
-
-  setNamespaceFilterMode(state, mode) {
-    state.namespaceFilterMode = mode;
   },
 
   pageActions(state, pageActions) {
@@ -966,10 +925,6 @@ export const actions = {
       }
     });
     commit('updateNamespaces', { filters: ids });
-  },
-
-  setNamespaceFilterMode({ commit }, mode) {
-    commit('setNamespaceFilterMode', mode);
   },
 
   async cleanNamespaces({ getters, dispatch }) {

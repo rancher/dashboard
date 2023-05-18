@@ -8,6 +8,7 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
+import { sameContents } from 'utils/array';
 
 export default {
   name: ResourceListComponentName,
@@ -146,7 +147,11 @@ export default {
      *
      * This covers case 1
      */
-    namespaceFilter(neu) {
+    namespaceFilter(neu, old) {
+      if (sameContents(neu, old)) {
+        return;
+      }
+
       if (neu && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
@@ -176,10 +181,7 @@ export default {
     icon="icon-filter_alt"
   >
     <template #message>
-      <span
-        v-clean-html="t('resourceList.nsFiltering', { resource: $store.getters['type-map/labelFor'](schema, 2) || customTypeDisplay }, true)"
-        class="filter"
-      />
+      {{ t('resourceList.nsFiltering') }}
     </template>
   </IconMessage>
   <div v-else>
@@ -191,7 +193,6 @@ export default {
       :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
-      :load-namespace="namespaceFilter"
     >
       <template slot="extraActions">
         <slot name="extraActions" />

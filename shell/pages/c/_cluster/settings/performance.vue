@@ -9,6 +9,18 @@ import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
 
+const incompatible = {
+  incrementalLoading: ['forceNsFilterV2'],
+  manualRefresh:      ['forceNsFilterV2'],
+  forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
+};
+
+const l10n = {
+  incrementalLoading: 'incrementalLoad',
+  manualRefresh:      'manualRefresh',
+  forceNsFilterV2:    'nsFiltering',
+};
+
 export default {
   layout:     'authenticated',
   components: {
@@ -102,8 +114,42 @@ export default {
         this.errors.push(err);
         btnCB(false);
       }
+    },
+
+    compatibleWarning(property, enabled) {
+      if (!enabled) {
+        // Disabling a preference won't automatically turn on an incompatible one, so just set and exit
+        this.value[property].enabled = false;
+
+        return;
+      }
+
+      // We're enabling a preference. Are there any incomaptible preferences?
+      if ((incompatible[property] || []).every(p => !this.value[p].enabled)) {
+        // No, just set and exit
+        this.value[property].enabled = true;
+
+        return;
+      }
+
+      // Incompatible preferences found, so confirm with user before applying
+      this.$store.dispatch('cluster/promptModal', {
+        component:      'GenericPrompt',
+        componentProps: {
+          applyMode:   'enable',
+          applyAction: (buttonDone) => {
+            this.value[property].enabled = true;
+            (incompatible[property] || []).forEach((incompatible) => {
+              this.value[incompatible].enabled = false;
+            });
+            buttonDone(true);
+          },
+          title: this.t('promptRemove.title', {}, true),
+          body:  this.t(`performance.${ l10n[property] }.incompatibleDescription`, {}, true),
+        },
+      });
     }
-  }
+  },
 };
 </script>
 <template>
@@ -159,11 +205,12 @@ export default {
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <p>{{ t('performance.incrementalLoad.description') }}</p>
           <Checkbox
-            v-model="value.incrementalLoading.enabled"
+            :value="value.incrementalLoading.enabled"
             :mode="mode"
             :label="t('performance.incrementalLoad.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
+            @input="compatibleWarning('incrementalLoading', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
@@ -189,11 +236,12 @@ export default {
             label-key="performance.experimental"
           />
           <Checkbox
-            v-model="value.manualRefresh.enabled"
+            :value="value.manualRefresh.enabled"
             :mode="mode"
             :label="t('performance.manualRefresh.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
+            @input="compatibleWarning('manualRefresh', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.manualRefresh.enabled }">
@@ -299,26 +347,13 @@ export default {
             label-key="performance.experimental"
           />
           <Checkbox
-            v-model="value.forceNsFilter.enabled"
+            :value="value.forceNsFilterV2.enabled"
             :mode="mode"
             :label="t('performance.nsFiltering.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
+            @input="compatibleWarning('forceNsFilterV2', $event)"
           />
-          <div class="ml-20">
-            <p :class="{ 'text-muted': !value.forceNsFilter.enabled }">
-              {{ t('performance.nsFiltering.count.description') }}
-            </p>
-            <LabeledInput
-              v-model="value.forceNsFilter.threshold"
-              :mode="mode"
-              :label="t('performance.nsFiltering.count.inputLabel')"
-              :disabled="!value.forceNsFilter.enabled"
-              class="input"
-              type="number"
-              min="0"
-            />
-          </div>
         </div>
         <!-- Advanced Websocket Worker -->
         <div class="mt-40">

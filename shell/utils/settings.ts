@@ -44,19 +44,17 @@ export const setSetting = async(store: Store<any>, id: string, val: string): Pro
 };
 
 export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string, arg1: string) => any>) => {
-  const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-  let perfConfig = {};
+  const perfSettingResource = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+  let perfSetting = {};
 
-  if (perfSetting && perfSetting.value) {
+  if (perfSettingResource?.value) {
     try {
-      perfConfig = JSON.parse(perfSetting.value);
+      perfSetting = JSON.parse(perfSettingResource.value);
     } catch (e) {
       console.warn('ui-performance setting contains invalid data'); // eslint-disable-line no-console
     }
   }
 
   // Start with the default and overwrite the values from the setting - ensures we have defaults for newly added options
-  perfConfig = Object.assign(DEFAULT_PERF_SETTING, perfConfig);
-
-  return perfConfig;
+  return Object.assign(DEFAULT_PERF_SETTING, perfSetting || {});
 };
