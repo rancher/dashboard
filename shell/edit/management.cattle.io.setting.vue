@@ -53,6 +53,10 @@ export default {
       path:  'value',
       rules: this.setting.ruleSet.map(({ name }) => name)
     }] : [];
+
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.willSave, 'willSave');
+    }
   },
 
   computed: {
