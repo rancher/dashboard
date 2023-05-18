@@ -16,6 +16,7 @@ import {
 } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 import { _EDIT } from '@shell/config/query-params';
+import { AppUtils } from '@/pkg/epinio/utils/application';
 
 const GIT_BASE_URL = {
   [APPLICATION_SOURCE_TYPE.GIT_HUB]: 'https://github.com',
@@ -171,14 +172,29 @@ export default Vue.extend<Data, any, any, any>({
       try {
         const parsed: any = jsyaml.load(file);
 
-        if (parsed.origin?.container) {
-          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
+        const type = AppUtils.getSourceType(parsed.origin);
+
+        Vue.set(this, 'type', type);
+
+        switch (type) {
+        case APPLICATION_SOURCE_TYPE.FOLDER:
+        case APPLICATION_SOURCE_TYPE.ARCHIVE:
+          Vue.set(this.archive, 'fileName', parsed.origin.path);
+          break;
+        case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
           Vue.set(this.container, 'url', parsed.origin.container);
-        } else if (parsed.origin.git?.repository && parsed.origin.git?.revision) {
-          Vue.set(this, 'type', APPLICATION_SOURCE_TYPE.GIT_URL);
+          break;
+        case APPLICATION_SOURCE_TYPE.GIT_URL:
           Vue.set(this.gitUrl, 'url', parsed.origin.git.repository);
           Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
+          break;
+        case APPLICATION_SOURCE_TYPE.GIT_HUB:
+        case APPLICATION_SOURCE_TYPE.GIT_LAB:
+          Vue.set(this, 'git', AppUtils.getGitData(parsed.origin.git));
+          break;
+        default:
         }
+
         if (parsed.configuration) {
           Vue.set(this, 'appChart', parsed.configuration.appchart);
         }
