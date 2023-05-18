@@ -17,7 +17,7 @@ const ALLOWED_TAGS = [
   'strong',
 ];
 
-const purifyHTML = value => DOMPurify.sanitize(value, { ALLOWED_TAGS });
+export const purifyHTML = value => DOMPurify.sanitize(value, { ALLOWED_TAGS });
 
 export const cleanHtmlDirective = {
   inserted(el, binding) {
