@@ -1860,6 +1860,7 @@ cluster:
     docsLinkRke2: For help configuring private registry mirrors, see the RKE2 <a href="https://docs.rke2.io/install/containerd_registry_configuration/" target="_blank">documentation.</a>
     label: Enable cluster scoped container registry for Rancher system container images
   provider:
+    ack: ACK
     ackoperatorsetting: Alibaba ACK
     alibaba: Alibaba
     aliyunecs: Aliyun ECS

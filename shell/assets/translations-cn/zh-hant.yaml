@@ -1868,6 +1868,7 @@ cluster:
     docsLinkRke2: 如需配置私有鏡像倉庫 mirror 的幫助，請參閱 RKE2 <a href="https://docs.rke2.io/install/containerd_registry_configuration/" target="_blank">文檔</a>。
     label: 爲 Rancher 系統容器鏡像啓用集羣級別的容器鏡像倉庫
   provider:
+    ack: ACK
     ackoperatorsetting: Alibaba ACK
     alibaba: Alibaba
     aliyunecs: Aliyun ECS
