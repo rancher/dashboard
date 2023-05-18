@@ -209,9 +209,9 @@ export function batchChanges(state, { ctx, batch }) {
     const removeAtIndexes = [];
 
     // looping through the batch, executing changes, deferring creates and removes since they change the array length
-    Object.keys(batch[normalizedType]).forEach((id) => {
+    Object.keys(combinedBatch[normalizedType]).forEach((id) => {
       const index = typeCacheIndexMap[id];
-      const resource = batch[normalizedType][id];
+      const resource = combinedBatch[normalizedType][id];
 
       // an empty resource passed into batch changes is how we'll signal which ones to delete
       if (Object.keys(resource).length === 0 && index !== undefined) {

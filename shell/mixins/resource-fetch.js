@@ -38,11 +38,6 @@ export default {
       // incremental loading vars
       incremental:                false,
       fetchedResourceType:        [],
-      // force ns filtering
-      forceNsFilter:              {
-        ...perfConfig.forceNsFilter,
-        threshold: parseInt(perfConfig?.forceNsFilter?.threshold || '0', 10)
-      }
     };
   },
   beforeDestroy() {

@@ -9,7 +9,8 @@
 
 import { addObject, clear, removeObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import { SCHEMA } from '@shell/config/types';
+import { SCHEMA, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
 import { CSRF } from '@shell/config/cookies';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import Socket, {
@@ -29,16 +30,25 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
+import { WORKER_MODES } from './worker';
+import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
 
 import { BLANK_CLUSTER } from '@shell/store/index.js';
+import { STORE } from '@shell/store/store-types';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
 
-const waitForManagement = (store) => {
-  const managementReady = () => store.state?.managementReady;
+const workerQueues = {};
 
-  return waitFor(managementReady, 'Management');
+const supportedStores = [STORE.CLUSTER, STORE.RANCHER, STORE.MANAGEMENT];
+
+const waitForSettingsSchema = (store) => {
+  return waitFor(() => !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
+};
+
+const waitForSettings = (store) => {
+  return waitFor(() => !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE));
 };
 
 const isAdvancedWorker = (ctx) => {
@@ -46,7 +56,7 @@ const isAdvancedWorker = (ctx) => {
   const storeName = getters.storeName;
   const clusterId = rootGetters.clusterId;
 
-  if (storeName !== 'cluster' || clusterId === BLANK_CLUSTER) {
+  if (!supportedStores.includes(storeName) || (clusterId === BLANK_CLUSTER && storeName === STORE.CLUSTER)) {
     return false;
   }
 
@@ -55,19 +65,33 @@ const isAdvancedWorker = (ctx) => {
   return perfSetting?.advancedWorker.enabled;
 };
 
-// We only create a worker for the cluster store
 export async function createWorker(store, ctx) {
   const { getters, dispatch } = ctx;
   const storeName = getters.storeName;
 
   store.$workers = store.$workers || {};
 
-  if (storeName !== 'cluster') {
+  if (!supportedStores.includes(storeName)) {
     return;
   }
 
-  await waitForManagement(store);
-  // getting perf setting in a separate constant here because it'll provide other values we'll want later.
+  if (!store.$workers[storeName]) {
+    // we know we need a worker at this point but we don't know which one so we're creating a mock interface
+    // it will simply queue up any messages for the real worker to process when it loads up
+    store.$workers[storeName] = {
+      postMessage: (msg) => {
+        if (workerQueues[storeName]) {
+          workerQueues[storeName].push(msg);
+        } else {
+          workerQueues[storeName] = [msg];
+        }
+      },
+      mode: WORKER_MODES.WAITING
+    };
+  }
+
+  await waitForSettingsSchema(store);
+  await waitForSettings(store);
   const advancedWorker = isAdvancedWorker(ctx);
 
   const workerActions = {
@@ -81,21 +105,30 @@ export async function createWorker(store, ctx) {
       }
     },
     batchChanges: (batch) => {
-      dispatch('batchChanges', batch);
+      dispatch('batchChanges', namespaceHandler.validateBatchChange(ctx, batch));
     },
     dispatch: (msg) => {
       dispatch(`ws.${ msg.name }`, msg);
+    },
+    redispatch: (msg) => {
+      /**
+       * because we had to queue up some messages prior to loading the worker:
+       * the basic worker will need to redispatch some of the queued messages back to the UI thread
+       */
+      Object.entries(msg).forEach(([action, params]) => {
+        dispatch(action, params);
+      });
     },
     [EVENT_CONNECT_ERROR]: (e) => {
       dispatch('error', e );
     },
     [EVENT_DISCONNECT_ERROR]: (e) => {
       dispatch('error', e );
-    }
+    },
   };
 
-  if (!store.$workers[storeName]) {
-    const workerMode = advancedWorker ? 'advanced' : 'basic';
+  if (!store.$workers[storeName] || store.$workers[storeName].mode === WORKER_MODES.WAITING) {
+    const workerMode = advancedWorker ? WORKER_MODES.ADVANCED : WORKER_MODES.BASIC;
     const worker = store.steveCreateWorker(workerMode);
 
     store.$workers[storeName] = worker;
@@ -114,6 +147,12 @@ export async function createWorker(store, ctx) {
         workerActions[action](e?.data[action]);
       });
     };
+  }
+
+  while (workerQueues[storeName]?.length) {
+    const message = workerQueues[storeName].shift();
+
+    store.$workers[storeName].postMessage(message);
   }
 }
 
@@ -140,7 +179,67 @@ export function equivalentWatch(a, b) {
   return true;
 }
 
-function queueChange({ getters, state }, { data, revision }, load, label) {
+/**
+ * Sockets will not be able to subscribe to more than one namespace. If this is requested we pretend to handle it
+ * - Changes to all resources are monitored (no namespace provided in sub)
+ * - We ignore any events not from a required namespace (we have the conversion of project --> namespaces already)
+ */
+const namespaceHandler = {
+  /**
+   * Note - namespace can be a list of projects or namespaces
+   */
+  subscribeNamespace: (namespace) => {
+    if (pAndNFiltering.isApplicable({ namespaced: namespace }) && namespace.length) {
+      return undefined; // AKA sub to everything
+    }
+
+    return namespace;
+  },
+
+  validChange: ({ getters, rootGetters }, type, data) => {
+    const haveNamespace = getters.haveNamespace(type);
+
+    if (haveNamespace?.length) {
+      const namespaces = rootGetters.activeNamespaceCache;
+
+      if (!namespaces[data.metadata.namespace]) {
+        return false;
+      }
+    }
+
+    return true;
+  },
+
+  validateBatchChange: ({ getters, rootGetters }, batch) => {
+    const namespaces = rootGetters.activeNamespaceCache;
+
+    Object.entries(batch).forEach(([type, entries]) => {
+      const haveNamespace = getters.haveNamespace(type);
+
+      if (!haveNamespace?.length) {
+        return;
+      }
+
+      const schema = getters.schemaFor(type);
+
+      if (!schema?.attributes?.namespaced) {
+        return;
+      }
+
+      Object.keys(entries).forEach((id) => {
+        const namespace = id.split('/')[0];
+
+        if (!namespace || !namespaces[namespace]) {
+          delete entries[id];
+        }
+      });
+    });
+
+    return batch;
+  }
+};
+
+function queueChange({ getters, state, rootGetters }, { data, revision }, load, label) {
   const type = getters.normalizeType(data.type);
 
   const entry = getters.typeEntry(type);
@@ -152,6 +251,10 @@ function queueChange({ getters, state }, { data, revision }, load, label) {
   }
 
   // console.log(`${ label } Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
+
+  if (!namespaceHandler.validChange({ getters, rootGetters }, type, data)) {
+    return;
+  }
 
   if ( load ) {
     state.queue.push({
@@ -212,7 +315,7 @@ const sharedActions = {
 
     const url = `${ state.config.baseUrl }/subscribe`;
     const maxTries = growlsDisabled(rootGetters) ? null : 3;
-    const connectionMetadata = get(opt, 'metadata');
+    const metadata = get(opt, 'metadata');
 
     if (isAdvancedWorker(ctx)) {
       if (!this.$workers[getters.storeName]) {
@@ -222,7 +325,7 @@ const sharedActions = {
       // if the worker is in advanced mode then it'll contain it's own socket which it calls a 'watcher'
       this.$workers[getters.storeName].postMessage({
         createWatcher: {
-          connectionMetadata,
+          metadata,
           url:  `${ state.config.baseUrl }/subscribe`,
           csrf: this.$cookies.get(CSRF, { parseJSON: false }),
           maxTries
@@ -231,7 +334,7 @@ const sharedActions = {
     } else if ( socket ) {
       socket.setAutoReconnect(true);
       socket.setUrl(url);
-      socket.connect(connectionMetadata);
+      socket.connect(metadata);
     } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`, true, null, null, maxTries);
 
@@ -263,7 +366,7 @@ const sharedActions = {
           }
         }
       });
-      socket.connect(connectionMetadata);
+      socket.connect(metadata);
     }
   },
 
@@ -297,6 +400,7 @@ const sharedActions = {
       type, selector, id, revision, namespace, stop, force
     } = params;
 
+    namespace = namespaceHandler.subscribeNamespace(namespace);
     type = getters.normalizeType(type);
 
     if (rootGetters['type-map/isSpoofed'](type)) {
@@ -356,7 +460,7 @@ const sharedActions = {
 
     const worker = this.$workers?.[getters.storeName] || {};
 
-    if (worker.mode === 'advanced') {
+    if (worker.mode === WORKER_MODES.ADVANCED || worker.mode === WORKER_MODES.WAITING) {
       if ( force ) {
         msg.force = true;
       }
@@ -375,6 +479,8 @@ const sharedActions = {
     const { commit, getters, dispatch } = ctx;
 
     if (getters['schemaFor'](type)) {
+      namespace = namespaceHandler.subscribeNamespace(namespace);
+
       const obj = {
         type,
         id,
@@ -760,8 +866,18 @@ const defaultActions = {
     }
 
     // If we're trying to watch this event, attempt to re-watch
-    if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
-      commit('setWatchStopped', obj);
+    //
+    // To make life easier in the advanced worker `resource.stop` --> `watch` is handled here (basically for access to getters.nextResourceVersion)
+    // This means the concept of resource sub watch state needs massaging
+    const advancedWorker = msg.advancedWorker;
+    const localState = !advancedWorker;
+    const watchStarted = localState ? getters['watchStarted'](obj) : advancedWorker;
+
+    if ( getters['schemaFor'](type) && watchStarted) {
+      if (localState) {
+        commit('setWatchStopped', obj);
+      }
+
       dispatch('watch', obj);
     }
   },
