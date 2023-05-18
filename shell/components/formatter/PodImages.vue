@@ -59,7 +59,7 @@ export default {
     <span>{{ mainImage }}</span><br>
     <span
       v-if="images.length-1>0"
-      v-tooltip.bottom="imageLabels"
+      v-clean-tooltip.bottom="imageLabels"
       class="plus-more"
     >{{ t('generic.plusMore', {n:images.length-1}) }}</span>
   </span>
