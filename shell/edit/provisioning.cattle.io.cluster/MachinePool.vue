@@ -124,10 +124,6 @@ export default {
     isWindows() {
       return this.value?.config?.os === 'windows';
     },
-
-    modeWithBusy() {
-      return this.busy ? _VIEW : this.mode;
-    }
   },
 
   watch: {
