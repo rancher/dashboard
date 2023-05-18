@@ -39,7 +39,7 @@ export default {
         if (!Object.keys(v).includes('effect')) {
           rules.push({
             ...v,
-            effect: null
+            effect: ''
           });
         } else {
           rules.push(v);
@@ -103,7 +103,7 @@ export default {
       return [
         {
           label: this.t('workload.scheduling.tolerations.effectOptions.all'),
-          value: null
+          value: ''
         },
         {
           label: this.t('workload.scheduling.tolerations.effectOptions.noSchedule'),
@@ -149,6 +149,13 @@ export default {
           newRule.value = null;
         }
 
+        // remove effect from payload sent upstream, as it's empty
+        // it should be null, but the Select input doesn't seem to like it
+        // so we keep it as '' and sanitize it here
+        if (newRule.effect === '') {
+          delete newRule.effect;
+        }
+
         return newRule;
       });
 
@@ -156,7 +163,7 @@ export default {
     },
 
     addToleration() {
-      this.rules.push({ vKey: random32(), effect: null });
+      this.rules.push({ vKey: random32(), effect: '' });
     },
 
     updateEffect(neu, rule) {

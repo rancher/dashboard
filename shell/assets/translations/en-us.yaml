@@ -6027,7 +6027,7 @@ workload:
         noExecute: NoExecute
         noSchedule: "NoSchedule"
         preferNoSchedule: PreferNoSchedule
-      labelKey: Label Key
+      labelKey: Key
       operator: Operator
       operatorOptions:
         equal: =
