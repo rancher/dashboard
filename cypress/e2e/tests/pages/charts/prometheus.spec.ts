@@ -14,7 +14,6 @@ describe.only('Charts', () => {
     const monitoringVersion = '102.0.1%2Bup40.1.2';
     const chartsMonitoringPage = `${ chartsPageUrl }&chart=rancher-monitoring&${ monitoringVersion }`;
 
-    const chartsPage: ChartsPage = new ChartsPage(chartsMonitoringPage);
 
     before(() => {
       cy.login();
@@ -57,6 +56,7 @@ describe.only('Charts', () => {
         el.should('exist').should('exist');
 
         expect(el).to.exist;
+        const chartsPage: ChartsPage = new ChartsPage(chartsMonitoringPage);
 
         chartsPage.goToInstall().nextPage().editOptions(tabbedOptions, '[data-testid="btn-prometheus"');
 
