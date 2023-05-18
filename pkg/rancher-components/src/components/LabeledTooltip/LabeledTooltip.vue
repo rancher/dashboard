@@ -44,7 +44,7 @@ export default Vue.extend({
   >
     <template v-if="hover">
       <i
-        v-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value"
+        v-clean-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value"
         :class="{'hover':!value, [iconClass]: true}"
         class="icon status-icon"
       />
