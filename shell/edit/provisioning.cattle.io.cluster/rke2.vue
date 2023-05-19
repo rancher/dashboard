@@ -80,8 +80,6 @@ const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
-const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
-const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 /**
  * Classes to be adopted by the node badges in Machine pools
  */
@@ -99,6 +97,8 @@ const NODE_TOTAL = {
     icon:  'icon-checkmark'
   }
 };
+const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
+const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
 export default {
   components: {
