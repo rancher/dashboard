@@ -146,7 +146,7 @@ export default {
           {{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}
           <i
             v-if="!row.clusterInfo.total"
-            v-tooltip.bottom="parseTargetMode(row)"
+            v-clean-tooltip.bottom="parseTargetMode(row)"
             class="icon icon-warning"
           />
         </span>

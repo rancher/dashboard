@@ -406,7 +406,7 @@ export default {
                       </span>
                       <i
                         v-if="row.unavailableMachines"
-                        v-tooltip="row.unavailableMachines"
+                        v-clean-tooltip="row.unavailableMachines"
                         class="conditions-alert-icon icon-alert icon"
                       />
                     </div>

@@ -434,7 +434,7 @@ export default {
               class="masthead-istio"
             >
               <i
-                v-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+                v-clean-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
                 class="icon icon-sm icon-istio"
               />
             </span>

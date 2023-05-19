@@ -49,7 +49,7 @@ export default {
     <h3>
       Receiver
       <i
-        v-tooltip="t('monitoring.alertmanagerConfig.receiverTooltip')"
+        v-clean-tooltip="t('monitoring.alertmanagerConfig.receiverTooltip')"
         class="icon icon-info"
       />
     </h3>
@@ -72,7 +72,7 @@ export default {
         <span class="label">
           {{ t("monitoringRoute.groups.addGroupByLabel'") }}
           <i
-            v-tooltip="t('monitoringRoute.groups.groupByTooltip')"
+            v-clean-tooltip="t('monitoringRoute.groups.groupByTooltip')"
             class="icon icon-info"
           />
         </span>

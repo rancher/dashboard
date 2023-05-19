@@ -255,7 +255,7 @@ export default {
           >{{ tab.badge }}</span>
           <i
             v-if="hasIcon(tab)"
-            v-tooltip="t('validation.tab')"
+            v-clean-tooltip="t('validation.tab')"
             class="conditions-alert-icon icon-error"
           />
         </a>

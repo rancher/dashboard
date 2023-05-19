@@ -106,7 +106,7 @@ export default {
 <template>
   <div v-if="enabled && isShow" class="upgrade">
     <v-popover
-      v-tooltip="{
+      v-clean-tooltip="{
         placement: 'bottom-left',
       }"
       class="hand"

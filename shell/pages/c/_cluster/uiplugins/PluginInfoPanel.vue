@@ -206,7 +206,7 @@ export default {
             :key="v.version"
           >
             <a
-              v-tooltip="v.requiredUiVersion ? t('plugins.info.requiresVersion', { version: v.requiredUiVersion }) : ''"
+              v-clean-tooltip="v.requiredUiVersion ? t('plugins.info.requiresVersion', { version: v.requiredUiVersion }) : ''"
               class="version-link"
               :class="{'version-active': v.version === infoVersion, 'disabled': !v.isCompatibleWithUi}"
               @click="loadPluginVersionInfo(v.version)"
