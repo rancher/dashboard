@@ -125,8 +125,6 @@ export default Vue.extend<Data, any, any, any>({
         }
       }
 
-      this.value.setEnvVarFromSource(changes);
-
       this.set(this.source, cleanChanges);
     },
 

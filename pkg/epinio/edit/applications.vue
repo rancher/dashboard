@@ -17,6 +17,7 @@ import { _EDIT } from '@shell/config/query-params';
 import AppProgress from '../components/application/AppProgress.vue';
 import { EpinioAppSource, EPINIO_TYPES } from '../types';
 import { allHash } from '@shell/utils/promise';
+
 interface Data {
   bindings: EpinioAppBindings,
   source?: EpinioAppSource,
@@ -44,7 +45,7 @@ export default Vue.extend<Data, any, any, any>({
         services:       []
       },
       errors: [],
-      source: undefined,
+      source: this.value.appSource,
       steps:  [
         {
           name:       'source',
@@ -175,8 +176,6 @@ export default Vue.extend<Data, any, any, any>({
         this.set(this.value.configuration, { appchart: appChart });
       }
 
-      this.value.setEnvVarFromSource(changes);
-
       this.set(this.source, cleanChanges);
     },
 
@@ -184,17 +183,6 @@ export default Vue.extend<Data, any, any, any>({
       this.set(this.value.configuration, { configurations: changes });
     },
   },
-
-  watch: {
-    value: {
-      handler(neu, old) {
-        if (!old && !!neu && !this.source) {
-          this.source = this.value.sourceFromEnvVar();
-        }
-      },
-      immediate: true
-    }
-  }
 });
 </script>
 
@@ -232,6 +220,7 @@ export default Vue.extend<Data, any, any, any>({
         >
           <template #source>
             <AppSource
+              v-if="source"
               :application="value"
               :source="source"
               :mode="mode"

@@ -1,3 +1,4 @@
+import { APPLICATION_SOURCE_TYPE } from '../types';
 import { ucFirst } from '@shell/utils/string';
 
 interface Repo {
@@ -30,6 +31,10 @@ type Utils = Record<string, {
 
 function getShortHash(commit: string) {
   return !!commit ? commit.slice(0, 7) : undefined;
+}
+
+export function isGitRepo(type: APPLICATION_SOURCE_TYPE) {
+  return type === APPLICATION_SOURCE_TYPE.GIT_HUB || type === APPLICATION_SOURCE_TYPE.GIT_LAB;
 }
 
 export function gitUtilsToLabel(type: string, options = { startCase: false }) {

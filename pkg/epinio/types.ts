@@ -91,26 +91,7 @@ export interface EpinioAppSource {
   appChart: string,
 }
 
-// ------------ App Env Var Data (persisted as env var) --------------
-export const APPLICATION_ENV_VAR = 'EPINIO_APP_DATA';
-
-export type EPINIO_APP_ENV_VAR_GIT = Omit<AppSourceGit, 'sourceData'>;
-
-/**
- * Contains persisted information that provides applications an understanding of where they came from
- */
-export interface EPINIO_APP_DATA {
-  source: {
-    type: APPLICATION_SOURCE_TYPE,
-    builderImage: string,
-    container_url?: AppSourceContainer, // eslint-disable-line camelcase
-    archive?: Omit<AppSourceArchive, 'tarball'>,
-    folder?: Omit<AppSourceArchive, 'tarball'>,
-    git_url?: AppSourceGitUrl, // eslint-disable-line camelcase
-    git_hub?: EPINIO_APP_ENV_VAR_GIT, // eslint-disable-line camelcase
-    git_lab?: EPINIO_APP_ENV_VAR_GIT, // eslint-disable-line camelcase
-  }
-}
+export type EPINIO_APP_GIT_SOURCE = Omit<AppSourceGit, 'sourceData'>;
 
 // ------------  --------------
 
@@ -122,9 +103,10 @@ export const APPLICATION_ACTION_STATE = {
 };
 
 export const APPLICATION_PARTS = {
-  VALUES: 'values',
-  CHART:  'chart',
-  IMAGE:  'image',
+  VALUES:   'values',
+  CHART:    'chart',
+  IMAGE:    'image',
+  MANIFEST: 'manifest'
 };
 
 // --------------------------------------
@@ -155,11 +137,20 @@ export interface EpinioApplicationResource {
   meta: EpinioMeta
   origin: {
     Kind: number,
+    archive: boolean,
+    container: any,
+    path: string
     git?: {
-      repository: string
+      provider: string,
+      repository: string,
+      branch: string,
+      revision: string,
     }
   }
   stage_id: string // eslint-disable-line camelcase
+  staging: {
+    builder: string
+  }
   status: string
   statusmessage: string
 }

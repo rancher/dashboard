@@ -5,13 +5,12 @@ import JSZip from 'jszip';
 import { identity, pickBy } from 'lodash';
 import { epiniofy } from '../store/epinio-store/actions';
 import {
-  APPLICATION_ACTION_STATE,
-  APPLICATION_ENV_VAR,
-  APPLICATION_SOURCE_TYPE,
-  APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+  APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
 } from '../types';
 import { createEpinioRoute } from '../utils/custom-routing';
 import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
+import { isGitRepo } from '../utils/git';
+import { AppUtils } from '../utils/application';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -237,143 +236,71 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return this.deployment?.millicpus;
   }
 
-  get appEnvVar() {
-    const envVar = this.configuration?.environment?.[APPLICATION_ENV_VAR];
+  get appData() {
+    const type = AppUtils.getSourceType(this.origin);
 
-    if (envVar) {
-      if (envVar !== this.cachedEnvVar) {
-        this.cachedEppEnvVar = JSON.parse(envVar);
-      }
+    const opt = {};
 
-      return this.cachedEppEnvVar;
-    }
-
-    return undefined;
-  }
-
-  /**
-   * Convert the EPINIO_APP_DATA (persisted App Env Var object) to EpinioAppSource (UI object)
-   *
-   * (opposite of setEnvVarFromSource)
-   *
-   * @returns EpinioAppSource
-   */
-  sourceFromEnvVar() {
-    const appSource = {
-      type:      this.sourceType,
-      appChart:  this.configuration?.appchart,
-      git:       {},
-      github:    {},
-      gitUrl:    {},
-      container: {},
-      archive:   {},
-    };
-
-    const appEnvVar = this.appEnvVar;
-
-    if (appEnvVar?.source) {
-      appSource.builderImage = { value: appEnvVar.source.builderImage };
-
-      switch (this.sourceType) {
-      case APPLICATION_SOURCE_TYPE.GIT_HUB:
-      case APPLICATION_SOURCE_TYPE.GIT_LAB:
-        appSource.git = appEnvVar.source[this.sourceType];
-        break;
-      case APPLICATION_SOURCE_TYPE.GIT_URL:
-        appSource.gitUrl = appEnvVar.source[this.sourceType];
-        break;
-      case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
-        appSource.container = appEnvVar.source[this.sourceType];
-        break;
-      }
-    }
-
-    return appSource;
-  }
-
-  /**
-   * Convert EpinioAppSource (UI object) to EPINIO_APP_DATA (persisted App Env Var object)
-   *
-   * (opposite of sourceFromEnvVar)
-   *
-   * These are  ui specific properties we'd like to use at other points
-   * @param {EPINIO_APP_DATA} source
-   */
-  setEnvVarFromSource(source) {
-    const envVarSource = {
-      type:         source.type,
-      builderImage: source.builderImage.value
-    };
-
-    const { sourceData: misc1, ...gSource } = source.git || {};
-    const { tarball, ...aSource } = source.archive || {};
-
-    switch (source.type) {
-    case APPLICATION_SOURCE_TYPE.GIT_HUB:
-    case APPLICATION_SOURCE_TYPE.GIT_LAB:
-      envVarSource[source.type] = gSource;
-      break;
-    case APPLICATION_SOURCE_TYPE.GIT_URL:
-      envVarSource[source.type] = source.gitUrl;
+    switch (type) {
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      opt.archive = { fileName: this.origin.path };
       break;
     case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
-      envVarSource[source.type] = source.container;
+      opt.container_url = { url: this.origin.container };
       break;
-    case APPLICATION_SOURCE_TYPE.ARCHIVE:
     case APPLICATION_SOURCE_TYPE.FOLDER:
-      envVarSource[source.type] = aSource;
+      opt.folder = { fileName: this.origin.path };
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
+      opt.git_url = {
+        branch: this.origin.git?.branch || '',
+        url:    this.origin.git?.repository || ''
+      };
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
+      opt[type] = AppUtils.getGitData(this.origin.git);
+      break;
+    default:
       break;
     }
 
-    const appEnvVar = { source: envVarSource };
-
-    this.configuration = this.configuration || {};
-    this.configuration.environment = this.configuration.environment || {};
-    this.configuration.environment[APPLICATION_ENV_VAR] = JSON.stringify(appEnvVar);
+    return {
+      source: {
+        ...opt,
+        type,
+        builderImage: this.staging.builder,
+        appchart:     this.configuration.appchart,
+      },
+    };
   }
 
-  /**
-   * Extract ui specific source properties stored in the applications env vars
-   * returns APPLICATION_SOURCE_TYPE
-   */
-  get sourceType() {
-    const sourceType = this.appEnvVar?.source?.type;
+  get appSource() {
+    const { source } = this.appData;
 
-    if (sourceType) {
-      return sourceType;
-    }
-
-    switch (this.origin?.Kind) { // APPLICATION_MANIFEST_SOURCE_TYPE
-    case APPLICATION_MANIFEST_SOURCE_TYPE.PATH:
-      return APPLICATION_SOURCE_TYPE.ARCHIVE; // Best Guess
-    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
-      return APPLICATION_SOURCE_TYPE.GIT_URL; // Best Guess
-    case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
-      return APPLICATION_SOURCE_TYPE.CONTAINER_URL;
-    case APPLICATION_MANIFEST_SOURCE_TYPE.NONE:
-    default:
-      return undefined;
-    }
+    return {
+      type:      source.type,
+      appChart:  source.appchart,
+      git:       isGitRepo(source.type) ? source[source.type] : null,
+      gitUrl:    source.git_url,
+      container: source.container_url,
+      archive:   source.archive
+    };
   }
 
-  get sourceInfo() {
-    // This should move to the component
-    const appEnvVarSource = this.appEnvVar?.source;
+  get appSourceInfo() {
+    const { source } = this.appData;
 
-    if (!this.origin && !appEnvVarSource) {
-      return undefined;
-    }
     const appChart = {
       label: 'App Chart',
-      value: this.configuration.appchart
+      value: source.appchart
     };
     const builderImage = {
       label: 'Builder Image',
-      value: appEnvVarSource?.builderImage
+      value: source.builderImage
     };
-    const source = appEnvVarSource?.[this.sourceType] || {};
 
-    switch (this.sourceType) { // APPLICATION_SOURCE_TYPE
+    switch (source.type) {
     case APPLICATION_SOURCE_TYPE.FOLDER:
     case APPLICATION_SOURCE_TYPE.ARCHIVE:
       return {
@@ -382,7 +309,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         details: [
           {
             label: 'Original Name',
-            value: source?.fileName
+            value: source.archive?.fileName
           }, appChart, builderImage
         ]
       };
@@ -393,11 +320,11 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         details: [
           {
             label: 'Url',
-            value: source?.url || this.origin.git.repository
+            value: source.git_url?.url
           }, {
             label: 'Revision',
             icon:  'icon-commit',
-            value: source?.branch?.name || source?.branch?.id || this.origin.git.revision
+            value: source.git_url?.branch
           }, appChart, builderImage
         ]
       };
@@ -408,15 +335,15 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         details: [
           {
             label: 'Url',
-            value: this.origin.git.repository
+            value: source.git_hub?.url
           }, {
             label: 'Revision',
             icon:  'icon-commit',
-            value: this.origin.git.revision
+            value: source.git_hub?.commit
           }, {
             label: 'Branch',
             icon:  'icon-commit',
-            value: source?.branch?.name || source?.branch?.id || this.origin.git.revision
+            value: source.git_hub?.branch.name
           }, appChart, builderImage
         ]
       };
@@ -427,15 +354,15 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         details: [
           {
             label: 'Url',
-            value: this.origin.git.repository
+            value: source.git_lab?.url
           }, {
             label: 'Revision',
             icon:  'icon-commit',
-            value: this.origin.git.revision
+            value: source.git_lab?.commit
           }, {
             label: 'Branch',
             icon:  'icon-commit',
-            value: source?.branch?.name || source?.branch?.id || this.origin.git.revision
+            value: source.git_lab?.branch.name
           }, appChart, builderImage
         ]
       };
@@ -445,23 +372,9 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
         icon:    'icon-docker',
         details: [{
           label: 'Image',
-          value: source?.url || this.origin.Container || this.origin.container
+          value: source.container_url?.url
         }, appChart
         ]
-      };
-    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT_LAB:
-      return {
-        label:   'GitLab',
-        icon:    'icon-gitlab',
-        details: [
-          appChart, {
-            label: 'Url',
-            value: this.origin.git.repository
-          }, {
-            label: 'Revision',
-            icon:  'icon-gitlab',
-            value: this.origin.git.revision
-          }]
       };
     default:
       return undefined;
@@ -682,7 +595,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
   }
 
   async fetchPart(part) {
-    const responseType = part === 'values' ? 'text/plain' : 'blob';
+    const responseType = part === 'values' || part === 'manifest' ? 'text/plain' : 'blob';
 
     const opt = { url: `${ this.linkFor('self') }/part/${ part }`, responseType };
 
