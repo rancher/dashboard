@@ -665,7 +665,7 @@ export default {
           </nuxt-link>
 
           <span
-            v-tooltip="{content: displayVersion, placement: 'top'}"
+            v-clean-tooltip="{content: displayVersion, placement: 'top'}"
             class="clip version text-muted"
           >
             {{ displayVersion }}

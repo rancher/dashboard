@@ -266,7 +266,7 @@ export default {
           class="col span-6"
         >
           <span>{{ t('cis.scoreWarning.label') }}</span> <i
-            v-tooltip="t('cis.scoreWarning.protip')"
+            v-clean-tooltip="t('cis.scoreWarning.protip')"
             class="icon icon-info"
           />
           <RadioGroup

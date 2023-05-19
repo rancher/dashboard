@@ -53,7 +53,7 @@ export default {
 
 <template>
   <code
-    v-tooltip="tooltip"
+    v-clean-tooltip="tooltip"
     class="copy"
     @click.stop.prevent="clicked"
   ><slot /></code>

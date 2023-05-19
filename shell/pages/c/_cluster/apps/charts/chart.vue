@@ -224,7 +224,7 @@ export default {
             <b v-if="vers.originalVersion === version.version">{{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}</b>
             <a
               v-else
-              v-tooltip="vers.label.length > 16 ? vers.label : null"
+              v-clean-tooltip="vers.label.length > 16 ? vers.label : null"
               @click.prevent="selectVersion(vers)"
             >
               {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}
