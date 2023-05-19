@@ -462,7 +462,7 @@ export default {
       </div>
       <p
         v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
-        v-tooltip="t('landing.deprecatedPsp')"
+        v-clean-tooltip="t('landing.deprecatedPsp')"
         class="alt-psp-deprecation-info"
       >
         <span>{{ t('landing.psps') }}</span>

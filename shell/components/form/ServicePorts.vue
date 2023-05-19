@@ -137,7 +137,7 @@ export default {
         <span class="port">
           <t k="servicePorts.rules.listening.label" />
           <i
-            v-tooltip="t('servicesPage.listeningPorts')"
+            v-clean-tooltip="t('servicesPage.listeningPorts')"
             class="icon icon-info flex"
           />
           <span class="text-error">*</span>
@@ -151,7 +151,7 @@ export default {
         <span class="target-port">
           <t k="servicePorts.rules.target.label" />
           <i
-            v-tooltip="t('servicesPage.targetPorts')"
+            v-clean-tooltip="t('servicesPage.targetPorts')"
             class="icon icon-info flex"
           />
           <span class="text-error">*</span>

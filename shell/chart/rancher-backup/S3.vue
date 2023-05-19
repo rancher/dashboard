@@ -139,7 +139,7 @@ export default {
           />
           <div class="ca-tooltip">
             <i
-              v-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')"
+              v-clean-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')"
               class="icon icon-info"
             />
           </div>
