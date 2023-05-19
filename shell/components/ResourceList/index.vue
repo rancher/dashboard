@@ -70,7 +70,7 @@ export default {
 
     if ( !this.hasFetch ) {
       if ( !schema ) {
-        store.dispatch('loadingError', new Error(`Type ${ resource } not found, unable to display list`));
+        store.dispatch('loadingError', new Error(`Resource type ${ resource } not found, unable to display list`));
 
         return;
       }

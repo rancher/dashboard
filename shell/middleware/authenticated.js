@@ -71,8 +71,15 @@ export function getProductFromRoute(to) {
   return product;
 }
 
-function setProduct(store, to) {
+function setProduct(store, to, redirect) {
   let product = getProductFromRoute(to);
+
+  console.error('TO SET PRODUCT', to);
+
+  if (product &&
+    (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) {
+    return product;
+  }
 
   if ( !product ) {
     product = EXPLORER;
@@ -92,6 +99,8 @@ function setProduct(store, to) {
     // There might be management catalog items in it vs cluster.
     store.commit('catalog/reset');
   }
+
+  return false;
 }
 
 export default async function({
@@ -288,12 +297,28 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      setProduct(store, to);
+      const productNotFound = setProduct(store, to);
+
+      console.error('ROUTE BEFORE EACH from', from);
+      console.error('ROUTE BEFORE EACH to', to);
+
+      if (productNotFound) {
+        store.commit('setError', { error: `Product ${ productNotFound } was not found!` });
+
+        return redirect(302, '/fail-whale');
+      }
+
       next();
     });
 
     // Call it for the initial pageload
-    setProduct(store, route);
+    const productNotFound = setProduct(store, route);
+
+    if (productNotFound) {
+      store.commit('setError', { error: `Product ${ productNotFound } was not found!` });
+
+      return redirect(302, '/fail-whale');
+    }
 
     if (process.client) {
       store.app.router.afterEach((to, from) => {
@@ -376,7 +401,14 @@ export default async function({
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
     if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
-      setProduct(store, route);
+      const productNotFound = setProduct(store, route);
+
+      if (productNotFound) {
+        store.commit('setError', { error: `Product ${ productNotFound } was not found!` });
+
+        return redirect(302, '/fail-whale');
+      }
+
       store.commit('updateWorkspace', {
         value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
         getters: store.getters
@@ -419,7 +451,11 @@ export default async function({
     }
   } catch (e) {
     if ( e instanceof ClusterNotFoundError ) {
-      return redirect(302, '/home');
+      const clusterId = e.toString()?.split('ClusterNotFoundError: ')?.[1];
+
+      store.commit('setError', { error: `Cluster ${ clusterId } was not found!` });
+
+      return redirect(302, '/fail-whale');
     } else {
       // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
