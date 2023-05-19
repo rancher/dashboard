@@ -260,7 +260,7 @@ export default {
           <h3>
             {{ t('cluster.machinePool.autoReplace.label') }}
             <i
-              v-tooltip="t('cluster.machinePool.autoReplace.toolTip')"
+              v-clean-tooltip="t('cluster.machinePool.autoReplace.toolTip')"
               class="icon icon-info icon-lg"
             />
           </h3>

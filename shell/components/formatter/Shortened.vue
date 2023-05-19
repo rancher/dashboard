@@ -45,7 +45,7 @@ export default {
   </span>
   <span
     v-else-if="showTooltip"
-    v-tooltip="{content: longValue, placement: tooltipPlacement}"
+    v-clean-tooltip="{content: longValue, placement: tooltipPlacement}"
   >
     {{ value }}
   </span>

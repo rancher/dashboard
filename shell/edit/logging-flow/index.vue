@@ -433,7 +433,7 @@ export default {
           <template #selected-option="option">
             <i
               v-if="isTag(clusterOutputChoices, option)"
-              v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')"
+              v-clean-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')"
               class="icon icon-info status-icon text-warning"
             />
             {{ option.label }}
@@ -454,7 +454,7 @@ export default {
           <template #selected-option="option">
             <i
               v-if="isTag(outputChoices, option)"
-              v-tooltip="t('logging.flow.outputs.doesntExistTooltip')"
+              v-clean-tooltip="t('logging.flow.outputs.doesntExistTooltip')"
               class="icon icon-info status-icon text-warning"
             />
             {{ option.label }}

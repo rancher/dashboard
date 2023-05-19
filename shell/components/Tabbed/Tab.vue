@@ -102,7 +102,7 @@ export default {
         {{ labelDisplay }}
         <i
           v-if="tooltip"
-          v-tooltip="tooltip"
+          v-clean-tooltip="tooltip"
           class="icon icon-info icon-lg"
         />
       </h2>

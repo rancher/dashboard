@@ -241,7 +241,7 @@ export default {
             <h2>
               {{ t('networkpolicy.selectors.label') }}
               <i
-                v-tooltip="t('networkpolicy.selectors.hint')"
+                v-clean-tooltip="t('networkpolicy.selectors.hint')"
                 class="icon icon-info"
               />
             </h2>
