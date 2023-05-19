@@ -27,7 +27,27 @@ export default {
   },
 
   data() {
-    return { rules: [...this.value] };
+    const rules = [];
+
+    // on creation in agent configuration, the backend "eats"
+    // the empty "effect" string, which doesn't happen on edit
+    // just to make sure we populate it correcty, let's consider
+    // no prop "effect" as an empty string which means all
+    // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#toleration-v1-core
+    if (this.value.length) {
+      this.value.forEach((v) => {
+        if (!Object.keys(v).includes('effect')) {
+          rules.push({
+            ...v,
+            effect: ''
+          });
+        } else {
+          rules.push(v);
+        }
+      });
+    }
+
+    return { rules };
   },
 
   computed: {
@@ -83,7 +103,7 @@ export default {
       return [
         {
           label: this.t('workload.scheduling.tolerations.effectOptions.all'),
-          value: 'All'
+          value: ''
         },
         {
           label: this.t('workload.scheduling.tolerations.effectOptions.noSchedule'),
@@ -129,6 +149,13 @@ export default {
           newRule.value = null;
         }
 
+        // remove effect from payload sent upstream, as it's empty
+        // it should be null, but the Select input doesn't seem to like it
+        // so we keep it as '' and sanitize it here
+        if (newRule.effect === '') {
+          delete newRule.effect;
+        }
+
         return newRule;
       });
 
@@ -136,7 +163,7 @@ export default {
     },
 
     addToleration() {
-      this.rules.push({ vKey: random32() });
+      this.rules.push({ vKey: random32(), effect: '' });
     },
 
     updateEffect(neu, rule) {

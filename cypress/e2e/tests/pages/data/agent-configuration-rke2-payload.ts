@@ -264,13 +264,11 @@ export const payloadComparisonData = {
       {
         key:      'key1',
         operator: 'Exists',
-        effect:   'All'
       },
       {
         key:      'key2',
         operator: 'Equal',
         value:    'val2',
-        effect:   'All'
       },
       {
         key:      'key3',
@@ -568,13 +566,11 @@ export const payloadComparisonData = {
       {
         key:      'key1',
         operator: 'Exists',
-        effect:   'All'
       },
       {
         key:      'key2',
         operator: 'Equal',
         value:    'val2',
-        effect:   'All'
       },
       {
         key:      'key3',
