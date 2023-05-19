@@ -229,7 +229,7 @@ export default {
         <div class="col span-4">
           <h3>
             {{ t('cluster.machinePool.autoReplace.label') }}
-            <i v-tooltip="t('cluster.machinePool.autoReplace.toolTip')" class="icon icon-info icon-lg" />
+            <i v-clean-tooltip="t('cluster.machinePool.autoReplace.toolTip')" class="icon icon-info icon-lg" />
           </h3>
           <UnitInput
             v-model.number="unhealthyNodeTimeoutInteger"

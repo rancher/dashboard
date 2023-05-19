@@ -324,7 +324,7 @@ export default {
                   <template #label>
                     <div class="checkbox-label-slot">
                       <span class="checkbox-label">{{ role.nameDisplay }}</span>
-                      <i v-if="!!assignOnlyRoles[role.id]" v-tooltip="t('rbac.globalRoles.assignOnlyRole')" class="checkbox-info icon icon-info icon-lg" />
+                      <i v-if="!!assignOnlyRoles[role.id]" v-clean-tooltip="t('rbac.globalRoles.assignOnlyRole')" class="checkbox-info icon icon-info icon-lg" />
                     </div>
                   </template>
                 </Checkbox>

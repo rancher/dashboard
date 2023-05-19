@@ -61,7 +61,7 @@ export default {
       </div>
     </div>
     <div v-for="deviceId in allDeviceIds" :key="deviceId" class="device-col">
-      <div v-tooltip="deviceDescription(deviceId)" class="compat-cell device-label">
+      <div v-clean-tooltip="deviceDescription(deviceId)" class="compat-cell device-label">
         {{ deviceId }}
       </div>
       <div

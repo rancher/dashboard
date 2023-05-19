@@ -114,7 +114,7 @@ export default {
         <t k="prometheusRule.recordingRules.label" />
         <i
           v-if="disableAddRecord"
-          v-tooltip="t('validation.prometheusRule.groups.singleAlert')"
+          v-clean-tooltip="t('validation.prometheusRule.groups.singleAlert')"
           class="icon icon-info"
         />
       </h3>
@@ -152,7 +152,7 @@ export default {
           <t k="prometheusRule.alertingRules.label" />
           <i
             v-if="disableAddAlert"
-            v-tooltip="t('validation.prometheusRule.groups.singleAlert')"
+            v-clean-tooltip="t('validation.prometheusRule.groups.singleAlert')"
             class="icon icon-info"
           />
         </h3>

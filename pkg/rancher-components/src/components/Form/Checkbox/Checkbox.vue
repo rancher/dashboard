@@ -238,8 +238,8 @@ export default Vue.extend({
         <slot name="label">
           <t v-if="labelKey" :k="labelKey" :raw="true" />
           <template v-else-if="label">{{ label }}</template>
-          <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
-          <i v-else-if="tooltip" v-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
+          <i v-if="tooltipKey" v-clean-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
+          <i v-else-if="tooltip" v-clean-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
         </slot>
       </span>
     </label>

@@ -267,7 +267,7 @@ export default {
       <div>
         <Checkbox
           v-model="includeResponseTimes"
-          v-tooltip.left="t('about.diagnostic.checkboxTooltip')"
+          v-clean-tooltip.left="t('about.diagnostic.checkboxTooltip')"
           :label="t('about.diagnostic.checkboxLabel')"
         />
         <AsyncButton

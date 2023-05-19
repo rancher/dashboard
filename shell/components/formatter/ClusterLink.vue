@@ -65,12 +65,12 @@ export default {
     <span v-else>{{ value }}</span>
     <i
       v-if="row.rkeTemplateUpgrade"
-      v-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
+      v-clean-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
       class="template-upgrade-icon icon-alert icon"
     />
     <i
       v-if="clusterHasIssues"
-      v-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
+      v-clean-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
       class="conditions-alert-icon icon-error icon-lg"
     />
   </span>

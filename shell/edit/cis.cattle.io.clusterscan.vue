@@ -255,7 +255,7 @@ export default {
           />
         </div>
         <div v-if="canBeScheduled" class="col span-6">
-          <span>{{ t('cis.scoreWarning.label') }}</span> <i v-tooltip="t('cis.scoreWarning.protip')" class="icon icon-info" />
+          <span>{{ t('cis.scoreWarning.label') }}</span> <i v-clean-tooltip="t('cis.scoreWarning.protip')" class="icon icon-info" />
           <RadioGroup v-model="value.spec.scoreWarning" :mode="mode" name="scoreWarning" :options="['pass', 'fail']" :labels="[t('cis.scan.pass'), t('cis.scan.fail')]" />
         </div>
       </div>

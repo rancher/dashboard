@@ -147,7 +147,7 @@ export default {
     <div class="title clearfix">
       <h3>
         {{ label }}
-        <i v-if="description" v-tooltip="description" class="icon icon-info" />
+        <i v-if="description" v-clean-tooltip="description" class="icon icon-info" />
       </h3>
     </div>
     <div class="row">
