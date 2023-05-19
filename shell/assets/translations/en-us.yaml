@@ -3029,7 +3029,7 @@ members:
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
   clusterMemebership: Cluster Membership
-  projectMembership: Project Memebership
+  projectMembership: Project Membership
   clusterPermissions:
     noDescription: User created - no description
     label: Cluster Permissions
