@@ -1,7 +1,7 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT } from '@shell/config/query-params';
 import Taints from '@shell/components/form/Taints.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
