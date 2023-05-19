@@ -561,7 +561,7 @@ export default {
       <div v-else-if="isSingleSpecial" ref="values" class="ns-values">
         {{ value[0].label }}
       </div>
-      <div v-else ref="values" v-tooltip="tooltip" class="ns-values">
+      <div v-else ref="values" v-clean-tooltip="tooltip" class="ns-values">
         <div v-if="total" ref="total" class="ns-value ns-abs">
           {{ t('namespaceFilter.selected.label', { total }) }}
         </div>
@@ -570,7 +570,7 @@ export default {
           <i class="icon icon-close" @click="removeOption(ns, $event)" />
         </div>
       </div>
-      <div v-if="hidden > 0" ref="more" v-tooltip="tooltip" class="ns-more">
+      <div v-if="hidden > 0" ref="more" v-clean-tooltip="tooltip" class="ns-more">
         {{ t('namespaceFilter.more', { more: hidden }) }}
       </div>
       <i v-if="!isOpen" class="icon icon-chevron-down" />

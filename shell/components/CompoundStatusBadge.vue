@@ -24,7 +24,7 @@ export default {
 
 <template>
   <div
-    v-tooltip.bottom="tooltipText"
+    v-clean-tooltip.bottom="tooltipText"
     class="compound-cluster-badge"
     :class="`bg-${badgeClass}`"
   >

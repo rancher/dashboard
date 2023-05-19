@@ -217,7 +217,7 @@ export default {
                 {{ t('monitoring.receiver.addReceiver') }}
                 <i
                   v-if="mode === create"
-                  v-tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
+                  v-clean-tooltip="t('monitoring.alertmanagerConfig.disabledReceiverButton')"
                   class="icon icon-info"
                 />
               </button>

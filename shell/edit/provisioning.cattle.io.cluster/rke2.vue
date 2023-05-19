@@ -1732,21 +1732,21 @@ export default {
           <h2 v-t="'cluster.tabs.machinePools'" class="pull-left" />
           <div v-if="!isView" class="pull-right">
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.etcd"
+              v-clean-tooltip="nodeTotals.tooltip.etcd"
               :color="nodeTotals.color.etcd"
               :icon="nodeTotals.icon.etcd"
               :label="nodeTotals.label.etcd"
               class="mr-10"
             />
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.controlPlane"
+              v-clean-tooltip="nodeTotals.tooltip.controlPlane"
               :color="nodeTotals.color.controlPlane"
               :icon="nodeTotals.icon.controlPlane"
               :label="nodeTotals.label.controlPlane"
               class="mr-10"
             />
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.worker"
+              v-clean-tooltip="nodeTotals.tooltip.worker"
               :color="nodeTotals.color.worker"
               :icon="nodeTotals.icon.worker"
               :label="nodeTotals.label.worker"
@@ -2000,7 +2000,7 @@ export default {
         <Tab v-if="haveArgInfo" name="networking" label-key="cluster.tabs.networking">
           <h3>
             {{ t('cluster.rke2.address.header') }}
-            <i v-tooltip="t('cluster.rke2.address.tooltip')" class="icon icon-info" />
+            <i v-clean-tooltip="t('cluster.rke2.address.tooltip')" class="icon icon-info" />
           </h3>
           <Banner v-if="showIpv6Warning" color="warning">
             {{ t('cluster.rke2.address.ipv6.warning') }}
@@ -2184,7 +2184,7 @@ export default {
             <h3>
               {{ t('cluster.addOns.additionalManifest.title') }}
               <i
-                v-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
+                v-clean-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
                 class="icon icon-info"
               />
             </h3>

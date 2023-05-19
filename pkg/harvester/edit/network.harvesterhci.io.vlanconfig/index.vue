@@ -228,7 +228,7 @@ export default {
               }"
             >
               <i
-                v-tooltip="t('generic.cancel')"
+                v-clean-tooltip="t('generic.cancel')"
                 class="icon icon-lg icon-close align-value"
               />
             </button>

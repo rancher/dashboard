@@ -235,7 +235,7 @@ export default {
         <h3>
           {{ title }}
           <span v-if="required" class="required">*</span>
-          <i v-if="showProtip" v-tooltip="protip" class="icon icon-info" />
+          <i v-if="showProtip" v-clean-tooltip="protip" class="icon icon-info" />
         </h3>
       </slot>
     </div>

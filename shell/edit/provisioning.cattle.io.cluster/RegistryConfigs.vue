@@ -113,7 +113,7 @@ export default {
   <div>
     <h3>
       {{ t('registryConfig.header') }}
-      <i v-tooltip="t('registryConfig.toolTip')" class="icon icon-info" />
+      <i v-clean-tooltip="t('registryConfig.toolTip')" class="icon icon-info" />
     </h3>
     <ArrayListGrouped
       v-model="entries"

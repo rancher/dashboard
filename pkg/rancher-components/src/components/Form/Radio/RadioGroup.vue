@@ -176,8 +176,8 @@ export default Vue.extend({
           <template v-else-if="label">
             {{ label }}
           </template>
-          <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="icon icon-info icon-lg" />
-          <i v-else-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
+          <i v-if="tooltipKey" v-clean-tooltip="t(tooltipKey)" class="icon icon-info icon-lg" />
+          <i v-else-if="tooltip" v-clean-tooltip="tooltip" class="icon icon-info icon-lg" />
         </h3>
       </slot>
     </div>

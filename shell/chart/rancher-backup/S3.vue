@@ -106,7 +106,7 @@ export default {
         <div class="ca-controls">
           <FileSelector v-if="mode!=='view'" class="btn btn-sm role-primary mt-5" :mode="mode" :label="t('generic.readFromFile')" @selected="e=> setCA(e)" />
           <div class="ca-tooltip">
-            <i v-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')" class="icon icon-info" />
+            <i v-clean-tooltip="t('backupRestoreOperator.s3.endpointCA.prompt')" class="icon icon-info" />
           </div>
         </div>
       </div>

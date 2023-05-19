@@ -130,7 +130,7 @@ export default {
   <span v-if="!suffixedLabel" class="text-muted">
     &mdash;
   </span>
-  <span v-else-if="showTooltip" v-tooltip="{content: title, placement: tooltipPlacement}" class="live-date">
+  <span v-else-if="showTooltip" v-clean-tooltip="{content: title, placement: tooltipPlacement}" class="live-date">
     {{ suffixedLabel }}
   </span>
   <span v-else class="live-date">

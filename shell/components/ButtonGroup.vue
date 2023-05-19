@@ -72,7 +72,7 @@ export default {
     <button
       v-for="(opt,idx) in optionObjects"
       :key="idx"
-      v-tooltip="opt.tooltipKey ? t(opt.tooltipKey) : opt.tooltip"
+      v-clean-tooltip="opt.tooltipKey ? t(opt.tooltipKey) : opt.tooltip"
       type="button"
       :class="opt.class"
       :disabled="disabled || opt.disabled"
