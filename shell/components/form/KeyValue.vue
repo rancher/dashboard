@@ -479,7 +479,7 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
-          <i v-if="titleProtip" v-tooltip="titleProtip" class="icon icon-info" />
+          <i v-if="titleProtip" v-clean-tooltip="titleProtip" class="icon icon-info" />
         </h3>
       </slot>
     </div>
@@ -487,7 +487,7 @@ export default {
       <template v-if="rows.length || isView">
         <label class="text-label">
           {{ keyLabel }}
-          <i v-if="protip && !isView && addAllowed" v-tooltip="protip" class="icon icon-info" />
+          <i v-if="protip && !isView && addAllowed" v-clean-tooltip="protip" class="icon icon-info" />
         </label>
         <label class="text-label">
           {{ valueLabel }}

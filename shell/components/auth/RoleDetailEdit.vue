@@ -602,7 +602,7 @@ export default {
                 <div :class="ruleClass">
                   <label class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
-                    <i v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')" class="icon icon-info" />
+                    <i v-clean-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')" class="icon icon-info" />
                     <span v-if="isNamespaced" class="required">*</span>
                   </label>
                 </div>

@@ -243,14 +243,14 @@ export default {
             <div class="col span-6">
               <Checkbox v-model="value.spec.prune" class="mb-5" :label="t('backupRestoreOperator.prune.label')" :mode="mode">
                 <template #label>
-                  <span v-tooltip="t('backupRestoreOperator.prune.tip')" class="text-label">
+                  <span v-clean-tooltip="t('backupRestoreOperator.prune.tip')" class="text-label">
                     {{ t('backupRestoreOperator.prune.label') }} <i class="icon icon-info" />
                   </span>
                 </template>
               </Checkbox>
               <UnitInput v-if="value.spec.prune" v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds', {count: value.spec.deleteTimeoutSeconds})" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
                 <template #label>
-                  <label v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')" class="has-tooltip">
+                  <label v-clean-tooltip="t('backupRestoreOperator.deleteTimeout.tip')" class="has-tooltip">
                     {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
                   </label>
                 </template>

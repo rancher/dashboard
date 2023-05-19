@@ -49,7 +49,7 @@ export default {
         <div class="pull-right">
           {{ t('resourceTabs.conditions.tab') }}:
           <BadgeState
-            v-tooltip="readyCondition.message"
+            v-clean-tooltip="readyCondition.message"
             :color="readyCondition.status === 'True' ? 'bg-success' : 'bg-error' "
             :icon="readyCondition.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
             :label="t('tableHeaders.ready')"

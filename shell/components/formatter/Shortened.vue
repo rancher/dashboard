@@ -40,7 +40,7 @@ export default {
   <span v-if="!value" class="text-muted">
     &mdash;
   </span>
-  <span v-else-if="showTooltip" v-tooltip="{content: longValue, placement: tooltipPlacement}">
+  <span v-else-if="showTooltip" v-clean-tooltip="{content: longValue, placement: tooltipPlacement}">
     {{ value }}
   </span>
   <span v-else>

@@ -87,7 +87,7 @@ export default {
 <template>
   <div v-if="showIP">
     <span v-for="{ip, name} in ips" :key="ip">
-      <span v-tooltip="name">{{ ip }}</span>
+      <span v-clean-tooltip="name">{{ ip }}</span>
       <CopyToClipboard :text="ip" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
     </span>
   </div>

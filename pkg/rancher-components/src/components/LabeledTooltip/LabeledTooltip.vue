@@ -39,7 +39,7 @@ export default Vue.extend({
 <template>
   <div ref="container" class="labeled-tooltip" :class="{[status]: true, hoverable: hover}">
     <template v-if="hover">
-      <i v-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value" :class="{'hover':!value, [iconClass]: true}" class="icon status-icon" />
+      <i v-clean-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value" :class="{'hover':!value, [iconClass]: true}" class="icon status-icon" />
     </template>
     <template v-else>
       <i :class="{'hover':!value}" class="icon status-icon" />
