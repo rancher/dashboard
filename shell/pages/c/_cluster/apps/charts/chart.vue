@@ -174,7 +174,7 @@ export default {
           </h3>
           <div v-for="vers of versions" :key="vers.id" class="chart-content__right-bar__section--cVersion">
             <b v-if="vers.originalVersion === version.version">{{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}</b>
-            <a v-else v-tooltip="vers.label.length > 16 ? vers.label : null" @click.prevent="selectVersion(vers)">
+            <a v-else v-clean-tooltip="vers.label.length > 16 ? vers.label : null" @click.prevent="selectVersion(vers)">
               {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}
             </a>
             <DateFormatter :value="vers.created" :show-time="false" />

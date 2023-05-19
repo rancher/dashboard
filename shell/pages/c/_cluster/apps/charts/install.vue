@@ -1499,7 +1499,7 @@ export default {
       <h2 class="slideIn__header">
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
         <div class="slideIn__header__buttons">
-          <div v-tooltip="t('catalog.install.slideIn.dock')" class="slideIn__header__button" @click="showSlideIn = false; showReadmeWindow()">
+          <div v-clean-tooltip="t('catalog.install.slideIn.dock')" class="slideIn__header__button" @click="showSlideIn = false; showReadmeWindow()">
             <i class="icon icon-dock" />
           </div>
           <div class="slideIn__header__button" @click="showSlideIn = false">

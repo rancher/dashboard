@@ -414,7 +414,7 @@ export default {
           :reduce="opt=>opt.value"
         >
           <template #selected-option="option">
-            <i v-if="isTag(clusterOutputChoices, option)" v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            <i v-if="isTag(clusterOutputChoices, option)" v-clean-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
             {{ option.label }}
           </template>
         </LabeledSelect>
@@ -431,7 +431,7 @@ export default {
           :reduce="opt=>opt.value"
         >
           <template #selected-option="option">
-            <i v-if="isTag(outputChoices, option)" v-tooltip="t('logging.flow.outputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            <i v-if="isTag(outputChoices, option)" v-clean-tooltip="t('logging.flow.outputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
             {{ option.label }}
           </template>
         </LabeledSelect>

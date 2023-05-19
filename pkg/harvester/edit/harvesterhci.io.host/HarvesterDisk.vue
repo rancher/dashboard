@@ -163,14 +163,14 @@ export default {
           <div class="pull-right">
             Conditions:
             <BadgeState
-              v-tooltip="readyCondition.message"
+              v-clean-tooltip="readyCondition.message"
               :color="readyCondition.status === 'True' ? 'bg-success' : 'bg-error' "
               :icon="readyCondition.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Ready"
               class="mr-10 ml-10 state"
             />
             <BadgeState
-              v-tooltip="schedulableCondition.message"
+              v-clean-tooltip="schedulableCondition.message"
               :color="schedulableCondition.status === 'True' ? 'bg-success' : 'bg-error' "
               :icon="schedulableCondition.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Schedulable"

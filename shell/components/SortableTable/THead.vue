@@ -125,7 +125,7 @@ export default {
         :class="{ sortable: col.sort, [col.breakpoint]: !!col.breakpoint}"
         @click.prevent="changeSort($event, col)"
       >
-        <span v-if="col.sort" v-tooltip="col.tooltip">
+        <span v-if="col.sort" v-clean-tooltip="col.tooltip">
           <span v-clean-html="labelFor(col)" />
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
@@ -133,7 +133,7 @@ export default {
             <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
           </span>
         </span>
-        <span v-else v-tooltip="col.tooltip">{{ labelFor(col) }}</span>
+        <span v-else v-clean-tooltip="col.tooltip">{{ labelFor(col) }}</span>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>

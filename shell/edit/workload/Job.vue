@@ -261,7 +261,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
-                <i v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" />
+                <i v-clean-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" />
               </label>
             </template>
           </UnitInput>
@@ -313,7 +313,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" />
+              <i v-clean-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>

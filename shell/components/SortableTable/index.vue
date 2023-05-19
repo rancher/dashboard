@@ -847,7 +847,7 @@ export default {
                 v-for="act in availableActions"
                 :id="act.action"
                 :key="act.action"
-                v-tooltip="actionTooltip"
+                v-clean-tooltip="actionTooltip"
                 type="button"
                 class="btn role-primary"
                 :class="{[bulkActionClass]:true}"
@@ -874,7 +874,7 @@ export default {
                       v-for="act in hiddenActions"
                       :key="act.action"
                       v-close-popover
-                      v-tooltip="{
+                      v-clean-tooltip="{
                         content: actionTooltip,
                         placement: 'right'
                       }"
@@ -899,7 +899,7 @@ export default {
           <slot name="header-middle" />
           <AsyncButton
             v-if="isTooManyItemsToAutoUpdate"
-            v-tooltip="t('performance.manualRefresh.buttonTooltip')"
+            v-clean-tooltip="t('performance.manualRefresh.buttonTooltip')"
             mode="refresh"
             :current-phase="currentPhase"
             @click="debouncedRefreshTableData"

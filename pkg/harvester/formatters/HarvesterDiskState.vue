@@ -58,7 +58,7 @@ export default {
 <template>
   <div>
     <BadgeState
-      v-tooltip="errorMessage"
+      v-clean-tooltip="errorMessage"
       :color="stateBackground"
       :label="stateDisplay"
     />

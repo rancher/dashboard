@@ -161,7 +161,7 @@ export default {
           <a
             v-for="fel in externalLinks"
             :key="fel.label"
-            v-tooltip="
+            v-clean-tooltip="
               !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined
             "
             :href="fel.enabled ? fel.link : void 0"
