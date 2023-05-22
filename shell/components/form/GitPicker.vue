@@ -6,7 +6,7 @@ import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { GitUtils, gitUtilsToLabel } from '@/pkg/epinio/utils/git';
+import { GitUtils } from '@/pkg/epinio/utils/git';
 
 interface commit {
   [key: string]: any,
@@ -39,7 +39,7 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   props: {
-    ghType: {
+    type: {
       type:    String, // APPLICATION_SOURCE_TYPE
       default: null
     },
@@ -121,7 +121,7 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   watch: {
-    ghType: {
+    type: {
       handler(old, neu) {
         if (old !== neu) {
           this.reset();
@@ -132,10 +132,6 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   computed: {
-    type() {
-      return gitUtilsToLabel(this.ghType);
-    },
-
     commitHeaders() {
       return [
         {

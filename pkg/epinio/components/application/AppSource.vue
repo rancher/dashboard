@@ -15,7 +15,6 @@ import {
   APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo, AppSourceArchive, AppSourceContainer, AppSourceGit, AppSourceGitUrl, AppSourceBuilderImage, EpinioAppSource, GitAPIData
 } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
-import camelCase from 'lodash/camelCase';
 import { _EDIT } from '@shell/config/query-params';
 
 const GIT_BASE_URL = {
@@ -117,7 +116,7 @@ export default Vue.extend<Data, any, any, any>({
       appChart: this.source?.appChart,
 
       types: Object.values(APPLICATION_SOURCE_TYPE).map(value => ({
-        label: this.t(`epinio.applications.steps.source.${ camelCase(value) }.label`),
+        label: this.t(`epinio.applications.steps.source.${ value }.label`),
         value
       })),
 
@@ -154,7 +153,7 @@ export default Vue.extend<Data, any, any, any>({
         } else {
           this.gitUrl.validGitUrl = false;
 
-          return this.t('epinio.applications.steps.source.gitUrl.error.label');
+          return this.t('epinio.applications.steps.source.git_url.error.label');
         }
       };
 
@@ -439,12 +438,12 @@ export default Vue.extend<Data, any, any, any>({
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.CONTAINER_URL">
       <div class="spacer source">
-        <h3>{{ t('epinio.applications.steps.source.containerUrl.url.label') }}</h3>
+        <h3>{{ t('epinio.applications.steps.source.container_url.url.label') }}</h3>
         <LabeledInput
           v-model="container.url"
           data-testid="epinio_app-source_container"
-          :tooltip="t('epinio.applications.steps.source.containerUrl.url.tooltip')"
-          :label="t('epinio.applications.steps.source.containerUrl.url.inputLabel')"
+          :tooltip="t('epinio.applications.steps.source.container_url.url.tooltip')"
+          :label="t('epinio.applications.steps.source.container_url.url.inputLabel')"
           :required="true"
           @input="update"
         />
@@ -452,13 +451,13 @@ export default Vue.extend<Data, any, any, any>({
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_URL">
       <div class="spacer source">
-        <h3>{{ t('epinio.applications.steps.source.gitUrl.url.label') }}</h3>
+        <h3>{{ t('epinio.applications.steps.source.git_url.url.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.url"
           v-focus
           data-testid="epinio_app-source_git-url"
-          :tooltip="t('epinio.applications.steps.source.gitUrl.url.tooltip')"
-          :label="t('epinio.applications.steps.source.gitUrl.url.inputLabel')"
+          :tooltip="t('epinio.applications.steps.source.git_url.url.tooltip')"
+          :label="t('epinio.applications.steps.source.git_url.url.inputLabel')"
           :placeholder="'https://github.com/{user or org}/{repository}'"
           :required="true"
           :rules="[urlRule]"
@@ -467,12 +466,12 @@ export default Vue.extend<Data, any, any, any>({
         />
       </div>
       <div class="spacer source">
-        <h3>{{ t('epinio.applications.steps.source.gitUrl.branch.label') }}</h3>
+        <h3>{{ t('epinio.applications.steps.source.git_url.branch.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.branch"
           data-testid="epinio_app-source_git-branch"
-          :tooltip="t('epinio.applications.steps.source.gitUrl.branch.tooltip')"
-          :label="t('epinio.applications.steps.source.gitUrl.branch.inputLabel')"
+          :tooltip="t('epinio.applications.steps.source.git_url.branch.tooltip')"
+          :label="t('epinio.applications.steps.source.git_url.branch.inputLabel')"
           :required="true"
           :disabled="!gitUrl.validGitUrl"
           @input="update"
@@ -482,7 +481,7 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else>
       <KeepAlive>
         <GitPicker
-          :gh-type="type"
+          :type="type"
           :value="sourceValue"
           @change="gitUpdate"
         />
