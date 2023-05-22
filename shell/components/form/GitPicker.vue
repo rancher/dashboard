@@ -184,10 +184,16 @@ export default Vue.extend<Data, any, any, any>({
             }
           });
 
-        const commit = this.commits.find((c: commit) => c.sha === this.initValue.selectedCommit.sha);
+        const commit = this.commits.find((c: commit) => {
+          // Github has sha's
+          // Gitlab has id's as sha's
+          const sha = c.sha || c.id;
+
+          return sha === this.initValue.selectedCommit.sha;
+        });
 
         if (commit) {
-          this.final(commit.sha);
+          this.final(commit.sha || commit.id);
         }
       }
     },
