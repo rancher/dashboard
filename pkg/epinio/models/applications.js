@@ -253,7 +253,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       break;
     case APPLICATION_SOURCE_TYPE.GIT_URL:
       opt.git_url = {
-        branch: this.origin.git?.branch || '',
+        branch: this.origin.git?.revision || '',
         url:    this.origin.git?.repository || ''
       };
       break;
