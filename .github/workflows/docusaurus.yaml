@@ -1,16 +1,13 @@
 name: Publish Docusaurus
 
 on:
+  on:
   push:
-    branches:
-      - master
-    paths:
-      - 'docusaurus/**'
+    branches: ['master']
+    paths: ['docusaurus/**']
   pull_request:
-    branches:
-      - master
-    paths:
-      - 'docusaurus/**'
+    branches: ['master']
+    paths: ['docusaurus/**']
 jobs:
   deploy:
     name: Publish Docusaurus
