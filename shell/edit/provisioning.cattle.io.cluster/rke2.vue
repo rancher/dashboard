@@ -718,7 +718,7 @@ export default {
     },
 
     unremovedMachinePools() {
-      return this.machinePools.filter(x => !x.remove);
+      return (this.machinePools || []).filter(x => !x.remove);
     },
 
     machineConfigSchema() {
@@ -1133,6 +1133,10 @@ export default {
       return isRequiredVersion;
     },
 
+    /**
+     * Get machine pools from the cluster configuration
+     * this.value.spec.rkeConfig.machinePools
+     */
     async initMachinePools(existing) {
       const out = [];
 
