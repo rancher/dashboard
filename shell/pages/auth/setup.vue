@@ -127,7 +127,11 @@ export default {
       type: MANAGEMENT.FEATURE, id: 'multi-cluster-management', opt: { url: `/v1/${ MANAGEMENT.FEATURE }/multi-cluster-management` }
     });
 
-    const mcmEnabled = mcmFeature?.spec?.value || mcmFeature?.status?.default;
+    // Harvester mcm feature default value and lockedValue is true, refer to:
+    // https://github.com/harvester/harvester-installer/pull/468 and https://github.com/harvester/harvester/pull/3847
+    const isHarvesterMcm = mcmFeature?.status?.default && mcmFeature?.status?.lockedValue;
+
+    const mcmEnabled = (mcmFeature?.spec?.value || mcmFeature?.status?.default) && !isHarvesterMcm;
 
     let serverUrl;
 
