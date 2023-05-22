@@ -184,7 +184,7 @@ export default Vue.extend<Data, any, any, any>({
             }
           });
 
-        const commit = this.commits.find((c: commit) => c.sha === this.initValue.selectedCommit.sha || c.id === this.initValue.selectedCommit.id);
+        const commit = this.commits.find((c: commit) => c.sha === this.initValue.selectedCommit.sha);
 
         if (commit) {
           this.final(commit.sha);
