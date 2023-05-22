@@ -42,7 +42,7 @@ export default {
     annotationTitleTooltip: {
       type:    String,
       default: '',
-    }
+    },
 
     showAnnotations: {
       type:    Boolean,
