@@ -33,9 +33,10 @@ export default {
       expr:   '',
       for:    '0s',
       labels: {
-        severity:   'none',
-        namespace:  'default',
-        cluster_id: this.$store.getters['clusterId']
+        severity:     'none',
+        namespace:    'default',
+        cluster_id:   this.$store.getters['clusterId'],
+        cluster_name: this.$store.getters['currentCluster'].spec.displayName
       },
     };
 
@@ -95,9 +96,11 @@ export default {
           record: '',
           expr:   '',
           labels: {
-            severity:   'none',
-            namespace:  'default',
-            cluster_id: this.$store.getters['clusterId']
+            severity:     'none',
+            namespace:    'default',
+            cluster_id:   this.$store.getters['clusterId'],
+            cluster_name: this.$store.getters['currentCluster'].spec.displayName
+
           },
         });
         break;
