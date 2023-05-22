@@ -193,6 +193,9 @@ export default {
           opt:  { watch: true }
         });
       } catch (e) {
+        if (e.status === 404) {
+          store.dispatch('loadingError', new Error(`Resource ${ resource } with id ${ fqid } not found, unable to display resource details`));
+        }
         liveModel = {};
         notFound = fqid;
       }

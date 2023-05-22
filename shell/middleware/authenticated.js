@@ -74,8 +74,6 @@ export function getProductFromRoute(to) {
 function setProduct(store, to, redirect) {
   let product = getProductFromRoute(to);
 
-  console.error('TO SET PRODUCT', to);
-
   if (product &&
     (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) {
     return product;
@@ -298,9 +296,6 @@ export default async function({
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
       const productNotFound = setProduct(store, to);
-
-      console.error('ROUTE BEFORE EACH from', from);
-      console.error('ROUTE BEFORE EACH to', to);
 
       if (productNotFound) {
         store.commit('setError', { error: `Product ${ productNotFound } was not found!` });
