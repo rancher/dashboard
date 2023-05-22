@@ -43,7 +43,16 @@ export default {
       type:    String,
       default: '',
     }
-  },
+
+    showAnnotations: {
+      type:    Boolean,
+      default: true,
+    },
+
+    showLabelTitle: {
+      type:    Boolean,
+      default: true,
+    },
 
   data() {
     return { toggler: false };
@@ -69,7 +78,7 @@ export default {
     <div :class="defaultSectionClass">
       <div class="labels">
         <div class="labels__header">
-          <h3>
+          <h3 v-if="showLabelTitle">
             <t k="labels.labels.title" />
           </h3>
           <ToggleSwitch
@@ -83,22 +92,32 @@ export default {
           <t k="labels.labels.description" />
         </p>
         <div :class="columnsClass">
-          <KeyValue
-            key="labels"
-            :value="value.labels"
-            :protected-keys="value.systemLabels || []"
-            :toggle-filter="toggler"
-            :add-label="t('labels.addLabel')"
-            :mode="mode"
-            :read-allowed="false"
-            :value-can-be-empty="true"
-            @input="value.setLabels($event)"
-          />
+          <slot
+            name="labels"
+            :toggler="toggler"
+          >
+            <template>
+              <KeyValue
+                key="labels"
+                :value="value.labels"
+                :protected-keys="value.systemLabels || []"
+                :toggle-filter="toggler"
+                :add-label="t('labels.addLabel')"
+                :mode="mode"
+                :read-allowed="false"
+                :value-can-be-empty="true"
+                @input="value.setLabels($event)"
+              />
+            </template>
+          </slot>
         </div>
       </div>
     </div>
     <div class="spacer" />
-    <div :class="sectionClass">
+    <div
+      v-if="showAnnotations"
+      :class="sectionClass"
+    >
       <KeyValue
         key="annotations"
         :value="value.annotations"

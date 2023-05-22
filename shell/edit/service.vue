@@ -20,12 +20,13 @@ import { Banner } from '@components/Banner';
 import Labels from '@shell/components/form/Labels';
 import HarvesterServiceAddOnConfig from '@shell/components/HarvesterServiceAddOnConfig';
 import { clone } from '@shell/utils/object';
-import { POD, CAPI } from '@shell/config/types';
+import { POD, CAPI, HCI } from '@shell/config/types';
 import { matching } from '@shell/utils/selector';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
+import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -268,8 +269,9 @@ export default {
         const inStore = this.$store.getters['currentStore'](POD);
 
         const hash = {
-          provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
-          pods:         this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+          provClusters:     this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+          pods:             this.$store.dispatch(`${ inStore }/findAll`, { type: POD }),
+          harvesterConfigs: this.$store.dispatch(`management/findAll`, { type: HCI.HARVESTER_CONFIG }),
         };
 
         const res = await allHash(hash);
@@ -312,6 +314,23 @@ export default {
 
       if (ports && ports.length > 0) {
         this.value.spec.ports = this.targetPortsStrOrInt(this.value.spec.ports);
+      }
+
+      if (this.showHarvesterAddOnConfig) {
+        const clusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
+        const configs = this.$store.getters['management/all'](HCI.HARVESTER_CONFIG);
+        const cluster = clusters.find(c => c.status.clusterName === this.currentCluster.id);
+
+        const machinePools = cluster?.spec?.rkeConfig?.machinePools || [];
+        const machineConfigName = machinePools[0]?.machineConfigRef?.name;
+        const config = configs.find(c => c.id === `fleet-default/${ machineConfigName }`);
+
+        if (config) {
+          const { vmNamespace, networkName } = config;
+
+          this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NAMESPACE] = vmNamespace;
+          this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] = networkName;
+        }
       }
     },
   },
