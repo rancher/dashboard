@@ -11,11 +11,4 @@ export default class ApiKeysListPo extends BaseResourceList {
   details(accessKey: string, index: number) {
     return this.resourceTable().sortableTable().rowWithName(accessKey).column(index);
   }
-
-  /**
-   * Delete button (displays on page after row element selected)
-   */
-  deleteButton() {
-    return cy.getId('sortable-table-promptRemove');
-  }
 }

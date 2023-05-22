@@ -217,7 +217,7 @@ export default {
         <Checkbox
           v-model="isAll"
           class="check"
-          data-testid="check_select_all"
+          data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
           :disabled="noRows || noResults"
         />

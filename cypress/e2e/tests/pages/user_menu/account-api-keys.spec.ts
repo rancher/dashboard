@@ -59,7 +59,7 @@ describe('User can make changes to their account', () => {
 
     accountPage.goTo();
     apiKeysList.resourceTable().sortableTable().selectAllCheckbox().set();
-    apiKeysList.deleteButton().click();
+    apiKeysList.resourceTable().sortableTable().deleteButton().click();
 
     const promptRemove = new PromptRemove();
 

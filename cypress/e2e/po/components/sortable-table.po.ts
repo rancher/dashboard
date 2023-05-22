@@ -41,6 +41,13 @@ export default class SortableTablePo extends ComponentPo {
     return popOver.find('li').contains(name);
   }
 
+  /**
+   * Delete button (displays on page after row element selected)
+   */
+  deleteButton() {
+    return cy.getId('sortable-table-promptRemove');
+  }
+
   //
   // sortable-table
   //
@@ -106,6 +113,6 @@ export default class SortableTablePo extends ComponentPo {
    * Select all list items
    */
   selectAllCheckbox(): CheckboxInputPo {
-    return new CheckboxInputPo('[data-testid="check_select_all"]');
+    return new CheckboxInputPo('[data-testid="sortable-table_check_select_all"]');
   }
 }
