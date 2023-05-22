@@ -79,6 +79,8 @@ export default Vue.extend<Data, any, any, any>({
     const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
+    const type = this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER;
+
     const git = {
       usernameOrOrg: this.source?.git?.usernameOrOrg || '',
       repo:          this.source?.git?.repo || '',
@@ -112,17 +114,6 @@ export default Vue.extend<Data, any, any, any>({
 
       git,
 
-      initValue: {
-        type:             this.source?.type,
-        selectedAccOrOrg: git.usernameOrOrg,
-        selectedRepo:     git.repo,
-        selectedBranch:   git.branch,
-        selectedCommit:   { sha: git.commit },
-        repos:            git.sourceData.repos,
-        branches:         git.sourceData.branches,
-        commits:          git.sourceData.commits,
-      },
-
       builderImage: {
         value:   builderImage,
         default: builderImage === defaultBuilderImage,
@@ -135,9 +126,10 @@ export default Vue.extend<Data, any, any, any>({
         value
       })),
 
-      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
+      initType: type,
+      type,
       APPLICATION_SOURCE_TYPE,
-      EDIT: _EDIT
+      EDIT:     _EDIT
     };
   },
   mounted() {
@@ -359,6 +351,15 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   computed: {
+    gitSource() {
+      return {
+        selectedAccOrOrg: this.git.usernameOrOrg,
+        selectedRepo:     this.git.repo,
+        selectedBranch:   this.git.branch,
+        selectedCommit:   { sha: this.git.commit }
+      };
+    },
+
     showBuilderImage() {
       return [
         APPLICATION_SOURCE_TYPE.ARCHIVE,
@@ -378,13 +379,6 @@ export default Vue.extend<Data, any, any, any>({
         value: ap.meta.name,
         label: `${ ap.meta.name } (${ ap.short_description })`
       }));
-    },
-
-    sourceValue() {
-      return {
-        ...this.source.git,
-        type: this.type
-      };
     },
   }
 });
@@ -505,8 +499,9 @@ export default Vue.extend<Data, any, any, any>({
     <template v-else>
       <KeepAlive>
         <GitPicker
-          :init-value="initValue"
-          :value="sourceValue"
+          :value="gitSource"
+          :type="type"
+          :init-type="mode === EDIT ? initType : null"
           @change="gitUpdate"
         />
       </KeepAlive>
