@@ -971,7 +971,7 @@ export const getters = {
 
   groupByFor(state) {
     return (schema) => {
-      return state.groupBy[schema.id];
+      return state.groupBy[schema?.id];
     };
   },
 
