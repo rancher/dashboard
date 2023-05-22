@@ -210,6 +210,7 @@ export default {
             v-model="dateFormat"
             data-testid="prefs__displaySetting__dateFormat"
             :label="t('prefs.dateFormat.label')"
+            option-key="value"
             :options="dateOptions"
           />
         </div>
