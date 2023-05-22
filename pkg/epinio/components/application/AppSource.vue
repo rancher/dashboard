@@ -177,10 +177,6 @@ export default Vue.extend<Data, any, any, any>({
         Vue.set(this, 'type', type);
 
         switch (type) {
-        case APPLICATION_SOURCE_TYPE.FOLDER:
-        case APPLICATION_SOURCE_TYPE.ARCHIVE:
-          Vue.set(this.archive, 'fileName', parsed.origin.path);
-          break;
         case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
           Vue.set(this.container, 'url', parsed.origin.container);
           break;
@@ -192,7 +188,6 @@ export default Vue.extend<Data, any, any, any>({
         case APPLICATION_SOURCE_TYPE.GIT_LAB:
           Vue.set(this, 'git', AppUtils.getGitData(parsed.origin.git));
           break;
-        default:
         }
 
         if (parsed.configuration) {
