@@ -360,7 +360,7 @@ export default {
     >
       <div
         v-if="currentProduct && currentProduct.showClusterSwitcher"
-        v-tooltip="nameTooltip"
+        v-clean-tooltip="nameTooltip"
         class="cluster cluster-clipped"
       >
         <div
@@ -455,7 +455,7 @@ export default {
         <template v-if="currentProduct && currentProduct.showClusterSwitcher">
           <button
             v-if="showImportYaml"
-            v-tooltip="t('nav.import')"
+            v-clean-tooltip="t('nav.import')"
             :disabled="!importEnabled"
             type="button"
             class="btn header-btn role-tertiary"
@@ -478,7 +478,7 @@ export default {
 
           <button
             v-if="showKubeShell"
-            v-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
+            v-clean-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
             v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
             :disabled="!shellEnabled"
             type="button"
@@ -491,7 +491,7 @@ export default {
 
           <button
             v-if="showKubeConfig"
-            v-tooltip="t('nav.kubeconfig.download')"
+            v-clean-tooltip="t('nav.kubeconfig.download')"
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
@@ -502,7 +502,7 @@ export default {
 
           <button
             v-if="showCopyConfig"
-            v-tooltip="t('nav.kubeconfig.copy')"
+            v-clean-tooltip="t('nav.kubeconfig.copy')"
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
@@ -521,7 +521,7 @@ export default {
 
         <button
           v-if="showSearch"
-          v-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
+          v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
@@ -549,7 +549,7 @@ export default {
         <button
           v-for="action, i in extensionHeaderActions"
           :key="`${action.label}${i}`"
-          v-tooltip="handleExtensionTooltip(action)"
+          v-clean-tooltip="handleExtensionTooltip(action)"
           v-shortkey="action.shortcutKey"
           :disabled="action.enabled ? !action.enabled(ctx) : false"
           type="button"

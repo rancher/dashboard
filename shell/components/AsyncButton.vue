@@ -275,12 +275,12 @@ export default Vue.extend({
   >
     <i
       v-if="displayIcon"
-      v-tooltip="tooltip"
+      v-clean-tooltip="tooltip"
       :class="{icon: true, 'icon-lg': true, [displayIcon]: true}"
     />
     <span
       v-if="labelAs === 'text' && displayLabel"
-      v-tooltip="tooltip"
+      v-clean-tooltip="tooltip"
       v-clean-html="displayLabel"
     />
   </button>

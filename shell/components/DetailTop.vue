@@ -252,7 +252,7 @@ export default {
           />
           <span
             v-if="internalTooltips[key]"
-            v-tooltip="prop ? `${key} : ${prop}` : key"
+            v-clean-tooltip="prop ? `${key} : ${prop}` : key"
           >
             <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
             <span v-if="showAllLabels">: {{ key }}</span>

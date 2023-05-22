@@ -206,7 +206,7 @@ export default {
           {{ title }}
           <i
             v-if="showProtip"
-            v-tooltip="protip"
+            v-clean-tooltip="protip"
             class="icon icon-info"
           />
         </h3>

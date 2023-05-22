@@ -533,7 +533,7 @@ export default {
           {{ title }}
           <i
             v-if="titleProtip"
-            v-tooltip="titleProtip"
+            v-clean-tooltip="titleProtip"
             class="icon icon-info"
           />
         </h3>
@@ -548,7 +548,7 @@ export default {
           {{ keyLabel }}
           <i
             v-if="protip && !isView && addAllowed"
-            v-tooltip="protip"
+            v-clean-tooltip="protip"
             class="icon icon-info"
           />
         </label>
