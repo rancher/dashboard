@@ -39,8 +39,8 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   props: {
-    type: {
-      type:    String, // APPLICATION_SOURCE_TYPE
+    initValue: {
+      type:    Object,
       default: null
     },
     value: {
@@ -73,58 +73,14 @@ export default Vue.extend<Data, any, any, any>({
     this.onSearchBranch = this.searchForResult(this.searchBranch);
   },
 
-  mounted() {
-    if (!this.value) {
-      return;
-    }
-
-    if (this.value.sourceData) {
-      // API calls data - from cache
-
-      this.selectedAccOrOrg = this.value.usernameOrOrg;
-      this.selectedRepo = this.value.repo;
-      this.selectedBranch = this.value.branch;
-      this.selectedCommit = { sha: this.value.commit };
-
-      this.repos = this.value.sourceData.repos;
-      this.branches = this.value.sourceData.branches;
-      this.commits = this.value.sourceData.commits;
-    } else {
-      // API calls data - from remote
-      this.selectedAccOrOrg = this.value.usernameOrOrg;
-      if (this.selectedAccOrOrg) {
-        this.fetchRepos()
-          .then(() => {
-            if (this.repos.length && !this.hasError.repo) {
-              const { name, id } = this.repos.find((r: any) => r.name === this.value.repo?.name) || {};
-
-              this.selectedRepo = { name, id };
-
-              return this.fetchBranches();
-            }
-          })
-          .then(() => {
-            if (this.branches.length && !this.hasError.branch) {
-              this.selectedBranch = this.value.branch;
-
-              return this.fetchCommits();
-            }
-          })
-          .then(() => {
-            if (this.commits.length && this.commits.find((c: commit) => c.sha === this.value.commit || c.id === this.value.commit)) {
-              this.selectedCommit = { sha: this.value.commit };
-              this.final(this.value.commit);
-            }
-          });
-      }
-    }
-  },
-
   watch: {
-    type: {
-      handler(old, neu) {
-        if (old !== neu) {
+    'value.type': {
+      async handler(neu, old) {
+        if (neu !== old) {
           this.reset();
+          if (neu === this.initValue.type) {
+            await this.loadSourceCache();
+          }
         }
       },
       immediate: true,
@@ -136,11 +92,11 @@ export default Vue.extend<Data, any, any, any>({
       return [
         {
           name:  'index',
-          label: this.t(`gitPicker.${ this.type }.tableHeaders.choose.label`),
+          label: this.t(`gitPicker.${ this.value.type }.tableHeaders.choose.label`),
           width: 60,
         }, {
           name:          'sha',
-          label:         this.t(`gitPicker.${ this.type }.tableHeaders.sha.label`),
+          label:         this.t(`gitPicker.${ this.value.type }.tableHeaders.sha.label`),
           width:         90,
           formatter:     'Link',
           formatterOpts: { urlKey: 'htmlUrl' },
@@ -148,21 +104,21 @@ export default Vue.extend<Data, any, any, any>({
         },
         {
           name:  'author',
-          label: this.t(`gitPicker.${ this.type }.tableHeaders.author.label`),
+          label: this.t(`gitPicker.${ this.value.type }.tableHeaders.author.label`),
           width: 190,
           value: 'author.login',
           sort:  'author.login',
         },
         {
           name:  'message',
-          label: this.t(`gitPicker.${ this.type }.tableHeaders.message.label`),
+          label: this.t(`gitPicker.${ this.value.type }.tableHeaders.message.label`),
           value: 'message',
           sort:  'message',
         },
         {
           name:        'date',
           width:       220,
-          label:       this.t(`gitPicker.${ this.type }.tableHeaders.date.label`),
+          label:       this.t(`gitPicker.${ this.value.type }.tableHeaders.date.label`),
           value:       'date',
           sort:        ['date:desc'],
           formatter:   'Date',
@@ -178,7 +134,7 @@ export default Vue.extend<Data, any, any, any>({
       return this.normalizeArray(this.branches, (item: any) => ({ id: item.id, name: item.name }));
     },
     preparedCommits() {
-      return this.normalizeArray(this.commits, (c: any) => GitUtils[this.type].normalize.commit(c));
+      return this.normalizeArray(this.commits, (c: any) => GitUtils[this.value.type].normalize.commit(c));
     },
   },
 
@@ -208,12 +164,43 @@ export default Vue.extend<Data, any, any, any>({
         commit:           this.selectedCommit,
       });
     },
+
+    async loadSourceCache() {
+      this.selectedAccOrOrg = this.initValue.selectedAccOrOrg;
+      if (this.selectedAccOrOrg) {
+        await this.fetchRepos()
+          .then(() => {
+            if (this.repos.length && !this.hasError.repo) {
+              this.selectedRepo = this.initValue.selectedRepo;
+
+              return this.fetchBranches();
+            }
+          })
+          .then(() => {
+            if (this.branches.length && !this.hasError.branch) {
+              this.selectedBranch = this.initValue.selectedBranch;
+
+              return this.fetchCommits();
+            }
+          });
+
+        const commit = this.commits.find((c: commit) => c.sha === this.initValue.selectedCommit.sha);
+
+        if (commit) {
+          this.final(commit.sha);
+        }
+      }
+    },
+
     async fetchRepos() {
       if (this.selectedAccOrOrg.length) {
         this.selectedRepo = null;
+        this.selectedCommit = {};
+
+        this.communicateReset();
 
         try {
-          const res = await this.$store.dispatch(`${ this.type }/fetchRecentRepos`, { username: this.selectedAccOrOrg });
+          const res = await this.$store.dispatch(`${ this.value.type }/fetchRecentRepos`, { username: this.selectedAccOrOrg });
 
           this.repos = res;
 
@@ -232,7 +219,7 @@ export default Vue.extend<Data, any, any, any>({
       this.communicateReset();
 
       try {
-        const res = await this.$store.dispatch(`${ this.type }/fetchBranches`, { repo: this.selectedRepo, username: this.selectedAccOrOrg });
+        const res = await this.$store.dispatch(`${ this.value.type }/fetchBranches`, { repo: this.selectedRepo, username: this.selectedAccOrOrg });
 
         this.branches = res;
         this.hasError.branch = false;
@@ -246,7 +233,7 @@ export default Vue.extend<Data, any, any, any>({
       this.communicateReset();
 
       try {
-        const res = await this.$store.dispatch(`${ this.type }/fetchCommits`, {
+        const res = await this.$store.dispatch(`${ this.value.type }/fetchCommits`, {
           repo:     this.selectedRepo,
           username: this.selectedAccOrOrg,
           branch:   this.selectedBranch,
@@ -291,7 +278,7 @@ export default Vue.extend<Data, any, any, any>({
 
         if (!resultInCurrentState.length) {
           // Search for specific repo under the username
-          const res = await this.$store.dispatch(`${ this.type }/search`, {
+          const res = await this.$store.dispatch(`${ this.value.type }/search`, {
             repo:     { id: query, name: query },
             username: this.selectedAccOrOrg
           });
@@ -309,7 +296,7 @@ export default Vue.extend<Data, any, any, any>({
       }
     },
     async searchBranch(query: string) {
-      const res = await this.$store.dispatch(`${ this.type }/search`, {
+      const res = await this.$store.dispatch(`${ this.value.type }/search`, {
         repo:     this.selectedRepo,
         branch:   { name: query },
         username: this.selectedAccOrOrg,
@@ -325,10 +312,10 @@ export default Vue.extend<Data, any, any, any>({
       return value ? 'error' : null;
     },
     reposRules() {
-      return this.hasError.repo ? this.t(`gitPicker.${ this.type }.errors.noAccount`) : null;
+      return this.hasError.repo ? this.t(`gitPicker.${ this.value.type }.errors.noAccount`) : null;
     },
     branchesRules() {
-      return this.hasError.branch ? this.t(`gitPicker.${ this.type }.errors.noBranch`) : null;
+      return this.hasError.branch ? this.t(`gitPicker.${ this.value.type }.errors.noBranch`) : null;
     },
   },
 });
@@ -341,8 +328,8 @@ export default Vue.extend<Data, any, any, any>({
         <LabeledInput
           v-model="selectedAccOrOrg"
           data-testid="epinio_app-source_git-username"
-          :tooltip="t(`gitPicker.${ type }.username.tooltip`)"
-          :label="t(`gitPicker.${ type }.username.inputLabel`)"
+          :tooltip="t(`gitPicker.${ value.type }.username.tooltip`)"
+          :label="t(`gitPicker.${ value.type }.username.inputLabel`)"
           :required="true"
           :rules="[reposRules]"
           :delay="500"
@@ -358,7 +345,7 @@ export default Vue.extend<Data, any, any, any>({
         <LabeledSelect
           v-model="selectedRepo"
           :required="true"
-          :label="t(`gitPicker.${ type }.repo.inputLabel`)"
+          :label="t(`gitPicker.${ value.type }.repo.inputLabel`)"
           :options="preparedRepos"
           :clearable="true"
           :searchable="true"
@@ -378,7 +365,7 @@ export default Vue.extend<Data, any, any, any>({
         <LabeledSelect
           v-model="selectedBranch"
           :required="true"
-          :label="t(`gitPicker.${ type }.branch.inputLabel`)"
+          :label="t(`gitPicker.${ value.type }.branch.inputLabel`)"
           :options="preparedBranches"
           :clearable="false"
           :reduce="(e) => e"
@@ -430,7 +417,7 @@ export default Vue.extend<Data, any, any, any>({
                 </a>
               </template>
               <template v-else>
-                {{ t(`gitPicker.${ type }.tableHeaders.author.unknown`) }}
+                {{ t(`gitPicker.${ value.type }.tableHeaders.author.unknown`) }}
               </template>
             </div>
           </template>
