@@ -16,6 +16,7 @@ import { isDevBuild } from '@shell/utils/version';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import Password from '@shell/components/form/Password';
 import { applyProducts } from '@shell/store/type-map';
+import BrandImage from '@shell/components/BrandImage';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -76,7 +77,7 @@ export default {
   },
 
   components: {
-    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password
+    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, BrandImage
   },
 
   async asyncData({ route, req, store }) {
@@ -431,8 +432,10 @@ export default {
           </div>
         </div>
       </div>
-
-      <div class="col span-6 landscape" />
+      <BrandImage
+        class="col span-6 landscape"
+        file-name="login-landscape.svg"
+      />
     </div>
   </form>
 </template>
@@ -466,6 +469,11 @@ export default {
       }
     }
 
+    .landscape {
+      height: 100vh;
+      margin: 0;
+      object-fit: cover;
+    }
     .form-col {
       display: flex;
       flex-direction: column;
@@ -491,14 +499,5 @@ export default {
     p {
       line-height: 20px;
     }
-
-  }
-
-  .landscape {
-    background-image: url('~@shell/assets/images/pl/login-landscape.svg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    height: 100vh;
   }
 </style>
