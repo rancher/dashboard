@@ -70,7 +70,16 @@ export default {
     dateOptions() {
       const now = day();
 
-      return this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
+      return this.$store.getters['prefs/options'](DATE_FORMAT).map((value, index) => {
+        const updateValue = `${ now.format(value) } - (${ value })`;
+
+        if (index > 1) {
+          return {
+            label: updateValue,
+            value
+          };
+        }
+
         return {
           label: now.format(value),
           value
