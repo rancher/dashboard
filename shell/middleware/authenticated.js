@@ -71,11 +71,18 @@ export function getProductFromRoute(to) {
   return product;
 }
 
-function setProduct(store, to, redirect) {
+function setProduct(store, to) {
   let product = getProductFromRoute(to);
 
   if (product &&
+    // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route
+    // it means that the product does not exist
     (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) {
+    return product;
+  }
+
+  // if the product grabbed from the route is not registered, then we don't have it!
+  if (product && !store.getters['type-map/isProductRegistered'](product)) {
     return product;
   }
 
@@ -298,7 +305,7 @@ export default async function({
       const productNotFound = setProduct(store, to);
 
       if (productNotFound) {
-        store.commit('setError', { error: `Product ${ productNotFound } was not found!` });
+        store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound }, true)));
 
         return redirect(302, '/fail-whale');
       }
@@ -307,10 +314,10 @@ export default async function({
     });
 
     // Call it for the initial pageload
-    const productNotFound = setProduct(store, route);
+    const productNotFound = setProduct(store, route, redirect);
 
     if (productNotFound) {
-      store.commit('setError', { error: `Product ${ productNotFound } was not found!` });
+      store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound }, true)));
 
       return redirect(302, '/fail-whale');
     }
@@ -399,7 +406,7 @@ export default async function({
       const productNotFound = setProduct(store, route);
 
       if (productNotFound) {
-        store.commit('setError', { error: `Product ${ productNotFound } was not found!` });
+        store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound }, true)));
 
         return redirect(302, '/fail-whale');
       }
@@ -446,14 +453,10 @@ export default async function({
     }
   } catch (e) {
     if ( e instanceof ClusterNotFoundError ) {
-      const clusterId = e.toString()?.split('ClusterNotFoundError: ')?.[1];
-
-      store.commit('setError', { error: `Cluster ${ clusterId } was not found!` });
-
-      return redirect(302, '/fail-whale');
+      return redirect(302, '/home');
     } else {
       // Sets error 500 if lost connection to API
-      store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
+      store.commit('setError', { error: e, locationError: new Error(store.getters['i18n/t']('nav.failWhale.authMiddleware')) });
 
       return redirect(302, '/fail-whale');
     }

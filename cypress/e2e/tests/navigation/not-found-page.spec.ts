@@ -5,16 +5,6 @@ describe('Not found page display', () => {
     cy.login();
   });
 
-  it('Will show a 404 if we do not have a valid Cluster id on the route path', () => {
-    const notFound = new NotFoundPagePo('/c/bogus-cluster-id');
-
-    notFound.goTo();
-    notFound.waitForPage();
-
-    notFound.errorTitle().contains('Error');
-    notFound.errorMessage().contains('Cluster bogus-cluster-id was not found!');
-  });
-
   it('Will show a 404 if we do not have a valid Product id on the route path', () => {
     const notFound = new NotFoundPagePo('/c/local/bogus-product-id');
 
@@ -22,7 +12,7 @@ describe('Not found page display', () => {
     notFound.waitForPage();
 
     notFound.errorTitle().contains('Error');
-    notFound.errorMessage().contains('Product bogus-product-id was not found!');
+    notFound.errorMessage().contains('Product bogus-product-id not found');
   });
 
   it('Will show a 404 if we do not have a valid Resource type on the route path', () => {
@@ -43,5 +33,15 @@ describe('Not found page display', () => {
 
     notFound.errorTitle().contains('Error');
     notFound.errorMessage().contains('Resource node with id bogus-resource-id not found, unable to display resource details');
+  });
+
+  it('Will show a 404 if we do not have a valid product + resource + resource id', () => {
+    const notFound = new NotFoundPagePo('/c/local/bogus-product-id/bogus-resource/bogus-resource-id');
+
+    notFound.goTo();
+    notFound.waitForPage();
+
+    notFound.errorTitle().contains('Error');
+    notFound.errorMessage().contains('Product bogus-product-id not found');
   });
 });

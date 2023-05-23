@@ -197,6 +197,10 @@ nav:
     accountAndKeys: Account & API Keys
     logOut: Log Out
   failWhale:
+    authMiddleware: Auth Middleware
+    productNotFound: Product { productNotFound } not found
+    resourceNotFound: Resource type { resource } not found, unable to display list
+    resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
     separator: or
 
