@@ -80,8 +80,10 @@ export default Vue.extend<Data, any, any, any>({
         if (JSON.stringify(neu) === JSON.stringify(old)) {
           return;
         }
-        this.reset();
-        await this.loadSourceCache(neu.selectedAccOrOrg, neu.selectedRepo, neu.selectedBranch, neu.selectedCommit);
+        if (neu?.type !== old?.type) {
+          this.reset();
+          await this.loadSourceCache(neu.selectedAccOrOrg, neu.selectedRepo, neu.selectedBranch, neu.selectedCommit);
+        }
       },
       immediate: true,
       deep:      true,

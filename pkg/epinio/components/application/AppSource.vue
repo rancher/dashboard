@@ -382,6 +382,7 @@ export default Vue.extend<Data, any, any, any>({
 
     gitSource() {
       return {
+        type:             this.type,
         selectedAccOrOrg: this.git.usernameOrOrg,
         selectedRepo:     this.git.repo,
         selectedBranch:   this.git.branch,
