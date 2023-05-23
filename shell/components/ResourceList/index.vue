@@ -8,7 +8,7 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { sameContents } from 'utils/array';
+import { sameContents } from '@shell/utils/array';
 
 export default {
   name: ResourceListComponentName,
