@@ -51,6 +51,8 @@ dynamicPluginLoader.register({
             return harvesterClustersLocation;
           }
         }
+      } else {
+        return store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.clusterNotFound', { clusterId }, true)));
       }
     }
   }
