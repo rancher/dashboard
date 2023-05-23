@@ -79,19 +79,6 @@ export default Vue.extend<Data, any, any, any>({
     const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
     const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
 
-    const git = {
-      usernameOrOrg: this.source?.git?.usernameOrOrg || '',
-      repo:          this.source?.git?.repo || '',
-      commit:        this.source?.git?.commit || '',
-      branch:        this.source?.git?.branch || '',
-      url:           this.source?.git?.url || '',
-      sourceData:    this.source?.git?.sourceData || {
-        repos:    [],
-        branches: [],
-        commits:  []
-      }
-    };
-
     return {
       open:  false,
       valid: this.validate(),
@@ -110,18 +97,20 @@ export default Vue.extend<Data, any, any, any>({
         validGitUrl: false,
       },
 
-      git,
-
-      initValue: {
-        type:             this.source?.type,
-        selectedAccOrOrg: git.usernameOrOrg,
-        selectedRepo:     git.repo,
-        selectedBranch:   git.branch,
-        selectedCommit:   { sha: git.commit },
-        repos:            git.sourceData.repos,
-        branches:         git.sourceData.branches,
-        commits:          git.sourceData.commits,
+      git: {
+        usernameOrOrg: this.source?.git?.usernameOrOrg || '',
+        repo:          this.source?.git?.repo || '',
+        commit:        this.source?.git?.commit || '',
+        branch:        this.source?.git?.branch || '',
+        url:           this.source?.git?.url || '',
+        sourceData:    this.source?.git?.sourceData || {
+          repos:    [],
+          branches: [],
+          commits:  []
+        }
       },
+
+      gitSkipTypeReset: false,
 
       builderImage: {
         value:   builderImage,
@@ -140,6 +129,7 @@ export default Vue.extend<Data, any, any, any>({
       EDIT: _EDIT
     };
   },
+
   mounted() {
     if (!this.appChart) {
       if (this.appCharts[0]?.value) {
@@ -188,6 +178,7 @@ export default Vue.extend<Data, any, any, any>({
 
         const type = AppUtils.getSourceType(parsed.origin);
 
+        this.gitSkipTypeReset = true;
         Vue.set(this, 'type', type);
 
         switch (type) {
@@ -305,6 +296,7 @@ export default Vue.extend<Data, any, any, any>({
 
       this.update();
     },
+
     gitUpdate({
       repo, selectedAccOrOrg, branch, commit, sourceData
     }: {
@@ -346,13 +338,21 @@ export default Vue.extend<Data, any, any, any>({
       case APPLICATION_SOURCE_TYPE.GIT_LAB:
         return !!this.git.usernameOrOrg && !!this.git.url && !!this.git.repo && !!this.git.branch && !!this.git.commit;
       }
-    },
+    }
   },
 
   watch: {
     type() {
+      // If we don't skip reseting the git type... we lose changes from loaded manifests
+      if (this.gitSkipTypeReset) {
+        this.gitSkipTypeReset = false;
+      } else {
+        this.git = {};
+      }
+
       this.update();
     },
+
     valid(neu) {
       this.$emit('valid', neu);
     }
@@ -380,12 +380,15 @@ export default Vue.extend<Data, any, any, any>({
       }));
     },
 
-    sourceValue() {
+    gitSource() {
       return {
-        ...this.source.git,
-        type: this.type
+        type:             this.type,
+        selectedAccOrOrg: this.git.usernameOrOrg,
+        selectedRepo:     this.git.repo,
+        selectedBranch:   this.git.branch,
+        selectedCommit:   { sha: this.git.commit }
       };
-    },
+    }
   }
 });
 </script>
@@ -503,13 +506,11 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else>
-      <KeepAlive>
-        <GitPicker
-          :init-value="initValue"
-          :value="sourceValue"
-          @change="gitUpdate"
-        />
-      </KeepAlive>
+      <GitPicker
+        :value="gitSource"
+        :type="type"
+        @change="gitUpdate"
+      />
     </template>
     <Collapse
       :open.sync="open"
