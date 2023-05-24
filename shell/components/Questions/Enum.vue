@@ -14,11 +14,19 @@ export default {
       <LabeledSelect
         :mode="mode"
         :label="displayLabel"
-        :options="question.options"
+        :options="Array.isArray(question.options) ? question.options : Object.keys(question.options).map((key) => {
+          return {
+            value: key,
+            label: question.options[key],
+          };
+        })"
         :placeholder="question.description"
         :required="question.required"
+        :multiple="question.multiple"
         :value="value"
         :disabled="disabled"
+        :tooltip="displayTooltip"
+        :searchable="question.searchable"
         @input="$emit('input', $event)"
       />
     </div>

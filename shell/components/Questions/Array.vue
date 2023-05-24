@@ -22,8 +22,8 @@ export default {
         v-model="value[question.variable]"
         :title="question.label"
         :mode="mode"
-        :protip="false"
         :disabled="disabled"
+        :protip="displayTooltip"
         @input="update"
       />
     </div>

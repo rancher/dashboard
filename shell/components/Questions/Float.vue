@@ -2,8 +2,6 @@
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Question from './Question';
 
-//  @TODO valid_chars, invalid_chars
-
 export default {
   components: { LabeledInput },
   mixins:     [Question]
@@ -21,6 +19,8 @@ export default {
         :required="question.required"
         :value="value"
         :disabled="disabled"
+        :tooltip="displayTooltip"
+        :rules="rules"
         @input="val = parseFloat($event); if ( !isNaN(val) ) { $emit('input', val) }"
       />
     </div>

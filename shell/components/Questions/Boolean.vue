@@ -16,6 +16,7 @@ export default {
         :label="displayLabel"
         :value="value"
         :disabled="disabled"
+        :tooltip="displayTooltip"
         @input="$emit('input', $event)"
       />
     </div>

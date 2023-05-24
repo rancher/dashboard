@@ -34,6 +34,7 @@ export default {
           :mode="mode"
           :protip="false"
           :disabled="disabled"
+          :title-protip="displayTooltip"
           @input="update"
         />
       </div>

@@ -1,9 +1,9 @@
 <script>
-import { LabeledInput } from '@components/Form/LabeledInput';
+import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import Question from './Question';
 
 export default {
-  components: { LabeledInput },
+  components: { RadioGroup },
   mixins:     [Question]
 };
 </script>
@@ -11,17 +11,16 @@ export default {
 <template>
   <div class="row">
     <div class="col span-6">
-      <LabeledInput
-        type="text"
+      <RadioGroup
+        name="question.variable"
         :mode="mode"
-        :label="displayLabel"
-        :placeholder="question.default"
-        :required="question.required"
+        :labels="Array.isArray(question.options) ? question.options : Object.values(question.options)"
+        :options="Array.isArray(question.options) ? question.options : Object.keys(question.options)"
         :value="value"
         :disabled="disabled"
+        :label="displayLabel"
         :tooltip="displayTooltip"
-        :rules="rules"
-        @input="val = parseInt($event, 10); if ( !isNaN(val) ) { $emit('input', val) }"
+        @input="$emit('input', $event)"
       />
     </div>
     <div
