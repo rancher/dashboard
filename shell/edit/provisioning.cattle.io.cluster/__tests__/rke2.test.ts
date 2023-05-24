@@ -240,7 +240,7 @@ describe('component: rke2', () => {
       stubs: defaultStubs
     });
 
-    expect(wrapper.vm.validationPassed()).toBe(result);
+    expect((wrapper.vm as any).validationPassed).toBe(result);
   });
 
   it('should allow creation of K3 clusters if pool machines are missing', () => {
@@ -265,6 +265,6 @@ describe('component: rke2', () => {
       stubs: defaultStubs
     });
 
-    expect(wrapper.vm.validationPassed()).toBe(true);
+    expect((wrapper.vm as any).validationPassed).toBe(true);
   });
 });
