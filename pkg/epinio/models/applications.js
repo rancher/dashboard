@@ -814,7 +814,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
 
   createManifest() {
     const date = new Date().toISOString().split('.')[0];
-    const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.json`;
+    const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.yaml`;
 
     const manifest = {
       name:          this.metadata.name,
@@ -822,7 +822,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       origin:        this.origin,
     };
 
-    downloadFile(fileName, JSON.stringify(manifest))
+    downloadFile(fileName, JSON.stringify(manifest), 'text/plain')
       .catch((e) => {
         console.error('Failed to download manifest: ', e);// eslint-disable-line no-console
       });
