@@ -285,7 +285,6 @@ export default {
               v-clean-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
               class="text-center mb-20 mt-20 setup-title"
             />
-
             <Password
               v-if="!haveCurrent"
               v-model.trim="current"
@@ -467,13 +466,16 @@ export default {
       .span-6 {
         padding: 0 60px;
       }
+
+      .landscape {
+        height: 100vh;
+        margin: 0;
+        object-fit: cover;
+        padding: 0;
+      }
     }
 
-    .landscape {
-      height: 100vh;
-      margin: 0;
-      object-fit: cover;
-    }
+    
     .form-col {
       display: flex;
       flex-direction: column;
