@@ -184,12 +184,12 @@ export default Vue.extend({
           </template>
           <i
             v-if="tooltipKey"
-            v-tooltip="t(tooltipKey)"
+            v-clean-tooltip="t(tooltipKey)"
             class="icon icon-info icon-lg"
           />
           <i
             v-else-if="tooltip"
-            v-tooltip="tooltip"
+            v-clean-tooltip="tooltip"
             class="icon icon-info icon-lg"
           />
         </h3>

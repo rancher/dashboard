@@ -77,7 +77,7 @@ export default {
     <h3>
       {{ t('registryMirror.header') }}
       <i
-        v-tooltip="t('registryMirror.toolTip')"
+        v-clean-tooltip="t('registryMirror.toolTip')"
         class="icon icon-info"
       />
     </h3>
@@ -117,7 +117,7 @@ export default {
             <h3>
               {{ t('registryMirrorRewrite.header') }}
               <i
-                v-tooltip="t('registryMirrorRewrite.toolTip')"
+                v-clean-tooltip="t('registryMirrorRewrite.toolTip')"
                 class="icon icon-info"
               />
             </h3>

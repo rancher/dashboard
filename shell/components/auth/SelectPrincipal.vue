@@ -185,7 +185,7 @@ export default {
   <LabeledSelect
     ref="labeled-select"
     v-model="newValue"
-    v-tooltip="{
+    v-clean-tooltip="{
       content: tooltipContent,
       placement: 'bottom',
       classes: ['select-principal-tooltip']

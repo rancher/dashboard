@@ -8,6 +8,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _EDIT } from '@shell/config/query-params';
+import DOMPurify from 'dompurify';
 
 const PERMISSION_GROUP_MAP = {
   'project-owner':  'owner',
@@ -176,9 +177,9 @@ export default {
 
     options() {
       const customRoles = this.customRoles.map(role => ({
-        label:       role.nameDisplay,
-        description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('projectMembers.projectPermissions.noDescription'),
-        value:       role.id
+        label:       this.purifyOption(role.nameDisplay),
+        description: this.purifyOption(role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('projectMembers.projectPermissions.noDescription')),
+        value:       this.purifyOption(role.id),
       }));
 
       return [
@@ -251,6 +252,10 @@ export default {
       return [permissionGroup];
     },
 
+    purifyOption(option) {
+      return DOMPurify.sanitize(option, { ALLOWED_TAGS: ['span'] });
+    },
+
     resetDefaultValue(member, customPermissions) {
       if (this.mode !== _EDIT || !this.initValue) {
         return;
@@ -270,7 +275,7 @@ export default {
           cp.value = true;
         }
       }
-    }
+    },
   }
 };
 

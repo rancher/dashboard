@@ -149,7 +149,7 @@ export default {
         {{ label }}
         <i
           v-if="description"
-          v-tooltip="description"
+          v-clean-tooltip="description"
           class="icon icon-info"
         />
       </h3>

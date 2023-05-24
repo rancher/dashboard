@@ -2046,21 +2046,21 @@ export default {
             class="pull-right"
           >
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.etcd"
+              v-clean-tooltip="nodeTotals.tooltip.etcd"
               :color="nodeTotals.color.etcd"
               :icon="nodeTotals.icon.etcd"
               :label="nodeTotals.label.etcd"
               class="mr-10"
             />
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.controlPlane"
+              v-clean-tooltip="nodeTotals.tooltip.controlPlane"
               :color="nodeTotals.color.controlPlane"
               :icon="nodeTotals.icon.controlPlane"
               :label="nodeTotals.label.controlPlane"
               class="mr-10"
             />
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.worker"
+              v-clean-tooltip="nodeTotals.tooltip.worker"
               :color="nodeTotals.color.worker"
               :icon="nodeTotals.icon.worker"
               :label="nodeTotals.label.worker"
@@ -2477,7 +2477,7 @@ export default {
           <h3>
             {{ t('cluster.rke2.address.header') }}
             <i
-              v-tooltip="t('cluster.rke2.address.tooltip')"
+              v-clean-tooltip="t('cluster.rke2.address.tooltip')"
               class="icon icon-info"
             />
           </h3>
@@ -2750,7 +2750,7 @@ export default {
             <h3>
               {{ t('cluster.addOns.additionalManifest.title') }}
               <i
-                v-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
+                v-clean-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
                 class="icon icon-info"
               />
             </h3>

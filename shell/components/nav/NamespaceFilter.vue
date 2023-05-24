@@ -674,7 +674,7 @@ export default {
       <div
         v-else
         ref="values"
-        v-tooltip="tooltip"
+        v-clean-tooltip="tooltip"
         data-testid="namespaces-values"
         class="ns-values"
       >
@@ -708,7 +708,7 @@ export default {
       <div
         v-if="hidden > 0"
         ref="more"
-        v-tooltip="tooltip"
+        v-clean-tooltip="tooltip"
         class="ns-more"
       >
         {{ t('namespaceFilter.more', { more: hidden }) }}
@@ -754,7 +754,7 @@ export default {
           class="ns-singleton-info"
         >
           <i
-            v-tooltip="t('resourceList.nsFilterToolTip', { mode: namespaceFilterMode})"
+            v-clean-tooltip="t('resourceList.nsFilterToolTip', { mode: namespaceFilterMode})"
             class="icon icon-info"
           />
         </div>
