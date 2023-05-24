@@ -5,12 +5,13 @@ module.exports = {
     node:    true
   },
   globals: { NodeJS: true, Timer: true },
-  plugins: ['jest'],
+  plugins: ['jest', '@typescript-eslint'],
   extends: [
     'standard',
     'eslint:recommended',
-    // 'plugin:nuxt/recommended',
-    '@nuxtjs/eslint-config-typescript',
+    'plugin:@typescript-eslint/recommended',
+    '@vue/standard',
+    '@vue/typescript/recommended',
     'plugin:cypress/recommended',
   ],
   // add your custom rules here
