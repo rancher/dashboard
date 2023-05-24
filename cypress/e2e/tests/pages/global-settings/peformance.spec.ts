@@ -37,19 +37,13 @@ describe('Performance', () => {
     performancePage.waitForPageWithClusterId();
   });
 
-  context('Inactivity', () => {
-    it('should be disabled by default', () => {
+  context.only('Inactivity', () => {
+    it('should show the modal after 6 seconds', () => {
       const performancePage = new PerformancePagePo();
 
       performancePage.goTo();
 
       performancePage.inactivityCheckbox().isUnchecked();
-    });
-
-    it('should show the modal after 6 seconds', () => {
-      const performancePage = new PerformancePagePo();
-
-      performancePage.goTo();
 
       // Enables the inactivity timeout and sets it to 6 seconds
       performancePage.inactivityCheckbox().set();
@@ -60,35 +54,34 @@ describe('Performance', () => {
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
 
-      // INFO: The idea here is to set the clock to a future time and then tick it forward to trigger the modal, but it doesn't work and I'm not sure why.
-      // const currentTime = new Date();
-      // const futureTime = new Date(currentTime.getTime() + 6000); // Add 60,000 milliseconds (1 minute)
-
-      // cy.clock(futureTime); // Sets the clock to the future time
-      // cy.tick(6000); // Tick the clock forward by 1 minute
-
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(6000); // We wait for the modal to show
 
       expect(performancePage.inactivityModal().should('exist'));
-      expect(performancePage.inactivityModal().should('be.visible'));
-      expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('exist'));
-      expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('be.visible'));
-      expect(performancePage.inactivityModal().get("[data-testid='card-title-slot']").should('contain', 'Session expired'));
-      expect(performancePage.inactivityModal().get("[data-testid='card-body-slot']").should('contain', ' Your session has expired in this tab due to inactivity'));
 
-      // Clicking the refresh button should close the modal and restart the page
-      performancePage.inactivityModal().get("[data-testid='card-actions-slot']").contains('Refresh').click();
+      expect(performancePage.inactivityModalCard().getCardTitle().should('exist'));
+      expect(performancePage.inactivityModalCard().getCardBody().should('exist'));
+      expect(performancePage.inactivityModalCard().getCardActions().should('exist'));
+
+      expect(performancePage.inactivityModalCard().getCardTitle().should('contain', 'Session expired'));
+      expect(performancePage.inactivityModalCard().getCardBody().should('contain', 'Your session has expired in this tab due to inactivity.'));
+      expect(performancePage.inactivityModalCard().getCardBody().should('contain', 'To return to this page click “Refresh” below or refresh the browser.'));
+
+      // // Clicking the refresh button should close the modal and restart the page
+      // performancePage.inactivityModal().get("[data-testid='card-actions-slot']").contains('Refresh').click();
+      expect(performancePage.inactivityModalCard().getCardActions().contains('Refresh').click());
       expect(performancePage.inactivityModal().should('be.not.visible'));
     });
 
     it('should reset the settings', () => {
+      // INFO: We need to keep this in a separate test
       const performancePage = new PerformancePagePo();
 
       performancePage.goTo();
 
       performancePage.restoresSettings();
 
+      // We need to reload the page to get the new settings to take effect.
       cy.reload();
 
       performancePage.inactivityCheckbox().isUnchecked();

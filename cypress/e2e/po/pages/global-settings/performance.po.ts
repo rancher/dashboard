@@ -1,10 +1,12 @@
 import AsyncButtonPo from '~/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
+import ModalWithCardPo from '~/cypress/e2e/po/components/modal-with-card.po';
 import RootClusterPage from '~/cypress/e2e/po/pages/root-cluster-page';
 
 export class PerformancePagePo extends RootClusterPage {
   static url: string = '/c/_/settings/performance'
+  static modal = new ModalWithCardPo();
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(PerformancePagePo.url);
   }
@@ -26,7 +28,7 @@ export class PerformancePagePo extends RootClusterPage {
   }
 
   inactivityModalCard() {
-    return cy.get("[data-testid=card-title-slot']");
+    return new ModalWithCardPo();
   }
 
   applyButton() {
