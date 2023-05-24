@@ -475,7 +475,6 @@ export default {
       }
     }
 
-    
     .form-col {
       display: flex;
       flex-direction: column;
