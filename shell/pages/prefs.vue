@@ -70,16 +70,22 @@ export default {
     dateOptions() {
       const now = day();
 
-      return this.$store.getters['prefs/options'](DATE_FORMAT).map((value, index) => {
-        const updateValue = `${ now.format(value) } - (${ value })`;
+      const currentDate = this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
+        return now.format(value)
+      })
+      const isDuplicate = currentDate.some(function(item, idx){ 
+          return currentDate.indexOf(item) != idx 
+      });
 
-        if (index > 1) {
+      return this.$store.getters['prefs/options'](DATE_FORMAT).map((value, index) => {
+        const updateValue = `${ now.format(value) } (${ value })`;
+
+        if (index > 1 && isDuplicate) {
           return {
             label: updateValue,
             value
           };
         }
-
         return {
           label: now.format(value),
           value
