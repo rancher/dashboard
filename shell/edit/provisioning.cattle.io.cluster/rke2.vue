@@ -1031,12 +1031,14 @@ export default {
     },
 
     validationPassed() {
+      const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
+
       let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
 
       // and in all of the validation statuses for each machine pool
       Object.values(this.machinePoolValidation).forEach(v => (base = base && v));
 
-      return base;
+      return validRequiredPools && base;
     },
   },
 
