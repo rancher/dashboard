@@ -377,7 +377,7 @@ export default {
       // }
       //
       // return i === this.firstCustomClusterItem;
-      return false
+      return false;
       // Added by Verrazzano End
     },
 
