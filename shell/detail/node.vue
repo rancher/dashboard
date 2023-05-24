@@ -120,7 +120,7 @@ export default {
       return null;
     },
     memoryUnits() {
-      const exponent = exponentNeeded(this.value.ramCapacity, 1024);
+      const exponent = exponentNeeded(this.value.ramAllocatable, 1024);
 
       return `${ UNITS[exponent] }iB`;
     },
@@ -241,7 +241,7 @@ export default {
       />
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.memory')"
-        :capacity="value.ramCapacity"
+        :capacity="value.ramAllocatable"
         :used="value.ramUsage"
         :units="memoryUnits"
         :number-formatter="memoryFormatter"
