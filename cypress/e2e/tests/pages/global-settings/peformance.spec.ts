@@ -57,7 +57,7 @@ describe('Performance', () => {
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(6000); // We wait for the modal to show
 
-      expect(performancePage.inactivityModal().should('exist'));
+      expect(performancePage.inactivityModalCard().getModal().should('exist'));
 
       expect(performancePage.inactivityModalCard().getCardTitle().should('exist'));
       expect(performancePage.inactivityModalCard().getCardBody().should('exist'));
@@ -70,7 +70,7 @@ describe('Performance', () => {
       // // Clicking the refresh button should close the modal and restart the page
       // performancePage.inactivityModal().get("[data-testid='card-actions-slot']").contains('Refresh').click();
       expect(performancePage.inactivityModalCard().getCardActions().contains('Refresh').click());
-      expect(performancePage.inactivityModal().should('be.not.visible'));
+      expect(performancePage.inactivityModalCard().getModal().should('be.not.visible'));
     });
 
     it('should reset the settings', () => {

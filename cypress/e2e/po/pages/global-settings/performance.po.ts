@@ -23,10 +23,6 @@ export class PerformancePagePo extends RootClusterPage {
     return LabeledInputPo.byLabel(this.self(), 'Inactivity timeout (minutes) ');
   }
 
-  inactivityModal() {
-    return cy.get("[data-testid='mvc__card']");
-  }
-
   inactivityModalCard() {
     return new ModalWithCardPo();
   }
