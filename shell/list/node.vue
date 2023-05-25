@@ -109,18 +109,23 @@ export default {
         {
           ...CPU,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          getValue:   row => row.cpuUsagePercentage
+          getValue:   row => row.cpuUsagePercentage,
+          formatter:  'CpuUsage',
+          width:      240
         }, {
           ...RAM,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          getValue:   row => row.ramUsagePercentage
+          getValue:   row => row.ramUsagePercentage,
+          formatter:  'MemoryUsage',
+          width:      240
         }];
 
       if (this.canViewPods) {
         headers.push({
           ...PODS,
           breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
-          getValue:   row => row.podConsumedUsage
+          getValue:   row => row.podConsumedUsage,
+          formatter:  'PodUsage'
         });
       }
       headers.push(AGE);

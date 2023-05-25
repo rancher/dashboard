@@ -3689,6 +3689,8 @@ node:
         cpu: CPU
         memory: 内存
         pods: Pod
+        reserved: 已预留
+        consumption: "已预留 {total} {unit} 中的 {used}"
       diskPressure: 磁盘压力
       kubelet: Kubelet
       memoryPressure: 内存压力
@@ -7808,7 +7810,7 @@ globalMonitoringPage:
   enableActionLabel: 启用
   globalMonitoringClusterUnavailable: 集群 {clusterName} 不可用。
   objectStorageWarning: 每个集群中的 Thanos sidecar 都需要对象存储的密钥。所以这些集群的管理员也可以在集群的系统项目里看到你所配置的存储的密钥。
-  objectStorageDoc: 
+  objectStorageDoc:
     more: 如需更多配置参数可参考
     doc: Thanos 文档
     setting: 。需通过“编辑 YAML”选项进行配置。

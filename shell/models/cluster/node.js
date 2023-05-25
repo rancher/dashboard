@@ -198,6 +198,10 @@ export default class ClusterNode extends SteveModel {
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.cpu || '0');
   }
 
+  get cpuReservationUsage() {
+    return parseSi(this.podRequests.cpu || '0');
+  }
+
   get cpuCapacity() {
     return parseSi(this.status.allocatable.cpu);
   }
@@ -214,6 +218,10 @@ export default class ClusterNode extends SteveModel {
     return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.memory || '0');
   }
 
+  get ramReservationUsage() {
+    return parseSi(this.podRequests.memory || '0');
+  }
+
   get ramCapacity() {
     return parseSi(this.status.capacity.memory);
   }
@@ -228,6 +236,14 @@ export default class ClusterNode extends SteveModel {
 
   get podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
+  }
+
+  get podReservationUsage() {
+    return Number.parseInt(this.podRequests.pods);
+  }
+
+  get podAllocatable() {
+    return Number.parseInt(this.status.allocatable?.pods);
   }
 
   get podConsumedUsage() {

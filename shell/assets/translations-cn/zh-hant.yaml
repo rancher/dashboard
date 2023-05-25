@@ -3689,6 +3689,8 @@ node:
         cpu: CPU
         memory: 內存
         pods: Pod
+        reserved: 已預留
+        consumption: "已預留 {total} {unit} 中的 {used}"
       diskPressure: 磁盤壓力
       kubelet: Kubelet
       memoryPressure: 內存壓力
@@ -7846,7 +7848,7 @@ globalMonitoringPage:
     helpText: 選擇要運行 {component} 工作負載的節點。
   notReady: 正在安裝全局監控到指定集羣的系統項目裏...
   objectStorageWarning: 每個集羣中的 Thanos sidecar 都需要對象存儲的密鑰。所以這些集羣的管理員也可以在集羣的系統項目裏看到你所配置的存儲的密鑰。
-  objectStorageDoc: 
+  objectStorageDoc:
     more: 如需更多配置參數可參考
     doc: Thanos 文檔
     setting: 。需通過“編輯 YAML”選項進行配置。
