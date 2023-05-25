@@ -1,4 +1,4 @@
-/* eslint-disable node/no-deprecated-api, unicorn/no-new-buffer */
+/* eslint-disable node/no-deprecated-api */
 import { Buffer } from 'buffer';
 import Md5 from './browserMd5';
 import Sha256 from './browserSha256';

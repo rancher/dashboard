@@ -168,5 +168,4 @@ export default {
       </template>
     </resourcetable>
   </div>
-  </div>
 </template>
