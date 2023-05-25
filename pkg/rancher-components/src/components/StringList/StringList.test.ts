@@ -2,7 +2,7 @@ import { mount, Wrapper } from '@vue/test-utils';
 import { StringList } from './index';
 
 describe('StringList.vue', () => {
-  let wrapper: Wrapper<Vue>;
+  let wrapper: Wrapper<InstanceType<typeof StringList>>;
 
   beforeEach(() => {
     wrapper = mount(StringList, { propsData: { items: [] } });
@@ -124,7 +124,7 @@ describe('StringList.vue', () => {
       await inputField.setValue('F');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('type:item') as any)[0][0][0];
+      const emitted = (wrapper.emitted('type:item') || [])[0][0][0];
 
       expect(emitted).toBe('F');
     });
@@ -240,7 +240,7 @@ describe('StringList.vue', () => {
 
         await wrapper.vm.$nextTick();
 
-        const itemsCount = (wrapper.emitted('change') as any)[0][0].length;
+        const itemsCount = (wrapper.emitted('change') || [])[0][0].length;
 
         expect(itemsCount).toBe(0);
       });
@@ -296,7 +296,7 @@ describe('StringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('change') as any)[0][0][0];
+      const emitted = (wrapper.emitted('change') || [])[0][0][0];
 
       expect(emitted).toBe(validItem.trim());
     });
@@ -317,7 +317,7 @@ describe('StringList.vue', () => {
       await inputField.trigger('keydown.enter');
       await wrapper.vm.$nextTick();
 
-      const emitted = (wrapper.emitted('change') as any)[0][0][0];
+      const emitted = (wrapper.emitted('change') || [])[0][0][0];
 
       expect(emitted).toBe(validItem.trim());
     });
@@ -453,7 +453,7 @@ describe('StringList.vue', () => {
 
       await inputField.setValue('test');
 
-      const isDuplicate = (wrapper.emitted('errors') as any)[0][0].duplicate;
+      const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
 
       expect(isDuplicate).toBe(true);
     });
@@ -475,7 +475,7 @@ describe('StringList.vue', () => {
       // it is not duplicate, reset duplicate error -> emit false
       await inputField.setValue('test-1');
 
-      const isDuplicate = (wrapper.emitted('errors') as any)[0][0].duplicate;
+      const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
 
       expect(isDuplicate).toBe(false);
     });

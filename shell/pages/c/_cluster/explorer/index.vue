@@ -23,7 +23,6 @@ import {
   WORKLOAD_TYPES,
   COUNT,
   CATALOG,
-  POD,
   PSP,
 } from '@shell/config/types';
 import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
@@ -40,6 +39,9 @@ import { isEmpty } from '@shell/utils/object';
 import ConfigBadge from './ConfigBadge';
 import EventsTable from './EventsTable';
 import { fetchClusterResources } from './explorer-utils';
+import SimpleBox from '@shell/components/SimpleBox';
+import { ExtensionPoint, CardLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 export const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
 
@@ -71,6 +73,7 @@ export default {
     EmberPage,
     ConfigBadge,
     EventsTable,
+    SimpleBox,
   },
 
   mixins: [metricPoller],
@@ -78,27 +81,29 @@ export default {
   fetch() {
     fetchClusterResources(this.$store, NODE);
 
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
-      this,
-      'showClusterMetrics',
-      `Determine cluster metrics`
-    );
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
-      this,
-      'showK8sMetrics',
-      `Determine k8s metrics`
-    );
-    setPromiseResult(
-      allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
-      this,
-      'showEtcdMetrics',
-      `Determine etcd metrics`
-    );
+    if (this.currentCluster) {
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [CLUSTER_METRICS_DETAIL_URL, CLUSTER_METRICS_SUMMARY_URL]),
+        this,
+        'showClusterMetrics',
+        `Determine cluster metrics`
+      );
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [K8S_METRICS_DETAIL_URL, K8S_METRICS_SUMMARY_URL]),
+        this,
+        'showK8sMetrics',
+        `Determine k8s metrics`
+      );
+      setPromiseResult(
+        allDashboardsExist(this.$store, this.currentCluster.id, [ETCD_METRICS_DETAIL_URL, ETCD_METRICS_SUMMARY_URL]),
+        this,
+        'showEtcdMetrics',
+        `Determine etcd metrics`
+      );
 
-    if (this.currentCluster.isLocal) {
-      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      if (this.currentCluster.isLocal) {
+        this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
+      }
     }
   },
 
@@ -126,6 +131,7 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       clusterCounts,
       selectedTab:        'cluster-events',
+      extensionCards:     getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route),
     };
   },
 
@@ -179,7 +185,7 @@ export default {
     displayProvider() {
       const other = 'other';
 
-      let provider = this.currentCluster.status.provider || other;
+      let provider = this.currentCluster?.status?.provider || other;
 
       if (provider === 'rke.windows') {
         provider = 'rkeWindows';
@@ -257,11 +263,9 @@ export default {
     },
 
     podsUsed() {
-      const pods = resourceCounts(this.$store, POD);
-
       return {
         total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
-        useful: pods.total
+        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
       };
     },
 
@@ -400,7 +404,7 @@ export default {
 
 <template>
   <section class="dashboard">
-    <header class="header-layout">
+    <header>
       <div class="title">
         <h1>
           <t k="clusterIndexPage.header" />
@@ -439,11 +443,11 @@ export default {
       </div>
       <div>
         <label>{{ t('glance.version') }}: </label>
+        <span>{{ currentCluster.kubernetesVersionBase }}</span>
         <span
           v-if="currentCluster.kubernetesVersionExtension"
-          style="font-size: 0.5em"
+          style="font-size: 0.75em"
         >{{ currentCluster.kubernetesVersionExtension }}</span>
-        <span>{{ currentCluster.kubernetesVersionBase }}</span>
       </div>
       <div>
         <label>{{ t('glance.created') }}: </label>
@@ -455,7 +459,7 @@ export default {
       </div>
       <p
         v-if="displayPspDeprecationBanner && hidePspDeprecationBanner"
-        v-tooltip="t('landing.deprecatedPsp')"
+        v-clean-tooltip="t('landing.deprecatedPsp')"
         class="alt-psp-deprecation-info"
       >
         <span>{{ t('landing.psps') }}</span>
@@ -490,6 +494,27 @@ export default {
         v-if="canAccessDeployments"
         resource="apps.deployment"
       />
+    </div>
+
+    <!-- extension cards -->
+    <div
+      v-if="extensionCards.length"
+      class="extension-card-container mt-20"
+    >
+      <SimpleBox
+        v-for="item, i in extensionCards"
+        :key="`extensionCards${i}`"
+        class="extension-card"
+        :style="item.style"
+      >
+        <h3>
+          {{ item.label }}
+        </h3>
+        <component
+          :is="item.component"
+          :resource="currentCluster"
+        />
+      </SimpleBox>
     </div>
 
     <h3
@@ -576,6 +601,8 @@ export default {
     </div>
     <Tabbed
       v-if="hasMetricsTabs"
+      default-tab="cluster-metrics"
+      :use-hash="false"
       class="mt-30"
     >
       <Tab
@@ -631,6 +658,19 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.extension-card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc((100%/3) - 40px), 1fr));
+  grid-column-gap: 15px;
+  grid-row-gap: 20px;
+}
+
+@media only screen and (max-width: map-get($breakpoints, "--viewport-9")) {
+  .extension-card-container {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 .cluster-dashboard-glance {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -666,7 +706,7 @@ export default {
 }
 
 .etcd-metrics ::v-deep .external-link {
-  top: -102px;
+  top: -107px;
 }
 
 .cluster-tools-tip {
@@ -719,7 +759,6 @@ export default {
 
   > I {
     text-align: center;
-    font-size: 20px;
     padding: 5px 10px;
     border-right: 1px solid var(--border);
   }

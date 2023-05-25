@@ -107,6 +107,7 @@ export default {
     name="confirm-uiplugins-remove"
     :title="t('plugins.setup.remove.title')"
     mode="disable"
+    data-testid="disable-ext-modal"
     @okay="doRemove"
   >
     <template>
@@ -121,6 +122,7 @@ export default {
           v-model="removeRepo"
           :primary="true"
           label-key="plugins.setup.remove.registry.title"
+          data-testid="disable-ext-modal-remove-repo"
         />
         <div class="checkbox-info">
           {{ t('plugins.setup.remove.registry.prompt') }}

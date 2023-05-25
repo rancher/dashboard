@@ -6,12 +6,13 @@ import { get, isEmpty, clone } from '@shell/utils/object';
 import { NODE } from '@shell/config/types';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
+import { LabeledInput } from '@components/Form/LabeledInput';
 import { randomStr } from '@shell/utils/string';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 
 export default {
   components: {
-    ArrayListGrouped, MatchExpressions, LabeledSelect
+    ArrayListGrouped, MatchExpressions, LabeledSelect, LabeledInput
   },
 
   props: {
@@ -26,6 +27,13 @@ export default {
     mode: {
       type:    String,
       default: 'create'
+    },
+
+    // has select for matching fields or expressions (used for node affinity)
+    // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#nodeselectorterm-v1-core
+    matchingSelectorDisplay: {
+      type:    Boolean,
+      default: false,
     },
   },
 
@@ -89,7 +97,7 @@ export default {
 
       this.allSelectorTerms.forEach((term) => {
         if (term.weight) {
-          const neu = { weight: 1, preference: term };
+          const neu = { weight: term.weight, preference: term };
 
           preferredDuringSchedulingIgnoredDuringExecution.push(neu);
         } else {
@@ -103,6 +111,7 @@ export default {
       if (requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.length) {
         out.requiredDuringSchedulingIgnoredDuringExecution = requiredDuringSchedulingIgnoredDuringExecution;
       }
+
       this.$emit('input', out);
     },
 
@@ -122,6 +131,28 @@ export default {
 
     priorityDisplay(term) {
       return term.weight ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
+    },
+
+    updateExpressions(row, expressions) {
+      const expressionsMatching = {
+        matchFields:      [],
+        matchExpressions: []
+      };
+
+      if (expressions.length) {
+        expressions.forEach((expression) => {
+          expressionsMatching[expression.matching || 'matchExpressions'].push(expression);
+        });
+
+        if (expressionsMatching.matchFields.length) {
+          this.$set(row, 'matchFields', expressionsMatching.matchFields);
+        }
+        if (expressionsMatching.matchExpressions.length) {
+          this.$set(row, 'matchExpressions', expressionsMatching.matchExpressions);
+        }
+
+        this.update();
+      }
     },
 
     get,
@@ -148,23 +179,42 @@ export default {
       >
         <template #default="props">
           <div class="row">
-            <div class="col span-6">
+            <div class="col span-9">
               <LabeledSelect
                 :options="affinityOptions"
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
                 :mode="mode"
+                :data-testid="`node-affinity-priority-index${props.i}`"
                 @input="(changePriority(props.row.value))"
+              />
+            </div>
+            <div
+              v-if="props.row.value.weight"
+              class="col span-3"
+            >
+              <LabeledInput
+                v-model.number="props.row.value.weight"
+                :mode="mode"
+                type="number"
+                min="1"
+                max="100"
+                :label="t('workload.scheduling.affinity.weight.label')"
+                :placeholder="t('workload.scheduling.affinity.weight.placeholder')"
+                :data-testid="`node-affinity-weight-index${props.i}`"
               />
             </div>
           </div>
           <MatchExpressions
             :key="rerenderNums"
-            v-model="props.row.value.matchExpressions"
+            :value="matchingSelectorDisplay ? props.row.value : props.row.value.matchExpressions"
+            :matching-selector-display="matchingSelectorDisplay"
             :mode="mode"
             class="col span-12 mt-20"
             :type="node"
             :show-remove="false"
+            :data-testid="`node-affinity-expressions-index${props.i}`"
+            @input="(updateExpressions(props.row.value, $event))"
           />
         </template>
       </ArrayListGrouped>

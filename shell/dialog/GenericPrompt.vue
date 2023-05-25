@@ -3,6 +3,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import { exceptionToErrorsArray } from '@shell/utils/error';
+import { decodeHtml } from '@shell/utils/string';
 
 export default {
   components: {
@@ -11,48 +12,54 @@ export default {
     Banner,
   },
   props: {
-    resources: {
-      type:     Array,
-      required: true
-    }
+    applyAction: {
+      type:    Function,
+      default: () => {}
+    },
+    applyMode: {
+      type:    String,
+      default: 'create'
+    },
+    title: {
+      type:    String,
+      default: ''
+    },
+    body: {
+      type:    String,
+      default: ''
+    },
+
+    /**
+     * Callback to identify response of the prompt
+     */
+    confirm: {
+      type:    Function,
+      default: () => { }
+    },
   },
   data() {
     return { errors: [] };
   },
-  computed: {
-    config() {
-      return this.resources[0];
-    },
-    applyAction() {
-      return this.config.applyAction;
-    },
-    applyMode() {
-      return this.config.applyMode || 'create';
-    },
-    title() {
-      return this.config.title;
-    },
-    body() {
-      return this.config.body;
-    },
 
-  },
   methods: {
+    decodeHtml,
     close() {
-      this.$emit('close');
+      this.confirm(false);
+      this.$emit('close', false);
     },
 
     async apply(buttonDone) {
       try {
         await this.applyAction(buttonDone);
-        this.close();
+        this.confirm(true);
+        this.$emit('close', true);
       } catch (err) {
         console.error(err); // eslint-disable-line
         this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
     }
-  }
+  },
 };
 </script>
 
@@ -64,8 +71,9 @@ export default {
     <template slot="title">
       <slot name="title">
         <h4
+          slot="title"
+          v-clean-html="title"
           class="text-default-text"
-          v-html="title"
         />
       </slot>
     </template>
@@ -73,9 +81,9 @@ export default {
     <template slot="body">
       <slot name="body">
         <div
+          v-clean-html="decodeHtml(body)"
           class="pl-10 pr-10"
           style="min-height: 50px; display: flex;"
-          v-html="body"
         />
       </slot>
     </template>

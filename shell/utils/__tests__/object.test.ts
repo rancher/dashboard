@@ -1,4 +1,6 @@
-import { clone, get, getter, isEmpty } from '@shell/utils/object';
+import {
+  clone, get, getter, isEmpty, toDictionary
+} from '@shell/utils/object';
 
 describe('fx: get', () => {
   describe('should return value of an object', () => {
@@ -124,5 +126,19 @@ describe('fx: isEmpty', () => {
     const result = isEmpty(enumerable);
 
     expect(result).toBe(expected);
+  });
+});
+
+describe('fX: toDictionary', () => {
+  it('should return a dictionary from an array', () => {
+    const array = ['a', 'b', 'c'];
+    const asd = (value: string) => value.toUpperCase();
+    const expectation = {
+      a: 'A', b: 'B', c: 'C'
+    };
+
+    const result = toDictionary(array, asd);
+
+    expect(result).toStrictEqual(expectation);
   });
 });

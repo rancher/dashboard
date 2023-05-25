@@ -274,7 +274,7 @@ export default {
               >
                 <template #label>
                   <span
-                    v-tooltip="t('backupRestoreOperator.prune.tip')"
+                    v-clean-tooltip="t('backupRestoreOperator.prune.tip')"
                     class="text-label"
                   >
                     {{ t('backupRestoreOperator.prune.label') }} <i class="icon icon-info" />
@@ -290,7 +290,7 @@ export default {
               >
                 <template #label>
                   <label
-                    v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')"
+                    v-clean-tooltip="t('backupRestoreOperator.deleteTimeout.tip')"
                     class="has-tooltip"
                   >
                     {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />

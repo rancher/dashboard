@@ -29,7 +29,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:      store.getters['i18n/t']('fleet.dashboard.menuLabel'),
+    labelKey:   'fleet.dashboard.menuLabel',
     icon:       'folder',
     group:      'Root',
     namespaced: false,
@@ -62,6 +62,8 @@ export function init(store) {
     FLEET.WORKSPACE,
     FLEET.BUNDLE,
     FLEET.TOKEN,
+    FLEET.BUNDLE_NAMESPACE_MAPPING,
+    FLEET.GIT_REPO_RESTRICTION
   ], 'advanced');
 
   headers(FLEET.WORKSPACE, [

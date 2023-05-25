@@ -18,6 +18,11 @@ export default {
       default: '',
     },
 
+    objectId: {
+      type:    String,
+      default: '',
+    },
+
     product: {
       type:    String,
       default: EXPLORER,
@@ -31,7 +36,7 @@ export default {
       const params = {
         resource:  this.type,
         namespace: this.namespace,
-        id:        this.value,
+        id:        this.objectId ? this.objectId : this.value,
         product:   this.product || EXPLORER,
       };
 

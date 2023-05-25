@@ -9,6 +9,18 @@ import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import UnitInput from '@shell/components/form/UnitInput';
 
+const incompatible = {
+  incrementalLoading: ['forceNsFilterV2'],
+  manualRefresh:      ['forceNsFilterV2'],
+  forceNsFilterV2:    ['incrementalLoading', 'manualRefresh'],
+};
+
+const l10n = {
+  incrementalLoading: 'incrementalLoad',
+  manualRefresh:      'manualRefresh',
+  forceNsFilterV2:    'nsFiltering',
+};
+
 export default {
   layout:     'authenticated',
   components: {
@@ -23,12 +35,16 @@ export default {
   async fetch() {
     try {
       this.uiPerfSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.UI_PERFORMANCE });
-    } catch (e) {
+    } catch {
       this.uiPerfSetting = await this.$store.dispatch('management/create', { type: MANAGEMENT.SETTING }, { root: true });
       // Setting does not exist - create a new one
       this.uiPerfSetting.value = JSON.stringify(DEFAULT_PERF_SETTING);
       this.uiPerfSetting.metadata = { name: SETTING.UI_PERFORMANCE };
     }
+
+    try {
+      this.authUserTTL = await this.$store.dispatch(`management/find`, { type: MANAGEMENT.SETTING, id: SETTING.AUTH_USER_SESSION_TTL_MINUTES });
+    } catch {}
 
     const sValue = this.uiPerfSetting?.value || JSON.stringify(DEFAULT_PERF_SETTING);
 
@@ -42,11 +58,13 @@ export default {
 
   data() {
     return {
-      uiPerfSetting:    DEFAULT_PERF_SETTING,
-      bannerVal:        {},
-      value:            {},
-      errors:           [],
-      gcStartedEnabled: null
+      uiPerfSetting:              DEFAULT_PERF_SETTING,
+      authUserTTL:                null,
+      bannerVal:                  {},
+      value:                      {},
+      errors:                     [],
+      gcStartedEnabled:           null,
+      isInactivityThresholdValid: false,
     };
   },
 
@@ -56,9 +74,28 @@ export default {
 
       return schema?.resourceMethods?.includes('PUT') ? _EDIT : _VIEW;
     },
+
+    canSave() {
+      return this.value.inactivity.enabled ? this.isInactivityThresholdValid : true;
+    }
   },
 
   methods: {
+    validateInactivityThreshold(value) {
+      if (!this.authUserTTL?.value) {
+        this.isInactivityThresholdValid = true;
+
+        return;
+      }
+
+      if (parseInt(value) > parseInt(this.authUserTTL?.value)) {
+        this.isInactivityThresholdValid = false;
+
+        return this.t('performance.inactivity.authUserTTL', { current: this.authUserTTL.value });
+      }
+      this.isInactivityThresholdValid = true;
+    },
+
     async save(btnCB) {
       this.uiPerfSetting.value = JSON.stringify(this.value);
       this.errors = [];
@@ -77,8 +114,42 @@ export default {
         this.errors.push(err);
         btnCB(false);
       }
+    },
+
+    compatibleWarning(property, enabled) {
+      if (!enabled) {
+        // Disabling a preference won't automatically turn on an incompatible one, so just set and exit
+        this.value[property].enabled = false;
+
+        return;
+      }
+
+      // We're enabling a preference. Are there any incomaptible preferences?
+      if ((incompatible[property] || []).every(p => !this.value[p].enabled)) {
+        // No, just set and exit
+        this.value[property].enabled = true;
+
+        return;
+      }
+
+      // Incompatible preferences found, so confirm with user before applying
+      this.$store.dispatch('cluster/promptModal', {
+        component:      'GenericPrompt',
+        componentProps: {
+          applyMode:   'enable',
+          applyAction: (buttonDone) => {
+            this.value[property].enabled = true;
+            (incompatible[property] || []).forEach((incompatible) => {
+              this.value[incompatible].enabled = false;
+            });
+            buttonDone(true);
+          },
+          title: this.t('promptRemove.title', {}, true),
+          body:  this.t(`performance.${ l10n[property] }.incompatibleDescription`, {}, true),
+        },
+      });
     }
-  }
+  },
 };
 </script>
 <template>
@@ -89,8 +160,36 @@ export default {
     </h1>
     <div>
       <div class="ui-perf-setting">
-        <!-- Websocket Notifications -->
+        <!-- Inactivity -->
         <div class="mt-20">
+          <h2>{{ t('performance.inactivity.title') }}</h2>
+          <p>{{ t('performance.inactivity.description') }}</p>
+          <Checkbox
+            v-model="value.inactivity.enabled"
+            :mode="mode"
+            :label="t('performance.inactivity.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+          <div class="ml-20">
+            <LabeledInput
+              v-model="value.inactivity.threshold"
+              :mode="mode"
+              :label="t('performance.inactivity.inputLabel')"
+              :disabled="!value.inactivity.enabled"
+              class="input mb-10"
+              type="number"
+              min="0"
+              :rules="[validateInactivityThreshold]"
+            />
+            <span
+              v-clean-html="t('performance.inactivity.information', {}, true)"
+              :class="{ 'text-muted': !value.incrementalLoading.enabled }"
+            />
+          </div>
+        </div>
+        <!-- Websocket Notifications -->
+        <div class="mt-40">
           <h2>{{ t('performance.websocketNotification.label') }}</h2>
           <p>{{ t('performance.websocketNotification.description') }}</p>
           <Checkbox
@@ -106,11 +205,12 @@ export default {
           <h2>{{ t('performance.incrementalLoad.label') }}</h2>
           <p>{{ t('performance.incrementalLoad.description') }}</p>
           <Checkbox
-            v-model="value.incrementalLoading.enabled"
+            :value="value.incrementalLoading.enabled"
             :mode="mode"
             :label="t('performance.incrementalLoad.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
+            @input="compatibleWarning('incrementalLoading', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.incrementalLoading.enabled }">
@@ -133,14 +233,15 @@ export default {
           <p>{{ t('performance.manualRefresh.description') }}</p>
           <Banner
             color="error"
-            label-key="performance.manualRefresh.banner"
+            label-key="performance.experimental"
           />
           <Checkbox
-            v-model="value.manualRefresh.enabled"
+            :value="value.manualRefresh.enabled"
             :mode="mode"
             :label="t('performance.manualRefresh.checkboxLabel')"
             class="mt-10 mb-20"
             :primary="true"
+            @input="compatibleWarning('manualRefresh', $event)"
           />
           <div class="ml-20">
             <p :class="{ 'text-muted': !value.manualRefresh.enabled }">
@@ -163,7 +264,7 @@ export default {
           <p>{{ t('performance.gc.description') }}</p>
           <Banner
             color="error"
-            label-key="performance.gc.banner"
+            label-key="performance.experimental"
           />
           <Checkbox
             v-model="value.garbageCollection.enabled"
@@ -237,6 +338,39 @@ export default {
             </div>
           </div>
         </div>
+        <!-- Force NS filter -->
+        <div class="mt-40">
+          <h2>{{ t('performance.nsFiltering.label') }}</h2>
+          <p>{{ t('performance.nsFiltering.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Checkbox
+            :value="value.forceNsFilterV2.enabled"
+            :mode="mode"
+            :label="t('performance.nsFiltering.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+            @input="compatibleWarning('forceNsFilterV2', $event)"
+          />
+        </div>
+        <!-- Advanced Websocket Worker -->
+        <div class="mt-40">
+          <h2>{{ t('performance.advancedWorker.label') }}</h2>
+          <p>{{ t('performance.advancedWorker.description') }}</p>
+          <Banner
+            color="error"
+            label-key="performance.experimental"
+          />
+          <Checkbox
+            v-model="value.advancedWorker.enabled"
+            :mode="mode"
+            :label="t('performance.advancedWorker.checkboxLabel')"
+            class="mt-10 mb-20"
+            :primary="true"
+          />
+        </div>
       </div>
     </div>
     <template v-for="err in errors">
@@ -250,6 +384,7 @@ export default {
       <AsyncButton
         class="pull-right mt-20"
         mode="apply"
+        :disabled="!canSave"
         @click="save"
       />
     </div>

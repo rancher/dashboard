@@ -97,7 +97,7 @@ export default {
 
 <template>
   <GenericPrompt
-    :resources="[config]"
+    v-bind="config"
     @close="$emit('close')"
   >
     <template slot="body">
@@ -116,7 +116,7 @@ export default {
           <span
             v-for="i in ignored"
             :key="i.name"
-            v-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"
+            v-clean-html="t('promptScaleMachineDown.retainedMachine2', { name: i.name }, true)"
           />
         </div>
       </div>

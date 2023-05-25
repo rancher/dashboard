@@ -71,6 +71,17 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
+  // Models can specify a single action that will be shown as a button in the details masthead
+  get detailsAction() {
+    const canExplore = this.mgmt?.isReady && !this.hasError;
+
+    return {
+      action:  'explore',
+      label:   this.$rootGetters['i18n/t']('cluster.explore'),
+      enabled: canExplore,
+    };
+  }
+
   get _availableActions() {
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
@@ -92,7 +103,7 @@ export default class ProvCluster extends SteveModel {
     const clusterTemplatesSchema = this.$getters['schemaFor']('management.cattle.io.clustertemplate');
     let canUpdateClusterTemplate = false;
 
-    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods.includes('PUT'))) {
+    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods?.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods?.includes('PUT'))) {
       canUpdateClusterTemplate = true;
     }
 
@@ -114,12 +125,12 @@ export default class ProvCluster extends SteveModel {
         label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),
         icon:       'icon icon-download',
         bulkable:   true,
-        enabled:    this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:    this.mgmt?.hasAction('generateKubeconfig'),
       }, {
         action:   'copyKubeConfig',
         label:    this.t('cluster.copyConfig'),
         bulkable: false,
-        enabled:  this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:  this.mgmt?.hasAction('generateKubeconfig'),
         icon:     'icon icon-copy',
       }, {
         action:     'snapshotAction',
@@ -163,6 +174,15 @@ export default class ProvCluster extends SteveModel {
     const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
 
     return out;
+  }
+
+  explore() {
+    const location = {
+      name:   'c-cluster',
+      params: { cluster: this.mgmt.id }
+    };
+
+    this.currentRouter().push(location);
   }
 
   goToViewYaml() {
@@ -252,7 +272,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
-    return this.mgmt?.id || this.id.replace(`${ this.metadata.namespace }/`, '');
+    return this.mgmt?.id || this.id?.replace(`${ this.metadata.namespace }/`, '');
   }
 
   get mgmt() {
@@ -271,8 +291,10 @@ export default class ProvCluster extends SteveModel {
     return !!this.mgmt?.isReady;
   }
 
+  // nodeGroups can be undefined for an EKS cluster that has just been created and has not
+  // had any node groups added to it
   get eksNodeGroups() {
-    return this.mgmt?.spec?.eksConfig?.nodeGroups;
+    return this.mgmt?.spec?.eksConfig?.nodeGroups || [];
   }
 
   waitForProvisioner(timeout, interval) {
@@ -371,6 +393,30 @@ export default class ProvCluster extends SteveModel {
     }
   }
 
+  get machinePoolDefaults() {
+    return this.spec.rkeConfig?.machinePoolDefaults;
+  }
+
+  set defaultHostnameLengthLimit(value) {
+    this.spec.rkeConfig = this.spec.rkeConfig || {};
+    this.spec.rkeConfig.machinePoolDefaults = this.spec.rkeConfig.machinePoolDefaults || {};
+    this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit = value;
+  }
+
+  get defaultHostnameLengthLimit() {
+    return this.spec.rkeConfig?.machinePoolDefaults?.hostnameLengthLimit;
+  }
+
+  removeDefaultHostnameLengthLimit() {
+    if (this.machinePoolDefaults?.hostnameLengthLimit) {
+      delete this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit;
+
+      if (Object.keys(this.spec?.rkeConfig?.machinePoolDefaults).length === 0) {
+        delete this.spec.rkeConfig.machinePoolDefaults;
+      }
+    }
+  }
+
   get nodes() {
     return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
   }
@@ -437,9 +483,9 @@ export default class ProvCluster extends SteveModel {
         return names.join('<br>');
       } else {
         const names = this.machines.filter((machine) => {
-          return machine.status.conditions.find(c => c.error && c.type === 'NodeHealthy');
+          return machine.status?.conditions?.find(c => c.error && c.type === 'NodeHealthy');
         }).map((machine) => {
-          if (machine.status.nodeRef?.name) {
+          if (machine.status?.nodeRef?.name) {
             return this.t('cluster.availabilityWarnings.node', { name: machine.status.nodeRef.name });
           }
 
@@ -610,24 +656,25 @@ export default class ProvCluster extends SteveModel {
     this.$dispatch('promptRestore', [resource]);
   }
 
-  saveAsRKETemplate(resources = this) {
+  saveAsRKETemplate(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'SaveAsRKETemplateDialog'
+      componentProps: { cluster },
+      component:      'SaveAsRKETemplateDialog'
     });
   }
 
-  rotateCertificates(resources = this) {
+  rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
+      componentProps: { cluster },
+
       component: 'RotateCertificatesDialog'
     });
   }
 
-  rotateEncryptionKey(resources = this) {
+  rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'RotateEncryptionKeyDialog'
+      componentProps: { cluster },
+      component:      'RotateEncryptionKeyDialog'
     });
   }
 

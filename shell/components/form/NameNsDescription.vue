@@ -20,7 +20,7 @@ export function normalizeName(str) {
 }
 
 export default {
-  name:       'NameNsDescripiton',
+  name:       'NameNsDescription',
   components: {
     LabeledInput,
     LabeledSelect
@@ -173,7 +173,7 @@ export default {
     if (this.nameKey) {
       name = get(v, this.nameKey);
     } else {
-      name = metadata.name;
+      name = metadata?.name;
     }
 
     if (this.namespaced) {
@@ -213,7 +213,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster']),
+    ...mapGetters(['currentProduct', 'currentCluster', 'namespaces', 'allowedNamespaces']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -224,36 +224,18 @@ export default {
       return this.nameDisabled || (this.mode === _EDIT && !this.nameEditable);
     },
 
-    namespaces() {
-      const currentStore = this.$store.getters['currentStore'](this.namespaceType);
-      const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
-
-      const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
-        // By default, include the namespace in the dropdown.
-        let out = true;
-
-        if (this.currentProduct?.hideSystemResources) {
-          // Filter out the namespace
-          // if it is a system namespace or if it is managed by
-          // Fleet.
-          out = !namespace.isSystem && !namespace.isFleetManaged;
-        }
-
-        if (this.mode === _CREATE) {
-          out = out && !!namespace.links.update;
-        }
-
-        return out;
-      }));
-
-      const withLabels = filtered.map(this.namespaceMapper || ((obj) => {
-        return {
+    /**
+     * Map namespaces from the store to options, adding divider and create button
+     */
+    options() {
+      const options = Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces())
+        .map(namespace => ({ nameDisplay: namespace, id: namespace }))
+        .map(this.namespaceMapper || (obj => ({
           label: obj.nameDisplay,
           value: obj.id,
-        };
-      }));
+        })));
 
-      const sortedByLabel = sortBy(withLabels, 'label');
+      const sortedByLabel = sortBy(options, 'label');
 
       if (this.forceNamespace) {
         sortedByLabel.unshift({
@@ -267,7 +249,8 @@ export default {
       if (this.createNamespaceOverride || this.canCreateNamespace) {
         out.push({
           label: this.t('namespace.createNamespace'),
-          value: ''
+          value: '',
+          kind:  'highlighted'
         }, {
           label:    'divider',
           disabled: true,
@@ -278,11 +261,20 @@ export default {
         ...sortedByLabel
       );
 
-      return out;
+      const createOverhead = this.canCreateNamespace ? [createButton, divider] : [];
+
+      return [
+        ...createOverhead,
+        ...sortedByLabel
+      ];
     },
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isCreate() {
+      return this.mode === _CREATE;
     },
 
     colSpan() {
@@ -300,7 +292,7 @@ export default {
 
     canCreateNamespace() {
       // Check if user can push to namespaces... and as the ns is outside of a project restrict to admins and cluster owners
-      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster.canUpdate;
+      return (this.nsSchema?.collectionMethods || []).includes('POST') && this.currentCluster?.canUpdate;
     }
   },
 
@@ -348,7 +340,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', !val || (this.namespaces && !this.namespaces.find(n => n.value === val)));
+        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find(n => n.value === val)));
       }
 
       if (this.namespaceKey) {
@@ -408,8 +400,8 @@ export default {
         @click="cancelCreateNamespace"
       >
         <i
-          v-tooltip="t('generic.cancel')"
-          class="icon icon-lg icon-close align-value"
+          v-clean-tooltip="t('generic.cancel')"
+          class="icon icon-close align-value"
         />
       </button>
     </div>
@@ -422,7 +414,7 @@ export default {
         v-show="!createNamespace"
         v-model="namespace"
         :clearable="true"
-        :options="namespaces"
+        :options="options"
         :disabled="namespaceReallyDisabled"
         :searchable="true"
         :mode="mode"

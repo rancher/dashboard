@@ -405,7 +405,7 @@ export default Vue.extend<Data, any, any, any>({
         :clearable="false"
       />
       <FileSelector
-        v-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
+        v-clean-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
         data-testid="epinio_app-source_manifest"
         class="role-tertiary add mt-5"
         :label="t('epinio.applications.steps.source.manifest.button')"

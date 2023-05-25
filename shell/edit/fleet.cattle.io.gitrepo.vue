@@ -23,6 +23,8 @@ import { _CREATE } from '@shell/config/query-params';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import { CAPI, CATALOG } from '@shell/config/labels-annotations';
 import { SECRET_TYPES } from '@shell/config/secret';
+import { checkSchemasForFindAllHash } from '@shell/utils/auth';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -32,6 +34,7 @@ export default {
   name: 'CruGitRepo',
 
   components: {
+    Checkbox,
     ArrayList,
     Banner,
     CruResource,
@@ -48,8 +51,20 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    this.allClusterGroups = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
+    const hash = await checkSchemasForFindAllHash({
+      allClusters: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER
+      },
+
+      allClusterGroups: {
+        inStoreType: 'management',
+        type:        FLEET.CLUSTER_GROUP
+      }
+    }, this.$store);
+
+    this.allClusters = hash.allClusters || [];
+    this.allClusterGroups = hash.allClusterGroups || [];
 
     let tls = _VERIFY;
 
@@ -232,8 +247,7 @@ export default {
 
     stepOneRequires() {
       return !!this.value.metadata.name && !!this.refValue;
-    }
-
+    },
   },
 
   watch: {
@@ -413,7 +427,7 @@ export default {
       await secret.save();
 
       await this.$nextTick(() => {
-        this.updateAuth(secret.id, name);
+        this.updateAuth(secret.metadata.name, name);
       });
 
       return secret;
@@ -497,6 +511,17 @@ export default {
         @change="onUpdateRepoName"
       />
 
+      <div class="row">
+        <div class="col span-6">
+          <Banner
+            color="info col span-6"
+          >
+            <div>
+              {{ t('fleet.gitRepo.repo.protocolBanner') }}
+            </div>
+          </Banner>
+        </div>
+      </div>
       <div
         class="row"
         :class="{'mt-20': isView}"
@@ -523,7 +548,6 @@ export default {
           />
         </div>
       </div>
-
       <SelectOrCreateAuthSecret
         :value="value.spec.clientSecretName"
         :register-before-hook="registerBeforeHook"
@@ -579,7 +603,20 @@ export default {
         </div>
       </template>
       <div class="spacer" />
-
+      <h2 v-t="'fleet.gitRepo.resources.label'" />
+      <Checkbox
+        v-model="value.spec.keepResources"
+        class="check"
+        type="checkbox"
+        label-key="fleet.gitRepo.resources.keepResources"
+        :mode="mode"
+      />
+      <Banner
+        color="info"
+      >
+        {{ t('fleet.gitRepo.resources.resourceBanner') }}
+      </Banner>
+      <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model="value.spec.paths"

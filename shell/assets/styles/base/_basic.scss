@@ -1,3 +1,5 @@
+@import "./mixins";
+
 // -----------------------------------------------------------------------------
 // This file contains very basic styles.
 // -----------------------------------------------------------------------------
@@ -109,3 +111,19 @@ HR.vertical {
   margin-left: -1px;
   top: 0;
 }
+
+// --------------------------------------------------------------------------------------------------------
+// These were declared in _mixins, but that results in these styles being declared for every Vue component
+// Moved here, as these are styles and mixins should only include mixing definitions, not style definitions
+// --------------------------------------------------------------------------------------------------------
+
+.clearfix         { @include clearfix; }
+.list-unstyled    { @include list-unstyled }
+.no-select        { @include no-select }
+.no-resize        { @include no-resize }
+.hand             { @include hand }
+.fixed            { @include fixed }
+.clip             { @include clip }
+.force-wrap       { @include force-wrap }
+.bordered-section { @include bordered-section }
+.section-divider  { @include section-divider }

@@ -1,0 +1,110 @@
+name: Build and Release Extension
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  ACTIONS_RUNNER_DEBUG: false
+  CI_COMMIT_MESSAGE: CI Build Artifacts
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  build:
+    name: Build extension artifact
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.8.0
+
+      - name: Setup yq
+        uses: chrisdickinson/setup-yq@v1.0.1
+        with:
+          yq-version: v4.28.2
+
+      - name: Setup Nodejs and npm
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Setup yarn
+        run: npm install -g yarn
+
+      - name: Setup Nodejs with yarn caching
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Run build script
+        shell: bash
+        id: build_script
+        run: |
+          yarn publish-pkgs -s "${{ github.repository }}" -b gh-pages
+
+      - name: Upload charts artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v3
+        with:
+          name: charts
+          path: tmp
+
+  release:
+    name: Release Build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: charts
+
+      - name: Commit build
+        run: |
+          git add ./{assets,charts,extensions,index.yaml}
+          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git push
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.4.1
+        with:
+          charts_dir: ./charts/*
+        env:
+          CR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          CR_SKIP_EXISTING: true

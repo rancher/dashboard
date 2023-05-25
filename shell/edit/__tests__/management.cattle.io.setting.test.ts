@@ -32,7 +32,7 @@ describe('management.cattle.io.setting should', () => {
   });
 
   describe('using predefined generic rule', () => {
-    const id = SETTING.CATTLE_PASSWORD_MIN_LENGTH;
+    const id = SETTING.PASSWORD_MIN_LENGTH;
 
     describe('validate input with provided settings', () => {
       it('allowing to save if pass', () => {
@@ -65,7 +65,7 @@ describe('management.cattle.io.setting should', () => {
       });
       const expectation = [{
         path:  'value',
-        rules: ['betweenValues']
+        rules: ['betweenValues', 'isInteger', 'isPositive', 'isOctal']
       }];
 
       expect(wrapper.vm.$data['fvFormRuleSets']).toStrictEqual(expectation);
@@ -76,7 +76,7 @@ describe('management.cattle.io.setting should', () => {
         propsData: { value: { id, value: '' } },
         ...requiredSetup()
       });
-      const expectation = ['betweenValues'];
+      const expectation = ['betweenValues', 'isInteger', 'isPositive', 'isOctal'];
 
       // Avoid integration tests with mixin as it returns the whole function
       const rules = Object.keys((wrapper.vm as any)['fvExtraRules']);

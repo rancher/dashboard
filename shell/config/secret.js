@@ -1,7 +1,6 @@
 export const SECRET_TYPES = {
   OPAQUE:           'Opaque',
   SERVICE_ACCT:     'kubernetes.io/service-account-token',
-  DOCKER:           'kubernetes.io/dockercfg',
   DOCKER_JSON:      'kubernetes.io/dockerconfigjson',
   BASIC:            'kubernetes.io/basic-auth',
   SSH:              'kubernetes.io/ssh-auth',

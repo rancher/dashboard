@@ -12,7 +12,7 @@ export default {
 
 <template>
   <span v-if="value">
-    <i class="icon icon-lg icon-checkmark" />
+    <i class="icon icon-checkmark" />
   </span>
   <span
     v-else

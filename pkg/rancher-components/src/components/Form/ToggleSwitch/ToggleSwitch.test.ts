@@ -1,4 +1,4 @@
-import { shallowMount } from '@vue/test-utils';
+import { shallowMount, Wrapper } from '@vue/test-utils';
 import { ToggleSwitch } from './index';
 
 describe('ToggleSwitch.vue', () => {
@@ -33,9 +33,9 @@ describe('ToggleSwitch.vue', () => {
   });
 
   it('emits an input event with a true value', async() => {
-    const wrapper = shallowMount(ToggleSwitch);
+    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(ToggleSwitch);
 
-    (wrapper.vm as any).toggle(true);
+    wrapper.vm.toggle(true);
 
     await wrapper.vm.$nextTick();
 
@@ -44,12 +44,12 @@ describe('ToggleSwitch.vue', () => {
   });
 
   it('emits an input event with a false value', async() => {
-    const wrapper = shallowMount(
+    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
       { propsData: { value: true } }
     );
 
-    (wrapper.vm as any).toggle(false);
+    wrapper.vm.toggle(false);
 
     await wrapper.vm.$nextTick();
 
@@ -60,11 +60,11 @@ describe('ToggleSwitch.vue', () => {
   it('emits an input event with a custom onValue', async() => {
     const onValue = 'THE TRUTH';
 
-    const wrapper = shallowMount(
+    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
       { propsData: { onValue } });
 
-    (wrapper.vm as any).toggle(true);
+    wrapper.vm.toggle(true);
 
     await wrapper.vm.$nextTick();
 
@@ -75,7 +75,7 @@ describe('ToggleSwitch.vue', () => {
   it('emits an input event with a custom offValue', async() => {
     const offValue = 'NOT THE TRUTH';
 
-    const wrapper = shallowMount(
+    const wrapper: Wrapper<InstanceType<typeof ToggleSwitch>> = shallowMount(
       ToggleSwitch,
       {
         propsData: {
@@ -84,7 +84,7 @@ describe('ToggleSwitch.vue', () => {
         }
       });
 
-    (wrapper.vm as any).toggle(false);
+    wrapper.vm.toggle(false);
 
     await wrapper.vm.$nextTick();
 

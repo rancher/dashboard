@@ -6,16 +6,17 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@shell/config/labels-annotations';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
+import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
-import Labels from '@shell/components/form/Labels';
-import { PROJECT_ID, _VIEW } from '@shell/config/query-params';
+import { PROJECT_ID, _VIEW, FLAT_VIEW, _CREATE } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/Namespace';
 import Loading from '@shell/components/Loading';
 import { HARVESTER_TYPES, RANCHER_TYPES } from '@shell/components/form/ResourceQuota/shared';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
+import Labels from '@shell/components/form/Labels';
 
 export default {
   components: {
@@ -25,6 +26,7 @@ export default {
     Labels,
     Loading,
     NameNsDescription,
+    PodSecurityAdmission,
     ResourceQuota,
     Tab,
     Tabbed,
@@ -65,6 +67,10 @@ export default {
   computed: {
     ...mapGetters(['isSingleProduct']),
 
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+
     isSingleHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
     },
@@ -75,7 +81,6 @@ export default {
 
       // Filter out projects not for the current cluster
       projects = projects.filter(c => c.spec?.clusterName === clusterId);
-
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
@@ -84,7 +89,7 @@ export default {
       });
 
       out.unshift({
-        label: '(None)',
+        label: this.t('namespace.project.none'),
         value: null,
       });
 
@@ -101,12 +106,16 @@ export default {
 
     showContainerResourceLimit() {
       return !this.isSingleHarvester;
+    },
+
+    flatView() {
+      return (this.$route.query[FLAT_VIEW] || false);
     }
   },
 
   watch: {
-    project(newProject) {
-      const limits = this.getDefaultContainerResourceLimits(newProject);
+    project() {
+      const limits = this.getDefaultContainerResourceLimits(this.projectName);
 
       this.$set(this, 'containerResourceLimits', limits);
     },
@@ -136,13 +145,11 @@ export default {
       }
 
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-
       const project = projects.find(p => p.id.includes(projectName));
 
       return project?.spec?.containerDefaultResourceLimit || {};
     }
-  }
-
+  },
 };
 </script>
 
@@ -166,9 +173,10 @@ export default {
       :value="value"
       :namespaced="false"
       :mode="mode"
+      :extra-columns="['project-col']"
     >
       <template
-        v-if="project"
+        v-if="flatView && isCreate"
         #project-col
       >
         <LabeledSelect
@@ -178,7 +186,6 @@ export default {
         />
       </template>
     </NameNsDescription>
-
     <Tabbed :side-tabs="true">
       <Tab
         v-if="showResourceQuota"
@@ -222,7 +229,6 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="!isView"
         name="labels-and-annotations"
         label-key="generic.labelsAndAnnotations"
         :weight="-1"
@@ -232,6 +238,18 @@ export default {
           :value="value"
           :mode="mode"
           :display-side-by-side="false"
+        />
+      </Tab>
+      <Tab
+        name="pod-security-admission"
+        label-key="podSecurityAdmission.name"
+        :label="t('podSecurityAdmission.name')"
+      >
+        <PodSecurityAdmission
+          :labels="value.labels"
+          :mode="mode"
+          labels-prefix="pod-security.kubernetes.io/"
+          @updateLabels="value.setLabels($event)"
         />
       </Tab>
     </Tabbed>

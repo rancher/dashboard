@@ -19,9 +19,11 @@ export default {
   },
 
   props: {
-    resources: {
-      type:     Array,
-      required: true
+    cluster: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -49,12 +51,6 @@ export default {
 
   data() {
     return { errors: [], latestBackup: null };
-  },
-
-  computed: {
-    cluster() {
-      return this.resources?.[0];
-    },
   },
 
   methods: {
@@ -128,8 +124,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('promptRotateEncryptionKey.title')"
       class="text-default-text"
-      v-html="t('promptRotateEncryptionKey.title')"
     />
 
     <div

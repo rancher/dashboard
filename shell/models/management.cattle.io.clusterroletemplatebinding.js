@@ -2,7 +2,7 @@ import { CREATOR_ID } from '@shell/config/labels-annotations';
 import { _CREATE } from '@shell/config/query-params';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
-import { HARVESTER_NAME } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME } from '@shell/config/features';
 
 export default class CRTB extends HybridModel {
   detailPageHeaderActionOverride(realMode) {

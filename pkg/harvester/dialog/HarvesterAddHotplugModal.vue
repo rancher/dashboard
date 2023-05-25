@@ -3,7 +3,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { PVC } from '@shell/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -110,7 +110,7 @@ export default {
 
 <template>
   <Card ref="modal" name="modal" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.hotplug.title')" />
+    <h4 slot="title" v-clean-html="t('harvester.modal.hotplug.title')" class="text-default-text" />
 
     <template #body>
       <LabeledInput

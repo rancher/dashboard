@@ -27,7 +27,9 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
+      this.allClusters = await this.$store.getters['management/all'](FLEET.CLUSTER);
+    }
     this.allWorkspaces = await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
 
     if ( !this.value.spec?.selector ) {
@@ -146,15 +148,15 @@ export default {
     >
       <span
         v-if="matchingClusters.isAll"
-        v-html="t('fleet.clusterGroup.selector.matchesAll', matchingClusters)"
+        v-clean-html="t('fleet.clusterGroup.selector.matchesAll', matchingClusters)"
       />
       <span
         v-else-if="matchingClusters.isNone"
-        v-html="t('fleet.clusterGroup.selector.matchesNone', matchingClusters)"
+        v-clean-html="t('fleet.clusterGroup.selector.matchesNone', matchingClusters)"
       />
       <span
         v-else
-        v-html="t('fleet.clusterGroup.selector.matchesSome', matchingClusters)"
+        v-clean-html="t('fleet.clusterGroup.selector.matchesSome', matchingClusters)"
       />
     </Banner>
 

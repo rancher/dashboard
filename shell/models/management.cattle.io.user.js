@@ -1,7 +1,25 @@
 import { NORMAN } from '@shell/config/types';
-import HybridModel from '@shell/plugins/steve/hybrid-class';
+import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
 
 export default class User extends HybridModel {
+  // Preserve description
+  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+    const _description = data.description;
+
+    super(data, ctx, rehydrateNamespace, setClone);
+    this.description = _description;
+  }
+
+  // Clean the Norman properties, but keep description
+  cleanResource(data) {
+    const desc = data.description;
+    const clean = cleanHybridResources(data);
+
+    clean._description = desc;
+
+    return clean;
+  }
+
   get isSystem() {
     for ( const p of this.principalIds || [] ) {
       if ( p.startsWith('system://') ) {
@@ -87,6 +105,24 @@ export default class User extends HybridModel {
     }
 
     return this.metadata?.state?.name || 'unknown';
+  }
+
+  get description() {
+    return this._description;
+  }
+
+  set description(value) {
+    this._description = value;
+  }
+
+  // Ensure when we clone that we preserve the description
+  toJSON() {
+    const data = super.toJSON();
+
+    data.description = this._description;
+    delete data._description;
+
+    return data;
   }
 
   async save(opt) {

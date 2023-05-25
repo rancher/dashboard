@@ -148,11 +148,21 @@ export default {
       >
         <div class="col span-12">
           <Banner
+            v-clean-html="t('authConfig.associatedWarning', tArgs, true)"
             color="info"
-            v-html="t('authConfig.associatedWarning', tArgs, true)"
           />
         </div>
       </div>
     </CruResource>
   </div>
 </template>
+<style lang="scss" scoped>
+  .banner {
+    display: block;
+
+    &::v-deep code {
+      padding: 0 3px;
+      margin: 0 3px;
+    }
+  }
+</style>

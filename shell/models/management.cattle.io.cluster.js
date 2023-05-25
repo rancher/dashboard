@@ -9,7 +9,7 @@ import jsyaml from 'js-yaml';
 import { eachLimit } from '@shell/utils/promise';
 import { addParams } from '@shell/utils/url';
 import { isEmpty } from '@shell/utils/object';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
@@ -196,7 +196,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get kubernetesVersionExtension() {
-    if ( this.kubernetesVersion.match(/[+-]]/) ) {
+    if ( this.kubernetesVersion.match(/[+-]/) ) {
       return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
     }
 

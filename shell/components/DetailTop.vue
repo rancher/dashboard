@@ -3,11 +3,15 @@ import Tag from '@shell/components/Tag';
 import isEmpty from 'lodash/isEmpty';
 import DetailText from '@shell/components/DetailText';
 import { _VIEW } from '@shell/config/query-params';
+import { ExtensionPoint, PanelLocation } from '@shell/core/types';
+import ExtensionPanel from '@shell/components/ExtensionPanel';
 
 export const SEPARATOR = { separator: true };
 
 export default {
-  components: { DetailText, Tag },
+  components: {
+    DetailText, Tag, ExtensionPanel
+  },
 
   props: {
     value: {
@@ -22,11 +26,35 @@ export default {
       default: () => {
         return [];
       }
+    },
+
+    /**
+     * Optionally replace key/value and display tooltips for the tab
+     * Dictionary key based
+     */
+    tooltips: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
+
+    /**
+     * Optionally display icons next to the tab
+     * Dictionary key based
+     */
+    icons: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
   data() {
     return {
+      extensionType:      ExtensionPoint.PANEL,
+      extensionLocation:  PanelLocation.DETAIL_TOP,
       annotationsVisible: false,
       showAllLabels:      false,
       view:               _VIEW
@@ -68,11 +96,19 @@ export default {
     },
 
     labels() {
-      if (this.showAllLabels || !this.showFilteredSystemLabels) {
+      if (!this.showFilteredSystemLabels) {
         return this.value?.labels || {};
       }
 
       return this.value?.filteredSystemLabels;
+    },
+
+    internalTooltips() {
+      return this.value?.detailTopTooltips || this.tooltips;
+    },
+
+    internalIcons() {
+      return this.value?.detailTopIcons || this.icons;
     },
 
     annotations() {
@@ -114,7 +150,16 @@ export default {
     },
 
     showFilteredSystemLabels() {
-      return !!this.value.filteredSystemLabels;
+      // It would be nicer to use hasSystemLabels here, but not all places have implemented it
+      // Instead check that there's a discrepancy between all labels and all labels without system ones
+      if (this.value?.labels && this.value?.filteredSystemLabels) {
+        const labelCount = Object.keys(this.value.labels).length;
+        const filteredSystemLabelsCount = Object.keys(this.value.filteredSystemLabels).length;
+
+        return labelCount !== filteredSystemLabelsCount;
+      }
+
+      return false;
     },
   },
   methods: {
@@ -200,7 +245,19 @@ export default {
           v-for="(prop, key) in labels"
           :key="key + prop"
         >
-          {{ key }}<span v-if="prop">: </span>{{ prop }}
+          <i
+            v-if="internalIcons[key]"
+            class="icon"
+            :class="internalIcons[key]"
+          />
+          <span
+            v-if="internalTooltips[key]"
+            v-clean-tooltip="prop ? `${key} : ${prop}` : key"
+          >
+            <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
+            <span v-if="showAllLabels">: {{ key }}</span>
+          </span>
+          <span v-else>{{ prop ? `${key} : ${prop}` : key }}</span>
         </Tag>
         <a
           v-if="showFilteredSystemLabels"
@@ -236,6 +293,13 @@ export default {
         />
       </div>
     </div>
+
+    <!-- Extensions area -->
+    <ExtensionPanel
+      :resource="value"
+      :type="extensionType"
+      :location="extensionLocation"
+    />
   </div>
 </template>
 
@@ -303,6 +367,10 @@ export default {
       &:not(:last-of-type) {
         margin-bottom: $spacing;
       }
+    }
+
+    .icon {
+      vertical-align: top;
     }
   }
 </style>

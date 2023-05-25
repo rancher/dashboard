@@ -380,28 +380,27 @@ export default {
       // - resourceNames
       // - resources
       // - verbs
-      const value = event.label ? event.label : event;
 
       switch (key) {
       case 'apiGroups':
 
-        if (value || (value === '')) {
-          this.$set(rule, 'apiGroups', [value]);
+        if (event || (event === '')) {
+          this.$set(rule, 'apiGroups', [event]);
         }
 
         break;
 
       case 'verbs':
 
-        if (value) {
-          this.$set(rule, 'verbs', [value]);
+        if (event) {
+          this.$set(rule, 'verbs', [event]);
         } else {
           this.$set(rule, 'verbs', []);
         }
         break;
 
       case 'resources':
-        if (event.resourceName) {
+        if (event?.resourceName) {
           // If we are updating the resources defined in a rule,
           // the event will be an object with the
           // properties apiGroupValue and resourceName.
@@ -409,7 +408,7 @@ export default {
           // Automatically fill in the API group of the
           // selected resource.
           this.$set(rule, 'apiGroups', [event.apiGroupValue]);
-        } else if (event.label) {
+        } else if (event?.label) {
           // When the user creates a new resource name in the resource
           // field instead of selecting an existing one,
           // we have to treat that differently because the incoming event
@@ -424,8 +423,8 @@ export default {
         break;
 
       case 'nonResourceURLs':
-        if (value) {
-          this.$set(rule, 'nonResourceURLs', [value]);
+        if (event) {
+          this.$set(rule, 'nonResourceURLs', [event]);
         } else {
           this.$set(rule, 'nonResourceURLs', []);
         }
@@ -447,6 +446,21 @@ export default {
       this.done();
     },
     async actuallySave(url) {
+      // Go through all of the grules and replace double quote apiGroups
+      // k8S documentation shows using empty rules as "" - we change this to empty string when used
+      this.value.rules?.forEach((rule) => {
+        if (rule.apiGroups) {
+          rule.apiGroups = rule.apiGroups.map((group) => {
+            // If the group is two double quotes ("") replace if with empty string
+            if (group.trim() === '\"\"') {
+              group = '';
+            }
+
+            return group;
+          });
+        }
+      });
+
       if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
         await this.value.save({ url, redirectUnauthorized: false });
@@ -613,7 +627,7 @@ export default {
                   <span class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
                     <i
-                      v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
+                      v-clean-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
                       class="icon icon-info"
                     />
                     <span
@@ -623,12 +637,7 @@ export default {
                   </span>
                 </div>
                 <div :class="ruleClass">
-                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}
-                    <span
-                      v-if="isNamespaced"
-                      class="required"
-                    >*</span>
-                  </span>
+                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}</span>
                 </div>
                 <div
                   v-if="!isNamespaced"
@@ -639,7 +648,7 @@ export default {
               </div>
             </template>
             <template #columns="props">
-              <div class="columns row">
+              <div class="columns row mr-20">
                 <div :class="ruleClass">
                   <Select
                     :value="props.row.value.verbs"
@@ -670,7 +679,7 @@ export default {
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
-                    @input="setRule('apiGroups', props.row.value, $event)"
+                    @input="setRule('apiGroups', props.row.value, $event.target.value)"
                   >
                 </div>
                 <div
@@ -681,7 +690,7 @@ export default {
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
-                    @input="setRule('nonResourceURLs', props.row.value, $event)"
+                    @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   >
                 </div>
               </div>
@@ -704,7 +713,7 @@ export default {
             :mode="mode"
           >
             <template #columns="props">
-              <div class="columns row">
+              <div class="columns row mr-20">
                 <div class="col span-12">
                   <Select
                     v-model="props.row.value"

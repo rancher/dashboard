@@ -214,7 +214,7 @@ export default {
       }
     },
 
-    async disable(btnCb) {
+    async disable() {
       try {
         if (this.model.hasAction('disable')) {
           await this.model.doAction('disable');
@@ -233,10 +233,8 @@ export default {
           opt:  { url: '/v3/principals', force: true }
         });
         this.showLdap = false;
-        btnCb(true);
       } catch (err) {
         this.errors = [err];
-        btnCb(false);
       }
     },
 

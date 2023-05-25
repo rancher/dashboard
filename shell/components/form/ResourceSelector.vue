@@ -124,7 +124,7 @@ export default {
     <div class="row">
       <div class="col span-12">
         <Banner :color="(matchingResources.none ? 'warning' : 'success')">
-          <span v-html="t('generic.selectors.matchingResources.matchesSome', matchingResources)" />
+          <span v-clean-html="t('generic.selectors.matchingResources.matchesSome', matchingResources)" />
         </Banner>
       </div>
     </div>

@@ -118,8 +118,8 @@ export default {
     >
       <h4
         slot="title"
+        v-clean-html="t('assignTo.title', {count: resourceCount}, true)"
         class="text-default-text"
-        v-html="t('assignTo.title', {count: resourceCount}, true)"
       />
 
       <div

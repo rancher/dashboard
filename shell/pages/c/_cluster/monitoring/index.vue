@@ -140,7 +140,7 @@ export default {
 
 <template>
   <section>
-    <header class="header-layout row">
+    <header class="row">
       <div class="col span-12">
         <h1>
           <t k="monitoring.overview.title" />
@@ -170,7 +170,7 @@ export default {
           <a
             v-for="fel in externalLinks"
             :key="fel.label"
-            v-tooltip="
+            v-clean-tooltip="
               !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined
             "
             :href="fel.enabled ? fel.link : void 0"
@@ -214,3 +214,10 @@ export default {
     </div>
   </section>
 </template>
+
+<style lang="scss" scoped>
+  .create-resource-container .subtype-banner {
+    min-height: 80px;
+    padding: 10px;
+  }
+</style>

@@ -295,6 +295,10 @@ export default {
       }
 
       return this.component[tab.component];
+    },
+
+    emitDraggable(event) {
+      this.$emit('draggable', event);
     }
   }
 };
@@ -312,6 +316,8 @@ export default {
       :class="{
         'resizer-left': userPin == 'left',
       }"
+      @mousedown="emitDraggable(true)"
+      @mouseup="emitDraggable(false)"
     >
       <div
         v-if="userPin == 'right'"
@@ -362,6 +368,10 @@ export default {
       :key="tab.id"
       class="body"
       :class="{'active': tab.id === active}"
+      draggable="false"
+      @dragstart.prevent.stop
+      @dragend.prevent.stop
+      @mouseover="emitDraggable(false)"
     >
       <component
         :is="componentFor(tab)"

@@ -21,6 +21,7 @@ import { CATALOG } from '@shell/config/labels-annotations';
 import { isUIPlugin } from '@shell/config/uiplugins';
 
 export default {
+  name:       'Charts',
   components: {
     AsyncButton,
     Banner,
@@ -34,7 +35,7 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
+    await this.$store.dispatch('catalog/load', { force: true, reset: true });
 
     const query = this.$route.query;
 
@@ -53,7 +54,7 @@ export default {
       searchQuery:     null,
       showDeprecated:  null,
       showHidden:      null,
-      chartMode:       this.$store.getters['prefs/get'](SHOW_CHART_MODE),
+      isPspLegacy:     false,
       chartOptions:    [
         {
           label: 'Browse',
@@ -70,6 +71,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
+
+    chartMode: mapPref(SHOW_CHART_MODE),
 
     hideRepos: mapPref(HIDE_REPOS),
 
@@ -238,6 +241,14 @@ export default {
     }
   },
 
+  created() {
+    const release = this.currentCluster?.status?.version.gitVersion || '';
+    const isRKE2 = release.includes('rke2');
+    const version = release.match(/\d+/g);
+
+    this.isPspLegacy = version?.length ? isRKE2 && (+version[0] === 1 && +version[1] < 25) : false;
+  },
+
   methods: {
     colorForChart(chart) {
       const repos = this.repoOptions;
@@ -339,7 +350,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header class="header-layout">
+    <header>
       <div class="title">
         <h1 class="m-0">
           {{ t('catalog.charts.header') }}
@@ -362,6 +373,13 @@ export default {
         @clicked="(row) => selectChart(row)"
       />
     </div>
+
+    <Banner
+      v-if="isPspLegacy"
+      color="warning"
+      :label="t('catalog.chart.banner.legacy')"
+    />
+
     <TypeDescription resource="chart" />
     <div class="left-right-split">
       <Select

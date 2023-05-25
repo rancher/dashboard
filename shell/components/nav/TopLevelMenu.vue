@@ -1,8 +1,8 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
+import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
-import $ from 'jquery';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { mapPref, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
@@ -14,13 +14,13 @@ import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { isRancherPrime } from '@shell/config/version';
 
-const UNKNOWN = 'unknown';
-const UI_VERSION = process.env.VERSION || UNKNOWN;
-const UI_COMMIT = process.env.COMMIT || UNKNOWN;
-
 export default {
 
-  components: { BrandImage, ClusterProviderIcon },
+  components: {
+    BrandImage,
+    ClusterProviderIcon,
+    IconOrSvg
+  },
 
   data() {
     const { displayVersion, fullVersion } = getVersionInfo(this.$store);
@@ -30,8 +30,6 @@ export default {
       shown:         false,
       displayVersion,
       fullVersion,
-      uiCommit:      UI_COMMIT,
-      uiVersion:     UI_VERSION,
       clusterFilter: '',
       hasProvCluster,
     };
@@ -145,6 +143,7 @@ export default {
         return {
           label:             this.$store.getters['i18n/withFallback'](`product."${ p.name }"`, null, ucFirst(p.name)),
           icon:              `icon-${ p.icon || 'copy' }`,
+          svg:               p.svg,
           value:             p.name,
           removable:         p.removable !== false,
           inStore:           p.inStore || 'cluster',
@@ -188,11 +187,10 @@ export default {
       const max = Math.min(maxToShow, this.clusters.length);
 
       if (el) {
-        const $el = $(el);
         const h = 33 * max;
 
-        $el.css('min-height', `${ h }px`);
-        $el.css('max-height', `${ h }px`);
+        el.style.minHeight = `${ h }px`;
+        el.style.maxHeight = `${ h }px`;
       }
     },
     handler(e) {
@@ -347,9 +345,9 @@ export default {
                 class="option"
                 :to="a.to"
               >
-                <i
-                  class="icon group-icon"
-                  :class="a.icon"
+                <IconOrSvg
+                  :icon="a.icon"
+                  :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>
@@ -368,9 +366,9 @@ export default {
                 class="option"
                 :to="a.to"
               >
-                <i
-                  class="icon group-icon"
-                  :class="a.icon"
+                <IconOrSvg
+                  :icon="a.icon"
+                  :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>
@@ -389,9 +387,9 @@ export default {
                 class="option"
                 :to="a.to"
               >
-                <i
-                  class="icon group-icon"
-                  :class="a.icon"
+                <IconOrSvg
+                  :icon="a.icon"
+                  :src="a.svg"
                 />
                 <div>{{ a.label }}</div>
               </nuxt-link>
@@ -410,11 +408,11 @@ export default {
           </div>
           <div @click="hide()">
             <nuxt-link
-              v-tooltip="{ content: fullVersion, classes: 'footer-tooltip' }"
               :to="{ name: 'about' }"
               class="version"
-              v-html="displayVersion"
-            />
+            >
+              {{ t('about.title') }}
+            </nuxt-link>
           </div>
         </div>
       </div>
@@ -504,6 +502,9 @@ export default {
     svg {
       margin-right: 8px;
       fill: var(--link);
+    }
+    img {
+      margin-right: 8px;
     }
 
     > div {

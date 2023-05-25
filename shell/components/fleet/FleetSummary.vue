@@ -80,7 +80,12 @@ export default {
     },
 
     bundleCounts() {
-      const resources = this.bundles.filter(item => item.metadata.name.startsWith(`${ this.repoName }-`)) || [];
+      const resources = this.bundles.filter(item => item.metadata.name.startsWith(`${ this.repoName }-`));
+
+      if (!resources.length) {
+        return [];
+      }
+
       const out = { ...getResourceDefaultState(this.$store.getters['i18n/withFallback'], this.stateKey) };
 
       resources.forEach(({ status, metadata }) => {
@@ -176,6 +181,7 @@ export default {
 <template>
   <div class="row flexwrap">
     <FleetStatus
+      v-if="bundleCounts.length"
       title="Bundles"
       :values="bundleCounts"
       value-key="count"

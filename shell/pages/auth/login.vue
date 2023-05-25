@@ -303,6 +303,7 @@ export default {
         </h1>
         <div
           class="login-messages"
+          data-testid="login__messages"
           :class="{'login-messages--hasContent': hasLoginMessage}"
         >
           <Banner
@@ -325,60 +326,59 @@ export default {
         </div>
         <div
           v-if="firstLogin"
-          class="first-login-message"
+          class="first-login-message pl-10 pr-10"
+          :class="{'mt-30': !hasLoginMessage}"
           data-testid="first-login-message"
         >
-          <InfoBox color="info">
+          <t
+            k="setup.defaultPassword.intro"
+            :raw="true"
+          />
+
+          <div>
             <t
-              k="setup.defaultPassword.intro"
+              k="setup.defaultPassword.dockerPrefix"
               :raw="true"
             />
+          </div>
+          <ul>
+            <li>
+              <t
+                k="setup.defaultPassword.dockerPs"
+                :raw="true"
+              />
+            </li>
+            <li>
+              <CopyCode>
+                docker logs <u>container-id</u> 2&gt;&amp;1 | grep "Bootstrap Password:"
+              </CopyCode>
+            </li>
+          </ul>
+          <div>
+            <t
+              k="setup.defaultPassword.dockerSuffix"
+              :raw="true"
+            />
+          </div>
 
-            <div>
-              <t
-                k="setup.defaultPassword.dockerPrefix"
-                :raw="true"
-              />
-            </div>
-            <ul>
-              <li>
-                <t
-                  k="setup.defaultPassword.dockerPs"
-                  :raw="true"
-                />
-              </li>
-              <li>
-                <CopyCode>
-                  docker logs <u>container-id</u> 2&gt;&amp;1 | grep "Bootstrap Password:"
-                </CopyCode>
-              </li>
-            </ul>
-            <div>
-              <t
-                k="setup.defaultPassword.dockerSuffix"
-                :raw="true"
-              />
-            </div>
-
-            <br>
-            <div>
-              <t
-                k="setup.defaultPassword.helmPrefix"
-                :raw="true"
-              />
-            </div>
-            <br>
-            <CopyCode>
-              {{ kubectlCmd }}
-            </CopyCode>
-            <br>
-            <div>
-              <t
-                k="setup.defaultPassword.helmSuffix"
-                :raw="true"
-              />
-            </div>
-          </InfoBox>
+          <br>
+          <div>
+            <t
+              k="setup.defaultPassword.helmPrefix"
+              :raw="true"
+            />
+          </div>
+          <br>
+          <CopyCode>
+            {{ kubectlCmd }}
+          </CopyCode>
+          <br>
+          <div>
+            <t
+              k="setup.defaultPassword.helmSuffix"
+              :raw="true"
+            />
+          </div>
         </div>
 
         <div
@@ -510,6 +510,8 @@ export default {
     }
 
     .login-messages {
+      display: flex;
+      justify-content: center;
       align-items: center;
 
       .banner {
@@ -521,11 +523,7 @@ export default {
       &--hasContent {
         min-height: 70px;
       }
-    }
 
-    .login-messages, .first-login-message {
-      display: flex;
-      justify-content: center;
       .text-error, .banner {
         max-width: 80%;
       }

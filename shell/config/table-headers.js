@@ -23,6 +23,8 @@ export const DOWNLOAD = {
   align:         'right',
 };
 
+// This header is used for nodes in
+// both Cluster Explorer and Cluster Management.
 export const INTERNAL_EXTERNAL_IP = {
   // @TODO this is called internal/external but displays external/internal (╯°□°)╯︵ ┻━┻
   name:      'internal-external-ip',
@@ -228,7 +230,7 @@ export const AGE = {
   search:    false,
   formatter: 'LiveDate',
   width:     100,
-  align:     'right'
+  align:     'left'
 };
 
 export const AGE_NORMAN = {
@@ -255,10 +257,11 @@ export const DESCRIPTION = {
 };
 
 export const DURATION = {
-  name:     'duration',
-  labelKey: 'tableHeaders.duration',
-  value:    'duration.value',
-  sort:     'duration.seconds',
+  name:      'duration',
+  labelKey:  'tableHeaders.duration',
+  value:     'duration.value',
+  sort:      'duration.seconds',
+  formatter: 'LiveDuration',
 };
 
 export const IMAGE = {
@@ -443,12 +446,26 @@ export const SUB_TYPE = {
   width:    120,
 };
 
+export const EVENT_TYPE = {
+  name:     'type',
+  labelKey: 'tableHeaders.type',
+  value:    'eventType',
+  sort:     'eventType',
+};
+
 export const STATUS = {
   name:     'status',
   labelKey: 'tableHeaders.status',
   value:    'status',
   sort:     ['status'],
   width:    175
+};
+export const LAST_SEEN_TIME = {
+  name:     'lastSeen',
+  labelKey: 'tableHeaders.lastSeen',
+  value:    'lastSeen',
+  sort:     'lastTimestamp:desc',
+  tooltip:  'tableHeaders.lastSeenTooltip'
 };
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
@@ -463,6 +480,14 @@ export const REASON = {
   labelKey: 'tableHeaders.reason',
   value:    'reason',
   sort:     ['reason']
+};
+export const OBJECT = {
+  name:          'object',
+  labelKey:      'tableHeaders.object',
+  value:         'involvedObject',
+  sort:          ['involvedObject.kind', 'involvedObject.name'],
+  canBeVariable: true,
+  formatter:     'InvolvedObjectLink',
 };
 export const RECLAIM_POLICY = {
   name:     'reclaimPolicy',
@@ -693,7 +718,7 @@ export const APP_SUMMARY = {
 
 export const CONSTRAINT_VIOLATION_CONSTRAINT_LINK = {
   name:          'Constraint',
-  label:         'Constraint',
+  labelKey:      'tableHeaders.constraint',
   value:         'constraintLink',
   sort:          `constraintLink.text`,
   formatter:     'Link',
@@ -702,30 +727,39 @@ export const CONSTRAINT_VIOLATION_CONSTRAINT_LINK = {
 
 export const CONSTRAINT_VIOLATION_RESOURCE_LINK = {
   name:          'Name',
-  label:         'Name',
+  labelKey:      'tableHeaders.name',
   value:         'resourceLink',
   sort:          `resourceLink.text`,
+  search:        `resourceLink.text`,
   formatter:     'Link',
   formatterOpts: { options: { internal: true } },
 };
 
 export const CONSTRAINT_VIOLATION_TYPE = {
-  name:  'Type',
-  label: 'Type',
-  value: `constraint.kind`,
-  sort:  `constraint.kind`
+  name:     'Type',
+  labelKey: 'tableHeaders.type',
+  value:    `kind`,
+  sort:     `kind`
+};
+
+export const CONSTRAINT_VIOLATION_NAMESPACE = {
+  name:     'Namespace',
+  labelKey: 'tableHeaders.namespace',
+  value:    `namespace`,
+  sort:     `namespace`,
+  search:   `namespace`,
 };
 
 export const CONSTRAINT_VIOLATION_MESSAGE = {
-  name:  'Message',
-  label: 'Message',
-  value: `message`,
-  sort:  `message`
+  name:     'Message',
+  labelKey: 'tableHeaders.message',
+  value:    `message`,
+  sort:     `message`
 };
 
 export const CONSTRAINT_VIOLATION_TEMPLATE_LINK = {
   name:          'TemplateLink',
-  label:         'Template',
+  labelKey:      'tableHeaders.template',
   value:         `templateLink`,
   sort:          `templateLink.text`,
   formatter:     'Link',
@@ -734,7 +768,7 @@ export const CONSTRAINT_VIOLATION_TEMPLATE_LINK = {
 
 export const CONSTRAINT_VIOLATION_COUNT = {
   name:          'Count',
-  label:         'Count',
+  labelKey:      'tableHeaders.count',
   value:         `count`,
   sort:          `count`,
   formatter:     'QualityText',
@@ -936,8 +970,27 @@ export const FLEET_BUNDLE_TYPE = {
   width:    100,
 };
 
-export const IP_ADDRESS = {
-  name:     'ipaddress',
-  value:    'ipaddress',
-  labelKey: 'tableHeaders.ipaddress',
+// export const RBAC_ROLE = {
+//   name:  'role',
+//   value: 'roleRef.name',
+//   sort:  ['roleRef.name'],
+// };
+
+export const RBAC_USERS = {
+  name:     'users',
+  sort:     ['users'],
+  getValue: row => row.users?.map(({ name }) => name),
+};
+
+export const RBAC_GROUPS = {
+  name: 'groups',
+  sort: ['groups'],
+
+  getValue: row => row.groups?.map(({ name }) => name),
+};
+
+export const RBAC_SERVICE_ACCOUNTS = {
+  name:     'serviceAccount',
+  sort:     ['serviceAccount'],
+  getValue: row => row.serviceAccounts?.map(({ name }) => name),
 };

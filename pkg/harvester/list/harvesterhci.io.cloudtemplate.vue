@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import { CONFIG_MAP, SCHEMA } from '@shell/config/types';
 import { HCI } from '../types';
 import { NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 
 const schema = {
   id:         HCI.CLOUD_TEMPLATE,

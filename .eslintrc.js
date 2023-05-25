@@ -166,7 +166,16 @@ module.exports = {
     // Vue/HTML Formatting kept for HARVESTER ONLY!
     // TODO: Move back here the HTML formatting
     'vue/html-self-closing': 'off',
-    'vue/no-v-html':         'off',
+    'vue/no-v-html':         'error',
+
+    // FIXME: Disabled rules due upgrade to Vue 2.7.x and ESLint 9.x.x1
+    'vue/multi-word-component-names':             'off',
+    'vue/no-reserved-component-names':            'off',
+    'vue/no-useless-template-attributes':         'off',
+    'vue/attribute-hyphenation':                  'off',
+    'vue/valid-next-tick':                        'off',
+    'vue/no-computed-properties-in-data':         'off',
+    'vue/no-side-effects-in-computed-properties': 'off',
   },
   overrides: [
     {
@@ -194,7 +203,7 @@ module.exports = {
       excludedFiles: ['pkg/harvester/**/*.vue'],
       rules:         {
         // Vue/HTML Formatting
-        'vue/no-v-html':                    'off',
+        'vue/no-v-html':                    'error',
         'vue/html-indent':                  ['error', 2],
         'vue/html-closing-bracket-newline': ['error', {
           singleline: 'never',

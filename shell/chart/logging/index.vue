@@ -2,10 +2,13 @@
 import { mapGetters } from 'vuex';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
+import ChartPsp from '@shell/components/ChartPsp';
 
 export default {
-  components: { Checkbox, LabeledInput },
-  props:      {
+  components: {
+    Checkbox, LabeledInput, ChartPsp
+  },
+  props: {
     value: {
       type:    Object,
       default: () => {
@@ -67,12 +70,12 @@ export default {
           :tooltip="t('logging.install.tooltip', {}, true)"
         />
         <p
+          v-clean-html="t('logging.install.url', {}, true)"
           class="mt-6"
-          v-html="t('logging.install.url', {}, true)"
         />
       </div>
     </div>
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <Checkbox
           v-model="value.additionalLoggingSources[provider].enabled"
@@ -80,5 +83,11 @@ export default {
         />
       </div>
     </div>
+
+    <!-- Conditionally display PSP checkbox -->
+    <ChartPsp
+      :value="value"
+      :cluster="currentCluster"
+    />
   </div>
 </template>

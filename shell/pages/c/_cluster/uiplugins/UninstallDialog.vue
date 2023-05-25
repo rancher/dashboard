@@ -84,12 +84,14 @@ export default {
           <button
             :disabled="busy"
             class="btn role-secondary"
+            data-testid="uninstall-ext-modal-cancel-btn"
             @click="closeDialog(false)"
           >
             {{ t('generic.cancel') }}
           </button>
           <AsyncButton
             mode="uninstall"
+            data-testid="uninstall-ext-modal-uninstall-btn"
             @click="uninstall()"
           />
         </div>

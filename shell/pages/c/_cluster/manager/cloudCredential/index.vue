@@ -89,7 +89,7 @@ export default {
       <template #cell:apikey="{row}">
         <span
           v-if="row.publicData"
-          v-html="row.publicData"
+          v-clean-html="row.publicData"
         />
         <span
           v-else

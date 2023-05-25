@@ -12,6 +12,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
 import Prometheus from '@shell/chart/monitoring/prometheus';
 import Tab from '@shell/components/Tabbed/Tab';
+import ChartPsp from '@shell/components/ChartPsp';
 
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
@@ -26,6 +27,7 @@ export default {
     Loading,
     Prometheus,
     Tab,
+    ChartPsp
   },
 
   hasTabs: true,
@@ -207,11 +209,13 @@ export default {
     >
       <div>
         <div class="row mb-20">
-          <ClusterSelector
-            :value="value"
-            :mode="mode"
-            @onClusterTypeChanged="clusterType = $event"
-          />
+          <div class="col span-6">
+            <ClusterSelector
+              :value="value"
+              :mode="mode"
+              @onClusterTypeChanged="clusterType = $event"
+            />
+          </div>
         </div>
         <div
           v-if="clusterType.group === 'managed'"
@@ -257,6 +261,12 @@ export default {
             />
           </div>
         </div>
+
+        <!-- Conditionally display PSP checkbox -->
+        <ChartPsp
+          :value="value"
+          :cluster="currentCluster"
+        />
       </div>
     </Tab>
     <Tab

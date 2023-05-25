@@ -1,0 +1,80 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import Collapse from '@shell/components/Collapse';
+import { useArgs } from '@storybook/client-api';
+
+<Meta
+  title="Components/Collapse"
+  component={Collapse}
+/>
+
+export const Template = (args, { argTypes, events }) => {
+  const [_, updateArgs] = useArgs();
+  return {
+    components: { Collapse },
+    props:      Object.keys(argTypes),
+    methods: {
+      update(value) {
+        updateArgs({
+          open: value
+        });
+      }
+    },
+    template:   `
+        <Collapse v-bind="$props" :open="open" @update:open="update($event)">
+          <div>Content</div>
+        </Collapse>
+      `
+  };
+}
+
+
+# Collapse
+
+Collapse allows to show or hide an HTML content by simply clicking on it.
+
+### Description
+- Click on Collapse to show content.
+- Click on it again to hide content.
+
+<br/>
+
+#### Hide
+
+<Canvas>
+  <Story
+    name="Hide"
+    args={{
+      open: false,
+      title: 'Collapse component'
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Show
+
+<Canvas>
+  <Story
+    name="Show"
+    args={{
+      open: true,
+      title: 'Collapse component'
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+    import Collapse from '@shell/components/Collapse';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={Collapse} />

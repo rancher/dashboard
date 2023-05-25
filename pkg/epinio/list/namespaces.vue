@@ -163,7 +163,7 @@ export default {
       >
         <h4
           slot="title"
-          v-html="t('epinio.namespace.create')"
+          v-clean-html="t('epinio.namespace.create')"
         />
         <div
           slot="body"
