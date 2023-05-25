@@ -111,11 +111,15 @@ export function init(store) {
     exact:      true
   });
 
-  basicType([
-    'rke-templates',
-    'rke-node-templates'
-  ], 'RKE1Configuration');
+  // Added by Verrazzano Start
 
+  // Defer creation of RKE1Configuration types because they are not applicable to 1.6+. Verrazzano version is not known yet.
+  // basicType([
+  //   'rke-templates',
+  //   'rke-node-templates'
+  // ], 'RKE1Configuration');
+
+  // Added by Verrazzano End
   weightType(CAPI.MACHINE_DEPLOYMENT, 3, true);
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
@@ -184,3 +188,14 @@ export function init(store) {
     AGE
   ]);
 }
+
+// Added by Verrazzano Start
+export function createRKE1ConfigurationGroup(store) {
+  const { basicType } = DSL(store, NAME);
+
+  basicType([
+    'rke-templates',
+    'rke-node-templates'
+  ], 'RKE1Configuration');
+}
+// Added by Verrazzano End

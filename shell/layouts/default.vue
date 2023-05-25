@@ -34,6 +34,7 @@ import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 // Added by Verrazzano Start
 import { getVerrazzanoVersion } from '@pkg/verrazzano/utils/version';
+import { createRKE1ConfigurationGroup } from '@shell/config/product/manager';
 // Added by Verrazzano End
 
 import { sortBy } from '@shell/utils/sort';
@@ -83,8 +84,14 @@ export default {
 
   // Added by Verrazzano Start
   fetch() {
-    getVerrazzanoVersion().then((versionInfo) => {
+    getVerrazzanoVersion(this.$store).then((versionInfo) => {
       this.vzVersion = versionInfo;
+
+      // RKE1 Configuration is not supported in 1.6+, create types on demand now that version is known
+      if (versionInfo.startsWith('1.5')) {
+        createRKE1ConfigurationGroup(this.$store);
+        this.getGroups();
+      }
     });
   },
 
