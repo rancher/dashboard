@@ -536,20 +536,6 @@ module.exports = function(dir, _appConfig) {
           test: /\.md$/,
           use:  [
             {
-              loader:  'url-loader',
-              options: {
-                name:     '[path][name].[ext]',
-                limit:    1,
-                esModule: false
-              },
-            }
-          ]
-        },
-        // Prevent warning in log with the md files in the content folder
-        {
-          test: /\.md$/,
-          use:  [
-            {
               loader:  'frontmatter-markdown-loader',
               options: { mode: ['body'] }
             }
