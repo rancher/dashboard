@@ -174,6 +174,7 @@ export default {
           <div class="ml-20">
             <LabeledInput
               v-model="value.inactivity.threshold"
+              data-testid="inactivity-threshold"
               :mode="mode"
               :label="t('performance.inactivity.inputLabel')"
               :disabled="!value.inactivity.enabled"
@@ -382,6 +383,7 @@ export default {
     </template>
     <div v-if="mode === 'edit'">
       <AsyncButton
+        data-testid="performance__save-btn"
         class="pull-right mt-20"
         mode="apply"
         :disabled="!canSave"

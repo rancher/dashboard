@@ -66,6 +66,7 @@ export default {
     :height="height"
     v-bind="$attrs"
     class="modal"
+    data-testid="mvc__card"
   >
     <Card
       class="modal"
