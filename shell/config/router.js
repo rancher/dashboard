@@ -10,8 +10,8 @@ Vue.use(Router);
 
 export const routerOptions = {
   mode:                 'history',
-  // Note: router base comes from the VUE_APP_ROUTER_BASE env var
-  base:                 process.env.VUE_APP_ROUTER_BASE || '/',
+  // Note: router base comes from the ROUTER_BASE env var
+  base:                 process.env.routerBase || '/',
   linkActiveClass:      'nuxt-link-active',
   linkExactActiveClass: 'nuxt-link-exact-active',
   scrollBehavior,

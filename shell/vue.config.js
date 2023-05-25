@@ -248,9 +248,6 @@ module.exports = function(dir, _appConfig) {
     resourceBase += '/';
   }
 
-  // Store the Router Base as env variable that we can use in `nuxt/router.js`
-  process.env.VUE_APP_ROUTER_BASE = routerBasePath;
-
   console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
   if ( !dev ) {
@@ -400,6 +397,8 @@ module.exports = function(dir, _appConfig) {
         'process.env.rancherEnv':      JSON.stringify(rancherEnv),
         'process.env.harvesterPkgUrl': JSON.stringify(process.env.HARVESTER_PKG_URL),
         'process.env.api':             JSON.stringify(api),
+        // Store the Router Base as env variable that we can use in `shell/config/router.js`
+        'process.env.routerBase':      JSON.stringify(routerBasePath),
 
         // This is a replacement of the nuxt publicRuntimeConfig
         'nuxt.publicRuntimeConfig': JSON.stringify({
