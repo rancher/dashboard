@@ -29,15 +29,22 @@ export default {
   methods: {
     async saveOverride(btnCb) {
       this.errors = [];
+      const toRemoved = [];
+      const toSaved = [];
+
       if (this.isEdit && this.value) {
-        try {
-          await this.value.remove();
-        } catch (err) {
-          // do nothing
+        if (this.bindings.find(b => b.roleTemplateId === this.value.roleTemplateName)) {
+          toSaved.push(...this.bindings.filter(b => b.roleTemplateId !== this.value.roleTemplateName));
+        } else {
+          toRemoved.push(this.value);
+          toSaved.push(...this.bindings);
         }
+      } else {
+        toSaved.push(...this.bindings);
       }
       try {
-        await Promise.all(this.bindings.map(binding => binding.save()));
+        await Promise.all(toSaved.map(binding => binding.save()));
+        await Promise.all(toRemoved.map(binding => binding.remove()));
 
         btnCb(true);
       } catch (err) {
