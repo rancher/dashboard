@@ -165,6 +165,9 @@ module.exports = {
     'vue/valid-next-tick':                        'off',
     'vue/no-computed-properties-in-data':         'off',
     'vue/no-side-effects-in-computed-properties': 'off',
+
+    // FIXME: Disabled rules from the recommended
+    '@typescript-eslint/no-var-requires': 'off',
   },
   overrides: [
     {
@@ -215,6 +218,35 @@ module.exports = {
           multiline:  { max: 1 }
         }]
       }
-    }
+    },
+
+    // Tests exceptions due mocks
+    {
+      files: ['**/*.test.{js,ts}'],
+      rules: { '@typescript-eslint/no-empty-function': 'off' }
+    },
+
+    // Legacies
+    {
+      files: [
+        '**/shell/utils/**/*.{js,ts}',
+        '**/shell/scripts/**/*.{js,ts}'
+      ],
+      rules: {
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-var-requires':   'off',
+      }
+    },
+
+    // TS Exceptions
+    {
+      files: ['**/*.{js,ts,vue}'],
+      rules: {
+        '@typescript-eslint/no-empty-function':  'off', // Opinionated?
+        '@typescript-eslint/no-this-alias':      'off', // FIXME: This is seriously an issue
+        '@typescript-eslint/ban-types':          'off', // This does not seems to work well with Vue2
+        '@typescript-eslint/no-empty-interface': 'off', // FIXME: This is clearly temporary, mainly on Epinio
+      }
+    },
   ]
 };
