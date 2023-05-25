@@ -246,7 +246,11 @@ export default {
     parseLinesFromFile: {
       default: false,
       type:    Boolean
-    }
+    },
+    disabled: {
+      default: false,
+      type:    Boolean
+    },
   },
   data() {
     const rows = this.getRows(this.value);
@@ -614,13 +618,14 @@ export default {
             :keyName="keyName"
             :valueName="valueName"
             :queueUpdate="queueUpdate"
+            :disabled="disabled"
           >
             <Select
               v-if="keyOptions"
               ref="key"
               v-model="row[keyName]"
               :searchable="true"
-              :disabled="isProtected(row.key)"
+              :disabled="disabled || isProtected(row.key)"
               :clearable="false"
               :taggable="keyTaggable"
               :options="calculateOptions(row[keyName])"
@@ -630,7 +635,7 @@ export default {
               v-else
               ref="key"
               v-model="row[keyName]"
-              :disabled="isView || !keyEditable || isProtected(row.key)"
+              :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
@@ -672,7 +677,7 @@ export default {
               v-else-if="valueMultiline"
               v-model="row[valueName]"
               :class="{'conceal': valueConcealed}"
-              :disabled="isProtected(row.key)"
+              :disabled="disabled || isProtected(row.key)"
               :mode="mode"
               :placeholder="valuePlaceholder"
               :min-height="40"
@@ -682,7 +687,7 @@ export default {
             <input
               v-else
               v-model="row[valueName]"
-              :disabled="isView || isProtected(row.key)"
+              :disabled="isView || disabled || isProtected(row.key)"
               :type="valueConcealed ? 'password' : 'text'"
               :placeholder="valuePlaceholder"
               autocorrect="off"
@@ -717,7 +722,7 @@ export default {
           >
             <button
               type="button"
-              :disabled="isView || isProtected(row.key)"
+              :disabled="isView || isProtected(row.key) || disabled"
               class="btn role-link"
               @click="remove(i)"
             >
@@ -739,7 +744,7 @@ export default {
           v-if="addAllowed"
           type="button"
           class="btn role-tertiary add"
-          :disabled="loading || (keyOptions && filteredKeyOptions.length === 0)"
+          :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
           @click="add()"
         >
           <i
