@@ -152,11 +152,6 @@ module.exports = {
     'import/order':                      'off',
     'import/no-named-as-default':        'off',
 
-    // Vue/HTML Formatting kept for HARVESTER ONLY!
-    // TODO: Move back here the HTML formatting
-    'vue/html-self-closing': 'off',
-    'vue/no-v-html':         'error',
-
     // FIXME: Disabled rules due upgrade to Vue 2.7.x and ESLint 9.x.x1
     'vue/multi-word-component-names':             'off',
     'vue/no-reserved-component-names':            'off',
@@ -222,8 +217,15 @@ module.exports = {
 
     // Tests exceptions due mocks
     {
-      files: ['**/*.test.{js,ts}'],
-      rules: { '@typescript-eslint/no-empty-function': 'off' }
+      files: [
+        '**/*.test.{js,ts}',
+        '**/__tests__/**/*.{js,ts}'
+      ],
+      rules: {
+        '@typescript-eslint/no-empty-function':              'off',
+        '@typescript-eslint/no-non-null-assertion':          'off',
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+      }
     },
 
     // Legacies
@@ -242,10 +244,52 @@ module.exports = {
     {
       files: ['**/*.{js,ts,vue}'],
       rules: {
-        '@typescript-eslint/no-empty-function':  'off', // Opinionated?
-        '@typescript-eslint/no-this-alias':      'off', // FIXME: This is seriously an issue
-        '@typescript-eslint/ban-types':          'off', // This does not seems to work well with Vue2
-        '@typescript-eslint/no-empty-interface': 'off', // FIXME: This is clearly temporary, mainly on Epinio
+        // Errors
+        '@typescript-eslint/no-empty-function': 'off', // Opinionated?
+        '@typescript-eslint/no-this-alias':     'off', // FIXME: This is seriously an issue
+        '@typescript-eslint/ban-types':         'off', // This does not seems to work well with Vue2
+
+        // Warnings
+        '@typescript-eslint/no-explicit-any': 'off', // FIXME: To be handled after converting everything into TS
+      }
+    },
+
+    // Epinio
+    {
+      files: ['**/epinio/**/*.{js,ts,vue}'],
+      rules: {
+        // Warnings
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+        '@typescript-eslint/no-empty-interface':             'off'
+      }
+    },
+
+    // Harvester
+    {
+      files: ['**/{harvester,harvester-manager}/**/*.{js,ts,vue}'],
+      rules: {
+        // Warnings
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+        'vue/html-self-closing':                             'off',
+        'vue/no-v-html':                                     'error',
+      }
+    },
+
+    // Cypress PO
+    {
+      files: ['**/po/**/*.{js,ts,vue}'],
+      rules: {
+        // Warnings
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+      }
+    },
+
+    // bug?
+    {
+      files: ['**/*.{js,vue}'],
+      rules: {
+        // Warnings
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
       }
     },
   ]
