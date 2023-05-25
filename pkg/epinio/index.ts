@@ -1,3 +1,4 @@
+import { EPINIO_STANDALONE_CLUSTER_NAME } from '@pkg/types';
 import { importTypes } from '@rancher/auto-import';
 import { MANAGEMENT } from '@shell/config/types';
 import { IPlugin, OnNavAwayFromPackage, OnNavToPackage } from '@shell/core/types';
@@ -6,20 +7,32 @@ import epinioMgmtStore from './store/epinio-mgmt-store';
 import epinioStore from './store/epinio-store';
 
 const semanticVersionRegex = /v(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\.\d+)/;
+const isEpinioSingleProduct = process.env.rancherEnv === 'epinio';
 
 const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
 
-  const serverVersionSettings = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-  const res = await store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
+  if (isEpinioSingleProduct) {
+    const serverVersionSettings = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+    const res = await store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
 
-  await store.dispatch('management/load', {
-    data: {
-      ...serverVersionSettings,
-      type:  MANAGEMENT.SETTING,
-      value: res.version.match(semanticVersionRegex)?.[0] ?? 'v1.7.0'
-    }
-  });
+    await store.dispatch('management/load', {
+      data: {
+        ...serverVersionSettings,
+        type:  MANAGEMENT.SETTING,
+        value: res.version.match(semanticVersionRegex)?.[0] ?? 'v1.7.0'
+      }
+    });
+
+    // The generic namespace filtering stuff in 'shell/store/index` `getActiveNamespaces` requires a `currentCluster`
+    // (not just currentId which comes from the url)
+    const mockCurrentCluster = await store.dispatch(`management/create`, {
+      type: MANAGEMENT.CLUSTER,
+      id:   EPINIO_STANDALONE_CLUSTER_NAME
+    });
+
+    await store.dispatch('management/load', { data: mockCurrentCluster });
+  }
 };
 const onLeave: OnNavAwayFromPackage = async(store, config) => {
   // The dashboard retains the previous cluster info until another cluster is loaded, this helps when returning to the same cluster.

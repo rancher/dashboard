@@ -166,8 +166,7 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
 
   // Reset cache if no cluster is found or is not in store
   const inStore = product?.inStore;
-  // const clusterId = getters['currentCluster']?.id;
-  const clusterId = getters['clusterId']; // TODO: RC we have a clusterId... but no currentCluster (think this is a prov cluster)
+  const clusterId = getters['currentCluster']?.id;
 
   if ( !clusterId || !inStore ) {
     updateActiveNamespaceCache(state, {});
