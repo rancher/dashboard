@@ -12,6 +12,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     '@vue/standard',
     '@vue/typescript/recommended',
+    'plugin:vue/recommended',
     'plugin:cypress/recommended',
   ]
 };
