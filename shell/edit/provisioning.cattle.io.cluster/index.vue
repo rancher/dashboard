@@ -21,6 +21,9 @@ import { BLANK_CLUSTER } from '@shell/store';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
 import Import from './import';
+// Added by Verrazzano Start
+import { getVerrazzanoVersion } from '@pkg/verrazzano/utils/version';
+// Added by Verrazzano End
 
 const SORT_GROUPS = {
   template:  1,
@@ -78,6 +81,11 @@ export default {
   },
 
   async fetch() {
+    // Added by Verrazzano Start
+    getVerrazzanoVersion(this.$store).then((version) => {
+      this.vzVersion = version;
+    });
+    // Added by Verrazzano End
     const hash = {
       // These aren't explicitly used, but need to be listening for change events
       mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
@@ -153,6 +161,9 @@ export default {
       isImport,
       providerCluster:  null,
       iconClasses:      {},
+      // Added by Verrazzano Start
+      vzVersion:        '',
+      // Added by Verrazzano End
     };
   },
 
@@ -363,22 +374,29 @@ export default {
     firstCustomClusterItem() {
       return this.groupedSubTypes.findIndex(obj => ['custom', 'custom1', 'custom2'].includes(obj.name));
     },
+
+    // Added by Verrazzano Start
+    isVerrazzano15() {
+      if (this.vzVersion.startsWith('1.5')) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    // Added by Verrazzano End
   },
 
   methods: {
     showRkeToggle(i) {
-      // Added by Verrazzano Start
-      // if (this.isImport || !this.rke2Enabled) {
-      //   return false;
-      // }
-      //
-      // if (this.firstNodeDriverItem >= 0) {
-      //   return i === this.firstNodeDriverItem;
-      // }
-      //
-      // return i === this.firstCustomClusterItem;
-      return false;
-      // Added by Verrazzano End
+      if (this.isImport || !this.rke2Enabled) {
+        return false;
+      }
+
+      if (this.firstNodeDriverItem >= 0) {
+        return i === this.firstNodeDriverItem;
+      }
+
+      return i === this.firstCustomClusterItem;
     },
 
     loadStylesheet(url, id) {
@@ -495,7 +513,7 @@ export default {
       >
         <h4>
           <div
-            v-if="showRkeToggle(i)"
+            v-if="isVerrazzano15 && showRkeToggle(i)"
             class="grouped-type"
           >
             <ToggleSwitch
