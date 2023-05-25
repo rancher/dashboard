@@ -250,9 +250,13 @@ export default {
     },
 
     getProjectRoleBinding(row, role) {
-      // Each row is a combination of user and project
+      // Each row is a combination of user/group and project
       // So find the specfic roleBindingTemplate corresponding to the specific role + project
-      return this.projectRoleTemplateBindings.find(r => r.roleTemplateId === role.id && r.userId === row.userId);
+      const userOrGroupKey = row.userId ? 'userId' : 'groupPrincipalId';
+
+      return this.projectRoleTemplateBindings.find((r) => {
+        return r.roleTemplateId === role.id && r[userOrGroupKey] === row[userOrGroupKey];
+      });
     },
 
     async removeRole(row, role, event) {
@@ -347,7 +351,7 @@ export default {
                 <button
                   v-if="canEditProjectMembers"
                   type="button"
-                  class="create-namespace btn btn-sm role-secondary mr-5 right"
+                  class="create-namespace btn btn-sm role-secondary mr-10 right"
                   @click="addProjectMember(group)"
                 >
                   {{ t('members.createActionLabel') }}
