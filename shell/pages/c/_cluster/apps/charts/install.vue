@@ -1979,7 +1979,7 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 0;
-  height: calc(100% - 112px);
+  overflow: auto;
 }
 
 .header {
@@ -2052,10 +2052,11 @@ export default {
 }
 
 .os-label {
-  position: absolute;
+  position: relative;
   background-color: var(--warning-banner-bg);
   color:var(--warning);
   margin-top: 5px;
+  top: 21px;
 }
 
 </style>

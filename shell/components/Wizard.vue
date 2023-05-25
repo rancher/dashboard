@@ -468,7 +468,6 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
-  height: 0;
   justify-content: flex-start;
 }
 
@@ -647,7 +646,6 @@ $spacer: 10px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    height: 100%;
     flex: 1;
   }
 }
