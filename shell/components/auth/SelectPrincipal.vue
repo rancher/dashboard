@@ -96,7 +96,7 @@ export default {
     },
 
     disabled() {
-      return this.mode === _EDIT || this.mode === _VIEW;
+      return this.mode === _VIEW;
     }
   },
 
