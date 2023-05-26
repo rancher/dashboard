@@ -8,6 +8,7 @@ import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 const PERMISSION_GROUP_MAP = {
   'cluster-owner':  'owner',
@@ -188,6 +189,11 @@ export default {
         opt:  { url: `/v3/principals/${ principalId }` }
       }, { root: true });
     },
+
+    principalSelectMode() {
+      return [_EDIT, _VIEW].includes(this.mode) ? _VIEW : this.mode;
+    }
+
   },
   watch: {
     roleTemplateIds() {
@@ -259,7 +265,7 @@ export default {
         <SelectPrincipal
           v-focus
           class="mb-20"
-          :mode="mode"
+          :mode="principalSelectMode"
           :retain-selection="true"
           :init-value="principalId"
           @add="onAdd"

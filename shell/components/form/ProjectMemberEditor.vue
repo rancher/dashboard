@@ -8,6 +8,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import DOMPurify from 'dompurify';
+import { _EDIT, _VIEW } from '@shell/config/query-params';
 
 const PERMISSION_GROUP_MAP = {
   'project-owner':  'owner',
@@ -203,6 +204,10 @@ export default {
           value:       'custom'
         }
       ];
+    },
+
+    principalSelectMode() {
+      return [_EDIT, _VIEW].includes(this.mode) ? _VIEW : this.mode;
     }
   },
   watch: {
@@ -287,7 +292,7 @@ export default {
         <SelectPrincipal
           project
           class="mb-20"
-          :mode="mode"
+          :mode="principalSelectMode"
           :retain-selection="true"
           :init-value="value.principalId"
           @add="onAdd"
