@@ -8,7 +8,6 @@ import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { _EDIT } from '@shell/config/query-params';
 
 const PERMISSION_GROUP_MAP = {
   'cluster-owner':  'owner',
@@ -60,6 +59,7 @@ export default {
     ]);
 
     this.roleTemplates = roleTemplates;
+    this.resetDefaultValue();
   },
   data() {
     const d = {
@@ -126,8 +126,6 @@ export default {
       principalId:     '',
       bindings:        []
     };
-
-    this.resetDefaultValue(d);
 
     return d;
   },
@@ -224,8 +222,8 @@ export default {
       }
     },
 
-    resetDefaultValue(data) {
-      if (this.mode !== _EDIT || !this.initValue) {
+    resetDefaultValue() {
+      if (!this.initValue) {
         return;
       }
 
@@ -237,10 +235,10 @@ export default {
         // clusterName,
       } = this.initValue;
 
-      data.permissionGroup = PERMISSION_GROUP_MAP[roleTemplateName] ?? 'custom';
-      data.principalId = userPrincipalName ?? groupPrincipalName;
-      if (data.permissionGroup === 'custom') {
-        const cp = data.customPermissions.find(p => roleTemplateName === p.key);
+      this.permissionGroup = this.options.find(o => o.value === roleTemplateName)?.value ?? PERMISSION_GROUP_MAP[roleTemplateName] ?? 'custom';
+      this.principalId = userPrincipalName ?? groupPrincipalName;
+      if (this.permissionGroup === 'custom') {
+        const cp = this.customPermissions.find(p => roleTemplateName === p.key);
 
         if (cp) {
           cp.value = true;
@@ -286,6 +284,7 @@ export default {
         <RadioGroup
           v-model="permissionGroup"
           :options="options"
+          :mode="mode"
           name="permission-group"
         />
         <div
@@ -299,6 +298,7 @@ export default {
             v-model="permission.value"
             class="mb-5"
             :label="permission.label"
+            :mode="mode"
           />
         </div>
       </template>

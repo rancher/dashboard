@@ -7,7 +7,6 @@ import { Card } from '@components/Card';
 import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { _EDIT } from '@shell/config/query-params';
 import DOMPurify from 'dompurify';
 
 const PERMISSION_GROUP_MAP = {
@@ -52,6 +51,7 @@ export default {
 
     this.roleTemplates = roleTemplates;
     this.projects = projects;
+    this.resetDefaultValue();
   },
   data() {
     this.setRoleTemplateIds(this.value.permissionGroup);
@@ -159,8 +159,6 @@ export default {
       },
     ];
 
-    this.resetDefaultValue(this.value, customPermissions);
-
     return {
       customPermissions,
       projects:      [],
@@ -256,20 +254,20 @@ export default {
       return DOMPurify.sanitize(option, { ALLOWED_TAGS: ['span'] });
     },
 
-    resetDefaultValue(member, customPermissions) {
-      if (this.mode !== _EDIT || !this.initValue) {
+    resetDefaultValue() {
+      if (!this.initValue) {
         return;
       }
       const {
         roleTemplateId, groupPrincipalId, userPrincipalId, projectId
       } = this.initValue;
 
-      member.permissionGroup = PERMISSION_GROUP_MAP[roleTemplateId] ?? 'custom';
-      member.projectId = projectId ?? '';
-      member.principalId = userPrincipalId ?? groupPrincipalId;
-      member.roleTemplateIds = [roleTemplateId];
-      if (member.permissionGroup === 'custom') {
-        const cp = customPermissions.find(p => roleTemplateId === p.key);
+      this.value.permissionGroup = this.options.find(o => o.value === roleTemplateId)?.value ?? PERMISSION_GROUP_MAP[roleTemplateId] ?? 'custom';
+      this.value.projectId = projectId ?? '';
+      this.value.principalId = userPrincipalId ?? groupPrincipalId;
+      this.value.roleTemplateIds = [roleTemplateId];
+      if (this.value.permissionGroup === 'custom') {
+        const cp = this.customPermissions.find(p => roleTemplateId === p.key);
 
         if (cp) {
           cp.value = true;
