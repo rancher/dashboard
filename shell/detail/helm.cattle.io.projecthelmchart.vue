@@ -43,8 +43,8 @@ export default {
       };
     },
     monitoringNamespace() {
-      // arbitrarily picking the alertmanagerURL here, they're all going to be the same.
-      return this.pullKeyFromUrl(this.relativeDashboardValues.alertmanagerURL, 'namespaces');
+      // picking the prometheusURL here, they're all going to be the same, but alertmanager and grafana can be deactivated
+      return this.pullKeyFromUrl(this.relativeDashboardValues.prometheusURL, 'namespaces');
     },
     alertServiceEndpoint() {
       return this.pullServiceEndpointFromUrl(this.relativeDashboardValues.alertmanagerURL);

@@ -186,17 +186,25 @@ export default {
 
       // We need to group each of the TemplateRoleBindings by the user + project
       const userRoles = [...fakeRows, ...this.filteredProjectRoleTemplateBindings].reduce((rows, curr) => {
-        const { userId, roleTemplate, projectId } = curr;
+        const {
+          userId, groupPrincipalId, roleTemplate, projectId
+        } = curr;
 
-        const userKey = userId + projectId;
+        const userOrGroup = userId || groupPrincipalId;
 
-        if (!rows[userKey] && userId ) {
-          rows[userKey] = curr;
-          rows[userKey].allRoles = [];
+        if (!userOrGroup) {
+          return rows;
         }
 
-        if (roleTemplate && userId) {
-          rows[userKey].allRoles.push(curr.roleTemplate);
+        const userOrGroupKey = userOrGroup + projectId;
+
+        if (!rows[userOrGroupKey] ) {
+          rows[userOrGroupKey] = curr;
+          rows[userOrGroupKey].allRoles = [];
+        }
+
+        if (roleTemplate) {
+          rows[userOrGroupKey].allRoles.push(curr.roleTemplate);
         }
 
         return rows;

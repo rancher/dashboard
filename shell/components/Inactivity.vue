@@ -134,6 +134,7 @@ export default {
     },
 
     unsubscribe() {
+      console.debug('Unsubscribing from all websocket events'); // eslint-disable-line no-console
       this.$store.dispatch('unsubscribe');
     },
     clearAllTimeouts() {

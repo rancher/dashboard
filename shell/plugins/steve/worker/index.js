@@ -4,9 +4,10 @@ import basicWorkerConstructor from '@shell/plugins/steve/worker/web-worker.basic
 import advancedWorkerConstructor from '@shell/plugins/steve/worker/web-worker.advanced.js';
 
 export const WORKER_MODES = {
-  WAITING:  'waiting',
-  BASIC:    'basic',
-  ADVANCED: 'advanced'
+  WAITING:      'waiting',
+  DESTROY_MOCK: 'destroy',
+  BASIC:        'basic',
+  ADVANCED:     'advanced'
 };
 
 export default function storeWorker(mode, options = {}, closures = {}) {

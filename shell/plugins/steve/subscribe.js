@@ -43,12 +43,16 @@ const workerQueues = {};
 
 const supportedStores = [STORE.CLUSTER, STORE.RANCHER, STORE.MANAGEMENT];
 
-const waitForSettingsSchema = (store) => {
-  return waitFor(() => !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
+const isWaitingForDestroy = (storeName, store) => {
+  return store.$workers[storeName]?.waitingForDestroy && store.$workers[storeName].waitingForDestroy();
 };
 
-const waitForSettings = (store) => {
-  return waitFor(() => !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE));
+const waitForSettingsSchema = (storeName, store) => {
+  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](SCHEMA, MANAGEMENT.SETTING));
+};
+
+const waitForSettings = (storeName, store) => {
+  return waitFor(() => isWaitingForDestroy(storeName, store) || !!store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE));
 };
 
 const isAdvancedWorker = (ctx) => {
@@ -80,18 +84,41 @@ export async function createWorker(store, ctx) {
     // it will simply queue up any messages for the real worker to process when it loads up
     store.$workers[storeName] = {
       postMessage: (msg) => {
+        if (Object.keys(msg)?.[0] === 'destroyWorker') {
+          // The worker has been destroyed before it's been set up. Flag this so we stop waiting for mgmt settings and then can destroy worker.
+          // This can occurr when the user is redirected to the log in page
+          // - workers created (but waiting)
+          // - logout is called
+          // - <store>/unsubscribe is dispatched
+          // - wait for worker object to be destroyed <-- requires initial wait to be unblocked
+          store.$workers[storeName].mode = WORKER_MODES.DESTROY_MOCK;
+
+          return;
+        }
         if (workerQueues[storeName]) {
           workerQueues[storeName].push(msg);
         } else {
           workerQueues[storeName] = [msg];
         }
       },
-      mode: WORKER_MODES.WAITING
+      mode:              WORKER_MODES.WAITING,
+      waitingForDestroy: () => {
+        return store.$workers[storeName]?.mode === WORKER_MODES.DESTROY_MOCK;
+      },
+      destroy: () => {
+        // Similar to workerActions.destroyWorker
+        delete store.$workers[storeName];
+      }
     };
   }
 
-  await waitForSettingsSchema(store);
-  await waitForSettings(store);
+  await waitForSettingsSchema(storeName, store);
+  await waitForSettings(storeName, store);
+  if (store.$workers[storeName].waitingForDestroy()) {
+    store.$workers[storeName].destroy();
+
+    return;
+  }
   const advancedWorker = isAdvancedWorker(ctx);
 
   const workerActions = {

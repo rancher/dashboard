@@ -286,10 +286,11 @@ export const VIRTUAL_TYPES = {
 
 // harvester
 export const HCI = {
-  CLUSTER:   'harvesterhci.io.management.cluster',
-  DASHBOARD: 'harvesterhci.io.dashboard',
-  IMAGE:     'harvesterhci.io.virtualmachineimage',
-  SETTING:   'harvesterhci.io.setting',
+  CLUSTER:          'harvesterhci.io.management.cluster',
+  DASHBOARD:        'harvesterhci.io.dashboard',
+  IMAGE:            'harvesterhci.io.virtualmachineimage',
+  SETTING:          'harvesterhci.io.setting',
+  HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',
 };
 
 export const VIRTUAL_HARVESTER_PROVIDER = 'harvester';

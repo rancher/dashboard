@@ -58,6 +58,7 @@ export default Vue.extend({
   <div
     class="card-container"
     :class="{'highlight-border': showHighlightBorder, 'card-sticky': sticky}"
+    data-testid="card"
   >
     <div class="card-wrap">
       <div
