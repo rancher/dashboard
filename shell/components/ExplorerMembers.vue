@@ -249,7 +249,7 @@ export default {
     <Tabbed>
       <Tab
         name="cluster-membership"
-        label="Cluster Membership"
+        :label="t('members.clusterMembers')"
       >
         <div
           v-if="canEditClusterMembers"
@@ -276,7 +276,7 @@ export default {
       <Tab
         v-if="canManageProjectMembers"
         name="project-membership"
-        label="Project Membership"
+        :label="t('members.projectMembers')"
       >
         <SortableTable
           group-by="projectId"

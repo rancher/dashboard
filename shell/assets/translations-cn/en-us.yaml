@@ -3145,6 +3145,7 @@ members:
   localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any part of this installation."
   clusterAndProject: Cluster and Project Members
   noRolesAssigned: There are no users assigned to this project.
+  projectMembers: Project Members
 membershipEditor:
   label: Members
   user: User
@@ -7739,3 +7740,5 @@ gatekeeperInstall:
   auditInterval: Auto Interval
   constraintViolationsLimit: Constraint Violations Limit
   runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
+editProjectMemberDialog:
+  title: Edit Project Member

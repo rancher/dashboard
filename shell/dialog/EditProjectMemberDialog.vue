@@ -128,7 +128,7 @@ export default {
   >
     <h4
       slot="title"
-      v-clean-html="t('addProjectMemberDialog.title')"
+      v-clean-html="t('editProjectMemberDialog.title')"
       class="text-default-text"
     />
 
@@ -163,7 +163,7 @@ export default {
 
       <AsyncButton
         v-if="saveInModal"
-        mode="create"
+        :mode="mode"
         @click="cb=>saveBindings(cb)"
       />
 

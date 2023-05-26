@@ -3149,6 +3149,7 @@ members:
   localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
   clusterAndProject: 集群和项目成员
   noRolesAssigned: 没有分配给该项目的用户。
+  projectMembers: 项目成员
 membershipEditor:
   label: 成员
   user: 用户名
@@ -8017,3 +8018,5 @@ registryMirrorRewrite:
   toolTip: 每个镜像都可以有一组重写。重写可以根据正则表达式来改变镜像的标签。
   valueLabel: 重写替换
   valuePlaceholder: 例如：mirrorproject/rancher-images/$1
+editProjectMemberDialog:
+  title: 编辑项目成员
