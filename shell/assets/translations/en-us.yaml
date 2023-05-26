@@ -912,7 +912,7 @@ catalog:
     project: Install into Project
     section:
       chartOptions: Edit Options
-      valuesYaml: Edit YAML 3
+      valuesYaml: Edit YAML
       diff: Compare Changes
     slideIn:
       dock: Dock to shell
@@ -3029,7 +3029,7 @@ members:
   clusterAndProject: Cluster and Project Members
   createActionLabel: Add
   clusterMemebership: Cluster Membership
-  projectMembership: Project Memebership
+  projectMembership: Project Membership
   clusterPermissions:
     noDescription: User created - no description
     label: Cluster Permissions
@@ -4635,7 +4635,7 @@ resourceYaml:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
   buttons:
     continue: Continue Editing
-    edit: Edit YAML 2
+    edit: Edit YAML
     diff: Show Diff
     hideDiff: Hide Diff
     unified: Unified
@@ -6027,7 +6027,7 @@ workload:
         noExecute: NoExecute
         noSchedule: "NoSchedule"
         preferNoSchedule: PreferNoSchedule
-      labelKey: Label Key
+      labelKey: Key
       operator: Operator
       operatorOptions:
         equal: =

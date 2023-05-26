@@ -14,7 +14,7 @@ export class ChartsPage extends PagePo {
   goToInstall() {
     const btn = new AsyncButtonPo('.chart-header .btn.role-primary');
 
-    btn.click();
+    btn.click(true);
 
     return this;
   }
@@ -22,7 +22,7 @@ export class ChartsPage extends PagePo {
   nextPage() {
     const btn = new AsyncButtonPo('.controls-steps .btn.role-primary');
 
-    btn.click();
+    btn.click(true);
 
     return this;
   }
@@ -36,7 +36,7 @@ export class ChartsPage extends PagePo {
   installChart() {
     const btn = new AsyncButtonPo('[data-testid="action-button-async-button"]');
 
-    btn.click();
+    btn.click(true);
 
     return this;
   }

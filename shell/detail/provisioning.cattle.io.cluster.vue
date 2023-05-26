@@ -751,7 +751,7 @@ export default {
                 />
                 <template v-if="value.hasLink('update') && group.ref.showScalePool">
                   <button
-                    v-tooltip="t('node.list.scaleDown')"
+                    v-clean-tooltip="t('node.list.scaleDown')"
                     :disabled="!group.ref.canScaleDownPool()"
                     type="button"
                     class="btn btn-sm role-secondary"
@@ -760,7 +760,7 @@ export default {
                     <i class="icon icon-sm icon-minus" />
                   </button>
                   <button
-                    v-tooltip="t('node.list.scaleUp')"
+                    v-clean-tooltip="t('node.list.scaleUp')"
                     :disabled="!group.ref.canScaleUpPool()"
                     type="button"
                     class="btn btn-sm role-secondary ml-10"
@@ -836,7 +836,7 @@ export default {
                 />
                 <template v-if="group.ref.hasLink('update')">
                   <button
-                    v-tooltip="t('node.list.scaleDown')"
+                    v-clean-tooltip="t('node.list.scaleDown')"
                     :disabled="group.ref.spec.quantity < 2"
                     type="button"
                     class="btn btn-sm role-secondary"
@@ -845,7 +845,7 @@ export default {
                     <i class="icon icon-sm icon-minus" />
                   </button>
                   <button
-                    v-tooltip="t('node.list.scaleUp')"
+                    v-clean-tooltip="t('node.list.scaleUp')"
                     type="button"
                     class="btn btn-sm role-secondary ml-10"
                     @click="group.ref.scalePool(1)"

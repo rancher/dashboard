@@ -9,7 +9,7 @@ export default class Kubectl extends ComponentPo {
   readonly terminalRow: string = '.xterm-rows'
 
   openTerminal() {
-    cy.get('[data-testid="btn-kubectl"]').click();
+    cy.get('#btn-kubectl').click();
     this.self().get('.window.show-grid .text-success').should('contain', 'Connected');
   }
 

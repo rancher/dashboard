@@ -232,7 +232,7 @@ export default Vue.extend<Data, any, any, any>({
           <div class="status">
             <i
               v-if="row.state === APPLICATION_ACTION_STATE.RUNNING"
-              v-tooltip="row.stateDisplay"
+              v-clean-tooltip="row.stateDisplay"
               class="icon icon-lg icon-spinner icon-spin"
             />
             <BadgeState

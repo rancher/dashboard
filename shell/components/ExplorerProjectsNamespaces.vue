@@ -451,12 +451,12 @@ export default {
           </span>
           <i
             v-if="row.injectionEnabled"
-            v-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+            v-clean-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
             class="icon icon-istio ml-5"
           />
           <i
             v-if="row.hasSystemLabels"
-            v-tooltip="getPsaTooltip(row)"
+            v-clean-tooltip="getPsaTooltip(row)"
             class="icon icon-lock ml-5"
           />
         </div>
@@ -537,7 +537,7 @@ export default {
 <style lang="scss">
   .psa-tooltip {
     // These could pop up a lot as the mouse moves around, keep them as small and unintrusive as possible
-    // (easier to test with v-tooltip="{ content: getPSA(row), autoHide: false, show: true }")
+    // (easier to test with v-clean-tooltip="{ content: getPSA(row), autoHide: false, show: true }")
     margin: 3px 0;
     padding: 0 8px 0 22px;
   }
