@@ -99,21 +99,22 @@ export default {
         projectId,
       })));
 
-      await Promise.all(roleTemplates.map(rt => rt.save()));
-      await Promise.all(toRemoved.map(binding => binding.remove()));
+      return { toRemoved, toSaved: roleTemplates };
     },
 
-    saveBindings(btnCB) {
+    async saveBindings(btnCB) {
       this.error = null;
-      this.createBindings()
-        .then(() => {
-          btnCB(true);
-          setTimeout(this.close, 500);
-        })
-        .catch((err) => {
-          this.error = err;
-          btnCB(false);
-        });
+      try {
+        const { toRemoved, toSaved } = await this.createBindings();
+
+        await Promise.all(toSaved.map(rt => rt.save()));
+        await Promise.all(toRemoved.map(binding => binding.remove()));
+        btnCB(true);
+        setTimeout(this.close, 500);
+      } catch (err) {
+        this.error = err;
+        btnCB(false);
+      }
     }
   }
 };

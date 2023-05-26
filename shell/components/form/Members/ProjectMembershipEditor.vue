@@ -54,6 +54,7 @@ export default {
   <MembershipEditor
     ref="editor"
     add-member-dialog-name="AddProjectMemberDialog"
+    edit-member-dialog-name="EditProjectMemberDialog"
     :modal-sticky="true"
     :default-binding-handler="defaultBindingHandler"
     :type="NORMAN.PROJECT_ROLE_TEMPLATE_BINDING"

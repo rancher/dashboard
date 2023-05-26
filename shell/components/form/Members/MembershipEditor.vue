@@ -24,6 +24,12 @@ export default {
       required: true
     },
 
+    editMemberDialogName: {
+      type:     String,
+      default:  '',
+      required: false
+    },
+
     parentKey: {
       type:     String,
       required: true
@@ -147,6 +153,25 @@ export default {
     onAddMember(bindings) {
       this.$set(this, 'bindings', [...this.bindings, ...bindings]);
     },
+
+    editMember(binding, remove) {
+      this.$store.dispatch('cluster/promptModal', {
+        component:      this.editMemberDialogName,
+        componentProps: { onAdd: p => this.onUpdate(p, remove), value: binding.value },
+        modalSticky:    this.modalSticky
+      });
+    },
+
+    onUpdate({ toSaved, toRemoved }, remove) {
+      if (toRemoved.length > 0) {
+        remove();
+        this.$refs.bindingsRef.update();
+      }
+
+      this.$nextTick(() => {
+        this.$set(this, 'bindings', [...this.bindings, ...toSaved]);
+      });
+    }
   }
 };
 </script>
@@ -154,6 +179,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <ArrayList
     v-else
+    ref="bindingsRef"
     v-model="bindings"
     :mode="mode"
     :show-header="true"
@@ -192,17 +218,30 @@ export default {
         {{ t('generic.add') }}
       </button>
     </template>
-    <template #remove-button="{remove, i}">
+    <template #remove-button="{remove, i, row}">
       <span v-if="(isCreate && i === 0) || isView" />
-      <button
+      <div
         v-else
-        type="button"
-        :disabled="isView"
-        class="btn role-link"
-        @click="remove"
+        class="role"
       >
-        {{ t('generic.remove') }}
-      </button>
+        <button
+          type="button"
+          :disabled="isView"
+          class="btn btn-sm role-link"
+          @click="remove"
+        >
+          <i class="icon icon-trash" />
+        </button>
+        <button
+          v-if="editMemberDialogName && row.value.projectId"
+          type="button"
+          :disabled="isView"
+          class="btn btn-sm role-link"
+          @click="editMember(row, remove)"
+        >
+          <i class="icon icon-edit" />
+        </button>
+      </div>
     </template>
   </ArrayList>
 </template>
@@ -212,5 +251,6 @@ export default {
   display: flex;
   align-items: center;
   flex-direction: row;
+  gap: 10px;
 }
 </style>
