@@ -9,9 +9,14 @@ import Namespace from '@shell/models/namespace';
 import EpinioServiceModel from '../../../models/services';
 import isEqual from 'lodash/isEqual';
 import { sortBy } from 'lodash';
+import Monaco from '../../../components/editor/Monaco.vue';
 
 export default Vue.extend<any, any, any, any>({
-  components: { DashboardCard, ConsumptionGauge },
+  components: {
+    DashboardCard,
+    ConsumptionGauge,
+    Monaco
+  },
   async fetch() {
     await Promise.all([
       this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CATALOG_SERVICE }),
@@ -54,7 +59,10 @@ export default Vue.extend<any, any, any, any>({
         }],
       colorStops: {
         0: '--info', 30: '--info', 70: '--info'
-      }
+      },
+      codeSample: /* set from `myEditor.getModel()`: */ `function hello() {
+  alert('Hello world!');
+}`
     };
   },
   created() {
@@ -188,6 +196,9 @@ export default Vue.extend<any, any, any, any>({
         >{{ t('epinio.intro.issues') }}</a>
       </div>
     </div>
+    <Monaco
+      :value="codeSample"
+    />
     <div class="get-started">
       <div
         v-for="(card, index) in sectionContent"
