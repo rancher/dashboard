@@ -167,7 +167,7 @@ export default {
       if (this.value.spec.email_configs.length > 0) {
         this.value.spec.email_configs.forEach((email) => {
           if (email['port'] || email['host']) {
-            email.smarthost = `${ email.host }:${ email.port }`;
+            email.smarthost = email.port ? `${ email.host }:${ email.port }` : `${ email.host }`;
             delete email['port'];
             delete email['host'];
           }
