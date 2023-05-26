@@ -23,7 +23,7 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe.skip('Cluster Manager', () => {
+describe('Cluster Manager', () => {
   const clusterList = new ClusterManagerListPagePo('local');
 
   const detailClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
