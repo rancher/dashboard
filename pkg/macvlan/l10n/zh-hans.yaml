@@ -50,7 +50,7 @@ macvlan:
   ipReuse:
     ipReuseFormatError: 自动 IP 延迟回收 格式错误
     ipReuseUnit: 分钟
-    label: 自动IP延迟回收
+    label: 自动 IP 延迟回收
     placeholder: 取值范围 1-3600 之间的整数
   master:
     label: Master

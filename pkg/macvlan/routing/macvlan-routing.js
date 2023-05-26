@@ -10,7 +10,7 @@ const routes = [
   },
   {
     name:      `${ MACVLAN_IP_PRODUCT_NAME }-c-cluster-resource-ip`,
-    path:      `/:product/c/:cluster/:resource/ip/:id`,
+    path:      `/c/:cluster/:product/:resource/ip/:id`,
     component: MacvlanResourceIps,
   },
 ];

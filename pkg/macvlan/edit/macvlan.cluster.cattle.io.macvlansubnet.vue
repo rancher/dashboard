@@ -75,6 +75,9 @@ export default {
           path: 'spec.gateway', rules: ['gatewayVlidate'], rootObject: config
         },
         {
+          path: 'spec.ipDelayReuse', rules: ['ipDelayReuseVlidate'], rootObject: config
+        },
+        {
           path: 'spec.ranges', rules: ['ipRangeVlidate'], rootObject: config
         },
         {
@@ -109,7 +112,7 @@ export default {
       ).forEach((obj) => {
         out.push({
           label: obj.nameDisplay,
-          value: obj.id
+          value: obj.id.replace(/[/]/g, '-'),
         });
       });
 
@@ -167,6 +170,11 @@ export default {
       const gatewayVlidate = (value) => {
         if (value && !ipv4RegExp.test(value)) {
           return this.t('macvlan.gateway.gatewayFormatError');
+        }
+      };
+      const ipDelayReuseVlidate = (value) => {
+        if (value < 1 || value > 3600 || (value > 1 && value % 1 !== 0)) {
+          return this.t('macvlan.ipReuse.placeholder');
         }
       };
       const defaultGatewayVlidate = (value) => {
@@ -229,7 +237,7 @@ export default {
       };
 
       return {
-        nameChar, masterChar, vlanValidate, cidrValidate, gatewayVlidate, defaultGatewayVlidate, routeVlidate, ipRangeVlidate
+        nameChar, masterChar, vlanValidate, cidrValidate, gatewayVlidate, ipDelayReuseVlidate, defaultGatewayVlidate, routeVlidate, ipRangeVlidate
       };
     },
 
@@ -243,6 +251,15 @@ export default {
     existedMasterMacvlan() {
       return this.$store.getters['macvlan/existedMasterMacvlan'] || [];
     },
+
+    ipDelayReuse: {
+      get() {
+        return this.config.spec.ipDelayReuse / 60;
+      },
+      set(neu) {
+        this.$set(this.config.spec, 'ipDelayReuse', neu * 60);
+      }
+    }
   },
 
   methods: {
@@ -475,7 +492,7 @@ export default {
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledInput
-                v-model="config.spec.ipDelayReuse"
+                v-model="ipDelayReuse"
                 label-key="macvlan.ipReuse.label"
                 placeholder-key="macvlan.ipReuse.placeholder"
                 :mode="mode"
@@ -483,6 +500,7 @@ export default {
                 type="number"
                 min="1"
                 max="3600"
+                :rules="fvGetAndReportPathRules('spec.ipDelayReuse')"
               />
             </div>
           </div>
