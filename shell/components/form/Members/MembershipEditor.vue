@@ -233,7 +233,7 @@ export default {
           <i class="icon icon-trash" />
         </button>
         <button
-          v-if="editMemberDialogName && row.value.projectId"
+          v-if="editMemberDialogName"
           type="button"
           :disabled="isView"
           class="btn btn-sm role-link"
