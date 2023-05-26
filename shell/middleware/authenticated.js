@@ -71,19 +71,16 @@ export function getProductFromRoute(to) {
   return product;
 }
 
-function setProduct(store, to) {
+function setProduct(store, to, redirect) {
   let product = getProductFromRoute(to);
 
-  if (product &&
-    // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route
-    // it means that the product does not exist
-    (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) {
-    return product;
-  }
-
+  // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
+  if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
   // if the product grabbed from the route is not registered, then we don't have it!
-  if (product && !store.getters['type-map/isProductRegistered'](product)) {
-    return product;
+  (product && !store.getters['type-map/isProductRegistered'](product))) {
+    store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
+
+    return () => redirect(302, '/fail-whale');
   }
 
   if ( !product ) {
@@ -302,24 +299,20 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      const productNotFound = setProduct(store, to);
+      const redirected = setProduct(store, to, redirect);
 
-      if (productNotFound) {
-        store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound }, true)));
-
-        return redirect(302, '/fail-whale');
+      if (redirected) {
+        return redirected();
       }
 
       next();
     });
 
     // Call it for the initial pageload
-    const productNotFound = setProduct(store, route, redirect);
+    const redirected = setProduct(store, route, redirect);
 
-    if (productNotFound) {
-      store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound }, true)));
-
-      return redirect(302, '/fail-whale');
+    if (redirected) {
+      return redirected();
     }
 
     if (process.client) {
@@ -403,12 +396,10 @@ export default async function({
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
     if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
-      const productNotFound = setProduct(store, route);
+      const redirected = setProduct(store, route, redirect);
 
-      if (productNotFound) {
-        store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound }, true)));
-
-        return redirect(302, '/fail-whale');
+      if (redirected) {
+        return redirected();
       }
 
       store.commit('updateWorkspace', {

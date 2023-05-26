@@ -52,7 +52,7 @@ dynamicPluginLoader.register({
           }
         }
       } else {
-        return store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.clusterNotFound', { clusterId }, true)));
+        return harvesterClustersLocation;
       }
     }
   }
