@@ -53,7 +53,7 @@ export interface ValidationOptions {
 }
 
 // "t" is the function name we use for getting a translated string
-export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
+export default function(t: Translation, { key = 'Value' }: ValidationOptions): unknown {
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
 

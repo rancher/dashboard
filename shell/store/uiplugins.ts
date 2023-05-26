@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // We already have a 'plugins' store, which is for cluster drivers
 // This store is for the instsall UI plugins
 
