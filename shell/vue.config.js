@@ -272,7 +272,7 @@ module.exports = function(dir, _appConfig) {
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
   const loginLocaleSelector = process.env.LOGIN_LOCALE_SELECTOR || 'true';
-  const excludeNuxtPlugins = (process.env.EXCLUDES_NUXT_PLUGINS || '').split(',');
+  const excludeOperatorPkgs = (process.env.EXCLUDE_OPERATOR_PKGS || '').split(',');
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
   const proxy = {
@@ -398,7 +398,7 @@ module.exports = function(dir, _appConfig) {
         'process.env.pl':                  JSON.stringify(pl),
         'process.env.perfTest':            JSON.stringify(perfTest),
         'process.env.loginLocaleSelector': JSON.stringify(loginLocaleSelector),
-        'process.env.excludeNuxtPlugins':  JSON.stringify(excludeNuxtPlugins),
+        'process.env.excludeOperatorPkgs': JSON.stringify(excludeOperatorPkgs),
         'process.env.rancherEnv':          JSON.stringify(rancherEnv),
         'process.env.harvesterPkgUrl':     JSON.stringify(process.env.HARVESTER_PKG_URL),
         'process.env.api':                 JSON.stringify(api),

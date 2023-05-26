@@ -3,6 +3,10 @@ import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
 export default async function(context) {
+  if (process.env.excludeOperatorPkgs) {
+    return;
+  }
+
   const hash = {};
 
   // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
