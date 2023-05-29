@@ -1030,18 +1030,18 @@ export default {
         setIfNotSet(cattle, 'windows.enabled', true);
       }
 
-      // Global prometheus storage values get added to the values
-      // Remove the storage spec selector if it is empty
-      const selector = values.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
+      // // Global prometheus storage values get added to the values
+      // // Remove the storage spec selector if it is empty
+      // const selector = values.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
 
-      if (
-        selector &&
-        isEmpty(selector?.matchExpressions) &&
-        isEmpty(selector?.matchLabels)
-      ) {
-        delete values.prometheus.prometheusSpec.storageSpec
-          .volumeClaimTemplate.spec.selector;
-      }
+      // if (
+      //   selector &&
+      //   isEmpty(selector?.matchExpressions) &&
+      //   isEmpty(selector?.matchLabels)
+      // ) {
+      //   delete values.prometheus.prometheusSpec.storageSpec
+      //     .volumeClaimTemplate.spec.selector;
+      // }
 
       return values;
 
