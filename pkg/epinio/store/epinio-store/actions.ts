@@ -280,5 +280,19 @@ export default {
       type: EPINIO_TYPES.NAMESPACE,
       meta: { name: obj.name }
     });
-  }
+  },
+
+  info: async( { dispatch, commit, getters }: any ) => {
+    const storedInfo = getters['info']();
+
+    if (storedInfo) {
+      return storedInfo;
+    }
+
+    const info = await dispatch('request', { opt: { url: `/api/v1/info` } });
+
+    commit('info', info);
+
+    return info;
+  },
 };

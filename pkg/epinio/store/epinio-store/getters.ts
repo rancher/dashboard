@@ -61,6 +61,8 @@ export default {
     return out;
   },
 
-  singleProductCNSI: (state: any) => () => state.singleProductCNSI
+  singleProductCNSI: (state: any) => () => state.singleProductCNSI,
+
+  info: (state: any) => () => state.info,
 
 };
