@@ -109,6 +109,9 @@ export default {
   },
   methods: {
     async fetchConnectionConfig(signal) {
+      if (signal?.aborted === true) {
+        return;
+      }
       try {
         const connectMode = await this.$store.dispatch('rancher/request', {
           url:    `/v3/clusters/${ this.cluster?.id }?action=viewConnectionConfig`,
