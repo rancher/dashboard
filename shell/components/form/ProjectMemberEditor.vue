@@ -8,7 +8,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import DOMPurify from 'dompurify';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT, _VIEW, _CREATE } from '@shell/config/query-params';
 
 const PERMISSION_GROUP_MAP = {
   'project-owner':  'owner',
@@ -260,7 +260,7 @@ export default {
     },
 
     resetDefaultValue() {
-      if (!this.initValue) {
+      if (!this.initValue || this.mode === _CREATE) {
         return;
       }
       const {

@@ -8,7 +8,7 @@ import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { _EDIT, _VIEW } from '@shell/config/query-params';
+import { _EDIT, _VIEW, _CREATE } from '@shell/config/query-params';
 
 const PERMISSION_GROUP_MAP = {
   'cluster-owner':  'owner',
@@ -229,7 +229,7 @@ export default {
     },
 
     resetDefaultValue() {
-      if (!this.initValue) {
+      if (!this.initValue || this.mode === _CREATE) {
         return;
       }
 
