@@ -91,12 +91,6 @@ export default {
       setBrand(brand.value);
     }
 
-    let singleProvider;
-
-    if (providers.length === 1) {
-      singleProvider = providers[0];
-    }
-
     return {
       vendor:             getVendor(),
       providers,
@@ -104,7 +98,6 @@ export default {
       hasLocal,
       showLocal:          !hasOthers || (route.query[LOCAL] === _FLAGGED),
       firstLogin:         firstLoginSetting?.value === 'true',
-      singleProvider,
       showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true'
     };
   },
@@ -133,10 +126,8 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     nonLocalPrompt() {
-      if (this.singleProvider) {
-        const provider = this.displayName(this.singleProvider);
-
-        return this.t('login.useProvider', { provider });
+      if (this.providers.length === 1) {
+        return this.t('login.genericProvider');
       }
 
       return this.t('login.useNonLocal');

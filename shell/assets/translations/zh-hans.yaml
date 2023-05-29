@@ -2783,7 +2783,6 @@ login:
   loggingIn: 登录中...
   loggedIn: 已登录
   loginWithLocal: 使用本地用户登录
-  useProvider: 使用 {provider} 用户
   useNonLocal: 使用非本地用户
   remember:
     label: 记住用户名
