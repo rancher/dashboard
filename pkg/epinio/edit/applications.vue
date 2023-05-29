@@ -15,8 +15,7 @@ import AppSource from '../components/application/AppSource.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 import AppProgress from '../components/application/AppProgress.vue';
-import { EpinioAppSource, EPINIO_TYPES } from '../types';
-import { allHash } from '@shell/utils/promise';
+import { EpinioAppSource } from '../types';
 
 interface Data {
   bindings: EpinioAppBindings,
@@ -86,13 +85,7 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   async fetch() {
-    const hash: { [key:string]: any } = await allHash({
-      ns:     this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
-      charts: this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
-      info:   this.$store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } })
-    });
-
-    this.epinioInfo = hash.info;
+    this.epinioInfo = await this.$store.dispatch(`epinio/info`);
   },
 
   computed: {

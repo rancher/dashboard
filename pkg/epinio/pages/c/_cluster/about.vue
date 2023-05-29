@@ -1,6 +1,5 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
-import { getVersionInfo } from '@shell/utils/version';
 import { getVendor } from '@shell/config/private-label';
 import BackLink from '@shell/components/BackLink';
 import BackRoute from '@shell/mixins/back-link';
@@ -11,7 +10,9 @@ export default {
   mixins:     [BackRoute],
   async fetch() {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
-    this.version = getVersionInfo(this.$store);
+    const { version } = await this.$store.dispatch(`epinio/info`);
+
+    this.version = version;
   },
 
   data() {

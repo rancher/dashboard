@@ -1,5 +1,4 @@
 <script lang="ts">
-import { getVersionInfo } from '@shell/utils/version';
 import Vue from 'vue';
 import DashboardCard from '../../../components/dashboard/Cards.vue';
 import { createEpinioRoute } from '../../../utils/custom-routing';
@@ -18,6 +17,10 @@ export default Vue.extend<any, any, any, any>({
       this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.NAMESPACE }),
       this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE })
     ]);
+
+    const { version } = await this.$store.dispatch(`epinio/info`);
+
+    this.version = version;
   },
   data() {
     return {
@@ -54,7 +57,8 @@ export default Vue.extend<any, any, any, any>({
         }],
       colorStops: {
         0: '--info', 30: '--info', 70: '--info'
-      }
+      },
+      version: null
     };
   },
   created() {
@@ -132,11 +136,6 @@ export default Vue.extend<any, any, any, any>({
         servicesCatalog:   s,
       };
     },
-    version() {
-      const { displayVersion } = getVersionInfo(this.$store);
-
-      return displayVersion;
-    },
     apps() {
       const allApps = this.$store.getters['epinio/all'](EPINIO_TYPES.APP) as EpinioApplicationResource[];
 
@@ -164,7 +163,7 @@ export default Vue.extend<any, any, any, any>({
     <div class="head">
       <div class="head-title">
         <h1>{{ t('epinio.intro.welcome') }}</h1>
-        <span>{{ version }}</span>
+        <span v-if="version">{{ version }}</span>
       </div>
 
       <p class="head-subheader">
