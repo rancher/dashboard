@@ -172,22 +172,22 @@ export default {
 
   methods: {
     willSave() {
-      const { prometheusSpec } = this.value.prometheus;
-      const selector =
-        prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
+      // const { prometheusSpec } = this.value.prometheus;
+      // const selector =
+      //   prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
 
-      // This works for UI editor installation
-      // However, it doesn't work for yaml editor installation
-      // Global values later merged again in charts/install.vue addGlobalValuesTo()
-      // We still need to remove the global values from charts/install.vue addGlobalValuesTo()
-      if (
-        selector &&
-        isEmpty(selector.matchExpressions) &&
-        isEmpty(selector.matchLabels)
-      ) {
-        delete this.value.prometheus.prometheusSpec.storageSpec
-          .volumeClaimTemplate.spec.selector;
-      }
+      // // This works for UI editor installation
+      // // However, it doesn't work for yaml editor installation
+      // // Global values later merged again in charts/install.vue addGlobalValuesTo()
+      // // We still need to remove the global values from charts/install.vue addGlobalValuesTo()
+      // if (
+      //   selector &&
+      //   isEmpty(selector.matchExpressions) &&
+      //   isEmpty(selector.matchLabels)
+      // ) {
+      //   delete this.value.prometheus.prometheusSpec.storageSpec
+      //     .volumeClaimTemplate.spec.selector;
+      // }
     },
 
     mergeValue(value, defaultValue) {

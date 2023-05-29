@@ -178,8 +178,11 @@ export default {
         storageSpec['selector'] = { matchExpressions: [], matchLabels: {} };
       }
 
-      this.$set(storageSpec.selector, 'matchLabels', matchLabels);
-      this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
+      if (storageSpec?.selector && isEmpty(matchLabels) && isEmpty(matchExpressions)) {
+        delete storageSpec.selector;
+      } else {
+        this.$set(storageSpec, 'selector', { matchLabels, matchExpressions });
+      }
     },
   },
 };
