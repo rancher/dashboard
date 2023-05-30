@@ -71,7 +71,7 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     namespacedConfigurations() {
-      return (this.application.allConfigurations || [])
+      return (this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION) || [])
         .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace);
     },
 
