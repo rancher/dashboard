@@ -29,6 +29,7 @@ export default {
     CruResource,
   },
   data() {
+    const isClone = this.$route?.query?.mode === 'clone';
     let config = JSON.parse(JSON.stringify(this.$store.getters['macvlan/emptyForm']));
 
     if (this.value.spec) {
@@ -42,7 +43,7 @@ export default {
       };
     }
 
-    if (!config.spec.ranges) {
+    if (!config.spec.ranges || isClone) {
       config.spec.ranges = [];
     }
     if (!config.spec.routes) {
@@ -117,22 +118,6 @@ export default {
       });
 
       return out;
-    },
-    mastheadData() {
-      const {
-        creationTimestamp, parentNameOverride, parentLocationOverride, detailPageHeaderActionOverride
-      } = this;
-
-      return {
-        ...this.config,
-        creationTimestamp,
-        parentNameOverride,
-        parentLocationOverride,
-        detailPageHeaderActionOverride
-      };
-    },
-    creationTimestamp() {
-      return this.config?.metadata?.creationTimestamp;
     },
     fvExtraRules() {
       const ipv4RegExp = /^(((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))\.){3}((\d{1,2})|(1\d{2})|(2[0-4]\d)|(25[0-5]))$/;
@@ -272,7 +257,7 @@ export default {
         ranges, master, vlan, cidr
       } = this.config.spec;
 
-      if ((!ranges || ranges.length === 0) && this.hasDuplicateCidr(cidr)) {
+      if (this.isCreate && (!ranges || ranges.length === 0) && this.hasDuplicateCidr(cidr)) {
         errors.push(this.t('macvlan.ipRange.formInfoExist', {
           master,
           vlan,

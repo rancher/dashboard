@@ -5,11 +5,10 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { ROWS_PER_PAGE } from '@shell/store/prefs';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { MACVLAN_PRODUCT_NAME, MACVLAN_CHARTS } from '../config/macvlan-types';
-import InstallView from '../components/InstallView.vue';
 
 export default {
   name:       'ListMacvlan',
-  components: { ResourceTable, InstallView },
+  components: { ResourceTable },
   mixins:     [ResourceFetch],
   props:      {
     schema: {
@@ -120,20 +119,15 @@ export default {
 </script>
 <template>
   <div>
-    <InstallView
-      v-if="!existing"
+    <ResourceTable
+      v-bind="$attrs"
+      :headers="headers"
+      :rows="rows"
+      :groupable="false"
+      :schema="schema"
+      key-field="_key"
+      :loading="loading"
+      v-on="$listeners"
     />
-    <div v-else>
-      <ResourceTable
-        v-bind="$attrs"
-        :headers="headers"
-        :rows="rows"
-        :groupable="false"
-        :schema="schema"
-        key-field="_key"
-        :loading="loading"
-        v-on="$listeners"
-      />
-    </div>
   </div>
 </template>

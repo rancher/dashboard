@@ -94,28 +94,11 @@ export default {
         };
       });
     },
-    displayMacvlanIp(anno) {
-      const networkStatusStr = anno?.['k8s.v1.cni.cncf.io/networks-status'];
+    displayMacvlanIp(labels = {}) {
+      const type = labels['macvlan.panda.io/macvlanIpType'];
+      const ip = labels['macvlan.pandaria.cattle.io/selectedIp'];
 
-      if (!networkStatusStr) {
-        return '';
-      }
-      let networkStatus;
-
-      try {
-        networkStatus = JSON.parse(networkStatusStr);
-      } catch (err) {
-        return '';
-      }
-      if (networkStatus) {
-        const macvlan = networkStatus.find(n => n.interface === 'eth1');
-        const labels = this.labels;
-        const type = labels && labels['macvlan.panda.io/macvlanIpType'];
-
-        return `${ (macvlan && macvlan.ips && macvlan.ips[0]) || '' }${ type ? ` (${ type })` : '' }`;
-      }
-
-      return '';
+      return `${ ip || '' }${ type ? ` (${ type })` : '' }`;
     },
     async getPods(name) {
       let pods = await this.$store.dispatch('macvlan/loadMacvlanPods', {
@@ -129,12 +112,12 @@ export default {
       let more = false;
       let morePods = [];
 
-      pods = Array.from(pods).filter(({ metadata }) => metadata && metadata.annotations && this.displayMacvlanIp(metadata.annotations)
+      pods = Array.from(pods).filter(({ metadata }) => metadata && metadata.annotations && this.displayMacvlanIp(metadata.labels)
       ).map(({ metadata }) => {
         return {
           namespace: metadata.namespace,
           podName:   metadata.name,
-          ip:        this.displayMacvlanIp(metadata.annotations)
+          ip:        this.displayMacvlanIp(metadata.labels)
         };
       });
 
