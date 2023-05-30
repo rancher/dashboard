@@ -97,8 +97,9 @@ export default {
 
       this.allSelectorTerms.forEach((term) => {
         if (term.weight) {
-          const neu = { weight: term.weight, preference: term };
+          const neu = { weight: term.weight, preference: { ...term } };
 
+          delete neu.preference.weight;
           preferredDuringSchedulingIgnoredDuringExecution.push(neu);
         } else {
           requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.push(term);
