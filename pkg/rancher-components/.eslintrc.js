@@ -9,7 +9,7 @@ module.exports = {
     'vue/no-mutating-props':                    'warn',
     '@typescript-eslint/no-empty-function':     ['error', { allow: ['arrowFunctions'] }],
     '@typescript-eslint/no-non-null-assertion': 'off',
-    'vue/multi-word-component-names':           'off', // As we want to define basic components and we use no prefixes
+    'vue/multi-word-component-names':           'off' // As we want to define basic components and we use no prefixes
   },
   settings:  { 'import/ignore': ['vue'] },
   overrides: [

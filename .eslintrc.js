@@ -15,131 +15,26 @@ module.exports = {
     'no-plusplus':              'off',
     'no-useless-escape':        'off',
     'nuxt/no-cjs-in-config':    'off',
-    'semi-spacing':             'off',
-    'space-in-parens':          'off',
     strict:                     'off',
     'unicorn/no-new-buffer':    'off',
     'vue/no-unused-components': 'warn',
-    'wrap-iife':                'off',
+    curly:                      'warn',
+    eqeqeq:                     'warn',
+    'implicit-arrow-linebreak': 'warn',
+    'no-caller':                'warn',
+    'no-cond-assign':           ['warn', 'except-parens'],
+    'no-console':               'warn',
+    'no-debugger':              'warn',
+    'no-eq-null':               'warn',
+    'no-eval':                  'warn',
+    'no-undef':                 'warn',
+    'no-unused-vars':           'warn',
 
-    'array-bracket-spacing':           'warn',
-    'arrow-parens':                    'warn',
-    'arrow-spacing':                   ['warn', { before: true, after: true }],
-    'block-spacing':                   ['warn', 'always'],
-    'brace-style':                     ['warn', '1tbs'],
-    'comma-dangle':                    ['warn', 'only-multiline'],
-    'comma-spacing':                   'warn',
-    curly:                             'warn',
-    eqeqeq:                            'warn',
-    'func-call-spacing':               ['warn', 'never'],
-    'implicit-arrow-linebreak':        'warn',
-    indent:                            ['warn', 2],
-    'keyword-spacing':                 'warn',
-    'lines-between-class-members':     ['warn', 'always', { exceptAfterSingleLine: true }],
-    'multiline-ternary':               ['warn', 'never'],
-    'newline-per-chained-call':        ['warn', { ignoreChainWithDepth: 4 }],
-    'no-caller':                       'warn',
-    'no-cond-assign':                  ['warn', 'except-parens'],
-    'no-console':                      'warn',
-    'no-debugger':                     'warn',
-    'no-eq-null':                      'warn',
-    'no-eval':                         'warn',
-    'no-trailing-spaces':              'warn',
-    'no-undef':                        'warn',
-    'no-unused-vars':                  'warn',
     // Allow overload type definitions
     'no-redeclare':                    'off',
     '@typescript-eslint/no-redeclare': ['error'],
-    'no-whitespace-before-property':   'warn',
-    'object-curly-spacing':            ['warn', 'always'],
-    'object-property-newline':         'warn',
-    'object-shorthand':                'warn',
-    'padded-blocks':                   ['warn', 'never'],
     'prefer-arrow-callback':           'warn',
     'prefer-template':                 'warn',
-    'quote-props':                     'warn',
-    'rest-spread-spacing':             'warn',
-    semi:                              ['warn', 'always'],
-    'space-before-function-paren':     ['warn', 'never'],
-    'space-infix-ops':                 'warn',
-    'spaced-comment':                  'warn',
-    'switch-colon-spacing':            'warn',
-    'template-curly-spacing':          ['warn', 'always'],
-    'yield-star-spacing':              ['warn', 'both'],
-
-    'key-spacing': ['warn', {
-      align: {
-        beforeColon: false,
-        afterColon:  true,
-        on:          'value',
-        mode:        'strict'
-      },
-      multiLine: {
-        beforeColon: false,
-        afterColon:  true
-      },
-    }],
-
-    'object-curly-newline': ['warn', {
-      ObjectExpression: {
-        multiline:     true,
-        minProperties: 3
-      },
-      ObjectPattern: {
-        multiline:     true,
-        minProperties: 4
-      },
-      ImportDeclaration: {
-        multiline:     true,
-        minProperties: 5
-      },
-      ExportDeclaration: {
-        multiline:     true,
-        minProperties: 3
-      }
-    }],
-
-    'padding-line-between-statements': [
-      'warn',
-      {
-        blankLine: 'always',
-        prev:      '*',
-        next:      'return',
-      },
-      {
-        blankLine: 'always',
-        prev:      'function',
-        next:      'function',
-      },
-      // This configuration would require blank lines after every sequence of variable declarations
-      {
-        blankLine: 'always',
-        prev:      ['const', 'let', 'var'],
-        next:      '*'
-      },
-      {
-        blankLine: 'any',
-        prev:      ['const', 'let', 'var'],
-        next:      ['const', 'let', 'var']
-      }
-    ],
-
-    quotes: [
-      'warn',
-      'single',
-      {
-        avoidEscape:           true,
-        allowTemplateLiterals: true
-      },
-    ],
-
-    'space-unary-ops': [
-      'warn',
-      {
-        words:    true,
-        nonwords: false,
-      }
-    ],
 
     // FIXME: The following is disabled due to new linter and old JS code. These should all be enabled and underlying issues fixed
     'vue/order-in-components':           'off',
@@ -176,12 +71,6 @@ module.exports = {
       }
     },
     {
-      files:   ['**/__tests__/*.{js,ts}'],
-      // Unnecessary Jest lint rules from full recommendation
-      rules:   { 'jest/prefer-expect-assertions': 'off' },
-      extends: ['plugin:jest/all']
-    },
-    {
       files: ['docusaurus/**/*.{js,ts}'],
       rules: { 'no-use-before-define': 'off' },
     },
@@ -215,19 +104,6 @@ module.exports = {
       }
     },
 
-    // Tests exceptions due mocks
-    {
-      files: [
-        '**/*.test.{js,ts}',
-        '**/__tests__/**/*.{js,ts}'
-      ],
-      rules: {
-        '@typescript-eslint/no-empty-function':              'off',
-        '@typescript-eslint/no-non-null-assertion':          'off',
-        '@typescript-eslint/explicit-module-boundary-types': 'off',
-      }
-    },
-
     // Legacies
     {
       files: [
@@ -245,9 +121,7 @@ module.exports = {
       files: ['**/*.{js,ts,vue}'],
       rules: {
         // Errors
-        '@typescript-eslint/no-empty-function': 'off', // Opinionated?
-        '@typescript-eslint/no-this-alias':     'off', // FIXME: This is seriously an issue
-        '@typescript-eslint/ban-types':         'off', // This does not seems to work well with Vue2
+        '@typescript-eslint/no-this-alias': 'off', // FIXME: This is seriously an issue
 
         // Warnings
         '@typescript-eslint/no-explicit-any': 'off', // FIXME: To be handled after converting everything into TS
@@ -278,15 +152,6 @@ module.exports = {
     // Cypress PO
     {
       files: ['**/po/**/*.{js,ts,vue}'],
-      rules: {
-        // Warnings
-        '@typescript-eslint/explicit-module-boundary-types': 'off',
-      }
-    },
-
-    // bug?
-    {
-      files: ['**/*.{js,vue}'],
       rules: {
         // Warnings
         '@typescript-eslint/explicit-module-boundary-types': 'off',
