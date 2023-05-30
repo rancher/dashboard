@@ -73,14 +73,21 @@ const etcdBackupPromptRke1 = (ctx, data) => {
 
   const t = ctx.rootGetters['i18n/t'];
   const currentCluster = ctx.rootGetters['management/byId'](MANAGEMENT.CLUSTER, data.clusterId);
-  const state = data.state === 'failed' ? 'fail' : 'success';
+  const state = data.state === 'failed' || data.state === 'error' ? 'fail' : 'success';
   const title = `${ t(`cluster.snapshot.${ state }.title`) }`;
   const message = t(`cluster.snapshot.${ state }.message`, { name: currentCluster.nameDisplay });
 
-  ctx.dispatch(`growl/${ state === 'fail' ? 'fromError' : 'success' }`, {
-    title,
-    message,
-  }, { root: true });
+  if (state === 'fail') {
+    ctx.dispatch('growl/fromError', {
+      title,
+      err: message,
+    }, { root: true });
+  } else {
+    ctx.dispatch('growl/success', {
+      title,
+      message,
+    }, { root: true });
+  }
 };
 
 const etcdBackupPromptRke2 = (ctx, data) => {
@@ -871,7 +878,7 @@ const defaultActions = {
       }
     }
 
-    if ( type === 'etcdBackup' && (data.state === 'failed' || data.state === 'active')) {
+    if ( type === 'etcdBackup' && (data.state === 'failed' || data.state === 'error' || data.state === 'active')) {
       etcdBackupPromptRke1(ctx, data);
     }
   },
