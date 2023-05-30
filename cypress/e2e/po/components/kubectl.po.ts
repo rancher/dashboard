@@ -3,7 +3,7 @@ import jsyaml from 'js-yaml';
 
 export default class Kubectl extends ComponentPo {
   constructor() {
-    super('[data-testid="windowmanager"]');
+    super('#windowmanager');
   }
 
   readonly kubeCommand: string = 'kubectl'
