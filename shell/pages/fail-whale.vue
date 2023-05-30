@@ -35,7 +35,7 @@ export default {
     },
 
     displayError() {
-      return stringify(this.error);
+      return this.error?.data ? this.error.data : stringify(this.error);
     },
   },
 
