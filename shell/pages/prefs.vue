@@ -73,6 +73,8 @@ export default {
       const currentDate = this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
         return now.format(value);
       });
+
+      // Check for duplication of date (date with same digit in month and day) in options list eg. (3/3/2023)
       const isDuplicate = currentDate.some((item, idx) => {
         return currentDate.indexOf(item) !== idx;
       });
