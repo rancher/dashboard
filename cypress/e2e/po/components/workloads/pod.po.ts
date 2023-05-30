@@ -11,12 +11,12 @@ export default class PodPo extends CreateEditViewPo {
     return new NameNsDescription(this.self());
   }
 
-  createPodViaKubectl(podYaml: { [key: string]: any }) {
+  createPodViaKubectl(podYaml: { [key: string]: any }, wait = 6000) {
     const terminal = new Kubectl();
 
     terminal.openTerminal();
 
     // No console request for this one
-    terminal.executeMultilineCommand(podYaml);
+    terminal.executeMultilineCommand(podYaml, wait);
   }
 }
