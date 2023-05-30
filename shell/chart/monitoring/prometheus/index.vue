@@ -154,7 +154,6 @@ export default {
             spec: {
               accessModes: ['ReadWriteOnce'],
               resources:   { requests: { storage: '50Gi' } },
-              selector:    { matchExpressions: [], matchLabels: {} },
             }
           }
         );
