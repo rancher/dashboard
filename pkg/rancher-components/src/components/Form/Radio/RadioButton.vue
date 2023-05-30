@@ -17,7 +17,7 @@ export default Vue.extend({
      */
     val: {
       required:  true,
-      validator: x => true
+      validator: () => true
     },
 
     /**
@@ -25,7 +25,7 @@ export default Vue.extend({
      */
     value: {
       required:  true,
-      validator: x => true
+      validator: () => true
     },
 
     /**
