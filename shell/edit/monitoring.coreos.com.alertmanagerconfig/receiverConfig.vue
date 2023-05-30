@@ -122,6 +122,8 @@ export default {
      */
     const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
 
+    // debugger;
+
     if (!receiverSchema) {
       throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");
     }

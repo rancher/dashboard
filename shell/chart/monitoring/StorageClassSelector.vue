@@ -2,7 +2,6 @@
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 
 export default {
-  name:       'StorageClassSelector',
   components: { LabeledSelect },
   props:      {
     options: {

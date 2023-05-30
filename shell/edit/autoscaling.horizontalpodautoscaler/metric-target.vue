@@ -72,6 +72,7 @@ export default {
 
   watch: {
     resourceName(newRn, _oldRn) {
+      // debugger;
       const {
         value: { type: metricType },
         targetTypes,
@@ -92,6 +93,7 @@ export default {
     },
 
     'value.type'(targetType, oldType) {
+      // debugger;
       const { targetTypes, resourceName } = this;
       const toDelete = findBy(targetTypes, { value: oldType });
       const nue = findBy(targetTypes, { value: targetType });

@@ -239,12 +239,10 @@ export default {
         v-for="tab in sortedTabs"
         :id="tab.name"
         :key="tab.name"
-        :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
         role="presentation"
       >
         <a
-          :data-testid="`btn-${tab.name}`"
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
           role="tab"

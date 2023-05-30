@@ -307,7 +307,6 @@ export default {
 <template>
   <div
     id="windowmanager"
-    data-testid="windowmanager"
     class="windowmanager"
     :class="{[pinClass]: true}"
   >

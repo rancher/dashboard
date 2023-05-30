@@ -72,7 +72,7 @@ export default {
         let matchExpressions;
 
         if (selector && selector?.matchExpressions) {
-          matchExpressions = convert((selector?.matchLabels || {}), selector?.matchExpressions);
+          matchExpressions = convert((selector?.matchLabels || {}), selector.matchExpressions);
 
           return matchExpressions;
         } else {
@@ -178,11 +178,8 @@ export default {
         storageSpec['selector'] = { matchExpressions: [], matchLabels: {} };
       }
 
-      if (storageSpec?.selector && isEmpty(matchLabels) && isEmpty(matchExpressions)) {
-        delete storageSpec.selector;
-      } else {
-        this.$set(storageSpec, 'selector', { matchLabels, matchExpressions });
-      }
+      this.$set(storageSpec.selector, 'matchLabels', matchLabels);
+      this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
     },
   },
 };
@@ -314,7 +311,6 @@ export default {
         <div class="col span-6">
           <Checkbox
             v-model="enablePersistentStorage"
-            data-testid="checkbox-chart-enable-persistent-storage"
             :label="t('monitoring.prometheus.storage.label')"
           />
         </div>
@@ -329,10 +325,7 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <div
-              v-if="showStorageClasses"
-              data-testid="select-chart-prometheus-storage-class"
-            >
+            <div v-if="showStorageClasses">
               <StorageClassSelector
                 :mode="mode"
                 :options="storageClasses"

@@ -37,7 +37,6 @@ import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
-// import { isEmpty } from 'lodash';
 
 const VALUES_STATE = {
   FORM: 'FORM',
@@ -1030,19 +1029,6 @@ export default {
         setIfNotSet(cattle, 'windows.enabled', true);
       }
 
-      // // Global prometheus storage values get added to the values
-      // // Remove the storage spec selector if it is empty
-      // const selector = values.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
-
-      // if (
-      //   selector &&
-      //   isEmpty(selector?.matchExpressions) &&
-      //   isEmpty(selector?.matchLabels)
-      // ) {
-      //   delete values.prometheus.prometheusSpec.storageSpec
-      //     .volumeClaimTemplate.spec.selector;
-      // }
-
       return values;
 
       function setIfNotSet(obj, key, val) {
@@ -1134,7 +1120,6 @@ export default {
         Refer to the developer docs at docs/developer/helm-chart-apps.md
         for details on what values are injected and where they come from.
       */
-
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
@@ -1525,7 +1510,6 @@ export default {
         <div class="step__values__controls">
           <ButtonGroup
             v-model="preFormYamlOption"
-            data-testid="btn-group-options-view"
             :options="formYamlOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
