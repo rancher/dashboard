@@ -152,7 +152,7 @@ export default Vue.extend({
      */
     clickNext(direction: number): void {
       const opts = this.normalizedOptions;
-      const selected = opts.find(x => x.value === this.value);
+      const selected = opts.find((x) => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
 
       if (newIndex >= opts.length) {

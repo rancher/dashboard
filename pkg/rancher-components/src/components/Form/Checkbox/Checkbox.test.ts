@@ -1,7 +1,7 @@
 import { shallowMount, Wrapper } from '@vue/test-utils';
 import { Checkbox } from './index';
 
-describe('Checkbox.vue', () => {
+describe('checkbox.vue', () => {
   const event = {
     target:          { tagName: 'input', href: null },
     stopPropagation: () => { },
@@ -63,6 +63,6 @@ describe('Checkbox.vue', () => {
     wrapper.vm.clicked(event);
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted().input?.[0][0]).toBe(null);
+    expect(wrapper.emitted().input?.[0][0]).toBeNull();
   });
 });

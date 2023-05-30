@@ -30,9 +30,9 @@ const CLASS = {
  * Manage a list of strings
  */
 export default Vue.extend({
-  components: { LabeledInput },
 
-  name: 'StringList',
+  name:       'StringList',
+  components: { LabeledInput },
 
   props: {
     /**
@@ -100,8 +100,8 @@ export default Vue.extend({
      */
     errorMessagesArray(): string[] {
       return (Object.keys(this.errors) as Error[])
-        .filter(f => this.errors[f] && this.errorMessages[f])
-        .map(k => this.errorMessages[k]);
+        .filter((f) => this.errors[f] && this.errorMessages[f])
+        .map((k) => this.errorMessages[k]);
     },
   },
 
@@ -364,7 +364,7 @@ export default Vue.extend({
      * Remove an item from items list
      */
     deleteItem(item?: string) {
-      const items = this.items.filter(f => f !== item);
+      const items = this.items.filter((f) => f !== item);
 
       this.updateItems(items);
     },
