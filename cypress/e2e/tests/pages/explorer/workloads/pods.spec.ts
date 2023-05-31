@@ -15,7 +15,6 @@ describe('Cluster Explorer', () => {
         const { name: origPodName, namespace } = createPodBluerint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
-
         beforeEach(() => {
           cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }`).as('origPod');
           cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }`).as('clonedPod');
@@ -23,6 +22,7 @@ describe('Cluster Explorer', () => {
           workloadsPodPage.goTo();
 
           const createPodPo = new PodPo();
+
           createPodPo.createPodViaKubectl(createPodBluerint);
         });
 
