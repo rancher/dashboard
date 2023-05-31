@@ -1,4 +1,4 @@
-import { format } from '@pkg/utils/version';
+import { format } from '../../utils/version';
 import { SCHEMA } from '@shell/config/types';
 import { handleSpoofedRequest } from '@shell/plugins/dashboard-store/actions';
 import { classify } from '@shell/plugins/dashboard-store/classify';
