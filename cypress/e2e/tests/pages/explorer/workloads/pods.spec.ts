@@ -39,7 +39,7 @@ describe('Cluster Explorer', () => {
               expect(response?.statusCode).to.eq(200);
               origPodSpec = response?.body.spec;
               expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBluerint.spec.containers[0].resources);
-            }).wait(10000);
+            });
 
           // Each pod need a unique name
           podPo.nameNsDescription().name().set(clonePodName);
