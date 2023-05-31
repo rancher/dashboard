@@ -30,7 +30,7 @@ const routes: RouteConfig[] = [{
   path:      `/:product/application`,
   component: ListEpinio,
 }, {
-  name:      `${ EPINIO_PRODUCT_NAME }-about`,
+  name:      `${ EPINIO_PRODUCT_NAME }-c-cluster-about`,
   path:      `/:product/c/:cluster/about`,
   component: AboutEpinio,
 }, {
