@@ -1,12 +1,13 @@
 import { haveV2Monitoring } from '@shell/utils/monitoring';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
-import { compare } from '@shell/utils/version';
 import { CATALOG } from '@shell/config/types';
 
-const MONITORING_VERSION_NEW_URL_PATTERN = '102.0.0+up40.1.2';
+// these two versions of monitoring included a bug fix attempt that required the local cluster to use a different url
+// the solution going forward doesn't require this, see https://github.com/rancher/dashboard/issues/8885
+const MONITORING_VERSION_ALT_URL = ['100.2.0+up40.1.2', '102.0.0+up40.1.2'];
 
 export function getClusterPrefix(monitoringVersion, clusterId) {
-  if (compare(monitoringVersion, MONITORING_VERSION_NEW_URL_PATTERN) >= 0) {
+  if (MONITORING_VERSION_ALT_URL.includes(monitoringVersion)) {
     return `/k8s/clusters/${ clusterId }`;
   }
 
