@@ -146,11 +146,11 @@ describe('Extensions page', () => {
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
 
-    // // let's check the extension reload banner and reload the page
+    // let's check the extension reload banner and reload the page
     extensionsPo.extensionReloadBanner().should('be.visible');
     extensionsPo.extensionReloadClick();
 
-    // // make sure extension card is in the available tab
+    // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.extensionCardClick(extensionName);
     extensionsPo.extensionDetailsTitle().should('contain', extensionName);
