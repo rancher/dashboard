@@ -43,20 +43,24 @@ export const rke1Supports = [
 // Map a credential driver name to a component name
 // e.g. ec2 and eks both use the 'aws' driver to share the same pool of creds.
 const driverMap = {
-  aks:                             'azure',
-  amazonec2:                       'aws',
-  amazoneks:                       'aws',
-  amazonelasticcontainerservice:   'aws',
-  azurekubernetesservice:          'azure',
-  google:                          'gcp',
-  googlekubernetesengine:          'gcp',
-  huaweicontainercloudengine:      'huawei',
-  linodekubernetesengine:          'linode',
-  oci:                             'oracle',
-  opentelekomcloudcontainerengine: 'otc',
-  oraclecontainerengine:           'oracle',
+  aks:                           'azure',
+  amazonec2:                     'aws',
+  amazoneks:                     'aws',
+  amazonelasticcontainerservice: 'aws',
+  azurekubernetesservice:        'azure',
+  google:                        'gcp',
+  googlekubernetesengine:        'gcp',
   // Added by Verrazzano Start
-  ociocne:                         'oracle',
+  //  huaweicontainercloudengine:      'huawei',
+  //  linodekubernetesengine:          'linode',
+  // Added by Verrazzano End
+  oci:                           'oracle',
+  // Added by Verrazzano Start
+  // opentelekomcloudcontainerengine: 'otc',
+  // Added by Verrazzano End
+  oraclecontainerengine:         'oracle',
+  // Added by Verrazzano Start
+  ociocne:                       'oracle',
   // Added by Verrazzano End
 };
 
