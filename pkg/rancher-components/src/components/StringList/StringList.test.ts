@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-hooks */
 import { mount, Wrapper } from '@vue/test-utils';
 import { StringList } from './index';
 
