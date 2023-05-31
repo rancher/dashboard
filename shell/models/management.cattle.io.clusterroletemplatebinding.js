@@ -37,13 +37,17 @@ export default class CRTB extends HybridModel {
     }, { root: true });
   }
 
+  get syncPrincipal() {
+    return this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, this.principalId);
+  }
+
   get principalId() {
     // We've either set it ourselves or it's comes from native properties
     return this.principalName || this.userPrincipalName || this.groupPrincipalName;
   }
 
   get nameDisplay() {
-    return this.user?.nameDisplay || this.userName || this.principalId;
+    return this.user?.nameDisplay || this.userName || this.syncPrincipal?.nameDisplay || this.principalId;
   }
 
   get roleDisplay() {

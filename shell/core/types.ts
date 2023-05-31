@@ -1,5 +1,5 @@
 import { ProductFunction } from './plugin';
-import { RouteConfig } from 'vue-router';
+import { RouteConfig, Location } from 'vue-router';
 
 // package.json metadata
 export interface PackageMetadata {
@@ -214,13 +214,17 @@ export interface ProductOptions {
   weight?: number;
 
   /**
+   * The route that the product will lead to if click on in navigation.
+   */
+  to?: Location;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // ifHaveVerb: string | RegExp;
   // removable: string;
   // showWorkspaceSwitcher: boolean;
   // supportRoute: string;
-  // to: string;
   // typeStoreMap: string;
 }
 
@@ -231,7 +235,12 @@ export interface HeaderOptions {
   name?: string;
 
   /**
-   * A translation key where the resulting string will show in the table column
+   * A string that will show in the table column as a header
+   */
+  label?: string;
+
+  /**
+   * A translation key where the resulting string will show in the table column as a header
    */
   labelKey?: string;
 
@@ -243,12 +252,13 @@ export interface HeaderOptions {
   /**
    * A string which represents the path to access the value from the row object which we'll use to sort i.e. `row.meta.value`
    */
-  sort?: string;
+  sort?: string | string[];
 
   /**
-   * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`
+   * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
+   * It can be false to disable searching on this field
    */
-  search?: string;
+  search?: string | boolean;
 
   /**
    * Number of pixels the column should be in the table
@@ -369,6 +379,14 @@ export interface DSLReturnType {
   product: (options: ProductOptions) => void;
 
   /**
+   * Create and label a group. The group will show up in navigation
+   * @param groupNane Name of the group
+   * @param label Label in navigation
+   * @returns {@link void}
+   */
+  mapGroup: (groupName: string, label: string) => void;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // componentForType: (type: string, replacementType: string)
@@ -376,7 +394,7 @@ export interface DSLReturnType {
   // hideBulkActions: (type: string, field)
   // ignoreGroup: (regexOrString)
   // ignoreType: (regexOrString)
-  // mapGroup: (match, replace)
+  //
   // mapType: (match, replace)
   // moveType: (match, group)
   // setGroupDefaultType: (input, defaultType)

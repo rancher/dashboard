@@ -132,13 +132,29 @@ const sidebars = {
         'extensions/publishing',
         {
           type:  'category',
-          label: 'Usecases/Examples',
+          label: 'Use cases/Examples',
           link:  {
             type: 'doc',
             id:   'extensions/usecases/overview',
           },
           items: [
             'extensions/usecases/top-level-product',
+            {
+              type:  'category',
+              label: 'Node Driver',
+              link:  {
+                type: 'doc',
+                id:   'extensions/usecases/node-driver/overview',
+              },
+              items: [
+                'extensions/usecases/node-driver/about-drivers',
+                'extensions/usecases/node-driver/cloud-credential',
+                'extensions/usecases/node-driver/machine-config',
+                'extensions/usecases/node-driver/advanced',
+                'extensions/usecases/node-driver/proxying',
+                'extensions/usecases/node-driver/about-example',
+              ]
+            }
           ]
         }
       ]
