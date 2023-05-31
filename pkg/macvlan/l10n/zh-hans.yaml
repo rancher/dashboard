@@ -63,6 +63,7 @@ macvlan:
     nameFormatError: 项目名称由字母、数字、和._-组成，长度不超过 62 且至少有两个字符并以字母或数字开头
     nameReq: 名称不能为空
     placeholder: 例如：testvlan
+    tooShort: '"{key}" 的长度不能小于{min}个字符'
   project:
     label: 项目
   route:

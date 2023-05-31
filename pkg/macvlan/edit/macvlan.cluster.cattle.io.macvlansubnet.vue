@@ -76,7 +76,7 @@ export default {
           path: 'spec.gateway', rules: ['gatewayVlidate'], rootObject: config
         },
         {
-          path: 'spec.ipDelayReuse', rules: ['ipDelayReuseVlidate'], rootObject: config
+          path: 'ipDelayReuse', rules: ['ipDelayReuseVlidate'], rootObject: this
         },
         {
           path: 'spec.ranges', rules: ['ipRangeVlidate'], rootObject: config
@@ -126,7 +126,11 @@ export default {
       const nameChar = (value) => {
         const errors = [];
 
-        validateKubernetesName(value, this.t('macvlan.name.label'), this.$store.getters, { minLength: 0 }, errors);
+        if (value.length < 2) {
+          errors.push(this.t('macvlan.name.tooShort', { key: this.t('macvlan.name.label'), min: 2 }));
+        } else {
+          validateKubernetesName(value, this.t('macvlan.name.label'), this.$store.getters, { minLength: 2 }, errors);
+        }
 
         if (errors.length) {
           return errors[0];
@@ -158,7 +162,10 @@ export default {
         }
       };
       const ipDelayReuseVlidate = (value) => {
-        if (value < 1 || value > 3600 || (value > 1 && value % 1 !== 0)) {
+        if (!value) {
+          return;
+        }
+        if (value < 1 || value > 3600 || value % 1 !== 0) {
           return this.t('macvlan.ipReuse.placeholder');
         }
       };
@@ -239,6 +246,10 @@ export default {
 
     ipDelayReuse: {
       get() {
+        if (!this.config.spec.ipDelayReuse) {
+          return '';
+        }
+
         return this.config.spec.ipDelayReuse / 60;
       },
       set(neu) {
@@ -485,7 +496,7 @@ export default {
                 type="number"
                 min="1"
                 max="3600"
-                :rules="fvGetAndReportPathRules('spec.ipDelayReuse')"
+                :rules="fvGetAndReportPathRules('ipDelayReuse')"
               />
             </div>
           </div>

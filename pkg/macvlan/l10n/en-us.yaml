@@ -63,6 +63,7 @@ macvlan:
     nameFormatError: "name consists of alphanumeric and ._-, not more than 62 characters in length and beginning with a letter or number"
     nameReq: "name cannot be empty"
     placeholder: e.g. testvlan
+    tooShort: '"{key}" cannot be shorter than {min} characters'
   project:
     label: Project
   route:
