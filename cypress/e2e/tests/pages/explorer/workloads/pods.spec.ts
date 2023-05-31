@@ -48,7 +48,7 @@ describe('Cluster Explorer', () => {
 
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
-          clonedPodPage.goTo();
+          clonedPodPage.goTo().wait(10000);
 
           cy.wait('@clonedPod')
             .then(({ response }) => {
