@@ -1,3 +1,4 @@
+import { format } from '@pkg/utils/version';
 import { SCHEMA } from '@shell/config/types';
 import { handleSpoofedRequest } from '@shell/plugins/dashboard-store/actions';
 import { classify } from '@shell/plugins/dashboard-store/classify';
@@ -289,7 +290,12 @@ export default {
       return storedInfo;
     }
 
-    const info = await dispatch('request', { opt: { url: `/api/v1/info` } });
+    const response = await dispatch('request', { opt: { url: `/api/v1/info` } });
+
+    const info = {
+      ...response,
+      version: format(response.version)
+    };
 
     commit('info', info);
 

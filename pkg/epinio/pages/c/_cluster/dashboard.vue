@@ -18,9 +18,9 @@ export default Vue.extend<any, any, any, any>({
       this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE })
     ]);
 
-    const { version } = await this.$store.dispatch(`epinio/info`);
+    const { version } = await this.$store.dispatch('epinio/info');
 
-    this.version = version;
+    this.version = version.label;
   },
   data() {
     return {
