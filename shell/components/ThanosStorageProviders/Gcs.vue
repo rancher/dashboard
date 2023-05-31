@@ -11,6 +11,14 @@ export const answers = {
 export default {
   mixins: [Provider],
 
+  props: {
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
+      required: true,
+    },
+  },
+
   data() {
     return {
       answers,
@@ -33,6 +41,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.gcs.bucketName.label')"
           :placeholder="t('globalMonitoringPage.store.gcs.bucketName.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.bucket')"
         />
       </div>
     </div>
@@ -45,6 +54,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.gcs.serviceAccount.label')"
           :placeholder="t('globalMonitoringPage.store.gcs.serviceAccount.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.service_account')"
         />
         <FileSelector
           class="btn btn-sm bg-primary mt-10"

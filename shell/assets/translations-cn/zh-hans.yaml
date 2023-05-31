@@ -7808,6 +7808,10 @@ globalMonitoringPage:
   enableActionLabel: 启用
   globalMonitoringClusterUnavailable: 集群 {clusterName} 不可用。
   objectStorageWarning: 每个集群中的 Thanos sidecar 都需要对象存储的密钥。所以这些集群的管理员也可以在集群的系统项目里看到你所配置的存储的密钥。
+  objectStorageDoc: 
+    more: 如需更多配置参数可参考
+    doc: Thanos 文档
+    setting: 。需通过“编辑 YAML”选项进行配置。
   nodeSelector:
     addSelectorLabel: 添加选择器
     helpText: 选择要运行 {component} 工作负载的节点。

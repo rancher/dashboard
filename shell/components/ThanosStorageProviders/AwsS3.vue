@@ -12,6 +12,14 @@ export const answers = {
 export default {
   mixins: [Provider],
 
+  props: {
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
+      required: true,
+    },
+  },
+
   data() {
     return {
       answers,
@@ -32,6 +40,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.s3.bucketName.label')"
           :placeholder="t('globalMonitoringPage.store.s3.bucketName.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.bucket')"
         />
       </div>
       <div class="col span-6">
@@ -41,6 +50,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.s3.endpoint.label')"
           :placeholder="t('globalMonitoringPage.store.s3.endpoint.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.endpoint')"
         />
       </div>
     </div>
@@ -52,6 +62,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.s3.accessKey.label')"
           :placeholder="t('globalMonitoringPage.store.s3.accessKey.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.access_key')"
         />
       </div>
       <div class="col span-6">
@@ -61,6 +72,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.s3.secretKey.label')"
           :placeholder="t('globalMonitoringPage.store.s3.secretKey.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.secret_key')"
         />
       </div>
     </div>

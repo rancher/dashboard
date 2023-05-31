@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { Banner } from '@components/Banner';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
-import { MANAGEMENT, NODE } from '@shell/config/types';
+import { MANAGEMENT, NODE, CAPI } from '@shell/config/types';
 import { sortBy } from '@shell/utils/sort';
 import { difference } from 'lodash';
 
@@ -37,28 +37,29 @@ export default {
   },
 
   async fetch() {
-    this.originClusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
+    this.originClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
 
     await this.initCluster();
   },
 
   data() {
     return {
-      originClusters:     [],
-      otherClusterStores: [],
-      clusters:           [],
+      originClusters: [],
+      clusters:       [],
+      query:          this.value?.thanos?.query || {},
     };
   },
 
   methods: {
     async initCluster() {
       const nodes = await this.$store.dispatch('rancher/findAll', { type: NODE }, { root: true });
-      const enabledClustersBySetting = this.monitoringSettings.enabledClusters || [];
+      const enabledClustersBySetting = this.query.enabledClusterStores || [];
       const out = [];
-      const installedClusterId = this.monitoringSettings.clusterId;
+      const installedClusterId = this.value.global.clusterId;
       const installedCluster = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, installedClusterId || 'local');
+      const mgmtClusters = this.originClusters.filter(c => c.stateDisplay === 'Active' || c.mgmtClusterId === installedCluster.id).map(c => c.mgmt);
 
-      this.originClusters.filter(c => c.metadata.state.name === 'active' || c.id === installedCluster.id).forEach((cluster) => {
+      mgmtClusters.filter(c => c.metadata.state.name === 'active' || c.id === installedCluster.id).forEach((cluster) => {
         const obj = { ...cluster };
         const node = nodes.find((node) => {
           return node.id.indexOf(cluster.id) === 0;
@@ -86,39 +87,36 @@ export default {
     },
     initOtherClusterStores() {
       let out = [];
-      const stores = this.value.thanos.query.stores;
+      const stores = this.query.stores;
 
       if (!stores || !stores.length) {
-        this.otherClusterStores = [];
+        this.query.otherClusterStores = [];
 
         return;
       }
 
-      out = difference(stores, this.monitoringSettings.enabledClusters.map(c => c.address));
+      out = difference(stores, this.query.enabledClusterStores.map(c => c.address));
 
-      this.$set(this, 'otherClusterStores', out);
+      this.$set(this.query, 'otherClusterStores', out);
     },
 
     updateClusterStore() {
       let out = [];
       const enabledClusters = this.clusters.filter(c => !!c.monitoringEabled);
       const clusterStores = enabledClusters.map(s => s.clusterStore || s.monitoringNodeIp);
-      const otherClusterStores = this.otherClusterStores;
+      const otherClusterStores = this.query.otherClusterStores;
 
       out = [...clusterStores, ...otherClusterStores];
 
       this.$set(this.value.thanos.query, 'stores', out);
-
-      Object.assign(this.monitoringSettings, {
-        otherClusterStores,
-        enabledClusters: enabledClusters.map((c) => {
-          return {
-            address:     c.clusterStore || c.monitoringNodeIp,
-            id:          c.id,
-            customStore: !!c.clusterStore
-          };
-        })
-      });
+      this.$set(this.value.thanos.query, 'enabledClusterStores', enabledClusters.map((c) => {
+        return {
+          address:     c.clusterStore || c.monitoringNodeIp,
+          id:          c.id,
+          customStore: !!c.clusterStore,
+          enabled:     true,
+        };
+      }));
     },
   },
 
@@ -190,7 +188,7 @@ export default {
       </tbody>
     </table>
     <ArrayList
-      v-model="otherClusterStores"
+      v-model="value.thanos.query.otherClusterStores"
       :title="t('globalMonitoringPage.customAddress.otherHeader')"
       :mode="mode"
       :value-placeholder="t('globalMonitoringPage.customAddress.placeholder')"

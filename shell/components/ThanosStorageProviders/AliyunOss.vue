@@ -103,6 +103,11 @@ export default {
       type:    String,
       default: 'label',
     },
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
+      required: true,
+    },
   },
 
   mixins: [Provider],
@@ -132,6 +137,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.aliyunoss.bucketName.label')"
           :placeholder="t('globalMonitoringPage.store.aliyunoss.bucketName.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.bucket')"
         />
       </div>
       <div class="col span-6">
@@ -143,6 +149,7 @@ export default {
           :options="endpointChoices"
           :option-label="optionLabel"
           :localized-label="true"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.endpoint')"
         />
       </div>
     </div>
@@ -154,6 +161,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.aliyunoss.accessKey.label')"
           :placeholder="t('globalMonitoringPage.store.aliyunoss.accessKey.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.access_key_id')"
         />
       </div>
       <div class="col span-6">
@@ -163,6 +171,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.aliyunoss.secretKey.label')"
           :placeholder="t('globalMonitoringPage.store.aliyunoss.secretKey.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.access_key_secret')"
         />
       </div>
     </div>

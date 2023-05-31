@@ -15,6 +15,14 @@ const defaults = { maxRetries: 0 };
 export default {
   mixins: [Provider],
 
+  props: {
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
+      required: true,
+    },
+  },
+
   data() {
     return {
       answers,
@@ -36,6 +44,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.azure.bucketName.label')"
           :placeholder="t('globalMonitoringPage.store.azure.bucketName.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.container')"
         />
       </div>
       <div class="col span-6">
@@ -45,6 +54,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.azure.endpoint.label')"
           :placeholder="t('globalMonitoringPage.store.azure.endpoint.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.endpoint')"
         />
       </div>
     </div>
@@ -56,6 +66,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.azure.storageAccount.label')"
           :placeholder="t('globalMonitoringPage.store.azure.storageAccount.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.storage_account')"
         />
       </div>
       <div class="col span-6">
@@ -65,6 +76,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.azure.storageAccountKey.label')"
           :placeholder="t('globalMonitoringPage.store.azure.storageAccountKey.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.storage_account_key')"
         />
       </div>
     </div>
@@ -78,6 +90,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.azure.maxRetries.label')"
           :placeholder="t('globalMonitoringPage.store.azure.maxRetries.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.max_retries')"
         />
       </div>
     </div>

@@ -11,7 +11,16 @@ export const answers = {
 };
 
 export default {
-  mixins:     [Provider],
+  mixins: [Provider],
+
+  props: {
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
+      required: true,
+    },
+  },
+
   components: { LabeledInput },
 
   data() {
@@ -32,6 +41,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.tencentcloudcos.bucketName.label')"
           :placeholder="t('globalMonitoringPage.store.tencentcloudcos.bucketName.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.bucket')"
         />
       </div>
       <div class="col span-6">
@@ -41,6 +51,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.tencentcloudcos.region.label')"
           :placeholder="t('globalMonitoringPage.store.tencentcloudcos.region.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.region')"
         />
       </div>
     </div>
@@ -52,6 +63,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.tencentcloudcos.secretId.label')"
           :placeholder="t('globalMonitoringPage.store.tencentcloudcos.secretId.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.secret_id')"
         />
       </div>
       <div class="col span-6">
@@ -61,6 +73,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.tencentcloudcos.secretKey.label')"
           :placeholder="t('globalMonitoringPage.store.tencentcloudcos.secretKey.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.secret_key')"
         />
       </div>
     </div>
@@ -72,6 +85,7 @@ export default {
           required
           :label="t('globalMonitoringPage.store.tencentcloudcos.appid.label')"
           :placeholder="t('globalMonitoringPage.store.tencentcloudcos.appid.placeholder')"
+          :rules="fvGetAndReportPathRules('thanos.objectConfig.config.app_id')"
         />
       </div>
     </div>

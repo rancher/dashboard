@@ -12,10 +12,11 @@ import AliyunOss, { answers as ossAnswers } from '@shell/components/ThanosStorag
 import Gcs, { answers as gcsAnswers } from '@shell/components/ThanosStorageProviders/Gcs';
 import TencentcloudCos, { answers as cosAnswers } from '@shell/components/ThanosStorageProviders/TencentcloudCos';
 import Azure, { answers as azureAnswers } from '@shell/components/ThanosStorageProviders/Azure';
-import { random32 } from '@shell/utils/string';
+import { random32, escapeHtml } from '@shell/utils/string';
 
 const AWS_S3 = 'AwsS3';
-const OBJECT_STORAGE_PROVIDERS = [
+
+export const OBJECT_STORAGE_PROVIDERS = [
   {
     label:     'globalMonitoringPage.store.s3.label',
     component: AWS_S3,
@@ -64,6 +65,11 @@ export default {
       type:    String,
       default: 'label',
     },
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
+      required: true,
+    },
   },
 
   components: {
@@ -104,7 +110,6 @@ export default {
 
       this.$set(this.value.thanos.compact, 'enabled', neu);
       this.$set(this.value.thanos.store, 'enabled', neu);
-      this.$emit('updateWarning');
     },
     'value.thanos.objectConfig.type'(neu) {
       this.value?.thanos?.objectConfig?.config && this.$set(this.value.thanos.objectConfig, 'config', {});
@@ -113,6 +118,7 @@ export default {
   },
 
   methods: {
+    escapeHtml,
     validate() {
       if (this.$refs.objectStorageComponent) {
         this.$refs.objectStorageComponent.validate();
@@ -182,6 +188,22 @@ export default {
       :label="t('globalMonitoringPage.objectStorageWarning')"
       @close="hideClusterToolsTip = true"
     />
+    <Banner
+      v-if="objectStorageEnabled"
+      :closable="true"
+      color="info"
+      class="settings-banner"
+      @close="hideClusterToolsTip = true"
+    >
+      <div>
+        {{ t('globalMonitoringPage.objectStorageDoc.more') }}
+        <a
+          href="https://thanos.io/tip/thanos/storage.md/#supported-clients"
+          target="_blank"
+        >{{ t('globalMonitoringPage.objectStorageDoc.doc') }}</a>
+        {{ t('globalMonitoringPage.objectStorageDoc.setting') }}
+      </div>
+    </Banner>
 
     <h3>{{ t('globalMonitoringPage.store.enabled.label') }}</h3>
     <div class="row mb-20">
@@ -216,6 +238,7 @@ export default {
         :value="value"
         class="mb-20"
         :mode="mode"
+        :fv-get-and-report-path-rules="fvGetAndReportPathRules"
       />
 
       <hr class="mt-40 mb-20">
@@ -224,7 +247,7 @@ export default {
         :component="thanosStore"
         class="mb-20"
         resources-key="thanos.store.resources"
-        @updateWarning="$emit('updateWarning')"
+        :fv-get-and-report-path-rules="fvGetAndReportPathRules"
       />
 
       <h3>{{ t('globalMonitoringPage.nodeSelector.helpText', {component: thanosStore}) }}</h3>
@@ -259,7 +282,7 @@ export default {
         :component="thanosCompact"
         class="mb-20"
         resources-key="thanos.compact.resources"
-        @updateWarning="$emit('updateWarning')"
+        :fv-get-and-report-path-rules="fvGetAndReportPathRules"
       />
 
       <h3>{{ t('globalMonitoringPage.nodeSelector.helpText', {component: thanosCompact}) }}</h3>

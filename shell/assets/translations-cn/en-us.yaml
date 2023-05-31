@@ -7520,6 +7520,10 @@ globalMonitoringPage:
   enableActionLabel: Enable
   globalMonitoringClusterUnavailable: Cluster {clusterName} is unavailable.
   objectStorageWarning: Thanos sidecar in each cluster requires the object storage crednetials. So cluster owners will also be able to see the object storage crednetials in the System projects.
+  objectStorageDoc: 
+    more: For more configuration parameters, please refer to
+    doc: Thanos document
+    setting: . It needs to be configured through the Edit YAML option.
   customAnswers:
     title: Custom Answers
     detail: Configure custom answers.

@@ -16,12 +16,14 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-annotations';
 import { diff, get, set } from '@shell/utils/object';
 import { SETTING, getGlobalMonitoringV2Setting, DEFAULT_GMV2_SETTING } from '@shell/config/settings';
-import { delay, mergeWith, isArray, throttle } from 'lodash';
+import { delay, mergeWith, isArray } from 'lodash';
 import { formatSi, parseSi } from '@shell/utils/units';
 import { base64Encode } from '@shell/utils/crypto';
 import { SECRET_TYPES as TYPES } from '@shell/config/secret';
 import { monitoringStatus } from '@shell/utils/global-monitoring';
 import { setSetting } from '@shell/utils/settings';
+import FormValidation from '@shell/mixins/form-validation';
+import { OBJECT_STORAGE_PROVIDERS } from '@shell/components/ThanosCatalog/ObjectStorage.vue';
 
 const GLOBAL_MONITORING_TOKEN = 'Global Monitoring Token';
 const APP_NAME = 'global-monitoring';
@@ -53,6 +55,7 @@ export default {
 
   mixins: [
     ChildHook,
+    FormValidation,
   ],
 
   async fetch() {
@@ -97,8 +100,28 @@ export default {
       historyMax:    5,
     };
 
+    const reservationKeys = ['limits.cpu', 'limits.memory', 'requests.cpu', 'requests.memory'];
+    const reservationResources = [
+      {
+        tab:          'thanos',
+        resourcesKey: 'thanos.query.resources',
+      },
+      {
+        tab:          'grafana',
+        resourcesKey: 'grafana.resources.core',
+      },
+      {
+        tab:          'store',
+        resourcesKey: 'thanos.store.resources',
+      },
+      {
+        tab:          'store',
+        resourcesKey: 'thanos.compact.resources',
+      },
+    ];
+    const objectStorageProviders = OBJECT_STORAGE_PROVIDERS;
+
     return {
-      chartVersion:       '',
       errors:             [],
       warnings:           [],
       currentCluster:     {},
@@ -106,16 +129,16 @@ export default {
       monitoringSettings: {},
       disabledV1Done:     false,
 
-      formYamlOption:      VALUES_STATE.FORM,
-      showDiff:            false,
-      valuesYaml:          '',
-      originalYamlValues:  null,
-      showValuesComponent: true,
-      confirmDisable:      false,
-      customCmdOpts:       { ...defaultCmdOpts },
-      value:               {},
-      versionInfo:         {},
-      defaultCmdOpts:      {
+      formYamlOption:     VALUES_STATE.FORM,
+      showDiff:           false,
+      valuesYaml:         '',
+      originalYamlValues: null,
+      showAsForm:         true,
+      confirmDisable:     false,
+      customCmdOpts:      { ...defaultCmdOpts },
+      value:              {},
+      versionInfo:        {},
+      defaultCmdOpts:     {
         cleanupOnFail: false,
         crds:          true,
         hooks:         true,
@@ -126,6 +149,39 @@ export default {
         timeout:       600,
         historyMax:    5,
       },
+      objectStorageProviders,
+      reservationResources,
+      reservationKeys,
+      fvFormRuleSets: [
+        { path: 'global.clusterId', rules: ['required'] },
+        { path: 'ui.apiToken', rules: ['required'] },
+        // grafana
+        {
+          path: 'ui.serverUrl', rules: ['required'], translationKey: 'globalMonitoringPage.grafana.serverUrl.label', rootObject: this.value
+        },
+        // reservation
+        ...reservationResources.reduce((rules, item) => {
+          reservationKeys.forEach((i) => {
+            rules.push({
+              path:  `${ item.resourcesKey }.${ i }`,
+              rules: ['required'],
+            });
+          });
+
+          return rules;
+        }, []),
+        // objectStorageProviders
+        ...objectStorageProviders.reduce((rules, item) => {
+          Object.values(item.answers).forEach((path) => {
+            rules.push({
+              path,
+              rules: ['required'],
+            });
+          });
+
+          return rules;
+        }, [])
+      ],
     };
   },
   watch: {
@@ -133,7 +189,7 @@ export default {
       switch (neu) {
       case VALUES_STATE.FORM:
         // Return to form, reset everything back to starting point
-        this.showValuesComponent = true;
+        this.showAsForm = true;
         this.showDiff = false;
         break;
       case VALUES_STATE.YAML:
@@ -142,7 +198,7 @@ export default {
           this.valuesYaml = jsyaml.dump(this.value || {});
         }
 
-        this.showValuesComponent = false;
+        this.showAsForm = false;
         this.showDiff = false;
         break;
       case VALUES_STATE.DIFF:
@@ -151,7 +207,7 @@ export default {
           this.valuesYaml = jsyaml.dump(this.value || {});
         }
 
-        this.showValuesComponent = false;
+        this.showAsForm = false;
         this.updateValue(this.valuesYaml);
         this.showDiff = true;
 
@@ -278,6 +334,82 @@ export default {
 
       return need;
     },
+
+    tabErrors() {
+      this.getStoreWarnings();
+
+      const storeEnabled = this.value?.thanos?.store?.enabled;
+      const useDefaultToken = this.value?.ui?.defaultApiToken;
+      const keys = {
+        general: ['global.clusterId'],
+        thanos:  [...this.reservationRequiredKeys['thanos']],
+        store:   [],
+        grafana: ['ui.serverUrl', ...this.reservationRequiredKeys['grafana']],
+      };
+
+      if (!useDefaultToken) {
+        keys.general.push('ui.apiToken');
+      }
+
+      if (storeEnabled) {
+        keys.store.push(...this.reservationRequiredKeys['store'], ...this.storageProviderRequiredKeys);
+      }
+
+      return Object.keys(keys).reduce((out, tab) => {
+        out[tab] = this.fvGetPathErrors(keys[tab])?.length > 0;
+
+        return out;
+      }, {});
+    },
+
+    reservationRequiredKeys() {
+      const { reservationResources, reservationKeys } = this;
+
+      return reservationResources.reduce((tabs, reservation) => {
+        const keys = tabs[reservation.tab] || [];
+
+        reservationKeys.forEach((key) => {
+          keys.push(`${ reservation.resourcesKey }.${ key }`);
+        });
+        tabs[reservation.tab] = keys;
+
+        return tabs;
+      }, {});
+    },
+
+    storageProviderRequiredKeys() {
+      const type = this.value?.thanos?.objectConfig?.type;
+
+      if (!this.value?.thanos?.store?.enabled || !type) {
+        return [];
+      }
+      const provider = this.objectStorageProviders.find(p => p.value === type);
+      const answers = provider?.answers;
+
+      return Object.values(answers);
+    },
+
+    canSave() {
+      const { tabErrors, showAsForm, chart } = this;
+
+      if (!chart) {
+        return false;
+      }
+
+      if (showAsForm) {
+        return Object.values(tabErrors).every(i => i === false);
+      }
+
+      // Don't apply validation rules if the form is not shown.
+      if (!this.showAsForm) {
+        return true;
+      }
+
+      // Disable the save button if there are form validation
+      // errors while the user is typing.
+      return Object.values(tabErrors).every(i => i === false);
+    },
+
   },
   methods: {
     get,
@@ -345,7 +477,6 @@ export default {
 
     actionInput(isUpgrade) {
       const fromChart = jsyaml.load(this.originalYamlValues) || {};
-
       const errors = [];
 
       if ( this.showingYaml ) {
@@ -403,25 +534,23 @@ export default {
       }
     },
 
-    done(settings) {
-      setSetting(this.$store, SETTING.GLOBAL_MONITORING_V2, JSON.stringify(settings));
-      setSetting(this.$store, SETTING.GLOBAL_MONITORING_CLUSTER_ID, settings.clusterId);
+    done() {
+      setSetting(this.$store, SETTING.GLOBAL_MONITORING_V2, JSON.stringify({
+        clusterId: this.value.global.clusterId,
+        enabled:   'true',
+      }));
+      setSetting(this.$store, SETTING.GLOBAL_MONITORING_CLUSTER_ID, this.value.global.clusterId);
       this.monitoringStatus = true;
       if (this.value.thanos.tls.enabled) {
         this.updateDownStreamClusterSecret();
       }
-      if (settings.useDefaultToken) {
+      if (this.value.ui.defaultApiToken) {
         this.value.ui.apiToken = '';
       }
     },
     async save(btnCb) {
-      this.validate();
-      this.$set(this, 'errors', this.value.errors || []);
-      delete this.value.errors;
-
       try {
         const isUpgrade = this.monitoringStatus.installed;
-        const settings = this.getSetting();
 
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
@@ -461,7 +590,7 @@ export default {
         await this.applyHooks(AFTER_SAVE_HOOKS);
 
         btnCb(true);
-        this.done(settings);
+        this.done();
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error(err);
@@ -512,29 +641,6 @@ export default {
       setSetting(this.$store, SETTING.GLOBAL_MONITORING_V2, JSON.stringify(settings));
       this.$set(this, 'monitoringSettings', settings);
       this.monitoringStatus = false;
-    },
-
-    getSetting() {
-      const obj = this.monitoringSettings;
-      const useDefaultToken = this.getUseDefaultToken();
-
-      obj.useDefaultToken = useDefaultToken.toString();
-      obj.clusterId = this.value.global.clusterId;
-      obj.enabled = 'true';
-
-      return obj;
-    },
-
-    getUseDefaultToken() {
-      if (this.showValuesComponent) {
-        const useDefaultToken = this.$refs.thanosCatalog.useDefaultToken;
-
-        return useDefaultToken;
-      } else {
-        const apiToken = this.value.ui.apiToken;
-
-        return !apiToken;
-      }
     },
 
     updateSecretThanosSidecarTls(prefix) {
@@ -611,7 +717,7 @@ export default {
       if (!this.value?.thanos?.tls?.enabled ) {
         return;
       }
-      this.monitoringSettings.enabledClusters.forEach((c) => {
+      this.query.enabledClusterStores.forEach((c) => {
         const prefix = c.id === 'local' ? '' : `/k8s/clusters/${ c.id }`;
 
         this.$store.dispatch('management/request', { url: `${ prefix }/v1/namespaces/${ CATTLE_MONITORING_SYSTEM_NAMESPACE }` }).then(() => {
@@ -672,9 +778,7 @@ export default {
     },
 
     async setApiToken() {
-      const useDefaultToken = this.getUseDefaultToken();
-
-      if (!useDefaultToken) {
+      if (!this.value.ui?.defaultApiToken) {
         return;
       }
 
@@ -702,8 +806,6 @@ export default {
           type: CATALOG.APP,
           id:   `${ APP_NAMESPACE }/${ APP_NAME }`
         });
-
-        this.chartVersion = get(app, 'spec.chart.metadata.version') || '';
       } catch (error) {}
 
       const value = await this.$store.dispatch(`${ this.inStore }/create`, {
@@ -712,6 +814,10 @@ export default {
           namespace: APP_NAMESPACE,
           name:      APP_NAME,
         },
+        global:  {},
+        ui:      {},
+        grafana: {},
+        thanos:  { query: {} },
         ...(JSON.parse(JSON.stringify(this.versionInfo?.values || {}))),
       });
 
@@ -723,8 +829,16 @@ export default {
         }
       }));
 
-      if (!this?.value?.global?.clusterId) {
-        set(this, 'value.global.clusterId', this.currentCluster?.id || 'local');
+      if (this.monitoringSettings.enabledClusters && this.monitoringSettings.enabledClusters.length) {
+        this.value.thanos.query.enabledClusterStores = this.monitoringSettings.enabledClusters;
+      }
+
+      if (!app?.spec?.values.global?.version) {
+        this.value.global.version = get(app, 'spec.chart.metadata.version') || this.version.version;
+      }
+
+      if (!app?.spec?.values.global?.clusterId) {
+        this.value.global.clusterId = this.currentCluster?.id || 'local';
       }
 
       this.initServerUrl();
@@ -735,10 +849,9 @@ export default {
       this.value.ui && this.serverUrlSetting.value && this.$set(this.value.ui, 'serverUrl', this.serverUrlSetting.value);
     },
     initApiToken() {
-      const useDefaultToken = this.monitoringSettings?.useDefaultToken === 'true';
-
-      if (useDefaultToken) {
+      if (!!this.value?.ui?.defaultApiToken || this.value?.ui?.defaultApiToken === undefined) {
         this.$set(this.value.ui, 'apiToken', '');
+        this.$set(this.value.ui, 'defaultApiToken', true);
       }
     },
     initGlobalMonitoringRoute() {
@@ -800,46 +913,29 @@ export default {
       buttonCb(true);
     },
 
-    validate() {
-      if (this.$refs.thanosCatalog) {
-        this.$refs.thanosCatalog.validate();
-      }
-    },
-
-    updateWarning: throttle(function() {
-      this.getStoreWarnings();
-    }, 1500, { trailing: true }),
-
     getStoreWarnings() {
       const warnings = [];
+      const needCpu = this.needCpu;
+      const needMemory = this.needMemory;
+      const availableCpu = this.currentCluster?.availableCpu;
+      const availableMemory = this.currentCluster?.availableMemory;
 
-      if ( this.monitoringStatus.installed ) {
-        // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
-      } else {
-        const needCpu = this.needCpu;
-        const needMemory = this.needMemory;
+      if ( availableCpu !== null && availableCpu < needCpu ) {
+        warnings.push(this.t('catalog.install.error.insufficientCpu', {
+          need: Math.round(needCpu * 100) / 100,
+          have: Math.round(availableCpu * 100) / 100,
+        }));
+      }
 
-        // Note: These are null if unknown
-        const availableCpu = this.currentCluster?.availableCpu;
-        const availableMemory = this.currentCluster?.availableMemory;
-
-        if ( availableCpu !== null && availableCpu < needCpu ) {
-          warnings.push(this.t('catalog.install.error.insufficientCpu', {
-            need: Math.round(needCpu * 100) / 100,
-            have: Math.round(availableCpu * 100) / 100,
-          }));
-        }
-
-        if ( availableMemory !== null && availableMemory < needMemory ) {
-          warnings.push(this.t('catalog.install.error.insufficientMemory', {
-            need: formatSi(needMemory, {
-              increment: 1024, suffix: 'iB', firstSuffix: 'B'
-            }),
-            have: formatSi(availableMemory, {
-              increment: 1024, suffix: 'iB', firstSuffix: 'B'
-            }),
-          }));
-        }
+      if ( availableMemory !== null && availableMemory < needMemory ) {
+        warnings.push(this.t('catalog.install.error.insufficientMemory', {
+          need: formatSi(needMemory, {
+            increment: 1024, suffix: 'iB', firstSuffix: 'B'
+          }),
+          have: formatSi(availableMemory, {
+            increment: 1024, suffix: 'iB', firstSuffix: 'B'
+          }),
+        }));
       }
 
       this.$set(this, 'warnings', warnings);
@@ -852,11 +948,16 @@ export default {
 
     reloadPage() {
       this.$router.go(0);
-    }
-  },
+    },
+    fvGetPathValues(path) {
+      const relevantRuleset = this.fvRulesets.find(ruleset => ruleset.path === path);
 
-  mounted() {
-    this.getStoreWarnings();
+      if (!relevantRuleset) {
+        return [];
+      }
+
+      return [get(relevantRuleset?.rootObject || this.value, relevantRuleset?.path) || null];
+    },
   },
 
   created() {
@@ -964,18 +1065,18 @@ export default {
       </div>
       <div class="scroll__container">
         <div class="scroll__content">
-          <template v-if="showValuesComponent">
+          <template v-if="showAsForm">
             <ThanosCatalog
               ref="thanosCatalog"
               v-model="value"
               :installed="monitoringStatus.installed"
               option-key="value"
               :chart="chart"
-              :ui="get(versionInfo, 'values.ui') || {}"
-              :version="chartVersion"
+              :original-values="get(versionInfo, 'values') || {}"
               :monitoring-settings="monitoringSettings"
+              :tab-errors="tabErrors"
+              :fv-get-and-report-path-rules="fvGetAndReportPathRules"
               @updateVersion="updateVersion"
-              @updateWarning="updateWarning"
             />
           </template>
           <template v-else>
@@ -1018,7 +1119,7 @@ export default {
         {{ t('globalMonitoringPage.disable') }}
       </button>
       <AsyncButton
-        :disabled="!chart || warnings.length > 0"
+        :disabled="!canSave"
         @click="save"
       />
     </div>

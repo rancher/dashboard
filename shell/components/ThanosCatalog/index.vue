@@ -50,10 +50,6 @@ export default {
       type:     Object,
       required: true,
     },
-    ui: {
-      type:     Object,
-      required: true,
-    },
     chart: {
       type:    Object,
       default: () => ({}),
@@ -62,13 +58,19 @@ export default {
       type:    String,
       default: 'label',
     },
-    version: {
-      type:    String,
-      default: '',
-    },
     monitoringSettings: {
       type:     Object,
       default:  () => ({}),
+      required: true,
+    },
+    tabErrors: {
+      type:     Object,
+      default:  () => ({}),
+      required: true,
+    },
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
       required: true,
     },
   },
@@ -92,17 +94,12 @@ export default {
   },
 
   data() {
-    const apiToken = this.value.ui?.apiToken || '';
-
     return {
       thanosQuery:      THANOS_QUERY,
       serviceTypes:     SERVICE_TYPES,
-      customAnswers:    {},
-      chartVersion:     '',
       clusterId:        '',
       originUi:         {},
       queryTolerations: [],
-      useDefaultToken:  !apiToken,
       originClusters:   [],
     };
   },
@@ -112,30 +109,10 @@ export default {
       return this.enabled && this.latestVersion && this.templateVersion && this.latestVersion !== this.templateVersion;
     },
     chartVersions() {
-      if (!this.chartVersion && this.chart?.versions?.length) {
-        if (this.version && this.chart.versions.find(obj => obj.version === this.version)) {
-          this.$set(this, 'chartVersion', this.version);
-        } else {
-          this.$set(this, 'chartVersion', this.chart.versions[0].version);
-        }
-      }
-
       return uniqBy(this.chart?.versions || [], 'version').map(v => ({
         label: v.version,
         value: v.version,
       })).sort();
-    },
-    apiToken: {
-      get() {
-        return this.value.ui?.apiToken;
-      },
-      set(value) {
-        if (this.useDefaultToken) {
-          this.value.ui.apiToken = '';
-        }
-
-        this.value.ui.apiToken = value;
-      }
     },
   },
 
@@ -146,48 +123,7 @@ export default {
         params: { cluster: clusterId }
       });
     },
-    validate() {
-      const errors = this.value.errors || [];
 
-      if (!this.useDefaultToken && !this.value.ui.apiToken) {
-        errors.push(this.t('validation.required', { key: this.t('globalMonitoringPage.token.custom.label') }, true));
-      }
-
-      this.value.errors = errors;
-
-      if (this.$refs.objectStorage) {
-        this.$refs.objectStorage.validate();
-      }
-    },
-    updateCustomAnswers() {
-      const ui = this.removeCustomAnswers();
-
-      Object.keys(this.customAnswers).forEach((key) => {
-        ui[key] = this.customAnswers[key];
-      });
-
-      this.value.ui = ui;
-    },
-    removeCustomAnswers() {
-      const newUi = {};
-
-      Object.keys(this.ui).forEach((key) => {
-        newUi[key] = this.value.ui[key];
-      });
-
-      return newUi;
-    },
-    getCustomAnswers() {
-      const customAnswers = {};
-
-      Object.keys(this.value.ui).forEach((key) => {
-        if (this.ui[key] === undefined) {
-          customAnswers[key] = this.value.ui[key];
-        }
-      });
-
-      this.$set(this, 'customAnswers', customAnswers);
-    },
     updateQueryTolerations(inputVal) {
       this.$set(this.value.thanos.query, 'tolerations', inputVal.map((item) => {
         delete item.vKey;
@@ -195,8 +131,8 @@ export default {
         return item;
       }));
     },
-    updateApiToken() {
-      if (this.useDefaultToken) {
+    updateApiToken(neu) {
+      if (neu) {
         this.$set(this.value.ui, 'apiToken', '');
       }
     },
@@ -212,7 +148,6 @@ export default {
 
   created() {
     if (this?.chart?.id) {
-      this.getCustomAnswers();
       this.initTolerations();
     }
   }
@@ -229,9 +164,13 @@ export default {
         name="general"
         :label="t('monitoring.tabs.general')"
         :weight="99"
+        :error="tabErrors.general"
       >
         <div class="row mb-20">
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="input-config-clusterId"
+          >
             <LabeledSelect
               v-model="value.global.clusterId"
               :mode="mode"
@@ -241,12 +180,16 @@ export default {
               option-key="id"
               option-label="spec.displayName"
               :label="t('globalMonitoringPage.cluster')"
+              :rules="fvGetAndReportPathRules('global.clusterId')"
               @input="updateCluster"
             />
           </div>
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="input-config-version"
+          >
             <LabeledSelect
-              v-model="chartVersion"
+              v-model="value.global.version"
               :mode="mode"
               required
               :label="upgradeAvailable ? t('monitoringPage.upgradeAvailable', {version: latestVersion}) : t('globalMonitoringPage.version')"
@@ -259,9 +202,12 @@ export default {
 
         <h3>{{ t('globalMonitoringPage.token.label') }}</h3>
         <div class="row mb-20">
-          <div class="col span-6">
+          <div
+            class="col span-6"
+            data-testid="input-config-defaultApiToken"
+          >
             <RadioGroup
-              v-model="useDefaultToken"
+              v-model="value.ui.defaultApiToken"
               name="defaultTokenEnabled"
               :mode="mode"
               :labels="[t('generic.yes'), t('generic.no')]"
@@ -270,15 +216,17 @@ export default {
             />
           </div>
           <div
-            v-if="!useDefaultToken"
+            v-if="!value.ui.defaultApiToken"
             class="col span-6"
+            data-testid="input-config-apiToken"
           >
             <LabeledInput
-              v-model="apiToken"
+              v-model="value.ui.apiToken"
               required
               :mode="mode"
               :label="t('globalMonitoringPage.token.custom.label')"
               :placeholder="t('globalMonitoringPage.token.custom.placeholder')"
+              :rules="fvGetAndReportPathRules('ui.apiToken')"
             />
           </div>
         </div>
@@ -297,13 +245,14 @@ export default {
           name="thanos"
           label-key="globalMonitoringPage.thanos.title"
           :weight="98"
+          :error="tabErrors.thanos"
         >
           <Reservation
             :value="value"
             :component="thanosQuery"
             class="mb-20"
             resources-key="thanos.query.resources"
-            @updateWarning="$emit('updateWarning')"
+            :fv-get-and-report-path-rules="fvGetAndReportPathRules"
           />
           <h3>{{ t('globalMonitoringPage.nodeSelector.helpText', {component: thanosQuery}) }}</h3>
           <div class="row mb-20">
@@ -349,51 +298,37 @@ export default {
           name="store"
           label-key="globalMonitoringPage.store.title"
           :weight="97"
+          :error="tabErrors.store"
         >
           <ObjectStorage
             ref="objectStorage"
             :value="value"
             :mode="mode"
-            @updateWarning="$emit('updateWarning')"
+            :fv-get-and-report-path-rules="fvGetAndReportPathRules"
           />
         </Tab>
         <Tab
           name="grafana"
           label-key="globalMonitoringPage.grafana.header"
           :weight="96"
+          :error="tabErrors.grafana"
         >
           <GlobalDashboard
             :value="value"
             :mode="mode"
-            @updateWarning="$emit('updateWarning')"
+            :fv-get-and-report-path-rules="fvGetAndReportPathRules"
           />
         </Tab>
         <Tab
           name="ceritificate"
           label-key="globalMonitoringPage.tls.header"
           :weight="95"
+          :error="tabErrors.ceritificate"
         >
           <Certificate
             :value="value"
             :mode="mode"
           />
-        </Tab>
-        <Tab
-          name="customAnswers"
-          label-key="globalMonitoringPage.customAnswers.title"
-          :weight="94"
-        >
-          <h3>{{ t('globalMonitoringPage.customAnswers.answer.label') }}</h3>
-          <div class="row mb-20">
-            <KeyValue
-              v-model="customAnswers"
-              :mode="mode"
-              :read-allowed="false"
-              :protip="true"
-              :add-label="t('globalMonitoringPage.customAnswers.addAnswerLabel')"
-              @input="updateCustomAnswers"
-            />
-          </div>
         </Tab>
       </template>
     </Tabbed>

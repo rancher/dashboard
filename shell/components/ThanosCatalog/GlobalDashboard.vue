@@ -41,6 +41,11 @@ export default {
       type:    String,
       default: 'label',
     },
+    fvGetAndReportPathRules: {
+      type:     Function,
+      default:  () => {},
+      required: true,
+    },
   },
 
   components: {
@@ -147,6 +152,7 @@ export default {
           required
           :label="t('globalMonitoringPage.grafana.serverUrl.label')"
           :placeholder="t('globalMonitoringPage.grafana.serverUrl.placeholder')"
+          :rules="fvGetAndReportPathRules('ui.serverUrl')"
         />
       </div>
     </div>
@@ -155,7 +161,7 @@ export default {
       component="Grafana"
       class="mb-20"
       resources-key="grafana.resources.core"
-      @updateWarning="$emit('updateWarning')"
+      :fv-get-and-report-path-rules="fvGetAndReportPathRules"
     />
 
     <h3>{{ t('globalMonitoringPage.grafana.enablePersistence.label') }}</h3>
