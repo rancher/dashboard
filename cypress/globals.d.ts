@@ -8,6 +8,8 @@ declare namespace Cypress {
 
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
     byLabel(label: string,): Chainable<Element>;
+    createUser(apiKey: string | string[]): Chainable<Request>;
+    setGlobalRoleBinding(apiKey: string | string[], role: string): Chainable<Request>;
 
     /**
      *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.

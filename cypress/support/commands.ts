@@ -33,7 +33,15 @@ Cypress.Commands.add('login', (
       .should('eq', true);
     loginPage.submit();
 
-    cy.wait('@loginReq');
+    cy.wait('@loginReq').then(({ request, response }) => {
+      expect(response?.statusCode).to.eq(200);
+      const apiKey = request.headers['x-api-csrf'];
+
+      if (username === 'admin') {
+        cy.createUser(apiKey);
+        cy.setGlobalRoleBinding(apiKey, 'user');
+      }
+    });
   };
 
   if (cacheSession) {
@@ -41,6 +49,52 @@ Cypress.Commands.add('login', (
   } else {
     login();
   }
+});
+
+/**
+ * Create standard user via api request
+ */
+Cypress.Commands.add('createUser', (apiKey) => {
+  return cy.request({
+    method:  'POST',
+    url:     'v3/users',
+    headers: {
+      'x-api-csrf': apiKey,
+      Accept:       'application/json'
+    },
+    body: {
+      type:               'user',
+      enabled:            true,
+      mustChangePassword: false,
+      username:           `user${ Date.now() }`,
+      password:           Cypress.env('password')
+    }
+  }).then((resp) => {
+    expect(resp.status).to.eq(201);
+    Cypress.env('userInfo').push(resp.body.username);
+    Cypress.env('userInfo').push(resp.body.id);
+  });
+});
+
+/**
+ * Set global role binding for user via api request
+ */
+Cypress.Commands.add('setGlobalRoleBinding', (apiKey, role) => {
+  return cy.request({
+    method:  'POST',
+    url:     'v3/globalrolebindings',
+    headers: {
+      'x-api-csrf': apiKey,
+      Accept:       'application/json'
+    },
+    body: {
+      type:         'globalRoleBinding',
+      globalRoleId: role,
+      userId:       Cypress.env('userInfo')[1]
+    }
+  }).then((resp) => {
+    expect(resp.status).to.eq(201);
+  });
 });
 
 /**
