@@ -97,6 +97,7 @@ export default defineConfig({
     },
     experimentalSessionAndOrigin: true,
     specPattern:                  getSpecPattern(),
-    baseUrl
+    baseUrl,
+    numTestsKeptInMemory:         0
   },
 });

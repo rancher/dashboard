@@ -10,7 +10,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key1',
                   operator: 'In',
-                  matching: 'matchExpressions',
                   values:   [
                     'val1'
                   ]
@@ -18,7 +17,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key2',
                   operator: 'NotIn',
-                  matching: 'matchExpressions',
                   values:   [
                     'val2'
                   ]
@@ -26,17 +24,14 @@ export const payloadComparisonData = {
                 {
                   key:      'key3',
                   operator: 'Exists',
-                  matching: 'matchExpressions'
                 },
                 {
                   key:      'key4',
                   operator: 'DoesNotExist',
-                  matching: 'matchExpressions'
                 },
                 {
                   key:      'key5',
                   operator: 'Lt',
-                  matching: 'matchExpressions',
                   values:   [
                     'val5'
                   ]
@@ -44,7 +39,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key6',
                   operator: 'Gt',
-                  matching: 'matchExpressions',
                   values:   [
                     'val6'
                   ]
@@ -60,7 +54,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key1',
                   operator: 'In',
-                  matching: 'matchFields',
                   values:   [
                     'val1'
                   ]
@@ -68,7 +61,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key2',
                   operator: 'NotIn',
-                  matching: 'matchFields',
                   values:   [
                     'val2'
                   ]
@@ -76,17 +68,14 @@ export const payloadComparisonData = {
                 {
                   key:      'key3',
                   operator: 'Exists',
-                  matching: 'matchFields'
                 },
                 {
                   key:      'key4',
                   operator: 'DoesNotExist',
-                  matching: 'matchFields'
                 },
                 {
                   key:      'key5',
                   operator: 'Lt',
-                  matching: 'matchFields',
                   values:   [
                     'val5'
                   ]
@@ -94,7 +83,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key6',
                   operator: 'Gt',
-                  matching: 'matchFields',
                   values:   [
                     'val6'
                   ]
@@ -310,7 +298,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key1',
                   operator: 'In',
-                  matching: 'matchExpressions',
                   values:   [
                     'val1'
                   ]
@@ -318,7 +305,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key2',
                   operator: 'NotIn',
-                  matching: 'matchExpressions',
                   values:   [
                     'val2'
                   ]
@@ -326,17 +312,14 @@ export const payloadComparisonData = {
                 {
                   key:      'key3',
                   operator: 'Exists',
-                  matching: 'matchExpressions'
                 },
                 {
                   key:      'key4',
                   operator: 'DoesNotExist',
-                  matching: 'matchExpressions'
                 },
                 {
                   key:      'key5',
                   operator: 'Lt',
-                  matching: 'matchExpressions',
                   values:   [
                     'val5'
                   ]
@@ -344,7 +327,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key6',
                   operator: 'Gt',
-                  matching: 'matchExpressions',
                   values:   [
                     'val6'
                   ]
@@ -360,7 +342,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key1',
                   operator: 'In',
-                  matching: 'matchFields',
                   values:   [
                     'val1'
                   ]
@@ -368,7 +349,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key2',
                   operator: 'NotIn',
-                  matching: 'matchFields',
                   values:   [
                     'val2'
                   ]
@@ -376,17 +356,14 @@ export const payloadComparisonData = {
                 {
                   key:      'key3',
                   operator: 'Exists',
-                  matching: 'matchFields'
                 },
                 {
                   key:      'key4',
                   operator: 'DoesNotExist',
-                  matching: 'matchFields'
                 },
                 {
                   key:      'key5',
                   operator: 'Lt',
-                  matching: 'matchFields',
                   values:   [
                     'val5'
                   ]
@@ -394,7 +371,6 @@ export const payloadComparisonData = {
                 {
                   key:      'key6',
                   operator: 'Gt',
-                  matching: 'matchFields',
                   values:   [
                     'val6'
                   ]
