@@ -230,8 +230,9 @@ export default {
       this.allSelectorTerms.forEach((term) => {
         if (term._anti) {
           if (term.weight) {
-            const neu = { podAffinityTerm: term, weight: term.weight || this.defaultWeight };
+            const neu = { podAffinityTerm: { ...term }, weight: term.weight || this.defaultWeight };
 
+            delete neu.podAffinityTerm.weight;
             podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
           } else {
             podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
