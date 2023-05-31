@@ -37,7 +37,6 @@ import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
-import { isEmpty } from 'lodash';
 
 const VALUES_STATE = {
   FORM: 'FORM',
