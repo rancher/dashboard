@@ -18,10 +18,12 @@ import YamlType from './Yaml';
 
 export const knownTypes = {
   string:          StringType,
-  hostname:        StringType, // @TODO
+  hostname:        StringType,
   multiline:       StringType,
   password:        StringType,
-  text:            StringType,
+  ipaddr:          StringType,
+  cidr:            StringType,
+  cron:            StringType,
   boolean:         BooleanType,
   enum:            EnumType,
   int:             IntType,

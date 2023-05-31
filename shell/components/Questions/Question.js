@@ -1,4 +1,7 @@
 import { _EDIT } from '@shell/config/query-params';
+import { validateChars, validateHostname, validateLength } from '@shell/utils/validators';
+import { cronSchedule } from '@shell/utils/validators/cron-schedule';
+import { isValidCIDR, isValidIP } from '@shell/utils/validators/cidr';
 
 export default {
   props: {
@@ -53,8 +56,9 @@ export default {
     },
 
     displayDescription() {
+      console.log(this.value);
       const variable = this.question?.variable;
-
+      console.log(variable);
       return this.$store.getters['i18n/withFallback'](`charts.${ this.chartName }."${ variable }".description`, null, this.question?.description);
     },
 
@@ -70,37 +74,56 @@ export default {
     rules() {
       return [
         (val) => {
-          const errors = [];
+          let errors = [];
 
-          if (this.question?.valid_chars) {
-            const validCharsRegExp = new RegExp(this.question?.valid_chars);
+          errors = validateChars(
+            val,
+            {
+              validChars:   this.question.valid_chars,
+              invalidChars: this.question.invalid_chars
+            },
+            this.displayLabel,
+            this.$store.getters,
+            errors,
+          );
 
-            if (!(val || '').match(validCharsRegExp)) {
-              errors.push(this.$store.getters['i18n/t']('validation.invalid', { key: this.displayLabel }));
-            }
-          }
-          if (this.question?.invalid_chars) {
-            const invalidCharsRegExp = new RegExp(this.question?.invalid_chars);
-            const match = (val || '').match(invalidCharsRegExp);
+          errors = validateLength(
+            val,
+            {
+              minLength: this.question?.min_length,
+              maxLenght: this.question?.max_length,
+              min:       this.question?.min,
+              max:       this.question?.max,
+            },
+            this.displayLabel,
+            this.$store.getters,
+            errors,
+          );
 
-            if (match) {
-              errors.push(this.$store.getters['i18n/t']('validation.chars', {
-                key: this.displayLabel, count: match.length, chars: match.join(' ')
-              }));
-            }
+          if (this.question.type === 'hostname') {
+            errors = validateHostname(
+              val,
+              this.displayLabel,
+              this.$store.getters,
+              {},
+              errors,
+            );
           }
 
-          if (this.question?.min && (val < this.question.min)) {
-            errors.push(this.$store.getters['i18n/t']('validation.number.min', { key: this.displayLabel, val: this.question.min }));
+          if (this.question.type === 'cron') {
+            cronSchedule(
+              val,
+              this.$store.getters,
+              errors,
+            );
           }
-          if (this.question?.max && (val > this.question.max)) {
-            errors.push(this.$store.getters['i18n/t']('validation.number.max', { key: this.displayLabel, val: this.question.max }));
+
+          if (this.question.type === 'cidr' && !isValidCIDR(val)) {
+            errors.push(this.$store.getters['i18n/t']('validation.invalidCidr'));
           }
-          if (this.question?.min_length && (val.length < this.question.min_length)) {
-            errors.push(this.$store.getters['i18n/t']('validation.number.min', { key: this.displayLabel, val: this.question.min_length }));
-          }
-          if (this.question?.max_length && (val.length > this.question.max_length)) {
-            errors.push(this.$store.getters['i18n/t']('validation.number.max', { key: this.displayLabel, val: this.question.max_length }));
+
+          if (this.question.type === 'ipaddr' && !isValidIP(val)) {
+            errors.push(this.$store.getters['i18n/t']('validation.invalidIP'));
           }
 
           return errors;

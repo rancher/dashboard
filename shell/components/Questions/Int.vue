@@ -9,7 +9,10 @@ export default {
 </script>
 
 <template>
-  <div class="row">
+  <div
+    :data-testid="`int-row-${question.variable}`"
+    class="row"
+  >
     <div class="col span-6">
       <LabeledInput
         type="text"
@@ -21,11 +24,13 @@ export default {
         :disabled="disabled"
         :tooltip="displayTooltip"
         :rules="rules"
+        :data-testid="`int-input-${question.variable}`"
         @input="val = parseInt($event, 10); if ( !isNaN(val) ) { $emit('input', val) }"
       />
     </div>
     <div
       v-if="showDescription"
+      :data-testid="`int-description-${question.variable}`"
       class="col span-6 mt-10"
     >
       {{ displayDescription }}
