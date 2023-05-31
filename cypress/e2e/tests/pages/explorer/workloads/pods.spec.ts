@@ -15,7 +15,6 @@ describe('Cluster Explorer', () => {
         const { name: origPodName, namespace } = createPodBluerint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
-        let podPo: PodPo;
 
         beforeEach(() => {
           cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }`).as('origPod');
@@ -23,14 +22,14 @@ describe('Cluster Explorer', () => {
 
           workloadsPodPage.goTo();
 
-          podPo = new PodPo();
-          podPo.createPodViaKubectl(createPodBluerint);
+          const createPodPo = new PodPo();
+          createPodPo.createPodViaKubectl(createPodBluerint);
         });
 
         it(`Should have same spec as the original pod`, () => {
-          const origPodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
+          const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
-          origPodPage.goTo();
+          cloneCreatePodPage.goTo();
 
           let origPodSpec: any;
 
@@ -41,9 +40,11 @@ describe('Cluster Explorer', () => {
               expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBluerint.spec.containers[0].resources);
             });
 
+          const createClonePo = new PodPo();
+
           // Each pod need a unique name
-          podPo.nameNsDescription().name().set(clonePodName);
-          podPo.save().wait(10000);
+          createClonePo.nameNsDescription().name().set(clonePodName);
+          createClonePo.save().wait(10000);
 
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
