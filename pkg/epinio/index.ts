@@ -13,7 +13,7 @@ const onEnter: OnNavToPackage = async(store, config) => {
   const serverVersionSettings = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
   const res = await store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
 
-  store.commit('epinio/info', res);
+  await store.dispatch('epinio/info');
 
   await store.dispatch('management/load', {
     data: {
