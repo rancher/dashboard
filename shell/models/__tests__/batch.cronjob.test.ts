@@ -64,5 +64,25 @@ describe('class Cronjob', () => {
 
       expect(cronjob.metadata).toStrictEqual(expected);
     });
+
+    it('should redirect to another page', async() => {
+      const jobData = {
+        metadata: { name: 'any-name' },
+        spec:     { jobTemplate: {} }
+      };
+      const callback = jest.fn();
+      const dispatcher = () => ({
+        ...jobData,
+        save:       jest.fn(),
+        goToDetail: callback
+      });
+      const cronjob = new Cronjob(jobData, { dispatch: dispatcher });
+
+      jest.spyOn(cronjob, '$dispatch').mockImplementation(dispatcher);
+
+      await cronjob.runNow();
+
+      expect(callback).toHaveBeenCalledWith();
+    });
   });
 });
