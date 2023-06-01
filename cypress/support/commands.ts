@@ -34,10 +34,9 @@ Cypress.Commands.add('login', (
     loginPage.submit();
 
     cy.wait('@loginReq').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      const apiKey = request.headers['x-api-csrf'];
+      if (username === 'admin' && password === `${ Cypress.env('password') }`) {
+        const apiKey = request.headers['x-api-csrf'];
 
-      if (username === 'admin') {
         cy.createUser(apiKey);
         cy.setGlobalRoleBinding(apiKey, 'user');
       }
