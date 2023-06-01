@@ -812,17 +812,13 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     this.showAppLog();
   }
 
-  createManifest() {
+  async createManifest() {
     const date = new Date().toISOString().split('.')[0];
-    const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.json`;
+    const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.yaml`;
 
-    const manifest = {
-      name:          this.metadata.name,
-      configuration: this.configuration,
-      origin:        this.origin,
-    };
+    const manifest = await this.fetchPart('manifest');
 
-    downloadFile(fileName, JSON.stringify(manifest))
+    downloadFile(fileName, manifest, 'application/yaml')
       .catch((e) => {
         console.error('Failed to download manifest: ', e);// eslint-disable-line no-console
       });
