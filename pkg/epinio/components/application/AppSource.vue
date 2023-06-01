@@ -176,7 +176,7 @@ export default Vue.extend<Data, any, any, any>({
       try {
         const parsed: any = jsyaml.load(file);
 
-        const type = AppUtils.getSourceType(parsed.origin);
+        const type = AppUtils.getManifestSourceType(parsed.origin);
 
         this.gitSkipTypeReset = true;
         Vue.set(this, 'type', type);
@@ -186,7 +186,7 @@ export default Vue.extend<Data, any, any, any>({
           Vue.set(this.container, 'url', parsed.origin.container);
           break;
         case APPLICATION_SOURCE_TYPE.GIT_URL:
-          Vue.set(this.gitUrl, 'url', parsed.origin.git.repository);
+          Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
           Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
           break;
         case APPLICATION_SOURCE_TYPE.GIT_HUB:

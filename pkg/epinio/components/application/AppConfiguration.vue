@@ -7,7 +7,6 @@ import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { _VIEW } from '@shell/config/query-params';
 import { EPINIO_APP_MANIFEST } from './AppSource.vue';
-import { EPINIO_CONFIG_NAME_IS_SERVICE } from '../../models/configurations';
 
 export interface EpinioAppBindings {
   configurations: string[],
@@ -56,8 +55,8 @@ export default Vue.extend<Data, any, any, any>({
 
   computed: {
     configurations() {
-      const list = this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION)
-        .filter((s: EpinioConfiguration) => s.metadata.namespace === this.application.metadata.namespace && !s.isServiceRelated)
+      const list = this.namespacedConfigurations
+        .filter((s: EpinioConfiguration) => !s.isServiceRelated)
         .map((s: EpinioConfiguration) => ({
           label: s.metadata.name,
           value: s.metadata.name,
@@ -68,6 +67,11 @@ export default Vue.extend<Data, any, any, any>({
 
     namespacedServices() {
       return this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE_INSTANCE)
+        .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace);
+    },
+
+    namespacedConfigurations() {
+      return (this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION) || [])
         .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace);
     },
 
@@ -135,7 +139,9 @@ export default Vue.extend<Data, any, any, any>({
         }
 
         if (this.isFromManifest) {
-          this.values.configurations = this.application.configuration.configurations.filter((c: string) => !c.match(EPINIO_CONFIG_NAME_IS_SERVICE)) || [];
+          this.values.configurations = this.namespacedConfigurations
+            .filter((nc: any) => this.application.configuration.configurations.includes(nc.metadata.name) && !nc.isServiceRelated)
+            .map(({ name }: { name: string }) => name) || [];
         }
       }
     },
@@ -148,14 +154,12 @@ export default Vue.extend<Data, any, any, any>({
       }
 
       if (this.isFromManifest) {
-        const matchItems = this.application.configuration.configurations
-          .filter((c: string) => c.match(EPINIO_CONFIG_NAME_IS_SERVICE))
-          .map((c:any) => c.match(EPINIO_CONFIG_NAME_IS_SERVICE)[2]);
+        const configurations = this.namespacedConfigurations
+          .filter((nc: any) => this.application.configuration.configurations.includes(nc.metadata.name) && nc.isServiceRelated) || [];
 
-        // INFO: This is quite hard to match, we might have to revisit it.
         this.values.services = this.services
-          .filter((o: any) => matchItems.some((d: any) => o.value.catalog_service.includes(d)))
-          .map((ele: any) => ele.value);
+          .filter((s: any) => configurations.some((d: any) => s.value.metadata.name === d.configuration.origin))
+          .map((elem: any) => elem.value);
       }
     }
   },

@@ -3,6 +3,7 @@ import { parse as parseUrl } from '@shell/utils/url';
 
 interface Utils {
   getSourceType: (origin: EpinioApplicationResource['origin']) => APPLICATION_SOURCE_TYPE;
+  getManifestSourceType: (origin: EpinioApplicationResource['origin']) => APPLICATION_SOURCE_TYPE;
   getGitData: (git: any) => EPINIO_APP_GIT_SOURCE;
 }
 
@@ -19,8 +20,23 @@ function getSourceType(origin: EpinioApplicationResource['origin']): APPLICATION
   }
 }
 
+function getManifestSourceType(origin: EpinioApplicationResource['origin']): APPLICATION_SOURCE_TYPE {
+  if (origin.git) {
+    return (origin.git.provider || APPLICATION_SOURCE_TYPE.GIT_URL) as unknown as APPLICATION_SOURCE_TYPE;
+  }
+  if (origin.archive) {
+    return APPLICATION_SOURCE_TYPE.ARCHIVE;
+  }
+  if (origin.container) {
+    return APPLICATION_SOURCE_TYPE.CONTAINER_URL;
+  }
+
+  return APPLICATION_SOURCE_TYPE.FOLDER;
+}
+
 function getGitData(git: any): EPINIO_APP_GIT_SOURCE {
-  const parsed = parseUrl(git.repository);
+  const url = git.repository || git.url;
+  const parsed = parseUrl(url);
 
   const parts = parsed.path.split('/');
 
@@ -29,11 +45,12 @@ function getGitData(git: any): EPINIO_APP_GIT_SOURCE {
     branch:        { name: git.branch },
     commit:        git.revision,
     repo:          { name: parts[2] },
-    url:           git.repository,
+    url,
   };
 }
 
 export const AppUtils: Utils = {
   getSourceType,
+  getManifestSourceType,
   getGitData,
 };
