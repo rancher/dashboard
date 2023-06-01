@@ -105,7 +105,19 @@ export const VOLUME_PLUGINS = [
     value:     'vsphereVolume',
     supported: true
   },
+  // Added by Verrazzano Start
+  {
+    labelKey:  'persistentVolume.oci.label',
+    value:     'oci',
+    supported: true
+  },
+  // Added by Verrazzano End
 ];
+
+// Added by Verrazzano Start
+export const OCI_BV_DRIVER = 'blockvolume.csi.oraclecloud.com';
+export const OCI_FS_DRIVER = 'fss.csi.oraclecloud.com';
+// Added by Verrazzano End
 
 export const LONGHORN_DRIVER = 'driver.longhorn.io';
 

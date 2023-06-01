@@ -3659,6 +3659,13 @@ persistentVolume:
     secretFile:
       label: Secret File
       placeholder: e.g. secret
+  # Added by Verrazzano Start
+  oci:
+     driver: Driver type
+     label: OCI
+     fs: File Storage
+     bv: Block Storage
+  # Added by Verrazzano End
   rbd:
     label: Ceph RBD (Unsupported)
     user:
