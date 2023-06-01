@@ -181,6 +181,7 @@ export default {
       >
         <LabeledSelect
           v-model="projectName"
+          data-testid="name-ns-description-project"
           :label="t('namespace.project.label')"
           :options="projectOpts"
         />
