@@ -634,7 +634,7 @@ export default {
 
       const settings = {
         ...DEFAULT_GMV2_SETTING,
-        clusterId: this.currentCluster.id,
+        clusterId: this.currentCluster?.id || 'local',
         enabled:   'false'
       };
 
