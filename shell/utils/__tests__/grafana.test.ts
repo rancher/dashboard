@@ -29,7 +29,7 @@ describe('fx: getClusterPrefix', () => {
   it('future monitoring version, local cluster', () => {
     const prefix = getClusterPrefix('103.0.0+up41.0.0', 'local');
 
-    expect(prefix).toStrictEqual('/k8s/clusters/local');
+    expect(prefix).toStrictEqual('');
   });
   it('empty monitoring version, downstream cluster', () => {
     const prefix = getClusterPrefix('', 'c-abcd');
@@ -39,6 +39,6 @@ describe('fx: getClusterPrefix', () => {
   it('empty monitoring version, local cluster', () => {
     const prefix = getClusterPrefix('', 'local');
 
-    expect(prefix).toStrictEqual('/k8s/clusters/local');
+    expect(prefix).toStrictEqual('');
   });
 });

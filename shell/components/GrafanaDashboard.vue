@@ -40,7 +40,7 @@ export default {
   },
   data() {
     return {
-      loading: false, error: false, interval: null, initialUrl: this.computeUrl(), errorTimer: null, monitoringVersion: null
+      loading: false, error: false, interval: null, errorTimer: null, monitoringVersion: null
     };
   },
   computed: {
@@ -242,7 +242,7 @@ export default {
       v-show="!error"
       ref="frame"
       :class="{loading, frame: true}"
-      :src="initialUrl"
+      :src="currentUrl"
       frameborder="0"
       scrolling="no"
     />
