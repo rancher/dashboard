@@ -187,7 +187,7 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value" />
+  <Loading v-if="!value || $fetchState.pending" />
   <CruResource
     v-else
     :class="shouldShowButtons"

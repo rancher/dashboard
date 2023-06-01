@@ -18,9 +18,7 @@ export default Vue.extend<any, any, any, any>({
       this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE })
     ]);
 
-    const { version } = await this.$store.dispatch('epinio/info');
-
-    this.version = version.label;
+    this.version = await this.$store.dispatch('epinio/version');
   },
   data() {
     return {
@@ -163,7 +161,7 @@ export default Vue.extend<any, any, any, any>({
     <div class="head">
       <div class="head-title">
         <h1>{{ t('epinio.intro.welcome') }}</h1>
-        <span v-if="version">{{ version }}</span>
+        <span v-if="version">{{ version.displayVersion }}</span>
       </div>
 
       <p class="head-subheader">

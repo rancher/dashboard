@@ -30,7 +30,7 @@ import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
-import { markSeenReleaseNotes } from '@shell/utils/version';
+import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
@@ -60,12 +60,6 @@ export default {
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
 
-  async fetch() {
-    const { version } = await this.$store.dispatch('epinio/info');
-
-    this.version = version.label;
-  },
-
   // Note - This will not run on route change
   data() {
     return {
@@ -75,7 +69,6 @@ export default {
       wantNavSync:      false,
       unwatchPin:       undefined,
       wmPin:            null,
-      version:          null,
     };
   },
 
@@ -163,6 +156,15 @@ export default {
       return this.isExplorer &&
              this.$store.getters['cluster/canList'](CATALOG.CLUSTER_REPO) &&
              this.$store.getters['cluster/canList'](CATALOG.APP);
+    },
+
+    displayVersion() {
+      if (this.isSingleProduct?.getVersionInfo) {
+        return this.isSingleProduct?.getVersionInfo(this.$store);
+      }
+      const { displayVersion } = getVersionInfo(this.$store);
+
+      return displayVersion;
     },
 
     singleProductAbout() {
@@ -649,10 +651,10 @@ export default {
           </nuxt-link>
 
           <span
-            v-tooltip="{content: version, placement: 'top'}"
+            v-tooltip="{content: displayVersion, placement: 'top'}"
             class="clip version text-muted"
           >
-            {{ version }}
+            {{ displayVersion }}
           </span>
 
           <span v-if="isSingleProduct">
@@ -694,10 +696,10 @@ export default {
             v-if="singleProductAbout"
             :to="singleProductAbout"
           >
-            {{ version }}
+            {{ displayVersion }}
           </nuxt-link>
           <template v-else>
-            {{ version }}
+            {{ displayVersion }}
           </template>
         </div>
       </nav>

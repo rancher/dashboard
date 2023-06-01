@@ -1,27 +1,12 @@
 import { importTypes } from '@rancher/auto-import';
-import { MANAGEMENT } from '@shell/config/types';
 import { IPlugin, OnNavAwayFromPackage, OnNavToPackage } from '@shell/core/types';
 import epinioRoutes from './routing/epinio-routing';
 import epinioMgmtStore from './store/epinio-mgmt-store';
 import epinioStore from './store/epinio-store';
 
-const semanticVersionRegex = /v(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\.\d+)/;
-
 const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
-
-  const serverVersionSettings = store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
-  const res = await store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } });
-
-  await store.dispatch('epinio/info');
-
-  await store.dispatch('management/load', {
-    data: {
-      ...serverVersionSettings,
-      type:  MANAGEMENT.SETTING,
-      value: res.version.match(semanticVersionRegex)?.[0] ?? 'v1.7.0'
-    }
-  });
+  await store.dispatch(`${ epinioStore.config.namespace }/info`);
 };
 const onLeave: OnNavAwayFromPackage = async(store, config) => {
   // The dashboard retains the previous cluster info until another cluster is loaded, this helps when returning to the same cluster.

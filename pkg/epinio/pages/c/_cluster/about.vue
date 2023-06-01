@@ -10,9 +10,8 @@ export default {
   mixins:     [BackRoute],
   async fetch() {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
-    const { version } = await this.$store.dispatch('epinio/info');
 
-    this.version = version.label;
+    this.version = await this.$store.dispatch('epinio/version');
   },
 
   data() {
@@ -28,11 +27,19 @@ export default {
       const gitUrl = `https://github.com/epinio/epinio/releases/download`;
 
       return [
-        this.createOSOption('about.os.mac', 'icon-apple', `${ gitUrl }/${ this.version }/${ this.appName.toLowerCase() }-darwin-x86_64`, null),
-        this.createOSOption('about.os.linux', 'icon-linux', `${ gitUrl }/${ this.version }/${ this.appName.toLowerCase() }-linux-x86_64`, this.downloadLinuxImages),
-        this.createOSOption('about.os.windows', 'icon-windows', `${ gitUrl }/${ this.version }/${ this.appName.toLowerCase() }-windows-x86_64.zip`)
+        this.createOSOption('about.os.mac', 'icon-apple', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-darwin-x86_64`, null),
+        this.createOSOption('about.os.linux', 'icon-linux', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-linux-x86_64`, this.downloadLinuxImages),
+        this.createOSOption('about.os.windows', 'icon-windows', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-windows-x86_64.zip`)
       ];
     },
+
+    versionString() {
+      if (this.version?.displayVersion === this.version?.fullVersion) {
+        return this.version?.displayVersion;
+      }
+
+      return this.version.fullVersion;
+    }
   },
   methods: {
     createOSOption(label, icon, cliLink, imageList) {
@@ -73,7 +80,7 @@ export default {
             >
               {{ appName }}
             </a>
-          </td><td>{{ version }}</td>
+          </td><td>{{ versionString }}</td>
         </tr>
       </table>
     </template>
@@ -105,7 +112,7 @@ export default {
       <a
         class="mt-5"
         target="_blank"
-        :href="`https://github.com/epinio/epinio/releases/tag/${version}`"
+        :href="`https://github.com/epinio/epinio/releases/tag/${version.displayVersion}`"
       >
         {{ t('epinio.about.allPackages') }}
       </a>

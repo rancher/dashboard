@@ -1,3 +1,4 @@
+import { EpinioInfo, EpinioVersion } from '../../types';
 
 export default {
 
@@ -5,7 +6,11 @@ export default {
     state.singleProductCNSI = singleProductCNSI;
   },
 
-  info(state: any, info: any) {
+  info(state: any, info: EpinioInfo) {
     state.info = info;
+  },
+
+  version(state: any, version: EpinioVersion) {
+    state.version = version;
   }
 };
