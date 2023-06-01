@@ -50,7 +50,6 @@ describe('plugin: subscribe, actions: ws.resource.change', () => {
       }
     };
     const data = {
-      // clusterId: 'test',
       metadata: {
         state:             { error: true },
         creationTimestamp: new Date()
@@ -103,7 +102,7 @@ describe('plugin: subscribe, actions: ws.resource.change', () => {
     }, { root: true });
   });
 
-  it('should be rke growl fail', () => {
+  it('should be rke growl fail when state failed', () => {
     const growlFail = jest.fn(t => t);
     const ctx = {
       getters: {
@@ -133,8 +132,43 @@ describe('plugin: subscribe, actions: ws.resource.change', () => {
     actions['ws.resource.change'](ctx, { data, type: 'rke.cattle.io.etcdsnapshot' });
 
     expect(growlFail).toHaveBeenCalledWith('growl/fromError', {
-      title:   'cluster.snapshot.fail.title',
-      message: 'cluster.snapshot.fail.messagetestFail',
+      title: 'cluster.snapshot.fail.title',
+      err:   'cluster.snapshot.fail.messagetestFail',
+    }, { root: true });
+  });
+
+  it('should be rke growl fail when state error', () => {
+    const growlFail = jest.fn(t => t);
+    const ctx = {
+      getters: {
+        normalizeType: type => type,
+        typeEntry:     type => '',
+      },
+      dispatch:    growlFail,
+      rootGetters: {
+        'management/byId':     (type, id) => ({ nameDisplay: id }),
+        'type-map/optionsFor': type => ({ type }),
+        'i18n/t':              (type, p) => p?.name ? type + p.name : type
+      }
+    };
+    const data = {
+      annotations: [],
+      status:      {
+        conditions: [{
+          lastUpdateTime: new Date(),
+          type:           'Completed'
+        }]
+      },
+      clusterId: 'testFail',
+      type:      'etcdBackup',
+      state:     'error'
+    };
+
+    actions['ws.resource.change'](ctx, { data, type: 'rke.cattle.io.etcdsnapshot' });
+
+    expect(growlFail).toHaveBeenCalledWith('growl/fromError', {
+      title: 'cluster.snapshot.fail.title',
+      err:   'cluster.snapshot.fail.messagetestFail',
     }, { root: true });
   });
 });
