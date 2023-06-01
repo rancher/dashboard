@@ -18,7 +18,6 @@ export default class ProjectNamespacePagePo extends PagePo {
     return new ProvClusterListPo(this.self().find('[data-testid="cluster-list"]'));
   }
 
-
   flatListButton() {
     return this.self().getId('button-group-child-0');
   }
@@ -38,5 +37,4 @@ export default class ProjectNamespacePagePo extends PagePo {
   nsProject() {
     return this.self().getId('name-ns-description-project');
   }
-  
 }
