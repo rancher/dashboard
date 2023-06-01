@@ -352,6 +352,7 @@ module.exports = function(dir, _appConfig) {
     },
     publicPath: resourceBase || undefined,
     css:        {
+      extract:       false, // inline css styles instead of including with `<links`
       loaderOptions: {
         sass: {
           // This is effectively added to the beginning of each style that's imported or included in a vue file. We may want to look into including these in app.scss

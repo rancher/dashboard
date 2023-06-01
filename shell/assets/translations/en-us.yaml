@@ -6349,8 +6349,13 @@ typeLabel:
     }
   management.cattle.io.clusterroletemplatebinding: |-
     {count, plural,
-      one { Cluster Member }
-      other { Cluster Members }
+      one { Cluster Membership }
+      other { Cluster Memberships }
+    }
+  projectroletemplatebinding: |-
+    {count, plural,
+      one { Project Membership }
+      other { Project Memberships }
     }
   management.cattle.io.feature: |-
     {count, plural,

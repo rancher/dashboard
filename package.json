@@ -145,6 +145,7 @@
     "@types/copy-webpack-plugin": "^5.0.3",
     "@types/dompurify": "3.0.0",
     "@types/jest": "27.4.1",
+    "@types/js-yaml": "^4.0.5",
     "@types/lodash": "4.14.184",
     "@types/node": "16.4.3",
     "@types/vue-select": "3.16.0",

@@ -230,7 +230,7 @@ export const routerOptions = {
     name:      'c-cluster-settings-brand'
   }, {
     path:      '/c/:cluster/settings/DefaultLinksEditor',
-    component: () => interopDefault(import('../pages/c/_cluster/settings/DefaultLinksEditor.vue' /* webpackChunkName: "shell/pages/c/_cluster/settings/DefaultLinksEditor" */)),
+    component: () => interopDefault(import('../pages/c/_cluster/settings/DefaultLinksEditor.vue' /* webpackChunkName: "pages/c/_cluster/settings/DefaultLinksEditor" */)),
     name:      'c-cluster-settings-DefaultLinksEditor'
   }, {
     path:      '/c/:cluster/settings/links',
