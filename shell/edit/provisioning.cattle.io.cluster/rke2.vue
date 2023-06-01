@@ -1285,6 +1285,7 @@ export default {
 
     async syncMachineConfigWithLatest(machinePool) {
       if (machinePool?.config?.id) {
+        // Use management/request instead of management/find to avoid overwriting the current machine pool in the store
         const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
         const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
 
