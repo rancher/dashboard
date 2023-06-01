@@ -1,5 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import ProvClusterListPo from '@/cypress/e2e/po/lists/provisioning.cattle.io.cluster.po';
 
 export default class ProjectNamespacePagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -12,10 +11,6 @@ export default class ProjectNamespacePagePo extends PagePo {
 
   constructor(clusterId: string) {
     super(ProjectNamespacePagePo.createPath(clusterId));
-  }
-
-  list(): ProvClusterListPo {
-    return new ProvClusterListPo(this.self().find('[data-testid="cluster-list"]'));
   }
 
   flatListButton() {
