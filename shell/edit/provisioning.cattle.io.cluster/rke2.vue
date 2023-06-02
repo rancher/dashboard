@@ -290,6 +290,8 @@ export default {
     if ( !this.value.spec[FLEET_AGENT_CUSTOMIZATION] ) {
       set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, {});
     }
+
+    this.loadedOnce = true;
   },
 
   data() {
@@ -2092,7 +2094,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending && !loadedOnce" />
+  <Loading v-if="!loadedOnce" />
   <Banner
     v-else-if="$fetchState.error"
     color="error"
@@ -2124,15 +2126,20 @@ export default {
         <span v-clean-html="t('cluster.banner.rke2-k3-reprovisioning', {}, true)" />
       </Banner>
     </div>
-    <SelectCredential
+
+    <div
       v-if="needCredential"
-      v-model="credentialId"
-      :mode="mode"
-      :provider="provider"
-      :cancel="cancelCredential"
-      :showing-form="showForm"
-      class="mt-20"
-    />
+      class="credentials-container"
+    >
+      <SelectCredential
+        v-model="credentialId"
+        :mode="mode"
+        :provider="provider"
+        :cancel="cancelCredential"
+        :showing-form="showForm"
+        class="mt-20"
+      />
+    </div>
 
     <div
       v-if="showForm"
@@ -3053,5 +3060,10 @@ export default {
   }
   .header-warnings .banner {
     margin-bottom: 0;
+  }
+
+  .credentials-container {
+    position: relative;
+    min-height:40px
   }
 </style>

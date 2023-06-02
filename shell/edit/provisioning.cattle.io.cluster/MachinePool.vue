@@ -262,6 +262,7 @@ export default {
       :pool-index="idx"
       :machine-pools="machinePools"
       :busy="busy"
+      class="configComponent"
       @error="e=>errors = e"
       @updateMachineCount="updateMachineCount"
       @expandAdvanced="expandAdvanced"
@@ -351,5 +352,9 @@ export default {
   .advanced ::v-deep >.vue-portal-target:empty,
   .advanced ::v-deep >.vue-portal-target:empty + .spacer {
     display: none;
+  }
+  .configComponent {
+    position: relative;
+    min-height:40px
   }
 </style>

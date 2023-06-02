@@ -86,6 +86,8 @@ export default {
     } catch (e) {
       this.errors = exceptionToErrorsArray(e);
     }
+
+    this.loadedOnce = true;
   },
 
   data() {
@@ -100,7 +102,8 @@ export default {
       regionOptions:   null,
       imageOptions:    null,
       instanceOptions: null,
-      tags
+      tags,
+      loadedOnce:      false,
     };
   },
 
@@ -138,8 +141,8 @@ export default {
 
 <template>
   <Loading
-    v-if="$fetchState.pending"
-    :delayed="true"
+    v-if="!loadedOnce"
+    mode="relative"
   />
   <div v-else-if="errors.length">
     <div

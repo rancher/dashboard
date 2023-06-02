@@ -62,6 +62,8 @@ export default {
     } else if ( !this.filteredCredentials.length ) {
       this.credentialId = _NEW;
     }
+
+    this.loadedOnce = true;
   },
 
   data() {
@@ -71,7 +73,8 @@ export default {
       credentialId:           this.value || _NONE,
       newCredential:          null,
       createValidationPassed: false,
-      originalId:             this.value
+      originalId:             this.value,
+      loadedOnce:             false,
     };
   },
 
@@ -212,7 +215,10 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading
+    v-if="!loadedOnce"
+    mode="relative"
+  />
   <CruResource
     v-else
     :mode="mode"
