@@ -228,7 +228,9 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      const options = Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces())
+      const namespaces = this.namespacesOverride ||
+        (Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces()));
+      const options = namespaces
         .map(namespace => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || (obj => ({
           label: obj.nameDisplay,

@@ -226,3 +226,8 @@ export interface EpinioVersion {
   fullVersion: string,
   displayVersion: string,
 }
+
+export interface EpinioNamespace extends EpinioMetaProperty {
+  apps: string[],
+  configurations: string[],
+}
