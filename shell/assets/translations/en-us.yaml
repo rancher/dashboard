@@ -2389,11 +2389,32 @@ hpa:
     name:
       label: Referent Name
       placeholder: e.g. php-apache
+  scaleDownRules:
+    label: Scale down behavior
+    enable: Configure scale down behavior
+  scaleUpRules:
+    label: Scale up behavior
+    enable: Configure scale up behavior
+  scalingRule:
+    policyHeader: Policies
+    addPolicy: Add policy
+    selectPolicy: Select policy
+    selectPolicyTooltip: Select the policy with the maximum value, minimum value or disable scaling.
+    stabilizationWindowSeconds: Stabilization window seconds
+    stabilizationWindowSecondsTooltip: Number of seconds for which past recommendations should be considered while scaling up or scaling down.
+    policy:
+      type: Type
+      typeTooltip: Set policy based on the amount of Pods to scale or the percentage of current replicas to scale.
+      value: Value
+      valueTooltip: The amount of change which is permitted by the policy.
+      periodSeconds: Period seconds
+      periodSecondsTooltip: The window of time for which the policy should hold true.
   tabs:
     labels: Labels
     metrics: Metrics
     target: Target
     workload: Workload
+    behavior: Behavior
   types:
     cpu: CPU
     memory: Memory
