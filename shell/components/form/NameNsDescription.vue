@@ -244,24 +244,18 @@ export default {
         });
       }
 
-      const out = [];
+      const createButton = {
+        label: this.t('namespace.createNamespace'),
+        value: '',
+        kind:  'highlighted'
+      };
+      const divider = {
+        label:    'divider',
+        disabled: true,
+        kind:     'divider'
+      };
 
-      if (this.createNamespaceOverride || this.canCreateNamespace) {
-        out.push({
-          label: this.t('namespace.createNamespace'),
-          value: '',
-          kind:  'highlighted'
-        }, {
-          label:    'divider',
-          disabled: true,
-          kind:     'divider'
-        });
-      }
-      out.push(
-        ...sortedByLabel
-      );
-
-      const createOverhead = this.canCreateNamespace ? [createButton, divider] : [];
+      const createOverhead = this.canCreateNamespace || this.createNamespaceOverride ? [createButton, divider] : [];
 
       return [
         ...createOverhead,
