@@ -24,10 +24,15 @@ export function init($plugin: any, store: any) {
     store.dispatch('setIsSingleProduct', {
       logo:                require(`../assets/logo-epinio.svg`),
       productNameKey:      'epinio.label',
-      aboutPage:           createEpinioRoute('about', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      aboutPage:           createEpinioRoute('c-cluster-about', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       afterLoginRoute:     createEpinioRoute('c-cluster-dashboard', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       logoRoute:           createEpinioRoute('c-cluster-dashboard', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       disableSteveSockets: true,
+      getVersionInfo:      (store:any) => {
+        const { displayVersion } = store.getters[`${ EPINIO_PRODUCT_NAME }/version`]();
+
+        return displayVersion || 'unknown';
+      },
     });
   }
 

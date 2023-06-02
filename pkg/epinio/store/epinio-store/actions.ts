@@ -6,7 +6,9 @@ import { NAMESPACE_FILTERS } from '@shell/store/prefs';
 import { base64Encode } from '@shell/utils/crypto';
 import { createNamespaceFilterKeyWithId } from '@shell/utils/namespace-filter';
 import { parse as parseUrl, stringify as unParseUrl } from '@shell/utils/url';
-import { EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_NAME, EPINIO_TYPES } from '../../types';
+import {
+  EpinioInfo, EpinioVersion, EPINIO_MGMT_STORE, EPINIO_PRODUCT_NAME, EPINIO_STANDALONE_CLUSTER_NAME, EPINIO_TYPES
+} from '../../types';
 
 const createId = (schema: any, resource: any) => {
   const name = resource.meta?.name || resource.name;
@@ -18,6 +20,8 @@ const createId = (schema: any, resource: any) => {
 
   return name;
 };
+
+const semanticVersionRegex = /v(?:(\d+)\.)?(?:(\d+)\.)?(?:(\d+)\.\d+)/;
 
 export const epiniofy = (obj: any, schema: any, type: any) => ({
   ...obj,
@@ -280,5 +284,36 @@ export default {
       type: EPINIO_TYPES.NAMESPACE,
       meta: { name: obj.name }
     });
-  }
+  },
+
+  version: async( { dispatch, getters }: any ): Promise<EpinioVersion> => {
+    const storedVersion = getters['version']();
+
+    if (storedVersion) {
+      return storedVersion;
+    }
+
+    await dispatch('info');
+
+    return getters['version']();
+  },
+
+  info: async( { dispatch, commit, getters }: any ): Promise<EpinioInfo> => {
+    const storedInfo = getters['info']();
+
+    if (storedInfo) {
+      return storedInfo;
+    }
+
+    const info = await dispatch('request', { opt: { url: `/api/v1/info` } });
+    const version = {
+      displayVersion: info.version.match(semanticVersionRegex)?.[0] ?? 'v1.7.0',
+      fullVersion:    info.version ?? 'v1.7.0',
+    };
+
+    commit('info', info);
+    commit('version', version);
+
+    return info;
+  },
 };

@@ -1,6 +1,5 @@
 <script>
 import { MANAGEMENT } from '@shell/config/types';
-import { getVersionInfo } from '@shell/utils/version';
 import { getVendor } from '@shell/config/private-label';
 import BackLink from '@shell/components/BackLink';
 import BackRoute from '@shell/mixins/back-link';
@@ -11,7 +10,8 @@ export default {
   mixins:     [BackRoute],
   async fetch() {
     this.settings = await this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.SETTING });
-    this.version = getVersionInfo(this.$store);
+
+    this.version = await this.$store.dispatch('epinio/version');
   },
 
   data() {
@@ -32,6 +32,14 @@ export default {
         this.createOSOption('about.os.windows', 'icon-windows', `${ gitUrl }/${ this.version?.displayVersion }/${ this.appName.toLowerCase() }-windows-x86_64.zip`)
       ];
     },
+
+    versionString() {
+      if (this.version?.displayVersion === this.version?.fullVersion) {
+        return this.version?.displayVersion;
+      }
+
+      return this.version.fullVersion;
+    }
   },
   methods: {
     createOSOption(label, icon, cliLink, imageList) {
@@ -72,7 +80,7 @@ export default {
             >
               {{ appName }}
             </a>
-          </td><td>{{ version.displayVersion }}</td>
+          </td><td>{{ versionString }}</td>
         </tr>
       </table>
     </template>

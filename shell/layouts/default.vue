@@ -166,7 +166,6 @@ export default {
       if (this.isSingleProduct?.getVersionInfo) {
         return this.isSingleProduct?.getVersionInfo(this.$store);
       }
-
       const { displayVersion } = getVersionInfo(this.$store);
 
       return displayVersion;

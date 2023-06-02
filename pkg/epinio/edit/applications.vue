@@ -89,7 +89,7 @@ export default Vue.extend<Data, any, any, any>({
     const hash: { [key:string]: any } = await allHash({
       ns:     this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
       charts: this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
-      info:   this.$store.dispatch(`epinio/request`, { opt: { url: `/api/v1/info` } })
+      info:   this.$store.dispatch('epinio/info'),
     });
 
     this.epinioInfo = hash.info;
@@ -187,7 +187,7 @@ export default Vue.extend<Data, any, any, any>({
 </script>
 
 <template>
-  <Loading v-if="!value" />
+  <Loading v-if="!value || $fetchState.pending" />
   <CruResource
     v-else
     :class="shouldShowButtons"

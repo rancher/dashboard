@@ -221,3 +221,8 @@ export interface EpinioInfo {
   platform: string, // eslint-disable-line camelcase
   version: string, // eslint-disable-line camelcase
 }
+
+export interface EpinioVersion {
+  fullVersion: string,
+  displayVersion: string,
+}
