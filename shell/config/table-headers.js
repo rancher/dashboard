@@ -969,3 +969,36 @@ export const FLEET_BUNDLE_TYPE = {
   sort:     ['bundleType'],
   width:    100,
 };
+
+export const UI_PLUGIN_CATALOG = [
+  {
+    name:          'state',
+    labelKey:      'tableHeaders.state',
+    sort:          ['stateSort', 'nameSort'],
+    value:         'state',
+    width:         100,
+    default:       'unknown',
+    formatter:     'BadgeStateFormatter',
+    formatterOpts: { arbitrary: true }
+  },
+  {
+    name:      'name',
+    labelKey:  'tableHeaders.name',
+    value:     'name',
+    sort:      ['nameSort'],
+    formatter: 'LinkDetail'
+  },
+  {
+    name:     'image',
+    sort:     ['image'],
+    labelKey: 'plugins.manageCatalog.headers.image.label',
+    value:    'deploymentImage'
+  },
+  {
+    name:      'cacheState',
+    sort:      ['cacheState'],
+    labelKey:  'plugins.manageCatalog.headers.cacheState.label',
+    value:     'cacheState',
+    formatter: 'ExtensionCache'
+  }
+];
