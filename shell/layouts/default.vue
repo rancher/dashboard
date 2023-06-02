@@ -23,7 +23,7 @@ import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import DraggableZone from '@shell/components/DraggableZone';
 import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
 } from '@shell/config/types';
 import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
@@ -83,7 +83,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct', 'openRancherManagerSupport']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct', 'openRancherManagerSupport', 'isVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -170,6 +170,10 @@ export default {
       const { displayVersion } = getVersionInfo(this.$store);
 
       return displayVersion;
+    },
+
+    harvesterVersion() {
+      return this.$store.getters['cluster/byId'](HCI.SETTING, 'server-version')?.value || 'unknown';
     },
 
     showProductFooter() {
@@ -708,9 +712,16 @@ export default {
         </div>
         <div
           v-else
-          class="version text-muted"
+          class="version text-muted flex"
         >
-          {{ displayVersion }}
+          <span>{{ displayVersion }}</span>
+          <span
+            v-if="isVirtualCluster && isExplorer"
+            v-tooltip="{content: harvesterVersion, placement: 'top'}"
+            class="clip text-muted ml-5"
+          >
+            (Harvester-{{ harvesterVersion }})
+          </span>
         </div>
       </nav>
       <main
@@ -783,6 +794,9 @@ export default {
     }
   }
 
+  .flex {
+    display: flex;
+  }
 </style>
 <style lang="scss">
   .dashboard-root {

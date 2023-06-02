@@ -937,6 +937,10 @@ export const actions = {
       all:     allNamespaces,
     });
 
+    if (getters['currentCluster'] && getters['currentCluster'].isHarvester) {
+      await dispatch('cluster/findAll', { type: HCI.SETTING });
+    }
+
     commit('clusterReady', true);
 
     console.log('Done loading cluster.'); // eslint-disable-line no-console
