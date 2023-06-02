@@ -10,10 +10,9 @@ const isEpinioSingleProduct = process.env.rancherEnv === 'epinio';
 
 const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
+  await store.dispatch(`${ epinioStore.config.namespace }/info`);
 
   if (isEpinioSingleProduct) {
-    await store.dispatch(`${ epinioStore.config.namespace }/info`);
-
     // The generic namespace filtering stuff in 'shell/store/index` `getActiveNamespaces` requires a `currentCluster`
     // (not just currentId which comes from the url)
     const mockCurrentCluster = await store.dispatch(`management/create`, {
