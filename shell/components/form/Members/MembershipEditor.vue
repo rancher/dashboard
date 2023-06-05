@@ -56,20 +56,13 @@ export default {
   },
 
   async fetch() {
-    const userHydration = [
-      this.schema ? this.$store.dispatch(`rancher/findAll`, { type: this.type, opt: { force: true } }) : [],
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
-      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE }),
-      this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER })
-    ];
-    const [allBindings] = await Promise.all(userHydration);
-
-    const bindings = allBindings
-      .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
-
-    this.$set(this, 'lastSavedBindings', [...bindings]);
+    this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL });
+    this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE });
+    this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER });
 
     // Add the current user as the project owner. This will get created by default
+    const bindings = [];
+
     if (this.mode === _CREATE && bindings.length === 0 && this.defaultBindingHandler) {
       const defaultBinding = await this.defaultBindingHandler();
 
@@ -85,7 +78,21 @@ export default {
       schema:            this.$store.getters[`rancher/schemaFor`](this.type),
       bindings:          [],
       lastSavedBindings: [],
+      loadingBindings:   true
     };
+  },
+
+  async mounted() {
+    const projectMembers = this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING;
+    // this approach makes it easier to add different filters for different use cases later...
+    const filter = { ...projectMembers ? { projectId: this.parentId.replace('/', ':') } : {} };
+    const allBindings = this.schema ? await this.$store.dispatch(`rancher/findAll`, { type: this.type, opt: { force: true, filter } }) : [];
+    const bindings = allBindings
+      .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
+
+    this.$set(this, 'lastSavedBindings', [...bindings]);
+    this.$set(this, 'bindings', [...bindings]);
+    this.loadingBindings = false;
   },
 
   computed: {
@@ -151,12 +158,13 @@ export default {
 };
 </script>
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending || loadingBindings" />
   <ArrayList
     v-else
     v-model="bindings"
     :mode="mode"
     :show-header="true"
+    :loading="true"
   >
     <template #column-headers>
       <div class="box mb-0">

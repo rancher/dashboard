@@ -42,6 +42,7 @@ export default {
   },
 
   async fetch() {
+    const clusterId = this.$store.getters['currentCluster'].id;
     const clusterRoleTemplateBindingSchema = this.$store.getters[
       `rancher/schemaFor`
     ](NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING);
@@ -53,7 +54,7 @@ export default {
 
     if (clusterRoleTemplateBindingSchema) {
       Promise.all([
-        this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }),
+        this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, opt: { filter: { clusterId } } }, { root: true }),
         this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
       ]).then(([normanBindings]) => {
         this.$set(this, 'normanClusterRoleTemplateBindings', normanBindings);
@@ -62,6 +63,8 @@ export default {
     }
 
     if (projectRoleTemplateBindingSchema) {
+      // ideally there'd be a clusterId filter (or at least a partial match on projectId) for whittling these down as well...
+      // ToDo: SM get the list of users which should be smaller than the PRTB list and then extrapolate from there
       this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
         .then((bindings) => {
           this.$set(this, 'projectRoleTemplateBindings', bindings);
