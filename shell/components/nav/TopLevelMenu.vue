@@ -111,7 +111,16 @@ export default {
     multiClusterApps() {
       const options = this.options;
 
-      return options.filter(opt => (opt.inStore === 'management' || opt.isMultiClusterApp) && opt.category !== 'configuration' && opt.category !== 'legacy' && opt.category !== 'hci');
+      return options.filter((opt) => {
+        const filterApps = (opt.inStore === 'management' || opt.isMultiClusterApp) && opt.category !== 'configuration' && opt.category !== 'legacy';
+
+        if (this.isRancherInHarvester) {
+          return filterApps && opt.category !== 'hci';
+        } else {
+          // We expect the location of Virtualization Management to remain the same when rancher-manage-support is not enabled
+          return filterApps;
+        }
+      });
     },
 
     legacyApps() {
@@ -129,7 +138,7 @@ export default {
     hciApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.category === 'hci');
+      return options.filter(opt => this.isRancherInHarvester && opt.category === 'hci');
     },
 
     options() {
