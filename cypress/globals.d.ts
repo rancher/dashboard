@@ -3,6 +3,9 @@ type Matcher = '$' | '^' | '~' | '*' | '';
 // eslint-disable-next-line no-unused-vars
 declare namespace Cypress {
   interface Chainable {
+
+    state(state: any): any;
+
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
     byLabel(label: string,): Chainable<Element>;
 
