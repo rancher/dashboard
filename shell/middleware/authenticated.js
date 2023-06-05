@@ -417,13 +417,11 @@ export default async function({
       }
     }
   } catch (e) {
-    if ( e instanceof ClusterNotFoundError ) {
-      return redirect(302, '/home');
-    } else {
+   
+      // Set error 500
       store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
 
       return redirect(302, '/fail-whale');
-    }
   }
 }
 

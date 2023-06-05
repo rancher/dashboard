@@ -35,7 +35,20 @@ export default {
     },
 
     displayError() {
-      return this.error?.data ? this.error.data : stringify(this.error);
+      // Backend can send basic errors as strings or an object with a message property
+      if (this.error?.message) {
+        try {
+          return JSON.parse(this.error.message).data;
+        } catch (e) {
+          return this.error.message;
+        }
+      }
+
+      if (this.error?.data) {
+        return this.error.data;
+      }
+
+      return stringify(this.error);
     },
   },
 
