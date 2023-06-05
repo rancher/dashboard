@@ -7170,6 +7170,7 @@ resourceQuota:
     resourceType: Resource Type
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
+  helpTextHarvester: VMs need to reserve additional memory overhead.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit

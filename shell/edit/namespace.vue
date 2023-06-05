@@ -110,7 +110,15 @@ export default {
 
     flatView() {
       return (this.$route.query[FLAT_VIEW] || false);
-    }
+    },
+
+    showPodSecurityAdmission() {
+      return !this.isStandaloneHarvester;
+    },
+
+    showHarvesterHelpText() {
+      return !this.isStandaloneHarvester && this.$store.getters['currentProduct'].inStore === HARVESTER;
+    },
   },
 
   watch: {
@@ -205,6 +213,9 @@ export default {
                 v-else
                 k="resourceQuota.helpText"
               />
+              <span v-if="showHarvesterHelpText">
+                {{ t('resourceQuota.helpTextHarvester') }}
+              </span>
             </p>
           </div>
         </div>
@@ -212,7 +223,7 @@ export default {
           v-model="value"
           :mode="mode"
           :project="project"
-          :types="isHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
+          :types="isStandaloneHarvester ? HARVESTER_TYPES : RANCHER_TYPES"
         />
       </Tab>
       <Tab
