@@ -221,13 +221,8 @@ export default {
     async goToHarvesterCluster() {
       const localCluster = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(C => C.id === 'fleet-local/local');
 
-      const harvCluster = await this.$store.dispatch('management/create', {
-        ...localCluster,
-        type: HCI.CLUSTER
-      });
-
       try {
-        await harvCluster.goToCluster();
+        await localCluster.goToHarvesterCluster();
       } catch {
       }
     }

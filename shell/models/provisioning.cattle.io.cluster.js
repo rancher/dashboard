@@ -1,4 +1,6 @@
-import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
+import {
+  CAPI, MANAGEMENT, NORMAN, SNAPSHOT, HCI
+} from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
@@ -184,6 +186,18 @@ export default class ProvCluster extends SteveModel {
     };
 
     this.currentRouter().push(location);
+  }
+
+  async goToHarvesterCluster() {
+    const harvesterCluster = await this.$dispatch('create', {
+      ...this,
+      type: HCI.CLUSTER
+    });
+
+    try {
+      await harvesterCluster.goToCluster();
+    } catch {
+    }
   }
 
   goToViewYaml() {

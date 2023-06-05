@@ -411,12 +411,7 @@ export default {
         const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
         const provCluster = provClusters.find(p => p.mgmt.id === this.currentCluster.id);
 
-        const harvesterCluster = await this.$store.dispatch('management/create', {
-          ...provCluster,
-          type: HCI.CLUSTER
-        });
-
-        await harvesterCluster.goToCluster();
+        await provCluster.goToHarvesterCluster();
       } catch {
       }
     }

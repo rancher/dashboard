@@ -9,7 +9,7 @@ import {
   FLEET,
   MANAGEMENT,
   NAMESPACE, NORMAN,
-  UI, VIRTUAL_HARVESTER_PROVIDER
+  UI, VIRTUAL_HARVESTER_PROVIDER, HCI
 } from '@shell/config/types';
 import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import Steve from '@shell/plugins/steve';

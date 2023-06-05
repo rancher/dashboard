@@ -17,20 +17,6 @@ export default {
       isImported: props.row.mgmt?.providerForEmberParam === 'import'
     };
   },
-
-  methods: {
-    async goToHarvesterCluster() {
-      const harvesterCluster = await this.$store.dispatch('management/create', {
-        ...this.row,
-        type: HCI.CLUSTER
-      });
-
-      try {
-        await harvesterCluster.goToCluster();
-      } catch {
-      }
-    }
-  }
 };
 </script>
 
@@ -41,7 +27,7 @@ export default {
         <a
           v-if="row.mgmt.isReady && !row.hasError"
           role="button"
-          @click="goToHarvesterCluster"
+          @click="row.goToHarvesterCluster()"
         >
           {{ row.machineProviderDisplay }}
         </a>
