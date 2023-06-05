@@ -209,9 +209,9 @@ export default {
       }, `Validation Warnings for ${ opt.url }\n`);
 
       if (process.env.dev) {
-        console.warn(`${ message }\n\n`, res.data);
+        console.warn(`${ message }\n\n`, res.data); // eslint-disable-line no-console
       } else {
-        console.debug(message);
+        console.debug(message); // eslint-disable-line no-console
       }
     }
   },
