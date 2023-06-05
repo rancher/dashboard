@@ -1,4 +1,4 @@
-export const createPodBluerint = {
+export const createPodBlueprint = {
   apiVersion: 'v1',
   kind:       'Pod',
   metadata:   { name: 'nginx-test-pod', namespace: 'default' },
