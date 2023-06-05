@@ -43,8 +43,9 @@ export function stringify(err) {
       if (typeof str === 'string') {
         try {
           const data = JSON.parse(str).data;
+
           if (data) {
-            return data
+            return data;
           }
         } catch {}
       }
