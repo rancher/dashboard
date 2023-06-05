@@ -1,6 +1,8 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { Matcher } from '@/cypress/support/types';
 
+const apiCsrf: string[] = [];
+
 /**
  * Login local authentication, including first login and bootstrap if not cached
  */
@@ -34,11 +36,12 @@ Cypress.Commands.add('login', (
     loginPage.submit();
 
     cy.wait('@loginReq').then(({ request, response }) => {
-      if (username === 'admin' && password === `${ Cypress.env('password') }`) {
-        const apiKey = request.headers['x-api-csrf'];
+      apiCsrf.push(request.headers['x-api-csrf']);
 
-        cy.createUser(apiKey);
-        cy.setGlobalRoleBinding(apiKey, 'user');
+      if (username === 'admin' && response?.statusCode === 200) {
+        cy.log(apiCsrf[0]);
+        cy.createUser(apiCsrf[0]);
+        cy.setGlobalRoleBinding(apiCsrf[0], 'user');
       }
     });
   };
