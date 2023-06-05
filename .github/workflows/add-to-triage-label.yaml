@@ -11,7 +11,7 @@ jobs:
       issues: write
     steps:
       - name: Label issues
-        if: "!(contains(github.event.issue.labels.*.name, '[zube]: Working') || contains(github.event.issue.labels.*.name, '[zube]: Backlog') || contains(github.event.issue.labels.*.name, '[zube]: Backend Blocked') || contains(github.event.issue.labels.*.name, '[zube]: Next Up') || contains(github.event.issue.labels.*.name, '[zube]: Review'))"
+        if: "!startsWith(github.event.issue.labels.*.name, '[zube]:')"
         uses: github/issue-labeler@v2.5
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
