@@ -91,6 +91,9 @@ export default {
     enabledProviders() {
       return this.providers.filter(p => p.enabled);
     },
+    isNamespaced() {
+      return this.value.type !== LOGGING?.CLUSTER_OUTPUT;
+    },
     cruMode() {
       if (this.hasMultipleProvidersSelected || !this.value.allProvidersSupported) {
         return _VIEW;
@@ -173,7 +176,7 @@ export default {
         :mode="mode"
         label="generic.name"
         :register-before-hook="registerBeforeHook"
-        :namespaced="value.type !== LOGGING.CLUSTER_OUTPUT"
+        :namespaced="isNamespaced"
       />
       <Banner
         v-if="hasMultipleProvidersSelected"
