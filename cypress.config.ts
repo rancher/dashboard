@@ -17,9 +17,12 @@ const getSpecPattern = (): string[] => {
   ];
   const activePaths = optionalPaths.filter(({ active }) => Boolean(active)).map(({ path }) => path);
 
+  // List the test directories to be included
+  const testDirs = ['pages', 'navigation', 'global-ui'].map((dir) => `cypress/e2e/tests/${ dir }/**/*.spec.ts`);
+
   return [
     ...activePaths,
-    'cypress/e2e/tests/**/*.spec.ts',
+    ...testDirs
   ];
 };
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
