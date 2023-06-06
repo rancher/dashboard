@@ -78,7 +78,7 @@ export default {
       initialBufferYaml:            bufferYaml,
       providers,
       selectedProvider,
-      hasMultipleProvidersSelected: selectedProviders.length > 1,
+      hasMultipleProvidersSelected: selectedProviders?.length > 1,
       selectedProviders,
       LOGGING
     };
@@ -92,7 +92,7 @@ export default {
       return this.providers.filter(p => p.enabled);
     },
     cruMode() {
-      if (this.selectedProviders.length > 1 || !this.value.allProvidersSupported) {
+      if (this.hasMultipleProvidersSelected || !this.value.allProvidersSupported) {
         return _VIEW;
       }
 
@@ -176,7 +176,7 @@ export default {
         :namespaced="value.type !== LOGGING.CLUSTER_OUTPUT"
       />
       <Banner
-        v-if="selectedProviders.length > 1"
+        v-if="hasMultipleProvidersSelected"
         color="info"
       >
         This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
