@@ -1,4 +1,4 @@
-import PagePo from '~/cypress/e2e/po/pages/page.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 /**
  * Use this for pages with the `_c` notation that changes given cluster context

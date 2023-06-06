@@ -115,3 +115,14 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
     cy.get('body').trigger('keydown', triggerKeys);
   }
 });
+
+Cypress.Commands.add('iFrame', () => {
+  // This creates a lot of entries in the cypress running bar...
+  // in theory adding `{ log: false }` should hide these ...
+  // it does not
+  return cy
+    .get('[data-testid="ember-iframe"]')
+    .its('0.contentDocument.body')
+    .should('not.be.empty')
+    .then((body) => cy.wrap(body));
+});
