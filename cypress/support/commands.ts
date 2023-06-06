@@ -44,6 +44,7 @@ Cypress.Commands.add('login', (
     cy.getCookie('CSRF').then((c) => {
       token = c;
     });
+    cy.createUser('user');
   } else {
     login();
   }
