@@ -74,6 +74,8 @@ export default {
       label-key="cluster.selectCredential.genericDescription"
       class="mt-0"
     />
+    <!-- Added by Verrazzano Start -->
+    <!--
     <KeyValue
       :value="value.decodedData"
       :key-options="hasSupport || !keyOptions.length ? null : keyOptions"
@@ -85,5 +87,18 @@ export default {
       :initial-empty-row="true"
       @input="update"
     />
+    -->
+    <KeyValue
+      :value="value.decodedData"
+      :key-options="hasSupport || !keyOptions.length ? null : keyOptions"
+      :key-editable="!hasSupport"
+      :mode="mode"
+      :read-allowed="false"
+      :add-allowed="!hasSupport"
+      :remove-allowed="!hasSupport"
+      :initial-empty-row="true"
+      @input="update"
+    />
+    <!-- Added by Verrazzano End -->
   </div>
 </template>
