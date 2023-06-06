@@ -70,7 +70,7 @@ export default {
       // I'm manipulating the output since I'm not sure it's something we want to actually support
       // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
       // and just a field within a spec.
-      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replaceAll('#  ', '#');
+      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replace(/# {2}/g, '#');
     }
 
     return {
