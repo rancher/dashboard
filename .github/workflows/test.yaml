@@ -43,9 +43,15 @@ jobs:
       - name: Prepare build
         run: yarn e2e:pre-prod
       
-      - name: Run tests
+      - name: Run admin user tests
         run: |
-          yarn e2e:prod
+          yarn e2e:prod-admin
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+
+      - name: Run standard user tests
+        run: |
+          yarn e2e:prod-standard
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
 
