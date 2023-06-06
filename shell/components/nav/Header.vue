@@ -181,6 +181,8 @@ export default {
     $route(nue) {
       if (nue) {
         this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+
+        this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
       }
     }
   },
@@ -191,8 +193,6 @@ export default {
     window.addEventListener('resize', this.debouncedLayoutHeader);
 
     this.$nextTick(() => this.layoutHeader(null, true));
-
-    this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
   },
 
   beforeDestroy() {
