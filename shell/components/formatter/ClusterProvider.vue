@@ -1,6 +1,4 @@
 <script>
-import { HCI } from '@shell/config/types';
-
 export default {
   props: {
     row: {

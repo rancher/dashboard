@@ -562,6 +562,13 @@ export const getters = {
     return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
   },
 
+  isStandaloneHarvester(state, getters) {
+    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
+    const cluster = clusters.find(c => c.id === 'local') || {};
+
+    return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
+  },
+
   targetRoute(state) {
     return state.targetRoute;
   },

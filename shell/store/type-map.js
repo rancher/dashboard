@@ -173,14 +173,16 @@ const graphConfigMap = {};
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
-  V1_MONITORING:       'v1-monitoring',
-  V2_MONITORING:       'v2-monitoring',
-  PROJECT:             'project',
-  NO_PROJECT:          'no-project',
-  NOT_V1_ISTIO:        'not-v1-istio',
-  MULTI_CLUSTER:       'multi-cluster',
-  NEUVECTOR_NAMESPACE: 'neuvector-namespace',
-  ADMIN:               'admin-user',
+  V1_MONITORING:            'v1-monitoring',
+  V2_MONITORING:            'v2-monitoring',
+  PROJECT:                  'project',
+  NO_PROJECT:               'no-project',
+  NOT_V1_ISTIO:             'not-v1-istio',
+  MULTI_CLUSTER:            'multi-cluster',
+  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
+  ADMIN:                    'admin-user',
+  MCM_DISABLED:             'mcm-disabled',
+  NOT_STANDALONE_HARVESTER: 'not-standalone-harvester',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -1827,6 +1829,12 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.ADMIN: {
     return isAdminUser(getters);
+  }
+  case IF_HAVE.MCM_DISABLED: {
+    return !getters['isRancherInHarvester'];
+  }
+  case IF_HAVE.NOT_STANDALONE_HARVESTER: {
+    return !getters['isStandaloneHarvester'];
   }
   default:
     return false;

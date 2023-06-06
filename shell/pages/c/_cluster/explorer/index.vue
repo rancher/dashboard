@@ -2,7 +2,6 @@
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import {
-  HCI,
   CAPI,
   ENDPOINTS,
   EVENT,

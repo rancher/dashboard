@@ -3,7 +3,7 @@ import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
-import { CAPI, MANAGEMENT, HCI } from '@shell/config/types';
+import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { mapPref, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
