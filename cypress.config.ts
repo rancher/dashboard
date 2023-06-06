@@ -19,8 +19,7 @@ const getSpecPattern = (): string[] => {
 
   return [
     ...activePaths,
-    'cypress/e2e/tests/pages/**/*.spec.ts',
-    'cypress/e2e/tests/navigation/**/*.spec.ts'
+    'cypress/e2e/tests/**/*.spec.ts',
   ];
 };
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
@@ -89,6 +88,7 @@ export default defineConfig({
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
   },
   e2e: {
+    fixturesFolder: 'cypress/e2e/blueprints',
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);

@@ -34,5 +34,7 @@ declare namespace Cypress {
      */
     // eslint-disable-next-line no-undef
     userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;
+
+    requestBase64Image(url: string): Chainable
   }
 }
