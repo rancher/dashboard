@@ -1,7 +1,8 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { Matcher } from '@/cypress/support/types';
 
-const apiCsrf: string[] = [];
+let token: any;
+let userId: any;
 
 /**
  * Login local authentication, including first login and bootstrap if not cached
@@ -35,64 +36,67 @@ Cypress.Commands.add('login', (
       .should('eq', true);
     loginPage.submit();
 
-    cy.wait('@loginReq').then(({ request, response }) => {
-      apiCsrf.push(request.headers['x-api-csrf']);
-
-      if (username === 'admin' && response?.statusCode === 200) {
-        cy.log(apiCsrf[0]);
-        cy.createUser(apiCsrf[0]);
-        cy.setGlobalRoleBinding(apiCsrf[0], 'user');
-      }
-    });
+    cy.wait('@loginReq');
   };
 
   if (cacheSession) {
     (cy as any).session([username, password], login);
+    cy.getCookie('CSRF').then((c) => {
+      token = c;
+    });
   } else {
     login();
   }
 });
 
 /**
- * Create standard user via api request
+ * Create user via api request
  */
-Cypress.Commands.add('createUser', (apiKey) => {
+Cypress.Commands.add('createUser', (role?) => {
   return cy.request({
-    method:  'POST',
-    url:     'v3/users',
-    headers: {
-      'x-api-csrf': apiKey,
+    method:           'POST',
+    url:              'v3/users',
+    failOnStatusCode: false,
+    headers:          {
+      'x-api-csrf': token.value,
       Accept:       'application/json'
     },
     body: {
       type:               'user',
       enabled:            true,
       mustChangePassword: false,
-      username:           `user${ Date.now() }`,
+      username:           'standard_user',
       password:           Cypress.env('password')
     }
   }).then((resp) => {
-    expect(resp.status).to.eq(201);
-    Cypress.env('userInfo').push(resp.body.username);
-    Cypress.env('userInfo').push(resp.body.id);
+    if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
+      cy.log(' ❌ User already exists. Skipping user creation');
+    } else {
+      expect(resp.status).to.eq(201);
+      userId = resp.body.id;
+
+      if (role) {
+        cy.setGlobalRoleBinding(role);
+      }
+    }
   });
 });
 
 /**
  * Set global role binding for user via api request
  */
-Cypress.Commands.add('setGlobalRoleBinding', (apiKey, role) => {
+Cypress.Commands.add('setGlobalRoleBinding', (role) => {
   return cy.request({
     method:  'POST',
     url:     'v3/globalrolebindings',
     headers: {
-      'x-api-csrf': apiKey,
+      'x-api-csrf': token.value,
       Accept:       'application/json'
     },
     body: {
       type:         'globalRoleBinding',
       globalRoleId: role,
-      userId:       Cypress.env('userInfo')[1]
+      userId
     }
   }).then((resp) => {
     expect(resp.status).to.eq(201);
