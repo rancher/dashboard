@@ -245,6 +245,7 @@ export default {
           class="mb-20"
           :mode="mode"
           :retain-selection="true"
+          data-testid="cluster-member-select"
           @add="onAdd"
         />
       </div>
