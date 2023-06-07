@@ -36,18 +36,6 @@ export default {
     }
 
     await this.$fetchType(this.resource);
-  },
-
-  computed: {
-    filterRows() {
-      const currentCluster = this.$store.getters['currentCluster'];
-
-      if (currentCluster.isHarvester) {
-        return this.rows.filter(row => !['harvester-system', 'cattle-system'].includes(row.namespace));
-      } else {
-        return this.rows;
-      }
-    }
   }
 };
 </script>
@@ -55,7 +43,7 @@ export default {
 <template>
   <ResourceTable
     :schema="schema"
-    :rows="filterRows"
+    :rows="rows"
     :headers="$attrs.headers"
     :group-by="$attrs.groupBy"
     :loading="loading"
