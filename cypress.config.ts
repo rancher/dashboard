@@ -73,9 +73,11 @@ export default defineConfig({
     openMode: 0
   },
   env: {
+    grepFilterSpecs:  true,
+    grepOmitFiltered: true,
     baseUrl,
-    coverage:     false,
-    codeCoverage: {
+    coverage:         false,
+    codeCoverage:     {
       exclude: [
         'cypress/**/*.*',
         '**/__tests__/**/*.*',
@@ -95,7 +97,7 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
-      require('@cypress/grep/src/plugin')(on, config);
+      require('@cypress/grep/src/plugin')(config);
 
       return config;
     },
