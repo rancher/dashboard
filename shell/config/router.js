@@ -17,6 +17,11 @@ export const routerOptions = {
   scrollBehavior,
 
   routes: [{
+    path:      '/c/:cluster/legacy/auditLog/:page',
+    component: () => interopDefault(import('../pages/c/_cluster/legacy/auditLog/_page.vue' /* webpackChunkName: "pages/c/_cluster/legacy/auditLog/_page" */)),
+    name:      'c-cluster-legacy-auditLog-page',
+    params:    { product: 'explorer' }
+  }, {
     path:      '/about',
     component: () => interopDefault(import('../pages/about.vue' /* webpackChunkName: "pages/about" */)),
     name:      'about'

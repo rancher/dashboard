@@ -34,6 +34,7 @@ export const VIRTAITECH_GPU_SERVICE_UI = create('virtaitech-gpu-service-ui', fal
 export const EXPLORER_HARVESTER_CLUSTER = create('explorer-harvester-cluster', false);
 export const FLAT_NETWORKS_UI_EXTENSION = create('flat-networks-ui-extension', false);
 export const HARVESTER_CONTAINER = create('harvester-baremetal-container-workload', false);
+export const AUDIT_LOG_UI_LEGACY = create('audit-log-ui-legacy', false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);

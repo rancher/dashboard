@@ -6,7 +6,7 @@ import {
   HCI,
   MANAGEMENT
 } from '@shell/config/types';
-import { MULTI_CLUSTER } from '@shell/store/features';
+import { MULTI_CLUSTER, AUDIT_LOG_UI_LEGACY } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store';
 import { SETTING, getGlobalMonitoringV2Setting } from '@shell/config/settings';
@@ -170,7 +170,7 @@ export function init(store) {
   // global audit log start
   virtualType({
     showMenuFun(state, getters, rootState, rootGetters) {
-      return rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
+      return rootGetters['features/get'](AUDIT_LOG_UI_LEGACY) && rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
     },
     label:      'Audit Log',
     labelKey:   'nav.auditLog',

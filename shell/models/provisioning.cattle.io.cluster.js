@@ -8,7 +8,6 @@ import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
-import { SETTING } from '@shell/config/settings';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 /**
@@ -115,8 +114,6 @@ export default class ProvCluster extends SteveModel {
 
     const canSaveRKETemplate = this.isRke1 && this.mgmt?.status?.driver === 'rancherKubernetesEngine' && !this.mgmt?.spec?.clusterTemplateName && this.hasLink('update') && canUpdateClusterTemplate && normanClusterSaveTemplateAction;
 
-    const auditLogServerUrl = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
-
     const actions = [
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
@@ -125,13 +122,6 @@ export default class ProvCluster extends SteveModel {
         label:   this.$rootGetters['i18n/t']('clusterConnectMode.connectMode.label'),
         icon:    'icon icon-edit',
         enabled: !isLocal && this.mgmt,
-      },
-      {
-        action:   'viewK8sAuditLog',
-        label:    this.t('cluster.k8sAuditLog'),
-        bulkable: false,
-        enabled:  !!auditLogServerUrl,
-        icon:     'icon icon-file',
       },
       {
         action:  'openShell',
@@ -881,21 +871,6 @@ export default class ProvCluster extends SteveModel {
       resources: [this.mgmt],
       component: 'EditConnectModeDialog'
     });
-  }
-
-  viewK8sAuditLog() {
-    const type1 = this.machineProvider && this.machineProviderDisplay;
-    const type2 = this.isCustom ? 'custom' : '';
-    const type3 = this.mgmt?.providerForEmberParam === 'import' ? 'imported' : '';
-    const r = {
-      name:   `c-cluster-manager-pages-page`,
-      params: { page: 'k8s-cluster-audit-log' },
-      query:  {
-        cluster: this.metadata.name, clusterName: this.nameDisplay, clusterType: type1 || type2 || type3
-      }
-    };
-
-    this.currentRouter().push(r);
   }
 
   get hasError() {

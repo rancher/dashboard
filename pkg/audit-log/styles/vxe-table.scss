@@ -1,0 +1,35 @@
+$vxe-table-header-font-weight: 400;
+$vxe-table-column-padding-default: 11px 0;
+$vxe-table-cell-padding-left: 5px;
+$vxe-table-cell-padding-right: 5px;
+$vxe-table-column-padding-default: 8px 0;
+$vxe-table-column-padding-medium: 8px 0;
+$vxe-table-column-padding-small: 8px 0;
+$vxe-table-column-padding-mini: 8px 0;
+$vxe-table-row-line-height: 1.15;
+$vxe-table-border-color: var(--border);
+$vxe-table-header-font-color: var(--body-text);
+$vxe-table-body-background-color: var(--sortable-table-row-bg);
+$vxe-table-row-hover-background-color: var(--sortable-table-hover-bg);
+
+@import 'vxe-table/styles/index.scss';
+
+.vxe-table--render-default.border--default .vxe-table--header-wrapper, .vxe-table--render-default.border--full .vxe-table--header-wrapper, .vxe-table--render-default.border--outer .vxe-table--header-wrapper {
+  background-color: var(--sortable-table-header-bg);
+}
+
+.vxe-table--render-default {
+  color: var(--body-text);
+}
+
+.vxe-table .vxe-cell--sort {
+
+}
+
+.vxe-table .vxe-sort--asc-btn.sort--active, .vxe-table .vxe-sort--desc-btn.sort--active {
+  color: var(--body-text);
+}
+
+// .vxe-table--render-default .vxe-header--column, .vxe-table--render-default .vxe-header--column:not(.col--ellipsis) {
+//   padding: 12px 0;
+// }

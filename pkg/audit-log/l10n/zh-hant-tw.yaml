@@ -1,0 +1,103 @@
+auditLog:
+  installView:
+    steps:
+      deploymentCompoents:
+        label: 部署審計日誌組件
+        tips: '您可以在通過 HA 方式部署 Rancher Prime 的同時部署審計日誌組件，或手動部署審計日誌組件。詳細的部署流程請參照 <a target="_blank" rel="noopener noreferrer nofollow" href="https://ranchermanager.docs.rancher.com/zh/">Rancher Prime</a> 文檔。'
+        address:
+          label: 設置 auditlog-server-url 值
+          tips: Rancher Prime 通過訪問審計日誌服務進行日誌查詢，請設置已部署的審計日誌服務地址。 
+      installAuditLogCollector:
+        label: 安裝日誌採集應用
+        endpointTips: 通過修改您的 Kubernetes 集群的 API Server 配置，您可以將 API Server 的審計日誌保存到文件或通過 webhook 的方式發送到其他地址中。
+        deploymentTips: Rancher Prime 提供了 Kubernetes API Server 審計日誌的採集應用，通過部署該應用可以採集 API Server 的審計日誌文件或作為 webhook 模式下的日誌接收服務，最終日誌發送到 Rancher 的審計日誌 Server 中進行持久化。
+  btn:
+    clearAll: 全部清除
+    detail: 查看
+    search: 搜索
+    loadMore: 加載更多
+  detail:
+    btn:
+      close: 關閉
+    request: 請求對象
+    response: 響應對象
+    title: 審計日誌-請求詳情
+  form:
+    name:
+      label: 請求資源Name/ID
+      placeholder: 請求資源Name/ID
+    operation:
+      all: 所有操作
+      create: 新增
+      delete: 刪除
+      update: 更新
+    operator:
+      placeholder: 操作人
+    time:
+      all: 日誌時間-全部
+      day10: 最近10天
+      day15: 最近15天
+      day20: 最近20天
+      day5: 最近5天
+    type:
+      label: 所有類型
+      placeholder: 所有類型
+  serverSetError: 請檢查auditlog-server-url服務配置是否正確
+  status:
+    "200": 成功
+    "201": 已創建
+    "202": 已接受
+    "203": 非授權信息
+    "204": 成功
+    "205": 重置內容
+    "206": 部分內容
+    "300": 多種選擇
+    "301": 永久移動
+    "302": 臨時移動
+    "400": 錯誤請求
+    "401": 未授權
+    "403": 禁止
+    "404": 未找到
+    "405": 方法禁用
+    "406": 不接受
+    "407": 需要代理授權
+    "408": 請求超時
+    "500": 服務器內部錯誤
+    "501": 尚未實施
+    "502": 錯誤網關
+    "503": 服務不可用
+    "504": 網關超時
+    "505": HTTP 版本不受支持
+  table:
+    detail: 詳情
+    name: 資源Name/ID
+    noData: 暫無數據
+    noMatch: 暫無匹配的數據
+    operation: 操作
+    result: 操作結果
+    time: 變更時間
+    type: 資源類型
+    user: 操作人
+    verb: 操作
+    id: ID
+    requestURI: 請求 URI
+    stage: 執行階段
+    age: 存活時間
+    requestTimestamp: 請求時間
+  title: 審計日誌
+  k8sTitle: Kubernetes 審計日誌
+  
+  errors:
+    notFound: 資源未找到
+    unknownError: 未知錯誤
+  k8sAuditEventDialog:
+    title: Kubernetes 審計事件
+    stageTime: 執行時間
+    responseCode: 響應碼
+    sourceIPs: 源 IP 地址
+    user: 認證用戶
+    impersonaltedUser: 偽裝的用戶
+    userAgent: 用戶代理
+    requestBody: 請求體
+    responseBody: 響應體
+    cluster: 集群

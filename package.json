@@ -128,6 +128,8 @@
     "vue2-transitions": "0.3.0",
     "vuedraggable": "2.24.3",
     "vuex": "3.6.2",
+    "vxe-table": "^3.6.13",
+    "xe-utils": "^3.5.11",
     "xterm": "5.0.0",
     "xterm-addon-fit": "0.6.0",
     "xterm-addon-search": "0.10.0",

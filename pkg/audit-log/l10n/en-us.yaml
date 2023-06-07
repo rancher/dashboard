@@ -1,0 +1,103 @@
+auditLog:
+  installView:
+    steps:
+      deploymentCompoents:
+        label: Deploy audit log components
+        tips: 'You can deploy the audit log component along with Rancher Prime via HA, or manually deploy the audit log component. Please refer to <a target="_blank" rel="noopener noreferrer nofollow" href="https://ranchermanager.docs.rancher.com/zh/">the Rancher Prime</a> documentation for the detailed deployment process.'
+        address:
+          label: Set the auditlog-server-url value
+          tips: Rancher Prime performs log queries by accessing the Audit Log Service, set the address of the deployed Audit Log Service. 
+      installAuditLogCollector:
+        label: Install the log collection application
+        endpointTips: By modifying the API Server configuration of your Kubernetes cluster, you can save the API Server audit log to a file or send it to another address via webhook.
+        deploymentTips: Rancher Prime provides a Kubernetes API Server audit log collection application that can be deployed to collect audit log files from the API Server or as a log receiving service in webhook mode, with the final logs sent to Rancher's Audit Log Server for persistence.
+  btn:
+    clearAll: Clear
+    detail: Detail
+    search: Search
+    loadMore: Load More
+
+  detail:
+    btn:
+      close: Close
+    request: Request Object
+    response: Response Object
+    title: Audit Log - Request Details
+  form:
+    name:
+      label: Resource Name/ID
+      placeholder: Resource Name/ID
+    operation:
+      all: All Operations
+      create: Create
+      delete: Delete
+      update: Update
+    operator:
+      placeholder: operator
+    time:
+      all: All Logs
+      day10: The last 10 days
+      day15: The last 15 days
+      day20: The last 20 days
+      day5: The last 5 days
+    type:
+      label: All Types
+      placeholder: All Types
+  serverSetError: Please check if the "auditlog-server-url" service configuration is correct
+  status:
+    "200": success
+    "201": created
+    "202": accepted
+    "203": non-authoritative
+    "204": success
+    "205": reset content
+    "206": partial content
+    "300": multiple choice
+    "301": moved permanently
+    "302": moved temporaily
+    "400": bad request
+    "401": unauthorized
+    "403": forbid
+    "404": not found
+    "405": method disable
+    "406": not accept
+    "407": proxy authentication
+    "408": timed out
+    "500": server error
+    "501": not yet implemented
+    "502": bad gateway
+    "503": service unavailable
+    "504": gateway time out
+    "505": HTTP version not supported
+  table:
+    detail: Detail
+    name: Resource Name/ID
+    noData: No Data
+    noMatch: No matching data is available
+    operation: Operation
+    result: Operating Result
+    time: Change Time
+    type: Resource Type
+    user: Operator
+    verb: Verb
+    id: ID
+    requestURI: Request URI
+    stage: Stage
+    age: Age
+    requestTimestamp: Request Time
+  title: Audit Log
+  k8sTitle: Kubernetes Audit Log
+  errors:
+    notFound: Resource Not Found
+    unknownError: unknown error
+  k8sAuditEventDialog:
+    title: Kubernetes Audit Event
+    stageTime: Stage Time
+    responseCode: Response Code
+    sourceIPs: Source IPs
+    user: User
+    impersonaltedUser: Impersonalted User
+    userAgent: User Agent
+    requestBody: Request Body
+    responseBody: Response Body
+    cluster: Cluster
