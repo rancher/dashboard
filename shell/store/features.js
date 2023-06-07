@@ -30,7 +30,7 @@ export const RKE2 = create('rke2', true);
 export const UNSUPPORTED_STORAGE_DRIVERS = create('unsupported-storage-drivers', false);
 export const FLEET = create('continuous-delivery', true);
 export const HARVESTER = create('harvester', true);
-export const HARVESTER_CONTAINER = create('harvester-baremetal-container-workload', true);
+export const HARVESTER_CONTAINER = create('harvester-baremetal-container-workload', false);
 
 // Not currently used.. no point defining ones we don't use
 // export const EMBEDDED_CLUSTER_API = create('embedded-cluster-api', true);
