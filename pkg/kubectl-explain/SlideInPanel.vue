@@ -29,6 +29,7 @@ export default {
       resizeLeft: '',
       resizePosition: 'absolute',
       width: '33%',
+      right: '-33%',
     };
   },
 
@@ -44,11 +45,13 @@ export default {
     open() {
       this.isOpen = true;
       this.addCloseKeyHandler();
+      this.right = '0';
     },
 
     close() {
       this.isOpen = false;
       this.removeCloseKeyHandler();
+      this.right = `-${ this.width }`;
     },
 
     scrollTop() {
@@ -211,7 +214,7 @@ export default {
 </script>
 
 <template>
-  <div class="slide-in" :class="{ 'slide-in-open': isOpen }" :style="{ width }">
+  <div class="slide-in" :class="{ 'slide-in-open': isOpen }" :style="{ width, right }">
     <div class="panel-resizer"
       ref="resizer"
       v-bind:style="{ position: resizePosition, left: resizeLeft }"
@@ -268,7 +271,9 @@ export default {
 
   .main-panel {
     padding-left: 4px;
-
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
   }
 
   .header {
