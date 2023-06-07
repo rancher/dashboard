@@ -1,5 +1,10 @@
-import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerCreateRke1PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
+import {
+  podAffinityData,
+  requestAndLimitsData,
+  nodeAffinityData
+} from '@/cypress/e2e/tests/pages/data/agent-configuration-rke2-data';
+import { tolerationsData } from '@/cypress/e2e/tests/pages/data/agent-configuration-rke1-data';
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -11,8 +16,6 @@ const clusterNamePartial = `${ runPrefix }-create`;
 const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 
 describe('rke1-provisioning', () => {
-  const clusterList = new ClusterManagerListPagePo();
-
   beforeEach(() => {
     cy.login();
   });
@@ -21,17 +24,26 @@ describe('rke1-provisioning', () => {
     const createClusterPage = new ClusterManagerCreateRke1PagePo();
 
     it('can create a new cluster', () => {
-      // clusterList.goTo();
-      // clusterList.checkIsCurrentPage();
-      // clusterList.createCluster();
       createClusterPage.goTo();
 
       createClusterPage.waitForPage();
-      // TODO nb is rke1 or rke2 toggled by default?
-      // createClusterPage.rkeToggle().toggle();
+      createClusterPage.rkeToggle().unCheck();
       createClusterPage.selectCustom(0);
 
-      createClusterPage.name().set('fart');
+      createClusterPage.name().set(rke1CustomName);
+      createClusterPage.clusterAgentAccordion().expand();
+
+      // // set requests/limits data
+      createClusterPage.clusterAgentConfiguration().cpuRequests().set(requestAndLimitsData.request.cpu.toString());
+      createClusterPage.clusterAgentConfiguration().cpuLimits().set(requestAndLimitsData.limit.cpu.toString());
+      createClusterPage.clusterAgentConfiguration().memoryRequests().set(requestAndLimitsData.request.memory.toString());
+      createClusterPage.clusterAgentConfiguration().memoryLimits().set(requestAndLimitsData.limit.memory.toString());
+
+      // set tolerations data
+      tolerationsData.forEach((toleration, idx) => {
+        createClusterPage.clusterAgentConfiguration().tolerations().addRow();
+        createClusterPage.clusterAgentConfiguration().tolerations().addToleration(toleration, idx);
+      });
     });
   });
 });
