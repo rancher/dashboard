@@ -89,7 +89,7 @@ export default {
           :placeholder="t('persistentVolume.csi.driver.placeholder')"
           searchable
           taggable
-          @selecting="selectDriver"
+          @selected="selectDriver"
         />
       </div>
       <div class="col span-6">

@@ -610,7 +610,7 @@ export default {
           :label="t('cluster.machineConfig.azure.size.label')"
           :tooltip="value.acceleratedNetworking ? t('cluster.machineConfig.azure.size.tooltip') : ''"
           :disabled="disabled"
-          @selecting="handleVmSizeInput"
+          @selected="handleVmSizeInput"
         />
         <Banner
           v-if="vmSizeAcceleratedNetworkingWarning"

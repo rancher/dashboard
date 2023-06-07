@@ -1062,7 +1062,7 @@ export default {
                   :multiple="false"
                   :taggable="false"
                   :placeholder="t('sortableTable.selectCol')"
-                  @selecting="(col) => advFilterSelectedLabel = col.label"
+                  @selected="(col) => advFilterSelectedLabel = col.label"
                 />
               </div>
               <div class="bottom-block">

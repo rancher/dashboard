@@ -419,7 +419,7 @@ export default {
         :placeholder="t('namespace.selectOrCreate')"
         :rules="rules.namespace"
         required
-        @selecting="selectNamespace"
+        @selected="selectNamespace"
       />
     </div>
 

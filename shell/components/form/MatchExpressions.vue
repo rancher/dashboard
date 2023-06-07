@@ -290,7 +290,7 @@ export default {
           :mode="mode"
           :options="matchingSelectOptions"
           :data-testid="`input-match-type-field-control-${index}`"
-          @selecting="update"
+          @selected="update"
         />
       </div>
       <div

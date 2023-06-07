@@ -59,7 +59,7 @@ export default {
       :label="t('ingress.ingressClass.label')"
       :options="ingressClassOptions"
       option-label="label"
-      @selecting="update"
+      @selected="update"
     />
   </div>
 </template>
