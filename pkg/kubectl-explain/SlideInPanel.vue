@@ -1,5 +1,6 @@
 <script>
 import ExplainPanel from './ExplainPanel';
+import { KEY } from '@shell/utils/platform';
 
 // Regex for more info in descriptions
 const MORE_INFO_REGEX = /More info:\s*(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))/;
@@ -23,6 +24,7 @@ export default {
       isOpen: false,
       definition: undefined,
       busy: true,
+      expandAll: false,
     };
   },
 
@@ -35,32 +37,31 @@ export default {
   },
 
   methods: {
-    open(typeName) {
-
-      console.log('open');
-
-      console.log(this);
-      console.log(this.typeName);
-      console.log(typeName);
-      console.log(this.schema);
-
-      console.log(this.$dispatch);
-
+    open() {
       this.isOpen = true;
+      this.addCloseKeyHandler();
     },
 
     close() {
-      console.log('close');
-
       this.isOpen = false;
+      this.removeCloseKeyHandler();
     },
 
     scrollTop() {
-      //this.$refs.main.scrollTo(0,0);
-
       this.$refs.main.$el.scrollTop = 0;
     },
 
+    addCloseKeyHandler() {
+      document.addEventListener('keyup', this.closeKeyHandler);
+    },
+    removeCloseKeyHandler() {
+      document.removeEventListener('keyup', this.closeKeyHandler);
+    },
+    closeKeyHandler(e) {
+      if (e.keyCode === KEY.ESCAPE ) {
+        this.close();
+      }
+    },
     extractMoreInfo(property) {
       const description = property.description || '';
       const found = description.match(MORE_INFO_REGEX);
@@ -96,9 +97,10 @@ export default {
     expand(definitions, definition) {
       Object.keys(definition?.properties || {}).forEach((propName) => {
         const prop = definition.properties[propName];
+        const propRef = prop.$ref || prop.items?.$ref; 
 
-        if (prop.$ref && prop.$ref.startsWith('#/definitions/')) {
-          const p = prop.$ref.split('/');
+        if (propRef && propRef.startsWith('#/definitions/')) {
+          const p = propRef.split('/');
           const id = p[p.length -1 ];
 
           const ref = definitions[id];
@@ -108,8 +110,6 @@ export default {
             prop.$refName = id;
 
             const parts = prop.$refName.split('.');
-
-            console.log(parts);
 
             prop.$refNameShort = parts[parts.length - 1];
 
@@ -121,6 +121,10 @@ export default {
 
         this.parse(prop);
       });
+    },
+
+    toggleAll() {
+      this.expandAll = !this.expandAll;
     },
 
     update(response) {
@@ -139,8 +143,6 @@ export default {
 
       const schema = response.schema;
 
-      console.error(schema);
-
       if (schema?.attributes) {
         let group = schema.attributes.group || 'core';
 
@@ -152,21 +154,18 @@ export default {
         }
 
         const name = `${ group }.${ schema.attributes.version}.${ schema.attributes.kind}`;
-        console.log(data);
         const defn = data.definitions[name];
-
-        console.log('>>>>>>>>>>>>>>>>>>>>>>>');
-        console.log(name);
 
         //Object.keys(data.definitions).forEach((key) => console.log(key));
 
-        Object.keys(data.definitions).forEach((key) => {
-          if (key.includes(schema.attributes.kind)) {
-            console.log(key);
-          }
-        });
+        // Object.keys(data.definitions).forEach((key) => {
+        //   if (key.includes(schema.attributes.kind)) {
+        //     console.log(key);
+        //   }
+        // });
 
-        console.log(defn);
+        console.log('>>>>>>>>>>>>>>>>>>.');
+        console.error(defn);
 
         this.expand(data.definitions, defn);
 
@@ -189,6 +188,11 @@ export default {
     <div class="header">
       <div @click="scrollTop()">{{ title }}</div>
       <i
+        v-if="!busy"
+        class="icon icon-sort mr-10"
+        @click="toggleAll()"
+      />
+      <i
         class="icon icon-close"
         @click="close"
       />
@@ -202,6 +206,7 @@ export default {
     </div>
     <ExplainPanel
       ref="main"
+      :expand-all="expandAll"
       v-if="definition"
       :definition="definition"
       class="explain-panel"

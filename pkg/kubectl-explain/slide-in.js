@@ -53,15 +53,9 @@ export async function install(store, route) {
       }
     });
 
-    console.error('OPEN');
-    console.log(schema);
-    console.log(typeName);
-
     var div = document.createElement('div');
     div.id = 'kubectl-explain';
     document.body.appendChild(div);
-
-    console.log(component);
 
     component.$mount('#kubectl-explain');
 
@@ -70,8 +64,6 @@ export async function install(store, route) {
 
     setTimeout(() => component.open(typeName), 0);
   } else {
-    console.log(component);
-
     component.busy = true;
     component.typeName = typeName;
     component.schema = schema;

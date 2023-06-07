@@ -9,16 +9,42 @@ export default {
 
   props: {
     definition: {
-      type: Object,
+      type:     Object,
       required: true
+    },
+    expandAll: {
+      type:     Boolean,
+      required: true,
     }
   },
 
   data() {
     return {
       isOpen: false,
-      expanded: {}
+      expanded: {},
     };
+  },
+
+  mounted() {
+    if (this.expandAll) {
+      this.fields.forEach((field) => {
+        if (field.$ref) {
+          this.$set(this.expanded, field.name, this.expandAll);
+        }
+      });
+    }
+  },
+
+  watch: {
+    expandAll(neu, old) {
+      if (neu !== old) {
+        this.fields.forEach((field) => {
+          if (field.$ref) {
+            this.$set(this.expanded, field.name, neu);
+          }
+        });
+      }
+    }
   },
 
   computed: {
@@ -40,23 +66,7 @@ export default {
    },
 
   methods: {
-    async load() {
-
-      console.log(this);
-      const data = await this.$store.dispatch(
-        `cluster/request`,
-        { url: `/k8s/clusters/${ this.currentCluster.id }/api/openapi/v2?timeout=32s` }
-      );
-
-      console.log(data);
-    },
-
     expand(field) {
-      console.log('expand ' + field)
-      //this.expanded[field] = !this.expanded[field];
-
-      console.log(this.expanded[field]);
-
       this.$set(this.expanded, field, !this.expanded[field]);
     }
   }
@@ -89,10 +99,11 @@ export default {
             <i class="icon icon-external-link" />
           </a>
         </div>
-          <div v-if="field.type" class="field-type">
+          <div v-if="field.type && field.type !== 'array'" class="field-type">
             <div>{{ field.type }}</div>
           </div>
-          <div v-else>
+          <div v-else class="field-type-panel">
+            <span v-if="field.type === 'array'" class="mr-5">[]</span>
             <div v-if="field.$refName" class="field-type field-expander" @click="expand(field.name)">{{ field.$refNameShort }} <i class="icon icon-sort" /></div>
             <div v-else class="field-type">Object</div>
           </div>
@@ -115,6 +126,7 @@ export default {
         </div>
         <ExplainPanel
           v-if="expanded[field.name]"
+          :expand-all="expandAll"
           :definition="field.$$ref"
           class="embedded ml-20"
         />
@@ -178,6 +190,11 @@ export default {
     min-width: 100px; // Attempt type name alignment in general case
   }
 
+  .field-type-panel {
+    align-items: center;
+    display: flex;
+  }
+
   .field-type {
     border: 1px solid var(--border);
     padding: 1px 5px;
@@ -198,6 +215,7 @@ export default {
   .field-expander {
     align-items: center;
     display: flex;
+    user-select: none;
 
     > i {
       font-size: 12px;
