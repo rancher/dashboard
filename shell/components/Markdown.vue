@@ -39,7 +39,7 @@ export default {
     const renderer = new marked.Renderer();
     const linkRenderer = renderer.link;
 
-    const base = this.$router.resolve(this.$route).href.replace(/#.*$/, '');
+    const base = this.$router ? this.$router.resolve(this.$route).href.replace(/#.*$/, '') : '';
 
     renderer.link = function(href, title, text) {
       let external = true;
