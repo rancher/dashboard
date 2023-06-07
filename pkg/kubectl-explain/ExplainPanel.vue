@@ -28,7 +28,7 @@ export default {
   mounted() {
     if (this.expandAll) {
       this.fields.forEach((field) => {
-        if (field.$ref) {
+        if (field.$$ref) {
           this.$set(this.expanded, field.name, this.expandAll);
         }
       });
@@ -39,7 +39,7 @@ export default {
     expandAll(neu, old) {
       if (neu !== old) {
         this.fields.forEach((field) => {
-          if (field.$ref) {
+          if (field.$$ref) {
             this.$set(this.expanded, field.name, neu);
           }
         });
