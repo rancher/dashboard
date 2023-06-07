@@ -25,6 +25,10 @@ export default {
       definition: undefined,
       busy: true,
       expandAll: false,
+      isResizing: false,
+      resizeLeft: '',
+      resizePosition: 'absolute',
+      width: '33%',
     };
   },
 
@@ -177,46 +181,95 @@ export default {
       }
 
       this.busy = false;
-    }
+    },
+    startPanelResize(ev) {
+      console.log('startPanelResize');
+      console.log(ev);
+      this.isResizing = true;
+      this.$refs.resizer.setPointerCapture(ev.pointerId);
+
+    },
+    doPanelResize(ev) {
+      if (this.isResizing) {
+        this.resizePosition = 'fixed';
+        this.resizeLeft = ev.clientX + 'px';
+      }
+    },
+    endPanelResize(ev) {
+      this.isResizing = false;
+      this.$refs.resizer.releasePointerCapture(ev.pointerId);
+
+      const width = window.innerWidth - ev.clientX + 2;
+
+      this.resizePosition = 'absolute';
+      this.resizeLeft = '';
+
+      this.width = `${ width }px`;
+    },
   },
 };
 </script>
 
 <template>
-  <div class="slide-in" :class="{ 'slide-in-open': isOpen }">
-    <!-- <div class="glass" /> -->
-    <div class="header">
-      <div @click="scrollTop()">{{ title }}</div>
-      <i
-        v-if="!busy"
-        class="icon icon-sort mr-10"
-        @click="toggleAll()"
-      />
-      <i
-        class="icon icon-close"
-        @click="close"
-      />
-    </div>
-    <div v-if="busy"
-      class="loading"
-    >
-      <div>
-        <i class="icon icon-lg icon-spinner icon-spin" />
-      </div>
-    </div>
-    <ExplainPanel
-      ref="main"
-      :expand-all="expandAll"
-      v-if="definition"
-      :definition="definition"
-      class="explain-panel"
+  <div class="slide-in" :class="{ 'slide-in-open': isOpen }" :style="{ width }">
+    <div class="panel-resizer"
+      ref="resizer"
+      v-bind:style="{ position: resizePosition, left: resizeLeft }"
+      @pointerdown="startPanelResize"
+      @pointermove="doPanelResize"
+      @pointerup="endPanelResize"
     />
+    <div class="main-panel">
+      <!-- <div class="glass" /> -->
+      <div class="header">
+        <div @click="scrollTop()">{{ title }}</div>
+        <i
+          v-if="!busy"
+          class="icon icon-sort mr-10"
+          @click="toggleAll()"
+        />
+        <i
+          class="icon icon-close"
+          @click="close"
+        />
+      </div>
+      <div v-if="busy"
+        class="loading"
+      >
+        <div>
+          <i class="icon icon-lg icon-spinner icon-spin" />
+        </div>
+      </div>
+      <ExplainPanel
+        ref="main"
+        :expand-all="expandAll"
+        v-if="definition"
+        :definition="definition"
+        class="explain-panel"
+      />
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
   $header-height: 55px;
   $slidein-width: 33%;
+
+  .panel-resizer {
+    position: absolute;
+    height: 100%;
+    border: 2px solid transparent;
+
+    &:hover {
+      border: 2px solid var(--primary);
+      cursor: col-resize;
+    }
+  }
+
+  .main-panel {
+    padding-left: 4px;
+
+  }
 
   .header {
     align-items: center;
