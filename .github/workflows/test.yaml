@@ -45,16 +45,30 @@ jobs:
       
       - name: Run admin user tests
         run: |
-          yarn e2e:prod-admin
+          yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+        env: 
+          grepTags: '@adminUser'
 
       - name: Run standard user tests
         run: |
-          yarn e2e:prod-standard
+          yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-
+        env: 
+          TEST_USERNAME: standard_user
+          TEST_SKIP_SETUP: true
+          grepTags: '@standardUser'
+        
+      - name: Run untagged tests
+        run: |
+          yarn e2e:prod
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+        env: 
+          grepUntagged: true
+        
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
