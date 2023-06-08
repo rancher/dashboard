@@ -45,19 +45,13 @@ jobs:
       
       - name: Run admin user tests
         run: |
-          yarn e2e:prod --env grepTags="@adminUser"
+          yarn e2e:prod:admin
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
 
       - name: Run standard user tests
         run: |
-          yarn e2e:prod --env grepTags="@standardUser",username="standard_user"
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
-        
-      - name: Run untagged tests
-        run: |
-          yarn e2e:prod --env grepUntagged=true
+          yarn e2e:prod:standard
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         
