@@ -83,8 +83,7 @@ export default class Pod extends WorkloadService {
         const clusterId = this.$rootGetters['clusterId'];
         const { namespace, name } = this.metadata;
         const endpoint = `/k8s/clusters/${ clusterId }`;
-        const path = `/api/v1/namespaces/${ namespace }/pods/${ name }/exec`;
-        const resp = await this.hasExecShellPermission(endpoint, path);
+        const resp = await this.hasExecShellPermission(endpoint, namespace, name);
 
         if (resp?.status?.allowed === false) {
           this.$dispatch('growl/error', {
@@ -157,13 +156,16 @@ export default class Pod extends WorkloadService {
     });
   }
 
-  async hasExecShellPermission(endpoint, path) {
+  async hasExecShellPermission(endpoint, namespace, name) {
     const url = `${ endpoint }/apis/authorization.k8s.io/v1/selfsubjectaccessreviews`;
     const params = {
       spec: {
-        nonResourceAttributes: {
-          verb: 'create',
-          path,
+        resourceAttributes: {
+          namespace,
+          resource:    'pods',
+          verb:        'create',
+          name,
+          subresource: 'exec',
         }
       }
     };
