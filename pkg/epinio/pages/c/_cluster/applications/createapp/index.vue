@@ -216,9 +216,5 @@ export default Vue.extend<Data, any, any, any>({
   display: flex;
   flex-direction: column;
   position: relative;
-
-  :deep(.step-container__step) {
-    overflow: initial;
-  }
 }
 </style>
