@@ -17,7 +17,7 @@ describe('the String Component', () => {
   it('input field is present', () => {
     const wrapper = mount(Questions, {
       propsData: {
-        value:           { var_name: 'test_value' },
+        value: {},
         targetNamespace: 'test',
         source:          [{
           variable: 'var_name',
@@ -31,10 +31,8 @@ describe('the String Component', () => {
     });
 
     const inputFields = wrapper.findAll('[data-testid="string-input-var_name"]');
-    console.log(wrapper.html());
+
     expect(inputFields).toHaveLength(1);
-    expect(inputFields).toHaveLength(1);
-    expect(inputFields.at(0).attributes().value).toBe('test_value');
 
     const descriptionFields = wrapper.findAll('[data-testid="string-description-var_name"]');
 

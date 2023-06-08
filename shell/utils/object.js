@@ -72,11 +72,7 @@ export function get(obj, path) {
       return '(JSON Path err)';
     }
   }
-  console.log(obj);
-  console.log(path);
   if ( !path.includes('.') ) {
-    console.log('bhoiaerhborae')
-    console.log(obj?.[path]);
     return obj?.[path];
   }
 

@@ -205,7 +205,6 @@ describe('component: NamespaceFilter', () => {
         computed: {
           options:             () => [],
           currentProduct:      () => undefined,
-          namespaceFilterMode: () => undefined,
           key:                 () => key,
         },
         mocks: {

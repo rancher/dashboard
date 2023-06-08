@@ -13,15 +13,15 @@ const defaultGetters = {
   'i18n/withFallback':    jest.fn((key, args, fallback) => fallback),
 };
 
-describe('the Boolean Component', () => {
+describe('the yaml Component', () => {
   it('input field is present', () => {
     const wrapper = mount(Questions, {
       propsData: {
-        value:           {},
+        value: {},
         targetNamespace: 'test',
         source:          [{
           variable: 'var_name',
-          type:     'boolean',
+          type:     'yaml',
           label:    '',
         }],
         mode: _EDIT
@@ -30,15 +30,15 @@ describe('the Boolean Component', () => {
       stubs: defaultStubs,
     });
 
-    const inputFields = wrapper.findAll('[data-testid="boolean-input-var_name"] input[type=checkbox]');
+    const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');
 
     expect(inputFields).toHaveLength(1);
 
-    const descriptionFields = wrapper.findAll('[data-testid="boolean-description-var_name"]');
+    const descriptionFields = wrapper.findAll('[data-testid="yaml-description-var_name"]');
 
     expect(descriptionFields).toHaveLength(0);
 
-    const labelFields = wrapper.findAll('[data-testid="boolean-row-var_name"] label');
+    const labelFields = wrapper.findAll('[data-testid="yaml-row-var_name"] h3');
 
     expect(labelFields).toHaveLength(1);
     expect(labelFields.at(0).text()).toBe('var_name');
@@ -51,7 +51,7 @@ describe('the Boolean Component', () => {
         targetNamespace: 'test',
         source:          [{
           variable:    'var_name',
-          type:        'boolean',
+          type:        'yaml',
           description: 'test description'
         }],
         mode: _EDIT
@@ -60,11 +60,11 @@ describe('the Boolean Component', () => {
       stubs: defaultStubs,
     });
 
-    const inputFields = wrapper.findAll('[data-testid="boolean-input-var_name"]');
+    const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');
 
     expect(inputFields).toHaveLength(1);
 
-    const descriptionFields = wrapper.findAll('[data-testid="boolean-description-var_name"]');
+    const descriptionFields = wrapper.findAll('[data-testid="yaml-description-var_name"]');
 
     expect(descriptionFields).toHaveLength(1);
     expect(descriptionFields.at(0).text()).toBe('test description');
@@ -77,7 +77,7 @@ describe('the Boolean Component', () => {
         targetNamespace: 'test',
         source:          [{
           variable: 'var_name',
-          type:     'boolean',
+          type:     'yaml',
           label:    'test label'
         }],
         mode: _EDIT
@@ -86,11 +86,11 @@ describe('the Boolean Component', () => {
       stubs: defaultStubs,
     });
 
-    const inputFields = wrapper.findAll('[data-testid="boolean-input-var_name"]');
+    const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');
 
     expect(inputFields).toHaveLength(1);
 
-    const labelFields = wrapper.findAll('[data-testid="boolean-row-var_name"] label');
+    const labelFields = wrapper.findAll('[data-testid="yaml-row-var_name"] h3');
 
     expect(labelFields).toHaveLength(1);
     expect(labelFields.at(0).text()).toBe('test label');
@@ -103,7 +103,7 @@ describe('the Boolean Component', () => {
         targetNamespace: 'test',
         source:          [{
           variable: 'var_name',
-          type:     'boolean',
+          type:     'yaml',
           tooltip:  'test tooltip'
         }],
         mode: _EDIT
@@ -112,11 +112,11 @@ describe('the Boolean Component', () => {
       stubs: defaultStubs,
     });
 
-    const inputFields = wrapper.findAll('[data-testid="boolean-input-var_name"]');
+    const inputFields = wrapper.findAll('[data-testid="yaml-input-var_name"]');
 
     expect(inputFields).toHaveLength(1);
 
-    const labelFields = wrapper.findAll('[data-testid="boolean-row-var_name"] .checkbox-info');
+    const labelFields = wrapper.findAll('[data-testid="yaml-row-var_name"] .has-tooltip');
 
     expect(labelFields).toHaveLength(1);
   });
