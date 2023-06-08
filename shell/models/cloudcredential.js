@@ -14,6 +14,12 @@ export default class CloudCredential extends NormanModel {
     return true;
   }
 
+  // Added by Verrazzano Start
+  get canClone() {
+    return false;
+  }
+  // Added by Verrazzano End
+
   get _detailLocation() {
     return {
       name:   `c-cluster-manager-cloudCredential-id`,
