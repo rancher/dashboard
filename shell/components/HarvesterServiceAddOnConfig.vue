@@ -141,7 +141,7 @@ export default {
   methods: {
     willSave() {
       const errors = [];
-      
+
       if (this.showShareIP) {
         if (!this.sharedService) {
           errors.push(this.t('validation.required', { key: this.t('servicesPage.harvester.shareIP.label') }, true));
