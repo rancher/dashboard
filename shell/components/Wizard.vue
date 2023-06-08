@@ -580,6 +580,7 @@ $spacer: 10px;
     display: flex;
     align-items: center;
     margin-bottom: $spacer;
+    margin-top: 10px;
 
     &.selected{
       background-color: var(--accent-btn);

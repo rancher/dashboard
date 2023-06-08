@@ -1311,7 +1311,7 @@ export default {
         />
       </template>
       <template #bannerTitleImage>
-        <div>
+        <div class="logo-height">
           <div class="logo-bg">
             <LazyImage
               :src="chart ? chart.icon : ''"
@@ -1832,6 +1832,10 @@ export default {
   }
 
   .wizard {
+
+    .logo-height {
+      height: 52px;
+    }
     .logo-bg {
       margin-right: 10px;
       height: $title-height;
@@ -1840,7 +1844,6 @@ export default {
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
       position: relative;
-      margin-bottom: 15px
     }
 
     .logo {
@@ -2058,7 +2061,7 @@ export default {
   background-color: var(--warning-banner-bg);
   color:var(--warning);
   margin-top: 5px;
-  top: 21px;
+  top: 7px;
 }
 
 </style>
