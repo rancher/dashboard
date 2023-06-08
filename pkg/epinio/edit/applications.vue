@@ -209,6 +209,7 @@ export default Vue.extend<Data, any, any, any>({
         :weight="30"
       >
         <Wizard
+          class="wizard"
           :steps="steps"
           :banner-title="t('epinio.applications.steps.source.label')"
           :banner-title-subtext="t('epinio.applications.steps.source.subtext')"
@@ -268,6 +269,21 @@ export default Vue.extend<Data, any, any, any>({
     </ResourceTabs>
   </CruResource>
 </template>
+
+<style lang='scss' scoped>
+.tab-container {
+  section {
+    position: relative;
+    .wizard {
+      :deep(.outer-container) {
+        .controls-row {
+          position: relative;
+        }
+      }
+    }
+  }
+}
+</style>
 
 <style lang="scss">
 .hide-buttons-deploy {
