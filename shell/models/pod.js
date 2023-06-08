@@ -96,7 +96,12 @@ export default class Pod extends WorkloadService {
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.warn(error);
+        this.$dispatch('growl/error', {
+          title:   this.t('wm.containerShell.permissionDenied.title'),
+          message: error
+        }, { root: true });
+
+        return;
       }
     }
 
