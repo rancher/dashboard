@@ -138,6 +138,7 @@ export const HCI = {
   CLOUD_PROVIDER_NAMESPACE: 'cloudprovider.harvesterhci.io/namespace',
   CLOUD_PROVIDER_NETWORK:   'cloudprovider.harvesterhci.io/network',
   CLOUD_PROVIDER_PROJECT:   'cloudprovider.harvesterhci.io/project',
+  PRIMARY_SERVICE:          'cloudprovider.harvesterhci.io/primary-service',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
