@@ -68,7 +68,7 @@ export default {
 
   computed: {
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
+      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' ) || findBy(this.apps, 'metadata.name', 'rancher-csp-billing-adapter' );
     },
 
     hasSupport() {
