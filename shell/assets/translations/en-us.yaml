@@ -1769,10 +1769,11 @@ cluster:
       harvester: '{tag}'
   providerGroup:
     create-custom1: Use existing nodes and create a cluster using RKE
-    create-custom2: Use existing nodes and create a cluster using RKE2/K3s
     # Added by Verrazzano Start
+    # create-custom2: Use existing nodes and create a cluster using RKE2/K3s
+    create-custom2:
     # create-kontainer: Create a cluster in a hosted Kubernetes provider
-    create-kontainer: Create a cluster in a Kubernetes provider
+    create-kontainer: Create a Kubernetes Cluster using a Cloud Provider
     # Added by Verrazzano End
     register-kontainer: Register an existing cluster in a hosted Kubernetes provider
     create-rke1: Provision new nodes and create a cluster using RKE

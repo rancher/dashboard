@@ -296,7 +296,9 @@ export default {
             addType(id, 'rke2', false);
           });
 
-          addType('custom', 'custom2', false);
+          // Added by Verrazzano Start
+          // addType('custom', 'custom2', false);
+          // Added by Verrazzano End
 
           if (isElementalActive) {
             addType(ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
