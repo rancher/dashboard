@@ -9,7 +9,10 @@ export default {
 </script>
 
 <template>
-  <div :data-testid="`yaml-row-${question.variable}`" class="row">
+  <div
+    :data-testid="`yaml-row-${question.variable}`"
+    class="row"
+  >
     <div class="col span-6">
       <h3>
         {{ displayLabel }}

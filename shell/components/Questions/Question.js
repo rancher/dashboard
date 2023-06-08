@@ -57,6 +57,7 @@ export default {
 
     displayDescription() {
       const variable = this.question?.variable;
+
       return this.$store.getters['i18n/withFallback'](`charts.${ this.chartName }."${ variable }".description`, null, this.question?.description);
     },
 

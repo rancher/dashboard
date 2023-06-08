@@ -17,7 +17,7 @@ describe('the yaml Component', () => {
   it('input field is present', () => {
     const wrapper = mount(Questions, {
       propsData: {
-        value: {},
+        value:           {},
         targetNamespace: 'test',
         source:          [{
           variable: 'var_name',
