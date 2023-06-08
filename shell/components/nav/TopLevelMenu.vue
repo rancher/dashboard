@@ -303,59 +303,12 @@ export default {
             <div>
               <a
                 v-if="isRancherInHarvester"
-                class="option cluster selector home"
+                class="option"
                 @click="goToHarvesterCluster()"
               >
-                <!-- <i
+                <i
                   class="icon icon-dashboard"
-                /> -->
-                <svg
-                  class="harvester-dashboard"
-                  width="24"
-                  height="24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <g>
-                    <title>Layer 1</title>
-                    <path
-                      id="svg_1"
-                      stroke="null"
-                      d="m12.84736,9.44495l0,-7.66518l9.32087,0l0,7.66518l-9.32087,0zm-11.01558,3.40674l0,-11.07193l9.32087,0l0,11.07193l-9.32087,0zm11.01558,9.36856l0,-11.07193l9.32087,0l0,11.07193l-9.32087,0zm-11.01558,0l0,-7.66518l9.32087,0l0,7.66518l-9.32087,0zm1.6947,-11.07193l5.93146,0l0,-7.66518l-5.93146,0l0,7.66518zm11.01558,9.36856l5.93146,0l0,-7.66518l-5.93146,0l0,7.66518zm0,-12.77531l5.93146,0l0,-4.25844l-5.93146,0l0,4.25844zm-11.01558,12.77531l5.93146,0l0,-4.25844l-5.93146,0l0,4.25844zm5.93146,-9.36856zm5.08411,-3.40674zm0,5.11012zm-5.08411,3.40674z"
-                    />
-                    <rect
-                      id="svg_6"
-                      height="8.72054"
-                      width="6.9697"
-                      y="2.81481"
-                      x="3.04377"
-                      stroke="null"
-                    />
-                    <rect
-                      id="svg_7"
-                      height="5.65656"
-                      width="7.07071"
-                      y="15.60942"
-                      x="2.87542"
-                      stroke="null"
-                    />
-                    <rect
-                      id="svg_8"
-                      height="5.45454"
-                      width="7.03704"
-                      y="2.61279"
-                      x="13.78451"
-                      stroke="null"
-                    />
-                    <rect
-                      id="svg_9"
-                      height="8.88889"
-                      width="7.00337"
-                      y="12.3771"
-                      x="13.6835"
-                      stroke="null"
-                    />
-                  </g>
-                </svg>
+                />
                 <div>
                   {{ t('nav.harvesterDashboard') }}
                 </div>

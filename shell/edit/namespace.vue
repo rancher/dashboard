@@ -65,14 +65,10 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['isSingleProduct']),
+    ...mapGetters(['isStandaloneHarvester']),
 
     isCreate() {
       return this.mode === _CREATE;
-    },
-
-    isSingleHarvester() {
-      return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
     },
 
     projectOpts() {
@@ -101,11 +97,11 @@ export default {
     },
 
     showResourceQuota() {
-      return !this.isSingleHarvester && Object.keys(this.project?.spec?.resourceQuota?.limit || {}).length > 0;
+      return (!this.isStandaloneHarvester) && Object.keys(this.project?.spec?.resourceQuota?.limit || {}).length > 0;
     },
 
     showContainerResourceLimit() {
-      return !this.isSingleHarvester;
+      return !this.isStandaloneHarvester;
     },
 
     flatView() {
@@ -253,6 +249,7 @@ export default {
         />
       </Tab>
       <Tab
+        v-if="showPodSecurityAdmission"
         name="pod-security-admission"
         label-key="podSecurityAdmission.name"
         :label="t('podSecurityAdmission.name')"
