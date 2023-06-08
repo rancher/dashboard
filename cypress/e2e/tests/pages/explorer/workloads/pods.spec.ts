@@ -29,7 +29,7 @@ describe('Cluster Explorer', () => {
         it(`Should have same spec as the original pod`, () => {
           const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
-          cloneCreatePodPage.goTo();
+          cloneCreatePodPage.goTo().wait(10000);
 
           let origPodSpec: any;
 

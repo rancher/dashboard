@@ -400,7 +400,10 @@ export default {
             @close="errors.splice(idx, 1)"
           />
         </div>
-        <div class="controls-row pt-20">
+        <div
+          id="wizard-footer-controls"
+          class="controls-row pt-20"
+        >
           <slot
             name="cancel"
             :cancel="cancel"

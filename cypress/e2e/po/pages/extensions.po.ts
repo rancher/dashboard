@@ -218,7 +218,7 @@ export default class ExtensionsPo extends PagePo {
   // }
 
   disableExtensionsClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).clickMenuItem(2);
+    return new ActionMenuPo(this.self()).clickMenuItem(3);
   }
 
   // ------------------ disable extensions OVERALL modal ------------------

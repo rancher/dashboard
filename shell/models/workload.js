@@ -4,7 +4,7 @@ import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
 import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
-import { SEPARATOR } from '@shell/components/DetailTop';
+import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 
 export const defaultContainer = {

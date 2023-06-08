@@ -116,7 +116,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <TypeDescription resource="chart" />
-
     <div
       v-if="chart"
       class="chart-header"
@@ -139,6 +138,7 @@ export default {
         <button
           v-if="!requires.length"
           type="button"
+          data-testid="btn-chart-install"
           class="btn role-primary"
           @click.prevent="install"
         >

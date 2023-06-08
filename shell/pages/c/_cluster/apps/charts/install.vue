@@ -1120,6 +1120,7 @@ export default {
         Refer to the developer docs at docs/developer/helm-chart-apps.md
         for details on what values are injected and where they come from.
       */
+
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
@@ -1510,6 +1511,7 @@ export default {
         <div class="step__values__controls">
           <ButtonGroup
             v-model="preFormYamlOption"
+            data-testid="btn-group-options-view"
             :options="formYamlOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
