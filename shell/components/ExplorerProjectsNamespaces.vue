@@ -373,6 +373,7 @@ export default {
         <n-link
           :to="createNamespaceLocationFlatList()"
           class="btn role-primary mr-10"
+          data-testid="create_project_namespaces"
         >
           {{ t('projectNamespaces.createNamespace') }}
         </n-link>

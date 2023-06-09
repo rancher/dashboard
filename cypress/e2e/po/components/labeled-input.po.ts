@@ -11,6 +11,13 @@ export default class LabeledInputPo extends ComponentPo {
     );
   }
 
+  static bySelector(self: CypressChainable, selector: string): LabeledInputPo {
+    return new LabeledInputPo(
+      self
+        .find(`${ selector } input`, { includeShadowDom: true })
+    );
+  }
+
   /**
    * Type value in the input
    * @param value Value to be typed

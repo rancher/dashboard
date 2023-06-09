@@ -6,8 +6,6 @@ import { _VIEW } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 
-export const SEPARATOR = { separator: true };
-
 export default {
   components: {
     DetailText, Tag, ExtensionPanel

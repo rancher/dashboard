@@ -57,7 +57,7 @@ export default {
       project:                 null,
       projects:                null,
       viewMode:                _VIEW,
-      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName),
+      containerResourceLimits: this.value.annotations?.[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName),
       projectName,
       HARVESTER_TYPES,
       RANCHER_TYPES,
@@ -181,6 +181,7 @@ export default {
       >
         <LabeledSelect
           v-model="projectName"
+          data-testid="name-ns-description-project"
           :label="t('namespace.project.label')"
           :options="projectOpts"
         />

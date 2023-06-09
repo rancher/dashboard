@@ -3,6 +3,9 @@ type Matcher = '$' | '^' | '~' | '*' | '';
 // eslint-disable-next-line no-unused-vars
 declare namespace Cypress {
   interface Chainable {
+
+    state(state: any): any;
+
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
     byLabel(label: string,): Chainable<Element>;
 
@@ -35,12 +38,9 @@ declare namespace Cypress {
     // eslint-disable-next-line no-undef
     userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;
 
-    /**
-     * Keyboard contols for rancher components
-     * @param key Key to press
-     * @param options Options for the key press
-     */
+    requestBase64Image(url: string): Chainable;
 
     keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
+
   }
 }
