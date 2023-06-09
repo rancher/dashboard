@@ -1283,7 +1283,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div
     v-else-if="!legacyApp && !mcapp"
-    class="install-steps"
+    class="install-steps mt-20"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
     <TypeDescription resource="chart" />
