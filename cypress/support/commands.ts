@@ -115,6 +115,5 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
 
   for (let i = 0; i < count; i++) {
     body.trigger('keydown', triggerKeys)
-      .trigger('keyup', triggerKeys);
   }
 })
