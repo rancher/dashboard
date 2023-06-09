@@ -2061,7 +2061,7 @@ export default {
   background-color: var(--warning-banner-bg);
   color:var(--warning);
   margin-top: 5px;
-  top: 7px;
+  top: 10px;
 }
 
 </style>
