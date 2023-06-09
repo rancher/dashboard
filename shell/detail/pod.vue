@@ -15,6 +15,8 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
+import { NAMESPACE } from '@shell/config/types';
+import { PROJECT } from '@shell/config/labels-annotations';
 
 const POD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1';
 const POD_METRICS_SUMMARY_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1';
@@ -35,6 +37,18 @@ export default {
 
   async fetch() {
     this.showMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [POD_METRICS_DETAIL_URL, POD_METRICS_SUMMARY_URL]);
+    if (!this.showMetrics) {
+      const namespace = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.value.metadata.namespace });
+
+      const projectId = namespace?.metadata?.labels[PROJECT];
+
+      if (projectId) {
+        this.POD_PROJECT_METRICS_DETAIL_URL = `/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-pod-containers?orgId=1'`;
+        this.POD_PROJECT_METRICS_SUMMARY_URL = `/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-pod?orgId=1`;
+
+        this.showProjectMetrics = await allDashboardsExist(this.$store, this.currentCluster.id, [this.POD_PROJECT_METRICS_DETAIL_URL, this.POD_PROJECT_METRICS_SUMMARY_URL], 'cluster', projectId);
+      }
+    }
   },
 
   data() {
@@ -47,10 +61,13 @@ export default {
     return {
       POD_METRICS_DETAIL_URL,
       POD_METRICS_SUMMARY_URL,
+      POD_PROJECT_METRICS_DETAIL_URL:  '',
+      POD_PROJECT_METRICS_SUMMARY_URL: '',
       POD_OPTION,
-      showMetrics: false,
-      selection:   POD_OPTION,
-      metricsID:   null,
+      showMetrics:                     false,
+      showProjectMetrics:              false,
+      selection:                       POD_OPTION,
+      metricsID:                       null,
     };
   },
 
@@ -277,6 +294,22 @@ export default {
           v-if="props.active"
           :detail-url="POD_METRICS_DETAIL_URL"
           :summary-url="POD_METRICS_SUMMARY_URL"
+          :vars="graphVars"
+          graph-height="550px"
+        />
+      </template>
+    </Tab>
+    <Tab
+      v-if="showProjectMetrics"
+      :label="t('workload.container.titles.metrics')"
+      name="pod-metrics"
+      :weight="2.5"
+    >
+      <template #default="props">
+        <DashboardMetrics
+          v-if="props.active"
+          :detail-url="POD_PROJECT_METRICS_DETAIL_URL"
+          :summary-url="POD_PROJECT_METRICS_SUMMARY_URL"
           :vars="graphVars"
           graph-height="550px"
         />
