@@ -272,7 +272,7 @@ module.exports = function(dir, _appConfig) {
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
   const loginLocaleSelector = process.env.LOGIN_LOCALE_SELECTOR || 'true';
-  const excludeOperatorPkg = (process.env.EXCLUDE_OPERATOR_PKG || '').split(',');
+  const excludeOperatorPkg = process.env.EXCLUDE_OPERATOR_PKG || 'false';
 
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
   const proxy = {

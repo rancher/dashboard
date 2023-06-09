@@ -3,7 +3,7 @@ import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
 export default async function(context) {
-  if (process.env.excludeOperatorPkg) {
+  if (process.env.excludeOperatorPkg === 'true') {
     return;
   }
 
