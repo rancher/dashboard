@@ -1296,6 +1296,7 @@ export default {
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action"
       class="wizard"
+      :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
       @finish="finish"
     >
@@ -1840,7 +1841,6 @@ export default {
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
       position: relative;
-      margin-bottom: 15px
     }
 
     .logo {
@@ -1855,6 +1855,22 @@ export default {
       left: 0;
       margin: auto;
     }
+
+    // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
+    // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
+    &.windowsIncompatible {
+      ::v-deep .header {
+        padding-bottom: 15px;
+      }
+    }
+
+    .os-label {
+      position: absolute;
+      background-color: var(--warning-banner-bg);
+      color:var(--warning);
+      margin-top: 5px;
+    }
+
   }
 
   .step {
@@ -2051,14 +2067,6 @@ export default {
       }
     }
   }
-}
-
-.os-label {
-  position: relative;
-  background-color: var(--warning-banner-bg);
-  color:var(--warning);
-  margin-top: 5px;
-  top: 21px;
 }
 
 </style>
