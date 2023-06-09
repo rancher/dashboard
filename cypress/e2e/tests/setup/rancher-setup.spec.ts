@@ -45,4 +45,9 @@ describe('Rancher setup', { tags: '@adminUser' }, () => {
     //   cy.url().should('equal', `${ Cypress.config().baseUrl }/home`);
     // });
   });
+
+  it.only('Create standard user after login', () => {
+    cy.login();
+    cy.createUser('user');
+  });
 });
