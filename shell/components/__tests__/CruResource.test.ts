@@ -1,10 +1,9 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: CruResource', () => {
-
   it('should hide Cancel button', () => {
     const wrapper = mount(CruResource, {
       propsData: {
@@ -67,7 +66,7 @@ describe('component: CruResource', () => {
     expect(node.text()).toContain(errors[0]);
     expect(node.text()).toContain(errors[1]);
   });
-  
+
   it('should prevent default events on keypress Enter', async() => {
     const event = { preventDefault: jest.fn() };
     const wrapper = mount(CruResource, {
@@ -102,9 +101,9 @@ describe('component: CruResource', () => {
     const wrapper = mount(CruResource, {
       directives: { cleanHtmlDirective },
       propsData:  {
-        canYaml:  false,
-        mode:     _EDIT,
-        resource: {},
+        canYaml:            false,
+        mode:               _EDIT,
+        resource:           {},
         preventEnterSubmit: false
       },
       components: {
@@ -130,4 +129,4 @@ describe('component: CruResource', () => {
     await element.trigger('keydown.enter', event);
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
-});   
+});
