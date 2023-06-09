@@ -46,7 +46,7 @@ describe('Rancher setup', { tags: '@adminUser' }, () => {
     // });
   });
 
-  it.only('Create standard user after login', () => {
+  it('Create standard user after login', () => {
     cy.login();
     cy.createUser('user');
   });
