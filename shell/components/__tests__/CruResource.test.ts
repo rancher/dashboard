@@ -1,10 +1,9 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: CruResource', () => {
-
   it('should hide Cancel button', () => {
     const wrapper = mount(CruResource, {
       propsData: {
