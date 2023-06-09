@@ -394,6 +394,7 @@ export default {
 
     onPressEnter(event) {
       if (this.preventEnterSubmit) {
+        console.log('preventDefault');
         event.preventDefault();
       }
     }
