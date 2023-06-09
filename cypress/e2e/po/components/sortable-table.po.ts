@@ -120,7 +120,7 @@ export default class SortableTablePo extends ComponentPo {
     return cy.get('.sortable-table tbody input[type="checkbox"]:checked').its('length');
   }
 
-  selectedCountText() { 
-    return cy.get('#selected-count')
+  selectedCountText() {
+    return cy.get('#selected-count');
   }
 }
