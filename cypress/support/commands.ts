@@ -111,9 +111,9 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 });
 
 Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
-  const body = cy.get('body');
 
   for (let i = 0; i < count; i++) {
-    body.trigger('keydown', triggerKeys)
+    cy.get('body').trigger('keydown', triggerKeys)
   }
+
 })
