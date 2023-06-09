@@ -94,3 +94,12 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
     });
   });
 });
+
+Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
+  const body = cy.get('body');
+
+  for (let i = 0; i < count; i++) {
+    body.trigger('keydown', triggerKeys)
+      .trigger('keyup', triggerKeys);
+  }
+});

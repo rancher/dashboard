@@ -34,5 +34,13 @@ declare namespace Cypress {
      */
     // eslint-disable-next-line no-undef
     userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;
+
+    /**
+     * Keyboard contols for rancher components
+     * @param key Key to press
+     * @param options Options for the key press
+     */
+
+    keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
   }
 }
