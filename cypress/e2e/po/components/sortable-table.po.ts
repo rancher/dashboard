@@ -115,4 +115,12 @@ export default class SortableTablePo extends ComponentPo {
   selectAllCheckbox(): CheckboxInputPo {
     return new CheckboxInputPo('[data-testid="sortable-table_check_select_all"]');
   }
+
+  selectedCount() {
+    return cy.get('.sortable-table tbody input[type="checkbox"]:checked').its('length');
+  }
+
+  selectedCountText() { 
+    return cy.get('#selected-count')
+  }
 }
