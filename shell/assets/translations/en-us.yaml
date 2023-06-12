@@ -1236,7 +1236,7 @@ cluster:
       memory: Memory
       disk: Disk
       image: Image
-      network: 
+      network:
         title: Networks
         network: Network
         addNetwork: Add Network
@@ -1745,7 +1745,7 @@ cluster:
     oracle: Oracle
     oracleoke: Oracle OKE
     # Added by Verrazzano Start
-    ociocne: OCI OCNE
+    ociocne: Oracle OCNE on OCI
     # Added by Verrazzano End
     otc: Open Telekom Cloud
     other: Other
@@ -1815,7 +1815,7 @@ cluster:
       option: Default - RKE2 Embedded
     defaultPodSecurityAdmissionConfigurationTemplateName:
       label: Pod Security Admission Configuration Template
-      option: 
+      option:
         none: (None)
         default: Default - RKE2 Embedded
     cisProfile:
@@ -2185,11 +2185,11 @@ fleet:
     error: Error
     ready: Ready
     errors: Errors
-  workspaces: 
+  workspaces:
     tabs:
       restrictions: Allowed Target Namespaces
     timeout: Workspace creation timeout. It's possible the workspace was created. We suggest checking the workspace page before trying to create another.
-  restrictions: 
+  restrictions:
     addTitle: 'allowedTargetNamespaces'
     addLabel: Add
     banner: "{count, plural,
@@ -2239,7 +2239,7 @@ gatekeeperIndex:
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
   violations: Violations
 
-gatekeeperInstall: 
+gatekeeperInstall:
   auditInterval: Auto Interval
   constraintViolationsLimit: Constraint Violations Limit
   runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
@@ -4015,7 +4015,7 @@ plugins:
 podSecurityAdmission:
   name: Pod Security Admission
   description: Define the admission control mode you want to use for the pod security
-  banner: 
+  banner:
     modifications: 'Changing any template that is currently in use will cause an update to those live clusters the next time the cluster is updated'
   labels:
     enforce: Enforce
@@ -4029,7 +4029,7 @@ podSecurityAdmission:
     restricted: restricted
   version:
     placeholder: 'Version (default: latest)'
-  exemptions: 
+  exemptions:
     title: Exemptions
     description: Allow the creation of pods for specific Usernames, RuntimeClassNames, and Namespaces that would otherwise be prohibited due to the policies set above.
     placeholder: Enter a comma separated list of {psaExemptionsControl}
@@ -5148,7 +5148,7 @@ storageClass:
     warning: 'The {provisioner} in-tree plugin is deprecated: Find a CSI driver <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes-csi.github.io/docs/drivers.html">here.</a>'
   harvesterhci:
     title: Harvester (CSI)
-    warning: 
+    warning:
       unSatisfiesVersion: Please upgrade your Harvester CSI driver version to use this feature. (csi-driver >= v0.1.15)
     hostStorageClass:
       label: Host Storage Class

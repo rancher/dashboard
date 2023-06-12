@@ -23,6 +23,7 @@ import Rke2Config from './rke2';
 import Import from './import';
 // Added by Verrazzano Start
 import { getVerrazzanoVersion } from '@pkg/verrazzano/utils/version';
+import semver from 'semver';
 // Added by Verrazzano End
 
 const SORT_GROUPS = {
@@ -118,7 +119,6 @@ export default {
 
     this.nodeDrivers = res.nodeDrivers || [];
     this.kontainerDrivers = res.kontainerDrivers || [];
-
     if ( !this.value.spec ) {
       set(this.value, 'spec', {});
     }
@@ -363,7 +363,32 @@ export default {
       }
 
       for ( const k in out ) {
-        out[k].types = sortBy(out[k].types, 'label');
+        // Added by Verrazzano Start
+        // out[k].types = sortBy(out[k].types, 'label');
+        if (out[k].name === 'kontainer' && this.isVerrazzano16OrGreater) {
+          out[k].types = out[k].types.sort((a, b) => {
+            const aName = a.id;
+            const bName = b.id;
+
+            if (aName === 'ociocne') {
+              return -1;
+            }
+            if (aName === 'oracleoke') {
+              return -1;
+            }
+            if (bName === 'ociocne') {
+              return 1;
+            }
+            if (bName === 'oracleoke') {
+              return 1;
+            }
+
+            return aName.localeCompare(bName);
+          });
+        } else {
+          out[k].types = sortBy(out[k].types, 'label');
+        }
+        // Added by Verrazzano End
       }
 
       return sortBy(Object.values(out), 'sort');
@@ -384,6 +409,10 @@ export default {
       } else {
         return false;
       }
+    },
+
+    isVerrazzano16OrGreater() {
+      return semver.gte(semver.coerce(this.vzVersion), '1.6.0');
     }
     // Added by Verrazzano End
   },
