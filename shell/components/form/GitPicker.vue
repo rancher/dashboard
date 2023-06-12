@@ -206,12 +206,14 @@ export default Vue.extend<Data, any, any, any>({
     },
 
     async fetchRepos() {
+      this.repos = [];
+      this.selectedRepo = null;
+      this.selectedBranch = null;
+      this.selectedCommit = {};
+
+      this.communicateReset();
+
       if (this.selectedAccOrOrg.length) {
-        this.selectedRepo = null;
-        this.selectedCommit = {};
-
-        this.communicateReset();
-
         try {
           const res = await this.$store.dispatch(`${ this.type }/fetchRecentRepos`, { username: this.selectedAccOrOrg });
 
@@ -220,7 +222,6 @@ export default Vue.extend<Data, any, any, any>({
           this.hasError.repo = false;
         } catch (error) {
           this.hasError.repo = true;
-          this.selectedBranch = null;
         }
       }
     },
