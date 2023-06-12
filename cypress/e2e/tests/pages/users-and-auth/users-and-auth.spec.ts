@@ -14,6 +14,9 @@ describe('Users and Authentication', () => {
     const userRoles = new UsersAndAuthPo('/c/_/auth/roles');
     const usersAdmin = new UsersAndAuthPo('/c/_/auth/management.cattle.io.user');
 
+    // last API call on the user creation process (with global role assignment)
+    cy.intercept('GET', '/v1/management.cattle.io.globalrolebindings').as('globalRoleBindingCreated');
+
     // this will login as admin
     cy.login();
 
@@ -22,9 +25,9 @@ describe('Users and Authentication', () => {
     userRoles.listCreate();
 
     userRoles.name().set(customRoleName);
-    userRoles.selectVerbs(3);
-    userRoles.selectVerbs(4);
-    userRoles.selectResourcesByLabelValue('GlobalRoles');
+    userRoles.selectVerbs(0, 3);
+    userRoles.selectVerbs(0, 4);
+    userRoles.selectResourcesByLabelValue(0, 'GlobalRoles');
     userRoles.saveCreateForm().click();
 
     // create standard user
@@ -37,29 +40,35 @@ describe('Users and Authentication', () => {
     usersAdmin.selectCheckbox(customRoleName).set();
     usersAdmin.saveCreateForm().click();
 
-    // need to give some time out, otherwise we won't be able to login the new user successfully
-    // it has something to do with the user creation process
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(3000);
+    // we need to wait for that last API call to be finished to make sure we are ready for login
+    // with that new user
+    cy.wait('@globalRoleBindingCreated').then((res) => {
+      expect(res.response?.statusCode).to.equal(200);
 
-    // logout admin
-    userMenu.toggle();
-    userMenu.isOpen();
-    userMenu.clickMenuItem('Log Out');
-    loginPage.waitForPage();
-    loginPage.username().checkVisible();
+      // let's just check that the user is on the list view before attempting to login
+      usersAdmin.goTo();
+      usersAdmin.waitForPage();
+      usersAdmin.listElementWithName(standardUsername).should('exist');
 
-    // login as standard user
-    cy.login(standardUsername, standardPassword);
+      // logout admin
+      userMenu.toggle();
+      userMenu.isOpen();
+      userMenu.clickMenuItem('Log Out');
+      loginPage.waitForPage();
+      loginPage.username().checkVisible();
 
-    // navigate to the roles page and make sure user can see it
-    userRoles.goTo();
-    userRoles.listTitle().should('contain', 'Roles');
-    userRoles.listElements().should('have.length.of.at.least', 1);
+      // login as standard user
+      cy.login(standardUsername, standardPassword);
 
-    // navigate to the users page and make sure user can see it
-    usersAdmin.goTo();
-    usersAdmin.listTitle().should('contain', 'Users');
-    usersAdmin.listElements().should('have.length.of.at.least', 1);
+      // navigate to the roles page and make sure user can see it
+      userRoles.goTo();
+      userRoles.listTitle().should('contain', 'Roles');
+      userRoles.listElements().should('have.length.of.at.least', 1);
+
+      // navigate to the users page and make sure user can see it
+      usersAdmin.goTo();
+      usersAdmin.listTitle().should('contain', 'Users');
+      usersAdmin.listElements().should('have.length.of.at.least', 1);
+    });
   });
 });

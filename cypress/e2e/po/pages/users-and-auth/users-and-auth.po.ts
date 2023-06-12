@@ -8,7 +8,7 @@ import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 export default class UsersAndAuthPo extends PagePo {
   static url: string = '/c/_/auth/management.cattle.io.user'
 
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+  static goTo(): Cypress.Chainable {
     return super.goTo(UsersAndAuthPo.url);
   }
 
@@ -26,6 +26,12 @@ export default class UsersAndAuthPo extends PagePo {
     const baseResourceList = new BaseResourceList(this.self());
 
     return baseResourceList.resourceTable().sortableTable().rowElements();
+  }
+
+  listElementWithName(name: string) {
+    const baseResourceList = new BaseResourceList(this.self());
+
+    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
   }
 
   listTitle() {
@@ -56,15 +62,15 @@ export default class UsersAndAuthPo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  selectVerbs(index: number) {
-    const selectVerb = new LabeledSelectPo(`[data-testid="grant-resources-verbs0"]`, this.self());
+  selectVerbs(itemRow: number, optionIndex: number) {
+    const selectVerb = new LabeledSelectPo(`[data-testid="grant-resources-verbs${ itemRow }"]`, this.self());
 
     selectVerb.toggle();
-    selectVerb.clickOption(index);
+    selectVerb.clickOption(optionIndex);
   }
 
-  selectResourcesByLabelValue(label: string) {
-    const selectResources = new LabeledSelectPo(`[data-testid="grant-resources-resources0"]`, this.self());
+  selectResourcesByLabelValue(itemRow: number, label: string) {
+    const selectResources = new LabeledSelectPo(`[data-testid="grant-resources-resources${ itemRow }"]`, this.self());
 
     selectResources.toggle();
     selectResources.clickOptionWithLabel(label);
