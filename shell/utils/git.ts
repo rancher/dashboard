@@ -1,4 +1,4 @@
-import { APPLICATION_SOURCE_TYPE } from '../types';
+import { APPLICATION_SOURCE_TYPE } from '../../pkg/epinio/types';
 
 interface Repo {
   owner: any,

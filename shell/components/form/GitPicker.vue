@@ -6,7 +6,7 @@ import debounce from 'lodash/debounce';
 import { isArray } from '@shell/utils/array';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-import { GitUtils } from '@/pkg/epinio/utils/git';
+import { GitUtils } from '../../utils/git';
 
 interface commit {
   [key: string]: any,
