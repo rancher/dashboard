@@ -38,21 +38,21 @@ module.exports = {
   // Babel
   transform: {
     '^.+\\.js$':   '<rootDir>/node_modules/babel-jest', // process js with `babel-jest`
-    '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue2-jest', // process `*.vue` files with `vue-jest`
+    '.*\\.(vue)$': '<rootDir>/node_modules/@vue/vue3-jest', // process `*.vue` files with `vue-jest`
     '^.+\\.tsx?$': 'ts-jest', // process `*.ts` files with `ts-jest`
     '^.+\\.svg$':  '<rootDir>/svgTransform.js' // to mock `*.svg` files
   },
   snapshotSerializers: ['<rootDir>/node_modules/jest-serializer-vue'],
 
   // Coverage
-  coverageDirectory:   '<rootDir>/coverage/unit',
-  coverageReporters:   ['json', 'text-summary'],
   collectCoverage:     false,
   collectCoverageFrom: [
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
   ],
+  coverageDirectory: '<rootDir>/coverage/unit',
+  coverageReporters: ['json', 'text-summary'],
 
   // Globals
   globals: { 'ts-jest': { isolatedModules: true } },

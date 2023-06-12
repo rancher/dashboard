@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": false,
   "engines": {
-    "node": ">=12"
+    "node": ">=18"
   },
   "dependencies": {},
   "resolutions": {

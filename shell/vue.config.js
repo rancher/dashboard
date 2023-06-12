@@ -253,10 +253,12 @@ module.exports = function(dir, _appConfig) {
         key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
         cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
       } : null),
-      port:   (devPorts ? 8005 : 80),
-      host:   '0.0.0.0',
-      public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
-      before(app, server) {
+      port: (devPorts ? 8005 : 80),
+      host: '0.0.0.0',
+      // FIXME: replace with newer version
+      // public: `https://0.0.0.0:${ devPorts ? 8005 : 80 }`,
+      proxy,
+      onBeforeSetupMiddleware({ app, server }) {
         const socketProxies = {};
 
         // Close down quickly in response to CTRL + C
@@ -293,27 +295,29 @@ module.exports = function(dir, _appConfig) {
           app.use(p, px);
         });
 
-        server.websocketProxies.push({
-          upgrade(req, socket, head) {
-            const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
+        // FIXME: replace with newer version
+        //   server.websocketProxies.push({
+        //     upgrade(req, socket, head) {
+        //       const path = Object.keys(socketProxies).find(path => req.url.startsWith(path));
 
-            if (path) {
-              const proxy = socketProxies[path];
+        //       if (path) {
+        //         const proxy = socketProxies[path];
 
-              if (proxy.upgrade) {
-                proxy.upgrade(req, socket, head);
-              } else {
-                console.log(`Upgrade for Proxy is not defined. Cannot upgrade Web socket for ${ req.url }`); // eslint-disable-line no-console
-              }
-            } else {
-              console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
-            }
-          }
-        });
+      //         if (proxy.upgrade) {
+      //           proxy.upgrade(req, socket, head);
+      //         } else {
+      //           console.log(`Upgrade for Proxy is not defined. Cannot upgrade Web socket for ${ req.url }`); // eslint-disable-line no-console
+      //         }
+      //       } else {
+      //         console.log(`Unknown Web socket upgrade request for ${ req.url }`); // eslint-disable-line no-console
+      //       }
+      //     }
+      //   });
       },
     },
-    publicPath: resourceBase || undefined,
-    css:        {
+    transpileDependencies: true,
+    publicPath:            resourceBase || undefined,
+    css:                   {
       extract:       false, // inline css styles instead of including with `<links`
       loaderOptions: {
         sass: {
@@ -377,11 +381,12 @@ module.exports = function(dir, _appConfig) {
       }));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
-      config.plugins.push(new CopyWebpackPlugin([{ from: path.join(SHELL_ABS, 'static'), to: '.' }]));
+      config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.resolve.extensions.push(...['.tsx', '.ts', '.js', '.vue', '.scss']);
-      config.watchOptions = config.watchOptions || {};
-      config.watchOptions.ignored = watcherIgnores;
+      // FIXME: replace with newer version
+      // config.watchOptions = config.watchOptions || {};
+      // config.watchOptions.ignored = watcherIgnores;
 
       if (dev) {
         config.devtool = 'cheap-module-source-map';
@@ -516,18 +521,19 @@ module.exports = function(dir, _appConfig) {
 
       config.module.rules.push(...loaders);
 
-      // Update vue-loader to set whitespace to 'preserve'
-      // This was the setting with nuxt, but is not the default with vue cli
-      // Need to find the vue loader in the webpack config and update the setting
-      config.module.rules.forEach((loader) => {
-        if (loader.use) {
-          loader.use.forEach((use) => {
-            if (use.loader.includes('vue-loader')) {
-              use.options.compilerOptions.whitespace = 'preserve';
-            }
-          });
-        }
-      });
+      // FIXME: replace with newer version
+      // // Update vue-loader to set whitespace to 'preserve'
+      // // This was the setting with nuxt, but is not the default with vue cli
+      // // Need to find the vue loader in the webpack config and update the setting
+      // config.module.rules.forEach((loader) => {
+      //   if (loader.use) {
+      //     loader.use.forEach((use) => {
+      //       if (use.loader.includes('vue-loader')) {
+      //         use.options.compilerOptions.whitespace = 'preserve';
+      //       }
+      //     });
+      //   }
+      // });
     },
   };
 

@@ -11,7 +11,7 @@
     "init"
   ],
   "engines": {
-    "node": ">=12"
+    "node": ">=18"
   },
   "_requires": [
     "core-js",
