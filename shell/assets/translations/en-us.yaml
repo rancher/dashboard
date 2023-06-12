@@ -4844,6 +4844,12 @@ servicesPage:
     title: Add-on Config
     ipam:
       label: IPAM
+    useShareIP:
+      label: Use Share IP
+    useIpam:
+      label: Use IPAM
+    shareIP:
+      label: Share IP LB
 
   ips:
     define: Service Ports
