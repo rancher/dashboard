@@ -16,7 +16,7 @@ describe('User can update their preferences', () => {
     cy.login();
   });
 
-  it.only('Can navigate to Preferences Page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can navigate to Preferences Page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Open user menu and navigate to Preferences page
     Verify url includes endpoint '/prefs'
