@@ -1,11 +1,25 @@
 <script>
-import { NORMAN } from '@shell/config/types';
+import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import MembershipEditor from '@shell/components/form/Members/MembershipEditor';
 import { canViewMembershipEditor } from '@shell/components/form/Members/MembershipEditor.vue';
 
 export function canViewProjectMembershipEditor(store) {
   return canViewMembershipEditor(store, true);
+}
+
+export function canEditProjectPermissions(store) {
+  // blocked-post means you can post through norman, but not through steve.
+  // collectionMethods and resourceMethods on norman schema itself are not accurate for permission checking here.
+  return !!(store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).find(method => ['blocked-post', 'post'].includes(method.toLowerCase())) &&
+    !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
+    !!store.getters['management/schemaFor'](MANAGEMENT.USER);
+}
+
+export function canViewProjectPermissions(store) {
+  return (store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).includes('GET') &&
+    (store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)?.collectionMethods || []).includes('GET') &&
+    (store.getters['management/schemaFor'](MANAGEMENT.USER)?.collectionMethods || []).includes('GET');
 }
 
 export default {

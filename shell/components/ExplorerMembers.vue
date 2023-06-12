@@ -3,14 +3,15 @@ import { MANAGEMENT, NORMAN, VIRTUAL_TYPES } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
-import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
+import { canEditClusterPermissions, canViewClusterPermissions } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
+import { canEditProjectPermissions, canViewProjectPermissions } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable';
 import { mapGetters } from 'vuex';
-import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
+import { camelCase } from 'lodash';
 
 /**
  * Explorer members page.
@@ -42,31 +43,41 @@ export default {
   },
 
   async fetch() {
-    const clusterRoleTemplateBindingSchema = this.$store.getters[
-      `rancher/schemaFor`
-    ](NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING);
+    if (canViewClusterPermissions(this.$store)) {
+      const clusterId = this.$store.getters['currentCluster'].id;
+      const normanClusterRTBSchema = this.$store.getters[
+        `rancher/schemaFor`
+      ](NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING);
 
-    const projectRoleTemplateBindingSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
+      this.$set(this, 'normanClusterRTBSchema', normanClusterRTBSchema);
 
-    this.$set(this, 'normanClusterRTBSchema', clusterRoleTemplateBindingSchema);
-    this.$set(this, 'normanProjectRTBSchema', projectRoleTemplateBindingSchema);
-
-    if (clusterRoleTemplateBindingSchema) {
-      Promise.all([
-        this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }),
-        this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
-      ]).then(([normanBindings]) => {
-        this.$set(this, 'normanClusterRoleTemplateBindings', normanBindings);
+      if (normanClusterRTBSchema) {
+        Promise.all([
+          this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, opt: { filter: { clusterId } } }, { root: true }),
+          this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
+        ]).then(([normanBindings]) => {
+          this.$set(this, 'normanClusterRoleTemplateBindings', normanBindings);
+          this.loadingClusterBindings = false;
+        });
+      } else {
         this.loadingClusterBindings = false;
-      });
+      }
     }
 
-    if (projectRoleTemplateBindingSchema) {
-      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
-        .then((bindings) => {
-          this.$set(this, 'projectRoleTemplateBindings', bindings);
-          this.loadingProjectBindings = false;
-        });
+    if (canViewProjectPermissions(this.$store)) {
+      const normanProjectRTBSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
+
+      this.$set(this, 'normanProjectRTBSchema', normanProjectRTBSchema);
+
+      if (normanProjectRTBSchema) {
+        this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
+          .then((bindings) => {
+            this.$set(this, 'projectRoleTemplateBindings', bindings);
+            this.loadingProjectBindings = false;
+          });
+      } else {
+        this.loadingProjectBindings = false;
+      }
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
@@ -212,21 +223,34 @@ export default {
 
       return Object.values(userRoles);
     },
-    canManageMembers() {
-      return canViewClusterPermissionsEditor(this.$store);
+    canViewClusterMemberPermissions() {
+      return canViewClusterPermissions(this.$store);
+    },
+    canViewProjectMemberPermissions() {
+      return canViewProjectPermissions(this.$store);
+    },
+    mastHeadTString() {
+      const strings = [];
+
+      if (this.canViewClusterMemberPermissions) {
+        strings.push('cluster');
+      }
+      if (this.canViewProjectMemberPermissions) {
+        strings.push('project');
+      }
+      const tString = camelCase(strings.join(' and '));
+
+      return `members.${ tString }`;
+    },
+    canManageClusterMembers() {
+      return canEditClusterPermissions(this.$store);
     },
     canManageProjectMembers() {
-      return canViewProjectMembershipEditor(this.$store);
+      return canEditProjectPermissions(this.$store);
     },
     isLocal() {
       return this.$store.getters['currentCluster'].isLocal;
-    },
-    canEditProjectMembers() {
-      return this.normanProjectRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
-    },
-    canEditClusterMembers() {
-      return this.normanClusterRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
-    },
+    }
   },
   methods: {
     getMgmtProjectId(group) {
@@ -288,7 +312,7 @@ export default {
       :create-location="createLocation"
       :create-button-label="t('members.createActionLabel')"
       :is-creatable="false"
-      :type-display="t('members.clusterAndProject')"
+      :type-display="t(mastHeadTString)"
     />
     <Banner
       v-if="isLocal"
@@ -297,11 +321,12 @@ export default {
     />
     <Tabbed>
       <Tab
+        v-if="canViewClusterMemberPermissions"
         name="cluster-membership"
         :label="t('members.clusterMemebership')"
       >
         <div
-          v-if="canEditClusterMembers"
+          v-if="canManageClusterMembers"
           class="row mb-10 cluster-add"
         >
           <n-link
@@ -324,7 +349,7 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="canManageProjectMembers"
+        v-if="canViewProjectMemberPermissions"
         name="project-membership"
         :label="t('members.projectMembership')"
       >
@@ -349,7 +374,7 @@ export default {
               </div>
               <div class="right">
                 <button
-                  v-if="canEditProjectMembers"
+                  v-if="canManageProjectMembers"
                   type="button"
                   class="create-namespace btn btn-sm role-secondary mr-10 right"
                   @click="addProjectMember(group)"
