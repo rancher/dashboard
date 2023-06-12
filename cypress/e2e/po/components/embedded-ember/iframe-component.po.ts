@@ -18,6 +18,7 @@ export default class IframeComponentPo extends ComponentPo {
   constructor(...args: Array<any>) {
     if (typeof args[0] === 'string') {
       super(cy.getIframeBody().find(args[0]));
+      this.selector = args[0];
     } else {
       super(args[0]);
     }
