@@ -19,4 +19,4 @@ harvesterManager:
       label: Namespaces
     addLabel: Add Workload Selector
     topologyKey:
-      placeholder: 'topology.kubernetes.io/region'
+      placeholder: 'topology.kubernetes.io/zone'
