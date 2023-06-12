@@ -1,11 +1,15 @@
 import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
+import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
 
 export default {
+
+  mixins: [ResourceFetchNamespaced],
+
   data() {
     // fetching the settings related to manual refresh from global settings
     const perfSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
@@ -24,15 +28,15 @@ export default {
     return {
       perfConfig,
       init:                       false,
-      counts:                     {},
       multipleResources:          [],
+      loadResources:              [this.resource],
       // manual refresh vars
       hasManualRefresh:           false,
       watch:                      true,
       isTooManyItemsToAutoUpdate: false,
       force:                      false,
       // incremental loading vars
-      incremental:                0,
+      incremental:                false,
       fetchedResourceType:        [],
     };
   },
@@ -42,10 +46,8 @@ export default {
       // clear up the store to make sure we aren't storing anything that might interfere with the next rendered list view
       this.$store.dispatch('resource-fetch/clearData');
 
-      const inStore = this.$store.getters['currentStore'](COUNT);
-
-      this.fetchedResourceType.forEach((type) => {
-        this.$store.dispatch(`${ inStore }/incrementLoadCounter`, type);
+      this.fetchedResourceType.forEach((item) => {
+        this.$store.dispatch(`${ item.currStore }/incrementLoadCounter`, item.type);
       });
     }
   },
@@ -53,9 +55,13 @@ export default {
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
     rows() {
-      const inStore = this.$store.getters['currentStore'](this.resource);
+      const currResource = this.fetchedResourceType.find(item => item.type === this.resource);
 
-      return this.$store.getters[`${ inStore }/all`](this.resource);
+      if (currResource) {
+        return this.$store.getters[`${ currResource.currStore }/all`](this.resource);
+      } else {
+        return [];
+      }
     },
     loading() {
       return this.rows.length ? false : this.$fetchState.pending;
@@ -70,11 +76,15 @@ export default {
     }
   },
   methods: {
-    $fetchType(type, multipleResources = []) {
-      const inStore = this.$store.getters['currentStore'](COUNT);
-
+    // this defines all the flags needed for the mechanism
+    // to work. They should be defined based on the main list view
+    // resource that is to be displayed. The secondary resources
+    // fetched should follow what was defined (if it is manual and/or incremental)
+    $initializeFetchData(type, multipleResources = [], storeType) {
       if (!this.init) {
-        this.__gatherResourceFetchData(type, multipleResources);
+        const currStore = storeType || this.$store.getters['currentStore']();
+
+        this.__gatherResourceFetchData(type, multipleResources, currStore);
 
         // make sure after init that, if we have a manual refresh, we always set the force = true
         if (!this.watch) {
@@ -85,31 +95,61 @@ export default {
           this.hasManualRefresh = true;
         }
       }
+    },
+    // data fetching for the mechanism
+    $fetchType(type, multipleResources = [], storeType) {
+      const currStore = storeType || this.$store.getters['currentStore']();
 
-      if (!this.fetchedResourceType.includes(type)) {
-        this.fetchedResourceType.push(type);
+      this.$initializeFetchData(type, multipleResources, currStore);
+
+      if (!this.fetchedResourceType.find(item => item.type === type)) {
+        this.fetchedResourceType.push({
+          type,
+          currStore
+        });
       }
 
-      return this.$store.dispatch(`${ inStore }/findAll`, {
+      let incremental = 0;
+
+      if (this.incremental) {
+        const resourceCount = this.__getCountForResources([type], this.namespaceFilter, currStore);
+
+        incremental = Math.ceil(resourceCount / PAGES);
+      }
+
+      const opt = {
+        incremental,
+        watch:            this.watch,
+        force:            this.force,
+        hasManualRefresh: this.hasManualRefresh
+      };
+
+      const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
+
+      if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
+        opt.namespaced = this.namespaceFilter; // namespaceFilter will only be populated if applicable for primary resource
+      }
+
+      return this.$store.dispatch(`${ currStore }/findAll`, {
         type,
-        opt: {
-          incremental:      this.incremental,
-          watch:            this.watch,
-          force:            this.force,
-          hasManualRefresh: this.hasManualRefresh
-        }
+        opt
       });
     },
-    __getCountForResource(resourceName) {
-      let resourceCount;
 
-      if (this.counts[`${ resourceName }`]) {
-        resourceCount = this.counts[`${ resourceName }`].summary?.count;
-      }
+    __getCountForResources(resourceNames, namespace, storeType) {
+      const currStore = storeType || this.$store.getters['currentStore']();
+
+      return resourceNames.reduce((res, type) => res + this.__getCountForResource(type, namespace, currStore), 0);
+    },
+
+    __getCountForResource(resourceName, namespace, storeType) {
+      const resourceCounts = this.$store.getters[`${ storeType }/all`](COUNT)[0]?.counts[`${ resourceName }`]; // NB `rancher` store behaves differently, lacks counts but has resource
+      const resourceCount = namespace && resourceCounts?.namespaces ? resourceCounts?.namespaces[namespace]?.count : resourceCounts?.summary?.count;
 
       return resourceCount || 0;
     },
-    __gatherResourceFetchData(type, multipleResources) {
+
+    __gatherResourceFetchData(resourceName, multipleResources, currStore) {
       // flag to prevent a first data update being triggered from the requestData watcher
       this.init = true;
 
@@ -123,8 +163,6 @@ export default {
 
       // other vars
       this.multipleResources = multipleResources;
-      const resourceName = type;
-      const inStore = this.$store.getters['currentStore'](resourceName);
       let resourceCount = 0;
 
       // manual refresh vars
@@ -132,30 +170,21 @@ export default {
       let isTooManyItemsToAutoUpdate = false;
 
       // incremental loading vars
-      let incremental = 0;
+      let incremental = false;
 
       // get resource counts
-      if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
-        this.counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
+      const resourcesForCount = this.multipleResources.length ? this.multipleResources : [resourceName];
 
-        if (this.multipleResources.length) {
-          this.multipleResources.forEach((item) => {
-            resourceCount = resourceCount + this.__getCountForResource(item);
-          });
-        } else {
-          resourceCount = this.__getCountForResource(resourceName);
-        }
-      }
+      resourceCount = this.__getCountForResources(resourcesForCount, this.namespaceFilter, currStore);
 
       // manual refresh check
       if (manualDataRefreshEnabled && resourceCount >= manualDataRefreshThreshold) {
         watch = false;
         isTooManyItemsToAutoUpdate = true;
       }
-      // manual refresh check
-      if (incrementalLoadingEnabled && incrementalLoadingThreshold > 0 && resourceCount >= incrementalLoadingThreshold) {
-        incremental = Math.ceil(resourceCount / PAGES);
-      }
+
+      // incremental loading check
+      incremental = incrementalLoadingEnabled && incrementalLoadingThreshold > 0 && resourceCount >= incrementalLoadingThreshold;
 
       // pass on the flag that controls the appearance of the manual refresh button on the sortable table
       this.$store.dispatch('resource-fetch/updateIsTooManyItems', isTooManyItemsToAutoUpdate);

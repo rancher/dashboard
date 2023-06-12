@@ -2,6 +2,8 @@
 
 This is part of the developer [getting started guide](https://github.com/rancher/dashboard/blob/master/README.md).
 
+> Note: Development is only currently supported on Mac and Linux. Windows is not currently supported.
+
 ## Stack
 
 A good base knowledge of Vue, Vuex and Nuxt should be reached before going through the code. Looking through `nuxt.config.js` is a good way to understand how the Dashboard is glued together, importantly how plugins are brought in and how the frontend proxies requests to Rancher's APIs.

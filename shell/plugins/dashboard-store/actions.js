@@ -6,6 +6,7 @@ import { createYaml } from '@shell/utils/create-yaml';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
+import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -48,15 +49,13 @@ export async function loadSchemas(ctx, watch = true) {
     res.data = res.concat(spoofedTypes);
   }
 
-  res.data.forEach((schema) => {
-    schema._id = normalizeType(schema.id);
-    schema._group = normalizeType(schema.attributes?.group);
-  });
+  res.data.forEach(addSchemaIndexFields);
 
   commit('loadAll', {
     ctx,
-    type: SCHEMA,
-    data: res.data
+    type:     SCHEMA,
+    data:     res.data,
+    revision: res.revision
   });
 
   if ( watch !== false ) {
@@ -84,6 +83,12 @@ export default {
     const { getters, commit, dispatch } = ctx;
 
     type = getters.normalizeType(type);
+
+    // if there's no registered type, then register it so
+    // that we don't have issues on 'loadAdd' mutation
+    if ( !getters.typeRegistered(type) ) {
+      commit('registerType', type);
+    }
 
     const loadCount = getters['loadCounter'](type);
 
@@ -117,7 +122,11 @@ export default {
         if (opt.hasManualRefresh) {
           dispatch('resource-fetch/updateManualRefreshIsLoading', false, { root: true });
         }
-        commit('setHaveAll', { type });
+        if (opt.namespaced) {
+          commit('setHaveNamespace', { type, namespace: opt.namespaced });
+        } else {
+          commit('setHaveAll', { type });
+        }
       }
     } catch (e) {
       if (opt.hasManualRefresh) {
@@ -140,16 +149,17 @@ export default {
       commit('registerType', type);
     }
 
-    if ( opt.force !== true && getters['haveAll'](type) ) {
+    // No need to request the resources if we have them already
+    if ( opt.force !== true && (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))) {
       const args = {
         type,
         revision:  '',
-        namespace: opt.watchNamespace
+        // watchNamespace - used sometimes when we haven't fetched the results of a single namespace
+        // namespaced - used when we have fetched the result of a single namespace (see https://github.com/rancher/dashboard/pull/7329/files)
+        namespace: opt.watchNamespace || opt.namespaced
       };
 
-      // if we are coming from a resource that wasn't watched
-      // but for which we have results already, just return the results but start watching it
-      if (opt.watch !== false && !getters.watchStarted(args)) {
+      if (opt.watch !== false ) {
         dispatch('watch', args);
       }
 
@@ -297,18 +307,25 @@ export default {
         commit('loadAll', {
           ctx,
           type,
-          data: out.data,
-          skipHaveAll
+          data:      out.data,
+          revision:  out.revision,
+          skipHaveAll,
+          namespace: opt.namespaced,
         });
       }
     }
 
+    // ToDo: SM if we start a "bigger" watch (such as watch without a namespace vs a watch with a namespace), we should stop the stop the "smaller" watch so we don't have duplicate events coming back
     if ( opt.watch !== false ) {
-      dispatch('watch', {
+      const args = {
         type,
         revision:  out.revision,
-        namespace: opt.watchNamespace
-      });
+        namespace: opt.watchNamespace || opt.namespaced, // it could be either apparently
+        // ToDo: SM namespaced is sometimes a boolean and sometimes a string, I don't see it as especially broken but we should refactor that in the future
+        force:     opt.forceWatch === true,
+      };
+
+      dispatch('watch', args);
     }
 
     const all = getters.all(type);
@@ -362,15 +379,17 @@ export default {
     commit('loadSelector', {
       ctx,
       type,
-      entries: res.data,
-      selector
+      entries:  res.data,
+      selector,
+      revision: res.revision,
     });
 
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
         selector,
-        revision: res.revision
+        revision: res.revision,
+        force:    opt.forceWatch === true,
       });
     }
 
@@ -387,6 +406,12 @@ export default {
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstrapping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
+    if (!id) {
+      console.error('Attempting to find a resource with no id', type, id); // eslint-disable-line no-console
+
+      return;
+    }
+
     const { getters, dispatch } = ctx;
 
     opt = opt || {};
@@ -452,6 +477,11 @@ export default {
         commit('registerType', type);
       }
     }
+    // Inject special fields for indexing schemas
+    if ( type === SCHEMA ) {
+      addSchemaIndexFields(data);
+    }
+
     const keyField = getters.keyFieldForType(type);
     const id = data?.[keyField] || existing?.[keyField];
 
@@ -480,6 +510,15 @@ export default {
     commit('loadMulti', {
       data,
       ctx,
+    });
+  },
+
+  batchChanges(ctx, batch) {
+    const { commit } = ctx;
+
+    commit('batchChanges', {
+      ctx,
+      batch
     });
   },
 
@@ -515,21 +554,10 @@ export default {
 
   // Forget a type in the store
   // Remove all entries for that type and stop watching it
-  forgetType({ commit, getters, dispatch }, type) {
-    const obj = {
-      type,
-      stop: true, // Stops the watch on a type
-    };
-
-    if (getters['schemaFor'](type) && getters['watchStarted'](obj)) {
-      // Set that we don't want to watch this type
-      // Otherwise, the dispatch to unwatch below will just cause a re-watch when we
-      // detect the stop message from the backend over the web socket
-      commit('setWatchStopped', obj);
-      dispatch('watch', obj); // Ask the backend to stop watching the type
-      // Make sure anything in the pending queue for the type is removed, since we've now removed the type
-      commit('clearFromQueue', type);
-    }
+  forgetType({ commit, dispatch, state }, type) {
+    state.started
+      .filter(entry => entry.type === type)
+      .forEach(entry => dispatch('unwatch', entry));
 
     commit('forgetType', type);
   },
@@ -569,6 +597,10 @@ export default {
   // Clean a resource for the ResourceDetail page
   // This can ensure common, required properties exists that might have been removed
   cleanForDetail(ctx, resource) {
+    return resource;
+  },
+
+  cleanForDownload(ctx, resource) {
     return resource;
   },
 

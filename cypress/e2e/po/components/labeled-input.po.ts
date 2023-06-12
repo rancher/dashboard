@@ -6,8 +6,15 @@ export default class LabeledInputPo extends ComponentPo {
     return new LabeledInputPo(
       self
         .find('.labeled-input', { includeShadowDom: true })
-        .contains(`${ label } `)
+        .contains(label)
         .next()
+    );
+  }
+
+  static bySelector(self: CypressChainable, selector: string): LabeledInputPo {
+    return new LabeledInputPo(
+      self
+        .find(`${ selector } input`, { includeShadowDom: true })
     );
   }
 

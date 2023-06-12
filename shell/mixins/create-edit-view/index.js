@@ -1,7 +1,9 @@
 import { _EDIT, _YAML } from '@shell/config/query-params';
+import Vue from 'vue';
+
 import impl from './impl';
 
-export default {
+export default Vue.extend({
   ...impl,
 
   props: {
@@ -43,4 +45,4 @@ export default {
       default: false,
     },
   },
-};
+});

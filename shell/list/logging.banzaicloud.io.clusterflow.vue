@@ -25,7 +25,9 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
+    this.$initializeFetchData(this.resource);
+    this.$fetchType(LOGGING.CLUSTER_OUTPUT);
+
     await this.$fetchType(this.resource);
   }
 };
@@ -37,5 +39,6 @@ export default {
     :rows="rows"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
   />
 </template>

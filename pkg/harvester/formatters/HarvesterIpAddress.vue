@@ -2,7 +2,7 @@
 import { OFF } from '../models/kubevirt.io.virtualmachine';
 import { get } from '@shell/utils/object';
 import { isIpv4 } from '@shell/utils/string';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { HCI } from '../types';
 import { MANAGEMENT_NETWORK } from '../mixins/harvester-vm';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
@@ -87,7 +87,7 @@ export default {
 <template>
   <div v-if="showIP">
     <span v-for="{ip, name} in ips" :key="ip">
-      <span v-tooltip="name">{{ ip }}</span>
+      <span v-clean-tooltip="name">{{ ip }}</span>
       <CopyToClipboard :text="ip" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
     </span>
   </div>

@@ -1,11 +1,11 @@
 <script>
 import CompactInput from '@shell/mixins/compact-input';
 import LabeledFormElement from '@shell/mixins/labeled-form-element';
-import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { LabeledTooltip } from '@components/LabeledTooltip';
 import VueSelectOverrides from '@shell/mixins/vue-select-overrides';
 import { onClickOption, calculatePosition } from '@shell/utils/select';
+import isEqual from 'lodash/isEqual';
 
 export default {
   name: 'LabeledSelect',
@@ -105,16 +105,6 @@ export default {
     hasLabel() {
       return this.isCompact ? false : !!this.label || !!this.labelKey || !!this.$slots.label;
     },
-
-    currentLabel() {
-      const entry = findBy(this.options || [], 'value', this.value);
-
-      if (entry) {
-        return entry.label;
-      }
-
-      return this.getOptionLabel(this.value);
-    },
   },
 
   methods: {
@@ -150,9 +140,26 @@ export default {
       this.resizeHandler();
     },
 
+    onClose() {
+      this.$emit('on-close');
+    },
+
     getOptionLabel(option) {
       if (!option) {
         return;
+      }
+
+      // Force to update the option label if prop has been changed
+      const isOutdated = !this.options.find(opt => option[this.optionLabel] === opt[this.optionLabel]);
+
+      if (isOutdated && this.options) {
+        const newOption = this.options.find(opt => isEqual(this.reduce(option), this.reduce(opt)));
+
+        if (newOption) {
+          const label = get(newOption, this.optionLabel);
+
+          return this.localizedLabel ? this.$store.getters['i18n/t'](label) || label : label;
+        }
       }
 
       if (this.$attrs['get-option-label']) {
@@ -277,6 +284,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
+      @close="onClose"
       @option:selected="$emit('selecting', $event)"
     >
       <template #option="option">
@@ -456,9 +464,7 @@ export default {
 
   ::v-deep .vs__actions {
     &:after {
-      line-height: 1.85rem;
       position: relative;
-      right: 3px;
       top: -10px;
     }
   }

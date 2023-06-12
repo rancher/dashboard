@@ -481,6 +481,7 @@ export default Vue.extend<Data, any, any, any>({
   }
 
   .commits-table {
+    margin: 0 1px;
     max-width: 1400px;
   }
 

@@ -12,7 +12,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import formRulesGenerator from '@shell/utils/validators/formRules';
 
-import { EPINIO_TYPES } from '../../types';
+import { EPINIO_TYPES, EpinioNamespace } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 
@@ -122,6 +122,10 @@ export default Vue.extend<Data, any, any, any>({
   computed: {
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
+    },
+
+    namespaceNames() {
+      return this.namespaces.map((n: EpinioNamespace) => n.metadata.name);
     },
 
     valid() {
@@ -257,7 +261,7 @@ export default Vue.extend<Data, any, any, any>({
         data-testid="epinio_app-info_name-ns"
         name-key="name"
         namespace-key="namespace"
-        :namespaces-override="namespaces"
+        :namespaces-override="namespaceNames"
         :create-namespace-override="true"
         :description-hidden="true"
         :value="values.meta"

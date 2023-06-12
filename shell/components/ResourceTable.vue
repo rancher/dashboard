@@ -30,6 +30,9 @@ export const defaultTableSortGenerationFn = (schema, $store) => {
   if ( nsFilterKey ) {
     return `${ sortKey }/${ nsFilterKey }`;
   }
+
+  // covers case where we have no current cluster's ns cache
+  return sortKey;
 };
 
 export default {
@@ -140,7 +143,28 @@ export default {
     useQueryParamsForSimpleFiltering: {
       type:    Boolean,
       default: false
+    },
+    /**
+     * Manaul force the update of live and delayed cells. Change this number to kick off the update
+     */
+    forceUpdateLiveAndDelayed: {
+      type:    Number,
+      default: 0
     }
+  },
+
+  mounted() {
+    /**
+     * v-shortkey prevents the event's propagation:
+     * https://github.com/fgr-araujo/vue-shortkey/blob/55d802ea305cadcc2ea970b55a3b8b86c7b44c05/src/index.js#L156-L157
+     *
+     * 'Enter' key press is handled via event listener in order to allow the event propagation
+     */
+    window.addEventListener('keyup', this.handleEnterKeyPress);
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('keyup', this.handleEnterKeyPress);
   },
 
   data() {
@@ -152,7 +176,12 @@ export default {
       return acc;
     }, {});
 
-    return { listGroups, listGroupMapped };
+    // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
+    const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
+
+    return {
+      listGroups, listGroupMapped, inStore
+    };
   },
 
   computed: {
@@ -220,8 +249,13 @@ export default {
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
 
-      // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter) {
+      // Do we need to filter by namespace like things?
+      if (
+        !this.isNamespaced || // Resource type isn't namespaced
+        this.ignoreFilter || // Component owner strictly states no filtering
+        (isAll && !this.currentProduct?.hideSystemResources) || // Need all
+        (this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false)// Store reports type has namespace filter, so rows already contain the correctly filtered resources
+      ) {
         return this.rows || [];
       }
 
@@ -232,10 +266,15 @@ export default {
         return [];
       }
 
+      const haveAllNamespace = this.$store.getters['haveAllNamespace'];
+
       return this.rows.filter((row) => {
         if (this.currentProduct?.hideSystemResources && this.isNamespaced) {
           return !!includedNamespaces[row.metadata.namespace] && !row.isSystemResource;
         } else if (!this.isNamespaced) {
+          return true;
+        } else if (haveAllNamespace) {
+          // `rows` only contains resource from a single namespace
           return true;
         } else {
           return !!includedNamespaces[row.metadata.namespace];
@@ -375,8 +414,13 @@ export default {
 
     handleActionButtonClick(event) {
       this.$emit('clickedActionButton', event);
-    }
+    },
 
+    handleEnterKeyPress(event) {
+      if (event.key === 'Enter') {
+        this.keyAction('detail');
+      }
+    }
   }
 };
 </script>
@@ -406,6 +450,7 @@ export default {
     key-field="_key"
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     v-on="$listeners"
@@ -430,8 +475,8 @@ export default {
 
     <template #group-by="{group: thisGroup}">
       <div
+        v-clean-html="thisGroup.ref"
         class="group-tab"
-        v-html="thisGroup.ref"
       />
     </template>
 
@@ -447,11 +492,6 @@ export default {
     </template>
 
     <template #shortkeys>
-      <button
-        v-shortkey.once="['enter']"
-        class="hide detail"
-        @shortkey="keyAction('detail')"
-      />
       <button
         v-shortkey.once="['e']"
         class="hide"

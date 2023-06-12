@@ -16,7 +16,7 @@ export default {
     indeterminate: {
       type:    Boolean,
       default: false,
-    }
+    },
   },
 
   data() {
@@ -49,7 +49,9 @@ export default {
       const clusterCounts = this.$store.getters[`${ this.inStore }/all`](COUNT);
 
       return this.resources.reduce((acc, r) => {
-        const count = clusterCounts?.[0]?.counts?.[r]?.summary?.count || 0;
+        const resourceCounts = clusterCounts?.[0]?.counts?.[r];
+        const resourceCount = resourceCounts?.summary?.count;
+        const count = resourceCount || 0;
 
         return acc + count;
       }, 0);

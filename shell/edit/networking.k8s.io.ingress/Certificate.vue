@@ -102,6 +102,7 @@ export default {
         :value="hosts"
         :add-label="t('ingress.certificates.addHost')"
         :rules="rules.host"
+        :initial-empty-row="true"
         @input="onHostsInput"
       />
     </div>

@@ -2,22 +2,12 @@
 import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
-const META_NAME_PREFIX = 'app-autoload-';
-
 export default async function(context) {
-  // UI Plugins declared in the HTML head
-  const meta = context.app?.head?.meta || [];
+  if (process.env.excludeOperatorPkg === 'true') {
+    return;
+  }
+
   const hash = {};
-
-  meta.forEach((m) => {
-    const metaName = m.name || '';
-
-    if (metaName.indexOf(META_NAME_PREFIX) === 0) {
-      const name = metaName.substr(META_NAME_PREFIX.length);
-
-      hash[name] = context.$plugin.loadAsync(name, m.content);
-    }
-  });
 
   // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
   let loadPlugins = true;
@@ -44,7 +34,7 @@ export default async function(context) {
         const entries = res.entries || res.Entries || {};
 
         Object.values(entries).forEach((plugin) => {
-          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion); // Error key string or false
+          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion); // Error key string or boolean
 
           if (!shouldNotLoad) {
             hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);
@@ -54,7 +44,12 @@ export default async function(context) {
         });
       }
     } catch (e) {
-      console.error('Could not load UI Plugin list', e); // eslint-disable-line no-console
+      if (e?.code === 404) {
+        // Not found, so extensions operator probably not installed
+        console.log('Could not load UI Extensions list (Extensions Operator may not be installed)'); // eslint-disable-line no-console
+      } else {
+        console.error('Could not load UI Extensions list', e); // eslint-disable-line no-console
+      }
     }
 
     // Load all of the plugins

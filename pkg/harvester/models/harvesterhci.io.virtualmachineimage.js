@@ -4,16 +4,32 @@ import {
   DESCRIPTION,
   ANNOTATIONS_TO_IGNORE_REGEX,
 } from '@shell/config/labels-annotations';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { get, clone } from '@shell/utils/object';
 import { formatSi } from '@shell/utils/units';
 import { ucFirst } from '@shell/utils/string';
 import { stateDisplay, colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { _CLONE } from '@shell/config/query-params';
-import { isReady } from '@shell/machine-config/harvester';
 import HarvesterResource from './harvester';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../config/harvester';
 
+function isReady() {
+  function getStatusConditionOfType(type, defaultValue = []) {
+    const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
+
+    return conditions.find( cond => cond.type === type);
+  }
+
+  const initialized = getStatusConditionOfType.call(this, 'Initialized');
+  const imported = getStatusConditionOfType.call(this, 'Imported');
+  const isCompleted = this.status?.progress === 100;
+
+  if ([initialized?.status, imported?.status].includes('False')) {
+    return false;
+  } else {
+    return isCompleted && true;
+  }
+}
 export default class HciVmImage extends HarvesterResource {
   get availableActions() {
     let out = super._availableActions;

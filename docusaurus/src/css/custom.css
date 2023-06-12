@@ -17,6 +17,7 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
   --ifm-color-body: #141419;
   --ifm-menu-color: #141419;
+  --default-border-color: #DCDEE7;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -31,6 +32,7 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
   --ifm-color-body: #ffffff;
   --ifm-menu-color: #ffffff;
+  --default-border-color: #6c6c76;
 }
 
 
@@ -39,17 +41,23 @@ body {
   font-family: 'Lato', sans-serif;
   color: var( --ifm-color-body);
 }
-      
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Poppins', sans-serif;
   font-weight: normal;
 }
 
-.navbar__logo {
-  height: 1.5rem;
+.navbar {
+  height: auto;
 }
 
-      
+.navbar__logo {
+  height: 4rem;
+}
+.container {
+  padding: 0 2rem;
+}
+
 .homepage-banner {
   text-align: left;
   min-height: 300px;
@@ -63,19 +71,111 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .featureSvg_src-components-HomepageFeatures-styles-module {
-  max-width: 150px;
+  width: 150px;
 }
 
+section {
+  padding: 50px 0;
+}
 
+a.guideLink,
+a.gettingStartedLink,
+a.contributeLink,
 a.featureLink {
   color: var(--ifm-color-body);
+  display: flex;
+  border: 1px solid transparent;
+  padding: 1rem;
+  height: 100%;
+  transition: 0.4s ease;
 }
 
+a.guideLink:hover,
+a.gettingStartedLink:hover,
+a.contributeLink:hover,
 a.featureLink:hover {
-  color: var(--ifm-link-color);
+  color: var(--ifm-color-body);
+  border: solid 1px #BEC1D2;
   text-decoration: none;
 }
 
+a.gettingStartedLink,
+a.contributeLink {
+  display: block;
+  height: 100%;
+}
+
+a.contributeLink p {
+  margin: 0;
+}
+
+h2 {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.link-icon {
+  width: 16px;
+  display: none;
+  margin-left: auto;
+}
+
+.show {
+  display: block;
+}
+
+.contributeLink img {
+  height: 75px;
+}
+
+.resourcesSvg {
+  background-color: #4DA6DA;
+  padding: 25px;
+  display: flex;
+  max-height: 180px;
+}
+
+.resourcesSvg svg {
+  width: 120px;
+  height: 120px;
+  margin: auto;
+}
+
+a.gettingStartedLink .resourcesSvg {
+  padding: 25px 15px;
+  margin-bottom: 25px;
+}
+
+a.gettingStartedLink .resourcesSvg svg {
+  height: 80px;
+}
+
+.midnight-blue {
+  background-color: #192072;
+}
+.jungle-green {
+  background-color: #30BA78;
+}
+.primary-active {
+  background-color: #1B5276;
+}
+.waterhole-blue {
+  background-color: #2453FF;
+}
+.pine-green {
+  background-color: #0C322C;
+}
+.primary-hover {
+  background-color: #297DB4;
+}
+
+.footer{
+  padding: 16px;
+}
+
+hr {
+  margin: 2rem 0;
+}
 @media screen and (max-width: 996px) {
   .homepage-banner {
     padding: 30px 30px;
@@ -83,11 +183,10 @@ a.featureLink:hover {
   }
 
   .homepage-banner p {
-    width: 100%;
+    width: 55%;
   }
 }
 
-.featureSvg_GfXr {
-  width: 150px;
+#__docusaurus {
+  min-height: 100vh !important;
 }
-

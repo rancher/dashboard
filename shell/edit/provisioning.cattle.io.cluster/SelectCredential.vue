@@ -6,7 +6,6 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { Banner } from '@components/Banner';
-import { importCloudCredential } from '@shell/utils/dynamic-importer';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear } from '@shell/utils/array';
 
@@ -132,13 +131,11 @@ export default {
     },
 
     createComponent() {
-      const haveDrivers = this.$store.getters['plugins/credentialDrivers'];
-
-      if ( haveDrivers.includes(this.driverName) ) {
-        return importCloudCredential(this.driverName);
+      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
+        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
       }
 
-      return importCloudCredential('generic');
+      return this.$store.getters['type-map/importCloudCredential']('generic');
     },
 
     validationPassed() {

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
+import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
 describe('component: CruResource', () => {
   it('should hide Cancel button', () => {
@@ -30,10 +31,11 @@ describe('component: CruResource', () => {
     expect(element).toBeDefined();
   });
 
-  it('should display errors', () => {
+  it('should display multiple errors', () => {
     const errors = ['mistake!', 'BiG MiStAke11'];
     const wrapper = mount(CruResource, {
-      propsData: {
+      directives: { cleanHtmlDirective },
+      propsData:  {
         canYaml:  false,
         mode:     _EDIT,
         resource: {},
@@ -61,6 +63,7 @@ describe('component: CruResource', () => {
     const node = wrapper.find('#cru-errors');
 
     expect(node.element.childElementCount).toBe(errors.length);
-    expect(node.text()).toBe(`${ errors[0] } ${ errors[1] }`);
+    expect(node.text()).toContain(errors[0]);
+    expect(node.text()).toContain(errors[1]);
   });
 });

@@ -1,17 +1,19 @@
 <script>
-import { WORKSPACE } from '@shell/store/prefs';
+import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { mapState } from 'vuex';
 import Select from '@shell/components/form/Select';
+import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
 
 export default {
+  name:       'WorkspaceSwitcher',
   components: { Select },
 
   computed: {
-    ...mapState(['allWorkspaces', 'workspace']),
+    ...mapState(['allWorkspaces', 'workspace', 'allNamespaces', 'defaultNamespace', 'getActiveNamespaces']),
 
     value: {
       get() {
-        return this.workspace;
+        return this.workspace || this.namespace || this.options[0]?.value;
       },
 
       set(value) {
@@ -23,15 +25,54 @@ export default {
     },
 
     options() {
-      const out = this.allWorkspaces.map((obj) => {
+      if (this.allWorkspaces.length) {
+        const out = this.allWorkspaces.map((obj) => {
+          return {
+            label: obj.nameDisplay,
+            value: obj.id,
+          };
+        });
+
+        return out;
+      }
+
+      // If doesn't have workspaces (e.g. no permissions)
+      // Then find the workspaces from the annotation.
+      return this.allNamespaces.filter((item) => {
+        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
+      }).map((obj) => {
         return {
           label: obj.nameDisplay,
           value: obj.id,
         };
       });
-
-      return out;
     },
+  },
+
+  watch: {
+    options(curr, prev) {
+      if (curr.length === 0) {
+        this.value = '';
+      }
+
+      const currentExists = curr.find(item => item.value === this.value);
+
+      if (curr.length && !currentExists) {
+        this.value = curr[0]?.value;
+      }
+    },
+  },
+
+  created() {
+    // in fleet standard user with just the project owner and global git repo permissions
+    // returns 'default'
+    const initValue = !this.workspace ? this.$store.getters['prefs/get'](LAST_NAMESPACE) : '';
+
+    this.value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
+  },
+
+  data() {
+    return { namespace: this.$store.getters['prefs/get'](LAST_NAMESPACE) };
   },
 
   methods: {

@@ -8,6 +8,7 @@ const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
   await store.dispatch(`${ epinioStore.config.namespace }/info`);
 };
+
 const onLeave: OnNavAwayFromPackage = async(store, config) => {
   // The dashboard retains the previous cluster info until another cluster is loaded, this helps when returning to the same cluster.
   // We need to forget epinio cluster info

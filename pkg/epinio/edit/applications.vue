@@ -208,39 +208,42 @@ export default Vue.extend<Data, any, any, any>({
         name="source"
         :weight="30"
       >
-        <Wizard
-          :steps="steps"
-          :banner-title="t('epinio.applications.steps.source.label')"
-          :banner-title-subtext="t('epinio.applications.steps.source.subtext')"
-          header-mode="edit"
-          finish-mode="done"
-          :edit-first-step="true"
-          @cancel="cancel"
-          @finish="finish"
-        >
-          <template #source>
-            <AppSource
-              v-if="source"
-              :application="value"
-              :source="source"
-              :mode="mode"
-              :info="epinioInfo"
-              @change="updateSource"
-              @changeAppInfo="updateInfo"
-              @changeAppConfig="updateManifestConfigurations"
-              @valid="steps[0].ready = $event"
-            />
-          </template>
-          <template #progress="{step}">
-            <AppProgress
-              :application="value"
-              :source="source"
-              :bindings="bindings"
-              :mode="mode"
-              :step="step"
-            />
-          </template>
-        </Wizard>
+        <div class="wizard-container">
+          <Wizard
+            class="wizard"
+            :steps="steps"
+            :banner-title="t('epinio.applications.steps.source.label')"
+            :banner-title-subtext="t('epinio.applications.steps.source.subtext')"
+            header-mode="edit"
+            finish-mode="done"
+            :edit-first-step="true"
+            @cancel="cancel"
+            @finish="finish"
+          >
+            <template #source>
+              <AppSource
+                v-if="source"
+                :application="value"
+                :source="source"
+                :mode="mode"
+                :info="epinioInfo"
+                @change="updateSource"
+                @changeAppInfo="updateInfo"
+                @changeAppConfig="updateManifestConfigurations"
+                @valid="steps[0].ready = $event"
+              />
+            </template>
+            <template #progress="{step}">
+              <AppProgress
+                :application="value"
+                :source="source"
+                :bindings="bindings"
+                :mode="mode"
+                :step="step"
+              />
+            </template>
+          </Wizard>
+        </div>
       </Tab>
       <Tab
         label-key="epinio.applications.steps.basics.label"
@@ -268,6 +271,30 @@ export default Vue.extend<Data, any, any, any>({
     </ResourceTabs>
   </CruResource>
 </template>
+
+<style lang='scss' scoped>
+
+.wizard-container {
+  position: relative;
+
+  margin-bottom: -20px;
+  margin-right: -20px;
+
+  .wizard {
+    position: relative;
+    overflow: auto;
+
+    // This is a hack and is needed as the wizard's buttons are now `position: absolute; bottom: 0;` so appears over wizard content
+    // In the dashabord app chart install wizard this is applied to specific content winthin the wizard (scroll__content)
+    // We applied the same thing here
+    // Both places need to be removed and the padding added within the wizard component
+    .appSource, .progress-container {
+      padding-bottom: 75px;
+    }
+  }
+}
+
+</style>
 
 <style lang="scss">
 .hide-buttons-deploy {

@@ -11,8 +11,8 @@ export default {
     },
   },
   computed: {
-    showBoth() {
-      return this.row.internalIp !== this.row.externalIp;
+    internalSameAsExternal() {
+      return this.row.internalIp === this.row.externalIp;
     },
     ...mapGetters({ t: 'i18n/t' })
   },
@@ -35,12 +35,15 @@ export default {
       />
     </template>
     <template v-else>
-      {{ t('generic.none') }}
+      -
     </template>
-
-    <template v-if="showBoth">
-      <template v-if="isIp(row.internalIp)">
-        / {{ row.internalIp }} <CopyToClipboard
+    /
+    <template>
+      <template v-if="internalSameAsExternal && isIp(row.internalIp)">
+        {{ t('tableHeaders.internalIpSameAsExternal') }}
+      </template>
+      <template v-else-if="isIp(row.internalIp)">
+        {{ row.internalIp }}<CopyToClipboard
           label-as="tooltip"
           :text="row.internalIp"
           class="icon-btn"
@@ -48,8 +51,14 @@ export default {
         />
       </template>
       <template v-else>
-        {{ t('generic.none') }}
+        -
       </template>
     </template>
   </span>
 </template>
+
+<style lang='scss' scoped>
+.icon-btn {
+  margin-left: 8px;
+}
+</style>

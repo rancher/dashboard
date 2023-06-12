@@ -40,8 +40,8 @@ export default {
   methods: {
     uninstall(buttonCb) {
       this.$store.dispatch('cluster/promptModal', {
-        component: 'GenericPrompt',
-        resources: {
+        component:      'GenericPrompt',
+        componentProps: {
           applyMode:   'uninstall',
           applyAction: async(buttonDone) => {
             await this.$store.getters['currentCluster'].doAction('disableMonitoring');
@@ -88,8 +88,8 @@ export default {
             {{ t('monitoring.installSteps.uninstallV1.warning1') }}
           </p>
           <p
+            v-clean-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)"
             class="mt-10"
-            v-html="t('monitoring.installSteps.uninstallV1.warning2', {}, true)"
           />
         </template>
       </IconMessage>
@@ -111,8 +111,8 @@ export default {
           {{ t('monitoring.installSteps.uninstallV1.success1') }}
         </p>
         <p
+          v-clean-html="t('monitoring.installSteps.uninstallV1.success2')"
           class="mt-10"
-          v-html="t('monitoring.installSteps.uninstallV1.success2')"
         />
       </template>
     </IconMessage>

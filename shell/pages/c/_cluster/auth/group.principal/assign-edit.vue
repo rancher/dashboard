@@ -78,7 +78,7 @@ export default {
   <div>
     <div>
       <div class="masthead">
-        <header class="header-layout">
+        <header>
           <div class="title">
             <h1 class="m-0">
               {{ t('authGroups.assignEdit.assignTitle') }}

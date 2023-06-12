@@ -1,6 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import { createYaml } from '@shell/utils/create-yaml';
+import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
@@ -75,6 +75,14 @@ export default {
       default: () => []
     },
 
+    /**
+     * Set of maps to convert error messages to something more user friendly and apply icons
+     */
+    errorsMap: {
+      type:    Object,
+      default: null
+    },
+
     // Is the edit as yaml button allowed
     canYaml: {
       type:    Boolean,
@@ -91,6 +99,11 @@ export default {
     finishButtonMode: {
       type:    String,
       default: null,
+    },
+
+    preventEnterSubmit: {
+      type:    Boolean,
+      default: false,
     },
 
     applyHooks: {
@@ -128,6 +141,16 @@ export default {
     componentTestid: {
       type:    String,
       default: 'form'
+    },
+
+    description: {
+      type:    String,
+      default: ''
+    },
+
+    yamlModifiers: {
+      type:    Object,
+      default: undefined
     }
   },
 
@@ -152,7 +175,7 @@ export default {
         4: '18px',
         5: '16px',
         6: '14px'
-      }
+      },
     };
   },
 
@@ -225,6 +248,19 @@ export default {
     hasErrors() {
       return this.errors?.length && Array.isArray(this.errors);
     },
+
+    /**
+     * Replace returned string with new picked value and icon
+     */
+    mappedErrors() {
+      return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
+        ...acc,
+        [error]: {
+          message: error,
+          icon:    null
+        }
+      }), {});
+    },
   },
 
   created() {
@@ -270,7 +306,7 @@ export default {
       }
     },
 
-    createResourceYaml() {
+    createResourceYaml(modifiers) {
       const resource = this.resource;
 
       if ( typeof this.generateYaml === 'function' ) {
@@ -280,7 +316,7 @@ export default {
         const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
         const clonedResource = clone(resource);
 
-        const out = createYaml(schemas, resource.type, clonedResource);
+        const out = createYamlWithOptions(schemas, resource.type, clonedResource, modifiers);
 
         return out;
       }
@@ -291,7 +327,7 @@ export default {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
       }
 
-      const resourceYaml = this.createResourceYaml();
+      const resourceYaml = this.createResourceYaml(this.yamlModifiers);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
@@ -332,6 +368,10 @@ export default {
       const newNamespaceName = get(this.resource, this.namespaceKey);
       let namespaceAlreadyExists = false;
 
+      if (!this.createNamespace) {
+        return;
+      }
+
       try {
         // This is in a try-catch block because the call to fetch
         // a namespace throws an error if the namespace is not found.
@@ -350,6 +390,12 @@ export default {
           throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
       }
+    },
+
+    onPressEnter(event) {
+      if (this.preventEnterSubmit) {
+        event.preventDefault();
+      }
     }
   }
 };
@@ -358,11 +404,17 @@ export default {
 <template>
   <section class="cru">
     <slot name="noticeBanner" />
+    <p
+      v-if="description"
+      class="description"
+    >
+      {{ description }}
+    </p>
     <form
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
       @submit.prevent
-      @keydown.enter.prevent
+      @keydown.enter="onPressEnter($event)"
     >
       <div
         v-if="hasErrors"
@@ -373,8 +425,8 @@ export default {
           v-for="(err, i) in errors"
           :key="i"
           color="error"
-          :label="stringify(err)"
-          :stacked="true"
+          :label="stringify(mappedErrors[err].message)"
+          :icon="mappedErrors[err].icon"
           :closable="true"
           @close="closeError(i)"
         />
@@ -429,7 +481,7 @@ export default {
                     <h5>
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
-                        v-html="t(subtype.label)"
+                        v-clean-html="t(subtype.label)"
                       />
                       <span v-else>{{ subtype.label }}</span>
                     </h5>
@@ -448,7 +500,7 @@ export default {
                   >
                     <span
                       v-if="$store.getters['i18n/exists'](subtype.description)"
-                      v-html="t(subtype.description, {}, true)"
+                      v-clean-html="t(subtype.description, {}, true)"
                     />
                     <span v-else>{{ subtype.description }}</span>
                   </div>
@@ -619,7 +671,7 @@ export default {
       </template>
       <!------ YAML ------>
       <section
-        v-else
+        v-else-if="showYaml"
         class="cru-resource-yaml-container resource-container cru__content"
       >
         <ResourceYaml
@@ -803,6 +855,11 @@ form.create-resource-container .cru {
     background-color: var(--header-bg);
     margin: 10px 0;
   }
+}
+
+.description {
+  margin-bottom: 15px;
+  margin-top: 5px;
 }
 
 </style>

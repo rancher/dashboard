@@ -3,7 +3,7 @@ import isEqual from 'lodash/isEqual';
 import { clone } from '@shell/utils/object';
 import { SECRET } from '@shell/config/types';
 import { HCI } from '../../types';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { OS } from './index';
 
 export const QGA_JSON = {

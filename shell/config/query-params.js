@@ -30,6 +30,7 @@ export const MODE = 'mode';
 export const _CREATE = 'create';
 export const _VIEW = 'view';
 export const _EDIT = 'edit';
+export const _LIST = 'list';
 export const _CLONE = 'clone';
 export const _STAGE = 'stage';
 export const _IMPORT = 'import';
@@ -72,3 +73,4 @@ export const CLOUD_CREDENTIAL = 'cloud';
 
 // NAMESPACE/PROJECT
 export const PROJECT_ID = 'projectId';
+export const FLAT_VIEW = 'flatView';

@@ -14,6 +14,8 @@ import { CAPI, CATALOG } from '@shell/config/types';
 import { isPrerelease } from '@shell/utils/version';
 import difference from 'lodash/difference';
 import { LINUX } from '@shell/store/catalog';
+import { clone } from '@shell/utils/object';
+import { merge } from 'lodash';
 
 export default {
   data() {
@@ -242,7 +244,7 @@ export default {
 
   methods: {
     async fetchChart() {
-      await this.$store.dispatch('catalog/load');
+      await this.$store.dispatch('catalog/load', { force: true, reset: true }); // not the problem
 
       if ( this.query.appNamespace && this.query.appName ) {
         // First check the URL query for an app name and namespace.
@@ -292,7 +294,13 @@ export default {
       // use the first version provided by the Helm chart
       // as the default.
       if ( !this.query.versionName && this.chart.versions?.length ) {
-        this.query.versionName = this.chart.versions[0].version;
+        if (this.showPreRelease) {
+          this.query.versionName = this.chart.versions[0].version;
+        } else {
+          const firstRelease = this.chart.versions.find(v => !isPrerelease(v.version));
+
+          this.query.versionName = firstRelease?.version || this.chart.versions[0].version;
+        }
       }
 
       if ( !this.query.versionName ) {
@@ -341,6 +349,97 @@ export default {
       }
     }, // End of fetchChart
 
+    // Charts have an annotation that specifies any additional charts that should be installed at the same time eg CRDs
+    async fetchAutoInstallInfo() {
+      const out = [];
+      /*
+        An example value for auto is ["rancher-monitoring-crd=match"].
+        It is an array of chart names that lets Rancher know of other
+        charts that should be auto-installed at the same time.
+      */
+      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+
+      for ( const constraint of auto ) {
+        const provider = this.$store.getters['catalog/versionSatisfying']({
+          constraint,
+          repoName:     this.chart.repoName,
+          repoType:     this.chart.repoType,
+          chartVersion: this.version.version,
+        });
+        /* An example return value for "provider":
+          [
+              {
+                  "name": "rancher-monitoring-crd",
+                  "version": "100.1.3+up19.0.3",
+                  "description": "Installs the CRDs for rancher-monitoring.",
+                  "apiVersion": "v1",
+                  "annotations": {
+                      "catalog.cattle.io/certified": "rancher",
+                      "catalog.cattle.io/hidden": "true",
+                      "catalog.cattle.io/namespace": "cattle-monitoring-system",
+                      "catalog.cattle.io/release-name": "rancher-monitoring-crd"
+                  },
+                  "type": "application",
+                  "urls": [
+                      "https://192.168.0.18:8005/k8s/clusters/c-m-hhpg69fv/v1/catalog.cattle.io.clusterrepos/rancher-charts?chartName=rancher-monitoring-crd&link=chart&version=100.1.3%2Bup19.0.3"
+                  ],
+                  "created": "2022-04-27T10:04:18.343124-07:00",
+                  "digest": "ecf07ba23a9cdaa7ffbbb14345d94ea1240b7f3b8e0ce9be4640e3e585c484e2",
+                  "key": "cluster/rancher-charts/rancher-monitoring-crd/100.1.3+up19.0.3",
+                  "repoType": "cluster",
+                  "repoName": "rancher-charts"
+              }
+          ]
+          */
+
+        if ( provider ) {
+          try {
+            const crdVersionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
+              repoType:    provider.repoType,
+              repoName:    provider.repoName,
+              chartName:   provider.name,
+              versionName: provider.version
+            });
+            let existingCRDApp;
+
+            // search for an existing crd app to track any non-default values used on the previous install/upgrade
+            if (this.mode === _EDIT) {
+              const targetNamespace = crdVersionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE];
+              const targetName = crdVersionInfo?.chart?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+
+              if (targetName && targetNamespace) {
+                existingCRDApp = await this.$store.dispatch('cluster/find', {
+                  type: CATALOG.APP,
+                  id:   `${ targetNamespace }/${ targetName }`,
+                });
+              }
+            }
+            if (existingCRDApp) {
+              // spec.values are any non-default values the user configured
+              // the installation form should show these, as well as any default values from the chart
+              const existingValues = clone(existingCRDApp.spec?.values || {});
+              const defaultValues = clone(existingCRDApp.spec?.chart?.values || {});
+
+              crdVersionInfo.existingValues = existingValues;
+              crdVersionInfo.allValues = merge(defaultValues, existingValues);
+            } else {
+              // allValues will potentially be updated in the UI - we want to track this separately from values to avoid mutating the chart object in the store
+              // this is similar to userValues for the main chart
+              crdVersionInfo.allValues = clone(crdVersionInfo.values);
+            }
+
+            out.push(crdVersionInfo);
+          } catch (e) {
+            console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
+          }
+        } else {
+          this.errors.push(`This chart requires ${ constraint } but no matching chart was found`);
+        }
+      }
+
+      this.$set(this, 'autoInstallInfo', out);
+    },
+
     selectVersion({ id: version }) {
       this.$router.applyQuery({ [VERSION]: version });
     },
@@ -361,7 +460,7 @@ export default {
         repoType: this.chart.repoType,
         repoName: this.chart.repoName,
         name:     this.chart.chartName,
-        version:  this.chart.versionName,
+        version:  this.query.versionName,
       };
 
       return {

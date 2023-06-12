@@ -88,6 +88,7 @@ export default {
     @closed="close()"
   >
     <component
+      v-bind="modalData.componentProps || {}"
       :is="component"
       v-if="opened && component"
       :resources="resources"

@@ -105,7 +105,6 @@ export default {
   }
 
   &-collapse-icon {
-    font-size: 24px;
     color: #B7B8BB;
   }
 

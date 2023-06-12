@@ -16,10 +16,12 @@ import PromptModal from '@shell/components/PromptModal';
 import AssignTo from '@shell/components/AssignTo';
 import Group from '@shell/components/nav/Group';
 import Header from '@shell/components/nav/Header';
+import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
+import DraggableZone from '@shell/components/DraggableZone';
 import {
   COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
 } from '@shell/config/types';
@@ -27,16 +29,16 @@ import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import isEqual from 'lodash/isEqual';
 import { ucFirst } from '@shell/utils/string';
 import { getVersionInfo, markSeenReleaseNotes } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
-import { getProductFromRoute } from '@shell/middleware/authenticated';
+import { getClusterFromRoute, getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
-import { DraggableZone } from '@components/Utils/DraggableZone';
+import { BLANK_CLUSTER } from '@shell/store';
 
 const SET_LOGIN_ACTION = 'set-as-login';
 
@@ -56,6 +58,7 @@ export default {
     AwsComplianceBanner,
     AzureWarning,
     DraggableZone,
+    Inactivity
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility],
@@ -69,6 +72,7 @@ export default {
       wantNavSync:      false,
       unwatchPin:       undefined,
       wmPin:            null,
+      draggable:        false,
     };
   },
 
@@ -203,7 +207,7 @@ export default {
      */
     clusterAndRouteReady() {
       return this.clusterReady &&
-        this.clusterId === this.$route?.params?.cluster &&
+        this.clusterId === getClusterFromRoute(this.$route) &&
         this.currentProduct?.name === getProductFromRoute(this.$route);
     },
 
@@ -288,7 +292,7 @@ export default {
 
     async currentProduct(a, b) {
       if ( !isEqual(a, b) ) {
-        if (a.inStore !== b.inStore || a.inStore !== 'cluster' ) {
+        if ((a.inStore !== b.inStore || a.inStore !== 'cluster') && this.clusterId && a.name) {
           const route = {
             name:   'c-cluster-product',
             params: {
@@ -335,6 +339,9 @@ export default {
 
   methods: {
     async setClusterAsLastRoute() {
+      if (!this.clusterId || this.clusterId === BLANK_CLUSTER) {
+        return;
+      }
       const route = {
         name:   this.$route.name,
         params: {
@@ -367,48 +374,9 @@ export default {
       });
     },
 
-    getGroups() {
-      if ( this.gettingGroups ) {
-        return;
-      }
-      this.gettingGroups = true;
-
-      if ( !this.clusterReady ) {
-        clear(this.groups);
-        this.gettingGroups = false;
-
-        return;
-      }
-
+    getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap) {
       const clusterId = this.$store.getters['clusterId'];
-      const currentProduct = this.$store.getters['productId'];
       const currentType = this.$route.params.resource || '';
-      let namespaces = null;
-
-      if ( !this.$store.getters['isAllNamespaces'] ) {
-        const namespacesObject = this.$store.getters['namespaces']();
-
-        namespaces = Object.keys(namespacesObject);
-      }
-
-      // Always show cluster-level types, regardless of the namespace filter
-      const namespaceMode = 'both';
-      const out = [];
-      const loadProducts = this.isExplorer ? [EXPLORER] : [];
-      const productMap = this.activeProducts.reduce((acc, p) => {
-        return { ...acc, [p.name]: p };
-      }, {});
-
-      if ( this.isExplorer ) {
-        for ( const product of this.activeProducts ) {
-          if ( product.inStore === 'cluster' ) {
-            addObject(loadProducts, product.name);
-          }
-        }
-      }
-
-      // This should already have come into the list from above, but in case it hasn't...
-      addObject(loadProducts, currentProduct);
 
       for ( const productId of loadProducts ) {
         const modes = [BASIC];
@@ -445,7 +413,9 @@ export default {
           }
         }
       }
+    },
 
+    getExplorerGroups(out) {
       if ( this.isExplorer ) {
         const allNavLinks = this.allNavLinks;
         const toAdd = [];
@@ -511,6 +481,55 @@ export default {
 
         addObjects(out, toAdd);
       }
+    },
+
+    /**
+     * Fetch navigation by creating groups from product schemas
+     */
+    getGroups() {
+      if ( this.gettingGroups ) {
+        return;
+      }
+      this.gettingGroups = true;
+
+      if ( !this.clusterReady ) {
+        clear(this.groups);
+        this.gettingGroups = false;
+
+        return;
+      }
+
+      const currentProduct = this.$store.getters['productId'];
+      let namespaces = null;
+
+      if ( !this.$store.getters['isAllNamespaces'] ) {
+        const namespacesObject = this.$store.getters['namespaces']();
+
+        namespaces = Object.keys(namespacesObject);
+      }
+
+      // Always show cluster-level types, regardless of the namespace filter
+      const namespaceMode = 'both';
+      const out = [];
+      const loadProducts = this.isExplorer ? [EXPLORER] : [];
+
+      const productMap = this.activeProducts.reduce((acc, p) => {
+        return { ...acc, [p.name]: p };
+      }, {});
+
+      if ( this.isExplorer ) {
+        for ( const product of this.activeProducts ) {
+          if ( product.inStore === 'cluster' ) {
+            addObject(loadProducts, product.name);
+          }
+        }
+      }
+
+      // This should already have come into the list from above, but in case it hasn't...
+      addObject(loadProducts, currentProduct);
+
+      this.getProductsGroups(out, loadProducts, namespaceMode, namespaces, productMap);
+      this.getExplorerGroups(out);
 
       replaceWith(this.groups, ...sortBy(out, ['weight:desc', 'label']));
       this.gettingGroups = false;
@@ -651,7 +670,7 @@ export default {
           </nuxt-link>
 
           <span
-            v-tooltip="{content: displayVersion, placement: 'top'}"
+            v-clean-tooltip="{content: displayVersion, placement: 'top'}"
             class="clip version text-muted"
           >
             {{ displayVersion }}
@@ -750,15 +769,16 @@ export default {
           'drag-end': !$refs.draggableZone.drag.active,
           'drag-start': $refs.draggableZone.drag.active,
         }"
-        draggable="true"
+        :draggable="draggable"
         @dragstart="$refs.draggableZone.onDragStart($event)"
         @dragend="$refs.draggableZone.onDragEnd($event)"
       >
-        <WindowManager />
+        <WindowManager @draggable="draggable=$event" />
       </div>
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <Inactivity />
     <DraggableZone ref="draggableZone" />
   </div>
 </template>

@@ -6,7 +6,7 @@ import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { EpinioCatalogServiceResource, EPINIO_TYPES } from '../types';
+import { EpinioCatalogServiceResource, EPINIO_TYPES, EpinioNamespace } from '../types';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
@@ -89,6 +89,10 @@ export default Vue.extend<Data, any, any, any>({
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
     },
 
+    namespaceNames() {
+      return this.namespaces.map((n: EpinioNamespace) => n.metadata.name);
+    },
+
     catalogServiceOpts() {
       return this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE).map((cs: EpinioCatalogServiceResource) => ({
         label: `${ cs.name } (${ cs.short_description })`,
@@ -164,7 +168,7 @@ export default Vue.extend<Data, any, any, any>({
     <NameNsDescription
       name-key="name"
       namespace-key="namespace"
-      :namespaces-override="namespaces"
+      :namespaces-override="namespaceNames"
       :create-namespace-override="true"
       :description-hidden="true"
       :value="value.meta"

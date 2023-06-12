@@ -405,7 +405,7 @@ export default Vue.extend<Data, any, any, any>({
         :clearable="false"
       />
       <FileSelector
-        v-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
+        v-clean-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
         data-testid="epinio_app-source_manifest"
         class="role-tertiary add mt-5"
         :label="t('epinio.applications.steps.source.manifest.button')"
@@ -515,7 +515,7 @@ export default Vue.extend<Data, any, any, any>({
     <Collapse
       :open.sync="open"
       :title="'Advanced Settings'"
-      class="mt-30 mb-30 source"
+      class="pt-30 pb-30 source"
     >
       <template>
         <!-- Unable to change app chart of active app, so disable -->

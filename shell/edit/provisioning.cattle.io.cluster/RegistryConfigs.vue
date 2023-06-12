@@ -75,6 +75,10 @@ export default {
     window.z = this;
   },
 
+  // created() {
+  //   set(this.value, 'spec.rkeConfig.registries.configs', {});
+  // },
+
   methods: {
     update() {
       const configs = {};
@@ -91,6 +95,7 @@ export default {
       }
 
       set(this.value, 'spec.rkeConfig.registries.configs', configs);
+      this.$emit('updateConfigs', configs);
     },
 
     wrapRegisterBeforeHook(fn, ...args) {
@@ -114,16 +119,20 @@ export default {
     <h3>
       {{ t('registryConfig.header') }}
       <i
-        v-tooltip="t('registryConfig.toolTip')"
+        v-clean-tooltip="t('registryConfig.toolTip')"
         class="icon icon-info"
       />
     </h3>
+    <p class="mb-20">
+      {{ t('registryConfig.description') }}
+    </p>
     <ArrayListGrouped
       v-model="entries"
       :add-label="t('registryConfig.addLabel')"
       :default-add-value="defaultAddValue"
+      :initial-empty-row="true"
       :mode="mode"
-      @input="update()"
+      @input="update"
     >
       <template #default="{row}">
         <div class="row">
@@ -150,6 +159,7 @@ export default {
           <div class="col span-6">
             <SecretSelector
               v-model="row.value.tlsSecretName"
+              in-store="management"
               :mode="mode"
               :types="[TLS]"
               :namespace="value.metadata.namespace"

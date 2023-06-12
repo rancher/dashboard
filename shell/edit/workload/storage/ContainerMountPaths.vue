@@ -1,5 +1,4 @@
 <script>
-import { PVC } from '@shell/config/types';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import Mount from '@shell/edit/workload/storage/Mount';
 import { _VIEW } from '@shell/config/query-params';
@@ -34,20 +33,11 @@ export default {
     },
   },
 
-  async fetch() {
-    if ( this.$store.getters['cluster/schemaFor'](PVC) ) {
-      this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
-    } else {
-      this.pvcs = [];
-    }
-  },
-
   data() {
     this.initializeStorage();
 
     return {
       containerVolumes:         [],
-      pvcs:                     [],
       storageVolumes:           this.getStorageVolumes(),
       selectedContainerVolumes: this.getSelectedContainerVolumes()
     };

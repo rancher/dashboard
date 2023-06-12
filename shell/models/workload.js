@@ -4,9 +4,19 @@ import { WORKLOAD_TYPES, SERVICE, POD } from '@shell/config/types';
 import { get, set } from '@shell/utils/object';
 import day from 'dayjs';
 import { convertSelectorObj, matching, matches } from '@shell/utils/selector';
-import { SEPARATOR } from '@shell/components/DetailTop';
+import { SEPARATOR } from '@shell/config/workload';
 import WorkloadService from '@shell/models/workload.service';
 
+export const defaultContainer = {
+  imagePullPolicy: 'Always',
+  name:            'container-0',
+  securityContext: {
+    runAsNonRoot:             false,
+    readOnlyRootFilesystem:   false,
+    privileged:               false,
+    allowPrivilegeEscalation: false,
+  }
+};
 export default class Workload extends WorkloadService {
   // remove clone as yaml/edit as yaml until API supported
   get _availableActions() {
@@ -98,7 +108,9 @@ export default class Workload extends WorkloadService {
       if (!spec.template) {
         spec.template = {
           spec: {
-            restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always', name: 'container-0' }], initContainers: []
+            restartPolicy:  this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always',
+            containers:     [{ ...defaultContainer }],
+            initContainers: []
           }
         };
       }
@@ -109,14 +121,14 @@ export default class Workload extends WorkloadService {
     vm.$set(this, 'spec', spec);
   }
 
-  toggleRollbackModal( resources = this ) {
+  toggleRollbackModal( workload = this ) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'RollbackWorkloadDialog'
+      componentProps: { workload },
+      component:      'RollbackWorkloadDialog'
     });
   }
 
-  async rollBackWorkload( cluster, workload, rollbackRequestData ) {
+  async rollBackWorkload( cluster, workload, type, rollbackRequestData ) {
     const rollbackRequestBody = JSON.stringify(rollbackRequestData);
 
     if ( Array.isArray( workload ) ) {
@@ -125,8 +137,15 @@ export default class Workload extends WorkloadService {
     const namespace = workload.metadata.namespace;
     const workloadName = workload.metadata.name;
 
-    // Ensure we go out to the correct cluster
-    await this.patch(rollbackRequestBody, { url: `/k8s/clusters/${ cluster.id }/apis/apps/v1/namespaces/${ namespace }/deployments/${ workloadName }` });
+    /**
+     * Ensure we go out to the correct cluster
+     *
+     * Build the request body in the same format that kubectl
+     * uses to call the Kubernetes API to roll back a workload.
+     * To see an example request body, run:
+     * kubectl rollout undo deployment/[deployment name] --to-revision=[revision number] -v=8
+     */
+    await this.patch(rollbackRequestBody, { url: `/k8s/clusters/${ cluster.id }/apis/apps/v1/namespaces/${ namespace }/${ type }/${ workloadName }` });
   }
 
   pause() {
@@ -277,7 +296,7 @@ export default class Workload extends WorkloadService {
   }
 
   get endpoint() {
-    return this?.metadata?.annotations[CATTLE_PUBLIC_ENDPOINTS];
+    return this?.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS];
   }
 
   get desired() {
@@ -608,6 +627,18 @@ export default class Workload extends WorkloadService {
     }
 
     return out;
+  }
+
+  get currentRevisionNumber() {
+    if (this.ownedByWorkload || this.kind === 'Job' || this.kind === 'CronJob') {
+      return undefined;
+    }
+    if (this.kind === 'Deployment') {
+      return this.metadata.annotations['deployment.kubernetes.io/revision'];
+    }
+
+    // 'DaemonSet', 'StatefulSet'
+    return this.metadata.generation;
   }
 
   async matchingPods() {

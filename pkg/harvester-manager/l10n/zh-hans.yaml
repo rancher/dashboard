@@ -1,0 +1,11 @@
+harvesterManager:
+  manage: 管理
+  cluster:
+    label: Harvester 集群
+    none: 不存在 Harvester 集群
+    learnMore: 访问 <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 网站</a> 或阅读 <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester 官方文档</a>，以了解更多关于 Harvester 的信息。
+    description: Harvester 是一个采用企业级开源技术，包括Kubernetes、Kubevirt和Longhorn，为裸金属服务器打造的现代超融合基础设施（HCI）解决方案。
+  plugins:
+    loadError: 加载 Harvester 插件时出错
+  rke:
+    templateError: 模版格式不正确

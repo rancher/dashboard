@@ -96,9 +96,8 @@ export default class GitRepo extends SteveModel {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = workspace?.clusters || [];
     const groups = workspace?.clusterGroups || [];
-    const out = [];
 
-    if ( workspace.id === 'fleet-local' ) {
+    if ( workspace?.id === 'fleet-local' ) {
       const local = findBy(groups, 'id', 'fleet-local/default');
 
       if ( local ) {
@@ -107,6 +106,12 @@ export default class GitRepo extends SteveModel {
 
       return [];
     }
+
+    if (!this.spec.targets) {
+      return [];
+    }
+
+    const out = [];
 
     for ( const tgt of this.spec.targets ) {
       if ( tgt.clusterName ) {

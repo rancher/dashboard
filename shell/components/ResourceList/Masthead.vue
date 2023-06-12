@@ -163,7 +163,7 @@ export default {
 </script>
 
 <template>
-  <header class="header-layout">
+  <header>
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>
@@ -216,5 +216,9 @@ export default {
     h1 {
       margin: 0;
     }
+  }
+
+  header {
+    margin-bottom: 20px;
   }
 </style>

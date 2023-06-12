@@ -1,0 +1,30 @@
+{
+  "name": "dashboard-storybook",
+  "description": "Rancher Dashboard Storybook",
+  "repository": "https://github.com/rancher/dashboard",
+  "license": "Apache-2.0",
+  "author": "SUSE",
+  "private": true,
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook -o ../storybook-static"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "^6.3.8",
+    "@storybook/addon-actions": "^6.3.8",
+    "@storybook/addon-essentials": "^6.3.8",
+    "@storybook/addon-links": "^6.3.8",
+    "@storybook/vue": "^6.3.8",
+    "shell": "file:./..",
+    "storybook-auto-events": "^0.1.1",
+    "storybook-dark-mode": "^1.0.8"
+  },
+  "dependencies": {
+    "tsconfig-paths-webpack-plugin": "^4.0.0",
+    "vue-loader": "15.10.1"
+  }
+}

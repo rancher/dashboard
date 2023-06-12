@@ -135,7 +135,7 @@ export default {
       return true;
     },
     getOptionKey(opt) {
-      if (opt.optionKey) {
+      if (opt?.optionKey) {
         return get(opt, opt.optionKey);
       }
 
@@ -279,9 +279,10 @@ export default {
 
     ::v-deep .vs__selected-options {
       display: flex;
+      margin: 3px;
 
       .vs__selected {
-          width: 100%;
+          width: initial;
       }
     }
 

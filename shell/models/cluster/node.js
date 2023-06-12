@@ -1,5 +1,5 @@
 import { formatPercent } from '@shell/utils/string';
-import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE } from '@shell/config/labels-annotations.js';
+import { CAPI as CAPI_ANNOTATIONS, NODE_ROLES, RKE, SYSTEM_LABELS } from '@shell/config/labels-annotations.js';
 import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
@@ -76,7 +76,8 @@ export default class ClusterNode extends SteveModel {
   }
 
   openSsh() {
-    this.provisionedMachine.openSsh();
+    // Pass in the name of the node, so we display that rather than the name of the provisioned machine
+    this.provisionedMachine.openSsh(this.nameDisplay);
   }
 
   downloadKeys() {
@@ -107,6 +108,26 @@ export default class ClusterNode extends SteveModel {
 
   get labels() {
     return this.metadata?.labels || {};
+  }
+
+  get customLabelCount() {
+    return this.customLabels.length;
+  }
+
+  get customLabels() {
+    const parsedLabels = [];
+
+    if (this.labels) {
+      for (const k in this.labels) {
+        const [prefix] = k.split('/');
+
+        if (!SYSTEM_LABELS.includes(prefix)) {
+          parsedLabels.push(`${ k }=${ this.labels[k] }`);
+        }
+      }
+    }
+
+    return parsedLabels;
   }
 
   get isWorker() {
@@ -188,6 +209,14 @@ export default class ClusterNode extends SteveModel {
     return ((this.ramUsage * 100) / this.ramCapacity).toString();
   }
 
+  get ramReserved() {
+    return parseSi(this.status?.allocatable?.memory);
+  }
+
+  get ramReservedPercentage() {
+    return ((this.ramUsage * 100) / this.ramReserved).toString();
+  }
+
   get podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
   }
@@ -201,7 +230,9 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podConsumed() {
-    return this.pods.length;
+    const runningPods = this.pods.filter(pod => pod.state === 'running');
+
+    return runningPods.length || 0;
   }
 
   get podRequests() {
@@ -310,7 +341,13 @@ export default class ClusterNode extends SteveModel {
   }
 
   drain(resources) {
-    this.$dispatch('promptModal', { component: 'DrainNode', resources: [resources || [this], this.normanNodeId] });
+    this.$dispatch('promptModal', {
+      component:      'DrainNode',
+      componentProps: {
+        kubeNodes:    resources || [this],
+        normanNodeId: this.normanNodeId
+      }
+    });
   }
 
   async stopDrain(resources) {

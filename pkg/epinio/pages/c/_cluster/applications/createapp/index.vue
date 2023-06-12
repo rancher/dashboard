@@ -167,6 +167,7 @@ export default Vue.extend<Data, any, any, any>({
       header-mode="create"
       finish-mode="done"
       :edit-first-step="true"
+      class="wizard"
       @cancel="cancel"
       @finish="finish"
     >
@@ -212,8 +213,26 @@ export default Vue.extend<Data, any, any, any>({
 
 <style lang='scss' scoped>
 .application-wizard {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+
+  padding-top: 0;
+  height: 0;
+  position: relative;
+  overflow: hidden;
+
+  .wizard {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: auto;
+  }
+
+  // This is a hack and is needed as the wizard's buttons are now `position: absolute; bottom: 0;` so appears over wizard content
+  // In the dashabord app chart install wizard this is applied to specific content winthin the wizard (scroll__content)
+  // We applied the same thing here
+  // Both places need to be removed and the padding added within the wizard component
+  :deep(.step-container__step) {
+    padding-bottom: 40px;
+  }
+
 }
 </style>

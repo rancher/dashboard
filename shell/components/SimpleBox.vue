@@ -74,7 +74,7 @@ export default {
   justify-content: center;
   padding: 2px;
   > i {
-    font-size: 20px;
+    font-size: 14px;
     opacity: 0.5;
   }
   &:hover {

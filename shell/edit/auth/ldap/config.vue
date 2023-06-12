@@ -5,6 +5,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import UnitInput from '@shell/components/form/UnitInput';
 import { Banner } from '@components/Banner';
 import FileSelector from '@shell/components/form/FileSelector';
+import { OKTA, SHIBBOLETH } from '../saml';
 
 const DEFAULT_NON_TLS_PORT = 389;
 const DEFAULT_TLS_PORT = 636;
@@ -33,6 +34,11 @@ export default {
     type: {
       type:     String,
       required: true
+    },
+
+    isCreate: {
+      type:    Boolean,
+      default: false
     }
 
   },
@@ -46,7 +52,15 @@ export default {
       model:         this.value,
       hostname:      this.value.servers.join(','),
       serverSetting: null,
+      OKTA
     };
+  },
+
+  computed: {
+    // Does the auth provider support LDAP for search in addition to SAML?
+    isSamlProvider() {
+      return this.type === SHIBBOLETH || this.type === OKTA;
+    }
   },
 
   watch: {
@@ -232,6 +246,12 @@ export default {
       <div class="row">
         <h3>  {{ t('authConfig.ldap.customizeSchema') }}</h3>
       </div>
+      <Banner
+        v-if="type === OKTA && isCreate"
+        class="row"
+        color="info"
+        label-key="authConfig.ldap.oktaSchema"
+      />
       <div class="row">
         <div class="col span-6">
           <h4>{{ t('authConfig.ldap.users') }}</h4>
@@ -361,7 +381,7 @@ export default {
           />
         </div>
         <div
-          v-if="type!=='shibboleth'"
+          v-if="!isSamlProvider"
           class=" col span-6"
         >
           <RadioGroup

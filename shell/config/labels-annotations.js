@@ -13,6 +13,7 @@ export const UI_MANAGED = 'management.cattle.io/ui-managed';
 export const CREATOR_ID = 'field.cattle.io/creatorId';
 export const RESOURCE_QUOTA = 'field.cattle.io/resourceQuota';
 export const AZURE_MIGRATED = 'auth.cattle.io/azuread-endpoint-migrated';
+export const WORKSPACE_ANNOTATION = 'objectset.rio.cattle.io/id';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
@@ -129,11 +130,14 @@ export const ANNOTATIONS_TO_FOLD = [
 ];
 
 export const HCI = {
-  CLOUD_INIT:          'harvesterhci.io/cloud-init-template',
-  CLOUD_PROVIDER_IPAM: 'cloudprovider.harvesterhci.io/ipam',
-  NETWORK_ROUTE:       'network.harvesterhci.io/route',
-  IMAGE_NAME:          'harvesterhci.io/image-name',
-  NETWORK_TYPE:        'network.harvesterhci.io/type',
+  CLOUD_INIT:               'harvesterhci.io/cloud-init-template',
+  CLOUD_PROVIDER_IPAM:      'cloudprovider.harvesterhci.io/ipam',
+  NETWORK_ROUTE:            'network.harvesterhci.io/route',
+  IMAGE_NAME:               'harvesterhci.io/image-name',
+  NETWORK_TYPE:             'network.harvesterhci.io/type',
+  CLOUD_PROVIDER_NAMESPACE: 'cloudprovider.harvesterhci.io/namespace',
+  CLOUD_PROVIDER_NETWORK:   'cloudprovider.harvesterhci.io/network',
+  CLOUD_PROVIDER_PROJECT:   'cloudprovider.harvesterhci.io/project',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge
@@ -146,3 +150,19 @@ export const CLUSTER_BADGE = {
   // Custom icon text - max 2 characters
   ICON_TEXT: 'ui.rancher/badge-icon-text',
 };
+
+export const SYSTEM_LABELS = [
+  'io.cattle.lifecycle.',
+  'beta.kubernetes.io',
+  'failure-domain.beta.kubernetes.io',
+  'node-role.kubernetes.io',
+  'kubernetes.io',
+  'cattle.io',
+  'authz.management.cattle.io',
+  'rke.cattle.io',
+  'field.cattle.io',
+  'workload.user.cattle.io',
+  'k3s.io',
+  'node.kubernetes.io',
+  'egress.rke2.io'
+];

@@ -70,7 +70,7 @@ export default {
       // I'm manipulating the output since I'm not sure it's something we want to actually support
       // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
       // and just a field within a spec.
-      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replaceAll('#  ', '#');
+      bufferYaml = bufferYaml.substring(bufferYaml.indexOf('\n') + 1).replace(/# {2}/g, '#');
     }
 
     return {
@@ -78,7 +78,7 @@ export default {
       initialBufferYaml:            bufferYaml,
       providers,
       selectedProvider,
-      hasMultipleProvidersSelected: selectedProviders.length > 1,
+      hasMultipleProvidersSelected: selectedProviders?.length > 1,
       selectedProviders,
       LOGGING
     };
@@ -91,8 +91,11 @@ export default {
     enabledProviders() {
       return this.providers.filter(p => p.enabled);
     },
+    isNamespaced() {
+      return this.value.type !== LOGGING?.CLUSTER_OUTPUT;
+    },
     cruMode() {
-      if (this.selectedProviders.length > 1 || !this.value.allProvidersSupported) {
+      if (this.hasMultipleProvidersSelected || !this.value.allProvidersSupported) {
         return _VIEW;
       }
 
@@ -100,9 +103,6 @@ export default {
     }
   },
 
-  created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
-  },
   methods: {
     getComponent(name) {
       return require(`./providers/${ name }`).default;
@@ -110,7 +110,22 @@ export default {
     launch(provider) {
       this.$refs.tabbed.select(provider.name);
     },
-    willSave() {
+    saveSettings(done) {
+      const t = this.$store.getters['i18n/t'];
+
+      if (this.selectedProvider === 'loki') {
+        const urlCheck = ['https://', 'http://'].some(checkValue => this.value.spec['loki'].url.toLowerCase().startsWith(checkValue));
+        const isLokiHttps = this.value.spec['loki'].url ? urlCheck : undefined;
+
+        if (!isLokiHttps) {
+          this.errors = [t('logging.loki.urlInvalid')];
+
+          return done(false);
+        }
+      }
+
+      this.errors = [];
+
       this.value.spec = { [this.selectedProvider]: this.value.spec[this.selectedProvider] };
 
       const bufferJson = jsyaml.load(this.bufferYaml);
@@ -120,6 +135,7 @@ export default {
       } else {
         this.$delete(this.value.spec[this.selectedProvider], 'buffer');
       }
+      this.save(done);
     },
     tabChanged({ tab }) {
       if ( tab.name === 'buffer' ) {
@@ -151,7 +167,7 @@ export default {
       :errors="errors"
       :can-yaml="true"
       @error="e=>errors = e"
-      @finish="save"
+      @finish="saveSettings"
       @cancel="done"
     >
       <NameNsDescription
@@ -160,10 +176,10 @@ export default {
         :mode="mode"
         label="generic.name"
         :register-before-hook="registerBeforeHook"
-        :namespaced="value.type !== LOGGING.CLUSTER_OUTPUT"
+        :namespaced="isNamespaced"
       />
       <Banner
-        v-if="selectedProviders.length > 1"
+        v-if="hasMultipleProvidersSelected"
         color="info"
       >
         This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.

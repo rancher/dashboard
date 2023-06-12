@@ -1,7 +1,7 @@
 import { EPINIO_TYPES } from '../../types';
 import {
-  NAMESPACE_FILTER_SPECIAL as SPECIAL,
-  NAMESPACE_FILTER_ALL as ALL
+  NAMESPACE_FILTER_ALL as ALL,
+  NAMESPACE_FILTER_KINDS
 } from '@shell/utils/namespace-filter';
 
 export default {
@@ -51,7 +51,7 @@ export default {
   }: any) => {
     const out = [{
       id:    ALL,
-      kind:  SPECIAL,
+      kind:  NAMESPACE_FILTER_KINDS.SPECIAL,
       label: rootGetters['i18n/t']('nav.ns.all'),
     }];
 

@@ -42,9 +42,10 @@ export default {
   computed: {
     xtermConfig() {
       return {
-        cursorBlink: true,
-        useStyle:    true,
-        fontSize:    12,
+        allowProposedApi: true,
+        cursorBlink:      true,
+        useStyle:         true,
+        fontSize:         12,
       };
     },
 
@@ -89,10 +90,10 @@ export default {
 
       const terminal = new xterm.Terminal({
         theme: {
-          background: docStyle.getPropertyValue('--terminal-bg').trim(),
-          cursor:     docStyle.getPropertyValue('--terminal-cursor').trim(),
-          selection:  docStyle.getPropertyValue('--terminal-selection').trim(),
-          foreground: docStyle.getPropertyValue('--terminal-text').trim(),
+          background:          docStyle.getPropertyValue('--terminal-bg').trim(),
+          foreground:          docStyle.getPropertyValue('--terminal-text').trim(),
+          cursor:              docStyle.getPropertyValue('--terminal-cursor').trim(),
+          selectionBackground: docStyle.getPropertyValue('--terminal-selection').trim(),
         },
         ...this.xtermConfig,
       });
@@ -354,6 +355,7 @@ export default {
     display: inline-block;
     min-width: 200px;
     height: 30px;
+    min-height: 30px;
     width: initial;
   }
 }

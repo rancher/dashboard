@@ -27,7 +27,7 @@ export default {
             }
           }
         },
-        count: constraint.violations.length
+        count: constraint.totalViolations
       }));
   },
   data(ctx) {

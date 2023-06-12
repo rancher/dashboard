@@ -6,7 +6,7 @@ import CruResource from '@shell/components/CruResource.vue';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
 import EpinioConfiguration from '../models/configurations';
-import { EPINIO_TYPES } from '../types';
+import { EPINIO_TYPES, EpinioNamespace } from '../types';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
@@ -71,6 +71,10 @@ export default Vue.extend<Data, any, any, any>({
 
     namespaces() {
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
+    },
+
+    namespaceNames() {
+      return this.namespaces.map((n: EpinioNamespace) => n.metadata.name);
     },
 
   },
@@ -170,7 +174,7 @@ export default Vue.extend<Data, any, any, any>({
     <NameNsDescription
       name-key="name"
       namespace-key="namespace"
-      :namespaces-override="namespaces"
+      :namespaces-override="namespaceNames"
       :create-namespace-override="true"
       :description-hidden="true"
       :value="value.meta"

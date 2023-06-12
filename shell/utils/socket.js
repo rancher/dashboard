@@ -10,8 +10,9 @@ const INSECURE = 'ws://';
 const SECURE = 'wss://';
 
 const STATE_DISCONNECTED = 'disconnected';
-const STATE_CONNECTING = 'connecting';
-const STATE_CONNECTED = 'connected';
+
+export const STATE_CONNECTING = 'connecting';
+export const STATE_CONNECTED = 'connected';
 const STATE_CLOSING = 'closing';
 const STATE_RECONNECTING = 'reconnecting';
 
@@ -23,6 +24,10 @@ export const EVENT_FRAME_TIMEOUT = 'frame_timeout';
 export const EVENT_CONNECT_ERROR = 'connect_error';
 export const EVENT_DISCONNECT_ERROR = 'disconnect_error';
 
+export const NO_WATCH = 'NO_WATCH';
+export const NO_SCHEMA = 'NO_SCHEMA';
+export const REVISION_TOO_OLD = 'TOO_OLD';
+
 export default class Socket extends EventTarget {
   url;
   autoReconnect = true;
@@ -33,6 +38,7 @@ export default class Socket extends EventTarget {
   protocol = null;
   maxTries = null;
   tries = 0;
+  idAsTimestamp = false;
 
   // "Private"
   socket = null;
@@ -40,12 +46,12 @@ export default class Socket extends EventTarget {
   framesReceived = 0;
   frameTimer;
   reconnectTimer;
-  disconnectCbs = [];
+  disconnectCallBacks = [];
   disconnectedAt = 0;
   closingId = 0;
   autoReconnectUrl = null;
 
-  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null) {
+  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null, maxTries = null, idAsTimestamp = false) {
     super();
 
     this.setUrl(url);
@@ -54,6 +60,7 @@ export default class Socket extends EventTarget {
     // maxTries = null === never stop trying to reconnect
     // allow maxTries to be defined on individual sockets bc not all will clearly warn the user that we've stopped trying
     this.maxTries = maxTries;
+    this.idAsTimestamp = idAsTimestamp;
 
     if ( frameTimeout !== null ) {
       this.frameTimeout = frameTimeout;
@@ -85,10 +92,10 @@ export default class Socket extends EventTarget {
 
     Object.assign(this.metadata, metadata);
 
-    const id = sockId++;
+    const id = this.idAsTimestamp ? new Date().getTime() : sockId++;
     const url = addParam(this.url, 'sockId', id);
 
-    console.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`); // eslint-disable-line no-console
+    this._baseLog('connecting', { id, url: url.replace(/\?.*/, '') });
 
     let socket;
 
@@ -123,9 +130,9 @@ export default class Socket extends EventTarget {
     return false;
   }
 
-  disconnect(cb) {
-    if ( cb ) {
-      this.disconnectCbs.push(cb);
+  disconnect(callBack) {
+    if ( callBack ) {
+      this.disconnectCallBacks.push(callBack);
     }
 
     const self = this;
@@ -141,7 +148,7 @@ export default class Socket extends EventTarget {
 
       this.addEventListener(EVENT_CONNECT_ERROR, onError);
 
-      this.disconnectCbs.push(() => {
+      this.disconnectCallBacks.push(() => {
         this.removeEventListener(EVENT_CONNECT_ERROR, onError);
         resolve();
       });
@@ -216,7 +223,7 @@ export default class Socket extends EventTarget {
       socket.onmessage = null;
       socket.close();
     } catch (e) {
-      this._log('Socket exception', e);
+      this._log('exception', { e: e.toString() });
       // Continue anyway...
     }
 
@@ -264,7 +271,7 @@ export default class Socket extends EventTarget {
 
     if ( timeout && this.state === STATE_CONNECTED) {
       this.frameTimer = setTimeout(() => {
-        this._log('Socket watchdog expired after', timeout, 'closing');
+        this._log(`watchdog expired after${ timeout }. Closing`);
         this._close();
         this.dispatchEvent(new CustomEvent(EVENT_FRAME_TIMEOUT));
       }, timeout);
@@ -276,17 +283,22 @@ export default class Socket extends EventTarget {
     this._log('error');
   }
 
-  _closed() {
-    console.log(`Socket ${ this.closingId } closed`); // eslint-disable-line no-console
+  _closed(event) {
+    const { code, reason, wasClean } = event;
+
+    this._baseLog('closed', {
+      id: this.closingId || this.socket?.sockId || 'unknown', code, reason, clean: wasClean
+    });
+
     this.closingId = 0;
     this.socket = null;
     clearTimeout(this.reconnectTimer);
     clearTimeout(this.frameTimer);
 
-    const cbs = this.disconnectCbs;
+    const callBacks = this.disconnectCallBacks;
 
-    while ( cbs.length ) {
-      const fn = cbs.pop();
+    while ( callBacks.length ) {
+      const fn = callBacks.pop();
 
       if ( fn ) {
         fn.apply(this);
@@ -313,18 +325,20 @@ export default class Socket extends EventTarget {
       this.state = STATE_RECONNECTING;
 
       if (this.maxTries && this.tries > 1 && this.tries <= this.maxTries) {
-        // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've lost connection and are attemping to reconnect
+        // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've lost connection and are attempting to reconnect
         const e = new CustomEvent(EVENT_CONNECT_ERROR);
 
         this.dispatchEvent(e);
       }
 
       if (this.maxTries && this.tries > this.maxTries) {
+        this._log('closed. Will not reconnect (hit max attempts)');
         this.state = STATE_DISCONNECTED;
         // dispatch an event which will trigger a growl from steve-plugin sockets warning users that we've given up trying to reconnect
         this.dispatchEvent(new CustomEvent(EVENT_DISCONNECT_ERROR));
       } else {
         const reconnect = () => {
+          this._log('closed. Attempting to reconnect');
           const delay = Math.max(1000, Math.min(1000 * this.tries, 30000));
 
           this.reconnectTimer = setTimeout(() => {
@@ -357,13 +371,37 @@ export default class Socket extends EventTarget {
     }
   }
 
-  _log(...args) {
-    const message = JSON.parse(JSON.stringify([...args]));
+  /**
+   * `console.log` the provided summary statement, with default information to identify the socket and the provided props
+   */
+  _log(summary, props) {
+    this._baseLog(summary, {
+      state: this.state, id: this.socket?.sockId || 0, ...props
+    });
+  }
 
-    message.unshift('Socket');
+  /**
+   * `console.log` the provided summary statement and props
+   *
+   * This does not contain information to identify the socket and can be used in scenarios where it's not known or default
+   */
+  _baseLog(summary, props) {
+    const message = [summary];
+    const values = Object.entries(props || {});
 
-    message.push(`(state=${ this.state }, id=${ this.socket ? this.socket.sockId : 0 })`);
+    message.unshift('Socket ');
 
-    console.log(message.join(' ')); // eslint-disable-line no-console
+    if (values.length) {
+      message.push(' (');
+      values.forEach(([key, value], index) => {
+        if (index !== 0) {
+          message.push(`, `);
+        }
+        message.push(`${ key }=${ value }`);
+      });
+      message.push(')');
+    }
+
+    console.log(message.join('')); // eslint-disable-line no-console
   }
 }
