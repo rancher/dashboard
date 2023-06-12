@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
 
@@ -90,7 +91,7 @@ describe('component: CruResource', () => {
         $router: { applyQuery: jest.fn() },
       }
     });
-    const element = wrapper.find('#cru-form');
+    const element = wrapper.find('[data-testid="cru-form"]');
 
     await element.trigger('keydown.enter', event);
     expect(event.preventDefault).toHaveBeenCalledWith();
@@ -124,9 +125,44 @@ describe('component: CruResource', () => {
         $router: { applyQuery: jest.fn() },
       }
     });
-    const element = wrapper.find('#cru-form');
+    const element = wrapper.find('[data-testid="cru-form"]');
 
     await element.trigger('keydown.enter', event);
     expect(event.preventDefault).not.toHaveBeenCalled();
+  });
+
+  it('should have line keypress Enter', async() => {
+    const event = { preventDefault: jest.fn() };
+    const wrapper = mount(CruResource, {
+      directives: { cleanHtmlDirective },
+      propsData:  {
+        canYaml:            false,
+        mode:               _EDIT,
+        resource:           {},
+        preventEnterSubmit: false
+      },
+      components: {
+        ResourceYaml:        { template: '<div></div> ' },
+        ResourceCancelModal: { template: '<div></div> ' },
+      },
+      mocks: {
+        $store: {
+          getters: {
+            currentStore:              () => 'current_store',
+            'current_store/schemaFor': jest.fn(),
+            'current_store/all':       jest.fn(),
+            'i18n/t':                  jest.fn(),
+            'i18n/exists':             jest.fn(),
+          }
+        },
+        $route:  { query: { AS: _YAML } },
+        $router: { applyQuery: jest.fn() },
+      }
+    });
+    const mainWrapper = wrapper.find('[data-testid="code-mirror-multiline-field"]');
+    
+    // const keyValue = mainWrapper.findComponent(KeyValue);
+   
+    expect(mainWrapper.exists()).toBe(true);
   });
 });

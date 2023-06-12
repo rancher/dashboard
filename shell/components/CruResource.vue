@@ -412,7 +412,7 @@ export default {
     </p>
     <form
       :is="(isView? 'div' : 'form')"
-      id="cru-form"
+      data-testid="cru-form"
       class="create-resource-container cru__form"
       @submit.prevent
       @keydown.enter="onPressEnter($event)"
