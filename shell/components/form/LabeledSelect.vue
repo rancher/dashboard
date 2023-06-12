@@ -285,6 +285,7 @@ export default {
       @search="onSearch"
       @open="onOpen"
       @close="onClose"
+      @option:selecting="$emit('selecting', $event)"
       @option:selected="$emit('selected', $event)"
     >
       <template #option="option">
