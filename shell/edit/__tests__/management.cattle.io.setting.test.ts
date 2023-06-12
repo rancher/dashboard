@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import Settings from '@shell/edit/management.cattle.io.setting.vue';
 import { SETTING } from '@shell/config/settings';
 
-describe('management.cattle.io.setting should', () => {
+describe('view: management.cattle.io.setting should', () => {
   const requiredSetup = () => ({
     // Remove all these mocks after migration to Vue 2.7/3 due mixin logic
     mocks: {

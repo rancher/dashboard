@@ -9,6 +9,13 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   /**
+   * Returns the link for resource details for a table row with a given name
+   */
+  detailsPageLinkWithName(name: string) {
+    return this.rowElementWithName(name).find('td.col-link-detail a');
+  }
+
+  /**
    * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
    */
   bulkActionDropDown() {
