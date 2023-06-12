@@ -6,7 +6,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 export default class ClusterProjectMembersPo extends PagePo {
   static url: string = '/c/local/explorer/members#cluster-membership'
 
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+  static goTo(): Cypress.Chainable {
     return super.goTo(ClusterProjectMembersPo.url);
   }
 
