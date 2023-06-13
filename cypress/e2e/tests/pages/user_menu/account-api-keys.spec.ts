@@ -57,6 +57,12 @@ describe('User can make changes to their account', { tags: ['@adminUser', '@stan
     const keyDesc = `keyDescription${ Date.now() }`;
 
     accountPage.goTo();
+    accountPage.create();
+    createKeyPage.waitForPage();
+    createKeyPage.isCurrentPage();
+    createKeyPage.create();
+    createKeyPage.done();
+
     apiKeysList.resourceTable().sortableTable().selectAllCheckbox().set();
     apiKeysList.resourceTable().sortableTable().deleteButton().click();
 

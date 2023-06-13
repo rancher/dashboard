@@ -24,7 +24,7 @@ describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser'] }
     loginPage.waitForPage();
     loginPage.username().checkVisible();
     loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
-    homePage.goTo();
+    HomePagePo.goTo();
     loginPage.loginPageMessage().contains('Log in again to continue.').should('be.visible');
     loginPage.waitForPage();
   });
