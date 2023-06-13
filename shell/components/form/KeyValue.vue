@@ -675,11 +675,12 @@ export default {
             />
             <TextAreaAutoGrow
               v-else-if="valueMultiline"
+              data-testid="value-multiline"
               v-model="row[valueName]"
               :class="{'conceal': valueConcealed}"
               :disabled="disabled || isProtected(row.key)"
               :mode="mode"
-              :placeholder="valuePlaceholder"
+              placeholder="valuePlaceholder"
               :min-height="40"
               :spellcheck="false"
               @input="queueUpdate"
@@ -689,12 +690,13 @@ export default {
               v-model="row[valueName]"
               :disabled="isView || disabled || isProtected(row.key)"
               :type="valueConcealed ? 'password' : 'text'"
-              :placeholder="valuePlaceholder"
+              placeholder="valuePlaceholder"
               autocorrect="off"
               autocapitalize="off"
               spellcheck="false"
               @input="queueUpdate"
             >
+            test
           </slot>
         </div>
         <div
