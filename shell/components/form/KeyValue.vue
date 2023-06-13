@@ -247,6 +247,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    parseValueFromFile: {
+      default: false,
+      type:    Boolean
+    },
     disabled: {
       default: false,
       type:    Boolean
@@ -544,6 +548,12 @@ export default {
      */
     onFocusMarkdownMultiline(idx, value) {
       this.$set(this.codeMirrorFocus, idx, value);
+    },
+    onValueFileSelected(idx, file) {
+      this.rows[idx][this.valueName] = file;
+    },
+    isValueFieldEmpty(value) {
+      return !value || value.trim().length === 0;
     }
   }
 };
@@ -662,39 +672,51 @@ export default {
             <div v-else-if="row.binary">
               {{ binaryTextSize(row.value) }}
             </div>
-            <CodeMirror
-              v-else-if="valueMarkdownMultiline"
-              ref="cm"
-              data-testid="code-mirror-multiline-field"
-              :class="{['focus']: codeMirrorFocus[i]}"
-              :value="row[valueName]"
-              :as-text-area="true"
-              :mode="mode"
-              @onInput="onInputMarkdownMultiline(i, $event)"
-              @onFocus="onFocusMarkdownMultiline(i, $event)"
-            />
-            <TextAreaAutoGrow
-              v-else-if="valueMultiline"
-              v-model="row[valueName]"
-              :class="{'conceal': valueConcealed}"
-              :disabled="disabled || isProtected(row.key)"
-              :mode="mode"
-              :placeholder="valuePlaceholder"
-              :min-height="40"
-              :spellcheck="false"
-              @input="queueUpdate"
-            />
-            <input
+            <div
               v-else
-              v-model="row[valueName]"
-              :disabled="isView || disabled || isProtected(row.key)"
-              :type="valueConcealed ? 'password' : 'text'"
-              :placeholder="valuePlaceholder"
-              autocorrect="off"
-              autocapitalize="off"
-              spellcheck="false"
-              @input="queueUpdate"
+              class="value-container"
+              :class="{ 'upload-button': parseValueFromFile }"
             >
+              <CodeMirror
+                v-if="valueMarkdownMultiline"
+                ref="cm"
+                data-testid="code-mirror-multiline-field"
+                :class="{['focus']: codeMirrorFocus[i]}"
+                :value="row[valueName]"
+                :as-text-area="true"
+                :mode="mode"
+                @onInput="onInputMarkdownMultiline(i, $event)"
+                @onFocus="onFocusMarkdownMultiline(i, $event)"
+              />
+              <TextAreaAutoGrow
+                v-else-if="valueMultiline"
+                v-model="row[valueName]"
+                :class="{'conceal': valueConcealed}"
+                :disabled="disabled || isProtected(row.key)"
+                :mode="mode"
+                :placeholder="valuePlaceholder"
+                :min-height="40"
+                :spellcheck="false"
+                @input="queueUpdate"
+              />
+              <input
+                v-else
+                v-model="row[valueName]"
+                :disabled="isView || disabled || isProtected(row.key)"
+                :type="valueConcealed ? 'password' : 'text'"
+                :placeholder="valuePlaceholder"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                @input="queueUpdate"
+              >
+              <FileSelector
+                v-if="parseValueFromFile && readAllowed && !isView && row[keyName] && isValueFieldEmpty(row[valueName])"
+                class="btn btn-sm role-secondary file-selector"
+                :label="'Upload'"
+                @selected="onValueFileSelected(i, $event)"
+              />
+            </div>
           </slot>
         </div>
         <div
@@ -772,7 +794,7 @@ export default {
     text-transform: initial;
     padding: 0;
   }
-  .kv-container{
+  .kv-container {
     display: grid;
     align-items: center;
     column-gap: 20px;
@@ -785,7 +807,18 @@ export default {
       &.key, &.extra {
         align-self: flex-start;
       }
-      &.value textarea{
+      &.value .value-container {
+        &.upload-button {
+          display: flex;
+          justify-content: right;
+          align-items: center;
+        }
+        .file-selector {
+          position: absolute;
+          margin-right: 5px;
+        }
+      }
+      &.value textarea {
         padding: 10px 10px 10px 10px;
       }
 
@@ -796,7 +829,7 @@ export default {
   }
   .remove {
     text-align: center;
-    BUTTON{
+    BUTTON {
       padding: 0px;
     }
   }
@@ -819,7 +852,7 @@ export default {
   .download {
     text-align: right;
   }
-  .copy-value{
+  .copy-value {
     padding: 0px 0px 0px 10px;
   }
 }

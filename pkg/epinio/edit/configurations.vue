@@ -207,6 +207,7 @@ export default Vue.extend<Data, any, any, any>({
           :key-label="t('epinio.applications.create.envvar.keyLabel')"
           :value-label="t('epinio.applications.create.envvar.valueLabel')"
           :parse-lines-from-file="true"
+          :parse-value-from-file="true"
           @input="setData($event)"
         />
       </div>
