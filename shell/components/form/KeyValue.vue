@@ -713,7 +713,7 @@ export default {
               <FileSelector
                 v-if="parseValueFromFile && readAllowed && !isView && row[keyName] && isValueFieldEmpty(row[valueName])"
                 class="btn btn-sm role-secondary file-selector"
-                :label="'Upload'"
+                :label="t('generic.upload')"
                 @selected="onValueFileSelected(i, $event)"
               />
             </div>

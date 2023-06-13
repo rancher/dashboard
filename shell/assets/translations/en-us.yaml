@@ -73,6 +73,7 @@ generic:
   techPreview: Tech Preview
   type: Type
   unknown: Unknown
+  upload: Upload
   provisioning: '—'
   key: Key
   value: Value
