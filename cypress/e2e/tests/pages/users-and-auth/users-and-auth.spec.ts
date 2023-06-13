@@ -5,8 +5,11 @@ import UsersAndAuthPo from '~/cypress/e2e/po/pages/users-and-auth/users-and-auth
 const userMenu = new UserMenuPo();
 const loginPage = new LoginPagePo();
 
-const customRoleName = 'my-custom-role';
-const standardUsername = 'standard-user';
+const runTimestamp = +new Date();
+const runPrefix = `e2e-test-${ runTimestamp }`;
+
+const customRoleName = `${ runPrefix }-my-custom-role`;
+const standardUsername = `${ runPrefix }-standard-user`;
 const standardPassword = 'standard-password';
 
 describe('Users and Authentication', () => {

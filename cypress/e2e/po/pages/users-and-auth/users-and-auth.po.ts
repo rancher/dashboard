@@ -4,6 +4,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
+import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
 
 export default class UsersAndAuthPo extends PagePo {
   static url: string = '/c/_/auth/management.cattle.io.user'
@@ -35,7 +36,9 @@ export default class UsersAndAuthPo extends PagePo {
   }
 
   listTitle() {
-    return this.self().find('.title > h1').invoke('text');
+    const resourceListMasthead = new ResourceListMastheadPo(this.self());
+
+    return resourceListMasthead.title();
   }
 
   name(): LabeledInputPo {
