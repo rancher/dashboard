@@ -9,7 +9,7 @@ const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const apiKeysList = accountPage.list();
 
-describe('User can make changes to their account', () => {
+describe('User can make changes to their account', { tags: ['@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
