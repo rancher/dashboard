@@ -28,7 +28,3 @@ OUTPUT_DIR=dist
 
 echo "Building..."
 COMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=$OUTPUT_DIR ROUTER_BASE='/dashboard/' RESOURCE_BASE='/dashboard/' yarn run build
-
-echo ${PWD}
-ls -al
-ls -al ${OUTPUT_DIR}

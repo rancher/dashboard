@@ -2,13 +2,7 @@
 
 DIR=$(cd $(dirname $0)/..; pwd)
 
-echo ${DIR}
-
-echo ${PWD}
-
 DIST=${DIR}/dist
-
-ls -al ${DIST}
 
 docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
   -v ${DIST}:/usr/share/rancher/ui-dashboard/dashboard \
@@ -21,6 +15,31 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
 
 docker ps
 
-sleep 60
+echo "Waiting for dashboard UI to be reachable (initial 20s wait) ..."
 
-curl -k https://127.0.0.1/dashboard/
+sleep 20
+
+echo "Waiting for dashboard UI to be reachable ..."
+
+okay=0
+
+while [ $okay -lt 20 ]; do
+  STATUS=$(curl --silent --head -k https://127.0.0.1/dashboard/ | awk '/^HTTP/{print $2}')
+
+  echo "Status: $STATUS (Try: $okay)"
+
+  okay=$((okay+1))
+
+  if [ "$STATUS" == "200" ]; then
+    okay=100
+  else
+    sleep 5
+  fi
+done
+
+if [ "$STATUS" != "200" ]; then
+  echo "Dashboard did not become available in a reasonable time"
+  exit 1
+fi
+
+echo "Dashboard UI is ready"
