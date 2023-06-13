@@ -340,6 +340,6 @@ epinio:
 model:
   authConfig:
     provider:
-      epinio: Dex
+      epinio: Auth Provider
 login:
-  genericProvider: Log in with SSO
+  genericProvider: Log in with Auth Provider
