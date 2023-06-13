@@ -38,6 +38,12 @@ const SUPPORT_LINK = {
   readonly: true
 };
 
+const CN_FORUMS_LINK = {
+  key:     'cnforums',
+  value:   'https://forums.rancher.cn/',
+  enabled: true,
+};
+
 // We add a version attribute to the setting so we know what has been migrated and which version of the setting we have
 export const CUSTOM_LINKS_VERSION = 'v1';
 
@@ -72,7 +78,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
       uiLinks.defaults = defaults;
     }
 
-    return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t);
+    return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t, store);
   }
 
   // No new setting, so return the required structure
@@ -117,17 +123,23 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     console.warn('Could not parse legacy link settings', e); // eslint-disable-line no-console
   }
 
-  return ensureSupportLink(links, hasSupport, isSupportPage, t);
+  return ensureSupportLink(links, hasSupport, isSupportPage, t, store);
 }
 
 // Ensure the support link is added if needed
-function ensureSupportLink(links, hasSupport, isSupportPage, t) {
+function ensureSupportLink(links, hasSupport, isSupportPage, t, store) {
   if (!hasSupport && !isSupportPage) {
     const supportLink = links.defaults?.find((link) => link.key === 'commercialSupport');
 
     if (!supportLink) {
       links.defaults.push(SUPPORT_LINK);
     }
+  }
+
+  const selectedLocaleLabel = store.getters['i18n/selectedLocaleLabel'];
+
+  if (selectedLocaleLabel === t('locale.zh-hans')) {
+    links.defaults.push(CN_FORUMS_LINK);
   }
 
   // Localise the default links
