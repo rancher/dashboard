@@ -1013,6 +1013,9 @@ export default {
       color: #888;
       width: 44px;
       height: 44px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
       &.dark-mode {
         border-radius: calc(2 * var(--border-radius));
