@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+DIR=$(cd $(dirname $0)/..; pwd)
+
+echo ${DIR}
+
+echo ${PWD}
+
+DIST=${DIR}/dist
+
+ls -al ${DIST}
+
+docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
+  -v ${DIST}:/usr/share/rancher/ui-dashboard/dashboard \
+  -e CATTLE_UI_OFFLINE_PREFERRED=true \
+  -e CATTLE_BOOTSTRAP_PASSWORD=password \
+  -e CATTLE_PASSWORD_MIN_LENGTH=3 \
+  --name cypress \
+  --privileged \
+  rancher/rancher:v2.7-head
+
+docker ps
