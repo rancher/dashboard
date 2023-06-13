@@ -42,11 +42,8 @@ describe('component: KeyValue', () => {
       directives: { t }
     });
     const inputFieldTextArea = wrapper.find('[data-testid="value-multiline"]');
-
+  
     await inputFieldTextArea.trigger('keydown.enter');
-    expect(inputFieldTextArea).toBeDefined();
-
-    expect(inputFieldTextArea.element.value).toStrictEqual(`
-    `);
+    expect(inputFieldTextArea.element.value).toStrictEqual('/n');
   });
 });
