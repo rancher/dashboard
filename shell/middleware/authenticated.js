@@ -26,6 +26,16 @@ const getPackageFromRoute = (route) => {
   return arraySafe.find((m) => !!m.pkg)?.pkg;
 };
 
+const getResourceFromRoute = (to) => {
+  let resource = to.params?.resource;
+
+  if (!resource) {
+    resource = findMeta(to, 'resource');
+  }
+
+  return resource;
+};
+
 let beforeEachSetup = false;
 
 function findMeta(route, key) {
@@ -421,6 +431,15 @@ export default async function({
         targetRoute: route
       })
     ]);
+
+    const resource = getResourceFromRoute(route);
+
+    // if we have resource param, but can't get the schema, it means the resource doesn't exist!
+    if (resource && !store.getters['management/schemaFor'](resource) && !store.getters['rancher/schemaFor'](resource)) {
+      store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
+
+      return redirect(302, '/fail-whale');
+    }
 
     if (!clusterId) {
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
