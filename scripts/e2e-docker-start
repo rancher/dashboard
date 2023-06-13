@@ -20,3 +20,7 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
   rancher/rancher:v2.7-head
 
 docker ps
+
+sleep 60
+
+curl -k https://127.0.0.1/dashboard/
