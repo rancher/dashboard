@@ -10,8 +10,24 @@ jobs:
     permissions:
       issues: write
     steps:
+      - name: Check Labels
+        id: check-labels
+        env:
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ', ') }}
+        run: |
+          # Check if issue has zube labels
+          set +e
+          echo ${ISSUE_LABELS} > labels
+          cat labels
+          grep -c -E "\s*\[zube\]:" labels
+          if [ $? -eq 1 ]; then
+            echo "update=true" >> $GITHUB_OUTPUT
+            echo "Can not find any existing zube labels"
+          else
+            echo "Found existing zube labels"
+          fi
       - name: Label issues
-        if: "!startsWith(github.event.issue.labels.*.name, '[zube]:')"
+        if: steps.check-labels.outputs.update == 'true'
         uses: github/issue-labeler@v2.5
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
