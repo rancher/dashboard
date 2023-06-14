@@ -50,6 +50,9 @@ export default {
 
     isView() {
       return this.mode === _VIEW;
+    },
+    canManageProjectMembers() {
+      return canEditProjectPermissions(this.$store);
     }
   },
 
@@ -72,6 +75,7 @@ export default {
     :default-binding-handler="defaultBindingHandler"
     :type="NORMAN.PROJECT_ROLE_TEMPLATE_BINDING"
     :mode="mode"
+    :can-manage="canManageProjectMembers"
     parent-key="projectId"
     :parent-id="parentId"
     v-on="$listeners"
