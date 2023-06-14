@@ -354,7 +354,8 @@ export default {
     cancelCreateNamespace(e) {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
-      this.namespace = this.$store.getters['defaultNamespace'];
+      // In practise we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
+      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find(o => !!o.value)?.value ;
     },
 
     selectNamespace(e) {
