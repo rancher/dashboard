@@ -188,6 +188,7 @@ export default {
           :mode="mode"
           :options="ipamOptions"
           :label="t('servicesPage.harvester.ipam.label')"
+          :disabled="mode === 'edit'"
         />
         <div
           v-if="mode === 'create'"

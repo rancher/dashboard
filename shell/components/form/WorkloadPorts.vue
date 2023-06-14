@@ -389,6 +389,7 @@ export default {
             :mode="mode"
             :options="ipamOptions"
             :label="t('servicesPage.harvester.ipam.label')"
+            :disabled="mode === 'edit'"
             @input="queueUpdate"
           />
         </div>
