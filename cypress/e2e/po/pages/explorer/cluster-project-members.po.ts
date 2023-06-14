@@ -4,14 +4,16 @@ import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 export default class ClusterProjectMembersPo extends PagePo {
-  static url: string = '/c/local/explorer/members#cluster-membership'
-
-  static goTo(): Cypress.Chainable {
-    return super.goTo(ClusterProjectMembersPo.url);
+  private static createPath(clusterId: string, tabId: string) {
+    return `/c/${ clusterId }/explorer/members#${ tabId }`;
   }
 
-  constructor(url: string) {
-    super(url || ClusterProjectMembersPo.url);
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(clusterId: string = 'local', tabId: string = 'cluster-membership') {
+    super(ClusterProjectMembersPo.createPath(clusterId, tabId));
   }
 
   triggerAddClusterOrProjectMemberAction() {

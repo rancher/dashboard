@@ -1,12 +1,15 @@
 import UsersAndAuthPo from '~/cypress/e2e/po/pages/users-and-auth/users-and-auth.po';
 import ClusterProjectMembersPo from '~/cypress/e2e/po/pages/explorer/cluster-project-members.po';
 
-const username = 'cluster-proj-member-1';
+const runTimestamp = +new Date();
+const runPrefix = `e2e-test-${ runTimestamp }`;
+
+const username = `${ runPrefix }-cluster-proj-member`;
 const standardPassword = 'standard-password';
 
 describe('Cluster Project and Members', () => {
   it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
-    const usersAdmin = new UsersAndAuthPo('/c/_/auth/management.cattle.io.user');
+    const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
 
     // this will login as admin
     cy.login();
@@ -21,7 +24,7 @@ describe('Cluster Project and Members', () => {
     usersAdmin.saveCreateForm().click();
 
     // add user to Cluster membership
-    const clusterMembership = new ClusterProjectMembersPo('/c/local/explorer/members#cluster-membership');
+    const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
 
     clusterMembership.goTo();
     clusterMembership.triggerAddClusterOrProjectMemberAction();
@@ -33,6 +36,7 @@ describe('Cluster Project and Members', () => {
     clusterMembership.listElementWithName(username).should('exist');
 
     clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
+      // clear new line chars and white spaces
       const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
 
       // no string "loading..." next to name
