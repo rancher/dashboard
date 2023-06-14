@@ -55,4 +55,12 @@ export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManager
   fleetAgentConfiguration() {
     return new EmberAgentConfigurationPo('[data-testid="form-fleet-agent"]');
   }
+
+  next() {
+    return cy.getIframeBody().find('[data-testid="save-cancel-rke1"] button[type=submit]').click();
+  }
+
+  done() {
+    return cy.getIframeBody().find('[data-testid="driver-rke__done"]').click();
+  }
 }

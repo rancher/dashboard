@@ -8,25 +8,25 @@ export const tolerationsData = [
   {
     key:      'key1',
     operator: 1,
-    effect:   0
+    effect:   3
   },
   {
     key:      'key2',
     operator: 0,
     value:    'val2',
-    effect:   1
+    effect:   3
   },
   {
     key:      'key3',
     operator: 0,
     value:    'val3',
-    effect:   2
+    effect:   0
   },
   {
     key:      'key4',
     operator: 0,
     value:    'val4',
-    effect:   3
+    effect:   2
   },
   {
     key:      'key5',

@@ -8,16 +8,26 @@ export default class EmberNodeAffinityPo extends IframeComponentPo {
   }
 
   allTerms() {
-    return cy.getIframeBody().find(`${ this.selector } [data-testid="node-selector-term"]`);
+    return cy.getIframeBody().then((iframe) => {
+      const queryResult = iframe.find(`${ this.selector } [data-testid="node-selector-term"]`);
+
+      if (queryResult.length > 0) {
+        return cy.getIframeBody().find(`${ this.selector } [data-testid="node-selector-term"]`);
+      }
+
+      return null;
+    });
   }
 
   removeAllTerms() {
-    return this.allTerms().its('length').then((l) => {
-      let idx = l - 1;
+    return this.allTerms().then((terms) => {
+      if (terms) {
+        let idx = terms.length - 1;
 
-      while (idx >= 0) {
-        this.removeTerm(idx);
-        idx--;
+        while (idx >= 0) {
+          this.removeTerm(idx);
+          idx--;
+        }
       }
     });
   }
@@ -30,7 +40,12 @@ export default class EmberNodeAffinityPo extends IframeComponentPo {
     return cy.getIframeBody().find(`${ this.selector } [data-testid="button-add-node-selector"]`).click();
   }
 
+  // pod affinity po extends node affinity and adds a few fields in addition to _editTerms
   editTerm(termData: any, idx: number) {
+    return this._editTerm(termData, idx);
+  }
+
+  _editTerm(termData: any, idx: number) {
     const term = this.findTerm(idx);
 
     term.priority().clickOption(termData.priority);
