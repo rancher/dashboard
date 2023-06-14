@@ -3,7 +3,6 @@ import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
 import CreateKeyPagePo from '@/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { gte } from 'cypress/types/lodash';
 
 const userMenu = new UserMenuPo();
 const accountPage = new AccountPagePo();
