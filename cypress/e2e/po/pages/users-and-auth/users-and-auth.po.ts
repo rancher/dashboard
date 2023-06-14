@@ -7,14 +7,16 @@ import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
 
 export default class UsersAndAuthPo extends PagePo {
-  static url: string = '/c/_/auth/management.cattle.io.user'
-
-  static goTo(): Cypress.Chainable {
-    return super.goTo(UsersAndAuthPo.url);
+  private static createPath(clusterId: string, resource: string) {
+    return `/c/${ clusterId }/auth/${ resource }`;
   }
 
-  constructor(url: string) {
-    super(url || UsersAndAuthPo.url);
+  static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
+    throw new Error('invalid');
+  }
+
+  constructor(clusterId: string = '_', resource: string = 'management.cattle.io.user') {
+    super(UsersAndAuthPo.createPath(clusterId, resource));
   }
 
   listCreate() {

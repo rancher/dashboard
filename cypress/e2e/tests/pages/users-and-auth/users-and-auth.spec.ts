@@ -14,8 +14,8 @@ const standardPassword = 'standard-password';
 
 describe('Users and Authentication', () => {
   it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
-    const userRoles = new UsersAndAuthPo('/c/_/auth/roles');
-    const usersAdmin = new UsersAndAuthPo('/c/_/auth/management.cattle.io.user');
+    const userRoles = new UsersAndAuthPo('_', 'roles');
+    const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
 
     // last API call on the user creation process (with global role assignment)
     cy.intercept('GET', '/v1/management.cattle.io.globalrolebindings').as('globalRoleBindingCreated');
