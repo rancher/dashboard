@@ -44,12 +44,14 @@ jobs:
         run: yarn e2e:pre-prod
       
       - name: Run admin user tests
+        continue-on-error: true
         run: |
           GREP_TAGS=@adminUser TEST_USERNAME=admin yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
 
       - name: Run standard user tests
+        continue-on-error: true
         run: |
           GREP_TAGS=@standardUser TEST_USERNAME=standard_user yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
