@@ -595,6 +595,7 @@ $spacer: 10px;
         display: flex;
         align-items: center;
         justify-content: space-evenly;
+        position: relative;
 
         & > .subtitle {
           margin-right: 20px;
