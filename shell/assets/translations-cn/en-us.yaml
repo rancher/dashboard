@@ -1425,7 +1425,7 @@ cluster:
         placeholder: System image
       internetMaxBandwidth:
         label: Internet Max Bandwidth
-        placeholder: 1 to 200
+        placeholder: 1 to 100
         suffix: Mbps
       aliyunSLB:
         label: Aliyun SLB ID

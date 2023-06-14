@@ -223,6 +223,8 @@ export default {
       dataDiskCategories:     null,
       periodUnit:             null,
       spotDuration:           true,
+      imageType:              null,
+      imageVersionChoose:     [],
     };
   },
 
@@ -354,9 +356,25 @@ export default {
         this[k] = res[k];
       }
 
-      if (!this.value?.imageId || !findBy(this.imageOptions, 'value', this.value.imageId )) {
-        this.value.imageId = this.imageOptions?.[0]?.value;
+      let imageType = this.imageType;
+      let imageVersionChoose = this.imageVersionChoose;
+
+      if (!this.value?.imageId) {
+        imageType = imageType || this.imageTypeChoose?.[0]?.value;
+        imageVersionChoose = this.groupImages?.[imageType] || [] ;
+        this.value.imageId = imageVersionChoose?.[0].value;
+      } else {
+        const found = findBy(this.images, 'ImageId', this.value.imageId);
+
+        if (found) {
+          imageType = found?.Platform;
+          imageVersionChoose = this.groupImages?.[imageType] || [] ;
+        }
       }
+
+      this.imageType = imageType;
+      this.imageVersionChoose = imageVersionChoose;
+
       if (!this.value?.systemDiskCategory || !findBy(this.systemDiskCategoryOptions, 'value', this.value.systemDiskCategory )) {
         this.value.systemDiskCategory = this.systemDiskCategoryOptions?.[0]?.value;
       }
@@ -473,6 +491,17 @@ export default {
 
         return h;
       });
+    },
+
+    imageTypeChanged(val) {
+      let imageVersionChoose = [];
+
+      if (val && this.groupImages) {
+        imageVersionChoose = this.groupImages[val];
+      }
+
+      this.imageVersionChoose = imageVersionChoose;
+      this.value.imageId = imageVersionChoose.length ? imageVersionChoose[0]?.value : '';
     },
   },
 
@@ -608,15 +637,32 @@ export default {
 
       return out;
     },
-    imageOptions() {
+    groupImages() {
       if ( !this.images ) {
         return [];
       }
 
-      return this.images.map((obj) => {
-        return {
+      const out = {};
+
+      this.images.forEach((obj) => {
+        if (!out[obj.Platform]) {
+          out[obj.Platform] = [];
+        }
+
+        out[obj.Platform].push({
           label: obj.ImageOwnerAlias === 'system' ? obj.OSName : obj.ImageName,
           value: obj.ImageId,
+          raw:   obj,
+        });
+      });
+
+      return out;
+    },
+    imageTypeChoose() {
+      return Object.keys(this.groupImages).map((key) => {
+        return {
+          label: key,
+          value: key
         };
       });
     },
@@ -853,28 +899,27 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
-            v-model="value.imageId"
+            v-model="imageType"
             :mode="mode"
-            :options="imageOptions"
+            :options="imageTypeChoose"
             :required="true"
             :searchable="true"
             :disabled="disabled"
             :label="t('cluster.machineConfig.aliyunecs.imageId.label')"
             :placeholder="t('cluster.machineConfig.aliyunecs.imageId.placeholder')"
+            @input="imageTypeChanged"
           />
         </div>
         <div class="col span-6">
-          <UnitInput
-            v-model="value.internetMaxBandwidth"
-            output-as="string"
+          <LabeledSelect
+            v-model="value.imageId"
             :mode="mode"
+            :options="imageVersionChoose"
+            :required="true"
+            :searchable="true"
             :disabled="disabled"
-            :min="1"
-            :max="200"
-            :label="t('cluster.machineConfig.aliyunecs.internetMaxBandwidth.label')"
-            :placeholder="t('cluster.machineConfig.aliyunecs.internetMaxBandwidth.placeholder')"
-            :suffix="t('cluster.machineConfig.aliyunecs.internetMaxBandwidth.suffix')"
-            @input="unitInputRangeLimit(1, 200, 'internetMaxBandwidth')"
+            :label="t('cluster.machineConfig.aliyunecs.imageId.label')"
+            :placeholder="t('cluster.machineConfig.aliyunecs.imageId.placeholder')"
           />
         </div>
       </div>
@@ -903,6 +948,23 @@ export default {
             :placeholder="t('cluster.machineConfig.aliyunecs.systemDiskSize.placeholder', {min: systemDiskCategorySize.Min, max: systemDiskCategorySize.Max})"
             :suffix="t('cluster.machineConfig.aliyunecs.systemDiskSize.suffix')"
             @input="unitInputRangeLimit(20, 500, 'systemDiskSize')"
+          />
+        </div>
+      </div>
+
+      <div class="row mb-20">
+        <div class="col span-6">
+          <UnitInput
+            v-model="value.internetMaxBandwidth"
+            output-as="string"
+            :mode="mode"
+            :disabled="disabled"
+            :min="1"
+            :max="100"
+            :label="t('cluster.machineConfig.aliyunecs.internetMaxBandwidth.label')"
+            :placeholder="t('cluster.machineConfig.aliyunecs.internetMaxBandwidth.placeholder')"
+            :suffix="t('cluster.machineConfig.aliyunecs.internetMaxBandwidth.suffix')"
+            @input="unitInputRangeLimit(1, 100, 'internetMaxBandwidth')"
           />
         </div>
       </div>

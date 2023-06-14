@@ -1432,7 +1432,7 @@ cluster:
         placeholder: 系統鏡像
       internetMaxBandwidth:
         label: 最大網絡帶寬
-        placeholder: 1到200
+        placeholder: 1到100
         suffix: Mbps
       aliyunSLB:
         label: 阿里雲SLB ID
