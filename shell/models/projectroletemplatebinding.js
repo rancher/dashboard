@@ -18,6 +18,12 @@ export default class PRTB extends NormanModel {
     return this.$rootGetters['management/byId'](MANAGEMENT.ROLE_TEMPLATE, this.roleTemplateId);
   }
 
+  get isCurrentUser() {
+    const out = this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userId);
+
+    return !!out?.isCurrentUser;
+  }
+
   get steve() {
     return this.$dispatch(`management/find`, {
       type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,

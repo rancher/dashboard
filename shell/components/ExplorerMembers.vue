@@ -105,6 +105,7 @@ export default {
           cluster: this.$store.getters['currentCluster'].id
         }
       },
+      currentUsersProjectPermissions:    {},
       resource:                          MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       normanClusterRTBSchema:            null,
       normanProjectRTBSchema:            null,
@@ -198,7 +199,7 @@ export default {
       // We need to group each of the TemplateRoleBindings by the user + project
       const userRoles = [...fakeRows, ...this.filteredProjectRoleTemplateBindings].reduce((rows, curr) => {
         const {
-          userId, groupPrincipalId, roleTemplate, projectId
+          userId, groupPrincipalId, roleTemplate, projectId, isCurrentUser
         } = curr;
 
         const userOrGroup = userId || groupPrincipalId;
@@ -215,6 +216,47 @@ export default {
         }
 
         if (roleTemplate) {
+          // we're already looping through each roleTemplate, might as well isolate the ones that belong to the current user and make them easy to find against the project
+          if (isCurrentUser) {
+            const { rules } = roleTemplate;
+            const reducedRules = this.currentUsersProjectPermissions[curr.projectId] ? this.currentUsersProjectPermissions[curr.projectId] : {};
+            const rulesReduced = rules.reduce((apiGroupMap, rule) => {
+              return {
+                ...apiGroupMap,
+                ...(rule?.apiGroups || []).reduce((apiGroups, apiGroup) => {
+                  return {
+                    ...apiGroups,
+                    [apiGroup]: {
+                      ...apiGroupMap[apiGroup],
+                      ...(rule?.resources || []).reduce((resources, resource) => {
+                        return {
+                          ...resources,
+                          [resource]: [
+                            ...(resources[resource] || []),
+                            ...(rule?.verbs || []).reduce((verbs, verb) => {
+                              const reducedRulesVerbs = (reducedRules?.[apiGroup]?.[resource] ? reducedRules[apiGroup][resource] : []);
+                              const filteredVerbs = verbs.filter(unfilteredVerb => !reducedRulesVerbs.includes(unfilteredVerb));
+
+                              return [
+                                ...reducedRulesVerbs,
+                                ...filteredVerbs,
+                                ...([...reducedRulesVerbs, ...filteredVerbs].includes(verb) ? [] : [verb])
+                              ];
+                            }, [])
+                          ]
+                        };
+                      }, {})
+                    }
+                  };
+                }, {})
+              };
+            }, {});
+
+            this.currentUsersProjectPermissions[curr.projectId] = {
+              ...reducedRules,
+              ...rulesReduced
+            };
+          }
           rows[userOrGroupKey].allRoles.push(curr.roleTemplate);
         }
 
@@ -261,6 +303,14 @@ export default {
     },
     getProjectLabel(group) {
       return this.getMgmtProject(group)?.spec?.displayName;
+    },
+    getProjectPermissions(projectId) {
+      return this.currentUsersProjectPermissions[projectId] || {};
+    },
+    getManageProjectMembersPermission(projectId) {
+      const projectRoleTemplateBindingPermissions = this.getProjectPermissions(projectId)?.['management.cattle.io']?.['projectroletemplatebindings'];
+
+      return projectRoleTemplateBindingPermissions.some(verb => ['*', 'own', 'create'].includes(verb));
     },
     addProjectMember(group) {
       this.$store.dispatch('cluster/promptModal', {
@@ -374,7 +424,7 @@ export default {
               </div>
               <div class="right">
                 <button
-                  v-if="canManageProjectMembers"
+                  v-if="getManageProjectMembersPermission(group.group.key)"
                   type="button"
                   class="create-namespace btn btn-sm role-secondary mr-10 right"
                   @click="addProjectMember(group)"
@@ -403,6 +453,7 @@ export default {
                 {{ role.nameDisplay }}
               </span>
               <i
+                v-if="getManageProjectMembersPermission(row.projectId)"
                 class="icon icon-close"
                 :data-testid="`role-values-close-${j}`"
                 @click="removeRole(row, role, $event)"
