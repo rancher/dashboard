@@ -99,6 +99,7 @@ describe('Cluster Manager', () => {
 
       it('can delete cluster', () => {
         clusterList.goTo();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
         const promptRemove = new PromptRemove();
@@ -142,9 +143,8 @@ describe('Cluster Manager', () => {
       });
 
       it('can delete cluster by bulk actions', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ importGenericName }`).as('deleteRequest');
-
         clusterList.goTo();
+        clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', { timeout: 15000 });
         clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
