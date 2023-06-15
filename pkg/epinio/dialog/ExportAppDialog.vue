@@ -3,6 +3,9 @@ import GenericPrompt from '@shell/dialog/GenericPrompt';
 import Banner from '@components/Banner/Banner.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
+import { APPLICATION_PARTS } from '../types';
+import JSZip from 'jszip';
+import { downloadFile } from '@shell/utils/download';
 
 export default {
   name:       'ExportAppDialog',
@@ -17,14 +20,61 @@ export default {
     }
   },
   data() {
-    return {};
+    return {
+      config: {
+        title:       this.t('promptRemove.title'),
+        applyMode:   'export',
+        applyAction: this.exportApplicationManifest,
+      }
+    };
   },
+
+  methods: {
+    async exportApplicationManifest() {
+      const resource = this.resources[0];
+      const appPartsData = resource?.applicationParts.reduce((accumulator, currentValue) => {
+        accumulator[currentValue] = {};
+
+        return accumulator;
+      }, {});
+
+      const chartZip = async(files) => {
+        const zip = new JSZip();
+
+        for (const fileName in files) {
+          const extension = {
+            [APPLICATION_PARTS.VALUES]: 'yml',
+            [APPLICATION_PARTS.CHART]:  'tar.gz',
+            [APPLICATION_PARTS.IMAGE]:  'tar',
+          };
+
+          zip.file(`${ fileName }.${ extension[fileName] }`, files[fileName]);
+        }
+
+        const contents = await zip.generateAsync({ type: 'blob' });
+
+        await downloadFile(`${ resource.meta.name }-helm-chart.zip`, contents, 'application/zip');
+      };
+
+      if (this.$route.hash === '#manifest') {
+        await resource.createManifest();
+      } else {
+        await Promise.all(resource?.applicationParts.map(async(part) => {
+          const data = await resource.fetchPart(part);
+
+          appPartsData[part] = data;
+        }));
+
+        await chartZip(appPartsData);
+      }
+    }
+  }
 };
 </script>
 
 <template>
   <GenericPrompt
-    :resources="resources"
+    v-bind="config"
     @close="$emit('close')"
   >
     <h4
