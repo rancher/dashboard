@@ -32,18 +32,13 @@ export default {
   methods: {
     async exportApplicationManifest() {
       const resource = this.resources[0];
-      const appPartsData = resource?.applicationParts.reduce((accumulator, currentValue) => {
-        accumulator[currentValue] = {};
-
-        return accumulator;
-      }, {});
 
       const chartZip = async(files) => {
         const zip = new JSZip();
 
         for (const fileName in files) {
           const extension = {
-            [APPLICATION_PARTS.VALUES]: 'yml',
+            [APPLICATION_PARTS.VALUES]: 'yaml',
             [APPLICATION_PARTS.CHART]:  'tar.gz',
             [APPLICATION_PARTS.IMAGE]:  'tar',
           };
@@ -59,13 +54,13 @@ export default {
       if (this.$route.hash === '#manifest') {
         await resource.createManifest();
       } else {
-        await Promise.all(resource?.applicationParts.map(async(part) => {
-          const data = await resource.fetchPart(part);
+        const partsData = await resource?.applicationParts
+          .reduce(async(acc, part) => ({
+            ...await acc,
+            [part]: await resource.fetchPart(part),
+          }), Promise.resolve({}));
 
-          appPartsData[part] = data;
-        }));
-
-        await chartZip(appPartsData);
+        await chartZip(partsData);
       }
     }
   }
