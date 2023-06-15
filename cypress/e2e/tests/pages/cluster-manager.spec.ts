@@ -55,22 +55,18 @@ describe('Cluster Manager', () => {
       });
 
       it('can edit cluster and see changes afterwards', () => {
-        cy.intercept('PUT', `${ clusterRequestBase }/${ rke2CustomName }`).as('saveRequest');
-
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
         editCreatedClusterPage.waitForPage('mode=edit', 'basic');
         editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
-        editCreatedClusterPage.save();
+        editCreatedClusterPage.saveAndWait();
 
-        cy.wait('@saveRequest').then(() => {
-          clusterList.goTo();
-          clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
-          editCreatedClusterPage.waitForPage('mode=edit', 'basic');
-          editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
-        });
+        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
       });
 
       it('can view cluster YAML editor', () => {
