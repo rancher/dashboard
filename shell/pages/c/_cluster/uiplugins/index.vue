@@ -369,6 +369,7 @@ export default {
           plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;
         }
 
+        // check if kube version compatibility is met for installed extension
         if (plugin.uiplugin) {
           const versionInstalled = plugin.uiplugin.spec?.plugin?.version;
           const versionInstalledData = plugin.versions.find((v) => v.version === versionInstalled);
