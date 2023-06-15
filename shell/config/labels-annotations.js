@@ -97,6 +97,8 @@ export const CATALOG = {
 
   MIGRATED: 'apps.cattle.io/migrated',
   MANAGED:  'catalog.cattle.io/managed',
+
+  HIDDEN_REPO: 'clusterrepo.cattle.io/hidden'
 };
 
 export const FLEET = {
