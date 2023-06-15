@@ -98,8 +98,6 @@ describe('Cluster Manager', () => {
       });
 
       it('can delete cluster', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ rke2CustomName }`).as('deleteRequest');
-
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
@@ -107,10 +105,10 @@ describe('Cluster Manager', () => {
 
         promptRemove.confirm(rke2CustomName);
         promptRemove.remove();
+        promptRemove.checkNotVisible();
 
-        cy.wait('@deleteRequest').then(() => {
-          return clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist', { timeout: 15000 });
-        });
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist', { timeout: 15000 });
       });
     });
   });
@@ -155,10 +153,10 @@ describe('Cluster Manager', () => {
 
         promptRemove.confirm(importGenericName);
         promptRemove.remove();
+        promptRemove.checkNotVisible();
 
-        cy.wait('@deleteRequest').then(() => {
-          return clusterList.sortableTable().rowElementWithName(importGenericName).should('not.exist', { timeout: 15000 });
-        });
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(importGenericName).should('not.exist', { timeout: 15000 });
       });
     });
   });

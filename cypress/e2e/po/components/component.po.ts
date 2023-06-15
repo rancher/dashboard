@@ -36,4 +36,8 @@ export default class ComponentPo {
   checkVisible(): Cypress.Chainable<boolean> {
     return this.self().scrollIntoView().should('be.visible');
   }
+
+  checkNotVisible(): Cypress.Chainable<boolean> {
+    return this.self().scrollIntoView().should('not.be.visible');
+  }  
 }
