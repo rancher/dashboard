@@ -15,7 +15,6 @@ const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 
 // File specific consts
-const { baseUrl } = Cypress.config();
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
