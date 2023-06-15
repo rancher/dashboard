@@ -9,6 +9,14 @@ export default class PagePo extends ComponentPo {
     return cy.visit(path);
   }
 
+  static goToAndWaitForCounts(goTo: () => Cypress.Chainable) {
+    cy.intercept('GET', '/v1/counts').as('counts');
+
+    goTo();
+
+    cy.wait(['@counts'], { timeout: 10000 });
+  }
+
   goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(this.path);
   }
