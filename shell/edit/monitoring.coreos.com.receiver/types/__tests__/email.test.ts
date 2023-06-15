@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import Email from '@shell/edit/monitoring.coreos.com.receiver/types/email.vue';
 
 describe('page: Routes and Receivers', () => {
-  it('email should have host and port fields', () => {
+  it('should have host field with a valid integer value under Email form', () => {
     const wrapper = mount(Email, {
       propsData: {
         mode:  'create',
@@ -20,12 +20,12 @@ describe('page: Routes and Receivers', () => {
     });
 
     const host = wrapper.find('[data-testid="input-email-host"]');
-    const port = wrapper.find('[data-testid="input-email-port"]');
+    host.setValue('10.2.300.3');
 
     expect(host.exists()).toBe(true);
-    expect(port.exists()).toBe(true);
+    expect(host.element.value).toStrictEqual('10.2.300.3');
   });
-  it('email host and posrt field should have value to a valid integer', () => {
+  it('should have port field with a valid integer value under Email form', () => {
     const wrapper = mount(Email, {
       propsData: {
         mode:  'create',
@@ -41,14 +41,11 @@ describe('page: Routes and Receivers', () => {
         }
       },
     });
-
-    const host = wrapper.find('[data-testid="input-email-host"]');
+  
     const port = wrapper.find('[data-testid="input-email-port"]');
-
-    host.setValue('10.2.300.3');
     port.setValue('8080');
 
-    expect(host.element.value).toStrictEqual('10.2.300.3');
+    expect(port.exists()).toBe(true);
     expect(port.element.value).toStrictEqual('8080');
   });
 });
