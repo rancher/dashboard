@@ -4,7 +4,7 @@ import { mapGetters } from 'vuex';
 import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
-import { CATALOG, UI_PLUGIN, SERVICE } from '@shell/config/types';
+import { CATALOG, UI_PLUGIN, SERVICE, MANAGEMENT } from '@shell/config/types';
 import { getVersionData } from '@shell/config/version';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
@@ -36,6 +36,13 @@ import {
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
+const TABS_VALUES = {
+  INSTALLED: 'installed',
+  UPDATES:   'updates',
+  AVAILABLE: 'available',
+  ALL:       'all'
+};
+
 export default {
   components: {
     ActionMenu,
@@ -56,12 +63,14 @@ export default {
 
   data() {
     return {
+      TABS_VALUES,
       view:              '',
       charts:            [],
       installing:        {},
       errors:            {},
       plugins:           [], // The installed plugins
       helmOps:           [], // Helm operations
+      kubeVersion:       null,
       loading:           true,
       menuTargetElement: null,
       menuTargetEvent:   null,
@@ -89,6 +98,10 @@ export default {
 
     hash.load = await this.$store.dispatch('catalog/load', { reset: true });
 
+    if (this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER)) {
+      hash.localCluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
+    }
+
     if (this.$store.getters['management/schemaFor'](CATALOG.OPERATION)) {
       hash.helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
     }
@@ -101,6 +114,7 @@ export default {
 
     this.plugins = res.plugins || [];
     this.helmOps = res.helmOps || [];
+    this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
 
     const c = this.$store.getters['catalog/rawCharts'];
 
@@ -108,7 +122,7 @@ export default {
 
     // If there are no plugins installed, default to the catalog view
     if (this.plugins.length === 0) {
-      this.$refs.tabs?.select('available');
+      this.$refs.tabs?.select(TABS_VALUES.AVAILABLE);
     }
 
     this.loading = false;
@@ -174,11 +188,11 @@ export default {
       const all = this.available;
 
       switch (this.view) {
-      case 'installed':
+      case TABS_VALUES.INSTALLED:
         return all.filter((p) => !!p.installed || !!p.installing);
-      case 'updates':
+      case TABS_VALUES.UPDATES:
         return this.updates;
-      case 'available':
+      case TABS_VALUES.AVAILABLE:
         return all.filter((p) => !p.installed);
       default:
         return all;
@@ -223,24 +237,32 @@ export default {
         item.chart = chart;
 
         // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion(version) && isChartVersionAvailableForInstall(version, this.rancherVersion));
+        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion({ version, kubeVersion: this.kubeVersion }) && isChartVersionAvailableForInstall({
+          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+        }));
 
         // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map((version) => isChartVersionAvailableForInstall(version, this.rancherVersion, true));
+        item.versions = item.versions.map((version) => isChartVersionAvailableForInstall({
+          version, rancherVersion: this.rancherVersion, kubeVersion: this.kubeVersion
+        }, true));
 
         const latestCompatible = item.installableVersions?.[0];
-        const latestNotCompatible = item.versions.find((version) => !version.isCompatibleWithUi);
+        const latestNotCompatible = item.versions.find((version) => !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion);
 
         if (latestCompatible) {
           item.displayVersion = latestCompatible.version;
           item.icon = latestCompatible.icon;
         } else {
           item.displayVersion = item.versions?.[0]?.version;
-          item.icon = chart.icon || latestCompatible.annotations['catalog.cattle.io/ui-icon'];
+          item.icon = chart.icon || latestCompatible?.annotations?.['catalog.cattle.io/ui-icon'];
         }
 
         if (latestNotCompatible && item.installableVersions.length && isChartVersionHigher(latestNotCompatible.version, item.installableVersions?.[0].version)) {
-          item.incompatibleDisclaimer = this.t('plugins.incompatibleDisclaimer', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
+          if (!item.isCompatibleWithUi) {
+            item.incompatibleRancherVersion = this.t('plugins.incompatibleRancherVersion', { version: latestNotCompatible.version, rancherVersion: latestNotCompatible.requiredUiVersion }, true);
+          } else if (!item.isCompatibleWithKubeVersion) {
+            item.incompatibleKubeVersion = this.t('plugins.incompatibleKubeVersion', { version: latestNotCompatible.version, kubeVersion: latestNotCompatible.requiredKubeVersion }, true);
+          }
         }
 
         if (this.installing[item.name]) {
@@ -341,10 +363,23 @@ export default {
         }
       });
 
-      // Clamp the lengths of the descriptions
-      all.forEach((plugin) => {
+      all.forEach((plugin, i) => {
+        // Clamp the lengths of the descriptions
         if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
           plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;
+        }
+
+        if (plugin.uiplugin) {
+          const versionInstalled = plugin.uiplugin.spec?.plugin?.version;
+          const versionInstalledData = plugin.versions.find((v) => v.version === versionInstalled);
+
+          if (versionInstalledData) {
+            const kubeVersionToCheck = versionInstalledData.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+
+            if (this.kubeVersion && !isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion })) {
+              plugin.installedError = this.t('plugins.currentInstalledVersionBlockedByKubeVersion', { kubeVersion: this.kubeVersion, kubeVersionToCheck }, true);
+            }
+          }
         }
       });
 
@@ -514,7 +549,7 @@ export default {
     didInstall(plugin) {
       if (plugin) {
         // Change the view to installed if we started installing a plugin
-        this.$refs.tabs?.select('installed');
+        this.$refs.tabs?.select(TABS_VALUES.INSTALLED);
 
         // Clear the load error, if there was one previously
         this.$store.dispatch('uiplugins/setError', { name: plugin.name, error: false });
@@ -674,25 +709,25 @@ export default {
           @changed="filterChanged"
         >
           <Tab
-            name="installed"
+            :name="TABS_VALUES.INSTALLED"
             data-testid="extension-tab-installed"
             label-key="plugins.tabs.installed"
             :weight="20"
           />
           <Tab
-            name="available"
+            :name="TABS_VALUES.AVAILABLE"
             data-testid="extension-tab-available"
             label-key="plugins.tabs.available"
             :weight="19"
           />
           <Tab
-            name="updates"
+            :name="TABS_VALUES.UPDATES"
             label-key="plugins.tabs.updates"
             :weight="18"
             :badge="updates.length"
           />
           <Tab
-            name="all"
+            :name="TABS_VALUES.ALL"
             label-key="plugins.tabs.all"
             :weight="17"
           />
@@ -767,9 +802,20 @@ export default {
                         v-clean-tooltip="t('plugins.upgradeAvailable')"
                       > -> {{ plugin.upgrade }}</span>
                       <p
-                        v-if="plugin.incompatibleDisclaimer"
+                        v-if="plugin.installedError"
                         class="incompatible"
-                      >{{ plugin.incompatibleDisclaimer }}</p>
+                      >
+                        <i class="icon icon-warning icon-lg text-warning" />
+                        <span>{{ plugin.installedError }}</span>
+                      </p>
+                      <p
+                        v-else-if="plugin.incompatibleRancherVersion"
+                        class="incompatible"
+                      >{{ plugin.incompatibleRancherVersion }}</p>
+                      <p
+                        v-else-if="plugin.incompatibleKubeVersion"
+                        class="incompatible"
+                      >{{ plugin.incompatibleKubeVersion }}</p>
                     </span>
                   </div>
                   <!-- plugin badges -->
@@ -863,7 +909,7 @@ export default {
                       </button>
                     </div>
                     <div
-                      v-else
+                      v-else-if="plugin.installableVersions && plugin.installableVersions.length"
                       class="plugin-buttons"
                     >
                       <button

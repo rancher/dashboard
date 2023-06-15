@@ -3989,7 +3989,9 @@ inactivity:
 
 # Rancher Extensions
 plugins:
-  incompatibleDisclaimer: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
+  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
+  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion })."
+  currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -4026,7 +4028,8 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
-    requiresVersion: "Requires Rancher {version}"
+    requiresRancherVersion: "Requires Rancher {version}"
+    requiresKubeVersion: "Requires Kube version {version}"
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available
