@@ -39,5 +39,5 @@ export default class ComponentPo {
 
   checkNotVisible(): Cypress.Chainable<boolean> {
     return this.self().scrollIntoView().should('not.be.visible');
-  }  
+  }
 }
