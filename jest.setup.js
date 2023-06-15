@@ -3,6 +3,7 @@ import { directiveSsr as t } from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import VModal from 'vue-js-modal';
 import vSelect from 'vue-select';
+import '@shell/plugins/clean-tooltip-directive';
 
 import Vue from 'vue';
 
