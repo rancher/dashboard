@@ -60,9 +60,11 @@ describe('Cluster Manager', () => {
 
         editCreatedClusterPage.waitForPage('mode=edit', 'basic');
         editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
-        editCreatedClusterPage.saveAndWait();
+        editCreatedClusterPage.save();
 
-        clusterList.goTo();
+        // We should be taken back to the list page if the save was successful
+        clusterList.waitForPage();
+
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
         editCreatedClusterPage.waitForPage('mode=edit', 'basic');
