@@ -20,6 +20,7 @@ describe('page: Routes and Receivers', () => {
     });
 
     const host = wrapper.find('[data-testid="input-email-host"]');
+
     host.setValue('10.2.300.3');
 
     expect(host.exists()).toBe(true);
@@ -41,8 +42,9 @@ describe('page: Routes and Receivers', () => {
         }
       },
     });
-  
+
     const port = wrapper.find('[data-testid="input-email-port"]');
+
     port.setValue('8080');
 
     expect(port.exists()).toBe(true);
