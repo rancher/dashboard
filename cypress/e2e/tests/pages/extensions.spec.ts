@@ -2,7 +2,7 @@ import ExtensionsPo from '@/cypress/e2e/po/pages/extensions.po';
 
 const extensionName = 'clock';
 
-describe('Extensions page', () => {
+describe('Extensions page', { tags: '@adminUser' }, () => {
   before(() => {
     cy.login();
 

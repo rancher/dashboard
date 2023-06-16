@@ -16,14 +16,14 @@ const bannerGraphic = new BannerGraphicPo();
 const banners = new BannersPo();
 const sortableTable = new SortableTablePo('.dashboard-root');
 
-describe('User can perform actions on the Home Page', () => {
+describe('Home Page', () => {
   beforeEach(() => {
     cy.login();
 
     HomePagePo.goToAndWaitForGet();
   });
 
-  it('Can navigate to What\'s new page', () => {
+  it('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Click link on home page and verify user lands on What's new page
      * Verify contents of What's new page
@@ -53,7 +53,7 @@ describe('User can perform actions on the Home Page', () => {
     banners.changelog().should('not.exist');
   });
 
-  it('Can navigate to Preferences page', () => {
+  it('Can navigate to Preferences page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Click link and verify user lands on preferences page
      */
@@ -65,7 +65,7 @@ describe('User can perform actions on the Home Page', () => {
     prefPage.title();
   });
 
-  it('Can restore hidden cards', () => {
+  it('Can restore hidden cards', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Hide home page banners
      * Click the restore link
@@ -88,7 +88,7 @@ describe('User can perform actions on the Home Page', () => {
     banners.getLoginPageBanner().should('be.visible');
   });
 
-  it('Can see that cluster details match those in Cluster Manangement page', () => {
+  it('Can see that cluster details match those in Cluster Manangement page', { tags: '@adminUser' }, () => {
     /**
      * Get cluster details from the Home page
      * Verify that the cluster details match those on the Cluster Management page
@@ -131,7 +131,7 @@ describe('User can perform actions on the Home Page', () => {
     });
   });
 
-  it('Can use the Manage, Import Existing, and Create buttons', () => {
+  it('Can use the Manage, Import Existing, and Create buttons', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Click 'Manage' button and verify user lands on the Cluster Management page
      * Click on the Import Existing button and verify user lands on the cluster creation page in import mode
@@ -152,7 +152,7 @@ describe('User can perform actions on the Home Page', () => {
     genericCreateClusterPage.waitForPage();
   });
 
-  it('Can filter rows in the cluster list', () => {
+  it('Can filter rows in the cluster list', { tags: '@adminUser' }, () => {
     /**
      * Filter rows in the cluster list
      */
@@ -168,7 +168,7 @@ describe('User can perform actions on the Home Page', () => {
     });
   });
 
-  it('Can click on support links', () => {
+  it('Can click on support links', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Click the support links and verify user lands on the correct page
      */

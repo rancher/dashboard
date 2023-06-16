@@ -8,7 +8,7 @@ import {
 } from '@/cypress/e2e/tests/pages/data/agent-configuration-rke2-data';
 import { payloadComparisonData } from '@/cypress/e2e/tests/pages/data/agent-configuration-rke2-payload';
 
-describe('Agent Configuration for RKE2', () => {
+describe('Agent Configuration for RKE2', { tags: '@adminUser' }, () => {
   beforeEach(() => {
     cy.login();
   });

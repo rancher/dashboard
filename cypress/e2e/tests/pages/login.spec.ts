@@ -1,6 +1,6 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
-describe('Local authentication', () => {
+describe('Local authentication', { tags: ['@adminUser', '@standardUser'] }, () => {
   it('Log in with valid credentials', () => {
     LoginPagePo.goTo();
     cy.intercept('POST', '/v3-public/localProviders/local*').as('loginReq');
