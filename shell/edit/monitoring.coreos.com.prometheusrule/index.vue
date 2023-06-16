@@ -43,7 +43,7 @@ export default {
 
   data() {
     return {
-      fvFormRuleSets: [{ path: 'metadata.name', rules: ['dnsLabel'] }],
+      fvFormRuleSets:      [{ path: 'metadata.name', rules: ['dnsLabel'] }],
       closedErrorMessages: []
     };
   },
