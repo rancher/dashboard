@@ -675,8 +675,8 @@ export default {
             />
             <TextAreaAutoGrow
               v-else-if="valueMultiline"
-              data-testid="value-multiline"
               v-model="row[valueName]"
+              data-testid="value-multiline"
               :class="{'conceal': valueConcealed}"
               :disabled="disabled || isProtected(row.key)"
               :mode="mode"

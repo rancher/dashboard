@@ -32,18 +32,25 @@ describe('component: KeyValue', () => {
     expect(inputFieldTextArea).toBeUndefined();
     expect(inputFieldMultiline).toBeDefined();
   });
-  it('should have new lines in textarea', async () => {
+
+  it('should have new lines in textarea', async() => {
     const wrapper = mount(KeyValue, {
       propsData: {
-        value:                  'test',
+        value:                  { foo: 'bar' },
         valueMarkdownMultiline: false,
       },
       mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
       directives: { t }
     });
-    const inputFieldTextArea = wrapper.find('[data-testid="value-multiline"]');
-  
+
+    const inputFieldTextArea = wrapper.find('[data-testid="text-area-auto-grow"]');
+
+    inputFieldTextArea.setValue('bar\n');
+
     await inputFieldTextArea.trigger('keydown.enter');
-    expect(inputFieldTextArea.element.value).toStrictEqual('/n');
+
+    const textArea = inputFieldTextArea.element as HTMLTextAreaElement;
+
+    expect(textArea.value).toBe('bar\n');
   });
 });
