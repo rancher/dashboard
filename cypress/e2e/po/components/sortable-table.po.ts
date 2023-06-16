@@ -60,7 +60,7 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   rowElements() {
-    return this.self().find('tbody tr.main-row');
+    return this.self().find('tbody tr:not(.sub-row)');
   }
 
   rowElementWithName(name: string) {
