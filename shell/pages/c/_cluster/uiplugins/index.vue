@@ -363,7 +363,7 @@ export default {
         }
       });
 
-      all.forEach((plugin, i) => {
+      all.forEach((plugin) => {
         // Clamp the lengths of the descriptions
         if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
           plugin.description = `${ plugin.description.substr(0, MAX_DESCRIPTION_LENGTH) } ...`;

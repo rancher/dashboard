@@ -115,6 +115,10 @@ export default {
       }
 
       return '';
+    },
+
+    handleVersionBtnClass(version) {
+      return { 'version-active': version.version === this.infoVersion, disabled: !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion };
     }
   }
 };
@@ -220,7 +224,7 @@ export default {
             <a
               v-clean-tooltip="handleVersionBtnTooltip(v)"
               class="version-link"
-              :class="{'version-active': v.version === infoVersion, 'disabled': !v.isCompatibleWithUi || !v.isCompatibleWithKubeVersion}"
+              :class="handleVersionBtnClass(v)"
               @click="loadPluginVersionInfo(v.version)"
             >
               {{ v.version }}
