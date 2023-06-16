@@ -42,7 +42,10 @@ export default {
   },
 
   data() {
-    return { fvFormRuleSets: [{ path: 'metadata.name', rules: ['dnsLabel'] }] };
+    return {
+      fvFormRuleSets: [{ path: 'metadata.name', rules: ['dnsLabel'] }],
+      closedErrorMessages: []
+    };
   },
 
   computed: {
@@ -54,7 +57,7 @@ export default {
         return [this.t('validation.prometheusRule.noEdit')];
       }
 
-      return this.fvUnreportedValidationErrors;
+      return this.fvUnreportedValidationErrors.filter(e => !this.closedErrorMessages.includes(e));
     }
   },
 
@@ -125,7 +128,7 @@ export default {
     :mode="mode"
     :resource="value"
     :validation-passed="fvFormIsValid"
-    @error="(e) => (errors = e)"
+    @error="(_, closedError) => closedErrorMessages.push(closedError)"
     @finish="save"
   >
     <div class="row">
