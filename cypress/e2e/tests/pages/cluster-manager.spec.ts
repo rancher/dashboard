@@ -99,14 +99,14 @@ describe('Cluster Manager', () => {
         clusterList.goTo();
         clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
-        
+
         clusterList.sortableTable().rowNames().then((rows: any) => {
           const promptRemove = new PromptRemove();
 
           promptRemove.confirm(rke2CustomName);
           promptRemove.remove();
 
-          clusterList.waitForPage()
+          clusterList.waitForPage();
           clusterList.sortableTable().checkRowCount(false, rows.length - 1);
           clusterList.sortableTable().rowNames().should('not.contain', rke2CustomName);
         });
@@ -155,7 +155,7 @@ describe('Cluster Manager', () => {
           promptRemove.confirm(importGenericName);
           promptRemove.remove();
 
-          clusterList.waitForPage()
+          clusterList.waitForPage();
           clusterList.sortableTable().checkRowCount(false, rows.length - 1);
           clusterList.sortableTable().rowNames().should('not.contain', importGenericName);
         });

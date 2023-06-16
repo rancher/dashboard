@@ -78,10 +78,8 @@ export default class SortableTablePo extends ComponentPo {
   rowNames() {
     return this.rowElements().find('.cluster-link').then(($els: any) => {
       return (
-        Cypress.$.makeArray($els)
-          // and extract inner text from each
-          .map((el: any) => el.innerText)
-      )
+        Cypress.$.makeArray($els).map((el: any) => el.innerText)
+      );
     });
   }
 
