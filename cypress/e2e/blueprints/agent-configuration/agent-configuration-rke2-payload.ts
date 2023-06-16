@@ -424,7 +424,6 @@ export const payloadComparisonData = {
           {
             podAffinityTerm: {
               namespaces:    null,
-              weight:        10,
               labelSelector: {
                 matchExpressions: [
                   {

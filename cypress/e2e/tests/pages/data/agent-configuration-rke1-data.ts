@@ -76,13 +76,13 @@ export const nodeAffinityData = [
       {
         matching: 0,
         key:      'key5',
-        operator: 4,
+        operator: 5,
         value:    'val5'
       },
       {
         matching: 0,
         key:      'key6',
-        operator: 5,
+        operator: 4,
         value:    'val6'
       },
     ],
@@ -116,13 +116,13 @@ export const nodeAffinityData = [
       {
         matching: 1,
         key:      'key5',
-        operator: 4,
+        operator: 5,
         value:    'val5'
       },
       {
         matching: 1,
         key:      'key6',
-        operator: 5,
+        operator: 4,
         value:    'val6'
       },
     ]
