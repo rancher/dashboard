@@ -253,10 +253,16 @@ export default {
       v-if="!loading && !error"
       class="external-link"
     >
+      <!-- https://github.com/harvester/harvester-installer/pull/512/files -->
+      <!-- It is necessary to include the parameter referer when accessing the Grafana page. -->
+      <!-- This parameter is required by the backend to identify the origin of the request from which cluster -->
+      <!-- The matching mechanism as follows: -->
+      <!-- ~.*/k8s/clusters/(c-m-.+)/.* -->
+      <!-- ~.*/dashboard/harvester/c/(c-m-.+)/.* -->
       <a
         :href="grafanaUrl"
         target="_blank"
-        rel="noopener noreferrer nofollow"
+        rel="noopener nofollow"
       >{{ t('grafanaDashboard.grafana') }} <i class="icon icon-external-link" /></a>
     </div>
   </div>
