@@ -28,7 +28,7 @@ export default class CRTB extends HybridModel {
   }
 
   get principal() {
-    const principalId = this.principalId.replace(/\//g, '%2F');
+    const principalId = this.principalId?.replace(/\//g, '%2F');
 
     return this.$dispatch('rancher/find', {
       type: NORMAN.PRINCIPAL,

@@ -199,7 +199,7 @@ export default {
       // We need to group each of the TemplateRoleBindings by the user + project
       const userRoles = [...fakeRows, ...this.filteredProjectRoleTemplateBindings].reduce((rows, curr) => {
         const {
-          userId, groupPrincipalId, roleTemplate, projectId, isCurrentUser
+          userId, groupPrincipalId, roleTemplate, projectId
         } = curr;
 
         const userOrGroup = userId || groupPrincipalId;
@@ -216,47 +216,6 @@ export default {
         }
 
         if (roleTemplate) {
-          // we're already looping through each roleTemplate, might as well isolate the ones that belong to the current user and make them easy to find against the project
-          if (isCurrentUser) {
-            const { rules } = roleTemplate;
-            const reducedRules = this.currentUsersProjectPermissions[curr.projectId] ? this.currentUsersProjectPermissions[curr.projectId] : {};
-            const rulesReduced = rules.reduce((apiGroupMap, rule) => {
-              return {
-                ...apiGroupMap,
-                ...(rule?.apiGroups || []).reduce((apiGroups, apiGroup) => {
-                  return {
-                    ...apiGroups,
-                    [apiGroup]: {
-                      ...apiGroupMap[apiGroup],
-                      ...(rule?.resources || []).reduce((resources, resource) => {
-                        return {
-                          ...resources,
-                          [resource]: [
-                            ...(resources[resource] || []),
-                            ...(rule?.verbs || []).reduce((verbs, verb) => {
-                              const reducedRulesVerbs = (reducedRules?.[apiGroup]?.[resource] ? reducedRules[apiGroup][resource] : []);
-                              const filteredVerbs = verbs.filter(unfilteredVerb => !reducedRulesVerbs.includes(unfilteredVerb));
-
-                              return [
-                                ...reducedRulesVerbs,
-                                ...filteredVerbs,
-                                ...([...reducedRulesVerbs, ...filteredVerbs].includes(verb) ? [] : [verb])
-                              ];
-                            }, [])
-                          ]
-                        };
-                      }, {})
-                    }
-                  };
-                }, {})
-              };
-            }, {});
-
-            this.currentUsersProjectPermissions[curr.projectId] = {
-              ...reducedRules,
-              ...rulesReduced
-            };
-          }
           rows[userOrGroupKey].allRoles.push(curr.roleTemplate);
         }
 
@@ -304,13 +263,33 @@ export default {
     getProjectLabel(group) {
       return this.getMgmtProject(group)?.spec?.displayName;
     },
-    getProjectPermissions(projectId) {
-      return this.currentUsersProjectPermissions[projectId] || {};
-    },
     getManageProjectMembersPermission(projectId) {
-      const projectRoleTemplateBindingPermissions = this.getProjectPermissions(projectId)?.['management.cattle.io']?.['projectroletemplatebindings'];
+      if (
+        (this.filteredClusterRoleTemplateBindings || [])
+          .some(crtb => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner')
+      ) {
+        return true;
+      }
 
-      return projectRoleTemplateBindingPermissions.some(verb => ['*', 'own', 'create'].includes(verb));
+      return this.filteredProjectRoleTemplateBindings
+        .some((prtb) => {
+          const { allRoles = [], isCurrentUser } = prtb;
+
+          return isCurrentUser &&
+            prtb.projectId === projectId &&
+            allRoles.some((rtb) => {
+              const { id, rules } = rtb;
+
+              return id === 'project-owner' ||
+                rules.some((rule) => {
+                  const { apiGroups = [], resources = [], verbs = [] } = rule;
+
+                  return ['*', 'management.cattle.io'].some(apiGroup => apiGroups.includes(apiGroup)) &&
+                  ['*', 'projectroletemplatebindings'].some(resource => resources.includes(resource)) &&
+                  ['*', 'own', 'create'].some(verb => verbs.includes(verb));
+                });
+            });
+        });
     },
     addProjectMember(group) {
       this.$store.dispatch('cluster/promptModal', {
