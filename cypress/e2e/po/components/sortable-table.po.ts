@@ -60,7 +60,7 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   rowElements() {
-    return this.self().find('tbody tr');
+    return this.self().find('tbody tr.main-row');
   }
 
   rowElementWithName(name: string) {
@@ -73,6 +73,16 @@ export default class SortableTablePo extends ComponentPo {
 
   rowWithName(name: string) {
     return new ListRowPo(this.rowElementWithName(name));
+  }
+
+  rowNames() {
+    return this.rowElements().find('.cluster-link').then(($els: any) => {
+      return (
+        Cypress.$.makeArray($els)
+          // and extract inner text from each
+          .map((el: any) => el.innerText)
+      )
+    });
   }
 
   rowActionMenu() {

@@ -99,15 +99,17 @@ describe('Cluster Manager', () => {
         clusterList.goTo();
         clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
+        
+        clusterList.sortableTable().rowNames().then((rows: any) => {
+          const promptRemove = new PromptRemove();
 
-        const promptRemove = new PromptRemove();
+          promptRemove.confirm(rke2CustomName);
+          promptRemove.remove();
 
-        promptRemove.confirm(rke2CustomName);
-        promptRemove.remove();
-        promptRemove.checkNotVisible();
-
-        clusterList.waitForPage();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist', { timeout: 15000 });
+          clusterList.waitForPage()
+          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
+          clusterList.sortableTable().rowNames().should('not.contain', rke2CustomName);
+        });
       });
     });
   });
@@ -147,14 +149,16 @@ describe('Cluster Manager', () => {
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
 
-        const promptRemove = new PromptRemove();
+        clusterList.sortableTable().rowNames().then((rows: any) => {
+          const promptRemove = new PromptRemove();
 
-        promptRemove.confirm(importGenericName);
-        promptRemove.remove();
-        promptRemove.checkNotVisible();
+          promptRemove.confirm(importGenericName);
+          promptRemove.remove();
 
-        clusterList.waitForPage();
-        clusterList.sortableTable().rowElementWithName(importGenericName).should('not.exist', { timeout: 15000 });
+          clusterList.waitForPage()
+          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
+          clusterList.sortableTable().rowNames().should('not.contain', importGenericName);
+        });
       });
     });
   });
