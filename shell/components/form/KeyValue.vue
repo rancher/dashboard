@@ -815,6 +815,7 @@ export default {
       }
       &.value .value-container {
         &.upload-button {
+          position: relative;
           display: flex;
           justify-content: right;
           align-items: center;
