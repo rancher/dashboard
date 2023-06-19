@@ -59,7 +59,7 @@ export default {
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
 
-      storageClasses: [],
+      storageClasses:     [],
       canEditPSPBindings: true,
     };
   },
