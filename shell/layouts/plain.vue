@@ -12,6 +12,7 @@ import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import AutoLogout from '@shell/mixins/auto-logout';
+import Inactivity from '@shell/components/Inactivity';
 
 export default {
 
@@ -24,7 +25,8 @@ export default {
     FixedBanner,
     GrowlManager,
     AwsComplianceBanner,
-    AzureWarning
+    AzureWarning,
+    Inactivity
   },
 
   middleware: ['authenticated'],
@@ -84,6 +86,7 @@ export default {
 
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <Inactivity />
   </div>
 </template>
 

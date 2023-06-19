@@ -1,4 +1,5 @@
-import { RouteConfig } from 'vue-router';
+import { ProductFunction } from './plugin';
+import { RouteConfig, Location } from 'vue-router';
 
 // package.json metadata
 export interface PackageMetadata {
@@ -136,6 +137,273 @@ export type LocationConfig = {
   mode?: string[]
 };
 
+export interface ProductOptions {
+  /**
+   * The category this product belongs under. i.e. 'config'
+   */
+  category?: string;
+
+  /**
+   * Hide the Copy KubeConfig button in the header
+   */
+  hideCopyConfig?: boolean;
+
+  /**
+   * Hide the Download KubeConfig button in the header
+   */
+  hideKubeConfig?: boolean;
+
+  /**
+   * Hide the Kubectl Shell button in the header
+   */
+  hideKubeShell?: boolean;
+
+  /**
+   * Hide the Namespace location
+   */
+  hideNamespaceLocation?: boolean;
+
+  /**
+   * Hide the system resources
+   */
+
+  hideSystemResources?: boolean;
+  /**
+   * The icon that should be displayed beside this item in the navigation.
+   */
+  icon?: string,
+
+  /**
+   * Only load the product if the feature is present
+   */
+  ifFeature?: string | RegExp;
+
+  /**
+   * Only load the product if the type is present
+   */
+  ifHave?: string;
+
+  /**
+   * Only load the product if the group is present
+   */
+  ifHaveGroup?: string | RegExp;
+
+  /**
+   * Only load the product if the type is present
+   */
+  ifHaveType?: string | RegExp;
+
+  /**
+   * The vuex store that this product should use by default i.e. 'management'
+   */
+  inStore?: string;
+
+  /**
+   * Show the cluster switcher in the navigation
+   */
+  showClusterSwitcher?: boolean;
+
+  /**
+   * Show the namespace filter in the header
+   */
+  showNamespaceFilter?: boolean;
+
+  /**
+   * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
+   */
+  weight?: number;
+
+  /**
+   * The route that the product will lead to if click on in navigation.
+   */
+  to?: Location;
+
+  /**
+   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
+   */
+  // ifHaveVerb: string | RegExp;
+  // removable: string;
+  // showWorkspaceSwitcher: boolean;
+  // supportRoute: string;
+  // typeStoreMap: string;
+}
+
+export interface HeaderOptions {
+  /**
+   * Name of the header. This should be unique.
+   */
+  name?: string;
+
+  /**
+   * A string that will show in the table column as a header
+   */
+  label?: string;
+
+  /**
+   * A translation key where the resulting string will show in the table column as a header
+   */
+  labelKey?: string;
+
+  /**
+   * A string which represents the path to access the value from the row object i.e. `row.meta.value`.
+   */
+  value?: string;
+
+  /**
+   * A string which represents the path to access the value from the row object which we'll use to sort i.e. `row.meta.value`
+   */
+  sort?: string | string[];
+
+  /**
+   * A string which represents the path to access the value from the row object which we'll use to search i.e. `row.meta.value`.
+   * It can be false to disable searching on this field
+   */
+  search?: string | boolean;
+
+  /**
+   * Number of pixels the column should be in the table
+   */
+  width?: number;
+
+  /**
+   * The name of a custom formatter. The available formatters can bee seen in `@rancher/shell/components/formatter`
+   */
+  formatter?: string;
+
+  /**
+   * These options are dependent on the formatter that's chosen. Examples can be seen in `@rancher/shell/components/formatter` and `@rancher/shell/config/table-headers`
+   */
+  formatterOpts?: any;
+
+  /**
+   * Provide a function which accets a row and returns the value that should be displayed in the column
+   * @param row This can be any value which represents the row
+   * @returns Can return {@link string | number | null | undefined} to display in the column
+   */
+  getValue?: (row: any) => string | number | null | undefined;
+}
+
+export interface ConfigureTypeOptions {
+  /**
+   * The resource can edit/show yaml
+   */
+  canYaml?: boolean;
+
+  /**
+   * Modify the way the name looks when displayed
+   */
+  displayName?: string;
+
+  /**
+   * New resources can be created of this type
+   */
+  isCreatable?: boolean;
+
+  /**
+   * Resources of this type can be deleted/removed
+   */
+  isRemovable?: boolean;
+
+  /**
+   * This type should be grouped by namespaces when displayed in a table
+   */
+  namespaced?: boolean;
+
+  /**
+   * Show the age column in when displaying this type in a table
+   */
+  showAge?: boolean;
+
+   /**
+   * Show the masthead at the top of the list view of this type
+   */
+  showListMasthead?: boolean;
+
+   /**
+   * Show the state column in when displaying this type in a table
+   */
+  showState?: boolean;
+
+  /**
+   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
+   */
+  // alias
+  // customRoute
+  // customRoute
+  // depaginate
+  // graphConfig
+  // hasGraph
+  // isEditable
+  // limit
+  // listGroups
+  // localOnly
+  // location
+  // match
+  // realResource
+  // resource
+  // resourceDetail
+  // resourceEdit
+  // showConfigView
+}
+
+export interface DSLReturnType {
+  /**
+   * Register multiple types by name and place them all in a group if desired. Primarily used for grouping things in the cluster explorer navigation.
+   * @param types A list of types that are going to be registered
+   * @param group Conditionally a group you want to places all the types in
+   * @returns {@link void}
+   */
+  basicType: (types: string[], group?: string) => void;
+
+  /**
+   * Configure a myriad of options for the specified type
+   * @param type The type to be configured
+   * @param options {@link ConfigureTypeOptions}
+   * @returns {@link void}
+   */
+  configureType: (type: string, options: ConfigureTypeOptions) => void;
+
+  /**
+   * Register the headers/columns that should be used when rendering a table for the specified type.
+   * @param type The type you'd like to register headers/columns for.
+   * @param headers {@link HeaderOptions[]}
+   * @returns {@link void}
+   */
+  headers: (type: string, headers: HeaderOptions[]) => void;
+
+  /**
+   * Create and register a new product
+   * @param options {@link ProductOptions}
+   * @returns {@link void}
+   */
+  product: (options: ProductOptions) => void;
+
+  /**
+   * Create and label a group. The group will show up in navigation
+   * @param groupNane Name of the group
+   * @param label Label in navigation
+   * @returns {@link void}
+   */
+  mapGroup: (groupName: string, label: string) => void;
+
+  /**
+   * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
+   */
+  // componentForType: (type: string, replacementType: string)
+  // groupBy: (type: string, field: string)
+  // hideBulkActions: (type: string, field)
+  // ignoreGroup: (regexOrString)
+  // ignoreType: (regexOrString)
+  //
+  // mapType: (match, replace)
+  // moveType: (match, group)
+  // setGroupDefaultType: (input, defaultType)
+  // spoofedType: (obj)
+  // virtualType: (obj)
+  // weightGroup: (input, weight, forBasic)
+  // weightType: (input, weight, forBasic)
+}
+
 /**
  * Interface for a Dashboard plugin
  */
@@ -144,7 +412,7 @@ export interface IPlugin {
    * Add a product
    * @param importFn Function that will import the module containing a product definition
    */
-  addProduct(importFn: Function): void;
+  addProduct(importFn: ProductFunction): void;
 
   /**
    * Add a locale to the i18n store
@@ -249,4 +517,11 @@ export interface IPlugin {
    * @param {Function} fn function that dynamically loads the module for the thing being registered
    */
   register(type: string, name: string, fn: Function): void;
+
+  /**
+   * Will return all of the configuration functions used for creating a new product.
+   * @param store The store that was passed to the function that's passed to `plugin.addProduct(function)`
+   * @param productName The name of the new product. This name is displayed in the navigation.
+   */
+  DSL(store: any, productName: string): DSLReturnType;
 }

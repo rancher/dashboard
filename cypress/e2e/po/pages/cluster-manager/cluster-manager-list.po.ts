@@ -5,13 +5,16 @@ import ProvClusterListPo from '@/cypress/e2e/po/lists/provisioning.cattle.io.clu
  * List page for provisioning.cattle.io.cluster resources
  */
 export default class ClusterManagerListPagePo extends PagePo {
-  static url: string = '/c/local/manager/provisioning.cattle.io.cluster'
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ClusterManagerListPagePo.url);
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/manager/provisioning.cattle.io.cluster`;
   }
 
-  constructor() {
-    super(ClusterManagerListPagePo.url);
+  static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(ClusterManagerListPagePo.createPath(clusterId));
+  }
+
+  constructor(clusterId: string) {
+    super(ClusterManagerListPagePo.createPath(clusterId));
   }
 
   list(): ProvClusterListPo {

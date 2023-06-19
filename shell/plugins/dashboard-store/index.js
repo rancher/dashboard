@@ -38,7 +38,7 @@ export default (vuexModule, config, init) => {
     store.registerModule(namespace, vuexModule);
     store.commit(`${ namespace }/applyConfig`, config);
 
-    if ( !process.client || !window.__NUXT__ ) {
+    if ( !process.client ) {
       return;
     }
 

@@ -139,8 +139,6 @@ export default {
       description: 'List of pandaria webhook configurations.'
     };
 
-    // debugger;
-
     if (!receiverSchema) {
       throw new Error("Can't render the form because the AlertmanagerConfig schema is not loaded yet.");
     }

@@ -23,7 +23,6 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
-
     crdValues: {
       get() {
         const crdInfo = this.autoInstallInfo.find(info => info.chart.name.includes('crd'));

@@ -137,31 +137,29 @@ export default {
     @finish="saveOverride"
     @error="e=>errors = e"
   >
-    <div class="mt-20">
-      <Banner
-        v-if="harvesterLocation"
-        color="info"
-        :closable="true"
-        class="mb-20"
-        @close="hideHarvesterNotice"
-      >
-        {{ t('cluster.harvester.importNotice') }}
-        <nuxt-link :to="harvesterLocation">
-          {{ t('product.harvesterManager') }}
-        </nuxt-link>
-      </Banner>
+    <Banner
+      v-if="harvesterLocation"
+      color="info"
+      :closable="true"
+      class="mb-20"
+      @close="hideHarvesterNotice"
+    >
+      {{ t('cluster.harvester.importNotice') }}
+      <nuxt-link :to="harvesterLocation">
+        {{ t('product.harvesterManager') }}
+      </nuxt-link>
+    </Banner>
 
-      <NameNsDescription
-        v-if="!isView"
-        v-model="value"
-        :mode="mode"
-        :namespaced="false"
-        name-label="cluster.name.label"
-        name-placeholder="cluster.name.placeholder"
-        description-label="cluster.description.label"
-        description-placeholder="cluster.description.placeholder"
-      />
-    </div>
+    <NameNsDescription
+      v-if="!isView"
+      v-model="value"
+      :mode="mode"
+      :namespaced="false"
+      name-label="cluster.name.label"
+      name-placeholder="cluster.name.placeholder"
+      description-label="cluster.description.label"
+      description-placeholder="cluster.description.placeholder"
+    />
 
     <Tabbed :side-tabs="true">
       <Tab

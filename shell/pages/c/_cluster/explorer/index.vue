@@ -23,7 +23,6 @@ import {
   WORKLOAD_TYPES,
   COUNT,
   CATALOG,
-  POD,
   PSP,
 } from '@shell/config/types';
 import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
@@ -266,11 +265,9 @@ export default {
     },
 
     podsUsed() {
-      const pods = resourceCounts(this.$store, POD);
-
       return {
         total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
-        useful: pods.total
+        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0'),
       };
     },
 

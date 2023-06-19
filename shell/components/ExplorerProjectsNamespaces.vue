@@ -4,7 +4,7 @@ import ResourceTable from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
-import { PROJECT_ID } from '@shell/config/query-params';
+import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
@@ -237,6 +237,9 @@ export default {
 
     notInProjectKey() {
       return this.$store.getters['i18n/t']('resourceTable.groupLabel.notInAProject');
+    },
+    showCreateNsButton() {
+      return this.groupPreference !== 'namespace';
     }
   },
   methods: {
@@ -285,6 +288,21 @@ export default {
 
       return location;
     },
+
+    createNamespaceLocationFlatList() {
+      const location = this.createNamespaceLocationOverride ? { ...this.createNamespaceLocationOverride } : {
+        name:   'c-cluster-product-resource-create',
+        params: {
+          product:  this.$store.getters['currentProduct']?.name,
+          resource: NAMESPACE
+        },
+      };
+
+      location.query = { [FLAT_VIEW]: true };
+
+      return location;
+    },
+
     showProjectAction(event, group) {
       const project = group.rows[0].project;
 
@@ -347,7 +365,20 @@ export default {
       :show-incremental-loading-indicator="showIncrementalLoadingIndicator"
       :load-resources="loadResources"
       :load-indeterminate="loadIndeterminate"
-    />
+    >
+      <template
+        v-if="showCreateNsButton"
+        slot="extraActions"
+      >
+        <n-link
+          :to="createNamespaceLocationFlatList()"
+          class="btn role-primary mr-10"
+          data-testid="create_project_namespaces"
+        >
+          {{ t('projectNamespaces.createNamespace') }}
+        </n-link>
+      </template>
+    </Masthead>
     <ResourceTable
       ref="table"
       class="table"
@@ -420,6 +451,11 @@ export default {
             {{ row.name }}
           </span>
           <i
+            v-if="row.injectionEnabled"
+            v-clean-tooltip="t('projectNamespaces.isIstioInjectionEnabled')"
+            class="icon icon-istio ml-5"
+          />
+          <i
             v-if="row.hasSystemLabels"
             v-clean-tooltip="getPsaTooltip(row)"
             class="icon icon-lock ml-5"
@@ -491,6 +527,10 @@ export default {
     .namespace-name {
       display: flex;
       align-items: center;
+
+      .icon-istio {
+        color: var(--primary);
+      }
     }
   }
 }

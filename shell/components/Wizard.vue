@@ -400,7 +400,10 @@ export default {
             @close="errors.splice(idx, 1)"
           />
         </div>
-        <div class="controls-row pt-20">
+        <div
+          id="wizard-footer-controls"
+          class="controls-row pt-20"
+        >
           <slot
             name="cancel"
             :cancel="cancel"
@@ -468,6 +471,7 @@ $spacer: 10px;
   flex-direction: column;
   flex: 1;
   padding: 0;
+  justify-content: flex-start;
 }
 
 .header {
@@ -638,11 +642,11 @@ $spacer: 10px;
   height: 0;
   overflow-y: auto;
   padding: 20px 2px 2px 2px; // Handle borders flush against edge
-
   display: flex;
   flex-direction: column;
 
   &__step {
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -654,7 +658,6 @@ $spacer: 10px;
     // Overrides outlet padding
     margin-left: -$space-m;
     margin-right: -$space-m;
-    margin-bottom: -$space-m;
     padding: $space-s $space-m;
 
     display: flex;
@@ -662,7 +665,10 @@ $spacer: 10px;
     padding-top: $spacer;
 
     border-top: var(--header-border-size) solid var(--header-border);
-
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: var(--body-bg);
     .controls-steps {
 
       .btn {

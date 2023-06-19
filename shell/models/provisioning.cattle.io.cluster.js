@@ -409,6 +409,30 @@ export default class ProvCluster extends SteveModel {
     }
   }
 
+  get machinePoolDefaults() {
+    return this.spec.rkeConfig?.machinePoolDefaults;
+  }
+
+  set defaultHostnameLengthLimit(value) {
+    this.spec.rkeConfig = this.spec.rkeConfig || {};
+    this.spec.rkeConfig.machinePoolDefaults = this.spec.rkeConfig.machinePoolDefaults || {};
+    this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit = value;
+  }
+
+  get defaultHostnameLengthLimit() {
+    return this.spec.rkeConfig?.machinePoolDefaults?.hostnameLengthLimit;
+  }
+
+  removeDefaultHostnameLengthLimit() {
+    if (this.machinePoolDefaults?.hostnameLengthLimit) {
+      delete this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit;
+
+      if (Object.keys(this.spec?.rkeConfig?.machinePoolDefaults).length === 0) {
+        delete this.spec.rkeConfig.machinePoolDefaults;
+      }
+    }
+  }
+
   get nodes() {
     return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
   }

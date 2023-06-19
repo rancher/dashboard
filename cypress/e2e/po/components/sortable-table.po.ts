@@ -9,6 +9,13 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   /**
+   * Returns the link for resource details for a table row with a given name
+   */
+  detailsPageLinkWithName(name: string) {
+    return this.rowElementWithName(name).find('td.col-link-detail a');
+  }
+
+  /**
    * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
    */
   bulkActionDropDown() {
@@ -41,6 +48,13 @@ export default class SortableTablePo extends ComponentPo {
     return popOver.find('li').contains(name);
   }
 
+  /**
+   * Delete button (displays on page after row element selected)
+   */
+  deleteButton() {
+    return cy.getId('sortable-table-promptRemove');
+  }
+
   //
   // sortable-table
   //
@@ -66,6 +80,25 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   /**
+   * Check row element count on sortable table
+   * @param isEmpty true if empty state expected (empty state message should display on row 1)
+   * @param expected number of rows shown
+   * @returns
+   */
+  checkRowCount(isEmpty: boolean, expected: number) {
+    return this.rowElements().should((el) => {
+      if (isEmpty) {
+        expect(el).to.have.length(expected);
+        expect(el).to.have.text('There are no rows to show.');
+        expect(el).to.have.attr('class', 'no-rows');
+      } else {
+        expect(el).to.have.length(expected);
+        expect(el).to.have.attr('data-node-id');
+      }
+    });
+  }
+
+  /**
    * For a row with the given name open it's action menu and return the drop down
    */
   rowActionMenuOpen(name: string, actionMenuColumn: number) {
@@ -81,5 +114,12 @@ export default class SortableTablePo extends ComponentPo {
    */
   rowSelectCtlWithName(clusterName: string) {
     return new CheckboxInputPo(this.rowWithName(clusterName).column(0));
+  }
+
+  /**
+   * Select all list items
+   */
+  selectAllCheckbox(): CheckboxInputPo {
+    return new CheckboxInputPo('[data-testid="sortable-table_check_select_all"]');
   }
 }

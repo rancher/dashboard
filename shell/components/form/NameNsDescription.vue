@@ -169,7 +169,7 @@ export default {
     if (this.nameKey) {
       name = get(v, this.nameKey);
     } else {
-      name = metadata.name;
+      name = metadata?.name;
     }
 
     if (this.namespaced) {
@@ -209,7 +209,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster']),
+    ...mapGetters(['currentProduct', 'currentCluster', 'namespaces', 'allowedNamespaces']),
     namespaceReallyDisabled() {
       return (
         !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
@@ -220,39 +220,18 @@ export default {
       return this.nameDisabled || (this.mode === _EDIT && !this.nameEditable);
     },
 
-    namespaces() {
-      const currentStore = this.$store.getters['currentStore'](this.namespaceType);
-      const namespaces = this.namespacesOverride || this.$store.getters[`${ currentStore }/all`](this.namespaceType);
-      const filterNamespace = this.$store.getters['allNamespaces'];
-
-      const filtered = namespaces.filter( this.namespaceFilter || ((namespace) => {
-        // By default, include the namespace in the dropdown.
-        let out = true;
-
-        if (this.currentProduct?.customNamespaceFilter && this.currentProduct?.inStore) {
-          out = filterNamespace.find(NS => NS.metadata.name === namespace.metadata.name);
-        } else if (this.currentProduct?.hideSystemResources) {
-          // Filter out the namespace
-          // if it is a system namespace or if it is managed by
-          // Fleet.
-          out = !namespace.isSystem && !namespace.isFleetManaged;
-        }
-
-        if (this.mode === _CREATE) {
-          out = out && !!namespace.links.update;
-        }
-
-        return out;
-      }));
-
-      const withLabels = filtered.map(this.namespaceMapper || ((obj) => {
-        return {
+    /**
+     * Map namespaces from the store to options, adding divider and create button
+     */
+    options() {
+      const options = Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces())
+        .map(namespace => ({ nameDisplay: namespace, id: namespace }))
+        .map(this.namespaceMapper || (obj => ({
           label: obj.nameDisplay,
           value: obj.id,
-        };
-      }));
+        })));
 
-      const sortedByLabel = sortBy(withLabels, 'label');
+      const sortedByLabel = sortBy(options, 'label');
 
       if (this.forceNamespace) {
         sortedByLabel.unshift({
@@ -261,27 +240,31 @@ export default {
         });
       }
 
-      const out = [];
-
-      if (this.canCreateNamespace) {
-        out.push({
-          label: this.t('namespace.createNamespace'),
-          value: '',
-          kind:  'highlighted'
-        });
-      }
-      out.push({
+      const createButton = {
+        label: this.t('namespace.createNamespace'),
+        value: '',
+        kind:  'highlighted'
+      };
+      const divider = {
         label:    'divider',
         disabled: true,
         kind:     'divider'
-      },
-      ...sortedByLabel);
+      };
 
-      return out;
+      const createOverhead = this.canCreateNamespace ? [createButton, divider] : [];
+
+      return [
+        ...createOverhead,
+        ...sortedByLabel
+      ];
     },
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isCreate() {
+      return this.mode === _CREATE;
     },
 
     colSpan() {
@@ -347,7 +330,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', !val || (this.namespaces && !this.namespaces.find(n => n.value === val)));
+        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find(n => n.value === val)));
       }
 
       if (this.namespaceKey) {
@@ -421,7 +404,7 @@ export default {
         v-show="!createNamespace"
         v-model="namespace"
         :clearable="true"
-        :options="namespaces"
+        :options="options"
         :disabled="namespaceReallyDisabled"
         :searchable="true"
         :mode="mode"

@@ -61,6 +61,12 @@ export default {
       type:    String,
       default: null,
     },
+
+    // Runs this command immediately after connecting
+    commandOnFirstConnect: {
+      type:    String,
+      default: null
+    }
   },
 
   data() {
@@ -267,6 +273,10 @@ export default {
         this.isOpening = false;
         this.fit();
         this.flush();
+
+        if (this.commandOnFirstConnect) {
+          this.terminal.paste(`${ this.commandOnFirstConnect }`);
+        }
       });
 
       this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {

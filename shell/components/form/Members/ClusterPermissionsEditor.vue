@@ -190,11 +190,24 @@ export default {
       }, { root: true });
     },
 
+    customPermissionsUpdate() {
+      return this.customPermissions.reduce((acc, customPermissionsItem) => {
+        const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
+
+        if (lockedExist.locked) {
+          customPermissionsItem['locked'] = true;
+          customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
+        }
+
+        return [...acc, customPermissionsItem];
+      }, []);
+    },
+
     principalSelectMode() {
       return [_EDIT, _VIEW].includes(this.mode) ? _VIEW : this.mode;
-    }
-
+    },
   },
+
   watch: {
     roleTemplateIds() {
       this.updateBindings();
@@ -251,7 +264,7 @@ export default {
         }
       }
     }
-  }
+  },
 };
 </script>
 <template>
@@ -298,14 +311,22 @@ export default {
           class="custom-permissions ml-20 mt-10"
           :class="{'two-column': useTwoColumnsForCustom}"
         >
-          <Checkbox
-            v-for="permission in customPermissions"
+          <div
+            v-for="permission in customPermissionsUpdate"
             :key="permission.key"
-            v-model="permission.value"
-            class="mb-5"
-            :label="permission.label"
-            :mode="mode"
-          />
+          >
+            <Checkbox
+              v-model="permission.value"
+              :disabled="permission.locked"
+              class="mb-5"
+              :label="permission.label"
+            />
+            <i
+              v-if="permission.locked"
+              v-clean-tooltip="permission.tooltip"
+              class="icon icon-lock icon-fw"
+            />
+          </div>
         </div>
       </template>
     </Card>
@@ -327,6 +348,9 @@ label.radio {
   grid-template-columns: 1fr 1fr 1fr;
   &.two-column {
     grid-template-columns: 1fr 1fr;
+  }
+  ::v-deep .checkbox-label {
+    margin-right: 0;
   }
 }
 </style>

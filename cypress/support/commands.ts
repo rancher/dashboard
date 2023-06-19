@@ -94,3 +94,18 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
     });
   });
 });
+
+Cypress.Commands.add('requestBase64Image', (url: string) => {
+  return cy.request({
+    url,
+    method:   'GET',
+    encoding: 'binary',
+    headers:  { Accept: 'image/png; charset=UTF-8' },
+  })
+    .its('body')
+    .then((favicon) => {
+      const blob = Cypress.Blob.binaryStringToBlob(favicon);
+
+      return Cypress.Blob.blobToBase64String(blob);
+    });
+});

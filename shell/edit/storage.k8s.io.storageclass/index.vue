@@ -125,7 +125,7 @@ export default {
         if (driver.metadata.name === LONGHORN_DRIVER || provisionerOptionsDrivers.includes(driver.metadata.name)) {
           return;
         }
-        const fallback = `${ driver.metadata.name }  ${ this.t('persistentVolume.csi.drivers.suffix') }`;
+        const fallback = `${ driver.metadata.name }  ${ this.t('persistentVolume.csi.suffix') }`;
 
         dropdownOptions.push({
           value: driver.metadata.name,

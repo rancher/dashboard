@@ -11,7 +11,7 @@ import jsyaml from 'js-yaml';
 
 export default {
 
-  // Need to override this, so that thhe 'this' context is correct (this class not the base class)
+  // Need to override this, so that the 'this' context is correct (this class not the base class)
   async loadSchemas(ctx, watch = true) {
     return await loadSchemas(ctx, watch);
   },

@@ -10,7 +10,7 @@ import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import CruResource from '@shell/components/CruResource';
-import { PROJECT_ID, _VIEW } from '@shell/config/query-params';
+import { PROJECT_ID, _VIEW, FLAT_VIEW, _CREATE } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
 import ResourceQuota from '@shell/components/form/ResourceQuota/NamespaceQuota';
 import Loading from '@shell/components/Loading';
@@ -58,7 +58,7 @@ export default {
       project:                 null,
       projects:                null,
       viewMode:                _VIEW,
-      containerResourceLimits: this.value.annotations[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName),
+      containerResourceLimits: this.value.annotations?.[CONTAINER_DEFAULT_RESOURCE_LIMIT] || this.getDefaultContainerResourceLimits(projectName),
       projectName,
       HARVESTER_TYPES,
       RANCHER_TYPES,
@@ -68,6 +68,10 @@ export default {
 
   computed: {
     ...mapGetters(['isSingleProduct']),
+
+    isCreate() {
+      return this.mode === _CREATE;
+    },
 
     isSingleHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER && this.isSingleProduct;
@@ -79,7 +83,6 @@ export default {
 
       // Filter out projects not for the current cluster
       projects = projects.filter(c => c.spec?.clusterName === clusterId);
-
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
@@ -88,7 +91,7 @@ export default {
       });
 
       out.unshift({
-        label: '(None)',
+        label: this.t('namespace.project.none'),
         value: null,
       });
 
@@ -107,6 +110,9 @@ export default {
       return !this.isSingleHarvester;
     },
 
+    flatView() {
+      return (this.$route.query[FLAT_VIEW] || false);
+    }
   },
 
   watch: {
@@ -141,13 +147,11 @@ export default {
       }
 
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-
       const project = projects.find(p => p.id.includes(projectName));
 
       return project?.spec?.containerDefaultResourceLimit || {};
     }
-  }
-
+  },
 };
 </script>
 
@@ -171,19 +175,20 @@ export default {
       :value="value"
       :namespaced="false"
       :mode="mode"
+      :extra-columns="['project-col']"
     >
       <template
-        v-if="project"
+        v-if="flatView && isCreate"
         #project-col
       >
         <LabeledSelect
           v-model="projectName"
+          data-testid="name-ns-description-project"
           :label="t('namespace.project.label')"
           :options="projectOpts"
         />
       </template>
     </NameNsDescription>
-
     <Tabbed :side-tabs="true">
       <Tab
         v-if="showResourceQuota"

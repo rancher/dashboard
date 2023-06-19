@@ -16,6 +16,7 @@ import PromptModal from '@shell/components/PromptModal';
 import AssignTo from '@shell/components/AssignTo';
 import Group from '@shell/components/nav/Group';
 import Header from '@shell/components/nav/Header';
+import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
 import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
@@ -58,6 +59,7 @@ export default {
     AwsComplianceBanner,
     AzureWarning,
     DraggableZone,
+    Inactivity
   },
 
   mixins: [PageHeaderActions, Brand, BrowserTabVisibility, AutoLogout],
@@ -793,6 +795,7 @@ export default {
     </div>
     <FixedBanner :footer="true" />
     <GrowlManager />
+    <Inactivity />
     <DraggableZone ref="draggableZone" />
   </div>
 </template>

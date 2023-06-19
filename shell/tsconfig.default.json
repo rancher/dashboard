@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": [
+      "ESNext",
+      "ESNext.AsyncIterable",
+      "DOM"
+    ],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "noEmit": false,
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "~/*": [
+        "../*"
+      ],
+      "@/*": [
+        "../*"
+      ],
+      "@shell/*": [
+        "../shell/*"
+      ],
+      "@pkg/*": [
+        "../shell/pkg/*"
+      ]
+    },
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+  },
+}

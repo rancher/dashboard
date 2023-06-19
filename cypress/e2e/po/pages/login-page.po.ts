@@ -47,4 +47,12 @@ export class LoginPagePo extends PagePo {
   private submitButton(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="login-submit"]', this.self());
   }
+
+  /**
+   * Get login message
+   * @returns
+   */
+  loginPageMessage() {
+    return cy.getId('login__messages');
+  }
 }

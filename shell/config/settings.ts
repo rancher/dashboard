@@ -105,6 +105,11 @@ export const SETTING = {
   GLOBAL_MONITORING_ENABLED_V2:         'global-monitoring-enabled-v2',
   GLOBAL_MONITORING_CLUSTER_ID:         'global-monitoring-cluster-id',
   GLOBAL_MONITORING_V2:                 'global-monitoring-v2',
+  /**
+   * Cluster Agent configuration
+   */
+  CLUSTER_AGENT_DEFAULT_AFFINITY:       'cluster-agent-default-affinity',
+  FLEET_AGENT_DEFAULT_AFFINITY:         'fleet-agent-default-affinity',
 };
 
 // These are the settings that are allowed to be edited via the UI
@@ -178,6 +183,10 @@ export const ALLOWED_SETTINGS: GlobalSetting = {
 };
 
 export const DEFAULT_PERF_SETTING = {
+  inactivity: {
+    enabled:   false,
+    threshold: 900,
+  },
   incrementalLoading: {
     enabled:   true,
     threshold: 1500,
@@ -188,11 +197,8 @@ export const DEFAULT_PERF_SETTING = {
   },
   disableWebsocketNotification: true,
   garbageCollection:            GC_DEFAULTS,
-  forceNsFilter:                {
-    enabled:   false,
-    threshold: 1500,
-  },
-  advancedWorker: { enabled: false },
+  forceNsFilterV2:              { enabled: false },
+  advancedWorker:               { enabled: false },
 };
 
 export const DEFAULT_GMV2_SETTING = {

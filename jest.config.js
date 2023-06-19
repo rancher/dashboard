@@ -36,6 +36,10 @@ module.exports = {
     '<rootDir>/stories/',
     '<rootDir>/shell/scripts/',
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>(/.*)*/__tests__/utils/',
+  ],
   coverageDirectory: '<rootDir>/coverage/unit',
   coverageReporters: ['json', 'text-summary'],
   globals:           { 'ts-jest': { isolatedModules: true } },

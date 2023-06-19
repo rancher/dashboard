@@ -26,6 +26,11 @@ export default {
       }
     },
 
+    handleGpuLimit: {
+      type:    Boolean,
+      default: true
+    },
+
     registerBeforeHook: {
       type:    Function,
       default: null
@@ -263,6 +268,7 @@ export default {
           :input-exponent="-1"
           :output-modifier="true"
           :base-unit="t('suffix.cpus')"
+          data-testid="cpu-reservation"
           @input="updateLimits"
         />
       </span>
@@ -275,6 +281,7 @@ export default {
           :input-exponent="2"
           :increment="1024"
           :output-modifier="true"
+          data-testid="memory-reservation"
           @input="updateLimits"
         />
       </span>
@@ -290,6 +297,7 @@ export default {
           :input-exponent="-1"
           :output-modifier="true"
           :base-unit="t('suffix.cpus')"
+          data-testid="cpu-limit"
           @input="updateLimits"
         />
       </span>
@@ -302,6 +310,7 @@ export default {
           :input-exponent="2"
           :increment="1024"
           :output-modifier="true"
+          data-testid="memory-limit"
           @input="updateLimits"
         />
       </span>
@@ -365,7 +374,7 @@ export default {
       </span>
     </div>
     <div
-      v-if="limitMinMaxValues"
+      v-if="limitMinMaxValues || handleGpuLimit"
       class="row"
     >
       <span class="col span-6">
@@ -375,6 +384,7 @@ export default {
           :label="t('containerResourceLimit.limitsGpu')"
           :mode="mode"
           :base-unit="t('suffix.gpus')"
+          data-testid="gpu-limit"
           @input="updateLimits"
         />
       </span>

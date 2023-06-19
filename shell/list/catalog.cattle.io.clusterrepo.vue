@@ -35,6 +35,7 @@ export default {
       :rows="rows"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      data-testid="app-cluster-repo-list"
     />
   </div>
 </template>

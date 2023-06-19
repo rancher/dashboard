@@ -507,6 +507,7 @@ export default {
     :errors="errors"
     :subtypes="subTypes"
     :cancel-event="true"
+    :prevent-enter-submit="true"
     class="create-cluster"
     @finish="save"
     @cancel="cancel"

@@ -17,10 +17,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-    namespace: {
-      type:    String,
-      default: undefined
-    },
   },
 
   data() {
@@ -44,10 +40,6 @@ export default {
     // Have we loaded all resources for the types that are needed
     haveAll() {
       return this.resources.reduce((acc, r) => {
-        if (this.namespace) {
-          return acc && this.$store.getters[`${ this.inStore }/haveAllNamespace`](r, this.namespace);
-        }
-
         return acc && this.$store.getters[`${ this.inStore }/haveAll`](r);
       }, true);
     },
@@ -58,7 +50,7 @@ export default {
 
       return this.resources.reduce((acc, r) => {
         const resourceCounts = clusterCounts?.[0]?.counts?.[r];
-        const resourceCount = this.namespace ? resourceCounts?.namespaces?.[this.namespace]?.count : resourceCounts?.summary?.count;
+        const resourceCount = resourceCounts?.summary?.count;
         const count = resourceCount || 0;
 
         return acc + count;

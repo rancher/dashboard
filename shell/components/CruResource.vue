@@ -1,6 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import { createYaml } from '@shell/utils/create-yaml';
+import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
 import ResourceYaml from '@shell/components/ResourceYaml';
@@ -101,6 +101,11 @@ export default {
       default: null,
     },
 
+    preventEnterSubmit: {
+      type:    Boolean,
+      default: false,
+    },
+
     applyHooks: {
       type:    Function,
       default: null,
@@ -141,6 +146,11 @@ export default {
     description: {
       type:    String,
       default: ''
+    },
+
+    yamlModifiers: {
+      type:    Object,
+      default: undefined
     }
   },
 
@@ -296,7 +306,7 @@ export default {
       }
     },
 
-    createResourceYaml() {
+    createResourceYaml(modifiers) {
       const resource = this.resource;
 
       if ( typeof this.generateYaml === 'function' ) {
@@ -306,7 +316,7 @@ export default {
         const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
         const clonedResource = clone(resource);
 
-        const out = createYaml(schemas, resource.type, clonedResource);
+        const out = createYamlWithOptions(schemas, resource.type, clonedResource, modifiers);
 
         return out;
       }
@@ -317,7 +327,7 @@ export default {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
       }
 
-      const resourceYaml = this.createResourceYaml();
+      const resourceYaml = this.createResourceYaml(this.yamlModifiers);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
@@ -380,6 +390,12 @@ export default {
           throw new Error(`Could not create the new namespace. ${ e.message }`);
         }
       }
+    },
+
+    onPressEnter(event) {
+      if (this.preventEnterSubmit) {
+        event.preventDefault();
+      }
     }
   }
 };
@@ -398,7 +414,7 @@ export default {
       :is="(isView? 'div' : 'form')"
       class="create-resource-container cru__form"
       @submit.prevent
-      @keydown.enter.prevent
+      @keydown.enter="onPressEnter($event)"
     >
       <div
         v-if="hasErrors"

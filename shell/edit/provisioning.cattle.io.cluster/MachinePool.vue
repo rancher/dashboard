@@ -59,6 +59,12 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    // Is the UI busy (e.g. during save)
+    busy: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -117,8 +123,7 @@ export default {
 
     isWindows() {
       return this.value?.config?.os === 'windows';
-    }
-
+    },
   },
 
   watch: {
@@ -131,6 +136,18 @@ export default {
         this.value.pool.machineOS = 'linux';
       }
     }
+  },
+
+  /**
+   * On creation, ensure that the pool is marked valid - custom machine pools can emit further validation events
+   */
+  created() {
+    this.$emit('validationChanged', true);
+  },
+
+  beforeDestroy() {
+    // Ensure we emit validation event so parent can forget any validation for this Machine Pool when it is removed
+    this.$emit('validationChanged', undefined);
   },
 
   methods: {
@@ -166,6 +183,11 @@ export default {
       if (advancedComponent && !advancedComponent.show) {
         advancedComponent.toggle();
       }
+    },
+
+    // Propagate up validation status for this Machine Pool
+    validationChanged(val) {
+      this.$emit('validationChanged', val);
     }
   }
 };
@@ -173,6 +195,14 @@ export default {
 
 <template>
   <div>
+    <Banner
+      v-if="value.pool.hostnameLengthLimit"
+      color="info"
+    >
+      <div class="text">
+        {{ t('cluster.machinePool.truncationPool', { limit: value.pool.hostnameLengthLimit }) }}
+      </div>
+    </Banner>
     <div class="row">
       <div class="col span-4">
         <LabeledInput
@@ -180,7 +210,7 @@ export default {
           :mode="mode"
           :label="t('cluster.machinePool.name.label')"
           :required="true"
-          :disabled="!value.config || !!value.config.id"
+          :disabled="!value.config || !!value.config.id || busy"
         />
       </div>
       <div class="col span-4">
@@ -188,6 +218,7 @@ export default {
           v-model.number="value.pool.quantity"
           :mode="mode"
           :label="t('cluster.machinePool.quantity.label')"
+          :disabled="busy"
           type="number"
           min="0"
           :required="true"
@@ -200,19 +231,20 @@ export default {
         <Checkbox
           v-model="value.pool.etcdRole"
           :mode="mode"
-          label="etcd"
-          :disabled="isWindows"
+          :label="t('cluster.machinePool.role.etcd')"
+          :disabled="isWindows || busy"
         />
         <Checkbox
           v-model="value.pool.controlPlaneRole"
           :mode="mode"
-          label="Control Plane"
-          :disabled="isWindows"
+          :label="t('cluster.machinePool.role.controlPlane')"
+          :disabled="isWindows || busy"
         />
         <Checkbox
           v-model="value.pool.workerRole"
           :mode="mode"
-          label="Worker"
+          :label="t('cluster.machinePool.role.worker')"
+          :disabled="busy"
         />
       </div>
     </div>
@@ -229,9 +261,11 @@ export default {
       :credential-id="credentialId"
       :pool-index="idx"
       :machine-pools="machinePools"
+      :busy="busy"
       @error="e=>errors = e"
       @updateMachineCount="updateMachineCount"
       @expandAdvanced="expandAdvanced"
+      @validationChanged="validationChanged"
     />
     <Banner
       v-else-if="value.configMissing"
@@ -271,6 +305,7 @@ export default {
             :mode="mode"
             :output-modifier="true"
             :base-unit="t('cluster.machinePool.autoReplace.unit')"
+            :disabled="busy"
             @input="value.pool.unhealthyNodeTimeout = `${unhealthyNodeTimeoutInteger}s`"
           />
         </div>
@@ -282,6 +317,7 @@ export default {
             v-model="value.pool.drainBeforeDelete"
             :mode="mode"
             :label="t('cluster.machinePool.drain.label')"
+            :disabled="busy"
           />
         </div>
       </div>
@@ -289,7 +325,7 @@ export default {
       <KeyValue
         v-model="value.pool.labels"
         :add-label="t('labels.addLabel')"
-        :mode="mode"
+        :disabled="busy"
         :title="t('cluster.machinePool.labels.label')"
         :read-allowed="false"
         :value-can-be-empty="true"
@@ -300,6 +336,7 @@ export default {
       <Taints
         v-model="value.pool.taints"
         :mode="mode"
+        :disabled="busy"
       />
 
       <portal-target

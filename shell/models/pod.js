@@ -197,6 +197,10 @@ export default class Pod extends WorkloadService {
     return workloads[0];
   }
 
+  get ownedByWorkload() {
+    return !!this.workloadRef;
+  }
+
   get details() {
     const out = [
       {

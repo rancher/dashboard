@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import $ from 'jquery';
 import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import { isAlternate } from '@shell/utils/platform';
 import IconOrSvg from '@shell/components/IconOrSvg';
@@ -61,7 +60,7 @@ export default {
     customTargetEvent: {
       // The event details from the user's click can be used
       // for positioning the menu on the page.
-      type:    PointerEvent,
+      type:    [PointerEvent, MouseEvent],
       default: null
     },
 
@@ -149,7 +148,7 @@ export default {
 
     updateStyle() {
       if ( this.phase === SHOW && !this.useCustomTargetElement) {
-        const menu = $('.menu', this.$el)[0];
+        const menu = this.$el?.querySelector && this.$el.querySelector('.menu');
         const event = this.targetEvent;
         const elem = this.targetElem;
 
@@ -169,7 +168,7 @@ export default {
       }
 
       if ( this.open && this.useCustomTargetElement) {
-        const menu = $('.menu', this.$el)[0];
+        const menu = this.$el?.querySelector && this.$el.querySelector('.menu');
         const elem = this.customTargetElement;
 
         // If the action menu state is controlled with

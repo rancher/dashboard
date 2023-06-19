@@ -359,15 +359,16 @@ export default {
         />
       </div>
     </template>
-
-    <button
-      v-if="!isView"
-      type="button"
-      class="btn btn-sm role-link"
-      @click.stop="$emit('remove')"
-    >
-      {{ t('generic.remove') }}
-    </button>
+    <div class="remove">
+      <button
+        v-if="!isView"
+        type="button"
+        class="btn role-link"
+        @click.stop="$emit('remove')"
+      >
+        {{ t('generic.remove') }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -381,6 +382,10 @@ export default {
 
   .single-value {
     grid-column: span 2;
+  }
+
+  .remove BUTTON {
+    padding: 0px;
   }
 }
 

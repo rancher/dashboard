@@ -1,12 +1,12 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import { CypressChainable } from '~/cypress/e2e/po/po.types';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class CheckboxInputPo extends ComponentPo {
   static byLabel(self: CypressChainable, label: string): CheckboxInputPo {
     return new CheckboxInputPo(
       self
         .find('.checkbox-outer-container')
-        .contains(`${ label } `)
+        .contains(label)
         .parent()
     );
   }
@@ -26,5 +26,13 @@ export default class CheckboxInputPo extends ComponentPo {
   private input(): Cypress.Chainable {
     return this.self()
       .find('.checkbox-container');
+  }
+
+  isChecked(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').should('have.attr', 'aria-checked', 'true');
+  }
+
+  isUnchecked(): Cypress.Chainable {
+    return this.input().find('span.checkbox-custom').should('not.have.attr', 'aria-checked', 'true');
   }
 }

@@ -83,7 +83,8 @@ export default class ClusterNode extends SteveModel {
   }
 
   openSsh() {
-    this.provisionedMachine.openSsh();
+    // Pass in the name of the node, so we display that rather than the name of the provisioned machine
+    this.provisionedMachine.openSsh(this.nameDisplay);
   }
 
   downloadKeys() {
@@ -232,6 +233,14 @@ export default class ClusterNode extends SteveModel {
 
   get ramUsagePercentage() {
     return ((this.ramUsage * 100) / this.ramAllocatable).toString();
+  }
+
+  get ramReserved() {
+    return parseSi(this.status?.allocatable?.memory);
+  }
+
+  get ramReservedPercentage() {
+    return ((this.ramUsage * 100) / this.ramReserved).toString();
   }
 
   get podUsage() {

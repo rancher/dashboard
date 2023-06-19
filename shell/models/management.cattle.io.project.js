@@ -155,7 +155,12 @@ export default class Project extends HybridModel {
       }
     };
 
-    await finishProjectCreation();
+    // Only update PSP template if the value changed
+    const newPSPTemplateID = this.spec.podSecurityPolicyTemplateId || null;
+
+    if (norman.podSecurityPolicyTemplateId !== newPSPTemplateID) {
+      await finishProjectCreation();
+    }
 
     return newValue;
   }

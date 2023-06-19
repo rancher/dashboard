@@ -1,18 +1,1 @@
-module.exports = {
-  env: {
-    test: {
-      plugins: [
-        [
-          'module-resolver',
-          {
-            root:  ['.'],
-            alias: {
-              '@': '.',
-              '~': '.',
-            },
-          },
-        ],
-      ],
-    },
-  },
-};
+module.exports = require('@rancher/shell/babel.config.js');

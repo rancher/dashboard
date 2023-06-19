@@ -22,6 +22,18 @@ export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: st
   return setting;
 };
 
+/**
+  * Fetch a specific setting that might not exist
+  * We fetch all settings - reality is Rancher will have done this already, so there's no overhead in doing
+  * this - but if we fetch a specific setting that does not exist, we will get a 404, which we don't want
+  */
+export const fetchSetting = async(store: Store<any>, id: string) => {
+  const all = await store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
+  const setting = (all || []).find((setting: any) => setting.id === id);
+
+  return setting;
+};
+
 export const setSetting = async(store: Store<any>, id: string, val: string): Promise<any> => {
   const setting = await fetchOrCreateSetting(store, id, val, false);
 
@@ -32,19 +44,17 @@ export const setSetting = async(store: Store<any>, id: string, val: string): Pro
 };
 
 export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string, arg1: string) => any>) => {
-  const perfSetting = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
-  let perfConfig = {};
+  const perfSettingResource = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
+  let perfSetting = {};
 
-  if (perfSetting && perfSetting.value) {
+  if (perfSettingResource?.value) {
     try {
-      perfConfig = JSON.parse(perfSetting.value);
+      perfSetting = JSON.parse(perfSettingResource.value);
     } catch (e) {
       console.warn('ui-performance setting contains invalid data'); // eslint-disable-line no-console
     }
   }
 
   // Start with the default and overwrite the values from the setting - ensures we have defaults for newly added options
-  perfConfig = Object.assign(DEFAULT_PERF_SETTING, perfConfig);
-
-  return perfConfig;
+  return Object.assign(DEFAULT_PERF_SETTING, perfSetting || {});
 };

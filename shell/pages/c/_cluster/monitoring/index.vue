@@ -4,10 +4,10 @@ import isEmpty from 'lodash/isEmpty';
 import InstallRedirect from '@shell/utils/install-redirect';
 import AlertTable from '@shell/components/AlertTable';
 import { NAME, CHART_NAME } from '@shell/config/product/monitoring';
-import { ENDPOINTS, MONITORING } from '@shell/config/types';
+import { CATALOG, ENDPOINTS, MONITORING } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { findBy } from '@shell/utils/array';
-
+import { getClusterPrefix } from '@shell/utils/grafana';
 import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
 import SimpleBox from '@shell/components/SimpleBox';
@@ -58,7 +58,7 @@ export default {
           iconSrc:     grafanaSrc,
           label:       'monitoring.overview.linkedList.grafana.label',
           description: 'monitoring.overview.linkedList.grafana.description',
-          link:        `/k8s/clusters/${ currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
+          link:        '',
         },
         {
           enabled:     false,
@@ -94,10 +94,13 @@ export default {
   methods: {
     async fetchDeps() {
       const { $store, externalLinks } = this;
+      const currentCluster = this.$store.getters['currentCluster'];
 
       this.v1Installed = await haveV1MonitoringWorkloads($store);
-
-      const hash = await allHash({ endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }) });
+      const hash = await allHash({
+        endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }),
+        app:       $store.dispatch(`cluster/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' })
+      });
 
       if (!isEmpty(hash.endpoints)) {
         const amMatch = findBy(externalLinks, 'group', 'alertmanager');
@@ -105,6 +108,8 @@ export default {
         const promeMatch = externalLinks.filter(
           el => el.group === 'prometheus'
         );
+
+        grafanaMatch.link = `${ getClusterPrefix(hash.app?.currentVersion || '', currentCluster.id) }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
         const alertmanager = findBy(
           hash.endpoints,
           'id',

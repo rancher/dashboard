@@ -94,7 +94,6 @@ export default {
     await this.fetchChart();
 
     await this.fetchAutoInstallInfo();
-
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
@@ -1125,6 +1124,7 @@ export default {
         Refer to the developer docs at docs/developer/helm-chart-apps.md
         for details on what values are injected and where they come from.
       */
+
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
@@ -1516,6 +1516,7 @@ export default {
         <div class="step__values__controls">
           <ButtonGroup
             v-model="preFormYamlOption"
+            data-testid="btn-group-options-view"
             :options="formYamlOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
@@ -1544,6 +1545,7 @@ export default {
             </button>
           </div>
         </div>
+
         <div class="scroll__container">
           <div class="scroll__content">
             <!-- Values (as Custom Component in ./shell/charts/) -->
@@ -1792,7 +1794,6 @@ export default {
           </div>
         </div>
       </div>
-
       <Banner
         color="warning"
         class="description"
@@ -1826,7 +1827,7 @@ export default {
 
   .install-steps {
     padding-top: 0;
-
+    height: 0;
     position: relative;
     overflow: hidden;
 
@@ -1970,17 +1971,17 @@ export default {
   .scroll {
     &__container {
       $yaml-height: 200px;
+      min-height: $yaml-height;
+      margin-bottom: 60px;
+      overflow: auto;
       display: flex;
       flex: 1;
-      min-height: $yaml-height;
-      height: 0;
     }
     &__content {
       display: flex;
       flex: 1;
       overflow: auto;
     }
-
   }
 
   ::v-deep .yaml-editor {
@@ -1990,8 +1991,8 @@ export default {
 .outer-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
   padding: 0;
+  overflow: auto;
 }
 
 .header {
@@ -2064,10 +2065,11 @@ export default {
 }
 
 .os-label {
-  position: absolute;
+  position: relative;
   background-color: var(--warning-banner-bg);
   color:var(--warning);
   margin-top: 5px;
+  top: 21px;
 }
 
 </style>

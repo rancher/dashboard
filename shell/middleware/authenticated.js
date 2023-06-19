@@ -437,6 +437,7 @@ export default async function({
     if ( e instanceof ClusterNotFoundError ) {
       return redirect(302, '/home');
     } else {
+      // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
 
       return redirect(302, '/fail-whale');

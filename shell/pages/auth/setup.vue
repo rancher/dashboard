@@ -18,6 +18,7 @@ import Password from '@shell/components/form/Password';
 import PasswordStrength from '@shell/components/PasswordStrength';
 import { applyProducts } from '@shell/store/type-map';
 import AESEncrypt from '@shell/utils/aes-encrypt';
+import BrandImage from '@shell/components/BrandImage';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -78,7 +79,7 @@ export default {
   },
 
   components: {
-    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, PasswordStrength
+    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, BrandImage, PasswordStrength
   },
 
   async asyncData({ route, req, store }) {
@@ -304,7 +305,6 @@ export default {
               v-clean-html="t(isFirstLogin ? 'setup.setPassword' : 'setup.newUserSetPassword', { username }, true)"
               class="text-center mb-20 mt-20 setup-title"
             />
-
             <Password
               v-if="!haveCurrent"
               v-model.trim="current"
@@ -455,8 +455,10 @@ export default {
           </div>
         </div>
       </div>
-
-      <div class="col span-6 landscape" />
+      <BrandImage
+        class="col span-6 landscape"
+        file-name="login-landscape.svg"
+      />
     </div>
   </form>
 </template>
@@ -488,6 +490,13 @@ export default {
       .span-6 {
         padding: 0 60px;
       }
+
+      .landscape {
+        height: 100vh;
+        margin: 0;
+        object-fit: cover;
+        padding: 0;
+      }
     }
 
     .form-col {
@@ -515,14 +524,5 @@ export default {
     p {
       line-height: 20px;
     }
-
-  }
-
-  .landscape {
-    background-image: url('~shell/assets/images/pl/login-landscape.svg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    height: 100vh;
   }
 </style>

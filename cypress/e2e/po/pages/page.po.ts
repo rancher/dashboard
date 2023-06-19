@@ -24,4 +24,8 @@ export default class PagePo extends ComponentPo {
   checkIsCurrentPage() {
     return this.isCurrentPage().should('eq', true);
   }
+
+  mastheadTitle() {
+    return this.self().find('.primaryheader h1').invoke('text');
+  }
 }
