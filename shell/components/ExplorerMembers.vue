@@ -250,12 +250,12 @@ export default {
     },
 
     getProjectRoleBinding(row, role) {
-      // Each row is a combination of user/group and project
-      // So find the specfic roleBindingTemplate corresponding to the specific role + project
+      // Each row is a combination of project, role and user/group
+      // So find the specfic roleBindingTemplate corresponding to the specific project, role + user/group
       const userOrGroupKey = row.userId ? 'userId' : 'groupPrincipalId';
 
       return this.projectRoleTemplateBindings.find((r) => {
-        return r.roleTemplateId === role.id && r[userOrGroupKey] === row[userOrGroupKey];
+        return r.projectId === row.projectId && r.roleTemplateId === role.id && r[userOrGroupKey] === row[userOrGroupKey];
       });
     },
 

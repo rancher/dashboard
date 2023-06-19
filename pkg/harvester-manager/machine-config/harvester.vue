@@ -16,8 +16,8 @@ import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
 import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
+import { clone, get } from '@shell/utils/object';
 
-import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
 import { removeObject } from '@shell/utils/array';
 import { mapGetters } from 'vuex';
@@ -38,6 +38,7 @@ import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
+import { isEqual } from 'lodash';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 
@@ -270,6 +271,8 @@ export default {
       }
 
       this.disks = JSON.parse(this.value.diskInfo).disks || [];
+      this.disksObj = JSON.parse(this.value.diskInfo);
+      this.disksHistoric = this.value.diskInfo;
 
       if (!this.value.networkInfo) {
         if (this.mode !== _CREATE) {
@@ -290,6 +293,8 @@ export default {
         this.value.networkInfo = JSON.stringify(networkInfo);
       }
       this.interfaces = JSON.parse(this.value.networkInfo).interfaces || [];
+      this.networksObj = JSON.parse(this.value.networkInfo);
+      this.networksHistoric = this.value.networkInfo;
 
       this.update();
     } catch (e) {
@@ -298,14 +303,25 @@ export default {
   },
 
   data() {
-    let vmAffinity = { affinity: {} };
-    let networkData = '';
     const isCreate = this.mode === _CREATE;
 
+    let vmAffinity = { affinity: {} };
+    let vmAffinityObj = {};
+    let vmAffinityIsBase64 = true;
+    const vmAffinityHistoric = this.value.vmAffinity;
+
     if (this.value.vmAffinity) {
-      vmAffinity = { affinity: JSON.parse(base64Decode(this.value.vmAffinity)) };
+      if (isBase64(this.value.vmAffinity)) {
+        vmAffinityObj = JSON.parse(base64Decode(this.value.vmAffinity));
+      } else {
+        vmAffinityIsBase64 = false;
+        vmAffinityObj = JSON.parse(this.value.vmAffinity);
+      }
     }
 
+    vmAffinity = { affinity: clone(vmAffinityObj) };
+
+    let networkData = '';
     let userData = '';
     let installAgent;
     let userDataIsBase64 = true;
@@ -337,6 +353,8 @@ export default {
     return {
       credential:         null,
       vmAffinity,
+      vmAffinityObj,
+      vmAffinityHistoric,
       userData,
       userDataTemplate:   '',
       networkData,
@@ -350,11 +368,16 @@ export default {
       allNodeObjects:     [],
       cpuCount:           '',
       disks:              [],
+      disksObj:           {},
+      disksHistoric:      {},
       interfaces:         [],
+      networksObj:        {},
+      networksHistoric:   {},
       isOldFormat:        false,
       installAgent,
       userDataIsBase64,
       networkDataIsBase64,
+      vmAffinityIsBase64,
       SOURCE_TYPE
     };
   },
@@ -436,6 +459,7 @@ export default {
         this.storageClass = [];
         this.namespaceOptions = [];
         this.vmAffinity = { affinity: {} };
+        this.vmAffinityObj = {};
         this.value.imageName = '';
         this.value.networkName = '';
         this.value.vmNamespace = '';
@@ -496,12 +520,16 @@ export default {
     test() {
       const errors = [];
 
-      if (!this.userDataIsBase64) {
+      if (!this.userDataIsBase64 && isBase64(this.value.userData)) {
         this.value.userData = base64Decode(this.value.userData);
       }
 
-      if (!this.networkDataIsBase64) {
+      if (!this.networkDataIsBase64 && isBase64(this.value.networkData)) {
         this.value.networkData = base64Decode(this.value.networkData);
+      }
+
+      if (!this.vmAffinityIsBase64 && isBase64(this.value.vmAffinity)) {
+        this.value.vmAffinity = base64Decode(this.value.vmAffinity);
       }
 
       if (!this.value.cpuCount) {
@@ -628,8 +656,27 @@ export default {
       }
     },
 
+    removeAffinityUnusedFields(data) {
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          const value = data[key];
+
+          if (key.startsWith('_') || value === null || value === '' || (Array.isArray(value) && value.length === 0) || (key !== 'namespaceSelector' && typeof value === 'object' && Object.keys(value).length === 0)) {
+            delete data[key];
+          } else if (typeof value === 'object') {
+            this.removeAffinityUnusedFields(value);
+            if (key !== 'namespaceSelector' && Object.keys(value).length === 0) {
+              delete data[key];
+            }
+          }
+        }
+      }
+
+      return data;
+    },
+
     updateScheduling(neu) {
-      const { affinity } = neu;
+      const { affinity } = clone(neu);
 
       if (!affinity.nodeAffinity && !affinity.podAffinity && !affinity.podAntiAffinity) {
         this.value.vmAffinity = '';
@@ -638,7 +685,16 @@ export default {
         return;
       }
 
-      this.value.vmAffinity = base64Encode(JSON.stringify(affinity));
+      const newAffinity = this.removeAffinityUnusedFields(affinity);
+
+      // Do not update if it is not an actual change, such as the removal of whitespace or a change in map key order
+      if (!isEqual(this.vmAffinityObj, newAffinity)) {
+        this.value.vmAffinity = base64Encode(JSON.stringify(newAffinity));
+      } else if (this.vmAffinityIsBase64) {
+        this.value.vmAffinity = this.vmAffinityHistoric;
+      } else {
+        this.value.vmAffinity = base64Encode(this.vmAffinityHistoric);
+      }
       this.vmAffinity = neu;
     },
 
@@ -688,11 +744,21 @@ export default {
         })
       };
 
-      this.value.diskInfo = JSON.stringify(diskInfo);
+      // Do not update if it is not an actual change, such as the removal of whitespace or a change in map key order
+      if (!isEqual(this.disksObj, diskInfo)) {
+        this.value.diskInfo = JSON.stringify(diskInfo);
+      } else {
+        this.value.diskInfo = this.disksHistoric;
+      }
 
       const networkInfo = { interfaces: this.interfaces };
 
-      this.value.networkInfo = JSON.stringify(networkInfo);
+      // Do not update if it is not an actual change, such as the removal of whitespace or a change in map key order
+      if (!isEqual(this.networksObj, networkInfo)) {
+        this.value.networkInfo = JSON.stringify(networkInfo);
+      } else {
+        this.value.networkInfo = this.networksHistoric;
+      }
     },
 
     removeVolume(vol) {

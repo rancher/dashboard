@@ -9,6 +9,29 @@ export default class PagePo extends ComponentPo {
     return cy.visit(path);
   }
 
+  /**
+   * When dashboard loads it will always go out and fetch counts for the upstream cluster (management/counts --> v1/counts).
+   *
+   * If using this on a page with a specific cluster context it will make another counts request for counts for it (cluster/counts)
+   * Note - If that cluster is the upstream one the request will be the same as management (v1/counts)
+   */
+  static goToAndWaitForGet(goTo: () => Cypress.Chainable, getUrls = [
+    'v1/counts',
+  ]) {
+    getUrls.forEach((cUrl, i) => {
+      cy.intercept('GET', cUrl).as(`getUrl${ i }`);
+    });
+
+    goTo();
+
+    for (let i = 0; i < getUrls.length; i++) {
+      // If an intercept for the url already exists... use the same wait (it'll fire on that one)
+      const existingIndexOrCurrent = getUrls.indexOf(getUrls[i]);
+
+      cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout: 10000 });
+    }
+  }
+
   goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(this.path);
   }
@@ -23,5 +46,9 @@ export default class PagePo extends ComponentPo {
 
   checkIsCurrentPage() {
     return this.isCurrentPage().should('eq', true);
+  }
+
+  mastheadTitle() {
+    return this.self().find('.primaryheader h1').invoke('text');
   }
 }

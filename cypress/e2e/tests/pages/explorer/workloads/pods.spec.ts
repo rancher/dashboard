@@ -1,5 +1,5 @@
 import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
-import { createPodBluerint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
+import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
 
 describe('Cluster Explorer', () => {
@@ -12,7 +12,7 @@ describe('Cluster Explorer', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
       describe('When cloning a pod', () => {
-        const { name: origPodName, namespace } = createPodBluerint.metadata;
+        const { name: origPodName, namespace } = createPodBlueprint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
         beforeEach(() => {
@@ -23,7 +23,7 @@ describe('Cluster Explorer', () => {
 
           const createPodPo = new PodPo();
 
-          createPodPo.createPodViaKubectl(createPodBluerint);
+          createPodPo.createPodViaKubectl(createPodBlueprint);
         });
 
         it(`Should have same spec as the original pod`, () => {
@@ -37,7 +37,7 @@ describe('Cluster Explorer', () => {
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
               origPodSpec = response?.body.spec;
-              expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBluerint.spec.containers[0].resources);
+              expect(origPodSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
             });
 
           const createClonePo = new PodPo();
@@ -63,7 +63,7 @@ describe('Cluster Explorer', () => {
               }
 
               expect(clonedSpec).to.deep.eq(origPodSpec);
-              expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBluerint.spec.containers[0].resources);
+              expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
             });
         });
       });

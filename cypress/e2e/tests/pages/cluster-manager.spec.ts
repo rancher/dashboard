@@ -15,8 +15,6 @@ const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 
 // File specific consts
-const { baseUrl } = Cypress.config();
-const clusterRequestBase = `${ baseUrl }/v1/provisioning.cattle.io.clusters/fleet-default`;
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
@@ -55,8 +53,6 @@ describe('Cluster Manager', () => {
       });
 
       it('can edit cluster and see changes afterwards', () => {
-        cy.intercept('PUT', `${ clusterRequestBase }/${ rke2CustomName }`).as('saveRequest');
-
         clusterList.goTo();
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
@@ -64,13 +60,13 @@ describe('Cluster Manager', () => {
         editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
         editCreatedClusterPage.save();
 
-        cy.wait('@saveRequest').then(() => {
-          clusterList.goTo();
-          clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        // We should be taken back to the list page if the save was successful
+        clusterList.waitForPage();
 
-          editCreatedClusterPage.waitForPage('mode=edit', 'basic');
-          editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
-        });
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
       });
 
       it('can view cluster YAML editor', () => {
@@ -100,18 +96,19 @@ describe('Cluster Manager', () => {
       });
 
       it('can delete cluster', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ rke2CustomName }`).as('deleteRequest');
-
         clusterList.goTo();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
-        const promptRemove = new PromptRemove();
+        clusterList.sortableTable().rowNames().then((rows: any) => {
+          const promptRemove = new PromptRemove();
 
-        promptRemove.confirm(rke2CustomName);
-        promptRemove.remove();
+          promptRemove.confirm(rke2CustomName);
+          promptRemove.remove();
 
-        cy.wait('@deleteRequest').then(() => {
-          return clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist', { timeout: 15000 });
+          clusterList.waitForPage();
+          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
+          clusterList.sortableTable().rowNames().should('not.contain', rke2CustomName);
         });
       });
     });
@@ -146,20 +143,21 @@ describe('Cluster Manager', () => {
       });
 
       it('can delete cluster by bulk actions', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ importGenericName }`).as('deleteRequest');
-
         clusterList.goTo();
+        clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', { timeout: 15000 });
         clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
 
-        const promptRemove = new PromptRemove();
+        clusterList.sortableTable().rowNames().then((rows: any) => {
+          const promptRemove = new PromptRemove();
 
-        promptRemove.confirm(importGenericName);
-        promptRemove.remove();
+          promptRemove.confirm(importGenericName);
+          promptRemove.remove();
 
-        cy.wait('@deleteRequest').then(() => {
-          return clusterList.sortableTable().rowElementWithName(importGenericName).should('not.exist', { timeout: 15000 });
+          clusterList.waitForPage();
+          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
+          clusterList.sortableTable().rowNames().should('not.contain', importGenericName);
         });
       });
     });

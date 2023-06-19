@@ -4,10 +4,11 @@ import { MANAGEMENT, VIRTUAL_HARVESTER_PROVIDER } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 
 // Filter out any clusters that are not Kubernetes Clusters
-// Currently this removes Harvester clusters
-export function filterOnlyKubernetesClusters(mgmtClusters) {
+export function filterOnlyKubernetesClusters(mgmtClusters, store) {
+  const openHarvesterContainerWorkload = store.getters['features/get']('harvester-baremetal-container-workload');
+
   return mgmtClusters.filter((c) => {
-    return !c.isHarvester;
+    return openHarvesterContainerWorkload ? true : !c.isHarvester;
   });
 }
 

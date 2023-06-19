@@ -87,7 +87,7 @@ export default {
       }
     }
 
-    hash.load = await this.$store.dispatch('catalog/load');
+    hash.load = await this.$store.dispatch('catalog/load', { reset: true });
 
     if (this.$store.getters['management/schemaFor'](CATALOG.OPERATION)) {
       hash.helmOps = await this.$store.dispatch('management/findAll', { type: CATALOG.OPERATION });
@@ -435,7 +435,7 @@ export default {
 
   methods: {
     async refreshCharts() {
-      await this.$store.dispatch('catalog/load');
+      await this.$store.dispatch('catalog/load', { reset: true });
       const c = this.$store.getters['catalog/rawCharts'];
 
       this.charts = Object.values(c);
@@ -1013,6 +1013,9 @@ export default {
       color: #888;
       width: 44px;
       height: 44px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
       &.dark-mode {
         border-radius: calc(2 * var(--border-radius));
