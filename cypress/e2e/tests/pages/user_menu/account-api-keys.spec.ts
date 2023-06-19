@@ -22,7 +22,7 @@ describe('User can make changes to their account', () => {
      * Verify user can change their password and change it back
      */
 
-    HomePagePo.goToAndWaitForCounts(HomePagePo.goTo);
+    HomePagePo.goToAndWaitForGet();
     userMenu.toggle();
     userMenu.isOpen();
     userMenu.clickMenuItem('Account & API Keys');
