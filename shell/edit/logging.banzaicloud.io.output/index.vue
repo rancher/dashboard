@@ -263,7 +263,6 @@ export default {
   flex-grow: 1;
 
   .side-tabs {
-    background: yellow;
     flex: 1;
   }
   .provider {
