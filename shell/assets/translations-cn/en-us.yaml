@@ -491,6 +491,12 @@ authConfig:
     groupUniqueIdAttribute:
       label: Group Unique ID
       tip: Use a globally unique property created by a user group to avoid losing user privileges due to a change in the value of the property
+    oktaSchema: 'The defaults below are for a generic OpenLDAP server. For more information on the values to use when using the Okta LDAP interface, see: <a target="_blank" rel="noopener noreferrer nofollow" href="https://help.okta.com/en-us/Content/Topics/Directory/LDAP-interface-connection-settings.htm">Okta LDAP Interface connection settings</a>'
+    protocol: Protocol
+    protocols:
+      ldap: LDAP
+      starttls: Start TLS
+      tls: LDAPS (TLS)
   saml:
     entityID: Entity ID Field
     UID: UID Field
@@ -513,6 +519,13 @@ authConfig:
     shibboleth: Configure a Shibboleth account
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
+    search:
+      hide: Hide details
+      message: The SAML Protocol does not support search or lookup for users or groups. In order to enabled search, an OpenLDAP server must be configured.
+      off: LDAP User and Group search is not configured
+      on: LDAP User and Group search has been configured
+      show: Show details
+      title: User and Group Search
   azuread:
     tenantId: Tenant ID
     applicationId: Application ID
@@ -1830,6 +1843,9 @@ cluster:
       label: Drain Before Delete
     role:
       label: Roles
+      controlPlane: Control Plane
+      etcd: etcd
+      worker: Worker
     labels:
       label: Kubernetes Node Labels
     autoReplace:
@@ -1839,6 +1855,8 @@ cluster:
     configNotFound: We could not find this machine pool's configuration. We recommend that you create a new cluster with the desired configuration.
     noAccessBanner: You do not have access to see this machine pool's configuration.
     noPoolsDisclaimer: You do not have any machine pools defined, click the plus to add one.
+    truncationCluster: Hostname truncation has been manually configured for this cluster to {limit}
+    truncationPool: Hostname truncation has been manually configured for this pool to {limit}
   managementTimeout: The cluster to become available. It's possible the cluster was created. We suggest checking the clusters page before trying to create another.
   memberRoles:
     removeMessage: 'Note: Removing a user will not remove their project permissions'
@@ -2022,6 +2040,7 @@ cluster:
       pspChange:
         body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?
         title: Pod Security Policy deprecation
+    truncateHostnames: Truncate hostnames to 15 characters for NetBIOS compatibility.
   k3s:
     techPreview: K3s provisioning is in Tech Preview
     systemService:
@@ -2085,6 +2104,27 @@ cluster:
     machine: Machine {name} is inactive
     node: Node {name} is inactive
   manageAction: Manage
+  agentConfig:
+    affinity:
+      custom: Use custom affinity rules
+      default: Use default affinity rules defined by Rancher
+    banners:
+      advanced: These are advanced configuration options. Generally, they should be left as-is.
+      limits: Pod Requests and Limits do not have a default configuration.
+      tolerations: Additional Pod Tolerations will be added to the default Tolerations applied by Rancher.
+      windowsCompatibility: We do not recommended removing the Node Affinity rule that prevents the <b>agent</b> from running on Windows nodes as this is not a supported configuration.
+    groups:
+      deploymentLabels: Deployment Labels
+      podAffinity: Affinity
+      podRequestsAndLimits: Requests and Limits
+      podTolerations: Tolerations
+      selector: Selector
+    subGroups:
+      nodeAffinity: Node Affinity
+      podAffinityAnti: Pod Affinity/Anti-Affinity
+    tabs:
+      cluster: Cluster Agent
+      fleet: Fleet Agent
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
@@ -2325,6 +2365,10 @@ fleet:
     workspace:
       label: Workspace
       addWorkspace: Create a workspace
+    resources:
+      keepResources: Keep resources after deletion
+      label: Resource Handling
+      resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -2388,7 +2432,11 @@ gatekeeperConstraint:
       title: Parameters
   template: Template
   violations:
-    title: Violations
+    title: 'Violations: {total}'
+    notAll: Not all are shown due to the configured OPA Gatekeeper constraint violation limit - the constraint only includes details for {shown}
+  downloadViolations: Download Violations
+  enforcement:
+    action: Enforcement Action
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
@@ -2760,6 +2808,7 @@ istio:
     description: Description
   tracing: Enable Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
+  pilotRequired: Pilot must be enabled in order to enable Kiali
 labels:
   addLabel: Add Label
   addSetLabel: Add/Set Label
@@ -2884,6 +2933,10 @@ logging:
     clientKeyPass: Client Key Pass from Secret
     verifySsl: Verify SSL
     sslVersion: SSL Version
+    suppressTypeName:
+      elasticSearchTips: Suppress type names by default to be compatible with log server. You should enable it for Elasticsearch >= 8.0.0
+      label: Suppress Type Names
+      openSearchTips: Suppress type names by default to be compatible with log server. You should enable it for OpenSearch >= 2.0.0
   gelf:
     host: Host
     port: Port
@@ -2923,6 +2976,7 @@ logging:
     caCert: CA Cert from Secret
     cert: Cert from Secret
     key: Key from Secret
+    urlInvalid: Incorrect URL format. Please  check and correct your URL format before saving.
   awsElasticsearch:
     url: URL
     keyId: Key Id from Secret
@@ -3142,10 +3196,13 @@ members:
     custom:
       label: Custom
       description: Choose individual roles for this user.
+      lockedRole: This role is locked.
   localClusterWarning: "Caution: This is the cluster that Rancher is using as a data store. Only administrators should be given write access to this cluster. Users with write access to this cluster can use it to grant themselves access to any part of this installation."
   clusterAndProject: Cluster and Project Members
   noRolesAssigned: There are no users assigned to this project.
   projectMembers: Project Members
+  clusterMemebership: Cluster Membership
+  projectMembership: Project Membership
 membershipEditor:
   label: Members
   user: User
@@ -3514,6 +3571,7 @@ namespace:
   resourceQuotas: Resource Quotas
   project:
     label: Project
+    none: (None)
   resources: Resources
   enableAutoInjection: Enable Istio Auto Injection
   disableAutoInjection: Disable Istio Auto Injection
@@ -3639,6 +3697,10 @@ networkpolicy:
       label: Pod Selector
     namespaceSelector:
       label: Namespace Selector
+    namespace: Namespace
+    namespaceAndPodSelector:
+      label: Namespace/Pod Selector
+    pod: Pod
   config:
     label: Configuration
   selectors:
@@ -3658,6 +3720,18 @@ networkpolicy:
           =1 {Matches 1 of {total, number} namespaces: "{sample}"}
           other {Matches {matched, number} of {total, number} existing namespaces, including "{sample}"}
         }
+    matchingNamespacesAndPods:
+      matchesSome: |-
+        {matchedPods, plural,
+          =0 {Matches 0 of {totalPods, number} pods}
+          =1 {Matches 1 of {totalPods, number} pods: "{samplePods}"}
+          other {Matches {matchedPods, number} of {totalPods, number} existing pods, including "{samplePods}"}
+        } in {matchedNamespaces, plural,
+          =0 {0 of {totalNamespaces, number} namespaces}
+          =1 {1 of {totalNamespaces, number} namespaces: "{sampleNamespaces}"}
+          other {{matchedNamespaces, number} of {totalNamespaces, number} existing namespaces, including "{sampleNamespaces}"}
+        }
+      tooltip: A single entry rule that specifies both Namespace Selector and Pod Selector that selects particular Pods within particular namespaces
 node:
   list:
     pool: Pool
@@ -4216,6 +4290,7 @@ projectNamespaces:
   label: Projects/Namespaces
   noNamespaces: There are no namespaces defined.
   noProjectNoNamespaces: All namespaces are in a project
+  isIstioInjectionEnabled: Istio automatic sidecar injection is enabled for this namespace
 prometheusRule:
   alertingRules:
     addLabel: Add Alert
@@ -4545,8 +4620,8 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
     createResource: "Create {resourceName}"
-  nsFilterToolTip: There are too many resources, filtering is restricted to a single {mode}.
-  nsFiltering: There are too many {resource}.<br>Please filter them by selecting a Namespace above.
+  nsFilterToolTip: Filtering is restricted to projects and namespaces
+  nsFiltering: Please select one or more namespaces or projects using the filter above.
 resourceLoadingIndicator:
   loading: Loading
 resourceTable:
@@ -4556,6 +4631,7 @@ resourceTable:
     project: Group by Project
     node: Group by Node
     cluster: Group by Cluster
+    role: Group by Role
   groupLabel:
     cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
@@ -4816,6 +4892,12 @@ servicesPage:
     ipam:
       label: IPAM
     title: Add-on Config
+    shareIP:
+      label: Share IP LB
+    useIpam:
+      label: Use IPAM
+    useShareIP:
+      label: Use Share IP
   listeningPorts: The Service is exposed on this port.
   serviceListDescription: Services allow you to define a logical set of Pods that can be accessed with a single IP address and port.
   targetPorts: The Service will send requests to this port, and the selected Pods are expected to listen on this port.
@@ -5384,6 +5466,8 @@ tableHeaders:
   volume: Volume
   volumeMode: Volume Mode
   lastSeenTooltip: The time at which the most recent occurrence of this event was recorded
+  constraint: Constraint
+  template: Template
 target:
   router:
     label: Router
@@ -5932,7 +6016,7 @@ workload:
         exists: is set
         greaterThan: ">"
         in: in list
-        inNamespaces: "Pods in these namespaces:"
+        inNamespaces: "Specific namespaces"
         key: Key
         lessThan: <
         namespaces: Namespaces
@@ -5940,6 +6024,8 @@ workload:
         operator: Operator
         value: Value
         weight: Weight
+        label: Expressions
+        matchType: Match Type
       noPodRules: There are no pod scheduling rules configured.
       nodeName: Node Name
       priority: Priority
@@ -5957,6 +6043,9 @@ workload:
       weight:
         label: Weight
         placeholder: Must be a weight between 1 and 100
+      matchFields:
+        label: Fields
+      allNamespaces: All namespaces
     priority:
       className: Priority Class Name
       priority: Priority
@@ -5977,9 +6066,9 @@ workload:
       effectOptions:
         all: All
         noExecute: NoExecute
-        noSchedule: "NoSchedule,"
+        noSchedule: "NoSchedule"
         preferNoSchedule: PreferNoSchedule
-      labelKey: Label Key
+      labelKey: Key
       operator: Operator
       operatorOptions:
         equal: =
@@ -6333,8 +6422,8 @@ typeLabel:
     }
   management.cattle.io.clusterroletemplatebinding: |-
     {count, plural,
-      one { Cluster Member }
-      other { Cluster Members }
+      one { Cluster Membership }
+      other { Cluster Memberships }
     }
   management.cattle.io.feature: |-
     {count, plural,
@@ -6457,7 +6546,7 @@ typeLabel:
       one { Bundle }
       other { Bundles }
     }
-  fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { Cluster Registration Token }\n  other { Cluster Registration Tokens }\n} "
+  fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { Cluster Registration Token }\n  other { Cluster Registration Tokens }\n}"
   admissionregistration.k8s.io.mutatingwebhookconfiguration: |-
     {count, plural,
       one { MutatingWebhookConfiguration }
@@ -6783,6 +6872,11 @@ typeLabel:
       one { Pod Security Admission }
       other { Pod Security Admissions }
     }
+  projectroletemplatebinding: |-
+    {count, plural,
+      one { Project Membership }
+      other { Project Memberships }
+    }
 action:
   clone: Clone
   disable: Disable
@@ -6969,6 +7063,7 @@ performance:
       When enabled, resources will appear more quickly, but it may take slightly longer to load the entire set of resources. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable incremental loading
     inputLabel: Resource Threshold
+    incompatibleDescription: Incremental Loading is incomaptible with Namespace/Project filtering. Enabling this will disable it.
   manualRefresh:
     banner: This setting is experimental and may be removed or updated in future versions.
     label: Manual Refresh
@@ -6978,6 +7073,7 @@ performance:
       When enabled, list data will not auto-update but instead the user must manually trigger a list-view refresh. This setting only applies to resources that come from the Kubernetes API
     checkboxLabel: Enable manual refresh of data for lists
     inputLabel: Resource Threshold
+    incompatibleDescription: Manual Refresh is incomaptible with Namespace/Project filtering. Enabling this will disable it.
   websocketNotification:
     label: Websocket Notifications
     description: |-
@@ -7011,12 +7107,20 @@ performance:
     count:
       description: The threshold above which filtering by a namespace is required
       inputLabel: Resource Threshold
-    description: When there are too many resources to show in a list, require the user to select a single namespace and only fetch resources from within it.
-    label: Require Namespace Filtering
+    description: Require the user to select namespaces and/or projects. This restricts the number of resources fetched when viewing lists and should help the responsiveness of the UI in systems with a lot of resources.
+    label: Require Namespace / Project Filtering
+    incompatibleDescription: Required Namespace / Project Filtering is incomaptible with Manual Refresh and Incremental Loading. Enabling this will disable them.
   advancedWorker:
     checkboxLabel: Enable Advanced Websocket Web Worker
     description: Updates to resources pushed to the UI come via WebSocket and are handled in the UI thread. Enable this option to handle cluster WebSocket updates in a Web Worker in a separate thread. This should help the responsiveness of the UI in systems where resources change often.
     label: Websocket Web Worker
+  inactivity:
+    authUserTTL: This timeout cannot be higher than the user session timeout auth-user-session-ttl-minutes, which is currently {current} minutes.
+    checkboxLabel: Enable inactivity session expiration
+    description: When enabled and the user is inactive past the specified timeout, the UI will no longer fresh page content and the user must reload the page to continue.
+    information: To change the automatic logout behaviour, edit the authorisation and/or session token timeout values (<code>auth-user-session-ttl-minutes</code> and <code>auth-token-max-ttl-minutes</code>) in the Settings page.
+    inputLabel: Inactivity timeout (minutes)
+    title: Inactivity
 banner:
   label: Fixed Banners
   settingName: Banners
@@ -7266,6 +7370,7 @@ plugins:
     built-in: This Extension is built-in
     experimental: This Extension is marked as experimental
     third-party: This Extension is provided by a Third-Party
+    image: This Extension Image has been loaded manually
   developer:
     fields:
       name: Extension module name
@@ -7279,6 +7384,7 @@ plugins:
     available: No Extensions available
     installed: No Extensions installed
     updates: No updates available for installed Extensions
+    images: No Extension Images installed
   error:
     api: This Extension is not compatible with the Extensions API
     generic: Extension error
@@ -7305,6 +7411,7 @@ plugins:
     installing: Installing ...
     third-party: Third-Party
     uninstalling: Uninstalling ...
+    image: Image
   loadError: An error occurred loading the code for this extension
   manageRepos: Manage Repositories
   reload: Extensions changed - reload required
@@ -7343,11 +7450,13 @@ plugins:
     available: Available
     installed: Installed
     updates: Updates
+    images: Images
   title: Extensions
   uninstall:
     label: Uninstall
     prompt: Are you sure that you want to uninstall this Extension?
     title: 'Uninstall Extension: {name}'
+    custom: Are you sure that you want to uninstall this Extension Image? This will also remove any Extensions provided by this image.
   update:
     label: Update
     prompt: Are you sure that you want to update this Extension?
@@ -7355,6 +7464,45 @@ plugins:
   upgradeAvailable: A newer version of this Extension is available
   version: 'Version: {version}'
   incompatibleDisclaimer: The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion }).
+  manageCatalog:
+    headers:
+      cacheState:
+        label: Cache State
+        name: cacheState
+      image:
+        label: Deployment Image
+        name: images
+    imageLoad:
+      banner: This will create an Deployment, Service, and Helm repository to serve the extension charts.
+      error:
+        exists:
+          deployment:
+            message: A container with the image {image} already exists
+            title: Deployment Conflict
+          repo:
+            message: A repository with the name {repo} already exists
+            title: Helm Repository Conflict
+          service:
+            message: A service with the name {svc} already exists
+            title: Service Conflict
+      fields:
+        image:
+          label: Catalog Image Reference
+          placeholder: e.g. hub.docker.io/example-org/my-image:latest
+        secrets:
+          banner: If the registry that hosts the Catalog Image requires Pull Secrets, they must be created in the following namespace:<pre>cattle-ui-plugin-system</pre>
+      imageVersion:
+        message: Unable to determine image version from {image}, defaulting to latest
+        title: Image Version Not Found
+      load: Import Extension Catalog
+      prompt: An Extension Catalog contains extension assets bundled into an image, importing will take the image and host a Helm repository to act as a catalog for custom built Extensions.
+      success:
+        message: Extension Catalog image was imported successfully
+        title: 'Imported Extension Catalog from: {name}'
+    label: Manage Extension Catalogs
+    subtitle: Catalogs
+    title: Extension
+  manageCharts: Manage Extension Charts
 clusterConnectMode:
   actions:
     restartConfirm: Are You Sure You Want To Save Connect Mode And Restart {name} Cluster Controller？
@@ -7748,3 +7896,15 @@ gatekeeperInstall:
   runtimeDefaultSeccompProfile: Enable Runtime Default Seccomp Profile
 editProjectMemberDialog:
   title: Edit Project Member
+inactivity:
+  banner: Your session is about to expire due to inactivity. Any unsaved changes will be lost.
+  bannerExpired: Your session has expired in this tab due to inactivity.
+  content: Click “Resume Session” to keep the session in this tab active or refresh the browser after the session has expired.
+  contentExpired: To return to this page click “Refresh” below or refresh the browser.
+  cta: Resume Session
+  ctaExpired: Refresh
+  title: Session expiring
+  titleExpired: Session expired
+networkAttachmentDefinition:
+  tabs:
+    config: Config

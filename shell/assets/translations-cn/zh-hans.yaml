@@ -108,6 +108,7 @@ generic:
   confirm: 确认
   labels: 标签
   podSecurityAdmission: Pod 安全准入
+  here: 此处
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -474,7 +475,7 @@ authConfig:
     serviceAccountPassword: Service Account 密码
     serviceAccountInfo: '{vendor} 需要一个对所有能够登录的域名都有只读访问权的 Service Account，以在用户使用 API 密钥进行请求时，确定用户属于什么组。'
     starttls:
-      label: 启动 TLS
+      label: 启用 TLS
       tip: 通过在连接过程中使用 TLS 封装来升级非加密连接。不能与 TLS 结合使用。
     tls: TLS
     userEnabledAttribute: 用户启用属性
@@ -493,6 +494,12 @@ authConfig:
     groupUniqueIdAttribute:
       label: 组唯一标识
       tip: 请使用用户组创建后全局唯一的属性，避免因该属性值变化导致用户权限丢失
+    oktaSchema: 以下默认值适用于通用 OpenLDAP Server。有关使用 Okta LDAP 接口时要使用的值，请参阅 <a target="_blank" rel="noopener noreferrer nofollow" href="https://help.okta.com/en-us/Content/Topics/Directory/LDAP-interface-connection-settings.htm">Okta LDAP 接口连接设置</a>
+    protocol: 协议
+    protocols:
+      ldap: LDAP
+      starttls: 启用 TLS
+      tls: LDAPS (TLS)
   saml:
     entityID: Entity ID 字段
     UID: UID 字段
@@ -515,6 +522,13 @@ authConfig:
     shibboleth: 配置 Shibboleth 账号
     showLdap: 配置 OpenLDAP server
     userName: 用户名字段
+    search:
+      hide: 隐藏详情
+      message: SAML 协议不支持搜索或查找用户或组。要启用搜索，你必须配置 OpenLDAP Server。
+      off: 未配置 LDAP 用户和组搜索
+      on: 已配置 LDAP 用户和组搜索
+      show: 显示详情
+      title: 用户和组搜索
   azuread:
     tenantId: 租户 ID
     applicationId: 应用 ID
@@ -1378,10 +1392,11 @@ cluster:
   importAction: 导入已有集群
   kubernetesVersion:
     label: Kubernetes 版本
-    experimental: 实验功能
-    deprecated: 已弃用
+    experimental: （实验功能）
+    deprecated: （已弃用）
     deprecatedPatches: 显示已弃用的 Kubernetes 补丁版本
     deprecatedPatchWarning: 建议为每个 Kubernetes 次要版本使用最新的补丁版本，已弃用的补丁版本可能对迁移有用。
+    current: （当前）
   toolsTip: 使用新集群工具来管理和安装 Monitoring、Logging 等工具。
   legacyWarning: 旧版功能开关已开启，但是不是所有旧版功能都在 Kubernetes 1.21+ 中支持。
   log:
@@ -1787,8 +1802,8 @@ cluster:
     desiredNodeGroupWarning: 没有可用于运行 Cluster Agent 的节点。要让集群变为 Active 状态，至少需要有 1 个可用的节点。
     deprecatedPsp: Pod 安全策略自 Kubernetes v1.21 起已弃用，并已在 Kubernetes v1.25 中删除。
     haveArgInfo: 所选 Kubernetes 版本的配置信息不可用。此屏幕中可用的选项将受到限制，你可能需要使用 YAML 编辑器。
-    invalidPsps: 你在此集群中有一个或多个 PSP 资源。Pod 安全策略将在 Kubernetes v1.25 中不可用。
-    removedPsp: Pod 安全策略已在 Kubernetes v1.25 中删除，请改用 PodSecurity Admission。
+    invalidPsps: 你在此集群中有一个或多个 PSP 资源。Pod 安全策略在 Kubernetes v1.25 中不可用并将自动删除。
+    removedPsp: Pod 安全策略已在 Kubernetes v1.25 中删除，请改用 Pod Security Admission。
   rkeTemplateUpgrade: 模板修订版 {name} 可用于升级
   detail:
     provisioner: 提供商
@@ -1809,15 +1824,15 @@ cluster:
       tooltip:
         controlPlane: |-
           {count, plural,
-            =0 { 一个集群需要至少1个可用的 Control Plane 节点。}
-            =1 { 只有1个 Control Plane 节点的集群是不具备容错能力的。}
+            =0 { 一个集群需要至少 1 个可用的 Control Plane 节点。}
+            =1 { 只有 1 个 Control Plane 节点的集群是不具备容错能力的。}
             other {}
           }
         etcd: |-
           {count, plural,
-            =0 { 一个集群需要至少1个可用的 ETCD 节点。}
-            =1 { 只有1个 ETCD 节点的集群是不具备容错能力的。}
-            =2 { 集群的节点数需要是奇数。只有2个 ETCD 节点的集群是不具备容错能力的。}
+            =0 { 一个集群需要至少 1 个可用的 ETCD 节点。}
+            =1 { 只有 1 个 ETCD 节点的集群是不具备容错能力的。}
+            =2 { 集群的节点数需要是奇数。只有 2 个 ETCD 节点的集群是不具备容错能力的。}
             =3 {}
             =4 { 集群的节点数需要是奇数。}
             =5 {}
@@ -1828,7 +1843,7 @@ cluster:
         worker: |-
           {count, plural,
             =0 { 一个集群需要至少 1 个可用的 Worker 节点。}
-            =1 { 只有1个 Worker 节点的集群是不具备容错能力的。}
+            =1 { 只有 1 个 Worker 节点的集群是不具备容错能力的。}
             other {}
           }
     quantity:
@@ -1838,6 +1853,9 @@ cluster:
       label: 删除前清空
     role:
       label: 角色
+      controlPlane: Control Plane
+      etcd: ETCD
+      worker: Worker
     labels:
       label: Kubernetes 节点标签
     autoReplace:
@@ -1847,6 +1865,8 @@ cluster:
     configNotFound: 找不到这个主机池的配置。建议你创建一个具有所需配置的新集群。
     noAccessBanner: 你没有查看此主机池配置的权限。
     noPoolsDisclaimer: 你没有定义任何主机池，请单击加号进行添加。
+    truncationCluster: 已手动将此集群的主机名截断配置为 {limit}
+    truncationPool: 已手动将此主机池的主机名截断配置为 {limit}
   managementTimeout: 集群变成可用。可能已创建了集群。建议在创建另一个集群之前检查集群页面。
   memberRoles:
     removeMessage: '注意：删除用户不会删除其项目权限。'
@@ -2014,30 +2034,23 @@ cluster:
     cisProfile:
       option: (None)
     defaultPodSecurityAdmissionConfigurationTemplateName:
-      label: 默认 Pod 安全准入
+      label: PSA 配置模板
       option:
         default: 默认 - 嵌入 RKE2
         none: (None)
     banner:
       cisOverride: 更改此设置可能会影响集群安全，因为它会覆盖默认的 CIS 设置
-      cisUnsupported: 所选 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，请选择支持的配置文件。建议你查看 RKE2 文档评估更改 CIS 配置文件的影响。
+      cisUnsupported: 所选 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，请选择支持的配置文件。建议你查看<a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">文档</a>评估更改 CIS 配置文件的影响。
       psaChange: PSACT 现在自动设置为 Rancher 默认值
     cis:
       agent: CIS 配置文件
-      override: 使用 CIS 配置文件时允许覆盖 PSA 默认模板
+      override: 当使用 CIS 配置文件时，允许覆盖默认 PSA 配置模板
       server: Server CIS 配置文件
     modal:
       pspChange:
-        body: 从 v1.25 版开始，Kubernetes 已经取消了对 Pod 安全策略 (PSP) 的支持。如果你的集群通过集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 启用了 PodSecurityPolicy 准入控制器，你必须在继续升级之前手动删除它。此外，集群中存在的任何 PSP 将不再可用或强制执行。是否继续？
+        body: 从 v1.25 版开始，Kubernetes 已经取消了对 Pod 安全策略 (PSP) 的支持。如果你的集群通过集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 启用了 PodSecurityPolicy 准入控制器，你必须在继续升级之前<i>手动</i>删除它。此外，集群中存在的任何 PSP 将不再可用或强制执行。是否继续操作？
         title: 弃用 Pod 安全策略
-  k3s:
-    techPreview: K3s 配置处于技术预览中
-    systemService:
-      coredns: 'CoreDNS'
-      local-storage: '本地存储'
-      metrics-server: 'Metrics Server'
-      servicelb: 'Klipper 服务 LB'
-      traefik: 'Traefik Ingress'
+    truncateHostnames: 将主机名截断为 15 个字符来兼容 NetBIOS。
   selectCredential:
     genericDescription: "{vendor} 没有此驱动的内置支持。请查阅驱动的官方文档，以了解身份认证所需的字段。"
   snapshot:
@@ -2093,6 +2106,34 @@ cluster:
     machine: 主机 {name} 处于非活动状态
     node: 节点 {name} 处于非活动状态
   manageAction: 管理
+  agentConfig:
+    affinity:
+      custom: 使用自定义亲和性规则
+      default: 使用 Rancher 定义的默认亲和性规则
+    banners:
+      advanced: 以下是高级配置，通常不修改。
+      limits: Pod 请求和限制没有默认配置。
+      tolerations: 其他 Pod 容忍度将添加到 Rancher 应用的默认容忍度中。
+      windowsCompatibility: 不建议删除用于阻止 <b>Agent</b> 在 Windows 节点上运行的节点亲和性规则，因为这不是受支持的配置。
+    groups:
+      deploymentLabels: 部署标签
+      podAffinity: 亲和性
+      podRequestsAndLimits: 请求和限制
+      podTolerations: 容忍度
+      selector: 选择器
+    subGroups:
+      nodeAffinity: 节点亲和性
+      podAffinityAnti: Pod 亲和性/反亲和性
+    tabs:
+      cluster: Cluster Agent
+      fleet: Fleet Agent
+  k3s:
+    systemService:
+      coredns: CoreDNS
+      local-storage: 本地存储
+      metrics-server: Metrics Server
+      servicelb: Klipper 服务 LB
+      traefik: Traefik Ingress
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"
@@ -2281,6 +2322,7 @@ fleet:
       addRepo: 添加仓库
       noRepos: 未添加任何仓库
       protocolBanner: 输入指向 git 仓库的有效 HTTPS 或 SSH URL。
+      noWorkspaces: 没有工作空间。<br/>请在添加仓库之前创建一个工作空间
     add:
       steps:
         repoInfo:
@@ -2331,6 +2373,11 @@ fleet:
       cluster: 没有可用的集群
     workspace:
       label: 工作空间
+      addWorkspace: 创建工作空间
+    resources:
+      keepResources: 删除后保留资源
+      label: 资源处理
+      resourceBanner: 启用时，删除 GitRepo 或 Bundle 后将保留资源，只会删除 Helm Release Secret。
   clusterGroup:
     selector:
       label: 集群选择器
@@ -2351,6 +2398,14 @@ fleet:
     error: 错误
     ready: 就绪
     errors: 错误
+  restrictions:
+    addLabel: 添加
+    addTitle: allowedTargetNamespaces
+    banner: '{count, plural, =0 { 在这里添加命名空间会创建一个 GitRepoRestriction。} other { 只有 Git Repo Restriction 的 <code>allowedTargetNamespaces</code> 在此处管理，你可以对 Git Repo Restriction 进行其他更改。} }'
+  workspaces:
+    tabs:
+      restrictions: 允许的目标命名空间
+    timeout: 工作空间创建超时。工作空间可能已创建，建议在创建另一个工作空间之前检查工作空间页面。
 footer:
   docs: Rancher 官方文档
   download: 下载 CLI
@@ -2390,7 +2445,11 @@ gatekeeperConstraint:
       title: 参数
   template: 模板
   violations:
-    title: 违反规定
+    title: 违反规定：{total}
+    notAll: 由于配置的 OPA Gatekeeper 约束违规限制，未显示全部内容 - 该约束仅包含 {shown} 的详细信息。
+  downloadViolations: 下载违规
+  enforcement:
+    action: 执行动作
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
   unavailable: OPA Gatekeeper 不在 system-charts 应用商店中.
@@ -2764,6 +2823,7 @@ istio:
     description: 描述
   tracing: 启用 Jaeger 跟踪（有限）
   v1Warning: 在安装这个版本前，请卸载<code>istio-system</code> 命名空间中的当前 Istio 版本。
+  pilotRequired: 必须启用 Pilot 才能启用 Kiali
 labels:
   addLabel: 添加标签
   addSetLabel: 添加/设置标签
@@ -2888,6 +2948,10 @@ logging:
     clientKeyPass: 传自密文的客户端密钥
     verifySsl: 验证 SSL
     sslVersion: SSL 版本
+    suppressTypeName:
+      elasticSearchTips: 默认抑制类型名称，用于兼容日志服务器。如果你的 Elasticsearch >= 8.0.0，则需要启用。
+      label: 抑制类型名称
+      openSearchTips: 默认抑制类型名称，用于兼容日志服务器。如果你的 OpenSearch >= 2.0.0，则需要启用。
   gelf:
     host: 主机
     port: 端口
@@ -2927,6 +2991,7 @@ logging:
     caCert: CA 证书
     cert: CA 证书
     key: 密钥
+    urlInvalid: URL 格式不正确。请在保存前检查并更正 URL 格式。
   awsElasticsearch:
     url: URL
     keyId: 密钥 ID
@@ -3146,10 +3211,13 @@ members:
     custom:
       label: 自定义
       description: 为该用户自定义角色。
+      lockedRole: 该角色已锁定。
   localClusterWarning: "注意：这是 Rancher 用来存储数据的集群。只有管理员才应该对该集群有写权限。能够写入此集群的用户可以授权自己访问该安装的任何内容。"
   clusterAndProject: 集群和项目成员
   noRolesAssigned: 没有分配给该项目的用户。
   projectMembers: 项目成员
+  clusterMemebership: 集群成员
+  projectMembership: 项目成员
 membershipEditor:
   label: 成员
   user: 用户名
@@ -3518,6 +3586,7 @@ namespace:
   resourceQuotas: 资源配额
   project:
     label: 项目
+    none: (None)
   resources: 资源
   enableAutoInjection: 启用 Istio 自动注入
   disableAutoInjection: 禁用 Istio 自动注入
@@ -3643,6 +3712,10 @@ networkpolicy:
       label: Pod 选择器
     namespaceSelector:
       label: 命名空间选择器
+    namespace: 命名空间
+    namespaceAndPodSelector:
+      label: 命名空间/Pod 选择器
+    pod: Pod
   config:
     label: 配置
   selectors:
@@ -3659,9 +3732,21 @@ networkpolicy:
       matchesSome: |-
         {matched, plural,
           =0 {匹配 {total, number} 个命名空间中的 0 个}
-          =1 {匹配 {total, number} 个 命名空间中的 1 个："{sample}"}
+          =1 {匹配 {total, number} 个命名空间中的 1 个："{sample}"}
           other {匹配 {total, number} 个命名空间中的 {matched, number} 个，包括 "{sample}"}
         }
+    matchingNamespacesAndPods:
+      matchesSome: |-
+        {matchedNamespaces, plural,
+          =0 { 在 0 个命名空间中（总共 {totalNamespaces, number} 个）}
+          =1 { 在 1 个命名空间（总共 {totalNamespaces, number} 个）"{sampleNamespaces}" 中}
+          other { 在 {matchedNamespaces, number} 个命名空间中（总共 {totalNamespaces, number} 个），包括 "{sampleNamespaces}"}
+        }，{matchedPods, plural,
+          =0 {匹配 {totalPods, number} 个 Pod 中的 0 个 }
+          =1 {匹配 {totalPods, number} 个 Pod 中的 1 个："{samplePods}"}
+          other {匹配 {totalPods, number} 个 Pod 中的 {matchedPods, number} 个，包括 "{samplePods}"}
+        }
+      tooltip: 指定命名空间选择器和 Pod 选择器的单条规则，用于选择特定命名空间中的特定 Pod
 node:
   list:
     pool: 池
@@ -4221,6 +4306,7 @@ projectNamespaces:
   label: 项目/命名空间
   noNamespaces: 没有定义的命名空间。
   noProjectNoNamespaces: 所有命名空间都在一个项目中
+  isIstioInjectionEnabled: 为此命名空间启用了 Istio 自动 Sidecar 注入
 prometheusRule:
   alertingRules:
     addLabel: 添加告警
@@ -4561,6 +4647,7 @@ resourceTable:
     project: 按项目分组
     node: 按节点分组
     cluster: 按集群分组
+    role: 按角色分组
   groupLabel:
     cluster: "<span>集群：</span> {name}"
     namespace: "<span>命名空间：</span> {name}"
@@ -4772,8 +4859,8 @@ servicesPage:
       matchesSome: |-
         {matched, plural,
           =0 {与 {total, number} 个 Pod 中的 0 个匹配。如果没有创建选择器，则必须进行手动端点。}
-          =1 {与{total, number}个 Pod 中的1个匹配："{sample}"}
-          other {与 {total, number} 个 Pod 中的 {matched, number} 个匹配，包括"{sample}"}
+          =1 {与 {total, number} 个 Pod 中的 1 个匹配："{sample}"}
+          other {与 {total, number} 个 Pod 中的 {matched, number} 个匹配，包括 "{sample}"}
         }
       description: 选择器的键和值用于匹配现有 Pod 上的标签和值。
   serviceTypes:
@@ -4795,8 +4882,8 @@ servicesPage:
       label: Load Balancer
     nodePort:
       abbrv: NP
-      description: "在每个节点的 IP 上以静态端口（`NodePort`）公开服务。你可以通过请求`&lt;NodeIP&gt;:&lt;NodePort&gt;`从集群外部联系这种类型的服务。"
-      label: 节点端口
+      description: "在每个节点的 IP 上以静态端口公开 Service。"
+      label: Node Port
     externalIP:
       label: External IP
       description: 将服务映射到外部 IP 地址
@@ -5418,6 +5505,8 @@ tableHeaders:
   users: 用户
   volume: 卷
   volumeMode: 卷模式
+  constraint: 约束
+  template: 模板
 target:
   router:
     label: 路由
@@ -5966,7 +6055,7 @@ workload:
         exists: 已设置
         greaterThan: ">"
         in: 在列表中
-        inNamespaces: "这些命名空间中的 Pod："
+        inNamespaces: "特定命名空间"
         key: 键
         lessThan: <
         namespaces: 命名空间
@@ -5974,6 +6063,8 @@ workload:
         operator: 运算符
         value: 值
         weight: 权重
+        label: 表达式
+        matchType: 匹配类型
       noPodRules: 没有配置 Pod 调度策略
       nodeName: 节点名称
       priority: 优先级
@@ -5991,6 +6082,9 @@ workload:
       weight:
         label: 权重
         placeholder: 权重范围：1-100
+      allNamespaces: 所有命名空间
+      matchFields:
+        label: 字段
     priority:
       className: 优先级名称
       priority: 优先级
@@ -6003,10 +6097,10 @@ workload:
       podScheduling: Pod 调度
       priority: 优先级
       tab: 调度
-      tolerations: 容忍
+      tolerations: 容忍度
       limits: 限制和预留
     tolerations:
-      addToleration: 添加容忍
+      addToleration: 添加容忍度
       effect: 效果
       effectOptions:
         all: 全部
@@ -6491,7 +6585,7 @@ typeLabel:
       one { Bundle }
       other { Bundle }
     }
-  fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { 集群注册 Token }\n  other { 集群注册 Token }\n} "
+  fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { 集群注册 Token }\n  other { 集群注册 Token }\n}"
   event: |-
     {count, plural,
       one { 事件 }
@@ -7066,6 +7160,13 @@ performance:
     checkboxLabel: 启用高级 Websocket Web Worker
     description: 推送到 UI 的资源更新来自 WebSocket，并在 UI 线程中处理。启用此选项可在单独的线程中处理 Web Worker 中的集群 WebSocket 更新。这有助于提高 UI 在资源经常变化的系统中的响应能力。
     label: Websocket Web Worker
+  inactivity:
+    authUserTTL: 该超时时间不能超过用户会话超时时间 auth-user-session-ttl-minutes（当前为 {current} 分钟）。
+    checkboxLabel: 启用闲置会话过期
+    description: 启用后，如果用户在指定的超时时间内未有活动，UI 将不再刷新页面内容，用户必须重新加载页面才能继续。
+    information: 要更改自动注销行为，请在"设置"页面编辑授权和/或会话 Token 超时值（<code>auth-user-session-ttl-minutes</code> 和 <code>auth-token-max-ttl-minutes</code>)。
+    inputLabel: 闲置超时时间（分钟）
+    title: 闲置状态
 banner:
   label: 固定横幅
   settingName: 横幅
@@ -8026,3 +8127,19 @@ registryMirrorRewrite:
   valuePlaceholder: 例如：mirrorproject/rancher-images/$1
 editProjectMemberDialog:
   title: 编辑项目成员
+gatekeeperInstall:
+  auditInterval: 自动间隔
+  constraintViolationsLimit: 约束违规限制
+  runtimeDefaultSeccompProfile: 启用运行时默认 Seccomp 配置文件
+inactivity:
+  banner: 由于不活动，你的会话即将过期。任何未保存的更改都将丢失。
+  bannerExpired: 由于不活动，此选项卡中的会话已过期。
+  content: 单击“恢复会话”来让选项卡中的会话保持活动状态，或在会话过期后刷新浏览器。
+  contentExpired: 要返回此页面，请单击下面的“刷新”或刷新浏览器。
+  cta: 恢复会话
+  ctaExpired: 刷新
+  title: 会话即将过期
+  titleExpired: 会话已过期
+networkAttachmentDefinition:
+  tabs:
+    config: 配置

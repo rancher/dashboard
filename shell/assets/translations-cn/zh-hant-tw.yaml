@@ -108,6 +108,7 @@ generic:
   confirm: 確認
   labels: 標籤
   podSecurityAdmission: Pod 安全准入
+  here: 此處
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -474,7 +475,7 @@ authConfig:
     serviceAccountPassword: Service Account 密碼
     serviceAccountInfo: '{vendor} 需要一個對所有能夠登錄的域名都有隻讀訪問權的 Service Account，以在用戶使用 API 密鑰進行請求時，確定用戶屬於什麼組。'
     starttls:
-      label: 啟動 TLS
+      label: 啟用 TLS
       tip: 通過在連接過程中使用 TLS 封裝來升級非加密連接。不能與 TLS 結合使用。
     tls: TLS
     userEnabledAttribute: 用戶啟用屬性
@@ -493,6 +494,12 @@ authConfig:
     groupUniqueIdAttribute:
       label: 組唯一標識
       tip: 請使用用戶組創建後全局唯一的屬性，避免因該屬性值變化導致用戶權限丟失
+    oktaSchema: 以下默認值適用於通用 OpenLDAP Server。有關使用 Okta LDAP 接口時要使用的值，請參閱 <a target="_blank" rel="noopener noreferrer nofollow" href="https://help.okta.com/en-us/Content/Topics/Directory/LDAP-interface-connection-settings.htm">Okta LDAP 接口連接設置</a>
+    protocol: 協議
+    protocols:
+      ldap: LDAP
+      starttls: 啟用 TLS
+      tls: LDAPS (TLS)
   saml:
     entityID: Entity ID 字段
     UID: UID 字段
@@ -515,6 +522,13 @@ authConfig:
     shibboleth: 配置 Shibboleth 賬號
     showLdap: 配置 OpenLDAP server
     userName: 用戶名字段
+    search:
+      hide: 隱藏詳情
+      message: SAML 協議不支持搜索或查找用戶或組。要啟用搜索，你必須配置 OpenLDAP Server。
+      off: 未配置 LDAP 用戶和組搜索
+      on: 已配置 LDAP 用戶和組搜索
+      show: 顯示詳情
+      title: 用戶和組搜索
   azuread:
     tenantId: 租戶 ID
     applicationId: 應用 ID
@@ -1378,10 +1392,11 @@ cluster:
   importAction: 導入已有集群
   kubernetesVersion:
     label: Kubernetes 版本
-    experimental: 實驗功能
-    deprecated: 已棄用
+    experimental: （實驗功能）
+    deprecated: （已棄用）
     deprecatedPatches: 顯示已棄用的 Kubernetes 補丁版本
     deprecatedPatchWarning: 建議為每個 Kubernetes 次要版本使用最新的補丁版本，已棄用的補丁版本可能對遷移有用。
+    current: （當前）
   toolsTip: 使用新集群工具來管理和安裝 Monitoring、Logging 等工具。
   legacyWarning: 舊版功能開關已開啟，但是不是所有舊版功能都在 Kubernetes 1.21+ 中支持。
   log:
@@ -1787,8 +1802,8 @@ cluster:
     desiredNodeGroupWarning: 沒有可用於運行 Cluster Agent 的節點。要讓集群變為 Active 狀態，至少需要有 1 個可用的節點。
     deprecatedPsp: Pod 安全策略自 Kubernetes v1.21 起已棄用，並已在 Kubernetes v1.25 中刪除。
     haveArgInfo: 所選 Kubernetes 版本的配置信息不可用。此屏幕中可用的選項將受到限制，你可能需要使用 YAML 編輯器。
-    invalidPsps: 你在此集群中有一個或多個 PSP 資源。Pod 安全策略將在 Kubernetes v1.25 中不可用。
-    removedPsp: Pod 安全策略已在 Kubernetes v1.25 中刪除，請改用 PodSecurity Admission。
+    invalidPsps: 你在此集群中有一個或多個 PSP 資源。Pod 安全策略在 Kubernetes v1.25 中不可用並將自動刪除。
+    removedPsp: Pod 安全策略已在 Kubernetes v1.25 中刪除，請改用 Pod Security Admission。
   rkeTemplateUpgrade: 模板修訂版 {name} 可用於升級
   detail:
     provisioner: 提供商
@@ -1809,15 +1824,15 @@ cluster:
       tooltip:
         controlPlane: |-
           {count, plural,
-            =0 { 一個集群需要至少1個可用的 Control Plane 節點。}
-            =1 { 只有1個 Control Plane 節點的集群是不具備容錯能力的。}
+            =0 { 一個集群需要至少 1 個可用的 Control Plane 節點。}
+            =1 { 只有 1 個 Control Plane 節點的集群是不具備容錯能力的。}
             other {}
           }
         etcd: |-
           {count, plural,
-            =0 { 一個集群需要至少1個可用的 ETCD 節點。}
-            =1 { 只有1個 ETCD 節點的集群是不具備容錯能力的。}
-            =2 { 集群的節點數需要是奇數。只有2個 ETCD 節點的集群是不具備容錯能力的。}
+            =0 { 一個集群需要至少 1 個可用的 ETCD 節點。}
+            =1 { 只有 1 個 ETCD 節點的集群是不具備容錯能力的。}
+            =2 { 集群的節點數需要是奇數。只有 2 個 ETCD 節點的集群是不具備容錯能力的。}
             =3 {}
             =4 { 集群的節點數需要是奇數。}
             =5 {}
@@ -1828,7 +1843,7 @@ cluster:
         worker: |-
           {count, plural,
             =0 { 一個集群需要至少 1 個可用的 Worker 節點。}
-            =1 { 只有1個 Worker 節點的集群是不具備容錯能力的。}
+            =1 { 只有 1 個 Worker 節點的集群是不具備容錯能力的。}
             other {}
           }
     quantity:
@@ -1838,6 +1853,9 @@ cluster:
       label: 刪除前清空
     role:
       label: 角色
+      controlPlane: Control Plane
+      etcd: ETCD
+      worker: Worker
     labels:
       label: Kubernetes 節點標籤
     autoReplace:
@@ -1847,6 +1865,8 @@ cluster:
     configNotFound: 找不到這個主機池的配置。建議你創建一個具有所需配置的新集群。
     noAccessBanner: 你沒有查看此主機池配置的權限。
     noPoolsDisclaimer: 你沒有定義任何主機池，請單擊加號進行添加。
+    truncationCluster: 已手動將此集群的主機名截斷配置為 {limit}
+    truncationPool: 已手動將此主機池的主機名截斷配置為 {limit}
   managementTimeout: 集群變成可用。可能已創建了集群。建議在創建另一個集群之前檢查集群頁面。
   memberRoles:
     removeMessage: '注意：刪除用戶不會刪除其項目權限。'
@@ -2014,22 +2034,23 @@ cluster:
     cisProfile:
       option: (None)
     defaultPodSecurityAdmissionConfigurationTemplateName:
-      label: 默認 Pod 安全准入
+      label: PSA 配置模板
       option:
         default: 默認 - 嵌入 RKE2
         none: (None)
     banner:
       cisOverride: 更改此設置可能會影響集群安全，因為它會覆蓋默認的 CIS 設置
-      cisUnsupported: 所選 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，請選擇支持的配置文件。建議你查看 RKE2 文檔評估更改 CIS 配置文件的影響。
+      cisUnsupported: 所選 Kubernetes 版本不再支持 CIS 配置文件 “{cisProfile}”，請選擇支持的配置文件。建議你查看<a href="https://docs.rke2.io/security/hardening_guide" target="_blank" rel="noopener noreferrer nofollow">文檔</a>評估更改 CIS 配置文件的影響。
       psaChange: PSACT 現在自動設置為 Rancher 默認值
     cis:
       agent: CIS 配置文件
-      override: 使用 CIS 配置文件時允許覆蓋 PSA 默認模板
+      override: 當使用 CIS 配置文件時，允許覆蓋默認 PSA 配置模板
       server: Server CIS 配置文件
     modal:
       pspChange:
-        body: 從 v1.25 版開始，Kubernetes 已經取消了對 Pod 安全策略 (PSP) 的支持。如果你的集群通過集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 啟用了 PodSecurityPolicy 准入控制器，你必須在繼續升級之前手動刪除它。此外，集群中存在的任何 PSP 將不再可用或強制執行。是否繼續？
+        body: 從 v1.25 版開始，Kubernetes 已經取消了對 Pod 安全策略 (PSP) 的支持。如果你的集群通過集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 啟用了 PodSecurityPolicy 准入控制器，你必須在繼續升級之前<i>手動</i>刪除它。此外，集群中存在的任何 PSP 將不再可用或強制執行。是否繼續操作？
         title: 棄用 Pod 安全策略
+    truncateHostnames: 將主機名截斷為 15 個字符來兼容 NetBIOS。
   k3s:
     techPreview: K3s 配置處於技術預覽中
     systemService:
@@ -2093,6 +2114,27 @@ cluster:
     machine: 主機 {name} 處於非活動狀態
     node: 節點 {name} 處於非活動狀態
   manageAction: 管理
+  agentConfig:
+    affinity:
+      custom: 使用自定義親和性規則
+      default: 使用 Rancher 定義的默認親和性規則
+    banners:
+      advanced: 以下是高級配置，通常不修改。
+      limits: Pod 請求和限制沒有默認配置。
+      tolerations: 其他 Pod 容忍度將添加到 Rancher 應用的默認容忍度中。
+      windowsCompatibility: 不建議刪除用於阻止 <b>Agent</b> 在 Windows 節點上運行的節點親和性規則，因為這不是受支持的配置。
+    groups:
+      deploymentLabels: 部署標籤
+      podAffinity: 親和性
+      podRequestsAndLimits: 請求和限制
+      podTolerations: 容忍度
+      selector: 選擇器
+    subGroups:
+      nodeAffinity: 節點親和性
+      podAffinityAnti: Pod 親和性/反親和性
+    tabs:
+      cluster: Cluster Agent
+      fleet: Fleet Agent
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"
@@ -2281,6 +2323,7 @@ fleet:
       addRepo: 添加倉庫
       noRepos: 未添加任何倉庫
       protocolBanner: 輸入指向 git 倉庫的有效 HTTPS 或 SSH URL。
+      noWorkspaces: 沒有工作空間。<br/>請在添加倉庫之前創建一個工作空間
     add:
       steps:
         repoInfo:
@@ -2331,6 +2374,11 @@ fleet:
       cluster: 沒有可用的集群
     workspace:
       label: 工作空間
+      addWorkspace: 創建工作空間
+    resources:
+      keepResources: 刪除後保留資源
+      label: 資源處理
+      resourceBanner: 啟用時，刪除 GitRepo 或 Bundle 後將保留資源，只會刪除 Helm Release Secret。
   clusterGroup:
     selector:
       label: 集群選擇器
@@ -2351,6 +2399,14 @@ fleet:
     error: 錯誤
     ready: 就緒
     errors: 錯誤
+  restrictions:
+    addLabel: 添加
+    addTitle: allowedTargetNamespaces
+    banner: '{count, plural, =0 { 在這裡添加命名空間會創建一個 GitRepoRestriction。} other { 只有 Git Repo Restriction 的 <code>allowedTargetNamespaces</code> 在此處管理，你可以對 Git Repo Restriction 進行其他更改。} }'
+  workspaces:
+    tabs:
+      restrictions: 允許的目標命名空間
+    timeout: 工作空間創建超時。工作空間可能已創建，建議在創建另一個工作空間之前檢查工作空間頁面。
 footer:
   docs: Rancher 官方文檔
   download: 下載 CLI
@@ -2390,7 +2446,11 @@ gatekeeperConstraint:
       title: 參數
   template: 模板
   violations:
-    title: 違反規定
+    title: 違反規定：{total}
+    notAll: 由於配置的 OPA Gatekeeper 約束違規限制，未顯示全部內容 - 該約束僅包含 {shown} 的詳細信息。
+  downloadViolations: 下載違規
+  enforcement:
+    action: 執行動作
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
   unavailable: OPA Gatekeeper 不在 system-charts 應用商店中.
@@ -2764,6 +2824,7 @@ istio:
     description: 描述
   tracing: 啟用 Jaeger 跟蹤（有限）
   v1Warning: 在安裝這個版本前，請卸載<code>istio-system</code> 命名空間中的當前 Istio 版本。
+  pilotRequired: 必須啟用 Pilot 才能啟用 Kiali
 labels:
   addLabel: 添加標籤
   addSetLabel: 添加/設置標籤
@@ -2888,6 +2949,10 @@ logging:
     clientKeyPass: 傳自密文的客戶端密鑰
     verifySsl: 驗證 SSL
     sslVersion: SSL 版本
+    suppressTypeName:
+      elasticSearchTips: 默認抑制類型名稱，用於兼容日誌服務器。如果你的 Elasticsearch >= 8.0.0，則需要啟用。
+      label: 抑制類型名稱
+      openSearchTips: 默認抑制類型名稱，用於兼容日誌服務器。如果你的 OpenSearch >= 2.0.0，則需要啟用。
   gelf:
     host: 主機
     port: 端口
@@ -2927,6 +2992,7 @@ logging:
     caCert: CA 證書
     cert: CA 證書
     key: 密鑰
+    urlInvalid: URL 格式不正確。請在保存前檢查並更正 URL 格式。
   awsElasticsearch:
     url: URL
     keyId: 密鑰 ID
@@ -3146,10 +3212,13 @@ members:
     custom:
       label: 自定義
       description: 為該用戶自定義角色。
+      lockedRole: 該角色已鎖定。
   localClusterWarning: "注意：這是 Rancher 用來存儲數據的集群。只有管理員才應該對該集群有寫權限。能夠寫入此集群的用戶可以授權自己訪問該安裝的任何內容。"
   clusterAndProject: 集群和項目成員
   noRolesAssigned: 沒有分配給該項目的用戶。
   projectMembers: 項目成員
+  clusterMemebership: 集群成員
+  projectMembership: 項目成員
 membershipEditor:
   label: 成員
   user: 用戶名
@@ -3518,6 +3587,7 @@ namespace:
   resourceQuotas: 資源配額
   project:
     label: 項目
+    none: (None)
   resources: 資源
   enableAutoInjection: 啟用 Istio 自動注入
   disableAutoInjection: 禁用 Istio 自動注入
@@ -3643,6 +3713,10 @@ networkpolicy:
       label: Pod 選擇器
     namespaceSelector:
       label: 命名空間選擇器
+    namespace: 命名空間
+    namespaceAndPodSelector:
+      label: 命名空間/Pod 選擇器
+    pod: Pod
   config:
     label: 配置
   selectors:
@@ -3659,9 +3733,21 @@ networkpolicy:
       matchesSome: |-
         {matched, plural,
           =0 {匹配 {total, number} 個命名空間中的 0 個}
-          =1 {匹配 {total, number} 個 命名空間中的 1 個："{sample}"}
+          =1 {匹配 {total, number} 個命名空間中的 1 個："{sample}"}
           other {匹配 {total, number} 個命名空間中的 {matched, number} 個，包括 "{sample}"}
         }
+    matchingNamespacesAndPods:
+      matchesSome: |-
+        {matchedNamespaces, plural,
+          =0 { 在 0 個命名空間中（總共 {totalNamespaces, number} 個）}
+          =1 { 在 1 個命名空間（總共 {totalNamespaces, number} 個）"{sampleNamespaces}" 中}
+          other { 在 {matchedNamespaces, number} 個命名空間中（總共 {totalNamespaces, number} 個），包括 "{sampleNamespaces}"}
+        }，{matchedPods, plural,
+          =0 {匹配 {totalPods, number} 個 Pod 中的 0 個 }
+          =1 {匹配 {totalPods, number} 個 Pod 中的 1 個："{samplePods}"}
+          other {匹配 {totalPods, number} 個 Pod 中的 {matchedPods, number} 個，包括 "{samplePods}"}
+        }
+      tooltip: 指定命名空間選擇器和 Pod 選擇器的單條規則，用於選擇特定命名空間中的特定 Pod
 node:
   list:
     pool: 池
@@ -4221,6 +4307,7 @@ projectNamespaces:
   label: 項目/命名空間
   noNamespaces: 沒有定義的命名空間。
   noProjectNoNamespaces: 所有命名空間都在一個項目中
+  isIstioInjectionEnabled: 為此命名空間啟用了 Istio 自動 Sidecar 注入
 prometheusRule:
   alertingRules:
     addLabel: 添加告警
@@ -4561,6 +4648,7 @@ resourceTable:
     project: 按項目分組
     node: 按節點分組
     cluster: 按集群分組
+    role: 按角色分組
   groupLabel:
     cluster: "<span>集群：</span> {name}"
     namespace: "<span>命名空間：</span> {name}"
@@ -4772,8 +4860,8 @@ servicesPage:
       matchesSome: |-
         {matched, plural,
           =0 {與 {total, number} 個 Pod 中的 0 個匹配。如果沒有創建選擇器，則必須進行手動端點。}
-          =1 {與{total, number}個 Pod 中的1個匹配："{sample}"}
-          other {與 {total, number} 個 Pod 中的 {matched, number} 個匹配，包括"{sample}"}
+          =1 {與 {total, number} 個 Pod 中的 1 個匹配："{sample}"}
+          other {與 {total, number} 個 Pod 中的 {matched, number} 個匹配，包括 "{sample}"}
         }
       description: 選擇器的鍵和值用於匹配現有 Pod 上的標籤和值。
   serviceTypes:
@@ -4795,8 +4883,8 @@ servicesPage:
       label: Load Balancer
     nodePort:
       abbrv: NP
-      description: "在每個節點的 IP 上以靜態端口（`NodePort`）公開服務。你可以通過請求`&lt;NodeIP&gt;:&lt;NodePort&gt;`從集群外部聯繫這種類型的服務。"
-      label: 節點端口
+      description: "在每個節點的 IP 上以靜態端口公開 Service。"
+      label: Node Port
     externalIP:
       label: External IP
       description: 將服務映射到外部 IP 地址
@@ -5418,6 +5506,8 @@ tableHeaders:
   users: 用戶
   volume: 卷
   volumeMode: 卷模式
+  constraint: 約束
+  template: 模板
 target:
   router:
     label: 路由
@@ -5966,7 +6056,7 @@ workload:
         exists: 已設置
         greaterThan: ">"
         in: 在列表中
-        inNamespaces: "這些命名空間中的 Pod："
+        inNamespaces: "特定命名空間"
         key: 鍵
         lessThan: <
         namespaces: 命名空間
@@ -5974,6 +6064,8 @@ workload:
         operator: 運算符
         value: 值
         weight: 權重
+        label: 表達式
+        matchType: 匹配類型
       noPodRules: 沒有配置 Pod 調度策略
       nodeName: 節點名稱
       priority: 優先級
@@ -5991,6 +6083,9 @@ workload:
       weight:
         label: 權重
         placeholder: 權重範圍：1-100
+      allNamespaces: 所有命名空間
+      matchFields:
+        label: 字段
     priority:
       className: 優先級名稱
       priority: 優先級
@@ -6003,10 +6098,10 @@ workload:
       podScheduling: Pod 調度
       priority: 優先級
       tab: 調度
-      tolerations: 容忍
+      tolerations: 容忍度
       limits: 限制和預留
     tolerations:
-      addToleration: 添加容忍
+      addToleration: 添加容忍度
       effect: 效果
       effectOptions:
         all: 全部
@@ -6491,7 +6586,7 @@ typeLabel:
       one { Bundle }
       other { Bundle }
     }
-  fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { 集群註冊 Token }\n  other { 集群註冊 Token }\n} "
+  fleet.cattle.io.clusterregistrationtoken: "{count, plural,\n  one { 集群註冊 Token }\n  other { 集群註冊 Token }\n}"
   event: |-
     {count, plural,
       one { 事件 }
@@ -7066,6 +7161,13 @@ performance:
     checkboxLabel: 啟用高級 Websocket Web Worker
     description: 推送到 UI 的資源更新來自 WebSocket，並在 UI 線程中處理。啟用此選項可在單獨的線程中處理 Web Worker 中的集群 WebSocket 更新。這有助於提高 UI 在資源經常變化的系統中的響應能力。
     label: Websocket Web Worker
+  inactivity:
+    authUserTTL: 該超時時間不能超過用戶會話超時時間 auth-user-session-ttl-minutes（當前為 {current} 分鐘）。
+    checkboxLabel: 啟用閒置會話過期
+    description: 啟用後，如果用戶在指定的超時時間內未有活動，UI 將不再刷新頁面內容，用戶必須重新加載頁面才能繼續。
+    information: 要更改自動註銷行為，請在"設置"頁面編輯授權和/或會話 Token 超時值（<code>auth-user-session-ttl-minutes</code> 和 <code>auth-token-max-ttl-minutes</code>)。
+    inputLabel: 閒置超時時間（分鐘）
+    title: 閒置狀態
 banner:
   label: 固定橫幅
   settingName: 橫幅
@@ -8026,3 +8128,19 @@ registryMirrorRewrite:
   valuePlaceholder: 例如：mirrorproject/rancher-images/$1
 editProjectMemberDialog:
   title: 編輯項目成員
+gatekeeperInstall:
+  auditInterval: 自動間隔
+  constraintViolationsLimit: 約束違規限制
+  runtimeDefaultSeccompProfile: 啟用運行時默認 Seccomp 配置文件
+inactivity:
+  banner: 由於不活動，你的會話即將過期。任何未保存的更改都將丟失。
+  bannerExpired: 由於不活動，此選項卡中的會話已過期。
+  content: 單擊“恢復會話”來讓選項卡中的會話保持活動狀態，或在會話過期後刷新瀏覽器。
+  contentExpired: 要返回此頁面，請單擊下面的“刷新”或刷新瀏覽器。
+  cta: 恢復會話
+  ctaExpired: 刷新
+  title: 會話即將過期
+  titleExpired: 會話已過期
+networkAttachmentDefinition:
+  tabs:
+    config: 配置
