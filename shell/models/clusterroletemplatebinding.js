@@ -23,6 +23,7 @@ export default class CRTB extends NormanModel {
   }
 
   get isCurrentUser() {
+    // This only checks the user is bound to the role... and not if the user is part of group that is bound to it
     const out = this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userId);
 
     return !!out?.isCurrentUser;

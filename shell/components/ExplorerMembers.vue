@@ -128,13 +128,16 @@ export default {
         },
       ],
       loadingProjectBindings: true,
-      loadingClusterBindings: true
+      loadingClusterBindings: true,
+      userCanManageCluster:   undefined,
+      userCanManageProject:   {}
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     clusterRoleTemplateBindings() {
+      // Switch norman cluster role template binding to steve cluster role template binding (not sure why?)
       return this.normanClusterRoleTemplateBindings.map(b => b.clusterroletemplatebinding) ;
     },
     filteredClusterRoleTemplateBindings() {
@@ -196,6 +199,14 @@ export default {
         };
       });
 
+      // We're assigning userCanManageCluster and userCanManageCluster in a getter for performance reasons
+      // There can be a LOT of cluster and project bindings and a LOT of churn for them over sockets
+      // To miminise the impact of this try and populate them both in the most efficient way
+      if (typeof this.userCanManageCluster === 'undefined' && this.filteredClusterRoleTemplateBindings.length) {
+        // Doing this once means we won't update buttons if the user gains/loses cluster rights, but avoids looping through a large list often
+        this.userCanManageCluster = this.filteredClusterRoleTemplateBindings.some(crtb => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
+      }
+
       // We need to group each of the TemplateRoleBindings by the user + project
       const userRoles = [...fakeRows, ...this.filteredProjectRoleTemplateBindings].reduce((rows, curr) => {
         const {
@@ -217,6 +228,26 @@ export default {
 
         if (roleTemplate) {
           rows[userOrGroupKey].allRoles.push(curr.roleTemplate);
+        }
+
+        const { allRoles = [], isCurrentUser } = curr;
+
+        // Determine if the current user can manage permissions for this specific project
+        // We can skip this if..
+        // - user can manage cluster, that trumps everything else
+        // - not current user, we only use this for showing permissions of that user
+        if (!this.userCanManageCluster && isCurrentUser) {
+          this.userCanManageProject[projectId] = allRoles.some((rtb) => {
+            const { id, rules } = rtb;
+
+            return id === 'project-owner' || rules.some((rule) => {
+              const { apiGroups = [], resources = [], verbs = [] } = rule;
+
+              return ['*', 'management.cattle.io'].some(apiGroup => apiGroups.includes(apiGroup)) &&
+                ['*', 'projectroletemplatebindings'].some(resource => resources.includes(resource)) &&
+                ['*', 'own', 'create'].some(verb => verbs.includes(verb));
+            });
+          });
         }
 
         return rows;
@@ -264,32 +295,7 @@ export default {
       return this.getMgmtProject(group)?.spec?.displayName;
     },
     getManageProjectMembersPermission(projectId) {
-      if (
-        (this.filteredClusterRoleTemplateBindings || [])
-          .some(crtb => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner')
-      ) {
-        return true;
-      }
-
-      return this.filteredProjectRoleTemplateBindings
-        .some((prtb) => {
-          const { allRoles = [], isCurrentUser } = prtb;
-
-          return isCurrentUser &&
-            prtb.projectId === projectId &&
-            allRoles.some((rtb) => {
-              const { id, rules } = rtb;
-
-              return id === 'project-owner' ||
-                rules.some((rule) => {
-                  const { apiGroups = [], resources = [], verbs = [] } = rule;
-
-                  return ['*', 'management.cattle.io'].some(apiGroup => apiGroups.includes(apiGroup)) &&
-                  ['*', 'projectroletemplatebindings'].some(resource => resources.includes(resource)) &&
-                  ['*', 'own', 'create'].some(verb => verbs.includes(verb));
-                });
-            });
-        });
+      return this.userCanManageCluster || this.userCanManageProject[projectId];
     },
     addProjectMember(group) {
       this.$store.dispatch('cluster/promptModal', {
