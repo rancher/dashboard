@@ -9,12 +9,27 @@ export default class PagePo extends ComponentPo {
     return cy.visit(path);
   }
 
-  static goToAndWaitForCounts(goTo: () => Cypress.Chainable) {
-    cy.intercept('GET', '/v1/counts').as('counts');
+  /**
+   * When dashboard loads it will always go out and fetch counts for the upstream cluster (management/counts --> v1/counts).
+   *
+   * If using this on a page with a specific cluster context it will make another counts request for counts for it (cluster/counts)
+   * Note - If that cluster is the upstream one the request will be the same as management (v1/counts)
+   */
+  static goToAndWaitForGet(goTo: () => Cypress.Chainable, getUrls = [
+    'v1/counts',
+  ]) {
+    getUrls.forEach((cUrl, i) => {
+      cy.intercept('GET', cUrl).as(`getUrl${ i }`);
+    });
 
     goTo();
 
-    cy.wait(['@counts'], { timeout: 10000 });
+    for (let i = 0; i < getUrls.length; i++) {
+      // If an intercept for the url already exists... use the same wait (it'll fire on that one)
+      const existingIndexOrCurrent = getUrls.indexOf(getUrls[i]);
+
+      cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout: 10000 });
+    }
   }
 
   goTo(): Cypress.Chainable<Cypress.AUTWindow> {
