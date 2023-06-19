@@ -388,11 +388,12 @@ export default async function({
     await Promise.all([
       ...always,
       store.dispatch('loadCluster', {
-        id:     clusterId,
-        oldPkg: oldPkgPlugin,
-        newPkg: newPkgPlugin,
+        id:          clusterId,
+        oldPkg:      oldPkgPlugin,
+        newPkg:      newPkgPlugin,
         product,
         oldProduct,
+        targetRoute: route
       })
     ]);
 

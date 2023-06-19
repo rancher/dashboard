@@ -127,6 +127,8 @@ const sidebars = {
             'extensions/advanced/localization',
             'extensions/advanced/hooks',
             'extensions/advanced/stores',
+            'extensions/advanced/version-compatibility',
+            'extensions/advanced/safe-mode',
             'extensions/advanced/yarn-link'
           ]
         },

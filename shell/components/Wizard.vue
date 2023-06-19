@@ -526,7 +526,7 @@ $spacer: 10px;
           align-items: center;
           width: 40px;
           overflow: visible;
-          padding-top: 0;
+          padding-top: 7px;
 
           & > span {
             padding-bottom: 3px;
@@ -558,7 +558,11 @@ $spacer: 10px;
         flex-basis: 100%;
         border-top: 1px solid var(--border);
         position: relative;
-        top: 13px;
+        top: 17px;
+
+        .cru__content & {
+          top: 13px;
+        }
       }
     }
   }
@@ -584,6 +588,7 @@ $spacer: 10px;
         display: flex;
         align-items: center;
         justify-content: space-evenly;
+        position: relative;
 
         & > .subtitle {
           margin-right: 20px;

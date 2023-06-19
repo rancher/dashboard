@@ -102,4 +102,6 @@ export default defineConfig({
     specPattern:                  getSpecPattern(),
     baseUrl
   },
+  videoCompression:    15,
+  videoUploadOnPasses: false,
 });

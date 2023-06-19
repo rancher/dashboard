@@ -117,6 +117,7 @@ locale:
   none: (None)
 
 nav:
+  harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
   clusterTools: Cluster Tools
   kubeconfig:
@@ -179,6 +180,7 @@ nav:
     multiCluster: Global Apps
     legacy: Legacy Apps
     configuration: Configuration
+    hci: HCI
   search:
     placeholder: Type to search clusters
     noResults: No matching clusters
@@ -4844,6 +4846,12 @@ servicesPage:
     title: Add-on Config
     ipam:
       label: IPAM
+    useShareIP:
+      label: Use Share IP
+    useIpam:
+      label: Use IPAM
+    shareIP:
+      label: Share IP LB
 
   ips:
     define: Service Ports
@@ -7162,6 +7170,7 @@ resourceQuota:
     resourceType: Resource Type
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
+  helpTextHarvester: VMs need to reserve additional memory overhead.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit

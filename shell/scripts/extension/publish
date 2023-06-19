@@ -280,7 +280,7 @@ for d in pkg/*/ ; do
     fi
 
     # Base URL referencing assets directly from GitHub
-    BASE_URL="assets/${pkg}"
+    BASE_URL="assets/"
 
     # Relative URL references assets within the container deployment
     RELATIVE_URL="plugin/"
@@ -320,6 +320,8 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
 
   # Build the docker image
   ${SCRIPT_DIR}/bundle ${BASE_EXT} ${EXT_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
+else
+  rm -rf ${CHART_TEMPLATE}
 fi
 
 if [ "${GITHUB_BUILD}" == "true" ] && [ -f ${ROOT_INDEX} ]; then
