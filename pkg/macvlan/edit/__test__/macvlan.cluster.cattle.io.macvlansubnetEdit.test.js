@@ -2,7 +2,7 @@ import MacvlanSubnet from '../macvlan.cluster.cattle.io.macvlansubnet.vue';
 import { mount } from '@vue/test-utils';
 import { _CREATE } from '@shell/config/query-params';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
-import { cleanTooltipDirective } from '@shell/plugins/clean-tooltip-directive';
+import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive';
 
 const emptyForm = {
   apiVersion: 'macvlan.cluster.cattle.io/v1',
@@ -31,7 +31,7 @@ describe('macvlansubnet: edit', () => {
   it('should have input and select', () => {
     const wrapper = mount(MacvlanSubnet, {
       propsData:  { mode: _CREATE, value: {} },
-      directives: { cleanTooltipDirective, cleanHtmlDirective },
+      directives: { cleanHtmlDirective, VCleanTooltip },
       mocks:      {
         $router: { currentRoute: {}, replace: () => jest.fn() },
         $route:  { query: {}, hash: '#labels' },
