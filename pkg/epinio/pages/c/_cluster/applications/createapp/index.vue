@@ -214,7 +214,7 @@ export default Vue.extend<Data, any, any, any>({
 <style lang='scss' scoped>
 .application-wizard {
 
-  padding-top: 0;
+  padding-top: 10px;
   height: 0;
   position: relative;
   overflow: hidden;
