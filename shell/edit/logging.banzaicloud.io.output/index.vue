@@ -258,6 +258,14 @@ export default {
   $logo: 60px;
 
 .output {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  .side-tabs {
+    background: yellow;
+    flex: 1;
+  }
   .provider {
     h1 {
       display: inline-block;
