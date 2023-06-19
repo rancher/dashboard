@@ -4009,6 +4009,7 @@ plugins:
     host: This Extension is not compatible with this application
     version: This Extension is not compatible with this version of Rancher
     load: An error occurred loading the code for this Extension
+    developerPkg: This Extension has been loaded internally, so we won't load the external version
   success:
     title: Loaded extension {name}
     message: Extension was loaded successfully
