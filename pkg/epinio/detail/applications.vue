@@ -149,7 +149,16 @@ export default Vue.extend<Data, any, any, any>({
 
       const arr: any[] = isArray(commits) ? commits : [commits];
 
-      return arr.map(c => GitUtils[this.gitType].normalize.commit(c));
+      return arr.map(c => ({
+        ...GitUtils[this.gitType].normalize.commit(c),
+        availableActions: [{
+          action:  'editFromCommit',
+          label:   this.t('epinio.applications.actions.editFromCommit.label'),
+          icon:    'icon icon-edit',
+          enabled: true,
+        }],
+        editFromCommit: () => this.value.goToEdit({ commit: c.sha || c.id }),
+      }));
     },
 
     commitsHeaders() {
@@ -433,7 +442,6 @@ export default Vue.extend<Data, any, any, any>({
             :search="true"
             :paging="true"
             :table-actions="false"
-            :row-actions="false"
             :rows-per-page="10"
           >
             <template #cell:author="{row}">

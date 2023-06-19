@@ -278,6 +278,8 @@ epinio:
         label: Restart
       createManifest:
         label: Download Manifest
+      editFromCommit:
+        label: Deploy
     wm:
       containerName: 'Instance: {label}'
       noData: There are no log entries to show.

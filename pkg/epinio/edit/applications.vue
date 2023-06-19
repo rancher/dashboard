@@ -39,13 +39,22 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   data() {
+    const source = this.value.appSource;
+
+    /**
+     * Edit git application from specific commit
+     */
+    if (source.git && this.$route.query?.commit) {
+      source.git.commit = this.$route?.query?.commit;
+    }
+
     return {
       bindings: {
         configurations: [],
         services:       []
       },
       errors: [],
-      source: this.value.appSource,
+      source,
       steps:  [
         {
           name:       'source',
