@@ -711,7 +711,7 @@ export default {
                 @input="queueUpdate"
               >
               <FileSelector
-                v-if="parseValueFromFile && readAllowed && !isView && row[keyName] && isValueFieldEmpty(row[valueName])"
+                v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
                 class="btn btn-sm role-secondary file-selector"
                 :label="t('generic.upload')"
                 @selected="onValueFileSelected(i, $event)"
