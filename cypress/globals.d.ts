@@ -8,7 +8,7 @@ declare namespace Cypress {
 
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
     byLabel(label: string,): Chainable<Element>;
-    createUser(role?: string): Chainable;
+    createUser(username: string, role?: string): Chainable;
     setGlobalRoleBinding(role: string): Chainable;
 
     /**

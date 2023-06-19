@@ -52,7 +52,7 @@ Cypress.Commands.add('login', (
 /**
  * Create user via api request
  */
-Cypress.Commands.add('createUser', (role?) => {
+Cypress.Commands.add('createUser', (username, role?) => {
   return cy.request({
     method:           'POST',
     url:              'v3/users',
@@ -65,14 +65,14 @@ Cypress.Commands.add('createUser', (role?) => {
       type:               'user',
       enabled:            true,
       mustChangePassword: false,
-      username:           'standard_user',
+      username,
       password:           Cypress.env('password')
     }
   }).then((resp) => {
     if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
       cy.log(' ❌ User already exists. Skipping user creation');
     } else {
-      expect(resp.status).to.eq(201);
+      expect(resp.status).to.eq(200 | 201);
       userId = resp.body.id;
 
       if (role) {
