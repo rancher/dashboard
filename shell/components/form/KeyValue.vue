@@ -550,7 +550,12 @@ export default {
       this.$set(this.codeMirrorFocus, idx, value);
     },
     onValueFileSelected(idx, file) {
-      this.rows[idx][this.valueName] = file;
+      const { name, value } = file;
+
+      if (!this.rows[idx][this.keyName]) {
+        this.rows[idx][this.keyName] = name;
+      }
+      this.rows[idx][this.valueName] = value;
     },
     isValueFieldEmpty(value) {
       return !value || value.trim().length === 0;
@@ -714,6 +719,7 @@ export default {
                 v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
                 class="btn btn-sm role-secondary file-selector"
                 :label="t('generic.upload')"
+                :include-file-name="true"
                 @selected="onValueFileSelected(i, $event)"
               />
             </div>
