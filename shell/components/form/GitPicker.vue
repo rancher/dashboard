@@ -186,24 +186,14 @@ export default Vue.extend<Data, any, any, any>({
           .then(() => {
             if (this.branches.length && !this.hasError.branch) {
               if (branch?.name) {
-              this.selectedBranch = branch;
+                this.selectedBranch = branch;
 
-              return this.fetchCommits();
-            }
+                return this.fetchCommits();
+              }
             }
           });
 
-        const selectedCommit = this.commits.find((c: commit) => {
-          // Github has sha's
-          // Gitlab has id's as sha's
-          const sha = c.sha || c.id;
-
-          return sha === commit.sha;
-        });
-
-        if (selectedCommit) {
-          this.final(selectedCommit.sha || selectedCommit.id);
-        }
+        this.final(commit.sha);
       }
     },
 
