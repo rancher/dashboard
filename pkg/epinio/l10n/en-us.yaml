@@ -113,6 +113,9 @@ epinio:
             created: Created
             updated: Updated
             deployed: Deployed
+        commits:
+          redeploy: Select `Redeploy` to update the application from the given commit.
+
       tables:
         label: Resources
         instances: Instances
@@ -278,6 +281,8 @@ epinio:
         label: Restart
       createManifest:
         label: Download Manifest
+      editFromCommit:
+        label: Redeploy
     wm:
       containerName: 'Instance: {label}'
       noData: There are no log entries to show.

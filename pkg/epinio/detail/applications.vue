@@ -17,6 +17,7 @@ import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
 import { GitUtils } from '../utils/git';
 import { isArray } from '@shell/utils/array';
+import Banner from '@components/Banner/Banner.vue';
 
 interface Data {
 }
@@ -24,6 +25,7 @@ interface Data {
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
+    Banner,
     SimpleBox,
     ConsumptionGauge,
     SortableTable,
@@ -84,6 +86,12 @@ export default Vue.extend<Data, any, any, any>({
         schema:  configsSchema,
         headers: configsHeaders.filter((h: any) => !['namespace', 'boundApps', 'service'].includes(h.name)),
       },
+      commitActions: [{
+        action:  'editFromCommit',
+        label:   this.t('epinio.applications.actions.editFromCommit.label'),
+        icon:    'icon icon-edit',
+        enabled: true,
+      }],
     };
   },
 
@@ -149,7 +157,11 @@ export default Vue.extend<Data, any, any, any>({
 
       const arr: any[] = isArray(commits) ? commits : [commits];
 
-      return arr.map(c => GitUtils[this.gitType].normalize.commit(c));
+      return arr.map(c => ({
+        ...GitUtils[this.gitType].normalize.commit(c),
+        availableActions: this.commitActions,
+        editFromCommit:   () => this.value.goToEdit({ commit: c.sha || c.id }),
+      }));
     },
 
     commitsHeaders() {
@@ -433,9 +445,16 @@ export default Vue.extend<Data, any, any, any>({
             :search="true"
             :paging="true"
             :table-actions="false"
-            :row-actions="false"
             :rows-per-page="10"
           >
+            <template #header-left>
+              <Banner
+                color="info"
+                class="redeploy-info"
+              >
+                {{ t('epinio.applications.detail.deployment.commits.redeploy') }}
+              </Banner>
+            </template>
             <template #cell:author="{row}">
               <div class="sortable-table-avatar">
                 <template v-if="row.author">
@@ -726,5 +745,9 @@ export default Vue.extend<Data, any, any, any>({
   &-commit {
     display: flex;
   }
+}
+
+.redeploy-info {
+  margin: 0;
 }
 </style>
