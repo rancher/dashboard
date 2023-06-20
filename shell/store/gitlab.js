@@ -48,7 +48,7 @@ export const actions = {
     try {
       switch (endpoint) {
       case 'branches': {
-        return await fetchGitLabAPI(`projects/${ username }%2F${ repo }/repository/branches?order_by=updated_at&per_page=${ MAX_RESULTS }`);
+        return await fetchGitLabAPI(`projects/${ username }%2F${ repo }/repository/branches?per_page=${ MAX_RESULTS }`);
       }
       case 'repo': {
         return await fetchGitLabAPI(`projects/${ username }%2F${ repo }`);
@@ -57,7 +57,7 @@ export const actions = {
         return await fetchGitLabAPI(`projects/${ username }%2F${ repo }/repository/commits?ref_name=${ branch }&order_by=updated_at&per_page=${ MAX_RESULTS }`);
       }
       case 'recentRepos': {
-        return await fetchUserOrOrganization(`${ username }/projects?order_by=updated_at&per_page=${ MAX_RESULTS }`);
+        return await fetchUserOrOrganization(`${ username }/projects?order_by=name&sort=asc&per_page=${ MAX_RESULTS }`);
       }
       case 'avatar': {
         return await fetchGitLabAPI(`avatar?email=${ email }`);
