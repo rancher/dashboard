@@ -2,7 +2,6 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { Matcher } from '@/cypress/support/types';
 
 let token: any;
-let userId: any;
 
 /**
  * Login local authentication, including first login and bootstrap if not cached
@@ -70,13 +69,12 @@ Cypress.Commands.add('createUser', (username, role?) => {
     }
   }).then((resp) => {
     if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
-      cy.log(' ❌ User already exists. Skipping user creation');
+      cy.log('User already exists. Skipping user creation');
     } else {
-      expect(resp.statusText).to.eq('Created');
-      userId = resp.body.id;
+      expect(resp.status).to.eq(201);
 
       if (role) {
-        cy.setGlobalRoleBinding(role);
+        cy.setGlobalRoleBinding(resp.body.id, role);
       }
     }
   });
@@ -85,7 +83,7 @@ Cypress.Commands.add('createUser', (username, role?) => {
 /**
  * Set global role binding for user via api request
  */
-Cypress.Commands.add('setGlobalRoleBinding', (role) => {
+Cypress.Commands.add('setGlobalRoleBinding', (userId, role) => {
   return cy.request({
     method:  'POST',
     url:     'v3/globalrolebindings',
