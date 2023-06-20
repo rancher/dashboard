@@ -8,10 +8,12 @@ export default class EmberNodeAffinityPo extends IframeComponentPo {
   }
 
   allTerms() {
+    console.log('e2e looking for node affinity terms');
+
     return cy.getIframeBody().then((iframe) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="node-selector-term"]`);
 
-      if (queryResult.length > 0) {
+      if (queryResult?.length > 0) {
         return cy.getIframeBody().find(`${ this.selector } [data-testid="node-selector-term"]`);
       }
 
@@ -21,6 +23,7 @@ export default class EmberNodeAffinityPo extends IframeComponentPo {
 
   removeAllTerms() {
     return this.allTerms().then((terms) => {
+      console.log('e2e removing node/pod terms: ', terms);
       if (terms) {
         let idx = terms.length - 1;
 

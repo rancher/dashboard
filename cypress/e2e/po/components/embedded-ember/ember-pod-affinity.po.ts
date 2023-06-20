@@ -11,7 +11,7 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
 
   allTerms() {
     return cy.getIframeBody().then((iframe) => {
-      const queryResult = iframe.get(`${ this.selector } [data-testid="pod-affinity-term"]`);
+      const queryResult = iframe.find(`${ this.selector } [data-testid="pod-affinity-term"]`);
 
       if (queryResult?.length > 0) {
         return cy.getIframeBody().find(`${ this.selector } [data-testid="pod-affinity-term"]`);
