@@ -75,6 +75,7 @@ export const HIDE_DESC = create('hide-desc', [], { parseJSON });
 export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false], parseJSON });
 export const SHOW_PRE_RELEASE = create('show-pre-release', false, { options: [false, true], parseJSON });
 export const SHOW_CHART_MODE = create('chart-mode', 'featured', { parseJSON });
+export const PREFERED_SHORTCUT_KEYS = create('prefered-shortcut-keys', [], { parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [
