@@ -53,7 +53,7 @@ jobs:
       - name: Run standard user tests
         continue-on-error: true
         run: |
-          GREP_TAGS=@standardUser TEST_USERNAME=standard_user yarn e2e:prod
+          GREP_TAGS=@standardUser TEST_USERNAME=standard_user yarn e2e:prod && yarn docker:local:stop
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         
