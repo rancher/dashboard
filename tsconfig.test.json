@@ -1,8 +1,25 @@
 {
   "extends": "./tsconfig.default.json",
   "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": ".",
+    "paths": {
+      "~/*": [
+        "*"
+      ],
+      "@/*": [
+        "*"
+      ],
+      "@shell/*": [
+        "shell/*"
+      ],
+      "@pkg/*": [
+        "shell/pkg/*"
+      ]
+    },
     "types": [
       "@types/node",
+      "@types/jest",
     ]
   },
   "exclude": [
@@ -17,7 +34,6 @@
     "./cypress.config.ts",
     "docusaurus",
     "script/standalone",
-    "**/*.test.ts",
     "**/*.spec.ts"
   ]
 }
