@@ -1,39 +1,16 @@
 {
-  "extends": "./tsconfig.default.json",
+  "extends": "./shell/tsconfig.default.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "rootDir": ".",
-    "paths": {
-      "~/*": [
-        "*"
-      ],
-      "@/*": [
-        "*"
-      ],
-      "@shell/*": [
-        "shell/*"
-      ],
-      "@pkg/*": [
-        "shell/pkg/*"
-      ]
-    },
     "types": [
-      "@types/node",
-      "@types/jest",
+      "jest"
     ]
   },
+  "include": [
+    "./**/*.test.ts"
+  ],
   "exclude": [
-    "node_modules",
-    ".nuxt",
-    "dist",
-    "dist-pkg",
-    "cypress",
-    "shell/creators",
-    "shell/scripts",
     "cypress",
     "./cypress.config.ts",
-    "docusaurus",
-    "script/standalone",
     "**/*.spec.ts"
   ]
 }
