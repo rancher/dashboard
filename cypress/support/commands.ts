@@ -54,7 +54,7 @@ Cypress.Commands.add('login', (
 Cypress.Commands.add('createUser', (username, role?) => {
   return cy.request({
     method:           'POST',
-    url:              'v3/users',
+    url:              `${Cypress.env('api')}/v3/users`,
     failOnStatusCode: false,
     headers:          {
       'x-api-csrf': token.value,
@@ -86,7 +86,7 @@ Cypress.Commands.add('createUser', (username, role?) => {
 Cypress.Commands.add('setGlobalRoleBinding', (userId, role) => {
   return cy.request({
     method:  'POST',
-    url:     'v3/globalrolebindings',
+    url:     `${Cypress.env('api')}/v3/globalrolebindings`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
