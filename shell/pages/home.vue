@@ -308,6 +308,7 @@ export default {
       pref-key="welcomeBanner"
     />
     <IndentedPanel class="mt-20 mb-20">
+      <h1>ALEX-DEV</h1>
       <div
         v-if="!readWhatsNewAlready"
         class="row"
