@@ -84,6 +84,12 @@ export default Vue.extend<Data, any, any, any>({
         schema:  configsSchema,
         headers: configsHeaders.filter((h: any) => !['namespace', 'boundApps', 'service'].includes(h.name)),
       },
+      commitActions: [{
+        action:  'editFromCommit',
+        label:   this.t('epinio.applications.actions.editFromCommit.label'),
+        icon:    'icon icon-edit',
+        enabled: true,
+      }],
     };
   },
 
@@ -151,13 +157,8 @@ export default Vue.extend<Data, any, any, any>({
 
       return arr.map(c => ({
         ...GitUtils[this.gitType].normalize.commit(c),
-        availableActions: [{
-          action:  'editFromCommit',
-          label:   this.t('epinio.applications.actions.editFromCommit.label'),
-          icon:    'icon icon-edit',
-          enabled: true,
-        }],
-        editFromCommit: () => this.value.goToEdit({ commit: c.sha || c.id }),
+        availableActions: this.commitActions,
+        editFromCommit:   () => this.value.goToEdit({ commit: c.sha || c.id }),
       }));
     },
 
