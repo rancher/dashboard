@@ -27,7 +27,7 @@ export const actions = {
     try {
       switch (endpoint) {
       case 'branches': {
-        return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?sort=updated&per_page=${ MAX_RESULTS }&direction=desc`);
+        return await fetchGithubAPI(`repos/${ username }/${ repo }/branches?per_page=${ MAX_RESULTS }`);
       }
       case 'repo': {
         return await fetchGithubAPI(`repos/${ username }/${ repo }`);
@@ -36,7 +36,7 @@ export const actions = {
         return await fetchGithubAPI(`repos/${ username }/${ repo }/commits?sha=${ branch }&sort=updated&per_page=${ MAX_RESULTS }`);
       }
       case 'recentRepos': {
-        return await fetchGithubAPI(`users/${ username }/repos?sort=updated&per_page=${ MAX_RESULTS }&direction=desc`);
+        return await fetchGithubAPI(`users/${ username }/repos?per_page=${ MAX_RESULTS }`);
       }
       case 'search': {
         // Fetch for a specific branches
