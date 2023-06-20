@@ -17,6 +17,7 @@ import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
 import { GitUtils } from '../utils/git';
 import { isArray } from '@shell/utils/array';
+import Banner from '@components/Banner/Banner.vue';
 
 interface Data {
 }
@@ -24,6 +25,7 @@ interface Data {
 // Data, Methods, Computed, Props
 export default Vue.extend<Data, any, any, any>({
   components: {
+    Banner,
     SimpleBox,
     ConsumptionGauge,
     SortableTable,
@@ -445,6 +447,14 @@ export default Vue.extend<Data, any, any, any>({
             :table-actions="false"
             :rows-per-page="10"
           >
+            <template #header-left>
+              <Banner
+                color="info"
+                class="redeploy-info"
+              >
+                {{ t('epinio.applications.detail.deployment.commits.redeploy') }}
+              </Banner>
+            </template>
             <template #cell:author="{row}">
               <div class="sortable-table-avatar">
                 <template v-if="row.author">
@@ -735,5 +745,9 @@ export default Vue.extend<Data, any, any, any>({
   &-commit {
     display: flex;
   }
+}
+
+.redeploy-info {
+  margin: 0;
 }
 </style>
