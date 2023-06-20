@@ -44,19 +44,20 @@ jobs:
         run: yarn e2e:pre-prod
       
       - name: Run admin user tests
-        continue-on-error: true
         run: |
           GREP_TAGS=@adminUser TEST_USERNAME=admin yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
 
       - name: Run standard user tests
+        if: ${{ success() || failure() }}
         run: |
           GREP_TAGS=@standardUser TEST_USERNAME=standard_user yarn e2e:prod && yarn docker:local:stop
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         
       - name: Upload coverage
+        if: ${{ success() || failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
