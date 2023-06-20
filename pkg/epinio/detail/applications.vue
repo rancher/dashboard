@@ -125,9 +125,11 @@ export default Vue.extend<Data, any, any, any>({
     async fetchCommits() {
       const { usernameOrOrg, repo, branch } = this.value.appSource.git;
 
+      if (branch?.name) {
       this.gitDeployment.commits = await this.$store.dispatch(`${ this.gitType }/fetchCommits`, {
         username: usernameOrOrg, repo, branch
       });
+      }
     },
     formatDate(date: string, from: boolean) {
       day.extend(relativeTime);

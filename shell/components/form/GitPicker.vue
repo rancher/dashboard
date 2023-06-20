@@ -185,9 +185,11 @@ export default Vue.extend<Data, any, any, any>({
           })
           .then(() => {
             if (this.branches.length && !this.hasError.branch) {
+              if (branch?.name) {
               this.selectedBranch = branch;
 
               return this.fetchCommits();
+            }
             }
           });
 
