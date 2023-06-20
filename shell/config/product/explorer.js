@@ -354,7 +354,7 @@ export function init(store) {
     group:      'cluster',
     namespaced: false,
     icon:       'globe',
-    route:      { name: 'c-cluster-legacy-vlansubnet-page', params: { cluster: 'local', page: 'cluster-vlansubnet' } },
+    route:      { name: 'c-cluster-legacy-pages-page', params: { cluster: 'local', page: 'cluster-vlansubnet' } },
     exact:      true
   });
 

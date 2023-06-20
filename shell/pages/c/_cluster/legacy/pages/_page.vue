@@ -6,6 +6,8 @@ const PAGES = {
   cis:        'cis/scan',
   istio:      'istio/cluster-setting',
   snapshots:  'backups',
+
+  'cluster-vlansubnet': 'vlansubnet',
 };
 
 export default {
