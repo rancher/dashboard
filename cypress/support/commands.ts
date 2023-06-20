@@ -72,7 +72,7 @@ Cypress.Commands.add('createUser', (username, role?) => {
     if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
       cy.log(' ❌ User already exists. Skipping user creation');
     } else {
-      expect(resp.status).to.eq(200 | 201);
+      expect(resp.statusText).to.eq('Created');
       userId = resp.body.id;
 
       if (role) {
