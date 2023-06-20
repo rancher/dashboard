@@ -206,7 +206,9 @@ export default Vue.extend<Data, any, any, any>({
           :title-protip="t('epinio.configurations.pairs.tooltip')"
           :key-label="t('epinio.applications.create.envvar.keyLabel')"
           :value-label="t('epinio.applications.create.envvar.valueLabel')"
+          :valueMarkdownMultiline="true"
           :parse-lines-from-file="true"
+          :parse-value-from-file="true"
           @input="setData($event)"
         />
       </div>
