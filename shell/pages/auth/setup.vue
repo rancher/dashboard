@@ -478,6 +478,10 @@ export default {
     .form-col {
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
+      position: relative;
+      height: 100vh;
+
       & > div:first-of-type {
         flex:3;
       }
