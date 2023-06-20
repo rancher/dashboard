@@ -15,6 +15,6 @@ describe('Theme of loading indicator', () => {
     cy.setCookie('R_THEME', 'light');
     cy.visit(`${ Cypress.config().baseUrl }/public/index.html`);
     
-    cy.get('head style').should('contain', '--loading-bg-color: #fff');
+    cy.get('head style').should('contain', '--loading-bg-color: #FFF');
   });
 });
