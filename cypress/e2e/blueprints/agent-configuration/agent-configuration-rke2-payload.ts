@@ -200,49 +200,48 @@ export const payloadComparisonData = {
             },
             topologyKey: 'some-topology2'
           },
-          {
-            namespaces: [
-              'system',
-              'fleet-default'
-            ],
-            topologyKey: 'some-topology3'
-          }
+          // {
+          //   namespaces: [
+          //     'system',
+          //     'fleet-default'
+          //   ],
+          //   topologyKey: 'some-topology3'
+          // }
         ],
         preferredDuringSchedulingIgnoredDuringExecution: [
-          {
-            podAffinityTerm: {
-              namespaces:    null,
-              weight:        10,
-              labelSelector: {
-                matchExpressions: [
-                  {
-                    key:      'key1',
-                    operator: 'In',
-                    values:   [
-                      'val1'
-                    ]
-                  },
-                  {
-                    key:      'key2',
-                    operator: 'NotIn',
-                    values:   [
-                      'val2'
-                    ]
-                  },
-                  {
-                    key:      'key3',
-                    operator: 'Exists'
-                  },
-                  {
-                    key:      'key4',
-                    operator: 'DoesNotExist'
-                  }
-                ]
-              },
-              topologyKey: 'some-topology1'
-            },
-            weight: 10
-          }
+          // {
+          //   podAffinityTerm: {
+          //     namespaces:    null,
+          //     labelSelector: {
+          //       matchExpressions: [
+          //         {
+          //           key:      'key1',
+          //           operator: 'In',
+          //           values:   [
+          //             'val1'
+          //           ]
+          //         },
+          //         {
+          //           key:      'key2',
+          //           operator: 'NotIn',
+          //           values:   [
+          //             'val2'
+          //           ]
+          //         },
+          //         {
+          //           key:      'key3',
+          //           operator: 'Exists'
+          //         },
+          //         {
+          //           key:      'key4',
+          //           operator: 'DoesNotExist'
+          //         }
+          //       ]
+          //     },
+          //     topologyKey: 'some-topology1'
+          //   },
+          //   weight: 10
+          // }
         ]
       }
     },

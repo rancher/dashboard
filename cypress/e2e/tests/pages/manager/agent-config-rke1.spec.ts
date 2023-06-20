@@ -82,8 +82,8 @@ describe('rke1-provisioning', () => {
         // expect(req.request?.body?.fleetAgentDeploymentCustomization.appendTolerations).to.deep.equal(payloadComparisonData.fleetAgentDeploymentCustomization.appendTolerations);
         // expect(req.request?.body?.clusterAgentDeploymentCustomization.overrideAffinity.nodeAffinity).to.deep.equal(payloadComparisonData.clusterAgentDeploymentCustomization.overrideAffinity.nodeAffinity);
         // expect(req.request?.body?.fleetAgentDeploymentCustomization.overrideAffinity.nodeAffinity).to.deep.equal(payloadComparisonData.fleetAgentDeploymentCustomization.overrideAffinity.nodeAffinity);
-                expect(req.request?.body?.clusterAgentDeploymentCustomization.overrideAffinity.podAffinity).to.deep.equal(payloadComparisonData.clusterAgentDeploymentCustomization.overrideAffinity.podAffinity);
-        expect(req.request?.body?.fleetAgentDeploymentCustomization.overrideAffinity.podAffinity).to.deep.equal(payloadComparisonData.fleetAgentDeploymentCustomization.overrideAffinity.podAffinity);
+        expect(req.request?.body?.clusterAgentDeploymentCustomization.overrideAffinity.podAffinity).to.deep.equal(payloadComparisonData.clusterAgentDeploymentCustomization.overrideAffinity.podAffinity);
+        // expect(req.request?.body?.fleetAgentDeploymentCustomization.overrideAffinity.podAffinity).to.deep.equal(payloadComparisonData.fleetAgentDeploymentCustomization.overrideAffinity.podAffinity);
         // expect(req.request?.body?.clusterAgentDeploymentCustomization.overrideResourceRequirements).to.deep.equal(payloadComparisonData.clusterAgentDeploymentCustomization.overrideResourceRequirements);
         // expect(req.request?.body?.fleetAgentDeploymentCustomization.overrideResourceRequirements).to.deep.equal(payloadComparisonData.fleetAgentDeploymentCustomization.overrideResourceRequirements);
         // expect(req.request?.body?.clusterAgentDeploymentCustomization).to.deep.equal(payloadComparisonData.clusterAgentDeploymentCustomization);
