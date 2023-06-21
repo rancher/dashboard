@@ -123,5 +123,4 @@ export default class SortableTablePo extends ComponentPo {
   selectedCount() {
     return cy.get('.row-check input[type="checkbox"]:checked').its('length');
   }
-
 }

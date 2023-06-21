@@ -1,5 +1,4 @@
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
 import BaseResourceList from '~/cypress/e2e/po/lists/base-resource-list.po';
 
