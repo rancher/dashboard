@@ -10,7 +10,7 @@ export default class PageActionsPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static open(): Cypress.Chainable {
-    return cy.getId('page-actions-menu').click({ force: true });
+    return cy.getId('page-actions-menu').should('be.visible').click();
   }
 
   /**
@@ -40,7 +40,7 @@ export default class PageActionsPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   links(): Cypress.Chainable {
-    return this.self().find('.user-menu-item');
+    return this.self().find('.user-menu-item').should('be.visible');
   }
 
   /**

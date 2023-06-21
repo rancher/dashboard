@@ -55,16 +55,12 @@ export default class HomePagePo extends PagePo {
     return cy.get('[data-testid="changelog-banner"] a');
   }
 
-  waitForRestore() {
+  restoreAndWait() {
     const pageActionsPo = new PageActions();
 
-    cy.intercept('PUT', 'v1/userpreferences/*', (req) => {
-      if (req?.body?.data?.['home-page-cards'] === '{}') {
-        req.alias = 'restoreBanners';
-      }
-    });
+    cy.intercept('PUT', 'v1/userpreferences/*').as('restoreBanners');
     pageActionsPo.restoreLink().click();
-    cy.wait('@restoreBanners');
+    cy.wait(['@restoreBanners', '@restoreBanners']);
   }
 
   list(): HomeClusterListPo {

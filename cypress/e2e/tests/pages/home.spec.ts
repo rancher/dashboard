@@ -28,7 +28,7 @@ describe('User can perform actions on the Home Page', () => {
     const text: string[] = [];
 
     PageActions.open();
-    homePage.waitForRestore();
+    homePage.restoreAndWait();
 
     homePage.whatsNewBannerLink().invoke('text').then((el) => {
       text.push(el);
@@ -69,7 +69,7 @@ describe('User can perform actions on the Home Page', () => {
      */
 
     PageActions.open();
-    homePage.waitForRestore();
+    homePage.restoreAndWait();
 
     homePage.graphicBanner().should('be.visible');
     homePage.graphicBannerCloseButton();
@@ -80,7 +80,7 @@ describe('User can perform actions on the Home Page', () => {
     homePage.setLoginPageBanner().should('not.exist');
 
     PageActions.open();
-    homePage.waitForRestore();
+    homePage.restoreAndWait();
 
     homePage.graphicBanner().should('be.visible');
     homePage.setLoginPageBanner().should('be.visible');
