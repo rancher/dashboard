@@ -147,6 +147,7 @@ import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
+
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
@@ -172,14 +173,16 @@ const graphConfigMap = {};
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
-  V1_MONITORING:       'v1-monitoring',
-  V2_MONITORING:       'v2-monitoring',
-  PROJECT:             'project',
-  NO_PROJECT:          'no-project',
-  NOT_V1_ISTIO:        'not-v1-istio',
-  MULTI_CLUSTER:       'multi-cluster',
-  NEUVECTOR_NAMESPACE: 'neuvector-namespace',
-  ADMIN:               'admin-user',
+  V1_MONITORING:            'v1-monitoring',
+  V2_MONITORING:            'v2-monitoring',
+  PROJECT:                  'project',
+  NO_PROJECT:               'no-project',
+  NOT_V1_ISTIO:             'not-v1-istio',
+  MULTI_CLUSTER:            'multi-cluster',
+  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
+  ADMIN:                    'admin-user',
+  MCM_DISABLED:             'mcm-disabled',
+  NOT_STANDALONE_HARVESTER: 'not-standalone-harvester',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -287,8 +290,8 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/ignoreType`, regexOrString);
     },
 
-    ignoreGroup(regexOrString) {
-      store.commit(`${ module }/ignoreGroup`, regexOrString);
+    ignoreGroup(regexOrString, cb) {
+      store.commit(`${ module }/ignoreGroup`, { regexOrString, cb });
     },
 
     weightGroup(input, weight, forBasic) {
@@ -930,8 +933,10 @@ export const getters = {
           }
 
           if ( item.ifHaveSubTypes ) {
-            const hasSome = (item.ifHaveSubTypes || []).some((type) => {
-              return !!findBy(schemas, 'id', normalizeType(type));
+            const targetedSchemas = Array.isArray(item.ifHaveSubTypes) ? schemas : rootGetters[`${ item.ifHaveSubTypes.store }/all`](SCHEMA);
+            const subTypes = Array.isArray(item.ifHaveSubTypes) ? item.ifHaveSubTypes : item.ifHaveSubTypes.types;
+            const hasSome = (subTypes || []).some((type) => {
+              return !!findBy(targetedSchemas, 'id', normalizeType(type));
             });
 
             if (!hasSome) {
@@ -1260,18 +1265,19 @@ export const getters = {
     };
   },
 
-  isIgnored(state) {
+  isIgnored(state, getters, rootState, rootGetters) {
     return (schema) => {
-      if ( state.cache.ignore[schema.id] !== undefined ) {
-        return state.cache.ignore[schema.id];
-      }
-
       let out = false;
 
       for ( const rule of state.groupIgnore ) {
         const group = schema?.attributes?.group;
 
-        if ( group && group.match(stringToRegex(rule)) ) {
+        if (group && group.match(stringToRegex(rule.type) && isObject(rule) && rule.type)) {
+          out = rule.cb(rootGetters);
+          break;
+        }
+
+        if ( group && typeof rule === 'string' && group.match(stringToRegex(rule)) ) {
           out = true;
           break;
         }
@@ -1518,10 +1524,13 @@ export const mutations = {
     }
   },
 
-  ignoreGroup(state, match) {
+  ignoreGroup(state, { regexOrString: match, cb }) {
     match = ensureRegex(match);
     // State shouldn't contain actual RegExp objects, because they don't serialize
-    state.groupIgnore.push(regexToString(match));
+    cb ? state.groupIgnore.push({
+      type: regexToString(match),
+      cb
+    }) : state.groupIgnore.push(regexToString(match));
   },
 
   ignoreType(state, match) {
@@ -1822,6 +1831,12 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.ADMIN: {
     return isAdminUser(getters);
+  }
+  case IF_HAVE.MCM_DISABLED: {
+    return !getters['isRancherInHarvester'];
+  }
+  case IF_HAVE.NOT_STANDALONE_HARVESTER: {
+    return !getters['isStandaloneHarvester'];
   }
   default:
     return false;

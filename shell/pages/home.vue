@@ -206,7 +206,7 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || []), this.$store);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
     }
   },
 

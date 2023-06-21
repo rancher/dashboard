@@ -30,6 +30,7 @@ export function init(store) {
     product,
     basicType,
     ignoreType,
+    ignoreGroup,
     mapGroup,
     weightGroup,
     weightType,
@@ -109,6 +110,19 @@ export function init(store) {
   ignoreType(NAMESPACE);
   ignoreType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
   ignoreType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
+
+  ignoreGroup('harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('kubevirt.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('network.harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('node.harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
 
   mapGroup(/^(core)?$/, 'core');
   mapGroup('apps', 'apps');
@@ -269,16 +283,16 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:   'members.clusterAndProject',
-    group:      'cluster',
-    namespaced: false,
-    name:       VIRTUAL_TYPES.CLUSTER_MEMBERS,
-    icon:       'globe',
-    weight:     -1,
-    route:      { name: 'c-cluster-product-members' },
-    exact:      true,
-    ifHaveType: {
-      type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+    labelKey:       'members.clusterAndProject',
+    group:          'cluster',
+    namespaced:     false,
+    name:           VIRTUAL_TYPES.CLUSTER_MEMBERS,
+    icon:           'globe',
+    weight:         -1,
+    route:          { name: 'c-cluster-product-members' },
+    exact:          true,
+    ifHaveSubTypes: {
+      types: [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING],
       store: 'management'
     }
   });

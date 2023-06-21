@@ -22,8 +22,7 @@ describe('Standard user can update their preferences', () => {
     Verify url includes endpoint '/prefs'
     Verify preference page title
     */
-    HomePagePo.goTo();
-    userMenu.checkVisible();
+    HomePagePo.goToAndWaitForGet();
     userMenu.toggle();
     userMenu.isOpen();
     userMenu.clickMenuItem('Preferences');

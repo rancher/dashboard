@@ -254,7 +254,11 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerLogo() {
-    const provider = this.status?.provider || 'kubernetes';
+    let provider = this.status?.provider || 'kubernetes';
+
+    if (this.isHarvester) {
+      provider = HARVESTER;
+    }
     // Only interested in the part before the period
     const prv = provider.split('.')[0];
     // Allow overrides if needed
@@ -274,18 +278,10 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerMenuLogo() {
-    if (this?.status?.provider === HARVESTER) {
-      return require(`~shell/assets/images/providers/kubernetes.svg`);
-    }
-
     return this.providerLogo;
   }
 
   get providerNavLogo() {
-    if (this?.status?.provider === HARVESTER && this.$rootGetters['currentProduct'].inStore !== HARVESTER) {
-      return require(`~shell/assets/images/providers/kubernetes.svg`);
-    }
-
     return this.providerLogo;
   }
 

@@ -45,4 +45,10 @@ export class BrandingPagePo extends RootClusterPage {
   applyButton() {
     return new AsyncButtonPo('[data-testid="branding-apply-async-button"]', this.self());
   }
+
+  applyAndWait(endpoint: string) {
+    cy.intercept('PUT', endpoint).as(endpoint);
+    this.applyButton().click();
+    cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', 200);
+  }
 }

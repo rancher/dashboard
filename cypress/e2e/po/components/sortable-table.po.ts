@@ -9,6 +9,13 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   /**
+   * Returns the link for resource details for a table row with a given name
+   */
+  detailsPageLinkWithName(name: string) {
+    return this.rowElementWithName(name).find('td.col-link-detail a');
+  }
+
+  /**
    * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
    */
   bulkActionDropDown() {
@@ -57,7 +64,7 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   rowElements() {
-    return this.self().find('tbody tr');
+    return this.self().find('tbody tr:not(.sub-row)');
   }
 
   rowElementWithName(name: string) {
@@ -70,6 +77,14 @@ export default class SortableTablePo extends ComponentPo {
 
   rowWithName(name: string) {
     return new ListRowPo(this.rowElementWithName(name));
+  }
+
+  rowNames() {
+    return this.rowElements().find('.cluster-link').then(($els: any) => {
+      return (
+        Cypress.$.makeArray($els).map((el: any) => el.innerText)
+      );
+    });
   }
 
   rowActionMenu() {
