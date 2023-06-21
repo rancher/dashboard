@@ -48,6 +48,10 @@ export default class SortableTablePo extends ComponentPo {
     return cy.getId('sortable-table-promptRemove');
   }
 
+  selectedCountText() {
+    return cy.get('.action-availability');
+  }
+
   //
   // sortable-table
   //
@@ -117,10 +121,7 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   selectedCount() {
-    return cy.get('.sortable-table tbody input[type="checkbox"]:checked').its('length');
+    return cy.get('.row-check input[type="checkbox"]:checked').its('length');
   }
 
-  selectedCountText() {
-    return cy.get('#selected-count');
-  }
 }

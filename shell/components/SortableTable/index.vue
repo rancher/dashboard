@@ -983,7 +983,7 @@ export default {
               </ActionDropdown>
               <label
                 v-if="selectedRowsText"
-                id="selected-count"
+                data-testid="selected-count"
                 :class="bulkActionAvailabilityClass"
                 class="action-availability"
               >
