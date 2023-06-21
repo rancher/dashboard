@@ -15,7 +15,7 @@ describe('User can perform actions on the Home Page', () => {
   beforeEach(() => {
     cy.login();
 
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
   });
 
   it('Can navigate to What\'s new page', () => {
