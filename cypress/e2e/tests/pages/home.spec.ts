@@ -137,11 +137,11 @@ describe('User can perform actions on the Home Page', () => {
     homePage.manangeButton().click();
     clusterManagerPage.waitForPage();
 
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
     homePage.importExistingButton().click();
     genericCreateClusterPage.waitForPage('mode=import');
 
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
     homePage.createButton().click();
     genericCreateClusterPage.waitForPage();
   });
@@ -179,33 +179,33 @@ describe('User can perform actions on the Home Page', () => {
     // click Forums link
     // NOTE: Cypress does not recognize when the Forum page's contents are loaded
     // which is resulting in a time out error and this test to fail
-    // HomePagePo.goTo();
+    // HomePagePo.goToAndWaitForGet();
     // homePage.clickSupportLink(1, true);
     // cy.origin('https://rancher.com', () => {
     //   cy.url().should('include', 'forums.rancher.com/');
     // });
 
     // click Slack link
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
     homePage.clickSupportLink(2, true);
     cy.origin('https://rancher.io', () => {
       cy.url().should('include', 'slack.rancher.io/');
     });
 
     // click File an Issue link
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
     homePage.clickSupportLink(3, true);
     cy.origin('https://github.com', () => {
       cy.url().should('include', 'github.com/login');
     });
 
     // click Get Started link
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
     homePage.clickSupportLink(4);
     cy.url().should('include', 'docs/getting-started');
 
     // click Commercial Support link
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
     homePage.clickSupportLink(5);
     cy.url().should('include', '/support');
   });
