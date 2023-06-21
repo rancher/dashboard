@@ -25,7 +25,6 @@ describe('Cluster Explorer', () => {
       const sortableTable = apiServicesPage.resourcesList().resourceTable().sortableTable();
 
       sortableTable.rowElements().its('length').then((count: number) => {
-
         cy.keyboardControls({ shiftKey: true, key: 'j' }, count + 2);
 
         sortableTable.selectedCountText().should('contain', `${ count } selected`);
