@@ -29,6 +29,8 @@ interface Data {
   selectedCommit: object | null,
 }
 
+const debounceTime = 1000;
+
 export default Vue.extend<Data, any, any, any>({
 
   components: {
@@ -52,6 +54,8 @@ export default Vue.extend<Data, any, any, any>({
 
   data() {
     return {
+      debounceTime,
+
       hasError: {
         repo:    false,
         branch:  false,
@@ -144,14 +148,18 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   methods: {
-    searchForResult(callback: (query: string) => any) {
-      return debounce(async(query: string) => {
+    debounceRequest(callback: (param: any) => Promise<any>, timeout = debounceTime) {
+      return debounce(async param => await callback(param), timeout);
+    },
+
+    searchForResult(callback: (query: string) => Promise<any>) {
+      return this.debounceRequest(async(query: string) => {
         if (!query.length) {
           return;
         }
 
         return await callback(query);
-      }, 1000);
+      });
     },
 
     reset() {
@@ -352,7 +360,7 @@ export default Vue.extend<Data, any, any, any>({
           :label="t(`gitPicker.${ type }.username.inputLabel`)"
           :required="true"
           :rules="[reposRules]"
-          :delay="500"
+          :delay="debounceTime"
           :status="status(hasError.repo)"
           @input="fetchRepos"
         />
