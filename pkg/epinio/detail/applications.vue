@@ -15,7 +15,7 @@ import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
 import AppGitDeployment from '../components/application/AppGitDeployment.vue';
 import Link from '@shell/components/formatter/Link.vue';
-import { GitUtils } from '../../../shell/utils/git';
+import { GitUtils } from '@shell/utils/git';
 import { isArray } from '@shell/utils/array';
 import Banner from '@components/Banner/Banner.vue';
 
