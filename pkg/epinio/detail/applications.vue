@@ -51,12 +51,14 @@ export default Vue.extend<Data, any, any, any>({
       required: true
     },
   },
-  fetch() {
+  async fetch() {
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.SERVICE_INSTANCE });
     this.$store.dispatch(`epinio/findAll`, { type: EPINIO_TYPES.CONFIGURATION });
 
     if (this.value.appSource.git) {
-      this.fetchRepoDetails();
+      await this.fetchRepoDetails();
+
+      this.setCommitDetails();
     }
   },
   data() {
@@ -119,23 +121,25 @@ export default Vue.extend<Data, any, any, any>({
 
       this.gitSource = GitUtils[this.gitType].normalize.repo(res);
 
-      const commit = this.value.appSourceInfo?.details.filter((ele: { label: string; }) => ele.label === 'Revision')[0]?.value;
-
-      if (commit) {
-        this.gitDeployment.deployedCommit = {
-          short: commit?.slice(0, 7),
-          long:  commit
-        };
-      }
-
       await this.fetchCommits();
     },
     async fetchCommits() {
       const { usernameOrOrg, repo, branch } = this.value.appSource.git;
 
-      this.gitDeployment.commits = await this.$store.dispatch(`${ this.gitType }/fetchCommits`, {
-        username: usernameOrOrg, repo, branch
-      });
+      if (branch?.name) {
+        this.gitDeployment.commits = await this.$store.dispatch(`${ this.gitType }/fetchCommits`, {
+          username: usernameOrOrg, repo, branch
+        });
+      }
+    },
+    setCommitDetails() {
+      const { commit } = this.value.appSource.git;
+      const selectedCommit = this.preparedCommits.find((c: { commitId?: string }) => c.commitId === commit) || this.orderedCommits[0];
+
+      this.gitDeployment.deployedCommit = {
+        short: selectedCommit?.commitId?.slice(0, 7),
+        long:  selectedCommit.commitId
+      };
     },
     formatDate(date: string, from: boolean) {
       day.extend(relativeTime);
@@ -431,7 +435,7 @@ export default Vue.extend<Data, any, any, any>({
           </div>
         </Tab>
         <Tab
-          v-if="gitSource"
+          v-if="gitSource && preparedCommits.length"
           label-key="epinio.applications.detail.tables.gitCommits"
           name="gitCommits"
           :weight="2"
