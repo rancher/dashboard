@@ -1,5 +1,4 @@
 import { APIServicesPagePo } from '@/cypress/e2e/po/pages/explorer/api-services.po';
-import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 
 describe('Cluster Explorer', () => {
   beforeEach(() => {
@@ -15,7 +14,7 @@ describe('Cluster Explorer', () => {
     });
 
     it('Should have a title', () => {
-      cy.get('h1').should('contain', 'APIServices');
+      apiServicesPage.title().should('contain', 'APIServices');
     });
 
     it('Should be able to use shift+j to select corre', () => {
@@ -23,7 +22,7 @@ describe('Cluster Explorer', () => {
       // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.get('.main-layout').wait(1000).click();
 
-      const sortableTable = new SortableTablePo('.sortable-table');
+      const sortableTable = apiServicesPage.resourcesList().resourceTable().sortableTable();
 
       sortableTable.rowElements().its('length').then((count: number) => {
         const overCount = count + 2;

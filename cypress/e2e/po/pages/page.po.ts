@@ -9,6 +9,10 @@ export default class PagePo extends ComponentPo {
     return cy.visit(path);
   }
 
+  title(): Cypress.Chainable {
+    return cy.get('h1');
+  }
+
   goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(this.path);
   }
