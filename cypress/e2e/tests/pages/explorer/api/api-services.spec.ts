@@ -14,7 +14,7 @@ describe('Cluster Explorer', () => {
     });
 
     it('Should have a title', () => {
-      apiServicesPage.title().should('contain', 'APIServices');
+      apiServicesPage.mastheadTitle().should('contain', 'APIServices');
     });
 
     it('Should be able to use shift+j to select corre', () => {
@@ -25,9 +25,8 @@ describe('Cluster Explorer', () => {
       const sortableTable = apiServicesPage.resourcesList().resourceTable().sortableTable();
 
       sortableTable.rowElements().its('length').then((count: number) => {
-        const overCount = count + 2;
 
-        cy.keyboardControls({ shiftKey: true, key: 'j' }, overCount);
+        cy.keyboardControls({ shiftKey: true, key: 'j' }, count + 2);
 
         sortableTable.selectedCountText().should('contain', `${ count } selected`);
 
