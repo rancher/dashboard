@@ -28,6 +28,10 @@ const STATES_MAPPED = {
   unknown:           'unknown',
 };
 
+function isGitRepo(type) {
+  return type === APPLICATION_SOURCE_TYPE.GIT_HUB || type === APPLICATION_SOURCE_TYPE.GIT_LAB;
+}
+
 export default class EpinioApplicationModel extends EpinioNamespacedResource {
   buildCache = {};
   // ------------------------------------------------------------------
