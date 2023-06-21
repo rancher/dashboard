@@ -423,7 +423,7 @@ export default Vue.extend<Data, any, any, any>({
           </div>
         </Tab>
         <Tab
-          v-if="gitSource"
+          v-if="gitSource && preparedCommits.length"
           label-key="epinio.applications.detail.tables.gitCommits"
           name="gitCommits"
           :weight="2"
