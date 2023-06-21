@@ -1,6 +1,5 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '~/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
@@ -27,7 +26,6 @@ describe('User can perform actions on the Home Page', () => {
     const burgerMenuPo = new BurgerMenuPo();
     const text: string[] = [];
 
-    PageActions.open();
     homePage.restoreAndWait();
 
     homePage.whatsNewBannerLink().invoke('text').then((el) => {
@@ -68,7 +66,6 @@ describe('User can perform actions on the Home Page', () => {
      * Verify banners display on home page
      */
 
-    PageActions.open();
     homePage.restoreAndWait();
 
     homePage.graphicBanner().should('be.visible');
@@ -79,7 +76,6 @@ describe('User can perform actions on the Home Page', () => {
     homePage.closeButton();
     homePage.setLoginPageBanner().should('not.exist');
 
-    PageActions.open();
     homePage.restoreAndWait();
 
     homePage.graphicBanner().should('be.visible');
