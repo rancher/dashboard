@@ -16,7 +16,7 @@ import {
 } from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
 import { _EDIT } from '@shell/config/query-params';
-import { AppUtils } from '@/pkg/epinio/utils/application';
+import { AppUtils } from '../../utils/application';
 
 const GIT_BASE_URL = {
   [APPLICATION_SOURCE_TYPE.GIT_HUB]: 'https://github.com',
