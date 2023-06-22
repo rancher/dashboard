@@ -2,7 +2,6 @@ import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import SelectPrincipalPo from '@/cypress/e2e/po/components/select-principal.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export default class ClusterProjectMembersPo extends PagePo {
   private static createPath(clusterId: string, tabId: string) {
@@ -37,11 +36,5 @@ export default class ClusterProjectMembersPo extends PagePo {
     const baseResourceList = new BaseResourceList(this.self());
 
     return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
-  }
-
-  navTo() {
-    const burgerMenu = new BurgerMenuPo();
-
-    burgerMenu.toggle();
   }
 }

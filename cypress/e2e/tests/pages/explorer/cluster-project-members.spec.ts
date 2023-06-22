@@ -16,37 +16,35 @@ describe('Cluster Project and Members', () => {
 
     // create a standard user
     usersAdmin.goTo();
+    usersAdmin.listCreate();
 
+    usersAdmin.username().set(username);
+    usersAdmin.newPass().set(standardPassword);
+    usersAdmin.confirmNewPass().set(standardPassword);
+    usersAdmin.saveCreateForm().click();
+    usersAdmin.waitForPageWithExactUrl();
+
+    // add user to Cluster membership
     const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
 
-    clusterMembership.navTo();
+    clusterMembership.navToClusterMenuEntry('local');
+    // if we do not wait for the cluster page to load, then we get the old side nav from Users & Authentication
+    clusterMembership.waitForPageWithSpecificUrl('/c/local/explorer');
+    clusterMembership.navToSideMenuEntryByLabel('Cluster and Project Members');
+    clusterMembership.triggerAddClusterOrProjectMemberAction();
+    clusterMembership.selectClusterOrProjectMember(username);
+    clusterMembership.saveCreateForm().click();
 
-    // usersAdmin.listCreate();
+    clusterMembership.waitForPageWithExactUrl();
+    clusterMembership.listElementWithName(username).should('exist');
 
-    // usersAdmin.username().set(username);
-    // usersAdmin.newPass().set(standardPassword);
-    // usersAdmin.confirmNewPass().set(standardPassword);
-    // usersAdmin.saveCreateForm().click();
+    clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
+      // clear new line chars and white spaces
+      const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
 
-    // // add user to Cluster membership
-    // const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
-
-    // clusterMembership.goTo();
-    // clusterMembership.triggerAddClusterOrProjectMemberAction();
-    // clusterMembership.selectClusterOrProjectMember(username);
-    // clusterMembership.saveCreateForm().click();
-
-    // clusterMembership.goTo();
-    // clusterMembership.waitForPage();
-    // clusterMembership.listElementWithName(username).should('exist');
-
-    // clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
-    //   // clear new line chars and white spaces
-    //   const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
-
-    //   // no string "loading..." next to name
-    //   // usecase https://github.com/rancher/dashboard/issues/8804
-    //   expect(sanitizedName).to.equal(username);
-    // });
+      // no string "loading..." next to name
+      // usecase https://github.com/rancher/dashboard/issues/8804
+      expect(sanitizedName).to.equal(username);
+    });
   });
 });
