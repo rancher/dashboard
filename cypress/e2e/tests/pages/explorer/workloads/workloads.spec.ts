@@ -25,7 +25,10 @@ describe('Workloads', () => {
     const workload = new WorkloadPo('local');
 
     workload.goTo();
-    workload.goToDetailsPage(podName);
+    // wait for the page details page to load. 
+    // Otherwise mastheadTitle() will fail because it's will be
+    // the mastheadTitle() of the previous page.
+    workload.goToDetailsPage(podName).wait(500);
 
     workload.mastheadTitle().should('contain', podName);
   });
