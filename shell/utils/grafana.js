@@ -14,10 +14,10 @@ export function getClusterPrefix(monitoringVersion, clusterId) {
   return clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
 }
 
-export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params) {
+export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params, modifyPrefix = true) {
   const url = parseUrl(embedUrl);
 
-  let newUrl = `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }`;
+  let newUrl = modifyPrefix ? `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }` : url.path;
 
   if (url.query.viewPanel) {
     newUrl = addParam(newUrl, 'viewPanel', url.query.viewPanel);
