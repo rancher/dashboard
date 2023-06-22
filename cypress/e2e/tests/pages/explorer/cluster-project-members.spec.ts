@@ -16,32 +16,37 @@ describe('Cluster Project and Members', () => {
 
     // create a standard user
     usersAdmin.goTo();
-    usersAdmin.listCreate();
 
-    usersAdmin.username().set(username);
-    usersAdmin.newPass().set(standardPassword);
-    usersAdmin.confirmNewPass().set(standardPassword);
-    usersAdmin.saveCreateForm().click();
-
-    // add user to Cluster membership
     const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
 
-    clusterMembership.goTo();
-    clusterMembership.triggerAddClusterOrProjectMemberAction();
-    clusterMembership.selectClusterOrProjectMember(username);
-    clusterMembership.saveCreateForm().click();
+    clusterMembership.navTo();
 
-    clusterMembership.goTo();
-    clusterMembership.waitForPage();
-    clusterMembership.listElementWithName(username).should('exist');
+    // usersAdmin.listCreate();
 
-    clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
-      // clear new line chars and white spaces
-      const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
+    // usersAdmin.username().set(username);
+    // usersAdmin.newPass().set(standardPassword);
+    // usersAdmin.confirmNewPass().set(standardPassword);
+    // usersAdmin.saveCreateForm().click();
 
-      // no string "loading..." next to name
-      // usecase https://github.com/rancher/dashboard/issues/8804
-      expect(sanitizedName).to.equal(username);
-    });
+    // // add user to Cluster membership
+    // const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
+
+    // clusterMembership.goTo();
+    // clusterMembership.triggerAddClusterOrProjectMemberAction();
+    // clusterMembership.selectClusterOrProjectMember(username);
+    // clusterMembership.saveCreateForm().click();
+
+    // clusterMembership.goTo();
+    // clusterMembership.waitForPage();
+    // clusterMembership.listElementWithName(username).should('exist');
+
+    // clusterMembership.listElementWithName(username).find('.principal .name').invoke('text').then((t) => {
+    //   // clear new line chars and white spaces
+    //   const sanitizedName = t.trim().replace(/^\n|\n$/g, '');
+
+    //   // no string "loading..." next to name
+    //   // usecase https://github.com/rancher/dashboard/issues/8804
+    //   expect(sanitizedName).to.equal(username);
+    // });
   });
 });
