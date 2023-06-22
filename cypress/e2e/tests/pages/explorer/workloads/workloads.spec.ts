@@ -28,7 +28,7 @@ describe('Workloads', () => {
     // wait for the page details page to load.
     // Otherwise mastheadTitle() will fail because it's will be
     // the mastheadTitle() of the previous page.
-    workload.goToDetailsPage(podName).wait(500);
+    workload.goToDetailsPage(podName).wait(1000);
 
     workload.mastheadTitle().should('contain', podName);
   });
