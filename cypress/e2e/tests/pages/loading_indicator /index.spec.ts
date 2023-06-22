@@ -1,10 +1,5 @@
-import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 describe('Theme of loading indicator', () => {
-  afterEach(() => {
-    LoginPagePo.goTo();
-  });
-
   it('should have dark color', () => {
     cy.setCookie('R_THEME', 'dark');
     cy.visit(`${ Cypress.config().baseUrl }/public/index.html`);
