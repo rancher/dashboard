@@ -10,21 +10,19 @@ describe('fx: generateSupportLink', () => {
     expect(result).toStrictEqual(expectation);
   });
 
-  it('should generate support link corresponding to the latest Rancher version', () => {
-    const expectation = 'https://rancher.com/support-maintenance-terms';
-    const version1 = 'v2.7-0bcf068e1237acafd4aca01385c7c6b432e22fd7-head';
-    const result1 = generateSupportLink(version1);
+  const latestVersionSupportURL = 'https://rancher.com/support-maintenance-terms';
+  const testCases = [
+    ['v2.7-0bcf068e1237acafd4aca01385c7c6b432e22fd7-head', latestVersionSupportURL],
+    ['v2.7.5-rc4', latestVersionSupportURL],
+    [undefined, latestVersionSupportURL],
+  ];
 
-    expect(result1).toStrictEqual(expectation);
+  it.each(testCases)(
+    'should generate support link corresponding to the latest Rancher version when version is unknown or for dev build',
+    (version, expected) => {
+      const result = generateSupportLink(version);
 
-    const version2 = 'v2.7.5-rc4';
-    const result2 = generateSupportLink(version2);
-
-    expect(result2).toStrictEqual(expectation);
-
-    const version3 = undefined;
-    const result3 = generateSupportLink(version3);
-
-    expect(result3).toStrictEqual(expectation);
-  });
+      expect(result).toBe(expected);
+    }
+  );
 });
