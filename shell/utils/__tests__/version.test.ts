@@ -21,5 +21,10 @@ describe('fx: generateSupportLink', () => {
     const result2 = generateSupportLink(version2);
 
     expect(result2).toStrictEqual(expectation);
+
+    const version3 = undefined;
+    const result3 = generateSupportLink(version3);
+
+    expect(result3).toStrictEqual(expectation);
   });
 });
