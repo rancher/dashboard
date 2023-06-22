@@ -11,18 +11,13 @@ describe('Cluster Explorer', () => {
     beforeEach(() => {
       apiServicesPage = new APIServicesPagePo('local');
       apiServicesPage.goTo();
-    });
-
-    it('Should have a title', () => {
-      apiServicesPage.mastheadTitle().should('contain', 'APIServices');
+      apiServicesPage.waitForRequests();
     });
 
     it('Should be able to use shift+j to select corre', () => {
-      // Wait for the page to load with all the rows.
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.get('.main-layout').wait(1000).click();
+      apiServicesPage.title().should('contain', 'APIServices');
 
-      const sortableTable = apiServicesPage.resourcesList().resourceTable().sortableTable();
+      const sortableTable = apiServicesPage.sortableTable();
 
       sortableTable.rowElements().its('length').then((count: number) => {
         cy.keyboardControls({ shiftKey: true, key: 'j' }, count + 2);

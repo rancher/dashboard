@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import APIServicesResourceList from '@/cypress/e2e/po/lists/cluster-explorer-api-services';
+import BaseResourceList from '~/cypress/e2e/po/lists/base-resource-list.po';
 
 export class APIServicesPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -14,7 +14,19 @@ export class APIServicesPagePo extends PagePo {
     super(APIServicesPagePo.createPath(clusterId));
   }
 
+  waitForRequests() {
+    APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), ['/v1/apiregistration.k8s.io.apiservices']);
+  }
+
   resourcesList() {
-    return new APIServicesResourceList('[data-testid="sortable-table-container"]');
+    return new BaseResourceList(this.self());
+  }
+
+  sortableTable() {
+    return this.resourcesList().resourceTable().sortableTable();
+  }
+
+  title() {
+    return this.resourcesList().masthead().title();
   }
 }
