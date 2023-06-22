@@ -155,6 +155,7 @@ export default Vue.extend({
 <template>
   <textarea
     ref="ta"
+    data-testid="text-area-auto-grow"
     :disabled="isDisabled"
     :style="style"
     :placeholder="placeholder"
