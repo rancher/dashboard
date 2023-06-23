@@ -6,6 +6,13 @@ export default class HomePagePo extends PagePo {
     return super.goTo(HomePagePo.url);
   }
 
+  static goToAndWaitForGet() {
+    PagePo.goToAndWaitForGet(HomePagePo.goTo, [
+      'v1/counts',
+      'v1/namespaces',
+    ]);
+  }
+
   constructor() {
     super(HomePagePo.url);
   }

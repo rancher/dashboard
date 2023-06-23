@@ -93,12 +93,12 @@ const workerActions = {
     }
     caches[SCHEMA].load(collection);
   },
-  createWatcher: (metadata) => {
-    trace('createWatcher', metadata);
+  createWatcher: (opt) => {
+    trace('createWatcher', opt);
 
     const {
-      connectionMetadata, maxTries, url, csrf
-    } = metadata;
+      metadata, maxTries, url, csrf
+    } = opt;
 
     if (!state.watcher) {
       state.watcher = new ResourceWatcher(url, true, null, null, maxTries, csrf);
@@ -119,6 +119,10 @@ const workerActions = {
         }
       });
 
+      state.watcher.addEventListener('resync', (e) => {
+        self.postMessage({ redispatch: { resyncWatch: e.detail.data } });
+      });
+
       state.watcher.addEventListener(EVENT_CONNECT_ERROR, (e) => {
         handleConnectionError(EVENT_CONNECT_ERROR, e, state.watcher);
       });
@@ -129,7 +133,7 @@ const workerActions = {
 
       state.watcher.setDebug(state.debugWorker);
 
-      state.watcher.connect(connectionMetadata);
+      state.watcher.connect(metadata);
 
       // Flush the workerQueue
       while (state.workerQueue.length > 0) {
@@ -183,7 +187,8 @@ const workerActions = {
       resourceType,
       id,
       namespace,
-      selector
+      selector,
+      force: msg.force,
     };
 
     state.watcher.watch(watchKey, resourceVersion, resourceVersionTime, watchObject, skipResourceVersion);
@@ -270,10 +275,23 @@ const resourceWatcherActions = {
     }
   },
   'resource.stop': (msg) => {
-    // State is handled in the resourceWatcher, no need to bubble out to UI thread
+    trace('resource.stop', msg);
+
+    // State is handled in the resourceWatcher....
     const watchKey = watchKeyFromMessage(msg);
 
     removeFromWorkerQueue(watchKey);
+
+    // ... however we still want to bubble out to UI thread
+    // We'll save some hassle and ignore any resource.stop bubble if we're in error. the only thing that will clear that is a resync
+    if (!state.watcher?.watches[watchKey]?.error) {
+      // See comment in resourceWatcher 'resource.stop' handler, until we can resolve the resourceVersion within the resourceWatcher
+      // internally, we'll want to bubble this out to the UI thread. When that's resolved this won't be needed
+      resourceWatcherActions.dispatch({
+        ...msg,
+        advancedWorker: true,
+      });
+    }
   },
   'resource.error': (msg) => {
     // State is handled in the resourceWatcher, no need to bubble out to UI thread
@@ -287,7 +305,7 @@ const resourceWatcherActions = {
 /**
  * Covers message from UI Thread to Worker
  */
-onmessage = (e) => {
+self.onmessage = (e) => {
   /* on the off chance there's more than key in the message, we handle them in the order that they "keys" method provides which is
   // good enough for now considering that we never send more than one message action at a time right now */
   const messageActions = Object.keys(e?.data);

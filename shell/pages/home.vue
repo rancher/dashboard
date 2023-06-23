@@ -53,6 +53,15 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.NODE) ) {
       this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
     }
+
+    // We need to fetch node pools and node templates in order to correctly show the provider for RKE1 clusters
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_POOL) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+    }
+
+    if ( this.$store.getters['management/canList'](MANAGEMENT.NODE_TEMPLATE) ) {
+      this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+    }
   },
 
   data() {
@@ -197,7 +206,7 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || []), this.$store);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
     }
   },
 
@@ -211,6 +220,8 @@ export default {
   beforeDestroy() {
     this.$store.dispatch('management/forgetType', CAPI.MACHINE);
     this.$store.dispatch('management/forgetType', MANAGEMENT.NODE);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_POOL);
+    this.$store.dispatch('management/forgetType', MANAGEMENT.NODE_TEMPLATE);
   },
 
   methods: {
@@ -406,7 +417,7 @@ export default {
                       </span>
                       <i
                         v-if="row.unavailableMachines"
-                        v-tooltip="row.unavailableMachines"
+                        v-clean-tooltip="row.unavailableMachines"
                         class="conditions-alert-icon icon-alert icon"
                       />
                     </div>

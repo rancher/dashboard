@@ -390,7 +390,7 @@ export default {
         @click="cancelCreateNamespace"
       >
         <i
-          v-tooltip="t('generic.cancel')"
+          v-clean-tooltip="t('generic.cancel')"
           class="icon icon-close align-value"
         />
       </button>

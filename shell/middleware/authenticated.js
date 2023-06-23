@@ -388,11 +388,12 @@ export default async function({
     await Promise.all([
       ...always,
       store.dispatch('loadCluster', {
-        id:     clusterId,
-        oldPkg: oldPkgPlugin,
-        newPkg: newPkgPlugin,
+        id:          clusterId,
+        oldPkg:      oldPkgPlugin,
+        newPkg:      newPkgPlugin,
         product,
         oldProduct,
+        targetRoute: route
       })
     ]);
 
@@ -420,6 +421,7 @@ export default async function({
     if ( e instanceof ClusterNotFoundError ) {
       return redirect(302, '/home');
     } else {
+      // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
 
       return redirect(302, '/fail-whale');

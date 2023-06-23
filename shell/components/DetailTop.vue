@@ -6,8 +6,6 @@ import { _VIEW } from '@shell/config/query-params';
 import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 
-export const SEPARATOR = { separator: true };
-
 export default {
   components: {
     DetailText, Tag, ExtensionPanel
@@ -252,7 +250,7 @@ export default {
           />
           <span
             v-if="internalTooltips[key]"
-            v-tooltip="prop ? `${key} : ${prop}` : key"
+            v-clean-tooltip="prop ? `${key} : ${prop}` : key"
           >
             <span>{{ internalTooltips[key] ? internalTooltips[key] : key }}</span>
             <span v-if="showAllLabels">: {{ key }}</span>

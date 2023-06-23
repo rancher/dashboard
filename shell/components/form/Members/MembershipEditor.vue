@@ -52,6 +52,11 @@ export default {
     modalSticky: {
       type:    Boolean,
       default: false,
+    },
+
+    canManage: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -185,15 +190,17 @@ export default {
     </template>
     <template #add>
       <button
+        v-if="canManage"
         type="button"
         class="btn role-primary mt-10"
         @click="addMember"
       >
         {{ t('generic.add') }}
       </button>
+      <span v-else />
     </template>
     <template #remove-button="{remove, i}">
-      <span v-if="(isCreate && i === 0) || isView" />
+      <span v-if="(isCreate && i === 0) || isView || !canManage" />
       <button
         v-else
         type="button"

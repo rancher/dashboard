@@ -23,7 +23,7 @@ import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import DraggableZone from '@shell/components/DraggableZone';
 import {
-  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG
+  COUNT, SCHEMA, MANAGEMENT, UI, CATALOG, HCI
 } from '@shell/config/types';
 import { BASIC, FAVORITE, USED } from '@shell/store/type-map';
 import { addObjects, replaceWith, clear, addObject } from '@shell/utils/array';
@@ -83,7 +83,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct']),
+    ...mapGetters(['productId', 'clusterId', 'namespaceMode', 'isExplorer', 'currentProduct', 'isSingleProduct', 'isRancherInHarvester', 'isVirtualCluster']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel', availableLocales: 'i18n/availableLocales' }),
     ...mapGetters('type-map', ['activeProducts']),
 
@@ -105,7 +105,7 @@ export default {
       }
 
       // Only show for Cluster Explorer or Global Apps (not configuration)
-      const canSetAsHome = product.inStore === 'cluster' || (product.inStore === 'management' && product.category !== 'configuration');
+      const canSetAsHome = product.inStore === 'cluster' || (product.inStore === 'management' && product.category !== 'configuration') || this.isRancherInHarvester;
 
       if (canSetAsHome) {
         pageActions.push({
@@ -172,6 +172,10 @@ export default {
       return displayVersion;
     },
 
+    harvesterVersion() {
+      return this.$store.getters['cluster/byId'](HCI.SETTING, 'server-version')?.value || 'unknown';
+    },
+
     showProductFooter() {
       if (this.isVirtualProduct) {
         return true;
@@ -203,9 +207,11 @@ export default {
      * Prevent rendering "outlet" until the route changes to avoid re-rendering old route content after its cluster is unloaded
      */
     clusterAndRouteReady() {
+      const targetRoute = this.$store.getters['targetRoute'];
+      const routeReady = targetRoute ? this.currentProduct?.name === getProductFromRoute(this.$route) && this.currentProduct?.name === getProductFromRoute(targetRoute) : this.currentProduct?.name === getProductFromRoute(this.$route);
+
       return this.clusterReady &&
-        this.clusterId === getClusterFromRoute(this.$route) &&
-        this.currentProduct?.name === getProductFromRoute(this.$route);
+        this.clusterId === getClusterFromRoute(this.$route) && routeReady;
     },
 
     pinClass() {
@@ -667,7 +673,7 @@ export default {
           </nuxt-link>
 
           <span
-            v-tooltip="{content: displayVersion, placement: 'top'}"
+            v-clean-tooltip="{content: displayVersion, placement: 'top'}"
             class="clip version text-muted"
           >
             {{ displayVersion }}
@@ -706,9 +712,16 @@ export default {
         </div>
         <div
           v-else
-          class="version text-muted"
+          class="version text-muted flex"
         >
-          {{ displayVersion }}
+          <span>{{ displayVersion }}</span>
+          <span
+            v-if="isVirtualCluster && isExplorer"
+            v-tooltip="{content: harvesterVersion, placement: 'top'}"
+            class="clip text-muted ml-5"
+          >
+            (Harvester-{{ harvesterVersion }})
+          </span>
         </div>
       </nav>
       <main
@@ -781,6 +794,9 @@ export default {
     }
   }
 
+  .flex {
+    display: flex;
+  }
 </style>
 <style lang="scss">
   .dashboard-root {

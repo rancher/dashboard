@@ -304,16 +304,15 @@ export default class WorkloadService extends SteveModel {
       if (loadBalancer.id) {
         loadBalancerProxy = loadBalancer;
       } else {
-        loadBalancer = clone(loadBalancer);
-
-        const portsWithIpam = ports.filter(p => p._ipam) || [];
-
-        if (portsWithIpam.length > 0) {
-          loadBalancer.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM] = portsWithIpam[0]._ipam;
-        }
-
         loadBalancerProxy = await this.$dispatch(`cluster/create`, loadBalancer, { root: true });
       }
+
+      const portsWithIpam = ports.filter(p => p._ipam) || [];
+
+      if (portsWithIpam.length > 0) {
+        loadBalancerProxy.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM] = portsWithIpam[0]._ipam;
+      }
+
       toSave.push(loadBalancerProxy);
     } else if (loadBalancer.id) {
       toRemove.push(loadBalancer);

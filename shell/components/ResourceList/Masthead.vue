@@ -65,11 +65,6 @@ export default {
       default: false
     },
 
-    loadNamespace: {
-      type:    String,
-      default: null
-    },
-
     showIncrementalLoadingIndicator: {
       type:    Boolean,
       default: false
@@ -183,7 +178,6 @@ export default {
         v-if="showIncrementalLoadingIndicator"
         :resources="loadResources"
         :indeterminate="loadIndeterminate"
-        :namespace="loadNamespace"
       />
     </div>
     <div class="actions-container">

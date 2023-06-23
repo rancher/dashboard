@@ -18,7 +18,7 @@ import {
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
-  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, RBAC_GROUPS, RBAC_USERS, RBAC_SERVICE_ACCOUNTS, ROLE,
+  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE,
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
@@ -30,6 +30,7 @@ export function init(store) {
     product,
     basicType,
     ignoreType,
+    ignoreGroup,
     mapGroup,
     weightGroup,
     weightType,
@@ -109,6 +110,19 @@ export function init(store) {
   ignoreType(NAMESPACE);
   ignoreType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
   ignoreType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
+
+  ignoreGroup('harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('kubevirt.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('network.harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('node.harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
 
   mapGroup(/^(core)?$/, 'core');
   mapGroup('apps', 'apps');
@@ -227,15 +241,6 @@ export function init(store) {
     AGE,
   ]);
 
-  headers(RBAC.CLUSTER_ROLE_BINDING, [
-    STATE,
-    NAME_COL,
-    RBAC_GROUPS,
-    RBAC_USERS,
-    RBAC_SERVICE_ACCOUNTS, // groupname //roles // users// service accounts
-    AGE
-  ]);
-
   configureType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, {
     listGroups: [
       {
@@ -278,16 +283,16 @@ export function init(store) {
   });
 
   virtualType({
-    labelKey:   'members.clusterAndProject',
-    group:      'cluster',
-    namespaced: false,
-    name:       VIRTUAL_TYPES.CLUSTER_MEMBERS,
-    icon:       'globe',
-    weight:     -1,
-    route:      { name: 'c-cluster-product-members' },
-    exact:      true,
-    ifHaveType: {
-      type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
+    labelKey:       'members.clusterAndProject',
+    group:          'cluster',
+    namespaced:     false,
+    name:           VIRTUAL_TYPES.CLUSTER_MEMBERS,
+    icon:           'globe',
+    weight:         -1,
+    route:          { name: 'c-cluster-product-members' },
+    exact:          true,
+    ifHaveSubTypes: {
+      types: [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING],
       store: 'management'
     }
   });

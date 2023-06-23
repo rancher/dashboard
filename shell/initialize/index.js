@@ -19,6 +19,7 @@ import plugins from '../core/plugins.js';
 import pluginsLoader from '../core/plugins-loader.js';
 import axiosShell from '../plugins/axios';
 import '../plugins/tooltip';
+import '../plugins/clean-tooltip-directive';
 import '../plugins/vue-clipboard2';
 import '../plugins/v-select';
 import '../plugins/directives';

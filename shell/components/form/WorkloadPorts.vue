@@ -50,6 +50,8 @@ export default {
         row._showHost = true;
       }
 
+      row._ipam = '';
+
       return row;
     });
 

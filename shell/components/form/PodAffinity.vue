@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { _VIEW } from '@shell/config/query-params';
 import { get, set, isEmpty, clone } from '@shell/utils/object';
 import { POD, NODE, NAMESPACE } from '@shell/config/types';
@@ -69,6 +70,11 @@ export default {
       type:    Boolean
     },
 
+    overwriteLabels: {
+      type:    Object,
+      default: null
+    },
+
     loading: {
       default: false,
       type:    Boolean
@@ -131,6 +137,7 @@ export default {
     };
   },
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isView() {
       return this.mode === _VIEW;
     },
@@ -144,7 +151,7 @@ export default {
     },
 
     labeledInputNamespaceLabel() {
-      return this.removeLabeledInputNamespaceLabel ? '' : this.t('workload.scheduling.affinity.matchExpressions.inNamespaces');
+      return this.removeLabeledInputNamespaceLabel ? '' : this.overwriteLabels?.namespaceInputLabel || this.t('workload.scheduling.affinity.matchExpressions.inNamespaces');
     },
 
     allNamespacesOptions() {
@@ -185,6 +192,10 @@ export default {
     },
 
     namespaceSelectionLabels() {
+      if (this.overwriteLabels?.namespaceSelectionLabels) {
+        return this.overwriteLabels?.namespaceSelectionLabels;
+      }
+
       if (this.allNamespacesOptionAvailable) {
         return [
           this.t('workload.scheduling.affinity.thisPodNamespace'),
@@ -197,6 +208,14 @@ export default {
         this.t('workload.scheduling.affinity.thisPodNamespace'),
         this.t('workload.scheduling.affinity.matchExpressions.inNamespaces')
       ];
+    },
+
+    addLabel() {
+      return this.overwriteLabels?.addLabel || this.t('podAffinity.addLabel');
+    },
+
+    topologyKeyPlaceholder() {
+      return this.overwriteLabels?.topologyKeyPlaceholder || this.t('workload.scheduling.affinity.topologyKey.placeholder');
     },
 
     hasNamespaces() {
@@ -230,8 +249,9 @@ export default {
       this.allSelectorTerms.forEach((term) => {
         if (term._anti) {
           if (term.weight) {
-            const neu = { podAffinityTerm: term, weight: term.weight || this.defaultWeight };
+            const neu = { podAffinityTerm: { ...term }, weight: term.weight || this.defaultWeight };
 
+            delete neu.podAffinityTerm.weight;
             podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
           } else {
             podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
@@ -340,7 +360,7 @@ export default {
         class="mt-20"
         :default-add-value="defaultAddValue"
         :mode="mode"
-        :add-label="t('podAffinity.addLabel')"
+        :add-label="addLabel"
         @remove="remove"
       >
         <template #default="props">
@@ -389,7 +409,7 @@ export default {
               :multiple="true"
               :taggable="true"
               :options="allNamespacesOptions"
-              :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+              :label="labeledInputNamespaceLabel"
               :data-testid="`pod-affinity-namespace-select-index${props.i}`"
               @input="updateNamespaces(props.row.value, props.row.value.namespaces)"
             />
@@ -398,7 +418,7 @@ export default {
               v-model="props.row.value._namespaces"
               :mode="mode"
               :label="labeledInputNamespaceLabel"
-              :placeholder="t('cluster.credential.harvester.affinity.namespaces.placeholder')"
+              :placeholder="t('harvesterManager.affinity.namespaces.placeholder')"
               :data-testid="`pod-affinity-namespace-input-index${props.i}`"
               @input="updateNamespaces(props.row.value, props.row.value._namespaces)"
             />
@@ -424,7 +444,7 @@ export default {
                 :mode="mode"
                 required
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
-                :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+                :placeholder="topologyKeyPlaceholder"
                 :options="existingNodeLabels"
                 :disabled="mode==='view'"
                 :loading="loading"
@@ -436,7 +456,7 @@ export default {
                 v-model="props.row.value.topologyKey"
                 :mode="mode"
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
-                :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+                :placeholder="topologyKeyPlaceholder"
                 required
                 :data-testid="`pod-affinity-topology-input-index${props.i}`"
                 @input="update"

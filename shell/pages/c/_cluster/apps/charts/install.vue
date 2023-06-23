@@ -1120,6 +1120,7 @@ export default {
         Refer to the developer docs at docs/developer/helm-chart-apps.md
         for details on what values are injected and where they come from.
       */
+
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
@@ -1282,7 +1283,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div
     v-else-if="!legacyApp && !mcapp"
-    class="install-steps"
+    class="install-steps pt-20"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
     <TypeDescription resource="chart" />
@@ -1295,6 +1296,7 @@ export default {
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action"
       class="wizard"
+      :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
       @finish="finish"
     >
@@ -1500,46 +1502,46 @@ export default {
         </div>
       </template>
       <template #helmValues>
-        <div class="sticky-header">
-          <Banner
-            v-if="step2Description"
-            color="info"
-            class="description"
+        <Banner
+          v-if="step2Description"
+          color="info"
+          class="description"
+        >
+          {{ step2Description }}
+        </Banner>
+        <div class="step__values__controls">
+          <ButtonGroup
+            v-model="preFormYamlOption"
+            data-testid="btn-group-options-view"
+            :options="formYamlOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+            :disabled="preFormYamlOption != formYamlOption"
+          />
+          <div class="step__values__controls--spacer">
+&nbsp;
+          </div>
+          <ButtonGroup
+            v-if="showDiff"
+            v-model="diffMode"
+            :options="yamlDiffModeOptions"
+            inactive-class="bg-disabled btn-sm"
+            active-class="bg-primary btn-sm"
+          />
+          <div
+            v-if="hasReadme && !showingReadmeWindow"
+            class="btn-group"
           >
-            {{ step2Description }}
-          </Banner>
-          <div class="step__values__controls">
-            <ButtonGroup
-              v-model="preFormYamlOption"
-              :options="formYamlOptions"
-              inactive-class="bg-disabled btn-sm"
-              active-class="bg-primary btn-sm"
-              :disabled="preFormYamlOption != formYamlOption"
-            />
-            <div class="step__values__controls--spacer">
-  &nbsp;
-            </div>
-            <ButtonGroup
-              v-if="showDiff"
-              v-model="diffMode"
-              :options="yamlDiffModeOptions"
-              inactive-class="bg-disabled btn-sm"
-              active-class="bg-primary btn-sm"
-            />
-            <div
-              v-if="hasReadme && !showingReadmeWindow"
-              class="btn-group"
+            <button
+              type="button"
+              class="btn bg-primary btn-sm"
+              @click="showSlideIn = !showSlideIn"
             >
-              <button
-                type="button"
-                class="btn bg-primary btn-sm"
-                @click="showSlideIn = !showSlideIn"
-              >
-                {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
-              </button>
-            </div>
+              {{ t('catalog.install.steps.helmValues.chartInfo.button') }}
+            </button>
           </div>
         </div>
+
         <div class="scroll__container">
           <div class="scroll__content">
             <!-- Values (as Custom Component in ./shell/charts/) -->
@@ -1726,7 +1728,7 @@ export default {
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
         <div class="slideIn__header__buttons">
           <div
-            v-tooltip="t('catalog.install.slideIn.dock')"
+            v-clean-tooltip="t('catalog.install.slideIn.dock')"
             class="slideIn__header__button"
             @click="showSlideIn = false; showReadmeWindow()"
           >
@@ -1782,7 +1784,6 @@ export default {
           </div>
         </div>
       </div>
-
       <Banner
         color="warning"
         class="description"
@@ -1816,7 +1817,7 @@ export default {
 
   .install-steps {
     padding-top: 0;
-
+    height: 0;
     position: relative;
     overflow: hidden;
 
@@ -1840,7 +1841,6 @@ export default {
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
       position: relative;
-      margin-bottom: 15px
     }
 
     .logo {
@@ -1855,6 +1855,22 @@ export default {
       left: 0;
       margin: auto;
     }
+
+    // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
+    // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
+    &.windowsIncompatible {
+      ::v-deep .header {
+        padding-bottom: 15px;
+      }
+    }
+
+    .os-label {
+      position: absolute;
+      background-color: var(--warning-banner-bg);
+      color:var(--warning);
+      margin-top: 5px;
+    }
+
   }
 
   .step {
@@ -1961,14 +1977,16 @@ export default {
     &__container {
       $yaml-height: 200px;
       min-height: $yaml-height;
-      height: 0;
+      margin-bottom: 60px;
+      overflow: auto;
+      display: flex;
+      flex: 1;
     }
     &__content {
       display: flex;
       flex: 1;
       overflow: auto;
     }
-
   }
 
   ::v-deep .yaml-editor {
@@ -1978,8 +1996,8 @@ export default {
 .outer-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
   padding: 0;
+  overflow: auto;
 }
 
 .header {
@@ -2049,22 +2067,6 @@ export default {
       }
     }
   }
-}
-
-.os-label {
-  position: absolute;
-  background-color: var(--warning-banner-bg);
-  color:var(--warning);
-  margin-top: 5px;
-}
-
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  background: var(--primary-text);
 }
 
 </style>

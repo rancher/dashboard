@@ -9,3 +9,14 @@ harvesterManager:
     loadError: Error loading harvester plugin
   rke:
     templateError: Incorrect template format
+  affinity:
+    thisPodNamespace: This VM's namespace
+    matchExpressions:
+      inNamespaces: "Workloads in these namespaces"
+    vmAffinityTitle: VM Scheduling
+    namespaces:
+      placeholder: e.g. default,system,base
+      label: Namespaces
+    addLabel: Add Workload Selector
+    topologyKey:
+      placeholder: 'topology.kubernetes.io/zone'

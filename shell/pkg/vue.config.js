@@ -82,6 +82,7 @@ module.exports = function(dir) {
       // These modules will be externalised and not included with the build of a package library
       // This helps reduce the package size, but these dependencies must be provided by the hosting application
       config.externals = {
+        jquery:    '$',
         jszip:     '__jszip',
         'js-yaml': '__jsyaml'
       };

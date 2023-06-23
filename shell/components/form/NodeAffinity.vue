@@ -95,9 +95,35 @@ export default {
       const requiredDuringSchedulingIgnoredDuringExecution = { nodeSelectorTerms: [] };
       const preferredDuringSchedulingIgnoredDuringExecution = [] ;
 
-      this.allSelectorTerms.forEach((term) => {
+      this.allSelectorTerms.forEach((t) => {
+        const term = { ...t };
+
+        // the 'matching' field isn't part of the affinity spec: including this in the save request will cause a flood of errors that might cause the request to fail
+        // same deal with term.preference.weight
+        if (term.matchExpressions) {
+          term.matchExpressions = (term.matchExpressions || []).map((expression) => {
+            const out = { ...expression };
+
+            delete out.matching;
+
+            return out;
+          });
+        }
+
+        if (term.matchFields) {
+          term.matchFields = (term.matchFields || []).map((field) => {
+            const out = { ...field };
+
+            delete out.matching;
+
+            return out;
+          });
+        }
+
         if (term.weight) {
           const neu = { weight: term.weight, preference: term };
+
+          delete neu.preference.weight;
 
           preferredDuringSchedulingIgnoredDuringExecution.push(neu);
         } else {
@@ -144,12 +170,8 @@ export default {
           expressionsMatching[expression.matching || 'matchExpressions'].push(expression);
         });
 
-        if (expressionsMatching.matchFields.length) {
-          this.$set(row, 'matchFields', expressionsMatching.matchFields);
-        }
-        if (expressionsMatching.matchExpressions.length) {
-          this.$set(row, 'matchExpressions', expressionsMatching.matchExpressions);
-        }
+        this.$set(row, 'matchFields', expressionsMatching.matchFields);
+        this.$set(row, 'matchExpressions', expressionsMatching.matchExpressions);
 
         this.update();
       }

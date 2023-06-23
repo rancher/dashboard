@@ -2,6 +2,7 @@
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="$(pwd)"
+BASE_EXT=$(basename ${BASE_DIR})
 
 CYAN="\033[96m"
 YELLOW="\033[93m"
@@ -162,14 +163,15 @@ CHART_TMP=${BASE_DIR}/tmp/_charts
 rm -rf ${TMP}
 mkdir -p ${TMP}
 
-CHART_TEMPLATE=${BASE_DIR}/tmp/ui-plugin-server
-
 # --------------------------------------------------------------------------------
-# Clone the plugin server template into the temporary folder
+# Copy the plugin server template into the temporary folder
 # --------------------------------------------------------------------------------
 pushd ${TMP} > /dev/null
-git clone -q https://github.com/nwmac/ui-plugin-server.git
+cp -r ${SCRIPT_DIR}/helm .
 popd > /dev/null
+
+CHART_TEMPLATE=${BASE_DIR}/tmp/helm
+ROOT_INDEX=${BASE_DIR}/index.yaml
 
 # --------------------------------------------------------------------------------
 # Iterate through all packages - built them all or build only those specified on the command line
@@ -211,8 +213,6 @@ for d in pkg/*/ ; do
     find plugin -type f | sort > files.txt
     popd > /dev/null
 
-    rm -rf ${TMP}/container
-
     # --------------------------------------------------------------------------------
     # Create the Helm chart
     # --------------------------------------------------------------------------------
@@ -241,21 +241,21 @@ for d in pkg/*/ ; do
       cp ./pkg/${pkg}/README.md ${CHART_FOLDER}/README.md
     fi
 
+    pushd ${CHART_FOLDER}/templates > /dev/null
+    
     if [ "${GITHUB_BUILD}" == "true" ]; then
       echo "Patching for GitHub build"
-      pushd ${CHART_FOLDER} > /dev/null
-      cd templates
-      mv cr.yaml temp.cr
-      rm *.yaml
-      mv temp.cr cr.yaml
       ENDPOINT=https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/extensions/${pkg}/${PKG_VERSION}
-      sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml
-      rm *.bak
-      popd > /dev/null
+    else
+      echo "Patching for container build"
+      ENDPOINT=http://${IMAGE_PREFIX}${BASE_EXT}-svc.cattle-ui-plugin-system:8080/plugin/${PKG_NAME}
     fi
+    sed -i.bak -e 's@endpoint: .*@endpoint: '"${ENDPOINT}"'@g' cr.yaml
+    rm *.bak
+    popd > /dev/null
 
     # Additional patches
-    ${SCRIPT_DIR}/helmpatch ${CHART_FOLDER} "${BASE_DIR}/pkg/${pkg}/package.json" "${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${pkg}"
+    ${SCRIPT_DIR}/helmpatch ${CHART_FOLDER} "${BASE_DIR}/pkg/${pkg}/package.json"
 
     # Package into a .tgz helm chart
     helm package ${CHART_FOLDER} -d ${ASSETS}/${pkg}
@@ -268,10 +268,11 @@ for d in pkg/*/ ; do
     if [ -f "${HELM_INDEX}" ]; then
       UPDATE="--merge ${HELM_INDEX}"
     elif [ "${GITHUB_BUILD}" == "true" ] && [[ -n ${GITHUB_SOURCE} ]]; then
+      # Check if git branch contains index.yaml
       GITHUB_SOURCE=$(echo -e "${GITHUB_SOURCE}" | sed 's/https:\/\///g')
 
-      # Check if git branch contains index.yaml
-      wget -P ${BASE_DIR} https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml
+      wget -P ${BASE_DIR} https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml 2>/dev/null
+      HELM_INDEX="${BASE_DIR}/index.yaml"
 
       if [ -f "${HELM_INDEX}" ]; then
         UPDATE="--merge ${HELM_INDEX}"
@@ -279,46 +280,62 @@ for d in pkg/*/ ; do
     fi
 
     # Base URL referencing assets directly from GitHub
-    BASE_URL="assets/${pkg}"
+    BASE_URL="assets/"
 
+    # Relative URL references assets within the container deployment
+    RELATIVE_URL="plugin/"
+    
     rm -rf ${CHART_TMP}
     mkdir -p ${CHART_TMP}
     cp ${ASSETS}/${pkg}/*.tgz ${CHART_TMP}
 
-    helm repo index ${CHART_TMP} --url ${BASE_URL} ${UPDATE}
-
-    cp ${CHART_TMP}/index.yaml ${HELM_INDEX}
-
     if [ "${GITHUB_BUILD}" == "true" ]; then
-      # Make temp directory for workflow build artifact
-      mkdir -p tmp/{assets,charts,extensions}/$pkg
-
-      cp -r ${PKG_ASSET} tmp/assets/$pkg
-      cp -r ${CHARTS}/${pkg}/${PKG_VERSION} tmp/charts/$pkg
-      cp -r ${EXT_FOLDER} tmp/extensions/$pkg
+      helm repo index ${ASSETS} --url ${BASE_URL} ${UPDATE}
+    elif ! [ -e "${HELM_INDEX}" ]; then
+      helm repo index ${ASSETS} --url ${RELATIVE_URL}
     fi
 
     BUILT="true"
   fi
 done
 
+if [ -f ${ROOT_INDEX} ]; then
+  UPDATE="--merge ${ROOT_INDEX}"
+  helm repo index ${ASSETS} ${UPDATE}
+fi
+
+if [ -f ${ASSETS}/index.yaml ]; then
+  cp ${ASSETS}/index.yaml ${BASE_DIR}
+fi
+
 if [ "${GITHUB_BUILD}" == "false" ]; then
-  BASE=$(basename ${BASE_DIR})
   EXT_VERSION=$(jq -r .version ${BASE_DIR}/package.json)
 
   if [ -z ${EXT_VERSION} ]; then
     EXT_VERSION="0.0.0"
   fi
 
-  echo -e "${CYAN}Base extension: ${BASE}${RESET}"
+  echo -e "${CYAN}Base extension: ${BASE_EXT}${RESET}"
   echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
 
   # Build the docker image
-  ${SCRIPT_DIR}/bundle ${BASE} ${EXT_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
+  ${SCRIPT_DIR}/bundle ${BASE_EXT} ${EXT_VERSION} ${REGISTRY} ${REGISTRY_ORG} ${IMAGE_PREFIX} ${PUSH}
+else
+  rm -rf ${CHART_TEMPLATE}
 fi
 
-if [ "${GITHUB_BUILD}" == "true" ]; then
-  cp index.yaml tmp
+if [ "${GITHUB_BUILD}" == "true" ] && [ -f ${ROOT_INDEX} ]; then
+  cp ${ROOT_INDEX} tmp
+fi
+
+if [ "${GITHUB_BUILD}" == "true" ] && [ "${BUILT}" == "true" ]; then
+  echo -e "${BOLD}${CYAN}Packaging for Github Build${RESET}"
+  # Make temp directory for workflow build artifact
+  mkdir -p tmp/{assets,charts,extensions}
+
+  cp -r ${ASSETS}/* tmp/assets
+  cp -r ${CHARTS}/* tmp/charts
+  cp -r ${BASE_DIR}/extensions/* tmp/extensions
 fi
 
 if [ "${BUILT}" == "true" ]; then

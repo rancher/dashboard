@@ -50,7 +50,7 @@ export default {
       class="label"
     >{{ label }} </span>
     <button
-      v-tooltip="minusTooltip"
+      v-clean-tooltip="minusTooltip"
       :disabled="disabled || !canMinus"
       type="button"
       class="btn btn-sm role-secondary"
@@ -62,7 +62,7 @@ export default {
       {{ value }}
     </div>
     <button
-      v-tooltip="plusTooltip"
+      v-clean-tooltip="plusTooltip"
       :disabled="disabled || !canPlus"
       type="button"
       class="btn btn-sm role-secondary"

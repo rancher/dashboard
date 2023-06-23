@@ -159,6 +159,7 @@ export default {
           v-if="canChangePassword"
           type="button"
           class="btn role-primary"
+          data-testid="account_change_password"
           @click="$refs.promptChangePassword.show(true)"
         >
           {{ t("accountAndKeys.account.change") }}
@@ -179,6 +180,7 @@ export default {
       <button
         v-if="apiKeySchema"
         class="btn role-primary add mb-20"
+        data-testid="account_create_api_keys"
         @click="addKey"
       >
         {{ t('accountAndKeys.apiKeys.add.label') }}
@@ -193,6 +195,7 @@ export default {
         :rows="apiKeys"
         :headers="apiKeyheaders"
         key-field="id"
+        data-testid="api_keys_list"
         :search="true"
         :row-actions="true"
         :table-actions="true"

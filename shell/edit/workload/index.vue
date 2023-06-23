@@ -252,7 +252,7 @@ export default {
                 <h3>
                   {{ t('workload.container.ports.expose') }}
                   <i
-                    v-tooltip="t('workload.container.ports.toolTip')"
+                    v-clean-tooltip="t('workload.container.ports.toolTip')"
                     class="icon icon-info"
                   />
                 </h3>

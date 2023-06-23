@@ -231,17 +231,17 @@ export default {
         />
       </div>
       <div class="col span-4" />
-      <div
-        v-if="showKialiBanner"
-        class="row"
-      >
-        <div class="col span-12">
-          <Banner color="info">
-            <span
-              v-clean-html="t('istio.pilotRequired', {}, true)"
-            />
-          </Banner>
-        </div>
+    </div>
+    <div
+      v-if="showKialiBanner"
+      class="row"
+    >
+      <div class="col span-12">
+        <Banner color="info">
+          <span
+            v-clean-html="t('istio.pilotRequired', {}, true)"
+          />
+        </Banner>
       </div>
     </div>
 

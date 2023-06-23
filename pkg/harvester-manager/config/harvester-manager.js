@@ -95,6 +95,7 @@ export function init($plugin, store) {
     showClusterSwitcher: false,
     weight:              100,
     to:                  harvesterClustersLocation,
+    category:            'hci',
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });

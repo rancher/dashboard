@@ -176,7 +176,12 @@ export default {
       return acc;
     }, {});
 
-    return { listGroups, listGroupMapped };
+    // Confirm which store we're in, if schema isn't available we're probably showing a list with different types
+    const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
+
+    return {
+      listGroups, listGroupMapped, inStore
+    };
   },
 
   computed: {
@@ -244,8 +249,13 @@ export default {
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
 
-      // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.isNamespaced || (isAll && !this.currentProduct?.hideSystemResources) || this.ignoreFilter) {
+      // Do we need to filter by namespace like things?
+      if (
+        !this.isNamespaced || // Resource type isn't namespaced
+        this.ignoreFilter || // Component owner strictly states no filtering
+        (isAll && !this.currentProduct?.hideSystemResources) || // Need all
+        (this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false)// Store reports type has namespace filter, so rows already contain the correctly filtered resources
+      ) {
         return this.rows || [];
       }
 

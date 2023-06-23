@@ -9,7 +9,7 @@ import {
   FLEET,
   MANAGEMENT,
   NAMESPACE, NORMAN,
-  UI, VIRTUAL_HARVESTER_PROVIDER
+  UI, VIRTUAL_HARVESTER_PROVIDER, HCI
 } from '@shell/config/types';
 import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import Steve from '@shell/plugins/steve';
@@ -27,11 +27,13 @@ import {
   NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
   NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
   splitNamespaceFilterKey,
+  NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import { allHash, allHashSettled } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
+import { STORE } from '@shell/store/store-types';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -41,19 +43,19 @@ export const BLANK_CLUSTER = '_';
 
 export const plugins = [
   Steve({
-    namespace:      'management',
+    namespace:      STORE.MANAGEMENT,
     baseUrl:        '/v1',
     modelBaseClass: BY_TYPE,
     supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
   }),
   Steve({
-    namespace:      'cluster',
+    namespace:      STORE.CLUSTER,
     baseUrl:        '', // URL is dynamically set for the selected cluster
     supportsStream: false, // true, -- Disabled due to report that it's sometimes much slower in Chrome
     supportsGc:     true, // Enable garbage collection for this store only
   }),
   Steve({
-    namespace:      'rancher',
+    namespace:      STORE.RANCHER,
     baseUrl:        '/v3',
     supportsStream: false, // The norman API doesn't support streaming
     modelBaseClass: STEVE_MODEL_TYPES.NORMAN,
@@ -225,7 +227,6 @@ export const state = () => {
   return {
     managementReady:         false,
     clusterReady:            false,
-    isMultiCluster:          false,
     isRancher:               false,
     namespaceFilters:        [],
     activeNamespaceCache:    {}, // Used to efficiently check if a resource should be displayed
@@ -241,7 +242,8 @@ export const state = () => {
     serverVersion:           null,
     systemNamespaces:        [],
     isSingleProduct:         undefined,
-    namespaceFilterMode:     null,
+    isRancherInHarvester:    false,
+    targetRoute:             null
   };
 };
 
@@ -250,8 +252,14 @@ export const getters = {
     return state.clusterReady === true;
   },
 
-  isMultiCluster(state) {
-    return state.isMultiCluster === true;
+  isMultiCluster(state, getters) {
+    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
+
+    if (clusters.length === 1 && clusters[0].metadata?.name === 'local') {
+      return false;
+    } else {
+      return true;
+    }
   },
 
   isRancher(state) {
@@ -276,15 +284,6 @@ export const getters = {
 
   systemNamespaces(state) {
     return state.systemNamespaces;
-  },
-
-  /**
-   * Namespace Filter Mode supplies a resource type to the NamespaceFilter.
-   *
-   * Only one of the resource type is allowed to be selected
-   */
-  namespaceFilterMode(state) {
-    return state.namespaceFilterMode;
   },
 
   currentCluster(state, getters) {
@@ -372,34 +371,6 @@ export const getters = {
     return state.namespaceFilters.filter(x => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
   },
 
-  isSingleNamespace(state, getters) {
-    const product = getters['currentProduct'];
-
-    if ( !product ) {
-      return false;
-    }
-
-    if ( product.showWorkspaceSwitcher ) {
-      return false;
-    }
-
-    if ( getters.isAllNamespaces ) {
-      return false;
-    }
-
-    const filters = state.namespaceFilters;
-
-    if ( filters.length !== 1 ) {
-      return false;
-    }
-
-    if (filters[0].startsWith('ns://')) {
-      return filters[0];
-    }
-
-    return false;
-  },
-
   isMultipleNamespaces(state, getters) {
     const product = getters['currentProduct'];
 
@@ -421,7 +392,7 @@ export const getters = {
       return true;
     }
 
-    return !filters[0].startsWith('ns://');
+    return !filters[0].startsWith(NAMESPACE_FILTER_NS_FULL_PREFIX);
   },
 
   namespaceFilters(state) {
@@ -581,23 +552,41 @@ export const getters = {
     return false;
   },
 
+  isRancherInHarvester(state) {
+    return state.isRancherInHarvester;
+  },
+
   isVirtualCluster(state, getters) {
     const cluster = getters['currentCluster'];
 
     return cluster?.status?.provider === VIRTUAL_HARVESTER_PROVIDER;
   },
 
+  isStandaloneHarvester(state, getters) {
+    const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
+    const cluster = clusters.find(c => c.id === 'local') || {};
+
+    return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
+  },
+
+  targetRoute(state) {
+    return state.targetRoute;
+  },
+
   ...gcGetters
 };
 
 export const mutations = {
-  managementChanged(state, { ready, isMultiCluster, isRancher }) {
+  managementChanged(state, { ready, isRancher }) {
     state.managementReady = ready;
-    state.isMultiCluster = isMultiCluster;
     state.isRancher = isRancher;
   },
   clusterReady(state, ready) {
     state.clusterReady = ready;
+  },
+
+  isRancherInHarvester(state, neu) {
+    state.isRancherInHarvester = neu;
   },
 
   updateNamespaces(state, { filters, all }) {
@@ -606,7 +595,6 @@ export const mutations = {
     if ( all ) {
       state.allNamespaces = all;
     }
-
     // Create map that can be used to efficiently check if a
     // resource should be displayed
     getActiveNamespaces(state, getters);
@@ -619,10 +607,6 @@ export const mutations = {
     // const notFilterNamespaces = this.$store.getters[`type-map/optionsFor`](resource).notFilterNamespace || [];
     // const allNamespaces = this.$store.getters[`${ this.currentProduct.inStore }/filterNamespace`](notFilterNamespaces);
     state.allNamespaces = namespace;
-  },
-
-  setNamespaceFilterMode(state, mode) {
-    state.namespaceFilterMode = mode;
   },
 
   pageActions(state, pageActions) {
@@ -684,6 +668,9 @@ export const mutations = {
     state.isSingleProduct = isSingleProduct;
   },
 
+  targetRoute(state, route) {
+    state.targetRoute = route;
+  }
 };
 
 export const actions = {
@@ -747,10 +734,17 @@ export const actions = {
 
     res = await allHash(promises);
     dispatch('i18n/init');
-    let isMultiCluster = true;
+    const isMultiCluster = getters['isMultiCluster'];
 
-    if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {
-      isMultiCluster = false;
+    // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
+    const localCluster = res.clusters?.find(c => c.id === 'local');
+
+    if (localCluster?.isHarvester) {
+      const harvesterSetting = await dispatch('cluster/findAll', { type: HCI.SETTING, opt: { url: `/v1/harvester/${ HCI.SETTING }s` } });
+      const rancherManagerSupport = harvesterSetting.find(setting => setting.id === 'rancher-manager-support');
+      const isRancherInHarvester = (rancherManagerSupport?.value || rancherManagerSupport?.default) === 'true';
+
+      commit('isRancherInHarvester', isRancherInHarvester);
     }
 
     const pl = res.settings?.find(x => x.id === 'ui-pl')?.value;
@@ -773,7 +767,6 @@ export const actions = {
 
     commit('managementChanged', {
       ready: true,
-      isMultiCluster,
       isRancher,
     });
 
@@ -791,8 +784,9 @@ export const actions = {
   async loadCluster({
     state, commit, dispatch, getters
   }, {
-    id, product, oldProduct, oldPkg, newPkg
+    id, product, oldProduct, oldPkg, newPkg, targetRoute
   }) {
+    commit('targetRoute', targetRoute);
     const sameCluster = state.clusterId && state.clusterId === id;
     const samePackage = oldPkg?.name === newPkg?.name;
     const isMultiCluster = getters['isMultiCluster'];
@@ -943,11 +937,16 @@ export const actions = {
     await dispatch('cleanNamespaces');
 
     const filters = getters['prefs/get'](NAMESPACE_FILTERS)?.[id];
+    const allNamespaces = res.namespaces;
 
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
-      all:     res.namespaces,
+      all:     allNamespaces,
     });
+
+    if (getters['currentCluster'] && getters['currentCluster'].isHarvester) {
+      await dispatch('cluster/findAll', { type: HCI.SETTING });
+    }
 
     commit('clusterReady', true);
 
@@ -964,11 +963,8 @@ export const actions = {
         [key]: ids
       }
     });
-    commit('updateNamespaces', { filters: ids });
-  },
 
-  setNamespaceFilterMode({ commit }, mode) {
-    commit('setNamespaceFilterMode', mode);
+    commit('updateNamespaces', { filters: ids });
   },
 
   async cleanNamespaces({ getters, dispatch }) {

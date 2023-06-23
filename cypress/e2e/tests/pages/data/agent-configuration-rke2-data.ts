@@ -12,9 +12,9 @@ export const requestAndLimitsData = {
 
 // tolerations data
 /*
-  operator: 1-exists (no value); 2-equal
-  effect: 1-all; 2-no schedule; 3-prefer no schedule; 4-no executes (this allows for seconds)
-*/
+    operator: 1-exists (no value); 2-equal
+    effect: 1-all; 2-no schedule; 3-prefer no schedule; 4-no executes (this allows for seconds)
+  */
 export const tolerationsData = [
   {
     key:      'key1',
@@ -50,15 +50,15 @@ export const tolerationsData = [
 
 // pod affinity/anti-affinity data
 /*
-  affinityType: 1-affinity; 2-anti-affinity;
-  priority: 1-preferred (has weight); 2-required;
-  namespaceType: 0-this pod namespace; 1-all namespaces ;2-pod in these namespaces
-  expressions: [
-    {
-      operator: 1-in list; 2-not in list; 3-is set (no value) ; 4-is not set (no value)
-    }
-  ]
-*/
+    affinityType: 1-affinity; 2-anti-affinity;
+    priority: 1-preferred (has weight); 2-required;
+    namespaceType: 0-this pod namespace; 1-all namespaces ;2-pod in these namespaces
+    expressions: [
+      {
+        operator: 1-in list; 2-not in list; 3-is set (no value) ; 4-is not set (no value)
+      }
+    ]
+  */
 export const podAffinityData = [
   {
     affinityType:  1,
@@ -184,14 +184,14 @@ export const podAffinityData = [
 
 // node affinity data
 /*
-  priority: 1-preferred (has weight); 2-required;
-  expressions: [
-    {
-      matching: 1-expressions; 2-fields
-      operator: 1-in list; 2-not in list; 3-is set (no value) ; 4-is not set (no value); 5-less than; 6-greather than
-    }
-  ]
-*/
+    priority: 1-preferred (has weight); 2-required;
+    expressions: [
+      {
+        matching: 1-expressions; 2-fields
+        operator: 1-in list; 2-not in list; 3-is set (no value) ; 4-is not set (no value); 5-less than; 6-greather than
+      }
+    ]
+  */
 export const nodeAffinityData = [
   {
     priority:    1,

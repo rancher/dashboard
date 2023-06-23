@@ -26,6 +26,7 @@ import {
 } from '@shell/utils/object';
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
+
 import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
@@ -330,7 +331,7 @@ export default {
       allPSPs:                         null,
       allPSAs:                         [],
       nodeComponent:                   null,
-      credentialId:                    null,
+      credentialId:                    '',
       credential:                      null,
       machinePools:                    null,
       rke2Versions:                    null,
@@ -361,6 +362,8 @@ export default {
       psps:                  null, // List of policies if any
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
+      busy:                  false,
+      machinePoolValidation: {} // map of validation states for each machine pool
     };
   },
 
@@ -706,7 +709,18 @@ export default {
         return false;
       }
 
+      if (this.customCredentialComponentRequired === false) {
+        return false;
+      }
+
       return true;
+    },
+
+    /**
+     * Only for extensions - extension can register a 'false' cloud credential to indicate that a cloud credential is not needed
+     */
+    customCredentialComponentRequired() {
+      return this.$plugin.getDynamic('cloud-credential', this.provider);
     },
 
     hasMachinePools() {
@@ -718,7 +732,7 @@ export default {
     },
 
     unremovedMachinePools() {
-      return this.machinePools.filter(x => !x.remove);
+      return (this.machinePools || []).filter(x => !x.remove);
     },
 
     machineConfigSchema() {
@@ -1016,6 +1030,17 @@ export default {
         return false;
       }
     },
+
+    validationPassed() {
+      const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
+
+      let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
+
+      // and in all of the validation statuses for each machine pool
+      Object.values(this.machinePoolValidation).forEach(v => (base = base && v));
+
+      return validRequiredPools && base;
+    },
   },
 
   watch: {
@@ -1133,6 +1158,10 @@ export default {
       return isRequiredVersion;
     },
 
+    /**
+     * Get machine pools from the cluster configuration
+     * this.value.spec.rkeConfig.machinePools
+     */
     async initMachinePools(existing) {
       const out = [];
 
@@ -1256,11 +1285,10 @@ export default {
 
     async syncMachineConfigWithLatest(machinePool) {
       if (machinePool?.config?.id) {
-        const latestConfig = await this.$store.dispatch('management/find', {
-          type: machinePool.config.type,
-          id:   machinePool.config.id,
-          opt:  { force: true },
-        });
+        // Use management/request instead of management/find to avoid overwriting the current machine pool in the store
+        const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
+        const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
+
         const clonedCurrentConfig = await this.$store.dispatch('management/clone', { resource: machinePool.config });
         const clonedLatestConfig = await this.$store.dispatch('management/clone', { resource: latestConfig });
 
@@ -1280,6 +1308,7 @@ export default {
         }
 
         await this.syncMachineConfigWithLatest(entry);
+
         // Capitals and such aren't allowed;
         set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
 
@@ -1336,12 +1365,6 @@ export default {
       return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every(color => color !== NODE_TOTAL.error.color);
     },
 
-    validationPassed() {
-      const validMachinePools = this.hasMachinePools ? this.hasRequiredNodes() : true;
-
-      return (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId) && validMachinePools;
-    },
-
     cancelCredential() {
       if ( this.$refs.cruresource ) {
         this.$refs.cruresource.emitOrRoute();
@@ -1394,7 +1417,18 @@ export default {
       });
     },
 
+    // Set busy before save and clear after save
     async saveOverride(btnCb) {
+      this.$set(this, 'busy', true);
+
+      return await this._doSaveOverride((done) => {
+        this.$set(this, 'busy', false);
+
+        return btnCb(done);
+      });
+    },
+
+    async _doSaveOverride(btnCb) {
       if ( this.errors ) {
         clear(this.errors);
       }
@@ -2029,6 +2063,11 @@ export default {
 
           this.previousKubernetesVersion = value;
         }
+
+        // If Harvester driver, reset cloud provider if not compatible
+        if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
+          this.setHarvesterDefaultCloudProvider();
+        }
       }
     },
 
@@ -2039,6 +2078,16 @@ export default {
       this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
 
+    /**
+     * Track Machine Pool validation status
+     */
+    machinePoolValidationChanged(id, value) {
+      if (value === undefined) {
+        this.$delete(this.machinePoolValidation, id);
+      } else {
+        this.$set(this.machinePoolValidation, id, value);
+      }
+    }
   },
 };
 </script>
@@ -2054,7 +2103,7 @@ export default {
     v-else
     ref="cruresource"
     :mode="mode"
-    :validation-passed="validationPassed() && fvFormIsValid"
+    :validation-passed="validationPassed && fvFormIsValid"
     :resource="value"
     :errors="errors"
     :cancel-event="true"
@@ -2083,6 +2132,7 @@ export default {
       :provider="provider"
       :cancel="cancelCredential"
       :showing-form="showForm"
+      class="mt-20"
     />
 
     <div
@@ -2120,21 +2170,21 @@ export default {
             class="pull-right"
           >
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.etcd"
+              v-clean-tooltip="nodeTotals.tooltip.etcd"
               :color="nodeTotals.color.etcd"
               :icon="nodeTotals.icon.etcd"
               :label="nodeTotals.label.etcd"
               class="mr-10"
             />
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.controlPlane"
+              v-clean-tooltip="nodeTotals.tooltip.controlPlane"
               :color="nodeTotals.color.controlPlane"
               :icon="nodeTotals.icon.controlPlane"
               :label="nodeTotals.label.controlPlane"
               class="mr-10"
             />
             <BadgeState
-              v-tooltip="nodeTotals.tooltip.worker"
+              v-clean-tooltip="nodeTotals.tooltip.worker"
               :color="nodeTotals.color.worker"
               :icon="nodeTotals.icon.worker"
               :label="nodeTotals.label.worker"
@@ -2157,6 +2207,7 @@ export default {
               :name="obj.id"
               :label="obj.pool.name || '(Not Named)'"
               :show-header="false"
+              :error="!machinePoolValidation[obj.id]"
             >
               <MachinePool
                 ref="pool"
@@ -2167,7 +2218,9 @@ export default {
                 :credential-id="credentialId"
                 :idx="idx"
                 :machine-pools="machinePools"
+                :busy="busy"
                 @error="e=>errors = e"
+                @validationChanged="v=>machinePoolValidationChanged(obj.id, v)"
               />
             </Tab>
           </template>
@@ -2551,7 +2604,7 @@ export default {
           <h3>
             {{ t('cluster.rke2.address.header') }}
             <i
-              v-tooltip="t('cluster.rke2.address.tooltip')"
+              v-clean-tooltip="t('cluster.rke2.address.tooltip')"
               class="icon icon-info"
             />
           </h3>
@@ -2644,6 +2697,7 @@ export default {
               </Banner>
             </div>
           </div>
+
           <div
             v-if="serverArgs['tls-san']"
             class="row mb-20"
@@ -2843,7 +2897,7 @@ export default {
             <h3>
               {{ t('cluster.addOns.additionalManifest.title') }}
               <i
-                v-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
+                v-clean-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
                 class="icon icon-info"
               />
             </h3>

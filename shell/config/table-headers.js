@@ -970,27 +970,35 @@ export const FLEET_BUNDLE_TYPE = {
   width:    100,
 };
 
-// export const RBAC_ROLE = {
-//   name:  'role',
-//   value: 'roleRef.name',
-//   sort:  ['roleRef.name'],
-// };
-
-export const RBAC_USERS = {
-  name:     'users',
-  sort:     ['users'],
-  getValue: row => row.users?.map(({ name }) => name),
-};
-
-export const RBAC_GROUPS = {
-  name: 'groups',
-  sort: ['groups'],
-
-  getValue: row => row.groups?.map(({ name }) => name),
-};
-
-export const RBAC_SERVICE_ACCOUNTS = {
-  name:     'serviceAccount',
-  sort:     ['serviceAccount'],
-  getValue: row => row.serviceAccounts?.map(({ name }) => name),
-};
+export const UI_PLUGIN_CATALOG = [
+  {
+    name:          'state',
+    labelKey:      'tableHeaders.state',
+    sort:          ['stateSort', 'nameSort'],
+    value:         'state',
+    width:         100,
+    default:       'unknown',
+    formatter:     'BadgeStateFormatter',
+    formatterOpts: { arbitrary: true }
+  },
+  {
+    name:      'name',
+    labelKey:  'tableHeaders.name',
+    value:     'name',
+    sort:      ['nameSort'],
+    formatter: 'LinkDetail'
+  },
+  {
+    name:     'image',
+    sort:     ['image'],
+    labelKey: 'plugins.manageCatalog.headers.image.label',
+    value:    'deploymentImage'
+  },
+  {
+    name:      'cacheState',
+    sort:      ['cacheState'],
+    labelKey:  'plugins.manageCatalog.headers.cacheState.label',
+    value:     'cacheState',
+    formatter: 'ExtensionCache'
+  }
+];

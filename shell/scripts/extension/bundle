@@ -8,7 +8,7 @@ RESET="\033[0m"
 BOLD="\033[1m"
 
 TMP=${BASE_DIR}/tmp
-CHART_TEMPLATE=${TMP}/ui-plugin-server
+CHART_TEMPLATE=${TMP}/helm
 
 PKG="${1}"
 PKG_VERSION="${2}"
@@ -26,11 +26,27 @@ mkdir -p ${TMP}/container
 cp -R ${CHART_TEMPLATE}/* ${TMP}/container/    
 
 # Copy the plugin assets
-rm -rf ${TMP}/container/plugin
-mkdir ${TMP}/container/plugin
+mkdir -p ${TMP}/container/plugin
 
-cp -R ${BASE_DIR}/dist-pkg/${PKG_NAME}/* ${TMP}/container/plugin
+cp -R ${BASE_DIR}/assets/* ${TMP}/container/plugin
+cp ${BASE_DIR}/package.json ${TMP}/container/plugin
+cp ${BASE_DIR}/index.yaml ${TMP}/container/
+cp ${BASE_DIR}/index.yaml ${TMP}/container/plugin
 rm -f ${TMP}/container/plugin/report.html
+
+# Generate files.txt for each pkg and move pkg files into relative plugin directories
+for d in ${BASE_DIR}/dist-pkg/*; do
+  pkg=$(basename $d)
+
+  pushd ${BASE_DIR}/dist-pkg > /dev/null
+  mkdir plugin && mv ./${pkg}/* ./plugin
+  rm -rf ./${pkg}/* && mv ./plugin ./${pkg}
+
+  find ${pkg} -type f -printf '%P\n' | sort > ./${pkg}/files.txt
+  popd > /dev/null
+
+  cp -R ${BASE_DIR}/dist-pkg/${pkg} ${TMP}/container/plugin
+done
 
 # Build the docker image
 pushd ${TMP}/container > /dev/null

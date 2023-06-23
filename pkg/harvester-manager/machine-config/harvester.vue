@@ -6,7 +6,7 @@ import YAML from 'yaml';
 import isBase64 from 'is-base64';
 
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-// import PodAffinity from '@shell/components/form/PodAffinity';
+import PodAffinity from '@shell/components/form/PodAffinity';
 import InfoBox from '@shell/components/InfoBox';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -16,8 +16,8 @@ import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
 import { Checkbox } from '@components/Form/Checkbox';
 import { Banner } from '@components/Banner';
+import { clone, get } from '@shell/utils/object';
 
-import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
 import { removeObject } from '@shell/utils/array';
 import { mapGetters } from 'vuex';
@@ -38,6 +38,7 @@ import { podAffinity as podAffinityValidator } from '@shell/utils/validators/pod
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import { isValidMac } from '@shell/utils/validators/cidr';
 import { HCI as HCI_ANNOTATIONS, STORAGE } from '@shell/config/labels-annotations';
+import { isEqual } from 'lodash';
 
 const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 
@@ -82,7 +83,7 @@ export default {
   name: 'ConfigComponentHarvester',
 
   components: {
-    Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, InfoBox
+    Checkbox, draggable, Loading, LabeledSelect, LabeledInput, UnitInput, Banner, YamlEditor, NodeAffinity, PodAffinity, InfoBox
   },
 
   mixins: [CreateEditView],
@@ -219,7 +220,11 @@ export default {
             const value = namespace.metadata.name;
             const label = namespace.metadata.name;
 
-            this.namespaces.push(namespace);
+            this.namespaces.push({
+              nameDisplay: label,
+              id:          value
+            });
+
             this.namespaceOptions.push({
               label,
               value
@@ -266,6 +271,8 @@ export default {
       }
 
       this.disks = JSON.parse(this.value.diskInfo).disks || [];
+      this.disksObj = JSON.parse(this.value.diskInfo);
+      this.disksHistoric = this.value.diskInfo;
 
       if (!this.value.networkInfo) {
         if (this.mode !== _CREATE) {
@@ -286,6 +293,8 @@ export default {
         this.value.networkInfo = JSON.stringify(networkInfo);
       }
       this.interfaces = JSON.parse(this.value.networkInfo).interfaces || [];
+      this.networksObj = JSON.parse(this.value.networkInfo);
+      this.networksHistoric = this.value.networkInfo;
 
       this.update();
     } catch (e) {
@@ -294,14 +303,25 @@ export default {
   },
 
   data() {
-    let vmAffinity = { affinity: {} };
-    let networkData = '';
     const isCreate = this.mode === _CREATE;
 
+    let vmAffinity = { affinity: {} };
+    let vmAffinityObj = {};
+    let vmAffinityIsBase64 = true;
+    const vmAffinityHistoric = this.value.vmAffinity;
+
     if (this.value.vmAffinity) {
-      vmAffinity = { affinity: JSON.parse(base64Decode(this.value.vmAffinity)) };
+      if (isBase64(this.value.vmAffinity)) {
+        vmAffinityObj = JSON.parse(base64Decode(this.value.vmAffinity));
+      } else {
+        vmAffinityIsBase64 = false;
+        vmAffinityObj = JSON.parse(this.value.vmAffinity);
+      }
     }
 
+    vmAffinity = { affinity: clone(vmAffinityObj) };
+
+    let networkData = '';
     let userData = '';
     let installAgent;
     let userDataIsBase64 = true;
@@ -333,6 +353,8 @@ export default {
     return {
       credential:         null,
       vmAffinity,
+      vmAffinityObj,
+      vmAffinityHistoric,
       userData,
       userDataTemplate:   '',
       networkData,
@@ -346,11 +368,16 @@ export default {
       allNodeObjects:     [],
       cpuCount:           '',
       disks:              [],
+      disksObj:           {},
+      disksHistoric:      {},
       interfaces:         [],
+      networksObj:        {},
+      networksHistoric:   {},
       isOldFormat:        false,
       installAgent,
       userDataIsBase64,
       networkDataIsBase64,
+      vmAffinityIsBase64,
       SOURCE_TYPE
     };
   },
@@ -407,7 +434,20 @@ export default {
       });
 
       return defaultStorageClass?.metadata?.name || '';
-    }
+    },
+
+    affinityLabels() {
+      return {
+        namespaceInputLabel:      this.t('harvesterManager.affinity.namespaces.label'),
+        namespaceSelectionLabels: [
+          this.t('harvesterManager.affinity.thisPodNamespace'),
+          this.t('workload.scheduling.affinity.allNamespaces'),
+          this.t('harvesterManager.affinity.matchExpressions.inNamespaces')
+        ],
+        addLabel:               this.t('harvesterManager.affinity.addLabel'),
+        topologyKeyPlaceholder: this.t('harvesterManager.affinity.topologyKey.placeholder')
+      };
+    },
   },
 
   watch: {
@@ -419,6 +459,7 @@ export default {
         this.storageClass = [];
         this.namespaceOptions = [];
         this.vmAffinity = { affinity: {} };
+        this.vmAffinityObj = {};
         this.value.imageName = '';
         this.value.networkName = '';
         this.value.vmNamespace = '';
@@ -479,12 +520,16 @@ export default {
     test() {
       const errors = [];
 
-      if (!this.userDataIsBase64) {
+      if (!this.userDataIsBase64 && isBase64(this.value.userData)) {
         this.value.userData = base64Decode(this.value.userData);
       }
 
-      if (!this.networkDataIsBase64) {
+      if (!this.networkDataIsBase64 && isBase64(this.value.networkData)) {
         this.value.networkData = base64Decode(this.value.networkData);
+      }
+
+      if (!this.vmAffinityIsBase64 && isBase64(this.value.vmAffinity)) {
+        this.value.vmAffinity = base64Decode(this.value.vmAffinity);
       }
 
       if (!this.value.cpuCount) {
@@ -611,8 +656,27 @@ export default {
       }
     },
 
+    removeAffinityUnusedFields(data) {
+      for (const key in data) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
+          const value = data[key];
+
+          if (key.startsWith('_') || value === null || value === '' || (Array.isArray(value) && value.length === 0) || (key !== 'namespaceSelector' && typeof value === 'object' && Object.keys(value).length === 0)) {
+            delete data[key];
+          } else if (typeof value === 'object') {
+            this.removeAffinityUnusedFields(value);
+            if (key !== 'namespaceSelector' && Object.keys(value).length === 0) {
+              delete data[key];
+            }
+          }
+        }
+      }
+
+      return data;
+    },
+
     updateScheduling(neu) {
-      const { affinity } = neu;
+      const { affinity } = clone(neu);
 
       if (!affinity.nodeAffinity && !affinity.podAffinity && !affinity.podAntiAffinity) {
         this.value.vmAffinity = '';
@@ -621,7 +685,16 @@ export default {
         return;
       }
 
-      this.value.vmAffinity = base64Encode(JSON.stringify(affinity));
+      const newAffinity = this.removeAffinityUnusedFields(affinity);
+
+      // Do not update if it is not an actual change, such as the removal of whitespace or a change in map key order
+      if (!isEqual(this.vmAffinityObj, newAffinity)) {
+        this.value.vmAffinity = base64Encode(JSON.stringify(newAffinity));
+      } else if (this.vmAffinityIsBase64) {
+        this.value.vmAffinity = this.vmAffinityHistoric;
+      } else {
+        this.value.vmAffinity = base64Encode(this.vmAffinityHistoric);
+      }
       this.vmAffinity = neu;
     },
 
@@ -671,11 +744,21 @@ export default {
         })
       };
 
-      this.value.diskInfo = JSON.stringify(diskInfo);
+      // Do not update if it is not an actual change, such as the removal of whitespace or a change in map key order
+      if (!isEqual(this.disksObj, diskInfo)) {
+        this.value.diskInfo = JSON.stringify(diskInfo);
+      } else {
+        this.value.diskInfo = this.disksHistoric;
+      }
 
       const networkInfo = { interfaces: this.interfaces };
 
-      this.value.networkInfo = JSON.stringify(networkInfo);
+      // Do not update if it is not an actual change, such as the removal of whitespace or a change in map key order
+      if (!isEqual(this.networksObj, networkInfo)) {
+        this.value.networkInfo = JSON.stringify(networkInfo);
+      } else {
+        this.value.networkInfo = this.networksHistoric;
+      }
     },
 
     removeVolume(vol) {
@@ -1180,26 +1263,6 @@ export default {
 
       <portal :to="'advanced-'+uuid">
         <h3 class="mt-20">
-          {{ t("workload.container.titles.nodeScheduling") }}
-        </h3>
-        <NodeAffinity
-          :mode="mode"
-          :value="vmAffinity.affinity.nodeAffinity"
-          @input="updateNodeScheduling"
-        />
-
-        <!-- <h3 class="mt-20">
-          {{ t("workload.container.titles.podScheduling") }}
-        </h3>
-        <PodAffinity
-          :mode="mode"
-          :value="vmAffinity"
-          :nodes="allNodeObjects"
-          :namespaces="namespaces"
-          @update="updateScheduling"
-        /> -->
-
-        <h3 class="mt-20">
           {{ t("cluster.credential.harvester.userData.title") }}
         </h3>
         <div>
@@ -1254,6 +1317,32 @@ export default {
             @onInput="valuesChanged($event, 'networkData')"
           />
         </div>
+
+        <hr class="divider mt-20">
+
+        <h3 class="mt-20">
+          {{ t("workload.container.titles.nodeScheduling") }}
+        </h3>
+        <NodeAffinity
+          :mode="mode"
+          :value="vmAffinity.affinity.nodeAffinity"
+          @input="updateNodeScheduling"
+        />
+
+        <h3 class="mt-20">
+          {{ t("harvesterManager.affinity.vmAffinityTitle") }}
+        </h3>
+        <PodAffinity
+          :mode="mode"
+          :value="vmAffinity"
+          :nodes="allNodeObjects"
+          :namespaces="namespaces"
+          :overwrite-labels="affinityLabels"
+          :all-namespaces-option-available="true"
+          @update="updateScheduling"
+        />
+
+        <hr class="divider mt-20">
       </portal>
     </div>
     <div v-if="errors.length">

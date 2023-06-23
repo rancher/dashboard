@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+source $(dirname $0)/version
+
+cd $(dirname $0)/..
+
+if [[ -z ${ORG} ]] || [[ -z ${REPO} ]] || [[ -z ${TAG} ]]; then
+    echo "Usage: [REGISTRY=] ORG= REPO= TAG= ./scripts/package"
+    exit 1
+fi
+
+IMAGE=${ORG}/${REPO}:${TAG}
+if [[ -n ${REGISTRY} ]]; then
+    IMAGE=${REGISTRY%/}/${IMAGE}
+fi
+DOCKERFILE=package/Dockerfile
+if [ -e ${DOCKERFILE}.${ARCH} ]; then
+    DOCKERFILE=${DOCKERFILE}.${ARCH}
+fi
+
+docker build -f ${DOCKERFILE} -t ${IMAGE} .
+echo Built ${IMAGE}

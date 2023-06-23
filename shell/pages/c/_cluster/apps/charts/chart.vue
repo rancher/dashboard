@@ -116,7 +116,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <TypeDescription resource="chart" />
-
     <div
       v-if="chart"
       class="chart-header"
@@ -139,6 +138,7 @@ export default {
         <button
           v-if="!requires.length"
           type="button"
+          data-testid="btn-chart-install"
           class="btn role-primary"
           @click.prevent="install"
         >
@@ -224,7 +224,7 @@ export default {
             <b v-if="vers.originalVersion === version.version">{{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}</b>
             <a
               v-else
-              v-tooltip="vers.label.length > 16 ? vers.label : null"
+              v-clean-tooltip="vers.label.length > 16 ? vers.label : null"
               @click.prevent="selectVersion(vers)"
             >
               {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}

@@ -97,6 +97,8 @@ export const CATALOG = {
 
   MIGRATED: 'apps.cattle.io/migrated',
   MANAGED:  'catalog.cattle.io/managed',
+
+  HIDDEN_REPO: 'clusterrepo.cattle.io/hidden'
 };
 
 export const FLEET = {
@@ -135,6 +137,7 @@ export const HCI = {
   NETWORK_ROUTE:       'network.harvesterhci.io/route',
   IMAGE_NAME:          'harvesterhci.io/image-name',
   NETWORK_TYPE:        'network.harvesterhci.io/type',
+  PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

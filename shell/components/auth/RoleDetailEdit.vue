@@ -627,7 +627,7 @@ export default {
                   <span class="text-label">
                     {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
                     <i
-                      v-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
+                      v-clean-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
                       class="icon icon-info"
                     />
                     <span
@@ -659,6 +659,7 @@ export default {
                     :options="verbOptions"
                     :multiple="true"
                     :mode="mode"
+                    :data-testid="`grant-resources-verbs${props.i}`"
                     @input="updateSelectValue(props.row.value, 'verbs', $event)"
                   />
                 </div>
@@ -670,6 +671,7 @@ export default {
                     :searchable="true"
                     :taggable="true"
                     :mode="mode"
+                    :data-testid="`grant-resources-resources${props.i}`"
                     @input="setRule('resources', props.row.value, $event)"
                     @createdListItem="setRule('resources', props.row.value, $event)"
                   />
@@ -679,6 +681,7 @@ export default {
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
+                    :data-testid="`grant-resources-api-groups${props.i}`"
                     @input="setRule('apiGroups', props.row.value, $event.target.value)"
                   >
                 </div>
@@ -690,6 +693,7 @@ export default {
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
+                    :data-testid="`grant-resources-non-resource-urls${props.i}`"
                     @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   >
                 </div>

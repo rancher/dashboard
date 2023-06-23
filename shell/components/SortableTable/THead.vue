@@ -217,6 +217,7 @@ export default {
         <Checkbox
           v-model="isAll"
           class="check"
+          data-testid="sortable-table_check_select_all"
           :indeterminate="isIndeterminate"
           :disabled="noRows || noResults"
         />
@@ -240,12 +241,12 @@ export default {
         >
           <span
             v-if="col.sort"
-            v-tooltip="tooltip(col)"
+            v-clean-tooltip="tooltip(col)"
           >
             <span v-clean-html="labelFor(col)" />
             <i
               v-show="hasAdvancedFiltering && !col.isFilter"
-              v-tooltip="t('sortableTable.tableHeader.noFilter')"
+              v-clean-tooltip="t('sortableTable.tableHeader.noFilter')"
               class="icon icon-info not-filter-icon"
             />
             <span class="icon-stack">
@@ -262,7 +263,7 @@ export default {
           </span>
           <span
             v-else
-            v-tooltip="tooltip(col)"
+            v-clean-tooltip="tooltip(col)"
           >{{ labelFor(col) }}</span>
         </div>
       </th>

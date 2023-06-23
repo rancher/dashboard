@@ -1,0 +1,158 @@
+{
+  "defaultNamespace": "default",
+  "selectors": {
+    "ipBlock": {
+      "cidr": "24.06.19.89/0"
+    },
+    "namespace": {
+      "matchLabels": {
+        "user": "alice"
+      },
+      "matchExpressions": [
+        {
+          "key": "user",
+          "operator": "In",
+          "values": "alice"
+        }
+      ]
+    },
+    "pod": {
+      "matchLabels": {
+        "foo": "bar"
+      },
+      "matchExpressions": [
+        {
+          "key": "foo",
+          "operator": "In",
+          "values": "bar"
+        }
+      ]
+    },
+    "namespaceAndPod": {
+      "namespace": {
+        "matchLabels": {
+          "user": "alice"
+        },
+        "matchExpressions": [
+          {
+            "key": "user",
+            "operator": "In",
+            "values": "alice"
+          }
+        ]
+      },
+      "pod": {
+        "matchLabels": {
+          "foo": "bar"
+        },
+        "matchExpressions": [
+          {
+            "key": "foo",
+            "operator": "In",
+            "values": "bar"
+          }
+        ]
+      }
+    }
+  },
+  "allNamespaces": [
+    {
+      "id": "default",
+      "type": "namespace",
+      "kind": "Namespace",
+      "metadata": {
+        "annotations": {
+          "user": "alice"
+        },
+        "name": "default",
+        "creationTimestamp": "2023-01-31T10:24:03Z",
+        "fields": ["default", "Active", "1d"],
+        "labels": {
+          "user": "alice"
+        },
+        "relationships": null,
+        "resourceVersion": "1",
+        "state": {
+          "error": false,
+          "message": "",
+          "name": "active",
+          "transitioning": false
+        }
+      },
+      "spec": { "finalizers": ["kubernetes"] },
+      "status": { "phase": "Active" }
+    },
+    {
+      "id": "not-default",
+      "type": "namespace",
+      "kind": "Namespace",
+      "metadata": {
+        "annotations": {
+          "user": "nicole"
+        },
+        "name": "not-default",
+        "creationTimestamp": "2023-01-31T10:24:03Z",
+        "fields": ["default", "Active", "1d"],
+        "labels": {
+          "user": "nicole"
+        },
+        "relationships": null,
+        "resourceVersion": "1",
+        "state": {
+          "error": false,
+          "message": "",
+          "name": "active",
+          "transitioning": false
+        }
+      },
+      "spec": { "finalizers": ["kubernetes"] },
+      "status": { "phase": "Active" }
+    }
+  ],
+  "allPods": [
+    {
+      "id": "default/test-pod",
+      "type": "pod",
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2023-02-27T16:10:55Z",
+        "generateName": "test-pod-",
+        "labels": {
+          "foo": "bar"
+        },
+        "name": "test-pod",
+        "namespace": "default",
+        "resourceVersion": "1",
+        "state": {
+          "error": false,
+          "message": "",
+          "name": "completed",
+          "transitioning": false
+        }
+      }
+    },
+    {
+      "id": "default/test-pod-2",
+      "type": "pod",
+      "apiVersion": "v1",
+      "kind": "Pod",
+      "metadata": {
+        "creationTimestamp": "2023-02-27T16:10:55Z",
+        "generateName": "test-pod-2-",
+        "labels": {
+          "foo": "bar"
+        },
+        "name": "test-pod-2",
+        "namespace": "not-default",
+        "resourceVersion": "1",
+        "state": {
+          "error": false,
+          "message": "",
+          "name": "completed",
+          "transitioning": false
+        }
+      }
+    }
+  ]
+}

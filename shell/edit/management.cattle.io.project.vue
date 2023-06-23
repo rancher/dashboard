@@ -29,6 +29,11 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
       this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
     }
+
+    // User can only change the PSP if the user has permissions to see the binding schema for PSP Templates
+    const pspBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.PSP_TEMPLATE_BINDING);
+
+    this.canEditPSPBindings = !!pspBindingSchema;
   },
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
@@ -52,6 +57,7 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
+      canEditPSPBindings: true,
     };
   },
   computed: {
@@ -225,6 +231,7 @@ export default {
           class="psp"
           :mode="mode"
           :options="pspOptions"
+          :disabled="!canEditPSPBindings"
           :label="t('project.psp.label')"
         />
       </div>

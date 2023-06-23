@@ -248,9 +248,6 @@ module.exports = function(dir, _appConfig) {
     resourceBase += '/';
   }
 
-  // Store the Router Base as env variable that we can use in `nuxt/router.js`
-  process.env.VUE_APP_ROUTER_BASE = routerBasePath;
-
   console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
   if ( !dev ) {
@@ -352,6 +349,7 @@ module.exports = function(dir, _appConfig) {
     },
     publicPath: resourceBase || undefined,
     css:        {
+      extract:       false, // inline css styles instead of including with `<links`
       loaderOptions: {
         sass: {
           // This is effectively added to the beginning of each style that's imported or included in a vue file. We may want to look into including these in app.scss
@@ -400,6 +398,8 @@ module.exports = function(dir, _appConfig) {
         'process.env.rancherEnv':      JSON.stringify(rancherEnv),
         'process.env.harvesterPkgUrl': JSON.stringify(process.env.HARVESTER_PKG_URL),
         'process.env.api':             JSON.stringify(api),
+        // Store the Router Base as env variable that we can use in `shell/config/router.js`
+        'process.env.routerBase':      JSON.stringify(routerBasePath),
 
         // This is a replacement of the nuxt publicRuntimeConfig
         'nuxt.publicRuntimeConfig': JSON.stringify({
@@ -529,20 +529,6 @@ module.exports = function(dir, _appConfig) {
                 ],
                 configFile: path.join(SHELL_ABS, 'tsconfig.json')
               }
-            }
-          ]
-        },
-        // Prevent warning in log with the md files in the content folder
-        {
-          test: /\.md$/,
-          use:  [
-            {
-              loader:  'url-loader',
-              options: {
-                name:     '[path][name].[ext]',
-                limit:    1,
-                esModule: false
-              },
             }
           ]
         },

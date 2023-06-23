@@ -9,10 +9,18 @@ import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 
-export function canViewClusterPermissionsEditor(store) {
-  return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
+export function canEditClusterPermissions(store) {
+  // blocked-post means you can post through norman, but not through steve.
+  // collectionMethods and resourceMethods on norman schema itself are not accurate for permission checking here.
+  return !!(store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).find(method => ['blocked-post', 'post'].includes(method.toLowerCase())) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.USER);
+}
+
+export function canViewClusterPermissions(store) {
+  return (store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).includes('GET') &&
+    (store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)?.collectionMethods || []).includes('GET') &&
+    (store.getters['management/schemaFor'](MANAGEMENT.USER)?.collectionMethods || []).includes('GET');
 }
 
 export default {
@@ -237,6 +245,7 @@ export default {
           class="mb-20"
           :mode="mode"
           :retain-selection="true"
+          data-testid="cluster-member-select"
           @add="onAdd"
         />
       </div>
@@ -278,7 +287,7 @@ export default {
             />
             <i
               v-if="permission.locked"
-              v-tooltip="permission.tooltip"
+              v-clean-tooltip="permission.tooltip"
               class="icon icon-lock icon-fw"
             />
           </div>
