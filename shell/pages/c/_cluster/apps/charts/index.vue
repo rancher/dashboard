@@ -113,18 +113,18 @@ export default {
     },
 
     flattenedRepoNames() {
-      const allChecked = this.repoOptionsForDropdown.find(repo => repo.all && repo.enabled);
+      const allChecked = this.repoOptionsForDropdown.find((repo) => repo.all && repo.enabled);
 
       if (allChecked) {
         return allChecked.label;
       }
 
       // None checked
-      if (!this.repoOptionsForDropdown.find(repo => repo.enabled)) {
+      if (!this.repoOptionsForDropdown.find((repo) => repo.enabled)) {
         return this.t('generic.none');
       }
 
-      const shownRepos = this.repoOptions.filter(repo => !this.hideRepos.includes(repo._key));
+      const shownRepos = this.repoOptions.filter((repo) => !this.hideRepos.includes(repo._key));
       const reducedRepos = shownRepos.reduce((acc, c, i) => {
         acc += c.label;
         const length = shownRepos.length;
@@ -180,7 +180,7 @@ export default {
     getFeaturedCharts() {
       const allCharts = (this.filteredCharts || []);
 
-      const featuredCharts = allCharts.filter(value => value.featured).sort((a, b) => a.featured - b.featured);
+      const featuredCharts = allCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
 
       return featuredCharts.slice(0, 5);
     },

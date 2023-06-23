@@ -57,7 +57,7 @@ export default {
           let hasStatusChange = false;
 
           flattenedData.forEach((item) => {
-            const index = this.allNodesData.findIndex(nodeData => item.matchingId === nodeData.data.matchingId);
+            const index = this.allNodesData.findIndex((nodeData) => item.matchingId === nodeData.data.matchingId);
 
             // apply status change to each node
             if (index > -1 && this.allNodesData[index].data.state !== item.state) {

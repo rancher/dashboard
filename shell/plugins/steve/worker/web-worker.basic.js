@@ -105,7 +105,7 @@ const workerActions = {
   // Remove the cached schema
   removeSchema: (id) => {
     // Remove anything in the queue related to the schema - we don't want to send any pending updates later for a schema that has been removed
-    state.queue = state.queue.filter(schema => schema.id !== id);
+    state.queue = state.queue.filter((schema) => schema.id !== id);
 
     // Delete the schema from the map, so if it comes back we don't ignore it if the hash is the same
     delete state.schemas[id];

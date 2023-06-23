@@ -109,7 +109,7 @@ export default {
     },
 
     supportLink() {
-      const version = this.settings?.find(s => s.id === SETTING.VERSION_RANCHER)?.value;
+      const version = this.settings?.find((s) => s.id === SETTING.VERSION_RANCHER)?.value;
 
       return generateSupportLink(version);
     }

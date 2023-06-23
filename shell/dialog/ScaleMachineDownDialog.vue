@@ -29,7 +29,7 @@ export default {
     // This isn't optimisied, there may be cases that retaining a single machine with both roles would be better than retaining two with single roles
     const [ignoredControlPlane, safeControlePlaneMachinesToDelete] = this.deleteType('isControlPlane', allToDelete, cluster);
     const [ignoredEtcd, safeMachinesToDelete] = this.deleteType('isEtcd', safeControlePlaneMachinesToDelete, cluster);
-    const ignored = [ignoredControlPlane, ignoredEtcd].filter(i => !!i);
+    const ignored = [ignoredControlPlane, ignoredEtcd].filter((i) => !!i);
 
     return {
       cluster,
@@ -57,7 +57,7 @@ export default {
         return res;
       }, { typed: [], others: [] });
 
-      const totalTypes = cluster.machines.filter(m => m[type]).length;
+      const totalTypes = cluster.machines.filter((m) => m[type]).length;
       const typesToDelete = allToDeleteByType.typed.length;
       // If we're attempting to remove all control plan machines.... ignore one
       const ignoredType = totalTypes - typesToDelete === 0 ? allToDeleteByType.typed.pop() : undefined;

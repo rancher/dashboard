@@ -37,7 +37,7 @@ export default class ProvCluster extends SteveModel {
         label:   this.t('cluster.detail.machines'),
         content: this.desired,
       },
-    ].filter(x => !!x.content);
+    ].filter((x) => !!x.content);
 
     // RKE Template details
     const rkeTemplate = this.rkeTemplate;
@@ -91,7 +91,7 @@ export default class ProvCluster extends SteveModel {
 
     // Don't let the user delete the local cluster from the UI
     if (isLocal) {
-      const remove = out.findIndex(a => a.action === 'promptRemove');
+      const remove = out.findIndex((a) => a.action === 'promptRemove');
 
       if (remove > -1) {
         out.splice(remove, 1);
@@ -332,7 +332,7 @@ export default class ProvCluster extends SteveModel {
   get provisioner() {
     if ( this.isRke2 ) {
       const allKeys = Object.keys(this.spec);
-      const configKey = allKeys.find( k => k.endsWith('Config'));
+      const configKey = allKeys.find( (k) => k.endsWith('Config'));
 
       if ( configKey === 'rkeConfig') {
         return 'rke2';
@@ -439,7 +439,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get nodes() {
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.mgmtClusterId));
   }
 
   get machines() {
@@ -461,13 +461,13 @@ export default class ProvCluster extends SteveModel {
   }
 
   get pools() {
-    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter((pool) => pool.spec?.clusterName === this.metadata.name);
 
     if (!!deployments.length) {
       return deployments;
     }
 
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status?.clusterName);
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.status?.clusterName);
   }
 
   get desired() {
@@ -494,7 +494,7 @@ export default class ProvCluster extends SteveModel {
     if (this.isReady) {
       if (this.isRke1) {
         const names = this.nodes.filter((node) => {
-          return node.status.conditions.find(c => c.error && c.type === 'Ready');
+          return node.status.conditions.find((c) => c.error && c.type === 'Ready');
         }).map((node) => {
           const name = node.status.nodeName || node.metadata.name;
 
@@ -504,7 +504,7 @@ export default class ProvCluster extends SteveModel {
         return names.join('<br>');
       } else {
         const names = this.machines.filter((machine) => {
-          return machine.status?.conditions?.find(c => c.error && c.type === 'NodeHealthy');
+          return machine.status?.conditions?.find((c) => c.error && c.type === 'NodeHealthy');
         }).map((machine) => {
           if (machine.status?.nodeRef?.name) {
             return this.t('cluster.availabilityWarnings.node', { name: machine.status.nodeRef.name });
@@ -550,7 +550,7 @@ export default class ProvCluster extends SteveModel {
         value:     this.ready,
         sort:      4,
       },
-    ].filter(x => x.value > 0);
+    ].filter((x) => x.value > 0);
 
     return sortBy(out, 'sort:desc');
   }
@@ -627,7 +627,7 @@ export default class ProvCluster extends SteveModel {
       return row.takeSnapshot();
     }));
 
-    const successful = res.filter( x => x.status === 'fulfilled').length;
+    const successful = res.filter( (x) => x.status === 'fulfilled').length;
 
     if ( successful ) {
       this.$dispatch('growl/success', {
@@ -670,7 +670,7 @@ export default class ProvCluster extends SteveModel {
     const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
 
     return allSnapshots
-      .filter(s => s.metadata.namespace === this.namespace && s.clusterName === this.name );
+      .filter((s) => s.metadata.namespace === this.namespace && s.clusterName === this.name );
   }
 
   restoreSnapshotAction(resource = this) {
@@ -716,8 +716,8 @@ export default class ProvCluster extends SteveModel {
 
     const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
     const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find(t => t.id === clusterTemplateName);
-    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find(t => t.spec.enabled && t.id === clusterTemplateRevisionName);
+    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find((t) => t.id === clusterTemplateName);
+    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find((t) => t.spec.enabled && t.id === clusterTemplateRevisionName);
 
     if (!template || !revision) {
       return false;
@@ -745,7 +745,7 @@ export default class ProvCluster extends SteveModel {
     const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
 
     // Get all of the template revisions for this template
-    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter(t => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
+    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter((t) => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
 
     if (revisions.length <= 1) {
       // Only one template revision
@@ -807,7 +807,7 @@ export default class ProvCluster extends SteveModel {
   get agentConfig() {
     // The one we want is the first one with no selector.
     // If there are multiple with no selector, that will fall under the unsupported message below.
-    return this.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+    return this.spec.rkeConfig.machineSelectorConfig.find((x) => !x.machineLabelSelector).config;
   }
 
   get cloudProvider() {
@@ -861,6 +861,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get hasError() {
-    return this.status?.conditions?.some(condition => condition.error === true);
+    return this.status?.conditions?.some((condition) => condition.error === true);
   }
 }

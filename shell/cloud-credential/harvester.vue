@@ -26,7 +26,7 @@ export default {
 
   computed: {
     clusterOptions() {
-      return this.clusters.filter(c => c.status?.provider === VIRTUAL_HARVESTER_PROVIDER).map( (cluster) => {
+      return this.clusters.filter((c) => c.status?.provider === VIRTUAL_HARVESTER_PROVIDER).map( (cluster) => {
         return {
           value: cluster.id,
           label: cluster.nameDisplay
@@ -45,7 +45,7 @@ export default {
         set(this.value, 'harvestercredentialConfig.clusterId', neu);
       }
 
-      const currentCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find(x => x.id === neu);
+      const currentCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.id === neu);
 
       this.$nuxt.$loading.start();
 

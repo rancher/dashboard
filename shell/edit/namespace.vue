@@ -39,7 +39,7 @@ export default {
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.PROJECT)) {
       this.projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
-      this.project = this.projects.find(p => p.id.includes(this.projectName));
+      this.project = this.projects.find((p) => p.id.includes(this.projectName));
     }
   },
 
@@ -76,7 +76,7 @@ export default {
       let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
       // Filter out projects not for the current cluster
-      projects = projects.filter(c => c.spec?.clusterName === clusterId);
+      projects = projects.filter((c) => c.spec?.clusterName === clusterId);
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
@@ -125,7 +125,7 @@ export default {
     },
 
     projectName(newProjectName) {
-      this.$set(this, 'project', this.projects.find(p => p.id.includes(newProjectName)));
+      this.$set(this, 'project', this.projects.find((p) => p.id.includes(newProjectName)));
     }
   },
 
@@ -149,7 +149,7 @@ export default {
       }
 
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-      const project = projects.find(p => p.id.includes(projectName));
+      const project = projects.find((p) => p.id.includes(projectName));
 
       return project?.spec?.containerDefaultResourceLimit || {};
     }

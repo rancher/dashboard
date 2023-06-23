@@ -56,7 +56,7 @@ export default {
     }
 
     const res = await allHash(hash);
-    const hostNetworkResource = (res.hostNetworks || []).find( O => this.value.id === O.attachNodeName);
+    const hostNetworkResource = (res.hostNetworks || []).find( (O) => this.value.id === O.attachNodeName);
 
     this.loadMetrics();
 
@@ -189,11 +189,30 @@ export default {
 
 <template>
   <div>
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="4" class="bordered-table">
-        <Basic v-model="value" :metrics="metrics" :mode="mode" :host-network-resource="hostNetworkResource" />
+    <Tabbed
+      v-bind="$attrs"
+      class="mt-15"
+      :side-tabs="true"
+    >
+      <Tab
+        name="basics"
+        :label="t('harvester.host.tabs.basics')"
+        :weight="4"
+        class="bordered-table"
+      >
+        <Basic
+          v-model="value"
+          :metrics="metrics"
+          :mode="mode"
+          :host-network-resource="hostNetworkResource"
+        />
       </Tab>
-      <Tab name="instance" :label="t('harvester.host.tabs.instance')" :weight="3" class="bordered-table">
+      <Tab
+        name="instance"
+        :label="t('harvester.host.tabs.instance')"
+        :weight="3"
+        class="bordered-table"
+      >
         <Instance :node="value" />
       </Tab>
       <Tab

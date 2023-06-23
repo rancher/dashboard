@@ -1,8 +1,7 @@
 <script>
-import ResourceTable from '@shell/components/ResourceTable';
+import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import { Banner } from '@components/Banner';
 import FilterLabel from '../components/FilterLabel';
-import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 export default {
   name: 'ListHarvesterImage',
@@ -73,7 +72,11 @@ export default {
       v-on="$listeners"
     >
       <template #more-header-middle>
-        <FilterLabel ref="filterLabel" :rows="rows" @changeRows="changeRows" />
+        <FilterLabel
+          ref="filterLabel"
+          :rows="rows"
+          @changeRows="changeRows"
+        />
       </template>
     </ResourceTable>
   </div>

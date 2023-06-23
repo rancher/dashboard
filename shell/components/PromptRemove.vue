@@ -42,7 +42,7 @@ export default {
   },
   computed: {
     names() {
-      return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
+      return this.toRemove.map((obj) => obj.nameDisplay).slice(0, 5);
     },
 
     nameToMatchPosition() {
@@ -184,7 +184,7 @@ export default {
     // if none found (delete is allowed), then check for any resources with a warning message
     toRemove(neu) {
       let message;
-      const preventDeletionMessages = neu.filter(item => item.preventDeletionMessage);
+      const preventDeletionMessages = neu.filter((item) => item.preventDeletionMessage);
 
       this.preventDelete = false;
 
@@ -192,7 +192,7 @@ export default {
         this.preventDelete = true;
         message = preventDeletionMessages[0].preventDeletionMessage;
       } else {
-        const warnDeletionMessages = neu.filter(item => item.warnDeletionMessage);
+        const warnDeletionMessages = neu.filter((item) => item.warnDeletionMessage);
 
         if (!!warnDeletionMessages.length) {
           message = warnDeletionMessages[0].warnDeletionMessage;
@@ -247,7 +247,7 @@ export default {
           return;
         }
       }
-      const serialRemove = this.toRemove.some(resource => resource.removeSerially);
+      const serialRemove = this.toRemove.some((resource) => resource.removeSerially);
 
       if (serialRemove) {
         this.serialRemove(btnCB);
@@ -274,7 +274,7 @@ export default {
       try {
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
-        await Promise.all(this.toRemove.map(resource => resource.remove()));
+        await Promise.all(this.toRemove.map((resource) => resource.remove()));
         await this.refreshSpoofedTypes(spoofedTypes);
         this.done();
       } catch (err) {
@@ -289,7 +289,7 @@ export default {
       this.close();
     },
     getSpoofedTypes(resources) {
-      const uniqueResourceTypes = uniq(this.toRemove.map(resource => resource.type));
+      const uniqueResourceTypes = uniq(this.toRemove.map((resource) => resource.type));
 
       return uniqueResourceTypes.filter(this.$store.getters['type-map/isSpoofed']);
     },
@@ -297,7 +297,7 @@ export default {
     // If spoofed we need to reload the values as the server can't have watchers for them.
     refreshSpoofedTypes(types) {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
+      const promises = types.map((type) => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
 
       return Promise.all(promises);
     },

@@ -93,10 +93,10 @@ export default {
       const allSecrets = this.$store.getters[`${ this.inStore }/all`](SECRET);
 
       return allSecrets
-        .filter(secret => this.types.includes(secret._type) && secret.namespace === this.namespace);
+        .filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
     },
     secretNames() {
-      const mappedSecrets = this.secrets.map(secret => ({
+      const mappedSecrets = this.secrets.map((secret) => ({
         label: secret.name,
         value: secret.name
       })).sort();
@@ -104,9 +104,9 @@ export default {
       return [{ label: 'None', value: NONE }, ...sortBy(mappedSecrets, 'label')];
     },
     keys() {
-      const secret = this.secrets.find(secret => secret.name === this.name) || {};
+      const secret = this.secrets.find((secret) => secret.name === this.name) || {};
 
-      return Object.keys(secret.data || {}).map(key => ({
+      return Object.keys(secret.data || {}).map((key) => ({
         label: key,
         value: key
       }));

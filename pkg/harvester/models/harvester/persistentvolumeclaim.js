@@ -148,7 +148,7 @@ export default class HciPv extends HarvesterResource {
 
     const ownedId = JSON.parse(ownedBy)[0]?.refs?.[0];
 
-    return allVMs.find(D => D.id === ownedId);
+    return allVMs.find((D) => D.id === ownedId);
   }
 
   get isAvailable() {

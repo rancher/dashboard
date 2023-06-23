@@ -9,7 +9,7 @@ function stringFor(store, key, args, raw = false, escapehtml = true) {
   if ( translation !== undefined ) {
     out = translation;
   } else if ( args && Object.keys(args).length ) {
-    const argStr = Object.keys(args).map(k => `${ k }: ${ args[k] }`).join(', ');
+    const argStr = Object.keys(args).map((k) => `${ k }: ${ args[k] }`).join(', ');
 
     out = `%${ key }(${ argStr })%`;
     raw = true;

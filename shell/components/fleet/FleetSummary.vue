@@ -80,7 +80,7 @@ export default {
     },
 
     bundleCounts() {
-      const resources = this.bundles.filter(item => item.metadata.name.startsWith(`${ this.repoName }-`));
+      const resources = this.bundles.filter((item) => item.metadata.name.startsWith(`${ this.repoName }-`));
 
       if (!resources.length) {
         return [];

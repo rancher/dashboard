@@ -83,7 +83,7 @@ export const PROVISIONER_OPTIONS = [
 
 export default class extends SteveModel {
   get provisionerDisplay() {
-    const option = PROVISIONER_OPTIONS.find(o => o.value === this.provisioner);
+    const option = PROVISIONER_OPTIONS.find((o) => o.value === this.provisioner);
     const fallback = `${ this.provisioner } ${ this.t('persistentVolume.csi.drivers.suffix') }`;
 
     return option ? this.t(option.labelKey) : this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ this.provisioner.replaceAll('.', '-') }`, null, fallback);
@@ -115,7 +115,7 @@ export default class extends SteveModel {
   setDefault() {
     const allStorageClasses = this.$rootGetters['cluster/all'](STORAGE_CLASS) || [];
 
-    allStorageClasses.forEach(storageClass => storageClass.resetDefault());
+    allStorageClasses.forEach((storageClass) => storageClass.resetDefault());
     this.updateDefault(true);
   }
 

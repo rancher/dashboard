@@ -18,11 +18,11 @@ export default {
       await this.waitForServiceInstanceDeployed(serviceInstance);
 
       const bindApps = this.selectedApps;
-      const unbindApps = (this.initialValue.boundapps || []).filter(bA => !bindApps.includes(bA));
+      const unbindApps = (this.initialValue.boundapps || []).filter((bA) => !bindApps.includes(bA));
 
       const promises = [
-        ...bindApps.map(bA => this.value.bindApp(bA)),
-        ...unbindApps.map(uBA => this.value.unbindApp(uBA))
+        ...bindApps.map((bA) => this.value.bindApp(bA)),
+        ...unbindApps.map((uBA) => this.value.unbindApp(uBA))
       ];
 
       await Promise.all(promises);
@@ -46,7 +46,7 @@ export default {
 
     async updateConfigurationAppBindings() {
       const bindApps = this.selectedApps;
-      const unbindApps = (this.initialValue.configuration?.boundapps || []).filter(bA => !bindApps.includes(bA));
+      const unbindApps = (this.initialValue.configuration?.boundapps || []).filter((bA) => !bindApps.includes(bA));
 
       const delta = this.nsApps.reduce((res, nsA) => {
         const appName = nsA.metadata.name;
@@ -84,13 +84,13 @@ export default {
     },
 
     nsApps() {
-      return this.allApps.filter(a => a.meta.namespace === this.value.meta.namespace);
+      return this.allApps.filter((a) => a.meta.namespace === this.value.meta.namespace);
     },
 
     nsAppOptions() {
       return this.allApps
-        .filter(a => a.meta.namespace === this.value.meta.namespace)
-        .map(a => ({
+        .filter((a) => a.meta.namespace === this.value.meta.namespace)
+        .map((a) => ({
           label: a.meta.name,
           value: a.meta.name,
         }));

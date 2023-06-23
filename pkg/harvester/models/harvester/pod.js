@@ -113,7 +113,7 @@ export default class HciPod extends HarvesterResource {
     return (containerStatus) => {
       if (containerStatus) {
         const stateName = Object.getOwnPropertyNames(containerStatus.state).find(
-          pn => !!containerStatus.state[pn].reason,
+          (pn) => !!containerStatus.state[pn].reason,
         );
 
         if (stateName) {
@@ -180,6 +180,6 @@ export default class HciPod extends HarvesterResource {
   get getPodFalseStatusConditions() {
     const conditions = get(this, 'status.conditions') || [];
 
-    return conditions.filter(condition => condition.status !== 'True');
+    return conditions.filter((condition) => condition.status !== 'True');
   }
 }

@@ -140,7 +140,7 @@ export default {
     },
     conditionsHaveIssues() {
       if (this.showConditions) {
-        return this.value.status?.conditions?.some(cond => cond.error);
+        return this.value.status?.conditions?.some((cond) => cond.error);
       }
 
       return false;

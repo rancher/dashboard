@@ -67,11 +67,11 @@ export default {
 
   computed: {
     defaultStorageClass() {
-      return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
+      return this.storageClasses.filter((sc) => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
     },
 
     availablePVs() {
-      return this.persistentVolumes.filter(pv => pv.status.phase.toLowerCase() !== 'bound');
+      return this.persistentVolumes.filter((pv) => pv.status.phase.toLowerCase() !== 'bound');
     },
 
     radioOptions() {

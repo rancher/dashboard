@@ -27,10 +27,10 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
     return (this.boundapps || [])
       .map((ba) => {
         return (this.$getters['all'](EPINIO_TYPES.APP) || []).find(
-          a => a.meta.namespace === this.meta.namespace && a.meta.name === ba
+          (a) => a.meta.namespace === this.meta.namespace && a.meta.name === ba
         );
       })
-      .filter(a => !!a);
+      .filter((a) => !!a);
   }
 
   // ------------------------------------------------------------------

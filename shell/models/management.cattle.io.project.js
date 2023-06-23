@@ -30,7 +30,7 @@ function clearUnusedResourceQuotas(spec, types) {
       spec[type].usedLimit = null;
     }
 
-    if ( spec[type] && !isEmpty(spec[type]) && Object.keys(spec[type]).every( k => spec[type][k] === null ) ) {
+    if ( spec[type] && !isEmpty(spec[type]) && Object.keys(spec[type]).every( (k) => spec[type][k] === null ) ) {
       spec[type] = null;
     }
   });
@@ -205,7 +205,7 @@ export default class Project extends HybridModel {
   }
 
   get canEditYaml() {
-    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : super.canUpdate;
+    return this.schema?.resourceMethods?.find((x) => x === 'blocked-PUT') ? false : super.canUpdate;
   }
 
   get confirmRemove() {

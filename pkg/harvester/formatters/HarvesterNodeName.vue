@@ -23,7 +23,7 @@ export default {
 
     vmi() {
       const vmiResources = this.$store.getters['harvester/all'](HCI.VMI);
-      const resource = vmiResources.find(VMI => VMI.id === this.row.id) || null;
+      const resource = vmiResources.find((VMI) => VMI.id === this.row.id) || null;
 
       return resource;
     },

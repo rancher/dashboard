@@ -55,7 +55,7 @@ export default {
   computed: {
     ...mapGetters({ refreshFlag: 'resource-fetch/refreshFlag' }),
     rows() {
-      const currResource = this.fetchedResourceType.find(item => item.type === this.resource);
+      const currResource = this.fetchedResourceType.find((item) => item.type === this.resource);
 
       if (currResource) {
         return this.$store.getters[`${ currResource.currStore }/all`](this.resource);
@@ -102,7 +102,7 @@ export default {
 
       this.$initializeFetchData(type, multipleResources, currStore);
 
-      if (!this.fetchedResourceType.find(item => item.type === type)) {
+      if (!this.fetchedResourceType.find((item) => item.type === type)) {
         this.fetchedResourceType.push({
           type,
           currStore

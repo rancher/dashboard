@@ -217,7 +217,7 @@ export default {
       // Merge with RESOURCES list
       const allowedResources = [...new Set([...defaultAllowedResources, ...RESOURCES])];
 
-      return allowedResources.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
+      return allowedResources.filter((resource) => this.$store.getters['cluster/schemaFor'](resource));
     },
 
     componentServices() {
@@ -297,9 +297,9 @@ export default {
         });
       }
 
-      const someNonWorkerRoles = checkNodes.some(node => node.hasARole && !node.isWorker);
+      const someNonWorkerRoles = checkNodes.some((node) => node.hasARole && !node.isWorker);
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        const node = this.nodes.find(nd => nd.id === nodeMetrics.id);
+        const node = this.nodes.find((nd) => nd.id === nodeMetrics.id);
 
         return node && (!someNonWorkerRoles || node.isWorker);
       });
@@ -372,7 +372,7 @@ export default {
   methods: {
     // Ported from Ember
     isComponentStatusHealthy(field) {
-      const matching = (this.currentCluster?.status?.componentStatuses || []).filter(s => s.name.startsWith(field));
+      const matching = (this.currentCluster?.status?.componentStatuses || []).filter((s) => s.name.startsWith(field));
 
       // If there's no matching component status, it's "healthy"
       if ( !matching.length ) {
@@ -380,7 +380,7 @@ export default {
       }
 
       const count = matching.reduce((acc, status) => {
-        const conditions = status.conditions.find(c => c.status !== 'True');
+        const conditions = status.conditions.find((c) => c.status !== 'True');
 
         return !conditions ? acc : acc + 1;
       }, 0);
@@ -408,7 +408,7 @@ export default {
     async goToHarvesterCluster() {
       try {
         const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-        const provCluster = provClusters.find(p => p.mgmt.id === this.currentCluster.id);
+        const provCluster = provClusters.find((p) => p.mgmt.id === this.currentCluster.id);
 
         await provCluster.goToHarvesterCluster();
       } catch {

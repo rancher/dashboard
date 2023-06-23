@@ -125,7 +125,7 @@ export default {
       }
 
       // We're enabling a preference. Are there any incomaptible preferences?
-      if ((incompatible[property] || []).every(p => !this.value[p].enabled)) {
+      if ((incompatible[property] || []).every((p) => !this.value[p].enabled)) {
         // No, just set and exit
         this.value[property].enabled = true;
 

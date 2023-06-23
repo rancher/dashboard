@@ -39,7 +39,7 @@ export default {
 
   created() {
     this.value.value = this.value.value || this.value.default;
-    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map(id => ({
+    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map((id) => ({
       label: `advancedSettings.enum.${ this.value.id }.${ id }`,
       value: id,
     })) : [];

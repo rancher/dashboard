@@ -29,7 +29,7 @@ export default {
   computed: {
     filteredOptions() {
       return this.options
-        .filter(option => !this.value.includes(option.value));
+        .filter((option) => !this.value.includes(option.value));
     },
 
     addAllowed() {
@@ -43,7 +43,7 @@ export default {
       this.$emit(value);
     },
     calculateOptions(value) {
-      const valueOption = this.options.find(o => o.value === value);
+      const valueOption = this.options.find((o) => o.value === value);
 
       if (valueOption) {
         return [valueOption, ...this.filteredOptions];

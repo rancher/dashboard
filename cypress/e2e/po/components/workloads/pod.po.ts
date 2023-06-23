@@ -3,7 +3,7 @@ import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 import NameNsDescription from '~/cypress/e2e/po/components/name-ns-description.po';
 
 export default class PodPo extends CreateEditViewPo {
-  constructor(selector: string = '.dashboard-root') {
+  constructor(selector = '.dashboard-root') {
     super(selector);
   }
 

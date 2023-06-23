@@ -41,7 +41,7 @@ module.exports = function(dir) {
       context
         .plugin('webpack-bundle-analyzer')
         .use(BundleAnalyzerPlugin)
-        .init(Plugin => new Plugin(options));
+        .init((Plugin) => new Plugin(options));
     },
 
     configureWebpack: (config) => {

@@ -34,7 +34,7 @@ export default {
     ...mapGetters(['workspace']),
 
     workspaceOptions() {
-      const out = this.allWorkspaces.map(x => x.metadata?.name).filter(x => !!x && x !== 'fleet-local');
+      const out = this.allWorkspaces.map((x) => x.metadata?.name).filter((x) => !!x && x !== 'fleet-local');
 
       return out;
     },

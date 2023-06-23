@@ -52,6 +52,11 @@ export default {
     modalSticky: {
       type:    Boolean,
       default: false,
+    },
+
+    canManage: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -65,7 +70,7 @@ export default {
     const [allBindings] = await Promise.all(userHydration);
 
     const bindings = allBindings
-      .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
+      .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
 
@@ -91,11 +96,11 @@ export default {
   computed: {
     newBindings() {
       return this.bindings
-        .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
+        .filter((binding) => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
     },
     removedBindings() {
       return this.lastSavedBindings
-        .filter(binding => !this.bindings.includes(binding));
+        .filter((binding) => !this.bindings.includes(binding));
     },
     membershipUpdate() {
       const newBindings = this.newBindings;
@@ -111,7 +116,7 @@ export default {
             return binding.save();
           });
 
-          const removedPromises = removedBindings.map(binding => binding.remove());
+          const removedPromises = removedBindings.map((binding) => binding.remove());
 
           return Promise.all([...savedPromises, ...removedPromises]);
         }
@@ -185,15 +190,17 @@ export default {
     </template>
     <template #add>
       <button
+        v-if="canManage"
         type="button"
         class="btn role-primary mt-10"
         @click="addMember"
       >
         {{ t('generic.add') }}
       </button>
+      <span v-else />
     </template>
     <template #remove-button="{remove, i}">
-      <span v-if="(isCreate && i === 0) || isView" />
+      <span v-if="(isCreate && i === 0) || isView || !canManage" />
       <button
         v-else
         type="button"

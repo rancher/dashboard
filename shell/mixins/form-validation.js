@@ -43,7 +43,7 @@ export default {
      * @returns
      */
     fvGetPathRules(path) {
-      return this.fvRulesets.find(ruleset => ruleset.path === path)?.rules || [];
+      return this.fvRulesets.find((ruleset) => ruleset.path === path)?.rules || [];
     },
 
     /**
@@ -71,7 +71,7 @@ export default {
     fvGetPathValues(path) { //
       // returns even single values as an array to simplify validation logic since
       // some fields may have multiple values
-      const relevantRuleset = this.fvRulesets.find(ruleset => ruleset.path === path);
+      const relevantRuleset = this.fvRulesets.find((ruleset) => ruleset.path === path);
 
       if (!relevantRuleset) {
         return [];
@@ -146,11 +146,11 @@ export default {
 
           return {
             ...ruleset,
-            rules:              ruleset.rules.map(rule => formRules[rule] || nullValidator),
+            rules:              ruleset.rules.map((rule) => formRules[rule] || nullValidator),
             formValidationRule: true
           };
         }),
-        ...(this?.value?.modelValidationRules || []).map(rule => ({
+        ...(this?.value?.modelValidationRules || []).map((rule) => ({
           ...rule,
           formValidationRule: false
         }))
@@ -165,8 +165,8 @@ export default {
      */
     fvUnreportedValidationErrors() { //
       const paths = this.fvRulesets
-        .filter(ruleset => !!ruleset.formValidationRule && !this.fvReportedValidationPaths.includes(ruleset.path))
-        .map(ruleset => ruleset.path);
+        .filter((ruleset) => !!ruleset.formValidationRule && !this.fvReportedValidationPaths.includes(ruleset.path))
+        .map((ruleset) => ruleset.path);
 
       const formErrors = this.fvGetPathErrors(paths);
 
@@ -181,7 +181,7 @@ export default {
      * @returns
      */
     fvValidationErrors() {
-      const paths = this.fvRulesets.filter(ruleset => !!ruleset.formValidationRule).map(ruleset => ruleset.path);
+      const paths = this.fvRulesets.filter((ruleset) => !!ruleset.formValidationRule).map((ruleset) => ruleset.path);
       const formErrors = this.fvGetPathErrors(paths);
 
       // the model already has a means of producing errors, not reinventing the wheel... yet...
