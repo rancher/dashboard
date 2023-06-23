@@ -47,11 +47,11 @@ export default {
     ...mapGetters({ allRepos: 'catalog/repos' }),
 
     namespacedDeployments() {
-      return this.$store.getters['management/all'](WORKLOAD_TYPES.DEPLOYMENT).filter(dep => dep.metadata.namespace === UI_PLUGIN_NAMESPACE);
+      return this.$store.getters['management/all'](WORKLOAD_TYPES.DEPLOYMENT).filter((dep) => dep.metadata.namespace === UI_PLUGIN_NAMESPACE);
     },
 
     namespacedServices() {
-      return this.$store.getters['management/all'](SERVICE).filter(svc => svc.metadata.namespace === UI_PLUGIN_NAMESPACE);
+      return this.$store.getters['management/all'](SERVICE).filter((svc) => svc.metadata.namespace === UI_PLUGIN_NAMESPACE);
     },
 
     catalogRows() {
@@ -79,7 +79,7 @@ export default {
             const keys = ['deployment', 'service', 'repo'];
 
             resources.forEach((resource, i) => {
-              out[keys[i]] = resource?.filter(item => item.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] === pluginName)[0];
+              out[keys[i]] = resource?.filter((item) => item.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] === pluginName)[0];
             });
 
             if (!isEmpty(out?.deployment)) {

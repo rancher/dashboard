@@ -220,7 +220,7 @@ export default {
       const date = new Date().toISOString().split('.')[0];
       const fileName = `${ this.application.nameDisplay }-${ date }`;
 
-      downloadFile(fileName, this.lines.map(l => `${ l.rawMsg }`).join('\n'))
+      downloadFile(fileName, this.lines.map((l) => `${ l.rawMsg }`).join('\n'))
         .then(() => btnCb(true))
         .catch(() => btnCb(false));
     },

@@ -224,7 +224,7 @@ export default Vue.extend<Data, any, any, any>({
 
     onFolderSelected(files: FileWithRelativePath | FileWithRelativePath[]) {
       const safeFiles = Array.isArray(files) ? files : [files];
-      let folderName: string = '';
+      let folderName = '';
 
       // Determine parent folder name
       for (const f of safeFiles) {

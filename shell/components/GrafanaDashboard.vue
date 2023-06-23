@@ -23,6 +23,12 @@ export default {
       type:    String,
       default: null
     },
+    // change the grafana url prefix for local clusters in certain monitoring versions
+    // project monitoring (projectHelmCharts) supply a grafana url that never needs to be modified in this way
+    modifyPrefix: {
+      type:    Boolean,
+      default: true
+    },
     backgroundColor: {
       type:    String,
       default: '#1b1c21'
@@ -138,7 +144,7 @@ export default {
       const clusterId = this.$store.getters['currentCluster'].id;
       const params = this.computeParams();
 
-      return computeDashboardUrl(this.monitoringVersion, embedUrl, clusterId, params);
+      return computeDashboardUrl(this.monitoringVersion, embedUrl, clusterId, params, this.modifyPrefix);
     },
     computeParams() {
       const params = {};

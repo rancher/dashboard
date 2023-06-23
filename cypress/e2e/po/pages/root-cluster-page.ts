@@ -10,7 +10,7 @@ export default class RootClusterPage extends PagePo {
     return cy.url().then((url) => {
       const parts = url.split('/');
 
-      const clusterKey = parts.findIndex(part => part === 'c');
+      const clusterKey = parts.findIndex((part) => part === 'c');
 
       if (clusterKey <= 0) {
         throw new Error('Cannot find /c/ part of url');

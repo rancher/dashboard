@@ -132,7 +132,7 @@ export default {
       return this.$store.getters['cluster/schemaFor'](POD);
     },
     selectorTableRows() {
-      return Object.keys(this.value.spec?.selector || {}).map(key => ({
+      return Object.keys(this.value.spec?.selector || {}).map((key) => ({
         key,
         value: this.value.spec.selector[key],
       }));

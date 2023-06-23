@@ -37,10 +37,10 @@ export default {
   },
   computed: {
     certsWithDefault() {
-      return [this.defaultCert, ...this.certs.map(c => ({ label: c, value: c }))];
+      return [this.defaultCert, ...this.certs.map((c) => ({ label: c, value: c }))];
     },
     certificateStatus() {
-      const isValueAnOption = !this.secretName || this.certsWithDefault.find(cert => this.secretName === cert.value);
+      const isValueAnOption = !this.secretName || this.certsWithDefault.find((cert) => this.secretName === cert.value);
 
       return isValueAnOption ? null : 'warning';
     },

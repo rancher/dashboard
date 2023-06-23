@@ -38,7 +38,7 @@ export default {
       } else {
         const query = this.searchQuery.toLowerCase();
 
-        return list.filter(e => e?.chart.toLowerCase().includes(query) || e?.description.toLowerCase().includes(query) || e?.short_description.toLowerCase().includes(query));
+        return list.filter((e) => e?.chart.toLowerCase().includes(query) || e?.description.toLowerCase().includes(query) || e?.short_description.toLowerCase().includes(query));
       }
     },
   }

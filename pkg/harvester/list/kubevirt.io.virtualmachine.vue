@@ -118,7 +118,7 @@ export default {
     },
 
     rows() {
-      const matchVMIs = this.allVMIs.filter(VMI => !this.allVMs.find(VM => VM.id === VMI.id));
+      const matchVMIs = this.allVMIs.filter((VMI) => !this.allVMs.find((VM) => VM.id === VMI.id));
 
       return [...this.allVMs, ...matchVMIs];
     }
@@ -147,20 +147,39 @@ export default {
       key-field="_key"
       v-on="$listeners"
     >
-      <template slot="cell:state" slot-scope="scope" class="state-col">
+      <template
+        slot="cell:state"
+        slot-scope="scope"
+        class="state-col"
+      >
         <div class="state">
-          <HarvesterVmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetworks" :all-cluster-network="allClusterNetworks" />
+          <HarvesterVmState
+            class="vmstate"
+            :row="scope.row"
+            :all-node-network="allNodeNetworks"
+            :all-cluster-network="allClusterNetworks"
+          />
         </div>
       </template>
 
-      <template slot="cell:name" slot-scope="scope">
+      <template
+        slot="cell:name"
+        slot-scope="scope"
+      >
         <div class="name-console">
-          <LinkDetail v-if="scope.row.type !== HCI.VMI" v-model="scope.row.metadata.name" :row="scope.row" />
+          <LinkDetail
+            v-if="scope.row.type !== HCI.VMI"
+            v-model="scope.row.metadata.name"
+            :row="scope.row"
+          />
           <span v-else>
             {{ scope.row.metadata.name }}
           </span>
 
-          <ConsoleBar :resource="scope.row" class="console mr-10" />
+          <ConsoleBar
+            :resource="scope.row"
+            class="console mr-10"
+          />
         </div>
       </template>
     </ResourceTable>

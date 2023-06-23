@@ -68,19 +68,19 @@ export default {
     allWorkloadsFiltered() {
       return (
         Object.values(SCALABLE_WORKLOAD_TYPES)
-          .flatMap(type => this.$store.getters['cluster/all'](type))
+          .flatMap((type) => this.$store.getters['cluster/all'](type))
           .filter(
             // Filter out anything that has an owner, which should probably be the one with the HPA
             // For example ReplicaSets can be associated with a HPA (https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/#replicaset-as-a-horizontal-pod-autoscaler-target)
             // but wouldn't make sense if it's owned by a deployment
-            wl => wl.metadata.namespace === this.value.metadata.namespace && !wl.ownedByWorkload
+            (wl) => wl.metadata.namespace === this.value.metadata.namespace && !wl.ownedByWorkload
           )
       );
     },
     allWorkloadsMapped() {
       return this.allWorkloadsFiltered
       // Update to type OBJECT_REFERENCE which can be stored directly as scaleTargetRef
-        .map(workload => ({
+        .map((workload) => ({
           kind:       workload.kind,
           name:       workload.metadata.name,
           apiVersion: workload.apiVersion,
@@ -95,7 +95,7 @@ export default {
       return !isEmpty(
         find(
           allServices,
-          api => api.name.split('.').length === 4 &&
+          (api) => api.name.split('.').length === 4 &&
             endsWith(api.name, RESOURCE_METRICS_API_GROUP)
         )
       );
@@ -133,7 +133,7 @@ export default {
     },
     async loadWorkloads() {
       await Promise.all(
-        Object.values(SCALABLE_WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })
+        Object.values(SCALABLE_WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })
         )
       );
     },

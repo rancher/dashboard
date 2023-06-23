@@ -100,7 +100,7 @@ export default {
 
         const involvedName = e?.involvedObject?.name;
 
-        const matchPVC = pvcName.find(name => name === involvedName);
+        const matchPVC = pvcName.find((name) => name === involvedName);
 
         return (involvedName === name || involvedName === podName || matchPVC) && e.firstTimestamp >= creationTimestamp;
       }).sort((a, b) => {
@@ -149,12 +149,31 @@ export default {
 
 <template>
   <div>
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true" @changed="onTabChanged">
-      <Tab name="basics" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table" :weight="7">
-        <OverviewBasics v-model="value" :resource="vmi" mode="view" />
+    <Tabbed
+      v-bind="$attrs"
+      class="mt-15"
+      :side-tabs="true"
+      @changed="onTabChanged"
+    >
+      <Tab
+        name="basics"
+        :label="t('harvester.virtualMachine.detail.tabs.basics')"
+        class="bordered-table"
+        :weight="7"
+      >
+        <OverviewBasics
+          v-model="value"
+          :resource="vmi"
+          mode="view"
+        />
       </Tab>
 
-      <Tab name="disks" :label="t('harvester.tab.volume')" class="bordered-table" :weight="6">
+      <Tab
+        name="disks"
+        :label="t('harvester.tab.volume')"
+        class="bordered-table"
+        :weight="6"
+      >
         <Volume
           v-model="diskRows"
           mode="view"
@@ -164,11 +183,24 @@ export default {
         />
       </Tab>
 
-      <Tab name="networks" :label="t('harvester.virtualMachine.detail.tabs.networks')" class="bordered-table" :weight="5">
-        <Network v-model="networkRows" mode="view" />
+      <Tab
+        name="networks"
+        :label="t('harvester.virtualMachine.detail.tabs.networks')"
+        class="bordered-table"
+        :weight="5"
+      >
+        <Network
+          v-model="networkRows"
+          mode="view"
+        />
       </Tab>
 
-      <Tab name="keypairs" :label="t('harvester.virtualMachine.detail.tabs.keypairs')" class="bordered-table" :weight="3">
+      <Tab
+        name="keypairs"
+        :label="t('harvester.virtualMachine.detail.tabs.keypairs')"
+        class="bordered-table"
+        :weight="3"
+      >
         <OverviewKeypairs v-model="value" />
       </Tab>
 
@@ -189,11 +221,25 @@ export default {
         </template>
       </Tab>
 
-      <Tab :label="t('harvester.tab.accessCredentials')" class="bordered-table" name="accessCredentials" :weight="2.2">
-        <AccessCredentials mode="view" :value="accessCredentials" :resource="value" />
+      <Tab
+        :label="t('harvester.tab.accessCredentials')"
+        class="bordered-table"
+        name="accessCredentials"
+        :weight="2.2"
+      >
+        <AccessCredentials
+          mode="view"
+          :value="accessCredentials"
+          :resource="value"
+        />
       </Tab>
 
-      <Tab name="cloudConfig" :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')" class="bordered-table" :weight="2">
+      <Tab
+        name="cloudConfig"
+        :label="t('harvester.virtualMachine.detail.tabs.cloudConfig')"
+        class="bordered-table"
+        :weight="2"
+      >
         <CloudConfig
           ref="yamlEditor"
           mode="view"
@@ -202,12 +248,25 @@ export default {
         />
       </Tab>
 
-      <Tab name="event" :label="t('harvester.virtualMachine.detail.tabs.events')" :weight="1">
-        <Events :resource="vmi" :events="events" />
+      <Tab
+        name="event"
+        :label="t('harvester.virtualMachine.detail.tabs.events')"
+        :weight="1"
+      >
+        <Events
+          :resource="vmi"
+          :events="events"
+        />
       </Tab>
 
-      <Tab name="migration" :label="t('harvester.virtualMachine.detail.tabs.migration')">
-        <Migration v-model="value" :vmi-resource="vmi" />
+      <Tab
+        name="migration"
+        :label="t('harvester.virtualMachine.detail.tabs.migration')"
+      >
+        <Migration
+          v-model="value"
+          :vmi-resource="vmi"
+        />
       </Tab>
     </Tabbed>
   </div>

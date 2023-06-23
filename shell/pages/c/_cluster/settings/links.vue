@@ -22,7 +22,7 @@ export default {
     DefaultLinksEditor,
   },
   async fetch() {
-    this.value = await fetchLinks(this.$store, this.hasSupport, false, str => this.t(str));
+    this.value = await fetchLinks(this.$store, this.hasSupport, false, (str) => this.t(str));
   },
 
   data() {
@@ -47,7 +47,7 @@ export default {
     allValues() {
       return {
         version:  CUSTOM_LINKS_VERSION,
-        defaults: this.value.defaults.filter(obj => obj.enabled).map(obj => obj.key),
+        defaults: this.value.defaults.filter((obj) => obj.enabled).map((obj) => obj.key),
         custom:   this.value.custom
       };
     },
@@ -75,7 +75,7 @@ export default {
 
         await uiCustomLinks.save();
 
-        this.value = await fetchLinks(this.$store, this.hasSupport, false, str => this.t(str));
+        this.value = await fetchLinks(this.$store, this.hasSupport, false, (str) => this.t(str));
         btnCB(true);
       } catch (err) {
         this.errors.push(err);

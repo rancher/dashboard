@@ -79,8 +79,8 @@ export default class NodeTemplate extends HybridModel {
     const allKeys = Object.keys(this);
 
     const configKey = allKeys
-      .filter(k => this[k] !== null)
-      .find(k => k.endsWith('Config'));
+      .filter((k) => this[k] !== null)
+      .find((k) => k.endsWith('Config'));
 
     if ( configKey ) {
       return configKey.replace(/config$/i, '');
@@ -101,7 +101,7 @@ export default class NodeTemplate extends HybridModel {
 
   get providerLocation() {
     if (this.provider) {
-      const config = CONFIG_KEYS.find(k => k.driver === this.provider);
+      const config = CONFIG_KEYS.find((k) => k.driver === this.provider);
 
       if (config?.location) {
         if (config.location.getDisplayProperty) {
@@ -120,7 +120,7 @@ export default class NodeTemplate extends HybridModel {
 
   get providerSize() {
     if (this.provider) {
-      const config = CONFIG_KEYS.find(k => k.driver === this.provider);
+      const config = CONFIG_KEYS.find((k) => k.driver === this.provider);
 
       if (config?.size) {
         if (config.size.getDisplayProperty) {

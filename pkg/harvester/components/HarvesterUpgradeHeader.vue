@@ -41,7 +41,7 @@ export default {
     },
 
     latestResource() {
-      return this.$store.getters['harvester/all'](HCI.UPGRADE).find( U => U.isLatestUpgrade);
+      return this.$store.getters['harvester/all'](HCI.UPGRADE).find( (U) => U.isLatestUpgrade);
     },
 
     overallMessage() {
@@ -51,7 +51,7 @@ export default {
     upgradeImage() {
       const id = this.latestResource?.upgradeImage;
 
-      return this.$store.getters['harvester/all'](HCI.IMAGE).find(I => I.id === id);
+      return this.$store.getters['harvester/all'](HCI.IMAGE).find((I) => I.id === id);
     },
 
     imageProgress() {
@@ -104,7 +104,10 @@ export default {
 };
 </script>
 <template>
-  <div v-if="enabled && isShow" class="upgrade">
+  <div
+    v-if="enabled && isShow"
+    class="upgrade"
+  >
     <v-popover
       v-clean-tooltip="{
         placement: 'bottom-left',
@@ -117,11 +120,20 @@ export default {
 
       <template slot="popover">
         <div class="upgrade-info mb-10">
-          <div v-if="repoInfo" class="repoInfo">
-            <div v-if="latestResource" class="row mb-5">
+          <div
+            v-if="repoInfo"
+            class="repoInfo"
+          >
+            <div
+              v-if="latestResource"
+              class="row mb-5"
+            >
               <div class="col span-12">
                 <p class="state">
-                  {{ t('harvester.upgradePage.repoInfo.upgradeStatus') }}: <BadgeStateFormatter class="ml-5" :row="latestResource" />
+                  {{ t('harvester.upgradePage.repoInfo.upgradeStatus') }}: <BadgeStateFormatter
+                    class="ml-5"
+                    :row="latestResource"
+                  />
                 </p>
               </div>
             </div>
@@ -161,13 +173,19 @@ export default {
             <p class="bordered-section"></p>
           </div>
 
-          <p v-if="overallMessage" class="text-warning mb-20">
+          <p
+            v-if="overallMessage"
+            class="text-warning mb-20"
+          >
             {{ overallMessage }}
           </p>
 
           <div v-if="showImage">
             <h4>{{ t('harvester.upgradePage.upgradeImage') }}<span class="float-r text-info">{{ imageProgress }}%</span></h4>
-            <PercentageBar :value="imageProgress" preferred-direction="MORE" />
+            <PercentageBar
+              :value="imageProgress"
+              preferred-direction="MORE"
+            />
             <p class="text-warning">
               {{ imageMessage }}
             </p>
@@ -175,19 +193,36 @@ export default {
           </div>
 
           <h4>{{ t('harvester.upgradePage.createRepository') }} <span class="float-r text-info">{{ repoReady.isReady ? t('harvester.upgradePage.succeeded') : t('harvester.upgradePage.pending') }}</span></h4>
-          <p v-if="repoReady.message" class="text-warning">
+          <p
+            v-if="repoReady.message"
+            class="text-warning"
+          >
             {{ repoReady.message }}
           </p>
           <p class="bordered-section"></p>
 
-          <ProgressBarList :title="t('harvester.upgradePage.upgradeNode')" :precent="nodesPercent" :list="nodesStatus" />
+          <ProgressBarList
+            :title="t('harvester.upgradePage.upgradeNode')"
+            :precent="nodesPercent"
+            :list="nodesStatus"
+          />
           <p class="bordered-section"></p>
 
-          <ProgressBarList :title="t('harvester.upgradePage.upgradeSysService')" :precent="sysServiceTotal" :list="sysServiceUpgradeMessage" />
+          <ProgressBarList
+            :title="t('harvester.upgradePage.upgradeSysService')"
+            :precent="sysServiceTotal"
+            :list="sysServiceUpgradeMessage"
+          />
         </div>
 
-        <div v-if="latestResource.isUpgradeSucceeded" class="successTip">
-          <button class="btn role-primary" @click="ignoreMessage()">
+        <div
+          v-if="latestResource.isUpgradeSucceeded"
+          class="successTip"
+        >
+          <button
+            class="btn role-primary"
+            @click="ignoreMessage()"
+          >
             {{ t('harvester.upgradePage.dismissMessage') }}
           </button>
         </div>

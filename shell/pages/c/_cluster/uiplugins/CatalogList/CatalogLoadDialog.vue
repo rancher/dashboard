@@ -133,11 +133,11 @@ export default {
     ...mapGetters({ allRepos: 'catalog/repos' }),
 
     namespacedDeployments() {
-      return this.$store.getters['management/all'](WORKLOAD_TYPES.DEPLOYMENT).filter(dep => dep.metadata.namespace === UI_PLUGIN_NAMESPACE);
+      return this.$store.getters['management/all'](WORKLOAD_TYPES.DEPLOYMENT).filter((dep) => dep.metadata.namespace === UI_PLUGIN_NAMESPACE);
     },
 
     namespacedServices() {
-      return this.$store.getters['management/all'](SERVICE).filter(svc => svc.metadata.namespace === UI_PLUGIN_NAMESPACE);
+      return this.$store.getters['management/all'](SERVICE).filter((svc) => svc.metadata.namespace === UI_PLUGIN_NAMESPACE);
     }
   },
 
@@ -151,7 +151,7 @@ export default {
               {
                 var:         'imagePullNamespacedSecrets',
                 parsingFunc: (data) => {
-                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                  return data.filter((secret) => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
                 }
               }
             ]
@@ -211,7 +211,7 @@ export default {
     },
 
     async loadDeployment(image, name, btnCb) {
-      const exists = this.namespacedDeployments.find(dep => dep.spec.template.spec.containers[0].image === image);
+      const exists = this.namespacedDeployments.find((dep) => dep.spec.template.spec.containers[0].image === image);
 
       if (!exists) {
         // Sets deploymentValues with name, labels, and imagePullSecrets
@@ -238,7 +238,7 @@ export default {
 
     async loadService(name, btnCb) {
       const serviceName = `${ name }-svc`;
-      const exists = this.namespacedServices.find(svc => svc.metadata.name === serviceName);
+      const exists = this.namespacedServices.find((svc) => svc.metadata.name === serviceName);
 
       if (exists) {
         const error = {
@@ -285,7 +285,7 @@ export default {
 
     async loadRepo(name, btnCb) {
       const chartName = `${ name }-charts`;
-      const exists = this.allRepos.find(repo => repo.metadata.name === chartName);
+      const exists = this.allRepos.find((repo) => repo.metadata.name === chartName);
 
       if (exists) {
         const error = {

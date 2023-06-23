@@ -185,7 +185,7 @@ export default {
         .filter((x) => {
           return x.metadata.namespace === this.value.metadata.namespace;
         })
-        .filter(x => !isHarvesterCluster(x))
+        .filter((x) => !isHarvesterCluster(x))
         .map((x) => {
           return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
         });
@@ -202,7 +202,7 @@ export default {
       }
 
       const groups = this.allClusterGroups
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
         .map((x) => {
           return { label: x.nameDisplay, value: `group://${ x.metadata.name }` };
         });
@@ -223,16 +223,16 @@ export default {
 
     clusterNames() {
       const out = this.allClusters
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
-        .map(x => x.metadata.name);
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => x.metadata.name);
 
       return out;
     },
 
     clusterGroupNames() {
       const out = this.allClusterGroups
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
-        .map(x => x.metadata.name);
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => x.metadata.name);
 
       return out;
     },

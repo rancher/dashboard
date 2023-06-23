@@ -4,7 +4,7 @@ export default class LonghornNode extends SteveModel {
   get used() {
     let out = 0;
 
-    this.disks.filter(d => d.allowScheduling).map((disk) => {
+    this.disks.filter((d) => d.allowScheduling).map((disk) => {
       if (disk?.storageAvailable && disk?.storageMaximum) {
         out += disk.storageMaximum - disk.storageAvailable;
       }

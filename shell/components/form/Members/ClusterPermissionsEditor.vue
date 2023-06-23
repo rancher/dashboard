@@ -9,18 +9,10 @@ import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 
-export function canEditClusterPermissions(store) {
-  // blocked-post means you can post through norman, but not through steve.
-  // collectionMethods and resourceMethods on norman schema itself are not accurate for permission checking here.
-  return !!(store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).find(method => ['blocked-post', 'post'].includes(method.toLowerCase())) &&
+export function canViewClusterPermissionsEditor(store) {
+  return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.USER);
-}
-
-export function canViewClusterPermissions(store) {
-  return (store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).includes('GET') &&
-    (store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)?.collectionMethods || []).includes('GET') &&
-    (store.getters['management/schemaFor'](MANAGEMENT.USER)?.collectionMethods || []).includes('GET');
 }
 
 export default {
@@ -142,14 +134,14 @@ export default {
 
       if (this.permissionGroup === 'custom') {
         return this.customPermissions
-          .filter(permission => permission.value)
-          .map(permission => permission.key);
+          .filter((permission) => permission.value)
+          .map((permission) => permission.key);
       }
 
       return [this.permissionGroup];
     },
     options() {
-      const customRoles = this.customRoles.map(role => ({
+      const customRoles = this.customRoles.map((role) => ({
         label:       role.nameDisplay,
         description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('members.clusterPermissions.noDescription'),
         value:       role.id
@@ -185,7 +177,7 @@ export default {
     },
     customPermissionsUpdate() {
       return this.customPermissions.reduce((acc, customPermissionsItem) => {
-        const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
+        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.displayName === customPermissionsItem.label);
 
         if (lockedExist.locked) {
           customPermissionsItem['locked'] = true;
@@ -217,7 +209,7 @@ export default {
     async updateBindings() {
       if (this.principalId) {
         const principalProperty = await this.principalProperty();
-        const bindingPromises = this.roleTemplateIds.map(id => this.$store.dispatch(`rancher/create`, {
+        const bindingPromises = this.roleTemplateIds.map((id) => this.$store.dispatch(`rancher/create`, {
           type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
           clusterId:           this.clusterName,
           roleTemplateId:      id,
@@ -245,6 +237,7 @@ export default {
           class="mb-20"
           :mode="mode"
           :retain-selection="true"
+          data-testid="cluster-member-select"
           @add="onAdd"
         />
       </div>

@@ -180,7 +180,7 @@ export default class HciNode extends HarvesterResource {
   get internalIp() {
     const addresses = this.status?.addresses || [];
 
-    return findLast(addresses, address => address.type === 'InternalIP')
+    return findLast(addresses, (address) => address.type === 'InternalIP')
       ?.address;
   }
 
@@ -281,7 +281,7 @@ export default class HciNode extends HarvesterResource {
     const pods = this.$rootGetters[`${ inStore }/all`](POD) || [];
 
     return pods.filter(
-      p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing'
+      (p) => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing'
     );
   }
 

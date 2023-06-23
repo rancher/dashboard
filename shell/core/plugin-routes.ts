@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import Router, { RouteConfig } from 'vue-router';
 
 interface RouteInfo {
@@ -67,7 +68,7 @@ export class PluginRoutes {
     });
 
     // Remove routes from pluginRoutes, update matcher (to avoid dupes when re-adding plugin routes)
-    this.pluginRoutes = this.pluginRoutes.filter(pR => !plugin.routes.find((r: any) => pR === r.route));
+    this.pluginRoutes = this.pluginRoutes.filter((pR) => !plugin.routes.find((r: any) => pR === r.route));
     this.updateMatcher([], [
       ...this.pluginRoutes,
       ...(this.router.options.routes || [])
@@ -162,7 +163,7 @@ export class PluginRoutes {
       let foundParentRoute;
 
       if (r.parent) {
-        foundParentRoute = allRoutes.find(route => route.name === r.parent);
+        foundParentRoute = allRoutes.find((route) => route.name === r.parent);
 
         if (foundParentRoute) {
           pluginRoutesWithParents.push(r);

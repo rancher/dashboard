@@ -55,6 +55,10 @@ export default class SortableTablePo extends ComponentPo {
     return cy.getId('sortable-table-promptRemove');
   }
 
+  selectedCountText() {
+    return cy.get('.action-availability');
+  }
+
   //
   // sortable-table
   //
@@ -129,5 +133,9 @@ export default class SortableTablePo extends ComponentPo {
    */
   selectAllCheckbox(): CheckboxInputPo {
     return new CheckboxInputPo('[data-testid="sortable-table_check_select_all"]');
+  }
+
+  selectedCount() {
+    return cy.get('.row-check input[type="checkbox"]:checked').its('length');
   }
 }

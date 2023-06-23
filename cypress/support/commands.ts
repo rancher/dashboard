@@ -109,3 +109,9 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
       return Cypress.Blob.blobToBase64String(blob);
     });
 });
+
+Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
+  for (let i = 0; i < count; i++) {
+    cy.get('body').trigger('keydown', triggerKeys);
+  }
+});

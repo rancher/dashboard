@@ -48,7 +48,7 @@ export default {
           return;
         }
         const volumes = crd.spec.template.spec?.volumes || [];
-        const names = volumes.filter(volume => volume.persistentVolumeClaim ).map((volume) => {
+        const names = volumes.filter((volume) => volume.persistentVolumeClaim ).map((volume) => {
           if (volume.persistentVolumeClaim) {
             return volume.name;
           }
@@ -140,8 +140,16 @@ export default {
       {{ t('harvester.virtualMachine.promptRemove.title') }}
     </div>
     <div v-if="value.length === 1">
-      <span v-for="name in removeNameArr[value[0].id]" :key="name">
-        <label class="checkbox-container mr-15"><input v-model="checkedList" type="checkbox" :label="name" :value="name" />
+      <span
+        v-for="name in removeNameArr[value[0].id]"
+        :key="name"
+      >
+        <label class="checkbox-container mr-15"><input
+                                                  v-model="checkedList"
+                                                  type="checkbox"
+                                                  :label="name"
+                                                  :value="name"
+                                                />
           <span
             class="checkbox-custom mr-5"
             role="checkbox"
@@ -152,7 +160,10 @@ export default {
     </div>
 
     <div v-else>
-      <label class="checkbox-container mr-15"><input v-model="checkAll" type="checkbox" />
+      <label class="checkbox-container mr-15"><input
+                                                v-model="checkAll"
+                                                type="checkbox"
+                                              />
         <span
           class="checkbox-custom mr-5"
           role="checkbox"

@@ -186,28 +186,28 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
     return this.$getters['all'](EPINIO_TYPES.CONFIGURATION)
       .filter((s) => {
         return s.metadata.namespace === this.metadata.namespace &&
-         this.configuration.configurations.find(c => c === s.metadata.name);
+         this.configuration.configurations.find((c) => c === s.metadata.name);
       });
   }
 
   get allConfigurationsNames() {
-    return this.allConfigurations.map(c => c.meta.name);
+    return this.allConfigurations.map((c) => c.meta.name);
   }
 
   get baseConfigurations() {
-    return this.allConfigurations.filter(c => !c.isServiceRelated);
+    return this.allConfigurations.filter((c) => !c.isServiceRelated);
   }
 
   get baseConfigurationsNames() {
-    return this.baseConfigurations.map(c => c.meta.name);
+    return this.baseConfigurations.map((c) => c.meta.name);
   }
 
   get serviceConfigurations() {
-    return this.allConfigurations.filter(c => c.isServiceRelated);
+    return this.allConfigurations.filter((c) => c.isServiceRelated);
   }
 
   get serviceConfigurationsNames() {
-    return this.serviceConfigurations.map(c => c.meta.name);
+    return this.serviceConfigurations.map((c) => c.meta.name);
   }
 
   get envCount() {
@@ -372,7 +372,7 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
       return [];
     }
 
-    return Object.values(instances).map(i => classify(this.$ctx, {
+    return Object.values(instances).map((i) => classify(this.$ctx, {
       ...i,
       id:          i.name,
       type:        EPINIO_TYPES.APP_INSTANCE,
@@ -787,8 +787,8 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
   }
 
   async updateConfigurations(initialValues = [], currentValues = this.configuration.configurations) {
-    const toBind = currentValues.filter(cV => !initialValues.includes(cV));
-    const toUnbind = initialValues.filter(cV => !currentValues.includes(cV));
+    const toBind = currentValues.filter((cV) => !initialValues.includes(cV));
+    const toUnbind = initialValues.filter((cV) => !currentValues.includes(cV));
 
     await Promise.all([
       this.bindConfigurations(toBind),
@@ -828,12 +828,12 @@ export default class EpinioApplicationModel extends EpinioNamespacedResource {
   }
 
   async updateServices(initialValues = [], currentValues = []) {
-    const toBind = currentValues.filter(cV => !initialValues.includes(cV));
-    const toUnbind = initialValues.filter(cV => !currentValues.includes(cV));
+    const toBind = currentValues.filter((cV) => !initialValues.includes(cV));
+    const toUnbind = initialValues.filter((cV) => !currentValues.includes(cV));
 
     await Promise.all([
-      ...toBind.map(s => s.bindApp(this.meta.name)),
-      ...toUnbind.map(s => s.unbindApp(this.meta.name)),
+      ...toBind.map((s) => s.bindApp(this.meta.name)),
+      ...toUnbind.map((s) => s.unbindApp(this.meta.name)),
     ]);
   }
 }

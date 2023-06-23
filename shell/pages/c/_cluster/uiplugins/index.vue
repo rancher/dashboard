@@ -175,11 +175,11 @@ export default {
 
       switch (this.view) {
       case 'installed':
-        return all.filter(p => !!p.installed || !!p.installing);
+        return all.filter((p) => !!p.installed || !!p.installing);
       case 'updates':
         return this.updates;
       case 'available':
-        return all.filter(p => !p.installed);
+        return all.filter((p) => !p.installed);
       default:
         return all;
       }
@@ -195,14 +195,14 @@ export default {
     },
 
     updates() {
-      return this.available.filter(plugin => !!plugin.upgrade);
+      return this.available.filter((plugin) => !!plugin.upgrade);
     },
 
     available() {
-      let all = this.charts.filter(c => isUIPlugin(c));
+      let all = this.charts.filter((c) => isUIPlugin(c));
 
       // Filter out hidden charts
-      all = all.filter(c => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
+      all = all.filter((c) => !uiPluginHasAnnotation(c, CATALOG_ANNOTATIONS.HIDDEN, 'true'));
 
       all = all.map((chart) => {
         // Label can be overridden by chart annotation
@@ -223,13 +223,13 @@ export default {
         item.chart = chart;
 
         // Filter the versions available to install (plugins-api version and current dashboard version)
-        item.installableVersions = item.versions.filter(version => isSupportedChartVersion(version) && isChartVersionAvailableForInstall(version, this.rancherVersion));
+        item.installableVersions = item.versions.filter((version) => isSupportedChartVersion(version) && isChartVersionAvailableForInstall(version, this.rancherVersion));
 
         // add prop to version object if version is compatible with the current dashboard version
-        item.versions = item.versions.map(version => isChartVersionAvailableForInstall(version, this.rancherVersion, true));
+        item.versions = item.versions.map((version) => isChartVersionAvailableForInstall(version, this.rancherVersion, true));
 
         const latestCompatible = item.installableVersions?.[0];
-        const latestNotCompatible = item.versions.find(version => !version.isCompatibleWithUi);
+        const latestNotCompatible = item.versions.find((version) => !version.isCompatibleWithUi);
 
         if (latestCompatible) {
           item.displayVersion = latestCompatible.version;
@@ -251,11 +251,11 @@ export default {
       });
 
       // Remove charts with no installable versions
-      all = all.filter(c => c.versions.length > 0);
+      all = all.filter((c) => c.versions.length > 0);
 
       // Check that all of the loaded plugins are represented
       this.uiplugins.forEach((p) => {
-        const chart = all.find(c => c.name === p.name);
+        const chart = all.find((c) => c.name === p.name);
 
         if (!chart) {
           // A plugin is loaded, but there is no chart, so add an item so that it shows up
@@ -279,7 +279,7 @@ export default {
 
       // Go through the CRs for the plugins and wire them into the catalog
       this.plugins.forEach((p) => {
-        const chart = all.find(c => c.name === p.name);
+        const chart = all.find((c) => c.name === p.name);
 
         // Plugin is a container image, do not add to charts
         if (p.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE]) {
@@ -319,7 +319,7 @@ export default {
 
       // Merge in the plugin load errors
       Object.keys(this.uiErrors).forEach((e) => {
-        const chart = all.find(c => c.name === e);
+        const chart = all.find((c) => c.name === e);
 
         if (chart) {
           const error = this.uiErrors[e];
@@ -334,7 +334,7 @@ export default {
 
       // Merge in the plugin load errors from help ops
       Object.keys(this.errors).forEach((e) => {
-        const chart = all.find(c => c.name === e);
+        const chart = all.find((c) => c.name === e);
 
         if (chart) {
           chart.helmError = !!this.errors[e];
@@ -353,7 +353,7 @@ export default {
     },
 
     pluginsFromCatalogImage() {
-      return this.plugins.filter(p => p.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE]);
+      return this.plugins.filter((p) => p.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE]);
     }
   },
 
@@ -368,7 +368,7 @@ export default {
 
       // Go through the installed plugins
       (this.available || []).forEach((plugin) => {
-        const op = pluginOps.find(o => o.status?.releaseName === plugin.name);
+        const op = pluginOps.find((o) => o.status?.releaseName === plugin.name);
 
         if (op) {
           const active = op.metadata.state?.transitioning;
@@ -395,7 +395,7 @@ export default {
 
     plugins(neu, old) {
       const installed = this.$store.getters['uiplugins/plugins'];
-      const shouldHaveLoaded = (installed || []).filter(p => !this.uiErrors[p.name] && !p.builtin);
+      const shouldHaveLoaded = (installed || []).filter((p) => !this.uiErrors[p.name] && !p.builtin);
       let changes = 0;
 
       // Did the user remove an extension
@@ -404,7 +404,7 @@ export default {
       }
 
       neu.forEach((plugin) => {
-        const existing = installed.find(p => !p.removed && p.name === plugin.name && p.version === plugin.version);
+        const existing = installed.find((p) => !p.removed && p.name === plugin.name && p.version === plugin.version);
         const isCustomImage = plugin.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE];
 
         if (!existing && plugin.isCached) {

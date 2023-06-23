@@ -36,10 +36,10 @@ export default {
 
   async asyncData({ route, redirect, store }) {
     const drivers = await store.dispatch('auth/getAuthProviders');
-    const providers = sortBy(drivers.map(x => x.id), ['id']);
+    const providers = sortBy(drivers.map((x) => x.id), ['id']);
 
     const hasLocal = providers.includes('local');
-    const hasOthers = hasLocal && !!providers.find(x => x !== 'local');
+    const hasOthers = hasLocal && !!providers.find((x) => x !== 'local');
 
     if ( hasLocal ) {
       // Local is special and handled here so that it can be toggled
@@ -254,7 +254,7 @@ export default {
 
         if ( this.remember ) {
           this.$cookies.set(USERNAME, this.username, {
-            encode:   x => x,
+            encode:   (x) => x,
             maxAge:   86400 * 365,
             path:     '/',
             sameSite: true,

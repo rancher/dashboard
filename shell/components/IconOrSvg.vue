@@ -18,7 +18,7 @@
  */
 import Vue from 'vue';
 import { Solver } from '@shell/utils/svg-filter';
-import { colorToRgb, mapStandardColors } from '@shell/utils/color';
+import { colorToRgb, mapStandardColors, normalizeHex } from '@shell/utils/color';
 
 const filterCache = {};
 const cssCache = {};
@@ -75,11 +75,18 @@ export default {
         if (stylesheet && stylesheet.cssRules) {
           for (let x = 0; x < Object.keys(stylesheet.cssRules).length; x++) {
             const cssRules = stylesheet.cssRules[x];
-            const selectorText = currTheme === 'light' ? 'body, .theme-light' : '.theme-dark';
 
-            if (cssRules.selectorText && cssRules.selectorText === selectorText) {
+            if (cssRules.selectorText && ((currTheme === 'light' && cssRules.selectorText.includes('body') &&
+              cssRules.selectorText.includes('.theme-light') && cssRules.style.cssText.includes('--link:')) ||
+              (currTheme === 'dark' && cssRules.selectorText.includes('.theme-dark')))) {
+              // grab the colors to be used on the icon from the css rules
               uiColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].color).trim());
               hoverColor = mapStandardColors(cssRules.style.getPropertyValue(colors[this.color].hover).trim());
+
+              // normalize hex colors (#xxx to #xxxxxx)
+              uiColor = normalizeHex(uiColor);
+              hoverColor = normalizeHex(hoverColor);
+
               found = true;
               break;
             }

@@ -43,7 +43,7 @@ export default {
 
   computed: {
     instanceChoices() {
-      return this.application.instances.map(i => i.id);
+      return this.application.instances.map((i) => i.id);
     },
   },
 

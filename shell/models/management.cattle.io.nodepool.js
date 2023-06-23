@@ -31,7 +31,7 @@ export default class MgmtNodePool extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.name === this.spec.clusterName);
+    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find((c) => c.name === this.spec.clusterName);
   }
 
   get doneOverride() {
@@ -71,7 +71,7 @@ export default class MgmtNodePool extends HybridModel {
   get nodes() {
     const nodePoolName = this.id.replace('/', ':');
 
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.spec.nodePoolName === nodePoolName);
+    return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.spec.nodePoolName === nodePoolName);
   }
 
   get nodeSummary() {
@@ -142,7 +142,7 @@ export default class MgmtNodePool extends HybridModel {
         value:     this.ready,
         sort:      4,
       },
-    ].filter(x => x.value > 0);
+    ].filter((x) => x.value > 0);
 
     return sortBy(out, 'sort:desc');
   }

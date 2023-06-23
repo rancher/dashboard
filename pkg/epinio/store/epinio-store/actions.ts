@@ -112,7 +112,7 @@ export default {
           const schema = getters.schemaFor(type);
 
           if (Array.isArray(out)) {
-            res.data = { data: out.map(o => epiniofy(o, schema, type)) };
+            res.data = { data: out.map((o) => epiniofy(o, schema, type)) };
           } else {
             // `find` action turns this into `{data: out}`
             res.data = epiniofy(out, schema, type);

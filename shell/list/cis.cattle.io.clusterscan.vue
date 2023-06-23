@@ -46,7 +46,7 @@ export default {
       if (!this.hasWarningState) {
         const toRemove = ['warn', 'nextScanAt', 'lastRunTimestamp'];
 
-        const filtered = headersFromSchema.filter(header => !toRemove.includes(header.name));
+        const filtered = headersFromSchema.filter((header) => !toRemove.includes(header.name));
 
         filtered.push(AGE);
 

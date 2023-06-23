@@ -41,7 +41,7 @@ export default function({
         delete opt.name;
         delete opt.value;
 
-        opt.encode = x => x;
+        opt.encode = (x) => x;
         opt.sameSite = true;
         opt.path = '/';
         opt.secure = true;

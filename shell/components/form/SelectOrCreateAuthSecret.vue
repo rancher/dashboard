@@ -208,7 +208,7 @@ export default {
       }
 
       const out = this.allSecrets
-        .filter(x => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
+        .filter((x) => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
         .filter((x) => {
           // Must match one of the types if given
           if ( types.length && !types.includes(x._type) ) {
@@ -219,7 +219,7 @@ export default {
           if ( keys.length ) {
             const dataKeys = Object.keys(x.data || {});
 
-            if ( !keys.every(key => dataKeys.includes(key)) ) {
+            if ( !keys.every((key) => dataKeys.includes(key)) ) {
               return false;
             }
           }
@@ -235,7 +235,7 @@ export default {
 
       if ( this.allowS3 ) {
         const more = this.allCloudCreds
-          .filter(x => ['aws', 's3'].includes(x.provider) )
+          .filter((x) => ['aws', 's3'].includes(x.provider) )
           .map((x) => {
             return {
               label: `${ x.nameDisplay } (${ x.providerDisplay })`,

@@ -200,7 +200,7 @@ export default {
     },
 
     podHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.podSchema).filter(h => h !== NAMESPACE_COL);
+      return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => h !== NAMESPACE_COL);
     },
 
     graphVarsWorkload() {
@@ -219,14 +219,14 @@ export default {
       const podGauges = Object.values(this.value.podGauges);
       const total = this.value.pods.length;
 
-      return !podGauges.find(pg => pg.count === total);
+      return !podGauges.find((pg) => pg.count === total);
     },
 
     showJobGaugeCircles() {
       const jobGauges = Object.values(this.value.jobGauges);
       const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
-      return !jobGauges.find(jg => jg.count === total);
+      return !jobGauges.find((jg) => jg.count === total);
     },
 
     canScale() {

@@ -68,7 +68,7 @@ export default {
           color: `bg-${ value.color }`,
           value: value.count || 0,
           label: ucFirst(name)
-        })).filter(x => x.value > 0);
+        })).filter((x) => x.value > 0);
 
       return 5;
     },

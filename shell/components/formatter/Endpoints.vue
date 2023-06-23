@@ -24,7 +24,7 @@ export default {
     // value may be JSON from "field.cattle.io/publicEndpoints" label
     parsed() {
       const nodes = this.nodes;
-      const nodeWithExternal = nodes.find(node => !!node.externalIp) || {};
+      const nodeWithExternal = nodes.find((node) => !!node.externalIp) || {};
       const externalIp = nodeWithExternal.externalIp;
 
       if ( this.value && this.value.length ) {

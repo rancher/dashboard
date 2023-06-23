@@ -5,7 +5,7 @@ import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 import RootClusterPage from '~/cypress/e2e/po/pages/root-cluster-page';
 
 export class BrandingPagePo extends RootClusterPage {
-  static url: string = '/c/_/settings/brand';
+  static url = '/c/_/settings/brand';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(BrandingPagePo.url);
   }

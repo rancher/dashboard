@@ -15,7 +15,7 @@ export default class UsersAndAuthPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId: string = '_', resource: string = 'management.cattle.io.user') {
+  constructor(clusterId = '_', resource = 'management.cattle.io.user') {
     super(UsersAndAuthPo.createPath(clusterId, resource));
   }
 

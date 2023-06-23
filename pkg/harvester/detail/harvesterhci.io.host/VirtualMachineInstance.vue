@@ -97,7 +97,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else id="host-instances" class="row">
+  <div
+    v-else
+    id="host-instances"
+    class="row"
+  >
     <div class="col span-12">
       <SortableTable
         v-bind="$attrs"
@@ -107,9 +111,18 @@ export default {
         key-field="_key"
         v-on="$listeners"
       >
-        <template slot="cell:state" slot-scope="scope" class="state-col">
+        <template
+          slot="cell:state"
+          slot-scope="scope"
+          class="state-col"
+        >
           <div class="state">
-            <HarvesterVmState class="vmstate" :row="scope.row" :all-node-network="allNodeNetwork" :all-cluster-network="allClusterNetwork" />
+            <HarvesterVmState
+              class="vmstate"
+              :row="scope.row"
+              :all-node-network="allNodeNetwork"
+              :all-cluster-network="allClusterNetwork"
+            />
           </div>
         </template>
       </Sortabletable>

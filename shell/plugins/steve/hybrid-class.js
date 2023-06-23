@@ -9,7 +9,7 @@ import Resource from '@shell/plugins/dashboard-store/resource-class';
 export function cleanHybridResources(data) {
   const potentialNormanHoldovers = ['state', 'name', 'description', 'labels', 'annotations'];
 
-  potentialNormanHoldovers.forEach(key => delete data[key]);
+  potentialNormanHoldovers.forEach((key) => delete data[key]);
 
   return data;
 }

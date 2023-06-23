@@ -109,7 +109,7 @@ export const VOLUME_PLUGINS = [
 
 export const LONGHORN_DRIVER = 'driver.longhorn.io';
 
-export const LONGHORN_PLUGIN = VOLUME_PLUGINS.find(plugin => plugin.value === 'longhorn');
+export const LONGHORN_PLUGIN = VOLUME_PLUGINS.find((plugin) => plugin.value === 'longhorn');
 
 export default class PV extends SteveModel {
   // plugin display value table
@@ -120,7 +120,7 @@ export default class PV extends SteveModel {
     if (csiDriver) {
       return this.$rootGetters['i18n/withFallback'](`persistentVolume.csi.drivers.${ csiDriver.replaceAll('.', '-') }`, null, fallback);
     }
-    const pluginDef = VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]);
+    const pluginDef = VOLUME_PLUGINS.find((plugin) => this.spec[plugin.value]);
 
     if (pluginDef) {
       return this.t(pluginDef.labelKey);
@@ -141,7 +141,7 @@ export default class PV extends SteveModel {
 
     const allClaims = this.$rootGetters['cluster/all'](PVC);
 
-    return allClaims.find(claim => claim.spec.volumeName === this.name);
+    return allClaims.find((claim) => claim.spec.volumeName === this.name);
   }
 
   get claimName() {

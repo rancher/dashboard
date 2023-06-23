@@ -77,7 +77,7 @@ export default {
 
     async createBindings() {
       const principalProperty = await this.principalProperty();
-      const promises = this.member.roleTemplateIds.map(roleTemplateId => this.$store.dispatch(`rancher/create`, {
+      const promises = this.member.roleTemplateIds.map((roleTemplateId) => this.$store.dispatch(`rancher/create`, {
         type:                NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateId,
         [principalProperty]: this.member.principalId,
@@ -91,7 +91,7 @@ export default {
       this.error = null;
       this.createBindings()
         .then((bindings) => {
-          return Promise.all(bindings.map(b => b.save()));
+          return Promise.all(bindings.map((b) => b.save()));
         })
         .then(() => {
           btnCB(true);

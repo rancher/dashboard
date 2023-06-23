@@ -28,7 +28,7 @@ export default {
   },
 
   data() {
-    return { effectOptions: Object.values(EFFECT_VALUES).map(v => ({ label: v, value: v })) };
+    return { effectOptions: Object.values(EFFECT_VALUES).map((v) => ({ label: v, value: v })) };
   },
 
   computed: {

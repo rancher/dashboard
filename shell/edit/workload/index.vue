@@ -25,7 +25,7 @@ export default {
       const key = this.idKey;
 
       this.selectedName = tab.selectedName;
-      const container = this.containerOptions.find( c => c[key] === tab.selectedName);
+      const container = this.containerOptions.find( (c) => c[key] === tab.selectedName);
 
       if ( container ) {
         this.selectContainer(container);
