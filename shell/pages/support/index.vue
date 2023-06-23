@@ -110,7 +110,7 @@ export default {
 
     supportLink() {
       const defaultSupportURL = 'https://rancher.com/support-maintenance-terms';
-      const version = this.settings?.find(s => s.id === SETTING.VERSION_RANCHER)?.value;
+      const version = this.settings?.find((s) => s.id === SETTING.VERSION_RANCHER)?.value;
 
       if (!version || isDevBuild(version)) {
         return defaultSupportURL;

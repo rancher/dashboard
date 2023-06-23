@@ -61,11 +61,11 @@ export default {
         if (this.namespaceFilterMode?.length) {
           // We always show dividers, projects and namespaces
           if (!forcedNamespaceValidTypes.includes(item.kind)) {
-            const validCustomType = this.namespaceFilterMode.find(prefix => item.kind.startsWith(prefix));
+            const validCustomType = this.namespaceFilterMode.find((prefix) => item.kind.startsWith(prefix));
 
             if (!validCustomType) {
               // Hide any invalid option that's not selected
-              return this.value.findIndex(v => v.id === item.id) >= 0;
+              return this.value.findIndex((v) => v.id === item.id) >= 0;
             }
           }
         }
@@ -96,7 +96,7 @@ export default {
         // Are we in restricted resource type mode, if so is this an allowed type?
         if (this.namespaceFilterMode?.length) {
           const isLastSelected = i.selected && (i.id === ALL || this.value.length === 1);
-          const kindAllowed = this.namespaceFilterMode.find(f => f === i.kind);
+          const kindAllowed = this.namespaceFilterMode.find((f) => f === i.kind);
           const isNotInProjectGroup = i.id === ALL_ORPHANS;
 
           i.enabled = (!isLastSelected && kindAllowed) && !isNotInProjectGroup;
@@ -327,7 +327,7 @@ export default {
           .map((value) => {
             return findBy(options, 'id', value);
           })
-          .filter(x => !!x);
+          .filter((x) => !!x);
 
         return filters;
       },
@@ -335,22 +335,22 @@ export default {
       set(neu) {
         const old = (this.value || []).slice();
 
-        neu = neu.filter(x => !!x.id);
+        neu = neu.filter((x) => !!x.id);
 
         const last = neu[neu.length - 1];
         const lastIsSpecial = last?.kind === NAMESPACE_FILTER_KINDS.SPECIAL;
-        const hadUser = !!old.find(x => x.id === ALL_USER);
-        const hadAll = !!old.find(x => x.id === ALL);
+        const hadUser = !!old.find((x) => x.id === ALL_USER);
+        const hadAll = !!old.find((x) => x.id === ALL);
 
         if (lastIsSpecial) {
           neu = [last];
         }
 
         if (neu.length > 1) {
-          neu = neu.filter(x => x.kind !== NAMESPACE_FILTER_KINDS.SPECIAL);
+          neu = neu.filter((x) => x.kind !== NAMESPACE_FILTER_KINDS.SPECIAL);
         }
 
-        if (neu.find(x => x.id === 'all')) {
+        if (neu.find((x) => x.id === 'all')) {
           neu = [];
         }
 
@@ -361,7 +361,7 @@ export default {
         if (neu.length === 0 && !hadUser && !hadAll) {
           ids = this.defaultOption();
         } else {
-          ids = neu.map(x => x.id);
+          ids = neu.map((x) => x.id);
         }
 
         this.$nextTick(() => {
@@ -522,7 +522,7 @@ export default {
       }
     },
     mouseOver(event) {
-      const el = event?.path?.find(e => e.classList.contains('ns-option'));
+      const el = event?.path?.find((e) => e.classList.contains('ns-option'));
 
       this.activeElement = el;
     },
@@ -615,15 +615,15 @@ export default {
       // Remove invalid
       if (!!this.namespaceFilterMode?.length) {
         this.value.forEach((v) => {
-          if (!this.namespaceFilterMode.find(f => f === v.kind)) {
-            const index = current.findIndex(c => c.id === v.id);
+          if (!this.namespaceFilterMode.find((f) => f === v.kind)) {
+            const index = current.findIndex((c) => c.id === v.id);
 
             current.splice(index, 1);
           }
         });
       }
 
-      const exists = current.findIndex(v => v.id === option.id);
+      const exists = current.findIndex((v) => v.id === option.id);
 
       // Remove if it exists (or always add if in singleton mode - we've reset the list above)
       if (exists !== -1) {

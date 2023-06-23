@@ -64,9 +64,9 @@ export async function allDashboardsExist(store, clusterId, embeddedUrls, storeNa
 
   const monitoringVersion = res?.currentVersion;
 
-  const existPromises = embeddedUrls.map(url => dashboardExists(monitoringVersion, store, clusterId, url, storeName));
+  const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName));
 
-  return (await Promise.all(existPromises)).every(exists => exists);
+  return (await Promise.all(existPromises)).every((exists) => exists);
 }
 
 export function queryGrafana(monitoringVersion, dispatch, clusterId, query, range, step) {

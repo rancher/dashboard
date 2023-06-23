@@ -27,7 +27,7 @@ export default {
     ...mapGetters(['currentCluster']),
 
     excludedProjects() {
-      return this.toMove.filter(namespace => !!namespace.project).map(namespace => namespace.project.shortId);
+      return this.toMove.filter((namespace) => !!namespace.project).map((namespace) => namespace.project.shortId);
     },
 
     projectOptions() {

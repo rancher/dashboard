@@ -98,7 +98,7 @@ export default {
     },
 
     filteredCredentials() {
-      return this.allCredentials.filter(x => x.provider === this.driverName);
+      return this.allCredentials.filter((x) => x.provider === this.driverName);
     },
 
     options() {
@@ -109,7 +109,7 @@ export default {
         };
       });
 
-      if ( this.originalId && !out.find(x => x.value === this.originalId) ) {
+      if ( this.originalId && !out.find((x) => x.value === this.originalId) ) {
         out.unshift({
           label: `${ this.originalId.replace(/^cattle-global-data:/, '') } (current)`,
           value: this.originalId

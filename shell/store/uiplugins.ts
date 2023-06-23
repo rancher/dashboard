@@ -44,7 +44,7 @@ export const mutations = {
   },
 
   removePlugin(state: UIPluginState, pluginName: string) {
-    const index = state.plugins.findIndex(p => p.name === pluginName);
+    const index = state.plugins.findIndex((p) => p.name === pluginName);
 
     if (index !== -1) {
       state.plugins.splice(index, 1);

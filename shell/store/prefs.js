@@ -60,8 +60,8 @@ export const THEME = create('theme', 'auto', {
   options:     ['light', 'auto', 'dark'],
   asCookie,
   parseJSON,
-  mangleRead:  x => x.replace(/^ui-/, ''),
-  mangleWrite: x => `ui-${ x }`,
+  mangleRead:  (x) => x.replace(/^ui-/, ''),
+  mangleWrite: (x) => `ui-${ x }`,
 });
 export const PREFERS_SCHEME = create('pcs', '', { asCookie, asUserPreference: false });
 export const LOCALE = create('locale', 'en-us', { asCookie });
@@ -141,7 +141,7 @@ export const state = function() {
 };
 
 export const getters = {
-  get: state => (key) => {
+  get: (state) => (key) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -159,7 +159,7 @@ export const getters = {
     return def;
   },
 
-  defaultValue: state => (key) => {
+  defaultValue: (state) => (key) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -169,7 +169,7 @@ export const getters = {
     return clone(definition.def);
   },
 
-  options: state => (key) => {
+  options: (state) => (key) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -531,7 +531,7 @@ function getLoginRoute(route) {
   const routeParams = route.params || {};
 
   // Find the 'resource' part of the route, if it is there
-  const index = parts.findIndex(p => p === 'resource');
+  const index = parts.findIndex((p) => p === 'resource');
 
   if (index >= 0) {
     parts = parts.slice(0, index);

@@ -11,7 +11,7 @@ export const state = function() {
 };
 
 export const getters = {
-  find: state => ({ key, val }) => {
+  find: (state) => ({ key, val }) => {
     return findBy(state.stack, key, val);
   }
 };

@@ -18,7 +18,7 @@ export default class CronJob extends Workload {
     const suspended = this.spec?.suspend || false;
 
     const jobSchema = this.$getters['schemaFor'](WORKLOAD_TYPES.JOB);
-    const canRunNow = !!jobSchema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase()));
+    const canRunNow = !!jobSchema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase()));
 
     insertAt(out, 0, {
       action:   'runNow',

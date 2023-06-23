@@ -6,7 +6,7 @@ import AgentConfigurationRke2 from '@/cypress/e2e/po/components/agent-configurat
  * Create page for an RKE2 custom cluster
  */
 export default class ClusterManagerCreateRke2CustomPagePo extends ClusterManagerCreatePagePo {
-  static url: string = `${ ClusterManagerCreatePagePo.url }/create?type=custom#basic`
+  static url = `${ ClusterManagerCreatePagePo.url }/create?type=custom#basic`
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(ClusterManagerCreateRke2CustomPagePo.url);
   }

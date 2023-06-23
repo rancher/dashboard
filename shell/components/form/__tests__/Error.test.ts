@@ -26,7 +26,7 @@ describe('component: Error', () => {
   });
   it('should properly pass the component value property to test function', () => {
     const value = 'testValue';
-    const rules: Rule[] = [val => val];
+    const rules: Rule[] = [(val) => val];
 
     const wrapper = mount(Error, { propsData: { value, rules } });
     const element = wrapper.find('[data-testid="error-span"]');

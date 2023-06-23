@@ -72,7 +72,7 @@ export default {
       const items = [
         ...(this.moreDetails || []),
         ...(this.value?.details || []),
-      ].filter(x => x.separator || (!!`${ x.content }` && x.content !== undefined && x.content !== null));
+      ].filter((x) => x.separator || (!!`${ x.content }` && x.content !== undefined && x.content !== null));
 
       const groups = [];
       let currentGroup = [];

@@ -939,7 +939,7 @@ export default class Resource {
   }
 
   get canCreate() {
-    if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+    if ( this.schema && !this.schema?.collectionMethods.find((x) => x.toLowerCase() === 'post') ) {
       return false;
     }
 
@@ -955,7 +955,7 @@ export default class Resource {
   }
 
   get canEditYaml() {
-    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
+    return this.schema?.resourceMethods?.find((x) => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
@@ -1489,7 +1489,7 @@ export default class Resource {
     const rules = [];
 
     const customValidationRulesets = this?.customValidationRules
-      .filter(rule => !!rule.validators || !!rule.required)
+      .filter((rule) => !!rule.validators || !!rule.required)
       .map((rule) => {
         const formRules = formRulesGenerator(this.t, { displayKey: rule?.translationKey ? this.t(rule.translationKey) : 'Value' });
 
@@ -1510,10 +1510,10 @@ export default class Resource {
               return formRules[rule];
             }
             )
-            .filter(rule => !!rule)
+            .filter((rule) => !!rule)
         };
       })
-      .filter(ruleset => ruleset.rules.length > 0);
+      .filter((ruleset) => ruleset.rules.length > 0);
 
     rules.push(...customValidationRulesets);
 
@@ -1530,7 +1530,7 @@ export default class Resource {
         customValidationRules = customValidationRules();
       }
 
-      customValidationRules.filter(rule => !ignorePaths.includes(rule.path)).forEach((rule) => {
+      customValidationRules.filter((rule) => !ignorePaths.includes(rule.path)).forEach((rule) => {
         const {
           path,
           requiredIf: requiredIfPath,
@@ -1714,7 +1714,7 @@ export default class Resource {
         const allOfResourceType = this.$rootGetters['cluster/all']( type );
 
         this.ownersByType[kind].forEach((resource, idx) => {
-          const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
+          const resourceInstance = allOfResourceType.find((resourceByType) => resourceByType?.metadata?.uid === resource.uid);
 
           if (resourceInstance) {
             owners.push(resourceInstance);
@@ -1737,7 +1737,7 @@ export default class Resource {
       details.push({
         label:     this.t('resourceDetail.detailTop.ownerReferences', { count: this.owners.length }),
         formatter: 'ListLinkDetail',
-        content:   this.owners.map(owner => ({
+        content:   this.owners.map((owner) => ({
           key:   owner.id,
           row:   owner,
           col:   {},

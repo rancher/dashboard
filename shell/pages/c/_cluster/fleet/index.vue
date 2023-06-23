@@ -46,7 +46,7 @@ export default {
     this.fleetWorkspacesData = hash.fleetWorkspaces || [];
 
     try {
-      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO, schemaValidator: schema => schema.resourceMethods.includes('PUT') } }, this.$store.getters);
+      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO, schemaValidator: (schema) => schema.resourceMethods.includes('PUT') } }, this.$store.getters);
 
       this.permissions = permissions;
     } catch (e) {
@@ -128,13 +128,13 @@ export default {
       });
     },
     workspacesData() {
-      return this.fleetWorkspaces.filter(ws => ws.repos && ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => ws.repos && ws.repos.length);
     },
     emptyWorkspaces() {
-      return this.fleetWorkspaces.filter(ws => !ws.repos || !ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => !ws.repos || !ws.repos.length);
     },
     areAllCardsExpanded() {
-      return Object.keys(this.isCollapsed).every(key => !this.isCollapsed[key]);
+      return Object.keys(this.isCollapsed).every((key) => !this.isCollapsed[key]);
     }
   },
   methods: {
@@ -166,19 +166,19 @@ export default {
           icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       case 'bundles':
-        if (row.bundles?.length && row.bundles?.every(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+        if (row.bundles?.length && row.bundles?.every((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
           return {
             badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+        if (row.bundles?.length && row.bundles?.some((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
           return {
             badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+        if (row.bundles?.length && row.bundles?.some((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
           return {
             badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
@@ -197,19 +197,19 @@ export default {
           icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       case 'resources':
-        if (row.status?.resources?.length && row.status?.resources?.every(resource => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+        if (row.status?.resources?.length && row.status?.resources?.every((resource) => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
           return {
             badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+        if (row.status?.resources?.length && row.status?.resources?.some((resource) => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
           return {
             badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+        if (row.status?.resources?.length && row.status?.resources?.some((resource) => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
           return {
             badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
@@ -290,7 +290,7 @@ export default {
 
   watch: {
     fleetWorkspaces(value) {
-      value?.filter(ws => ws.repos?.length).forEach((ws) => {
+      value?.filter((ws) => ws.repos?.length).forEach((ws) => {
         this.$set(this.isCollapsed, ws.id, false);
       });
     }

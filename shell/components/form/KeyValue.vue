@@ -167,7 +167,7 @@ export default {
     // you want to preserve but not support editing
     supported: {
       type:    Function,
-      default: v => true,
+      default: (v) => true,
     },
     // For asMap=false, preserve (copy) these keys from the original value into the emitted value.
     // Also useful for valueFrom as above.
@@ -272,12 +272,12 @@ export default {
       return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
     },
     usedKeyOptions() {
-      return this.rows.map(row => row[this.keyName]);
+      return this.rows.map((row) => row[this.keyName]);
     },
     filteredKeyOptions() {
       if (this.keyOptionUnique) {
         return this.keyOptions
-          .filter(option => !this.usedKeyOptions.includes(option.value));
+          .filter((option) => !this.usedKeyOptions.includes(option.value));
       }
 
       return this.keyOptions;
@@ -292,7 +292,7 @@ export default {
      * Filter rows based on toggler, keeping to still emit all the values
      */
     filteredRows() {
-      return this.rows.filter(row => !(this.isProtected(row.key) && !this.toggleFilter));
+      return this.rows.filter((row) => !(this.isProtected(row.key) && !this.toggleFilter));
     }
   },
   created() {
@@ -505,7 +505,7 @@ export default {
         return;
       }
       event.preventDefault();
-      const keyValues = splits.map(split => ({
+      const keyValues = splits.map((split) => ({
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
         supported:        true,
@@ -517,7 +517,7 @@ export default {
       this.queueUpdate();
     },
     calculateOptions(value) {
-      const valueOption = this.keyOptions.find(o => o.value === value);
+      const valueOption = this.keyOptions.find((o) => o.value === value);
 
       if (valueOption) {
         return [valueOption, ...this.filteredKeyOptions];

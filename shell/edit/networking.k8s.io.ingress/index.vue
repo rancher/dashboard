@@ -134,24 +134,24 @@ export default {
     },
     serviceTargets() {
       return this.filterByCurrentResourceNamespace(this.allServices)
-        .map(service => ({
+        .map((service) => ({
           label: service.metadata.name,
           value: service.metadata.name,
-          ports: service.spec.ports?.map(p => p.port)
+          ports: service.spec.ports?.map((p) => p.port)
         }));
     },
     firstTabLabel() {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
     certificates() {
-      return this.filterByCurrentResourceNamespace(this.allSecrets.filter(secret => secret._type === TYPES.TLS)).map((secret) => {
+      return this.filterByCurrentResourceNamespace(this.allSecrets.filter((secret) => secret._type === TYPES.TLS)).map((secret) => {
         const { id } = secret;
 
         return id.slice(id.indexOf('/') + 1);
       });
     },
     ingressClasses() {
-      return this.allIngressClasses.map(ingressClass => ({
+      return this.allIngressClasses.map((ingressClass) => ({
         label: ingressClass.metadata.name,
         value: ingressClass.metadata.name,
       }));

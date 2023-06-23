@@ -8,7 +8,7 @@ import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 export default class ExtensionsPo extends PagePo {
-  static url: string = '/c/local/uiplugins'
+  static url = '/c/local/uiplugins'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ExtensionsPo.url);
   }

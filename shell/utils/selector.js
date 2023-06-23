@@ -53,7 +53,7 @@ export function parse(labelSelector) {
     }
   }
 
-  const parts = labelSelector.split(/\s*,\s*/).filter(x => !!x);
+  const parts = labelSelector.split(/\s*,\s*/).filter((x) => !!x);
 
   for ( let rule of parts ) {
     rule = rule.trim();
@@ -224,5 +224,5 @@ export function matches(obj, selector, labelKey = 'metadata.labels') {
 }
 
 export function matching(ary, selector, labelKey) {
-  return ary.filter(obj => matches(obj, selector, labelKey));
+  return ary.filter((obj) => matches(obj, selector, labelKey));
 }

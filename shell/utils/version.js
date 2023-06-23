@@ -17,7 +17,7 @@ export function parse(str) {
 }
 
 export function sortable(str) {
-  return parse(str).map(x => sortableNumericSuffix(x)).join('.');
+  return parse(str).map((x) => sortableNumericSuffix(x)).join('.');
 }
 
 export function compare(in1, in2) {

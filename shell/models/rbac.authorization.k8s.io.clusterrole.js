@@ -8,10 +8,10 @@ export default class ClusterRole extends Role {
   }
 
   get namespaceResources() {
-    return this.allResources.filter(r => r.attributes.namespaced && !r.attributes.group.includes(CATTLE_API_GROUP));
+    return this.allResources.filter((r) => r.attributes.namespaced && !r.attributes.group.includes(CATTLE_API_GROUP));
   }
 
   get resources() {
-    return uniq(this.namespaceResources.map(r => r.attributes?.kind)).sort();
+    return uniq(this.namespaceResources.map((r) => r.attributes?.kind)).sort();
   }
 }

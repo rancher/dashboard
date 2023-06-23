@@ -3,7 +3,7 @@ import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '~/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export default class PagePo extends ComponentPo {
-  constructor(protected path: string, selector: string = '.dashboard-root') {
+  constructor(protected path: string, selector = '.dashboard-root') {
     super(selector);
   }
 
@@ -51,7 +51,7 @@ export default class PagePo extends ComponentPo {
   }
 
   isCurrentPage(): Cypress.Chainable<boolean> {
-    return cy.url().then(url => url === Cypress.config().baseUrl + this.path);
+    return cy.url().then((url) => url === Cypress.config().baseUrl + this.path);
   }
 
   checkIsCurrentPage() {

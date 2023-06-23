@@ -25,7 +25,7 @@ export default {
   },
 
   data() {
-    const volumeMounts = (this.container.volumeMounts || []).filter(mount => mount.name === this.name);
+    const volumeMounts = (this.container.volumeMounts || []).filter((mount) => mount.name === this.name);
 
     return { volumeMounts };
   },
@@ -34,7 +34,7 @@ export default {
 
   watch: {
     volumeMounts(neu) {
-      this.container.volumeMounts = (this.container.volumeMounts || []).filter(mount => mount.name && (mount.name !== this.name));
+      this.container.volumeMounts = (this.container.volumeMounts || []).filter((mount) => mount.name && (mount.name !== this.name));
       this.container.volumeMounts.push(...neu);
     },
 

@@ -21,7 +21,7 @@ export function toMilliseconds(input) {
 
   if (d) {
     const properties = d.slice(1);
-    const numberD = properties.map(value => ([null, undefined].includes(value) ? 0 : Number(value)));
+    const numberD = properties.map((value) => ([null, undefined].includes(value) ? 0 : Number(value)));
     const data = {};
 
     [

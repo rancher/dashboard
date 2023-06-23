@@ -661,7 +661,7 @@ const defaultActions = {
       have = getters['all'](resourceType).slice();
 
       if ( namespace ) {
-        have = have.filter(x => x.metadata?.namespace === namespace);
+        have = have.filter((x) => x.metadata?.namespace === namespace);
       }
 
       want = await dispatch('findAll', {
@@ -1012,7 +1012,7 @@ const defaultMutations = {
   },
 
   setWatchStarted(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+    const existing = state.started.find((entry) => equivalentWatch(obj, entry));
 
     if ( !existing ) {
       addObject(state.started, obj);
@@ -1022,7 +1022,7 @@ const defaultMutations = {
   },
 
   setWatchStopped(state, obj) {
-    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+    const existing = state.started.find((entry) => equivalentWatch(obj, entry));
 
     if ( existing ) {
       removeObject(state.started, existing);
@@ -1066,12 +1066,12 @@ const defaultMutations = {
  * Getters that cover cases 1 & 2 (see file description)
  */
 const defaultGetters = {
-  inError: state => (obj) => {
+  inError: (state) => (obj) => {
     return state.inError[keyForSubscribe(obj)];
   },
 
-  watchStarted: state => (obj) => {
-    return !!state.started.find(entry => equivalentWatch(obj, entry));
+  watchStarted: (state) => (obj) => {
+    return !!state.started.find((entry) => equivalentWatch(obj, entry));
   },
 
   nextResourceVersion: (state, getters) => (type, id) => {

@@ -203,7 +203,7 @@ export const actions = {
     const nonce = await dispatch('setNonce', opt);
 
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
-    const scopes = fromQuery.split(/[, ]+/).filter(x => !!x);
+    const scopes = fromQuery.split(/[, ]+/).filter((x) => !!x);
 
     if (BASE_SCOPES[provider]) {
       addObjects(scopes, BASE_SCOPES[provider]);

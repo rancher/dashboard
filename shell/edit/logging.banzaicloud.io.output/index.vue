@@ -37,7 +37,7 @@ export default {
 
     set(this.value, 'spec', this.value.spec || {});
 
-    const providers = PROVIDERS.map(provider => ({
+    const providers = PROVIDERS.map((provider) => ({
       ...provider,
       value: provider.name,
       label: this.t(provider.labelKey)
@@ -89,7 +89,7 @@ export default {
       return EDITOR_MODES;
     },
     enabledProviders() {
-      return this.providers.filter(p => p.enabled);
+      return this.providers.filter((p) => p.enabled);
     },
     isNamespaced() {
       return this.value.type !== LOGGING?.CLUSTER_OUTPUT;
@@ -114,7 +114,7 @@ export default {
       const t = this.$store.getters['i18n/t'];
 
       if (this.selectedProvider === 'loki') {
-        const urlCheck = ['https://', 'http://'].some(checkValue => this.value.spec['loki'].url.toLowerCase().startsWith(checkValue));
+        const urlCheck = ['https://', 'http://'].some((checkValue) => this.value.spec['loki'].url.toLowerCase().startsWith(checkValue));
         const isLokiHttps = this.value.spec['loki'].url ? urlCheck : undefined;
 
         if (!isLokiHttps) {

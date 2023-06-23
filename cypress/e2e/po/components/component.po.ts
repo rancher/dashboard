@@ -30,7 +30,7 @@ export default class ComponentPo {
   }
 
   isDisabled(): Cypress.Chainable<boolean> {
-    return this.self().invoke('attr', 'disabled').then(disabled => disabled === 'disabled');
+    return this.self().invoke('attr', 'disabled').then((disabled) => disabled === 'disabled');
   }
 
   checkVisible(): Cypress.Chainable<boolean> {

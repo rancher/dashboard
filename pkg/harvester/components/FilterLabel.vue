@@ -42,7 +42,7 @@ export default {
       const valueOptions = [];
 
       this.rows.map((row) => {
-        const isExistValue = valueOptions.find(value => value.label === row.labels[key]);
+        const isExistValue = valueOptions.find((value) => value.label === row.labels[key]);
 
         if (Object.keys(row.labels).includes(key) && key && row.labels[key] && !isExistValue) {
           valueOptions.push({
@@ -72,7 +72,7 @@ export default {
 
     filterRows() {
       const rows = this.rows.filter((row) => {
-        const hasSearch = this.searchLabels.find(search => search.key);
+        const hasSearch = this.searchLabels.find((search) => search.key);
 
         if (!hasSearch) {
           return this.rows;
@@ -115,8 +115,15 @@ export default {
 <template>
   <div class="filter">
     <template v-for="(label, index) in searchLabels">
-      <span v-if="label.key" :key="`${label.key}${index}`" class="banner-item bg-warning">
-        {{ label.key }}{{ label.value ? "=" : '' }}{{ label.value }}<i class="icon icon-close" @click="remove(label)" />
+      <span
+        v-if="label.key"
+        :key="`${label.key}${index}`"
+        class="banner-item bg-warning"
+      >
+        {{ label.key }}{{ label.value ? "=" : '' }}{{ label.value }}<i
+          class="icon icon-close"
+          @click="remove(label)"
+        />
       </span>
     </template>
 
@@ -125,7 +132,10 @@ export default {
       placement="bottom-end"
     >
       <slot name="header">
-        <button ref="actionDropDown" class="btn bg-primary mr-10">
+        <button
+          ref="actionDropDown"
+          class="btn bg-primary mr-10"
+        >
           <slot name="title">
             {{ t('harvester.fields.filterLabels') }}
           </slot>
@@ -177,7 +187,13 @@ export default {
                     :options="calcValueOptions(scope.row.value.key)"
                     @input="filterRows"
                   />
-                  <input v-else v-model="scope.row.value.value" class="input-sm" type="search" @input="filterRows" />
+                  <input
+                    v-else
+                    v-model="scope.row.value.value"
+                    class="input-sm"
+                    type="search"
+                    @input="filterRows"
+                  />
                 </div>
               </template>
 

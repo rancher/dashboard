@@ -67,7 +67,7 @@ export default {
     },
     bundleResourceIds() {
       if (this.value.status?.resourceKey) {
-        return this.value?.status?.resourceKey.map(item => item.name);
+        return this.value?.status?.resourceKey.map((item) => item.name);
       }
 
       return [];

@@ -11,11 +11,10 @@ import {
   IPlugin,
   LocationConfig,
   ExtensionPoint,
+
+  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
-import {
-  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
-} from '@shell/core/types';
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 

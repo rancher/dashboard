@@ -54,8 +54,8 @@ export default {
 
   computed: {
     ...mapState({
-      scopes:      state => state.github.scopes,
-      recentRepos: state => state.github.repos,
+      scopes:      (state) => state.github.scopes,
+      recentRepos: (state) => state.github.repos,
     }),
 
     hasPrivate() {

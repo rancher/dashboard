@@ -223,11 +223,11 @@ export default {
           }
 
           if ( val !== null ) {
-            expression.values = val.split(/\s*,\s*/).filter(x => !!x);
+            expression.values = val.split(/\s*,\s*/).filter((x) => !!x);
           }
 
           return expression;
-        }).filter(x => !!x);
+        }).filter((x) => !!x);
 
         if ( isArray(this.value) || this.matchingSelectorDisplay ) {
           this.$emit('input', out);

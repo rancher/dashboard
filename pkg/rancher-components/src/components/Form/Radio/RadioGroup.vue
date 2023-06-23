@@ -209,7 +209,7 @@ export default Vue.extend({
         <slot
           :listeners="$listeners"
           :option="option"
-          :isDisabled="isDisabled"
+          :is-disabled="isDisabled"
           :name="i"
         >
           <RadioButton

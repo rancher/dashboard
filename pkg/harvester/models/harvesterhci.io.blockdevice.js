@@ -15,7 +15,7 @@ export default class HciBlockDevice extends HarvesterResource {
   }
 
   get isChildPartProvisioned() {
-    const parts = this.childParts.filter(p => p.spec?.fileSystem?.provisioned) || [];
+    const parts = this.childParts.filter((p) => p.spec?.fileSystem?.provisioned) || [];
 
     return parts.length > 0;
   }

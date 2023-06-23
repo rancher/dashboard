@@ -64,7 +64,10 @@ export default {
         >
           <template #value>
             <ul>
-              <li v-for="a in value.ipv4Address" :key="a">
+              <li
+                v-for="a in value.ipv4Address"
+                :key="a"
+              >
                 {{ a }}
               </li>
             </ul>

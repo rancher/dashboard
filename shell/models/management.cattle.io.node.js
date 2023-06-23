@@ -114,7 +114,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get provisioningCluster() {
-    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find(c => c.mgmtClusterId === this.mgmtClusterId);
+    return this.$getters['all'](CAPI.RANCHER_CLUSTER).find((c) => c.mgmtClusterId === this.mgmtClusterId);
   }
 
   get doneOverride() {
@@ -148,7 +148,7 @@ export default class MgmtNode extends HybridModel {
 
   get externalIp() {
     const addresses = this.status?.addresses || [];
-    const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
+    const statusAddress = findLast(addresses, (address) => address.type === 'ExternalIP')?.address;
 
     if (statusAddress) {
       return statusAddress;
