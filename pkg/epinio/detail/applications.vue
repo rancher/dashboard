@@ -161,7 +161,7 @@ export default Vue.extend<Data, any, any, any>({
 
       const arr: any[] = isArray(commits) ? commits : [commits];
 
-      return arr.map(c => ({
+      return arr.map((c) => ({
         ...GitUtils[this.gitType].normalize.commit(c),
         availableActions: this.commitActions,
         editFromCommit:   () => this.value.goToEdit({ commit: c.sha || c.id }),

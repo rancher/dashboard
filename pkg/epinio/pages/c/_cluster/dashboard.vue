@@ -113,7 +113,7 @@ export default Vue.extend<any, any, any, any>({
       const fetchServices: EpinioCatalogService[] = this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE);
 
       // Try to find the desired services
-      const findDesiredServices = fetchServices?.filter(service => service?.shortId === 'mysql-dev' || service?.shortId === 'redis-dev');
+      const findDesiredServices = fetchServices?.filter((service) => service?.shortId === 'mysql-dev' || service?.shortId === 'redis-dev');
 
       //  if not found, return the first two services from the catalog
       const services: EpinioCatalogService[] | any =

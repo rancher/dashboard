@@ -55,7 +55,7 @@ export default {
         await resource.createManifest();
       } else {
         const partsData = await resource?.applicationParts
-          .filter(part => part !== APPLICATION_PARTS.MANIFEST)
+          .filter((part) => part !== APPLICATION_PARTS.MANIFEST)
           .reduce(async(acc, part) => ({
             ...await acc,
             [part]: await resource.fetchPart(part),

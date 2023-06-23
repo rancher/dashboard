@@ -27,7 +27,7 @@ export const bulkRemove = async(items, opt = {}) => {
     .keys(_byNamespace)
     .reduce((acc, cur) => {
       acc[cur] = _byNamespace[cur]
-        .map(_e => `${ model.type }[]=${ _e }`)
+        .map((_e) => `${ model.type }[]=${ _e }`)
         .join('&');
 
       return acc;
@@ -43,9 +43,9 @@ export const bulkRemove = async(items, opt = {}) => {
   }));
 
   // Remove from store, so we don't wait for poll to show resources removed
-  items.forEach(i => model.$dispatch('remove', i));
+  items.forEach((i) => model.$dispatch('remove', i));
 
-  console.log('### Resource Bulk Remove', model.type, items?.map(ele => ele?.id), opt); // eslint-disable-line no-console
+  console.log('### Resource Bulk Remove', model.type, items?.map((ele) => ele?.id), opt); // eslint-disable-line no-console
 };
 
 export default class EpinioMetaResource extends EpinioResource {
