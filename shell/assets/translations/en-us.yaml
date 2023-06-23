@@ -3026,8 +3026,6 @@ managementNode:
 members:
   clusterMembers: Cluster Members
   clusterAndProject: Cluster and Project Members
-  cluster: Cluster Members
-  project: Project Members
   createActionLabel: Add
   clusterMemebership: Cluster Membership
   projectMembership: Project Membership

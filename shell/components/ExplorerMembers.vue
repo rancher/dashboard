@@ -3,15 +3,14 @@ import { MANAGEMENT, NORMAN, VIRTUAL_TYPES } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { AGE, ROLE, STATE, PRINCIPAL } from '@shell/config/table-headers';
-import { canEditClusterPermissions, canViewClusterPermissions } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
-import { canEditProjectPermissions, canViewProjectPermissions } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
+import { canViewClusterPermissionsEditor } from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
 import Banner from '@components/Banner/Banner.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import SortableTable from '@shell/components/SortableTable';
 import { mapGetters } from 'vuex';
+import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
 import { allHash } from '@shell/utils/promise';
-import { camelCase } from 'lodash';
 
 /**
  * Explorer members page.
@@ -43,41 +42,31 @@ export default {
   },
 
   async fetch() {
-    if (canViewClusterPermissions(this.$store)) {
-      const clusterId = this.$store.getters['currentCluster'].id;
-      const normanClusterRTBSchema = this.$store.getters[
-        `rancher/schemaFor`
-      ](NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING);
+    const clusterRoleTemplateBindingSchema = this.$store.getters[
+      `rancher/schemaFor`
+    ](NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING);
 
-      this.$set(this, 'normanClusterRTBSchema', normanClusterRTBSchema);
+    const projectRoleTemplateBindingSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
 
-      if (normanClusterRTBSchema) {
-        Promise.all([
-          this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING, opt: { filter: { clusterId } } }, { root: true }),
-          this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
-        ]).then(([normanBindings]) => {
-          this.$set(this, 'normanClusterRoleTemplateBindings', normanBindings);
-          this.loadingClusterBindings = false;
-        });
-      } else {
+    this.$set(this, 'normanClusterRTBSchema', clusterRoleTemplateBindingSchema);
+    this.$set(this, 'normanProjectRTBSchema', projectRoleTemplateBindingSchema);
+
+    if (clusterRoleTemplateBindingSchema) {
+      Promise.all([
+        this.$store.dispatch(`rancher/findAll`, { type: NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING }, { root: true }),
+        this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING })
+      ]).then(([normanBindings]) => {
+        this.$set(this, 'normanClusterRoleTemplateBindings', normanBindings);
         this.loadingClusterBindings = false;
-      }
+      });
     }
 
-    if (canViewProjectPermissions(this.$store)) {
-      const normanProjectRTBSchema = this.$store.getters['rancher/schemaFor'](NORMAN.PROJECT_ROLE_TEMPLATE_BINDING);
-
-      this.$set(this, 'normanProjectRTBSchema', normanProjectRTBSchema);
-
-      if (normanProjectRTBSchema) {
-        this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
-          .then((bindings) => {
-            this.$set(this, 'projectRoleTemplateBindings', bindings);
-            this.loadingProjectBindings = false;
-          });
-      } else {
-        this.loadingProjectBindings = false;
-      }
+    if (projectRoleTemplateBindingSchema) {
+      this.$store.dispatch('rancher/findAll', { type: NORMAN.PROJECT_ROLE_TEMPLATE_BINDING }, { root: true })
+        .then((bindings) => {
+          this.$set(this, 'projectRoleTemplateBindings', bindings);
+          this.loadingProjectBindings = false;
+        });
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
@@ -105,7 +94,6 @@ export default {
           cluster: this.$store.getters['currentCluster'].id
         }
       },
-      currentUsersProjectPermissions:    {},
       resource:                          MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       normanClusterRTBSchema:            null,
       normanProjectRTBSchema:            null,
@@ -128,15 +116,13 @@ export default {
         },
       ],
       loadingProjectBindings: true,
-      loadingClusterBindings: true,
-      userCanManageProject:   {}
+      loadingClusterBindings: true
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
     clusterRoleTemplateBindings() {
-      // Switch norman cluster role template binding to steve cluster role template binding (not sure why?)
       return this.normanClusterRoleTemplateBindings.map(b => b.clusterroletemplatebinding) ;
     },
     filteredClusterRoleTemplateBindings() {
@@ -221,74 +207,26 @@ export default {
           rows[userOrGroupKey].allRoles.push(curr.roleTemplate);
         }
 
-        const { allRoles = [], isCurrentUser } = curr;
-
-        // Determine if the current user can manage permissions for this specific project
-        // We can skip this if..
-        // - user can manage cluster, that trumps everything else
-        // - not current user, we only use this for showing permissions of that user
-        // We're assigning userCanManageProject in a getter for performance reasons
-        if (!this.userCanManageCluster && isCurrentUser) {
-          this.userCanManageProject[projectId] = allRoles.some((rtb) => {
-            const { id, rules } = rtb;
-
-            return id === 'project-owner' || rules.some((rule) => {
-              const { apiGroups = [], resources = [], verbs = [] } = rule;
-
-              return ['*', 'management.cattle.io'].some(apiGroup => apiGroups.includes(apiGroup)) &&
-                ['*', 'projectroletemplatebindings'].some(resource => resources.includes(resource)) &&
-                ['*', 'own', 'create'].some(verb => verbs.includes(verb));
-            });
-          });
-        }
-
         return rows;
       }, {});
 
       return Object.values(userRoles);
     },
-    userCanManageCluster() {
-      // There can be a LOT of cluster and project bindings and a LOT of churn for them over sockets
-      // So once we have the required information to determine this... do it and only once.
-      // This means we won't update buttons if the user gains/loses cluster rights, but avoids looping through a large list often
-      if (
-        typeof this._userCanManageCluster === 'undefined' &&
-        this.$store.getters['management/all'](MANAGEMENT.USER)?.length &&
-        this.filteredClusterRoleTemplateBindings.length
-      ) {
-        this._userCanManageCluster = this.filteredClusterRoleTemplateBindings.some(crtb => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
-      }
-
-      return this._userCanManageCluster;
-    },
-    canViewClusterMemberPermissions() {
-      return canViewClusterPermissions(this.$store);
-    },
-    canViewProjectMemberPermissions() {
-      return canViewProjectPermissions(this.$store);
-    },
-    mastHeadTString() {
-      const strings = [];
-
-      if (this.canViewClusterMemberPermissions) {
-        strings.push('cluster');
-      }
-      if (this.canViewProjectMemberPermissions) {
-        strings.push('project');
-      }
-      const tString = camelCase(strings.join(' and '));
-
-      return `members.${ tString }`;
-    },
-    canManageClusterMembers() {
-      return canEditClusterPermissions(this.$store);
+    canManageMembers() {
+      return canViewClusterPermissionsEditor(this.$store);
     },
     canManageProjectMembers() {
-      return canEditProjectPermissions(this.$store);
+      return canViewProjectMembershipEditor(this.$store);
     },
     isLocal() {
       return this.$store.getters['currentCluster'].isLocal;
-    }
+    },
+    canEditProjectMembers() {
+      return this.normanProjectRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
+    canEditClusterMembers() {
+      return this.normanClusterRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+    },
   },
   methods: {
     getMgmtProjectId(group) {
@@ -299,9 +237,6 @@ export default {
     },
     getProjectLabel(group) {
       return this.getMgmtProject(group)?.spec?.displayName;
-    },
-    getManageProjectMembersPermission(projectId) {
-      return this.userCanManageCluster || this.userCanManageProject[projectId];
     },
     addProjectMember(group) {
       this.$store.dispatch('cluster/promptModal', {
@@ -353,7 +288,7 @@ export default {
       :create-location="createLocation"
       :create-button-label="t('members.createActionLabel')"
       :is-creatable="false"
-      :type-display="t(mastHeadTString)"
+      :type-display="t('members.clusterAndProject')"
     />
     <Banner
       v-if="isLocal"
@@ -362,12 +297,11 @@ export default {
     />
     <Tabbed>
       <Tab
-        v-if="canViewClusterMemberPermissions"
         name="cluster-membership"
         :label="t('members.clusterMemebership')"
       >
         <div
-          v-if="canManageClusterMembers"
+          v-if="canEditClusterMembers"
           class="row mb-10 cluster-add"
         >
           <n-link
@@ -390,7 +324,7 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="canViewProjectMemberPermissions"
+        v-if="canManageProjectMembers"
         name="project-membership"
         :label="t('members.projectMembership')"
       >
@@ -415,7 +349,7 @@ export default {
               </div>
               <div class="right">
                 <button
-                  v-if="getManageProjectMembersPermission(group.group.key)"
+                  v-if="canEditProjectMembers"
                   type="button"
                   class="create-namespace btn btn-sm role-secondary mr-10 right"
                   @click="addProjectMember(group)"
@@ -444,7 +378,6 @@ export default {
                 {{ role.nameDisplay }}
               </span>
               <i
-                v-if="getManageProjectMembersPermission(row.projectId)"
                 class="icon icon-close"
                 :data-testid="`role-values-close-${j}`"
                 @click="removeRole(row, role, $event)"
