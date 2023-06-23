@@ -129,6 +129,7 @@ export default {
       ],
       loadingProjectBindings: true,
       loadingClusterBindings: true,
+      userCanManageCluster:   undefined,
       userCanManageProject:   {}
     };
   },
@@ -198,6 +199,14 @@ export default {
         };
       });
 
+      // We're assigning userCanManageCluster and userCanManageCluster in a getter for performance reasons
+      // There can be a LOT of cluster and project bindings and a LOT of churn for them over sockets
+      // To miminise the impact of this try and populate them both in the most efficient way
+      if (typeof this.userCanManageCluster === 'undefined' && this.filteredClusterRoleTemplateBindings.length) {
+        // Doing this once means we won't update buttons if the user gains/loses cluster rights, but avoids looping through a large list often
+        this.userCanManageCluster = this.filteredClusterRoleTemplateBindings.some((crtb) => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
+      }
+
       // We need to group each of the TemplateRoleBindings by the user + project
       const userRoles = [...fakeRows, ...this.filteredProjectRoleTemplateBindings].reduce((rows, curr) => {
         const {
@@ -227,7 +236,6 @@ export default {
         // We can skip this if..
         // - user can manage cluster, that trumps everything else
         // - not current user, we only use this for showing permissions of that user
-        // We're assigning userCanManageProject in a getter for performance reasons
         if (!this.userCanManageCluster && isCurrentUser) {
           this.userCanManageProject[projectId] = allRoles.some((rtb) => {
             const { id, rules } = rtb;
@@ -246,20 +254,6 @@ export default {
       }, {});
 
       return Object.values(userRoles);
-    },
-    userCanManageCluster() {
-      // There can be a LOT of cluster and project bindings and a LOT of churn for them over sockets
-      // So once we have the required information to determine this... do it and only once.
-      // This means we won't update buttons if the user gains/loses cluster rights, but avoids looping through a large list often
-      if (
-        typeof this._userCanManageCluster === 'undefined' &&
-        this.$store.getters['management/all'](MANAGEMENT.USER)?.length &&
-        this.filteredClusterRoleTemplateBindings.length
-      ) {
-        this._userCanManageCluster = this.filteredClusterRoleTemplateBindings.some((crtb) => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
-      }
-
-      return this._userCanManageCluster;
     },
     canViewClusterMemberPermissions() {
       return canViewClusterPermissions(this.$store);
