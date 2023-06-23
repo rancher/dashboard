@@ -18,13 +18,6 @@ export default class PRTB extends NormanModel {
     return this.$rootGetters['management/byId'](MANAGEMENT.ROLE_TEMPLATE, this.roleTemplateId);
   }
 
-  get isCurrentUser() {
-    // This only checks the user is bound to the role... and not if the user is part of group that is bound to it
-    const out = this.$rootGetters['management/byId'](MANAGEMENT.USER, this.userId);
-
-    return !!out?.isCurrentUser;
-  }
-
   get steve() {
     return this.$dispatch(`management/find`, {
       type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING,
