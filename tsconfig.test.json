@@ -1,14 +1,16 @@
 {
-  "extends": "./tsconfig.default.json",
+  "extends": "./shell/tsconfig.default.json",
   "compilerOptions": {
     "types": [
-      "@types/node",
+      "jest"
     ]
   },
+  "include": [
+    "./**/*.test.ts"
+  ],
   "exclude": [
     "cypress",
     "./cypress.config.ts",
-    "**/*.test.ts",
     "**/*.spec.ts"
   ]
 }
