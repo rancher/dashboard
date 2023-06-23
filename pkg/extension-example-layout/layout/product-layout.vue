@@ -10,5 +10,7 @@ export default { layout: 'default' };
 </template>
 
 <style lang="scss" scoped>
-
+#my-prod-layout {
+  border: 3px solid red;
+}
 </style>
