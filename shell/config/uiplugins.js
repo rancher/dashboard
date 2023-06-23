@@ -78,7 +78,7 @@ export function uiPluginAnnotation(chart, name) {
 
 // Should we load a plugin, based on the metadata returned by the backend?
 // Returns error key string or false
-export function shouldNotLoadPlugin(plugin, rancherVersion) {
+export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   if (!plugin.name || !plugin.version || !plugin.endpoint) {
     return 'plugins.error.generic';
   }
@@ -104,6 +104,13 @@ export function shouldNotLoadPlugin(plugin, rancherVersion) {
     if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
     }
+  }
+
+  // check if a builtin extension has been loaded before - improve developer experience
+  const checkLoaded = loadedPlugins.find(p => p?.name === plugin?.name);
+
+  if (checkLoaded && checkLoaded.builtin) {
+    return 'plugins.error.developerPkg';
   }
 
   if (plugin.metadata?.[UI_PLUGIN_LABELS.CATALOG]) {
