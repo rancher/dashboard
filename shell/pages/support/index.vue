@@ -8,7 +8,6 @@ import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
-import { isDevBuild } from 'utils/version';
 
 export default {
   layout: 'home',
@@ -48,7 +47,6 @@ export default {
     this.brandSetting = await fetchOrCreateSetting(SETTING.BRAND, '');
     this.serverUrlSetting = await fetchOrCreateSetting(SETTING.SERVER_URL, '');
     this.uiIssuesSetting = await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.ISSUES });
-    this.settings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   },
 
   data() {
@@ -59,7 +57,6 @@ export default {
       brandSetting:    null,
       uiIssuesSetting: null,
       serverSetting:   null,
-      settings:        null,
       promos:          [
         'support.promos.one',
         'support.promos.two',
@@ -106,20 +103,6 @@ export default {
 
     sccLink() {
       return this.hasAWSSupport ? addParam('https://scc.suse.com', 'from_marketplace', '1') : 'https://scc.suse.com';
-    },
-
-    supportLink() {
-      const defaultSupportURL = 'https://rancher.com/support-maintenance-terms';
-      const version = this.settings?.find(s => s.id === SETTING.VERSION_RANCHER)?.value;
-
-      if (!version || isDevBuild(version)) {
-        return defaultSupportURL;
-      }
-
-      const baseUrl = 'https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-';
-      const formattedVersion = version.split('.').join('-');
-
-      return baseUrl + formattedVersion;
     }
   },
 
@@ -141,7 +124,7 @@ export default {
               <div class="support-link">
                 <a
                   class="support-link"
-                  :href="supportLink"
+                  href="https://rancher.com/support-maintenance-terms"
                   target="_blank"
                   rel="noopener noreferrer nofollow"
                 >{{ t('support.community.learnMore') }}</a>
