@@ -6,6 +6,6 @@ export default class ResourceListMastheadPo extends ComponentPo {
   }
 
   title() {
-    return this.self().find('.title > h1').invoke('text');
+    return this.self().get('.title h1').invoke('text');
   }
 }
