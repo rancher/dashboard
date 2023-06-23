@@ -8,7 +8,7 @@ import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
-import { isDevBuild } from 'utils/version';
+import { generateSupportLink } from '@shell/utils/version';
 
 export default {
   layout: 'home',
@@ -109,17 +109,9 @@ export default {
     },
 
     supportLink() {
-      const defaultSupportURL = 'https://rancher.com/support-maintenance-terms';
       const version = this.settings?.find((s) => s.id === SETTING.VERSION_RANCHER)?.value;
 
-      if (!version || isDevBuild(version)) {
-        return defaultSupportURL;
-      }
-
-      const baseUrl = 'https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-';
-      const formattedVersion = version.split('.').join('-');
-
-      return baseUrl + formattedVersion;
+      return generateSupportLink(version);
     }
   },
 
