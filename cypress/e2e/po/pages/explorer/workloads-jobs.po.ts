@@ -13,7 +13,7 @@ export class WorkloadsJobsListPagePo extends PagePo {
     return super.goTo(WorkloadsJobsListPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string = 'local') {
+  constructor(clusterId = 'local') {
     super(WorkloadsJobsListPagePo.createPath(clusterId));
   }
 
@@ -49,7 +49,7 @@ export class WorkLoadsJobDetailsPagePo extends PagePo {
     return super.goTo(this.url);
   }
 
-  constructor(jobId: string, queryParams?: { [key: string]: string }, clusterId: string = 'local', namespaceId: string = 'default') {
+  constructor(jobId: string, queryParams?: { [key: string]: string }, clusterId = 'local', namespaceId = 'default') {
     super(WorkLoadsJobDetailsPagePo.createPath(jobId, clusterId, namespaceId, queryParams));
 
     WorkLoadsJobDetailsPagePo.url = WorkLoadsJobDetailsPagePo.createPath(jobId, clusterId, namespaceId, queryParams);

@@ -81,7 +81,7 @@ export default {
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then(projects => this.$set(this, 'projects', projects));
+      .then((projects) => this.$set(this, 'projects', projects));
 
     const hydration = {
       normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
@@ -137,11 +137,11 @@ export default {
     ...mapGetters(['currentCluster']),
     clusterRoleTemplateBindings() {
       // Switch norman cluster role template binding to steve cluster role template binding (not sure why?)
-      return this.normanClusterRoleTemplateBindings.map(b => b.clusterroletemplatebinding) ;
+      return this.normanClusterRoleTemplateBindings.map((b) => b.clusterroletemplatebinding) ;
     },
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings.filter(
-        b => b?.clusterName === this.$store.getters['currentCluster'].id
+        (b) => b?.clusterName === this.$store.getters['currentCluster'].id
       );
     },
     filteredProjects() {
@@ -235,9 +235,9 @@ export default {
             return id === 'project-owner' || rules.some((rule) => {
               const { apiGroups = [], resources = [], verbs = [] } = rule;
 
-              return ['*', 'management.cattle.io'].some(apiGroup => apiGroups.includes(apiGroup)) &&
-                ['*', 'projectroletemplatebindings'].some(resource => resources.includes(resource)) &&
-                ['*', 'own', 'create'].some(verb => verbs.includes(verb));
+              return ['*', 'management.cattle.io'].some((apiGroup) => apiGroups.includes(apiGroup)) &&
+                ['*', 'projectroletemplatebindings'].some((resource) => resources.includes(resource)) &&
+                ['*', 'own', 'create'].some((verb) => verbs.includes(verb));
             });
           });
         }
@@ -256,7 +256,7 @@ export default {
         this.$store.getters['management/all'](MANAGEMENT.USER)?.length &&
         this.filteredClusterRoleTemplateBindings.length
       ) {
-        this._userCanManageCluster = this.filteredClusterRoleTemplateBindings.some(crtb => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
+        this._userCanManageCluster = this.filteredClusterRoleTemplateBindings.some((crtb) => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
       }
 
       return this._userCanManageCluster;

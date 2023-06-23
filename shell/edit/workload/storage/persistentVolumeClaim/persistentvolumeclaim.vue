@@ -70,7 +70,7 @@ export default {
 
   computed: {
     storageClassNames() {
-      return this.storageClasses.map(sc => sc.metadata.name);
+      return this.storageClasses.map((sc) => sc.metadata.name);
     },
 
     availablePVs() {
@@ -84,7 +84,7 @@ export default {
     },
 
     persistentVolumeNames() {
-      return this.availablePVs.map(pv => pv.metadata.name);
+      return this.availablePVs.map((pv) => pv.metadata.name);
     },
 
     ...mapGetters({ t: 'i18n/t' })

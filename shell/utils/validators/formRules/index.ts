@@ -53,7 +53,7 @@ export interface ValidationOptions {
 }
 
 // "t" is the function name we use for getting a translated string
-export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
+export default function(t: Translation, { key = 'Value' }: ValidationOptions): unknown {
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
 
@@ -103,7 +103,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
     if (matchedChars) {
       return t('validation.chars', {
-        key, count: matchedChars.length, chars: matchedChars.map(char => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
+        key, count: matchedChars.length, chars: matchedChars.map((char) => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
       });
     }
 
@@ -386,7 +386,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
   };
 
   // The existing validator for clusterIp never actually returns an error
-  const clusterIp: Validator = val => undefined;
+  const clusterIp: Validator = (val) => undefined;
 
   const backupTarget: Validator = (val) => {
     const parseValue = JSON.parse(val);

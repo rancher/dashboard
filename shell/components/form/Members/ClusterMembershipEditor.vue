@@ -1,8 +1,7 @@
 <script>
 import { NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
-import MembershipEditor from '@shell/components/form/Members/MembershipEditor';
-import { canViewMembershipEditor } from '@shell/components/form/Members/MembershipEditor.vue';
+import MembershipEditor, { canViewMembershipEditor } from '@shell/components/form/Members/MembershipEditor';
 
 export function canViewClusterMembershipEditor(store) {
   return canViewMembershipEditor(store);

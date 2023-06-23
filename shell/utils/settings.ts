@@ -1,6 +1,7 @@
 import { MANAGEMENT } from '@shell/config/types';
 import { Store } from 'vuex';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
+import { GC_PREFERENCES } from 'utils/gc/gc-types';
 
 export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: string, save = true): Promise<any> => {
   let setting;
@@ -27,7 +28,7 @@ export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: st
   * We fetch all settings - reality is Rancher will have done this already, so there's no overhead in doing
   * this - but if we fetch a specific setting that does not exist, we will get a 404, which we don't want
   */
-export const fetchSetting = async(store: Store<any>, id: string) => {
+export const fetchSetting = async(store: Store<any>, id: string): Promise<any> => {
   const all = await store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
   const setting = (all || []).find((setting: any) => setting.id === id);
 
@@ -43,7 +44,21 @@ export const setSetting = async(store: Store<any>, id: string, val: string): Pro
   return setting;
 };
 
-export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string, arg1: string) => any>) => {
+export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string, arg1: string) => any>): {
+  inactivity: {
+      enabled: boolean;
+      threshold: number;
+  };
+  incrementalLoading: {
+      enabled: boolean;
+      threshold: number;
+  };
+  manualRefresh: {};
+  disableWebsocketNotification: boolean;
+  garbageCollection: GC_PREFERENCES;
+  forceNsFilterV2: {};
+  advancedWorker: {};
+} => {
   const perfSettingResource = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
   let perfSetting = {};
 

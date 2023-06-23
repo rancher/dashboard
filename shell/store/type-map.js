@@ -476,7 +476,7 @@ export const getters = {
         const match = group.match(/^(.*)\.k8s\.io$/);
 
         if ( match ) {
-          return match[1].split(/\./).map(x => ucFirst(x)).join('.');
+          return match[1].split(/\./).map((x) => ucFirst(x)).join('.');
         }
 
         return group;
@@ -778,7 +778,7 @@ export const getters = {
       product = product || rootGetters['productId'];
       const productSpoofedTypes = state.spoofedTypes[product] || [];
 
-      return productSpoofedTypes.some(st => st.type === type);
+      return productSpoofedTypes.some((st) => st.type === type);
     };
   },
 
@@ -811,7 +811,7 @@ export const getters = {
     return async(type, product, id) => {
       const productInstances = await getters.getSpoofedInstances(type, product);
 
-      return productInstances.find( instance => instance.id === id);
+      return productInstances.find( (instance) => instance.id === id);
     };
   },
 
@@ -826,7 +826,7 @@ export const getters = {
       return types.flatMap((type) => {
         const schemas = type.schemas || [];
 
-        return schemas.map(schema => ({
+        return schemas.map((schema) => ({
           ...schema,
           isSpoofed: true
         }));
@@ -838,7 +838,7 @@ export const getters = {
     return getters.allSpoofedTypes.flatMap((type) => {
       const schemas = type.schemas || [];
 
-      return schemas.map(schema => ({
+      return schemas.map((schema) => ({
         ...schema,
         isSpoofed: true
       }));
@@ -921,7 +921,7 @@ export const getters = {
             const targetedSchemas = typeof item.ifHaveType === 'string' ? schemas : rootGetters[`${ item.ifHaveType.store }/all`](SCHEMA);
             const type = typeof item.ifHaveType === 'string' ? item.ifHaveType : item.ifHaveType?.type;
 
-            const haveIds = filterBy(targetedSchemas, 'id', normalizeType(type)).map(s => s.id);
+            const haveIds = filterBy(targetedSchemas, 'id', normalizeType(type)).map((s) => s.id);
 
             if (!haveIds.length) {
               continue;
@@ -1006,7 +1006,7 @@ export const getters = {
           } else {
             return entry;
           }
-        }).filter(col => !!col);
+        }).filter((col) => !!col);
       }
 
       // Otherwise make one up from schema
@@ -1060,7 +1060,7 @@ export const getters = {
           formatter = 'Number';
         }
 
-        const colName = col.name.includes(' ') ? col.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
+        const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
 
         const exists = rootGetters['i18n/exists'];
         const t = rootGetters['i18n/t'];
@@ -1094,7 +1094,7 @@ export const getters = {
     return (rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'list', key, key => resolveList(key));
+      return hasCustom(state, rootState, 'list', key, (key) => resolveList(key));
     };
   },
 
@@ -1102,7 +1102,7 @@ export const getters = {
     return (rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'chart', key, key => resolveChart(key));
+      return hasCustom(state, rootState, 'chart', key, (key) => resolveChart(key));
     };
   },
 
@@ -1110,7 +1110,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'detail', key, key => resolveDetail(key));
+      return hasCustom(state, rootState, 'detail', key, (key) => resolveDetail(key));
     };
   },
 
@@ -1130,13 +1130,13 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'edit', key, key => resolveEdit(key));
+      return hasCustom(state, rootState, 'edit', key, (key) => resolveEdit(key));
     };
   },
 
   hasComponent(state, getters, rootState) {
     return (path) => {
-      return hasCustom(state, rootState, 'edit', path, path => resolveEdit(path));
+      return hasCustom(state, rootState, 'edit', path, (path) => resolveEdit(path));
     };
   },
 
@@ -1152,7 +1152,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'windowComponents', key, key => resolveWindowComponent(key));
+      return hasCustom(state, rootState, 'windowComponents', key, (key) => resolveWindowComponent(key));
     };
   },
 
@@ -1160,7 +1160,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'machine-config', key, key => resolveMachineConfigComponent(key));
+      return hasCustom(state, rootState, 'machine-config', key, (key) => resolveMachineConfigComponent(key));
     };
   },
 
@@ -1168,7 +1168,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'cloud-credential', key, key => resolveCloudCredentialComponent(key));
+      return hasCustom(state, rootState, 'cloud-credential', key, (key) => resolveCloudCredentialComponent(key));
     };
   },
 
@@ -1350,7 +1350,7 @@ export const getters = {
       }
 
       if ( p.ifHaveType ) {
-        const haveIds = knownTypes[module].filter(t => t.match(stringToRegex(p.ifHaveType)) );
+        const haveIds = knownTypes[module].filter((t) => t.match(stringToRegex(p.ifHaveType)) );
 
         if ( !haveIds.length ) {
           return false;
@@ -1361,7 +1361,7 @@ export const getters = {
         }
       }
 
-      if ( p.ifHaveGroup && !knownGroups[module].find(t => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
+      if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
         return false;
       }
 
@@ -1395,7 +1395,7 @@ export const mutations = {
 
   // Remove the specified product
   remove(state, { product, plugin }) {
-    const existing = state.products.findIndex(p => p.name === product);
+    const existing = state.products.findIndex((p) => p.name === product);
 
     // Remove the product
     if (existing !== -1) {
@@ -1637,7 +1637,7 @@ export const mutations = {
   configureType(state, options) {
     const match = regexToString(ensureRegex(options.match));
 
-    const idx = state.typeOptions.findIndex(obj => obj.match === match);
+    const idx = state.typeOptions.findIndex((obj) => obj.match === match);
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
@@ -1827,7 +1827,7 @@ function ifHave(getters, option) {
     return getters.isMultiCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
-    return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
+    return getters[`cluster/all`](NAMESPACE).find((n) => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
   case IF_HAVE.ADMIN: {
     return isAdminUser(getters);
@@ -1873,7 +1873,7 @@ function _rowValueGetter(col) {
     if (found && found.length === 2) {
       const fieldIndex = parseInt(found[1], 10);
 
-      return row => row.metadata?.fields?.[fieldIndex];
+      return (row) => row.metadata?.fields?.[fieldIndex];
     }
   }
 
@@ -1893,7 +1893,7 @@ function ifHaveVerb(rootGetters, module, verb, haveIds) {
     const want = verb.toLowerCase();
     const collectionMethods = schema.collectionMethods || [];
     const resourceMethods = schema.resourceMethods || [];
-    const have = [...collectionMethods, ...resourceMethods].map(x => x.toLowerCase());
+    const have = [...collectionMethods, ...resourceMethods].map((x) => x.toLowerCase());
 
     if ( !have.includes(want) && !have.includes(`blocked-${ want }`) ) {
       return false;

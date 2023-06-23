@@ -14,8 +14,8 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
-import ProjectMembershipEditor from '@shell/components/form/Members/ProjectMembershipEditor';
-import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
+import ProjectMembershipEditor, { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor';
+
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
 
@@ -109,7 +109,7 @@ export default {
 
       const cur = this.value.status?.podSecurityPolicyTemplateId;
 
-      if ( cur && !out.find(x => x.value === cur) ) {
+      if ( cur && !out.find((x) => x.value === cur) ) {
         out.unshift({ label: this.t('project.psp.current', { value: cur }), value: cur });
       }
 

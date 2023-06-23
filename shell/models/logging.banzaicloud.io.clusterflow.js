@@ -15,12 +15,12 @@ export default class LogClusterFlow extends Flow {
     }
     const outputRefs = this?.spec?.globalOutputRefs || this?.spec?.outputRefs || [];
 
-    return this.allOutputs.filter(output => outputRefs.includes(output.name));
+    return this.allOutputs.filter((output) => outputRefs.includes(output.name));
   }
 
   get outputProviders() {
     const duplicatedProviders = this.outputs
-      .flatMap(output => output.providers);
+      .flatMap((output) => output.providers);
 
     return uniq(duplicatedProviders) || [];
   }

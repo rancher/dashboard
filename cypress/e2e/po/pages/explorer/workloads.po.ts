@@ -10,7 +10,7 @@ export default class WorkloadPo extends PagePo {
     return super.goTo(WorkloadPo.createPath(clusterId));
   }
 
-  constructor(clusterId: string = 'local') {
+  constructor(clusterId = 'local') {
     super(WorkloadPo.createPath(clusterId));
   }
 

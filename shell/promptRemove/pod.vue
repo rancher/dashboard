@@ -79,7 +79,7 @@ export default {
       }
 
       try {
-        await Promise.all(this.value.map(resource => this.removePod(resource)));
+        await Promise.all(this.value.map((resource) => this.removePod(resource)));
         if ( goTo && !isEmpty(goTo) ) {
           parentComponent.currentRouter.push(goTo);
         }

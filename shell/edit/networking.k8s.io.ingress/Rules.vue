@@ -45,7 +45,7 @@ export default {
   },
 
   async fetch() {
-    await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
+    await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })));
   },
 
   beforeUpdate() {
@@ -58,7 +58,7 @@ export default {
 
   computed: {
     workloads() {
-      return Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.getters['cluster/all'](type));
+      return Object.values(WORKLOAD_TYPES).flatMap((type) => this.$store.getters['cluster/all'](type));
     },
     isView() {
       return this.mode === _VIEW;

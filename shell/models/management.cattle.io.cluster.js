@@ -76,7 +76,7 @@ export default class MgmtCluster extends HybridModel {
   get machinePools() {
     const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
 
-    return pools.filter(x => x.spec?.clusterName === this.id);
+    return pools.filter((x) => x.spec?.clusterName === this.id);
   }
 
   get provisioner() {
@@ -405,10 +405,10 @@ export default class MgmtCluster extends HybridModel {
     const nodes = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
     const nodeMetrics = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
 
-    const someNonWorkerRoles = nodes.some(node => node.hasARole && !node.isWorker);
+    const someNonWorkerRoles = nodes.some((node) => node.hasARole && !node.isWorker);
 
     const metrics = nodeMetrics.filter((metric) => {
-      const node = nodes.find(nd => nd.id === metric.id);
+      const node = nodes.find((nd) => nd.id === metric.id);
 
       return node && (!someNonWorkerRoles || node.isWorker);
     });
@@ -430,7 +430,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+    return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.id));
   }
 
   get provClusterId() {
@@ -443,6 +443,6 @@ export default class MgmtCluster extends HybridModel {
     const from = `${ verb }Type`;
     const id = `${ verb }Id`;
 
-    return this.metadata.relationships.find(r => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
+    return this.metadata.relationships.find((r) => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
   }
 }

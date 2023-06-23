@@ -202,7 +202,7 @@ export default Vue.extend({
      * @param value A collection of values for the checkbox.
      */
     findTrueValues(value: boolean[]): boolean {
-      return value.find(v => v === this.valueWhenTrue) || false;
+      return value.find((v) => v === this.valueWhenTrue) || false;
     }
   }
 });

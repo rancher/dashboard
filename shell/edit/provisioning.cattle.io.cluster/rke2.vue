@@ -42,7 +42,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
-import NameNsDescription from '@shell/components/form/NameNsDescription';
+import NameNsDescription, { normalizeName } from '@shell/components/form/NameNsDescription';
 import { RadioGroup } from '@components/Form/Radio';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
@@ -50,12 +50,11 @@ import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
 import Questions from '@shell/components/Questions';
 
-import { normalizeName } from '@shell/components/form/NameNsDescription.vue';
-import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
+import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+
 import { SETTING } from '@shell/config/settings';
 import { base64Encode } from '@shell/utils/crypto';
 import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
@@ -174,8 +173,8 @@ export default {
 
       // Get the latest versions from the global settings if possible
       const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
-      const defaultRke2Setting = globalSettings.find(setting => setting.id === 'rke2-default-version') || {};
-      const defaultK3sSetting = globalSettings.find(setting => setting.id === 'k3s-default-version') || {};
+      const defaultRke2Setting = globalSettings.find((setting) => setting.id === 'rke2-default-version') || {};
+      const defaultK3sSetting = globalSettings.find((setting) => setting.id === 'k3s-default-version') || {};
 
       let defaultRke2 = defaultRke2Setting?.value || defaultRke2Setting?.default;
       let defaultK3s = defaultK3sSetting?.value || defaultK3sSetting?.default;
@@ -200,13 +199,13 @@ export default {
       if (!defaultRke2) {
         const rke2Channels = res.rke2Channels.data || [];
 
-        defaultRke2 = rke2Channels.find(x => x.id === 'default')?.latest;
+        defaultRke2 = rke2Channels.find((x) => x.id === 'default')?.latest;
       }
 
       if (!defaultK3s) {
         const k3sChannels = res.k3sChannels.data || [];
 
-        defaultK3s = k3sChannels.find(x => x.id === 'default')?.latest;
+        defaultK3s = k3sChannels.find((x) => x.id === 'default')?.latest;
       }
 
       if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
@@ -226,7 +225,7 @@ export default {
       set(this.value.spec, 'machineSelectorConfig', []);
     }
 
-    if ( !this.value.spec.machineSelectorConfig.find(x => !x.machineLabelSelector) ) {
+    if ( !this.value.spec.machineSelectorConfig.find((x) => !x.machineLabelSelector) ) {
       this.value.spec.machineSelectorConfig.unshift({ config: {} });
     }
 
@@ -505,7 +504,7 @@ export default {
       }
 
       if ( cur ) {
-        const existing = out.find(x => x.value === cur);
+        const existing = out.find((x) => x.value === cur);
 
         if ( existing ) {
           existing.disabled = false;
@@ -562,7 +561,7 @@ export default {
 
       const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
 
-      if ( cur && !out.find(x => x.value === cur) ) {
+      if ( cur && !out.find((x) => x.value === cur) ) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
       }
 
@@ -609,7 +608,7 @@ export default {
       }
       const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName;
 
-      if ( cur && !out.find(x => x.value === cur) ) {
+      if ( cur && !out.find((x) => x.value === cur) ) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
       }
 
@@ -622,7 +621,7 @@ export default {
     isCisSupported() {
       const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
 
-      return !cisProfile || this.profileOptions.map(option => option.value).includes(cisProfile);
+      return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
     },
 
     disableOptions() {
@@ -665,7 +664,7 @@ export default {
 
       const cur = this.agentConfig['cloud-provider-name'];
 
-      if ( cur && !out.find(x => x.value === cur) ) {
+      if ( cur && !out.find((x) => x.value === cur) ) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
       }
 
@@ -732,7 +731,7 @@ export default {
     },
 
     unremovedMachinePools() {
-      return (this.machinePools || []).filter(x => !x.remove);
+      return (this.machinePools || []).filter((x) => !x.remove);
     },
 
     machineConfigSchema() {
@@ -870,7 +869,7 @@ export default {
       const cni = this.serverConfig.cni;
 
       if ( cni ) {
-        const parts = cni.split(',').map(x => `rke2-${ x }`);
+        const parts = cni.split(',').map((x) => `rke2-${ x }`);
 
         names.push(...parts);
       }
@@ -889,9 +888,9 @@ export default {
     },
 
     addonVersions() {
-      const versions = this.addonNames.map(name => this.chartVersionFor(name));
+      const versions = this.addonNames.map((name) => this.chartVersionFor(name));
 
-      return versions.filter(x => !!x);
+      return versions.filter((x) => !!x);
     },
 
     showk8s21LegacyWarning() {
@@ -914,9 +913,9 @@ export default {
     },
 
     defaultVersion() {
-      const all = this.versionOptions.filter(x => !!x.value);
+      const all = this.versionOptions.filter((x) => !!x.value);
       const first = all[0]?.value;
-      const preferred = all.find(x => x.value === this.defaultRke2)?.value;
+      const preferred = all.find((x) => x.value === this.defaultRke2)?.value;
 
       const rke2 = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, null);
       const showRke2 = rke2.length;
@@ -1037,7 +1036,7 @@ export default {
       let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
 
       // and in all of the validation statuses for each machine pool
-      Object.values(this.machinePoolValidation).forEach(v => (base = base && v));
+      Object.values(this.machinePoolValidation).forEach((v) => (base = base && v));
 
       return validRequiredPools && base;
     },
@@ -1362,7 +1361,7 @@ export default {
      * Ensure that all the existing node roles pool are at least 1 each
      */
     hasRequiredNodes() {
-      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every(color => color !== NODE_TOTAL.error.color);
+      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every((color) => color !== NODE_TOTAL.error.color);
     },
 
     cancelCredential() {
@@ -1395,7 +1394,7 @@ export default {
       return new Promise((resolve, reject) => {
         this.$store.dispatch('cluster/promptModal', {
           component: 'AddonConfigConfirmationDialog',
-          resources: [value => resolve(value)]
+          resources: [(value) => resolve(value)]
         });
       });
     },
@@ -1451,7 +1450,7 @@ export default {
       }
 
       if (this.value.cloudProvider === 'aws') {
-        const missingProfileName = this.machinePools.some(mp => !mp.config.iamInstanceProfile);
+        const missingProfileName = this.machinePools.some((mp) => !mp.config.iamInstanceProfile);
 
         if (missingProfileName) {
           this.errors.push(this.t('cluster.validation.iamInstanceProfileName', {}, true));
@@ -1620,7 +1619,7 @@ export default {
     },
 
     refreshYamls() {
-      const keys = Object.keys(this.$refs).filter(x => x.startsWith('yaml'));
+      const keys = Object.keys(this.$refs).filter((x) => x.startsWith('yaml'));
 
       for ( const k of keys ) {
         const entry = this.$refs[k];
@@ -1689,7 +1688,7 @@ export default {
     },
 
     chartVersionKey(name) {
-      const addonVersion = this.addonVersions.find(av => av.name === name);
+      const addonVersion = this.addonVersions.find((av) => av.name === name);
 
       return addonVersion ? `${ name }-${ addonVersion.version }` : name;
     },
@@ -1813,7 +1812,7 @@ export default {
     },
 
     getAllOptionsAfterCurrentVersion(versions, currentVersion, defaultVersion) {
-      const out = (versions || []).filter(obj => !!obj.serverArgs).map((obj) => {
+      const out = (versions || []).filter((obj) => !!obj.serverArgs).map((obj) => {
         let disabled = false;
         let experimental = false;
         let isCurrentVersion = false;
@@ -1847,7 +1846,7 @@ export default {
         };
       });
 
-      if (currentVersion && !out.find(obj => obj.value === currentVersion)) {
+      if (currentVersion && !out.find((obj) => obj.value === currentVersion)) {
         out.push({
           label: `${ currentVersion } ${ this.t('cluster.kubernetesVersion.current') }`,
           value: currentVersion,
@@ -1963,7 +1962,7 @@ export default {
         const url = `/k8s/clusters/${ clusterId }/v1`;
         const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.SETTING }s` });
 
-        const version = (res?.data || []).find(s => s.id === 'harvester-csi-ccm-versions');
+        const version = (res?.data || []).find((s) => s.id === 'harvester-csi-ccm-versions');
 
         if (version) {
           this.harvesterVersionRange = JSON.parse(version.value || version.default || '{}');

@@ -319,7 +319,7 @@ export default {
       return this.createRules(this.value);
     },
     ruleHeaders() {
-      const verbHeaders = VERBS.map(verb => ({
+      const verbHeaders = VERBS.map((verb) => ({
         name:      verb,
         key:       ucFirst(verb),
         value:     this.verbKey(verb),
@@ -485,7 +485,7 @@ export default {
           const key = this.verbKey(verb);
 
           tableRule[key] = rule.verbs[0] === '*' || rule.verbs.includes(verb);
-          tableRule.hasCustomVerbs = rule.verbs.some(verb => !VERBS.includes(verb));
+          tableRule.hasCustomVerbs = rule.verbs.some((verb) => !VERBS.includes(verb));
         });
 
         return tableRule;
@@ -497,7 +497,7 @@ export default {
       }
 
       parent.roleTemplateNames
-        .map(rtn => this.$store.getters[`management/byId`](MANAGEMENT.ROLE_TEMPLATE, rtn))
+        .map((rtn) => this.$store.getters[`management/byId`](MANAGEMENT.ROLE_TEMPLATE, rtn))
         .forEach((rt) => {
           // Add Self
           res.push({

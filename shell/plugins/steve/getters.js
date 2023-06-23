@@ -94,7 +94,7 @@ export default {
     return url;
   },
 
-  defaultModel: state => (obj) => {
+  defaultModel: (state) => (obj) => {
     const which = state.config.modelBaseClass || STEVE_MODEL_TYPES.BY_TYPE.STEVE;
 
     if ( which === STEVE_MODEL_TYPES.BY_TYPE ) {
@@ -154,7 +154,7 @@ export default {
   },
 
   // Return all the pods for a given namespace
-  podsByNamespace: state => (namespace) => {
+  podsByNamespace: (state) => (namespace) => {
     const map = state.podsByNamespace[namespace];
 
     return map?.list || [];
@@ -164,7 +164,7 @@ export default {
     return GC_IGNORE_TYPES;
   },
 
-  currentGeneration: state => (type) => {
+  currentGeneration: (state) => (type) => {
     type = normalizeType(type);
 
     const cache = state.types[type];

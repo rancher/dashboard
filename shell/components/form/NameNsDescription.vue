@@ -225,8 +225,8 @@ export default {
      */
     options() {
       const options = Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces())
-        .map(namespace => ({ nameDisplay: namespace, id: namespace }))
-        .map(this.namespaceMapper || (obj => ({
+        .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
+        .map(this.namespaceMapper || ((obj) => ({
           label: obj.nameDisplay,
           value: obj.id,
         })));
@@ -330,7 +330,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find(n => n.value === val)));
+        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find((n) => n.value === val)));
       }
 
       if (this.namespaceKey) {

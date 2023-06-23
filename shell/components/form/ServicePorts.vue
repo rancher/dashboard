@@ -33,7 +33,7 @@ export default {
       default:   () => [],
       type:      Array,
       // we only want functions in the rules array
-      validator: rules => rules.every(rule => ['function'].includes(typeof rule))
+      validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
     }
   },
 

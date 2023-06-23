@@ -103,7 +103,7 @@ export default {
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     manageLocation() {
@@ -160,7 +160,7 @@ export default {
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      row => row.mgmt?.nameDisplay
+          getValue:      (row) => row.mgmt?.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),

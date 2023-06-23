@@ -162,7 +162,7 @@ module.exports = function(dir, _appConfig) {
     const items = fs.readdirSync(path.relative(dir, './pkg'));
 
     // Ignore hidden folders
-    items.filter(name => !name.startsWith('.')).forEach((name) => {
+    items.filter((name) => !name.startsWith('.')).forEach((name) => {
       const f = require(path.join(dir, 'pkg', name, 'package.json'));
 
       // Package file must have rancher field to be a plugin
@@ -200,7 +200,7 @@ module.exports = function(dir, _appConfig) {
   const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg/, (resource) => {
     const ctx = resource.context.split('/');
     // Find 'pkg' folder in the contxt
-    const index = ctx.findIndex(s => s === 'pkg');
+    const index = ctx.findIndex((s) => s === 'pkg');
 
     if (index !== -1 && (index + 1) < ctx.length) {
       const pkg = ctx[index + 1];
@@ -330,7 +330,7 @@ module.exports = function(dir, _appConfig) {
 
         server.websocketProxies.push({
           upgrade(req, socket, head) {
-            const path = Object.keys(socketProxies).find(path => req.url.startsWith(path));
+            const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
             if (path) {
               const proxy = socketProxies[path];

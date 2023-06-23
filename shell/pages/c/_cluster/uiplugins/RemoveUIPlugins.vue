@@ -20,7 +20,7 @@ export default {
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
       const repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true } });
 
-      this.defaultRepo = repos.find(r => r.name === UI_PLUGINS_REPO_NAME && r.spec.gitRepo === UI_PLUGINS_REPO_URL);
+      this.defaultRepo = repos.find((r) => r.name === UI_PLUGINS_REPO_NAME && r.spec.gitRepo === UI_PLUGINS_REPO_URL);
     }
 
     if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
@@ -70,7 +70,7 @@ export default {
 
       if (!this.removeCRD) {
         // User does not want to uninstall the CRD, so remove the chart
-        uninstall = uninstall.filter(chart => chart !== UI_PLUGIN_OPERATOR_CRD_CHART_NAME);
+        uninstall = uninstall.filter((chart) => chart !== UI_PLUGIN_OPERATOR_CRD_CHART_NAME);
       }
 
       for (let i = 0; i < uninstall.length; i++) {
@@ -93,7 +93,7 @@ export default {
 
       this.$store.dispatch('management/forgetType', UI_PLUGIN);
 
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       this.$emit('done');
 

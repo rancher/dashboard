@@ -225,7 +225,7 @@ export default {
 
       // If only one namespace is selected, hide the namespace column
       if ( !showNamespace ) {
-        const idx = headers.findIndex(header => header.name === NAMESPACE.name);
+        const idx = headers.findIndex((header) => header.name === NAMESPACE.name);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1);
@@ -236,7 +236,7 @@ export default {
       const custom = this.listGroupMapped[this.group];
 
       if (custom?.hideColumn) {
-        const idx = headers.findIndex(header => header.name === custom.hideColumn);
+        const idx = headers.findIndex((header) => header.name === custom.hideColumn);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1);
@@ -291,7 +291,7 @@ export default {
     group: {
       get() {
         // Check group is valid
-        const exists = this.groupOptions.find(g => g.value === this._group);
+        const exists = this.groupOptions.find((g) => g.value === this._group);
 
         if (!exists) {
           return DEFAULT_GROUP;

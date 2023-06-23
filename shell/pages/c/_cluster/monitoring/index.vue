@@ -106,7 +106,7 @@ export default {
         const amMatch = findBy(externalLinks, 'group', 'alertmanager');
         const grafanaMatch = findBy(externalLinks, 'group', 'grafana');
         const promeMatch = externalLinks.filter(
-          el => el.group === 'prometheus'
+          (el) => el.group === 'prometheus'
         );
 
         grafanaMatch.link = `${ getClusterPrefix(hash.app?.currentVersion || '', currentCluster.id) }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;

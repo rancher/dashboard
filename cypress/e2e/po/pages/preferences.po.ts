@@ -5,7 +5,7 @@ import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po'
 import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
 
 export default class PreferencesPagePo extends PagePo {
-  static url: string = '/prefs'
+  static url = '/prefs'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(PreferencesPagePo.url);
   }

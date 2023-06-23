@@ -99,7 +99,7 @@ export default class extends SteveModel {
     }
 
     if (this.serviceType === 'LoadBalancer') {
-      const statusIps = this.status.loadBalancer?.ingress?.map(ingress => ingress.hostname || ingress.ip).join(', ');
+      const statusIps = this.status.loadBalancer?.ingress?.map((ingress) => ingress.hostname || ingress.ip).join(', ');
 
       const loadbalancerInfo = loadBalancerIP || statusIps || '';
 
@@ -131,7 +131,7 @@ export default class extends SteveModel {
   get podRelationship() {
     const { metadata:{ relationships = [] } } = this;
 
-    return (relationships || []).filter(relationship => relationship.toType === POD)[0];
+    return (relationships || []).filter((relationship) => relationship.toType === POD)[0];
   }
 
   async fetchPods() {

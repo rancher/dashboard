@@ -169,7 +169,7 @@ async function createApp(ssrContext, config = {}) {
   // Make app available into store via this.app
   store.app = app;
 
-  const next = ssrContext ? ssrContext.next : location => app.router.push(location);
+  const next = ssrContext ? ssrContext.next : (location) => app.router.push(location);
   // Resolve route
   let route;
 

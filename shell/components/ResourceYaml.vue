@@ -166,7 +166,7 @@ export default {
       try {
         const parsed = jsyaml.load(this.currentYaml);
         const annotations = Object.keys(parsed?.metadata?.annotations || {});
-        const regexes = ANNOTATIONS_TO_FOLD.map(x => ensureRegex(x));
+        const regexes = ANNOTATIONS_TO_FOLD.map((x) => ensureRegex(x));
 
         let foldAnnotations = false;
 

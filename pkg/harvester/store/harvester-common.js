@@ -35,7 +35,7 @@ const mutations = {
   },
 
   uploadEnd(state, value) {
-    const filtered = state.uploadingImages.filter(l => l !== value);
+    const filtered = state.uploadingImages.filter((l) => l !== value);
 
     Vue.set(state, 'uploadingImages', filtered);
   }

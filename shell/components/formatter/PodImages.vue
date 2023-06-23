@@ -45,7 +45,7 @@ export default {
     },
     mainImage() {
       const images = this.images;
-      const filter = images.filter(image => !IGNORE_IMAGES.find(i => image.includes(i)));
+      const filter = images.filter((image) => !IGNORE_IMAGES.find((i) => image.includes(i)));
 
       return filter.length > 0 ? filter[0] : images[0];
     }

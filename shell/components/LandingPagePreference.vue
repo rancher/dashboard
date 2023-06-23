@@ -35,7 +35,7 @@ export default {
     routeFromDropdown: {
       get() {
         const route = this.customRoute || {};
-        const out = this.routeDropdownOptions.find(opt => opt.value.name === route.name && opt.value.params?.cluster === route.params?.cluster);
+        const out = this.routeDropdownOptions.find((opt) => opt.value.name === route.name && opt.value.params?.cluster === route.params?.cluster);
 
         return out || this.routeDropdownOptions[0];
       },

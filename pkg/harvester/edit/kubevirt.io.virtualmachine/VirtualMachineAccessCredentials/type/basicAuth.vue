@@ -61,7 +61,10 @@ export default {
 </script>
 
 <template>
-  <div class="row" @input="update">
+  <div
+    class="row"
+    @input="update"
+  >
     <div class="col span-6">
       <AccessCredentialsUsers
         v-model="value.username"

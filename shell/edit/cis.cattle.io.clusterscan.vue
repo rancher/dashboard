@@ -53,7 +53,7 @@ export default {
     // if mode is _CREATE and scanProfileName is defined, this is a clone
     // check if the profile referred to in the original spec still exists
     if (scanProfileName && this.mode === _CREATE) {
-      const proxyObj = this.allProfiles.filter(profile => profile.id === scanProfileName)[0];
+      const proxyObj = this.allProfiles.filter((profile) => profile.id === scanProfileName)[0];
 
       if (!proxyObj) {
         this.$set(this.value.spec, 'scanProfileName', '');
@@ -134,7 +134,7 @@ export default {
           });
         }
         if (name) {
-          const profile = this.allProfiles.find(profile => profile.id === name);
+          const profile = this.allProfiles.find((profile) => profile.id === name);
           const benchmarkVersion = profile?.spec?.benchmarkVersion;
           const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
 
@@ -142,12 +142,12 @@ export default {
             return profile;
           }
         }
-        const cis16 = this.validProfiles.find(profile => profile.value === 'cis-1.6-profile');
+        const cis16 = this.validProfiles.find((profile) => profile.value === 'cis-1.6-profile');
 
         if (cis16) {
-          return this.allProfiles.find(profile => profile.id === 'cis-1.6-profile');
+          return this.allProfiles.find((profile) => profile.id === 'cis-1.6-profile');
         } else {
-          return this.allProfiles.find(profile => profile.id === 'cis-1.5-profile');
+          return this.allProfiles.find((profile) => profile.id === 'cis-1.5-profile');
         }
       }
 

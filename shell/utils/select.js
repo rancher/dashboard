@@ -3,10 +3,10 @@ export function onClickOption(option, e) {
     return;
   }
 
-  const getValue = opt => (this.optionKey ? this.get(opt, this.optionKey) : this.getOptionLabel(opt));
+  const getValue = (opt) => (this.optionKey ? this.get(opt, this.optionKey) : this.getOptionLabel(opt));
   const optionValue = getValue(option);
   const value = this.value || [];
-  const optionIndex = value.findIndex(option => getValue(option) === optionValue);
+  const optionIndex = value.findIndex((option) => getValue(option) === optionValue);
 
   if (optionIndex < 0) {
     return;

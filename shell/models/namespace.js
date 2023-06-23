@@ -105,7 +105,7 @@ export default class Namespace extends SteveModel {
   // These are namespaces that are created by rancher to serve purposes in the background but the user shouldn't have
   // to worry themselves about them.
   get isObscure() {
-    return OBSCURE_NAMESPACE_PREFIX.some(prefix => this.metadata.name.startsWith(prefix)) && this.isSystem;
+    return OBSCURE_NAMESPACE_PREFIX.some((prefix) => this.metadata.name.startsWith(prefix)) && this.isSystem;
   }
 
   get projectId() {

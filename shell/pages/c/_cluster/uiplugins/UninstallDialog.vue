@@ -44,9 +44,9 @@ export default {
       const pluginApps = apps.filter((app) => {
         if (plugin.catalog && app.namespace === UI_PLUGIN_NAMESPACE) {
           // Find the related apps from the deployed helm repository
-          const charts = this.allCharts.filter(chart => chart.repoName === plugin.repo?.metadata?.name);
+          const charts = this.allCharts.filter((chart) => chart.repoName === plugin.repo?.metadata?.name);
 
-          return charts.some(chart => chart.chartName === app.metadata.name);
+          return charts.some((chart) => chart.chartName === app.metadata.name);
         }
 
         if (app.namespace === UI_PLUGIN_NAMESPACE && app.name === plugin.name) {
@@ -62,7 +62,7 @@ export default {
 
       if (pluginApps.length) {
         try {
-          pluginApps.forEach(app => app.remove());
+          pluginApps.forEach((app) => app.remove());
         } catch (e) {
           this.$store.dispatch('growl/error', {
             title:   this.t('plugins.error.generic'),
@@ -93,7 +93,7 @@ export default {
 
         for (const resource of Object.keys(hash)) {
           if (hash[resource]) {
-            hash[resource].forEach(r => r.remove());
+            hash[resource].forEach((r) => r.remove());
           }
         }
       }

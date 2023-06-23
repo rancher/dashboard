@@ -56,15 +56,15 @@ export default class GlobalRole extends SteveDescriptionModel {
   }
 
   get allResources() {
-    return this.$getters['all'](SCHEMA).filter(r => r.attributes?.kind);
+    return this.$getters['all'](SCHEMA).filter((r) => r.attributes?.kind);
   }
 
   get globalResources() {
-    return this.allResources.filter(r => r.attributes.group.includes(CATTLE_API_GROUP));
+    return this.allResources.filter((r) => r.attributes.group.includes(CATTLE_API_GROUP));
   }
 
   get resources() {
-    return uniq(this.globalResources.map(r => r.attributes?.resource)).sort();
+    return uniq(this.globalResources.map((r) => r.attributes?.resource)).sort();
   }
 
   get listLocation() {
@@ -117,7 +117,7 @@ export default class GlobalRole extends SteveDescriptionModel {
   get canCreate() {
     const schema = this.$getters['schemaFor'](this.type);
 
-    return schema?.resourceMethods.find(verb => CREATE_VERBS.has(verb));
+    return schema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb));
   }
 
   goToClone(moreQuery = {}) {

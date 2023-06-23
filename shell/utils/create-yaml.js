@@ -174,7 +174,7 @@ export function createYaml(
   // do not include commented fields if already defined in data
   removeObjects(commentFields, regularFields);
 
-  const regular = regularFields.map(k => stringifyField(k));
+  const regular = regularFields.map((k) => stringifyField(k));
   const comments = commentFields.map((k) => {
     // Don't add a namespace comment for types that aren't namespaced.
     if ( path === 'metadata' && k === 'namespace' ) {
@@ -189,7 +189,7 @@ export function createYaml(
   });
 
   const out = [...regular, ...comments]
-    .filter(x => x !== null)
+    .filter((x) => x !== null)
     .join('\n')
     .trim();
 
@@ -359,7 +359,7 @@ export function createYaml(
 }
 
 function comment(lines) {
-  return (lines || '').split('\n').map(x => `#${ x.replace(/#/g, '') }`).join('\n');
+  return (lines || '').split('\n').map((x) => `#${ x.replace(/#/g, '') }`).join('\n');
 }
 
 function indent(lines, depth = 1) {
@@ -460,7 +460,7 @@ export function dumpBlock(data, options = {}) {
 
   let out = parsed;
 
-  const blockFields = Object.keys(data).filter(k => data[k].includes('\n'));
+  const blockFields = Object.keys(data).filter((k) => data[k].includes('\n'));
 
   if (blockFields.length) {
     for (const key of blockFields) {

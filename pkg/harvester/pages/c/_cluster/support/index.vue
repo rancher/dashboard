@@ -60,7 +60,10 @@ export default {
     <IndentedPanel>
       <div class="content mt-20">
         <div class="promo">
-          <div v-if="showSupportBundle" class="box mb-20 box-primary">
+          <div
+            v-if="showSupportBundle"
+            class="box mb-20 box-primary"
+          >
             <h2>
               {{ t('harvester.modal.bundle.title') }}
             </h2>

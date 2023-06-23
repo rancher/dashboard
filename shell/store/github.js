@@ -223,7 +223,7 @@ export const actions = {
       return res;
     }
 
-    const out = res.filter(file => file.type === 'blob' && file.path.match(pattern));
+    const out = res.filter((file) => file.type === 'blob' && file.path.match(pattern));
 
     return out;
   },

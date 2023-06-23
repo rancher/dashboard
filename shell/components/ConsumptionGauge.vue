@@ -41,7 +41,7 @@ export default {
      */
     numberFormatter: {
       type:    Function,
-      default: value => Number.isInteger(value) ? value : value.toFixed(2)
+      default: (value) => Number.isInteger(value) ? value : value.toFixed(2)
     },
 
     /**

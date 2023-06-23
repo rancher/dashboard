@@ -292,7 +292,7 @@ export default {
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
       allHash({
         copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: new Promise(resolve => setTimeout(resolve, 1000))
+        minDelay: new Promise((resolve) => setTimeout(resolve, 1000))
       }).finally(() => {
         this.kubeConfigCopying = false;
 

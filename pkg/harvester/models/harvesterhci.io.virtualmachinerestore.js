@@ -7,7 +7,7 @@ export default class HciVmRestore extends HarvesterResource {
 
   get pvcNames() {
     const restores = this?.status?.restores || [];
-    const out = restores.map( O => O?.persistentVolumeClaimSpec?.name);
+    const out = restores.map( (O) => O?.persistentVolumeClaimSpec?.name);
 
     return out;
   }
