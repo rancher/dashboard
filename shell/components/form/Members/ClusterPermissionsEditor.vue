@@ -9,18 +9,10 @@ import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 
-export function canEditClusterPermissions(store) {
-  // blocked-post means you can post through norman, but not through steve.
-  // collectionMethods and resourceMethods on norman schema itself are not accurate for permission checking here.
-  return !!(store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).find((method) => ['blocked-post', 'post'].includes(method.toLowerCase())) &&
+export function canViewClusterPermissionsEditor(store) {
+  return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
     !!store.getters['management/schemaFor'](MANAGEMENT.USER);
-}
-
-export function canViewClusterPermissions(store) {
-  return (store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).includes('GET') &&
-    (store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)?.collectionMethods || []).includes('GET') &&
-    (store.getters['management/schemaFor'](MANAGEMENT.USER)?.collectionMethods || []).includes('GET');
 }
 
 export default {

@@ -1,24 +1,10 @@
 <script>
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
 import MembershipEditor, { canViewMembershipEditor } from '@shell/components/form/Members/MembershipEditor';
 
 export function canViewProjectMembershipEditor(store) {
   return canViewMembershipEditor(store, true);
-}
-
-export function canEditProjectPermissions(store) {
-  // blocked-post means you can post through norman, but not through steve.
-  // collectionMethods and resourceMethods on norman schema itself are not accurate for permission checking here.
-  return !!(store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).find((method) => ['blocked-post', 'post'].includes(method.toLowerCase())) &&
-    !!store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE) &&
-    !!store.getters['management/schemaFor'](MANAGEMENT.USER);
-}
-
-export function canViewProjectPermissions(store) {
-  return (store.getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING)?.collectionMethods || []).includes('GET') &&
-    (store.getters['management/schemaFor'](MANAGEMENT.ROLE_TEMPLATE)?.collectionMethods || []).includes('GET') &&
-    (store.getters['management/schemaFor'](MANAGEMENT.USER)?.collectionMethods || []).includes('GET');
 }
 
 export default {
@@ -49,9 +35,6 @@ export default {
 
     isView() {
       return this.mode === _VIEW;
-    },
-    canManageProjectMembers() {
-      return canEditProjectPermissions(this.$store);
     }
   },
 
@@ -74,7 +57,6 @@ export default {
     :default-binding-handler="defaultBindingHandler"
     :type="NORMAN.PROJECT_ROLE_TEMPLATE_BINDING"
     :mode="mode"
-    :can-manage="canManageProjectMembers"
     parent-key="projectId"
     :parent-id="parentId"
     v-on="$listeners"

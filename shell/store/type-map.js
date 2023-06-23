@@ -933,10 +933,8 @@ export const getters = {
           }
 
           if ( item.ifHaveSubTypes ) {
-            const targetedSchemas = Array.isArray(item.ifHaveSubTypes) ? schemas : rootGetters[`${ item.ifHaveSubTypes.store }/all`](SCHEMA);
-            const subTypes = Array.isArray(item.ifHaveSubTypes) ? item.ifHaveSubTypes : item.ifHaveSubTypes.types;
-            const hasSome = (subTypes || []).some((type) => {
-              return !!findBy(targetedSchemas, 'id', normalizeType(type));
+            const hasSome = (item.ifHaveSubTypes || []).some((type) => {
+              return !!findBy(schemas, 'id', normalizeType(type));
             });
 
             if (!hasSome) {
