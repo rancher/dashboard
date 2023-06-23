@@ -11,8 +11,8 @@ import ProductLayout from '../../pkg/extension-example-layout/layout/product-lay
 import Page1 from '../../pkg/extension-example-layout/pages/page1.vue';
 import Page2 from '../../pkg/extension-example-layout/pages/page2.vue';
 
-console.log('NAME', NAME);
-console.log('ProductLayout', ProductLayout);
+console.log('NAME', NAME); // eslint-disable-line no-console
+console.log('ProductLayout', ProductLayout); // eslint-disable-line no-console
 
 const emptyFn = () => {};
 
@@ -435,7 +435,7 @@ export function createRouter(ssrContext, config) {
   const base = (config._app && config._app.basePath) || routerOptions.base;
   const router = new Router({ ...routerOptions, base });
 
-  console.error('SETTING UP ROUTER', routerOptions);
+  console.error('SETTING UP ROUTER', routerOptions); // eslint-disable-line no-console
 
   // TODO: remove in Nuxt 3
   const originalPush = router.push;

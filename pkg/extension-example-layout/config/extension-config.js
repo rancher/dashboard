@@ -1,13 +1,13 @@
 import { BLANK_CLUSTER } from '@shell/store';
-import { addRouteToMainRoutingArray } from '@shell/config/router.js';
-import ProductLayout from '../layout/product-layout.vue';
+// import { addRouteToMainRoutingArray } from '@shell/config/router.js';
+// import ProductLayout from '../layout/product-layout.vue';
 
 export const NAME = 'extensionLayout';
 
 export function init($plugin, store) {
-  const { product, basicType, virtualType } = $plugin.DSL(store, NAME);
+  const { product } = $plugin.DSL(store, NAME);
 
-  console.error('GOING THROUGH PRODUCT CONFIG...');
+  console.error('GOING THROUGH PRODUCT CONFIG...'); // eslint-disable-line no-console
 
   // addRouteToMainRoutingArray({
   //   name:   `${ NAME }`,
@@ -34,20 +34,4 @@ export function init($plugin, store) {
       }
     },
   });
-
-  // basicType(['bananas']);
-  // virtualType({
-  //   label:  'mainRoute',
-  //   group:  'Root',
-  //   name:   'bananas',
-  //   weight: 500,
-  //   route:  {
-  //     name:      `${ NAME }-c-cluster`,
-  //     component: ProductLayout,
-  //     params:    {
-  //       product:  NAME,
-  //       resource: 'bananas'
-  //     }
-  //   }
-  // });
 }
