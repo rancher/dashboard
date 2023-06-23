@@ -151,8 +151,6 @@ import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
-import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
-
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
 export const BOTH = 'both';
