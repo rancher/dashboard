@@ -1,4 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '~/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export default class PagePo extends ComponentPo {
   constructor(protected path: string, selector: string = '.dashboard-root') {
@@ -40,6 +42,14 @@ export default class PagePo extends ComponentPo {
     return cy.url().should('include', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
+  waitForPageWithExactUrl(params?: string, fragment?: string) {
+    return cy.url().should('equal', `${ Cypress.config().baseUrl + this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
+  }
+
+  waitForPageWithSpecificUrl(path?: string, params?: string, fragment?: string) {
+    return cy.url().should('include', `${ Cypress.config().baseUrl + (!!path ? path : this.path) }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
+  }
+
   isCurrentPage(): Cypress.Chainable<boolean> {
     return cy.url().then(url => url === Cypress.config().baseUrl + this.path);
   }
@@ -50,5 +60,21 @@ export default class PagePo extends ComponentPo {
 
   mastheadTitle() {
     return this.self().find('.primaryheader h1').invoke('text');
+  }
+
+  navToMenuEntry(label: string) {
+    BurgerMenuPo.toggle();
+    BurgerMenuPo.burgerMenuNavToMenubyLabel(label);
+  }
+
+  navToClusterMenuEntry(label: string) {
+    BurgerMenuPo.toggle();
+    BurgerMenuPo.burgerMenuNavToClusterbyLabel(label);
+  }
+
+  navToSideMenuEntryByLabel(label: string) {
+    const nav = new ProductNavPo();
+
+    nav.navToSideMenuEntryByLabel(label);
   }
 }
