@@ -117,7 +117,7 @@ describe('Cluster Manager', () => {
 
     const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
 
-    describe.only('RKE1 Custom', () => {
+    describe('RKE1 Custom', () => {
       it('can create new cluster', () => {
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -147,8 +147,8 @@ describe('Cluster Manager', () => {
 
         createClusterRKE1Page.memberRoles().checkExists();
         createClusterRKE1Page.memberRoles().expand();
-        createClusterRKE1Page.memberRoles().formMembers().addMember();
-        createClusterRKE1Page.memberRoles().formMembers().setNewMemberWithCustomRoles('admin', roles);
+        createClusterRKE1Page.memberRolesFormMembers().addMember();
+        createClusterRKE1Page.memberRolesFormMembers().setNewMemberWithCustomRoles('admin', roles);
 
         cy.intercept('POST', '/v3/clusterroletemplatebinding').as('binding');
 

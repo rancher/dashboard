@@ -1,5 +1,4 @@
 import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.po';
-import EmberFormMembersPo from '@/cypress/e2e/po/components/ember/ember-form-members.po';
 
 export default class EmberAccordionPo extends EmberComponentPo {
   private headerSelector: string;
@@ -13,10 +12,6 @@ export default class EmberAccordionPo extends EmberComponentPo {
 
   expand() {
     this.header().click();
-  }
-
-  formMembers() {
-    return new EmberFormMembersPo('[data-testid="cru-cluster__members__form"]');
   }
 
   header() {
