@@ -10,7 +10,7 @@ import { CypressChainable } from '@/cypress/e2e/po/po.types';
  * The rke create/edit page in this case is ember
  */
 export default abstract class ClusterManagerCreateRKE1PagePo extends ClusterManagerCreatePagePo {
-  static url: string = '/c/local/manager/provisioning.cattle.io.cluster/create'
+  static url = '/c/local/manager/provisioning.cattle.io.cluster/create'
 
   // Form
   nameNsDescription(): NameNsDescription {

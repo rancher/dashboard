@@ -17,6 +17,6 @@ export default class ToggleSwitchPo extends ComponentPo {
         }
       })
       .then(() => this.value())
-      .then(value => expect(value).equal(label));
+      .then((value) => expect(value).equal(label));
   }
 }
