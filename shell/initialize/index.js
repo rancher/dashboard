@@ -93,7 +93,7 @@ const defaultTransition = {
 };
 
 async function createApp(ssrContext, config = {}) {
-  console.error('ROUTER TO BE CREATED RIGHT NEXT!!!!')
+  console.error('ROUTER TO BE CREATED RIGHT NEXT!!!!'); // eslint-disable-line no-console
   const router = await createRouter(ssrContext, config);
 
   const store = createStore(ssrContext);
