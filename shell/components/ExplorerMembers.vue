@@ -43,6 +43,14 @@ export default {
   },
 
   async fetch() {
+    this.$store.dispatch(`rancher/findAll`, { type: NORMAN.GLOBAL_ROLE_BINDING } ).then((roleBindings) => {
+      const currentUserIsAdmin = roleBindings.some((roleBinding) => {
+        return roleBinding.globalRoleId === 'admin' && roleBinding.userId === this.$store.getters['auth/currentUser'];
+      });
+
+      this.$set(this, 'userIsAdmin', currentUserIsAdmin);
+    });
+
     if (canViewClusterPermissions(this.$store)) {
       const clusterId = this.$store.getters['currentCluster'].id;
       const normanClusterRTBSchema = this.$store.getters[
@@ -105,6 +113,7 @@ export default {
           cluster: this.$store.getters['currentCluster'].id
         }
       },
+      userIsAdmin:                       undefined,
       currentUsersProjectPermissions:    {},
       resource:                          MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
       normanClusterRTBSchema:            null,
@@ -186,6 +195,10 @@ export default {
 
     // We're using this because we need to show projects as groups even if the project doesn't have any role bindings
     rowsWithFakeProjects() {
+      const memberGroups = this.$store.getters['rancher/all'](NORMAN.PRINCIPAL)
+        .filter(principal => principal.memberOf)
+        .map(principal => principal.id);
+
       const fakeRows = this.projectsWithoutRoles.map((project) => {
         return {
           groupByLabel:     `${ ('resourceTable.groupLabel.notInAProject') }-${ project.id }`,
@@ -221,14 +234,17 @@ export default {
           rows[userOrGroupKey].allRoles.push(curr.roleTemplate);
         }
 
-        const { allRoles = [], isCurrentUser } = curr;
+        const { allRoles = [], isCurrentUser, groupPrincipalId: prtbGroupPrincipalId } = curr;
 
         // Determine if the current user can manage permissions for this specific project
         // We can skip this if..
         // - user can manage cluster, that trumps everything else
         // - not current user, we only use this for showing permissions of that user
         // We're assigning userCanManageProject in a getter for performance reasons
-        if (!this.userCanManageCluster && isCurrentUser) {
+        if (
+          !this.userCanManageCluster &&
+          (isCurrentUser || memberGroups.includes(prtbGroupPrincipalId))
+        ) {
           this.userCanManageProject[projectId] = allRoles.some((rtb) => {
             const { id, rules } = rtb;
 
@@ -256,7 +272,8 @@ export default {
         this.$store.getters['management/all'](MANAGEMENT.USER)?.length &&
         this.filteredClusterRoleTemplateBindings.length
       ) {
-        this._userCanManageCluster = this.filteredClusterRoleTemplateBindings.some(crtb => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
+        this._userCanManageCluster = this.userIsAdmin ||
+          this.filteredClusterRoleTemplateBindings.some(crtb => (crtb.user?.isCurrentUser || crtb.isCurrentUser) && crtb.roleTemplateName === 'cluster-owner');
       }
 
       return this._userCanManageCluster;

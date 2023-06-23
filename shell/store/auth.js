@@ -57,6 +57,10 @@ export const getters = {
     return state.v3User;
   },
 
+  currentUser(state) {
+    return state.v3User.id;
+  },
+
   initialPass(state) {
     return state.initialPass;
   },
