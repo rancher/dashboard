@@ -169,6 +169,8 @@ export default {
           url:    addParam('/meta/aksLocations', 'cloudCredentialId', this.credentialId),
           method: 'GET',
         });
+
+        this.loadedCredentialIdFor = this.credentialId;
       }
 
       // if (this.mode === _CREATE) {
