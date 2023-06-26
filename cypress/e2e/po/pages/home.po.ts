@@ -1,6 +1,10 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
+import BannersPo from '~/cypress/e2e/po/components/banners.po';
+import SimpleBoxPo from '~/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '~/cypress/e2e/po/lists/home-cluster-list.po';
+
+const banners = new BannersPo();
 
 export default class HomePagePo extends PagePo {
   static url = '/home'
@@ -23,36 +27,12 @@ export default class HomePagePo extends PagePo {
     return cy.getId('banner-title').invoke('text');
   }
 
-  graphicBanner(): Cypress.Chainable {
-    return cy.getId('home-banner-graphic');
-  }
-
-  graphicBannerCloseButton(): Cypress.Chainable {
-    return cy.getId('graphic-banner-close').click({ force: true });
-  }
-
-  setLoginPageBanner(): Cypress.Chainable {
-    return cy.getId('set-login-page-banner');
-  }
-
-  closeButton(): Cypress.Chainable {
-    return cy.getId('banner-close').click({ force: true });
-  }
-
-  banner(): Cypress.Chainable {
-    return cy.getId('banner-content');
-  }
-
   prefPageLink(): Cypress.Chainable {
-    return cy.getId('pref-banner-link');
-  }
-
-  changelog(): Cypress.Chainable {
-    return cy.getId('changelog-banner');
+    return banners.setLoginPageBanner().find('a');
   }
 
   whatsNewBannerLink(): Cypress.Chainable {
-    return cy.get('[data-testid="changelog-banner"] a');
+    return banners.changelog().find('a');
   }
 
   restoreAndWait() {
@@ -79,15 +59,10 @@ export default class HomePagePo extends PagePo {
     return cy.getId('cluster-create-button');
   }
 
-  filter(searchText: string) {
-    return cy.get('[data-testid="search-box-filter-row"] input')
-      .focus()
-      .clear()
-      .type(searchText);
-  }
+  supportLinks(): Cypress.Chainable {
+    const simpleBox = new SimpleBoxPo();
 
-  supportLinks() {
-    return cy.getId('simple-box-container').find('.support-link > a');
+    return simpleBox.simpleBox().find('.support-link > a');
   }
 
   /**

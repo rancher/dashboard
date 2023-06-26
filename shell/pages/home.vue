@@ -347,7 +347,6 @@ export default {
                 </div>
                 <a
                   class="hand mr-20"
-                  data-testid="pref-banner-link"
                   @click.prevent.stop="showUserPrefs"
                 ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>

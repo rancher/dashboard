@@ -4,11 +4,17 @@ import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '~/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
 import WhatsNewPagePo from '~/cypress/e2e/po/pages/docs/whats-new.po';
+import BannerGraphicPo from '~/cypress/e2e/po/components/banner-graphic.po';
+import BannersPo from '~/cypress/e2e/po/components/banners.po';
+import SortableTablePo from '~/cypress/e2e/po/components/sortable-table.po';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
 const whatsNewPage = new WhatsNewPagePo();
+const bannerGraphic = new BannerGraphicPo();
+const banners = new BannersPo();
+const sortableTable = new SortableTablePo('.dashboard-root');
 
 describe('User can perform actions on the Home Page', () => {
   beforeEach(() => {
@@ -28,15 +34,15 @@ describe('User can perform actions on the Home Page', () => {
 
     homePage.restoreAndWait();
 
-    homePage.whatsNewBannerLink().invoke('text').then((el) => {
+    banners.changelog().find('a').invoke('text').then((el) => {
       text.push(el);
     });
 
-    homePage.changelog().invoke('text').then((el) => {
+    banners.changelog().invoke('text').then((el) => {
       expect(el).contains(text[0]);
     });
 
-    homePage.whatsNewBannerLink().click();
+    banners.changelog().find('a').click();
     whatsNewPage.waitForPage();
     whatsNewPage.title().invoke('text').then((el: string) => {
       expect(el.toLowerCase()).contains(text[0].toLowerCase());
@@ -44,7 +50,7 @@ describe('User can perform actions on the Home Page', () => {
 
     BurgerMenuPo.toggle();
     burgerMenuPo.home().click();
-    homePage.changelog().should('not.exist');
+    banners.changelog().should('not.exist');
   });
 
   it('Can navigate to Preferences page', () => {
@@ -68,18 +74,18 @@ describe('User can perform actions on the Home Page', () => {
 
     homePage.restoreAndWait();
 
-    homePage.graphicBanner().should('be.visible');
-    homePage.graphicBannerCloseButton();
-    homePage.graphicBanner().should('not.exist');
+    bannerGraphic.graphicBanner().should('be.visible');
+    bannerGraphic.graphicBannerCloseButton();
+    bannerGraphic.graphicBanner().should('not.exist');
 
-    homePage.setLoginPageBanner().should('be.visible');
-    homePage.closeButton();
-    homePage.setLoginPageBanner().should('not.exist');
+    banners.setLoginPageBanner().should('be.visible');
+    banners.closeButton();
+    banners.setLoginPageBanner().should('not.exist');
 
     homePage.restoreAndWait();
 
-    homePage.graphicBanner().should('be.visible');
-    homePage.setLoginPageBanner().should('be.visible');
+    bannerGraphic.graphicBanner().should('be.visible');
+    banners.setLoginPageBanner().should('be.visible');
   });
 
   it('Can see that cluster details match those in Cluster Manangement page', () => {
@@ -151,12 +157,12 @@ describe('User can perform actions on the Home Page', () => {
      * Filter rows in the cluster list
      */
 
-    homePage.filter('random text');
+    sortableTable.filter('random text');
     homeClusterList.resourceTable().sortableTable().rowElements().should((el) => {
       expect(el).to.contain.text('There are no rows which match your search query.');
     });
 
-    homePage.filter('local');
+    sortableTable.filter('local');
     homeClusterList.name('local').should((el) => {
       expect(el).to.contain.text('local');
     });
