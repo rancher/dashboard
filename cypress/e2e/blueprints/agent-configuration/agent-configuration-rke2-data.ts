@@ -60,33 +60,33 @@ export const tolerationsData = [
     ]
   */
 export const podAffinityData = [
-  // {
-  //   affinityType:  1,
-  //   priority:      1,
-  //   namespaceType: 0,
-  //   expressions:   [
-  //     {
-  //       key:      'key1',
-  //       operator: 1,
-  //       value:    'val1'
-  //     },
-  //     {
-  //       key:      'key2',
-  //       operator: 2,
-  //       value:    'val2'
-  //     },
-  //     {
-  //       key:      'key3',
-  //       operator: 3,
-  //     },
-  //     {
-  //       key:      'key4',
-  //       operator: 4,
-  //     },
-  //   ],
-  //   topology: 'some-topology1',
-  //   weight:   10,
-  // },
+  {
+    affinityType:  1,
+    priority:      1,
+    namespaceType: 0,
+    expressions:   [
+      {
+        key:      'key1',
+        operator: 1,
+        value:    'val1'
+      },
+      {
+        key:      'key2',
+        operator: 2,
+        value:    'val2'
+      },
+      {
+        key:      'key3',
+        operator: 3,
+      },
+      {
+        key:      'key4',
+        operator: 4,
+      },
+    ],
+    topology: 'some-topology1',
+    weight:   10,
+  },
   {
     affinityType:  1,
     priority:      2,
@@ -112,74 +112,74 @@ export const podAffinityData = [
       },
     ],
     topology: 'some-topology2'
-  // },
-  // {
-  //   affinityType:  1,
-  //   priority:      2,
-  //   namespaceType: 2,
-  //   namespaces:    'system,fleet-default',
-  //   topology:      'some-topology3'
-  // },
-  // {
-  //   affinityType:  2,
-  //   priority:      1,
-  //   namespaceType: 0,
-  //   expressions:   [
-  //     {
-  //       key:      'key1',
-  //       operator: 1,
-  //       value:    'val1'
-  //     },
-  //     {
-  //       key:      'key2',
-  //       operator: 2,
-  //       value:    'val2'
-  //     },
-  //     {
-  //       key:      'key3',
-  //       operator: 3,
-  //     },
-  //     {
-  //       key:      'key4',
-  //       operator: 4,
-  //     },
-  //   ],
-  //   topology: 'some-topology1',
-  //   weight:   10,
-  // },
-  // {
-  //   affinityType:  2,
-  //   priority:      2,
-  //   namespaceType: 1,
-  //   expressions:   [
-  //     {
-  //       key:      'key1',
-  //       operator: 1,
-  //       value:    'val1'
-  //     },
-  //     {
-  //       key:      'key2',
-  //       operator: 2,
-  //       value:    'val2'
-  //     },
-  //     {
-  //       key:      'key3',
-  //       operator: 3,
-  //     },
-  //     {
-  //       key:      'key4',
-  //       operator: 4,
-  //     },
-  //   ],
-  //   topology: 'some-topology2'
-  // },
-  // {
-  //   affinityType:  2,
-  //   priority:      2,
-  //   namespaceType: 2,
-  //   namespaces:    'system,fleet-default',
-  //   topology:      'some-topology3'
-  // },
+  },
+  {
+    affinityType:  1,
+    priority:      2,
+    namespaceType: 2,
+    namespaces:    'system,fleet-default',
+    topology:      'some-topology3'
+  },
+  {
+    affinityType:  2,
+    priority:      1,
+    namespaceType: 0,
+    expressions:   [
+      {
+        key:      'key1',
+        operator: 1,
+        value:    'val1'
+      },
+      {
+        key:      'key2',
+        operator: 2,
+        value:    'val2'
+      },
+      {
+        key:      'key3',
+        operator: 3,
+      },
+      {
+        key:      'key4',
+        operator: 4,
+      },
+    ],
+    topology: 'some-topology1',
+    weight:   10,
+  },
+  {
+    affinityType:  2,
+    priority:      2,
+    namespaceType: 1,
+    expressions:   [
+      {
+        key:      'key1',
+        operator: 1,
+        value:    'val1'
+      },
+      {
+        key:      'key2',
+        operator: 2,
+        value:    'val2'
+      },
+      {
+        key:      'key3',
+        operator: 3,
+      },
+      {
+        key:      'key4',
+        operator: 4,
+      },
+    ],
+    topology: 'some-topology2'
+  },
+  {
+    affinityType:  2,
+    priority:      2,
+    namespaceType: 2,
+    namespaces:    'system,fleet-default',
+    topology:      'some-topology3'
+  },
 ];
 
 // node affinity data

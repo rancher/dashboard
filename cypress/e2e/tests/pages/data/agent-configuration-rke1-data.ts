@@ -141,36 +141,40 @@ export const nodeAffinityData = [
     ]
   */
 export const podAffinityData = [
-  // {
-  //   affinityType:  1,
-  //   priority:      1,
-  //   namespaceType: 0,
-  //   expressions:   [
-  //     {
-  //       key:      'key1',
-  //       operator: 0,
-  //       value:    'val1'
-  //     },
-  //     {
-  //       key:      'key2',
-  //       operator: 1,
-  //       value:    'val2'
-  //     },
-  //     {
-  //       key:      'key3',
-  //       operator: 2,
-  //     },
-  //     {
-  //       key:      'key4',
-  //       operator: 3,
-  //     },
-  //   ],
-  //   topology: 'some-topology1',
-  //   weight:   10,
-  // },
   {
-    affinityType:  1,
-    priority:      0,
+    // affinityType:  1,
+    affinityType: 'Affinity',
+
+    priority:      'Preferred',
+    namespaceType: 0,
+    expressions:   [
+      {
+        key:      'key1',
+        operator: 0,
+        value:    'val1'
+      },
+      {
+        key:      'key2',
+        operator: 1,
+        value:    'val2'
+      },
+      {
+        key:      'key3',
+        operator: 2,
+      },
+      {
+        key:      'key4',
+        operator: 3,
+      },
+    ],
+    topology: 'some-topology1',
+    weight:   10,
+  },
+  {
+    // affinityType:  1,
+    affinityType: 'Affinity',
+
+    priority:      'Required',
     namespaceType: 1,
     expressions:   [
       {
@@ -194,71 +198,79 @@ export const podAffinityData = [
     ],
     topology: 'some-topology2'
   },
-  // {
-  //   affinityType:  1,
-  //   priority:      0,
-  //   namespaceType: 2,
-  //   namespaces:    'system,fleet-default',
-  //   topology:      'some-topology3'
-  // },
-  // {
-  //   affinityType:  0,
-  //   priority:      1,
-  //   namespaceType: 0,
-  //   expressions:   [
-  //     {
-  //       key:      'key1',
-  //       operator: 0,
-  //       value:    'val1'
-  //     },
-  //     {
-  //       key:      'key2',
-  //       operator: 1,
-  //       value:    'val2'
-  //     },
-  //     {
-  //       key:      'key3',
-  //       operator: 2,
-  //     },
-  //     {
-  //       key:      'key4',
-  //       operator: 3,
-  //     },
-  //   ],
-  //   topology: 'some-topology1',
-  //   weight:   10,
-  // },
-  // {
-  //   affinityType:  0,
-  //   priority:      0,
-  //   namespaceType: 1,
-  //   expressions:   [
-  //     {
-  //       key:      'key1',
-  //       operator: 0,
-  //       value:    'val1'
-  //     },
-  //     {
-  //       key:      'key2',
-  //       operator: 1,
-  //       value:    'val2'
-  //     },
-  //     {
-  //       key:      'key3',
-  //       operator: 2,
-  //     },
-  //     {
-  //       key:      'key4',
-  //       operator: 3,
-  //     },
-  //   ],
-  //   topology: 'some-topology2'
-  // },
-  // {
-  //   affinityType:  0,
-  //   priority:      0,
-  //   namespaceType: 2,
-  //   namespaces:    'system,fleet-default',
-  //   topology:      'some-topology3'
-  // },
+  {
+    // affinityType:  1,
+    affinityType: 'Affinity',
+
+    priority:      'Required',
+    namespaceType: 2,
+    namespaces:    'system,fleet-default',
+    topology:      'some-topology3'
+  },
+  {
+    affinityType: 'AntiAffinity',
+    // affinityType:  0,
+
+    priority:      'Preferred',
+    namespaceType: 0,
+    expressions:   [
+      {
+        key:      'key1',
+        operator: 0,
+        value:    'val1'
+      },
+      {
+        key:      'key2',
+        operator: 1,
+        value:    'val2'
+      },
+      {
+        key:      'key3',
+        operator: 2,
+      },
+      {
+        key:      'key4',
+        operator: 3,
+      },
+    ],
+    topology: 'some-topology1',
+    weight:   10,
+  },
+  {
+    // affinityType:  0,
+    affinityType: 'AntiAffinity',
+
+    priority:      'Required',
+    namespaceType: 1,
+    expressions:   [
+      {
+        key:      'key1',
+        operator: 0,
+        value:    'val1'
+      },
+      {
+        key:      'key2',
+        operator: 1,
+        value:    'val2'
+      },
+      {
+        key:      'key3',
+        operator: 2,
+      },
+      {
+        key:      'key4',
+        operator: 3,
+      },
+    ],
+    topology: 'some-topology2'
+  },
+  {
+    // affinityType:  0,
+    affinityType: 'AntiAffinity',
+
+    priority:      'Required',
+    namespaceType: 2,
+    namespaces:    'system,fleet-default',
+    topology:      'some-topology3'
+  },
 ];

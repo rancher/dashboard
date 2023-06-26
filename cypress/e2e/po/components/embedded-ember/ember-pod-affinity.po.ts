@@ -28,10 +28,12 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
   editTerm(termData: any, idx:number) {
     const term = this.findTerm(idx);
 
+    term.type().clickOption(termData.affinityType);
+
     if (termData.topology) {
       term.topology().set(termData.topology);
     }
-    if (termData.namespaceType) {
+    if (termData.namespaceType !== undefined) {
       term.namespaceType().clickIndex(termData.namespaceType);
       if (termData.namespaces) {
         term.namespaceList().set(termData.namespaces);
