@@ -1,7 +1,7 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export default class SimpleBoxPo extends ComponentPo {
-  constructor(selector: string = '.dashboard-root') {
+  constructor(selector = '.dashboard-root') {
     super(selector);
   }
 

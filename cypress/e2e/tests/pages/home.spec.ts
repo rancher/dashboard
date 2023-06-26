@@ -34,7 +34,7 @@ describe('User can perform actions on the Home Page', () => {
 
     homePage.restoreAndWait();
 
-    banners.changelog().find('a').invoke('text').then((el) => {
+    homePage.whatsNewBannerLink().invoke('text').then((el) => {
       text.push(el);
     });
 
@@ -42,7 +42,7 @@ describe('User can perform actions on the Home Page', () => {
       expect(el).contains(text[0]);
     });
 
-    banners.changelog().find('a').click();
+    homePage.whatsNewBannerLink().click();
     whatsNewPage.waitForPage();
     whatsNewPage.title().invoke('text').then((el: string) => {
       expect(el.toLowerCase()).contains(text[0].toLowerCase());
