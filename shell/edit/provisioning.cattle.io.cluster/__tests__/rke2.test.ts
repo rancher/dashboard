@@ -64,6 +64,8 @@ const defaultMocks = {
   },
 };
 
+const defaultData = () => ({ loadedOnce: true });
+
 const defaultSpec = {
   rkeConfig:   { etcd: { disableSnapshots: false } },
   chartValues: {},
@@ -113,7 +115,8 @@ describe('component: rke2', () => {
           }
         },
       },
-      stubs: defaultStubs
+      stubs: defaultStubs,
+      data:  defaultData
     });
 
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
@@ -154,7 +157,8 @@ describe('component: rke2', () => {
           }
         },
       },
-      stubs: defaultStubs
+      stubs: defaultStubs,
+      data:  defaultData
     });
 
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
@@ -205,7 +209,8 @@ describe('component: rke2', () => {
           }
         },
       },
-      stubs: defaultStubs
+      stubs: defaultStubs,
+      data:  defaultData
     });
 
     wrapper.setData({ cisOverride: override });
@@ -237,7 +242,8 @@ describe('component: rke2', () => {
         ...defaultMocks,
         $store: { getters: defaultGetters },
       },
-      stubs: defaultStubs
+      stubs: defaultStubs,
+      data:  defaultData
     });
 
     expect((wrapper.vm as any).validationPassed).toBe(result);
@@ -256,7 +262,7 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data:     () => ({ credentialId: 'I am authenticated' }),
+      data:     () => ({ credentialId: 'I am authenticated', ...defaultData() }),
       computed: defaultComputed,
       mocks:    {
         ...defaultMocks,
