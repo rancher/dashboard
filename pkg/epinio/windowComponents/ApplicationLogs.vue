@@ -150,6 +150,10 @@ export default {
       const url = await this.getSocketUrl();
 
       this.socket = new Socket(url, true, 0);
+      this.socket.setAutoReconnectUrl(async() => {
+        return await this.getSocketUrl();
+      });
+
       this.socket.addEventListener(EVENT_CONNECTED, (e) => {
         this.isOpen = true;
       });

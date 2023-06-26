@@ -1,4 +1,8 @@
 typeLabel:
+  withCount:
+    namespaces: Namespaces {n}
+    applications: Applications {n}
+    services: Services {n}
   namespaces: |-
     {count, plural,
       one { Namespaces }
@@ -11,8 +15,8 @@ typeLabel:
     }
   appcharts: |-
     {count, plural,
-      one { Application Templates }
-      other { Application Templates }
+      one { Application Charts }
+      other { Application Charts }
     }
   "services": |-
     {count, plural,
@@ -34,17 +38,40 @@ typeDescription:
   applications: Epinio uses Applications to transition your code, through build, to being deployed.
   services: Epinio can create instances of your services. Instances can be bound to your applications to provide data, for example a database service bound to an application might provide connection credentials.
   configurations: Configurations are a way to provide data to applications. The data becomes available once the configuration is bound to them.
-  appcharts: Application Templates define kube resources created by your application
+  appcharts: Application Charts define kube resources created by your application. Templates for active applications cannot be changed
   catalogservices: Catalog Services provide additional, common functionality to applications. For example an instance of a database Catalog Service can be bound to an application.
+asyncButton:
+  export:
+    action: Export
+    success: Exported
+    waiting: Exporting&hellip;
 epinio:
   label: Epinio
+  about:
+    allPackages: See all packages
+    getBinaries: Get binaries
   intro:
+    dashboard: Dashboard
     welcome: Welcome to Epinio
     blurb: The Application Development Engine for Kubernetes
+    description:  Epinio takes your application from source code to deployment and allow for Developers and Operators to work better together!
     learnMoreLink: https://epinio.io/
     learnMore: Learn more
     noNamespaces: Create a Namespace, then create your Applications
     getStarted: Get started
+    issues: Issues
+    cards:
+      namespaces:
+        linkText: Create Namespace
+        slotTitle: Newest Namespaces
+      applications:
+        linkText: Deploy Application
+        running: Running
+      services:
+        title: Services
+        description: Create instances of your services. Instances can be bound to your Applications to provide data.
+        linkText: Create Instance
+        slotTitle: Quick start with
   tableHeaders:
     namespace: Namespace
   instances:
@@ -76,17 +103,43 @@ epinio:
         label: Deployment
         summary: Summary
         instances: Instances
+        metrics: Metrics
         memory: Memory
         cpu: CPU
+        details:
+          label: Deployment Details
+          origin: Origin
+          git:
+            created: Created
+            updated: Updated
+            deployed: Deployed
+        commits:
+          redeploy: Select `Redeploy` to update the application from the given commit.
+
       tables:
         label: Resources
         instances: Instances
         services: Services
         configs: Configurations
+        overview: Overview
+        gitCommits: Git commits
+    gitSource:
+      github:
+        label: GitHub
+      gitlab:
+        label: GitLab
+      latestCommit: Latest commit deployed
+      behindCommits: Commits behind
     create:
       title: Application
       titleSubText: Epinio
       instances: Instances
+      settingsVars:
+        title: Application Variables
+        keyLabel: Name
+        valueLabel: Value
+        description: Changes to Application and Environment Variables are applied when the Application has been restarted.
+        checkbox: Enables/Disables {name}
       envvar:
         title: Environment Variables
         keyLabel: Name
@@ -95,10 +148,22 @@ epinio:
         title: Routes
         tooltip: Replace the default route (<app name>.<epinio domain>) with one or more custom routes
         placeholder: e.g. my-custom-route.com/my-app
+    export:
+      label: Export App
+      manifest:
+        title: Manifest
+        description: Manifests contain basic application configuration like name, routes, number of instances, etc.
+      chart:
+        title: Chart and Images
+        description: Helm chart and images can be used to `helm install` your application.
+        banner: Container images can be large and take a long time to download.
     steps:
       basics:
         label: Details
         subtext: Basic info about your app
+      commits:
+        label: Commits
+        subtext: List of commits based on your git repo
       source:
         label: Source
         subtext: Provide the source
@@ -121,7 +186,9 @@ epinio:
             tooltip: Paketo builder image to use for staging
             default: Default Image
             custom: Custom Image
-        containerUrl:
+          appchart:
+            label: Application Chart
+        container_url:
           label: Container Image
           url:
             label: Container Image
@@ -130,7 +197,7 @@ epinio:
         manifest:
           button: From Manifest
           tooltip: Manifests can provide app configuration from another app
-        gitUrl:
+        git_url:
           label: Git URL
           url:
             label: URL
@@ -140,6 +207,13 @@ epinio:
             label: Branch
             inputLabel: Branch
             tooltip: Branch to deploy
+          error:
+            label: Invalid URL, please check the URL and try again.
+        github:
+          label: GitHub
+        gitlab:
+          label: GitLab
+
       configurations:
         label: Bindings
         subtext: Bind to Application
@@ -153,6 +227,7 @@ epinio:
             placeholderWithOptions: Select services to bind app to
             placeholderNoOptions: There are no services in this namespace
         next: Create
+        update: Update Source
       progress:
         label: Progress
         subtext: Status of create
@@ -173,6 +248,9 @@ epinio:
       bind_configurations:
         label: Bind Configurations
         description: Configurations will be bound to the new Application
+      updateSource:
+        label: Updating
+        description: Updates the application source and settings
       bind_services:
         label: Bind Services
         description: Services will be bound to the new Application
@@ -203,6 +281,8 @@ epinio:
         label: Restart
       createManifest:
         label: Download Manifest
+      editFromCommit:
+        label: Redeploy
     wm:
       containerName: 'Instance: {label}'
       noData: There are no log entries to show.
@@ -213,6 +293,17 @@ epinio:
     name: Name
     create: Create a Namespace
     deleteWarning: All resources in a namespace will be deleted.
+    validations:
+      name: Namespace's name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc')
+  services:
+    applicationsNotBound: No applications bound to the Service Instance(s)
+    applicationsBound: |-
+      {count, plural,
+        =1 { Caution: There is 1 application bound to the Service Instance(s) about to be deleted. Do you want to proceed? }
+        other { Caution: There are {count} applications bound to the Service Instance(s) about to be deleted. Do you want to proceed? }
+      }
+    promptRemove:
+      attemptingToRemove: You are attempting to delete the Service Instance
   configurations:
     pairs:
       label: Config Data
@@ -251,3 +342,9 @@ epinio:
       helmChart: Helm Chart
   warnings:
     noNamespace: There are no namespaces. Please create one before proceeding
+model:
+  authConfig:
+    provider:
+      epinio: Auth Provider
+login:
+  genericProvider: Log in with Auth Provider

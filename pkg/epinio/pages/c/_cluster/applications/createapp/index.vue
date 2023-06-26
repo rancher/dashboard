@@ -1,16 +1,16 @@
 <script lang="ts">
 import Vue from 'vue';
 import Application from '../../../../../models/applications';
-import CreateEditView from '@shell/mixins/create-edit-view/impl';
 import Loading from '@shell/components/Loading.vue';
 import Wizard from '@shell/components/Wizard.vue';
-import { EPINIO_TYPES } from '../../../../../types';
+import { EpinioAppSource, EPINIO_TYPES } from '../../../../../types';
 import { _CREATE } from '@shell/config/query-params';
 import AppInfo, { EpinioAppInfo } from '../../../../../components/application/AppInfo.vue';
-import AppSource, { EpinioAppSource } from '../../../../../components/application/AppSource.vue';
+import AppSource from '../../../../../components/application/AppSource.vue';
 import AppConfiguration, { EpinioAppBindings } from '../../../../../components/application/AppConfiguration.vue';
 import AppProgress from '../../../../../components/application/AppProgress.vue';
 import { createEpinioRoute } from '../../../../../utils/custom-routing';
+import { allHash } from '@shell/utils/promise';
 
 interface Data {
   value?: Application,
@@ -33,16 +33,15 @@ export default Vue.extend<Data, any, any, any>({
     AppProgress,
   },
 
-  mixins: [
-    CreateEditView,
-  ],
-
   async fetch() {
-    await Promise.all([
-      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
-      this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
-    ]);
+    const hash: { [key:string]: any } = await allHash({
+      ns:     this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.NAMESPACE }),
+      charts: this.$store.dispatch('epinio/findAll', { type: EPINIO_TYPES.APP_CHARTS }),
+      info:   this.$store.dispatch('epinio/info'),
+    });
 
+    this.epinioInfo = hash.info;
+    this.appChart.chartsList = hash.charts;
     this.originalModel = await this.$store.dispatch(`epinio/create`, { type: EPINIO_TYPES.APP });
     // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
     this.value = await this.$store.dispatch(`epinio/clone`, { resource: this.originalModel });
@@ -80,7 +79,9 @@ export default Vue.extend<Data, any, any, any>({
         subtext:        this.t('epinio.applications.steps.progress.subtext'),
         ready:          false,
         previousButton: { disable: true }
-      }]
+      }],
+      appChart:   { chartsList: undefined },
+      epinioInfo: undefined
     };
   },
 
@@ -95,6 +96,7 @@ export default Vue.extend<Data, any, any, any>({
       this.value.meta = this.value.meta || {};
       this.value.configuration = this.value.configuration || {};
       this.set(this.value.meta, changes.meta);
+      this.set(this.value.configuration, { settings: this.appChart.settings });
       this.set(this.value.configuration, changes.configuration);
     },
 
@@ -102,11 +104,27 @@ export default Vue.extend<Data, any, any, any>({
       this.source = {};
       const { appChart, ...cleanChanges } = changes;
 
+      this.appChart.selectedChart = appChart;
+      this.value.configuration = this.value.configuration || {};
+      this.value.configuration.settings = undefined;
+
       if (appChart) {
-        // app chart actuall belongs in config, so stick it in there
-        this.value.configuration = this.value.configuration || {};
+        // app chart actually belongs in config, so stick it in there
         this.set(this.value.configuration, { appchart: appChart });
+        const filterChart = this.appChart.chartsList?.find((chart: any) => chart.id === appChart);
+
+        if (filterChart?.settings ) {
+          const customValues = Object.keys(filterChart?.settings).reduce((acc:any, key: any) => {
+            acc[key] = '';
+
+            return acc;
+          }, {});
+
+          this.set(this.value.configuration, { settings: customValues });
+          this.set(this.value, { chart: filterChart });
+        }
       }
+
       this.set(this.source, cleanChanges);
     },
 
@@ -149,26 +167,28 @@ export default Vue.extend<Data, any, any, any>({
       header-mode="create"
       finish-mode="done"
       :edit-first-step="true"
+      class="wizard"
       @cancel="cancel"
       @finish="finish"
     >
+      <template #source>
+        <AppSource
+          :application="value"
+          :source="source"
+          :mode="mode"
+          :info="epinioInfo"
+          @change="updateSource"
+          @changeAppInfo="updateInfo"
+          @changeAppConfig="updateManifestConfigurations"
+          @valid="steps[0].ready = $event"
+        />
+      </template>
       <template #basics>
         <AppInfo
           :application="value"
           :mode="mode"
           @change="updateInfo"
           @valid="steps[1].ready = $event"
-        />
-      </template>
-      <template #source>
-        <AppSource
-          :application="value"
-          :source="source"
-          :mode="mode"
-          @change="updateSource"
-          @changeAppInfo="updateInfo"
-          @changeAppConfig="updateManifestConfigurations"
-          @valid="steps[0].ready = $event"
         />
       </template>
       <template #configurations>
@@ -188,20 +208,31 @@ export default Vue.extend<Data, any, any, any>({
         />
       </template>
     </Wizard>
-    <!-- <br><br>
-    Debug<br>
-    Mode: {{ mode }}<br>
-    Value: {{ JSON.stringify(value) }}<br>
-    initialValue: {{ JSON.stringify(initialValue) }}<br>
-    source: {{ JSON.stringify(source) }}<br> -->
   </div>
 </template>
 
 <style lang='scss' scoped>
 .application-wizard {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding-top: 0;
+
+  padding-top: 10px;
+  height: 0;
+  position: relative;
+  overflow: hidden;
+
+  .wizard {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: auto;
+  }
+
+  // This is a hack and is needed as the wizard's buttons are now `position: absolute; bottom: 0;` so appears over wizard content
+  // In the dashabord app chart install wizard this is applied to specific content winthin the wizard (scroll__content)
+  // We applied the same thing here
+  // Both places need to be removed and the padding added within the wizard component
+  :deep(.step-container__step) {
+    padding-bottom: 40px;
+  }
+
 }
 </style>

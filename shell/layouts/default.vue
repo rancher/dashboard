@@ -166,10 +166,13 @@ export default {
       if (this.isSingleProduct?.getVersionInfo) {
         return this.isSingleProduct?.getVersionInfo(this.$store);
       }
-
       const { displayVersion } = getVersionInfo(this.$store);
 
       return displayVersion;
+    },
+
+    singleProductAbout() {
+      return this.isSingleProduct?.aboutPage;
     },
 
     harvesterVersion() {
@@ -714,14 +717,22 @@ export default {
           v-else
           class="version text-muted flex"
         >
-          <span>{{ displayVersion }}</span>
-          <span
-            v-if="isVirtualCluster && isExplorer"
-            v-tooltip="{content: harvesterVersion, placement: 'top'}"
-            class="clip text-muted ml-5"
+          <nuxt-link
+            v-if="singleProductAbout"
+            :to="singleProductAbout"
           >
-            (Harvester-{{ harvesterVersion }})
-          </span>
+            {{ displayVersion }}
+          </nuxt-link>
+          <template v-else>
+            <span>{{ displayVersion }}</span>
+            <span
+              v-if="isVirtualCluster && isExplorer"
+              v-tooltip="{content: harvesterVersion, placement: 'top'}"
+              class="clip text-muted ml-5"
+            >
+              (Harvester-{{ harvesterVersion }})
+            </span>
+          </template>
         </div>
       </nav>
       <main

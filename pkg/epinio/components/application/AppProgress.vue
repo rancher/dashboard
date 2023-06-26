@@ -6,19 +6,19 @@ import SortableTable from '@shell/components/SortableTable/index.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import BadgeState from '@components/BadgeState/BadgeState.vue';
 import { STATE, DESCRIPTION } from '@shell/config/table-headers';
-import { EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication } from '../../types';
-import { EpinioAppSource } from '../../components/application/AppSource.vue';
+import {
+  EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication, EpinioAppSource, EpinioCompRecord
+} from '../../types';
 import { EpinioAppBindings } from '../../components/application/AppConfiguration.vue';
 import EpinioNamespace from '../../models/namespaces';
 
 interface Data {
   running: boolean;
   actionHeaders: any[];
-  actions: ApplicationAction[]
+  actions: ApplicationAction[];
 }
 
-export default Vue.extend<Data, any, any, any>({
-
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     SortableTable,
     BadgeState,
@@ -45,14 +45,16 @@ export default Vue.extend<Data, any, any, any>({
     step: {
       type:     Object as PropType<any>,
       required: true
-    }
+    },
   },
 
   async fetch() {
+    const REDEPLOY_SOURCE = this.$router?.history.current.hash === '#source';
+
     const coreArgs: Partial<ApplicationAction & {
       application: EpinioApplication,
       bindings: EpinioAppBindings,
-      type: string,
+      type: string
     }> = {
       application: this.application,
       bindings:    this.bindings,
@@ -60,67 +62,104 @@ export default Vue.extend<Data, any, any, any>({
     };
 
     if (!this.namespaces.find((ns: EpinioNamespace) => ns.name === coreArgs.application?.meta.namespace)) {
-      this.actions.push(await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.CREATE_NS,
-        index:  0, // index used for sorting
-        ...coreArgs,
-      }));
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.CREATE_NS,
+          index:  0, // index used for sorting
+          ...coreArgs,
+        })
+      );
     }
 
-    this.actions.push(await this.$store.dispatch('epinio/create', {
-      action: APPLICATION_ACTION_TYPE.CREATE,
-      index:  1, // index used for sorting
-      ...coreArgs,
-    }));
-
-    if (this.bindings?.configurations?.length) {
-      this.actions.push(await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
-        index:  2,
-        ...coreArgs,
-      }));
+    if (!REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.CREATE,
+          index:  1, // index used for sorting
+          ...coreArgs,
+        })
+      );
+    } else {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.UPDATE_SOURCE,
+          index:  2, // index used for sorting
+          ...coreArgs,
+        })
+      );
     }
 
-    if (this.bindings?.services?.length) {
-      this.actions.push(await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.BIND_SERVICES,
-        index:  3,
-        ...coreArgs,
-      }));
+    if (this.bindings?.configurations?.length && !REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS,
+          index:  3,
+          ...coreArgs,
+        })
+      );
+    }
+
+    if (this.bindings?.services?.length && !REDEPLOY_SOURCE) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.BIND_SERVICES,
+          index:  4,
+          ...coreArgs,
+        })
+      );
     }
 
     if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
-        this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
-      this.actions.push(await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.UPLOAD,
-        index:  4,
-        ...coreArgs,
-      }));
+    this.source.type === APPLICATION_SOURCE_TYPE.FOLDER) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.UPLOAD,
+          index:  5,
+          ...coreArgs,
+        })
+      );
     }
 
     if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
-      this.actions.push(await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.GIT_FETCH,
-        index:  4,
-        ...coreArgs,
-      }));
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.GIT_FETCH,
+          index:  5,
+          ...coreArgs,
+        })
+      );
+    }
+    if (this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB ||
+      this.source.type === APPLICATION_SOURCE_TYPE.GIT_LAB) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.GIT_FETCH,
+          index:  6,
+          ...coreArgs,
+        })
+      );
     }
 
     if (this.source.type === APPLICATION_SOURCE_TYPE.ARCHIVE ||
-        this.source.type === APPLICATION_SOURCE_TYPE.FOLDER ||
-        this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL) {
-      this.actions.push(await this.$store.dispatch('epinio/create', {
-        action: APPLICATION_ACTION_TYPE.BUILD,
-        index:  5,
-        ...coreArgs,
-      }));
+    this.source.type === APPLICATION_SOURCE_TYPE.FOLDER ||
+    this.source.type === APPLICATION_SOURCE_TYPE.GIT_URL ||
+    this.source.type === APPLICATION_SOURCE_TYPE.GIT_HUB ||
+    this.source.type === APPLICATION_SOURCE_TYPE.GIT_LAB) {
+      this.actions.push(
+        await this.$store.dispatch('epinio/create', {
+          action: APPLICATION_ACTION_TYPE.BUILD,
+          index:  7,
+          ...coreArgs,
+        })
+      );
     }
 
     this.actions.push(await this.$store.dispatch('epinio/create', {
       action: APPLICATION_ACTION_TYPE.DEPLOY,
-      index:  6,
-      ...coreArgs,
-    }));
+      index:  8,
+      ...coreArgs
+    })
+    );
 
     this.create();
   },
@@ -146,11 +185,11 @@ export default Vue.extend<Data, any, any, any>({
           ...STATE,
           sort:     undefined,
           labelKey: 'epinio.applications.steps.progress.table.status',
-          width:    150
+          width:    150,
         },
       ],
       actions: [],
-      APPLICATION_ACTION_STATE
+      APPLICATION_ACTION_STATE,
     };
   },
 
@@ -169,16 +208,14 @@ export default Vue.extend<Data, any, any, any>({
       if (prev && !neu) {
         Vue.set(this.step, 'ready', true);
       }
-    }
+    },
   },
 
   methods: {
     async fetchApp() {
       try {
         await this.application.forceFetch();
-      } catch (err) {
-
-      }
+      } catch (err) {}
     },
 
     async create() {
@@ -191,7 +228,7 @@ export default Vue.extend<Data, any, any, any>({
           await action.execute({ source: this.source });
         } catch (err) {
           Vue.set(this, 'running', false);
-          console.error(err);// eslint-disable-line no-console
+          console.error(err); // eslint-disable-line no-console
 
           await this.fetchApp();
 
@@ -201,10 +238,9 @@ export default Vue.extend<Data, any, any, any>({
       await this.fetchApp();
       Vue.set(this, 'running', false);
       this.$emit('finished', true);
-    }
-  }
+    },
+  },
 });
-
 </script>
 
 <template>
@@ -264,9 +300,7 @@ export default Vue.extend<Data, any, any, any>({
       .badge {
         min-height: $statusHeight;
       }
-
     }
   }
 }
-
 </style>

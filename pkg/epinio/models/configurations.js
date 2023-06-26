@@ -1,5 +1,5 @@
 import { EPINIO_TYPES } from '../types';
-import EpinioNamespacedResource from './epinio-namespaced-resource';
+import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
 
 export default class EpinioConfigurationModel extends EpinioNamespacedResource {
   get canCustomEdit() {
@@ -87,6 +87,10 @@ export default class EpinioConfigurationModel extends EpinioNamespacedResource {
 
   async remove() {
     return await super.remove({ data: { unbind: true } });
+  }
+
+  bulkRemove(items, opt) {
+    return bulkRemove(items, opt);
   }
 
   // ------------------------------------------------------------------

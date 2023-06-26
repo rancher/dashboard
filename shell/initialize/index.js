@@ -110,9 +110,6 @@ async function createApp(ssrContext, config = {}) {
       meta:  [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, {
         hid: 'description', name: 'description', content: 'Rancher Dashboard'
       }],
-      link: [{
-        hid: 'icon', rel: 'icon', type: 'image\u002Fx-icon', href: '\u002Ffavicon.png'
-      }],
       style:  [],
       script: []
     },
