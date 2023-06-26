@@ -4,12 +4,11 @@ import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
-import Vue from 'vue';
 
-const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter', 'ui-plugin-operator'];
+const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
 
 export const hasCspAdapter = (apps) => {
-  return apps?.find(a => cspAdaptorApp.includes(a.metadata?.name));
+  return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
 };
 
 export default {
@@ -69,7 +68,7 @@ export default {
 
     cspAdapter() {
       if (!this.globalSettings.length) {
-        return undefined;
+        return '';
       }
 
       return hasCspAdapter(this.apps);
