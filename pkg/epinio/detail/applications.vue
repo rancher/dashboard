@@ -5,7 +5,7 @@ import Vue, { PropType } from 'vue';
 import Application from '../models/applications';
 import SimpleBox from '@shell/components/SimpleBox.vue';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import { APPLICATION_MANIFEST_SOURCE_TYPE, EpinioCompRecord, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 import PlusMinus from '@shell/components/form/PlusMinus.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
@@ -23,7 +23,7 @@ interface Data {
 }
 
 // Data, Methods, Computed, Props
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     Banner,
     SimpleBox,
@@ -161,7 +161,7 @@ export default Vue.extend<Data, any, any, any>({
 
       const arr: any[] = isArray(commits) ? commits : [commits];
 
-      return arr.map(c => ({
+      return arr.map((c) => ({
         ...GitUtils[this.gitType].normalize.commit(c),
         availableActions: this.commitActions,
         editFromCommit:   () => this.value.goToEdit({ commit: c.sha || c.id }),

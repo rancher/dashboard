@@ -29,7 +29,7 @@ export default {
     let enumOptions = [];
 
     if (setting.kind === 'enum') {
-      enumOptions = setting.options.map(id => ({
+      enumOptions = setting.options.map((id) => ({
         label: `advancedSettings.enum.harv-${ this.value.id }.${ id }`,
         value: id
       }));
@@ -50,7 +50,7 @@ export default {
     const customSettingComponents = require
       .context('../components/settings', false, /^.*\.vue$/)
       .keys()
-      .map(path => path.replace(/(\.\/)|(.vue)/g, ''));
+      .map((path) => path.replace(/(\.\/)|(.vue)/g, ''));
 
     return {
       setting,
@@ -166,7 +166,11 @@ export default {
   >
     <h4 v-clean-html="description"></h4>
 
-    <h5 v-if="editHelp" v-clean-html="editHelp" class="edit-help" />
+    <h5
+      v-if="editHelp"
+      v-clean-html="editHelp"
+      class="edit-help"
+    />
 
     <div class="edit-change mt-20">
       <h5 v-t="'advancedSettings.edit.changeSetting'" />
@@ -211,7 +215,10 @@ export default {
         />
       </div>
       <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
-        <TextAreaAutoGrow v-model="value.value" :min-height="254" />
+        <TextAreaAutoGrow
+          v-model="value.value"
+          :min-height="254"
+        />
       </div>
       <div v-else>
         <LabeledInput

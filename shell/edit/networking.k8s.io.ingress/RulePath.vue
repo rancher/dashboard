@@ -55,13 +55,13 @@ export default {
   },
   computed: {
     portOptions() {
-      const service = this.serviceTargets.find(s => s.label === this.serviceName);
+      const service = this.serviceTargets.find((s) => s.label === this.serviceName);
 
       return service?.ports || [];
     },
     serviceTargetStatus() {
       const serviceName = this.serviceName?.label || this.serviceName;
-      const isValueAnOption = !serviceName || this.serviceTargets.find(target => serviceName === target.value);
+      const isValueAnOption = !serviceName || this.serviceTargets.find((target) => serviceName === target.value);
 
       return isValueAnOption ? null : 'warning';
     },

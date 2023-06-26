@@ -31,15 +31,15 @@ export default class Role extends SteveModel {
   }
 
   get allResources() {
-    return this.$getters['all'](SCHEMA).filter(r => r.attributes?.kind);
+    return this.$getters['all'](SCHEMA).filter((r) => r.attributes?.kind);
   }
 
   get clusterResources() {
-    return this.allResources.filter(r => !r.attributes.namespaced && !r.attributes.group.includes(CATTLE_API_GROUP));
+    return this.allResources.filter((r) => !r.attributes.namespaced && !r.attributes.group.includes(CATTLE_API_GROUP));
   }
 
   get resources() {
-    return uniq(this.clusterResources.map(r => r.attributes?.kind)).sort();
+    return uniq(this.clusterResources.map((r) => r.attributes?.kind)).sort();
   }
 
   set displayName(v) {

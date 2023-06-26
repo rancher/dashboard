@@ -110,7 +110,10 @@ export default {
   <div class="mb-20">
     <h3>{{ t(`harvester.virtualMachine.cloudConfig.${type}.title`) }}</h3>
     <p class="text-muted mb-20">
-      <t :k="`harvester.virtualMachine.cloudConfig.${type}.tip`" :raw="true" />
+      <t
+        :k="`harvester.virtualMachine.cloudConfig.${type}.tip`"
+        :raw="true"
+      />
     </p>
 
     <LabeledSelect

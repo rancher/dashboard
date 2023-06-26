@@ -138,13 +138,13 @@ export default {
     },
 
     provisionerIsDeprecated() {
-      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
+      const provisionerOpt = PROVISIONER_OPTIONS.find((opt) => opt.value === this.value.provisioner);
 
       return provisionerOpt && provisionerOpt.deprecated !== undefined;
     },
 
     provisionerIsHideCustomize() {
-      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === this.value.provisioner);
+      const provisionerOpt = PROVISIONER_OPTIONS.find((opt) => opt.value === this.value.provisioner);
 
       return provisionerOpt && provisionerOpt.hideCustomize !== undefined;
     },
@@ -162,7 +162,7 @@ export default {
 
   methods: {
     getComponent(name) {
-      const isCustom = !PROVISIONER_OPTIONS.find(o => o.value === name);
+      const isCustom = !PROVISIONER_OPTIONS.find((o) => o.value === name);
       const provisioner = isCustom ? 'custom' : name;
 
       return require(`./provisioners/${ provisioner }`).default;
@@ -182,7 +182,7 @@ export default {
       });
     },
     provisionerLabel(provisioner) {
-      const provisionerOpt = PROVISIONER_OPTIONS.find(opt => opt.value === provisioner);
+      const provisionerOpt = PROVISIONER_OPTIONS.find((opt) => opt.value === provisioner);
 
       return provisionerOpt?.labelKey ? this.t(provisionerOpt.labelKey) : provisioner;
     },

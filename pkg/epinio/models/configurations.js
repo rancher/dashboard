@@ -29,7 +29,7 @@ export default class EpinioConfigurationModel extends EpinioNamespacedResource {
     const all = this.$getters['all'](EPINIO_TYPES.APP);
 
     return (this.configuration.boundapps || []).reduce((res, appName) => {
-      const a = all.find(allA => allA.meta.name === appName);
+      const a = all.find((allA) => allA.meta.name === appName);
 
       if (a) {
         res.push(a);

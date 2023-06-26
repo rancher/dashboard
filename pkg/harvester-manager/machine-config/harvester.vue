@@ -60,7 +60,7 @@ export function isReady() {
   function getStatusConditionOfType(type, defaultValue = []) {
     const conditions = Array.isArray(get(this, 'status.conditions')) ? this.status.conditions : defaultValue;
 
-    return conditions.find( cond => cond.type === type);
+    return conditions.find( (cond) => cond.type === type);
   }
 
   const initialized = getStatusConditionOfType.call(this, 'Initialized');
@@ -184,7 +184,7 @@ export default {
         this.networkDataOptions = networkDataOptions;
         this.images = res.images.value?.data;
         this.storageClass = res.storageClass.value?.data;
-        this.networkOptions = (res.networks.value?.data || []).filter(O => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
+        this.networkOptions = (res.networks.value?.data || []).filter((O) => O.metadata?.annotations?.[STORAGE_NETWORK] !== 'true').map((O) => {
           let value;
           let label;
 
@@ -203,7 +203,7 @@ export default {
           };
         });
 
-        let systemNamespaces = (res.settings.value?.data || []).filter(x => x.id === SETTING.SYSTEM_NAMESPACES);
+        let systemNamespaces = (res.settings.value?.data || []).filter((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
         if (systemNamespaces) {
           systemNamespaces = (systemNamespaces[0]?.value || systemNamespaces[0]?.default)?.split(',') || [];
@@ -413,7 +413,7 @@ export default {
     },
 
     storageClassOptions() {
-      const out = (this.storageClass || []).filter(s => !s.parameters?.backingImage).map((s) => {
+      const out = (this.storageClass || []).filter((s) => !s.parameters?.backingImage).map((s) => {
         const isDefault = s.metadata?.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS] === 'true';
         const label = isDefault ? `${ s.metadata.name } (${ this.t('generic.default') })` : s.metadata.name;
 
@@ -427,7 +427,7 @@ export default {
     },
 
     defaultStorageClass() {
-      const defaultStorageClass = (this.storageClass || []).filter(s => !s.parameters?.backingImage).find((s) => {
+      const defaultStorageClass = (this.storageClass || []).filter((s) => !s.parameters?.backingImage).find((s) => {
         const isDefault = s.metadata?.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS] === 'true';
 
         return isDefault;
@@ -878,7 +878,7 @@ export default {
         return installAgent;
       }
 
-      const hasInstall = dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => Array.isArray(S) && S.join('-') === QGA_JSON.runcmd[0].join('-'));
+      const hasInstall = dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( (S) => Array.isArray(S) && S.join('-') === QGA_JSON.runcmd[0].join('-'));
 
       return !!hasInstall;
     },
@@ -920,7 +920,7 @@ export default {
       }
 
       if (Array.isArray(runcmd)) {
-        const hasSameRuncmd = runcmd.find( S => Array.isArray(S) && S.join('-') === QGA_JSON.runcmd[0].join('-'));
+        const hasSameRuncmd = runcmd.find( (S) => Array.isArray(S) && S.join('-') === QGA_JSON.runcmd[0].join('-'));
 
         if (!hasSameRuncmd) {
           runcmd.push(QGA_JSON.runcmd[0]);

@@ -37,7 +37,7 @@ export default {
       allRows.push(...rows.clusterNetwork);
     }
 
-    const monitoring = (rows.managedcharts || []).find(c => c.id === 'fleet-local/rancher-monitoring');
+    const monitoring = (rows.managedcharts || []).find((c) => c.id === 'fleet-local/rancher-monitoring');
 
     if (monitoring) {
       allRows.push(...rows.managedcharts);
@@ -142,7 +142,7 @@ export default {
     },
 
     getSettingOption(id) {
-      return HCI_ALLOWED_SETTINGS.find(setting => setting.id === id);
+      return HCI_ALLOWED_SETTINGS.find((setting) => setting.id === id);
     },
 
     toggleHide(s) {
@@ -159,50 +159,89 @@ export default {
 <template>
   <Loading v-if="!settings" />
   <div v-else>
-    <Banner color="warning" class="settings-banner">
+    <Banner
+      color="warning"
+      class="settings-banner"
+    >
       <div>
         {{ t('advancedSettings.subtext') }}
       </div>
     </Banner>
-    <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-20">
+    <div
+      v-for="setting in settings"
+      :key="setting.id"
+      class="advanced-setting mb-20"
+    >
       <div class="header">
         <div class="title">
           <h1>
             {{ setting.id }}
-            <span v-if="setting.customized" class="modified">
+            <span
+              v-if="setting.customized"
+              class="modified"
+            >
               Modified
             </span>
           </h1>
           <h2 v-clean-html="t(setting.description, {}, true)">
           </h2>
         </div>
-        <div v-if="setting.hasActions" :id="setting.id" class="action">
-          <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions" @click="showActionMenu($event, setting)">
+        <div
+          v-if="setting.hasActions"
+          :id="setting.id"
+          class="action"
+        >
+          <button
+            aria-haspopup="true"
+            aria-expanded="false"
+            type="button"
+            class="btn btn-sm role-multi-action actions"
+            @click="showActionMenu($event, setting)"
+          >
             <i class="icon icon-actions" />
           </button>
         </div>
       </div>
       <div value>
         <div v-if="setting.hide">
-          <button class="btn btn-sm role-primary" @click="toggleHide(setting)">
+          <button
+            class="btn btn-sm role-primary"
+            @click="toggleHide(setting)"
+          >
             {{ t('advancedSettings.show') }} {{ setting.id }}
           </button>
         </div>
-        <div v-else class="settings-value">
+        <div
+          v-else
+          class="settings-value"
+        >
           <pre v-if="setting.kind === 'json'">{{ setting.json }}</pre>
           <pre v-else-if="setting.kind === 'multiline'">{{ setting.data.value || setting.data.default }}</pre>
           <pre v-else-if="setting.kind === 'enum'">{{ t(setting.enum) }}</pre>
           <pre v-else-if="setting.kind === 'custom' && setting.custom"> {{ setting.custom }}</pre>
           <pre v-else-if="setting.data.value || setting.data.default">{{ setting.data.value || setting.data.default }}</pre>
-          <pre v-else class="text-muted">&lt;{{ t('advancedSettings.none') }}&gt;</pre>
+          <pre
+            v-else
+            class="text-muted"
+          >&lt;{{ t('advancedSettings.none') }}&gt;</pre>
         </div>
-        <div v-if="setting.canHide && !setting.hide" class="mt-5">
-          <button class="btn btn-sm role-primary" @click="toggleHide(setting)">
+        <div
+          v-if="setting.canHide && !setting.hide"
+          class="mt-5"
+        >
+          <button
+            class="btn btn-sm role-primary"
+            @click="toggleHide(setting)"
+          >
             {{ t('advancedSettings.hide') }} {{ setting.id }}
           </button>
         </div>
       </div>
-      <Banner v-if="setting.data.errMessage" color="error mt-5" class="settings-banner">
+      <Banner
+        v-if="setting.data.errMessage"
+        color="error mt-5"
+        class="settings-banner"
+      >
         {{ setting.data.errMessage }}
       </Banner>
     </div>

@@ -165,7 +165,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
   get canCreate() {
     const schema = this.$getters['schemaFor'](this.type);
 
-    return schema?.resourceMethods.find(verb => CREATE_VERBS.has(verb));
+    return schema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb));
   }
 
   goToClone(moreQuery = {}) {

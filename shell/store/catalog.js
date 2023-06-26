@@ -75,7 +75,7 @@ export const getters = {
   },
 
   charts(state, getters, rootState, rootGetters) {
-    const repoKeys = getters.repos.map(x => x._key);
+    const repoKeys = getters.repos.map((x) => x._key);
     let cluster = rootGetters['currentCluster'];
 
     if ( rootGetters['currentProduct']?.inStore === 'management' ) {
@@ -120,7 +120,7 @@ export const getters = {
       });
 
       if ( includeHidden === false ) {
-        matching = matching.filter(x => !x.hidden);
+        matching = matching.filter((x) => !x.hidden);
       }
 
       if ( !matching.length ) {
@@ -176,7 +176,7 @@ export const getters = {
       name = name.toLowerCase().trim();
       chartVersion = normalizeVersion(chartVersion);
 
-      const matching = getters.charts.filter(chart => chart.chartName.toLowerCase().trim() === name);
+      const matching = getters.charts.filter((chart) => chart.chartName.toLowerCase().trim() === name);
 
       if ( !matching.length ) {
         return;
@@ -192,9 +192,9 @@ export const getters = {
       if ( wantVersion === 'latest' ) {
         version = chart.versions[0];
       } else if ( wantVersion === 'match' || wantVersion === 'matching' ) {
-        version = chart.versions.find(v => normalizeVersion(v.version) === chartVersion);
+        version = chart.versions.find((v) => normalizeVersion(v.version) === chartVersion);
       } else {
-        version = chart.versions.find(v => normalizeVersion(v.version) === wantVersion);
+        version = chart.versions.find((v) => normalizeVersion(v.version) === wantVersion);
       }
 
       if ( version ) {
@@ -205,7 +205,7 @@ export const getters = {
 
   versionProviding(state, getters) {
     return ({ repoType, repoName, gvr }) => {
-      const matching = getters.charts.filter(chart => chart.provides.includes(gvr) );
+      const matching = getters.charts.filter((chart) => chart.provides.includes(gvr) );
 
       if ( !matching.length ) {
         return;
@@ -215,7 +215,7 @@ export const getters = {
         preferSameRepo(matching, repoType, repoName);
       }
 
-      const version = matching[0].versions.find(version => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
+      const version = matching[0].versions.find((version) => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
 
       if ( version ) {
         return clone(version);
@@ -274,7 +274,7 @@ export const getters = {
       const allPaths = require.context('@shell/chart', true, /\.vue$/).keys();
 
       allPaths
-        .filter(path => path.startsWith(stepsPath))
+        .filter((path) => path.startsWith(stepsPath))
         .forEach((path) => {
           try {
             steps.push({
@@ -354,7 +354,7 @@ export const actions = {
 
     // As per comment above, when there are no clusters this will be management. Store it such that it can be used for those cases
     commit('setInStore', inStore);
-    hash.cluster = hash.cluster.filter(repo => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
+    hash.cluster = hash.cluster.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
 
     commit('setRepos', hash);
 
@@ -400,7 +400,7 @@ export const actions = {
   },
 
   async refresh({ getters, commit, dispatch }) {
-    const promises = getters.repos.map(x => x.refresh());
+    const promises = getters.repos.map((x) => x.refresh());
 
     // @TODO wait for repo state to indicate they're done once the API has that
 
@@ -568,7 +568,7 @@ function normalizeVersion(v) {
 }
 
 function filterCategories(categories) {
-  categories = (categories || []).map(x => normalizeCategory(x));
+  categories = (categories || []).map((x) => normalizeCategory(x));
 
   const out = [];
 
@@ -651,7 +651,7 @@ export function filterAndArrangeCharts(charts, {
 
     if ( searchQuery ) {
       // The search filter doesn't match
-      const searchTokens = searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
+      const searchTokens = searchQuery.split(/\s*[, ]\s*/).map((x) => ensureRegex(x, false));
 
       for ( const token of searchTokens ) {
         const chartDescription = c.chartDescription || '';

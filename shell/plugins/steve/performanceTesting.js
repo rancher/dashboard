@@ -81,7 +81,7 @@ function replicate(data, config) {
   const templates = [];
   let j = 0;
 
-  data.forEach(d => templates.push(JSON.stringify(d)));
+  data.forEach((d) => templates.push(JSON.stringify(d)));
 
   const newData = [...data];
 

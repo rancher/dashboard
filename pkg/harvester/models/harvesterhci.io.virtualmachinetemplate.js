@@ -20,7 +20,7 @@ export default class HciVmTemplate extends HarvesterResource {
     const schema = this.$getters['schemaFor'](HCI.VM);
     let canCreateVM = true;
 
-    if ( schema && !schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase())) ) {
+    if ( schema && !schema?.collectionMethods.find((x) => ['post'].includes(x.toLowerCase())) ) {
       canCreateVM = false;
     }
 

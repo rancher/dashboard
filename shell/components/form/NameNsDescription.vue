@@ -231,8 +231,8 @@ export default {
       const namespaces = this.namespacesOverride ||
         (Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces()));
       const options = namespaces
-        .map(namespace => ({ nameDisplay: namespace, id: namespace }))
-        .map(this.namespaceMapper || (obj => ({
+        .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
+        .map(this.namespaceMapper || ((obj) => ({
           label: obj.nameDisplay,
           value: obj.id,
         })));
@@ -336,7 +336,7 @@ export default {
       }
 
       if (this.namespaced) {
-        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find(n => n.value === val)));
+        this.$emit('isNamespaceNew', !val || (this.options && !this.options.find((n) => n.value === val)));
       }
 
       if (this.namespaceKey) {
@@ -355,7 +355,7 @@ export default {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
       // In practise we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
-      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find(o => !!o.value)?.value ;
+      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value ;
     },
 
     selectNamespace(e) {

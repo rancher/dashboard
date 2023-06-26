@@ -138,7 +138,7 @@ export default Vue.extend<Data, any, any, any>({
       const validNamespace = nsErrors.length === 0;
       const validInstances = typeof this.values.configuration?.instances !== 'string' && this.values.configuration?.instances >= 0;
 
-      return validName && validNamespace && validInstances && Object.values(this.validSettings).every(v => !!v) ;
+      return validName && validNamespace && validInstances && Object.values(this.validSettings).every((v) => !!v) ;
     },
 
     showApplicationVariables() {

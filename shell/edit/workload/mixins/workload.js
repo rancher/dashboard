@@ -284,7 +284,7 @@ export default {
 
     defaultTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
-        const container = this.allContainers.find(c => c.__active);
+        const container = this.allContainers.find((c) => c.__active);
 
         return container?.name ?? 'container-0';
       }
@@ -485,7 +485,7 @@ export default {
 
         const { imagePullSecrets } = this.podTemplateSpec;
 
-        return imagePullSecrets.map(each => each.name);
+        return imagePullSecrets.map((each) => each.name);
       },
       set(neu) {
         this.podTemplateSpec.imagePullSecrets = neu.map((secret) => {
@@ -615,7 +615,7 @@ export default {
               {
                 var:         'imagePullNamespacedSecrets',
                 parsingFunc: (data) => {
-                  return data.filter(secret => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+                  return data.filter((secret) => (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
                 }
               }
             ]
@@ -626,7 +626,7 @@ export default {
               {
                 var:         'allNodes',
                 parsingFunc: (data) => {
-                  return data.map(node => node.id);
+                  return data.map((node) => node.id);
                 }
               }
             ]
@@ -637,7 +637,7 @@ export default {
               {
                 var:         'headlessServices',
                 parsingFunc: (data) => {
-                  return data.filter(service => service.spec.clusterIP === 'None');
+                  return data.filter((service) => service.spec.clusterIP === 'None');
                 }
               }
             ]
@@ -661,7 +661,7 @@ export default {
 
       return typeDisplay
         .split('')
-        .filter(letter => letter.match(/[A-Z]/))
+        .filter((letter) => letter.match(/[A-Z]/))
         .join('');
     },
 
@@ -695,7 +695,7 @@ export default {
       }
 
       return Promise.all([
-        ...toSave.map(svc => svc.save()),
+        ...toSave.map((svc) => svc.save()),
         ...toRemove.map((svc) => {
           const ui = svc?.metadata?.annotations[UI_MANAGED];
 
@@ -808,7 +808,7 @@ export default {
 
         total.push(
           ...containerPorts.filter(
-            port => port._serviceType && port._serviceType !== ''
+            (port) => port._serviceType && port._serviceType !== ''
           )
         );
 

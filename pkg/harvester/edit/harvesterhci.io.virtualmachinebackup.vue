@@ -96,7 +96,7 @@ export default {
 
       const backupList = this.$store.getters['harvester/all'](HCI.BACKUP);
 
-      return backupList.find( O => O.name === name);
+      return backupList.find( (O) => O.name === name);
     },
 
     disableExisting() {
@@ -106,7 +106,7 @@ export default {
     backupNamespace() {
       const backupList = this.$store.getters['harvester/all'](HCI.BACKUP);
 
-      return backupList.find( B => B.metadata.name === this.backupName)?.metadata?.namespace;
+      return backupList.find( (B) => B.metadata.name === this.backupName)?.metadata?.namespace;
     },
 
     namespaces() {
@@ -115,7 +115,7 @@ export default {
       const systemNamespaces = this.$store.getters['systemNamespaces'];
 
       const out = sortBy(
-        choices.filter(N => !systemNamespaces.includes(N.metadata.name)).map((obj) => {
+        choices.filter((N) => !systemNamespaces.includes(N.metadata.name)).map((obj) => {
           return {
             label: obj.nameDisplay,
             value: obj.id,
@@ -238,12 +238,28 @@ export default {
         </div>
       </div>
 
-      <LabeledSelect v-model="backupName" class="mb-20" :label="t('harvester.backup.restore.backup')" :options="backupOption" />
+      <LabeledSelect
+        v-model="backupName"
+        class="mb-20"
+        :label="t('harvester.backup.restore.backup')"
+        :options="backupOption"
+      />
 
-      <LabeledSelect v-if="!restoreNewVm" v-model="deletionPolicy" :label="t('harvester.backup.restore.deletePreviousVolumes')" :options="deletionPolicyOption" />
+      <LabeledSelect
+        v-if="!restoreNewVm"
+        v-model="deletionPolicy"
+        :label="t('harvester.backup.restore.deletePreviousVolumes')"
+        :options="deletionPolicyOption"
+      />
     </div>
 
-    <Footer mode="create" class="footer" :errors="errors" @save="saveRestore" @done="done" />
+    <Footer
+      mode="create"
+      class="footer"
+      :errors="errors"
+      @save="saveRestore"
+      @done="done"
+    />
   </div>
 </template>
 

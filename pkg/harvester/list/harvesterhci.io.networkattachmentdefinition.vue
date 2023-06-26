@@ -103,9 +103,9 @@ export default {
     },
 
     abnormalNetwork() {
-      const notReadyCrd = this.hostNetworks.filter( O => !O.isReady);
+      const notReadyCrd = this.hostNetworks.filter( (O) => !O.isReady);
 
-      return notReadyCrd.map( O => O.linkMessage);
+      return notReadyCrd.map( (O) => O.linkMessage);
     },
 
   },
@@ -131,7 +131,10 @@ export default {
     </template>
 
     <template v-else>
-      <Banner v-if="hasClusterNetwork" color="info">
+      <Banner
+        v-if="hasClusterNetwork"
+        color="info"
+      >
         <MessageLink
           :to="to"
           prefix-label="harvester.network.message.viewSetting.prefix"

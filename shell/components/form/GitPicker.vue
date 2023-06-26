@@ -149,7 +149,7 @@ export default Vue.extend<Data, any, any, any>({
 
   methods: {
     debounceRequest(callback: (param: any) => Promise<any>, timeout = debounceTime) {
-      return debounce(async param => await callback(param), timeout);
+      return debounce(async(param) => await callback(param), timeout);
     },
 
     searchForResult(callback: (query: string) => Promise<any>) {

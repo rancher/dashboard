@@ -65,7 +65,7 @@ export default {
     async loadPluginVersionInfo(version) {
       const versionName = version || this.info.displayVersion;
 
-      const isVersionNotCompatibleWithUi = this.info.versions?.find(v => v.version === versionName && !v.isCompatibleWithUi);
+      const isVersionNotCompatibleWithUi = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithUi);
 
       if (!this.info.chart || isVersionNotCompatibleWithUi) {
         return;

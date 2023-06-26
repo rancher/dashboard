@@ -95,13 +95,13 @@ export default class ClusterNode extends SteveModel {
   get internalIp() {
     const addresses = this.status?.addresses || [];
 
-    return findLast(addresses, address => address.type === 'InternalIP')?.address;
+    return findLast(addresses, (address) => address.type === 'InternalIP')?.address;
   }
 
   get externalIp() {
     const addresses = this.status?.addresses || [];
     const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
-    const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
+    const statusAddress = findLast(addresses, (address) => address.type === 'ExternalIP')?.address;
 
     return statusAddress || annotationAddress;
   }
@@ -230,7 +230,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get podConsumed() {
-    const runningPods = this.pods.filter(pod => pod.state === 'running');
+    const runningPods = this.pods.filter((pod) => pod.state === 'running');
 
     return runningPods.length || 0;
   }
@@ -260,7 +260,7 @@ export default class ClusterNode extends SteveModel {
   }
 
   get drainedState() {
-    const sNodeCondition = this.managementNode?.status.conditions.find(c => c.type === 'Drained');
+    const sNodeCondition = this.managementNode?.status.conditions.find((c) => c.type === 'Drained');
 
     if (sNodeCondition) {
       if (sNodeCondition.status === 'True') {
@@ -409,7 +409,7 @@ export default class ClusterNode extends SteveModel {
   get pods() {
     const allPods = this.$rootGetters['cluster/all'](POD);
 
-    return allPods.filter(pod => pod.spec.nodeName === this.name);
+    return allPods.filter((pod) => pod.spec.nodeName === this.name);
   }
 
   get confirmRemove() {

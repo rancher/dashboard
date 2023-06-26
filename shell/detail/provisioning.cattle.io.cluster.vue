@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
-import ResourceTable from '@shell/components/ResourceTable';
+import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
 import CopyCode from '@shell/components/CopyCode';
@@ -31,7 +31,6 @@ import Socket, {
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 import { isAlternate } from '@shell/utils/platform';
-import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -122,7 +121,7 @@ export default {
 
     if (fetchOneRes.normanClusters) {
       // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
-      this.hasLocalAccess = !!fetchOneRes.normanClusters.find(c => c.internal);
+      this.hasLocalAccess = !!fetchOneRes.normanClusters.find((c) => c.internal);
     }
 
     const fetchTwo = {};
@@ -303,7 +302,7 @@ export default {
         const templateNamePrefix = `${ pool.metadata.name }-`;
 
         // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
-        pool._template = this.machineTemplates.find(t => t.metadata.name.startsWith(templateNamePrefix));
+        pool._template = this.machineTemplates.find((t) => t.metadata.name.startsWith(templateNamePrefix));
         pool._cluster = this.value;
         pool._clusterSpec = mp;
 
@@ -320,16 +319,16 @@ export default {
     },
 
     nodes() {
-      const nodes = this.allNodes.filter(x => x.mgmtClusterId === this.value.mgmtClusterId);
+      const nodes = this.allNodes.filter((x) => x.mgmtClusterId === this.value.mgmtClusterId);
 
       return [...nodes, ...this.fakeNodes];
     },
 
     fakeNodes() {
       // When a pool has no nodes it's not shown.... so add a fake node to it
-      const emptyNodePools = this.allNodePools.filter(x => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
+      const emptyNodePools = this.allNodePools.filter((x) => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
 
-      return emptyNodePools.map(np => ({
+      return emptyNodePools.map((np) => ({
         spec:       { nodePoolName: np.id.replace('/', ':') },
         mainRowKey: 'isFake',
         pool:       np,
@@ -356,7 +355,7 @@ export default {
 
     showEksNodeGroupWarning() {
       if ( this.value.provisioner === 'EKS' && this.value.state !== STATES_ENUM.ACTIVE) {
-        const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
+        const desiredTotal = this.value.eksNodeGroups.filter((g) => g.desiredSize === 0);
 
         if ( desiredTotal.length === this.value.eksNodeGroups.length ) {
           return true;
@@ -412,7 +411,7 @@ export default {
         return [];
       }
 
-      return (this.etcdBackups || []).filter(x => x.clusterId === mgmtId);
+      return (this.etcdBackups || []).filter((x) => x.clusterId === mgmtId);
     },
 
     rke2Snapshots() {
@@ -510,7 +509,7 @@ export default {
     },
 
     hasWindowsMachine() {
-      return this.machines.some(machine => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
+      return this.machines.some((machine) => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
     },
 
     snapshotsGroupBy() {

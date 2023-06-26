@@ -117,11 +117,11 @@ export default {
 
   computed: {
     errorStrings() {
-      return ( this.errors || [] ).map(x => stringify(x));
+      return ( this.errors || [] ).map((x) => stringify(x));
     },
 
     activeStepIndex() {
-      return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
+      return this.visibleSteps.findIndex((s) => s.name === this.activeStep.name);
     },
 
     showPrevious() {
@@ -153,7 +153,7 @@ export default {
     },
 
     readySteps() {
-      return this.visibleSteps.filter(step => step.ready);
+      return this.visibleSteps.filter((step) => step.ready);
     },
 
     showSteps() {
@@ -161,11 +161,11 @@ export default {
     },
 
     stepsLoaded() {
-      return !this.steps.some(step => step.loading === true);
+      return !this.steps.some((step) => step.loading === true);
     },
 
     visibleSteps() {
-      return this.steps.filter(step => !step.hidden);
+      return this.steps.filter((step) => !step.hidden);
     },
 
     nextButtonStyle() {
@@ -234,7 +234,7 @@ export default {
         return false;
       }
 
-      const idx = this.visibleSteps.findIndex(s => s.name === step.name);
+      const idx = this.visibleSteps.findIndex((s) => s.name === step.name);
 
       if (idx === 0 && !this.editFirstStep) {
         return false;

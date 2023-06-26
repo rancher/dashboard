@@ -61,7 +61,7 @@ export default {
         if (!!check.node_type) {
           const nodeRows = check.node_type.reduce((nodes, type) => {
             if (this.reportNodes[type]) {
-              this.reportNodes[type].forEach(name => nodes.push({
+              this.reportNodes[type].forEach((name) => nodes.push({
                 type, name, id: randomStr(4), state: this.nodeState(check, name, check.nodes), testStateSort: this.testStateSort(this.nodeState(check, name, check.nodes))
               })
               );
@@ -127,7 +127,7 @@ export default {
       ];
 
       if (!this.canBeScheduled) {
-        return out.filter(each => each.label !== this.t('cis.scan.warn'));
+        return out.filter((each) => each.label !== this.t('cis.scan.warn'));
       }
 
       return out;
@@ -230,7 +230,7 @@ export default {
     testIdSort(test) {
       const { id = '' } = test;
 
-      return id.split('.').map(n => +n + 1000).join('.');
+      return id.split('.').map((n) => +n + 1000).join('.');
     },
 
     remediationDisplay(row) {

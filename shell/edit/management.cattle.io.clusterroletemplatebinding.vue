@@ -32,7 +32,7 @@ export default {
     async saveOverride(btnCb) {
       this.errors = [];
       try {
-        await Promise.all(this.bindings.map(binding => binding.save()));
+        await Promise.all(this.bindings.map((binding) => binding.save()));
 
         btnCb(true);
       } catch (err) {

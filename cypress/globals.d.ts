@@ -38,6 +38,9 @@ declare namespace Cypress {
     // eslint-disable-next-line no-undef
     userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;
 
-    requestBase64Image(url: string): Chainable
+    requestBase64Image(url: string): Chainable;
+
+    keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
+
   }
 }

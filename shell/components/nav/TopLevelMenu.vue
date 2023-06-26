@@ -77,11 +77,11 @@ export default {
         // Filter to only show mgmt clusters that exist for the available provisionning clusters
         // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
         // provisionning cluster has been deleted
-        kubeClusters = kubeClusters.filter(c => !!available[c]);
+        kubeClusters = kubeClusters.filter((c) => !!available[c]);
       }
 
       return kubeClusters.map((x) => {
-        const pCluster = pClusters?.find(c => c.mgmt.id === x.id);
+        const pCluster = pClusters?.find((c) => c.mgmt.id === x.id);
 
         return {
           id:              x.id,
@@ -99,7 +99,7 @@ export default {
     clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
 
-      const out = search ? this.clusters.filter(item => item.label.toLowerCase().includes(search)) : this.clusters;
+      const out = search ? this.clusters.filter((item) => item.label.toLowerCase().includes(search)) : this.clusters;
 
       const sorted = sortBy(out, ['name:desc', 'label']);
 
@@ -126,19 +126,19 @@ export default {
     legacyApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.inStore === 'management' && opt.category === 'legacy');
+      return options.filter((opt) => opt.inStore === 'management' && opt.category === 'legacy');
     },
 
     configurationApps() {
       const options = this.options;
 
-      return options.filter(opt => opt.category === 'configuration');
+      return options.filter((opt) => opt.category === 'configuration');
     },
 
     hciApps() {
       const options = this.options;
 
-      return options.filter(opt => this.isRancherInHarvester && opt.category === 'hci');
+      return options.filter((opt) => this.isRancherInHarvester && opt.category === 'hci');
     },
 
     options() {
@@ -228,7 +228,7 @@ export default {
     },
 
     async goToHarvesterCluster() {
-      const localCluster = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(C => C.id === 'fleet-local/local');
+      const localCluster = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((C) => C.id === 'fleet-local/local');
 
       try {
         await localCluster.goToHarvesterCluster();

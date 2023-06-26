@@ -319,7 +319,7 @@ export default {
       return this.createRules(this.value);
     },
     ruleHeaders() {
-      const verbHeaders = VERBS.map(verb => ({
+      const verbHeaders = VERBS.map((verb) => ({
         name:      verb,
         key:       ucFirst(verb),
         value:     this.verbKey(verb),
@@ -485,7 +485,7 @@ export default {
           const key = this.verbKey(verb);
 
           tableRule[key] = rule.verbs[0] === '*' || rule.verbs.includes(verb);
-          tableRule.hasCustomVerbs = rule.verbs.some(verb => !VERBS.includes(verb));
+          tableRule.hasCustomVerbs = rule.verbs.some((verb) => !VERBS.includes(verb));
         });
 
         return tableRule;
@@ -497,7 +497,7 @@ export default {
       }
 
       parent.roleTemplateNames
-        .map(rtn => this.$store.getters[`management/byId`](MANAGEMENT.ROLE_TEMPLATE, rtn))
+        .map((rtn) => this.$store.getters[`management/byId`](MANAGEMENT.ROLE_TEMPLATE, rtn))
         .forEach((rt) => {
           // Add Self
           res.push({
@@ -659,6 +659,7 @@ export default {
                     :options="verbOptions"
                     :multiple="true"
                     :mode="mode"
+                    :data-testid="`grant-resources-verbs${props.i}`"
                     @input="updateSelectValue(props.row.value, 'verbs', $event)"
                   />
                 </div>
@@ -670,6 +671,7 @@ export default {
                     :searchable="true"
                     :taggable="true"
                     :mode="mode"
+                    :data-testid="`grant-resources-resources${props.i}`"
                     @input="setRule('resources', props.row.value, $event)"
                     @createdListItem="setRule('resources', props.row.value, $event)"
                   />
@@ -679,6 +681,7 @@ export default {
                     :value="getRule('apiGroups', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
+                    :data-testid="`grant-resources-api-groups${props.i}`"
                     @input="setRule('apiGroups', props.row.value, $event.target.value)"
                   >
                 </div>
@@ -690,6 +693,7 @@ export default {
                     :value="getRule('nonResourceURLs', props.row.value)"
                     :disabled="isBuiltin"
                     :mode="mode"
+                    :data-testid="`grant-resources-non-resource-urls${props.i}`"
                     @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
                   >
                 </div>

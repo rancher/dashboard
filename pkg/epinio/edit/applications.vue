@@ -15,7 +15,7 @@ import AppSource from '../components/application/AppSource.vue';
 import { _EDIT } from '@shell/config/query-params';
 
 import AppProgress from '../components/application/AppProgress.vue';
-import { EpinioAppSource, EPINIO_TYPES } from '../types';
+import { EpinioAppSource, EpinioCompRecord, EPINIO_TYPES } from '../types';
 import { allHash } from '@shell/utils/promise';
 
 interface Data {
@@ -25,7 +25,7 @@ interface Data {
 }
 
 // Data, Methods, Computed, Props
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     AppSource,
     AppProgress,

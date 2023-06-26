@@ -22,7 +22,7 @@ function _parseArea(area:string) {
 }
 
 export default class AgentConfigurationRke2 extends ComponentPo {
-  constructor(selector: string = '.dashboard-root') {
+  constructor(selector = '.dashboard-root') {
     super(selector);
   }
 

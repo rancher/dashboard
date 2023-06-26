@@ -135,3 +135,13 @@ export function colorToRgb(color) {
     r: 0, g: 0, b: 0
   };
 }
+
+export function normalizeHex(hex) {
+  if (hex.includes('#') && hex.length === 4) {
+    return `#${ hex[1] }${ hex[1] }${ hex[2] }${ hex[2] }${ hex[3] }${ hex[3] }`;
+  } else if (!hex.includes('#') && hex.length === 3) {
+    return `${ hex[0] }${ hex[0] }${ hex[1] }${ hex[1] }${ hex[2] }${ hex[2] }`;
+  }
+
+  return hex;
+}

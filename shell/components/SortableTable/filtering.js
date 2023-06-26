@@ -186,7 +186,7 @@ function columnsToSearchField(columns) {
     }
   });
 
-  return out.filter(x => !!x);
+  return out.filter((x) => !!x);
 }
 
 const ipLike = /^[0-9a-f\.:]+$/i;

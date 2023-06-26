@@ -34,7 +34,7 @@ export default async function(context) {
         const entries = res.entries || res.Entries || {};
 
         Object.values(entries).forEach((plugin) => {
-          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion); // Error key string or boolean
+          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
 
           if (!shouldNotLoad) {
             hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);

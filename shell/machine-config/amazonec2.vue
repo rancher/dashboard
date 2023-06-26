@@ -212,7 +212,7 @@ export default {
       const subnetsByVpc = {};
 
       for ( const obj of this.vpcInfo.Vpcs ) {
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
 
         vpcs.push({
           label:     name || obj.VpcId,
@@ -237,7 +237,7 @@ export default {
           subnetsByVpc[obj.VpcId] = entry;
         }
 
-        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find(t => t.Key === 'Name')?.Value : null;
+        const name = obj.Tags && obj.Tags?.length ? obj.Tags.find((t) => t.Key === 'Name')?.Value : null;
 
         entry.push({
           label:     name || obj.SubnetId,

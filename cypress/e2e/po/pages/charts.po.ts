@@ -4,7 +4,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 
 export class ChartsPage extends PagePo {
-  static url: string = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts'
+  static url = '/c/local/apps/charts/chart?repo-type=cluster&repo=rancher-charts'
 
   constructor(pageUrl = ChartsPage.url) {
     ChartsPage.url = pageUrl;

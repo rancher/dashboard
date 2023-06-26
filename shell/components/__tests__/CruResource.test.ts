@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils';
 import CruResource from '@shell/components/CruResource.vue';
 import { _EDIT, _YAML } from '@shell/config/query-params';
 import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
+import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 
 describe('component: CruResource', () => {
   it('should hide Cancel button', () => {
@@ -76,6 +77,8 @@ describe('component: CruResource', () => {
         resource:           {},
         preventEnterSubmit: true
       },
+      slots: { default: TextAreaAutoGrow },
+      stubs: { TextAreaAutoGrow },
       mocks: {
         $store: {
           getters: {
@@ -90,9 +93,12 @@ describe('component: CruResource', () => {
         $router: { applyQuery: jest.fn() },
       }
     });
-    const element = wrapper.find('[data-testid="cru-form"]');
 
-    await element.trigger('keydown.enter', event);
+    const textAreaField = wrapper.find('[data-testid="text-area-auto-grow"]');
+
+    await textAreaField.trigger('focus');
+    await textAreaField.trigger('keydown.enter', event);
+
     expect(event.preventDefault).toHaveBeenCalledWith();
   });
 
@@ -110,6 +116,8 @@ describe('component: CruResource', () => {
         ResourceYaml:        { template: '<div></div> ' },
         ResourceCancelModal: { template: '<div></div> ' },
       },
+      slots: { default: TextAreaAutoGrow },
+      stubs: { TextAreaAutoGrow },
       mocks: {
         $store: {
           getters: {
@@ -124,9 +132,12 @@ describe('component: CruResource', () => {
         $router: { applyQuery: jest.fn() },
       }
     });
-    const element = wrapper.find('[data-testid="cru-form"]');
 
-    await element.trigger('keydown.enter', event);
+    const textAreaField = wrapper.find('[data-testid="text-area-auto-grow"]');
+
+    await textAreaField.trigger('focus');
+    await textAreaField.trigger('keydown.enter', event);
+
     expect(event.preventDefault).not.toHaveBeenCalled();
   });
 });

@@ -70,7 +70,7 @@ export default {
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then(projects => this.$set(this, 'projects', projects));
+      .then((projects) => this.$set(this, 'projects', projects));
 
     const hydration = {
       normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
@@ -123,11 +123,11 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     clusterRoleTemplateBindings() {
-      return this.normanClusterRoleTemplateBindings.map(b => b.clusterroletemplatebinding) ;
+      return this.normanClusterRoleTemplateBindings.map((b) => b.clusterroletemplatebinding) ;
     },
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings.filter(
-        b => b?.clusterName === this.$store.getters['currentCluster'].id
+        (b) => b?.clusterName === this.$store.getters['currentCluster'].id
       );
     },
     filteredProjects() {
@@ -222,10 +222,10 @@ export default {
       return this.$store.getters['currentCluster'].isLocal;
     },
     canEditProjectMembers() {
-      return this.normanProjectRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return this.normanProjectRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
     canEditClusterMembers() {
-      return this.normanClusterRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return this.normanClusterRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
   },
   methods: {

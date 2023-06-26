@@ -17,7 +17,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     names() {
-      return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
+      return this.toRemove.map((obj) => obj.nameDisplay).slice(0, 5);
     },
 
     plusMore() {
@@ -82,14 +82,14 @@ export default {
 
         if (request.data && request.data.length) {
           rolesToRemove.forEach((toRemove) => {
-            const usedRoles = request.data.filter(item => item[propToMatch] === toRemove.id);
+            const usedRoles = request.data.filter((item) => item[propToMatch] === toRemove.id);
 
             if (usedRoles.length) {
-              const uniqueUsers = [...new Set(usedRoles.map(item => item.userName).filter(user => userMap[user]))];
+              const uniqueUsers = [...new Set(usedRoles.map((item) => item.userName).filter((user) => userMap[user]))];
 
               if (uniqueUsers.length) {
                 numberOfRolesWithBinds++;
-                uniqueUsers.forEach(user => uniqueUsersWithBinds.add(user));
+                uniqueUsers.forEach((user) => uniqueUsersWithBinds.add(user));
               }
             }
           });

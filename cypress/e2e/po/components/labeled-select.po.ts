@@ -47,4 +47,12 @@ export default class LabeledSelectPo extends ComponentPo {
   isClosed() {
     return this.getOptions().should('not.exist');
   }
+
+  /**
+   * Filter list by typing name
+   * @returns
+   */
+  filterByName(name: string) {
+    return this.self().type(name);
+  }
 }

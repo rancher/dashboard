@@ -1,7 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 export default class HomePagePo extends PagePo {
-  static url: string = '/home'
+  static url = '/home'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(HomePagePo.url);
   }

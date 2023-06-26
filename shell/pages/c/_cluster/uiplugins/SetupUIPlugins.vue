@@ -1,11 +1,11 @@
 <script>
-import AsyncButton from '@shell/components/AsyncButton';
+import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
+
 import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHARTS,
@@ -30,7 +30,7 @@ export default {
     const found = [];
 
     UI_PLUGIN_CHARTS.forEach((c) => {
-      const f = charts.find(chart => chart.repoName === UI_PLUGIN_OPERATOR_REPO_NAME & chart.chartName === c);
+      const f = charts.find((chart) => chart.repoName === UI_PLUGIN_OPERATOR_REPO_NAME & chart.chartName === c);
 
       if (f) {
         found.push(f);
@@ -72,7 +72,7 @@ export default {
       // Look to see if the Rancher UI Plugins repository is already installed
       const repos = this.$store.getters['catalog/repos'];
 
-      return !!repos.find(r => r.name === UI_PLUGINS_REPO_NAME);
+      return !!repos.find((r) => r.name === UI_PLUGINS_REPO_NAME);
     }
   },
 
@@ -143,7 +143,7 @@ export default {
 
         await this.installPluginCharts();
 
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
 
         this.buttonState = this.errors.length > 0 ? ASYNC_BUTTON_STATES.ERROR : ASYNC_BUTTON_STATES.ACTION;
 
@@ -183,7 +183,7 @@ export default {
         }
       }
 
-      return new Promise(resolve => setTimeout(resolve, 2000));
+      return new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 };

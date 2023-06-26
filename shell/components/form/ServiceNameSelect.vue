@@ -80,7 +80,7 @@ export default {
         return false;
       }
 
-      return !this.options.find(o => this.reduce(o) === this.serviceName);
+      return !this.options.find((o) => this.reduce(o) === this.serviceName);
     },
 
     serviceName() {

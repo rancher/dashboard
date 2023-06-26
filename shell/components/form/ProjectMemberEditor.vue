@@ -160,7 +160,7 @@ export default {
     },
 
     options() {
-      const customRoles = this.customRoles.map(role => ({
+      const customRoles = this.customRoles.map((role) => ({
         label:       this.purifyOption(role.nameDisplay),
         description: this.purifyOption(role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('projectMembers.projectPermissions.noDescription')),
         value:       this.purifyOption(role.id),
@@ -192,7 +192,7 @@ export default {
     },
     customPermissionsUpdate() {
       return this.customPermissions.reduce((acc, customPermissionsItem) => {
-        const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
+        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.displayName === customPermissionsItem.label);
 
         if (lockedExist.locked) {
           customPermissionsItem['locked'] = true;
@@ -241,8 +241,8 @@ export default {
 
       if (permissionGroup === 'custom') {
         return this.customPermissions
-          .filter(permission => permission.value)
-          .map(permission => permission.key);
+          .filter((permission) => permission.value)
+          .map((permission) => permission.key);
       }
 
       return [permissionGroup];

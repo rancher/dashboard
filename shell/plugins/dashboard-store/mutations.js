@@ -279,7 +279,7 @@ export function loadAll(state, {
   }
 
   const keyField = getters.keyFieldForType(type);
-  const proxies = data.map(x => classify(ctx, x));
+  const proxies = data.map((x) => classify(ctx, x));
   const cache = registerType(state, type);
 
   clear(cache.list);
@@ -356,7 +356,7 @@ export default {
       });
     });
     cache.list.forEach((entry) => {
-      if (!allLatest.find(toLoadEntry => toLoadEntry.id === entry.id)) {
+      if (!allLatest.find((toLoadEntry) => toLoadEntry.id === entry.id)) {
         commit('remove', entry);
       }
     });

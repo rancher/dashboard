@@ -102,7 +102,7 @@ export default class CapiMachineDeployment extends SteveModel {
     const machineConfigName = this.template?.metadata?.annotations['rke.cattle.io/cloned-from-name'];
     const machinePools = this.cluster.spec.rkeConfig.machinePools;
 
-    return machinePools.find(pool => pool.machineConfigRef.name === machineConfigName);
+    return machinePools.find((pool) => pool.machineConfigRef.name === machineConfigName);
   }
 
   scalePool(delta, save = true, depth = 0) {
@@ -207,7 +207,7 @@ export default class CapiMachineDeployment extends SteveModel {
         value:     this.ready,
         sort:      4,
       },
-    ].filter(x => x.value > 0);
+    ].filter((x) => x.value > 0);
 
     return sortBy(out, 'sort:desc');
   }

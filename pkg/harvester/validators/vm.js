@@ -8,7 +8,7 @@ export function vmNetworks(spec, getters, errors, validatorArgs) {
 
   interfaces.map( (I, index) => {
     allNames.add(I.name);
-    const N = networks.find( N => I.name === N.name);
+    const N = networks.find( (N) => I.name === N.name);
     const prefix = (I.name || N.name) || index + 1;
 
     if (I.name.length > 20) {
@@ -151,7 +151,7 @@ export function vmDisks(spec, getters, errors, validatorArgs, displayKey, value)
 
     if (type === SOURCE_TYPE.ATTACH_VOLUME) {
       const allPVCs = getters['harvester/all'](PVC);
-      const hasExistingVolume = allPVCs.find(P => P.metadata.name === V?.persistentVolumeClaim?.claimName);
+      const hasExistingVolume = allPVCs.find((P) => P.metadata.name === V?.persistentVolumeClaim?.claimName);
 
       if (!hasExistingVolume) {
         const message = getters['i18n/t']('harvester.validation.vm.volume.volume');
@@ -184,7 +184,7 @@ export function getVolumeType(V, DVTS) {
   let outValue = null;
 
   if (V.persistentVolumeClaim) {
-    outValue = DVTS.find(DVT => V.persistentVolumeClaim.claimName === DVT.metadata.name && DVT.metadata?.annotations && Object.prototype.hasOwnProperty.call(DVT.metadata.annotations, 'harvesterhci.io/imageId'));
+    outValue = DVTS.find((DVT) => V.persistentVolumeClaim.claimName === DVT.metadata.name && DVT.metadata?.annotations && Object.prototype.hasOwnProperty.call(DVT.metadata.annotations, 'harvesterhci.io/imageId'));
 
     if (outValue) {
       return {
@@ -194,7 +194,7 @@ export function getVolumeType(V, DVTS) {
     }
 
     // new type
-    outValue = DVTS.find(DVT => V.persistentVolumeClaim.claimName === DVT.metadata.name);
+    outValue = DVTS.find((DVT) => V.persistentVolumeClaim.claimName === DVT.metadata.name);
 
     if (outValue) {
       return {

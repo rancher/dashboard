@@ -185,7 +185,7 @@ export default {
         if ( this.subType ) {
           // For RKE1 and hosted Kubernetes Clusters, set the ember link
           // so that we load the page rather than using RKE2 create
-          const selected = this.subTypes.find(s => s.id === this.subType);
+          const selected = this.subTypes.find((s) => s.id === this.subType);
 
           if (selected?.link) {
             return selected.link;
@@ -244,15 +244,15 @@ export default {
     subTypes() {
       const getters = this.$store.getters;
       const isImport = this.isImport;
-      const isElementalActive = !!this.activeProducts.find(item => item.name === ELEMENTAL_PRODUCT_NAME);
+      const isElementalActive = !!this.activeProducts.find((item) => item.name === ELEMENTAL_PRODUCT_NAME);
 
       const out = [];
 
       const templates = this.templateOptions;
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
-      const machineTypes = this.nodeDrivers.filter(x => x.spec.active && x.state === 'active').map(x => x.spec.displayName || x.id);
+      const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active').map((x) => x.spec.displayName || x.id);
 
-      this.kontainerDrivers.filter(x => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
+      this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
           addType(obj.driverName, 'kontainer', false);
         } else {
@@ -357,11 +357,11 @@ export default {
     },
 
     firstNodeDriverItem() {
-      return this.groupedSubTypes.findIndex(obj => [_RKE1, _RKE2].includes(obj.name));
+      return this.groupedSubTypes.findIndex((obj) => [_RKE1, _RKE2].includes(obj.name));
     },
 
     firstCustomClusterItem() {
-      return this.groupedSubTypes.findIndex(obj => ['custom', 'custom1', 'custom2'].includes(obj.name));
+      return this.groupedSubTypes.findIndex((obj) => ['custom', 'custom1', 'custom2'].includes(obj.name));
     },
   },
 
@@ -426,7 +426,7 @@ export default {
         let localCluster;
 
         if (this.$store.getters[`management/canList`](MANAGEMENT.CLUSTER)) {
-          localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find(x => x.isLocal);
+          localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.isLocal);
         }
 
         chart.goToInstall(FROM_CLUSTER, localCluster?.id || BLANK_CLUSTER, true);
