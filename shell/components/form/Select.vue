@@ -135,8 +135,8 @@ export default {
       return true;
     },
     getOptionKey(opt) {
-      if (opt?.optionKey) {
-        return get(opt, opt.optionKey);
+      if (this.optionKey) {
+        return get(opt, this.optionKey);
       }
 
       const label = this.getOptionLabel(opt);
