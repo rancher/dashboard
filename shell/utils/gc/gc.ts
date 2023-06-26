@@ -12,7 +12,7 @@ class GarbageCollect {
 
   private cachedGcPrefs: GC_PREFERENCES = GC_DEFAULTS;
 
-  private cachedGcPrefsStamp: string = '';
+  private cachedGcPrefsStamp = '';
 
   private debugLog = (...args: any) => {
     if (GarbageCollect.ENABLE_DEBUG_LOGGING) {
@@ -60,7 +60,7 @@ class GarbageCollect {
   /**
    * Track when a logged in route changes.
    */
-  private lastRouteChange: number = 0;
+  private lastRouteChange = 0;
 
   // ------------- GC Enabled ---------------------
 

@@ -61,7 +61,7 @@ export default {
 
       const path = d3.line()
         .x((d, i) => vm.scaleX(i))
-        .y(d => vm.scaleY(d));
+        .y((d) => vm.scaleY(d));
 
       return path(this.dataSet);
     }

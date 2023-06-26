@@ -13,7 +13,7 @@ export default class HciClusterNetwork extends HarvesterResource {
       }
     });
 
-    const editAction = out.find(action => action.action === 'goToEdit');
+    const editAction = out.find((action) => action.action === 'goToEdit');
 
     if (editAction) {
       editAction.label = this.t('advancedSettings.edit.label');

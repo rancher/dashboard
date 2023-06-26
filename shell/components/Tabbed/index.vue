@@ -94,17 +94,17 @@ export default {
         defaultTab,
         useHash
       } = this;
-      const activeTab = tabs.find(t => t.active);
+      const activeTab = tabs.find((t) => t.active);
 
       const hash = useHash ? this.$route.hash : undefined;
       const windowHash = useHash ? hash.slice(1) : undefined;
-      const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
+      const windowHashTabMatch = tabs.find((t) => t.name === windowHash && !t.active);
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
         if (useHash && !isEmpty(windowHashTabMatch)) {
           this.select(windowHashTabMatch.name);
-        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
+        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find((t) => t.name === defaultTab))) {
           this.select(defaultTab);
         } else if (firstTab?.name) {
           this.select(firstTab.name);
@@ -144,7 +144,7 @@ export default {
     },
 
     find(name) {
-      return this.sortedTabs.find(x => x.name === name );
+      return this.sortedTabs.find((x) => x.name === name );
     },
 
     select(name/* , event */) {
@@ -184,7 +184,7 @@ export default {
 
     selectNext(direction) {
       const { sortedTabs } = this;
-      const currentIdx = sortedTabs.findIndex(x => x.active);
+      const currentIdx = sortedTabs.findIndex((x) => x.active);
       const nextIdx = getCyclicalIdx(currentIdx, direction, sortedTabs.length);
       const nextName = sortedTabs[nextIdx].name;
 
@@ -208,13 +208,13 @@ export default {
     },
 
     tabAddClicked() {
-      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+      const activeTabIndex = findIndex(this.tabs, (tab) => tab.active);
 
       this.$emit('addTab', activeTabIndex);
     },
 
     tabRemoveClicked() {
-      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+      const activeTabIndex = findIndex(this.tabs, (tab) => tab.active);
 
       this.$emit('removeTab', activeTabIndex);
     },

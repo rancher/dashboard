@@ -102,13 +102,13 @@ export default {
     },
 
     chartNamespace() {
-      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
+      const BRORelease = this.apps.filter((release) => get(release, 'spec.name') === 'rancher-backup')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter(secret => (secret.data || {})['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map(secret => secret.metadata.name);
+      return this.allSecrets.filter((secret) => (secret.data || {})['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map((secret) => secret.metadata.name);
     },
 
     storageOptions() {

@@ -87,8 +87,17 @@ export default {
       :mode="mode"
     />
 
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basic" :label="t('harvester.sshKey.tabs.basics')" :weight="1" class="bordered-table">
+    <Tabbed
+      v-bind="$attrs"
+      class="mt-15"
+      :side-tabs="true"
+    >
+      <Tab
+        name="basic"
+        :label="t('harvester.sshKey.tabs.basics')"
+        :weight="1"
+        class="bordered-table"
+      >
         <LabeledInput
           v-model="publicKey"
           type="multiline"

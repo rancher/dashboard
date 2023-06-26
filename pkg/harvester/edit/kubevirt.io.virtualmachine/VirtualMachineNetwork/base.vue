@@ -131,7 +131,7 @@ export default {
   watch: {
     rows: {
       handler(neu) {
-        const hasManagementNetwork = !!neu.some(N => N.isPod);
+        const hasManagementNetwork = !!neu.some((N) => N.isPod);
 
         this.$set(this, 'hasManagementNetwork', hasManagementNetwork);
       },
@@ -214,7 +214,10 @@ export default {
       </div>
     </div>
 
-    <div class="row" :class="{'mb-20': !isMasquerade}">
+    <div
+      class="row"
+      :class="{'mb-20': !isMasquerade}"
+    >
       <div
         data-testid="input-hen-networkName"
         class="col span-6"
@@ -257,7 +260,10 @@ export default {
       </div>
     </div>
 
-    <div v-if="!isMasquerade" class="row">
+    <div
+      v-if="!isMasquerade"
+      class="row"
+    >
       <div
         data-testid="input-hen-macAddress"
         class="col span-6"

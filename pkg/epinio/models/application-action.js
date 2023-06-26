@@ -1,11 +1,12 @@
 import Resource from '@shell/plugins/dashboard-store/resource-class';
+import Vue from 'vue';
 import { APPLICATION_ACTION_STATE, APPLICATION_MANIFEST_SOURCE_TYPE, APPLICATION_SOURCE_TYPE, EPINIO_PRODUCT_NAME } from '../types';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
-import Vue from 'vue';
 
 export const APPLICATION_ACTION_TYPE = {
   CREATE_NS:           'create_namespace',
   CREATE:              'create',
+  UPDATE_SOURCE:       'updateSource',
   GIT_FETCH:           'gitFetch',
   UPLOAD:              'upload',
   BIND_CONFIGURATIONS: 'bind_configurations',
@@ -72,6 +73,9 @@ export default class ApplicationActionResource extends Resource {
     case APPLICATION_ACTION_TYPE.CREATE:
       await this.create(params);
       break;
+    case APPLICATION_ACTION_TYPE.UPDATE_SOURCE:
+      await this.updateSource();
+      break;
     case APPLICATION_ACTION_TYPE.BIND_CONFIGURATIONS:
       await this.bindConfigurations(params);
       break;
@@ -116,7 +120,11 @@ export default class ApplicationActionResource extends Resource {
   }
 
   async gitFetch({ source }) {
-    await this.application.gitFetch(source.gitUrl.url, source.gitUrl.branch);
+    // Handle git & gitUrl sources
+    const rev = !!source.git.commit ? source.git.commit : source.gitUrl.branch;
+    const url = !!source.git.url ? source.git.url : source.gitUrl.url;
+
+    return await this.application.gitFetch(url, rev);
   }
 
   async build({ source }) {
@@ -125,6 +133,10 @@ export default class ApplicationActionResource extends Resource {
     this.application.showStagingLog(stage.id);
 
     await this.application.waitForStaging(stage.id);
+  }
+
+  async updateSource() {
+    await this.application.update();
   }
 
   async deploy({ source }) {
@@ -136,9 +148,15 @@ export default class ApplicationActionResource extends Resource {
     this.application.showAppLog();
   }
 
+  // Todo move to utils
   createDeployOrigin(source) {
     switch (source.type) {
     case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      return {
+        kind:    APPLICATION_MANIFEST_SOURCE_TYPE.PATH,
+        archive: true,
+        path:    source.archive.fileName
+      };
     case APPLICATION_SOURCE_TYPE.FOLDER:
       return {
         kind: APPLICATION_MANIFEST_SOURCE_TYPE.PATH,
@@ -156,6 +174,17 @@ export default class ApplicationActionResource extends Resource {
           revision:   source.gitUrl.branch,
           repository: source.gitUrl.url
         },
+      };
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
+      return {
+        kind: APPLICATION_MANIFEST_SOURCE_TYPE.GIT,
+        git:  {
+          revision:   source.git.commit,
+          repository: source.git.url,
+          branch:     source.git.branch?.name,
+          provider:   source.type
+        }
       };
     }
   }

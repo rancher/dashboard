@@ -78,7 +78,7 @@ export default {
         value: OPTION_GLOBAL,
       };
 
-      const out = namespaces.filter(o => !o.isSystem && !o.isFleetManaged).map((o) => {
+      const out = namespaces.filter((o) => !o.isSystem && !o.isFleetManaged).map((o) => {
         return {
           label: o.id,
           value: o.id,
@@ -89,11 +89,11 @@ export default {
     },
 
     selectedNamespaces() {
-      return this.vips.map(v => v.key) || [];
+      return this.vips.map((v) => v.key) || [];
     },
 
     filteredNamespaces() {
-      return this.namespaces.filter(n => !this.selectedNamespaces.includes(n.value));
+      return this.namespaces.filter((n) => !this.selectedNamespaces.includes(n.value));
     },
   },
 

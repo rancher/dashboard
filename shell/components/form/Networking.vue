@@ -113,10 +113,10 @@ export default {
     updateHostAliases(neu) {
       this.hostAliases = neu.map((entry) => {
         const ip = entry.ip.trim();
-        const hostnames = entry.hostnames.trim().split(/[\s,]+/).filter(x => !!x);
+        const hostnames = entry.hostnames.trim().split(/[\s,]+/).filter((x) => !!x);
 
         return { ip, hostnames };
-      }).filter(entry => entry.ip && entry.hostnames.length);
+      }).filter((entry) => entry.ip && entry.hostnames.length);
       this.update();
     },
 

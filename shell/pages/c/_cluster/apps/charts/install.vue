@@ -454,7 +454,7 @@ export default {
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-      const out = projects.filter(x => x.spec.clusterName === cluster?.id).map((project) => {
+      const out = projects.filter((x) => x.spec.clusterName === cluster?.id).map((project) => {
         return {
           id:    project.id,
           label: project.nameDisplay,
@@ -598,19 +598,19 @@ export default {
     diffMode: mapPref(DIFF),
 
     step1Description() {
-      const descriptionKey = this.steps.find(s => s.name === 'basics').descriptionKey;
+      const descriptionKey = this.steps.find((s) => s.name === 'basics').descriptionKey;
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
 
     step2Description() {
-      const descriptionKey = this.steps.find(s => s.name === 'helmValues').descriptionKey;
+      const descriptionKey = this.steps.find((s) => s.name === 'helmValues').descriptionKey;
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
 
     step3Description() {
-      const descriptionKey = this.steps.find(s => s.name === 'helmCli').descriptionKey;
+      const descriptionKey = this.steps.find((s) => s.name === 'helmCli').descriptionKey;
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
@@ -794,7 +794,7 @@ export default {
   },
 
   beforeDestroy() {
-    this.shownReadmeWindows.forEach(name => this.$store.dispatch('wm/close', name, { root: true }));
+    this.shownReadmeWindows.forEach((name) => this.$store.dispatch('wm/close', name, { root: true }));
   },
 
   methods: {
@@ -809,7 +809,7 @@ export default {
         }) : {};
 
         if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
-          const agentConfig = provCluster.spec?.rkeConfig?.machineSelectorConfig?.find(x => !x.machineLabelSelector).config;
+          const agentConfig = provCluster.spec?.rkeConfig?.machineSelectorConfig?.find((x) => !x.machineLabelSelector).config;
 
           // If a cluster scoped registry exists,
           // it should be used by default.
@@ -885,7 +885,7 @@ export default {
       if ( component ) {
         const steps = await this.$store.getters['catalog/chartSteps'](component);
 
-        this.customSteps = await Promise.all( steps.map(cs => this.loadChartStep(cs)));
+        this.customSteps = await Promise.all( steps.map((cs) => this.loadChartStep(cs)));
       }
     },
 
@@ -1005,7 +1005,7 @@ export default {
 
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-      const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
+      const systemProjectId = projects.find((p) => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
 
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster?.workerOSs || []).includes(WINDOWS);
@@ -1176,7 +1176,7 @@ export default {
 
       const more = [];
 
-      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter((x) => !!x).reverse();
 
       for ( const gvr of auto ) {
         const provider = this.$store.getters['catalog/versionProviding']({
@@ -1267,7 +1267,7 @@ export default {
     },
 
     updateStep(stepName, update) {
-      const step = this.steps.find(step => step.name === stepName);
+      const step = this.steps.find((step) => step.name === stepName);
 
       if (step) {
         for (const prop in update) {

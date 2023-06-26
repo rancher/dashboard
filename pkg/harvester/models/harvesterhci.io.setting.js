@@ -21,17 +21,17 @@ export default class HciSetting extends HarvesterResource {
     });
 
     // Change the label on the first action (edit)
-    const editAction = out.find(action => action.action === 'goToEdit');
+    const editAction = out.find((action) => action.action === 'goToEdit');
 
     if (editAction) {
       editAction.label = this.t('advancedSettings.edit.label');
     }
 
     const schema = this.$getters['schemaFor'](HCI.UPGRADE);
-    const hasUpgradeAccess = !!schema?.collectionMethods.find(x => ['post'].includes(x.toLowerCase()));
+    const hasUpgradeAccess = !!schema?.collectionMethods.find((x) => ['post'].includes(x.toLowerCase()));
 
     if (this.id === HCI_SETTING.SERVER_VERSION && hasUpgradeAccess) {
-      const latestUpgrade = this.$getters['all'](HCI.UPGRADE).find(upgrade => upgrade.isLatestUpgrade);
+      const latestUpgrade = this.$getters['all'](HCI.UPGRADE).find((upgrade) => upgrade.isLatestUpgrade);
 
       out.unshift({
         action:   'goToAirgapUpgrade',

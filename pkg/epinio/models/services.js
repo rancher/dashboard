@@ -1,6 +1,6 @@
 import { createEpinioRoute } from '@pkg/utils/custom-routing';
 import { EPINIO_TYPES } from '../types';
-import EpinioNamespacedResource from './epinio-namespaced-resource';
+import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
 
 export default class EpinioServiceModel extends EpinioNamespacedResource {
   get links() {
@@ -27,10 +27,10 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
     return (this.boundapps || [])
       .map((ba) => {
         return (this.$getters['all'](EPINIO_TYPES.APP) || []).find(
-          a => a.meta.namespace === this.meta.namespace && a.meta.name === ba
+          (a) => a.meta.namespace === this.meta.namespace && a.meta.name === ba
         );
       })
-      .filter(a => !!a);
+      .filter((a) => !!a);
   }
 
   // ------------------------------------------------------------------
@@ -89,5 +89,9 @@ export default class EpinioServiceModel extends EpinioNamespacedResource {
 
   async remove() {
     await this.delete(true);
+  }
+
+  bulkRemove(items, opt) {
+    return bulkRemove(items, opt);
   }
 }

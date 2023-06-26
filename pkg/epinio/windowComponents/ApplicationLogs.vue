@@ -150,6 +150,10 @@ export default {
       const url = await this.getSocketUrl();
 
       this.socket = new Socket(url, true, 0);
+      this.socket.setAutoReconnectUrl(async() => {
+        return await this.getSocketUrl();
+      });
+
       this.socket.addEventListener(EVENT_CONNECTED, (e) => {
         this.isOpen = true;
       });
@@ -216,7 +220,7 @@ export default {
       const date = new Date().toISOString().split('.')[0];
       const fileName = `${ this.application.nameDisplay }-${ date }`;
 
-      downloadFile(fileName, this.lines.map(l => `${ l.rawMsg }`).join('\n'))
+      downloadFile(fileName, this.lines.map((l) => `${ l.rawMsg }`).join('\n'))
         .then(() => btnCb(true))
         .catch(() => btnCb(false));
     },

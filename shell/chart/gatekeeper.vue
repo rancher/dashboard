@@ -25,13 +25,13 @@ export default {
     ...mapGetters(['currentCluster']),
     crdValues: {
       get() {
-        const crdInfo = this.autoInstallInfo.find(info => info.chart.name.includes('crd'));
+        const crdInfo = this.autoInstallInfo.find((info) => info.chart.name.includes('crd'));
 
         // values are defaults from the chart; allValues are defaults + anything set on previous install if this is an update/upgrade
         return crdInfo ? crdInfo.allValues : null;
       },
       set(values) {
-        const crdInfo = this.autoInstallInfo.find(info => info.chart.name.includes('crd'));
+        const crdInfo = this.autoInstallInfo.find((info) => info.chart.name.includes('crd'));
 
         this.$set(crdInfo, 'allValues', values);
       }

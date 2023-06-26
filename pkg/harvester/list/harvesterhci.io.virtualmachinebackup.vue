@@ -78,7 +78,7 @@ export default {
     },
 
     backupTargetResource() {
-      return this.settings.find( O => O.id === 'backup-target');
+      return this.settings.find( (O) => O.id === 'backup-target');
     },
 
     isEmptyValue() {
@@ -167,6 +167,5 @@ export default {
         </td>
       </template>
     </resourcetable>
-  </div>
   </div>
 </template>

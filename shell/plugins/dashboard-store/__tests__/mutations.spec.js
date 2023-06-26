@@ -4,14 +4,14 @@ import Resource from '@shell/plugins/dashboard-store/resource-class';
 
 describe('dashboard-store: mutations', () => {
   const ctx = {
-    rootGetters: { 'type-map/optionsFor': type => ({}) },
+    rootGetters: { 'type-map/optionsFor': (type) => ({}) },
     getters:     {
-      classify:      resource => Resource,
+      classify:      (resource) => Resource,
       cleanResource: (existing, resource) => resource
     }
   };
 
-  const create = type => ({
+  const create = (type) => ({
     id: '1',
     type
   });
@@ -25,7 +25,7 @@ describe('dashboard-store: mutations', () => {
 
   const createPodResource = (props = {}) => createResource(POD, props);
 
-  const createCache = props => ({
+  const createCache = (props) => ({
     generation:    0,
     haveAll:       false,
     haveNamespace: undefined,

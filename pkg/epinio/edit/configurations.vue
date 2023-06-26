@@ -6,7 +6,7 @@ import CruResource from '@shell/components/CruResource.vue';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
 import EpinioConfiguration from '../models/configurations';
-import { EPINIO_TYPES } from '../types';
+import { EPINIO_TYPES, EpinioNamespace, EpinioCompRecord } from '../types';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
@@ -18,7 +18,7 @@ import EpinioBindAppsMixin from './bind-apps-mixin.js';
 interface Data {
 }
 
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     Loading,
     CruResource,
@@ -73,6 +73,10 @@ export default Vue.extend<Data, any, any, any>({
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
     },
 
+    namespaceNames() {
+      return this.namespaces.map((n: EpinioNamespace) => n.metadata.name);
+    },
+
   },
 
   methods: {
@@ -91,8 +95,10 @@ export default Vue.extend<Data, any, any, any>({
           await this.value.forceFetch();
         }
 
-        saveCb(true);
-        this.done();
+        if (!this._isBeingDestroyed || !this._isDestroyed) {
+          saveCb(true);
+          this.done();
+        }
       } catch (err) {
         this.errors = epinioExceptionToErrorsArray(err);
         saveCb(false);
@@ -168,7 +174,8 @@ export default Vue.extend<Data, any, any, any>({
     <NameNsDescription
       name-key="name"
       namespace-key="namespace"
-      :namespaces-override="namespaces"
+      :namespaces-override="namespaceNames"
+      :create-namespace-override="true"
       :description-hidden="true"
       :value="value.meta"
       :mode="mode"
@@ -199,7 +206,9 @@ export default Vue.extend<Data, any, any, any>({
           :title-protip="t('epinio.configurations.pairs.tooltip')"
           :key-label="t('epinio.applications.create.envvar.keyLabel')"
           :value-label="t('epinio.applications.create.envvar.valueLabel')"
+          :valueMarkdownMultiline="true"
           :parse-lines-from-file="true"
+          :parse-value-from-file="true"
           @input="setData($event)"
         />
       </div>

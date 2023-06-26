@@ -1,12 +1,14 @@
 import { importTypes } from '@rancher/auto-import';
-import { IPlugin, OnNavToPackage, OnNavAwayFromPackage } from '@shell/core/types';
-import epinioStore from './store/epinio-store';
-import epinioMgmtStore from './store/epinio-mgmt-store';
+import { IPlugin, OnNavAwayFromPackage, OnNavToPackage } from '@shell/core/types';
 import epinioRoutes from './routing/epinio-routing';
+import epinioMgmtStore from './store/epinio-mgmt-store';
+import epinioStore from './store/epinio-store';
 
 const onEnter: OnNavToPackage = async(store, config) => {
   await store.dispatch(`${ epinioMgmtStore.config.namespace }/loadManagement`);
+  await store.dispatch(`${ epinioStore.config.namespace }/info`);
 };
+
 const onLeave: OnNavAwayFromPackage = async(store, config) => {
   // The dashboard retains the previous cluster info until another cluster is loaded, this helps when returning to the same cluster.
   // We need to forget epinio cluster info

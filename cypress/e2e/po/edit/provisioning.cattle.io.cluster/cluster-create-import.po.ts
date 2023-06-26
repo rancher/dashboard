@@ -22,4 +22,8 @@ export default abstract class ClusterManagerCreateImportPagePo extends PagePo {
   save() {
     return this.resourceDetail().createEditView().save();
   }
+
+  saveAndWait() {
+    return this.resourceDetail().createEditView().saveAndWait();
+  }
 }

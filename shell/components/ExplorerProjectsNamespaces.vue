@@ -1,6 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
-import ResourceTable from '@shell/components/ResourceTable';
+import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import { STATE, AGE, NAME } from '@shell/config/table-headers';
 import { uniq } from '@shell/utils/array';
 import { MANAGEMENT, NAMESPACE, VIRTUAL_TYPES } from '@shell/config/types';
@@ -8,7 +8,7 @@ import { PROJECT_ID, FLAT_VIEW } from '@shell/config/query-params';
 import Masthead from '@shell/components/ResourceList/Masthead';
 import { mapPref, GROUP_RESOURCES, ALL_NAMESPACES } from '@shell/store/prefs';
 import MoveModal from '@shell/components/MoveModal';
-import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
+
 import { NAMESPACE_FILTER_ALL_ORPHANS } from '@shell/utils/namespace-filter';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import DOMPurify from 'dompurify';
@@ -97,12 +97,12 @@ export default {
         NAME,
         this.groupPreference === 'none' ? project : null,
         AGE
-      ].filter(h => h);
+      ].filter((h) => h);
     },
     projectIdsWithNamespaces() {
       const ids = this.rows
-        .map(row => row.projectId)
-        .filter(id => id);
+        .map((row) => row.projectId)
+        .filter((id) => id);
 
       return uniq(ids);
     },
@@ -117,13 +117,13 @@ export default {
         return this.$store.getters[`${ this.currentProduct.inStore }/filterProject`];
       }
 
-      const clustersInProjects = projectsInAllClusters.filter(project => project.spec.clusterName === clusterId);
+      const clustersInProjects = projectsInAllClusters.filter((project) => project.spec.clusterName === clusterId);
 
       return clustersInProjects;
     },
     projectsWithoutNamespaces() {
       return this.activeProjects.filter((project) => {
-        return !this.projectIdsWithNamespaces.find(item => project?.id?.endsWith(`/${ item }`));
+        return !this.projectIdsWithNamespaces.find((item) => project?.id?.endsWith(`/${ item }`));
       });
     },
     // We're using this because we need to show projects as groups even if the project doesn't have any namespaces.
@@ -226,7 +226,7 @@ export default {
         return false;
       }
 
-      const someNamespacesAreNotInProject = !this.rows.some(row => !row.project);
+      const someNamespacesAreNotInProject = !this.rows.some((row) => !row.project);
 
       // Hide the "Not in a Project" group if the user is filtering
       // for specific namespaces or projects.
@@ -250,7 +250,7 @@ export default {
       const dictionary = row.psaTooltipsDescription;
       const list = Object.values(dictionary)
         .sort()
-        .map(text => `<li>${ text }</li>`).join('');
+        .map((text) => `<li>${ text }</li>`).join('');
       const title = `<p>${ this.t('podSecurityAdmission.name') }: </p>`;
 
       return `${ title }<ul class="psa-tooltip">${ list }</ul>`;

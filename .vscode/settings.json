@@ -13,6 +13,7 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
+  "eslint.workingDirectories": ["./", "./pkg/rancher-components/"],
   "javascript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "cSpell.words": [
@@ -22,6 +23,7 @@
     "cacerts",
     "chainable",
     "Codecov",
+    "createapp",
     "epinio",
     "hevi",
     "Istio",

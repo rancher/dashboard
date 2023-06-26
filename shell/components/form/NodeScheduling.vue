@@ -142,7 +142,7 @@ export default {
 
           this.nodeName = nodeName;
 
-          const array = this.nodes.map(n => n.value);
+          const array = this.nodes.map((n) => n.value);
 
           if (nodeName && !array.includes(nodeName)) {
             this.$store.dispatch('growl/error', {

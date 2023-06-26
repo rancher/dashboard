@@ -57,7 +57,7 @@ if (logs.length > 0) {
   const ssrLogStyle = 'background: #2E495E;border-radius: 0.5em;color: white;font-weight: bold;padding: 2px 0.5em;';
 
   console.group && console.group('%cNuxt SSR', ssrLogStyle); // eslint-disable-line no-console
-  logs.forEach(logObj => (console[logObj.type] || console.log)(...logObj.args)); // eslint-disable-line no-console
+  logs.forEach((logObj) => (console[logObj.type] || console.log)(...logObj.args)); // eslint-disable-line no-console
   delete NUXT.logs;
   console.groupEnd && console.groupEnd(); // eslint-disable-line no-console
 }
@@ -79,7 +79,7 @@ if (!Vue.config.$nuxt) {
 
     if (vm && vm.$root) {
       const nuxtApp = Object.keys(Vue.config.$nuxt)
-        .find(nuxtInstance => vm.$root[nuxtInstance]);
+        .find((nuxtInstance) => vm.$root[nuxtInstance]);
 
       // Show Nuxt Error Page
       if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
@@ -152,7 +152,7 @@ function mapTransitions(toComponents, to, from) {
 
     // Combine transitions & prefer `leave` properties of "from" route
     Object.keys(toTransitions)
-      .filter(key => typeof toTransitions[key] !== 'undefined' && !key.toLowerCase().includes('leave'))
+      .filter((key) => typeof toTransitions[key] !== 'undefined' && !key.toLowerCase().includes('leave'))
       .forEach((key) => {
         transitions[key] = toTransitions[key];
       });
@@ -188,7 +188,7 @@ async function loadAsyncComponents(to, from, next) {
           return true;
         }
         if (Array.isArray(watchQuery)) {
-          return watchQuery.some(key => this._diffQuery[key]);
+          return watchQuery.some((key) => this._diffQuery[key]);
         }
         if (typeof watchQuery === 'function') {
           return watchQuery.apply(instance, [to.query, from.query]);
@@ -452,7 +452,7 @@ async function render(to, from, next) {
         if (watchQuery === true) {
           Component._dataRefresh = true;
         } else if (Array.isArray(watchQuery)) {
-          Component._dataRefresh = watchQuery.some(key => this._diffQuery[key]);
+          Component._dataRefresh = watchQuery.some((key) => this._diffQuery[key]);
         } else if (typeof watchQuery === 'function') {
           if (!instances) {
             instances = getMatchedComponentsInstances(to);
@@ -652,7 +652,7 @@ const noopFetch = () => {};
 // Special hot reload with asyncData(context)
 function getNuxtChildComponents($parent, $components = []) {
   $parent.$children.forEach(($child) => {
-    if ($child.$vnode && $child.$vnode.data.nuxtChild && !$components.find(c => (c.$options.__file === $child.$options.__file))) {
+    if ($child.$vnode && $child.$vnode.data.nuxtChild && !$components.find((c) => (c.$options.__file === $child.$options.__file))) {
       $components.push($child);
     }
     if ($child.$children && $child.$children.length) {
@@ -806,7 +806,7 @@ async function mountApp(__app) {
   _app.setTransitions = _app.$options.nuxt.setTransitions.bind(_app);
   if (Components.length) {
     _app.setTransitions(mapTransitions(Components, router.currentRoute));
-    _lastPaths = router.currentRoute.matched.map(route => compile(route.path)(router.currentRoute.params));
+    _lastPaths = router.currentRoute.matched.map((route) => compile(route.path)(router.currentRoute.params));
   }
 
   // Initialize error handler
@@ -837,7 +837,7 @@ async function mountApp(__app) {
   };
 
   // fix: force next tick to avoid having same timestamp when an error happen on spa fallback
-  await new Promise(resolve => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 0));
   render.call(_app, router.currentRoute, router.currentRoute, (path) => {
     // If not redirected
     if (!path) {

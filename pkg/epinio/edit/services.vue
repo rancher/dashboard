@@ -6,12 +6,13 @@ import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { EpinioCatalogServiceResource, EPINIO_TYPES } from '../types';
+import { EpinioCatalogServiceResource, EPINIO_TYPES, EpinioNamespace, EpinioCompRecord } from '../types';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
-import { sortBy } from '@shell/utils/sort';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
 import { mapGetters } from 'vuex';
+import isEqual from 'lodash/isEqual';
+import sortBy from 'lodash/sortBy';
 
 export const EPINIO_SERVICE_PARAM = 'service';
 
@@ -19,7 +20,7 @@ interface Data {
 }
 
 // Data, Methods, Computed, Props
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     Loading,
     CruResource,
@@ -58,7 +59,7 @@ export default Vue.extend<Data, any, any, any>({
     return {
       errors:                 [],
       failedWaitingForDeploy: false,
-      selectedApps:           this.value.boundapps || []
+      selectedApps:           this.value.boundapps || [],
     };
   },
 
@@ -66,6 +67,10 @@ export default Vue.extend<Data, any, any, any>({
     ...mapGetters({ t: 'i18n/t' }),
 
     validationPassed() {
+      if (this.isEdit && this.newBinds) {
+        return true;
+      }
+
       if (!this.value.catalog_service) {
         return false;
       }
@@ -84,6 +89,10 @@ export default Vue.extend<Data, any, any, any>({
       return sortBy(this.$store.getters['epinio/all'](EPINIO_TYPES.NAMESPACE), 'name');
     },
 
+    namespaceNames() {
+      return this.namespaces.map((n: EpinioNamespace) => n.metadata.name);
+    },
+
     catalogServiceOpts() {
       return this.$store.getters['epinio/all'](EPINIO_TYPES.CATALOG_SERVICE).map((cs: EpinioCatalogServiceResource) => ({
         label: `${ cs.name } (${ cs.short_description })`,
@@ -95,6 +104,9 @@ export default Vue.extend<Data, any, any, any>({
       return this.catalogServiceOpts.length === 0;
     },
 
+    newBinds() {
+      return !isEqual(sortBy(this.selectedApps), sortBy(this.value.boundapps));
+    }
   },
 
   methods: {
@@ -114,8 +126,10 @@ export default Vue.extend<Data, any, any, any>({
           await this.value.forceFetch();
         }
 
-        saveCb(true);
-        this.done();
+        if (!this._isBeingDestroyed || !this._isDestroyed) {
+          saveCb(true);
+          this.done();
+        }
       } catch (err: Error | any) {
         if (err.message === 'waitingForDeploy') {
           Vue.set(this, 'failedWaitingForDeploy', true);
@@ -131,7 +145,7 @@ export default Vue.extend<Data, any, any, any>({
   watch: {
     'value.meta.namespace'() {
       Vue.set(this, 'selectedApps', []);
-    }
+    },
   }
 
 });
@@ -154,7 +168,8 @@ export default Vue.extend<Data, any, any, any>({
     <NameNsDescription
       name-key="name"
       namespace-key="namespace"
-      :namespaces-override="namespaces"
+      :namespaces-override="namespaceNames"
+      :create-namespace-override="true"
       :description-hidden="true"
       :value="value.meta"
       :mode="mode"

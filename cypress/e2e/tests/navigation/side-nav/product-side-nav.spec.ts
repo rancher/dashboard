@@ -78,7 +78,7 @@ describe('Side navigation: Cluster ', () => {
       productNavPo.visibleNavTypes().each((link, idx) => {
         productNavPo.visibleNavTypes().eq(idx)
           .click({ force: true })
-          .then(linkEl => cy.url().should('equal', linkEl.prop('href')));
+          .then((linkEl) => cy.url().should('equal', linkEl.prop('href')));
       });
     });
   });

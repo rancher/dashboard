@@ -2,10 +2,11 @@
 import Vue, { PropType } from 'vue';
 import Application from '../../models/applications';
 
-import { EpinioConfiguration, EpinioService, EPINIO_TYPES } from '../../types';
+import { EpinioCompRecord, EpinioConfiguration, EpinioService, EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { _VIEW } from '@shell/config/query-params';
+import { EPINIO_APP_MANIFEST } from './AppSource.vue';
 
 export interface EpinioAppBindings {
   configurations: string[],
@@ -18,7 +19,8 @@ interface Data {
     services: string[],
   }
 }
-export default Vue.extend<Data, any, any, any>({
+
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: { LabeledSelect },
 
   props: {
@@ -54,8 +56,8 @@ export default Vue.extend<Data, any, any, any>({
 
   computed: {
     configurations() {
-      const list = this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION)
-        .filter((s: EpinioConfiguration) => s.metadata.namespace === this.application.metadata.namespace && !s.isServiceRelated)
+      const list = this.namespacedConfigurations
+        .filter((s: EpinioConfiguration) => !s.isServiceRelated)
         .map((s: EpinioConfiguration) => ({
           label: s.metadata.name,
           value: s.metadata.name,
@@ -64,13 +66,21 @@ export default Vue.extend<Data, any, any, any>({
       return sortBy(list, 'label');
     },
 
+    namespacedServices() {
+      return this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE_INSTANCE)
+        .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace);
+    },
+
+    namespacedConfigurations() {
+      return (this.$store.getters['epinio/all'](EPINIO_TYPES.CONFIGURATION) || [])
+        .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace);
+    },
+
     services() {
-      const list = this.$store.getters['epinio/all'](EPINIO_TYPES.SERVICE_INSTANCE)
-        .filter((s: EpinioService) => s.metadata.namespace === this.application.metadata.namespace)
-        .map((s: EpinioService) => ({
-          label: `${ s.metadata.name } (${ s.catalog_service })`,
-          value: s,
-        }));
+      const list = this.namespacedServices.map((s: EpinioService) => ({
+        label: `${ s.metadata.name } (${ s.catalog_service })`,
+        value: s,
+      }));
 
       return sortBy(list, 'label');
     },
@@ -93,6 +103,10 @@ export default Vue.extend<Data, any, any, any>({
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isFromManifest() {
+      return this.$route.query.from === EPINIO_APP_MANIFEST;
     }
   },
 
@@ -124,6 +138,12 @@ export default Vue.extend<Data, any, any, any>({
           // Filter out any we don't know about
           this.values.configurations = this.initialApplication.baseConfigurationsNames?.filter((cc: string) => this.configurations.find((c: any) => c.value === cc)) || [];
         }
+
+        if (this.isFromManifest) {
+          this.values.configurations = this.namespacedConfigurations
+            .filter((nc: any) => this.application.configuration.configurations.includes(nc.metadata.name) && !nc.isServiceRelated)
+            .map(({ name }: { name: string }) => name) || [];
+        }
       }
     },
 
@@ -133,8 +153,16 @@ export default Vue.extend<Data, any, any, any>({
           this.values.services = (this.initialApplication.services || []);
         }
       }
-    }
 
+      if (this.isFromManifest) {
+        const configurations = this.namespacedConfigurations
+          .filter((nc: any) => this.application.configuration.configurations.includes(nc.metadata.name) && nc.isServiceRelated) || [];
+
+        this.values.services = this.services
+          .filter((s: any) => configurations.some((d: any) => s.value.metadata.name === d.configuration.origin))
+          .map((elem: any) => elem.value);
+      }
+    }
   },
 });
 

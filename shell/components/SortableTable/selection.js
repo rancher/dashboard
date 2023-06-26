@@ -99,7 +99,7 @@ export default {
         const actionEnabledForSomeSelected = this.selectedRows.some((node) => {
           const availableActions = node.availableActions || [];
 
-          return availableActions.some(action => action.action === bulkAction.action && action.enabled);
+          return availableActions.some((action) => action.action === bulkAction.action && action.enabled);
         });
 
         bulkAction.enabled = this.selectedRows.length > 0 && actionEnabledForSomeSelected;
@@ -218,7 +218,7 @@ export default {
         return;
       }
 
-      const node = this.pagedRows.find( x => get(x, this.keyField) === nodeId );
+      const node = this.pagedRows.find( (x) => get(x, this.keyField) === nodeId );
 
       return node;
     },
@@ -401,7 +401,7 @@ export default {
       }
 
       // check if there is already duplicate content selected (selectedRows) on the list to toggle...
-      toToggle = toToggle.filter(item => !this.selectedRows.includes(item));
+      toToggle = toToggle.filter((item) => !this.selectedRows.includes(item));
 
       return toToggle;
     },
@@ -440,7 +440,7 @@ export default {
 
     update(toAdd, toRemove) {
       toRemove.forEach((row) => {
-        const index = this.selectedRows.findIndex(r => r === row);
+        const index = this.selectedRows.findIndex((r) => r === row);
 
         if (index !== -1) {
           this.selectedRows.splice(index, 1);
@@ -516,7 +516,7 @@ export default {
 
       // Go through the table selection and filter out those actions that can't run the chosen action
       const executableSelection = this.selectedRows.filter((row) => {
-        const matchingResourceAction = row.availableActions.find(a => a.action === action.action);
+        const matchingResourceAction = row.availableActions.find((a) => a.action === action.action);
 
         return matchingResourceAction?.enabled;
       });

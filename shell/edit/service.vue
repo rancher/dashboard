@@ -89,7 +89,7 @@ export default {
       defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
       saving:                      false,
       sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
-        .map(v => this.$store.getters['i18n/t'](v))
+        .map((v) => this.$store.getters['i18n/t'](v))
         .map(ucFirst),
       sessionAffinityActionOptions: Object.values(
         SESSION_AFFINITY_ACTION_VALUES
@@ -191,7 +191,7 @@ export default {
     },
 
     provisioningCluster() {
-      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(c => c?.status?.clusterName === this.currentCluster.metadata.name);
+      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((c) => c?.status?.clusterName === this.currentCluster.metadata.name);
 
       return out;
     },
@@ -242,7 +242,7 @@ export default {
   methods: {
     updateMatchingPods: throttle(function() {
       const { value: { spec: { selector = { } } } } = this;
-      const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.value?.metadata?.namespace);
+      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {
         this.matchingPods = {

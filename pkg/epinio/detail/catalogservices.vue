@@ -1,14 +1,14 @@
 <script lang="ts">
 import Vue, { PropType } from 'vue';
 import EpinioCatalogServiceModel from '../models/catalogservices';
-import { EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
+import { EpinioCompRecord, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
 
 import ResourceTable from '@shell/components/ResourceTable.vue';
 
 interface Data {
 }
 
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: { ResourceTable },
 
   props: {

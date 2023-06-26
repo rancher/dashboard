@@ -67,7 +67,7 @@ export default {
     imageName() {
       const imageList = this.$store.getters['harvester/all'](HCI.IMAGE) || [];
 
-      const image = imageList.find( I => this.imageId === I.id);
+      const image = imageList.find( (I) => this.imageId === I.id);
 
       return image?.spec?.displayName || '-';
     },
@@ -124,29 +124,52 @@ export default {
     :mode="mode"
     :apply-hooks="applyHooks"
   >
-    <Tabbed v-if="spec" :side-tabs="true" @changed="onTabChanged">
-      <Tab name="Basics" :label="t('harvester.virtualMachine.detail.tabs.basics')">
+    <Tabbed
+      v-if="spec"
+      :side-tabs="true"
+      @changed="onTabChanged"
+    >
+      <Tab
+        name="Basics"
+        :label="t('harvester.virtualMachine.detail.tabs.basics')"
+      >
         <div class="row">
           <div class="col span-6">
-            <LabelValue :name="t('harvester.virtualMachine.detail.details.name')" :value="name" />
+            <LabelValue
+              :name="t('harvester.virtualMachine.detail.details.name')"
+              :value="name"
+            />
           </div>
 
           <div class="col span-6">
-            <LabelValue :name="t('harvester.fields.image')" :value="imageName" />
+            <LabelValue
+              :name="t('harvester.fields.image')"
+              :value="imageName"
+            />
           </div>
         </div>
 
         <div class="row">
           <div class="col span-6">
-            <LabelValue :name="t('harvester.virtualMachine.detail.details.hostname')" :value="hostname" />
+            <LabelValue
+              :name="t('harvester.virtualMachine.detail.details.hostname')"
+              :value="hostname"
+            />
           </div>
 
           <div class="col span-6">
-            <LabelValue :name="t('harvester.virtualMachine.input.MachineType')" :value="machineType" />
+            <LabelValue
+              :name="t('harvester.virtualMachine.input.MachineType')"
+              :value="machineType"
+            />
           </div>
         </div>
 
-        <CpuMemory :cpu="cpu" :mode="mode" :memory="memory" />
+        <CpuMemory
+          :cpu="cpu"
+          :mode="mode"
+          :memory="memory"
+        />
 
         <div class="row">
           <div class="col span-6">
@@ -154,7 +177,10 @@ export default {
               <template #value>
                 <div>
                   <ul>
-                    <li v-for="(disk) in disks" :key="disk.bootOrder">
+                    <li
+                      v-for="(disk) in disks"
+                      :key="disk.bootOrder"
+                    >
                       {{ disk.bootOrder }}. {{ disk.name }} ({{ getDeviceType(disk) }})
                     </li>
                   </ul>
@@ -167,7 +193,10 @@ export default {
               <template #value>
                 <div>
                   <ul v-if="cdroms.length > 0">
-                    <li v-for="(rom) in cdroms" :key="rom.name">
+                    <li
+                      v-for="(rom) in cdroms"
+                      :key="rom.name"
+                    >
                       {{ rom.name }}
                     </li>
                   </ul>
@@ -186,7 +215,10 @@ export default {
         :label="t('harvester.tab.volume')"
         :weight="-1"
       >
-        <Volume v-model="diskRows" :mode="mode" />
+        <Volume
+          v-model="diskRows"
+          :mode="mode"
+        />
       </Tab>
 
       <Tab
@@ -194,11 +226,22 @@ export default {
         :label="t('harvester.tab.network')"
         :weight="-2"
       >
-        <Network v-model="networkRows" :mode="mode" />
+        <Network
+          v-model="networkRows"
+          :mode="mode"
+        />
       </Tab>
 
-      <Tab name="keypairs" :label="t('harvester.virtualMachine.detail.tabs.keypairs')" class="bordered-table" :weight="-3">
-        <OverviewKeypairs v-if="vm" v-model="vm" />
+      <Tab
+        name="keypairs"
+        :label="t('harvester.virtualMachine.detail.tabs.keypairs')"
+        class="bordered-table"
+        :weight="-3"
+      >
+        <OverviewKeypairs
+          v-if="vm"
+          v-model="vm"
+        />
       </Tab>
 
       <Tab
@@ -214,7 +257,13 @@ export default {
         />
 
         <div class="spacer"></div>
-        <Checkbox v-model="installUSBTablet" :mode="mode" class="check" type="checkbox" :label="t('harvester.virtualMachine.enableUsb')" />
+        <Checkbox
+          v-model="installUSBTablet"
+          :mode="mode"
+          class="check"
+          type="checkbox"
+          :label="t('harvester.virtualMachine.enableUsb')"
+        />
       </Tab>
     </Tabbed>
   </CruResource>

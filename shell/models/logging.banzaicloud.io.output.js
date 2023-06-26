@@ -120,7 +120,7 @@ export default class LogOutput extends SteveModel {
     const spec = this.spec || {};
 
     return Object.keys(spec)
-      .filter(provider => provider !== 'loggingRef');
+      .filter((provider) => provider !== 'loggingRef');
   }
 
   get providersDisplay() {
@@ -132,7 +132,7 @@ export default class LogOutput extends SteveModel {
   }
 
   isSupportedProvider(provider) {
-    return !!PROVIDERS.find(p => p.name === provider);
+    return !!PROVIDERS.find((p) => p.name === provider);
   }
 
   get allProvidersSupported() {

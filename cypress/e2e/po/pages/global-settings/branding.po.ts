@@ -5,7 +5,7 @@ import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 import RootClusterPage from '~/cypress/e2e/po/pages/root-cluster-page';
 
 export class BrandingPagePo extends RootClusterPage {
-  static url: string = '/c/_/settings/brand';
+  static url = '/c/_/settings/brand';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(BrandingPagePo.url);
   }
@@ -44,5 +44,11 @@ export class BrandingPagePo extends RootClusterPage {
 
   applyButton() {
     return new AsyncButtonPo('[data-testid="branding-apply-async-button"]', this.self());
+  }
+
+  applyAndWait(endpoint: string) {
+    cy.intercept('PUT', endpoint).as(endpoint);
+    this.applyButton().click();
+    cy.wait(`@${ endpoint }`).its('response.statusCode').should('eq', 200);
   }
 }

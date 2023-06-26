@@ -98,7 +98,7 @@ export default {
     portOptions() {
       const ports = this.value?.spec?.ports || [];
 
-      return ports.filter(p => p.port && p.protocol === 'TCP').map(p => p.port) || [];
+      return ports.filter((p) => p.port && p.protocol === 'TCP').map((p) => p.port) || [];
     },
 
     serviceOptions() {
@@ -116,7 +116,7 @@ export default {
                 namespaces[s.metadata.namespace];
       });
 
-      return out.map(s => s.id);
+      return out.map((s) => s.id);
     },
 
     shareIPEnabled() {
@@ -124,7 +124,7 @@ export default {
       const kubernetesVersionExtension = this.currentCluster.kubernetesVersionExtension;
 
       if (kubernetesVersionExtension.startsWith('+rke2')) {
-        const charts = ((this.rke2Versions?.data || []).find(v => v.id === kubernetesVersion) || {}).charts;
+        const charts = ((this.rke2Versions?.data || []).find((v) => v.id === kubernetesVersion) || {}).charts;
         let ccmVersion = charts?.['harvester-cloud-provider']?.version || '';
 
         if (ccmVersion.endsWith('00')) {

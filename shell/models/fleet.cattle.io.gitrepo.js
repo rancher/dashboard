@@ -305,14 +305,14 @@ export default class GitRepo extends SteveModel {
   get bundles() {
     const all = this.$getters['all'](FLEET.BUNDLE);
 
-    return all.filter(bundle => bundle.name.startsWith(`${ this.name }-`) &&
+    return all.filter((bundle) => bundle.name.startsWith(`${ this.name }-`) &&
       bundle.namespace === this.namespace &&
       bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
   }
 
   get bundlesReady() {
     if (this.bundles && this.bundles.length) {
-      return this.bundles.filter(bundle => bundle.state === 'active');
+      return this.bundles.filter((bundle) => bundle.state === 'active');
     }
 
     return 0;
@@ -321,7 +321,7 @@ export default class GitRepo extends SteveModel {
   get bundleDeployments() {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 
-    return bds.filter(bd => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+    return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
   }
 
   get clustersList() {

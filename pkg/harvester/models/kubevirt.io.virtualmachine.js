@@ -82,7 +82,7 @@ export default class VirtVm extends HarvesterResource {
   get availableActions() {
     const out = super._availableActions;
 
-    const clone = out.find(action => action.action === 'goToClone');
+    const clone = out.find((action) => action.action === 'goToClone');
 
     if (clone) {
       clone.action = 'goToCloneVM';
@@ -392,7 +392,7 @@ export default class VirtVm extends HarvesterResource {
   get networksName() {
     const interfaces = this.spec.template.spec.domain.devices?.interfaces || [];
 
-    return interfaces.map(I => I.name);
+    return interfaces.map((I) => I.name);
   }
 
   get isOff() {
@@ -430,7 +430,7 @@ export default class VirtVm extends HarvesterResource {
         if (
           this.status?.printableStatus === 'ErrorUnschedulable' &&
             conditions.find(
-              C => C.message && C.message.includes(IgnoreMessages)
+              (C) => C.message && C.message.includes(IgnoreMessages)
             )
         ) {
           return true;
@@ -441,7 +441,7 @@ export default class VirtVm extends HarvesterResource {
       default:
         changeRequests = new Set(
           (this.status?.stateChangeRequests || []).map(
-            chRequest => chRequest?.action
+            (chRequest) => chRequest?.action
           )
         );
 
@@ -479,7 +479,7 @@ export default class VirtVm extends HarvesterResource {
 
   get isPaused() {
     const conditions = this.vmi?.status?.conditions || [];
-    const isPause = conditions.filter(cond => cond.type === PAUSED).length > 0;
+    const isPause = conditions.filter((cond) => cond.type === PAUSED).length > 0;
 
     return isPause ? {
       status:  PAUSED,
@@ -504,7 +504,7 @@ export default class VirtVm extends HarvesterResource {
   get vmi() {
     const vmis = this.$rootGetters['harvester/all'](HCI.VMI);
 
-    return vmis.find(VMI => VMI.id === this.id);
+    return vmis.find((VMI) => VMI.id === this.id);
   }
 
   get isError() {
@@ -627,7 +627,7 @@ export default class VirtVm extends HarvesterResource {
     }
     const allRestore = this.$rootGetters['harvester/all'](HCI.RESTORE);
 
-    const restoreResource = allRestore.find(O => O.id === id);
+    const restoreResource = allRestore.find((O) => O.id === id);
 
     if (!restoreResource) {
       return true;
@@ -812,7 +812,7 @@ export default class VirtVm extends HarvesterResource {
       .map((O) => {
         return O?.persistentVolumeClaim?.claimName;
       })
-      .filter(name => !!name);
+      .filter((name) => !!name);
   }
 
   get rootImageId() {
@@ -828,7 +828,7 @@ export default class VirtVm extends HarvesterResource {
 
     if (!isNoExistingVolume) {
       const existingVolume = pvcs.find(
-        P => P.id === `${ this.metadata.namespace }/${ firstVolumeName }`
+        (P) => P.id === `${ this.metadata.namespace }/${ firstVolumeName }`
       );
 
       if (existingVolume) {
@@ -893,7 +893,7 @@ export default class VirtVm extends HarvesterResource {
 
   get attachNetwork() {
     const networks = this.spec?.template?.spec?.networks || [];
-    const hasMultus = networks.find(N => N.multus);
+    const hasMultus = networks.find((N) => N.multus);
 
     return !!hasMultus;
   }
@@ -920,11 +920,11 @@ export default class VirtVm extends HarvesterResource {
 
     return (
       ignoreConditions.find(
-        condition => condition.name === state?.name &&
+        (condition) => condition.name === state?.name &&
           condition.error === state?.error &&
           condition.vmState
       ) ||
-      IgnoreMessages.find(M => super.stateDescription?.includes(M)) ||
+      IgnoreMessages.find((M) => super.stateDescription?.includes(M)) ||
       this.isOff
     );
   }
@@ -942,7 +942,7 @@ export default class VirtVm extends HarvesterResource {
 
   get isQemuInstalled() {
     const conditions = this.vmi?.status?.conditions || [];
-    const qemu = conditions.find(cond => cond.type === AGENT_CONNECTED);
+    const qemu = conditions.find((cond) => cond.type === AGENT_CONNECTED);
 
     return qemu?.status === 'True';
   }

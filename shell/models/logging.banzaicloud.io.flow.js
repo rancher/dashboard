@@ -64,11 +64,11 @@ export default class LogFlow extends SteveModel {
   get outputs() {
     const localOutputRefs = this.spec?.localOutputRefs || [];
 
-    return this.allOutputs.filter(output => localOutputRefs.includes(output.name));
+    return this.allOutputs.filter((output) => localOutputRefs.includes(output.name));
   }
 
   get outputsSortable() {
-    const displays = this.outputs.map(o => o.nameDisplay);
+    const displays = this.outputs.map((o) => o.nameDisplay);
 
     displays.sort();
 
@@ -79,7 +79,7 @@ export default class LogFlow extends SteveModel {
     const globalOutputRefs = this.spec?.globalOutputRefs || [];
 
     if (this.allClusterOutputs) {
-      return this.allClusterOutputs.filter(output => globalOutputRefs.includes(output.name));
+      return this.allClusterOutputs.filter((output) => globalOutputRefs.includes(output.name));
     } else {
       // Handle the case where the user doesn't have permission
       // to see ClusterOutputs
@@ -88,7 +88,7 @@ export default class LogFlow extends SteveModel {
   }
 
   get clusterOutputsSortable() {
-    const displays = this.clusterOutputs.map(o => o.nameDisplay);
+    const displays = this.clusterOutputs.map((o) => o.nameDisplay);
 
     displays.sort();
 
@@ -98,7 +98,7 @@ export default class LogFlow extends SteveModel {
   get providersDisplay() {
     const combinedOutputs = [...this.outputs, ...this.clusterOutputs];
     const duplicatedProviders = combinedOutputs
-      .flatMap(output => output.providersDisplay);
+      .flatMap((output) => output.providersDisplay);
 
     return uniq(duplicatedProviders) || [];
   }
