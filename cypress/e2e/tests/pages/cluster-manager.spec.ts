@@ -115,7 +115,7 @@ describe('Cluster Manager', () => {
   });
 
   describe('Imported', () => {
-    const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const importClusterPage = new ClusterManagerImportGenericPagePo('local');
 
     describe('Generic', () => {
       const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);

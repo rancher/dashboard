@@ -306,6 +306,7 @@ export default {
       :title="t('landing.welcomeToRancher', {vendor})"
       :pref="HIDE_HOME_PAGE_CARDS"
       pref-key="welcomeBanner"
+      data-testid="home-banner-graphic"
     />
     <IndentedPanel class="mt-20 mb-20">
       <div
@@ -337,6 +338,7 @@ export default {
             <div class="col span-12">
               <Banner
                 color="set-login-page mt-0"
+                data-testid="set-login-page-banner"
                 :closable="true"
                 @close="closeSetLoginBanner()"
               >
@@ -345,6 +347,7 @@ export default {
                 </div>
                 <a
                   class="hand mr-20"
+                  data-testid="pref-banner-link"
                   @click.prevent.stop="showUserPrefs"
                 ><span v-clean-html="t('landing.landingPrefs.userPrefs')" /></a>
               </Banner>
@@ -384,6 +387,7 @@ export default {
                       v-if="canManageClusters"
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
+                      data-testid="cluster-management-manage-button"
                     >
                       {{ t('cluster.manageAction') }}
                     </n-link>
@@ -391,6 +395,7 @@ export default {
                       v-if="canCreateCluster"
                       :to="importLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-import-button"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
@@ -398,6 +403,7 @@ export default {
                       v-if="canCreateCluster"
                       :to="createLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-button"
                     >
                       {{ t('generic.create') }}
                     </n-link>

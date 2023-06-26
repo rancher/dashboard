@@ -903,7 +903,10 @@ export default {
 </script>
 
 <template>
-  <div ref="container">
+  <div
+    ref="container"
+    data-testid="cluster-list-container"
+  >
     <div
       :class="{'titled': $slots.title && $slots.title.length}"
       class="sortable-table-header"
@@ -1001,6 +1004,7 @@ export default {
         <div
           v-if="search || hasAdvancedFiltering || isTooManyItemsToAutoUpdate || ($slots['header-right'] && $slots['header-right'].length)"
           class="search row"
+          data-testid="search-box-filter-row"
         >
           <ul
             v-if="hasAdvancedFiltering"
