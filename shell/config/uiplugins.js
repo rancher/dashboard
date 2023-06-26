@@ -107,7 +107,7 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   }
 
   // check if a builtin extension has been loaded before - improve developer experience
-  const checkLoaded = loadedPlugins.find(p => p?.name === plugin?.name);
+  const checkLoaded = loadedPlugins.find((p) => p?.name === plugin?.name);
 
   if (checkLoaded && checkLoaded.builtin) {
     return 'plugins.error.developerPkg';

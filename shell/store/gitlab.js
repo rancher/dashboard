@@ -5,14 +5,14 @@ const GITLAB_BASE_API = 'https://gitlab.com/api';
 const TOKEN = '';
 const MAX_RESULTS = 100; // max number of results is 100
 
-const getResponse = endpoint => fetch(`${ GITLAB_BASE_API }/${ API_VERSION }/${ endpoint }${ TOKEN }`);
+const getResponse = (endpoint) => fetch(`${ GITLAB_BASE_API }/${ API_VERSION }/${ endpoint }${ TOKEN }`);
 
 function fetchUserOrOrganization(endpoint) {
   return Promise.all([
     getResponse(`users/${ endpoint }`),
     getResponse(`groups/${ endpoint }`),
   ]).then((responses) => {
-    const found = responses.find(r => r.ok);
+    const found = responses.find((r) => r.ok);
 
     if (!found) {
       throw responses[0];
