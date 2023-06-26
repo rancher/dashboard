@@ -57,7 +57,7 @@ export default {
         return [this.t('validation.prometheusRule.noEdit')];
       }
 
-      return this.fvUnreportedValidationErrors.filter(e => !this.closedErrorMessages.includes(e));
+      return this.fvUnreportedValidationErrors.filter((e) => !this.closedErrorMessages.includes(e));
     }
   },
 
