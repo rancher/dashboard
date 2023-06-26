@@ -5,9 +5,9 @@ import CommunityLinks from '@shell/components/CommunityLinks';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
-import { findBy } from '@shell/utils/array';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
+import { hasCspAdapter } from 'mixins/brand';
 
 export default {
   layout: 'home',
@@ -68,7 +68,7 @@ export default {
 
   computed: {
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' ) || findBy(this.apps, 'metadata.name', 'rancher-csp-billing-adapter' );
+      return hasCspAdapter(this.apps);
     },
 
     hasSupport() {

@@ -4,6 +4,13 @@ import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
+import Vue from 'vue';
+
+const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter', 'ui-plugin-operator'];
+
+export const hasCspAdapter = (apps) => {
+  return apps?.find(a => cspAdaptorApp.includes(a.metadata?.name));
+};
 
 export default {
   async fetch() {
@@ -61,7 +68,11 @@ export default {
     },
 
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' ) || findBy(this.apps, 'metadata.name', 'rancher-csp-billing-adapter' );
+      if (!this.globalSettings.length) {
+        return undefined;
+      }
+
+      return hasCspAdapter(this.apps);
     }
   },
 
