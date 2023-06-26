@@ -19,4 +19,9 @@ export default {
 };
 </script>
 
-<template><ExplorerMembers :create-location-override="createLocationOverride" v-bind="$attrs" /></template>
+<template>
+  <ExplorerMembers
+    :create-location-override="createLocationOverride"
+    v-bind="$attrs"
+  />
+</template>

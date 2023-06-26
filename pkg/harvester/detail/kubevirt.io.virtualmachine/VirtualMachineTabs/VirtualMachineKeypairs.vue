@@ -42,7 +42,7 @@ export default {
     },
 
     isShow(id = '') {
-      const ssh = this.sshKeys.find(O => O?.data?.id === id) || {};
+      const ssh = this.sshKeys.find((O) => O?.data?.id === id) || {};
 
       return ssh.showKey || false;
     }
@@ -66,18 +66,32 @@ export default {
 
 <template>
   <div class="overview-sshKeys">
-    <div v-for="(ssh, index) in sshKeys" :key="index" class="row overview-sshKeys__item">
+    <div
+      v-for="(ssh, index) in sshKeys"
+      :key="index"
+      class="row overview-sshKeys__item"
+    >
       <div class="col span-4">
         {{ ssh.id }}
       </div>
       <div class="col span-7 offset-1">
-        <div v-if="ssh.showKey" class="key-display">
+        <div
+          v-if="ssh.showKey"
+          class="key-display"
+        >
           {{ ssh.publicKey }}
-          <button class="btn btn-sm role-link hide-bar" @click="toggleShow(index)">
+          <button
+            class="btn btn-sm role-link hide-bar"
+            @click="toggleShow(index)"
+          >
             <i class="icon icon-x"></i>
           </button>
         </div>
-        <button v-else class="btn btn-sm role-link" @click="toggleShow(index)">
+        <button
+          v-else
+          class="btn btn-sm role-link"
+          @click="toggleShow(index)"
+        >
           *******<i class="icons icon-show"></i>
         </button>
       </div>

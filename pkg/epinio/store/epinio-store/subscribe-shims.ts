@@ -32,5 +32,12 @@ export const actions = {
       5
     );
     polling[type].start();
-  }
+  },
+
+};
+
+export const getters = {
+  watchStarted: (state: any) => (obj: any) => {
+    return !!polling[obj.type];
+  },
 };

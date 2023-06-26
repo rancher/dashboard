@@ -27,7 +27,7 @@ export default {
 
     statusErrorConditions() {
       if (this.row.hasError) {
-        return this.row?.status.conditions.filter(condition => condition.error === true);
+        return this.row?.status.conditions.filter((condition) => condition.error === true);
       }
 
       return false;

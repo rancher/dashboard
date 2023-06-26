@@ -60,7 +60,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        updatePort(value => this.$set(this.value, 'port', value), port);
+        updatePort((value) => this.$set(this.value, 'port', value), port);
       }
     }
   }

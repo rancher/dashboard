@@ -4,7 +4,7 @@ import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning
  * Covers core functionality that's common to the dashboard's import cluster pages
  */
 export default class ClusterManagerImportPagePo extends ClusterManagerCreateImportPagePo {
-  static url: string = '/c/local/manager/provisioning.cattle.io.cluster/create'
+  static url = '/c/local/manager/provisioning.cattle.io.cluster/create'
 
   constructor() {
     super(ClusterManagerImportPagePo.url);

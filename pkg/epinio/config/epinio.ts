@@ -14,6 +14,7 @@ export function init($plugin: any, store: any) {
     configureType,
     spoofedType,
     weightType,
+    virtualType,
     weightGroup
   } = $plugin.DSL(store, $plugin.name);
 
@@ -23,9 +24,15 @@ export function init($plugin: any, store: any) {
     store.dispatch('setIsSingleProduct', {
       logo:                require(`../assets/logo-epinio.svg`),
       productNameKey:      'epinio.label',
-      afterLoginRoute:     createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
-      logoRoute:           createEpinioRoute('c-cluster-applications', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      aboutPage:           createEpinioRoute('c-cluster-about', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      afterLoginRoute:     createEpinioRoute('c-cluster-dashboard', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
+      logoRoute:           createEpinioRoute('c-cluster-dashboard', { cluster: EPINIO_STANDALONE_CLUSTER_NAME }),
       disableSteveSockets: true,
+      getVersionInfo:      (store:any) => {
+        const { displayVersion } = store.getters[`${ EPINIO_PRODUCT_NAME }/version`]();
+
+        return displayVersion || 'unknown';
+      },
     });
   }
 
@@ -50,14 +57,12 @@ export function init($plugin: any, store: any) {
     type:              EPINIO_TYPES.INSTANCE,
     product:           EPINIO_PRODUCT_NAME,
     collectionMethods: [],
-    schemas:           [
-      {
-        id:                EPINIO_TYPES.INSTANCE,
-        type:              'schema',
-        collectionMethods: [],
-        resourceFields:    {},
-      }
-    ],
+    schemas:           [{
+      id:                EPINIO_TYPES.INSTANCE,
+      type:              'schema',
+      collectionMethods: [],
+      resourceFields:    {},
+    }],
     getInstances: async() => await EpinioDiscovery.discover(store),
   });
   configureType(EPINIO_TYPES.INSTANCE, {
@@ -78,6 +83,15 @@ export function init($plugin: any, store: any) {
     showState:   true,
     canYaml:     false,
     customRoute: createEpinioRoute('c-cluster-applications', { }),
+  });
+
+  virtualType({
+    label:      store.getters['i18n/t']('epinio.intro.dashboard'),
+    icon:       'dashboard',
+    group:      'Root',
+    namespaced: false,
+    name:       EPINIO_TYPES.DASHBOARD,
+    route:      createEpinioRoute('c-cluster-dashboard', { })
   });
 
   // App Chart resource
@@ -150,11 +164,13 @@ export function init($plugin: any, store: any) {
     EPINIO_TYPES.APP_CHARTS
   ], ADVANCED_GROUP);
 
-  weightType(EPINIO_TYPES.APP, 300, true);
+  weightType(EPINIO_TYPES.DASHBOARD, 300, true);
+  weightType(EPINIO_TYPES.APP, 250, true);
   weightGroup(SERVICE_GROUP, 2, true);
   weightType(EPINIO_TYPES.NAMESPACE, 100, true);
   weightGroup(ADVANCED_GROUP, 1, true);
   basicType([
+    EPINIO_TYPES.DASHBOARD,
     EPINIO_TYPES.APP,
     SERVICE_GROUP,
     EPINIO_TYPES.NAMESPACE,

@@ -63,10 +63,10 @@ export function returnTo(opt, vm) {
  */
 export const authProvidersInfo = async(store) => {
   const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-  const nonLocal = rows.filter(x => x.name !== 'local');
+  const nonLocal = rows.filter((x) => x.name !== 'local');
   // Generic OIDC is returned via API but not supported (and will be removed or fixed in future)
-  const supportedNonLocal = nonLocal.filter(x => x.id !== 'oidc');
-  const enabled = nonLocal.filter(x => x.enabled === true );
+  const supportedNonLocal = nonLocal.filter((x) => x.id !== 'oidc');
+  const enabled = nonLocal.filter((x) => x.enabled === true );
 
   const enabledLocation = enabled.length === 1 ? {
     name:   'c-cluster-auth-config-id',

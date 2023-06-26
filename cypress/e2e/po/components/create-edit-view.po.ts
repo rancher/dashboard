@@ -9,4 +9,8 @@ export default class CreateEditViewPo extends ComponentPo {
   save() {
     return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-primary')).click();
   }
+
+  saveAndWait() {
+    return new AsyncButtonPo(this.self().find('.cru-resource-footer .role-primary')).action('Save', 'Saved');
+  }
 }

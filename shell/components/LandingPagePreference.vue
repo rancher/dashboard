@@ -35,7 +35,7 @@ export default {
     routeFromDropdown: {
       get() {
         const route = this.customRoute || {};
-        const out = this.routeDropdownOptions.find(opt => opt.value.name === route.name && opt.value.params?.cluster === route.params?.cluster);
+        const out = this.routeDropdownOptions.find((opt) => opt.value.name === route.name && opt.value.params?.cluster === route.params?.cluster);
 
         return out || this.routeDropdownOptions[0];
       },
@@ -72,7 +72,7 @@ export default {
     routeDropdownOptions() {
       // Drop-down shows list of clusters that can ber set as login landing page
       const out = [];
-      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.clusters), this.$store);
+      const kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.clusters, this.$store), this.$store);
 
       kubeClusters.forEach((c) => {
         if (c.isReady) {

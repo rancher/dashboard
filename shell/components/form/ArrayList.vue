@@ -82,7 +82,7 @@ export default {
       default:   () => [],
       type:      Array,
       // we only want functions in the rules array
-      validator: rules => rules.every(rule => ['function'].includes(typeof rule))
+      validator: (rules) => rules.every((rule) => ['function'].includes(typeof rule))
     }
   },
   data() {
@@ -124,7 +124,7 @@ export default {
   watch: {
     value() {
       this.lastUpdateWasFromValue = true;
-      this.rows = (this.value || []).map(v => ({ value: v }));
+      this.rows = (this.value || []).map((v) => ({ value: v }));
     },
     rows: {
       deep: true,
@@ -186,9 +186,17 @@ export default {
       }
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
-      const split = text.split('\n').map(value => ({ value }));
+      const split = text.split('\n').map((value) => ({ value }));
+
+      if (split.length === 1) {
+        // It's not multi-line, so don't treat it as such
+        return;
+      }
+
+      event.preventDefault();
 
       this.rows.splice(index, 1, ...split);
+
       this.update();
     }
   },

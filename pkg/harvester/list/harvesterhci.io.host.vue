@@ -184,14 +184,26 @@ export default {
       key-field="_key"
       v-on="$listeners"
     >
-      <template slot="cell:host-ip" slot-scope="scope">
+      <template
+        slot="cell:host-ip"
+        slot-scope="scope"
+      >
         <div class="name-console">
-          {{ scope.row.internalIp }}<CopyToClipboard :text="scope.row.internalIp" label-as="tooltip" class="icon-btn" action-color="bg-transparent" />
+          {{ scope.row.internalIp }}<CopyToClipboard
+            :text="scope.row.internalIp"
+            label-as="tooltip"
+            class="icon-btn"
+            action-color="bg-transparent"
+          />
         </div>
       </template>
 
       <template #cell:console="{row}">
-        <button type="button" class="btn btn-sm role-primary" @click="goto(row)">
+        <button
+          type="button"
+          class="btn btn-sm role-primary"
+          @click="goto(row)"
+        >
           {{ t('harvester.host.console') }}
         </button>
       </template>

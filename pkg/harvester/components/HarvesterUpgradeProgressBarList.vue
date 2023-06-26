@@ -45,16 +45,34 @@ export default {
         <Collapse :open.sync="open">
           <template #title>
             <div class="total-bar">
-              <span class="bar"><PercentageBar :value="precent" preferred-direction="MORE" /></span>
-              <span class="on-off" @click="handleSwitch"> {{ open ? t('harvester.generic.close') : t('harvester.generic.open') }}</span>
+              <span class="bar"><PercentageBar
+                :value="precent"
+                preferred-direction="MORE"
+              /></span>
+              <span
+                class="on-off"
+                @click="handleSwitch"
+              > {{ open ? t('harvester.generic.close') : t('harvester.generic.open') }}</span>
             </div>
           </template>
 
           <template>
             <div class="custom-content">
-              <div v-for="item in list" :key="item.name" class="item">
-                <p>{{ item.name }} <span class="status" :class="{ [item.state]: true }">{{ item.state }}</span></p>
-                <PercentageBar :value="item.percent" preferred-direction="MORE" />
+              <div
+                v-for="item in list"
+                :key="item.name"
+                class="item"
+              >
+                <p>
+                  {{ item.name }} <span
+                    class="status"
+                    :class="{ [item.state]: true }"
+                  >{{ item.state }}</span>
+                </p>
+                <PercentageBar
+                  :value="item.percent"
+                  preferred-direction="MORE"
+                />
                 <p class="warning">
                   {{ item.message }}
                 </p>

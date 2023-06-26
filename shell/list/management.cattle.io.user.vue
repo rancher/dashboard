@@ -42,7 +42,7 @@ export default {
     await this.$fetchType(this.resource);
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
-      .then(res => !!res?.actions?.refreshauthprovideraccess);
+      .then((res) => !!res?.actions?.refreshauthprovideraccess);
   },
 
   data() {
@@ -79,7 +79,7 @@ export default {
       // 1) Only show system users in explorer/users and not in auth/users
       // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
       const params = { ...this.$route.params };
-      const requiredUsers = params.product === NAME ? this.rows.filter(a => !a.isSystem) : this.rows;
+      const requiredUsers = params.product === NAME ? this.rows.filter((a) => !a.isSystem) : this.rows;
 
       requiredUsers.forEach((r) => {
         r.canRefreshAccess = this.canRefreshAccess;

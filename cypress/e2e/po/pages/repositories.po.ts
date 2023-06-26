@@ -38,6 +38,6 @@ export default class ReposListPagePo extends PagePo {
 
     cy.intercept('GET', endpoint).as(interceptName);
     this.goTo();
-    cy.wait(`@${ interceptName }`, { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+    cy.wait(`@${ interceptName }`, { timeout: 15000 }).its('response.statusCode').should('eq', 200);
   }
 }

@@ -333,7 +333,7 @@ export default {
 
       // namespaces would be String if there is no namespace
       if (typeof namespaces === 'string') {
-        nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+        nsArray = namespaces.split(',').map((ns) => ns.trim()).filter((ns) => ns?.length);
       }
 
       this.$set(term, 'namespaces', nsArray);

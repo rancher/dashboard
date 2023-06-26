@@ -4,54 +4,37 @@ import jsyaml from 'js-yaml';
 
 import Application from '../../models/applications';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
-
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
+import GitPicker from '@shell/components/form/GitPicker.vue';
 import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import { sortBy } from '@shell/utils/sort';
 import { generateZip } from '@shell/utils/download';
 import Collapse from '@shell/components/Collapse.vue';
-
-import { APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES } from '../../types';
+import {
+  APPLICATION_SOURCE_TYPE, EpinioApplicationChartResource, EPINIO_TYPES, EpinioInfo, AppSourceArchive, AppSourceContainer, AppSourceGit, AppSourceGitUrl, AppSourceBuilderImage, EpinioAppSource, GitAPIData
+} from '../../types';
 import { EpinioAppInfo } from './AppInfo.vue';
+import { _EDIT } from '@shell/config/query-params';
+import { AppUtils } from '../../utils/application';
 
-interface Archive{
-  tarball: string,
-  fileName: string,
-}
+const GIT_BASE_URL = {
+  [APPLICATION_SOURCE_TYPE.GIT_HUB]: 'https://github.com',
+  [APPLICATION_SOURCE_TYPE.GIT_LAB]: 'https://gitlab.com',
+};
 
-interface Container {
-  url: string,
-}
-
-interface GitUrl {
-  url: string,
-  branch: string
-}
-
-interface BuilderImage {
-  value: string,
-  default: boolean,
-}
+export const EPINIO_APP_MANIFEST = 'manifest';
 
 interface Data {
   open: boolean,
-  archive: Archive,
-  container: Container,
-  gitUrl: GitUrl,
-  builderImage: BuilderImage,
+  archive: AppSourceArchive,
+  container: AppSourceContainer,
+  git: AppSourceGit,
+  gitUrl: AppSourceGitUrl,
+  builderImage: AppSourceBuilderImage,
   types: any[],
-  unSafeType: string, // APPLICATION_SOURCE_TYPE || { } from the select component
+  type: APPLICATION_SOURCE_TYPE ;// || { } from the select component
   APPLICATION_SOURCE_TYPE: typeof APPLICATION_SOURCE_TYPE
-}
-
-export interface EpinioAppSource {
-  type: string // APPLICATION_SOURCE_TYPE,
-  archive: Archive,
-  container: Container,
-  gitUrl: GitUrl,
-  builderImage: BuilderImage,
-  appChart: string,
 }
 
 interface FileWithRelativePath extends File {
@@ -69,7 +52,8 @@ export default Vue.extend<Data, any, any, any>({
     LabeledInput,
     LabeledSelect,
     RadioGroup,
-    Collapse
+    Collapse,
+    GitPicker
   },
 
   props: {
@@ -81,6 +65,10 @@ export default Vue.extend<Data, any, any, any>({
       type:    Object as PropType<EpinioAppSource>,
       default: null
     },
+    info: {
+      type:    Object as PropType<EpinioInfo>,
+      default: null
+    },
     mode: {
       type:     String,
       required: true
@@ -88,54 +76,95 @@ export default Vue.extend<Data, any, any, any>({
   },
 
   data() {
+    const defaultBuilderImage = this.info?.default_builder_image || DEFAULT_BUILD_PACK;
+    const builderImage = this.source?.builderImage?.value || defaultBuilderImage;
+
     return {
-      open: false,
+      open:  false,
+      valid: this.validate(),
+      defaultBuilderImage,
 
       archive: {
-        tarball:  this.source?.archive.tarball || '',
-        fileName: this.source?.archive.fileName || '',
+        tarball:  this.source?.archive?.tarball || '',
+        fileName: this.source?.archive?.fileName || '',
       },
 
-      container: { url: this.source?.container.url },
+      container: { url: this.source?.container?.url },
 
       gitUrl: {
-        url:    this.source?.gitUrl.url || '',
-        branch: this.source?.gitUrl.branch || '',
+        url:         this.source?.gitUrl?.url || '',
+        branch:      this.source?.gitUrl?.branch || '',
+        validGitUrl: false,
       },
 
+      git: {
+        usernameOrOrg: this.source?.git?.usernameOrOrg || '',
+        repo:          this.source?.git?.repo || '',
+        commit:        this.source?.git?.commit || '',
+        branch:        this.source?.git?.branch || '',
+        url:           this.source?.git?.url || '',
+        sourceData:    this.source?.git?.sourceData || {
+          repos:    [],
+          branches: [],
+          commits:  []
+        }
+      },
+
+      gitSkipTypeReset: false,
+
       builderImage: {
-        value:   this.source?.builderImage?.value || DEFAULT_BUILD_PACK,
-        default: this.source?.builderImage?.default !== undefined ? this.source.builderImage.default : true,
+        value:   builderImage,
+        default: builderImage === defaultBuilderImage,
       },
 
       appChart: this.source?.appChart,
 
-      types: [{
-        label: this.t('epinio.applications.steps.source.archive.label'),
-        value: APPLICATION_SOURCE_TYPE.ARCHIVE
-      }, {
-        label: this.t('epinio.applications.steps.source.containerUrl.label'),
-        value: APPLICATION_SOURCE_TYPE.CONTAINER_URL
-      }, {
-        label: this.t('epinio.applications.steps.source.folder.label'),
-        value: APPLICATION_SOURCE_TYPE.FOLDER
-      }, {
-        label: this.t('epinio.applications.steps.source.gitUrl.label'),
-        value: APPLICATION_SOURCE_TYPE.GIT_URL
-      }],
-      unSafeType: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
-      APPLICATION_SOURCE_TYPE
+      types: Object.values(APPLICATION_SOURCE_TYPE).map((value) => ({
+        label: this.t(`epinio.applications.steps.source.${ value }.label`),
+        value
+      })),
+
+      type: this.source?.type || APPLICATION_SOURCE_TYPE.FOLDER,
+      APPLICATION_SOURCE_TYPE,
+      EDIT: _EDIT
     };
   },
 
   mounted() {
     if (!this.appChart) {
-      Vue.set(this, 'appChart', this.appCharts[0].value);
+      if (this.appCharts[0]?.value) {
+        Vue.set(this, 'appChart', this.appCharts[0]?.value);
+      } else {
+        Vue.set(this, 'appChart', this.appCharts[0]);
+      }
     }
+
     this.update();
   },
 
   methods: {
+    urlRule() {
+      const gitRegex = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gm;
+
+      if (!this.gitUrl.url) {
+        return;
+      }
+
+      const evalUrl = () => {
+        const result = gitRegex.exec(this.gitUrl.url);
+
+        if (result && this.gitUrl.url === result[0]) {
+          this.gitUrl.validGitUrl = true;
+        } else {
+          this.gitUrl.validGitUrl = false;
+
+          return this.t('epinio.applications.steps.source.git_url.error.label');
+        }
+      };
+
+      return evalUrl();
+    },
+
     onFileSelected(file: File) {
       this.archive.tarball = file;
       this.archive.fileName = file.name;
@@ -147,14 +176,25 @@ export default Vue.extend<Data, any, any, any>({
       try {
         const parsed: any = jsyaml.load(file);
 
-        if (parsed.origin?.container) {
-          Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.CONTAINER_URL);
+        const type = AppUtils.getManifestSourceType(parsed.origin);
+
+        this.gitSkipTypeReset = true;
+        Vue.set(this, 'type', type);
+
+        switch (type) {
+        case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
           Vue.set(this.container, 'url', parsed.origin.container);
-        } else if (parsed.origin.git?.url && parsed.origin.git?.revision) {
-          Vue.set(this, 'unSafeType', APPLICATION_SOURCE_TYPE.GIT_URL);
+          break;
+        case APPLICATION_SOURCE_TYPE.GIT_URL:
           Vue.set(this.gitUrl, 'url', parsed.origin.git.url);
           Vue.set(this.gitUrl, 'branch', parsed.origin.git.revision);
+          break;
+        case APPLICATION_SOURCE_TYPE.GIT_HUB:
+        case APPLICATION_SOURCE_TYPE.GIT_LAB:
+          Vue.set(this, 'git', AppUtils.getGitData(parsed.origin.git));
+          break;
         }
+
         if (parsed.configuration) {
           Vue.set(this, 'appChart', parsed.configuration.appchart);
         }
@@ -165,12 +205,15 @@ export default Vue.extend<Data, any, any, any>({
             namespace: this.namespaces?.[0]?.name || ''
           },
           configuration: {
-            instances:   parsed.configuration.instances || 1,
-            environment: parsed.configuration.environment || {},
-            routes:      parsed.configuration.routes || []
+            configurations: parsed.configuration?.configurations as string[] || [],
+            instances:      parsed.configuration.instances || 1,
+            environment:    parsed.configuration.environment || {},
+            settings:       parsed.configuration?.settings || {},
+            routes:         parsed.configuration.routes || []
           }
         };
 
+        this.$router.applyQuery({ from: EPINIO_APP_MANIFEST });
         this.update();
         this.updateAppInfo(appInfo);
         this.updateConfigurations(parsed.configuration.configurations || []);
@@ -181,7 +224,7 @@ export default Vue.extend<Data, any, any, any>({
 
     onFolderSelected(files: FileWithRelativePath | FileWithRelativePath[]) {
       const safeFiles = Array.isArray(files) ? files : [files];
-      let folderName: string = '';
+      let folderName = '';
 
       // Determine parent folder name
       for (const f of safeFiles) {
@@ -220,8 +263,6 @@ export default Vue.extend<Data, any, any, any>({
         Vue.set(this.archive, 'fileName', folderName || 'folder');
 
         this.update();
-
-        // downloadFile('resources.zip', zip, 'application/zip');
       });
     },
 
@@ -232,8 +273,10 @@ export default Vue.extend<Data, any, any, any>({
         container:    this.container,
         gitUrl:       this.gitUrl,
         builderImage: this.builderImage,
-        appChart:     this.appChart
+        appChart:     this.appChart,
+        git:          this.git,
       });
+      this.valid = this.validate();
     },
 
     updateAppInfo(info: EpinioAppInfo) {
@@ -246,45 +289,83 @@ export default Vue.extend<Data, any, any, any>({
 
     onImageType(defaultImage: boolean) {
       if (defaultImage) {
-        this.builderImage.value = DEFAULT_BUILD_PACK;
+        this.builderImage.value = this.defaultBuilderImage;
       }
 
       this.builderImage.default = defaultImage;
 
       this.update();
+    },
+
+    gitUpdate({
+      repo, selectedAccOrOrg, branch, commit, sourceData
+    }: {
+      commit: string,
+      selectedAccOrOrg: string,
+      repo: { id?: string, name: string },
+      branch: string,
+      sourceData: GitAPIData
+    }) {
+      if (!!selectedAccOrOrg && !!repo && !!commit && !!branch) {
+        const url = `${ GIT_BASE_URL[this.type as APPLICATION_SOURCE_TYPE.GIT_HUB | APPLICATION_SOURCE_TYPE.GIT_LAB] }/${ selectedAccOrOrg }/${ repo.name }`;
+
+        this.git.usernameOrOrg = selectedAccOrOrg;
+        this.git.url = url;
+        this.git.commit = commit;
+        this.git.branch = branch;
+        this.git.repo = repo;
+        this.git.sourceData = sourceData;
+
+        this.update();
+        this.$emit('valid', true);
+      } else {
+        this.update();
+        this.$emit('valid', false);
+      }
+    },
+
+    validate() {
+      switch (this.type) {
+      case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      case APPLICATION_SOURCE_TYPE.FOLDER: {
+        return !!this.archive.tarball && !!this.builderImage.value;
+      }
+      case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+        return !!this.container.url;
+      case APPLICATION_SOURCE_TYPE.GIT_URL:
+        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value && !!this.gitUrl.validGitUrl;
+      case APPLICATION_SOURCE_TYPE.GIT_HUB:
+      case APPLICATION_SOURCE_TYPE.GIT_LAB:
+        return !!this.git.usernameOrOrg && !!this.git.url && !!this.git.repo && !!this.git.branch && !!this.git.commit;
+      }
     }
   },
 
   watch: {
     type() {
+      // If we don't skip reseting the git type... we lose changes from loaded manifests
+      if (this.gitSkipTypeReset) {
+        this.gitSkipTypeReset = false;
+      } else {
+        this.git = {};
+      }
+
       this.update();
     },
 
-    valid() {
-      this.$emit('valid', this.valid);
+    valid(neu) {
+      this.$emit('valid', neu);
     }
   },
 
   computed: {
-    valid() {
-      switch (this.type) {
-      case APPLICATION_SOURCE_TYPE.ARCHIVE:
-      case APPLICATION_SOURCE_TYPE.FOLDER:
-        return !!this.archive.tarball && !!this.builderImage.value;
-      case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
-        return !!this.container.url;
-      case APPLICATION_SOURCE_TYPE.GIT_URL:
-        return !!this.gitUrl.url && !!this.gitUrl.branch && !!this.builderImage.value;
-      }
-
-      return false;
-    },
-
     showBuilderImage() {
       return [
         APPLICATION_SOURCE_TYPE.ARCHIVE,
         APPLICATION_SOURCE_TYPE.FOLDER,
         APPLICATION_SOURCE_TYPE.GIT_URL,
+        APPLICATION_SOURCE_TYPE.GIT_HUB,
+        APPLICATION_SOURCE_TYPE.GIT_LAB,
       ].includes(this.type);
     },
 
@@ -299,10 +380,14 @@ export default Vue.extend<Data, any, any, any>({
       }));
     },
 
-    type() {
-      // There's a bug in the select component which fires off the option ({ value, label}) instead of the value
-      // (possibly `reduce` related). This the workaround
-      return this.unSafeType.value || this.unSafeType;
+    gitSource() {
+      return {
+        type:             this.type,
+        selectedAccOrOrg: this.git.usernameOrOrg,
+        selectedRepo:     this.git.repo,
+        selectedBranch:   this.git.branch,
+        selectedCommit:   { sha: this.git.commit }
+      };
     }
   }
 });
@@ -310,15 +395,14 @@ export default Vue.extend<Data, any, any, any>({
 
 <template>
   <div class="appSource">
-    <div class="button-row">
+    <div class="button-row source">
       <LabeledSelect
-        v-model="unSafeType"
+        v-model="type"
         data-testid="epinio_app-source_type"
         label="Source Type"
         :options="types"
         :mode="mode"
         :clearable="false"
-        :reduce="(e) => e.value"
       />
       <FileSelector
         v-clean-tooltip="t('epinio.applications.steps.source.manifest.tooltip')"
@@ -332,7 +416,7 @@ export default Vue.extend<Data, any, any, any>({
     </div>
 
     <template v-if="type === APPLICATION_SOURCE_TYPE.ARCHIVE">
-      <div class="spacer archive">
+      <div class="spacer source">
         <h3>{{ t('epinio.applications.steps.source.archive.file.label') }}</h3>
         <div class="button-row">
           <LabeledInput
@@ -349,13 +433,14 @@ export default Vue.extend<Data, any, any, any>({
             :label="t('epinio.applications.steps.source.archive.file.button')"
             :mode="mode"
             :raw-data="true"
+            :accept="'.zip, .tar, .gz, .bz2, .xz'"
             @selected="onFileSelected"
           />
         </div>
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.FOLDER">
-      <div class="spacer archive">
+      <div class="spacer source">
         <h3>{{ t('epinio.applications.steps.source.folder.file.label') }}</h3>
         <div class="button-row">
           <LabeledInput
@@ -379,58 +464,72 @@ export default Vue.extend<Data, any, any, any>({
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.CONTAINER_URL">
-      <div class="spacer archive">
-        <h3>{{ t('epinio.applications.steps.source.containerUrl.url.label') }}</h3>
+      <div class="spacer source">
+        <h3>{{ t('epinio.applications.steps.source.container_url.url.label') }}</h3>
         <LabeledInput
           v-model="container.url"
           data-testid="epinio_app-source_container"
-          :tooltip="t('epinio.applications.steps.source.containerUrl.url.tooltip')"
-          :label="t('epinio.applications.steps.source.containerUrl.url.inputLabel')"
+          :tooltip="t('epinio.applications.steps.source.container_url.url.tooltip')"
+          :label="t('epinio.applications.steps.source.container_url.url.inputLabel')"
           :required="true"
           @input="update"
         />
       </div>
     </template>
     <template v-else-if="type === APPLICATION_SOURCE_TYPE.GIT_URL">
-      <div class="spacer archive">
-        <h3>{{ t('epinio.applications.steps.source.gitUrl.url.label') }}</h3>
+      <div class="spacer source">
+        <h3>{{ t('epinio.applications.steps.source.git_url.url.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.url"
+          v-focus
           data-testid="epinio_app-source_git-url"
-          :tooltip="t('epinio.applications.steps.source.gitUrl.url.tooltip')"
-          :label="t('epinio.applications.steps.source.gitUrl.url.inputLabel')"
+          :tooltip="t('epinio.applications.steps.source.git_url.url.tooltip')"
+          :label="t('epinio.applications.steps.source.git_url.url.inputLabel')"
+          :placeholder="'https://github.com/{user or org}/{repository}'"
           :required="true"
+          :rules="[urlRule]"
+          @delay="100"
           @input="update"
         />
       </div>
-      <div class="spacer archive">
-        <h3>{{ t('epinio.applications.steps.source.gitUrl.branch.label') }}</h3>
+      <div class="spacer source">
+        <h3>{{ t('epinio.applications.steps.source.git_url.branch.label') }}</h3>
         <LabeledInput
           v-model="gitUrl.branch"
           data-testid="epinio_app-source_git-branch"
-          :tooltip="t('epinio.applications.steps.source.gitUrl.branch.tooltip')"
-          :label="t('epinio.applications.steps.source.gitUrl.branch.inputLabel')"
+          :tooltip="t('epinio.applications.steps.source.git_url.branch.tooltip')"
+          :label="t('epinio.applications.steps.source.git_url.branch.inputLabel')"
           :required="true"
+          :disabled="!gitUrl.validGitUrl"
           @input="update"
         />
       </div>
     </template>
+    <template v-else>
+      <GitPicker
+        :value="gitSource"
+        :type="type"
+        @change="gitUpdate"
+      />
+    </template>
     <Collapse
       :open.sync="open"
       :title="'Advanced Settings'"
-      class="mt-30"
+      class="pt-30 pb-30 source"
     >
       <template>
+        <!-- Unable to change app chart of active app, so disable -->
         <LabeledSelect
           v-model="appChart"
           data-testid="epinio_app-source_appchart"
-          label="Application Chart"
+          :label="t('epinio.applications.steps.source.archive.appchart.label')"
           :options="appCharts"
           :mode="mode"
           :clearable="false"
           :required="true"
           :tooltip="t('typeDescription.appcharts')"
           :reduce="(e) => e.value"
+          :disabled="mode === EDIT"
           @input="update"
         />
         <template v-if="showBuilderImage">
@@ -460,7 +559,11 @@ export default Vue.extend<Data, any, any, any>({
 
 <style lang="scss" scoped>
 .appSource {
-  max-width: 500px;
+  // max-width: 920px;
+
+  .source {
+    max-width: 700px;
+  }
 
   .button-row {
     display: flex;

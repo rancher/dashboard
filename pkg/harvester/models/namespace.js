@@ -4,7 +4,7 @@ import namespace from '@shell/models/namespace';
 export default class HciNamespace extends namespace {
   get _availableActions() {
     const out = super._availableActions;
-    const remove = out.findIndex(a => a.action === 'promptRemove');
+    const remove = out.findIndex((a) => a.action === 'promptRemove');
 
     const promptRemove = {
       action:     'promptRemove',

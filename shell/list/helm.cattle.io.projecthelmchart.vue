@@ -47,7 +47,7 @@ export default {
       }
 
       return { ...header };
-    }).filter(header => header.name !== 'system namespace');
+    }).filter((header) => header.name !== 'system namespace');
   },
   data() {
     return {
@@ -57,7 +57,7 @@ export default {
   },
   computed: {
     canCreateProjectHelmChart() {
-      return !!(this?.projectHelmChartSchema?.collectionMethods || []).find(method => method.toLowerCase() === 'post');
+      return !!(this?.projectHelmChartSchema?.collectionMethods || []).find((method) => method.toLowerCase() === 'post');
     }
 
   }

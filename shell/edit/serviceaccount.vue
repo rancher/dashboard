@@ -50,7 +50,7 @@ export default {
     namespacedSecrets() {
       const namespace = this.value?.metadata?.namespace;
 
-      return this.allSecrets.filter(secret => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
+      return this.allSecrets.filter((secret) => secret.metadata.namespace === namespace && (secret._type === SECRET_TYPES.DOCKER || secret._type === SECRET_TYPES.DOCKER_JSON));
     },
 
     imagePullSecrets: {
@@ -60,7 +60,7 @@ export default {
         }
         const { imagePullSecrets } = this.value;
 
-        return imagePullSecrets.map(each => each.name);
+        return imagePullSecrets.map((each) => each.name);
       },
       set(neu) {
         if (this.value.imagePullSecrets.length < 1) {

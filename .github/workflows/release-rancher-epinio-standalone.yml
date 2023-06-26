@@ -21,11 +21,11 @@ jobs:
 
     - uses: actions/setup-node@v2
       with:
-        node-version: '12.x'
+        node-version: '14.x'
 
     - name: Install & Build
       run:
-        RANCHER_ENV=epinio EXCLUDES_PKG=rancher-components ./.github/workflows/scripts/build-dashboard.sh
+        RANCHER_ENV=epinio EXCLUDES_PKG=rancher-components,harvester EXCLUDE_OPERATOR_PKG=true LOGIN_LOCALE_SELECTOR=false ./.github/workflows/scripts/build-dashboard.sh
 
     - name: Upload Build
       uses: actions/upload-artifact@v2

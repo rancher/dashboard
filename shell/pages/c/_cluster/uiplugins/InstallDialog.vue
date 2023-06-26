@@ -83,7 +83,7 @@ export default {
         }
       } else if (mode === 'rollback') {
         // Find the newest version once we remove the current version
-        const versionNames = plugin.installableVersions.filter(v => v.version !== plugin.displayVersion);
+        const versionNames = plugin.installableVersions.filter((v) => v.version !== plugin.displayVersion);
 
         this.currentVersion = plugin.displayVersion;
 
@@ -93,7 +93,7 @@ export default {
       }
 
       // Make sure we have the version available
-      const versionChart = plugin.installableVersions?.find(v => v.version === this.version);
+      const versionChart = plugin.installableVersions?.find((v) => v.version === this.version);
 
       if (!versionChart) {
         this.version = plugin.installableVersions?.[0]?.version;
@@ -117,7 +117,7 @@ export default {
       this.$emit('update', plugin.name, 'install');
 
       // Find the version that the user wants to install
-      const version = plugin.versions?.find(v => v.version === this.version);
+      const version = plugin.versions?.find((v) => v.version === this.version);
 
       if (!version) {
         this.busy = false;

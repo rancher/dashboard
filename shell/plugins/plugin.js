@@ -3,6 +3,10 @@ import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
 
 export default async function(context) {
+  if (process.env.excludeOperatorPkg === 'true') {
+    return;
+  }
+
   const hash = {};
 
   // Provide a mechanism to load the UI without the plugins loaded - in case there is a problem
@@ -30,7 +34,7 @@ export default async function(context) {
         const entries = res.entries || res.Entries || {};
 
         Object.values(entries).forEach((plugin) => {
-          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion); // Error key string or boolean
+          const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
 
           if (!shouldNotLoad) {
             hash[plugin.name] = context.$plugin.loadPluginAsync(plugin);

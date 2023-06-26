@@ -31,19 +31,19 @@ export default Vue.extend({
     return { state: false as boolean | string | number };
   },
 
-  methods: {
-    toggle(neu: boolean | string | number) {
-      this.state = neu === null ? !this.state : neu;
-      this.$emit('input', this.state ? this.onValue : this.offValue);
-    }
-  },
-
   watch: {
     value: {
       handler() {
         this.state = this.value === this.onValue;
       },
       immediate: true
+    }
+  },
+
+  methods: {
+    toggle(neu: boolean | string | number) {
+      this.state = neu === null ? !this.state : neu;
+      this.$emit('input', this.state ? this.onValue : this.offValue);
     }
   }
 });

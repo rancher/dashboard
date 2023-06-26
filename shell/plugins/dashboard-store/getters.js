@@ -69,7 +69,7 @@ export default {
 
     // Filter first by namespace if one is provided, since this is efficient
     if (namespace) {
-      all = all.filter(obj => obj.namespace === namespace);
+      all = all.filter((obj) => obj.namespace === namespace);
     }
 
     garbageCollect.gcUpdateLastAccessed({

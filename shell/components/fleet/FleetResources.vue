@@ -32,7 +32,7 @@ export default {
 
         for ( const c of clusters ) {
           let state = r.state;
-          const perEntry = r.perClusterState?.find(x => x.clusterId === c.id );
+          const perEntry = r.perClusterState?.find((x) => x.clusterId === c.id );
           const tooMany = r.perClusterState?.length >= 10 || false;
 
           if ( perEntry ) {

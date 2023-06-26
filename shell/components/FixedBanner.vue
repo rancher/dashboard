@@ -41,7 +41,7 @@ export default {
     handleLineBreaksConsentText(banner) {
       if (banner.text?.length) {
         // split text by newline char
-        const textArray = banner.text.split(/\\n/).filter(element => element);
+        const textArray = banner.text.split(/\\n/).filter((element) => element);
 
         if (textArray.length > 1) {
           textArray.forEach((str, i) => {

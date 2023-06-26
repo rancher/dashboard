@@ -41,7 +41,7 @@ export default {
     versionOptions() {
       const versions = this.$store.getters['harvester/all'](HCI.VERSION);
 
-      return versions.map(V => V.metadata.name);
+      return versions.map((V) => V.metadata.name);
     },
 
     currentVersion() {
@@ -57,7 +57,7 @@ export default {
         let upgradeMessage = [];
         const list = neu || [];
 
-        const currentResource = list.find( O => !!O.isLatestUpgrade);
+        const currentResource = list.find( (O) => !!O.isLatestUpgrade);
 
         upgradeMessage = currentResource ? currentResource.upgradeMessage : [];
 
@@ -116,12 +116,21 @@ export default {
           :cluster="currentCluster.nameDisplay"
         />
       </h1>
-      <button v-if="versionOptions.length" type="button" class="btn bg-warning btn-sm" @click="open">
+      <button
+        v-if="versionOptions.length"
+        type="button"
+        class="btn bg-warning btn-sm"
+        @click="open"
+      >
         <t k="harvester.upgradePage.upgrade" />
       </button>
     </header>
 
-    <ModalWithCard ref="deleteTip" name="deleteTip" :width="850">
+    <ModalWithCard
+      ref="deleteTip"
+      name="deleteTip"
+      :width="850"
+    >
       <template #title>
         <t k="harvester.upgradePage.upgradeApp" />
       </template>
@@ -143,7 +152,10 @@ export default {
             :clearable="true"
           />
 
-          <Banner v-if="errors.length" color="warning">
+          <Banner
+            v-if="errors.length"
+            color="warning"
+          >
             {{ errors }}
           </Banner>
         </div>
@@ -151,10 +163,16 @@ export default {
 
       <template #footer>
         <div class="footer">
-          <button class="btn role-secondary mr-20" @click.prevent="cancel">
+          <button
+            class="btn role-secondary mr-20"
+            @click.prevent="cancel"
+          >
             <t k="generic.close" />
           </button>
-          <button class="btn role-tertiary bg-primary" @click.prevent="handleUpgrade">
+          <button
+            class="btn role-tertiary bg-primary"
+            @click.prevent="handleUpgrade"
+          >
             <t k="harvester.upgradePage.upgrade" />
           </button>
         </div>

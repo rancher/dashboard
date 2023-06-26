@@ -1,4 +1,4 @@
-import EpinioMetaResource from '~/pkg/epinio/models/epinio-namespaced-resource';
+import EpinioMetaResource from './epinio-namespaced-resource';
 
 export default class EpinioAppChartModel extends EpinioMetaResource {
   get links() {

@@ -39,7 +39,7 @@ export default {
     },
 
     driverOpts() {
-      return require.context('@shell/edit/workload/storage/csi', true, /^.*\.vue$/).keys().map(path => path.replace(/(\.\/)|(.vue)/g, '')).filter(file => file !== 'index');
+      return require.context('@shell/edit/workload/storage/csi', true, /^.*\.vue$/).keys().map((path) => path.replace(/(\.\/)|(.vue)/g, '')).filter((file) => file !== 'index');
     },
 
     ...mapGetters({ t: 'i18n/t' })

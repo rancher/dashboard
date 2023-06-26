@@ -9,6 +9,13 @@ export default class SortableTablePo extends ComponentPo {
   //
 
   /**
+   * Returns the link for resource details for a table row with a given name
+   */
+  detailsPageLinkWithName(name: string) {
+    return this.rowElementWithName(name).find('td.col-link-detail a');
+  }
+
+  /**
    * Get the bulk action dropdown button (this is where collapsed bulk actions go when screen width is too small)
    */
   bulkActionDropDown() {
@@ -48,12 +55,16 @@ export default class SortableTablePo extends ComponentPo {
     return cy.getId('sortable-table-promptRemove');
   }
 
+  selectedCountText() {
+    return cy.get('.action-availability');
+  }
+
   //
   // sortable-table
   //
 
   rowElements() {
-    return this.self().find('tbody tr');
+    return this.self().find('tbody tr:not(.sub-row)');
   }
 
   rowElementWithName(name: string) {
@@ -66,6 +77,14 @@ export default class SortableTablePo extends ComponentPo {
 
   rowWithName(name: string) {
     return new ListRowPo(this.rowElementWithName(name));
+  }
+
+  rowNames() {
+    return this.rowElements().find('.cluster-link').then(($els: any) => {
+      return (
+        Cypress.$.makeArray($els).map((el: any) => el.innerText)
+      );
+    });
   }
 
   rowActionMenu() {
@@ -114,5 +133,9 @@ export default class SortableTablePo extends ComponentPo {
    */
   selectAllCheckbox(): CheckboxInputPo {
     return new CheckboxInputPo('[data-testid="sortable-table_check_select_all"]');
+  }
+
+  selectedCount() {
+    return cy.get('.row-check input[type="checkbox"]:checked').its('length');
   }
 }

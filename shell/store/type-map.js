@@ -140,13 +140,14 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, importLogin, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import isObject from 'lodash/isObject';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import { sortBy } from '@shell/utils/sort';
+
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
@@ -172,14 +173,16 @@ const graphConfigMap = {};
 const FIELD_REGEX = /^\$\.metadata\.fields\[([0-9]*)\]/;
 
 export const IF_HAVE = {
-  V1_MONITORING:       'v1-monitoring',
-  V2_MONITORING:       'v2-monitoring',
-  PROJECT:             'project',
-  NO_PROJECT:          'no-project',
-  NOT_V1_ISTIO:        'not-v1-istio',
-  MULTI_CLUSTER:       'multi-cluster',
-  NEUVECTOR_NAMESPACE: 'neuvector-namespace',
-  ADMIN:               'admin-user',
+  V1_MONITORING:            'v1-monitoring',
+  V2_MONITORING:            'v2-monitoring',
+  PROJECT:                  'project',
+  NO_PROJECT:               'no-project',
+  NOT_V1_ISTIO:             'not-v1-istio',
+  MULTI_CLUSTER:            'multi-cluster',
+  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
+  ADMIN:                    'admin-user',
+  MCM_DISABLED:             'mcm-disabled',
+  NOT_STANDALONE_HARVESTER: 'not-standalone-harvester',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -287,8 +290,8 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/ignoreType`, regexOrString);
     },
 
-    ignoreGroup(regexOrString) {
-      store.commit(`${ module }/ignoreGroup`, regexOrString);
+    ignoreGroup(regexOrString, cb) {
+      store.commit(`${ module }/ignoreGroup`, { regexOrString, cb });
     },
 
     weightGroup(input, weight, forBasic) {
@@ -473,7 +476,7 @@ export const getters = {
         const match = group.match(/^(.*)\.k8s\.io$/);
 
         if ( match ) {
-          return match[1].split(/\./).map(x => ucFirst(x)).join('.');
+          return match[1].split(/\./).map((x) => ucFirst(x)).join('.');
         }
 
         return group;
@@ -775,7 +778,7 @@ export const getters = {
       product = product || rootGetters['productId'];
       const productSpoofedTypes = state.spoofedTypes[product] || [];
 
-      return productSpoofedTypes.some(st => st.type === type);
+      return productSpoofedTypes.some((st) => st.type === type);
     };
   },
 
@@ -808,7 +811,7 @@ export const getters = {
     return async(type, product, id) => {
       const productInstances = await getters.getSpoofedInstances(type, product);
 
-      return productInstances.find( instance => instance.id === id);
+      return productInstances.find( (instance) => instance.id === id);
     };
   },
 
@@ -823,7 +826,7 @@ export const getters = {
       return types.flatMap((type) => {
         const schemas = type.schemas || [];
 
-        return schemas.map(schema => ({
+        return schemas.map((schema) => ({
           ...schema,
           isSpoofed: true
         }));
@@ -835,7 +838,7 @@ export const getters = {
     return getters.allSpoofedTypes.flatMap((type) => {
       const schemas = type.schemas || [];
 
-      return schemas.map(schema => ({
+      return schemas.map((schema) => ({
         ...schema,
         isSpoofed: true
       }));
@@ -918,7 +921,7 @@ export const getters = {
             const targetedSchemas = typeof item.ifHaveType === 'string' ? schemas : rootGetters[`${ item.ifHaveType.store }/all`](SCHEMA);
             const type = typeof item.ifHaveType === 'string' ? item.ifHaveType : item.ifHaveType?.type;
 
-            const haveIds = filterBy(targetedSchemas, 'id', normalizeType(type)).map(s => s.id);
+            const haveIds = filterBy(targetedSchemas, 'id', normalizeType(type)).map((s) => s.id);
 
             if (!haveIds.length) {
               continue;
@@ -1001,7 +1004,7 @@ export const getters = {
           } else {
             return entry;
           }
-        }).filter(col => !!col);
+        }).filter((col) => !!col);
       }
 
       // Otherwise make one up from schema
@@ -1055,7 +1058,7 @@ export const getters = {
           formatter = 'Number';
         }
 
-        const colName = col.name.includes(' ') ? col.name.split(' ').map(word => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
+        const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
 
         const exists = rootGetters['i18n/exists'];
         const t = rootGetters['i18n/t'];
@@ -1089,7 +1092,7 @@ export const getters = {
     return (rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'list', key, key => resolveList(key));
+      return hasCustom(state, rootState, 'list', key, (key) => resolveList(key));
     };
   },
 
@@ -1097,7 +1100,7 @@ export const getters = {
     return (rawType) => {
       const key = getters.componentFor(rawType);
 
-      return hasCustom(state, rootState, 'chart', key, key => resolveChart(key));
+      return hasCustom(state, rootState, 'chart', key, (key) => resolveChart(key));
     };
   },
 
@@ -1105,7 +1108,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'detail', key, key => resolveDetail(key));
+      return hasCustom(state, rootState, 'detail', key, (key) => resolveDetail(key));
     };
   },
 
@@ -1125,13 +1128,13 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'edit', key, key => resolveEdit(key));
+      return hasCustom(state, rootState, 'edit', key, (key) => resolveEdit(key));
     };
   },
 
   hasComponent(state, getters, rootState) {
     return (path) => {
-      return hasCustom(state, rootState, 'edit', path, path => resolveEdit(path));
+      return hasCustom(state, rootState, 'edit', path, (path) => resolveEdit(path));
     };
   },
 
@@ -1147,7 +1150,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'windowComponents', key, key => resolveWindowComponent(key));
+      return hasCustom(state, rootState, 'windowComponents', key, (key) => resolveWindowComponent(key));
     };
   },
 
@@ -1155,7 +1158,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'machine-config', key, key => resolveMachineConfigComponent(key));
+      return hasCustom(state, rootState, 'machine-config', key, (key) => resolveMachineConfigComponent(key));
     };
   },
 
@@ -1163,7 +1166,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return hasCustom(state, rootState, 'cloud-credential', key, key => resolveCloudCredentialComponent(key));
+      return hasCustom(state, rootState, 'cloud-credential', key, (key) => resolveCloudCredentialComponent(key));
     };
   },
 
@@ -1215,6 +1218,12 @@ export const getters = {
     };
   },
 
+  importLogin(state, getters, rootState) {
+    return (authType) => {
+      return loadExtension(rootState, 'login', authType, importLogin);
+    };
+  },
+
   importMachineConfig(state, getters, rootState) {
     return (rawType, subType) => {
       return loadExtension(rootState, 'machine-config', getters.componentFor(rawType, subType), importMachineConfig);
@@ -1260,18 +1269,19 @@ export const getters = {
     };
   },
 
-  isIgnored(state) {
+  isIgnored(state, getters, rootState, rootGetters) {
     return (schema) => {
-      if ( state.cache.ignore[schema.id] !== undefined ) {
-        return state.cache.ignore[schema.id];
-      }
-
       let out = false;
 
       for ( const rule of state.groupIgnore ) {
         const group = schema?.attributes?.group;
 
-        if ( group && group.match(stringToRegex(rule)) ) {
+        if (group && group.match(stringToRegex(rule.type) && isObject(rule) && rule.type)) {
+          out = rule.cb(rootGetters);
+          break;
+        }
+
+        if ( group && typeof rule === 'string' && group.match(stringToRegex(rule)) ) {
           out = true;
           break;
         }
@@ -1344,7 +1354,7 @@ export const getters = {
       }
 
       if ( p.ifHaveType ) {
-        const haveIds = knownTypes[module].filter(t => t.match(stringToRegex(p.ifHaveType)) );
+        const haveIds = knownTypes[module].filter((t) => t.match(stringToRegex(p.ifHaveType)) );
 
         if ( !haveIds.length ) {
           return false;
@@ -1355,7 +1365,7 @@ export const getters = {
         }
       }
 
-      if ( p.ifHaveGroup && !knownGroups[module].find(t => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
+      if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
         return false;
       }
 
@@ -1389,7 +1399,7 @@ export const mutations = {
 
   // Remove the specified product
   remove(state, { product, plugin }) {
-    const existing = state.products.findIndex(p => p.name === product);
+    const existing = state.products.findIndex((p) => p.name === product);
 
     // Remove the product
     if (existing !== -1) {
@@ -1518,10 +1528,13 @@ export const mutations = {
     }
   },
 
-  ignoreGroup(state, match) {
+  ignoreGroup(state, { regexOrString: match, cb }) {
     match = ensureRegex(match);
     // State shouldn't contain actual RegExp objects, because they don't serialize
-    state.groupIgnore.push(regexToString(match));
+    cb ? state.groupIgnore.push({
+      type: regexToString(match),
+      cb
+    }) : state.groupIgnore.push(regexToString(match));
   },
 
   ignoreType(state, match) {
@@ -1628,7 +1641,7 @@ export const mutations = {
   configureType(state, options) {
     const match = regexToString(ensureRegex(options.match));
 
-    const idx = state.typeOptions.findIndex(obj => obj.match === match);
+    const idx = state.typeOptions.findIndex((obj) => obj.match === match);
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
@@ -1818,10 +1831,16 @@ function ifHave(getters, option) {
     return getters.isMultiCluster;
   }
   case IF_HAVE.NEUVECTOR_NAMESPACE: {
-    return getters[`cluster/all`](NAMESPACE).find(n => n.metadata.name === NEU_VECTOR_NAMESPACE);
+    return getters[`cluster/all`](NAMESPACE).find((n) => n.metadata.name === NEU_VECTOR_NAMESPACE);
   }
   case IF_HAVE.ADMIN: {
     return isAdminUser(getters);
+  }
+  case IF_HAVE.MCM_DISABLED: {
+    return !getters['isRancherInHarvester'];
+  }
+  case IF_HAVE.NOT_STANDALONE_HARVESTER: {
+    return !getters['isStandaloneHarvester'];
   }
   default:
     return false;
@@ -1858,7 +1877,7 @@ function _rowValueGetter(col) {
     if (found && found.length === 2) {
       const fieldIndex = parseInt(found[1], 10);
 
-      return row => row.metadata?.fields?.[fieldIndex];
+      return (row) => row.metadata?.fields?.[fieldIndex];
     }
   }
 
@@ -1878,7 +1897,7 @@ function ifHaveVerb(rootGetters, module, verb, haveIds) {
     const want = verb.toLowerCase();
     const collectionMethods = schema.collectionMethods || [];
     const resourceMethods = schema.resourceMethods || [];
-    const have = [...collectionMethods, ...resourceMethods].map(x => x.toLowerCase());
+    const have = [...collectionMethods, ...resourceMethods].map((x) => x.toLowerCase());
 
     if ( !have.includes(want) && !have.includes(`blocked-${ want }`) ) {
       return false;

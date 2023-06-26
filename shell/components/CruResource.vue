@@ -184,7 +184,7 @@ export default {
       const { validationPassed, showAsForm, steps } = this;
 
       if (showAsForm && steps?.length) {
-        return validationPassed && this.steps.every(step => step.ready);
+        return validationPassed && this.steps.every((step) => step.ready);
       }
 
       // Don't apply validation rules if the form is not shown.
@@ -412,6 +412,7 @@ export default {
     </p>
     <form
       :is="(isView? 'div' : 'form')"
+      data-testid="cru-form"
       class="create-resource-container cru__form"
       @submit.prevent
       @keydown.enter="onPressEnter($event)"

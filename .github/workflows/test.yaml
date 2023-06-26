@@ -5,9 +5,10 @@ on:
       - master
       - 'release-*'
   pull_request:
-    branches:
-      - master
-      - 'release-*'
+      branches:
+        - master
+        - 'release-*'
+        - epinio-dev
   workflow_dispatch:
     environment:
       description: 'Environment to run tests against'

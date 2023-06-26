@@ -1,7 +1,7 @@
 
 import { findBy } from '@shell/utils/array';
 import { TARGET_WORKLOADS, UI_MANAGED, HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
-import { WORKLOAD_TYPES, SERVICE, CAPI, HCI } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE } from '@shell/config/types';
 import { clone, get } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { shortenedImage } from '@shell/utils/string';
@@ -10,8 +10,8 @@ export default class WorkloadService extends SteveModel {
   async getPortsWithServiceType() {
     const ports = [];
 
-    this.containers.forEach(container => ports.push(...(container.ports || [])));
-    (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
+    this.containers.forEach((container) => ports.push(...(container.ports || [])));
+    (this.initContainers || []).forEach((container) => ports.push(...(container.ports || [])));
 
     // Only get services owned if we can access the service resource
     const canAccessServices = this.$getters['schemaFor'](SERVICE);
@@ -93,7 +93,7 @@ export default class WorkloadService extends SteveModel {
     const steveSelectorValue = this.workloadSelector[selectorKey];
     const allSvc = await this.$dispatch('cluster/findAll', { type: SERVICE, opt: { force } }, { root: true });
 
-    return (allSvc || []).filter(svc => (svc.spec?.selector || {})[selectorKey] === steveSelectorValue || (svc.spec?.selector || {})[selectorKey] === normanSelectorValue );
+    return (allSvc || []).filter((svc) => (svc.spec?.selector || {})[selectorKey] === steveSelectorValue || (svc.spec?.selector || {})[selectorKey] === normanSelectorValue );
   }
 
   get imageNames() {
@@ -307,26 +307,10 @@ export default class WorkloadService extends SteveModel {
         loadBalancerProxy = await this.$dispatch(`cluster/create`, loadBalancer, { root: true });
       }
 
-      const portsWithIpam = ports.filter(p => p._ipam) || [];
+      const portsWithIpam = ports.filter((p) => p._ipam) || [];
 
       if (portsWithIpam.length > 0) {
         loadBalancerProxy.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_IPAM] = portsWithIpam[0]._ipam;
-
-        const clusters = this.$rootGetters['management/all'](CAPI.RANCHER_CLUSTER);
-        const configs = this.$rootGetters['management/all'](HCI.HARVESTER_CONFIG);
-        const currentCluster = this.$rootGetters['currentCluster'];
-        const cluster = clusters.find(c => c.status.clusterName === currentCluster.id);
-
-        const machinePools = cluster?.spec?.rkeConfig?.machinePools || [];
-        const machineConfigName = machinePools[0]?.machineConfigRef?.name;
-        const config = configs.find(c => c.id === `fleet-default/${ machineConfigName }`);
-
-        if (config) {
-          const { vmNamespace, networkName } = config;
-
-          loadBalancerProxy.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NAMESPACE] = vmNamespace;
-          loadBalancerProxy.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] = networkName;
-        }
       }
 
       toSave.push(loadBalancerProxy);

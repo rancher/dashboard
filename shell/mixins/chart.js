@@ -97,7 +97,7 @@ export default {
         out.push(nue);
       });
 
-      const selectedMatch = out.find(v => v.id === selectedVersion);
+      const selectedMatch = out.find((v) => v.id === selectedVersion);
 
       if (!selectedMatch) {
         out.unshift({
@@ -111,7 +111,7 @@ export default {
         });
       }
 
-      const currentVersion = out.find(v => v.originalVersion === this.currentVersion);
+      const currentVersion = out.find((v) => v.originalVersion === this.currentVersion);
 
       if (currentVersion) {
         currentVersion.label = this.t('catalog.install.versions.current', { ver: this.currentVersion });
@@ -122,7 +122,7 @@ export default {
 
     // Conditionally filter out prerelease versions of the chart.
     filteredVersions() {
-      return this.showPreRelease ? this.mappedVersions : this.mappedVersions.filter(v => !v.isPre);
+      return this.showPreRelease ? this.mappedVersions : this.mappedVersions.filter((v) => !v.isPre);
     },
 
     query() {
@@ -191,7 +191,7 @@ export default {
     requires() {
       const requires = [];
 
-      const required = (this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUIRES_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+      const required = (this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUIRES_GVK] || '').split(/\s*,\s*/).filter((x) => !!x).reverse();
 
       if ( required.length ) {
         for ( const gvr of required ) {
@@ -297,7 +297,7 @@ export default {
         if (this.showPreRelease) {
           this.query.versionName = this.chart.versions[0].version;
         } else {
-          const firstRelease = this.chart.versions.find(v => !isPrerelease(v.version));
+          const firstRelease = this.chart.versions.find((v) => !isPrerelease(v.version));
 
           this.query.versionName = firstRelease?.version || this.chart.versions[0].version;
         }
@@ -357,7 +357,7 @@ export default {
         It is an array of chart names that lets Rancher know of other
         charts that should be auto-installed at the same time.
       */
-      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter((x) => !!x).reverse();
 
       for ( const constraint of auto ) {
         const provider = this.$store.getters['catalog/versionSatisfying']({

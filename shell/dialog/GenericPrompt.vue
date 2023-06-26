@@ -68,11 +68,15 @@ export default {
     class="prompt-restore"
     :show-highlight-border="false"
   >
-    <h4
-      slot="title"
-      v-clean-html="title"
-      class="text-default-text"
-    />
+    <template slot="title">
+      <slot name="title">
+        <h4
+          slot="title"
+          v-clean-html="title"
+          class="text-default-text"
+        />
+      </slot>
+    </template>
 
     <template slot="body">
       <slot name="body">

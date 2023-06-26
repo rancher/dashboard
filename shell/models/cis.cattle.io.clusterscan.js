@@ -93,7 +93,7 @@ export default class ClusterScan extends SteveModel {
   async getReports() {
     const owned = await this.findOwned();
 
-    const reports = owned.filter(obj => obj.type === CIS.REPORT) || [];
+    const reports = owned.filter((obj) => obj.type === CIS.REPORT) || [];
 
     return sortBy(reports, 'metadata.creationTimestamp', true);
   }

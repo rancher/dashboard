@@ -61,7 +61,7 @@ export default {
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -292,7 +292,7 @@ export default {
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
       allHash({
         copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: new Promise(resolve => setTimeout(resolve, 1000))
+        minDelay: new Promise((resolve) => setTimeout(resolve, 1000))
       }).finally(() => {
         this.kubeConfigCopying = false;
 
@@ -337,14 +337,14 @@ export default {
     ref="header"
   >
     <div>
-      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct" />
+      <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
     </div>
     <div
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
     >
       <n-link
-        v-if="isSingleProduct"
+        v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
       >
         <img
@@ -364,7 +364,7 @@ export default {
         class="cluster cluster-clipped"
       >
         <div
-          v-if="isSingleProduct"
+          v-if="isSingleProduct && !isRancherInHarvester"
           class="product-name"
         >
           {{ t(isSingleProduct.productNameKey) }}

@@ -116,7 +116,7 @@ export default (vuexModule, config, init) => {
             }
           }
         } else {
-          return obj.map(x => recurse(x));
+          return obj.map((x) => recurse(x));
         }
       } else if ( obj && typeof obj === 'object' ) {
         if ( obj.__rehydrate ) {

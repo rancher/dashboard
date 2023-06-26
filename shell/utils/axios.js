@@ -23,16 +23,16 @@ const axiosExtra = {
     this.setHeader('Authorization', value, scopes);
   },
   onRequest(fn) {
-    this.interceptors.request.use(config => fn(config) || config);
+    this.interceptors.request.use((config) => fn(config) || config);
   },
   onResponse(fn) {
-    this.interceptors.response.use(response => fn(response) || response);
+    this.interceptors.response.use((response) => fn(response) || response);
   },
   onRequestError(fn) {
-    this.interceptors.request.use(undefined, error => fn(error) || Promise.reject(error));
+    this.interceptors.request.use(undefined, (error) => fn(error) || Promise.reject(error));
   },
   onResponseError(fn) {
-    this.interceptors.response.use(undefined, error => fn(error) || Promise.reject(error));
+    this.interceptors.response.use(undefined, (error) => fn(error) || Promise.reject(error));
   },
   onError(fn) {
     this.onRequestError(fn);
@@ -46,7 +46,7 @@ const axiosExtra = {
 // Request helpers ($get, $post, ...)
 for (const method of ['request', 'delete', 'get', 'head', 'options', 'post', 'put', 'patch']) {
   axiosExtra[`$${ method }`] = function() {
-    return this[method].apply(this, arguments).then(res => res && res.data);
+    return this[method].apply(this, arguments).then((res) => res && res.data);
   };
 }
 

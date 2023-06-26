@@ -57,7 +57,7 @@ export default {
         if (N?.nics?.length > 0) {
           const nics = N.nics.filter((nic) => {
             return !(nic.masterIndex !== undefined && nic.usedByVlanNetwork === undefined);
-          }).map(nic => nic.name);
+          }).map((nic) => nic.name);
 
           allNics.push(...nics);
         } else {
@@ -66,7 +66,7 @@ export default {
       });
 
       allNics.map((N) => {
-        const index = out.findIndex(nic => nic.value === N);
+        const index = out.findIndex((nic) => nic.value === N);
 
         if (index > -1) {
           out[index].num = out[index].num + 1;
@@ -120,7 +120,11 @@ export default {
       </template>
     </LabeledSelect>
 
-    <Tip v-if="value.enable" icon="icons icon-info" :text="t('harvester.setting.vlanChangeTip')" />
+    <Tip
+      v-if="value.enable"
+      icon="icons icon-info"
+      :text="t('harvester.setting.vlanChangeTip')"
+    />
   </div>
 </template>
 

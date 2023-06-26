@@ -73,6 +73,7 @@ generic:
   techPreview: Tech Preview
   type: Type
   unknown: Unknown
+  upload: Upload
   provisioning: '—'
   key: Key
   value: Value
@@ -117,6 +118,7 @@ locale:
   none: (None)
 
 nav:
+  harvesterDashboard: Harvester Dashboard
   backToRancher: Cluster Manager
   clusterTools: Cluster Tools
   kubeconfig:
@@ -179,6 +181,7 @@ nav:
     multiCluster: Global Apps
     legacy: Legacy Apps
     configuration: Configuration
+    hci: HCI
   search:
     placeholder: Type to search clusters
     noResults: No matching clusters
@@ -4007,6 +4010,7 @@ plugins:
     host: This Extension is not compatible with this application
     version: This Extension is not compatible with this version of Rancher
     load: An error occurred loading the code for this Extension
+    developerPkg: This Extension has been loaded internally, so we won't load the external version
   success:
     title: Loaded extension {name}
     message: Extension was loaded successfully
@@ -4844,6 +4848,12 @@ servicesPage:
     title: Add-on Config
     ipam:
       label: IPAM
+    useShareIP:
+      label: Use Share IP
+    useIpam:
+      label: Use IPAM
+    shareIP:
+      label: Share IP LB
 
   ips:
     define: Service Ports
@@ -5577,8 +5587,8 @@ validation:
       tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
   minLength: '"{key}" must contain more than {min} characters'
   maxLength: '"{key}" must contain less than {max} characters'
-  minValue: '"{key}" must be higher than {min}'
-  maxValue: '"{key}" must be lower than {max}'
+  minValue: '"{key}" must be equal or higher than {min}'
+  maxValue: '"{key}" must be equal or lower than {max}'
   betweenLengths: '"{key}" must contain between {min} and {max} characters'
   betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
@@ -7162,6 +7172,7 @@ resourceQuota:
     resourceType: Resource Type
   helpText: Configure how much of the resources the namespace as a whole can consume.
   helpTextDetail: The amount of resources the namespace as a whole can consume.
+  helpTextHarvester: VMs need to reserve additional memory overhead.
   configMaps: Config Maps
   limitsCpu: CPU Limit
   limitsMemory: Memory Limit
@@ -7318,6 +7329,82 @@ auth:
 vncConsole:
   error:
     message: Web VNC console connection is disconnected
+
+gitPicker:
+  github:
+    label: GitHub
+    tableHeaders:
+      choose:
+        label: Select
+      sha:
+        label: SHA
+      author:
+        label: Author
+        unknown: Unknown
+      message:
+        label: Message
+      date:
+        label: Date
+    username:
+      label: Username / Organization
+      inputLabel: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+    branch:
+      label: Branch
+      inputLabel: Branch
+      tooltip: Branch to deploy
+    repo:
+      label: Repository
+      inputLabel: Repository
+      tooltip: Branch to deploy from
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: No GitHub account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again."
+  gitlab:
+    label: GitLab
+    tableHeaders:
+      choose:
+        label: Select
+      sha:
+        label: SHA
+      author:
+        label: Author
+        unknown: Unknown
+      message:
+        label: Message
+      date:
+        label: Date
+    username:
+      label: Username / Organization
+      inputLabel: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+    branch:
+      label: Branch
+      inputLabel: Branch
+      tooltip: Branch to deploy
+    repo:
+      label: Repository
+      inputLabel: Repository
+      tooltip: Branch to deploy from
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: No GitLab account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again."
 
 networkAttachmentDefinition:
   tabs:

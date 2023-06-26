@@ -9,7 +9,7 @@ export class WorkloadsPodsListPagePo extends PagePo {
     return super.goTo(WorkloadsPodsListPagePo.createPath(clusterId));
   }
 
-  constructor(clusterId: string = 'local') {
+  constructor(clusterId = 'local') {
     super(WorkloadsPodsListPagePo.createPath(clusterId));
   }
 }
@@ -33,7 +33,7 @@ export class WorkLoadsPodDetailsPagePo extends PagePo {
     return super.goTo(this.url);
   }
 
-  constructor(podId: string, queryParams?: { [key: string]: string }, clusterId: string = 'local', namespaceId: string = 'default') {
+  constructor(podId: string, queryParams?: { [key: string]: string }, clusterId = 'local', namespaceId = 'default') {
     super(WorkLoadsPodDetailsPagePo.createPath(podId, clusterId, namespaceId, queryParams));
 
     WorkLoadsPodDetailsPagePo.url = WorkLoadsPodDetailsPagePo.createPath(podId, clusterId, namespaceId, queryParams);

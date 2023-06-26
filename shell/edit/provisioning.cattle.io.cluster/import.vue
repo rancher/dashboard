@@ -7,9 +7,9 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import { CAPI, HCI } from '@shell/config/types';
-import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
+import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import { Banner } from '@components/Banner';
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+
 import { NAME as HARVESTER_MANAGER } from '@shell/config/harvester-manager-types';
 import { HARVESTER as HARVESTER_FEATURE, mapFeature } from '@shell/store/features';
 import { addObject } from '@shell/utils/array';

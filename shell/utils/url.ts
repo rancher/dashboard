@@ -48,7 +48,7 @@ export function removeParam(url: string, key: string): string {
   return stringify(parsed);
 }
 
-export function parseLinkHeader(str: string) {
+export function parseLinkHeader(str: string): Record<string, string> {
   const out: { [key: string]: string} = { };
   const lines = (str || '').split(',');
 

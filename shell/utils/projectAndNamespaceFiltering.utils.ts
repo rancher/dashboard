@@ -51,7 +51,7 @@ class ProjectAndNamespaceFiltering {
     }
 
     const projectsOrNamespaces = namespaceFilter
-      .map(f => f.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
+      .map((f) => f.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
         .replace(NAMESPACE_FILTER_P_FULL_PREFIX, ''))
       .join(',');
 

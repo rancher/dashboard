@@ -1,8 +1,14 @@
-import { APPLICATION_MANIFEST_SOURCE_TYPE, EPINIO_PRODUCT_NAME, EPINIO_TYPES } from '../types';
-import { formatSi } from '@shell/utils/units';
 import { classify } from '@shell/plugins/dashboard-store/classify';
-import EpinioMetaResource from './epinio-namespaced-resource';
 import { downloadFile } from '@shell/utils/download';
+import { formatSi } from '@shell/utils/units';
+import { identity, pickBy } from 'lodash';
+import { epiniofy } from '../store/epinio-store/actions';
+import {
+  APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, APPLICATION_PARTS, EPINIO_PRODUCT_NAME, EPINIO_TYPES
+} from '../types';
+import { createEpinioRoute } from '../utils/custom-routing';
+import EpinioNamespacedResource, { bulkRemove } from './epinio-namespaced-resource';
+import { AppUtils } from '../utils/application';
 
 // See https://github.com/epinio/epinio/blob/00684bc36780a37ab90091498e5c700337015a96/pkg/api/core/v1/models/app.go#L11
 const STATES = {
@@ -21,9 +27,12 @@ const STATES_MAPPED = {
   unknown:           'unknown',
 };
 
-export default class EpinioApplicationModel extends EpinioMetaResource {
-  buildCache = {};
+function isGitRepo(type) {
+  return type === APPLICATION_SOURCE_TYPE.GIT_HUB || type === APPLICATION_SOURCE_TYPE.GIT_LAB;
+}
 
+export default class EpinioApplicationModel extends EpinioNamespacedResource {
+  buildCache = {};
   // ------------------------------------------------------------------
   // Dashboard plumbing
 
@@ -128,9 +137,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     },
     { divider: true },
     {
-      action: 'createManifest',
-      label:  this.t('epinio.applications.actions.createManifest.label'),
-      icon:   'icon icon-fw icon-download',
+      action:  'exportApp',
+      label:   this.t('epinio.applications.export.label'),
+      icon:    'icon icon-fw icon-download',
+      enabled: isRunning
     },
     { divider: true },
 
@@ -168,7 +178,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return this.$getters['all'](EPINIO_TYPES.SERVICE_INSTANCE)
       .filter((s) => {
         return s.metadata.namespace === this.metadata.namespace &&
-          this.serviceConfigurations?.find(sc => sc.configuration?.boundapps?.includes(this.metadata.name));
+          s.boundapps?.includes(this.metadata.name);
       });
   }
 
@@ -176,28 +186,28 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return this.$getters['all'](EPINIO_TYPES.CONFIGURATION)
       .filter((s) => {
         return s.metadata.namespace === this.metadata.namespace &&
-         this.configuration.configurations.find(c => c === s.metadata.name);
+         this.configuration.configurations.find((c) => c === s.metadata.name);
       });
   }
 
   get allConfigurationsNames() {
-    return this.allConfigurations.map(c => c.meta.name);
+    return this.allConfigurations.map((c) => c.meta.name);
   }
 
   get baseConfigurations() {
-    return this.allConfigurations.filter(c => !c.isServiceRelated);
+    return this.allConfigurations.filter((c) => !c.isServiceRelated);
   }
 
   get baseConfigurationsNames() {
-    return this.baseConfigurations.map(c => c.meta.name);
+    return this.baseConfigurations.map((c) => c.meta.name);
   }
 
   get serviceConfigurations() {
-    return this.allConfigurations.filter(c => c.isServiceRelated);
+    return this.allConfigurations.filter((c) => c.isServiceRelated);
   }
 
   get serviceConfigurationsNames() {
-    return this.serviceConfigurations.map(c => c.meta.name);
+    return this.serviceConfigurations.map((c) => c.meta.name);
   }
 
   get envCount() {
@@ -228,47 +238,127 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return this.deployment?.millicpus;
   }
 
-  get sourceInfo() {
-    if (!this.origin) {
-      return undefined;
+  get appData() {
+    const type = AppUtils.getSourceType(this.origin);
+
+    const opt = {};
+
+    switch (type) {
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
+      opt.archive = { fileName: this.origin.path };
+      break;
+    case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
+      opt.container_url = { url: this.origin.container };
+      break;
+    case APPLICATION_SOURCE_TYPE.FOLDER:
+      opt.folder = { fileName: this.origin.path };
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
+      opt.git_url = {
+        branch: this.origin.git?.revision || '',
+        url:    this.origin.git?.repository || ''
+      };
+      break;
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
+      opt[type] = AppUtils.getGitData(this.origin.git);
+      break;
+    default:
+      break;
     }
+
+    return {
+      source: {
+        ...opt,
+        type,
+        builderImage: this.staging.builder,
+        appchart:     this.configuration.appchart,
+      },
+    };
+  }
+
+  get appSource() {
+    const { source } = this.appData;
+
+    return {
+      type:      source.type,
+      appChart:  source.appchart,
+      git:       isGitRepo(source.type) ? source[source.type] : null,
+      gitUrl:    source.git_url,
+      container: source.container_url,
+      archive:   source.archive
+    };
+  }
+
+  get appSourceInfo() {
+    const { source } = this.appData;
+
     const appChart = {
       label: 'App Chart',
-      value: this.configuration.appchart
+      value: source.appchart
+    };
+    const builderImage = {
+      label: 'Builder Image',
+      value: source.builderImage
     };
 
-    switch (this.origin.Kind) { // APPLICATION_MANIFEST_SOURCE_TYPE
-    case APPLICATION_MANIFEST_SOURCE_TYPE.PATH:
+    switch (source.type) {
+    case APPLICATION_SOURCE_TYPE.FOLDER:
+    case APPLICATION_SOURCE_TYPE.ARCHIVE:
       return {
         label:   'File system',
         icon:    'icon-file',
         details: [
-          appChart
+          {
+            label: 'Original Name',
+            value: source.archive?.fileName
+          }, appChart, builderImage
         ]
       };
-    case APPLICATION_MANIFEST_SOURCE_TYPE.GIT:
+    case APPLICATION_SOURCE_TYPE.GIT_URL:
       return {
         label:   'Git',
         icon:    'icon-file',
         details: [
-          appChart, {
+          {
             label: 'Url',
-            value: this.origin.git.repository
+            value: source.git_url?.url
           }, {
             label: 'Revision',
-            icon:  'icon-github',
-            value: this.origin.git.revision
-          }]
+            icon:  'icon-commit',
+            value: source.git_url?.branch
+          }, appChart, builderImage
+        ]
       };
-    case APPLICATION_MANIFEST_SOURCE_TYPE.CONTAINER:
+    case APPLICATION_SOURCE_TYPE.GIT_HUB:
+    case APPLICATION_SOURCE_TYPE.GIT_LAB:
+      return {
+        label:   this.t(`epinio.applications.gitSource.${ source.type }.label`),
+        icon:    `icon-${ source.type }`,
+        details: [
+          {
+            label: 'Url',
+            value: source[source.type]?.url
+          }, {
+            label: 'Revision',
+            icon:  'icon-commit',
+            value: source[source.type]?.commit
+          }, {
+            label: 'Branch',
+            icon:  'icon-commit',
+            value: source[source.type]?.branch.name
+          }, appChart, builderImage
+        ]
+      };
+    case APPLICATION_SOURCE_TYPE.CONTAINER_URL:
       return {
         label:   'Container',
         icon:    'icon-docker',
-        details: [
-          appChart, {
-            label: 'Image',
-            value: this.origin.Container || this.origin.container
-          }]
+        details: [{
+          label: 'Image',
+          value: source.container_url?.url
+        }, appChart
+        ]
       };
     default:
       return undefined;
@@ -282,7 +372,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       return [];
     }
 
-    return Object.values(instances).map(i => classify(this.$ctx, {
+    return Object.values(instances).map((i) => classify(this.$ctx, {
       ...i,
       id:          i.name,
       type:        EPINIO_TYPES.APP_INSTANCE,
@@ -339,6 +429,19 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     return this.configuration?.routes || [];
   }
 
+  get doneLocationRemove() {
+    return createEpinioRoute(`c-cluster-applications`, {}) ;
+  }
+
+  get applicationParts() {
+    return Object.values(APPLICATION_PARTS);
+  }
+
+  // TODO: Remove after merging with master
+  get applyMode() {
+    return 'export';
+  }
+
   // ------------------------------------------------------------------
   // Change/handle changes of the app
 
@@ -348,6 +451,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
   async create() {
     this.trace('Create the application resource');
+    const { type, id } = epiniofy(this, this.schema, this.type);
+
+    this.type = type;
+    this.id = id;
 
     await this.followLink('create', {
       method:  'post',
@@ -359,21 +466,22 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
         name:          this.meta.name,
         configuration: {
           appchart:       this.configuration.appchart,
+          settings:       pickBy(this.configuration?.settings, identity) || null,
           instances:      this.configuration.instances,
           configurations: this.configuration.configurations,
           environment:    this.configuration.environment,
-          routes:         this.configuration.routes,
+          routes:         this.configuration.routes.length ? this.configuration.routes : null,
         }
       }
     });
   }
 
-  async gitFetch(url, branch) {
+  async gitFetch(url, rev) {
     this.trace('Downloading and storing git repo');
     const formData = new FormData();
 
     formData.append('giturl', url);
-    formData.append('gitrev', branch);
+    formData.append('gitrev', rev );
 
     const res = await this.followLink('importGit', {
       method:  'post',
@@ -398,8 +506,10 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
         accept:         'application/json'
       },
       data: {
+        appchart:       this.configuration.appchart,
         instances:      this.configuration.instances,
         configurations: this.configuration.configurations,
+        settings:       pickBy(this.configuration?.settings, identity) || null,
         environment:    this.configuration.environment,
         routes:         this.configuration.routes,
       }
@@ -460,9 +570,47 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     this.showStagingLog(stage.id);
   }
 
+  exportApp(resources = this) {
+    this.$dispatch('promptModal', {
+      resources,
+      component:  'ExportAppDialog',
+      modalWidth: '450px',
+    });
+  }
+
+  async fetchPart(part) {
+    const responseType = part === 'values' || part === 'manifest' ? 'text/plain' : 'blob';
+
+    const opt = { url: `${ this.linkFor('self') }/part/${ part }`, responseType };
+
+    const { data } = await this.$dispatch('request', { opt, type: this.type });
+
+    return data;
+  }
+
+  async downloadAppParts({ part, data, all = false }) {
+    if (part === 'values') {
+      await downloadFile(`${ this.meta.name }-${ part }.yaml`, data, 'text/plain');
+    } else {
+      await downloadFile(`${ this.meta.name }-${ part }`, data, 'application/gzip;charset=utf-8');
+    }
+  }
+
+  get appShellId() {
+    return `epinio-${ this.id }-app-shell`;
+  }
+
+  get appLogId() {
+    return `epinio-${ this.id }-app-logs`;
+  }
+
+  get stagingLog() {
+    return `epinio-${ this.id }-logs-`;
+  }
+
   showAppShell() {
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-app-shell`,
+      id:        this.appShellId,
       label:     `${ this.meta.name } - App Shell`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'chevron-right',
@@ -477,7 +625,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
 
   showAppLog() {
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-app-logs`,
+      id:        this.appLogId,
       label:     `${ this.meta.name } - App Logs`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
@@ -501,7 +649,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     endpoint = endpoint.replace('/applications', '/staging');
 
     this.$dispatch('wm/open', {
-      id:        `epinio-${ this.id }-logs-${ stageId }`,
+      id:        `${ this.stagingLog }${ stageId }`,
       label:     `${ this.meta.name } - Build - ${ stageId }`,
       product:   EPINIO_PRODUCT_NAME,
       icon:      'file',
@@ -512,6 +660,33 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
         ansiToHtml:  true
       }
     }, { root: true });
+  }
+
+  closeWindows() {
+    // Closes appShell & appLogs on app Remove.
+    this.$dispatch('wm/close', this.appShellId, { root: true });
+    this.$dispatch('wm/close', this.appLogId, { root: true });
+
+    // Closes all builds logs on app Remove.
+    const allTabs = this.$rootGetters['wm/allTabs'];
+
+    if ( allTabs.length > 0 ) {
+      allTabs.forEach((e) => {
+        if (e.id.startsWith(this.stagingLog)) {
+          this.$dispatch('wm/close', e.id, { root: true });
+        }
+      });
+    }
+  }
+
+  async remove(opt = {} ) {
+    this.closeWindows();
+
+    await super.remove();
+  }
+
+  bulkRemove(items, opt) {
+    return bulkRemove(items, opt);
   }
 
   async waitForStaging(stageId, iteration = 0) {
@@ -582,7 +757,7 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
       // 'deployed' status. Unfortunately we don't have that... so wait for ready === desired replica sets instead
       const fresh = this.$getters['byId'](EPINIO_TYPES.APP, `${ this.meta.namespace }/${ this.meta.name }`);
 
-      if (fresh.deployment?.readyreplicas === fresh.deployment?.desiredreplicas) {
+      if (fresh.deployment?.readyreplicas === fresh.deployment?.desiredreplicas && fresh.deployment.state === APPLICATION_ACTION_STATE.SUCCESS) {
         return true;
       }
       // This is an async fn, but we're in a sync fn. It might create a backlog if previous requests don't complete in time
@@ -599,25 +774,21 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
     this.showAppLog();
   }
 
-  createManifest() {
+  async createManifest() {
     const date = new Date().toISOString().split('.')[0];
-    const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.json`;
+    const fileName = `${ this.metadata.namespace }-${ this.nameDisplay }-${ date }.yaml`;
 
-    const manifest = {
-      name:          this.metadata.name,
-      configuration: this.configuration,
-      origin:        this.origin,
-    };
+    const manifest = await this.fetchPart('manifest');
 
-    downloadFile(fileName, JSON.stringify(manifest))
+    downloadFile(fileName, manifest, 'application/yaml')
       .catch((e) => {
         console.error('Failed to download manifest: ', e);// eslint-disable-line no-console
       });
   }
 
   async updateConfigurations(initialValues = [], currentValues = this.configuration.configurations) {
-    const toBind = currentValues.filter(cV => !initialValues.includes(cV));
-    const toUnbind = initialValues.filter(cV => !currentValues.includes(cV));
+    const toBind = currentValues.filter((cV) => !initialValues.includes(cV));
+    const toUnbind = initialValues.filter((cV) => !currentValues.includes(cV));
 
     await Promise.all([
       this.bindConfigurations(toBind),
@@ -657,12 +828,12 @@ export default class EpinioApplicationModel extends EpinioMetaResource {
   }
 
   async updateServices(initialValues = [], currentValues = []) {
-    const toBind = currentValues.filter(cV => !initialValues.includes(cV));
-    const toUnbind = initialValues.filter(cV => !currentValues.includes(cV));
+    const toBind = currentValues.filter((cV) => !initialValues.includes(cV));
+    const toUnbind = initialValues.filter((cV) => !currentValues.includes(cV));
 
     await Promise.all([
-      ...toBind.map(s => s.bindApp(this.meta.name)),
-      ...toUnbind.map(s => s.unbindApp(this.meta.name)),
+      ...toBind.map((s) => s.bindApp(this.meta.name)),
+      ...toUnbind.map((s) => s.unbindApp(this.meta.name)),
     ]);
   }
 }

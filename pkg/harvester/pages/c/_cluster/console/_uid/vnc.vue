@@ -42,7 +42,12 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <NovncConsoleWrapper v-else ref="console" v-model="vmi" class="novnc-wrapper" />
+  <NovncConsoleWrapper
+    v-else
+    ref="console"
+    v-model="vmi"
+    class="novnc-wrapper"
+  />
 </template>
 
 <style>

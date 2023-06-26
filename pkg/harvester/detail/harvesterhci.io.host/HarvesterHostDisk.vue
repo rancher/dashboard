@@ -90,7 +90,10 @@ export default {
 </script>
 
 <template>
-  <div class="disk" @input="update">
+  <div
+    class="disk"
+    @input="update"
+  >
     <div class="mt-30" />
     <Banner
       v-if="mountedMessage"
@@ -126,7 +129,10 @@ export default {
           </div>
         </div>
       </div>
-      <div v-if="!value.isNew" class="row mt-30">
+      <div
+        v-if="!value.isNew"
+        class="row mt-30"
+      >
         <div class="col span-4">
           <LabelValue
             name="Storage Available"

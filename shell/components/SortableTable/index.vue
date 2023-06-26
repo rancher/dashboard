@@ -487,10 +487,10 @@ export default {
 
     columns() {
       // Filter out any columns that are too heavy to show for large page sizes
-      const out = this.headers.slice().filter(c => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
+      const out = this.headers.slice().filter((c) => !c.maxPageSize || (c.maxPageSize && c.maxPageSize >= this.perPage));
 
       if ( this.groupBy ) {
-        const entry = out.find(x => x.name === this.groupBy);
+        const entry = out.find((x) => x.name === this.groupBy);
 
         if ( entry ) {
           removeObject(out, entry);
@@ -498,10 +498,10 @@ export default {
       }
 
       // If all columns have a width, try to remove it from a column that can be variable (name)
-      const missingWidth = out.find(x => !x.width);
+      const missingWidth = out.find((x) => !x.width);
 
       if ( !missingWidth ) {
-        const variable = out.find(x => x.canBeVariable);
+        const variable = out.find((x) => x.canBeVariable);
 
         if ( variable ) {
           const neu = clone(variable);
@@ -547,13 +547,13 @@ export default {
 
     // Do we have any live columns?
     hasLiveColumns() {
-      const liveColumns = this.columns.find(c => c.formatter?.startsWith('Live') || c.liveUpdates);
+      const liveColumns = this.columns.find((c) => c.formatter?.startsWith('Live') || c.liveUpdates);
 
       return !!liveColumns;
     },
 
     hasDelayedColumns() {
-      const delaeydColumns = this.columns.find(c => c.delayLoading);
+      const delaeydColumns = this.columns.find((c) => c.delayLoading);
 
       return !!delaeydColumns;
     },
@@ -683,7 +683,7 @@ export default {
         return;
       }
 
-      const delayedColumns = this.$refs.column.filter(c => c.startDelayedLoading && !c.__delayedLoading);
+      const delayedColumns = this.$refs.column.filter((c) => c.startDelayedLoading && !c.__delayedLoading);
       // We add 100 pixels here - so we will render the delayed columns for a few extra rows below what is visible
       // This way if you scroll slowly, you won't see the columns being loaded
       const clientHeight = (window.innerHeight || document.documentElement.clientHeight) + 100;
@@ -718,7 +718,7 @@ export default {
       }
 
       const clientHeight = window.innerHeight || document.documentElement.clientHeight;
-      const liveColumns = this.$refs.column.filter(c => !!c.liveUpdate);
+      const liveColumns = this.$refs.column.filter((c) => !!c.liveUpdate);
       const now = day();
       let next = Number.MAX_SAFE_INTEGER;
 
@@ -805,7 +805,7 @@ export default {
         return false;
       }
 
-      const matchingResourceAction = resource.availableActions.find(a => a.action === this.actionOfInterest.action);
+      const matchingResourceAction = resource.availableActions.find((a) => a.action === this.actionOfInterest.action);
 
       return matchingResourceAction?.enabled;
     },
