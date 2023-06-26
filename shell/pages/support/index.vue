@@ -93,11 +93,16 @@ export default {
     },
 
     supportConfigLink() {
-      if (!this.cspAdapter) {
+      const adapter = this.cspAdapter
+      if (!adapter) {
         return false;
       }
 
-      return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
+      if (adapter.metadata.name === 'rancher-csp-billing-adapter') {
+	return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig?usePAYG`;
+      } else {
+        return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
+      }
     },
 
     title() {
