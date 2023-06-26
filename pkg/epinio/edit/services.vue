@@ -6,7 +6,7 @@ import CruResource from '@shell/components/CruResource.vue';
 import Loading from '@shell/components/Loading.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import { EpinioCatalogServiceResource, EPINIO_TYPES, EpinioNamespace } from '../types';
+import { EpinioCatalogServiceResource, EPINIO_TYPES, EpinioNamespace, EpinioCompRecord } from '../types';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import EpinioBindAppsMixin from './bind-apps-mixin.js';
@@ -20,7 +20,7 @@ interface Data {
 }
 
 // Data, Methods, Computed, Props
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     Loading,
     CruResource,

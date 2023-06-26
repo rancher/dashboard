@@ -2,7 +2,7 @@
 import Vue, { PropType } from 'vue';
 import Application from '../../models/applications';
 
-import { EpinioConfiguration, EpinioService, EPINIO_TYPES } from '../../types';
+import { EpinioCompRecord, EpinioConfiguration, EpinioService, EPINIO_TYPES } from '../../types';
 import { sortBy } from '@shell/utils/sort';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import { _VIEW } from '@shell/config/query-params';
@@ -19,7 +19,8 @@ interface Data {
     services: string[],
   }
 }
-export default Vue.extend<Data, any, any, any>({
+
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: { LabeledSelect },
 
   props: {

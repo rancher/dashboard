@@ -7,7 +7,7 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import BadgeState from '@components/BadgeState/BadgeState.vue';
 import { STATE, DESCRIPTION } from '@shell/config/table-headers';
 import {
-  EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication, EpinioAppSource
+  EPINIO_TYPES, APPLICATION_ACTION_STATE, APPLICATION_SOURCE_TYPE, EpinioApplication, EpinioAppSource, EpinioCompRecord
 } from '../../types';
 import { EpinioAppBindings } from '../../components/application/AppConfiguration.vue';
 import EpinioNamespace from '../../models/namespaces';
@@ -18,7 +18,7 @@ interface Data {
   actions: ApplicationAction[];
 }
 
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     SortableTable,
     BadgeState,

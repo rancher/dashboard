@@ -231,3 +231,5 @@ export interface EpinioNamespace extends EpinioMetaProperty {
   apps: string[],
   configurations: string[],
 }
+
+export type EpinioCompRecord = Record<string, any>

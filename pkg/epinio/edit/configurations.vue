@@ -6,7 +6,7 @@ import CruResource from '@shell/components/CruResource.vue';
 import NameNsDescription from '@shell/components/form/NameNsDescription.vue';
 import { mapGetters } from 'vuex';
 import EpinioConfiguration from '../models/configurations';
-import { EPINIO_TYPES, EpinioNamespace } from '../types';
+import { EPINIO_TYPES, EpinioNamespace, EpinioCompRecord } from '../types';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import { epinioExceptionToErrorsArray } from '../utils/errors';
 import { validateKubernetesName } from '@shell/utils/validators/kubernetes-name';
@@ -18,7 +18,7 @@ import EpinioBindAppsMixin from './bind-apps-mixin.js';
 interface Data {
 }
 
-export default Vue.extend<Data, any, any, any>({
+export default Vue.extend<Data, EpinioCompRecord, EpinioCompRecord, EpinioCompRecord>({
   components: {
     Loading,
     CruResource,
