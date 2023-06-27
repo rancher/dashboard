@@ -1,5 +1,5 @@
-import CardPo from '~/cypress/e2e/po/components/card.po';
-import { CypressChainable } from '~/cypress/e2e/po/po.types';
+import CardPo from '@/cypress/e2e/po/components/card.po';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class ModalWithCardPo {
   private readonly modalSelector: string;

@@ -1,7 +1,7 @@
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
-import AccountPagePo from '~/cypress/e2e/po/pages/account-api-keys.po';
-import CreateKeyPagePo from '~/cypress/e2e/po/pages/account-api-keys-create_key.po';
+import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
+import CreateKeyPagePo from '@/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const userMenu = new UserMenuPo();

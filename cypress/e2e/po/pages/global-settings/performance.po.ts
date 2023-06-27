@@ -1,8 +1,8 @@
-import AsyncButtonPo from '~/cypress/e2e/po/components/async-button.po';
-import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
-import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
-import ModalWithCardPo from '~/cypress/e2e/po/components/modal-with-card.po';
-import RootClusterPage from '~/cypress/e2e/po/pages/root-cluster-page';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import ModalWithCardPo from '@/cypress/e2e/po/components/modal-with-card.po';
+import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 
 export class PerformancePagePo extends RootClusterPage {
   static url = '/c/_/settings/performance'

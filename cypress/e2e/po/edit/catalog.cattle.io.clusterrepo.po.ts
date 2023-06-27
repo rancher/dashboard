@@ -1,9 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
-import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
-import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
-import AsyncButtonPo from '~/cypress/e2e/po/components/async-button.po';
+import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 
 /**
  * Covers core functionality that's common to the dashboard's import or create cluster pages

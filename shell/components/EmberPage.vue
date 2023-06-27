@@ -252,6 +252,7 @@ export default {
       if (iframeEl === null) {
         iframeEl = document.createElement('iframe');
         iframeEl.setAttribute('id', EMBER_FRAME);
+        iframeEl.setAttribute('data-testid', EMBER_FRAME);
         iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
 
         if (this.inline) {
