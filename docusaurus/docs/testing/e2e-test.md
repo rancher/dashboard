@@ -204,13 +204,22 @@ Special attention goes to the E2E as the code is instrumented with Babel and the
 
 ## Cypress Tags (cypress-grep plugin)
 
-Cypress-grep is a plugin that was implemented into our project witht the goal of adding the ability to group our e2e tests and we do that by adding tags to the tests.
-The reason we are grouping our tests in the first place is we are now introducing a standard user to our workflow to add test coverage for that user type (currently we're only testing against admin user). 
+Cypress-grep is a plugin that was implemented into our project to add the ability to group our e2e tests and we do that by adding tags to the tests.
 
-Tags currently being used are `@adminUser` and `@standardUser` tags.
+Reasons we are grouping our tests:
+- Introduction of standard user to our workflow to add test coverage for that user type (currently we're only testing against admin user). 
+- In the near future we will add tags for CI - quicker test runs and overnight/scheduled - longer test runs which will reduce the time it takes for our tests to run when making a commit or creating a pr.
 
-Use `GREP_TAGS` and `TEST_USERNAME` flags to test locally:
-> GREP_TAGS=@adminUser TEST_USERNAME=admin yarn cy:run
-> GREP_TAGS=@standardUser TEST_USERNAME=<username> yarn cy:run
+Tags currently in use are `@adminUser` and `@standardUser` tags.
 
-Note: In the near future we will add tags for CI - quicker test runs and overnight/scheduled - longer test runs which will reduce the time it takes for our tests to run when making a commit or creating a pr.
+We use `GREP_TAGS` and `TEST_USERNAME` environment variables to execute all tests which contain @adminUser or @standardUser tags respectively:
+
+E.g. when running locally:
+```
+GREP_TAGS=@adminUser TEST_USERNAME=admin yarn cy:run
+
+OR 
+
+GREP_TAGS=@standardUser TEST_USERNAME=<standard user username> yarn cy:run
+```
+More info about cypress-grep plugin can be found [here](https://www.npmjs.com/package/@cypress/grep#filter-with-tags).
