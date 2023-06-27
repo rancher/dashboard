@@ -28,7 +28,7 @@ export default class HomePagePo extends PagePo {
   }
 
   prefPageLink(): Cypress.Chainable {
-    return banners.setLoginPageBanner().find('a');
+    return banners.getLoginPageBanner().find('a');
   }
 
   whatsNewBannerLink(): Cypress.Chainable {

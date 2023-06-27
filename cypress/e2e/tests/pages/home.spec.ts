@@ -78,14 +78,14 @@ describe('User can perform actions on the Home Page', () => {
     bannerGraphic.graphicBannerCloseButton();
     bannerGraphic.graphicBanner().should('not.exist');
 
-    banners.setLoginPageBanner().should('be.visible');
+    banners.getLoginPageBanner().should('be.visible');
     banners.closeButton();
-    banners.setLoginPageBanner().should('not.exist');
+    banners.getLoginPageBanner().should('not.exist');
 
     homePage.restoreAndWait();
 
     bannerGraphic.graphicBanner().should('be.visible');
-    banners.setLoginPageBanner().should('be.visible');
+    banners.getLoginPageBanner().should('be.visible');
   });
 
   it('Can see that cluster details match those in Cluster Manangement page', () => {

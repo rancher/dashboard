@@ -25,7 +25,7 @@ export default class BannersPo extends ComponentPo {
    * Get set login page banner
    * @returns
    */
-  setLoginPageBanner(): Cypress.Chainable {
+  getLoginPageBanner(): Cypress.Chainable {
     return cy.getId('set-login-page-banner');
   }
 
