@@ -16,7 +16,7 @@ export function init($plugin, store) {
     route:      {
       name:   `${ MACVLAN_PRODUCT_NAME }-c-cluster-resource-install`,
       params: {
-        product:  'explor',
+        product:  'explorer',
         resource: MACVLAN_PRODUCT_NAME
       }
     },
