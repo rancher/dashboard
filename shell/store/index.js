@@ -804,13 +804,17 @@ export const actions = {
             type: NORMAN.PRINCIPAL, id: grb.groupPrincipalName, opt: { url: `/v3/principals/${ encodeURIComponent(grb.groupPrincipalName) }` }
           }, { root: true })));
         }
-        const resp = await allHash(promises);
+        try {
+          const resp = await allHash(promises);
 
-        if (!admin && agrbs.length > 0) {
-          admin = resp.admins.find(p => p.me === true);
-        }
-        if (!readOnlyAdmin && roagrbs.length > 0) {
-          readOnlyAdmin = resp.readOnlyAdmins.find(p => p.me === true);
+          if (!admin && agrbs.length > 0) {
+            admin = resp.admins.find(p => p.me === true);
+          }
+          if (!readOnlyAdmin && roagrbs.length > 0) {
+            readOnlyAdmin = resp.readOnlyAdmins.find(p => p.me === true);
+          }
+        } catch (err) {
+          // do nothing
         }
       }
 
