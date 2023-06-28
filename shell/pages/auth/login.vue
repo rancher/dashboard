@@ -542,6 +542,16 @@ export default {
     }
   }
 
+  .gutless {
+    height: 100vh;
+    .span-6 {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      place-content: center;
+    }
+  }
   .locale-elector {
     position: absolute;
     bottom: 30px;

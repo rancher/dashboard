@@ -12,7 +12,7 @@ export default abstract class ClusterManagerCreatePagePo extends ClusterManagerC
   }
 
   rkeToggle() {
-    return new ToggleSwitchPo(this.self().find('.toggle-container'));
+    return new ToggleSwitchPo('.toggle-container', this.self());
   }
 
   selectKubeProvider(index: number) {

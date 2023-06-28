@@ -357,7 +357,7 @@ export default Vue.extend<Data, any, any, any>({
       <div class="spacer">
         <LabeledInput
           v-model="selectedAccOrOrg"
-          data-testid="epinio_app-source_git-username"
+          data-testid="git_picker-username-or-org"
           :tooltip="t(`gitPicker.${ type }.username.tooltip`)"
           :label="t(`gitPicker.${ type }.username.inputLabel`)"
           :required="true"

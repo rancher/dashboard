@@ -1,4 +1,4 @@
-import RootClusterPage from '~/cypress/e2e/po/pages/root-cluster-page';
+import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
 
 export class SettingsPagePo extends RootClusterPage {
   static url = '/c/_/settings/management.cattle.io.setting'
