@@ -12,7 +12,7 @@ const customRoleName = `${ runPrefix }-my-custom-role`;
 const standardUsername = `${ runPrefix }-standard-user`;
 const standardPassword = 'standard-password';
 
-describe('Users and Authentication', () => {
+describe('Users and Authentication', { tags: '@adminUser' }, () => {
   it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
     const userRoles = new UsersAndAuthPo('_', 'roles');
     const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
