@@ -1,14 +1,12 @@
-import $ from 'jquery';
-
 export function onClickOption(option, e) {
   if (!this.$attrs.multiple) {
     return;
   }
 
-  const getValue = opt => (this.optionKey ? this.get(opt, this.optionKey) : this.getOptionLabel(opt));
+  const getValue = (opt) => (this.optionKey ? this.get(opt, this.optionKey) : this.getOptionLabel(opt));
   const optionValue = getValue(option);
   const value = this.value || [];
-  const optionIndex = value.findIndex(option => getValue(option) === optionValue);
+  const optionIndex = value.findIndex((option) => getValue(option) === optionValue);
 
   if (optionIndex < 0) {
     return;
@@ -29,7 +27,7 @@ export function onClickOption(option, e) {
 // We used to use popper for these, but it does not suppotr fractional pixel placements which
 // means the dropdown does not appear aligned to the control when placed in a column-based layout
 export function calculatePosition(dropdownList, component, width, placement) {
-  const selectEl = $(component.$parent.$el)[0];
+  const selectEl = component.$parent.$el;
   const r = selectEl.getBoundingClientRect();
   const p = placement || 'bottom-start';
   const docHeight = document.body.offsetHeight;

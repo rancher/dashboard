@@ -14,11 +14,11 @@ export default {
 
   async fetch() {
     const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    const readyClusters = provClusters.filter(c => c.mgmt?.isReady);
-    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters), this.$store);
+    const readyClusters = provClusters.filter((c) => c.mgmt?.isReady);
+    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters, this.$store), this.$store);
     const finalCounts = [];
     const promises = [];
-    let topTenForResponseTime = [];
+    const topFifteenForResponseTime = [];
 
     clusterForCounts.forEach((cluster, i) => {
       // Necessary to retrieve the proper display name of the cluster
@@ -42,6 +42,7 @@ export default {
 
       if (counts) {
         const sanitizedCount = [];
+        let finalCount = [];
 
         Object.keys(counts).forEach((key) => {
           sanitizedCount[key] = counts[key].summary?.count;
@@ -53,20 +54,22 @@ export default {
 
         const sortedCount = sortBy(sanitizedCount, 'count:desc');
 
-        topTenForResponseTime = topTenForResponseTime.concat(sortedCount);
-        topTenForResponseTime = sortBy(topTenForResponseTime, 'count:desc');
-        topTenForResponseTime = topTenForResponseTime.splice(0, 15);
+        finalCount = finalCount.concat(sortedCount);
+        finalCount = sortBy(finalCount, 'count:desc');
+        finalCount = finalCount.splice(0, 15);
 
-        topTenForResponseTime.forEach((item, i) => {
-          topTenForResponseTime[i].id = finalCounts[index].id;
-          topTenForResponseTime[i].capiId = finalCounts[index].capiId;
+        finalCount.forEach((item, i) => {
+          finalCount[i].id = finalCounts[index].id;
+          finalCount[i].capiId = finalCounts[index].capiId;
         });
+
+        topFifteenForResponseTime.push(finalCount);
 
         finalCounts[index].counts = sortedCount;
       }
     });
 
-    this.topTenForResponseTime = topTenForResponseTime;
+    this.topFifteenForResponseTime = topFifteenForResponseTime;
     this.finalCounts = finalCounts;
   },
 
@@ -122,12 +125,12 @@ export default {
 
     return {
       systemInformation,
-      topTenForResponseTime: null,
-      responseTimes:         null,
-      finalCounts:           null,
-      includeResponseTimes:  true,
-      storeMapping:          this.$store?._modules?.root?.state,
-      latestLogs:            console.logs // eslint-disable-line no-console
+      topFifteenForResponseTime: null,
+      responseTimes:             null,
+      finalCounts:               null,
+      includeResponseTimes:      true,
+      storeMapping:              this.$store?._modules?.root?.state,
+      latestLogs:                console.logs // eslint-disable-line no-console
     };
   },
 
@@ -178,8 +181,8 @@ export default {
     setResourceResponseTiming(responseTimes) {
       responseTimes?.forEach((res) => {
         if ( res.outcome === 'success' ) {
-          const cluster = this.finalCounts.find(c => c.capiId === res.item.capiId);
-          const countIndex = cluster?.counts?.findIndex(c => c.resource === res.item.resource);
+          const cluster = this.finalCounts.find((c) => c.capiId === res.item.capiId);
+          const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
           if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
             this.$set(cluster?.counts[countIndex], 'durationMs', res.durationMs);
@@ -193,29 +196,33 @@ export default {
     },
 
     nodeCount(counts) {
-      const resource = counts.findIndex(c => c.resource === 'node');
+      const resource = counts.findIndex((c) => c.resource === 'node');
 
       return counts[resource]?.count;
     },
 
     toggleTable(area) {
-      const itemIndex = this.finalCounts.findIndex(item => item.id === area);
+      const itemIndex = this.finalCounts.findIndex((item) => item.id === area);
 
       this.finalCounts[itemIndex].isTableVisible = !this.finalCounts[itemIndex].isTableVisible;
     },
 
     async gatherResponseTimes(btnCb) {
-      return await Promise.all(this.topTenForResponseTime.map((item) => {
-        const t = Date.now();
+      const promises = this.topFifteenForResponseTime.flatMap((cluster) => {
+        return cluster.map((item) => {
+          const t = Date.now();
 
-        return this.$store.dispatch('management/request', { url: `/k8s/clusters/${ item.capiId }/v1/${ item.resource }` })
-          .then(() => ({
-            outcome: 'success', item, durationMs: Date.now() - t
-          }))
-          .catch(() => ({
-            outcome: 'error', item, durationMs: Date.now() - t
-          }));
-      })).then((responseTimes) => {
+          return this.$store.dispatch('management/request', { url: `/k8s/clusters/${ item.capiId }/v1/${ item.resource }` })
+            .then(() => ({
+              outcome: 'success', item, durationMs: Date.now() - t
+            }))
+            .catch(() => ({
+              outcome: 'error', item, durationMs: Date.now() - t
+            }));
+        });
+      });
+
+      return await Promise.all(promises).then((responseTimes) => {
         this.responseTimes = responseTimes;
         this.setResourceResponseTiming(responseTimes);
         btnCb(true);
@@ -284,12 +291,13 @@ export default {
     },
 
     promptDownload(btnCb) {
-      const resources = [{ downloadData: this.downloadData, gatherResponseTimes: this.gatherResponseTimes }];
-
       if ( !this.responseTimes ) {
         this.$store.dispatch('management/promptModal', {
-          component: 'DiagnosticTimingsDialog',
-          resources
+          component:      'DiagnosticTimingsDialog',
+          componentProps: {
+            downloadData:        this.downloadData,
+            gatherResponseTimes: this.gatherResponseTimes
+          }
         })
           .then(() => btnCb(true))
           .catch(() => btnCb(false));

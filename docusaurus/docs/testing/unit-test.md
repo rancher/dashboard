@@ -1,4 +1,4 @@
-# Unit test
+# Unit Tests
 
 The dashboard is configured to run unit tests with Jest in combination of vue-test-utils, for Vue scoped cases.
 

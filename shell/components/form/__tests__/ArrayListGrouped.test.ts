@@ -4,7 +4,7 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped.vue';
 describe('component: ArrayListGrouped', () => {
   it('should display enabled add button', () => {
     const wrapper = mount(ArrayListGrouped);
-    const button = wrapper.find('[data-testid^="add-item"]').element as HTMLInputElement;
+    const button = wrapper.find('[data-testid="array-list-button"]').element as HTMLButtonElement;
 
     expect(button.disabled).toBe(false);
   });
@@ -14,7 +14,7 @@ describe('component: ArrayListGrouped', () => {
       mocks: { propsData: { value: ['a', 'b'] } },
       slots: { default: '<div id="test"/>' }
     });
-    const button = wrapper.find('[data-testid^="add-item"]');
+    const button = wrapper.find('[data-testid^="array-list-button"]');
 
     await button.trigger('click');
     await button.trigger('click');
@@ -28,12 +28,14 @@ describe('component: ArrayListGrouped', () => {
       mocks: { propsData: { value: ['a', 'b'] } },
       slots: { default: '<div id="test"/>' }
     });
+    const button = wrapper.find('[data-testid^="array-list-button"]');
 
-    await wrapper.find('[data-testid^="add-item"]').trigger('click');
+    await button.trigger('click');
+    await button.trigger('click');
     await wrapper.find('[data-testid^="remove-item"]').trigger('click');
 
     const elements = wrapper.findAll('#test');
 
-    expect(elements).toHaveLength(0);
+    expect(elements).toHaveLength(1);
   });
 });

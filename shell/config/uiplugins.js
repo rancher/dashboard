@@ -1,7 +1,7 @@
 import semver from 'semver';
 
 // Version of the plugin API supported
-export const UI_PLUGIN_API_VERSION = '1.0.0';
+export const UI_PLUGIN_API_VERSION = '1.1.0';
 export const UI_PLUGIN_HOST_APP = 'rancher-manager';
 
 export const UI_PLUGIN_BASE_URL = '/api/v1/namespaces/cattle-ui-plugin-system/services/http:ui-plugin-operator:80/proxy';
@@ -32,9 +32,17 @@ export const UI_PLUGINS_REPO_BRANCH = 'main';
 // Chart annotations
 export const UI_PLUGIN_CHART_ANNOTATIONS = {
   RANCHER_VERSION:    'catalog.cattle.io/rancher-version',
-  EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extenstions-version',
-  EXTENSIONS_HOST:    'catalog.cattle.io/ui-extenstions-host',
+  EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extensions-version',
+  UI_VERSION:         'catalog.cattle.io/ui-version',
+  EXTENSIONS_HOST:    'catalog.cattle.io/ui-extensions-host',
   DISPLAY_NAME:       'catalog.cattle.io/display-name',
+};
+
+// Extension catalog labels
+export const UI_PLUGIN_LABELS = {
+  CATALOG_IMAGE: 'catalog.cattle.io/ui-extensions-catalog-image',
+  REPOSITORY:    'catalog.cattle.io/ui-extensions-repository',
+  CATALOG:       'catalog.cattle.io/ui-extensions-catalog'
 };
 
 // Plugin Metadata properties
@@ -70,7 +78,7 @@ export function uiPluginAnnotation(chart, name) {
 
 // Should we load a plugin, based on the metadata returned by the backend?
 // Returns error key string or false
-export function shouldNotLoadPlugin(plugin, rancherVersion) {
+export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
   if (!plugin.name || !plugin.version || !plugin.endpoint) {
     return 'plugins.error.generic';
   }
@@ -96,6 +104,17 @@ export function shouldNotLoadPlugin(plugin, rancherVersion) {
     if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
       return 'plugins.error.version';
     }
+  }
+
+  // check if a builtin extension has been loaded before - improve developer experience
+  const checkLoaded = loadedPlugins.find((p) => p?.name === plugin?.name);
+
+  if (checkLoaded && checkLoaded.builtin) {
+    return 'plugins.error.developerPkg';
+  }
+
+  if (plugin.metadata?.[UI_PLUGIN_LABELS.CATALOG]) {
+    return true;
   }
 
   return false;
@@ -127,4 +146,33 @@ export function isSupportedChartVersion(chartVersion, rancherVersion) {
   }
 
   return true;
+}
+
+export function isChartVersionAvailableForInstall(version, rancherVersion, returnObj = false) {
+  const parsedRancherVersion = rancherVersion.split('-')?.[0];
+  const regexHashString = new RegExp('^[A-Za-z0-9]{9}$');
+  const isRancherVersionHashString = regexHashString.test(rancherVersion);
+  const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
+  const versionObj = { ...version };
+
+  versionObj.isCompatibleWithUi = true;
+
+  // if it's a head version of Rancher, then we skip the validation and enable them all
+  if (!isRancherVersionHashString && requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
+    if (!returnObj) {
+      return false;
+    }
+    versionObj.isCompatibleWithUi = false;
+    versionObj.requiredUiVersion = requiredUiVersion;
+  }
+
+  if (returnObj) {
+    return versionObj;
+  }
+
+  return true;
+}
+
+export function isChartVersionHigher(versionA, versionB) {
+  return semver.gt(versionA, versionB);
 }

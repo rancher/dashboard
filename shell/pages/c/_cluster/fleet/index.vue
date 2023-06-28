@@ -3,11 +3,15 @@ import { mapState } from 'vuex';
 import { FLEET } from '@shell/config/types';
 import { WORKSPACE } from '@shell/store/prefs';
 import { STATES_ENUM, STATES, getStateLabel } from '@shell/plugins/dashboard-store/resource-class';
-import { allHash } from '@shell/utils/promise';
 import Loading from '@shell/components/Loading';
 import CollapsibleCard from '@shell/components/CollapsibleCard.vue';
 import ResourceTable from '@shell/components/ResourceTable';
 import CompoundStatusBadge from '@shell/components/CompoundStatusBadge';
+import { checkPermissions, checkSchemasForFindAllHash } from '@shell/utils/auth';
+import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
+import { filterBy } from '@shell/utils/array';
+import FleetNoWorkspaces from '@shell/components/fleet/FleetNoWorkspaces.vue';
+import { NAME } from '@shell/config/product/fleet';
 
 export default {
   name:       'ListGitRepo',
@@ -15,27 +19,38 @@ export default {
     Loading,
     ResourceTable,
     CollapsibleCard,
-    CompoundStatusBadge
+    CompoundStatusBadge,
+    FleetNoWorkspaces
   },
 
   async fetch() {
-    const hash = await allHash({
-      allBundles:      this.$store.dispatch('management/findAll', { type: FLEET.BUNDLE }),
-      gitRepos:        this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO }),
-      fleetWorkspaces: this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE }),
-    });
+    const hash = await checkSchemasForFindAllHash({
+      fleetWorkspaces: {
+        inStoreType:     'management',
+        type:            FLEET.WORKSPACE,
+        schemaValidator: (schema) => {
+          return !!schema?.links?.collection;
+        }
+      },
+      allBundles: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE,
+      },
+      gitRepos: {
+        inStoreType: 'management',
+        type:        FLEET.GIT_REPO,
+      }
+    }, this.$store);
 
-    this.allBundles = hash.allBundles;
     this.gitRepos = hash.gitRepos;
-    this.fleetWorkspaces = hash.fleetWorkspaces;
+    this.fleetWorkspacesData = hash.fleetWorkspaces || [];
 
-    // init cards collapse flags
-    const workspaces = this.fleetWorkspaces.filter(ws => ws.repos.length);
+    try {
+      const permissions = await checkPermissions({ workspaces: { type: FLEET.WORKSPACE }, gitRepos: { type: FLEET.GIT_REPO, schemaValidator: (schema) => schema.resourceMethods.includes('PUT') } }, this.$store.getters);
 
-    if (workspaces.length) {
-      workspaces.forEach((ws) => {
-        this.$set(this.isCollapsed, ws.id, false);
-      });
+      this.permissions = permissions;
+    } catch (e) {
+      console.error(e); // eslint-disable-line no-console
     }
   },
 
@@ -71,30 +86,55 @@ export default {
           sort:     'status.resourceCounts.ready',
         }
       ],
-      schema:          {},
-      allBundles:      null,
-      gitRepos:        null,
-      fleetWorkspaces: null,
-      isCollapsed:     {},
-      getStartedLink:  {
+      schema:              {},
+      allBundles:          [],
+      gitRepos:            [],
+      fleetWorkspacesData: [],
+      isCollapsed:         {},
+      permissions:         {},
+      getStartedLink:      {
         name:   'c-cluster-product-resource-create',
         params: {
-          product:  'fleet',
+          product:  NAME,
           resource: FLEET.GIT_REPO
         },
       }
     };
   },
   computed: {
-    ...mapState(['workspace']),
+    ...mapState(['workspace', 'allNamespaces']),
+    fleetWorkspaces() {
+      if (this.fleetWorkspacesData?.length) {
+        return this.fleetWorkspacesData;
+      }
+
+      // When user doesn't have access to the workspaces fall back to namespaces
+
+      return this.allNamespaces.filter((item) => {
+        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
+      }).map(( obj ) => {
+        const repos = filterBy(this.gitRepos, 'metadata.namespace', obj.id);
+
+        return {
+          ...obj,
+          counts: {
+            clusters:      '-',
+            clusterGroups: '-',
+            gitRepos:      repos.length
+          },
+          repos,
+          nameDisplay: obj.id
+        };
+      });
+    },
     workspacesData() {
-      return this.fleetWorkspaces.filter(ws => ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => ws.repos && ws.repos.length);
     },
     emptyWorkspaces() {
-      return this.fleetWorkspaces.filter(ws => !ws.repos || !ws.repos.length);
+      return this.fleetWorkspaces.filter((ws) => !ws.repos || !ws.repos.length);
     },
     areAllCardsExpanded() {
-      return Object.keys(this.isCollapsed).every(key => !this.isCollapsed[key]);
+      return Object.keys(this.isCollapsed).every((key) => !this.isCollapsed[key]);
     }
   },
   methods: {
@@ -105,7 +145,7 @@ export default {
       this.$router.push({
         name:   'c-cluster-product-resource',
         params: {
-          product:  'fleet',
+          product:  NAME,
           resource: FLEET.GIT_REPO
         },
       });
@@ -126,19 +166,19 @@ export default {
           icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       case 'bundles':
-        if (row.bundles?.length && row.bundles?.every(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+        if (row.bundles?.length && row.bundles?.every((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
           return {
             badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+        if (row.bundles?.length && row.bundles?.some((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
           return {
             badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.bundles?.length && row.bundles?.some(bundle => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+        if (row.bundles?.length && row.bundles?.some((bundle) => bundle.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
           return {
             badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
@@ -157,19 +197,19 @@ export default {
           icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon
         };
       case 'resources':
-        if (row.status?.resources?.length && row.status?.resources?.every(resource => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
+        if (row.status?.resources?.length && row.status?.resources?.every((resource) => resource.state?.toLowerCase() === STATES_ENUM.ACTIVE)) {
           return {
             badgeClass: STATES[STATES_ENUM.ACTIVE].color ? STATES[STATES_ENUM.ACTIVE].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ACTIVE].compoundIcon ? STATES[STATES_ENUM.ACTIVE].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
+        if (row.status?.resources?.length && row.status?.resources?.some((resource) => resource.state?.toLowerCase() === STATES_ENUM.ERR_APPLIED)) {
           return {
             badgeClass: STATES[STATES_ENUM.ERR_APPLIED].color ? STATES[STATES_ENUM.ERR_APPLIED].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.ERR_APPLIED].compoundIcon ? STATES[STATES_ENUM.ERR_APPLIED].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
           };
         }
-        if (row.status?.resources?.length && row.status?.resources?.some(resource => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
+        if (row.status?.resources?.length && row.status?.resources?.some((resource) => resource.state?.toLowerCase() === STATES_ENUM.NOT_READY)) {
           return {
             badgeClass: STATES[STATES_ENUM.NOT_READY].color ? STATES[STATES_ENUM.NOT_READY].color : `${ STATES[STATES_ENUM.UNKNOWN].color } bg-unmapped-state`,
             icon:       STATES[STATES_ENUM.NOT_READY].compoundIcon ? STATES[STATES_ENUM.NOT_READY].compoundIcon : `${ STATES[STATES_ENUM.UNKNOWN].compoundIcon } unmapped-icon`
@@ -247,6 +287,14 @@ export default {
       });
     }
   },
+
+  watch: {
+    fleetWorkspaces(value) {
+      value?.filter((ws) => ws.repos?.length).forEach((ws) => {
+        this.$set(this.isCollapsed, ws.id, false);
+      });
+    }
+  }
 };
 </script>
 
@@ -254,6 +302,10 @@ export default {
   <div class="fleet-dashboard">
     <Loading v-if="$fetchState.pending" />
     <!-- no git repos -->
+    <FleetNoWorkspaces
+      v-else-if="!fleetWorkspacesData.length"
+      :can-view="permissions.workspaces"
+    />
     <div
       v-else-if="!gitRepos.length"
       class="fleet-empty-dashboard"
@@ -270,15 +322,17 @@ export default {
           {{ t('fleet.dashboard.learnMore') }} <i class="icon icon-external-link" />
         </a>
       </p>
-      <h3 class="mb-30">
-        {{ t('fleet.dashboard.noRepo', null, true) }}
-      </h3>
-      <n-link
-        :to="getStartedLink"
-        class="btn role-secondary"
-      >
-        {{ t('fleet.dashboard.getStarted') }}
-      </n-link>
+      <template v-if="permissions.gitRepos">
+        <h3 class="mb-30">
+          {{ t('fleet.dashboard.noRepo', null, true) }}
+        </h3>
+        <n-link
+          :to="getStartedLink"
+          class="btn role-secondary"
+        >
+          {{ t('fleet.dashboard.getStarted') }}
+        </n-link>
+      </template>
     </div>
     <!-- fleet dashboard with repos -->
     <div
@@ -354,7 +408,9 @@ export default {
             v-on="$listeners"
           >
             <template #cell:clustersReady="{row}">
+              <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
+                v-else
                 :tooltip-text="getTooltipInfo('clusters', row)"
                 :badge-class="getStatusInfo('clusters', row).badgeClass"
                 :icon="getStatusInfo('clusters', row).icon"
@@ -362,7 +418,9 @@ export default {
               />
             </template>
             <template #cell:bundlesReady="{row}">
+              <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
+                v-else
                 :tooltip-text="getTooltipInfo('bundles', row)"
                 :badge-class="getStatusInfo('bundles', row).badgeClass"
                 :icon="getStatusInfo('bundles', row).icon"
@@ -389,6 +447,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.fleet-dashboard {
+  min-height: 100vh;
+}
 .fleet-empty-dashboard {
   flex: 1;
   display: flex;

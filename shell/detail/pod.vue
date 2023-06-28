@@ -98,7 +98,7 @@ export default {
           stateDisplay:     status ? this.value.containerStateDisplay(status) : undefined,
           stateBackground:  status ? this.value.containerStateColor(status).replace('text', 'bg') : undefined,
           nameSort:         sortableNumericSuffix(container.name).toLowerCase(),
-          readyIcon:        status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5',
+          readyIcon:        status?.ready ? 'icon-checkmark text-success ml-5' : 'icon-x text-error ml-5',
           availableActions: this.value.containerActions,
           stateObj:         status, // Required if there's a description
           stateDescription: descriptions.join(' | '), // Required to display the description

@@ -1,8 +1,24 @@
-# E2E Test
+# E2E Tests
 
 This repo is configured for end-to-end testing with [Cypress](https://docs.cypress.io/api/table-of-contents) and the CI will run using a blank state of Rancher executed locally. The aim is however to enable also tests using remote instances of Ranchers.
 
 Because of this, we extend the [Cypress best practices](https://docs.cypress.io/guides/references/best-practices#How-It-Works), so be sure to read them before write any test.
+
+## Quick start
+
+> This covers running E2E tests locally in a vanilla environment
+
+### Pre-requisites
+- Instance of Rancher deployed and set up (passed setup pages)
+- Dashboard running locally at the default address (`https://localhost:8005`) pointing to the set up rancher
+
+### Run the tests
+
+This will start the cypress test runner, where you can select which tests to run
+
+```
+TEST_PASSWORD=<rancher admin password> TEST_SKIP_SETUP=true yarn cy:open
+```
 
 ## Initial Setup
 
@@ -16,6 +32,8 @@ For tests against a deployed Rancher, e.g. on Digital Ocean, mainly for analyzin
 - `TEST_PASSWORD`, user password or custom during first Rancher run
 - `TEST_BASE_URL`, the address of your instance
 - `TEST_SKIP_SETUP=true`, we avoid setup as your instance is already set
+
+> Note: If you want to generate code coverage information, you must enable code instrumentation by setting `TEST_INSTRUMENT` to `true`.
 
 Finally run one of the 2 commands:
 
@@ -180,3 +198,5 @@ These values are provided when you create a new project within Cypress dashboard
 Both unit and E2E tests generate coverage respectively with Jest and NYC. These values are generated on both PR and push to `master` and `release` after merging. The service used to display the values is Codecov and can be found [here](https://app.codecov.io/gh/rancher/dashboard).
 
 Special attention goes to the E2E as the code is instrumented with Babel and the configuration is set within Nuxt.js.
+
+>  Note: To enable instrumentation required for code coverage, you must set the environment variable `TEST_INSTRUMENT` to `true`.

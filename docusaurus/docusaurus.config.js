@@ -40,7 +40,16 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
         },
-        blog:  false,
+        blog: {
+          showReadingTime:  true,
+          blogTitle:        'Rancher UX/UI Blog',
+          blogDescription:  'Recent and upcoming changes to Rancher Manager and associated projects and products',
+          postsPerPage:     'ALL',
+          blogSidebarCount: 'ALL',
+          blogSidebarTitle: 'All Posts',
+          // Please change this to your repo.
+          // Remove this to remove the "edit this page" links.
+        },
         theme: { customCss: require.resolve('./src/css/custom.css') },
       }),
     ],
@@ -52,15 +61,19 @@ const config = {
       navbar: {
         title: 'UI DevKit',
         logo:  {
-          alt: 'Rancher Logo',
-          src: 'img/rancher-logo.svg',
+          alt:     'Rancher Logo',
+          src:     'img/rancher-logo.svg',
+          srcDark: 'img/rancher-logo-dark.svg',
         },
         items: [
           {
             type:     'doc',
-            docId:    'getting-started/concepts',
+            docId:    'home',
             position: 'right',
             label:    'Docs',
+          },
+          {
+            to: '/blog', label: 'Blog', position: 'right'
           },
           {
             href:     'https://rancher.github.io/storybook/',
@@ -70,17 +83,7 @@ const config = {
         ],
       },
       footer: {
-        style: 'dark',
-        links: [
-          {
-            label: 'Stack',
-            href:  'https://slack.rancher.io/',
-          },
-          {
-            label: 'Github',
-            href:  'https://github.com/rancher/',
-          },
-        ],
+        style:     'dark',
         copyright: `Copyright © ${ new Date().getFullYear() } Rancher. All rights reserved.`,
       },
       prism: {

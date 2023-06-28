@@ -3,7 +3,7 @@ import { SCHEMA, NORMAN } from '@shell/config/types';
 import { CATTLE_API_GROUP, SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
-import SteveModel from '@shell/plugins/steve/steve-class';
+import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import Role from './rbac.authorization.k8s.io.role';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
@@ -14,7 +14,7 @@ const SPECIAL = [BASE, ADMIN, USER];
 
 const GLOBAL = SUBTYPE_MAPPING.GLOBAL.key;
 
-export default class GlobalRole extends SteveModel {
+export default class GlobalRole extends SteveDescriptionModel {
   get customValidationRules() {
     return Role.customValidationRules();
   }
@@ -56,15 +56,15 @@ export default class GlobalRole extends SteveModel {
   }
 
   get allResources() {
-    return this.$getters['all'](SCHEMA).filter(r => r.attributes?.kind);
+    return this.$getters['all'](SCHEMA).filter((r) => r.attributes?.kind);
   }
 
   get globalResources() {
-    return this.allResources.filter(r => r.attributes.group.includes(CATTLE_API_GROUP));
+    return this.allResources.filter((r) => r.attributes.group.includes(CATTLE_API_GROUP));
   }
 
   get resources() {
-    return uniq(this.globalResources.map(r => r.attributes?.resource)).sort();
+    return uniq(this.globalResources.map((r) => r.attributes?.resource)).sort();
   }
 
   get listLocation() {
@@ -117,7 +117,7 @@ export default class GlobalRole extends SteveModel {
   get canCreate() {
     const schema = this.$getters['schemaFor'](this.type);
 
-    return schema?.resourceMethods.find(verb => CREATE_VERBS.has(verb));
+    return schema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb));
   }
 
   goToClone(moreQuery = {}) {

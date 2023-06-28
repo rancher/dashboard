@@ -43,7 +43,7 @@ export function init(store) {
       formatter: 'Date'
     },
     {
-      name:      'nextBackup',
+      name:      'lastBackup',
       labelKey:  'backupRestoreOperator.lastBackup',
       value:     'status.lastSnapshotTs',
       formatter: 'Date'

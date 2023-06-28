@@ -25,8 +25,10 @@ export default {
   },
 
   async fetch() {
-    await this.$fetchType(FLEET.TOKEN);
-    this.allFleet = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    await this.$fetchType(this.resource);
+    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
+      this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
+    }
   },
 
   data() {
@@ -67,10 +69,8 @@ export default {
   },
   // override with relevant info for the loading indicator since this doesn't use it's own masthead
   $loadingResources() {
-    return {
-      loadResources:     [FLEET.TOKEN],
-      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
-    };
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
   },
 };
 </script>
@@ -88,6 +88,7 @@ export default {
       :rows="tokens"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
   </div>
 </template>

@@ -32,4 +32,10 @@ export default Vue.extend<Data, any, any, any>({
 });
 </script>
 
-<template><ExplorerProjectsNamespaces v-bind="$attrs" :create-project-location-override="createProjectLocation" :create-namespace-location-override="createNamespaceLocation" /></template>
+<template>
+  <ExplorerProjectsNamespaces
+    v-bind="$attrs"
+    :create-project-location-override="createProjectLocation"
+    :create-namespace-location-override="createNamespaceLocation"
+  />
+</template>

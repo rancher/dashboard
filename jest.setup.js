@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { config } from '@vue/test-utils';
 import { directiveSsr as t } from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
@@ -23,6 +24,9 @@ beforeEach(() => {
   // jest.resetModules(); // Use this function inside your test if you need to remove any cache stored
   // jest.clearAllMocks(); // Use this function inside your test if you need to reset mocks
   jest.restoreAllMocks(); // Use this function inside your test if you need to reset mocks and restore existing functionality
+
+  // Mock the $plugin object
+  config.mocks['$plugin'] = { getDynamic: () => undefined };
 
   config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
   config.directives = { t };

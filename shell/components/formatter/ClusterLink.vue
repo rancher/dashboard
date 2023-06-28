@@ -27,7 +27,7 @@ export default {
 
     statusErrorConditions() {
       if (this.row.hasError) {
-        return this.row?.status.conditions.filter(condition => condition.error === true);
+        return this.row?.status.conditions.filter((condition) => condition.error === true);
       }
 
       return false;
@@ -64,17 +64,17 @@ export default {
     <span v-else>{{ value }}</span>
     <i
       v-if="row.unavailableMachines"
-      v-tooltip="row.unavailableMachines"
+      v-clean-tooltip="row.unavailableMachines"
       class="conditions-alert-icon icon-alert icon"
     />
     <i
       v-if="row.rkeTemplateUpgrade"
-      v-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
+      v-clean-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
       class="template-upgrade-icon icon-alert icon"
     />
     <i
       v-if="row.hasError"
-      v-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
+      v-clean-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
       class="conditions-alert-icon icon-error icon-lg"
     />
   </span>

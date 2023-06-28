@@ -8,7 +8,7 @@ import { randomStr } from '@shell/utils/string';
 import { removeObject } from '@shell/utils/array';
 import { ACCESS_CREDENTIALS } from '../../../config/harvester-map';
 import { _EDIT } from '@shell/config/query-params';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 
 const _NEW = '_NEW';
 
@@ -150,12 +150,24 @@ export default {
 
 <template>
   <div>
-    <Banner class="mb-20" color="info" :label="t('harvester.virtualMachine.accessCredentials.tips')" />
+    <Banner
+      class="mb-20"
+      color="info"
+      :label="t('harvester.virtualMachine.accessCredentials.tips')"
+    />
 
-    <div v-for="(row, i) in rows" :key="row.id">
+    <div
+      v-for="(row, i) in rows"
+      :key="row.id"
+    >
       <InfoBox class="volume-source">
-        <button v-if="isEdit" type="button" class="role-link btn btn-sm remove-vol" @click="remove(row)">
-          <i class="icon icon-2x icon-x" />
+        <button
+          v-if="isEdit"
+          type="button"
+          class="role-link btn btn-sm remove-vol"
+          @click="remove(row)"
+        >
+          <i class="icon icon-x" />
         </button>
         <h3>
           <span>
@@ -178,7 +190,10 @@ export default {
       </InfoBox>
     </div>
 
-    <div v-if="isEdit && isQemuInstalled" class="mt-20">
+    <div
+      v-if="isEdit && isQemuInstalled"
+      class="mt-20"
+    >
       <button
         type="button"
         class="btn btn-sm bg-primary mr-15 mb-10"

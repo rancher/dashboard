@@ -252,6 +252,7 @@ export default {
       if (iframeEl === null) {
         iframeEl = document.createElement('iframe');
         iframeEl.setAttribute('id', EMBER_FRAME);
+        iframeEl.setAttribute('data-testid', EMBER_FRAME);
         iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
 
         if (this.inline) {
@@ -522,8 +523,8 @@ export default {
     />
     <div
       v-if="inline && !loaded"
+      v-clean-html="t('generic.loading', {}, true)"
       class="inline-loading"
-      v-html="t('generic.loading', {}, true)"
     />
     <div
       v-if="error"

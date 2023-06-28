@@ -10,7 +10,6 @@ import Labels from '@shell/components/form/Labels';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
 import { CAPI } from '@shell/config/labels-annotations';
 import { clear, uniq } from '@shell/utils/array';
-import { importCloudCredential } from '@shell/utils/dynamic-importer';
 import SelectIconGrid from '@shell/components/SelectIconGrid';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
@@ -95,14 +94,11 @@ export default {
     },
 
     cloudComponent() {
-      const driver = this.driverName;
-      const haveProviders = this.$store.getters['plugins/credentialDrivers'];
-
-      if ( haveProviders.includes(driver) ) {
-        return importCloudCredential(driver);
+      if (this.$store.getters['type-map/hasCustomCloudCredentialComponent'](this.driverName)) {
+        return this.$store.getters['type-map/importCloudCredential'](this.driverName);
       }
 
-      return importCloudCredential('generic');
+      return this.$store.getters['type-map/importCloudCredential']('generic');
     },
 
     // array of id, label, description, initials for type selection step
@@ -110,13 +106,13 @@ export default {
       const out = [];
 
       const drivers = [...this.nodeDrivers, ...this.kontainerDrivers]
-        .filter(x => x.spec.active && x.id !== 'rancherkubernetesengine')
-        .map(x => x.spec.displayName || x.id);
+        .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
+        .map((x) => x.spec.displayName || x.id);
 
-      let types = uniq(drivers.map(x => this.$store.getters['plugins/credentialDriverFor'](x)));
+      let types = uniq(drivers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
 
       if ( !this.rke2Enabled ) {
-        types = types.filter(x => rke1Supports.includes(x));
+        types = types.filter((x) => rke1Supports.includes(x));
       }
 
       const schema = this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL);

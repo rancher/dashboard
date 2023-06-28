@@ -74,7 +74,7 @@ export default {
 
   computed: {
     imagesOption() {
-      return this.images.filter(c => c.isReady).sort((a, b) => a.creationTimestamp > b.creationTimestamp ? -1 : 1).map( (I) => {
+      return this.images.filter((c) => c.isReady).sort((a, b) => a.creationTimestamp > b.creationTimestamp ? -1 : 1).map( (I) => {
         return {
           label: `${ I.metadata.namespace }/${ I.spec.displayName }`,
           value: I.id
@@ -83,7 +83,7 @@ export default {
     },
 
     imageName() {
-      const image = this.imagesOption.find(I => I.value === this.value.image);
+      const image = this.imagesOption.find((I) => I.value === this.value.image);
 
       return image ? image.label : '-';
     },
@@ -143,7 +143,7 @@ export default {
     },
 
     onImageChange() {
-      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE)?.find( I => this.value.image === I.id);
+      const imageResource = this.$store.getters['harvester/all'](HCI.IMAGE)?.find( (I) => this.value.image === I.id);
 
       if (this.idx === 0) {
         if (/iso$/i.test(imageResource?.imageSuffix)) {
@@ -183,7 +183,11 @@ export default {
         data-testid="input-hevi-name"
         class="col span-6"
       >
-        <InputOrDisplay :name="t('harvester.fields.name')" :value="value.name" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.fields.name')"
+          :value="value.name"
+          :mode="mode"
+        >
           <LabeledInput
             v-model="value.name"
             :label="t('harvester.fields.name')"

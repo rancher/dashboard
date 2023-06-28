@@ -37,7 +37,7 @@ export default {
     },
 
     accessibleResources() {
-      return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
+      return RESOURCES.filter((resource) => this.$store.getters['cluster/schemaFor'](resource));
     },
 
     totalCountGaugeInput() {
@@ -118,11 +118,11 @@ export default {
         class="glance-item"
       >
         <label>{{ t('glance.version') }}: </label>
+        <span>{{ clusterDetail.kubernetesVersionBase }}</span>
         <span
           v-if="clusterDetail.kubernetesVersionExtension"
-          style="font-size: 0.5em"
+          style="font-size: 0.75em"
         >{{ clusterDetail.kubernetesVersionExtension }}</span>
-        <span>{{ clusterDetail.kubernetesVersionBase }}</span>
       </div>
       <div class="glance-item">
         <label>{{ t('glance.created') }}: </label>

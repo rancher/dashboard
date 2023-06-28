@@ -26,9 +26,10 @@ export function haveV2Monitoring(getters) {
   if (haveV1Monitoring(getters)) {
     return false;
   }
+  const inStore = getters['getStoreNameByProductId'];
 
   // Just check for the pod monitors CRD
-  const schemas = getters[`cluster/all`](SCHEMA);
+  const schemas = getters[`${ inStore }/all`](SCHEMA);
   const exists = findBy(schemas, 'id', normalizeType(MONITORING.PODMONITOR));
 
   return !!exists;
@@ -45,7 +46,7 @@ const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
 export async function haveV1MonitoringWorkloads(store) {
   const workloadsByType = await Promise.all(
-    Object.values(WORKLOAD_TYPES).map(type => store.dispatch('cluster/findAll', { type })
+    Object.values(WORKLOAD_TYPES).map((type) => store.dispatch('cluster/findAll', { type })
     )
   );
   const workloads = workloadsByType.flat();
@@ -54,7 +55,7 @@ export async function haveV1MonitoringWorkloads(store) {
     const workload = workloads[i];
 
     if (!isEmpty(workload?.spec?.template?.spec?.containers) &&
-        workload.spec.template.spec.containers.find(c => c.image?.includes('quay.io/coreos/prometheus-operator') ||
+        workload.spec.template.spec.containers.find((c) => c.image?.includes('quay.io/coreos/prometheus-operator') ||
           c.image?.includes('rancher/coreos-prometheus-operator')) &&
         workload?.metadata?.namespace !== CATTLE_MONITORING_NAMESPACE) {
       return Promise.resolve(true);

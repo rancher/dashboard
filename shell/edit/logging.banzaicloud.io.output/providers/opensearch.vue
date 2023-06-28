@@ -45,6 +45,11 @@ export default {
       if (typeof this.value.ssl_version === 'undefined') {
         this.$set(this.value, 'ssl_version', sslVersions[0]);
       }
+
+      // Suppress type name by default
+      if (typeof this.value.suppress_type_name === 'undefined') {
+        this.$set(this.value, 'suppress_type_name', true);
+      }
     }
 
     return { protocolOptions: protocol, sslVersions };
@@ -55,7 +60,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        updatePort(value => this.$set(this.value, 'port', value), port);
+        updatePort((value) => this.$set(this.value, 'port', value), port);
       }
     }
   }
@@ -196,6 +201,13 @@ export default {
         <Checkbox
           v-model="value.ssl_verify"
           :label="t('logging.elasticsearch.verifySsl')"
+          :disabled="disabled"
+          :mode="mode"
+        />
+        <Checkbox
+          v-model="value.suppress_type_name"
+          :label="t('logging.elasticsearch.suppressTypeName.label')"
+          :tooltip="t('logging.elasticsearch.suppressTypeName.openSearchTips')"
           :disabled="disabled"
           :mode="mode"
         />

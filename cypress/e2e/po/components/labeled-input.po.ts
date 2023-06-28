@@ -1,13 +1,20 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import { CypressChainable } from '~/cypress/e2e/po/po.types';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class LabeledInputPo extends ComponentPo {
   static byLabel(self: CypressChainable, label: string): LabeledInputPo {
     return new LabeledInputPo(
       self
         .find('.labeled-input', { includeShadowDom: true })
-        .contains(`${ label } `)
+        .contains(label)
         .next()
+    );
+  }
+
+  static bySelector(self: CypressChainable, selector: string): LabeledInputPo {
+    return new LabeledInputPo(
+      self
+        .find(`${ selector } input`, { includeShadowDom: true })
     );
   }
 

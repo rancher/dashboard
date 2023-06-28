@@ -11,7 +11,7 @@ import Select from '@shell/components/form/Select';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { OS } from '../mixins/harvester-vm';
 import { VM_IMAGE_FILE_FORMAT } from '../validators/vm-image';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 const DOWNLOAD = 'download';
@@ -177,7 +177,7 @@ export default {
     internalAnnotations(option) {
       const optionKeys = [HCI_ANNOTATIONS.OS_TYPE, HCI_ANNOTATIONS.IMAGE_SUFFIX];
 
-      return optionKeys.find(O => O === option.key);
+      return optionKeys.find((O) => O === option.key);
     },
 
     calculateOptions(keyName) {
@@ -207,7 +207,7 @@ export default {
 
       return OS.find( (os) => {
         if (os.match) {
-          return os.match.find(matchValue => url.toLowerCase().includes(matchValue)) ? os.value : false;
+          return os.match.find((matchValue) => url.toLowerCase().includes(matchValue)) ? os.value : false;
         } else {
           return url.toLowerCase().includes(os.value.toLowerCase()) ? os.value : false;
         }
@@ -236,8 +236,17 @@ export default {
       name-key="spec.displayName"
     />
 
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basic" :label="t('harvester.image.tabs.basics')" :weight="3" class="bordered-table">
+    <Tabbed
+      v-bind="$attrs"
+      class="mt-15"
+      :side-tabs="true"
+    >
+      <Tab
+        name="basic"
+        :label="t('harvester.image.tabs.basics')"
+        :weight="3"
+        class="bordered-table"
+      >
         <RadioGroup
           v-if="isCreate"
           v-model="value.spec.sourceType"
@@ -253,7 +262,10 @@ export default {
           :mode="mode"
         />
         <div class="row mb-20 mt-20">
-          <div v-if="isCreateEdit" class="col span-12">
+          <div
+            v-if="isCreateEdit"
+            class="col span-12"
+          >
             <LabeledInput
               v-if="isEdit"
               v-model="value.spec.sourceType"
@@ -315,7 +327,12 @@ export default {
         </div>
       </Tab>
 
-      <Tab name="labels" :label="t('labels.labels.title')" :weight="2" class="bordered-table">
+      <Tab
+        name="labels"
+        :label="t('labels.labels.title')"
+        :weight="2"
+        class="bordered-table"
+      >
         <KeyValue
           key="labels"
           ref="labels"

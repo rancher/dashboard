@@ -6,7 +6,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 
-import { HCI } from '@/pkg/harvester/config/labels-annotations';
+import { HCI } from '@pkg/harvester/config/labels-annotations';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
 const AUTO = 'auto';
@@ -127,8 +127,17 @@ export default {
       :mode="mode"
     />
 
-    <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.network.tabs.basics')" :weight="99" class="bordered-table">
+    <Tabbed
+      v-bind="$attrs"
+      class="mt-15"
+      :side-tabs="true"
+    >
+      <Tab
+        name="basics"
+        :label="t('harvester.network.tabs.basics')"
+        :weight="99"
+        class="bordered-table"
+      >
         <LabeledInput
           v-model="type"
           class="mb-20"

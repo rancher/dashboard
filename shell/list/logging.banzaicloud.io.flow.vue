@@ -24,12 +24,12 @@ export default {
   },
 
   async fetch() {
-    try {
-      await this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT });
-      await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
-    } catch (e) {}
+    this.$initializeFetchData(this.resource);
 
-    await this.$fetchType(LOGGING.FLOW);
+    this.$fetchType(LOGGING.OUTPUT);
+    this.$fetchType(LOGGING.CLUSTER_OUTPUT);
+
+    await this.$fetchType(this.resource);
   }
 };
 </script>
@@ -40,5 +40,6 @@ export default {
     :rows="rows"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
   />
 </template>

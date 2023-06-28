@@ -19,7 +19,7 @@ import {
 import { HCI } from '../../types';
 import { HCI_SETTING } from '../../config/settings';
 import { HOSTNAME } from '@shell/config/labels-annotations';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import impl, { QGA_JSON, USB_TABLET } from './impl';
 
 export const MANAGEMENT_NETWORK = 'management Network';
@@ -165,7 +165,7 @@ export default {
     nodesIdOptions() {
       const nodes = this.$store.getters['harvester/all'](NODE);
 
-      return nodes.filter(N => !N.isUnSchedulable).map((node) => {
+      return nodes.filter((N) => !N.isUnSchedulable).map((node) => {
         return {
           label: node.nameDisplay,
           value: node.id
@@ -174,14 +174,14 @@ export default {
     },
 
     defaultStorageClass() {
-      const defaultStorage = this.$store.getters['harvester/all'](STORAGE_CLASS).find( O => O.isDefault);
+      const defaultStorage = this.$store.getters['harvester/all'](STORAGE_CLASS).find( (O) => O.isDefault);
 
       return defaultStorage?.metadata?.name || 'longhorn';
     },
 
     storageClassSetting() {
       try {
-        const storageClassValue = this.$store.getters['harvester/all'](HCI.SETTING).find( O => O.id === HCI_SETTING.DEFAULT_STORAGE_CLASS)?.value;
+        const storageClassValue = this.$store.getters['harvester/all'](HCI.SETTING).find( (O) => O.id === HCI_SETTING.DEFAULT_STORAGE_CLASS)?.value;
 
         return JSON.parse(storageClassValue);
       } catch (e) {
@@ -337,7 +337,7 @@ export default {
         });
       } else {
         out = _disks.map( (DISK, index) => {
-          const volume = _volumes.find( V => V.name === DISK.name );
+          const volume = _volumes.find( (V) => V.name === DISK.name );
 
           let size = '';
           let image = '';
@@ -360,7 +360,7 @@ export default {
 
           if (volume.persistentVolumeClaim && volume.persistentVolumeClaim?.claimName) {
             volumeName = volume.persistentVolumeClaim.claimName;
-            const DVT = _volumeClaimTemplates.find( T => T.metadata.name === volumeName);
+            const DVT = _volumeClaimTemplates.find( (T) => T.metadata.name === volumeName);
 
             realName = volumeName;
             // If the DVT can be found, it cannot be an existing volume
@@ -382,7 +382,7 @@ export default {
               dataSource = dataVolumeSpecPVC?.dataSource;
             } else { // SOURCE_TYPE.ATTACH_VOLUME
               const allPVCs = this.$store.getters['harvester/all'](PVC);
-              const pvcResource = allPVCs.find( O => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
+              const pvcResource = allPVCs.find( (O) => O.id === `${ namespace }/${ volume?.persistentVolumeClaim?.claimName }`);
 
               source = SOURCE_TYPE.ATTACH_VOLUME;
               accessMode = pvcResource?.spec?.accessModes?.[0] || 'ReadWriteMany';
@@ -409,7 +409,7 @@ export default {
           });
 
           const allVolumeStatus = JSON.parse(vm.metadata?.annotations?.[HCI_ANNOTATIONS.VM_VOLUME_STATUS] || '[]');
-          const volumeStatus = allVolumeStatus.find(volume => realName === volume.name);
+          const volumeStatus = allVolumeStatus.find((volume) => realName === volume.name);
 
           return {
             id:         randomStr(5),
@@ -435,7 +435,7 @@ export default {
 
       out = sortBy(out, 'bootOrder');
 
-      return out.filter( O => O.name !== 'cloudinitdisk');
+      return out.filter( (O) => O.name !== 'cloudinitdisk');
     },
 
     getNetworkRows(vm) {
@@ -443,7 +443,7 @@ export default {
       const interfaces = vm.spec.template.spec.domain.devices.interfaces || [];
 
       const out = interfaces.map( (I, index) => {
-        const network = networks.find( N => I.name === N.name);
+        const network = networks.find( (N) => I.name === N.name);
 
         const type = I.sriov ? 'sriov' : I.bridge ? 'bridge' : 'masquerade';
 
@@ -526,7 +526,7 @@ export default {
         this.secretName = this.generateSecretName(this.secretNamePrefix);
       }
 
-      if (!disks.find( D => D.name === 'cloudinitdisk')) {
+      if (!disks.find( (D) => D.name === 'cloudinitdisk')) {
         if (!this.isWindows) {
           disks.push({
             name: 'cloudinitdisk',
@@ -823,7 +823,7 @@ export default {
         out.spec.storageClassName = R.storageClassName || this.customDefaultStorageClass || this.defaultStorageClass;
         break;
       case SOURCE_TYPE.IMAGE: {
-        const image = this.images.find( I => R.image === I.id);
+        const image = this.images.find( (I) => R.image === I.id);
 
         if (image) {
           out.spec.storageClassName = `longhorn-${ image.metadata.name }`;
@@ -840,7 +840,7 @@ export default {
     },
 
     getSSHListValue(arr) {
-      return arr.map( id => this.getSSHValue(id)).filter( O => O !== undefined);
+      return arr.map( (id) => this.getSSHValue(id)).filter( (O) => O !== undefined);
     },
 
     parseInterface(R) {
@@ -932,7 +932,7 @@ export default {
 
       if (Array.isArray(runcmd)) {
         let findIndex = -1;
-        const hasSameRuncmd = runcmd.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+        const hasSameRuncmd = runcmd.find( (S) => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
 
         const hasSimilarRuncmd = runcmd.find( (S, index) => {
           if (Array.isArray(S) && S.join('-') === this.getSimilarRuncmd(osType).join('-')) {
@@ -1107,7 +1107,7 @@ export default {
 
         if (row.source === ACCESS_CREDENTIALS.INJECT_SSH) {
           for (const secretId of row.sshkeys) {
-            const keypair = (this.$store.getters['harvester/all'](HCI.SSH) || []).find(s => s.id === secretId);
+            const keypair = (this.$store.getters['harvester/all'](HCI.SSH) || []).find((s) => s.id === secretId);
 
             secretRef.setData(`${ keypair.metadata.namespace }-${ keypair.metadata.name }`, keypair.spec.publicKey);
           }
@@ -1206,7 +1206,7 @@ export default {
           });
         }
       } else if (!val) {
-        const index = inputs.findIndex(O => isEqual(O, USB_TABLET[0]));
+        const index = inputs.findIndex((O) => isEqual(O, USB_TABLET[0]));
 
         if (hasExist && inputs.length === 1) {
           this.$delete(this.spec.template.spec.domain.devices, 'inputs');
@@ -1234,7 +1234,7 @@ export default {
       const sshAuthorizedKeys = this.getSSHFromUserData(this.userScript);
 
       ssh.map((id) => {
-        const index = sshAuthorizedKeys.findIndex(value => value === this.getSSHValue(id));
+        const index = sshAuthorizedKeys.findIndex((value) => value === this.getSSHValue(id));
 
         if (index >= 0) {
           sshAuthorizedKeys.splice(index, 1);
@@ -1299,7 +1299,7 @@ export default {
       handler(neu, old) {
         if (Array.isArray(neu)) {
           const imageId = neu[0]?.image;
-          const image = this.images.find( I => imageId === I.id);
+          const image = this.images.find( (I) => imageId === I.id);
           const osType = image?.imageOSType;
 
           const oldImageId = old[0]?.image;

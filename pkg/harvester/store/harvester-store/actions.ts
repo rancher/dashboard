@@ -100,7 +100,6 @@ export default {
     commit('updateNamespaces', {
       filters: filters || [ALL_USER],
       all:     res.virtualNamespaces,
-      ...getters
     }, { root: true });
   },
 };

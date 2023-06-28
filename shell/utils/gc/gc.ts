@@ -12,7 +12,7 @@ class GarbageCollect {
 
   private cachedGcPrefs: GC_PREFERENCES = GC_DEFAULTS;
 
-  private cachedGcPrefsStamp: string = '';
+  private cachedGcPrefsStamp = '';
 
   private debugLog = (...args: any) => {
     if (GarbageCollect.ENABLE_DEBUG_LOGGING) {
@@ -29,7 +29,7 @@ class GarbageCollect {
    * To avoid JSON.parse on the `ui-performance` setting keep a local cache
    */
   private getUiPerfGarbageCollection = (rootState: any) => {
-    const uiPerfSetting = rootState.management.types[MANAGEMENT.SETTING].list.find((s: any) => s.id === SETTING.UI_PERFORMANCE);
+    const uiPerfSetting = rootState.management.types[MANAGEMENT.SETTING]?.list.find((s: any) => s.id === SETTING.UI_PERFORMANCE);
 
     if (!uiPerfSetting || !uiPerfSetting.value) {
       // Could be in the process of logging out
@@ -60,7 +60,7 @@ class GarbageCollect {
   /**
    * Track when a logged in route changes.
    */
-  private lastRouteChange: number = 0;
+  private lastRouteChange = 0;
 
   // ------------- GC Enabled ---------------------
 

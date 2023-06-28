@@ -39,6 +39,17 @@ export function stringify(err) {
   } else if ( err && typeof err === 'object' ) {
     if ( err.message ) {
       str = err.message;
+
+      if (typeof str === 'string') {
+        try {
+          const data = JSON.parse(str).data;
+
+          if (data) {
+            return data;
+          }
+        } catch {}
+      }
+
       if ( err.detail ) {
         if ( str ) {
           str += ` (${ err.detail })`;

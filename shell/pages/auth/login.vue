@@ -14,7 +14,6 @@ import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
-import { importLogin } from '@shell/utils/dynamic-importer';
 import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -37,10 +36,10 @@ export default {
 
   async asyncData({ route, redirect, store }) {
     const drivers = await store.dispatch('auth/getAuthProviders');
-    const providers = sortBy(drivers.map(x => x.id), ['id']);
+    const providers = sortBy(drivers.map((x) => x.id), ['id']);
 
     const hasLocal = providers.includes('local');
-    const hasOthers = hasLocal && !!providers.find(x => x !== 'local');
+    const hasOthers = hasLocal && !!providers.find((x) => x !== 'local');
 
     if ( hasLocal ) {
       // Local is special and handled here so that it can be toggled
@@ -99,13 +98,14 @@ export default {
     }
 
     return {
-      vendor:     getVendor(),
+      vendor:             getVendor(),
       providers,
       hasOthers,
       hasLocal,
-      showLocal:  !hasOthers || (route.query[LOCAL] === _FLAGGED),
-      firstLogin: firstLoginSetting?.value === 'true',
-      singleProvider
+      showLocal:          !hasOthers || (route.query[LOCAL] === _FLAGGED),
+      firstLogin:         firstLoginSetting?.value === 'true',
+      singleProvider,
+      showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true'
     };
   },
 
@@ -176,7 +176,7 @@ export default {
 
   created() {
     this.providerComponents = this.providers.map((name) => {
-      return importLogin(configType[name]);
+      return this.$store.getters['type-map/importLogin'](configType[name] || name);
     });
   },
 
@@ -254,7 +254,7 @@ export default {
 
         if ( this.remember ) {
           this.$cookies.set(USERNAME, this.username, {
-            encode:   x => x,
+            encode:   (x) => x,
             maxAge:   86400 * 365,
             path:     '/',
             sameSite: true,
@@ -303,6 +303,7 @@ export default {
         </h1>
         <div
           class="login-messages"
+          data-testid="login__messages"
           :class="{'login-messages--hasContent': hasLoginMessage}"
         >
           <Banner
@@ -325,60 +326,59 @@ export default {
         </div>
         <div
           v-if="firstLogin"
-          class="first-login-message"
+          class="first-login-message pl-10 pr-10"
+          :class="{'mt-30': !hasLoginMessage}"
           data-testid="first-login-message"
         >
-          <InfoBox color="info">
+          <t
+            k="setup.defaultPassword.intro"
+            :raw="true"
+          />
+
+          <div>
             <t
-              k="setup.defaultPassword.intro"
+              k="setup.defaultPassword.dockerPrefix"
               :raw="true"
             />
+          </div>
+          <ul>
+            <li>
+              <t
+                k="setup.defaultPassword.dockerPs"
+                :raw="true"
+              />
+            </li>
+            <li>
+              <CopyCode>
+                docker logs <u>container-id</u> 2&gt;&amp;1 | grep "Bootstrap Password:"
+              </CopyCode>
+            </li>
+          </ul>
+          <div>
+            <t
+              k="setup.defaultPassword.dockerSuffix"
+              :raw="true"
+            />
+          </div>
 
-            <div>
-              <t
-                k="setup.defaultPassword.dockerPrefix"
-                :raw="true"
-              />
-            </div>
-            <ul>
-              <li>
-                <t
-                  k="setup.defaultPassword.dockerPs"
-                  :raw="true"
-                />
-              </li>
-              <li>
-                <CopyCode>
-                  docker logs <u>container-id</u> 2&gt;&amp;1 | grep "Bootstrap Password:"
-                </CopyCode>
-              </li>
-            </ul>
-            <div>
-              <t
-                k="setup.defaultPassword.dockerSuffix"
-                :raw="true"
-              />
-            </div>
-
-            <br>
-            <div>
-              <t
-                k="setup.defaultPassword.helmPrefix"
-                :raw="true"
-              />
-            </div>
-            <br>
-            <CopyCode>
-              {{ kubectlCmd }}
-            </CopyCode>
-            <br>
-            <div>
-              <t
-                k="setup.defaultPassword.helmSuffix"
-                :raw="true"
-              />
-            </div>
-          </InfoBox>
+          <br>
+          <div>
+            <t
+              k="setup.defaultPassword.helmPrefix"
+              :raw="true"
+            />
+          </div>
+          <br>
+          <CopyCode>
+            {{ kubectlCmd }}
+          </CopyCode>
+          <br>
+          <div>
+            <t
+              k="setup.defaultPassword.helmSuffix"
+              :raw="true"
+            />
+          </div>
         </div>
 
         <div
@@ -474,10 +474,13 @@ export default {
               {{ nonLocalPrompt }}
             </a>
           </div>
-          <div class="locale-elector">
-            <LocaleSelector mode="login" />
-          </div>
         </template>
+        <div
+          v-if="showLocaleSelector"
+          class="locale-elector"
+        >
+          <LocaleSelector mode="login" />
+        </div>
       </div>
 
       <BrandImage
@@ -507,6 +510,8 @@ export default {
     }
 
     .login-messages {
+      display: flex;
+      justify-content: center;
       align-items: center;
 
       .banner {
@@ -518,11 +523,7 @@ export default {
       &--hasContent {
         min-height: 70px;
       }
-    }
 
-    .login-messages, .first-login-message {
-      display: flex;
-      justify-content: center;
       .text-error, .banner {
         max-width: 80%;
       }
@@ -541,6 +542,16 @@ export default {
     }
   }
 
+  .gutless {
+    height: 100vh;
+    .span-6 {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      place-content: center;
+    }
+  }
   .locale-elector {
     position: absolute;
     bottom: 30px;

@@ -1,0 +1,35 @@
+# Docs for this workflow are here https://github.com/github/issue-labeler
+name: Triage Labels
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  label_issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Check Labels
+        id: check-labels
+        env:
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ', ') }}
+        run: |
+          # Check if issue has zube labels
+          set +e
+          echo ${ISSUE_LABELS} > labels
+          cat labels
+          grep -c -E "\s*\[zube\]:" labels
+          if [ $? -eq 1 ]; then
+            echo "update=true" >> $GITHUB_OUTPUT
+            echo "Can not find any existing zube labels"
+          else
+            echo "Found existing zube labels"
+          fi
+      - name: Label issues
+        if: steps.check-labels.outputs.update == 'true'
+        uses: github/issue-labeler@v2.5
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: .github/labeler.yml
+          enable-versioned-regex: 0

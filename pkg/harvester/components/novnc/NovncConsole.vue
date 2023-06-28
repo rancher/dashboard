@@ -3,7 +3,11 @@
     <div v-if="connected && disconnected">
       <main class="main-layout error">
         <div class="text-center">
-          <BrandImage file-name="error-desert-landscape.svg" width="900" height="300" />
+          <BrandImage
+            file-name="error-desert-landscape.svg"
+            width="900"
+            height="300"
+          />
           <h1>
             {{ t('generic.notification.title.warning') }}
           </h1>

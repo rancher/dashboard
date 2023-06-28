@@ -1,0 +1,85 @@
+// Global stylesheet for Storybook
+
+// Ensure buttons have spacing between them
+button {
+  margin-right: 10px;
+}
+
+pre.sbdocs {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+BODY, .sbdocs-wrapper {
+  background: var(--body-bg) !important;
+  color: var(--body-text);
+  font-family: $body-font!important;
+}
+
+H1, H2, H3, H4, H5, H6, P {
+  color: var(--body-text) !important;
+  font-family: $header-font !important;
+  font-weight: 400!important;
+}
+
+
+CODE:not(.language-jsx) {
+  background-color: var(--box-bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--border-radius) !important;;
+  color: var(--body-text) !important;
+}
+
+.sbdocs-table tr td {
+  padding: 18px 31px!important;
+}
+
+div#root, button, input, optgroup, select, textarea {
+  font-size: 14px;
+  font-family: "Lato", arial, helvetica, sans-serif;
+}
+
+
+.sbdocs-table tr td {
+  padding: 18px 31px!important;
+}
+
+table {
+  tr {
+    background: transparent;
+  }
+  .color-sample {
+    width: 25px;
+    height: 25px;
+    border: 1px solid $medium;
+    margin: 0 10px 0 0;
+    display: inline-flex;
+    vertical-align: text-bottom;
+  }
+}
+
+#story--components-labeledtooltip--labeled-tooltip .labeled-tooltip,
+#story--components-labeledtooltip--labeled-tooltip .labeled-tooltip .status-icon {
+  position: inherit!important;
+}
+
+// ToDo to be removed with global stories correction, see #7407
+.string-list-footer {
+  button {
+    margin-right: 0;
+  }
+}
+
+// Styling for welcome block on welcome page
+.storybook-welcome {
+  background-color: #3d98d3;
+  margin-top: 20px !important;
+  line-height: 0;
+
+  > h2 {
+    padding: 10px 0 0 10px !important;
+    color: #fff !important;
+    border: 0;
+    line-height: initial;
+  }
+}

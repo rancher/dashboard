@@ -1,10 +1,22 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
-import { CoreStoreInit, IPlugin } from './types';
-import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
 import {
+  CoreStoreInit,
+  Action,
+  Tab,
+  Card,
+  Panel,
+  TableColumn,
+  IPlugin,
+  LocationConfig,
+  ExtensionPoint,
+
   PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
-} from '@shell/core/types';
+} from './types';
+import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
+
+export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
 export class Plugin implements IPlugin {
   public id: string;
@@ -12,13 +24,15 @@ export class Plugin implements IPlugin {
   public types: any = {};
   public l10n: { [key: string]: Function[] } = {};
   public locales: { locale: string, label: string}[] = [];
-  public products: Function[] = [];
+  public products: ProductFunction[] = [];
   public productNames: string[] = [];
   public routes: { parent?: string, route: RouteConfig }[] = [];
   public stores: { storeName: string, register: RegisterStore, unregister: UnregisterStore }[] = [];
   public onEnter: OnNavToPackage = () => Promise.resolve();
   public onLeave: OnNavAwayFromPackage = () => Promise.resolve();
   public _onLogOut: OnLogOut = () => Promise.resolve();
+
+  public uiConfig: { [key: string]: any } = {};
 
   // Plugin metadata (plugin package.json)
   public _metadata: any = {};
@@ -34,6 +48,11 @@ export class Plugin implements IPlugin {
   constructor(id: string) {
     this.id = id;
     this.name = id;
+
+    // Initialize uiConfig for all of the possible enum values
+    Object.values(ExtensionPoint).forEach((v) => {
+      this.uiConfig[v] = {};
+    });
   }
 
   get metadata() {
@@ -66,7 +85,7 @@ export class Plugin implements IPlugin {
     return storeDSL;
   }
 
-  addProduct(product: Function): void {
+  addProduct(product: ProductFunction): void {
     this.products.push(product);
   }
 
@@ -106,6 +125,49 @@ export class Plugin implements IPlugin {
     };
 
     this.routes.push({ parent, route });
+  }
+
+  private _addUIConfig(type: string, where: string, when: LocationConfig | string, config: any) {
+    // For convenience 'when' can be a string to indicate a resource, so convert it to the LocationConfig format
+    const locationConfig = (typeof when === 'string') ? { resource: when } : when;
+
+    this.uiConfig[type][where] = this.uiConfig[type][where] || [];
+    this.uiConfig[type][where].push({ ...config, locationConfig });
+  }
+
+  /**
+   * Adds an action/button to the UI
+   */
+  addAction(where: string, when: LocationConfig | string, action: Action): void {
+    this._addUIConfig(ExtensionPoint.ACTION, where, when, action);
+  }
+
+  /**
+   * Adds a tab to the UI
+   */
+  addTab(where: string, when: LocationConfig | string, tab: Tab): void {
+    this._addUIConfig(ExtensionPoint.TAB, where, when, tab);
+  }
+
+  /**
+   * Adds a panel/component to the UI
+   */
+  addPanel(where: string, when: LocationConfig | string, panel: Panel): void {
+    this._addUIConfig(ExtensionPoint.PANEL, where, when, panel);
+  }
+
+  /**
+   * Adds a card to the to the UI
+   */
+  addCard( where: string, when: LocationConfig | string, card: Card): void {
+    this._addUIConfig(ExtensionPoint.CARD, where, when, card);
+  }
+
+  /**
+   * Adds a new column to a table on the UI
+   */
+  addTableColumn(where: string, when: LocationConfig | string, column: TableColumn): void {
+    this._addUIConfig(ExtensionPoint.TABLE_COL, where, when, column);
   }
 
   setHomePage(component: any) {

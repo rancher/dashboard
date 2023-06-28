@@ -1,9 +1,16 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 export default class HomePagePo extends PagePo {
-  static url: string = '/home'
+  static url = '/home'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(HomePagePo.url);
+  }
+
+  static goToAndWaitForGet() {
+    PagePo.goToAndWaitForGet(HomePagePo.goTo, [
+      'v1/counts',
+      'v1/namespaces',
+    ]);
   }
 
   constructor() {

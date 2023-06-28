@@ -62,13 +62,28 @@ export default {
     </template>
 
     <template #body>
-      <Banner color="warning" :label="t('harvester.host.enableMaintenance.protip')" class="mt-20" />
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <Banner
+        color="warning"
+        :label="t('harvester.host.enableMaintenance.protip')"
+        class="mt-20"
+      />
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
     </template>
 
-    <div slot="actions" class="actions">
+    <div
+      slot="actions"
+      class="actions"
+    >
       <div class="buttons">
-        <button class="btn role-secondary mr-10" @click="close">
+        <button
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
 

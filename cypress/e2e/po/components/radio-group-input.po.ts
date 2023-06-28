@@ -19,4 +19,8 @@ export default class RadioGroupInputPo extends ComponentPo {
     return this.self()
       .find('.radio-label').eq(value);
   }
+
+  isChecked(value: number) {
+    return this.self().find('.radio-container > span').eq(value).then(($el) => expect($el).have.attr('aria-checked', 'true'));
+  }
 }

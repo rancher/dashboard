@@ -83,8 +83,8 @@ export default {
     },
     namespaceLimits() {
       return this.namespaceResourceQuotaLimits
-        .filter(resourceQuota => resourceQuota[this.type] && resourceQuota.id !== this.namespace.id)
-        .map(resourceQuota => parseSi(resourceQuota[this.type], this.siOptions));
+        .filter((resourceQuota) => resourceQuota[this.type] && resourceQuota.id !== this.namespace.id)
+        .map((resourceQuota) => parseSi(resourceQuota[this.type], this.siOptions));
     },
     namespaceContribution() {
       return this.namespaceLimits.reduce((sum, limit) => sum + limit, 0);
@@ -182,7 +182,7 @@ export default {
     />
     <div class="resource-availability mr-10">
       <PercentageBar
-        v-tooltip="tooltip"
+        v-clean-tooltip="tooltip"
         class="percentage-bar"
         :value="percentageUsed"
         :slices="slices"

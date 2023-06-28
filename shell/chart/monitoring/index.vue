@@ -12,6 +12,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
 import Prometheus from '@shell/chart/monitoring/prometheus';
 import Tab from '@shell/components/Tabbed/Tab';
+import ChartPsp from '@shell/components/ChartPsp';
 
 import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@shell/config/types';
@@ -26,6 +27,7 @@ export default {
     Loading,
     Prometheus,
     Tab,
+    ChartPsp
   },
 
   hasTabs: true,
@@ -60,7 +62,7 @@ export default {
     });
 
     await Promise.all(
-      Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })
+      Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })
       )
     );
 
@@ -111,7 +113,7 @@ export default {
       return this.currentCluster.status.provider.toLowerCase();
     },
     workloads() {
-      return Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.getters['cluster/all'](type)
+      return Object.values(WORKLOAD_TYPES).flatMap((type) => this.$store.getters['cluster/all'](type)
       );
     },
   },
@@ -174,6 +176,10 @@ export default {
       const selector =
         prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
 
+      // This works for UI editor installation
+      // However, it doesn't work for yaml editor installation
+      // Global values later merged again in charts/install.vue addGlobalValuesTo()
+      // We still need to remove the global values from charts/install.vue addGlobalValuesTo()
       if (
         selector &&
         isEmpty(selector.matchExpressions) &&
@@ -207,11 +213,13 @@ export default {
     >
       <div>
         <div class="row mb-20">
-          <ClusterSelector
-            :value="value"
-            :mode="mode"
-            @onClusterTypeChanged="clusterType = $event"
-          />
+          <div class="col span-6">
+            <ClusterSelector
+              :value="value"
+              :mode="mode"
+              @onClusterTypeChanged="clusterType = $event"
+            />
+          </div>
         </div>
         <div
           v-if="clusterType.group === 'managed'"
@@ -257,6 +265,12 @@ export default {
             />
           </div>
         </div>
+
+        <!-- Conditionally display PSP checkbox -->
+        <ChartPsp
+          :value="value"
+          :cluster="currentCluster"
+        />
       </div>
     </Tab>
     <Tab

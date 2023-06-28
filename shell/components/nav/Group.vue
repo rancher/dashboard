@@ -108,7 +108,7 @@ export default {
 
         // If there is a default type, use it
         if (this.group.defaultType) {
-          const found = items.findIndex(i => i.name === this.group.defaultType);
+          const found = items.findIndex((i) => i.name === this.group.defaultType);
 
           index = (found === -1) ? 0 : found;
         }
@@ -146,7 +146,7 @@ export default {
           return true;
         } else if (item.route) {
           const navLevels = ['cluster', 'product', 'resource'];
-          const matchesNavLevel = navLevels.filter(param => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
+          const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
           const withoutHash = this.$route.hash ? this.$route.fullPath.slice(0, this.$route.fullPath.indexOf(this.$route.hash)) : this.$route.fullPath;
           const withoutQuery = withoutHash.split('?')[0];
 
@@ -202,11 +202,11 @@ export default {
           :to="group.children[0].route"
           :exact="group.children[0].exact"
         >
-          <h6 v-html="group.labelDisplay || group.label" />
+          <h6 v-clean-html="group.labelDisplay || group.label" />
         </n-link>
         <h6
           v-else
-          v-html="group.labelDisplay || group.label"
+          v-clean-html="group.labelDisplay || group.label"
         />
       </slot>
       <i

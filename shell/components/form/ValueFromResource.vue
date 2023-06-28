@@ -129,7 +129,7 @@ export default {
       if (this.namespaced) {
         const map = this.$store.getters.namespaces();
 
-        return Object.keys(map).filter(key => map[key]);
+        return Object.keys(map).filter((key) => map[key]);
       } else {
         const inStore = this.$store.getters['currentStore'](NAMESPACE);
 
@@ -139,9 +139,9 @@ export default {
 
     sourceOptions() {
       if (this.type === 'configMapKeyRef' || this.type === 'configMapRef') {
-        return this.allConfigMaps.filter(map => this.namespaces.includes(map?.metadata?.namespace));
+        return this.allConfigMaps.filter((map) => this.namespaces.includes(map?.metadata?.namespace));
       } else if (this.type === 'secretRef' || this.type === 'secretKeyRef') {
-        return this.allSecrets.filter(secret => this.namespaces.includes(secret?.metadata?.namespace));
+        return this.allSecrets.filter((secret) => this.namespaces.includes(secret?.metadata?.namespace));
       } else {
         return [];
       }
@@ -359,15 +359,16 @@ export default {
         />
       </div>
     </template>
-
-    <button
-      v-if="!isView"
-      type="button"
-      class="btn btn-sm role-link"
-      @click.stop="$emit('remove')"
-    >
-      {{ t('generic.remove') }}
-    </button>
+    <div class="remove">
+      <button
+        v-if="!isView"
+        type="button"
+        class="btn role-link"
+        @click.stop="$emit('remove')"
+      >
+        {{ t('generic.remove') }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -381,6 +382,10 @@ export default {
 
   .single-value {
     grid-column: span 2;
+  }
+
+  .remove BUTTON {
+    padding: 0px;
   }
 }
 

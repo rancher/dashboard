@@ -103,7 +103,7 @@ export default {
           if (url) {
             this.$store.dispatch('management/create', {
               type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'csp', default: ''
-            }).then(setting => setting.save());
+            }).then((setting) => setting.save());
           }
         }
       } else if (!neu) {

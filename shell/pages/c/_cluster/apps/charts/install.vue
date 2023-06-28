@@ -32,6 +32,7 @@ import { CATALOG as CATALOG_ANNOTATIONS, PROJECT } from '@shell/config/labels-an
 
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { clone, diff, get, set } from '@shell/utils/object';
+import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
@@ -92,12 +93,16 @@ export default {
     */
     await this.fetchChart();
 
+    await this.fetchAutoInstallInfo();
     this.errors = [];
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
-    this.clusterRegistry = await this.getClusterRegistry();
-    this.globalRegistry = await this.getGlobalRegistry();
-    this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
+    if (this.showCustomRegistry) {
+      // Note: Cluster scoped registry is only supported for node driver clusters
+      this.clusterRegistry = await this.getClusterRegistry();
+      this.globalRegistry = await this.getGlobalRegistry();
+      this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
+    }
 
     this.serverUrlSetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -282,13 +287,20 @@ export default {
       */
       this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
 
-      const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
+      if (this.showCustomRegistry) {
+        /**
+         * The input to configure the registry should never be
+         * shown for third-party charts, which don't have Rancher
+         * global values.
+         */
+        const existingRegistry = this.chartValues?.global?.systemDefaultRegistry || this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-      delete this.chartValues?.global?.systemDefaultRegistry;
-      delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
+        delete this.chartValues?.global?.systemDefaultRegistry;
+        delete this.chartValues?.global?.cattle?.systemDefaultRegistry;
 
-      this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
-      this.showCustomRegistryInput = !!this.customRegistrySetting;
+        this.customRegistrySetting = existingRegistry || this.defaultRegistrySetting;
+        this.showCustomRegistryInput = !!this.customRegistrySetting;
+      }
 
       /* Serializes an object as a YAML document */
       this.valuesYaml = saferDump(this.chartValues);
@@ -350,6 +362,7 @@ export default {
       migratedApp:            false,
       defaultCmdOpts,
       customCmdOpts:          { ...defaultCmdOpts },
+      autoInstallInfo:        [],
 
       nameDisabled: false,
 
@@ -415,6 +428,13 @@ export default {
     ...mapGetters({ inStore: 'catalog/inStore', features: 'features/get' }),
     mcm: mapFeature(MULTI_CLUSTER),
 
+    /**
+     * Return list of variables to filter chart questions
+     */
+    ignoreVariables() {
+      return ignoreVariables(this.currentCluster, this.versionInfo);
+    },
+
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -434,7 +454,7 @@ export default {
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-      const out = projects.filter(x => x.spec.clusterName === cluster?.id).map((project) => {
+      const out = projects.filter((x) => x.spec.clusterName === cluster?.id).map((project) => {
         return {
           id:    project.id,
           label: project.nameDisplay,
@@ -522,6 +542,10 @@ export default {
       return this.formYamlOption === VALUES_STATE.YAML || ( !this.valuesComponent && !this.hasQuestions );
     },
 
+    showingYamlDiff() {
+      return this.formYamlOption === VALUES_STATE.DIFF;
+    },
+
     formYamlOptions() {
       const options = [];
 
@@ -574,19 +598,19 @@ export default {
     diffMode: mapPref(DIFF),
 
     step1Description() {
-      const descriptionKey = this.steps.find(s => s.name === 'basics').descriptionKey;
+      const descriptionKey = this.steps.find((s) => s.name === 'basics').descriptionKey;
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
 
     step2Description() {
-      const descriptionKey = this.steps.find(s => s.name === 'helmValues').descriptionKey;
+      const descriptionKey = this.steps.find((s) => s.name === 'helmValues').descriptionKey;
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
 
     step3Description() {
-      const descriptionKey = this.steps.find(s => s.name === 'helmCli').descriptionKey;
+      const descriptionKey = this.steps.find((s) => s.name === 'helmCli').descriptionKey;
 
       return this.$store.getters['i18n/withFallback'](descriptionKey, { action: this.action, existing: !!this.existing }, '');
     },
@@ -658,6 +682,22 @@ export default {
       }
 
       return null;
+    },
+
+    /**
+     * Check if the chart contains `systemDefaultRegistry` properties.
+     * If not we shouldn't apply the setting, because if the option
+     * is exposed for third-party Helm charts, it confuses users because
+     * it shows a private registry setting that is never used
+     * by the chart they are installing. If not hidden, the setting
+     * does nothing, and if the user changes it, it will look like
+     * there is a bug in the UI when it doesn't work, because UI is
+     * exposing a feature that the chart does not have.
+     */
+    showCustomRegistry() {
+      const global = this.versionInfo?.values?.global || {};
+
+      return global.systemDefaultRegistry !== undefined || global.cattle?.systemDefaultRegistry !== undefined;
     },
 
   },
@@ -754,7 +794,7 @@ export default {
   },
 
   beforeDestroy() {
-    this.shownReadmeWindows.forEach(name => this.$store.dispatch('wm/close', name, { root: true }));
+    this.shownReadmeWindows.forEach((name) => this.$store.dispatch('wm/close', name, { root: true }));
   },
 
   methods: {
@@ -763,13 +803,13 @@ export default {
 
       if (hasPermissionToSeeProvCluster) {
         const mgmCluster = this.$store.getters['currentCluster'];
-        const provCluster = mgmCluster ? await this.$store.dispatch('management/find', {
+        const provCluster = mgmCluster?.provClusterId ? await this.$store.dispatch('management/find', {
           type: CAPI.RANCHER_CLUSTER,
           id:   mgmCluster.provClusterId
         }) : {};
 
         if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
-          const agentConfig = provCluster.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+          const agentConfig = provCluster.spec?.rkeConfig?.machineSelectorConfig?.find((x) => !x.machineLabelSelector).config;
 
           // If a cluster scoped registry exists,
           // it should be used by default.
@@ -782,7 +822,7 @@ export default {
         if (provCluster.isRke1) {
           // For RKE1 clusters, the cluster scoped private registry is on the management
           // cluster, not the provisioning cluster.
-          const rke1Registries = mgmCluster.spec.rancherKubernetesEngineConfig.privateRegistries;
+          const rke1Registries = mgmCluster.spec?.rancherKubernetesEngineConfig?.privateRegistries;
 
           if (rke1Registries?.length > 0) {
             const defaultRegistry = rke1Registries.find((registry) => {
@@ -814,10 +854,8 @@ export default {
     },
 
     async loadValuesComponent() {
-      // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart.
-
       // The const component is a string, for example, 'monitoring'.
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
       // Load a values component for the UI if it is named in the Helm chart.
       if ( component ) {
@@ -842,12 +880,12 @@ export default {
     },
 
     async loadChartSteps() {
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
       if ( component ) {
         const steps = await this.$store.getters['catalog/chartSteps'](component);
 
-        this.customSteps = await Promise.all( steps.map(cs => this.loadChartStep(cs)));
+        this.customSteps = await Promise.all( steps.map((cs) => this.loadChartStep(cs)));
       }
     },
 
@@ -967,7 +1005,7 @@ export default {
 
       const cluster = this.currentCluster;
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
-      const systemProjectId = projects.find(p => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
+      const systemProjectId = projects.find((p) => p.spec?.displayName === 'System')?.id?.split('/')?.[1] || '';
 
       const serverUrl = this.serverUrlSetting?.value || '';
       const isWindows = (cluster?.workerOSs || []).includes(WINDOWS);
@@ -976,8 +1014,11 @@ export default {
 
       setIfNotSet(cattle, 'clusterId', cluster?.id);
       setIfNotSet(cattle, 'clusterName', cluster?.nameDisplay);
-      set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
-      set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+
+      if (this.showCustomRegistry) {
+        set(cattle, 'systemDefaultRegistry', this.customRegistrySetting);
+        set(global, 'systemDefaultRegistry', this.customRegistrySetting);
+      }
 
       setIfNotSet(global, 'cattle.systemProjectId', systemProjectId);
       setIfNotSet(cattle, 'url', serverUrl);
@@ -1062,7 +1103,7 @@ export default {
 
       const errors = [];
 
-      if ( this.showingYaml ) {
+      if ( this.showingYaml || this.showingYamlDiff ) {
         const { errors: yamlErrors } = this.applyYamlToValues();
 
         errors.push(...yamlErrors);
@@ -1079,6 +1120,7 @@ export default {
         Refer to the developer docs at docs/developer/helm-chart-apps.md
         for details on what values are injected and where they come from.
       */
+
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
@@ -1134,56 +1176,7 @@ export default {
 
       const more = [];
 
-      /*
-        An example value for auto is ["rancher-monitoring-crd=match"].
-        It is an array of chart names that lets Rancher know of other
-        charts that should be auto-installed at the same time.
-      */
-      let auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
-
-      for ( const constraint of auto ) {
-        const provider = this.$store.getters['catalog/versionSatisfying']({
-          constraint,
-          repoName:     this.chart.repoName,
-          repoType:     this.chart.repoType,
-          chartVersion: this.version.version,
-        });
-
-        /*
-         An example return value for "provider":
-        [
-            {
-                "name": "rancher-monitoring-crd",
-                "version": "100.1.3+up19.0.3",
-                "description": "Installs the CRDs for rancher-monitoring.",
-                "apiVersion": "v1",
-                "annotations": {
-                    "catalog.cattle.io/certified": "rancher",
-                    "catalog.cattle.io/hidden": "true",
-                    "catalog.cattle.io/namespace": "cattle-monitoring-system",
-                    "catalog.cattle.io/release-name": "rancher-monitoring-crd"
-                },
-                "type": "application",
-                "urls": [
-                    "https://192.168.0.18:8005/k8s/clusters/c-m-hhpg69fv/v1/catalog.cattle.io.clusterrepos/rancher-charts?chartName=rancher-monitoring-crd&link=chart&version=100.1.3%2Bup19.0.3"
-                ],
-                "created": "2022-04-27T10:04:18.343124-07:00",
-                "digest": "ecf07ba23a9cdaa7ffbbb14345d94ea1240b7f3b8e0ce9be4640e3e585c484e2",
-                "key": "cluster/rancher-charts/rancher-monitoring-crd/100.1.3+up19.0.3",
-                "repoType": "cluster",
-                "repoName": "rancher-charts"
-            }
-        ]
-        */
-
-        if ( provider ) {
-          more.push(provider);
-        } else {
-          errors.push(`This chart requires ${ constraint } but no matching chart was found`);
-        }
-      }
-
-      auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+      const auto = (this.version?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL_GVK] || '').split(/\s*,\s*/).filter((x) => !!x).reverse();
 
       for ( const gvr of auto ) {
         const provider = this.$store.getters['catalog/versionProviding']({
@@ -1199,9 +1192,33 @@ export default {
         }
       }
 
+      /* Chart custom UI components have the ability to edit CRD chart values eg gatekeeper-crd has values.enableRuntimeDefaultSeccompProfile
+        like the main chart, only CRD values that differ from defaults should be sent on install/upgrade
+        CRDs should be installed with the same global values as the main chart
+      */
+      for (const versionInfo of this.autoInstallInfo) {
+        // allValues are the values potentially changed in the installation ui: any previously customized values + defaults
+        // values are default values from the chart
+        const { allValues, values: crdValues } = versionInfo;
+
+        // only save crd values that differ from the defaults defined in chart values.yaml
+        const customizedCrdValues = diff(crdValues, allValues);
+
+        // CRD globals should be overwritten by main chart globals
+        // we want to avoid including globals present on crd values and not main chart values
+        // that covers the scenario where a global value was customized on a previous install (and so is present in crd global vals) and the user has reverted it to default on this update (no longer present in main chart global vals)
+        const crdValuesToInstall = { ...customizedCrdValues, global: values.global };
+
+        out.charts.unshift({
+          chartName:   versionInfo.chart.name,
+          version:     versionInfo.chart.version,
+          releaseName: versionInfo.chart.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || chart.name,
+          projectId:   this.project,
+          values:      crdValuesToInstall
+        });
+      }
       /*
-        'more' contains the values for the CRD chart, which needs the same
-        global and cattle values as the chart. It could also contain additional
+        'more' contains additional
         charts that may not be CRD charts but are also meant to be installed at
         the same time.
       */
@@ -1250,7 +1267,7 @@ export default {
     },
 
     updateStep(stepName, update) {
-      const step = this.steps.find(step => step.name === stepName);
+      const step = this.steps.find((step) => step.name === stepName);
 
       if (step) {
         for (const prop in update) {
@@ -1266,7 +1283,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div
     v-else-if="!legacyApp && !mcapp"
-    class="install-steps"
+    class="install-steps pt-20"
     :class="{ 'isPlainLayout': isPlainLayout}"
   >
     <TypeDescription resource="chart" />
@@ -1279,6 +1296,7 @@ export default {
       :banner-title-subtext="stepperSubtext"
       :finish-mode="action"
       class="wizard"
+      :class="{'windowsIncompatible': windowsIncompatible}"
       @cancel="cancel"
       @finish="finish"
     >
@@ -1316,13 +1334,15 @@ export default {
             color="info"
             class="description"
           >
-            <span>{{ step1Description }}</span>
-            <span
-              v-if="namespaceNewAllowed"
-              class="mt-10"
-            >
-              {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
-            </span>
+            <div>
+              <span>{{ step1Description }}</span>
+              <span
+                v-if="namespaceNewAllowed"
+                class="mt-10"
+              >
+                {{ t('catalog.install.steps.basics.nsCreationDescription', {}, true) }}
+              </span>
+            </div>
           </Banner>
           <div
             v-if="requires.length || warnings.length"
@@ -1333,7 +1353,7 @@ export default {
               :key="msg"
               color="error"
             >
-              <span v-html="msg" />
+              <span v-clean-html="msg" />
             </Banner>
 
             <Banner
@@ -1341,7 +1361,7 @@ export default {
               :key="msg"
               color="warning"
             >
-              <span v-html="msg" />
+              <span v-clean-html="msg" />
             </Banner>
           </div>
           <div
@@ -1417,6 +1437,7 @@ export default {
           />
 
           <Checkbox
+            v-if="showCustomRegistry"
             v-model="showCustomRegistryInput"
             class="mb-20"
             :label="t('catalog.chart.registry.custom.checkBoxLabel')"
@@ -1440,10 +1461,11 @@ export default {
 &nbsp;
           </div>
           <Banner
-            v-if="isNamespaceNew"
+            v-if="isNamespaceNew && value.metadata.namespace.length"
             color="info"
-            v-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) "
-          />
+          >
+            <div v-clean-html="t('catalog.install.steps.basics.createNamespace', {namespace: value.metadata.namespace}, true) " />
+          </Banner>
         </div>
       </template>
       <template #clusterTplVersion>
@@ -1490,6 +1512,7 @@ export default {
         <div class="step__values__controls">
           <ButtonGroup
             v-model="preFormYamlOption"
+            data-testid="btn-group-options-view"
             :options="formYamlOptions"
             inactive-class="bg-disabled btn-sm"
             active-class="bg-primary btn-sm"
@@ -1518,9 +1541,10 @@ export default {
             </button>
           </div>
         </div>
+
         <div class="scroll__container">
           <div class="scroll__content">
-            <!-- Values (as Custom Component) -->
+            <!-- Values (as Custom Component in ./shell/charts/) -->
             <template v-if="valuesComponent && showValuesComponent">
               <Tabbed
                 v-if="componentHasTabs"
@@ -1539,6 +1563,7 @@ export default {
                   :existing="existing"
                   :version="version"
                   :version-info="versionInfo"
+                  :auto-install-info="autoInstallInfo"
                   @warn="e=>errors.push(e)"
                   @register-before-hook="registerBeforeHook"
                   @register-after-hook="registerAfterHook"
@@ -1555,13 +1580,15 @@ export default {
                   :existing="existing"
                   :version="version"
                   :version-info="versionInfo"
+                  :auto-install-info="autoInstallInfo"
                   @warn="e=>errors.push(e)"
                   @register-before-hook="registerBeforeHook"
                   @register-after-hook="registerAfterHook"
                 />
               </template>
             </template>
-            <!-- Values (as Questions)  -->
+
+            <!-- Values (as Questions, abstracted component based on question.yaml configuration from repositories)  -->
             <Tabbed
               v-else-if="hasQuestions && showQuestions"
               ref="tabs"
@@ -1575,6 +1602,7 @@ export default {
                 :in-store="inStore"
                 :mode="mode"
                 :source="versionInfo"
+                :ignore-variables="ignoreVariables"
                 tabbed="multiple"
                 :target-namespace="targetNamespace"
               />
@@ -1700,7 +1728,7 @@ export default {
         {{ t('catalog.install.steps.helmValues.chartInfo.label') }}
         <div class="slideIn__header__buttons">
           <div
-            v-tooltip="t('catalog.install.slideIn.dock')"
+            v-clean-tooltip="t('catalog.install.slideIn.dock')"
             class="slideIn__header__button"
             @click="showSlideIn = false; showReadmeWindow()"
           >
@@ -1756,7 +1784,6 @@ export default {
           </div>
         </div>
       </div>
-
       <Banner
         color="warning"
         class="description"
@@ -1765,17 +1792,17 @@ export default {
           {{ t('catalog.install.error.legacy.label', { legacyType: mcapp ? legacyDefs.mcm : legacyDefs.legacy }, true) }}
         </span>
         <template v-if="!legacyEnabled">
-          <span v-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
+          <span v-clean-html="t('catalog.install.error.legacy.enableLegacy.prompt', true)" />
           <nuxt-link :to="legacyFeatureRoute">
             {{ t('catalog.install.error.legacy.enableLegacy.goto') }}
           </nuxt-link>
         </template>
         <template v-else-if="mcapp">
-          <span v-html="t('catalog.install.error.legacy.mcmNotSupported')" />
+          <span v-clean-html="t('catalog.install.error.legacy.mcmNotSupported')" />
         </template>
         <template v-else>
           <nuxt-link :to="legacyAppRoute">
-            <span v-html="t('catalog.install.error.legacy.navigate')" />
+            <span v-clean-html="t('catalog.install.error.legacy.navigate')" />
           </nuxt-link>
         </template>
       </Banner>
@@ -1790,7 +1817,7 @@ export default {
 
   .install-steps {
     padding-top: 0;
-
+    height: 0;
     position: relative;
     overflow: hidden;
 
@@ -1814,7 +1841,6 @@ export default {
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
       position: relative;
-      margin-bottom: 15px
     }
 
     .logo {
@@ -1829,6 +1855,22 @@ export default {
       left: 0;
       margin: auto;
     }
+
+    // Hack - We're adding an absolute tag under the logo that we want to consume space without breaking vertical alignment of row.
+    // W  ith the slots available this isn't possible without adding tag specific styles to the root wizard classes
+    &.windowsIncompatible {
+      ::v-deep .header {
+        padding-bottom: 15px;
+      }
+    }
+
+    .os-label {
+      position: absolute;
+      background-color: var(--warning-banner-bg);
+      color:var(--warning);
+      margin-top: 5px;
+    }
+
   }
 
   .step {
@@ -1934,17 +1976,17 @@ export default {
   .scroll {
     &__container {
       $yaml-height: 200px;
+      min-height: $yaml-height;
+      margin-bottom: 60px;
+      overflow: auto;
       display: flex;
       flex: 1;
-      min-height: $yaml-height;
-      height: 0;
     }
     &__content {
       display: flex;
       flex: 1;
       overflow: auto;
     }
-
   }
 
   ::v-deep .yaml-editor {
@@ -1954,8 +1996,8 @@ export default {
 .outer-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
   padding: 0;
+  overflow: auto;
 }
 
 .header {
@@ -2025,13 +2067,6 @@ export default {
       }
     }
   }
-}
-
-.os-label {
-  position: absolute;
-  background-color: var(--warning-banner-bg);
-  color:var(--warning);
-  margin-top: 5px;
 }
 
 </style>

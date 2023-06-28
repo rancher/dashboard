@@ -96,9 +96,8 @@ export default class GitRepo extends SteveModel {
     const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const clusters = workspace?.clusters || [];
     const groups = workspace?.clusterGroups || [];
-    const out = [];
 
-    if ( workspace.id === 'fleet-local' ) {
+    if ( workspace?.id === 'fleet-local' ) {
       const local = findBy(groups, 'id', 'fleet-local/default');
 
       if ( local ) {
@@ -107,6 +106,12 @@ export default class GitRepo extends SteveModel {
 
       return [];
     }
+
+    if (!this.spec.targets) {
+      return [];
+    }
+
+    const out = [];
 
     for ( const tgt of this.spec.targets ) {
       if ( tgt.clusterName ) {
@@ -300,14 +305,14 @@ export default class GitRepo extends SteveModel {
   get bundles() {
     const all = this.$getters['all'](FLEET.BUNDLE);
 
-    return all.filter(bundle => bundle.name.startsWith(`${ this.name }-`) &&
+    return all.filter((bundle) => bundle.name.startsWith(`${ this.name }-`) &&
       bundle.namespace === this.namespace &&
       bundle.namespacedName.startsWith(`${ this.namespace }:${ this.name }`));
   }
 
   get bundlesReady() {
     if (this.bundles && this.bundles.length) {
-      return this.bundles.filter(bundle => bundle.state === 'active');
+      return this.bundles.filter((bundle) => bundle.state === 'active');
     }
 
     return 0;
@@ -316,7 +321,7 @@ export default class GitRepo extends SteveModel {
   get bundleDeployments() {
     const bds = this.$getters['all'](FLEET.BUNDLE_DEPLOYMENT);
 
-    return bds.filter(bd => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
+    return bds.filter((bd) => bd.metadata?.labels?.['fleet.cattle.io/repo-name'] === this.name);
   }
 
   get clustersList() {

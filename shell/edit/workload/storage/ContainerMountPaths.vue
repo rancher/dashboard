@@ -1,5 +1,4 @@
 <script>
-import { PVC } from '@shell/config/types';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import Mount from '@shell/edit/workload/storage/Mount';
 import { _VIEW } from '@shell/config/query-params';
@@ -34,20 +33,11 @@ export default {
     },
   },
 
-  async fetch() {
-    if ( this.$store.getters['cluster/schemaFor'](PVC) ) {
-      this.pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
-    } else {
-      this.pvcs = [];
-    }
-  },
-
   data() {
     this.initializeStorage();
 
     return {
       containerVolumes:         [],
-      pvcs:                     [],
       storageVolumes:           this.getStorageVolumes(),
       selectedContainerVolumes: this.getSelectedContainerVolumes()
     };
@@ -59,9 +49,9 @@ export default {
     },
 
     availableVolumeOptions() {
-      const containerVolumes = this.container.volumeMounts.map(item => item.name);
+      const containerVolumes = this.container.volumeMounts.map((item) => item.name);
 
-      return this.value.volumes.filter(vol => !containerVolumes.includes(vol.name)).map((item) => {
+      return this.value.volumes.filter((vol) => !containerVolumes.includes(vol.name)).map((item) => {
         return {
           label:  `${ item.name } (${ this.headerFor(item) })`,
           action: this.selectVolume,
@@ -84,15 +74,15 @@ export default {
         return all;
       }, []);
 
-      this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
+      this.container.volumeMounts = this.container.volumeMounts.filter((mount) => names.includes(mount.name));
     },
 
     selectedContainerVolumes(neu, old) {
       // removeObjects(this.value.volumes, old);
       // addObjects(this.value.volumes, neu);
-      const names = neu.map(item => item.name);
+      const names = neu.map((item) => item.name);
 
-      this.container.volumeMounts = this.container.volumeMounts.filter(mount => names.includes(mount.name));
+      this.container.volumeMounts = this.container.volumeMounts.filter((mount) => names.includes(mount.name));
     }
 
   },
@@ -119,7 +109,7 @@ export default {
       const names = volumeMounts.map(({ name }) => name);
 
       // Extract storage volumes to allow mutation, if matches mount map
-      return this.value.volumes.filter(volume => names.includes(volume.name));
+      return this.value.volumes.filter((volume) => names.includes(volume.name));
     },
 
     getSelectedContainerVolumes() {
@@ -128,7 +118,7 @@ export default {
       const names = volumeMounts.map(({ name }) => name);
 
       // Extract storage volumes to allow mutation, if matches mount map
-      return this.value.volumes.filter(volume => names.includes(volume.name));
+      return this.value.volumes.filter((volume) => names.includes(volume.name));
     },
 
     /**
@@ -141,7 +131,7 @@ export default {
     },
 
     selectVolume(event) {
-      const selectedVolume = this.value.volumes.find(vol => vol.name === event.value);
+      const selectedVolume = this.value.volumes.find((vol) => vol.name === event.value);
 
       this.selectedContainerVolumes.push(selectedVolume);
 
@@ -178,7 +168,7 @@ export default {
 
     headerFor(value) {
       const type = Object.keys(value).filter(
-        key => typeof value[key] === 'object'
+        (key) => typeof value[key] === 'object'
       )[0];
 
       if (

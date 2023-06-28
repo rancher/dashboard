@@ -14,9 +14,9 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
-import ProjectMembershipEditor from '@shell/components/form/Members/ProjectMembershipEditor';
-import { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor.vue';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import ProjectMembershipEditor, { canViewProjectMembershipEditor } from '@shell/components/form/Members/ProjectMembershipEditor';
+
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
 
 export default {
@@ -29,6 +29,11 @@ export default {
     if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
       this.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
     }
+
+    // User can only change the PSP if the user has permissions to see the binding schema for PSP Templates
+    const pspBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.PSP_TEMPLATE_BINDING);
+
+    this.canEditPSPBindings = !!pspBindingSchema;
   },
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
@@ -52,6 +57,7 @@ export default {
       HARVESTER_TYPES,
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
+      canEditPSPBindings: true,
     };
   },
   computed: {
@@ -103,7 +109,7 @@ export default {
 
       const cur = this.value.status?.podSecurityPolicyTemplateId;
 
-      if ( cur && !out.find(x => x.value === cur) ) {
+      if ( cur && !out.find((x) => x.value === cur) ) {
         out.unshift({ label: this.t('project.psp.current', { value: cur }), value: cur });
       }
 
@@ -146,6 +152,13 @@ export default {
         } else if (this.mode === _EDIT) {
           if (this.canEditProject) {
             await this.value.save(true);
+
+            // We updated the Norman resource - re-fetch the Steve resource so we know it is definitely updated in the store
+            await this.$store.dispatch('management/find', {
+              type: MANAGEMENT.PROJECT,
+              id:   this.value.id,
+              opt:  { force: true }
+            });
           }
 
           // // we allow users with permissions for projectroletemplatebindings to be able to manage members on projects
@@ -218,6 +231,7 @@ export default {
           class="psp"
           :mode="mode"
           :options="pspOptions"
+          :disabled="!canEditPSPBindings"
           :label="t('project.psp.label')"
         />
       </div>

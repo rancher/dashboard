@@ -92,19 +92,19 @@ export default {
     sortedTabs(tabs) {
       const {
         defaultTab,
-        useHash,
-        $route: { hash }
+        useHash
       } = this;
-      const activeTab = tabs.find(t => t.active);
+      const activeTab = tabs.find((t) => t.active);
 
-      const windowHash = hash.slice(1);
-      const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
+      const hash = useHash ? this.$route.hash : undefined;
+      const windowHash = useHash ? hash.slice(1) : undefined;
+      const windowHashTabMatch = tabs.find((t) => t.name === windowHash && !t.active);
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
         if (useHash && !isEmpty(windowHashTabMatch)) {
           this.select(windowHashTabMatch.name);
-        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
+        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find((t) => t.name === defaultTab))) {
           this.select(defaultTab);
         } else if (firstTab?.name) {
           this.select(firstTab.name);
@@ -144,15 +144,11 @@ export default {
     },
 
     find(name) {
-      return this.sortedTabs.find(x => x.name === name );
+      return this.sortedTabs.find((x) => x.name === name );
     },
 
     select(name/* , event */) {
-      const {
-        sortedTabs,
-        $route: { hash: routeHash },
-        $router: { currentRoute },
-      } = this;
+      const { sortedTabs } = this;
 
       const selected = this.find(name);
       const hashName = `#${ name }`;
@@ -160,13 +156,22 @@ export default {
       if ( !selected || selected.disabled) {
         return;
       }
+      /**
+       * Exclude logic with URL anchor (hash) for projects without routing logic (vue-router)
+       */
+      if ( this.useHash ) {
+        const {
+          $route: { hash: routeHash },
+          $router: { currentRoute },
+        } = this;
 
-      if (this.useHash && routeHash !== hashName) {
-        const kurrentRoute = { ...currentRoute };
+        if (this.useHash && routeHash !== hashName) {
+          const kurrentRoute = { ...currentRoute };
 
-        kurrentRoute.hash = hashName;
+          kurrentRoute.hash = hashName;
 
-        this.$router.replace(kurrentRoute);
+          this.$router.replace(kurrentRoute);
+        }
       }
 
       for ( const tab of sortedTabs ) {
@@ -179,7 +184,7 @@ export default {
 
     selectNext(direction) {
       const { sortedTabs } = this;
-      const currentIdx = sortedTabs.findIndex(x => x.active);
+      const currentIdx = sortedTabs.findIndex((x) => x.active);
       const nextIdx = getCyclicalIdx(currentIdx, direction, sortedTabs.length);
       const nextName = sortedTabs[nextIdx].name;
 
@@ -203,13 +208,13 @@ export default {
     },
 
     tabAddClicked() {
-      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+      const activeTabIndex = findIndex(this.tabs, (tab) => tab.active);
 
       this.$emit('addTab', activeTabIndex);
     },
 
     tabRemoveClicked() {
-      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+      const activeTabIndex = findIndex(this.tabs, (tab) => tab.active);
 
       this.$emit('removeTab', activeTabIndex);
     },
@@ -234,10 +239,12 @@ export default {
         v-for="tab in sortedTabs"
         :id="tab.name"
         :key="tab.name"
+        :data-testid="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled, error: (tab.error)}"
         role="presentation"
       >
         <a
+          :data-testid="`btn-${tab.name}`"
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
           role="tab"
@@ -250,8 +257,8 @@ export default {
           >{{ tab.badge }}</span>
           <i
             v-if="hasIcon(tab)"
-            v-tooltip="t('validation.tab')"
-            class="conditions-alert-icon icon-error icon-lg"
+            v-clean-tooltip="t('validation.tab')"
+            class="conditions-alert-icon icon-error"
           />
         </a>
       </li>
@@ -274,7 +281,7 @@ export default {
             class="btn bg-transparent"
             @click="tabAddClicked"
           >
-            <i class="icon icon-plus icon-lg" />
+            <i class="icon icon-plus" />
           </button>
           <button
             type="button"
@@ -282,7 +289,7 @@ export default {
             :disabled="!sortedTabs.length"
             @click="tabRemoveClicked"
           >
-            <i class="icon icon-minus icon-lg" />
+            <i class="icon icon-minus" />
           </button>
         </li>
       </ul>

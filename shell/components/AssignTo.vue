@@ -34,7 +34,7 @@ export default {
     ...mapGetters(['workspace']),
 
     workspaceOptions() {
-      const out = this.allWorkspaces.map(x => x.metadata?.name).filter(x => !!x && x !== 'fleet-local');
+      const out = this.allWorkspaces.map((x) => x.metadata?.name).filter((x) => !!x && x !== 'fleet-local');
 
       return out;
     },
@@ -118,8 +118,8 @@ export default {
     >
       <h4
         slot="title"
+        v-clean-html="t('assignTo.title', {count: resourceCount}, true)"
         class="text-default-text"
-        v-html="t('assignTo.title', {count: resourceCount}, true)"
       />
 
       <div

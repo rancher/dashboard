@@ -3,7 +3,8 @@ import {
   CAPI,
   CATALOG,
   NORMAN,
-  HCI
+  HCI,
+  MANAGEMENT
 } from '@shell/config/types';
 import { MULTI_CLUSTER } from '@shell/store/features';
 import { DSL } from '@shell/store/type-map';
@@ -54,7 +55,7 @@ export function init(store) {
     name:       'pod-security-policies',
     group:      'Root',
     namespaced: false,
-    weight:     0,
+    weight:     5,
     icon:       'folder',
     route:      { name: 'c-cluster-manager-pages-page', params: { cluster: 'local', page: 'pod-security-policies' } },
     exact:      true
@@ -119,12 +120,15 @@ export function init(store) {
   weightType(CAPI.MACHINE_SET, 2, true);
   weightType(CAPI.MACHINE, 1, true);
   weightType(CATALOG.CLUSTER_REPO, 0, true);
+  weightType(MANAGEMENT.PSA, 5, true);
 
   basicType([
     CAPI.MACHINE_DEPLOYMENT,
     CAPI.MACHINE_SET,
     CAPI.MACHINE,
     CATALOG.CLUSTER_REPO,
+    'pod-security-policies',
+    MANAGEMENT.PSA
   ], 'advanced');
 
   weightGroup('advanced', -1, true);

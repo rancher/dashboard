@@ -1,11 +1,9 @@
-import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
-import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 /**
  * List component for provisioning.cattle.io.cluster resources
  */
-export default class ProvClusterListPo extends ComponentPo {
+export default class ProvClusterListPo extends BaseResourceList {
   explore(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(7)
       .find('.btn');
@@ -13,13 +11,5 @@ export default class ProvClusterListPo extends ComponentPo {
 
   actionMenu(clusterName: string) {
     return this.resourceTable().sortableTable().rowActionMenuOpen(clusterName, 8);
-  }
-
-  masthead() {
-    return new ResourceListMastheadPo(this.self());
-  }
-
-  resourceTable() {
-    return new ResourceTablePo(this.self());
   }
 }

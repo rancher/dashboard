@@ -141,7 +141,7 @@ export default {
           :step="1"
           class=" mt-20 mb-20"
         >
-          <h3 v-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
+          <h3 v-clean-html="t('authConfig.googleoauth.steps.1.title', tArgs, true)" />
           <ul class="mt-0 step-list">
             <li>{{ t('authConfig.googleoauth.steps.1.body.1', {}, true) }} </li>
             <li>
@@ -165,7 +165,7 @@ export default {
           class="mb-20"
         >
           <div class="row">
-            <h3 v-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
+            <h3 v-clean-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
           </div>
           <div class="row">
             <div class="col span-6">
@@ -211,11 +211,11 @@ export default {
           class="mb-20"
         >
           <div class="row">
-            <h3 v-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
+            <h3 v-clean-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
           </div>
           <div class="row">
             <div class="col span-6">
-              <div v-html="t('authConfig.googleoauth.steps.3.introduction', tArgs, true)" />
+              <div v-clean-html="t('authConfig.googleoauth.steps.3.introduction', tArgs, true)" />
               <ul class="mt-10 step-list">
                 <li>{{ t('authConfig.googleoauth.steps.3.body.1', {}, true) }} </li>
                 <li>{{ t('authConfig.googleoauth.steps.3.body.2', {}, true) }} </li>
@@ -246,10 +246,10 @@ export default {
           v-if="!model.enabled"
           class="row"
         >
-          <div class="col span-12">
+          <div class="col span-12 google">
             <Banner
+              v-clean-html="t('authConfig.associatedWarning', tArgs, true)"
               color="info"
-              v-html="t('authConfig.associatedWarning', tArgs, true)"
             />
           </div>
         </div>
@@ -260,5 +260,14 @@ export default {
 <style lang="scss" scoped>
   .step-list li:not(:last-child) {
     margin-bottom: 8px;
+  }
+
+  .banner {
+    display: block;
+
+    &::v-deep code {
+      padding: 0 3px;
+      margin: 0 3px;
+    }
   }
 </style>

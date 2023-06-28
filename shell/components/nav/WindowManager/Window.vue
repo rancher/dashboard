@@ -93,6 +93,8 @@ export default {
     vertical-align: middle;
     // line-height: $title-height - 4px;
     padding: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .body {

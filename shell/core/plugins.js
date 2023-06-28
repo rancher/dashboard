@@ -3,6 +3,7 @@ import { clearModelCache } from '@shell/plugins/dashboard-store/model-loader';
 import { Plugin } from './plugin';
 import { PluginRoutes } from './plugin-routes';
 import { UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
+import { ExtensionPoint } from './types';
 
 const MODEL_TYPE = 'models';
 
@@ -20,6 +21,12 @@ export default function({
   const plugins = {};
 
   const pluginRoutes = new PluginRoutes(app.router);
+
+  const uiConfig = {};
+
+  for (const ep in ExtensionPoint) {
+    uiConfig[ExtensionPoint[ep]] = {};
+  }
 
   inject('plugin', {
     // Plugins should not use these - but we will pass them in for now as a 2nd argument
@@ -65,7 +72,7 @@ export default function({
         element.async = true;
 
         // id is `<product>-<version>`.
-        const oldPlugin = Object.values(plugins).find(p => id.startsWith(p.name));
+        const oldPlugin = Object.values(plugins).find((p) => id.startsWith(p.name));
 
         let removed = Promise.resolve();
 
@@ -181,7 +188,7 @@ export default function({
 
     // Remove the plugin
     async removePlugin(name) {
-      const plugin = Object.values(plugins).find(p => p.name === name);
+      const plugin = Object.values(plugins).find((p) => p.name === name);
 
       if (!plugin) {
         return;
@@ -219,13 +226,13 @@ export default function({
       pluginRoutes.uninstall(plugin);
 
       // Call plugin uninstall hooks
-      plugin.uninstallHooks.forEach(fn => fn(plugin, this.internal()));
+      plugin.uninstallHooks.forEach((fn) => fn(plugin, this.internal()));
 
       // Remove the plugin itself
       promises.push( store.dispatch('uiplugins/removePlugin', name));
 
       // Unregister vuex stores
-      plugin.stores.forEach(pStore => pStore.unregister(store));
+      plugin.stores.forEach((pStore) => pStore.unregister(store));
 
       // Remove validators
       Object.keys(plugin.validators).forEach((key) => {
@@ -239,7 +246,7 @@ export default function({
     },
 
     removeTypeFromStore(store, storeName, types) {
-      return (types || []).map(type => store.commit(`${ storeName }/forgetType`, type));
+      return (types || []).map((type) => store.commit(`${ storeName }/forgetType`, type));
     },
 
     // Apply the plugin based on its metadata
@@ -248,6 +255,18 @@ export default function({
       Object.keys(plugin.types).forEach((typ) => {
         Object.keys(plugin.types[typ]).forEach((name) => {
           this.register(typ, name, plugin.types[typ][name]);
+        });
+      });
+
+      // UI Configuration - copy UI config from a plugin into the global uiConfig object
+      Object.keys(plugin.uiConfig).forEach((actionType) => {
+        Object.keys(plugin.uiConfig[actionType]).forEach((actionLocation) => {
+          plugin.uiConfig[actionType][actionLocation].forEach((action) => {
+            if (!uiConfig[actionType][actionLocation]) {
+              uiConfig[actionType][actionLocation] = [];
+            }
+            uiConfig[actionType][actionLocation].push(action);
+          });
         });
       });
 
@@ -264,7 +283,7 @@ export default function({
       }
 
       // Register vuex stores
-      plugin.stores.forEach(pStore => pStore.register()(store));
+      plugin.stores.forEach((pStore) => pStore.register()(store));
 
       // Locales
       plugin.locales.forEach((localeObj) => {
@@ -306,7 +325,7 @@ export default function({
     unregister(type, name, fn) {
       if (type === 'l10n') {
         if (dynamic[type]?.[name]) {
-          const index = dynamic[type][name].find(func => func === fn);
+          const index = dynamic[type][name].find((func) => func === fn);
 
           if (index !== -1) {
             dynamic[type][name].splice(index, 1);
@@ -332,6 +351,20 @@ export default function({
 
     getValidator(name) {
       return validators[name];
+    },
+
+    /**
+     * Return the UI configuration for the given type and location
+     */
+    getUIConfig(type, uiArea) {
+      return uiConfig[type][uiArea] || [];
+    },
+
+    /**
+     * Returns all UI Configuration (useful for debugging)
+     */
+    getAllUIConfig() {
+      return uiConfig;
     },
 
     // Timestamp that a UI package was last loaded

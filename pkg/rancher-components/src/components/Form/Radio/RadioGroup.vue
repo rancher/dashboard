@@ -152,7 +152,7 @@ export default Vue.extend({
      */
     clickNext(direction: number): void {
       const opts = this.normalizedOptions;
-      const selected = opts.find(x => x.value === this.value);
+      const selected = opts.find((x) => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
 
       if (newIndex >= opts.length) {
@@ -184,12 +184,12 @@ export default Vue.extend({
           </template>
           <i
             v-if="tooltipKey"
-            v-tooltip="t(tooltipKey)"
+            v-clean-tooltip="t(tooltipKey)"
             class="icon icon-info icon-lg"
           />
           <i
             v-else-if="tooltip"
-            v-tooltip="tooltip"
+            v-clean-tooltip="tooltip"
             class="icon icon-info icon-lg"
           />
         </h3>
@@ -209,6 +209,7 @@ export default Vue.extend({
         <slot
           :listeners="$listeners"
           :option="option"
+          :is-disabled="isDisabled"
           :name="i"
         >
           <RadioButton

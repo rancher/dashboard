@@ -41,7 +41,10 @@ export default {
 <template>
   <div v-if="state">
     <span v-if="!showSuccess">/</span>
-    <BadgeState :label="vmiResource.migrationState.status" :color="vmiResource.migrationStateBackground" />
+    <BadgeState
+      :label="vmiResource.migrationState.status"
+      :color="vmiResource.migrationStateBackground"
+    />
   </div>
 </template>
 

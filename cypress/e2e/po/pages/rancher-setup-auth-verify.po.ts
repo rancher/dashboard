@@ -6,7 +6,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
 export class RancherSetupAuthVerifyPage extends PagePo {
-  static url: string = '/auth/login'
+  static url = '/auth/login'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(RancherSetupAuthVerifyPage.url);
   }
@@ -36,7 +36,7 @@ export class RancherSetupAuthVerifyPage extends PagePo {
   }
 
   canSubmit(): Cypress.Chainable<boolean> {
-    return this.submitButton().isDisabled().then(isDisabled => !isDisabled);
+    return this.submitButton().isDisabled().then((isDisabled) => !isDisabled);
   }
 
   submit(): Cypress.Chainable {

@@ -116,7 +116,7 @@ export default {
       return null;
     },
     memoryUnits() {
-      const exponent = exponentNeeded(this.value.ramCapacity, 1024);
+      const exponent = exponentNeeded(this.value.ramReserved, 1024);
 
       return `${ UNITS[exponent] }iB`;
     },
@@ -139,7 +139,7 @@ export default {
 
     infoTableRows() {
       return Object.keys(this.value.status.nodeInfo)
-        .map(key => ({
+        .map((key) => ({
           key:   this.t(`node.detail.tab.info.key.${ key }`),
           value: this.value.status.nodeInfo[key]
         }));
@@ -148,7 +148,7 @@ export default {
     imageTableRows() {
       const images = this.value.status.images || [];
 
-      return images.map(image => ({
+      return images.map((image) => ({
         // image.names[1] typically has the user friendly name but on occasion there's only one name and we should use that
         name:      image.names ? (image.names[1] || image.names[0]) : '---',
         sizeBytes: image.sizeBytes
@@ -231,7 +231,7 @@ export default {
       />
       <ConsumptionGauge
         :resource-name="t('node.detail.glance.consumptionGauge.memory')"
-        :capacity="value.ramCapacity"
+        :capacity="value.ramReserved"
         :used="value.ramUsage"
         :units="memoryUnits"
         :number-formatter="memoryFormatter"

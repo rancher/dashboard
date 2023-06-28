@@ -14,7 +14,7 @@ export default class CISReport extends SteveModel {
       return all;
     }, []) : null;
 
-    const sortableId = id => (id || '').split('.').map(n => +n + 1000).join('.');
+    const sortableId = (id) => (id || '').split('.').map((n) => +n + 1000).join('.');
     const sortableState = (state) => {
       const SORT_ORDER = {
         other:         7,

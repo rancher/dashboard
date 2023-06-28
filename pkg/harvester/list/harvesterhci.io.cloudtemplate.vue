@@ -4,7 +4,7 @@ import Loading from '@shell/components/Loading';
 import { CONFIG_MAP, SCHEMA } from '@shell/config/types';
 import { HCI } from '../types';
 import { NAME, AGE, NAMESPACE } from '@shell/config/table-headers';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 
 const schema = {
   id:         HCI.CLOUD_TEMPLATE,
@@ -25,7 +25,7 @@ export default {
 
     const configSchema = this.$store.getters['harvester/schemaFor'](CONFIG_MAP);
 
-    if (!configSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
+    if (!configSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post')) {
       this.$store.dispatch('type-map/configureType', { match: HCI.CLOUD_TEMPLATE, isCreatable: false });
     }
   },
@@ -50,7 +50,7 @@ export default {
     },
 
     filteredRows() {
-      return this.rows.filter(r => !!r.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT]);
+      return this.rows.filter((r) => !!r.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT]);
     },
 
     schema() {

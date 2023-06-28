@@ -1,0 +1,82 @@
+
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import Alert from '@shell/components/Alert';
+
+<Meta 
+  title="Components/Alert" 
+  component={Alert}
+  argTypes={{
+    status: {
+      options: ['success', 'warning', 'info', 'error'],
+      control: { type: 'select' }
+    }
+  }}
+/>
+
+export const Template = (args, { argTypes }) => ({
+  components: { Alert },
+  props:      Object.keys(argTypes),
+  template:   '<Alert v-bind="$props" />',
+})
+
+# Alert
+Use the Alert component to show the current status of another interface element or to display a notification.
+
+<br/>
+
+### Description
+
+- Don't use long texts within a Alert. Whenever possible, limit it to a maximum of 3 words or less. 
+- Color can be used to emphasize a status, to inform or to associate information.
+
+
+<Canvas>
+  <Story
+    name="Alert Success"
+    args={{
+      message: 'PID Pressure',
+      status: 'success',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Alert Warning"
+    args={{
+      message: 'Disk Pressure',
+      status: 'warning',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Alert Info"
+    args={{
+      message: 'Memory Pressure',
+      status: 'info',
+    }}>
+    {Template.bind({})}
+  </Story>
+  <Story
+    name="Alert Error"
+    args={{
+      message: 'kubelet',
+      status: 'error',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+     import Alert from '@shell/components/Alert';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={Alert} />
+

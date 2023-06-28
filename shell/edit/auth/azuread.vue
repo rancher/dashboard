@@ -179,7 +179,7 @@ export default {
 
     setInitialEndpoint(endpoint) {
       const newEndpointKey = this.determineEndpointKeyType(ENDPOINT_MAPPING);
-      const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find(key => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
+      const oldEndpointKey = Object.keys(OLD_ENDPOINTS).find((key) => OLD_ENDPOINTS[key].graphEndpoint === endpoint);
 
       if ( oldEndpointKey ) {
         this.endpoint = this.determineEndpointKeyType(OLD_ENDPOINTS);
@@ -193,8 +193,8 @@ export default {
       let out = 'custom';
 
       for ( const [endpointKey, endpointKeyValues] of Object.entries(endpointTypes) ) {
-        const mappedValues = Object.values(endpointKeyValues).map(endpoint => endpoint.replace(TENANT_ID_TOKEN, this.model?.tenantId));
-        const valuesToCheck = Object.keys(endpointKeyValues).map(key => this.value[key]);
+        const mappedValues = Object.values(endpointKeyValues).map((endpoint) => endpoint.replace(TENANT_ID_TOKEN, this.model?.tenantId));
+        const valuesToCheck = Object.keys(endpointKeyValues).map((key) => this.value[key]);
 
         if ( isEqual(mappedValues, valuesToCheck) ) {
           out = endpointKey;
@@ -219,8 +219,8 @@ export default {
 
     promptUpdate() {
       this.$store.dispatch('management/promptModal', {
-        component: 'GenericPrompt',
-        resources: [this.modalConfig]
+        component:      'GenericPrompt',
+        componentProps: this.modalConfig
       });
     },
 

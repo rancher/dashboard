@@ -139,7 +139,7 @@ export default {
       }
 
       // blocked-post means you can post through norman, but not through steve.
-      if ( this.schema && !this.schema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
+      if ( this.schema && !this.schema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
         return false;
       }
 
@@ -163,7 +163,7 @@ export default {
 </script>
 
 <template>
-  <header class="header-layout">
+  <header>
     <slot name="typeDescription">
       <TypeDescription :resource="resource" />
     </slot>
@@ -216,5 +216,9 @@ export default {
     h1 {
       margin: 0;
     }
+  }
+
+  header {
+    margin-bottom: 20px;
   }
 </style>

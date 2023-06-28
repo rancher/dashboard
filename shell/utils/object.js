@@ -43,7 +43,7 @@ export function getAllValues(obj, path) {
   keysInOrder.forEach((currentKey) => {
     currentValue = currentValue.map((indexValue) => {
       if (Array.isArray(indexValue)) {
-        return indexValue.map(arr => arr[currentKey]).flat();
+        return indexValue.map((arr) => arr[currentKey]).flat();
       } else if (indexValue) {
         return indexValue[currentKey];
       } else {
@@ -52,7 +52,7 @@ export function getAllValues(obj, path) {
     }).flat();
   });
 
-  return currentValue.filter(val => val !== null);
+  return currentValue.filter((val) => val !== null);
 }
 
 export function get(obj, path) {
@@ -131,7 +131,7 @@ export function isSimpleKeyValue(obj) {
   return obj !== null &&
     !Array.isArray(obj) &&
     typeof obj === 'object' &&
-    Object.values(obj || {}).every(v => typeof v !== 'object');
+    Object.values(obj || {}).every((v) => typeof v !== 'object');
 }
 
 /*
@@ -174,7 +174,7 @@ export function definedKeys(obj) {
     if ( Array.isArray(val) ) {
       return key;
     } else if ( isObject(val) ) {
-      return ( definedKeys(val) || [] ).map(subkey => `${ key }.${ subkey }`);
+      return ( definedKeys(val) || [] ).map((subkey) => `${ key }.${ subkey }`);
     } else {
       return key;
     }
@@ -353,3 +353,27 @@ export function applyChangeset(obj, changeset) {
 
   return obj;
 }
+
+/**
+ * Creates an object composed of the `object` properties `predicate` returns
+ */
+export function pickBy(obj = {}, predicate = (value, key) => false) {
+  return Object.entries(obj)
+    .reduce((res, [key, value]) => {
+      if (predicate(value, key)) {
+        res[key] = value;
+      }
+
+      return res;
+    }, {});
+}
+
+/**
+ * Convert list to dictionary from a given function
+ * @param {*} array
+ * @param {*} callback
+ * @returns
+ */
+export const toDictionary = (array, callback) => Object.assign(
+  {}, ...array.map((item) => ({ [item]: callback(item) }))
+);

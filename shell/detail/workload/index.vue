@@ -15,7 +15,7 @@ import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
 import PlusMinus from '@shell/components/form/PlusMinus';
-import { matches } from '~shell/utils/selector';
+import { matches } from '@shell/utils/selector';
 
 const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const WORKLOAD_METRICS_DETAIL_URL = '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-workload-pods-1/rancher-workload-pods?orgId=1';
@@ -108,8 +108,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
 
-    isActive() {
-      return this.value.metadata.state.name === 'active';
+    isScalable() {
+      return this.value?.canUpdate;
     },
 
     isJob() {
@@ -200,7 +200,7 @@ export default {
     },
 
     podHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.podSchema).filter(h => h !== NAMESPACE_COL);
+      return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => h !== NAMESPACE_COL);
     },
 
     graphVarsWorkload() {
@@ -219,14 +219,14 @@ export default {
       const podGauges = Object.values(this.value.podGauges);
       const total = this.value.pods.length;
 
-      return !podGauges.find(pg => pg.count === total);
+      return !podGauges.find((pg) => pg.count === total);
     },
 
     showJobGaugeCircles() {
       const jobGauges = Object.values(this.value.jobGauges);
       const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
-      return !jobGauges.find(jg => jg.count === total);
+      return !jobGauges.find((jg) => jg.count === total);
     },
 
     canScale() {
@@ -335,7 +335,7 @@ export default {
         class="text-right"
         :label="t('tableHeaders.scale')"
         :value="value.spec.replicas"
-        :disabled="!isActive"
+        :disabled="!isScalable"
         @minus="scaleDown"
         @plus="scaleUp"
       />
@@ -373,7 +373,6 @@ export default {
     </div>
     <ResourceTabs
       :value="value"
-      :always-show-events="true"
     >
       <Tab
         v-if="isCronJob"

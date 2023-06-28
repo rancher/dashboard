@@ -1,5 +1,4 @@
 <script>
-import $ from 'jquery';
 import { escapeHtml } from '@shell/utils/string';
 
 const RADIUS = 5;
@@ -96,13 +95,13 @@ async function loadData(store) {
 
   const known = {};
 
-  data.nodes = data.nodes.filter(x => !!x.app && !!x.namespace);
+  data.nodes = data.nodes.filter((x) => !!x.app && !!x.namespace);
   data.nodes.forEach((x) => {
     x.id = nodeIdFor(x);
     known[x.id] = true;
   });
 
-  data.edges = data.edges.filter(x => known[fromId(x)] && known[toId(x)]);
+  data.edges = data.edges.filter((x) => known[fromId(x)] && known[toId(x)]);
 
   return data;
 }
@@ -330,7 +329,7 @@ export default {
         g.setParent(id, nsId);
       }
 
-      const rpses = this.displayEdges.map(x => x.stats.rps);
+      const rpses = this.displayEdges.map((x) => x.stats.rps);
       const min = Math.min(...rpses);
       const max = Math.max(...rpses);
 
@@ -399,7 +398,7 @@ export default {
     },
 
     clicked(event) {
-      const path = $(event.target).closest('.edgePath');
+      const path = event.target.closest('.edgePath');
 
       console.log(path); // eslint-disable-line no-console
     }
@@ -408,7 +407,7 @@ export default {
 </script>
 <template>
   <div class="mesh">
-    <header class="header-layout">
+    <header>
       <h1>App Mesh</h1>
     </header>
 

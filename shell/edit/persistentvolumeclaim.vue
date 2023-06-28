@@ -45,7 +45,7 @@ export default {
       this.resourceManagerFetchSecondaryResources(this.secondaryResourceData);
     }
 
-    this.storageClassOptions = storageClasses.map(s => s.name).sort();
+    this.storageClassOptions = storageClasses.map((s) => s.name).sort();
     this.storageClassOptions.unshift(this.t('persistentVolumeClaim.useDefault'));
 
     this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || this.storageClassOptions[0]);
@@ -119,7 +119,7 @@ export default {
         return this.value.spec.volumeName;
       },
       set(value) {
-        const persistentVolume = this.persistentVolumes.find(pv => pv.metadata.name === value);
+        const persistentVolume = this.persistentVolumes.find((pv) => pv.metadata.name === value);
 
         this.$set(this.value.spec, 'storageClassName', '');
 
@@ -194,7 +194,7 @@ export default {
       }
     },
     isPersistentVolumeSelectable(option) {
-      const persistentVolume = this.persistentVolumes.find(pv => pv.metadata.name === option.value);
+      const persistentVolume = this.persistentVolumes.find((pv) => pv.metadata.name === option.value);
 
       return persistentVolume.status.phase === 'Available';
     },

@@ -23,10 +23,34 @@ const getPackageFromRoute = (route) => {
   // Sometimes meta is an array... sometimes not
   const arraySafe = Array.isArray(route.meta) ? route.meta : [route.meta];
 
-  return arraySafe.find(m => !!m.pkg)?.pkg;
+  return arraySafe.find((m) => !!m.pkg)?.pkg;
 };
 
 let beforeEachSetup = false;
+
+function findMeta(route, key) {
+  if (route?.meta) {
+    const meta = Array.isArray(route.meta) ? route.meta : [route.meta];
+
+    for (let i = 0; i < meta.length; i++) {
+      if (meta[i][key]) {
+        return meta[i][key];
+      }
+    }
+  }
+
+  return undefined;
+}
+
+export function getClusterFromRoute(to) {
+  let cluster = to.params?.cluster;
+
+  if (!cluster) {
+    cluster = findMeta(to, 'cluster');
+  }
+
+  return cluster;
+}
 
 export function getProductFromRoute(to) {
   let product = to.params?.product;
@@ -37,6 +61,11 @@ export function getProductFromRoute(to) {
     if ( match ) {
       product = match[1];
     }
+  }
+
+  // If still no product, see if the route indicates the product via route metadata
+  if (!product) {
+    product = findMeta(to, 'product');
   }
 
   return product;
@@ -279,6 +308,11 @@ export default async function({
   try {
     let clusterId = get(route, 'params.cluster');
 
+    // Route can provide cluster ID via metadata
+    if (!clusterId && route) {
+      clusterId = getClusterFromRoute(route);
+    }
+
     const pkg = getPackageFromRoute(route);
     const product = getProductFromRoute(route);
 
@@ -286,7 +320,7 @@ export default async function({
     const oldProduct = getProductFromRoute(from);
 
     // Leave an old pkg where we weren't before?
-    const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
+    const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find((p) => p.name === oldPkg) : null;
 
     if (oldPkg && oldPkg !== pkg ) {
       // Execute anything optional the plugin wants to. For example resetting it's store to remove data
@@ -304,7 +338,7 @@ export default async function({
     ];
 
     // Entering a new package where we weren't before?
-    const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find(p => p.name === pkg) : null;
+    const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find((p) => p.name === pkg) : null;
 
     // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the `to` route
     if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
@@ -354,11 +388,12 @@ export default async function({
     await Promise.all([
       ...always,
       store.dispatch('loadCluster', {
-        id:     clusterId,
-        oldPkg: oldPkgPlugin,
-        newPkg: newPkgPlugin,
+        id:          clusterId,
+        oldPkg:      oldPkgPlugin,
+        newPkg:      newPkgPlugin,
         product,
         oldProduct,
+        targetRoute: route
       })
     ]);
 
@@ -386,6 +421,7 @@ export default async function({
     if ( e instanceof ClusterNotFoundError ) {
       return redirect(302, '/home');
     } else {
+      // Sets error 500 if lost connection to API
       store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
 
       return redirect(302, '/fail-whale');

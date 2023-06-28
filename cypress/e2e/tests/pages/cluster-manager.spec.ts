@@ -9,31 +9,34 @@ import ClusterManagerEditRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioni
 import ClusterManagerImportGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import * as path from 'path';
+import * as jsyaml from 'js-yaml';
+import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 
 // File specific consts
-const { baseUrl } = Cypress.config();
 const namespace = 'fleet-default';
 const type = 'provisioning.cattle.io.clusters';
-const clusterRequestBase = `${ baseUrl }/v1/${ type }/${ namespace }`;
 const clusterNamePartial = `${ runPrefix }-create`;
+const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
 
-describe('Cluster Manager', () => {
-  const clusterList = new ClusterManagerListPagePo();
+const downloadsFolder = Cypress.config('downloadsFolder');
 
-  const detailClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
+describe('Cluster Manager', () => {
+  const clusterList = new ClusterManagerListPagePo('local');
 
   beforeEach(() => {
     cy.login();
   });
 
   describe('Created', () => {
-    const createClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
 
     describe('RKE2 Custom', () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
@@ -54,13 +57,14 @@ describe('Cluster Manager', () => {
         clusterList.checkIsCurrentPage();
         clusterList.createCluster();
 
-        createClusterPage.waitForPage();
-        createClusterPage.rkeToggle().toggle();
-        createClusterPage.selectCustom(0);
-        createClusterPage.nameNsDescription().name().set(rke2CustomName);
-        createClusterPage.create();
+        createRKE2ClusterPage.waitForPage();
+        createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
-        detailClusterPage.waitForPage(undefined, 'registration');
+        createRKE2ClusterPage.selectCustom(0);
+        createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
+        createRKE2ClusterPage.create();
+
+        detailRKE2ClusterPage.waitForPage(undefined, 'registration');
 
         cy.wait('@createRequest').then((intercept) => {
           // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
@@ -69,46 +73,138 @@ describe('Cluster Manager', () => {
       });
 
       it('can edit cluster and see changes afterwards', () => {
-        cy.intercept('PUT', `${ clusterRequestBase }/${ rke2CustomName }`).as('saveRequest');
-
         clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(0);
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
 
         editCreatedClusterPage.waitForPage('mode=edit', 'basic');
         editCreatedClusterPage.nameNsDescription().description().set(rke2CustomName);
         editCreatedClusterPage.save();
 
-        cy.wait('@saveRequest').then(() => {
-          clusterList.goTo();
-          clusterList.list().actionMenu(rke2CustomName).clickMenuItem(0);
+        // We should be taken back to the list page if the save was successful
+        clusterList.waitForPage();
 
-          editCreatedClusterPage.waitForPage('mode=edit', 'basic');
-          editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
-        });
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+
+        editCreatedClusterPage.waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage.nameNsDescription().description().self().should('have.value', rke2CustomName);
       });
 
       it('can view cluster YAML editor', () => {
         clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(1);
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit YAML').click();
 
         editCreatedClusterPage.waitForPage('mode=edit&as=yaml');
         editCreatedClusterPage.resourceDetail().resourceYaml().checkVisible();
       });
 
-      it('can delete cluster', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ rke2CustomName }`).as('deleteRequest');
-
+      it('can download KubeConfig', () => {
         clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).clickMenuItem(4);
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
+
+        const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
+
+        cy.readFile(downloadedFilename).then((buffer) => {
+          // This will throw an exception which will fail the test if not valid yaml
+          const obj = jsyaml.load(buffer);
+
+          // Basic checks on the downloaded YAML
+          expect(obj.clusters.length).to.equal(1);
+          expect(obj.clusters[0].name).to.equal(rke2CustomName);
+          expect(obj.apiVersion).to.equal('v1');
+          expect(obj.kind).to.equal('Config');
+        });
+      });
+
+      it('can delete cluster', () => {
+        clusterList.goTo();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
+
+        clusterList.sortableTable().rowNames().then((rows: any) => {
+          const promptRemove = new PromptRemove();
+
+          promptRemove.confirm(rke2CustomName);
+          promptRemove.remove();
+
+          clusterList.waitForPage();
+          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
+          clusterList.sortableTable().rowNames().should('not.contain', rke2CustomName);
+        });
+      });
+    });
+
+    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
+
+    describe('RKE1 Custom', () => {
+      it('can create new cluster', () => {
+        clusterList.goTo();
+        clusterList.checkIsCurrentPage();
+        clusterList.createCluster();
+
+        createClusterRKE1Page.waitForPage();
+
+        createClusterRKE1Page.rkeToggle().set('RKE1');
+        createClusterRKE1Page.selectCustom(0);
+
+        createClusterRKE1Page.clusterName().set(rke1CustomName);
+
+        // Test Custom Cluster Roles -------------------------
+        const roles = [{
+          label:          'Create Projects',
+          roleTemplateId: 'projects-create'
+        }, {
+          label:          'Manage Cluster Catalogs',
+          roleTemplateId: 'clustercatalogs-manage'
+        }, {
+          label:          'Manage Navlinks',
+          roleTemplateId: 'navlinks-manage'
+        }, {
+          label:          'Manage Storage',
+          roleTemplateId: 'storage-manage'
+        }];
+
+        createClusterRKE1Page.memberRoles().checkExists();
+        createClusterRKE1Page.memberRoles().expand();
+        createClusterRKE1Page.memberRolesFormMembers().addMember();
+        createClusterRKE1Page.memberRolesFormMembers().setNewMemberWithCustomRoles('admin', roles);
+
+        cy.intercept('POST', '/v3/clusterroletemplatebinding').as('binding');
+
+        //  -------------------------
+
+        createClusterRKE1Page.next();
+
+        let found = 0;
+
+        for (let i = 0; i < roles.length; i++) {
+          cy.wait('@binding').then((res: any) => {
+            if (roles.find((r) => r.roleTemplateId === res.response.body.roleTemplateId)) {
+              found++;
+            }
+
+            if (i === roles.length - 1) {
+              expect(roles.length).equal(found);
+            }
+          });
+        }
+
+        createClusterRKE1Page.nodeCommand().checkExists();
+        createClusterRKE1Page.done();
+
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
+      });
+
+      it('can delete cluster', () => {
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke1CustomName).getMenuItem('Delete').click();
 
         const promptRemove = new PromptRemove();
 
-        promptRemove.confirm(rke2CustomName);
+        promptRemove.confirm(rke1CustomName);
         promptRemove.remove();
 
-        cy.wait('@deleteRequest').then(() => {
-          return clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist', { timeout: 15000 });
-        });
+        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('not.exist', { timeout: 15000 });
       });
     });
   });
@@ -149,26 +245,27 @@ describe('Cluster Manager', () => {
 
       it('can navigate to cluster edit page', () => {
         clusterList.goTo();
-        clusterList.list().actionMenu(importGenericName).clickMenuItem(0);
+        clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
         editImportedClusterPage.waitForPage('mode=edit');
       });
 
       it('can delete cluster by bulk actions', () => {
-        cy.intercept('DELETE', `${ clusterRequestBase }/${ importGenericName }`).as('deleteRequest');
-
         clusterList.goTo();
+        clusterList.sortableTable().rowElementWithName(importGenericName).should('exist', { timeout: 15000 });
         clusterList.sortableTable().rowSelectCtlWithName(importGenericName).set();
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
 
-        const promptRemove = new PromptRemove();
+        clusterList.sortableTable().rowNames().then((rows: any) => {
+          const promptRemove = new PromptRemove();
 
-        promptRemove.confirm(importGenericName);
-        promptRemove.remove();
+          promptRemove.confirm(importGenericName);
+          promptRemove.remove();
 
-        cy.wait('@deleteRequest').then(() => {
-          return clusterList.sortableTable().rowElementWithName(importGenericName).should('not.exist', { timeout: 15000 });
+          clusterList.waitForPage();
+          clusterList.sortableTable().checkRowCount(false, rows.length - 1);
+          clusterList.sortableTable().rowNames().should('not.contain', importGenericName);
         });
       });
     });

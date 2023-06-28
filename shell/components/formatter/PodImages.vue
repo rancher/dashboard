@@ -45,7 +45,7 @@ export default {
     },
     mainImage() {
       const images = this.images;
-      const filter = images.filter(image => !IGNORE_IMAGES.find(i => image.includes(i)));
+      const filter = images.filter((image) => !IGNORE_IMAGES.find((i) => image.includes(i)));
 
       return filter.length > 0 ? filter[0] : images[0];
     }
@@ -59,7 +59,7 @@ export default {
     <span>{{ mainImage }}</span><br>
     <span
       v-if="images.length-1>0"
-      v-tooltip.bottom="imageLabels"
+      v-clean-tooltip.bottom="imageLabels"
       class="plus-more"
     >{{ t('generic.plusMore', {n:images.length-1}) }}</span>
   </span>

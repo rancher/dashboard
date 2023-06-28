@@ -65,7 +65,7 @@ export default {
     const [allBindings] = await Promise.all(userHydration);
 
     const bindings = allBindings
-      .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
+      .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
 
@@ -91,11 +91,11 @@ export default {
   computed: {
     newBindings() {
       return this.bindings
-        .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
+        .filter((binding) => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
     },
     removedBindings() {
       return this.lastSavedBindings
-        .filter(binding => !this.bindings.includes(binding));
+        .filter((binding) => !this.bindings.includes(binding));
     },
     membershipUpdate() {
       const newBindings = this.newBindings;
@@ -111,7 +111,7 @@ export default {
             return binding.save();
           });
 
-          const removedPromises = removedBindings.map(binding => binding.remove());
+          const removedPromises = removedBindings.map((binding) => binding.remove());
 
           return Promise.all([...savedPromises, ...removedPromises]);
         }
@@ -138,9 +138,9 @@ export default {
   methods: {
     addMember() {
       this.$store.dispatch('cluster/promptModal', {
-        component:   this.addMemberDialogName,
-        resources:   [this.onAddMember],
-        modalSticky: this.modalSticky
+        component:      this.addMemberDialogName,
+        componentProps: { onAdd: this.onAddMember },
+        modalSticky:    this.modalSticky
       });
     },
 

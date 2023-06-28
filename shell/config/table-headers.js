@@ -9,7 +9,7 @@ export const STATE = {
   labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
-  getValue:  row => row.stateDisplay,
+  getValue:  (row) => row.stateDisplay,
   width:     100,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
@@ -23,6 +23,8 @@ export const DOWNLOAD = {
   align:         'right',
 };
 
+// This header is used for nodes in
+// both Cluster Explorer and Cluster Management.
 export const INTERNAL_EXTERNAL_IP = {
   // @TODO this is called internal/external but displays external/internal (╯°□°)╯︵ ┻━┻
   name:      'internal-external-ip',
@@ -36,7 +38,7 @@ export const NAME = {
   name:          'name',
   labelKey:      'tableHeaders.name',
   value:         'nameDisplay',
-  getValue:      row => row.nameDisplay,
+  getValue:      (row) => row.nameDisplay,
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
   canBeVariable: true,
@@ -142,7 +144,7 @@ export const NAMESPACE = {
   name:        'namespace',
   labelKey:    'tableHeaders.namespace',
   value:       'namespace',
-  getValue:    row => row.namespace,
+  getValue:    (row) => row.namespace,
   sort:        'namespace',
   dashIfEmpty: true,
 };
@@ -151,7 +153,7 @@ export const NODE = {
   name:          'node',
   labelKey:      'tableHeaders.node',
   value:         'spec.nodeName',
-  getValue:      row => row.spec?.nodeName,
+  getValue:      (row) => row.spec?.nodeName,
   sort:          'spec.nodeName',
   formatter:     'LinkName',
   formatterOpts: { type: NODE_TYPE },
@@ -162,7 +164,7 @@ export const NODE_NAME = {
   labelKey:  'tableHeaders.nodeName',
   sort:      'name',
   value:     'name',
-  getValue:  row => row.name,
+  getValue:  (row) => row.name,
   formatter: 'LinkDetail',
 };
 
@@ -178,7 +180,7 @@ export const VERSION = {
   labelKey: 'tableHeaders.version',
   sort:     'version',
   value:    'version',
-  getValue: row => row.version
+  getValue: (row) => row.version
 };
 
 export const CPU = {
@@ -214,7 +216,7 @@ export const PODS = {
   labelKey:  'tableHeaders.pods',
   sort:      'podConsumed',
   search:    false,
-  value:     row => row.podConsumedUsage,
+  value:     (row) => row.podConsumedUsage,
   formatter: 'PercentageBar',
   width:     120,
 };
@@ -223,17 +225,17 @@ export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
   value:     'creationTimestamp',
-  getValue:  row => row.creationTimestamp,
+  getValue:  (row) => row.creationTimestamp,
   sort:      'creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
   width:     100,
-  align:     'right'
+  align:     'left'
 };
 
 export const AGE_NORMAN = {
   ...AGE,
-  getValue: row => row.created,
+  getValue: (row) => row.created,
   value:    'created',
   sort:     'created:desc',
 };
@@ -255,10 +257,11 @@ export const DESCRIPTION = {
 };
 
 export const DURATION = {
-  name:     'duration',
-  labelKey: 'tableHeaders.duration',
-  value:    'duration.value',
-  sort:     'duration.seconds',
+  name:      'duration',
+  labelKey:  'tableHeaders.duration',
+  value:     'duration.value',
+  sort:      'duration.seconds',
+  formatter: 'LiveDuration',
 };
 
 export const IMAGE = {
@@ -272,7 +275,7 @@ export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
   value:     'imageNames',
-  getValue:  row => row.imageNames,
+  getValue:  (row) => row.imageNames,
   sort:      'imageNames',
   // search:    'imageNames',
   formatter: 'PodImages'
@@ -284,7 +287,7 @@ export const POD_RESTARTS = {
   formatter:    'LivePodRestarts',
   delayLoading: true,
   value:        'restartCount',
-  getValue:     row => row.restartCount,
+  getValue:     (row) => row.restartCount,
   // This column is expensive to compute, so don't make it searchable
   search:       false,
   liveUpdates:  true
@@ -430,7 +433,7 @@ export const TYPE = {
   name:     'type',
   labelKey: 'tableHeaders.type',
   value:    'typeDisplay',
-  getValue: row => row.typeDisplay,
+  getValue: (row) => row.typeDisplay,
   sort:     ['typeDisplay'],
   width:    100,
 };
@@ -443,12 +446,26 @@ export const SUB_TYPE = {
   width:    120,
 };
 
+export const EVENT_TYPE = {
+  name:     'type',
+  labelKey: 'tableHeaders.type',
+  value:    'eventType',
+  sort:     'eventType',
+};
+
 export const STATUS = {
   name:     'status',
   labelKey: 'tableHeaders.status',
   value:    'status',
   sort:     ['status'],
   width:    175
+};
+export const LAST_SEEN_TIME = {
+  name:     'lastSeen',
+  labelKey: 'tableHeaders.lastSeen',
+  value:    'lastSeen',
+  sort:     'lastTimestamp:desc',
+  tooltip:  'tableHeaders.lastSeenTooltip'
 };
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
@@ -463,6 +480,14 @@ export const REASON = {
   labelKey: 'tableHeaders.reason',
   value:    'reason',
   sort:     ['reason']
+};
+export const OBJECT = {
+  name:          'object',
+  labelKey:      'tableHeaders.object',
+  value:         'involvedObject',
+  sort:          ['involvedObject.kind', 'involvedObject.name'],
+  canBeVariable: true,
+  formatter:     'InvolvedObjectLink',
 };
 export const RECLAIM_POLICY = {
   name:     'reclaimPolicy',
@@ -649,7 +674,7 @@ export const WORKLOAD_ENDPOINTS = {
   name:        'workloadEndpoints',
   labelKey:    'tableHeaders.endpoints',
   value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
-  getValue:    row => row.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS],
+  getValue:    (row) => row.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS],
   formatter:   'Endpoints',
   dashIfEmpty: true,
   breakpoint:  COLUMN_BREAKPOINTS.DESKTOP,
@@ -693,7 +718,7 @@ export const APP_SUMMARY = {
 
 export const CONSTRAINT_VIOLATION_CONSTRAINT_LINK = {
   name:          'Constraint',
-  label:         'Constraint',
+  labelKey:      'tableHeaders.constraint',
   value:         'constraintLink',
   sort:          `constraintLink.text`,
   formatter:     'Link',
@@ -702,30 +727,39 @@ export const CONSTRAINT_VIOLATION_CONSTRAINT_LINK = {
 
 export const CONSTRAINT_VIOLATION_RESOURCE_LINK = {
   name:          'Name',
-  label:         'Name',
+  labelKey:      'tableHeaders.name',
   value:         'resourceLink',
   sort:          `resourceLink.text`,
+  search:        `resourceLink.text`,
   formatter:     'Link',
   formatterOpts: { options: { internal: true } },
 };
 
 export const CONSTRAINT_VIOLATION_TYPE = {
-  name:  'Type',
-  label: 'Type',
-  value: `constraint.kind`,
-  sort:  `constraint.kind`
+  name:     'Type',
+  labelKey: 'tableHeaders.type',
+  value:    `kind`,
+  sort:     `kind`
+};
+
+export const CONSTRAINT_VIOLATION_NAMESPACE = {
+  name:     'Namespace',
+  labelKey: 'tableHeaders.namespace',
+  value:    `namespace`,
+  sort:     `namespace`,
+  search:   `namespace`,
 };
 
 export const CONSTRAINT_VIOLATION_MESSAGE = {
-  name:  'Message',
-  label: 'Message',
-  value: `message`,
-  sort:  `message`
+  name:     'Message',
+  labelKey: 'tableHeaders.message',
+  value:    `message`,
+  sort:     `message`
 };
 
 export const CONSTRAINT_VIOLATION_TEMPLATE_LINK = {
   name:          'TemplateLink',
-  label:         'Template',
+  labelKey:      'tableHeaders.template',
   value:         `templateLink`,
   sort:          `templateLink.text`,
   formatter:     'Link',
@@ -734,7 +768,7 @@ export const CONSTRAINT_VIOLATION_TEMPLATE_LINK = {
 
 export const CONSTRAINT_VIOLATION_COUNT = {
   name:          'Count',
-  label:         'Count',
+  labelKey:      'tableHeaders.count',
   value:         `count`,
   sort:          `count`,
   formatter:     'QualityText',
@@ -936,8 +970,35 @@ export const FLEET_BUNDLE_TYPE = {
   width:    100,
 };
 
-export const IP_ADDRESS = {
-  name:     'ipaddress',
-  value:    'ipaddress',
-  labelKey: 'tableHeaders.ipaddress',
-};
+export const UI_PLUGIN_CATALOG = [
+  {
+    name:          'state',
+    labelKey:      'tableHeaders.state',
+    sort:          ['stateSort', 'nameSort'],
+    value:         'state',
+    width:         100,
+    default:       'unknown',
+    formatter:     'BadgeStateFormatter',
+    formatterOpts: { arbitrary: true }
+  },
+  {
+    name:      'name',
+    labelKey:  'tableHeaders.name',
+    value:     'name',
+    sort:      ['nameSort'],
+    formatter: 'LinkDetail'
+  },
+  {
+    name:     'image',
+    sort:     ['image'],
+    labelKey: 'plugins.manageCatalog.headers.image.label',
+    value:    'deploymentImage'
+  },
+  {
+    name:      'cacheState',
+    sort:      ['cacheState'],
+    labelKey:  'plugins.manageCatalog.headers.cacheState.label',
+    value:     'cacheState',
+    formatter: 'ExtensionCache'
+  }
+];

@@ -1,0 +1,22 @@
+harvesterManager:
+  manage: Manage
+  cluster:
+    label: Harvester Clusters
+    none: There are no Harvester Clusters
+    learnMore: Learn more about Harvester from the <a target="_blank" href="https://harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Web Site</a> or read the the <a target="_blank" href="https://docs.harvesterhci.io/" rel="noopener noreferrer nofollow">Harvester Docs</a>
+    description: Harvester is a modern Hyperconverged infrastructure (HCI) solution built for bare metal servers using enterprise-grade open source technologies including Kubernetes, Kubevirt and Longhorn.
+  plugins:
+    loadError: Error loading harvester plugin
+  rke:
+    templateError: Incorrect template format
+  affinity:
+    thisPodNamespace: This VM's namespace
+    matchExpressions:
+      inNamespaces: "Workloads in these namespaces"
+    vmAffinityTitle: VM Scheduling
+    namespaces:
+      placeholder: e.g. default,system,base
+      label: Namespaces
+    addLabel: Add Workload Selector
+    topologyKey:
+      placeholder: 'topology.kubernetes.io/zone'

@@ -53,7 +53,7 @@ export default {
             var:         'currentClaim',
             classify:    true,
             parsingFunc: (data) => {
-              return data.find(claim => claim.spec.volumeName === this.value.name);
+              return data.find((claim) => claim.spec.volumeName === this.value.name);
             }
           }
         ]
@@ -76,7 +76,7 @@ export default {
     this.$set(this.value.spec.capacity, 'storage', this.value.spec.capacity.storage || '10Gi');
     this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || NONE_OPTION.value);
 
-    const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find(plugin => this.value.spec[plugin.value]);
+    const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find((plugin) => this.value.spec[plugin.value]);
     const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
@@ -145,7 +145,7 @@ export default {
       return this.plugin === 'local';
     },
     plugins() {
-      return VOLUME_PLUGINS.filter(plugin => this.showUnsupportedStorage || plugin.supported);
+      return VOLUME_PLUGINS.filter((plugin) => this.showUnsupportedStorage || plugin.supported);
     }
   },
 
@@ -163,7 +163,7 @@ export default {
               {
                 var:         'storageClassOptions',
                 parsingFunc: (data) => {
-                  const storageClassOptions = data.map(s => ({
+                  const storageClassOptions = data.map((s) => ({
                     label: s.metadata.name,
                     value: s.metadata.name
                   }));

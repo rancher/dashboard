@@ -38,7 +38,7 @@ export default {
     },
 
     driverOpts() {
-      return require.context('@shell/edit/workload/storage/ephemeralVolume', true, /^.*\.vue$/).keys().map(path => path.replace(/(\.\/)|(.vue)/g, '')).filter(file => file !== 'index');
+      return require.context('@shell/edit/workload/storage/ephemeralVolume', true, /^.*\.vue$/).keys().map((path) => path.replace(/(\.\/)|(.vue)/g, '')).filter((file) => file !== 'index');
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -54,7 +54,7 @@ export default {
       class="role-link btn btn-lg remove-vol"
       @click="$emit('remove')"
     >
-      <i class="icon icon-2x icon-x" />
+      <i class="icon icon-x" />
     </button>
     <div>
       <h3>{{ t('workload.storage.subtypes.csi') }}</h3>

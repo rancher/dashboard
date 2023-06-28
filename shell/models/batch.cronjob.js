@@ -2,6 +2,7 @@ import { insertAt } from '@shell/utils/array';
 import { clone } from '@shell/utils/object';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 import Workload from './workload';
+import { WORKLOAD_TYPE_TO_KIND_MAPPING } from '@shell/detail/workload/index';
 
 export default class CronJob extends Workload {
   get state() {
@@ -17,7 +18,7 @@ export default class CronJob extends Workload {
     const suspended = this.spec?.suspend || false;
 
     const jobSchema = this.$getters['schemaFor'](WORKLOAD_TYPES.JOB);
-    const canRunNow = !!jobSchema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase()));
+    const canRunNow = !!jobSchema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase()));
 
     insertAt(out, 0, {
       action:   'runNow',
@@ -47,12 +48,26 @@ export default class CronJob extends Workload {
   }
 
   async runNow() {
-    const job = await this.$dispatch('create', clone(this.spec.jobTemplate));
+    const ownerRef = {
+      apiVersion: this.apiVersion,
+      controller: true,
+      kind:       this.kind,
+      name:       this.metadata.name,
+      uid:        this.metadata.uid
+    };
 
-    job.type = WORKLOAD_TYPES.JOB;
+    // Set type and kind to ensure the correct model is returned (via classify). This object will be persisted to the store
+    const job = await this.$dispatch('create', {
+      type: WORKLOAD_TYPES.JOB,
+      kind: WORKLOAD_TYPE_TO_KIND_MAPPING[WORKLOAD_TYPES.JOB],
+      ...clone(this.spec.jobTemplate)
+    });
+
     job.metadata = job.metadata || {};
     job.metadata.namespace = this.metadata.namespace;
-    job.metadata.generateName = `${ this.metadata.name }-`;
+    // Can't use `generatedName` and no `name`... as this fails schema validation
+    job.metadata.name = `${ this.metadata.name }-${ Date.now() }`;
+    job.metadata.ownerReferences = [ownerRef];
 
     await job.save();
 

@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+BASE_DIR="$(pwd)"
+
+CYAN="\033[96m"
+RED="\033[91m"
+RESET="\033[0m"
+BOLD="\033[1m"
+
+TMP=${BASE_DIR}/tmp
+CHART_TEMPLATE=${TMP}/helm
+
+PKG="${1}"
+PKG_VERSION="${2}"
+REGISTRY="${3}"
+REGISTRY_ORG="${4}"
+IMAGE_PREFIX="${5}"
+PUSH="${6}"
+
+PKG_NAME="${PKG}-${PKG_VERSION}"
+
+# --------------------------------------------------------------------------------
+# Create the container image
+# --------------------------------------------------------------------------------
+mkdir -p ${TMP}/container
+cp -R ${CHART_TEMPLATE}/* ${TMP}/container/    
+
+# Copy the plugin assets
+mkdir -p ${TMP}/container/plugin
+
+cp -R ${BASE_DIR}/assets/* ${TMP}/container/plugin
+cp ${BASE_DIR}/package.json ${TMP}/container/plugin
+cp ${BASE_DIR}/index.yaml ${TMP}/container/
+cp ${BASE_DIR}/index.yaml ${TMP}/container/plugin
+rm -f ${TMP}/container/plugin/report.html
+
+# Generate files.txt for each pkg and move pkg files into relative plugin directories
+for d in ${BASE_DIR}/dist-pkg/*; do
+  pkg=$(basename $d)
+
+  pushd ${BASE_DIR}/dist-pkg > /dev/null
+  mkdir plugin && mv ./${pkg}/* ./plugin
+  rm -rf ./${pkg}/* && mv ./plugin ./${pkg}
+
+  find ${pkg} -type f -printf '%P\n' | sort > ./${pkg}/files.txt
+  popd > /dev/null
+
+  cp -R ${BASE_DIR}/dist-pkg/${pkg} ${TMP}/container/plugin
+done
+
+# Build the docker image
+pushd ${TMP}/container > /dev/null
+echo -e "${CYAN}Building container image ...${RESET}"
+
+if [ ! -z "${REGISTRY}" ]; then
+  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} ./scripts/package
+
+  if [ "${PUSH}" == "--push" ]; then
+    echo -e "${CYAN}Pushing container image ...${RESET}"
+
+    # Ensure that you do not overwrite production images
+    if [[ "${REGISTRY_ORG}" == "rancher" ]]; then
+      IMAGE=${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
+      if docker manifest inspect 2>&1 1>/dev/null; then
+        echo -e "${RED}${BOLD}Cannot overwrite production image ${IMAGE_PREFIX}${PKG} since it already exists${RESET}"
+        exit 1
+      fi
+    fi
+
+    docker push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
+  fi
+fi
+
+popd > /dev/null

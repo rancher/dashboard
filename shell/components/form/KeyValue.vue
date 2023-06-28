@@ -10,11 +10,13 @@ import Select from '@shell/components/form/Select';
 import FileSelector from '@shell/components/form/FileSelector';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { asciiLike } from '@shell/utils/string';
+import CodeMirror from '@shell/components/CodeMirror';
 
 export default {
   name: 'KeyValue',
 
   components: {
+    CodeMirror,
     Select,
     TextAreaAutoGrow,
     FileSelector
@@ -96,6 +98,20 @@ export default {
         return this.$store.getters['i18n/t']('keyValue.keyPlaceholder');
       },
     },
+    /**
+     * List of keys which needs to be disabled and hidden based on toggler
+     */
+    protectedKeys: {
+      type:    Array,
+      default: () => [],
+    },
+    /**
+     * Conditionally display protected keys, if any
+     */
+    toggleFilter: {
+      type:    Boolean,
+      default: false,
+    },
     separatorLabel: {
       type:    String,
       default: '',
@@ -125,6 +141,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    valueMarkdownMultiline: {
+      type:    Boolean,
+      default: false,
+    },
     valueMultiline: {
       type:    Boolean,
       default: true,
@@ -147,7 +167,7 @@ export default {
     // you want to preserve but not support editing
     supported: {
       type:    Function,
-      default: v => true,
+      default: (v) => true,
     },
     // For asMap=false, preserve (copy) these keys from the original value into the emitted value.
     // Also useful for valueFrom as above.
@@ -226,16 +246,26 @@ export default {
     parseLinesFromFile: {
       default: false,
       type:    Boolean
-    }
+    },
+    parseValueFromFile: {
+      default: false,
+      type:    Boolean
+    },
+    disabled: {
+      default: false,
+      type:    Boolean
+    },
   },
   data() {
     const rows = this.getRows(this.value);
 
-    return { rows };
+    return {
+      rows,
+      codeMirrorFocus: {},
+    };
   },
 
   computed: {
-
     isView() {
       return this.mode === _VIEW;
     },
@@ -246,12 +276,12 @@ export default {
       return `grid-template-columns: repeat(${ size }, 1fr)${ gap };`;
     },
     usedKeyOptions() {
-      return this.rows.map(row => row[this.keyName]);
+      return this.rows.map((row) => row[this.keyName]);
     },
     filteredKeyOptions() {
       if (this.keyOptionUnique) {
         return this.keyOptions
-          .filter(option => !this.usedKeyOptions.includes(option.value));
+          .filter((option) => !this.usedKeyOptions.includes(option.value));
       }
 
       return this.keyOptions;
@@ -261,6 +291,12 @@ export default {
      */
     canRemove() {
       return !this.isView && this.removeAllowed;
+    },
+    /**
+     * Filter rows based on toggler, keeping to still emit all the values
+     */
+    filteredRows() {
+      return this.rows.filter((row) => !(this.isProtected(row.key) && !this.toggleFilter));
     }
   },
   created() {
@@ -275,6 +311,10 @@ export default {
     }
   },
   methods: {
+    isProtected(key) {
+      return this.protectedKeys && this.protectedKeys.includes(key);
+    },
+
     getRows(value) {
       const rows = [];
 
@@ -325,7 +365,7 @@ export default {
           rows.push(entry);
         }
       }
-      if ( !rows.length && this.initialEmptyRow ) {
+      if ( rows && !rows.length && this.initialEmptyRow ) {
         rows.push({
           [this.keyName]:   '',
           [this.valueName]: '',
@@ -389,6 +429,10 @@ export default {
             this.add(key, value);
           }
         });
+
+        if (lines.length > 0) {
+          this.removeEmptyRows();
+        }
       }
     },
     download(idx, ev) {
@@ -465,7 +509,7 @@ export default {
         return;
       }
       event.preventDefault();
-      const keyValues = splits.map(split => ({
+      const keyValues = splits.map((split) => ({
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
         supported:        true,
@@ -477,7 +521,7 @@ export default {
       this.queueUpdate();
     },
     calculateOptions(value) {
-      const valueOption = this.keyOptions.find(o => o.value === value);
+      const valueOption = this.keyOptions.find((o) => o.value === value);
 
       if (valueOption) {
         return [valueOption, ...this.filteredKeyOptions];
@@ -492,6 +536,30 @@ export default {
       return this.t('detailText.binary', { n }, true);
     },
     get,
+    /**
+     * Update 'rows' variable with the user's input and prevents to update queue before the row model is updated
+     */
+    onInputMarkdownMultiline(idx, value) {
+      this.rows = this.rows.map((row, i) => i === idx ? { ...row, value } : row);
+      this.queueUpdate();
+    },
+    /**
+     * Set focus on CodeMirror fields
+     */
+    onFocusMarkdownMultiline(idx, value) {
+      this.$set(this.codeMirrorFocus, idx, value);
+    },
+    onValueFileSelected(idx, file) {
+      const { name, value } = file;
+
+      if (!this.rows[idx][this.keyName]) {
+        this.rows[idx][this.keyName] = name;
+      }
+      this.rows[idx][this.valueName] = value;
+    },
+    isValueFieldEmpty(value) {
+      return !value || value.trim().length === 0;
+    }
   }
 };
 </script>
@@ -506,7 +574,7 @@ export default {
           {{ title }}
           <i
             v-if="titleProtip"
-            v-tooltip="titleProtip"
+            v-clean-tooltip="titleProtip"
             class="icon icon-info"
           />
         </h3>
@@ -521,7 +589,7 @@ export default {
           {{ keyLabel }}
           <i
             v-if="protip && !isView && addAllowed"
-            v-tooltip="protip"
+            v-clean-tooltip="protip"
             class="icon icon-info"
           />
         </label>
@@ -550,9 +618,10 @@ export default {
         </div>
       </template>
       <template
-        v-for="(row,i) in rows"
+        v-for="(row,i) in filteredRows"
         v-else
       >
+        <!-- Key -->
         <div
           :key="i+'key'"
           class="kv-item key"
@@ -564,12 +633,14 @@ export default {
             :keyName="keyName"
             :valueName="valueName"
             :queueUpdate="queueUpdate"
+            :disabled="disabled"
           >
             <Select
               v-if="keyOptions"
               ref="key"
               v-model="row[keyName]"
               :searchable="true"
+              :disabled="disabled || isProtected(row.key)"
               :clearable="false"
               :taggable="keyTaggable"
               :options="calculateOptions(row[keyName])"
@@ -579,13 +650,15 @@ export default {
               v-else
               ref="key"
               v-model="row[keyName]"
-              :disabled="isView || !keyEditable"
+              :disabled="isView || disabled || !keyEditable || isProtected(row.key)"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
             >
           </slot>
         </div>
+
+        <!-- Value -->
         <div
           :key="i+'value'"
           class="kv-item value"
@@ -604,27 +677,53 @@ export default {
             <div v-else-if="row.binary">
               {{ binaryTextSize(row.value) }}
             </div>
-            <TextAreaAutoGrow
-              v-else-if="valueMultiline"
-              v-model="row[valueName]"
-              :class="{'conceal': valueConcealed}"
-              :mode="mode"
-              :placeholder="valuePlaceholder"
-              :min-height="40"
-              :spellcheck="false"
-              @input="queueUpdate"
-            />
-            <input
+            <div
               v-else
-              v-model="row[valueName]"
-              :disabled="isView"
-              :type="valueConcealed ? 'password' : 'text'"
-              :placeholder="valuePlaceholder"
-              autocorrect="off"
-              autocapitalize="off"
-              spellcheck="false"
-              @input="queueUpdate"
+              class="value-container"
+              :class="{ 'upload-button': parseValueFromFile }"
             >
+              <CodeMirror
+                v-if="valueMarkdownMultiline"
+                ref="cm"
+                data-testid="code-mirror-multiline-field"
+                :class="{['focus']: codeMirrorFocus[i]}"
+                :value="row[valueName]"
+                :as-text-area="true"
+                :mode="mode"
+                @onInput="onInputMarkdownMultiline(i, $event)"
+                @onFocus="onFocusMarkdownMultiline(i, $event)"
+              />
+              <TextAreaAutoGrow
+                v-else-if="valueMultiline"
+                v-model="row[valueName]"
+                data-testid="value-multiline"
+                :class="{'conceal': valueConcealed}"
+                :disabled="disabled || isProtected(row.key)"
+                :mode="mode"
+                :placeholder="valuePlaceholder"
+                :min-height="40"
+                :spellcheck="false"
+                @input="queueUpdate"
+              />
+              <input
+                v-else
+                v-model="row[valueName]"
+                :disabled="isView || disabled || isProtected(row.key)"
+                :type="valueConcealed ? 'password' : 'text'"
+                :placeholder="valuePlaceholder"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                @input="queueUpdate"
+              >
+              <FileSelector
+                v-if="parseValueFromFile && readAllowed && !isView && isValueFieldEmpty(row[valueName])"
+                class="btn btn-sm role-secondary file-selector"
+                :label="t('generic.upload')"
+                :include-file-name="true"
+                @selected="onValueFileSelected(i, $event)"
+              />
+            </div>
           </slot>
         </div>
         <div
@@ -652,7 +751,7 @@ export default {
           >
             <button
               type="button"
-              :disabled="isView"
+              :disabled="isView || isProtected(row.key) || disabled"
               class="btn role-link"
               @click="remove(i)"
             >
@@ -664,7 +763,7 @@ export default {
     </div>
     <div
       v-if="(addAllowed || readAllowed) && !isView"
-      class="footer"
+      class="footer mt-20"
     >
       <slot
         name="add"
@@ -674,7 +773,7 @@ export default {
           v-if="addAllowed"
           type="button"
           class="btn role-tertiary add"
-          :disabled="loading || (keyOptions && filteredKeyOptions.length === 0)"
+          :disabled="loading || disabled || (keyOptions && filteredKeyOptions.length === 0)"
           @click="add()"
         >
           <i
@@ -702,7 +801,7 @@ export default {
     text-transform: initial;
     padding: 0;
   }
-  .kv-container{
+  .kv-container {
     display: grid;
     align-items: center;
     column-gap: 20px;
@@ -715,9 +814,22 @@ export default {
       &.key, &.extra {
         align-self: flex-start;
       }
-      &.value textarea{
+      &.value .value-container {
+        &.upload-button {
+          position: relative;
+          display: flex;
+          justify-content: right;
+          align-items: center;
+        }
+        .file-selector {
+          position: absolute;
+          margin-right: 5px;
+        }
+      }
+      &.value textarea {
         padding: 10px 10px 10px 10px;
       }
+
       .text-monospace:not(.conceal) {
         font-family: monospace, monospace;
       }
@@ -725,7 +837,7 @@ export default {
   }
   .remove {
     text-align: center;
-    BUTTON{
+    BUTTON {
       padding: 0px;
     }
   }
@@ -748,7 +860,7 @@ export default {
   .download {
     text-align: right;
   }
-  .copy-value{
+  .copy-value {
     padding: 0px 0px 0px 10px;
   }
 }

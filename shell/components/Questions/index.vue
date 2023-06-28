@@ -67,9 +67,9 @@ function migrate(expr) {
   let out;
 
   if ( expr.includes('||') ) {
-    out = expr.split('||').map(x => migrate(x)).join(' || ');
+    out = expr.split('||').map((x) => migrate(x)).join(' || ');
   } else if ( expr.includes('&&') ) {
-    out = expr.split('&&').map(x => migrate(x)).join(' && ');
+    out = expr.split('&&').map((x) => migrate(x)).join(' && ');
   } else {
     const parts = expr.match(/^(.*)(!?=)(.*)$/);
 
@@ -311,9 +311,9 @@ export default {
       let result;
 
       if ( get(or, 'length') > 1 ) {
-        result = or.some(showIf => this.calExpression(showIf, allQuestions));
+        result = or.some((showIf) => this.calExpression(showIf, allQuestions));
       } else {
-        result = and.every(showIf => this.calExpression(showIf, allQuestions));
+        result = and.every((showIf) => this.calExpression(showIf, allQuestions));
       }
 
       return result;
@@ -368,7 +368,7 @@ export default {
       return null;
     },
     getAnswer(variable, questions) {
-      const found = questions.find(q => q.variable === variable);
+      const found = questions.find((q) => q.variable === variable);
 
       if ( found ) {
         // Equivalent to finding question.answer in Ember

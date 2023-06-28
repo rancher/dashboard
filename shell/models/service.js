@@ -99,7 +99,7 @@ export default class extends SteveModel {
     }
 
     if (this.serviceType === 'LoadBalancer') {
-      const statusIps = this.status.loadBalancer?.ingress?.map(ingress => ingress.hostname || ingress.ip).join(', ');
+      const statusIps = this.status.loadBalancer?.ingress?.map((ingress) => ingress.hostname || ingress.ip).join(', ');
 
       const loadbalancerInfo = loadBalancerIP || statusIps || '';
 
@@ -128,23 +128,24 @@ export default class extends SteveModel {
     return out;
   }
 
-  get pods() {
+  get podRelationship() {
     const { metadata:{ relationships = [] } } = this;
 
-    return async() => {
-      const podRelationship = (relationships || []).filter(relationship => relationship.toType === POD)[0];
-      let pods = [];
+    return (relationships || []).filter((relationship) => relationship.toType === POD)[0];
+  }
 
-      if (podRelationship) {
-        pods = await this.$dispatch('cluster/findMatching', {
-          type:      POD,
-          selector:  podRelationship.selector,
-          namespace: this.namespace
-        }, { root: true });
-      }
+  async fetchPods() {
+    if (this.podRelationship) {
+      await this.$dispatch('cluster/findMatching', {
+        type:      POD,
+        selector:  this.podRelationship.selector,
+        namespace: this.namespace
+      }, { root: true });
+    }
+  }
 
-      return pods;
-    };
+  get pods() {
+    return this.podRelationship ? this.$getters.matching( POD, this.podRelationship.selector, this.namespace ) : [];
   }
 
   get serviceType() {

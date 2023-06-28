@@ -1,5 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
+
 export default {
   name:       'ListClusterReposApps',
   components: { ResourceTable },
@@ -24,6 +26,12 @@ export default {
       type:    Boolean,
       default: false
     }
+  },
+
+  computed: {
+    filterHideRows() {
+      return this.rows.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
+    }
   }
 };
 </script>
@@ -32,9 +40,10 @@ export default {
   <div>
     <ResourceTable
       :schema="schema"
-      :rows="rows"
+      :rows="filterHideRows"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      data-testid="app-cluster-repo-list"
     />
   </div>
 </template>

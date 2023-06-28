@@ -80,7 +80,7 @@ export default {
         return false;
       }
 
-      return !this.options.find(o => this.reduce(o) === this.serviceName);
+      return !this.options.find((o) => this.reduce(o) === this.serviceName);
     },
 
     serviceName() {
@@ -154,8 +154,8 @@ export default {
     <template v-if="serviceNameNew">
       <div class="row span-6">
         <Banner
+          v-clean-html="t('workload.serviceAccountName.createMessage', { name: serviceName }) "
           color="info"
-          v-html="t('workload.serviceAccountName.createMessage', { name: serviceName }) "
         />
       </div>
     </template>

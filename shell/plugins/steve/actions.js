@@ -7,10 +7,11 @@ import { streamJson, streamingSupported } from '@shell/utils/stream';
 import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
+import jsyaml from 'js-yaml';
 
 export default {
 
-  // Need to override this, so that thhe 'this' context is correct (this class not the base class)
+  // Need to override this, so that the 'this' context is correct (this class not the base class)
   async loadSchemas(ctx, watch = true) {
     return await loadSchemas(ctx, watch);
   },
@@ -127,6 +128,10 @@ export default {
 
         finishDeferred(key, 'resolve', out);
 
+        if (opt.method === 'post' || opt.method === 'put') {
+          handleValidationWarnings(res);
+        }
+
         return out;
       });
     }
@@ -191,6 +196,24 @@ export default {
 
       return Promise.reject(out);
     }
+
+    function handleValidationWarnings(res) {
+      const warnings = (res.headers?.warning || '').split(',');
+
+      if (!warnings.length || !warnings[0]) {
+        return;
+      }
+
+      const message = warnings.reduce((message, warning) => {
+        return `${ message }\n${ warning.trim() }`;
+      }, `Validation Warnings for ${ opt.url }\n`);
+
+      if (process.env.dev) {
+        console.warn(`${ message }\n\n`, res.data); // eslint-disable-line no-console
+      } else {
+        console.debug(message); // eslint-disable-line no-console
+      }
+    }
   },
 
   promptMove({ commit, state }, resources) {
@@ -223,7 +246,7 @@ export default {
     if ( opt.load !== false && res.type === 'collection' ) {
       await dispatch('loadMulti', res.data);
 
-      return res.data.map(x => getters.byId(x.type, x.id) || x);
+      return res.data.map((x) => getters.byId(x.type, x.id) || x);
     } else if ( opt.load !== false && res.type && res.id ) {
       return dispatch('load', { data: res });
     } else {
@@ -255,7 +278,7 @@ export default {
     if ( opt.load !== false && res.type === 'collection' ) {
       await dispatch('loadMulti', res.data);
 
-      return res.data.map(x => getters.byId(x.type, x.id) || x);
+      return res.data.map((x) => getters.byId(x.type, x.id) || x);
     } else if ( opt.load !== false && res.type && res.id ) {
       return dispatch('load', { data: res });
     } else {
@@ -323,6 +346,35 @@ export default {
 
     return resource;
   },
+
+  // remove fields added by steve before showing/downloading yamls
+  cleanForDownload(ctx, yaml) {
+    if (!yaml) {
+      return;
+    }
+    const rootKeys = [
+      'id',
+      'links',
+      'type',
+      'actions'
+    ];
+    const metadataKeys = [
+      'fields',
+      'relationships',
+      'state',
+    ];
+    const conditionKeys = [
+      'error',
+      'transitioning',
+    ];
+    const obj = jsyaml.load(yaml);
+
+    dropKeys(obj, rootKeys);
+    dropKeys(obj?.metadata, metadataKeys);
+    (obj?.status?.conditions || []).forEach((condition) => dropKeys(condition, conditionKeys));
+
+    return jsyaml.dump(obj);
+  }
 };
 
 const diffRootKeys = [

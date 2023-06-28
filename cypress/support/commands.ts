@@ -103,3 +103,32 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
     });
   });
 });
+
+Cypress.Commands.add('requestBase64Image', (url: string) => {
+  return cy.request({
+    url,
+    method:   'GET',
+    encoding: 'binary',
+    headers:  { Accept: 'image/png; charset=UTF-8' },
+  })
+    .its('body')
+    .then((favicon) => {
+      const blob = Cypress.Blob.binaryStringToBlob(favicon);
+
+      return Cypress.Blob.blobToBase64String(blob);
+    });
+});
+
+Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
+  for (let i = 0; i < count; i++) {
+    cy.get('body').trigger('keydown', triggerKeys);
+  }
+});
+
+Cypress.Commands.add('iFrame', () => {
+  return cy
+    .get('[data-testid="ember-iframe"]', { log: false })
+    .its('0.contentDocument.body', { log: false })
+    .should('not.be.empty')
+    .then((body) => cy.wrap(body));
+});

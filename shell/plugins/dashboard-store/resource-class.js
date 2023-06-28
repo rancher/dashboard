@@ -25,6 +25,7 @@ import {
   validateLength,
 } from '@shell/utils/validators';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
+import { waitFor } from '@shell/utils/async';
 import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
 import forIn from 'lodash/forIn';
@@ -35,6 +36,9 @@ import uniq from 'lodash/uniq';
 import Vue from 'vue';
 
 import { normalizeType } from './normalize';
+
+import { ExtensionPoint, ActionLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -752,41 +756,7 @@ export default class Resource {
   // ------------------------------------------------------------------
 
   waitForTestFn(fn, msg, timeoutMs, intervalMs) {
-    console.log('Starting wait for', msg); // eslint-disable-line no-console
-
-    if ( !timeoutMs ) {
-      timeoutMs = DEFAULT_WAIT_TMIMEOUT;
-    }
-
-    if ( !intervalMs ) {
-      intervalMs = DEFAULT_WAIT_INTERVAL;
-    }
-
-    return new Promise((resolve, reject) => {
-      // Do a first check immediately
-      if ( fn.apply(this) ) {
-        console.log('Wait for', msg, 'done immediately'); // eslint-disable-line no-console
-        resolve(this);
-      }
-
-      const timeout = setTimeout(() => {
-        console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
-        clearInterval(interval);
-        clearTimeout(timeout);
-        reject(new Error(`Failed waiting for: ${ msg }`));
-      }, timeoutMs);
-
-      const interval = setInterval(() => {
-        if ( fn.apply(this) ) {
-          console.log('Wait for', msg, 'done'); // eslint-disable-line no-console
-          clearInterval(interval);
-          clearTimeout(timeout);
-          resolve(this);
-        } else {
-          console.log('Wait for', msg, 'not done yet'); // eslint-disable-line no-console
-        }
-      }, intervalMs);
-    });
+    return waitFor(() => fn.apply(this), msg, timeoutMs || DEFAULT_WAIT_TMIMEOUT, intervalMs || DEFAULT_WAIT_INTERVAL, true);
   }
 
   waitForState(state, timeout, interval) {
@@ -798,19 +768,19 @@ export default class Resource {
   waitForTransition() {
     return this.waitForTestFn(() => {
       return !this.transitioning;
-    }, 'transition completion');
+    }, 'transition completion', undefined, undefined);
   }
 
   waitForAction(name) {
     return this.waitForTestFn(() => {
       return this.hasAction(name);
-    }, `action=${ name }`);
+    }, `action=${ name }`, undefined, undefined);
   }
 
   waitForLink(name) {
     return this.waitForTestFn(() => {
       return this.hasLink(name);
-    }, `link=${ name }`);
+    }, `link=${ name }`, undefined, undefined);
   }
 
   hasCondition(condition) {
@@ -884,7 +854,11 @@ export default class Resource {
 
   // You can add custom actions by overriding your own availableActions (and probably reading super._availableActions)
   get _availableActions() {
-    const all = [
+    // get menu actions available by plugins configuration
+    const currentRoute = this.currentRouter().app._route;
+    const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
+
+    let all = [
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -932,6 +906,13 @@ export default class Resource {
       },
     ];
 
+    // Extension actions get added to the end, so add a divider if there are any
+    if (extensionMenuActions.length) {
+      // Add a divider first
+      all.push({ divider: true });
+      all = all.concat(extensionMenuActions);
+    }
+
     return all;
   }
 
@@ -958,7 +939,7 @@ export default class Resource {
   }
 
   get canCreate() {
-    if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+    if ( this.schema && !this.schema?.collectionMethods.find((x) => x.toLowerCase() === 'post') ) {
       return false;
     }
 
@@ -974,7 +955,7 @@ export default class Resource {
   }
 
   get canEditYaml() {
-    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
+    return this.schema?.resourceMethods?.find((x) => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
@@ -1075,9 +1056,16 @@ export default class Resource {
     return this._save(...arguments);
   }
 
+  /**
+   * Allow to handle the response of the save request
+   * @param {*} res Full request response
+   */
+  processSaveResponse(res) { }
+
   async _save(opt = {}) {
     delete this.__rehydrate;
     delete this.__clone;
+
     const forNew = !this.id;
 
     const errors = await this.validationErrors(this, opt.ignoreFields);
@@ -1122,7 +1110,7 @@ export default class Resource {
     }
 
     // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-    opt.data = { ...this };
+    opt.data = this.toSave() || { ...this };
 
     if (opt?.data._type) {
       opt.data.type = opt.data._type;
@@ -1150,6 +1138,9 @@ export default class Resource {
 
     try {
       const res = await this.$dispatch('request', { opt, type: this.type } );
+
+      // Allow to process response independently from the related models
+      this.processSaveResponse(res);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
       if ( res && res.kind !== 'Table') {
@@ -1323,8 +1314,9 @@ export default class Resource {
 
   async download() {
     const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+    const data = await this.$dispatch('cleanForDownload', value.data);
 
-    downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
+    downloadFile(`${ this.nameDisplay }.yaml`, data, 'application/yaml');
   }
 
   async downloadBulk(items) {
@@ -1343,8 +1335,11 @@ export default class Resource {
     }
 
     await eachLimit(items, 10, (item, idx) => {
-      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
-        files[`resources/${ names[idx] }`] = data.data || data;
+      return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then(async(data) => {
+        const yaml = data.data || data;
+        const cleanedYaml = await this.$dispatch('cleanForDownload', yaml);
+
+        files[`resources/${ names[idx] }`] = cleanedYaml;
       });
     });
 
@@ -1494,7 +1489,7 @@ export default class Resource {
     const rules = [];
 
     const customValidationRulesets = this?.customValidationRules
-      .filter(rule => !!rule.validators || !!rule.required)
+      .filter((rule) => !!rule.validators || !!rule.required)
       .map((rule) => {
         const formRules = formRulesGenerator(this.t, { displayKey: rule?.translationKey ? this.t(rule.translationKey) : 'Value' });
 
@@ -1515,10 +1510,10 @@ export default class Resource {
               return formRules[rule];
             }
             )
-            .filter(rule => !!rule)
+            .filter((rule) => !!rule)
         };
       })
-      .filter(ruleset => ruleset.rules.length > 0);
+      .filter((ruleset) => ruleset.rules.length > 0);
 
     rules.push(...customValidationRulesets);
 
@@ -1535,7 +1530,7 @@ export default class Resource {
         customValidationRules = customValidationRules();
       }
 
-      customValidationRules.filter(rule => !ignorePaths.includes(rule.path)).forEach((rule) => {
+      customValidationRules.filter((rule) => !ignorePaths.includes(rule.path)).forEach((rule) => {
         const {
           path,
           requiredIf: requiredIfPath,
@@ -1719,7 +1714,7 @@ export default class Resource {
         const allOfResourceType = this.$rootGetters['cluster/all']( type );
 
         this.ownersByType[kind].forEach((resource, idx) => {
-          const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
+          const resourceInstance = allOfResourceType.find((resourceByType) => resourceByType?.metadata?.uid === resource.uid);
 
           if (resourceInstance) {
             owners.push(resourceInstance);
@@ -1742,7 +1737,7 @@ export default class Resource {
       details.push({
         label:     this.t('resourceDetail.detailTop.ownerReferences', { count: this.owners.length }),
         formatter: 'ListLinkDetail',
-        content:   this.owners.map(owner => ({
+        content:   this.owners.map((owner) => ({
           key:   owner.id,
           row:   owner,
           col:   {},
@@ -1887,6 +1882,13 @@ export default class Resource {
     }
 
     return out;
+  }
+
+  /**
+   * Allow models to override the object that is sent when saving this resource
+   */
+  toSave() {
+    return undefined;
   }
 
   get creationTimestamp() {

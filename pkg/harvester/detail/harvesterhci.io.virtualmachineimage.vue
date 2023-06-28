@@ -2,7 +2,7 @@
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import LabelValue from '@shell/components/LabelValue';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { HCI } from '@/pkg/harvester/config/labels-annotations';
+import { HCI } from '@pkg/harvester/config/labels-annotations';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import { findBy } from '@shell/utils/array';
@@ -58,8 +58,16 @@ export default {
 </script>
 
 <template>
-  <Tabbed v-bind="$attrs" class="mt-15" :side-tabs="true">
-    <Tab name="detail" :label="t('harvester.virtualMachine.detail.tabs.basics')" class="bordered-table">
+  <Tabbed
+    v-bind="$attrs"
+    class="mt-15"
+    :side-tabs="true"
+  >
+    <Tab
+      name="detail"
+      :label="t('harvester.virtualMachine.detail.tabs.basics')"
+      class="bordered-table"
+    >
       <div class="row">
         <div class="col span-12">
           <LabelValue
@@ -88,17 +96,28 @@ export default {
 
       <div class="row">
         <div class="col span-12">
-          <LabelValue :name="t('harvester.image.size')" :value="formattedValue" class="mb-20" />
+          <LabelValue
+            :name="t('harvester.image.size')"
+            :value="formattedValue"
+            class="mb-20"
+          />
         </div>
       </div>
 
       <div class="row">
         <div class="col span-12">
-          <LabelValue :name="t('nameNsDescription.description.label')" :value="description" class="mb-20" />
+          <LabelValue
+            :name="t('nameNsDescription.description.label')"
+            :value="description"
+            class="mb-20"
+          />
         </div>
       </div>
 
-      <div v-if="errorMessage !== '-'" class="row">
+      <div
+        v-if="errorMessage !== '-'"
+        class="row"
+      >
         <div class="col span-12">
           <div>
             {{ t('tableHeaders.message') }}

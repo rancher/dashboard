@@ -8,6 +8,8 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { randomStr } from '@shell/utils/string';
 
 export default {
+  name: 'Storage',
+
   components: {
     ArrayListGrouped, ButtonDropdown, Mount, CodeMirror
   },
@@ -87,15 +89,15 @@ export default {
       const customVolumeTypes = require
         .context('@shell/edit/workload/storage', false, /^.*\.vue$/)
         .keys()
-        .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
-        .filter(file => !excludedFiles.includes(file));
+        .map((path) => path.replace(/(\.\/)|(.vue)/g, ''))
+        .filter((file) => !excludedFiles.includes(file));
 
       return [
         ...customVolumeTypes,
         ...defaultVolumeTypes
       ]
         .sort()
-        .map(volumeType => ({
+        .map((volumeType) => ({
           label:  this.t(`workload.storage.subtypes.${ volumeType }`),
           action: this.addVolume,
           value:  volumeType,
@@ -103,7 +105,7 @@ export default {
     },
 
     pvcNames() {
-      return this.namespacedPvcs.map(pvc => pvc.metadata.name);
+      return this.namespacedPvcs.map((pvc) => pvc.metadata.name);
     },
   },
 
@@ -155,6 +157,12 @@ export default {
           csi:   { volumeAttributes: {} },
           name,
         });
+      } else if (type === 'emptyDir') {
+        this.value.volumes.push({
+          _type:    type,
+          emptyDir: { medium: '' },
+          name,
+        });
       } else {
         this.value.volumes.push({
           _type:  type,
@@ -168,7 +176,7 @@ export default {
 
     volumeType(vol) {
       const type = Object.keys(vol).filter(
-        key => typeof vol[key] === 'object'
+        (key) => typeof vol[key] === 'object'
       )[0];
 
       return type;
@@ -227,7 +235,7 @@ export default {
     // codemirror needs to refresh if it is in a tab that wasn't visible on page load
     refresh() {
       if (this.$refs.cm) {
-        this.$refs.cm.forEach(component => component.refresh());
+        this.$refs.cm.forEach((component) => component.refresh());
       }
     },
 

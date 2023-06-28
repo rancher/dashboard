@@ -16,12 +16,13 @@ const files = [
 ];
 
 const topLevelScripts = {
-  'build-pkg':  './node_modules/@rancher/shell/scripts/build-pkg.sh',
-  'serve-pkgs': './node_modules/@rancher/shell/scripts/serve-pkgs',
+  'build-pkg':    './node_modules/@rancher/shell/scripts/build-pkg.sh',
+  'serve-pkgs':   './node_modules/@rancher/shell/scripts/serve-pkgs',
+  'publish-pkgs': './node_modules/@rancher/shell/scripts/extension/publish',
 };
 
 const typeFolders = [
-  'i18n',
+  'l10n',
   'models',
   'edit',
   'list',
@@ -42,9 +43,21 @@ const folder = path.resolve('.');
 const pkgFolder = path.join(folder, 'pkg', name);
 
 let addTypeFolders = false;
+let addWorkflowFolder = false;
 
 if (args.length > 3) {
-  addTypeFolders = args[3] === '-t';
+  for (let i = 3; i < args.length; i++) {
+    switch (args[i]) {
+    case '-t':
+      addTypeFolders = true;
+      break;
+    case '-w':
+      addWorkflowFolder = true;
+      break;
+    default:
+      break;
+    }
+  }
 }
 
 const isNodeModulesShell = !fs.existsSync(path.join(folder, 'shell'));
@@ -89,6 +102,31 @@ if (addTypeFolders) {
     if (!fs.existsSync(dest)) {
       console.log(`  Creating folder: ${ dir }`);
       fs.mkdirSync(dest);
+    }
+  });
+}
+
+// Add workflow folder if needed
+if (addWorkflowFolder) {
+  const workflowDir = path.join(folder, '.github/workflows');
+
+  if (!fs.existsSync(workflowDir)) {
+    fs.mkdirSync(workflowDir, { recursive: true });
+  }
+
+  const files = [
+    'build-extension.yml',
+    'build-container.yml'
+  ];
+
+  files.forEach((fileName) => {
+    const file = path.join(workflowDir, fileName);
+
+    if (!fs.existsSync(file)) {
+      const src = path.join(__dirname, 'files/.github/workflows', fileName);
+
+      console.log(`  Adding file ${ fileName } to root workflows`);
+      fs.copySync(src, file);
     }
   });
 }

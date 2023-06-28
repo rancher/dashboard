@@ -16,11 +16,6 @@ export default {
       required: true,
     },
 
-    loadResources: {
-      type:    Array,
-      default: () => []
-    },
-
     loadIndeterminate: {
       type:    Boolean,
       default: false
@@ -52,7 +47,7 @@ export default {
       }
 
       return { ...header };
-    }).filter(header => header.name !== 'system namespace');
+    }).filter((header) => header.name !== 'system namespace');
   },
   data() {
     return {
@@ -62,7 +57,7 @@ export default {
   },
   computed: {
     canCreateProjectHelmChart() {
-      return !!(this?.projectHelmChartSchema?.collectionMethods || []).find(method => method.toLowerCase() === 'post');
+      return !!(this?.projectHelmChartSchema?.collectionMethods || []).find((method) => method.toLowerCase() === 'post');
     }
 
   }
@@ -116,6 +111,7 @@ export default {
         :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
         key-field="_key"
         :groupable="false"
+        :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       />
     </div>
   </div>

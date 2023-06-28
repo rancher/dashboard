@@ -55,18 +55,22 @@ export default {
   },
   computed: {
     portOptions() {
-      const service = this.serviceTargets.find(s => s.label === this.serviceName);
+      const service = this.serviceTargets.find((s) => s.label === this.serviceName);
 
       return service?.ports || [];
     },
     serviceTargetStatus() {
       const serviceName = this.serviceName?.label || this.serviceName;
-      const isValueAnOption = !serviceName || this.serviceTargets.find(target => serviceName === target.value);
+      const isValueAnOption = !serviceName || this.serviceTargets.find((target) => serviceName === target.value);
 
       return isValueAnOption ? null : 'warning';
     },
     serviceTargetTooltip() {
-      return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
+      if (this.serviceTargetStatus === 'warning' ) {
+        return this.t('ingress.rules.target.doesntExist');
+      }
+
+      return this.t('ingress.rules.target.tooltip');
     },
   },
   created() {
@@ -178,17 +182,19 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+$row-height: 40px;
+
 .labeled-input ::v-deep, ::v-deep .labeled-input {
   padding: 0 !important;
   height: 100%;
   input.no-label {
-    height: calc($input-height - 2px);
+    height: calc($row-height - 2px);
     padding: 10px;
   }
 }
 .rule-path ::v-deep {
-  .col {
-    height: $input-height;
+  .col, INPUT {
+    height: $row-height;
   }
 
   .unlabeled-select {
@@ -202,7 +208,7 @@ export default {
   }
 
   &, .input-container {
-    height: $input-height;
+    height: $row-height;
   }
 
   .input-container .in-input.unlabeled-select {
@@ -210,7 +216,7 @@ export default {
   }
 
   button {
-    line-height: 40px;
+    line-height: $row-height;
   }
 
   .v-select INPUT {

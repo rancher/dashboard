@@ -5,11 +5,9 @@ WORKDIR /src
 
 RUN apk update && apk upgrade
 
-COPY package.json /src/
-COPY yarn.lock /src/
-RUN yarn --pure-lockfile install
-
 COPY . /src
+
+RUN yarn --pure-lockfile install
 RUN yarn build
 
 EXPOSE 80

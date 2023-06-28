@@ -48,6 +48,10 @@ export default {
   },
 
   data() {
+    if (!this.value.spec.values) {
+      this.$set(this.value.spec, 'values', {});
+    }
+
     return {
       systemNamespaces: null,
       namespaces:       [],
@@ -59,20 +63,20 @@ export default {
     selectedNamespaceQuestions() {
       const inStore = this.$store.getters['currentStore']();
 
-      const configMapRelationship = this.currentNamespace?.metadata?.relationships.find(relationship => relationship?.toType === 'configmap');
+      const configMapRelationship = this.currentNamespace?.metadata?.relationships.find((relationship) => relationship?.toType === 'configmap');
 
       const questionsYaml = this.$store.getters[`${ inStore }/byId`](configMapRelationship?.toType, configMapRelationship?.toId)?.data?.['questions.yaml'];
 
       return jsyaml.load(questionsYaml)?.questions;
     },
     currentNamespace() {
-      return this.namespaces.find(namespace => namespace.id === this.value?.metadata?.namespace);
+      return this.namespaces.find((namespace) => namespace.id === this.value?.metadata?.namespace);
     }
   },
 
   methods: {
     getNamespaceConfigMapId(namespace) {
-      return this.currentNamespace?.metadata?.relationships.find(relationship => relationship?.toType === 'configmap')?.toId;
+      return this.currentNamespace?.metadata?.relationships.find((relationship) => relationship?.toType === 'configmap')?.toId;
     },
     async getConfigMap(id) {
       return await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id });
@@ -128,7 +132,7 @@ export default {
           :side-tabs="true"
         >
           <Questions
-            v-model="value"
+            v-model="value.spec.values"
             tabbed="multiple"
             :target-namespace="value.metadata.namespace"
             :source="selectedNamespaceQuestions"

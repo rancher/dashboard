@@ -20,11 +20,17 @@ const sidebars = {
   // Items name and page should be same.
   // For eg. if you rename a page you should also change that page name in item attribute under the tutorialSidebar.
 
-  tutorialSidebar: [
+  mainSidebar: [
+    'home',
     {
       type:  'category',
       label: 'Getting Started',
-      items: ['getting-started/concepts', 'getting-started/development_environment', 'getting-started/ui-walkthrough'],
+      items: [
+        'getting-started/quickstart',
+        'getting-started/concepts',
+        'getting-started/development_environment',
+        'getting-started/ui-walkthrough'
+      ],
     },
     {
       type:  'category',
@@ -44,36 +50,129 @@ const sidebars = {
         'code-base-works/cluster-management-resources',
         'code-base-works/customising-how-k8s-resources-are-presented',
         'code-base-works/directory-structure',
+        'code-base-works/products-and-navigation',
         'code-base-works/forms-and-validation',
         'code-base-works/helm-chart-apps',
         'code-base-works/keyboard-shortcuts',
         'code-base-works/kubernetes-resources-data-load',
+        'code-base-works/routes',
+        'code-base-works/middleware',
+        'code-base-works/stores',
+        'code-base-works/nuxt-plugins',
         'code-base-works/machine-drivers',
         'code-base-works/performance',
         'code-base-works/sortable-table',
+        'code-base-works/on-screen-text-and-translations',
+        'code-base-works/style',
       ],
     },
     {
       type:  'category',
-      label: 'Plugins',
+      label: 'Extensions',
+      link:  {
+        type: 'doc',
+        id:   'extensions/home',
+      },
       items: [
-        'plugins/plugins-getting-started',
-        'plugins/initializing-plugins'
-        // Do we still need this info?
-        // 'plugins/moving-existing-code'
+        'extensions/introduction',
+        'extensions/extensions-getting-started',
+        // 'extensions/extensions-configuration',
+        {
+          type:  'category',
+          label: 'Extensions API',
+          link:  {
+            type: 'doc',
+            id:   'extensions/api/overview',
+          },
+          items: [
+            'extensions/api/concepts',
+            'extensions/api/metadata',
+            {
+              type:  'category',
+              label: 'Navigation & Pages',
+              items: [
+                'extensions/api/nav/products',
+                'extensions/api/nav/custom-page',
+                'extensions/api/nav/resource-page',
+                'extensions/api/nav/side-menu',
+                'extensions/api/nav/routing',
+              ]
+            },
+            'extensions/api/actions',
+            'extensions/api/cards',
+            'extensions/api/panels',
+            'extensions/api/tabs',
+            'extensions/api/table-columns',
+            {
+              type:  'category',
+              label: 'Components',
+              link:  {
+                type: 'doc',
+                id:   'extensions/api/components/components',
+              },
+              items: [
+                'extensions/api/components/resources',
+                'extensions/api/components/node-drivers',
+                'extensions/api/components/auto-import',
+              ]
+            },
+            'extensions/api/common',
+          ]
+        },
+        {
+          type:  'category',
+          label: 'Advanced',
+          items: [
+            'extensions/advanced/air-gapped-environments',
+            'extensions/advanced/localization',
+            'extensions/advanced/hooks',
+            'extensions/advanced/stores',
+            'extensions/advanced/version-compatibility',
+            'extensions/advanced/safe-mode',
+            'extensions/advanced/yarn-link'
+          ]
+        },
+        'extensions/publishing',
+        {
+          type:  'category',
+          label: 'Use cases/Examples',
+          link:  {
+            type: 'doc',
+            id:   'extensions/usecases/overview',
+          },
+          items: [
+            'extensions/usecases/top-level-product',
+            {
+              type:  'category',
+              label: 'Node Driver',
+              link:  {
+                type: 'doc',
+                id:   'extensions/usecases/node-driver/overview',
+              },
+              items: [
+                'extensions/usecases/node-driver/about-drivers',
+                'extensions/usecases/node-driver/cloud-credential',
+                'extensions/usecases/node-driver/machine-config',
+                'extensions/usecases/node-driver/advanced',
+                'extensions/usecases/node-driver/proxying',
+                'extensions/usecases/node-driver/about-example',
+              ]
+            }
+          ]
+        }
       ]
     },
-    'on-screen-text-and-translations',
-    'products-and-navigation',
-    'server-side-rendering',
     'storybook',
-    'style',
-    'terminology',
     {
       type:  'category',
       label: 'Testing',
-      items: ['testing/stress-test', 'testing/e2e-test', 'testing/unit-test'],
+      items: [
+        'testing/unit-test',
+        'testing/e2e-test',
+        'testing/stress-test',
+      ],
     },
+    'terminology',
   ],
 };
 

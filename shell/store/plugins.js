@@ -72,12 +72,12 @@ export const likelyFields = [
   'token', 'apikey',
   'secret',
   'clientid', 'clientsecret', 'subscriptionid', 'tenantid',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are maaaaybe a credential field
 export const iffyFields = [
   'location', 'region',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the whole value
 export const fullFields = [
@@ -85,18 +85,18 @@ export const fullFields = [
   'accesskey',
   'accesskeyid',
   'clientid'
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the beginning of
 export const prefixFields = [
   'token',
   'apikey',
   'secret',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the end of
 export const suffixFields = [
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver to cloud provider mapping
 const driverToCloudProviderMap = {
@@ -125,14 +125,6 @@ export const state = function() {
 };
 
 export const getters = {
-  credentialDrivers() {
-    const ctx = require.context('@shell/cloud-credential', true, /.*/);
-
-    const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
-
-    return drivers;
-  },
-
   credentialOptions() {
     return (name) => {
       name = (name || '').toLowerCase();
@@ -155,15 +147,6 @@ export const getters = {
 
       return driverToFieldMap[name] || name;
     };
-  },
-
-  machineDrivers() {
-    // The subset of drivers supported by Vue components
-    const ctx = require.context('@shell/machine-config', true, /.*/);
-
-    const drivers = ctx.keys().filter(path => !path.match(/\.(vue|js)$/)).map(path => path.substr(2));
-
-    return drivers;
   },
 
   clusterDrivers() {

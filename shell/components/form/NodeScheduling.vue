@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import NodeAffinity from '@shell/components/form/NodeAffinity';
-import { HARVESTER_NAME as VIRTUAL } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as VIRTUAL } from '@shell/config/features';
 import { _VIEW } from '@shell/config/query-params';
 import { isEmpty } from '@shell/utils/object';
 import { HOSTNAME } from '@shell/config/labels-annotations';
@@ -142,7 +142,7 @@ export default {
 
           this.nodeName = nodeName;
 
-          const array = this.nodes.map(n => n.value);
+          const array = this.nodes.map((n) => n.value);
 
           if (nodeName && !array.includes(nodeName)) {
             this.$store.dispatch('growl/error', {

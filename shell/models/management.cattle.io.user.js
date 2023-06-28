@@ -1,7 +1,25 @@
 import { NORMAN } from '@shell/config/types';
-import HybridModel from '@shell/plugins/steve/hybrid-class';
+import HybridModel, { cleanHybridResources } from '@shell/plugins/steve/hybrid-class';
 
 export default class User extends HybridModel {
+  // Preserve description
+  constructor(data, ctx, rehydrateNamespace = null, setClone = false) {
+    const _description = data.description;
+
+    super(data, ctx, rehydrateNamespace, setClone);
+    this.description = _description;
+  }
+
+  // Clean the Norman properties, but keep description
+  cleanResource(data) {
+    const desc = data.description;
+    const clean = cleanHybridResources(data);
+
+    clean._description = desc;
+
+    return clean;
+  }
+
   get isSystem() {
     for ( const p of this.principalIds || [] ) {
       if ( p.startsWith('system://') ) {
@@ -15,13 +33,13 @@ export default class User extends HybridModel {
   get isCurrentUser() {
     const currentPrincipal = this.$rootGetters['auth/principalId'];
 
-    return !!(this.principalIds || []).find(p => p === currentPrincipal);
+    return !!(this.principalIds || []).find((p) => p === currentPrincipal);
   }
 
   get principals() {
     return this.principalIds
-      .map(id => this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, id))
-      .filter(p => p);
+      .map((id) => this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, id))
+      .filter((p) => p);
   }
 
   get nameDisplay() {
@@ -89,6 +107,24 @@ export default class User extends HybridModel {
     return this.metadata?.state?.name || 'unknown';
   }
 
+  get description() {
+    return this._description;
+  }
+
+  set description(value) {
+    this._description = value;
+  }
+
+  // Ensure when we clone that we preserve the description
+  toJSON() {
+    const data = super.toJSON();
+
+    data.description = this._description;
+    delete data._description;
+
+    return data;
+  }
+
   async save(opt) {
     const clone = await this.$dispatch('clone', { resource: this });
 
@@ -110,7 +146,7 @@ export default class User extends HybridModel {
   }
 
   async activateBulk(items) {
-    await Promise.all(items.map(item => item.setEnabled(true)));
+    await Promise.all(items.map((item) => item.setEnabled(true)));
   }
 
   async deactivate() {
@@ -118,7 +154,7 @@ export default class User extends HybridModel {
   }
 
   async deactivateBulk(items) {
-    await Promise.all(items.map(item => item.setEnabled(false)));
+    await Promise.all(items.map((item) => item.setEnabled(false)));
   }
 
   async refreshGroupMembership() {

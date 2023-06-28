@@ -7,7 +7,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import YamlEditor from '@shell/components/YamlEditor';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { HCI } from '@/pkg/harvester/config/labels-annotations';
+import { HCI } from '@pkg/harvester/config/labels-annotations';
 
 export default {
   name: 'HarvesterEditCloudTemplate',
@@ -84,7 +84,11 @@ export default {
     />
 
     <Tabbed :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="1">
+      <Tab
+        name="basics"
+        :label="t('harvester.host.tabs.basics')"
+        :weight="1"
+      >
         <div class="mb-20">
           <LabeledSelect
             v-model="type"

@@ -29,8 +29,8 @@ export default {
 
     // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
     const allSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
-    const apiHostSetting = allSettings.find(i => i.id === SETTING.API_HOST);
-    const serverUrlSetting = allSettings.find(i => i.id === SETTING.SERVER_URL);
+    const apiHostSetting = allSettings.find((i) => i.id === SETTING.API_HOST);
+    const serverUrlSetting = allSettings.find((i) => i.id === SETTING.SERVER_URL);
 
     this.apiHostSetting = apiHostSetting?.value;
     this.serverUrlSetting = serverUrlSetting?.value;
@@ -159,6 +159,7 @@ export default {
           v-if="canChangePassword"
           type="button"
           class="btn role-primary"
+          data-testid="account_change_password"
           @click="$refs.promptChangePassword.show(true)"
         >
           {{ t("accountAndKeys.account.change") }}
@@ -179,6 +180,7 @@ export default {
       <button
         v-if="apiKeySchema"
         class="btn role-primary add mb-20"
+        data-testid="account_create_api_keys"
         @click="addKey"
       >
         {{ t('accountAndKeys.apiKeys.add.label') }}
@@ -193,6 +195,7 @@ export default {
         :rows="apiKeys"
         :headers="apiKeyheaders"
         key-field="id"
+        data-testid="api_keys_list"
         :search="true"
         :row-actions="true"
         :table-actions="true"

@@ -7,7 +7,7 @@ import UpgradeInfo from '../../../../components/UpgradeInfo';
 
 import { HCI } from '../../../../types';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { PRODUCT_NAME as HARVESTER_PRODUCT } from '../../../../config/harvester';
 
 const IMAGE_METHOD = {
@@ -75,7 +75,7 @@ export default {
 
     osImageOptions() {
       return this.$store.getters['harvester/all'](HCI.IMAGE)
-        .filter(I => I.isOSImage)
+        .filter((I) => I.isOSImage)
         .map((I) => {
           return {
             label:    I.spec.displayName,
@@ -201,7 +201,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="value" id="air-gap">
+  <div
+    v-if="value"
+    id="air-gap"
+  >
     <h3 class="mb-20">
       {{ t('harvester.upgradePage.osUpgrade') }}
     </h3>
@@ -233,9 +236,18 @@ export default {
       <UpgradeInfo />
 
       <div v-if="uploadImage">
-        <LabeledInput v-model.trim="imageValue.spec.displayName" class="mb-20" label-key="harvester.fields.name" required />
+        <LabeledInput
+          v-model.trim="imageValue.spec.displayName"
+          class="mb-20"
+          label-key="harvester.fields.name"
+          required
+        />
 
-        <LabeledInput v-model="imageValue.spec.checksum" class="mb-20" label-key="harvester.setting.upgrade.checksum" />
+        <LabeledInput
+          v-model="imageValue.spec.checksum"
+          class="mb-20"
+          label-key="harvester.setting.upgrade.checksum"
+        />
 
         <RadioGroup
           v-model="sourceType"
@@ -259,7 +271,10 @@ export default {
           label-key="harvester.image.url"
         />
 
-        <div v-else class="chooseFile">
+        <div
+          v-else
+          class="chooseFile"
+        >
           <button
             type="button"
             class="btn role-primary"
@@ -276,7 +291,10 @@ export default {
             />
           </button>
 
-          <span :class="{ 'text-muted': !fileName }" class="ml-20">
+          <span
+            :class="{ 'text-muted': !fileName }"
+            class="ml-20"
+          >
             {{ fileName ? fileName : t('harvester.generic.noFileChosen') }}
           </span>
         </div>

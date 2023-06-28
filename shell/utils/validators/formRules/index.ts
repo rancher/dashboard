@@ -53,7 +53,7 @@ export interface ValidationOptions {
 }
 
 // "t" is the function name we use for getting a translated string
-export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
+export default function(t: Translation, { key = 'Value' }: ValidationOptions): unknown {
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
 
@@ -83,6 +83,17 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
   const requiredInt: Validator = (val: string) => isNaN(parseInt(val, 10)) ? t('validation.number.requiredInt', { key }) : undefined;
 
+  const isInteger: Validator = (val: string | number) => !Number.isInteger(+val) || `${ val }`.match(/\.+/g) ? t('validation.number.requiredInt', { key }) : undefined;
+
+  const isPositive: Validator = (val: string | number) => +val < 0 ? t('validation.number.isPositive', { key }) : undefined;
+
+  const isOctal: Validator = (val: string | number) => {
+    const valueString = `${ val }`;
+    const isValid = valueString.match(/(^0+)(.+)/);
+
+    return isValid ? t('validation.number.isOctal', { key }) : undefined;
+  };
+
   const portNumber: Validator = (val: string) => parseInt(val, 10) < 1 || parseInt(val, 10) > 65535 ? t('validation.number.between', {
     key, min: '1', max: '65535'
   }) : undefined;
@@ -92,7 +103,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
 
     if (matchedChars) {
       return t('validation.chars', {
-        key, count: matchedChars.length, chars: matchedChars.map(char => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
+        key, count: matchedChars.length, chars: matchedChars.map((char) => char === ' ' ? 'Space' : `"${ char }"`).join(', ')
       });
     }
 
@@ -375,7 +386,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
   };
 
   // The existing validator for clusterIp never actually returns an error
-  const clusterIp: Validator = val => undefined;
+  const clusterIp: Validator = (val) => undefined;
 
   const backupTarget: Validator = (val) => {
     const parseValue = JSON.parse(val);
@@ -470,6 +481,9 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions) {
     portNumber,
     required,
     requiredInt,
+    isInteger,
+    isPositive,
+    isOctal,
     roleTemplateRules,
     ruleGroups,
     servicePort,

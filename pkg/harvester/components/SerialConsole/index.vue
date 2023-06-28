@@ -36,9 +36,10 @@ export default {
   computed: {
     xtermConfig() {
       return {
-        cursorBlink: true,
-        useStyle:    true,
-        fontSize:    12,
+        allowProposedApi: true,
+        cursorBlink:      true,
+        useStyle:         true,
+        fontSize:         12,
       };
     },
   },
@@ -244,7 +245,10 @@ export default {
 
 <template>
   <div class="harvester-shell-container">
-    <div ref="xterm" class="shell-body" />
+    <div
+      ref="xterm"
+      class="shell-body"
+    />
     <resize-observer @notify="fit" />
   </div>
 </template>

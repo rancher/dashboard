@@ -40,7 +40,7 @@ export default {
     project: {
       type:    Boolean,
       default: false
-    },
+    }
   },
 
   async fetch() {
@@ -54,10 +54,11 @@ export default {
 
   data() {
     return {
-      principals: null,
-      searchStr:  '',
-      options:    [],
-      newValue:   '',
+      principals:     null,
+      searchStr:      '',
+      options:        [],
+      newValue:       '',
+      tooltipContent: null,
     };
   },
 
@@ -75,7 +76,7 @@ export default {
         return true;
       })
         .sort((a, b) => a.name.localeCompare(b.name))
-        .map(x => x.id);
+        .map((x) => x.id);
 
       return out;
     },
@@ -94,6 +95,24 @@ export default {
   },
 
   methods: {
+    setTooltipContent() {
+      if (!this.retainSelection) {
+        return;
+      }
+      if (this.principals) {
+        const selected = this.principals.find((p) => p.id === this.newValue);
+
+        this.tooltipContent = selected?.name;
+      } else {
+        this.tooltipContent = null;
+      }
+    },
+    resetTooltipContent() {
+      if (!this.retainSelection) {
+        return;
+      }
+      this.tooltipContent = null;
+    },
     add(id) {
       if (!id) {
         // Ignore attempts to select an invalid principal
@@ -140,7 +159,7 @@ export default {
 
         if ( this.searchStr === str ) {
           // If not, they've already typed something else
-          this.options = res.map(x => x.id);
+          this.options = res.map((x) => x.id);
         }
       } catch (e) {
         this.options = [];
@@ -156,6 +175,11 @@ export default {
   <LabeledSelect
     ref="labeled-select"
     v-model="newValue"
+    v-clean-tooltip="{
+      content: tooltipContent,
+      placement: 'bottom',
+      classes: ['select-principal-tooltip']
+    }"
     :mode="mode"
     :label="label"
     :placeholder="placeholder"
@@ -166,6 +190,8 @@ export default {
     :class="{'retain-selection': retainSelection}"
     @input="add"
     @search="onSearch"
+    @on-open="resetTooltipContent()"
+    @on-close="setTooltipContent()"
   >
     <template v-slot:no-options="{ searching }">
       <template v-if="searching">
@@ -225,5 +251,10 @@ export default {
       overflow-x: hidden;
       text-overflow: ellipsis;
     }
+  }
+
+  .select-principal-tooltip {
+    max-width: 580px;
+    word-wrap: break-word;
   }
 </style>

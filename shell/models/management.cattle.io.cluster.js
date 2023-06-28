@@ -9,7 +9,7 @@ import jsyaml from 'js-yaml';
 import { eachLimit } from '@shell/utils/promise';
 import { addParams } from '@shell/utils/url';
 import { isEmpty } from '@shell/utils/object';
-import { HARVESTER_NAME as HARVESTER } from '@shell/config/product/harvester-manager';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
@@ -76,7 +76,7 @@ export default class MgmtCluster extends HybridModel {
   get machinePools() {
     const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
 
-    return pools.filter(x => x.spec?.clusterName === this.id);
+    return pools.filter((x) => x.spec?.clusterName === this.id);
   }
 
   get provisioner() {
@@ -196,7 +196,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get kubernetesVersionExtension() {
-    if ( this.kubernetesVersion.match(/[+-]]/) ) {
+    if ( this.kubernetesVersion.match(/[+-]/) ) {
       return this.kubernetesVersion.replace(/^.*([+-])/, '$1');
     }
 
@@ -254,7 +254,11 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerLogo() {
-    const provider = this.status?.provider || 'kubernetes';
+    let provider = this.status?.provider || 'kubernetes';
+
+    if (this.isHarvester) {
+      provider = HARVESTER;
+    }
     // Only interested in the part before the period
     const prv = provider.split('.')[0];
     // Allow overrides if needed
@@ -274,18 +278,10 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get providerMenuLogo() {
-    if (this?.status?.provider === HARVESTER) {
-      return require(`~shell/assets/images/providers/kubernetes.svg`);
-    }
-
     return this.providerLogo;
   }
 
   get providerNavLogo() {
-    if (this?.status?.provider === HARVESTER && this.$rootGetters['currentProduct'].inStore !== HARVESTER) {
-      return require(`~shell/assets/images/providers/kubernetes.svg`);
-    }
-
     return this.providerLogo;
   }
 
@@ -409,10 +405,10 @@ export default class MgmtCluster extends HybridModel {
     const nodes = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
     const nodeMetrics = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
 
-    const someNonWorkerRoles = nodes.some(node => node.hasARole && !node.isWorker);
+    const someNonWorkerRoles = nodes.some((node) => node.hasARole && !node.isWorker);
 
     const metrics = nodeMetrics.filter((metric) => {
-      const node = nodes.find(nd => nd.id === metric.id);
+      const node = nodes.find((nd) => nd.id === metric.id);
 
       return node && (!someNonWorkerRoles || node.isWorker);
     });
@@ -434,7 +430,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+    return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.id));
   }
 
   get provClusterId() {
@@ -447,6 +443,6 @@ export default class MgmtCluster extends HybridModel {
     const from = `${ verb }Type`;
     const id = `${ verb }Id`;
 
-    return this.metadata.relationships.find(r => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
+    return this.metadata.relationships.find((r) => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
   }
 }

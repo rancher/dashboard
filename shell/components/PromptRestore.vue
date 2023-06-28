@@ -70,7 +70,7 @@ export default {
 
     clusterSnapshots() {
       if (this.sortedSnapshots) {
-        return this.sortedSnapshots.map(snapshot => ({ label: this.snapshotLabel(snapshot), value: snapshot.name }));
+        return this.sortedSnapshots.map((snapshot) => ({ label: this.snapshotLabel(snapshot), value: snapshot.name }));
       } else {
         return [];
       }
@@ -115,13 +115,13 @@ export default {
 
       if (!cluster.isRke2) {
         promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
-          return snapshots.filter(s => s.clusterId === cluster.metadata.name);
+          return snapshots.filter((s) => s.clusterId === cluster.metadata.name);
         });
       } else {
         promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
           const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-          return snapshots.filter(s => s.clusterName === toRestoreClusterName);
+          return snapshots.filter((s) => s.clusterName === toRestoreClusterName);
         });
       }
 
@@ -218,8 +218,8 @@ export default {
     >
       <h4
         slot="title"
+        v-clean-html="t('promptRestore.title', null, true)"
         class="text-default-text"
-        v-html="t('promptRestore.title', null, true)"
       />
 
       <div

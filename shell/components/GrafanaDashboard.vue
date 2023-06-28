@@ -2,6 +2,7 @@
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
 import { computeDashboardUrl } from '@shell/utils/grafana';
+import { CATALOG } from '@shell/config/types';
 
 export default {
   components: { Banner, Loading },
@@ -22,6 +23,12 @@ export default {
       type:    String,
       default: null
     },
+    // change the grafana url prefix for local clusters in certain monitoring versions
+    // project monitoring (projectHelmCharts) supply a grafana url that never needs to be modified in this way
+    modifyPrefix: {
+      type:    Boolean,
+      default: true
+    },
     backgroundColor: {
       type:    String,
       default: '#1b1c21'
@@ -31,9 +38,15 @@ export default {
       default: 'dark'
     }
   },
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+    const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+
+    this.monitoringVersion = res?.currentVersion;
+  },
   data() {
     return {
-      loading: false, error: false, interval: null, initialUrl: this.computeUrl(), errorTimer: null
+      loading: false, error: false, interval: null, errorTimer: null, monitoringVersion: null
     };
   },
   computed: {
@@ -54,14 +67,11 @@ export default {
     }
   },
   watch: {
-    currentUrl() {
+    currentUrl(neu) {
+      // Should consider changing `this.graphWindow?.angular` to something like `!loaded && !error`
+      // https://github.com/rancher/dashboard/pull/5802
       if (this.graphHistory && this.graphWindow?.angular) {
-        const angularElement = this.graphWindow.angular.element(this.graphDocument.querySelector('.grafana-app'));
-        const injector = angularElement.injector();
-
-        this.graphHistory.pushState({}, '', this.currentUrl);
-        injector.get('$route').updateParams(this.computeParams());
-        injector.get('$route').reload();
+        this.graphWindow.location.replace(neu);
       }
     },
 
@@ -134,7 +144,7 @@ export default {
       const clusterId = this.$store.getters['currentCluster'].id;
       const params = this.computeParams();
 
-      return computeDashboardUrl(embedUrl, clusterId, params);
+      return computeDashboardUrl(this.monitoringVersion, embedUrl, clusterId, params, this.modifyPrefix);
     },
     computeParams() {
       const params = {};
@@ -238,7 +248,7 @@ export default {
       v-show="!error"
       ref="frame"
       :class="{loading, frame: true}"
-      :src="initialUrl"
+      :src="currentUrl"
       frameborder="0"
       scrolling="no"
     />
@@ -249,10 +259,16 @@ export default {
       v-if="!loading && !error"
       class="external-link"
     >
+      <!-- https://github.com/harvester/harvester-installer/pull/512/files -->
+      <!-- It is necessary to include the parameter referer when accessing the Grafana page. -->
+      <!-- This parameter is required by the backend to identify the origin of the request from which cluster -->
+      <!-- The matching mechanism as follows: -->
+      <!-- ~.*/k8s/clusters/(c-m-.+)/.* -->
+      <!-- ~.*/dashboard/harvester/c/(c-m-.+)/.* -->
       <a
         :href="grafanaUrl"
         target="_blank"
-        rel="noopener noreferrer nofollow"
+        rel="noopener nofollow"
       >{{ t('grafanaDashboard.grafana') }} <i class="icon icon-external-link" /></a>
     </div>
   </div>

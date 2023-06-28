@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import ChartReadme from '@shell/components/ChartReadme';
 import { Banner } from '@components/Banner';
 import LazyImage from '@shell/components/LazyImage';
@@ -34,6 +35,18 @@ export default {
     };
   },
 
+  computed: {
+    ...mapGetters({ theme: 'prefs/theme' }),
+
+    applyDarkModeBg() {
+      if (this.theme === 'dark') {
+        return { 'dark-mode': true };
+      }
+
+      return {};
+    },
+  },
+
   methods: {
     show(info) {
       this.info = info;
@@ -50,16 +63,18 @@ export default {
     },
 
     async loadPluginVersionInfo(version) {
-      this.versionError = false;
-      this.versionInfo = undefined;
-
       const versionName = version || this.info.displayVersion;
+
+      const isVersionNotCompatibleWithUi = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithUi);
+
+      if (!this.info.chart || isVersionNotCompatibleWithUi) {
+        return;
+      }
 
       this.infoVersion = versionName;
 
-      if (!this.info.chart) {
-        return;
-      }
+      this.versionError = false;
+      this.versionInfo = undefined;
 
       try {
         this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
@@ -100,10 +115,12 @@ export default {
     <div
       v-if="showSlideIn"
       class="glass"
+      data-testid="extension-details-bg"
       @click="hide()"
     />
     <div
       class="slideIn"
+      data-testid="extension-details"
       :class="{'hide': false, 'slideIn__show': showSlideIn}"
     >
       <div
@@ -111,7 +128,10 @@ export default {
         class="plugin-info-content"
       >
         <div class="plugin-header">
-          <div class="plugin-icon">
+          <div
+            class="plugin-icon"
+            :class="applyDarkModeBg"
+          >
             <LazyImage
               v-if="info.icon"
               :initial-src="defaultIcon"
@@ -126,8 +146,11 @@ export default {
             >
           </div>
           <div class="plugin-title">
-            <h2 class="slideIn__header">
-              {{ info.name }}
+            <h2
+              class="slideIn__header"
+              data-testid="extension-details-title"
+            >
+              {{ info.label }}
             </h2>
             <p class="plugin-description">
               {{ info.description }}
@@ -137,6 +160,7 @@ export default {
             <div class="slideIn__header__buttons">
               <div
                 class="slideIn__header__button"
+                data-testid="extension-details-close"
                 @click="showSlideIn = false"
               >
                 <i class="icon icon-close" />
@@ -182,8 +206,9 @@ export default {
             :key="v.version"
           >
             <a
+              v-clean-tooltip="v.requiredUiVersion ? t('plugins.info.requiresVersion', { version: v.requiredUiVersion }) : ''"
               class="version-link"
-              :class="{'version-active': v.version === infoVersion}"
+              :class="{'version-active': v.version === infoVersion, 'disabled': !v.isCompatibleWithUi}"
               @click="loadPluginVersionInfo(v.version)"
             >
               {{ v.version }}
@@ -208,8 +233,11 @@ export default {
         </div>
         <div v-if="!info.versions.length">
           <h3>
-            {{ t('plugins.version', { version: info.displayVersion }) }}
+            {{ t('plugins.info.versions') }}
           </h3>
+          <div class="version-link version-active version-builtin">
+            {{ info.displayVersion }}
+          </div>
         </div>
       </div>
     </div>
@@ -220,6 +248,7 @@ export default {
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 1;
 
     $slideout-width: 35%;
     $title-height: 50px;
@@ -254,6 +283,10 @@ export default {
 
       transition: right .5s ease;
 
+      &__header {
+        text-transform: capitalize;
+      }
+
       .plugin-info-content {
         display: flex;
         flex-direction: column;
@@ -285,15 +318,29 @@ export default {
         font-size: 40px;
         margin-right:10px;
         color: #888;
+        width: 44px;
+        height: 44px;
+
+        &.dark-mode {
+          border-radius: calc(2 * var(--border-radius));
+          overflow: hidden;
+          background-color: white;
+        }
 
         .plugin-icon-img {
           height: 40px;
           width: 40px;
+          -o-object-fit: contain;
+          object-fit: contain;
+          position: relative;
+          top: 2px;
+          left: 2px;
         }
       }
 
       .plugin-versions {
         display: flex;
+        flex-wrap: wrap;
       }
 
       .plugin-description {
@@ -306,11 +353,24 @@ export default {
         padding: 2px 8px;
         border-radius: 5px;
         user-select: none;
-        margin-right: 5px;
+        margin: 0 5px 5px 0;
+        display: block;
 
         &.version-active {
           color: var(--link-text);
           background: var(--link);
+        }
+
+        &.disabled {
+          cursor: not-allowed;
+          color: var(--disabled-text) !important;
+          background-color: var(--disabled-bg) !important;
+          border-color: var(--disabled-bg) !important;
+          text-decoration: none !important;
+        }
+
+        &.version-builtin {
+          display: inline-block;
         }
       }
 

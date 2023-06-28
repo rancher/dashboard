@@ -132,7 +132,10 @@ export default {
 </script>
 
 <template>
-  <div class="disk" @input="update">
+  <div
+    class="disk"
+    @input="update"
+  >
     <div class="mt-30" />
     <Banner
       v-if="mountedMessage && isProvisioned"
@@ -150,14 +153,14 @@ export default {
           <div class="pull-right">
             Conditions:
             <BadgeState
-              v-tooltip="readyCondition.message"
+              v-clean-tooltip="readyCondition.message"
               :color="readyCondition.status === 'True' ? 'bg-success' : 'bg-error' "
               :icon="readyCondition.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Ready"
               class="mr-10 ml-10 state"
             />
             <BadgeState
-              v-tooltip="schedulableCondition.message"
+              v-clean-tooltip="schedulableCondition.message"
               :color="schedulableCondition.status === 'True' ? 'bg-success' : 'bg-error' "
               :icon="schedulableCondition.status === 'True' ? 'icon-checkmark' : 'icon-warning' "
               label="Schedulable"
@@ -173,7 +176,10 @@ export default {
           </div>
         </div>
       </div>
-      <div v-if="!value.isNew" class="row mt-30">
+      <div
+        v-if="!value.isNew"
+        class="row mt-30"
+      >
         <div class="col flex span-12">
           <LabelValue
             name="Storage Available"
@@ -200,7 +206,10 @@ export default {
         />
       </div>
     </div>
-    <div v-if="value.isNew && !isFormatted" class="row mt-10">
+    <div
+      v-if="value.isNew && !isFormatted"
+      class="row mt-10"
+    >
       <div class="col span-6">
         <RadioGroup
           v-model="value.forceFormatted"

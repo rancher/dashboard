@@ -13,7 +13,7 @@ import { saferDump } from '@shell/utils/create-yaml';
 import { InterfaceOption } from '../config/harvester-map';
 import { _CREATE } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 
 export default {
   name: 'HarvesterVolume',
@@ -82,7 +82,7 @@ export default {
 
       return sortBy(
         choices
-          .filter(obj => obj.isReady)
+          .filter((obj) => obj.isReady)
           .map((obj) => {
             return {
               label: obj.spec.displayName,
@@ -142,7 +142,11 @@ export default {
     :apply-hooks="applyHooks"
     @finish="save"
   >
-    <NameNsDescription :value="value" :namespaced="true" :mode="mode" />
+    <NameNsDescription
+      :value="value"
+      :namespaced="true"
+      :mode="mode"
+    />
 
     <ResourceTabs
       v-model="value"
@@ -152,7 +156,12 @@ export default {
       :side-tabs="true"
       :mode="mode"
     >
-      <Tab name="basic" :label="t('harvester.volume.tabs.basics')" :weight="3" class="bordered-table">
+      <Tab
+        name="basic"
+        :label="t('harvester.volume.tabs.basics')"
+        :weight="3"
+        class="bordered-table"
+      >
         <LabeledSelect
           v-model="source"
           :label="t('harvester.volume.source')"

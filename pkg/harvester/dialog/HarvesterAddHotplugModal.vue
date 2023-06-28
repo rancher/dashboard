@@ -3,7 +3,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import { sortBy } from '@shell/utils/sort';
 import { mapGetters } from 'vuex';
 import { PVC } from '@shell/config/types';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { Card } from '@components/Card';
 import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -41,7 +41,7 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     PVCs() {
-      return this.allPVCs.filter(P => this.actionResource.metadata.namespace === P.metadata.namespace) || [];
+      return this.allPVCs.filter((P) => this.actionResource.metadata.namespace === P.metadata.namespace) || [];
     },
 
     actionResource() {
@@ -109,8 +109,16 @@ export default {
 </script>
 
 <template>
-  <Card ref="modal" name="modal" :show-highlight-border="false">
-    <h4 slot="title" class="text-default-text" v-html="t('harvester.modal.hotplug.title')" />
+  <Card
+    ref="modal"
+    name="modal"
+    :show-highlight-border="false"
+  >
+    <h4
+      slot="title"
+      v-clean-html="t('harvester.modal.hotplug.title')"
+      class="text-default-text"
+    />
 
     <template #body>
       <LabeledInput
@@ -128,9 +136,16 @@ export default {
       />
     </template>
 
-    <div slot="actions" class="actions">
+    <div
+      slot="actions"
+      class="actions"
+    >
       <div class="buttons">
-        <button type="button" class="btn role-secondary mr-10" @click="close">
+        <button
+          type="button"
+          class="btn role-secondary mr-10"
+          @click="close"
+        >
           {{ t('generic.cancel') }}
         </button>
 
@@ -141,7 +156,12 @@ export default {
         />
       </div>
 
-      <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        color="error"
+        :label="err"
+      />
     </div>
   </Card>
 </template>

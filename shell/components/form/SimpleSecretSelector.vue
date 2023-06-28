@@ -31,7 +31,7 @@ export default {
     // to choose from.
     const allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
 
-    const allSecretsInNamespace = allSecrets.filter(secret => this.types.includes(secret._type) && secret.namespace === this.namespace);
+    const allSecretsInNamespace = allSecrets.filter((secret) => this.types.includes(secret._type) && secret.namespace === this.namespace);
 
     this.secrets = allSecretsInNamespace;
   },
@@ -83,7 +83,7 @@ export default {
 
   computed: {
     secretNames() {
-      const mappedSecrets = this.secrets.map(secret => ({
+      const mappedSecrets = this.secrets.map((secret) => ({
         label: secret.name,
         value: secret.name
       })).sort();
@@ -91,9 +91,9 @@ export default {
       return [{ label: 'None', value: NONE }, ...sortBy(mappedSecrets, 'label')];
     },
     keys() {
-      const secret = this.secrets.find(secret => secret.name === this.name) || {};
+      const secret = this.secrets.find((secret) => secret.name === this.name) || {};
 
-      return Object.keys(secret.data || {}).map(key => ({
+      return Object.keys(secret.data || {}).map((key) => ({
         label: key,
         value: key
       }));
@@ -107,18 +107,18 @@ export default {
   },
 
   methods: {
-    updateSecretName(value) {
-      if (value === this.none) {
+    updateSecretName(e) {
+      if (e.value === this.none) {
         // The key should appear blank if the secret name is cleared
         this.key = '';
       }
-      if (value) {
-        this.$emit('updateSecretName', value);
+      if (e.value) {
+        this.$emit('updateSecretName', e.value);
       }
     },
-    updateSecretKey(value) {
-      if (value) {
-        this.$emit('updateSecretKey', value);
+    updateSecretKey(e) {
+      if (e.value) {
+        this.$emit('updateSecretKey', e.value);
       }
     }
   }
@@ -135,7 +135,7 @@ export default {
         :options="secretNames"
         :label="secretNameLabel"
         :mode="mode"
-        @selecting="updateSecretName(name)"
+        @selecting="updateSecretName"
       />
       <LabeledSelect
         v-model="key"
@@ -144,7 +144,7 @@ export default {
         :options="keys"
         :label="keyNameLabel"
         :mode="mode"
-        @selecting="updateSecretKey(key)"
+        @selecting="updateSecretKey"
       />
     </div>
   </div>

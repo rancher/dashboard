@@ -79,7 +79,7 @@ export default {
       }
 
       try {
-        await Promise.all(this.value.map(resource => this.removePod(resource)));
+        await Promise.all(this.value.map((resource) => this.removePod(resource)));
         if ( goTo && !isEmpty(goTo) ) {
           parentComponent.currentRouter.push(goTo);
         }
@@ -108,8 +108,8 @@ export default {
   <div class="mt-10">
     <div class="mb-30">
       {{ t('promptRemove.attemptingToRemove', { type }) }} <span
+        v-clean-html="podNames"
         class="machine-name"
-        v-html="podNames"
       />
     </div>
     <div class="mb-30">

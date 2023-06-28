@@ -3,7 +3,7 @@ import { mapGetters } from 'vuex';
 import debounce from 'lodash/debounce';
 import { NORMAN, STEVE } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
-import { isMac } from '@shell/utils/platform';
+import { isAlternate, isMac } from '@shell/utils/platform';
 import Import from '@shell/components/Import';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct } from '@shell/config/private-label';
@@ -15,6 +15,9 @@ import WorkspaceSwitcher from './WorkspaceSwitcher';
 import TopLevelMenu from './TopLevelMenu';
 import Jump from './Jump';
 import { allHash } from '@shell/utils/promise';
+import { ActionLocation, ExtensionPoint } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import IconOrSvg from '@shell/components/IconOrSvg';
 
 const PAGE_HEADER_ACTION = 'page-action';
 
@@ -29,6 +32,7 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
+    IconOrSvg
   },
 
   props: {
@@ -43,19 +47,21 @@ export default {
     const shellShortcut = '(Ctrl+`)';
 
     return {
-      show:              false,
-      showTooltip:       false,
-      kubeConfigCopying: false,
+      show:                   false,
+      showTooltip:            false,
+      kubeConfigCopying:      false,
       searchShortcut,
       shellShortcut,
       LOGGED_OUT,
-      navHeaderRight:    null
+      navHeaderRight:         null,
+      extensionHeaderActions: getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, this.$route),
+      ctx:                    this
     };
   },
 
   computed: {
     ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct']),
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -170,6 +176,12 @@ export default {
       if (nue && old && nue.id !== old.id) {
         this.checkClusterName();
       }
+    },
+    // since the Header is a "persistent component" we need to update it at every route change...
+    $route(nue) {
+      if (nue) {
+        this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+      }
     }
   },
 
@@ -280,7 +292,7 @@ export default {
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
       allHash({
         copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: new Promise(resolve => setTimeout(resolve, 1000))
+        minDelay: new Promise((resolve) => setTimeout(resolve, 1000))
       }).finally(() => {
         this.kubeConfigCopying = false;
 
@@ -288,6 +300,33 @@ export default {
           button.classList.remove('header-btn-active');
         }
       });
+    },
+
+    handleExtensionAction(action, event) {
+      const fn = action.invoke;
+      const opts = {
+        event,
+        action,
+        isAlt:   isAlternate(event),
+        product: this.currentProduct.name,
+        cluster: this.currentCluster,
+      };
+      const enabled = action.enabled ? action.enabled.apply(this, [opts]) : true;
+
+      if (fn && enabled) {
+        fn.apply(this, [opts, []]);
+      }
+    },
+
+    handleExtensionTooltip(action) {
+      if (action.tooltipKey || action.tooltip) {
+        const tooltip = action.tooltipKey ? this.t(action.tooltipKey) : action.tooltip;
+        const shortcut = action.shortcutLabel ? action.shortcutLabel() : '';
+
+        return `${ tooltip } ${ shortcut }`;
+      }
+
+      return null;
     }
   }
 };
@@ -298,14 +337,14 @@ export default {
     ref="header"
   >
     <div>
-      <TopLevelMenu v-if="isMultiCluster || !isSingleProduct" />
+      <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
     </div>
     <div
       class="menu-spacer"
       :class="{'isSingleProduct': isSingleProduct }"
     >
       <n-link
-        v-if="isSingleProduct"
+        v-if="isSingleProduct && !isRancherInHarvester"
         :to="singleProductLogoRoute"
       >
         <img
@@ -321,11 +360,11 @@ export default {
     >
       <div
         v-if="currentProduct && currentProduct.showClusterSwitcher"
-        v-tooltip="nameTooltip"
+        v-clean-tooltip="nameTooltip"
         class="cluster cluster-clipped"
       >
         <div
-          v-if="isSingleProduct"
+          v-if="isSingleProduct && !isRancherInHarvester"
           class="product-name"
         >
           {{ t(isSingleProduct.productNameKey) }}
@@ -416,7 +455,7 @@ export default {
         <template v-if="currentProduct && currentProduct.showClusterSwitcher">
           <button
             v-if="showImportYaml"
-            v-tooltip="t('nav.import')"
+            v-clean-tooltip="t('nav.import')"
             :disabled="!importEnabled"
             type="button"
             class="btn header-btn role-tertiary"
@@ -439,7 +478,8 @@ export default {
 
           <button
             v-if="showKubeShell"
-            v-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
+            id="btn-kubectl"
+            v-clean-tooltip="t('nav.shellShortcut', {key: shellShortcut})"
             v-shortkey="{windows: ['ctrl', '`'], mac: ['meta', '`']}"
             :disabled="!shellEnabled"
             type="button"
@@ -452,7 +492,7 @@ export default {
 
           <button
             v-if="showKubeConfig"
-            v-tooltip="t('nav.kubeconfig.download')"
+            v-clean-tooltip="t('nav.kubeconfig.download')"
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
@@ -463,7 +503,7 @@ export default {
 
           <button
             v-if="showCopyConfig"
-            v-tooltip="t('nav.kubeconfig.copy')"
+            v-clean-tooltip="t('nav.kubeconfig.copy')"
             :disabled="!kubeConfigEnabled"
             type="button"
             class="btn header-btn role-tertiary"
@@ -482,7 +522,7 @@ export default {
 
         <button
           v-if="showSearch"
-          v-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
+          v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
           v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
           type="button"
           class="btn header-btn role-tertiary"
@@ -500,6 +540,31 @@ export default {
         >
           <Jump @closeSearch="hideSearch()" />
         </modal>
+      </div>
+
+      <!-- Extension header actions -->
+      <div
+        v-if="extensionHeaderActions.length"
+        class="header-buttons"
+      >
+        <button
+          v-for="action, i in extensionHeaderActions"
+          :key="`${action.label}${i}`"
+          v-clean-tooltip="handleExtensionTooltip(action)"
+          v-shortkey="action.shortcutKey"
+          :disabled="action.enabled ? !action.enabled(ctx) : false"
+          type="button"
+          class="btn header-btn role-tertiary"
+          @shortkey="handleExtensionAction(action, $event)"
+          @click="handleExtensionAction(action, $event)"
+        >
+          <IconOrSvg
+            class="icon icon-lg"
+            :icon="action.icon"
+            :src="action.svg"
+            color="header"
+          />
+        </button>
       </div>
 
       <div
@@ -557,6 +622,7 @@ export default {
       <div
         v-if="showUserMenu"
         class="user user-menu"
+        data-testid="nav_header_showUserMenu"
         tabindex="0"
         @blur="showMenu(false)"
         @click="showMenu(true)"
@@ -590,6 +656,7 @@ export default {
           >
             <ul
               class="list-unstyled dropdown"
+              data-testid="user-menu-dropdown"
               @click.stop="showMenu(false)"
             >
               <li
@@ -671,8 +738,6 @@ export default {
 
         .vs__dropdown-toggle .vs__actions:after {
           color: var(--body-text) !important;
-          font-size: 1.5rem;
-          padding-right: 4px;
         }
 
         .vs__dropdown-toggle {
@@ -815,6 +880,11 @@ export default {
           &.header-btn-active, &.header-btn-active:hover {
             background-color: var(--success);
             color: var(--success-text);
+          }
+
+          img {
+            height: 20px;
+            width: 20px;
           }
         }
       }

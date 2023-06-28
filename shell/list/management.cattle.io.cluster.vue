@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     filteredRows() {
-      return filterOnlyKubernetesClusters(this.rows);
+      return filterOnlyKubernetesClusters(this.rows, this.$store);
     }
   },
   // override with relevant info for the loading indicator since this doesn't use it's own masthead
@@ -49,5 +49,6 @@ export default {
     :group-by="$attrs.groupBy"
     :loading="loading"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+    :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
   />
 </template>

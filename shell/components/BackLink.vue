@@ -16,6 +16,13 @@ export default {
   >
     <i class="icon icon-chevron-left" /> {{ t('generic.back') }}
   </nuxt-link>
+  <nuxt-link
+    v-else
+    to="/"
+    class="back-link"
+  >
+    <i class="icon icon-chevron-left" /> {{ t('nav.home') }}
+  </nuxt-link>
 </template>
 
 <style lang="scss" scoped>

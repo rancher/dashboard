@@ -47,7 +47,7 @@ export default {
       }
 
       // Need the project ID of the system project in order to get the apps
-      const systemProject = projects.find(p => p.spec?.displayName === 'System');
+      const systemProject = projects.find((p) => p.spec?.displayName === 'System');
 
       if (systemProject) {
         const id = systemProject.id.replace('/', ':');
@@ -86,7 +86,7 @@ export default {
     },
 
     rancherCatalog() {
-      return this.$store.getters['catalog/repos'].find(x => x.isRancher);
+      return this.$store.getters['catalog/repos'].find((x) => x.isRancher);
     },
 
     installedApps() {
@@ -121,7 +121,7 @@ export default {
         showTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 
-      charts = charts.filter(c => c.sideLabel !== 'Experimental');
+      charts = charts.filter((c) => c.sideLabel !== 'Experimental');
 
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools
       if (this.legacyEnabled) {
@@ -227,18 +227,18 @@ export default {
       const c = this.v1SystemCatalog?.[id];
 
       if (c?.spec?.versions) {
-        c.spec.versions.forEach(v => versions.push({ version: v.version }));
+        c.spec.versions.forEach((v) => versions.push({ version: v.version }));
       }
 
       return versions;
     },
 
     checkLegacyApp(chartsWithApps, v1Apps, v1ChartName, v2ChartName, v1AppName, showOnlyIfInstalled) {
-      const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
-      const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
+      const v1 = chartsWithApps.find((a) => a.chart.chartName === v1ChartName);
+      const v2 = chartsWithApps.find((a) => a.chart.chartName === v2ChartName);
 
       if (v1) {
-        const v1App = v1Apps.find(a => a.id.indexOf(v1AppName) > 0);
+        const v1App = v1Apps.find((a) => a.id.indexOf(v1AppName) > 0);
 
         v1.app = v1App;
 
@@ -255,7 +255,7 @@ export default {
           }
         } else if (showOnlyIfInstalled) {
           // Remove the v1 chart if it is not already installed for charts which we no longer support
-          chartsWithApps = chartsWithApps.filter(c => c !== v1);
+          chartsWithApps = chartsWithApps.filter((c) => c !== v1);
         }
 
         if (v2) {
@@ -416,7 +416,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="options.length">
-    <h1 v-html="t('catalog.tools.header')" />
+    <h1 v-clean-html="t('catalog.tools.header')" />
     <TypeDescription
       v-if="!legacyEnabled"
       resource="chart"
@@ -466,8 +466,8 @@ export default {
         </div>
         <div class="description">
           <div
+            v-clean-html="opt.chart.chartDescription"
             class="description-content"
-            v-html="opt.chart.chartDescription"
           />
         </div>
         <div
@@ -483,16 +483,16 @@ export default {
         <div class="action">
           <template v-if="opt.blocked">
             <button
+              v-clean-html="t('catalog.tools.action.install')"
               disabled="true"
               class="btn btn-sm role-primary"
-              v-html="t('catalog.tools.action.install')"
             />
           </template>
           <template v-else-if="opt.app && opt.chart.legacy">
             <button
+              v-clean-html="t('catalog.tools.action.manage')"
               class="btn btn-sm role-secondary"
               @click="openV1Tool(opt.chart.legacyPage)"
-              v-html="t('catalog.tools.action.manage')"
             />
           </template>
           <template v-else-if="opt.app && opt.upgradeAvailable && !opt.chart.legacy">
@@ -503,9 +503,9 @@ export default {
               <i class="icon icon-delete icon-lg" />
             </button>
             <button
+              v-clean-html="t('catalog.tools.action.upgrade')"
               class="btn btn-sm role-secondary"
               @click="edit(opt.app, opt.app.upgradeAvailable)"
-              v-html="t('catalog.tools.action.upgrade')"
             />
           </template>
           <template v-else-if="opt.app">
@@ -516,23 +516,23 @@ export default {
               <i class="icon icon-delete icon-lg" />
             </button>
             <button
+              v-clean-html="t('catalog.tools.action.edit')"
               class="btn btn-sm role-secondary"
               @click="edit(opt.app)"
-              v-html="t('catalog.tools.action.edit')"
             />
           </template>
           <template v-else-if="opt.chart.legacy">
             <button
+              v-clean-html="t('catalog.tools.action.install')"
               class="btn btn-sm role-primary"
               @click="openV1Tool(opt.chart.legacyPage)"
-              v-html="t('catalog.tools.action.install')"
             />
           </template>
           <template v-else>
             <button
+              v-clean-html="t('catalog.tools.action.install')"
               class="btn btn-sm role-primary"
               @click="install(opt.chart)"
-              v-html="t('catalog.tools.action.install')"
             />
           </template>
         </div>

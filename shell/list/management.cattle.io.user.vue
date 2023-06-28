@@ -1,6 +1,6 @@
 <script>
 import AsyncButton from '@shell/components/AsyncButton';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { NORMAN } from '@shell/config/types';
 import { NAME } from '@shell/config/product/auth';
 import ResourceTable from '@shell/components/ResourceTable';
 import Masthead from '@shell/components/ResourceList/Masthead';
@@ -17,11 +17,6 @@ export default {
     resource: {
       type:     String,
       required: true,
-    },
-
-    loadResources: {
-      type:    Array,
-      default: () => []
     },
 
     loadIndeterminate: {
@@ -47,7 +42,7 @@ export default {
     await this.$fetchType(this.resource);
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
-      .then(res => !!res?.actions?.refreshauthprovideraccess);
+      .then((res) => !!res?.actions?.refreshauthprovideraccess);
   },
 
   data() {
@@ -62,10 +57,8 @@ export default {
   },
 
   $loadingResources() {
-    return {
-      loadResources:     [MANAGEMENT.USER],
-      loadIndeterminate: true, // results are filtered so we wouldn't get the correct count on indicator...
-    };
+    // results are filtered so we wouldn't get the correct count on indicator...
+    return { loadIndeterminate: true };
   },
 
   computed: {
@@ -86,7 +79,7 @@ export default {
       // 1) Only show system users in explorer/users and not in auth/users
       // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
       const params = { ...this.$route.params };
-      const requiredUsers = params.product === NAME ? this.rows.filter(a => !a.isSystem) : this.rows;
+      const requiredUsers = params.product === NAME ? this.rows.filter((a) => !a.isSystem) : this.rows;
 
       requiredUsers.forEach((r) => {
         r.canRefreshAccess = this.canRefreshAccess;
@@ -143,6 +136,7 @@ export default {
       :group-by="groupBy"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+      :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     />
   </div>
 </template>

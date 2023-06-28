@@ -39,7 +39,7 @@ export default {
 
   created() {
     this.value.value = this.value.value || this.value.default;
-    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map(id => ({
+    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map((id) => ({
       label: `advancedSettings.enum.${ this.value.id }.${ id }`,
       value: id,
     })) : [];
@@ -57,8 +57,11 @@ export default {
       // We map the setting rulesets to use values to define validation from factory
       return this.setting?.ruleSet ? mapValues(
         keyBy(this.setting.ruleSet, 'name'),
-        ({ key, name, arg }) => {
-          return formRulesGenerator(t, key ? { key } : {})[name](arg);
+        // The validation is curried and may require the factory argument for the ValidatorFactory
+        ({ key, name, factoryArg }) => {
+          const rule = formRulesGenerator(t, key ? { key } : {})[name];
+
+          return factoryArg ? rule(factoryArg) : rule;
         }) : {};
     }
   },
@@ -119,8 +122,8 @@ export default {
 
     <h5
       v-if="editHelp"
+      v-clean-html="editHelp"
       class="edit-help"
-      v-html="editHelp"
     />
 
     <div class="edit-change mt-20">

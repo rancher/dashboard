@@ -57,7 +57,7 @@ export default class Pod extends WorkloadService {
 
   get defaultContainerName() {
     const containers = this.spec.containers;
-    const desirable = containers.filter(c => c.name !== 'istio-proxy');
+    const desirable = containers.filter((c) => c.name !== 'istio-proxy');
 
     if ( desirable.length ) {
       return desirable[0].name;
@@ -111,7 +111,7 @@ export default class Pod extends WorkloadService {
   }
 
   get imageNames() {
-    return this.spec.containers.map(container => shortenedImage(container.image));
+    return this.spec.containers.map((container) => shortenedImage(container.image));
   }
 
   get workloadRef() {
@@ -127,6 +127,10 @@ export default class Pod extends WorkloadService {
     });
 
     return workloads[0];
+  }
+
+  get ownedByWorkload() {
+    return !!this.workloadRef;
   }
 
   get details() {
@@ -179,6 +183,21 @@ export default class Pod extends WorkloadService {
     }
 
     return 0;
+  }
+
+  processSaveResponse(res) {
+    if (res._headers && res._headers.warning) {
+      const warnings = res._headers.warning.split('299') || [];
+      const hasPsaWarnings = warnings.filter((warning) => warning.includes('violate PodSecurity')).length;
+
+      if (hasPsaWarnings) {
+        this.$dispatch('growl/warning', {
+          title:   this.$rootGetters['i18n/t']('growl.podSecurity.title'),
+          message: this.$rootGetters['i18n/t']('growl.podSecurity.message'),
+          timeout: 5000,
+        }, { root: true });
+      }
+    }
   }
 
   save() {

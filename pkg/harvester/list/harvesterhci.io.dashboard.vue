@@ -197,7 +197,7 @@ export default {
     accessibleResources() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
-      return RESOURCES.filter(resource => this.$store.getters[`${ inStore }/schemaFor`](resource.type));
+      return RESOURCES.filter((resource) => this.$store.getters[`${ inStore }/schemaFor`](resource.type));
     },
 
     totalCountGaugeInput() {
@@ -251,7 +251,7 @@ export default {
     currentVersion() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const settings = this.$store.getters[`${ inStore }/all`](HCI.SETTING);
-      const setting = settings.find( S => S.id === 'server-version');
+      const setting = settings.find( (S) => S.id === 'server-version');
 
       return setting?.value || setting?.default;
     },
@@ -313,7 +313,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const longhornNodes = this.$store.getters[`${ inStore }/all`](LONGHORN.NODES) || [];
 
-      return longhornNodes.filter(node => node.spec?.allowScheduling).reduce((total, node) => {
+      return longhornNodes.filter((node) => node.spec?.allowScheduling).reduce((total, node) => {
         return total + node.used;
       }, 0);
     },
@@ -321,7 +321,7 @@ export default {
     storageReservedTotal() {
       let out = 0;
 
-      (this.longhornNode || []).filter(node => node.spec?.allowScheduling).forEach((node) => {
+      (this.longhornNode || []).filter((node) => node.spec?.allowScheduling).forEach((node) => {
         const disks = node?.spec?.disks || {};
 
         Object.values(disks).map((disk) => {
@@ -359,19 +359,19 @@ export default {
     },
 
     vmEvents() {
-      return this.events.filter( E => ['VirtualMachineInstance', 'VirtualMachine'].includes(E.involvedObject.kind));
+      return this.events.filter( (E) => ['VirtualMachineInstance', 'VirtualMachine'].includes(E.involvedObject.kind));
     },
 
     volumeEvents() {
-      return this.events.filter( E => ['PersistentVolumeClaim'].includes(E.involvedObject.kind));
+      return this.events.filter( (E) => ['PersistentVolumeClaim'].includes(E.involvedObject.kind));
     },
 
     hostEvents() {
-      return this.events.filter( E => ['Node'].includes(E.involvedObject.kind));
+      return this.events.filter( (E) => ['Node'].includes(E.involvedObject.kind));
     },
 
     imageEvents() {
-      return this.events.filter( E => ['VirtualMachineImage'].includes(E.involvedObject.kind));
+      return this.events.filter( (E) => ['VirtualMachineImage'].includes(E.involvedObject.kind));
     },
 
     hasMetricsTabs() {
@@ -382,7 +382,7 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const pods = this.$store.getters[`${ inStore }/all`](POD) || [];
 
-      return pods.filter(p => p?.metadata?.name !== 'removing');
+      return pods.filter((p) => p?.metadata?.name !== 'removing');
     },
 
     cpuReserved() {
@@ -405,14 +405,14 @@ export default {
     },
 
     availableNodes() {
-      return (this.metricNodes || []).map(node => node.id);
+      return (this.metricNodes || []).map((node) => node.id);
     },
 
     metricAggregations() {
       const nodes = this.nodes;
-      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      const someNonWorkerRoles = this.nodes.some((node) => node.hasARole && !node.isWorker);
       const metrics = this.nodeMetrics.filter((nodeMetrics) => {
-        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+        const node = nodes.find((nd) => nd.id === nodeMetrics.id);
 
         return node && (!someNonWorkerRoles || node.isWorker);
       });
@@ -534,7 +534,7 @@ export default {
           {{ t('harvester.dashboard.version') }}:
         </label>
         <span>
-          <span v-tooltip="{content: currentVersion}">
+          <span v-clean-tooltip="{content: currentVersion}">
             {{ currentVersion }}
           </span>
         </span>

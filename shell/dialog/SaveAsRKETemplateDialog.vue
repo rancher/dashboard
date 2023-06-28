@@ -15,25 +15,17 @@ export default {
     LabeledInput,
   },
   props: {
-    resources: {
-      type:     Array,
-      required: true
+    cluster: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
   data() {
     return { errors: [], name: '' };
   },
-  computed: {
-    cluster() {
-      if (this.resources?.length === 1) {
-        const c = this.resources[0];
 
-        return c;
-      }
-
-      return {};
-    },
-  },
   mounted() {
     this.$nextTick(() => {
       this.$refs.templateName.focus();
@@ -82,8 +74,8 @@ export default {
   >
     <h4
       slot="title"
+      v-clean-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)"
       class="text-default-text"
-      v-html="t('promptSaveAsRKETemplate.title', { cluster: cluster.displayName }, true)"
     />
 
     <div

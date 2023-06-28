@@ -1,6 +1,5 @@
 <script>
 import { _EDIT } from '@shell/config/query-params';
-import Loading from '@shell/components/Loading';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
@@ -13,7 +12,6 @@ export default {
   name: 'SelectOrCreateAuthSecret',
 
   components: {
-    Loading,
     LabeledInput,
     LabeledSelect,
   },
@@ -131,8 +129,6 @@ export default {
       } else {
         this.allSecrets = await this.$store.dispatch(`${ this.inStore }/findAll`, { type: SECRET });
       }
-    } else {
-      this.allSecrets = [];
     }
 
     if ( this.allowS3 && this.$store.getters['rancher/canList'](NORMAN.CLOUD_CREDENTIAL) ) {
@@ -170,10 +166,10 @@ export default {
     this.update();
   },
 
-  data() {
+  data(props) {
     return {
-      allCloudCreds: null,
-      allSecrets:    null,
+      allCloudCreds: [],
+      allSecrets:    [],
       selected:      null,
 
       publicKey:  '',
@@ -212,7 +208,7 @@ export default {
       }
 
       const out = this.allSecrets
-        .filter(x => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
+        .filter((x) => this.namespace && this.limitToNamespace ? x.metadata.namespace === this.namespace : true)
         .filter((x) => {
           // Must match one of the types if given
           if ( types.length && !types.includes(x._type) ) {
@@ -223,7 +219,7 @@ export default {
           if ( keys.length ) {
             const dataKeys = Object.keys(x.data || {});
 
-            if ( !keys.every(key => dataKeys.includes(key)) ) {
+            if ( !keys.every((key) => dataKeys.includes(key)) ) {
               return false;
             }
           }
@@ -239,7 +235,7 @@ export default {
 
       if ( this.allowS3 ) {
         const more = this.allCloudCreds
-          .filter(x => ['aws', 's3'].includes(x.provider) )
+          .filter((x) => ['aws', 's3'].includes(x.provider) )
           .map((x) => {
             return {
               label: `${ x.nameDisplay } (${ x.providerDisplay })`,
@@ -279,11 +275,26 @@ export default {
           disabled: true
         });
       }
+      if ( this.allowNone ) {
+        out.unshift({
+          label: this.t('generic.none'),
+          value: AUTH_TYPE._NONE,
+        });
+      }
+
+      if (this.allowSsh || this.allowS3 || this.allowBasic) {
+        out.unshift({
+          label:    'divider',
+          disabled: true,
+          kind:     'divider'
+        });
+      }
 
       if ( this.allowSsh ) {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createSsh'),
           value: AUTH_TYPE._SSH,
+          kind:  'highlighted'
         });
       }
 
@@ -291,6 +302,7 @@ export default {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createS3'),
           value: AUTH_TYPE._S3,
+          kind:  'highlighted'
         });
       }
 
@@ -298,13 +310,7 @@ export default {
         out.unshift({
           label: this.t('selectOrCreateAuthSecret.createBasic'),
           value: AUTH_TYPE._BASIC,
-        });
-      }
-
-      if ( this.allowNone ) {
-        out.unshift({
-          label: this.t('generic.none'),
-          value: AUTH_TYPE._NONE,
+          kind:  'highlighted'
         });
       }
 
@@ -455,9 +461,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <div
-    v-else
     class="select-or-create-auth-secret"
   >
     <div
@@ -469,21 +473,10 @@ export default {
           v-model="selected"
           :mode="mode"
           :label-key="labelKey"
+          :loading="$fetchState.pending"
           :options="options"
           :selectable="option => !option.disabled"
-        >
-          <template v-slot:option="opt">
-            <template v-if="opt.kind === 'divider'">
-              <hr>
-            </template>
-            <template v-else-if="opt.kind === 'title'">
-              {{ opt.label }}
-            </template>
-            <template v-else>
-              {{ opt.label }}
-            </template>
-          </template>
-        </LabeledSelect>
+        />
       </div>
       <template v-if="selected === _SSH">
         <div :class="moreCols">

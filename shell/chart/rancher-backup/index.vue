@@ -10,6 +10,7 @@ import { allHash } from '@shell/utils/promise';
 import { STORAGE_CLASS, SECRET, PV } from '@shell/config/types';
 import { mapGetters } from 'vuex';
 import { STORAGE } from '@shell/config/labels-annotations';
+import ChartPsp from '@shell/components/ChartPsp';
 
 export default {
   components: {
@@ -18,7 +19,8 @@ export default {
     S3,
     LabeledInput,
     LabeledSelect,
-    Banner
+    Banner,
+    ChartPsp
   },
 
   hasTabs: true,
@@ -65,11 +67,11 @@ export default {
 
   computed: {
     defaultStorageClass() {
-      return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
+      return this.storageClasses.filter((sc) => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
     },
 
     availablePVs() {
-      return this.persistentVolumes.filter(pv => pv.status.phase.toLowerCase() !== 'bound');
+      return this.persistentVolumes.filter((pv) => pv.status.phase.toLowerCase() !== 'bound');
     },
 
     radioOptions() {
@@ -84,8 +86,7 @@ export default {
       return { options, labels };
     },
 
-    ...mapGetters({ t: 'i18n/t' })
-
+    ...mapGetters(['currentCluster'], { t: 'i18n/t' }),
   },
 
   watch: {
@@ -165,6 +166,12 @@ export default {
       label="Chart Options"
       name="chartOptions"
     >
+      <!-- Conditionally display PSP checkbox -->
+      <ChartPsp
+        :value="value"
+        :cluster="currentCluster"
+      />
+
       <Banner
         color="info"
         :label="t('backupRestoreOperator.deployment.storage.tip')"

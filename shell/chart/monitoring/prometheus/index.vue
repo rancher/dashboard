@@ -72,7 +72,7 @@ export default {
         let matchExpressions;
 
         if (selector && selector?.matchExpressions) {
-          matchExpressions = convert((selector?.matchLabels || {}), selector.matchExpressions);
+          matchExpressions = convert((selector?.matchLabels || {}), selector?.matchExpressions);
 
           return matchExpressions;
         } else {
@@ -88,7 +88,7 @@ export default {
         workloads = workloads.filter((workload) => {
           if (
             !isEmpty(workload?.spec?.template?.spec?.containers) &&
-            (workload.spec.template.spec.containers.find(c => c.image.includes('quay.io/coreos/prometheus-operator') ||
+            (workload.spec.template.spec.containers.find((c) => c.image.includes('quay.io/coreos/prometheus-operator') ||
               c.image.includes('rancher/coreos-prometheus-operator'))
             )
           ) {
@@ -154,7 +154,6 @@ export default {
             spec: {
               accessModes: ['ReadWriteOnce'],
               resources:   { requests: { storage: '50Gi' } },
-              selector:    { matchExpressions: [], matchLabels: {} },
             }
           }
         );
@@ -311,6 +310,7 @@ export default {
         <div class="col span-6">
           <Checkbox
             v-model="enablePersistentStorage"
+            data-testid="checkbox-chart-enable-persistent-storage"
             :label="t('monitoring.prometheus.storage.label')"
           />
         </div>
@@ -325,7 +325,10 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <div v-if="showStorageClasses">
+            <div
+              v-if="showStorageClasses"
+              data-testid="select-chart-prometheus-storage-class"
+            >
               <StorageClassSelector
                 :mode="mode"
                 :options="storageClasses"

@@ -1,7 +1,7 @@
 import pickBy from 'lodash/pickBy';
 import { LONGHORN, POD, NODE } from '@shell/config/types';
 import { HCI } from '../../types';
-import { HCI as HCI_ANNOTATIONS } from '@/pkg/harvester/config/labels-annotations';
+import { HCI as HCI_ANNOTATIONS } from '@pkg/harvester/config/labels-annotations';
 import { clone } from '@shell/utils/object';
 import findLast from 'lodash/findLast';
 import {
@@ -180,7 +180,7 @@ export default class HciNode extends HarvesterResource {
   get internalIp() {
     const addresses = this.status?.addresses || [];
 
-    return findLast(addresses, address => address.type === 'InternalIP')
+    return findLast(addresses, (address) => address.type === 'InternalIP')
       ?.address;
   }
 
@@ -281,7 +281,7 @@ export default class HciNode extends HarvesterResource {
     const pods = this.$rootGetters[`${ inStore }/all`](POD) || [];
 
     return pods.filter(
-      p => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing'
+      (p) => p?.spec?.nodeName === this.id && p?.metadata?.name !== 'removing'
     );
   }
 

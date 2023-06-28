@@ -20,11 +20,15 @@ export default {
     mode: {
       type:    String,
       default: _VIEW
+    },
+    disabled: {
+      default: false,
+      type:    Boolean
     }
   },
 
   data() {
-    return { effectOptions: Object.values(EFFECT_VALUES).map(v => ({ label: v, value: v })) };
+    return { effectOptions: Object.values(EFFECT_VALUES).map((v) => ({ label: v, value: v })) };
   },
 
   computed: {
@@ -59,6 +63,7 @@ export default {
       :extra-columns="['effect']"
       :preserve-keys="['effect']"
       :add-label="t('labels.addTaint')"
+      :disabled="disabled"
     >
       <template #label:effect>
         {{ t('tableHeaders.effect') }}
@@ -68,6 +73,7 @@ export default {
         <Select
           v-model="row.effect"
           :options="effectOptions"
+          :disabled="disabled"
           class="compact-select"
           @input="queueUpdate"
         />

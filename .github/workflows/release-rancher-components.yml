@@ -24,7 +24,7 @@ jobs:
         scope: '@rancher'
 
     - name: Install
-      run: yarn install --frozen-lockfile
+      run: yarn install:ci
 
     - name: Lint
       run: yarn lint:lib

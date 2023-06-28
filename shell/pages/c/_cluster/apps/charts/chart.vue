@@ -116,7 +116,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <TypeDescription resource="chart" />
-
     <div
       v-if="chart"
       class="chart-header"
@@ -139,6 +138,7 @@ export default {
         <button
           v-if="!requires.length"
           type="button"
+          data-testid="btn-chart-install"
           class="btn role-primary"
           @click.prevent="install"
         >
@@ -159,14 +159,14 @@ export default {
           v-if="osWarning"
           color="error"
         >
-          <span v-html="osWarning" />
+          <span v-clean-html="osWarning" />
         </Banner>
         <Banner
           v-for="msg in requires"
           :key="msg"
           color="error"
         >
-          <span v-html="msg" />
+          <span v-clean-html="msg" />
         </Banner>
 
         <Banner
@@ -174,14 +174,14 @@ export default {
           :key="msg"
           color="warning"
         >
-          <span v-html="msg" />
+          <span v-clean-html="msg" />
         </Banner>
 
         <Banner
           v-if="targetedAppWarning"
           color="warning"
         >
-          <span v-html="targetedAppWarning" />
+          <span v-clean-html="targetedAppWarning" />
         </Banner>
       </div>
       <div
@@ -224,7 +224,7 @@ export default {
             <b v-if="vers.originalVersion === version.version">{{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}</b>
             <a
               v-else
-              v-tooltip="vers.label.length > 16 ? vers.label : null"
+              v-clean-tooltip="vers.label.length > 16 ? vers.label : null"
               @click.prevent="selectVersion(vers)"
             >
               {{ vers.originalVersion === currentVersion ? t('catalog.install.versions.current', { ver: currentVersion }): vers.shortLabel }}

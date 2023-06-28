@@ -1,8 +1,8 @@
-import { BrandingPagePo } from '~/cypress/e2e/po/pages/global-settings/branding.po';
-import { SettingsPagePo } from '~/cypress/e2e/po/pages/global-settings/settings.po';
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '~/cypress/e2e/po/side-bars/product-side-nav.po';
+import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.po';
+import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 const settings = {
   privateLabel: {
@@ -63,8 +63,17 @@ describe('Branding', () => {
     // brandingPage.privateLabel().value().should(`eq ${ settings.privateLabel.original }`);
     cy.title().should('not.eq', settings.privateLabel.new);
     brandingPage.privateLabel().set(settings.privateLabel.new);
-    // brandingPage.privateLabel().value().should(`eq ${ settings.privateLabel.new }`);
-    brandingPage.applyButton().click();
+    brandingPage.applyAndWait('**/ui-pl');
+
+    // Visit the Home Page
+    BurgerMenuPo.toggle();
+    const burgerMenuPo = new BurgerMenuPo();
+
+    burgerMenuPo.home().click();
+
+    const homePage = new HomePagePo();
+
+    homePage.title().should('eq', `Welcome to ${ settings.privateLabel.new }`);
 
     // Check in session
     cy.title().should('eq', settings.privateLabel.new);
@@ -73,9 +82,11 @@ describe('Branding', () => {
     cy.reload();
     cy.title().should('eq', settings.privateLabel.new);
 
+    brandingPage.goTo();
+
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
-    brandingPage.applyButton().click();
+    brandingPage.applyAndWait('**/ui-pl');
     cy.title().should('eq', settings.privateLabel.original);
   });
 
@@ -100,7 +111,7 @@ describe('Branding', () => {
     brandingPage.primaryColorCheckbox().set();
     brandingPage.primaryColorPicker().value().should('not.eq', settings.primaryColor.new);
     brandingPage.primaryColorPicker().set(settings.primaryColor.new);
-    brandingPage.applyButton().click();
+    brandingPage.applyAndWait('**/ui-primary-color');
 
     // Check in session
     brandingPage.primaryColorPicker().value().should('eq', settings.primaryColor.new);
@@ -120,7 +131,7 @@ describe('Branding', () => {
     // Reset
     brandingPage.primaryColorPicker().set(settings.primaryColor.original);
     brandingPage.primaryColorCheckbox().set();
-    brandingPage.applyButton().click();
+    brandingPage.applyAndWait('**/ui-primary-color');
   });
 
   it('Link Color', () => {
@@ -132,7 +143,7 @@ describe('Branding', () => {
     brandingPage.linkColorCheckbox().set();
     brandingPage.linkColorPicker().value().should('not.eq', settings.linkColor.new);
     brandingPage.linkColorPicker().set(settings.linkColor.new);
-    brandingPage.applyButton().click();
+    brandingPage.applyAndWait('**/ui-link-color');
 
     // Check in session
     brandingPage.linkColorPicker().value().should('eq', settings.linkColor.new);
@@ -146,6 +157,6 @@ describe('Branding', () => {
     // Reset
     brandingPage.linkColorPicker().set(settings.linkColor.original);
     brandingPage.linkColorCheckbox().set();
-    brandingPage.applyButton().click();
+    brandingPage.applyAndWait('**/ui-link-color');
   });
 });

@@ -44,11 +44,11 @@ export default {
     }
   },
   async fetch() {
-    const ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
+    this.ingressClassSchema = this.$store.getters[`cluster/schemaFor`](INGRESS_CLASS);
     const hash = await allHash({
       secrets:        this.$store.dispatch('cluster/findAll', { type: SECRET }),
       services:       this.$store.dispatch('cluster/findAll', { type: SERVICE }),
-      ingressClasses: ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
+      ingressClasses: this.ingressClassSchema ? this.$store.dispatch('cluster/findAll', { type: INGRESS_CLASS }) : Promise.resolve([]),
     });
 
     this.allServices = hash.services;
@@ -57,10 +57,11 @@ export default {
   },
   data() {
     return {
-      allSecrets:        [],
-      allServices:       [],
-      allIngressClasses: [],
-      fvFormRuleSets:    [
+      ingressClassSchema: null,
+      allSecrets:         [],
+      allServices:        [],
+      allIngressClasses:  [],
+      fvFormRuleSets:     [
         {
           path: 'metadata.name', rules: ['required', 'hostname'], translationKey: 'nameNsDescription.name.label'
         },
@@ -133,24 +134,24 @@ export default {
     },
     serviceTargets() {
       return this.filterByCurrentResourceNamespace(this.allServices)
-        .map(service => ({
+        .map((service) => ({
           label: service.metadata.name,
           value: service.metadata.name,
-          ports: service.spec.ports?.map(p => p.port)
+          ports: service.spec.ports?.map((p) => p.port)
         }));
     },
     firstTabLabel() {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
     certificates() {
-      return this.filterByCurrentResourceNamespace(this.allSecrets.filter(secret => secret._type === TYPES.TLS)).map((secret) => {
+      return this.filterByCurrentResourceNamespace(this.allSecrets.filter((secret) => secret._type === TYPES.TLS)).map((secret) => {
         const { id } = secret;
 
         return id.slice(id.indexOf('/') + 1);
       });
     },
     ingressClasses() {
-      return this.allIngressClasses.map(ingressClass => ({
+      return this.allIngressClasses.map((ingressClass) => ({
         label: ingressClass.metadata.name,
         value: ingressClass.metadata.name,
       }));
@@ -197,6 +198,7 @@ export default {
     :subtypes="[]"
     :validation-passed="fvFormIsValid"
     :errors="fvUnreportedValidationErrors"
+    :description="t('ingress.description')"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"

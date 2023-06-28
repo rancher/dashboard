@@ -19,9 +19,14 @@ export default {
   },
 
   props: {
-    resources: {
-      type:     Array,
-      required: true
+    kubeNodes: {
+      type:    Array,
+      default: () => []
+    },
+
+    normanNodeId: {
+      type:    String,
+      default: ''
     }
   },
 
@@ -64,15 +69,6 @@ export default {
 
       errors: [],
     };
-  },
-
-  computed: {
-    kubeNodes() {
-      return this.resources[0];
-    },
-    normanNodeId() {
-      return this.resources[1];
-    },
   },
 
   watch: {
@@ -118,7 +114,7 @@ export default {
       }
 
       try {
-        await Promise.all(this.kubeNodes.map(node => node.norman?.doAction('drain', parsedBody)));
+        await Promise.all(this.kubeNodes.map((node) => node.norman?.doAction('drain', parsedBody)));
         this.close();
       } catch (e) {
         this.errors = exceptionToErrorsArray(e);

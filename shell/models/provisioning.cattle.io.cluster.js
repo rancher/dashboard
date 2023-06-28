@@ -1,4 +1,6 @@
-import { CAPI, MANAGEMENT, NORMAN, SNAPSHOT } from '@shell/config/types';
+import {
+  CAPI, MANAGEMENT, NORMAN, SNAPSHOT, HCI
+} from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { findBy } from '@shell/utils/array';
 import { get, set } from '@shell/utils/object';
@@ -6,6 +8,7 @@ import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
+import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 
 /**
  * Class representing Cluster resource.
@@ -34,7 +37,7 @@ export default class ProvCluster extends SteveModel {
         label:   this.t('cluster.detail.machines'),
         content: this.desired,
       },
-    ].filter(x => !!x.content);
+    ].filter((x) => !!x.content);
 
     // RKE Template details
     const rkeTemplate = this.rkeTemplate;
@@ -71,13 +74,24 @@ export default class ProvCluster extends SteveModel {
     return super.creationTimestamp;
   }
 
+  // Models can specify a single action that will be shown as a button in the details masthead
+  get detailsAction() {
+    const canExplore = this.mgmt?.isReady && !this.hasError;
+
+    return {
+      action:  'explore',
+      label:   this.$rootGetters['i18n/t']('cluster.explore'),
+      enabled: canExplore,
+    };
+  }
+
   get _availableActions() {
     const out = super._availableActions;
     const isLocal = this.mgmt?.isLocal;
 
     // Don't let the user delete the local cluster from the UI
     if (isLocal) {
-      const remove = out.findIndex(a => a.action === 'promptRemove');
+      const remove = out.findIndex((a) => a.action === 'promptRemove');
 
       if (remove > -1) {
         out.splice(remove, 1);
@@ -92,7 +106,7 @@ export default class ProvCluster extends SteveModel {
     const clusterTemplatesSchema = this.$getters['schemaFor']('management.cattle.io.clustertemplate');
     let canUpdateClusterTemplate = false;
 
-    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods.includes('PUT'))) {
+    if (clusterTemplatesSchema && (clusterTemplatesSchema.resourceMethods?.includes('blocked-PUT') || clusterTemplatesSchema.resourceMethods?.includes('PUT'))) {
       canUpdateClusterTemplate = true;
     }
 
@@ -114,12 +128,12 @@ export default class ProvCluster extends SteveModel {
         label:      this.$rootGetters['i18n/t']('nav.kubeconfig.download'),
         icon:       'icon icon-download',
         bulkable:   true,
-        enabled:    this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:    this.mgmt?.hasAction('generateKubeconfig'),
       }, {
         action:   'copyKubeConfig',
         label:    this.t('cluster.copyConfig'),
         bulkable: false,
-        enabled:  this.mgmt?.hasAction('generateKubeconfig') && ready,
+        enabled:  this.mgmt?.hasAction('generateKubeconfig'),
         icon:     'icon icon-copy',
       }, {
         action:     'snapshotAction',
@@ -163,6 +177,27 @@ export default class ProvCluster extends SteveModel {
     const out = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, name);
 
     return out;
+  }
+
+  explore() {
+    const location = {
+      name:   'c-cluster',
+      params: { cluster: this.mgmt.id }
+    };
+
+    this.currentRouter().push(location);
+  }
+
+  async goToHarvesterCluster() {
+    const harvesterCluster = await this.$dispatch('create', {
+      ...this,
+      type: HCI.CLUSTER
+    });
+
+    try {
+      await harvesterCluster.goToCluster();
+    } catch {
+    }
   }
 
   goToViewYaml() {
@@ -252,7 +287,7 @@ export default class ProvCluster extends SteveModel {
   }
 
   get mgmtClusterId() {
-    return this.mgmt?.id || this.id.replace(`${ this.metadata.namespace }/`, '');
+    return this.mgmt?.id || this.id?.replace(`${ this.metadata.namespace }/`, '');
   }
 
   get mgmt() {
@@ -271,8 +306,10 @@ export default class ProvCluster extends SteveModel {
     return !!this.mgmt?.isReady;
   }
 
+  // nodeGroups can be undefined for an EKS cluster that has just been created and has not
+  // had any node groups added to it
   get eksNodeGroups() {
-    return this.mgmt?.spec?.eksConfig?.nodeGroups;
+    return this.mgmt?.spec?.eksConfig?.nodeGroups || [];
   }
 
   waitForProvisioner(timeout, interval) {
@@ -295,7 +332,7 @@ export default class ProvCluster extends SteveModel {
   get provisioner() {
     if ( this.isRke2 ) {
       const allKeys = Object.keys(this.spec);
-      const configKey = allKeys.find( k => k.endsWith('Config'));
+      const configKey = allKeys.find( (k) => k.endsWith('Config'));
 
       if ( configKey === 'rkeConfig') {
         return 'rke2';
@@ -324,6 +361,10 @@ export default class ProvCluster extends SteveModel {
     return this.$rootGetters['i18n/withFallback'](`cluster.provider."${ provisioner }"`, null, ucFirst(provisioner));
   }
 
+  get providerLogo() {
+    return this.mgmt?.providerLogo;
+  }
+
   get kubernetesVersion() {
     const unknown = this.$rootGetters['i18n/t']('generic.unknown');
 
@@ -340,7 +381,9 @@ export default class ProvCluster extends SteveModel {
   }
 
   get machineProvider() {
-    if ( this.isImported ) {
+    if (this.isHarvester) {
+      return HARVESTER;
+    } else if ( this.isImported ) {
       return null;
     } else if ( this.isRke2 ) {
       const kind = this.spec?.rkeConfig?.machinePools?.[0]?.machineConfigRef?.kind?.toLowerCase();
@@ -371,8 +414,32 @@ export default class ProvCluster extends SteveModel {
     }
   }
 
+  get machinePoolDefaults() {
+    return this.spec.rkeConfig?.machinePoolDefaults;
+  }
+
+  set defaultHostnameLengthLimit(value) {
+    this.spec.rkeConfig = this.spec.rkeConfig || {};
+    this.spec.rkeConfig.machinePoolDefaults = this.spec.rkeConfig.machinePoolDefaults || {};
+    this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit = value;
+  }
+
+  get defaultHostnameLengthLimit() {
+    return this.spec.rkeConfig?.machinePoolDefaults?.hostnameLengthLimit;
+  }
+
+  removeDefaultHostnameLengthLimit() {
+    if (this.machinePoolDefaults?.hostnameLengthLimit) {
+      delete this.spec.rkeConfig.machinePoolDefaults.hostnameLengthLimit;
+
+      if (Object.keys(this.spec?.rkeConfig?.machinePoolDefaults).length === 0) {
+        delete this.spec.rkeConfig.machinePoolDefaults;
+      }
+    }
+  }
+
   get nodes() {
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.mgmtClusterId));
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.mgmtClusterId));
   }
 
   get machines() {
@@ -394,13 +461,13 @@ export default class ProvCluster extends SteveModel {
   }
 
   get pools() {
-    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
+    const deployments = this.$rootGetters['management/all'](CAPI.MACHINE_DEPLOYMENT).filter((pool) => pool.spec?.clusterName === this.metadata.name);
 
     if (!!deployments.length) {
       return deployments;
     }
 
-    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter(pool => pool.spec.clusterName === this.status?.clusterName);
+    return this.$rootGetters['management/all'](MANAGEMENT.NODE_POOL).filter((pool) => pool.spec.clusterName === this.status?.clusterName);
   }
 
   get desired() {
@@ -427,7 +494,7 @@ export default class ProvCluster extends SteveModel {
     if (this.isReady) {
       if (this.isRke1) {
         const names = this.nodes.filter((node) => {
-          return node.status.conditions.find(c => c.error && c.type === 'Ready');
+          return node.status.conditions.find((c) => c.error && c.type === 'Ready');
         }).map((node) => {
           const name = node.status.nodeName || node.metadata.name;
 
@@ -437,9 +504,9 @@ export default class ProvCluster extends SteveModel {
         return names.join('<br>');
       } else {
         const names = this.machines.filter((machine) => {
-          return machine.status.conditions.find(c => c.error && c.type === 'NodeHealthy');
+          return machine.status?.conditions?.find((c) => c.error && c.type === 'NodeHealthy');
         }).map((machine) => {
-          if (machine.status.nodeRef?.name) {
+          if (machine.status?.nodeRef?.name) {
             return this.t('cluster.availabilityWarnings.node', { name: machine.status.nodeRef.name });
           }
 
@@ -483,7 +550,7 @@ export default class ProvCluster extends SteveModel {
         value:     this.ready,
         sort:      4,
       },
-    ].filter(x => x.value > 0);
+    ].filter((x) => x.value > 0);
 
     return sortBy(out, 'sort:desc');
   }
@@ -560,7 +627,7 @@ export default class ProvCluster extends SteveModel {
       return row.takeSnapshot();
     }));
 
-    const successful = res.filter( x => x.status === 'fulfilled').length;
+    const successful = res.filter( (x) => x.status === 'fulfilled').length;
 
     if ( successful ) {
       this.$dispatch('growl/success', {
@@ -603,44 +670,36 @@ export default class ProvCluster extends SteveModel {
     const allSnapshots = this.$rootGetters['management/all']({ type: SNAPSHOT });
 
     return allSnapshots
-      .filter(s => s.metadata.namespace === this.namespace && s.clusterName === this.name );
+      .filter((s) => s.metadata.namespace === this.namespace && s.clusterName === this.name );
   }
 
   restoreSnapshotAction(resource = this) {
     this.$dispatch('promptRestore', [resource]);
   }
 
-  saveAsRKETemplate(resources = this) {
+  saveAsRKETemplate(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'SaveAsRKETemplateDialog'
+      componentProps: { cluster },
+      component:      'SaveAsRKETemplateDialog'
     });
   }
 
-  rotateCertificates(resources = this) {
+  rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
+      componentProps: { cluster },
+
       component: 'RotateCertificatesDialog'
     });
   }
 
-  rotateEncryptionKey(resources = this) {
+  rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
-      resources,
-      component: 'RotateEncryptionKeyDialog'
+      componentProps: { cluster },
+      component:      'RotateEncryptionKeyDialog'
     });
   }
 
   get stateObj() {
-    if ( this.isHarvester) {
-      return {
-        error:         true,
-        message:       this.$rootGetters['i18n/t']('cluster.harvester.warning.label'),
-        name:          this.$rootGetters['i18n/t']('cluster.harvester.warning.state'),
-        transitioning: false
-      };
-    }
-
     return this._stateObj;
   }
 
@@ -657,8 +716,8 @@ export default class ProvCluster extends SteveModel {
 
     const clusterTemplateName = this.mgmt.spec.clusterTemplateName.replace(':', '/');
     const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
-    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find(t => t.id === clusterTemplateName);
-    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find(t => t.spec.enabled && t.id === clusterTemplateRevisionName);
+    const template = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE).find((t) => t.id === clusterTemplateName);
+    const revision = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).find((t) => t.spec.enabled && t.id === clusterTemplateRevisionName);
 
     if (!template || !revision) {
       return false;
@@ -686,7 +745,7 @@ export default class ProvCluster extends SteveModel {
     const clusterTemplateRevisionName = this.mgmt.spec.clusterTemplateRevisionName.replace(':', '/');
 
     // Get all of the template revisions for this template
-    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter(t => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
+    const revisions = this.$rootGetters['management/all'](MANAGEMENT.RKE_TEMPLATE_REVISION).filter((t) => t.spec.enabled && t.spec.clusterTemplateName === this.mgmt.spec.clusterTemplateName);
 
     if (revisions.length <= 1) {
       // Only one template revision
@@ -748,7 +807,7 @@ export default class ProvCluster extends SteveModel {
   get agentConfig() {
     // The one we want is the first one with no selector.
     // If there are multiple with no selector, that will fall under the unsupported message below.
-    return this.spec.rkeConfig.machineSelectorConfig.find(x => !x.machineLabelSelector).config;
+    return this.spec.rkeConfig.machineSelectorConfig.find((x) => !x.machineLabelSelector).config;
   }
 
   get cloudProvider() {
@@ -802,6 +861,6 @@ export default class ProvCluster extends SteveModel {
   }
 
   get hasError() {
-    return this.status?.conditions?.some(condition => condition.error === true);
+    return this.status?.conditions?.some((condition) => condition.error === true);
   }
 }

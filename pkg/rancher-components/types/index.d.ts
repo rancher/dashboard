@@ -11,3 +11,12 @@ export const RadioGroup: VueConstructor;
 export const StringList: VueConstructor;
 export const TextAreaAutoGrow: VueConstructor;
 export const ToggleSwitch: VueConstructor;
+
+type ArrayListRow = {
+    value: string;
+}
+
+export type ArrayListData = {
+    lastUpdateWasFromValue: boolean;
+    rows: Array<ArrayListRow>,
+}
