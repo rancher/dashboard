@@ -795,10 +795,14 @@ export const actions = {
         const promises = {};
 
         if (agrbs.length > 0) {
-          promises['admins'] = Promise.all(agrbs.map( grb => dispatch('rancher/find', { type: NORMAN.PRINCIPAL, id: grb.groupPrincipalName }, { root: true })));
+          promises['admins'] = Promise.all(agrbs.map( grb => dispatch('rancher/find', {
+            type: NORMAN.PRINCIPAL, id: grb.groupPrincipalName, opt: { url: `/v3/principals/${ encodeURIComponent(grb.groupPrincipalName) }` }
+          }, { root: true })));
         }
         if (roagrbs.length > 0) {
-          promises['readOnlyAdmins'] = Promise.all(roagrbs.map(grb => dispatch('rancher/find', { type: NORMAN.PRINCIPAL, id: grb.groupPrincipalName }, { root: true })));
+          promises['readOnlyAdmins'] = Promise.all(roagrbs.map(grb => dispatch('rancher/find', {
+            type: NORMAN.PRINCIPAL, id: grb.groupPrincipalName, opt: { url: `/v3/principals/${ encodeURIComponent(grb.groupPrincipalName) }` }
+          }, { root: true })));
         }
         const resp = await allHash(promises);
 
