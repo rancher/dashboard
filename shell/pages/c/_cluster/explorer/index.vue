@@ -1,16 +1,8 @@
 <script>
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
-import { setPromiseResult } from '@shell/utils/promise';
-import AlertTable from '@shell/components/AlertTable';
-import { Banner } from '@components/Banner';
-import { parseSi, createMemoryValues } from '@shell/utils/units';
 import {
-  NAME,
-  ROLES,
-  STATE,
-} from '@shell/config/table-headers';
-import {
+  CAPI,
   ENDPOINTS,
   EVENT,
   NAMESPACE,
@@ -25,6 +17,16 @@ import {
   CATALOG,
   PSP,
 } from '@shell/config/types';
+import { setPromiseResult } from '@shell/utils/promise';
+import AlertTable from '@shell/components/AlertTable';
+import { Banner } from '@components/Banner';
+import { parseSi, createMemoryValues } from '@shell/utils/units';
+import {
+  NAME,
+  ROLES,
+  STATE,
+} from '@shell/config/table-headers';
+
 import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
@@ -198,6 +200,10 @@ export default {
       }
 
       return this.t(`cluster.provider.${ provider }`);
+    },
+
+    isHarvesterCluster() {
+      return this.currentCluster?.isHarvester;
     },
 
     isRKE() {
@@ -405,6 +411,16 @@ export default {
       this.selectedTab = neu?.selectedName;
     },
 
+    async goToHarvesterCluster() {
+      try {
+        const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
+        const provCluster = provClusters.find(p => p.mgmt.id === this.currentCluster.id);
+
+        await provCluster.goToHarvesterCluster();
+      } catch {
+      }
+    },
+
     editConnectMode() {
       this.$store.dispatch('cluster/promptModal', {
         resources: [this.currentCluster],
@@ -451,8 +467,17 @@ export default {
     >
       <div>
         <label>{{ t('glance.provider') }}: </label>
-        <span>
-          {{ displayProvider }}</span>
+        <span v-if="isHarvesterCluster">
+          <a
+            role="button"
+            @click="goToHarvesterCluster"
+          >
+            {{ displayProvider }}
+          </a>
+        </span>
+        <span v-else>
+          {{ displayProvider }}
+        </span>
       </div>
       <div>
         <label>{{ t('glance.version') }}: </label>

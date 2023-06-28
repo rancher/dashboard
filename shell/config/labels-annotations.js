@@ -97,6 +97,8 @@ export const CATALOG = {
 
   MIGRATED: 'apps.cattle.io/migrated',
   MANAGED:  'catalog.cattle.io/managed',
+
+  HIDDEN_REPO: 'clusterrepo.cattle.io/hidden'
 };
 
 export const FLEET = {
@@ -132,15 +134,12 @@ export const ANNOTATIONS_TO_FOLD = [
 ];
 
 export const HCI = {
-  CLOUD_INIT:               'harvesterhci.io/cloud-init-template',
-  CLOUD_PROVIDER_IPAM:      'cloudprovider.harvesterhci.io/ipam',
-  NETWORK_ROUTE:            'network.harvesterhci.io/route',
-  IMAGE_NAME:               'harvesterhci.io/image-name',
-  NETWORK_TYPE:             'network.harvesterhci.io/type',
-  CLOUD_PROVIDER_NAMESPACE: 'cloudprovider.harvesterhci.io/namespace',
-  CLOUD_PROVIDER_NETWORK:   'cloudprovider.harvesterhci.io/network',
-  CLOUD_PROVIDER_PROJECT:   'cloudprovider.harvesterhci.io/project',
-  PRIMARY_SERVICE:          'cloudprovider.harvesterhci.io/primary-service',
+  CLOUD_INIT:          'harvesterhci.io/cloud-init-template',
+  CLOUD_PROVIDER_IPAM: 'cloudprovider.harvesterhci.io/ipam',
+  NETWORK_ROUTE:       'network.harvesterhci.io/route',
+  IMAGE_NAME:          'harvesterhci.io/image-name',
+  NETWORK_TYPE:        'network.harvesterhci.io/type',
+  PRIMARY_SERVICE:     'cloudprovider.harvesterhci.io/primary-service',
 };
 
 // Annotations that can be on management.cattle.io.cluster to configure a custom badge

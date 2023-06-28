@@ -281,6 +281,7 @@ export default {
           :mode="principalSelectMode"
           :retain-selection="true"
           :init-value="principalId"
+          data-testid="cluster-member-select"
           @add="onAdd"
         />
       </div>

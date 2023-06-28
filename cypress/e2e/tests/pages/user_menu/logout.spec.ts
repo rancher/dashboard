@@ -17,7 +17,7 @@ describe('User can logout of Rancher', () => {
     Attempt to navigate to the Home page without logging back in
     Verify user remains on login page
     */
-    HomePagePo.goTo();
+    HomePagePo.goToAndWaitForGet();
     userMenu.toggle();
     userMenu.isOpen();
     userMenu.clickMenuItem('Log Out');

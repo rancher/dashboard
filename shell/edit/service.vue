@@ -26,7 +26,6 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
-import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -348,23 +347,6 @@ export default {
 
       if (ports && ports.length > 0) {
         this.value.spec.ports = this.targetPortsStrOrInt(this.value.spec.ports);
-      }
-
-      if (this.showHarvesterAddOnConfig) {
-        const clusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
-        const configs = this.$store.getters['management/all'](HCI.HARVESTER_CONFIG);
-        const cluster = clusters.find(c => c.status.clusterName === this.currentCluster.id);
-
-        const machinePools = cluster?.spec?.rkeConfig?.machinePools || [];
-        const machineConfigName = machinePools[0]?.machineConfigRef?.name;
-        const config = configs.find(c => c.id === `fleet-default/${ machineConfigName }`);
-
-        if (config) {
-          const { vmNamespace, networkName } = config;
-
-          this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NAMESPACE] = vmNamespace;
-          this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] = networkName;
-        }
       }
     },
   },

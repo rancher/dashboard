@@ -27,4 +27,12 @@ export default class ProductNavPo extends ComponentPo {
   visibleNavTypes(): Cypress.Chainable {
     return this.self().find('.accordion.expanded li.nav-type>a');
   }
+
+  /**
+   * Navigate to a side menu entry by label
+   */
+  navToSideMenuEntryByLabel(label: string): Cypress.Chainable {
+    return this.self().should('exist').find('.child.nav-type a .label').contains(label)
+      .click();
+  }
 }

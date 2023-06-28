@@ -14,14 +14,19 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   toggle(): Cypress.Chainable {
-    return this.self().click();
+    this.self().should('be.visible');
+    const popover = this.self().find('.v-popover');
+
+    popover.should('be.visible');
+
+    return popover.click({ force: true });
   }
 
   /**
    * Check if menu is open
    */
   isOpen() {
-    this.userMenuDropdown().should('exist');
+    this.userMenuDropdown().should('be.visible');
   }
 
   /**

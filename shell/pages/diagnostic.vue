@@ -15,7 +15,7 @@ export default {
   async fetch() {
     const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     const readyClusters = provClusters.filter(c => c.mgmt?.isReady);
-    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters), this.$store);
+    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters, this.$store), this.$store);
     const finalCounts = [];
     const promises = [];
     const topFifteenForResponseTime = [];
