@@ -180,6 +180,7 @@ nav:
     multiCluster: Global Apps
     legacy: Legacy Apps
     configuration: Configuration
+    hci: HCI
   search:
     placeholder: Type to search clusters
     noResults: No matching clusters
@@ -208,6 +209,7 @@ nav:
   globalMonitoring:
     label: Global Monitoring
     dashboard: Dashboard
+  harvesterDashboard: Harvester Dashboard
 product:
   apps: Apps
   auth: Users & Authentication
@@ -7103,7 +7105,7 @@ performance:
         inputLabel: Page Change
   experimental: This setting is experimental and may be removed or updated in future versions.
   nsFiltering:
-    checkboxLabel: Enable Required Namespace Filtering
+    checkboxLabel: Enable Required Namespace / Project Filtering
     count:
       description: The threshold above which filtering by a namespace is required
       inputLabel: Resource Threshold
