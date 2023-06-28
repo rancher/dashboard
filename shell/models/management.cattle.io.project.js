@@ -236,7 +236,8 @@ export default class Project extends HybridModel {
         name:   'c-cluster-legacy-resourceQuota-page',
         params: {
           cluster: this.$rootGetters['currentCluster'].id,
-          page:    'project-resource-quota'
+          page:    'project-resource-quota',
+          product: 'explorer'
         },
         query: { [PROJECT_ID]: this.id.replace('/', ':') }
       });

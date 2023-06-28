@@ -22,6 +22,11 @@ export const routerOptions = {
     name:      'c-cluster-legacy-auditLog-page',
     params:    { product: 'explorer' }
   }, {
+    path:      '/c/:cluster/legacy/resourceQuota/:page',
+    component: () => interopDefault(import('../pages/c/_cluster/legacy/resourceQuota/_page.vue' /* webpackChunkName: "pages/c/_cluster/legacy/resourceQuota/_page" */)),
+    name:      'c-cluster-legacy-resourceQuota-page',
+    params:    { product: 'explorer' }
+  }, {
     path:      '/about',
     component: () => interopDefault(import('../pages/about.vue' /* webpackChunkName: "pages/about" */)),
     name:      'about'
