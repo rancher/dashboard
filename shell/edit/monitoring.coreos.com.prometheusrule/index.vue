@@ -105,6 +105,8 @@ export default {
         }
       });
 
+      this.closedErrorMessages = [];
+
       return true;
     },
 
