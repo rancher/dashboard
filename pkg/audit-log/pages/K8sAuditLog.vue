@@ -47,7 +47,7 @@ export default {
       :audit-log-setting="auditLogSetting"
       :audit-log-collector="auditLogCollector"
       :k8s-audit-log="true"
-      :cluster-id="$route.query.cluster"
+      :cluster-id="$route.query.clusterId"
     />
   </div>
 </template>

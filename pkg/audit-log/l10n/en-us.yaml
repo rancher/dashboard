@@ -90,6 +90,7 @@ auditLog:
   errors:
     notFound: Resource Not Found
     unknownError: unknown error
+    required: "{key} is required"
   k8sAuditEventDialog:
     title: Kubernetes Audit Event
     stageTime: Stage Time

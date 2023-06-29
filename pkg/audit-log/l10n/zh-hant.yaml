@@ -89,6 +89,7 @@ auditLog:
   errors:
     notFound: 資源未找到
     unknownError: 未知錯誤
+    required: "{key} 不能爲空"
   k8sAuditEventDialog:
     title: Kubernetes 審計事件
     stageTime: 執行時間

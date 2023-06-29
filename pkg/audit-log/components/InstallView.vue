@@ -68,6 +68,9 @@ export default {
     },
     needInstallCollector() {
       return this.app && !this.hasAuditlogCollector;
+    },
+    urlValid() {
+      return URL_REG.test(this.url?.trim());
     }
   },
   methods: {
@@ -123,18 +126,21 @@ export default {
     }
   },
   watch: {
-    url: {
+    urlValid: {
       immediate: true,
       handler(v) {
-        if (!URL_REG.test(v?.trim())) {
-          this.errors = [this.t('validation.invalid', { key: SETTING.AUDIT_LOG_SERVER_URL }, true)];
-        } else {
-          this.errors = [];
-          const step = this.steps.find(s => s.name === 'deploymentComponents');
-
-          if (step) {
-            step.ready = true;
+        if (!v) {
+          if (this.url?.trim() !== '') {
+            this.errors = [this.t('validation.invalid', { key: SETTING.AUDIT_LOG_SERVER_URL }, true)];
           }
+
+          return;
+        }
+        this.errors = [];
+        const step = this.steps.find(s => s.name === 'deploymentComponents');
+
+        if (step) {
+          step.ready = true;
         }
       }
     },
@@ -144,6 +150,11 @@ export default {
         if (v) {
           this.url = v.value;
         }
+      }
+    },
+    url(v) {
+      if (v?.trim() === '') {
+        this.errors = [this.t('auditLog.errors.required', { key: 'auditlog-server-url' })];
       }
     }
   },
