@@ -59,6 +59,18 @@ export default class SortableTablePo extends ComponentPo {
     return cy.get('.action-availability');
   }
 
+  /**
+   * Search box to query rows
+   * @param searchText
+   * @returns
+   */
+  filter(searchText: string) {
+    return cy.get('[data-testid="search-box-filter-row"] input')
+      .focus()
+      .clear()
+      .type(searchText);
+  }
+
   //
   // sortable-table
   //
