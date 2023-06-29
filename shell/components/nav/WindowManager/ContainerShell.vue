@@ -160,7 +160,7 @@ export default {
       } catch (e) {
         console.error('Failed to fetch node', nodeId); // eslint-disable-line no-console
       }
-    },    
+    },
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
