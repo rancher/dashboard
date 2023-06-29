@@ -45,16 +45,23 @@ jobs:
       
       - name: Run admin user tests
         run: |
-          GREP_TAGS=@adminUser TEST_USERNAME=admin yarn e2e:prod
+          yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+        env: 
+          GREP_TAGS: '@adminUser'
+          TEST_USERNAME: admin
+
 
       - name: Run standard user tests
         if: ${{ success() || failure() }}
         run: |
-          GREP_TAGS=@standardUser TEST_USERNAME=standard_user yarn e2e:prod && yarn docker:local:stop
+          yarn e2e:prod && yarn docker:local:stop
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+        env: 
+          GREP_TAGS: '@standardUser'
+          TEST_USERNAME: standard_user
         
       - name: Upload coverage
         if: ${{ success() || failure() }}
