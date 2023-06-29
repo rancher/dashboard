@@ -23,8 +23,6 @@ describe('User can make changes to their account', { tags: ['@adminUser', '@stan
      */
 
     HomePagePo.goToAndWaitForGet();
-    userMenu.toggle();
-    userMenu.isOpen();
     userMenu.clickMenuItem('Account & API Keys');
     accountPage.waitForPage();
     accountPage.checkIsCurrentPage();

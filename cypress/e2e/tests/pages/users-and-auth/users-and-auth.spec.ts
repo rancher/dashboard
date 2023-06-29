@@ -54,8 +54,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       usersAdmin.listElementWithName(standardUsername).should('exist');
 
       // logout admin
-      userMenu.toggle();
-      userMenu.isOpen();
       userMenu.clickMenuItem('Log Out');
       loginPage.waitForPage();
       loginPage.username().checkVisible();

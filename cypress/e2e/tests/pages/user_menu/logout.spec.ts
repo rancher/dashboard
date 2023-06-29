@@ -18,8 +18,6 @@ describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser'] }
     Verify user remains on login page
     */
     HomePagePo.goToAndWaitForGet();
-    userMenu.toggle();
-    userMenu.isOpen();
     userMenu.clickMenuItem('Log Out');
     loginPage.waitForPage();
     loginPage.username().checkVisible();

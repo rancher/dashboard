@@ -23,8 +23,6 @@ describe('User can update their preferences', () => {
     Verify preference page title
     */
     HomePagePo.goToAndWaitForGet();
-    userMenu.toggle();
-    userMenu.isOpen();
     userMenu.clickMenuItem('Preferences');
     userMenu.isClosed();
     prefPage.waitForPage();
