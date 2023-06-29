@@ -48,6 +48,8 @@ describe('Rancher setup', { tags: '@adminUser' }, () => {
 
   it('Create standard user after login', () => {
     cy.login();
+
+    // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
     cy.createUser('standard_user', 'user');
   });
 });

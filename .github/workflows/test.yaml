@@ -64,7 +64,6 @@ jobs:
           TEST_USERNAME: standard_user
         
       - name: Upload coverage
-        if: ${{ success() || failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
