@@ -144,7 +144,7 @@ export function init(store) {
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
 
   virtualType({
-    labelKey:   'rbac.roletemplate.label',
+    labelKey:   'auth.template',
     icon:       'user',
     namespaced: false,
     name:       ROLES_VIRTUAL_TYPE,

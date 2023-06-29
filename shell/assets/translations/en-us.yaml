@@ -7324,6 +7324,7 @@ manager:
     label: Node Templates
 
 auth:
+  template: Role Templates
   config:
     label: Auth Provider
 vncConsole:
