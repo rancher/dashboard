@@ -16,11 +16,13 @@ import Socket, {
 } from '@shell/utils/socket';
 import Window from './Window';
 
-const DEFAULT_COMMAND = [
+const DEFAULT_LINUX_COMMAND = [
   '/bin/sh',
   '-c',
   'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh',
 ];
+
+const DEFAULT_WINDOWS_COMMAND = ['cmd'];
 
 export default {
   components: { Window, Select },
@@ -82,6 +84,8 @@ export default {
       backlog:        [],
       node:           null,
       keepAliveTimer: null,
+      errorMsg:       '',
+      commands:       [DEFAULT_LINUX_COMMAND, DEFAULT_WINDOWS_COMMAND]
     };
   },
 
@@ -147,10 +151,16 @@ export default {
           type: NODE,
           id:   nodeId,
         });
+
+        // If we got the node, change the order of the commands to try if we know it is Windows,
+        // so that we try the Windows command first.
+        if (!isEmpty(this.node) && this.node?.status?.nodeInfo?.operatingSystem === 'windows') {
+          this.commands = [DEFAULT_WINDOWS_COMMAND, DEFAULT_LINUX_COMMAND];
+        }
       } catch (e) {
         console.error('Failed to fetch node', nodeId); // eslint-disable-line no-console
       }
-    },
+    },    
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
@@ -220,12 +230,7 @@ export default {
         return;
       }
 
-      const { node } = this;
-      let cmd = DEFAULT_COMMAND;
-
-      if (!isEmpty(node) && node?.status?.nodeInfo?.operatingSystem === 'windows') {
-        cmd = ['cmd'];
-      }
+      let cmd = this.commands.shift();
 
       const url = addParams(
         `${ this.pod.links.view.replace(/^http/, 'ws') }/exec`,
@@ -260,6 +265,7 @@ export default {
       this.socket.addEventListener(EVENT_CONNECTING, (e) => {
         this.isOpen = false;
         this.isOpening = true;
+        this.errorMsg = '';
       });
 
       this.socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
@@ -282,16 +288,32 @@ export default {
       this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
         this.isOpen = false;
         this.isOpening = false;
+
+        // If we had an error message, try connecting with the next command
+        if (this.errorMsg) {
+          if (this.commands.length) {
+            this.connect();
+          } else {
+            // Output last error with a new line and carriage return
+            this.terminal.write(`${ this.errorMsg }\n\r`);
+          }
+        }
       });
 
       this.socket.addEventListener(EVENT_MESSAGE, (e) => {
         const type = e.detail.data.substr(0, 1);
         const msg = base64Decode(e.detail.data.substr(1));
 
+        this.errorMsg = '';
+
         if (`${ type }` === '1') {
           this.terminal.write(msg);
         } else {
           console.error(msg); // eslint-disable-line no-console
+
+          if (`${ type }` === '3') {
+            this.errorMsg = msg;
+          }
         }
       });
 
