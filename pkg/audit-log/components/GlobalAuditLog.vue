@@ -165,7 +165,7 @@ export default {
       const pagesize = this.pagesize;
       const f = { ...this.form };
       const q = { pagesize };
-      const keys = ['userdisplayname', 'operation', 'requestResType', 'order'];
+      const keys = ['userdisplayname', 'operation', 'requestResType', 'order', 'clusterID'];
 
       keys.filter(k => f[k]).forEach((k) => {
         q[k] = f[k];
@@ -196,6 +196,7 @@ export default {
         requestResType:  '',
         dateRange:       DEFAULT_DATE_RANGE,
         order:           '',
+        clusterID:       'global',
       };
     },
     clear() {
@@ -233,7 +234,6 @@ export default {
         {{ t('auditLog.title') }}
       </h1>
     </div>
-
     <div class="row mb-20">
       <div class="col span-2">
         <input

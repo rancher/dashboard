@@ -50,7 +50,7 @@ export default {
     if (this.k8sAuditLog && !this.auditLogCollector) {
       steps.push({
         name:    'installAuditLogCollector',
-        label:   this.t('auditLog.installView.steps.installAuditLogCollector.label'),
+        label:   this.t('auditLog.installView.steps.installAuditLogCollector.stepLabel'),
         subtext: this.t('auditLog.installView.steps.installAuditLogCollector.label'),
         ready:   false,
       });
@@ -176,6 +176,12 @@ export default {
       finish-mode="done"
       @finish="finish"
     >
+      <template
+        v-if="needInstallCollector"
+        #finish
+      >
+        <div />
+      </template>
       <template #cancel>
         <div />
       </template>
@@ -220,12 +226,6 @@ export default {
             </button>
           </div>
         </div>
-      </template>
-      <template
-        v-if="needInstallCollector"
-        #finish
-      >
-        <div />
       </template>
     </Wizard>
   </div>

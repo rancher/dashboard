@@ -1,6 +1,6 @@
 {
-  "name": "audit-log",
-  "description": "audit-log plugin",
+  "name": "AuditLog",
+  "description": "Persist the Rancher audit logs and k8s api-server audit logs to the mysql database and provide a query page in Rancher",
   "version": "0.1.0",
   "private": false,
   "rancher": true,

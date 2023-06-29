@@ -2,15 +2,16 @@ auditLog:
   installView:
     steps:
       deploymentCompoents:
-        label: 部署审计日志组件
-        tips: '您可以在通过 HA 方式部署 Rancher Prime 的同时部署审计日志组件，或手动部署审计日志组件。详细的部署流程请参照 <a target="_blank" rel="noopener noreferrer nofollow" href="https://ranchermanager.docs.rancher.com/zh/">Rancher Prime</a> 文档。'
+        label: 启用审计日志
+        tips: '您可以选择在使用 HA 方式部署 Rancher Prime 的同时部署审计日志组件，或者手动部署审计日志组件。有关详细的部署流程，请参考 <a target="_blank" rel="noopener noreferrer nofollow" href="https://ee.docs.rancher.cn/docs/logging/audit/installation">Rancher Prime</a> 文档。'
         address:
           label: 设置 auditlog-server-url 值
-          tips: Rancher Prime 通过访问审计日志服务进行日志查询，请设置已部署的审计日志服务地址。 
+          tips: Rancher Prime 使用审计日志服务进行日志查询，请设置已部署的审计日志服务的地址。 
       installAuditLogCollector:
-        label: 安装日志采集应用
-        endpointTips: 通过修改您的 Kubernetes 集群的 API Server 配置，您可以将 API Server 的审计日志保存到文件或通过 webhook 的方式发送到其他地址中。
-        deploymentTips: Rancher Prime 提供了 Kubernetes API Server 审计日志的采集应用，通过部署该应用可以采集 API Server 的审计日志文件或作为 webhook 模式下的日志接收服务，最终日志发送到 Rancher 的审计日志 Server 中进行持久化。
+        label: 安装 K8s 日志采集应用
+        stepLabel: 安装 Chart
+        endpointTips: 通过修改您的 Kubernetes 集群的 API Server 配置，可以将 API Server 的审计日志保存到文件中，或者通过 webhook 的方式发送到其他地址。
+        deploymentTips: Rancher Prime 提供了用于采集 Kubernetes API Server 审计日志的应用程序。通过部署该应用程序，您可以采集 API Server 的审计日志文件，或者作为 webhook 模式下的日志接收服务，最终将日志发送到 Rancher 的审计日志服务器中进行持久化。
   btn:
     clearAll: 全部清除
     detail: 查看
