@@ -68,6 +68,12 @@ export default {
   methods: {
     expand(field) {
       this.$set(this.expanded, field, !this.expanded[field]);
+    },
+    navigate(breadcrumbs) {
+      this.$emit('navigate', breadcrumbs);
+    },
+    goto(field) {
+      this.$emit('navigate', field.$breadcrumbs);
     }
   }
 };
@@ -120,15 +126,16 @@ export default {
           /> -->
         <div
           v-if="expanded[field.name]"
-          class="sub-name ml-20"
+          class="sub-name"
         >
-          {{ field.$refName }}
+          <a href="#" class="sub-type-link" @click="goto(field)">{{ field.$refName }}</a>
         </div>
         <ExplainPanel
           v-if="expanded[field.name]"
           :expand-all="expandAll"
           :definition="field.$$ref"
-          class="embedded ml-20"
+          class="embedded"
+          @navigate="navigate"
         />
       </div>
       </div>
@@ -162,9 +169,10 @@ export default {
   .title {
     text-transform: uppercase;
     margin: 10px 0;
+    background-color: var(--primary-light-bg);
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
-    padding: 4px 0;
+    padding: 6px 0;
   }
 
   .field-section {
@@ -193,6 +201,10 @@ export default {
   .field-type-panel {
     align-items: center;
     display: flex;
+  }
+
+  .sub-type-link {
+    color: var(--primary-text);
   }
 
   .field-type {

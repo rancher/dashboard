@@ -30,12 +30,17 @@ export default {
       resizePosition: 'absolute',
       width: '33%',
       right: '-33%',
+      breadcrumbs: undefined,
+      definitions: {},
+      noResource: false,
     };
   },
 
   computed: {
     title() {
-      console.log(this.schema);
+      if (this.noResource) {
+        return 'Explain';
+      }
 
       return this.schema?.attributes?.kind || 'Loading ...';
     }
@@ -91,17 +96,9 @@ export default {
 
     parse(property) {
       this.extractMoreInfo(property);
-
-      // Object.values(property.properties || {}).forEach((v) => {
-      //   this.extractMoreInfo(v);
-
-      //   // if (v.$ref) {
-      //   //   this.parse(v.$ref);
-      //   // }
-      // });
     },
 
-    expand(definitions, definition) {
+    expand(definitions, definition, breadcrumbs = []) {
       Object.keys(definition?.properties || {}).forEach((propName) => {
         const prop = definition.properties[propName];
         const propRef = prop.$ref || prop.items?.$ref; 
@@ -115,14 +112,18 @@ export default {
           if (ref) {
             prop.$$ref = ref;
             prop.$refName = id;
+            prop.$breadcrumbs = [
+              ...breadcrumbs,
+              id,
+            ];
 
             const parts = prop.$refName.split('.');
 
             prop.$refNameShort = parts[parts.length - 1];
 
-            this.expand(definitions, ref);
+            this.expand(definitions, ref, prop.$breadcrumbs);
           } else {
-            console.warn('Can not find definition for ' + id);
+            console.warn('Can not find definition for ' + id); // eslint-disable-line no-console
           }
         }
 
@@ -135,6 +136,8 @@ export default {
     },
 
     update(response) {
+      this.noResource = false;
+
       if (response.error) {
         console.error(response.error);
         this.busy = false;
@@ -148,7 +151,16 @@ export default {
         return;
       }
 
+
+
       const schema = response.schema;
+
+      if (!schema) {
+        this.busy = false;
+        this.noResource = true;
+
+        return;
+      }
 
       if (schema?.attributes) {
         let group = schema.attributes.group || 'core';
@@ -163,20 +175,11 @@ export default {
         const name = `${ group }.${ schema.attributes.version}.${ schema.attributes.kind}`;
         const defn = data.definitions[name];
 
-        //Object.keys(data.definitions).forEach((key) => console.log(key));
+        this.definitions = data.definitions;
 
-        // Object.keys(data.definitions).forEach((key) => {
-        //   if (key.includes(schema.attributes.kind)) {
-        //     console.log(key);
-        //   }
-        // });
+        this.expand(data.definitions, defn, [name]);
 
-        console.log('>>>>>>>>>>>>>>>>>>.');
-        console.error(defn);
-
-        this.expand(data.definitions, defn);
-
-        console.log(JSON.parse(JSON.stringify(defn, null, 2)));
+        // console.log(JSON.parse(JSON.stringify(defn, null, 2)));
 
         this.definition = defn;
       } else {
@@ -186,8 +189,6 @@ export default {
       this.busy = false;
     },
     startPanelResize(ev) {
-      console.log('startPanelResize');
-      console.log(ev);
       this.isResizing = true;
       this.$refs.resizer.setPointerCapture(ev.pointerId);
 
@@ -209,47 +210,109 @@ export default {
 
       this.width = `${ width }px`;
     },
+    navigate(breadcrumbs) {
+      const goto = breadcrumbs[breadcrumbs.length - 1];
+      const defn = this.definitions[goto];
+
+      this.breadcrumbs = breadcrumbs.map((item) => {
+        let name = item.split('.');
+
+        name = name[name.length - 1];
+
+        return {
+          name,
+          id: item
+        };
+      });
+
+
+      // this.expand(this.definitions, defn, [goto]);
+      this.expand(this.definitions, defn, breadcrumbs);
+
+      // console.log(JSON.parse(JSON.stringify(defn, null, 2)));
+
+      this.definition = defn;
+      this.expanded = {};
+      this.expandAll = false;
+
+      setTimeout(() => this.scrollTop(), 100);
+    },
+
+    goto(id) {
+      const breadcrumbs = [];
+
+      for (let i = 0; i < this.breadcrumbs.length; i++) {
+        const b = this.breadcrumbs[i];
+
+        breadcrumbs.push(b);
+
+        if (b.id === id) {
+          break;
+        }
+      }
+
+       this.navigate(breadcrumbs.map(b => b.id));
+    }
   },
 };
 </script>
 
 <template>
-  <div class="slide-in" :class="{ 'slide-in-open': isOpen }" :style="{ width, right }">
-    <div class="panel-resizer"
-      ref="resizer"
-      v-bind:style="{ position: resizePosition, left: resizeLeft }"
-      @pointerdown="startPanelResize"
-      @pointermove="doPanelResize"
-      @pointerup="endPanelResize"
-    />
-    <div class="main-panel">
-      <!-- <div class="glass" /> -->
-      <div class="header">
-        <div @click="scrollTop()">{{ title }}</div>
-        <i
-          v-if="!busy"
-          class="icon icon-sort mr-10"
-          @click="toggleAll()"
+  <div>
+    <div class="slide-in-glass" :class="{ 'slide-in-glass-open': isOpen }" @click="close()"></div>
+    <div class="slide-in" :class="{ 'slide-in-open': isOpen }" :style="{ width, right }">
+      <div class="panel-resizer"
+        ref="resizer"
+        v-bind:style="{ position: resizePosition, left: resizeLeft }"
+        @pointerdown="startPanelResize"
+        @pointermove="doPanelResize"
+        @pointerup="endPanelResize"
+      />
+      <div class="main-panel">
+        <!-- <div class="glass" /> -->
+        <div class="header">
+          <div v-if="breadcrumbs" class="breadcrumbs">
+            <div v-for="(b, i) in breadcrumbs" :key="b.id">
+              <span v-if="i > 0" class="ml-5 mr-5">&gt;</span>
+              <a href="#" class="breadcrumb-link" @click="goto(b.id)">{{ b.name }}</a>
+            </div>
+          </div>
+          <div v-else @click="scrollTop()">{{ title }}</div>
+          <i
+            v-if="!busy"
+            class="icon icon-sort mr-10"
+            @click="toggleAll()"
+          />
+          <i
+            class="icon icon-close"
+            @click="close"
+          />
+        </div>
+        <div v-if="busy"
+          class="loading"
+        >
+          <div>
+            <i class="icon icon-lg icon-spinner icon-spin" />
+          </div>
+        </div>
+        <ExplainPanel
+          ref="main"
+          :expand-all="expandAll"
+          v-if="definition"
+          :definition="definition"
+          class="explain-panel"
+          @navigate="navigate"
         />
-        <i
-          class="icon icon-close"
-          @click="close"
-        />
-      </div>
-      <div v-if="busy"
-        class="loading"
-      >
-        <div>
-          <i class="icon icon-lg icon-spinner icon-spin" />
+        <div
+          v-if="noResource"
+          class="select-resource"
+        >
+          <img src="./explain.svg" />
+          <div>
+            Select a Kubernetes resource to get the resource explanation
+          </div>
         </div>
       </div>
-      <ExplainPanel
-        ref="main"
-        :expand-all="expandAll"
-        v-if="definition"
-        :definition="definition"
-        class="explain-panel"
-      />
     </div>
   </div>
 </template>
@@ -257,6 +320,18 @@ export default {
 <style lang="scss" scoped>
   $header-height: 55px;
   $slidein-width: 33%;
+
+  .breadcrumbs {
+    display: flex;
+
+    .breadcrumb-link {
+      color: var(--text);
+
+      &:hover {
+        color: var(--link);
+      }
+    }
+  }
 
   .panel-resizer {
     position: absolute;
@@ -274,6 +349,19 @@ export default {
     display: flex;
     flex-direction: column;
     overflow: auto;
+
+    .select-resource {
+      font-size: 16px;
+      margin: 40px;
+      text-align: center;
+
+      > img {
+        margin-bottom: 20px;
+        opacity: 0.5;
+        height: 64px;
+        width: 64px;
+      }
+    }
   }
 
   .header {
@@ -340,5 +428,21 @@ export default {
 
   .explain-panel {
     padding: 10px;
+  }
+
+  .slide-in-glass {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height :100vh;
+      width: 100vw;
+
+    &.slide-in-glass-open {
+      background-color: var(--body-bg);
+      display: block;
+      opacity: 0.5;
+      z-index: 1000;
+    }
   }
 </style>

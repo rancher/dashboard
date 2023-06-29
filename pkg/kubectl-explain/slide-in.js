@@ -12,9 +12,7 @@ function loadOpenAPIData(store, schema) {
       `cluster/request`,
       { url: `/k8s/clusters/${ cluster.id }/openapi/v2?timeout=32s` }
     ).then((response) => {
-      console.error('LOADED API DATA');
       openAPIData = response.data || response;
-      console.log(response);
       component.update( { data: openAPIData, schema });
     }).catch((e) => {
       openAPIData = undefined;
@@ -23,21 +21,12 @@ function loadOpenAPIData(store, schema) {
   } else {
     component.update({ data: openAPIData, schema });
   }
-
-  // console.error('Load OPEN API DATA');
-
-  // const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-  // sleep(5000).then(() => { component.busy = false; });
-
-  // console.log(schema);
 }
 
-export async function install(store, route) {
-  console.log('hello');
-  console.log('store');
-  console.log(route);
-
+/**
+ * Show the explain panel
+ */
+export async function explain(store, route) {
   // Get params
   cluster = store.getters['currentCluster'];
   const typeName = route.params?.resource;
