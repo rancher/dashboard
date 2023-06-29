@@ -1,6 +1,6 @@
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
-import { LoginPagePo } from '~/cypress/e2e/po/pages/login-page.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 const userMenu = new UserMenuPo();
 const loginPage = new LoginPagePo();

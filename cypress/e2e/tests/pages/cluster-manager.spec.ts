@@ -9,6 +9,7 @@ import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import ClusterManagerCreateRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const runTimestamp = +new Date();
@@ -16,6 +17,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 
 // File specific consts
 const clusterNamePartial = `${ runPrefix }-create`;
+const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
 const importGenericName = `${ clusterNamePartial }-import-generic`;
 
@@ -24,14 +26,13 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 describe('Cluster Manager', () => {
   const clusterList = new ClusterManagerListPagePo('local');
 
-  const detailClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
-
   beforeEach(() => {
     cy.login();
   });
 
   describe('Created', () => {
-    const createClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const createRKE2ClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const detailRKE2ClusterPage = new ClusterManagerDetailRke2CustomPagePo(rke2CustomName);
 
     describe('RKE2 Custom', () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
@@ -43,13 +44,14 @@ describe('Cluster Manager', () => {
         clusterList.checkIsCurrentPage();
         clusterList.createCluster();
 
-        createClusterPage.waitForPage();
-        createClusterPage.rkeToggle().toggle();
-        createClusterPage.selectCustom(0);
-        createClusterPage.nameNsDescription().name().set(rke2CustomName);
-        createClusterPage.create();
+        createRKE2ClusterPage.waitForPage();
+        createRKE2ClusterPage.rkeToggle().set('RKE2/K3s');
 
-        detailClusterPage.waitForPage(undefined, 'registration');
+        createRKE2ClusterPage.selectCustom(0);
+        createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
+        createRKE2ClusterPage.create();
+
+        detailRKE2ClusterPage.waitForPage(undefined, 'registration');
       });
 
       it('can edit cluster and see changes afterwards', () => {
@@ -112,10 +114,85 @@ describe('Cluster Manager', () => {
         });
       });
     });
+
+    const createClusterRKE1Page = new ClusterManagerCreateRke1CustomPagePo();
+
+    describe('RKE1 Custom', () => {
+      it('can create new cluster', () => {
+        clusterList.goTo();
+        clusterList.checkIsCurrentPage();
+        clusterList.createCluster();
+
+        createClusterRKE1Page.waitForPage();
+
+        createClusterRKE1Page.rkeToggle().set('RKE1');
+        createClusterRKE1Page.selectCustom(0);
+
+        createClusterRKE1Page.clusterName().set(rke1CustomName);
+
+        // Test Custom Cluster Roles -------------------------
+        const roles = [{
+          label:          'Create Projects',
+          roleTemplateId: 'projects-create'
+        }, {
+          label:          'Manage Cluster Catalogs',
+          roleTemplateId: 'clustercatalogs-manage'
+        }, {
+          label:          'Manage Navlinks',
+          roleTemplateId: 'navlinks-manage'
+        }, {
+          label:          'Manage Storage',
+          roleTemplateId: 'storage-manage'
+        }];
+
+        createClusterRKE1Page.memberRoles().checkExists();
+        createClusterRKE1Page.memberRoles().expand();
+        createClusterRKE1Page.memberRolesFormMembers().addMember();
+        createClusterRKE1Page.memberRolesFormMembers().setNewMemberWithCustomRoles('admin', roles);
+
+        cy.intercept('POST', '/v3/clusterroletemplatebinding').as('binding');
+
+        //  -------------------------
+
+        createClusterRKE1Page.next();
+
+        let found = 0;
+
+        for (let i = 0; i < roles.length; i++) {
+          cy.wait('@binding').then((res: any) => {
+            if (roles.find((r) => r.roleTemplateId === res.response.body.roleTemplateId)) {
+              found++;
+            }
+
+            if (i === roles.length - 1) {
+              expect(roles.length).equal(found);
+            }
+          });
+        }
+
+        createClusterRKE1Page.nodeCommand().checkExists();
+        createClusterRKE1Page.done();
+
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('exist');
+      });
+
+      it('can delete cluster', () => {
+        clusterList.goTo();
+        clusterList.list().actionMenu(rke1CustomName).getMenuItem('Delete').click();
+
+        const promptRemove = new PromptRemove();
+
+        promptRemove.confirm(rke1CustomName);
+        promptRemove.remove();
+
+        clusterList.sortableTable().rowElementWithName(rke1CustomName).should('not.exist', { timeout: 15000 });
+      });
+    });
   });
 
   describe('Imported', () => {
-    const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const importClusterPage = new ClusterManagerImportGenericPagePo('local');
 
     describe('Generic', () => {
       const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);

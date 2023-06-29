@@ -128,16 +128,6 @@ module.exports = {
       }
     },
 
-    // Epinio
-    {
-      files: ['**/epinio/**/*.{js,ts,vue}'],
-      rules: {
-        // Warnings
-        '@typescript-eslint/explicit-module-boundary-types': 'off',
-        '@typescript-eslint/no-empty-interface':             'off'
-      }
-    },
-
     // Harvester
     {
       files: ['**/{harvester,harvester-manager}/**/*.{js,ts,vue}'],

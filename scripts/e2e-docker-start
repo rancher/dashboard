@@ -2,10 +2,13 @@
 
 DIR=$(cd $(dirname $0)/..; pwd)
 
-DIST=${DIR}/dist
+# See `script/build-e2e`
+DASHBOARD_DIST=${DIR}/dist
+EMBER_DIST=${DIR}/dist_ember
 
 docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
-  -v ${DIST}:/usr/share/rancher/ui-dashboard/dashboard \
+  -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
+  -v ${EMBER_DIST}:/usr/share/rancher/ui \
   -e CATTLE_UI_OFFLINE_PREFERRED=true \
   -e CATTLE_BOOTSTRAP_PASSWORD=password \
   -e CATTLE_PASSWORD_MIN_LENGTH=3 \

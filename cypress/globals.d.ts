@@ -42,5 +42,6 @@ declare namespace Cypress {
 
     keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
 
+    iFrame(): Chainable<Element>;
   }
 }

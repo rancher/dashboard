@@ -288,7 +288,7 @@ export default {
     closeError(index) {
       const errors = this.errors.filter((_, i) => i !== index);
 
-      this.$emit('error', errors);
+      this.$emit('error', errors, this.errors[index]);
     },
 
     emitOrRoute() {

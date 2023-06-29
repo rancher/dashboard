@@ -53,6 +53,7 @@ export default {
     <div
       v-if="pref"
       class="close-button"
+      data-testid="graphic-banner-close"
       @click="hide()"
     >
       <i class="icon icon-close" />

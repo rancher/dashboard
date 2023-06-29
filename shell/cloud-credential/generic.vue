@@ -33,7 +33,7 @@ export default {
     for ( const k of keyOptions ) {
       const sk = simplify(k);
 
-      if ( normanSchema || likelyFields.includes(sk) || iffyFields.includes(sk) ) {
+      if ( normanSchema?.resourceFields || likelyFields.includes(sk) || iffyFields.includes(sk) ) {
         keys.push(k);
       }
     }

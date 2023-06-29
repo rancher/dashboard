@@ -115,3 +115,11 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
     cy.get('body').trigger('keydown', triggerKeys);
   }
 });
+
+Cypress.Commands.add('iFrame', () => {
+  return cy
+    .get('[data-testid="ember-iframe"]', { log: false })
+    .its('0.contentDocument.body', { log: false })
+    .should('not.be.empty')
+    .then((body) => cy.wrap(body));
+});
