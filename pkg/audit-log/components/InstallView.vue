@@ -40,8 +40,8 @@ export default {
       steps.push(
         {
           name:    'deploymentComponents',
-          label:   this.t('auditLog.installView.steps.deploymentCompoents.label'),
-          subtext: this.t('auditLog.installView.steps.deploymentCompoents.label'),
+          label:   this.t('auditLog.installView.steps.deploymentCompoents.stepLabel'),
+          subtext: this.t('auditLog.installView.steps.deploymentCompoents.stepLabel'),
           ready:   false,
         }
       );
@@ -63,11 +63,8 @@ export default {
     };
   },
   computed: {
-    hasAuditlogCollector() {
-      return this.app?.spec?.chart?.metadata?.name === 'rancher-k8s-auditlog-collector';
-    },
     needInstallCollector() {
-      return this.app && !this.hasAuditlogCollector;
+      return this.k8sAuditLog && !this.auditLogCollector;
     },
     urlValid() {
       return URL_REG.test(this.url?.trim());
@@ -172,8 +169,8 @@ export default {
       :edit-first-step="true"
       :errors="errors"
       banner-image="/_nuxt/shell/assets/images/generic-catalog.svg"
-      header-mode="create"
-      finish-mode="done"
+      header-mode=""
+      :finish-mode="needInstallCollector ? 'install' : 'done'"
       @finish="finish"
     >
       <template

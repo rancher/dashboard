@@ -247,7 +247,9 @@ export default {
   <div class="global-audit-log">
     <div class="title mb-20">
       <h1 class="m-0">
-        {{ t('auditLog.title') }}
+        <nuxt-link :to="{ name: 'c-cluster-product-projectsnamespaces' }">
+          {{ t('namespace.project.label') }}
+        </nuxt-link>: {{ t('auditLog.title') }}
       </h1>
     </div>
 
@@ -332,6 +334,7 @@ export default {
       <VxeColumn
         field="operation"
         :title="t('auditLog.table.operation')"
+        width="80"
       >
         <template #default="{ row }">
           <span v-if="row.requestAction"> {{ row.requestAction }} </span><span v-else>{{ row.operation }}</span>
@@ -340,19 +343,22 @@ export default {
       <VxeColumn
         field="responseCode"
         :title="t('auditLog.table.result')"
+        width="120"
       >
         <template #default="{ row }">
-          {{ responseCodeFilter(row.responseCode) }}
+          <span>{{ responseCodeFilter(row.responseCode) }}</span>
         </template>
       </VxeColumn>
       <VxeColumn
         field="requestTimestamp"
         :title="t('auditLog.table.time')"
         sortable
+        width="180"
       />
       <VxeColumn
         field="requestResType"
         :title="t('auditLog.table.type')"
+        min-width="200"
       />
       <VxeColumn
         field="requestResId"

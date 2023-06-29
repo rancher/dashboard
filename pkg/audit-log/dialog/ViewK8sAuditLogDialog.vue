@@ -113,12 +113,22 @@ export default {
       v-else-if="errors.length === 0"
       class="view-audit-log-dialog"
       :show-highlight-border="false"
+      :sticky="true"
     >
-      <h4
+      <div
         slot="title"
-        v-clean-html="t('auditLog.detail.title')"
-        class="text-default-text"
-      />
+        class="title"
+      >
+        <h4
+          v-clean-html="t('auditLog.detail.title')"
+          class="text-default-text"
+        />
+        <i
+          class="icon icon-close"
+          @click="close"
+        />
+      </div>
+
       <div
         slot="body"
         class="pl-10 pr-10"
@@ -243,6 +253,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.title {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  & > i {
+    cursor: pointer;
+  }
+}
 .buttons {
   display: flex;
   justify-content: flex-end;

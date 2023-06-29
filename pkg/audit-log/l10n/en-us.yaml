@@ -2,14 +2,15 @@ auditLog:
   installView:
     steps:
       deploymentCompoents:
-        label: Eanble audit log
+        label: Install
+        stepLabel: Deployment Audit Log Components
         tips: 'You can deploy the audit log component along with Rancher Prime via HA, or manually deploy the audit log component. Please refer to <a target="_blank" rel="noopener noreferrer nofollow" href="https://ee.docs.rancher.cn/docs/logging/audit/installation">the Rancher Prime</a> documentation for the detailed deployment process.'
         address:
           label: Set the auditlog-server-url value
           tips: Rancher Prime performs log queries by accessing the Audit Log Service, set the address of the deployed Audit Log Service. 
       installAuditLogCollector:
         label: Install the rancher-k8s-auditlog-collector
-        stepLabel: Install chart
+        stepLabel: App Install
         endpointTips: By modifying the API Server configuration of your Kubernetes cluster, you can save the API Server audit log to a file or send it to another address via webhook.
         deploymentTips: Rancher Prime provides a Kubernetes API Server audit log collection application that can be deployed to collect audit log files from the API Server or as a log receiving service in webhook mode, with the final logs sent to Rancher's Audit Log Server for persistence.
   btn:

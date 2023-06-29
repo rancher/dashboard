@@ -2,14 +2,15 @@ auditLog:
   installView:
     steps:
       deploymentCompoents:
-        label: 啓用審計日誌
+        label: 安裝
+        stepLabel: 部署審計日誌組件
         tips: '您可以選擇在使用 HA 方式部署 Rancher Prime 的同時部署審計日誌組件，或者手動部署審計日誌組件。有關詳細的部署流程，請參考 <a target="_blank" rel="noopener noreferrer nofollow" href="https://ee.docs.rancher.cn/docs/logging/audit/installation">Rancher Prime</a> 文檔。'
         address:
           label: 設置 auditlog-server-url 值
           tips: Rancher Prime 使用審計日誌服務進行日誌查詢，請設置已部署的審計日誌服務的地址。 
       installAuditLogCollector:
         label: 安裝 K8s 日誌採集應用
-        stepLabel: 安裝 Chart
+        stepLabel: App 安裝
         endpointTips: 通過修改您的 Kubernetes 集羣的 API Server 配置，可以將 API Server 的審計日誌保存到文件中，或者通過 webhook 的方式發送到其他地址。
         deploymentTips: Rancher Prime 提供了用於採集 Kubernetes API Server 審計日誌的應用程序。通過部署該應用程序，您可以採集 API Server 的審計日誌文件，或者作爲 webhook 模式下的日誌接收服務，最終將日誌發送到 Rancher 的審計日誌服務器中進行持久化。
   btn:
