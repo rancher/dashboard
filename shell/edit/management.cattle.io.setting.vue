@@ -115,7 +115,7 @@ export default {
         const urlReg = /(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/;
         const errors = [];
 
-        if (!urlReg.test(this.value.value?.trim())) {
+        if (this.value.value?.trim() !== '' && !urlReg.test(this.value.value?.trim())) {
           errors.push(this.t('validation.invalid', { key: SETTING.AUDIT_LOG_SERVER_URL }, true));
         }
         if (errors.length > 0) {
