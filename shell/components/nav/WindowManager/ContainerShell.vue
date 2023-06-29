@@ -230,7 +230,7 @@ export default {
         return;
       }
 
-      let cmd = this.commands.shift();
+      const cmd = this.commands.shift();
 
       const url = addParams(
         `${ this.pod.links.view.replace(/^http/, 'ws') }/exec`,
