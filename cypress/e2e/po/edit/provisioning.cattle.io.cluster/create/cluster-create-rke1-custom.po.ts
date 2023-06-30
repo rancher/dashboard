@@ -3,7 +3,7 @@ import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattl
 import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 import ClusterManagerCreateRKE1PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1.po';
 import EmberAccordionPo from '@/cypress/e2e/po/components/ember/ember-accordion.po';
-import EmberFormMembersPo from '~/cypress/e2e/po/components/ember/ember-form-members.po';
+import EmberFormMembersPo from '@/cypress/e2e/po/components/ember/ember-form-members.po';
 import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/ember/ember-agent-configuration.po';
 
 /**

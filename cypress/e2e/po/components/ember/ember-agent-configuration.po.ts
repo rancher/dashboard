@@ -1,6 +1,6 @@
 import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.po';
-import EmberTolerationsPo from '~/cypress/e2e/po/components/ember/ember-tolerations.po';
+import EmberTolerationsPo from '@/cypress/e2e/po/components/ember/ember-tolerations.po';
 import EmberRadioInputPo from '@/cypress/e2e/po/components/ember/ember-radio.input.po';
 import EmberNodeAffinityPo from '@/cypress/e2e/po/components/ember/ember-node-affinity.po';
 import EmberPodAffinityPo from '@/cypress/e2e/po/components/ember/ember-pod-affinity.po';
