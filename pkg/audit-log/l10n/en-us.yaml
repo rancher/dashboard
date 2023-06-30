@@ -18,6 +18,7 @@ auditLog:
     detail: Detail
     search: Search
     loadMore: Load More
+    updateUrl: Update Audit Log Server URL
 
   detail:
     btn:
@@ -93,6 +94,7 @@ auditLog:
     notFound: Resource Not Found
     unknownError: unknown error
     required: "{key} is required"
+    requestFailed: Unable to access the service
   k8sAuditEventDialog:
     title: Kubernetes Audit Event
     stageTime: Stage Time

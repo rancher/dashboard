@@ -2,6 +2,7 @@
 import { ROWS_PER_PAGE } from '@shell/store/prefs';
 import { Table as VxeTable, Column as VxeColumn } from 'vxe-table';
 import { HTTP_CODE } from '@pkg/config/constants.js';
+import PageTitle from './PageTitle.vue';
 
 const DEFAULT_DATE_RANGE = '5';
 
@@ -144,10 +145,15 @@ export default {
         }
         this.pagination = pagination;
       } catch (err) {
-        this.errors.push(err);
+        let e = err;
+
+        if (e?._status >= 500) {
+          e = this.t('auditLog.errors.requestFailed');
+        }
+        this.errors.push(e);
         this.$store.dispatch('growl/error', {
           title:   'Fetch Resources Error',
-          message: err,
+          message: e,
         }, { root: true });
       }
       this.loading = false;
@@ -223,17 +229,15 @@ export default {
       return `${ this.t(`auditLog.status.${ code }`) }(${ code })`;
     }
   },
-  components: { VxeTable, VxeColumn }
+  components: {
+    VxeTable, VxeColumn, PageTitle
+  }
 };
 </script>
 
 <template>
   <div class="global-audit-log">
-    <div class="title mb-20">
-      <h1 class="m-0">
-        {{ t('auditLog.title') }}
-      </h1>
-    </div>
+    <PageTitle />
     <div class="row mb-20">
       <div class="col span-2">
         <input
@@ -396,4 +400,5 @@ export default {
   display: flex;
   justify-content: center;
 }
+
 </style>

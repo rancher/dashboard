@@ -18,6 +18,7 @@ auditLog:
     detail: 查看
     search: 搜索
     loadMore: 加載更多
+    updateUrl: 更新審計日誌服務地址
   detail:
     btn:
       close: 關閉
@@ -92,6 +93,7 @@ auditLog:
     notFound: 資源未找到
     unknownError: 未知錯誤 
     required: "{key} 不能爲空"
+    requestFailed: 無法訪問審計日誌服務
   k8sAuditEventDialog:
     title: Kubernetes 審計事件
     stageTime: 執行時間
