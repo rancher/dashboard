@@ -1339,7 +1339,6 @@ cluster:
     deprecated: （已弃用）
     deprecatedPatches: 显示已弃用的 Kubernetes 补丁版本
     deprecatedPatchWarning: 建议为每个 Kubernetes 次要版本使用最新的补丁版本，已弃用的补丁版本可能对迁移有用。
-  toolsTip: 使用新集群工具来管理和安装 Monitoring、Logging 等工具。
   legacyWarning: 旧版功能开关已开启，但是不是所有旧版功能都在 Kubernetes 1.21+ 中支持。
   log:
     connecting: 正在连接
