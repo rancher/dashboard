@@ -1,8 +1,7 @@
-import IframeComponentPo from '@/cypress/e2e/po/components/embedded-ember/iframe-component.po';
-import EmberNewSelectPo from '@/cypress/e2e/po/components/embedded-ember/ember-new-select.po';
-import EmberTextInputPo from '@/cypress/e2e/po/components/embedded-ember/ember-text-input.po';
-import EmberNodeAffinityPo, { MatchExpressionPo, NodeSelectorTermPo } from '@/cypress/e2e/po/components/embedded-ember/ember-node-affinity.po';
-import EmberRadioInputPo from '@/cypress/e2e/po/components/embedded-ember/ember-radio.input.po';
+import EmberNewSelectPo from '@/cypress/e2e/po/components/ember/ember-new-select.po';
+import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
+import EmberNodeAffinityPo, { NodeSelectorTermPo } from '@/cypress/e2e/po/components/ember/ember-node-affinity.po';
+import EmberRadioInputPo from '@/cypress/e2e/po/components/ember/ember-radio.input.po';
 
 export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
   findTerm(idx: number): PodAffinityTermPo {
@@ -10,11 +9,11 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
   }
 
   allTerms() {
-    return cy.getIframeBody().then((iframe) => {
+    return cy.iFrame().then((iframe) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="pod-affinity-term"]`);
 
       if (queryResult?.length > 0) {
-        return cy.getIframeBody().find(`${ this.selector } [data-testid="pod-affinity-term"]`);
+        return cy.iFrame().find(`${ this.selector } [data-testid="pod-affinity-term"]`);
       }
 
       return null;
@@ -22,7 +21,7 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
   }
 
   addTerm() {
-    return cy.getIframeBody().find(`${ this.selector } [data-testid="button-add-pod-affinity-term"]`).click();
+    return cy.iFrame().find(`${ this.selector } [data-testid="button-add-pod-affinity-term"]`).click();
   }
 
   editTerm(termData: any, idx:number) {
@@ -59,11 +58,11 @@ export class PodAffinityTermPo extends NodeSelectorTermPo {
   }
 
   weight() {
-    return new EmberTextInputPo(`${ this.selector } [data-testid="input-pod-affinity-weight"]`);
+    return new EmberInputPo(`${ this.selector } [data-testid="input-pod-affinity-weight"]`);
   }
 
   topology() {
-    return new EmberTextInputPo(`${ this.selector } [data-testid="input-pod-affinity-topology"]`);
+    return new EmberInputPo(`${ this.selector } [data-testid="input-pod-affinity-topology"]`);
   }
 
   namespaceType() {
@@ -71,6 +70,6 @@ export class PodAffinityTermPo extends NodeSelectorTermPo {
   }
 
   namespaceList() {
-    return new EmberTextInputPo(`${ this.selector } [data-testid="input-pod-affinity-namespaces"] input`);
+    return new EmberInputPo(`${ this.selector } [data-testid="input-pod-affinity-namespaces"] input`);
   }
 }

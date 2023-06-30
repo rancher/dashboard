@@ -4,8 +4,7 @@ import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 import ClusterManagerCreateRKE1PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1.po';
 import EmberAccordionPo from '@/cypress/e2e/po/components/ember/ember-accordion.po';
 import EmberFormMembersPo from '~/cypress/e2e/po/components/ember/ember-form-members.po';
-import EmberAccordionItemPo from '@/cypress/e2e/po/components/embedded-ember/ember-accordion-item.po';
-import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/embedded-ember/ember-agent-configuration.po';
+import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/ember/ember-agent-configuration.po';
 
 /**
  * Create page for an RKE1 custom cluster
@@ -41,11 +40,11 @@ export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManager
   }
 
   clusterAgentAccordion() {
-    return new EmberAccordionItemPo('[data-testid="accordion-cluster-agent"]');
+    return new EmberAccordionPo('cluster-driver__cluster-agent');
   }
 
   fleetAgentAccordion() {
-    return new EmberAccordionItemPo('[data-testid="accordion-fleet-agent"]');
+    return new EmberAccordionPo('cluster-driver__fleet-agent');
   }
 
   clusterAgentConfiguration() {
@@ -57,10 +56,10 @@ export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManager
   }
 
   next() {
-    return cy.getIframeBody().find('[data-testid="save-cancel-rke1"] button[type=submit]').click();
+    return cy.iFrame().find('[data-testid="save-cancel-rke1"] button[type=submit]').click();
   }
 
   done() {
-    return cy.getIframeBody().find('[data-testid="driver-rke__done"]').click();
+    return cy.iFrame().find('[data-testid="driver-rke__done"]').click();
   }
 }

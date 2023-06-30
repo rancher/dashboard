@@ -12,8 +12,17 @@ export default class EmberSearchableSelectPo extends EmberComponentPo {
     this.select(value);
   }
 
+  clickAndSelectIndex(idx: number) {
+    this.self().click();
+    this.getOptions().eq(idx).click();
+  }
+
   select(value:string) {
     // Assumes select drop down is open
     cy.iFrame().find('.searchable-option').contains(value).click();
+  }
+
+  getOptions(): Cypress.Chainable {
+    return this.self().find('.searchable-option');
   }
 }

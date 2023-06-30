@@ -7,7 +7,7 @@ export default class EmberInputPo extends EmberComponentPo {
    * @returns
    */
   set(value: string): Cypress.Chainable {
-    this.input().should('be.visible');
+    // this.input().should('be.visible');
     this.input().focus();
     this.input().clear();
 

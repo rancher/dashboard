@@ -80,11 +80,6 @@ declare global {
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
     iFrame(): Chainable<Element>;
-    /**
-     * Find the ember iframe body (data-testid ember-iframe)
-     * queries for elements within the iframe should be chained off this eg cy.getIframeBody().find(...)
-     */
-    getIframeBody(): Chainable<Element>;
   }
 }
 }

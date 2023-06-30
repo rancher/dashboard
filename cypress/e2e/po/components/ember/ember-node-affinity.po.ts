@@ -1,20 +1,18 @@
-import IframeComponentPo from '@/cypress/e2e/po/components/embedded-ember/iframe-component.po';
-import EmberNewSelectPo from '@/cypress/e2e/po/components/embedded-ember/ember-new-select.po';
-import EmberTextInputPo from '@/cypress/e2e/po/components/embedded-ember/ember-text-input.po';
+import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
+import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.po';
+import EmberNewSelectPo from '@/cypress/e2e/po/components/ember/ember-new-select.po';
 
-export default class EmberNodeAffinityPo extends IframeComponentPo {
+export default class EmberNodeAffinityPo extends EmberComponentPo {
   findTerm(idx: number): NodeSelectorTermPo {
     return new NodeSelectorTermPo(`${ this.selector } [data-testid="node-selector-term"]div:nth-child(${ idx + 1 })`);
   }
 
   allTerms() {
-    console.log('e2e looking for node affinity terms');
-
-    return cy.getIframeBody().then((iframe) => {
+    return cy.iFrame().then((iframe) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="node-selector-term"]`);
 
       if (queryResult?.length > 0) {
-        return cy.getIframeBody().find(`${ this.selector } [data-testid="node-selector-term"]`);
+        return cy.iFrame().find(`${ this.selector } [data-testid="node-selector-term"]`);
       }
 
       return null;
@@ -23,7 +21,6 @@ export default class EmberNodeAffinityPo extends IframeComponentPo {
 
   removeAllTerms() {
     return this.allTerms().then((terms) => {
-      console.log('e2e removing node/pod terms: ', terms);
       if (terms) {
         let idx = terms.length - 1;
 
@@ -40,7 +37,7 @@ export default class EmberNodeAffinityPo extends IframeComponentPo {
   }
 
   addTerm() {
-    return cy.getIframeBody().find(`${ this.selector } [data-testid="button-add-node-selector"]`).click();
+    return cy.iFrame().find(`${ this.selector } [data-testid="button-add-node-selector"]`).click();
   }
 
   // pod affinity po extends node affinity and adds a few fields in addition to _editTerms
@@ -62,7 +59,7 @@ export default class EmberNodeAffinityPo extends IframeComponentPo {
   }
 }
 
-export class NodeSelectorTermPo extends IframeComponentPo {
+export class NodeSelectorTermPo extends EmberComponentPo {
   remove() {
     return this.self().find('[data-testid="button-node-selector-remove"]').click();
   }
@@ -72,11 +69,11 @@ export class NodeSelectorTermPo extends IframeComponentPo {
   }
 
   weight() {
-    return new EmberTextInputPo(`${ this.selector } [data-testid="input-node-selector-weight"]`);
+    return new EmberInputPo(`${ this.selector } [data-testid="input-node-selector-weight"]`);
   }
 
   addMatchExpression() {
-    return cy.getIframeBody().find(`${ this.selector } [data-testid="button-match-expression-add"]`).click();
+    return cy.iFrame().find(`${ this.selector } [data-testid="button-match-expression-add"]`).click();
   }
 
   findMatchExpression(idx: number) {
@@ -100,13 +97,13 @@ export class NodeSelectorTermPo extends IframeComponentPo {
   }
 }
 
-export class MatchExpressionPo extends IframeComponentPo {
+export class MatchExpressionPo extends EmberComponentPo {
   remove() {
     return this.self().find('[data-testid="button-match-expression-remove"]').click();
   }
 
   key() {
-    return new EmberTextInputPo(`${ this.selector } [data-testid="input-match-expression-key"]`);
+    return new EmberInputPo(`${ this.selector } [data-testid="input-match-expression-key"]`);
   }
 
   operator() {
@@ -114,7 +111,7 @@ export class MatchExpressionPo extends IframeComponentPo {
   }
 
   values() {
-    return new EmberTextInputPo(`${ this.selector } [data-testid="input-match-expression-values"] input`);
+    return new EmberInputPo(`${ this.selector } [data-testid="input-match-expression-values"] input`);
   }
 
   // matchExpressions or matchFields
