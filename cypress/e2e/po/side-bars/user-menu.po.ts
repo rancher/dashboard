@@ -50,8 +50,8 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   clickMenuItem(label: string) {
-    return this.toggle().then(() => {
-      this.getMenuItems().contains(label).click();
+    this.toggle().then(() => {
+      return this.getMenuItems().contains(label).click();
     });
   }
 }
