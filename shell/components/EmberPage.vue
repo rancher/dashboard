@@ -254,7 +254,6 @@ export default {
         iframeEl.setAttribute('id', EMBER_FRAME);
         iframeEl.setAttribute('data-testid', EMBER_FRAME);
         iframeEl.classList.add(EMBER_FRAME_HIDE_CLASS);
-        iframeEl.setAttribute('data-testid', 'ember-iframe');
 
         if (this.inline) {
           const frameParent = document.getElementById(this.inline);

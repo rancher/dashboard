@@ -24,34 +24,12 @@ export default class EmberTolerationsPo extends EmberComponentPo {
   }
 
   findRow(idx: number): EmberTolerationRowPo {
-    // return cy.iFrame().find(`${ this.selector } [data-testid="toleration-row"]`).eq(idx);
-
     return new EmberTolerationRowPo(`${ this.selector } [data-testid="toleration-row"]tr:nth-child(${ idx + 1 })`);
   }
 
   addRow() {
     cy.iFrame().find(`${ this.selector } [data-testid="button-add-toleration"]`).click();
   }
-
-  // key(idx: number): EmberInputPo {
-  //   return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-key"]`);
-  // }
-
-  // value(idx: number): EmberInputPo {
-  //   return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-value"]`);
-  // }
-
-  // seconds(idx: number): EmberInputPo {
-  //   return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-seconds"]`);
-  // }
-
-  // operator(idx: number): EmberSearchableSelectPo {
-  //   return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-operator"]`);
-  // }
-
-  // effect(idx: number): EmberSearchableSelectPo {
-  //   return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-effect"]`);
-  // }
 }
 
 class EmberTolerationRowPo extends EmberComponentPo {
