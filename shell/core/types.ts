@@ -1,6 +1,9 @@
 import { ProductFunction } from './plugin';
 import { RouteConfig, Location } from 'vue-router';
 
+// Cluster Provisioning types
+export * from './types-provisioning';
+
 // package.json metadata
 export interface PackageMetadata {
   name: string;
@@ -134,7 +137,8 @@ export type LocationConfig = {
   namespace?: string[],
   cluster?: string[],
   id?: string[],
-  mode?: string[]
+  mode?: string[],
+  params: { [key: string]: string},
 };
 
 export interface ProductOptions {
@@ -516,7 +520,7 @@ export interface IPlugin {
    * @param {String} name unique name of 'something'
    * @param {Function} fn function that dynamically loads the module for the thing being registered
    */
-  register(type: string, name: string, fn: Function): void;
+  register(type: string, name: string, fn: Function | Boolean): void;
 
   /**
    * Will return all of the configuration functions used for creating a new product.

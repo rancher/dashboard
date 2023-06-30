@@ -34,7 +34,7 @@ function checkRouteMode({ name, query }, locationConfigParam) {
   return false;
 }
 
-function checkExtensionRouteBinding($route, locationConfig) {
+function checkExtensionRouteBinding($route, locationConfig, customParams) {
   // if no configuration is passed, consider it as global
   if (!Object.keys(locationConfig).length) {
     return true;
@@ -49,17 +49,20 @@ function checkExtensionRouteBinding($route, locationConfig) {
     'namespace',
     'cluster',
     'id',
-    'mode'
+    'mode',
+    'params',
   ];
 
-  let res = false;
+  let res = true;
 
   for (let i = 0; i < paramsToCheck.length; i++) {
     const param = paramsToCheck[i];
 
     if (locationConfig[param]) {
-      for (let x = 0; x < locationConfig[param].length; x++) {
-        const locationConfigParam = locationConfig[param][x];
+      const asArray = Array.isArray(locationConfig[param]) ? locationConfig[param] : [locationConfig[param]];
+
+      for (let x = 0; x < asArray.length; x++) {
+        const locationConfigParam = asArray[x];
 
         if (locationConfigParam) {
           // handle "product" in a separate way...
@@ -68,6 +71,16 @@ function checkExtensionRouteBinding($route, locationConfig) {
           // also handle "mode" in a separate way because it mainly depends on query params
           } else if (param === 'mode') {
             res = checkRouteMode($route, locationConfigParam);
+          } else if (param === 'params') {
+            // Need all keys and values to match
+            let okay = true;
+            Object.keys(locationConfigParam).forEach((p) => {
+              const desired = locationConfigParam[p];
+              const actual = customParams[p];
+
+              okay = okay && (desired === actual);
+            });
+            res = okay;
           } else if (locationConfigParam === params[param]) {
             res = true;
           } else {
@@ -91,7 +104,7 @@ function checkExtensionRouteBinding($route, locationConfig) {
   return res;
 }
 
-export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx) {
+export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx, params) {
   const extensionEnhancements = [];
 
   // gate it so that we prevent errors on older versions of dashboard
@@ -99,7 +112,7 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
     const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
 
     actions.forEach((action, i) => {
-      if (checkExtensionRouteBinding(currRoute, action.locationConfig)) {
+      if (checkExtensionRouteBinding(currRoute, action.locationConfig, params || {})) {
         // ADD CARD PLUGIN UI ENHANCEMENT
         if (actionType === ExtensionPoint.CARD) {
           // intercept to apply translation

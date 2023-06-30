@@ -130,6 +130,10 @@ export default {
       type:    String,
       default: null,
     },
+    namespaceOptions: {
+      type:    Array,
+      default: null,
+    },    
     descriptionKey: {
       type:    String,
       default: null,
@@ -228,9 +232,18 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      const namespaces = this.namespacesOverride ||
-        (Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces()));
-      const options = namespaces
+      // Use the provided namespaces options if supplied via the component property
+      let namespaces = this.namespaceOptions;
+
+      if (namespaces) {
+        namespaces = (namespaces.map(ns => ns.name) || []).sort();
+      } else {
+        const namespaceObjs = this.isCreate ? this.allowedNamespaces() : this.namespaces();
+
+        namespaces = Object.keys(namespaceObjs);
+      }
+
+      const options = namespaces      
         .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || ((obj) => ({
           label: obj.nameDisplay,

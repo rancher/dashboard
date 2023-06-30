@@ -60,6 +60,11 @@ export default {
     needRelated: {
       type:    Boolean,
       default: true
+    },
+
+    extensionParams: {
+      type:     Object,
+      required: false,
     }
   },
 
@@ -71,7 +76,7 @@ export default {
       allEvents:     [],
       selectedTab:   this.defaultTab,
       didLoadEvents: false,
-      extensionTabs: getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route),
+      extensionTabs: getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.RESOURCE_DETAIL, this.$route, this, this.extensionParams),
     };
   },
 

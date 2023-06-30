@@ -138,6 +138,25 @@ export default {
         this.iconClasses[name] = `machine-driver ${ name }`;
       }
     });
+
+    // Custom Providers from extensions - initialize each with the store and the i18n service
+    // Wrap in try ... catch, to prevent errors in an extension breaking the page
+    try {
+      const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
+
+      // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
+      // so pass in specific services that the provisioner extension may need
+      this.extensions = extensionClasses.map(c => new c({
+        dispatch: this.$store.dispatch,
+        getters:  this.$store.getters,
+        axios:    this.$store.$axios,
+        $plugin:  this.$store.app.$plugin,
+        $t:       this.t
+      }));
+
+    } catch(e) {
+      console.error('Error loading provisioner(s) from extensions', e); //eslint=
+    }
   },
 
   data() {
@@ -148,6 +167,7 @@ export default {
     return {
       nodeDrivers:      [],
       kontainerDrivers: [],
+      extensions:       [],
       subType,
       chart,
       isImport,
@@ -285,6 +305,11 @@ export default {
             addType(id, 'rke2', false);
           });
 
+          // Add from extensions
+          this.extensions.forEach((ext) => {
+            addExtensionType(ext, getters);
+          });
+
           addType('custom', 'custom2', false);
 
           if (isElementalActive) {
@@ -294,6 +319,32 @@ export default {
       }
 
       return out;
+
+      function addExtensionType(ext, getters) {
+
+        let iconClass = ext.iconClass;
+        let icon = ext.icon;
+
+        if (icon) {
+          iconClass = undefined;
+        } else if (!iconClass) {
+          icon = require('~shell/assets/images/generic-driver.svg');
+        }
+
+        const subtype = {
+          id: ext.id,
+          label: ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
+          description: ext.description,
+          icon,
+          iconClass,
+          group: ext.group || 'rke2',
+          disabled: ext.disabled || false,
+          link: ext.link,
+          tag: ext.tag
+        };
+
+        out.push(subtype);
+      }
 
       function addType(id, group, disabled = false, link = null, iconClass = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);

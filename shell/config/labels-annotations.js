@@ -151,6 +151,9 @@ export const CLUSTER_BADGE = {
   ICON_TEXT: 'ui.rancher/badge-icon-text',
 };
 
+// Annotation for overriding the cluster provider
+export const PROVIDER = 'ui.rancher/provider';
+
 export const SYSTEM_LABELS = [
   'io.cattle.lifecycle.',
   'beta.kubernetes.io',

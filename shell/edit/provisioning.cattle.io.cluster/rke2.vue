@@ -10,6 +10,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import {
   CAPI,
   MANAGEMENT,
+  NAMESPACE,
   NORMAN,
   SCHEMA,
   DEFAULT_WORKSPACE,
@@ -255,6 +256,14 @@ export default {
       set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
     }
 
+    // Namespaces if required - this is mainly for custom provisioners via extensions that want
+    // to allow creation their resources in a different namespace
+    if (this.needsNamespace) {
+      const all = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
+
+      this.allNamespaces = all;
+    }    
+
     if ( !this.machinePools ) {
       await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
       if ( this.mode === _CREATE && !this.machinePools.length ) {
@@ -362,7 +371,8 @@ export default {
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
       busy:                  false,
-      machinePoolValidation: {} // map of validation states for each machine pool
+      machinePoolValidation: {}, // map of validation states for each machine pool
+      allNamespaces:         [],
     };
   },
 
@@ -370,6 +380,7 @@ export default {
     ...mapGetters({ allCharts: 'catalog/charts' }),
     ...mapGetters(['currentCluster']),
     ...mapGetters({ features: 'features/get' }),
+    ...mapGetters(['namespaces']),
 
     PUBLIC:   () => PUBLIC,
     PRIVATE:  () => PRIVATE,
@@ -734,6 +745,29 @@ export default {
       return (this.machinePools || []).filter((x) => !x.remove);
     },
 
+    // Extension provider where being provisioned by an extension
+    extensionProvider() {
+      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
+      let ext = undefined;
+
+      if (extClass) {
+        ext = new extClass({
+          dispatch: this.$store.dispatch,
+          getters:  this.$store.getters,
+          axios:    this.$store.$axios,
+          $plugin:  this.$store.app.$plugin,
+          $t:       this.t
+        });
+      }
+
+      return ext;
+    },
+
+    // Is a namespace needed? Only supported for providers from extensions, otherwise default is no
+    needsNamespace() {
+      return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
+    },
+
     machineConfigSchema() {
       let schema;
 
@@ -744,6 +778,18 @@ export default {
       } else {
         schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
       }
+
+      // If this is an extension provider then the extension can provide the schema
+      const extensionSchema = this.extensionProvider?.machineConfigSchema;
+      if (extensionSchema) {
+        // machineConfigSchema can either be the schema name (string) or the schema itself (object)
+        if (typeof extensionSchema === 'object') {
+          return extensionSchema;
+        }
+
+        // Name of schema to use
+        schema = extensionSchema;
+      }      
 
       return this.$store.getters['management/schemaFor'](schema);
     },
@@ -1033,7 +1079,8 @@ export default {
     validationPassed() {
       const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
 
-      let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
+      // TODO
+      let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId || !this.needCredential);
 
       // and in all of the validation statuses for each machine pool
       Object.values(this.machinePoolValidation).forEach((v) => (base = base && v));
@@ -1124,6 +1171,11 @@ export default {
     this.registerBeforeHook(this.agentConfigurationCleanup, 'cleanup-agent-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+
+    // Register any hooks for this extension provider
+    if (this.extensionProvider?.registerSaveHooks) {
+      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
+    }
   },
 
   methods: {
@@ -1213,18 +1265,28 @@ export default {
     },
 
     async addMachinePool(idx) {
+      // this.machineConfigSchema is the schema for the Machine Pool configuration for the given provider
       if ( !this.machineConfigSchema ) {
         return;
       }
 
       const numCurrentPools = this.machinePools.length || 0;
 
-      const config = await this.$store.dispatch('management/createPopulated', {
-        type:     this.machineConfigSchema.id,
-        metadata: { namespace: DEFAULT_WORKSPACE }
-      });
+      let config;
 
-      config.applyDefaults(idx, this.machinePools);
+      if (this.extensionProvider?.createMachinePool) {
+        config = this.extensionProvider.createMachinePool(idx, this.machinePools);
+      } else {
+        // Default - use the schema
+        config = await this.$store.dispatch('management/createPopulated', {
+          type:     this.machineConfigSchema.id,
+          metadata: { namespace: DEFAULT_WORKSPACE }
+        });
+
+        // If there is no specific model, the applyDefaults does nothing by default
+        config.applyDefaults(idx, this.machinePools);
+      }
+
 
       const name = `pool${ ++this.lastIdx }`;
       const pool = {
@@ -1233,6 +1295,7 @@ export default {
         remove: false,
         create: true,
         update: false,
+        uid:    name,
         pool:   {
           name,
           etcdRole:             numCurrentPools === 0,
@@ -1243,7 +1306,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind: this.machineConfigSchema.attributes.kind,
+            kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
         },
@@ -1300,6 +1363,11 @@ export default {
 
     async saveMachinePools() {
       const finalPools = [];
+
+      // If the extension provider wants to do this, let them
+      if (this.extensionProvider?.saveMachinePools) {
+        return this.extensionProvider.saveMachinePools(this.machinePools, this.value);
+      }      
 
       for ( const entry of this.machinePools ) {
         if ( entry.remove ) {
@@ -1420,7 +1488,24 @@ export default {
     async saveOverride(btnCb) {
       this.$set(this, 'busy', true);
 
-      return await this._doSaveOverride((done) => {
+      // If the provider is from an extension, let it do the provision step
+      if (this.extensionProvider?.provision) {
+        const errors = await this.extensionProvider?.provision(this.value, this.machinePools);
+        const okay = (errors || []).length === 0;
+
+        this.errors = errors;
+        this.$set(this, 'busy', false);
+
+        btnCb(okay);
+
+        if (okay) {
+          // If saved okay, go to the done route
+          return this.done();
+        }
+      }
+
+      // Default save
+      return this._doSaveOverride((done) => {
         this.$set(this, 'busy', false);
 
         return btnCb(done);
@@ -2142,7 +2227,8 @@ export default {
         v-if="!isView"
         v-model="value"
         :mode="mode"
-        :namespaced="false"
+        :namespaced="needsNamespace"
+        :namespace-options="allNamespaces"
         name-label="cluster.name.label"
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
