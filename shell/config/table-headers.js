@@ -1002,3 +1002,16 @@ export const UI_PLUGIN_CATALOG = [
     formatter: 'ExtensionCache'
   }
 ];
+
+export const CLUSTER_IP = {
+  name:     'clusterIPs',
+  label:    'Cluster IP',
+  value:    'spec.clusterIPs',
+  getValue: (row) => {
+    if (row.spec?.clusterIPs && row.spec?.clusterIPs?.length > 0) {
+      return row.spec?.clusterIPs?.join(',');
+    }
+
+    return row.spec?.clusterIP ?? '-';
+  }
+};
