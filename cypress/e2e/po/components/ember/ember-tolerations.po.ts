@@ -10,40 +10,68 @@ export default class EmberTolerationsPo extends EmberComponentPo {
    * @param toleration data to be added where effect and operator are indices of desired value in dropdown
    */
   editToleration(toleration: any, idx:number) {
-    this.key(idx).set(toleration.key);
-    this.value(idx).set(toleration.value);
-    this.operator(idx).clickAndSelectIndex(toleration.operator);
-    this.effect(idx).clickAndSelectIndex(toleration.effect);
+    const row = this.findRow(idx);
+
+    row.key().set(toleration.key);
+    if (toleration.value) {
+      row.value().set(toleration.value);
+    }
+    row.operator().clickAndSelectIndex(toleration.operator);
+    row.effect().clickAndSelectIndex(toleration.effect);
     if (toleration.seconds) {
-      this.seconds(idx).set(toleration.seconds);
+      row.seconds().set(toleration.seconds);
     }
   }
 
-  findRow(idx: number): CypressChainable {
-    return cy.iFrame().find(`${ this.selector } [data-testid="toleration-row"]`).eq(idx);
+  findRow(idx: number): EmberTolerationRowPo {
+    // return cy.iFrame().find(`${ this.selector } [data-testid="toleration-row"]`).eq(idx);
+
+    return new EmberTolerationRowPo(`${ this.selector } [data-testid="toleration-row"]tr:nth-child(${ idx + 1 })`);
   }
 
   addRow() {
     cy.iFrame().find(`${ this.selector } [data-testid="button-add-toleration"]`).click();
   }
 
-  key(idx: number): EmberInputPo {
-    return new EmberInputPo(this.findRow(idx).find('[data-testid="input-toleration-key"]'));
+  // key(idx: number): EmberInputPo {
+  //   return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-key"]`);
+  // }
+
+  // value(idx: number): EmberInputPo {
+  //   return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-value"]`);
+  // }
+
+  // seconds(idx: number): EmberInputPo {
+  //   return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-seconds"]`);
+  // }
+
+  // operator(idx: number): EmberSearchableSelectPo {
+  //   return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-operator"]`);
+  // }
+
+  // effect(idx: number): EmberSearchableSelectPo {
+  //   return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-effect"]`);
+  // }
+}
+
+class EmberTolerationRowPo extends EmberComponentPo {
+  key(): EmberInputPo {
+    return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-key"]`);
   }
 
-  value(idx: number): EmberInputPo {
-    return new EmberInputPo(this.findRow(idx).find('[data-testid="input-toleration-value"]'));
+  value(): EmberInputPo {
+    return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-value"]`);
   }
 
-  seconds(idx: number): EmberInputPo {
-    return new EmberInputPo(this.findRow(idx).find('[data-testid="input-toleration-seconds"]'));
+  seconds(): EmberInputPo {
+    return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-seconds"]`);
   }
 
-  operator(idx: number): EmberSearchableSelectPo {
-    return new EmberSearchableSelectPo(this.findRow(idx).find('[data-testid="input-toleration-operator"]'));
+  operator(): EmberSearchableSelectPo {
+    return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-operator"]`);
   }
 
-  effect(idx: number): EmberSearchableSelectPo {
-    return new EmberSearchableSelectPo(this.findRow(idx).find('[data-testid="input-toleration-effect"]'));
+  effect(): EmberSearchableSelectPo {
+    return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-effect"]`);
   }
 }
