@@ -649,4 +649,12 @@ export default class Workload extends WorkloadService {
 
     return matching(allInNamespace, selector);
   }
+
+  remove() {
+    if (this.type === WORKLOAD_TYPES.JOB) {
+      return super.remove({ params: { propagationPolicy: 'Background' } });
+    }
+
+    return super.remove(...arguments);
+  }
 }
