@@ -9,7 +9,7 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { PROVIDER as PROVIDER_ANNOTATION} from '@shell/config/labels-annotations';
+import { PROVIDER as PROVIDER_ANNOTATION } from '@shell/config/labels-annotations';
 
 /**
  * Class representing Cluster resource.
@@ -388,7 +388,7 @@ export default class ProvCluster extends SteveModel {
     if (fromAnnotation) {
       return fromAnnotation;
     }
-    
+
     if (this.isHarvester) {
       return HARVESTER;
     } else if ( this.isImported ) {

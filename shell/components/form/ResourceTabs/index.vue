@@ -63,8 +63,8 @@ export default {
     },
 
     extensionParams: {
-      type:     Object,
-      required: false,
+      type:    Object,
+      default: null
     }
   },
 

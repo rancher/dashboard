@@ -133,7 +133,7 @@ export default {
     namespaceOptions: {
       type:    Array,
       default: null,
-    },    
+    },
     descriptionKey: {
       type:    String,
       default: null,
@@ -236,14 +236,14 @@ export default {
       let namespaces = this.namespaceOptions;
 
       if (namespaces) {
-        namespaces = (namespaces.map(ns => ns.name) || []).sort();
+        namespaces = (namespaces.map((ns) => ns.name) || []).sort();
       } else {
         const namespaceObjs = this.isCreate ? this.allowedNamespaces() : this.namespaces();
 
         namespaces = Object.keys(namespaceObjs);
       }
 
-      const options = namespaces      
+      const options = namespaces
         .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || ((obj) => ({
           label: obj.nameDisplay,

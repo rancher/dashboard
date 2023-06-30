@@ -74,6 +74,7 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
           } else if (param === 'params') {
             // Need all keys and values to match
             let okay = true;
+
             Object.keys(locationConfigParam).forEach((p) => {
               const desired = locationConfigParam[p];
               const actual = customParams[p];

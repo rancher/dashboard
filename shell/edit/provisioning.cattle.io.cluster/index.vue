@@ -146,16 +146,15 @@ export default {
 
       // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
       // so pass in specific services that the provisioner extension may need
-      this.extensions = extensionClasses.map(c => new c({
+      this.extensions = extensionClasses.map((c) => new c({
         dispatch: this.$store.dispatch,
         getters:  this.$store.getters,
         axios:    this.$store.$axios,
         $plugin:  this.$store.app.$plugin,
         $t:       this.t
       }));
-
-    } catch(e) {
-      console.error('Error loading provisioner(s) from extensions', e); //eslint=
+    } catch (e) {
+      console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
     }
   },
 
@@ -321,7 +320,6 @@ export default {
       return out;
 
       function addExtensionType(ext, getters) {
-
         let iconClass = ext.iconClass;
         let icon = ext.icon;
 
@@ -332,15 +330,15 @@ export default {
         }
 
         const subtype = {
-          id: ext.id,
-          label: ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
+          id:          ext.id,
+          label:       ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
           description: ext.description,
           icon,
           iconClass,
-          group: ext.group || 'rke2',
-          disabled: ext.disabled || false,
-          link: ext.link,
-          tag: ext.tag
+          group:       ext.group || 'rke2',
+          disabled:    ext.disabled || false,
+          link:        ext.link,
+          tag:         ext.tag
         };
 
         out.push(subtype);

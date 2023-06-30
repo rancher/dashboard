@@ -262,7 +262,7 @@ export default {
       const all = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
 
       this.allNamespaces = all;
-    }    
+    }
 
     if ( !this.machinePools ) {
       await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
@@ -748,7 +748,7 @@ export default {
     // Extension provider where being provisioned by an extension
     extensionProvider() {
       const extClass = this.$plugin.getDynamic('provisioner', this.provider);
-      let ext = undefined;
+      let ext;
 
       if (extClass) {
         ext = new extClass({
@@ -781,6 +781,7 @@ export default {
 
       // If this is an extension provider then the extension can provide the schema
       const extensionSchema = this.extensionProvider?.machineConfigSchema;
+
       if (extensionSchema) {
         // machineConfigSchema can either be the schema name (string) or the schema itself (object)
         if (typeof extensionSchema === 'object') {
@@ -789,7 +790,7 @@ export default {
 
         // Name of schema to use
         schema = extensionSchema;
-      }      
+      }
 
       return this.$store.getters['management/schemaFor'](schema);
     },
@@ -1287,7 +1288,6 @@ export default {
         config.applyDefaults(idx, this.machinePools);
       }
 
-
       const name = `pool${ ++this.lastIdx }`;
       const pool = {
         id:     name,
@@ -1367,7 +1367,7 @@ export default {
       // If the extension provider wants to do this, let them
       if (this.extensionProvider?.saveMachinePools) {
         return this.extensionProvider.saveMachinePools(this.machinePools, this.value);
-      }      
+      }
 
       for ( const entry of this.machinePools ) {
         if ( entry.remove ) {
