@@ -1665,6 +1665,10 @@ export default {
         border-bottom: 1px solid var(--sortable-table-top-divider);
         background-color: var(--sortable-table-row-bg);
 
+        td.col-pod-images  {
+          word-break: break-all;
+        }
+
         &.main-row.has-sub-row {
           border-bottom: 0;
         }
