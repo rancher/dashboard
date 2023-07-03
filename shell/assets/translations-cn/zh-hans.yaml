@@ -6981,7 +6981,7 @@ registryConfig:
   toolTip: '当需要从给定的镜像仓库主机名中拉取镜像时，此信息将用于识别并验证仓库。'
   addLabel: 添加镜像仓库
   description: 为每个镜像仓库主机名和 Mirror 定义 TLS 和凭证配置。
-  caCertPlaceholder: Base64 编码的 CA 证书
+  caCertPlaceholder: "base64 加密的 CA 证书，加密示例：cat <ca file> | base64"
 modalDownLoadFileComponent:
   title: 容器文件下载
   container: 容器
