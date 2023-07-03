@@ -310,6 +310,7 @@ export default {
       :row-config="{isHover: true}"
       :sort-config="{iconAsc: 'vxe-icon-arrow-up', iconDesc: 'vxe-icon-arrow-down'}"
       :data="logs"
+      :scroll-y="{enabled: false}"
       @sort-change="sortChange"
     >
       <VxeColumn

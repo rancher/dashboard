@@ -308,20 +308,24 @@ export default {
       :loading="loading"
       :row-config="{isHover: true}"
       :sort-config="{iconAsc: 'vxe-icon-arrow-up', iconDesc: 'vxe-icon-arrow-down'}"
+      :scroll-y="{enabled: false}"
       :data="logs"
       @sort-change="sortChange"
     >
       <VxeColumn
         field="auditID"
         :title="t('auditLog.table.id')"
+        width="310"
       />
       <VxeColumn
         field="stage"
         :title="t('auditLog.table.stage')"
+        width="140"
       />
       <VxeColumn
         field="verb"
         :title="t('auditLog.table.verb')"
+        width="80"
       />
       <VxeColumn
         field="requestURI"
@@ -330,6 +334,7 @@ export default {
       <VxeColumn
         field="requestTimestamp"
         :title="t('auditLog.table.requestTimestamp')"
+        width="180"
       />
       <VxeColumn
         field="detail"
