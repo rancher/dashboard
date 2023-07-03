@@ -187,6 +187,7 @@ export default {
               class="mt-20"
               type="multiline"
               label="CA Cert Bundle"
+              :placeholder="t('registryConfig.caCertPlaceholder')"
               :mode="mode"
             />
 

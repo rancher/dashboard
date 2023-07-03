@@ -6982,6 +6982,7 @@ registryConfig:
   toolTip: '當需要從給定的鏡像倉庫主機名中拉取鏡像時，此信息將用於識別並驗證倉庫。'
   addLabel: 添加鏡像倉庫
   description: 爲每個鏡像倉庫主機名和 Mirror 定義 TLS 和憑證配置。
+  caCertPlaceholder: Base64 編碼的 CA 證書
 modalDownLoadFileComponent:
   title: 容器文件下載
   container: 容器
