@@ -87,7 +87,7 @@ auditLog:
     stage: 执行阶段
     age: 存活时间
     requestTimestamp: 请求时间
-  title: 审计日志
+  title: 审计日志(实验性)
   k8sTitle: Kubernetes 审计日志
   errors:
     notFound: 资源未找到

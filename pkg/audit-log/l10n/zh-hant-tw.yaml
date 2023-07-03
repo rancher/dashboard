@@ -87,7 +87,7 @@ auditLog:
     stage: 執行階段
     age: 存活時間
     requestTimestamp: 請求時間
-  title: 審計日誌
+  title: 審計日誌(實驗性)
   k8sTitle: Kubernetes 審計日誌
   errors:
     notFound: 資源未找到

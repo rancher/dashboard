@@ -2,7 +2,7 @@ import cluster from '@shell/models/provisioning.cattle.io.cluster.js';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
 import { BLANK_CLUSTER } from '@shell/store';
-import { AUDIT_LOG_UI_LEGACY } from '@shell/store/features';
+import { AUDIT_LOG_UI_EXTENSION } from '@shell/store/features';
 
 export default class K8sAuditLogcluster extends cluster {
   get _availableActions() {
@@ -14,7 +14,7 @@ export default class K8sAuditLogcluster extends cluster {
       icon:     'icon icon-file',
     };
 
-    if (this.$rootGetters['features/get'](AUDIT_LOG_UI_LEGACY)) {
+    if (!this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION)) {
       const auditLogServerUrl = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
 
       k8sAuditLog.enabled = !!auditLogServerUrl;
@@ -32,7 +32,7 @@ export default class K8sAuditLogcluster extends cluster {
     const type2 = this.isCustom ? 'custom' : '';
     const type3 = this.mgmt?.providerForEmberParam === 'import' ? 'imported' : '';
 
-    if (this.$rootGetters['features/get'](AUDIT_LOG_UI_LEGACY)) {
+    if (!this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION)) {
       const r = {
         name:   `c-cluster-manager-pages-page`,
         params: { page: 'k8s-cluster-audit-log' },

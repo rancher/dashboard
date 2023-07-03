@@ -23,7 +23,7 @@ import {
 
 import { DSL } from '@shell/store/type-map';
 import { SETTING } from '@shell/config/settings';
-import { FLAT_NETWORKS_UI_EXTENSION, AUDIT_LOG_UI_LEGACY } from '@shell/store/features';
+import { FLAT_NETWORKS_UI_EXTENSION, AUDIT_LOG_UI_EXTENSION } from '@shell/store/features';
 
 export const NAME = 'explorer';
 
@@ -343,7 +343,7 @@ export function init(store) {
   // cluster audit-log start
   virtualType({
     showMenuFun(state, getters, rootState, rootGetters) {
-      return rootGetters['features/get'](AUDIT_LOG_UI_LEGACY) && rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
+      return !rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION) && rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
     },
     labelKey:         'nav.auditLog',
     group:            'cluster',

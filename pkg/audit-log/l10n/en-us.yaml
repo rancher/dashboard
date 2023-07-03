@@ -88,7 +88,7 @@ auditLog:
     stage: Stage
     age: Age
     requestTimestamp: Request Time
-  title: Audit Log
+  title: Audit Log(experimental)
   k8sTitle: Kubernetes Audit Log
   errors:
     notFound: Resource Not Found

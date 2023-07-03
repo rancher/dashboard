@@ -3,7 +3,7 @@ import { PROJECT_ID } from '@shell/config/query-params';
 import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { insertAt } from '@shell/utils/array';
-import { AUDIT_LOG_UI_LEGACY } from '@shell/store/features';
+import { AUDIT_LOG_UI_EXTENSION } from '@shell/store/features';
 
 export default class AuditLogProject extends project {
   get _availableActions() {
@@ -14,7 +14,7 @@ export default class AuditLogProject extends project {
       label:  this.t('nav.auditLog'),
     };
 
-    if (this.$rootGetters['features/get'](AUDIT_LOG_UI_LEGACY)) {
+    if (!this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION)) {
       const auditLogServerUrl = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
 
       auditLog.enabled = !!auditLogServerUrl;
@@ -30,7 +30,7 @@ export default class AuditLogProject extends project {
 
   get auditLog() {
     return (() => {
-      if (this.$rootGetters['features/get'](AUDIT_LOG_UI_LEGACY)) {
+      if (!this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION)) {
         this.currentRouter().push({
           name:   'c-cluster-legacy-auditLog-page',
           params: {
