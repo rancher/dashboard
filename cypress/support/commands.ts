@@ -33,7 +33,16 @@ Cypress.Commands.add('login', (
       .should('eq', true);
     loginPage.submit();
 
-    cy.wait('@loginReq');
+    cy.wait('@loginReq').its('request.body')
+      .should(
+        'deep.equal',
+        {
+          username,
+          password,
+          description:  'UI session',
+          responseType: 'cookie'
+        }
+      );
   };
 
   if (cacheSession) {
