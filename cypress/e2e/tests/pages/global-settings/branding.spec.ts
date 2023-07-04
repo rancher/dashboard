@@ -27,7 +27,7 @@ describe('Branding', () => {
     cy.login();
   });
 
-  it('Can navigate to Branding Page', () => {
+  it('Can navigate to Branding Page', { tags: ['@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     const burgerMenu = new BurgerMenuPo();
@@ -54,7 +54,7 @@ describe('Branding', () => {
     brandingPage.waitForPageWithClusterId();
   });
 
-  it('Private Label', () => {
+  it('Private Label', { tags: '@adminUser' }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -102,7 +102,7 @@ describe('Branding', () => {
     // Requires a way to check the actual image changes
   });
 
-  it('Primary Color', () => {
+  it('Primary Color', { tags: '@adminUser' }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -134,7 +134,7 @@ describe('Branding', () => {
     brandingPage.applyAndWait('**/ui-primary-color');
   });
 
-  it('Link Color', () => {
+  it('Link Color', { tags: '@adminUser' }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();

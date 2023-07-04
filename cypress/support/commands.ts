@@ -1,6 +1,8 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { Matcher } from '@/cypress/support/types';
 
+let token: any;
+
 /**
  * Login local authentication, including first login and bootstrap if not cached
  */
@@ -47,9 +49,65 @@ Cypress.Commands.add('login', (
 
   if (cacheSession) {
     (cy as any).session([username, password], login);
+    cy.getCookie('CSRF').then((c) => {
+      token = c;
+    });
   } else {
     login();
   }
+});
+
+/**
+ * Create user via api request
+ */
+Cypress.Commands.add('createUser', (username, role?) => {
+  return cy.request({
+    method:           'POST',
+    url:              `${ Cypress.env('api') }/v3/users`,
+    failOnStatusCode: false,
+    headers:          {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:               'user',
+      enabled:            true,
+      mustChangePassword: false,
+      username,
+      password:           Cypress.env('password')
+    }
+  }).then((resp) => {
+    if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
+      cy.log('User already exists. Skipping user creation');
+    } else {
+      expect(resp.status).to.eq(201);
+
+      if (role) {
+        cy.setGlobalRoleBinding(resp.body.id, role);
+      }
+    }
+  });
+});
+
+/**
+ * Set global role binding for user via api request
+ */
+Cypress.Commands.add('setGlobalRoleBinding', (userId, role) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/globalrolebindings`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:         'globalRoleBinding',
+      globalRoleId: role,
+      userId
+    }
+  }).then((resp) => {
+    expect(resp.status).to.eq(201);
+  });
 });
 
 /**
