@@ -294,7 +294,7 @@ export default {
 <template>
   <main class="main-layout login">
     <div class="row gutless mb-20">
-      <div class="col span-6 p-20">
+      <div class="content col span-6 p-20">
         <p class="text-center">
           {{ t('login.howdy') }}
         </p>
@@ -400,6 +400,7 @@ export default {
         <template v-if="hasLocal">
           <form
             v-if="showLocal"
+            class="local"
             :class="{'mt-30': !hasLoginMessage}"
           >
             <div class="span-6 offset-3">
@@ -497,6 +498,12 @@ export default {
 
     .row {
       align-items: center;
+
+      .content {
+        .local {
+          display: grid;
+        }
+      }
     }
 
     .landscape {
