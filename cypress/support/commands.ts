@@ -54,14 +54,14 @@ Cypress.Commands.add('byLabel', (label) => {
  * Wrap the cy.find() command to simplify the selector declaration of the data-testid
  */
 Cypress.Commands.add('findId', (id: string, matcher?: Matcher = '') => {
-  return cy.find(`[data-testid${ matcher }="${ id }"]`);
+  return cy.find(`[data-testid${matcher}="${id}"]`);
 });
 
 /**
  * Wrap the cy.get() command to simplify the selector declaration of the data-testid
  */
 Cypress.Commands.add('getId', (id: string, matcher?: Matcher = '') => {
-  return cy.get(`[data-testid${ matcher }="${ id }"]`);
+  return cy.get(`[data-testid${matcher}="${id}"]`);
 });
 
 /**
@@ -72,21 +72,21 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
   return cy.intercept('/v1/userpreferences', (req) => {
     req.reply({
       statusCode: 201,
-      body:       {
+      body: {
         data: [{
           type: 'userpreference',
           data: {
             'after-login-route': '\"home\"',
-            cluster:             'local',
-            'group-by':          'none',
-            'home-page-cards':   '',
-            'last-namespace':    'default',
-            'last-visited':      '',
-            'ns-by-cluster':     '',
-            provisioner:         '',
-            'read-whatsnew':     '',
-            'seen-whatsnew':     '2.x.x',
-            theme:               '',
+            cluster: 'local',
+            'group-by': 'none',
+            'home-page-cards': '',
+            'last-namespace': 'default',
+            'last-visited': '',
+            'ns-by-cluster': '',
+            provisioner: '',
+            'read-whatsnew': '',
+            'seen-whatsnew': '2.x.x',
+            theme: '',
             ...preferences,
           },
         }]
@@ -98,9 +98,9 @@ Cypress.Commands.add('userPreferences', (preferences: Partial<UserPreferences> =
 Cypress.Commands.add('requestBase64Image', (url: string) => {
   return cy.request({
     url,
-    method:   'GET',
+    method: 'GET',
     encoding: 'binary',
-    headers:  { Accept: 'image/png; charset=UTF-8' },
+    headers: { Accept: 'image/png; charset=UTF-8' },
   })
     .its('body')
     .then((favicon) => {
@@ -114,4 +114,28 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
   for (let i = 0; i < count; i++) {
     cy.get('body').trigger('keydown', triggerKeys);
   }
+});
+
+/**
+ * Intercept all requests and return
+ * @param {array} intercepts - Array of intercepts to return
+ * return {array} - Array of intercepted request strings
+ * return {string} - Intercepted request string
+ */
+Cypress.Commands.add('interceptAny', (method = '/GET/POST/PUT/PATCH/', url = '/v1/*', wait = false, timeout = 10000) => {
+
+  if (Array.isArray(url)) {
+    const interceptedUrls: string[] = []
+
+    urls.forEach((cUrl, i) => {
+      cy.intercept(verbs, cUrl).as(`interceptReq${i}`);
+      interceptedUrls.push(`@interceptReq${i}`);
+    });
+
+    return cy.wrap(interceptedUrls);
+
+  }
+  cy.intercept({ method: method, url }).as('interceptAnyReq');
+
+  return cy.wrap("@interceptAnyReq");
 });

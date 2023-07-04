@@ -216,7 +216,8 @@ export default {
     },
 
     parent() {
-      const displayName = this.value.parentNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
+
+      const displayName = this.value?.parentNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
       const product = this.$store.getters['currentProduct'].name;
 
       const defaultLocation = {
@@ -416,7 +417,7 @@ export default {
               {{ parent.displayName }}:
             </nuxt-link>
             <span v-else>{{ parent.displayName }}:</span>
-            <span v-if="value.detailPageHeaderActionOverride && value.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
+            <span v-if="value?.detailPageHeaderActionOverride && value?.detailPageHeaderActionOverride(realMode)">{{ value.detailPageHeaderActionOverride(realMode) }}</span>
             <t
               v-else
               :k="'resourceDetail.header.' + realMode"

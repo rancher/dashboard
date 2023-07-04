@@ -1,5 +1,7 @@
 type Matcher = '$' | '^' | '~' | '*' | '';
 
+type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'WATCH' | 'LIST' | 'CREATE' | 'UP
+
 // eslint-disable-next-line no-unused-vars
 declare namespace Cypress {
   interface Chainable {
@@ -41,6 +43,10 @@ declare namespace Cypress {
     requestBase64Image(url: string): Chainable;
 
     keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
+
+    interceptAny(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
+
+
 
   }
 }
