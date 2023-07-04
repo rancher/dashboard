@@ -230,7 +230,7 @@ export default class ExtensionsPo extends PagePo {
   }
 
   removeRancherExtRepoCheckboxClick(): Cypress.Chainable {
-    return this.self().getId('disable-ext-modal-remove-repo').click();
+    return this.self().getId('disable-ext-modal-remove-official-repo').click();
   }
 
   disableExtensionModalCancelClick(): Cypress.Chainable {
