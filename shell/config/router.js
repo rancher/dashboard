@@ -219,6 +219,14 @@ export const routerOptions = {
     component: () => interopDefault(import('../pages/c/_cluster/manager/cloudCredential/index.vue' /* webpackChunkName: "pages/c/_cluster/manager/cloudCredential/index" */)),
     name:      'c-cluster-manager-cloudCredential'
   }, {
+    path:      '/c/:cluster/manager/globalMonitoring',
+    component: () => interopDefault(import('../pages/c/_cluster/manager/globalMonitoring/index.vue' /* webpackChunkName: "pages/c/_cluster/manager/globalMonitoring/index" */)),
+    name:      'c-cluster-manager-globalMonitoring'
+  }, {
+    path:      '/c/:cluster/manager/globalMonitoring/dashboard',
+    component: () => interopDefault(import('../pages/c/_cluster/manager/globalMonitoring/_dashboard.vue' /* webpackChunkName: "pages/c/_cluster/manager/cloudCredential/_dashboard" */)),
+    name:      'c-cluster-manager-globalMonitoring-dashboard'
+  }, {
     path:      '/c/:cluster/monitoring/alertmanagerconfig',
     component: () => interopDefault(import('../pages/c/_cluster/monitoring/alertmanagerconfig/index.vue' /* webpackChunkName: "pages/c/_cluster/monitoring/alertmanagerconfig/index" */)),
     name:      'c-cluster-monitoring-alertmanagerconfig'

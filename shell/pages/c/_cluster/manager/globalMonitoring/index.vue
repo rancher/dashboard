@@ -542,7 +542,7 @@ export default {
       setSetting(this.$store, SETTING.GLOBAL_MONITORING_CLUSTER_ID, this.value.global.clusterId);
       this.monitoringStatus = true;
       if (this.value.thanos.tls.enabled) {
-        this.updateDownStreamClusterSecret();
+        this.updateDownStreamClusterSecret(this.value.thanos.query);
       }
       if (this.value.ui.defaultApiToken) {
         this.value.ui.apiToken = '';
@@ -713,11 +713,11 @@ export default {
         }
       });
     },
-    updateDownStreamClusterSecret() {
+    updateDownStreamClusterSecret(query) {
       if (!this.value?.thanos?.tls?.enabled ) {
         return;
       }
-      this.query.enabledClusterStores.forEach((c) => {
+      query.enabledClusterStores.forEach((c) => {
         const prefix = c.id === 'local' ? '' : `/k8s/clusters/${ c.id }`;
 
         this.$store.dispatch('management/request', { url: `${ prefix }/v1/namespaces/${ CATTLE_MONITORING_SYSTEM_NAMESPACE }` }).then(() => {
