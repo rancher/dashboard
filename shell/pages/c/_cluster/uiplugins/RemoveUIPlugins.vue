@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import { CATALOG, UI_PLUGIN } from '@shell/config/types';
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
@@ -37,7 +38,6 @@ export default {
   data() {
     return {
       errors:      [],
-      repos:       this.$store.getters['catalog/repos'],
       removeRepos: {
         official: true,
         partners: true
@@ -60,10 +60,9 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ repos: 'catalog/repos' }),
     officialRepo() {
       const repo = this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
-
-      console.error('REMOVE PLUGINS officialRepo', repo);
 
       return repo?.id ? repo : undefined;
     },
@@ -122,8 +121,8 @@ export default {
       const promises = [];
 
       for (const key in this.removeRepos) {
-        if (this.removeRepos[key] && this.reposInfo[key].repo) {
-          promises.push(this.reposInfo[key].repo.remove());
+        if (this.removeRepos[key] && this[`${ key }Repo`]) {
+          promises.push(this[`${ key }Repo`].remove());
         }
       }
 

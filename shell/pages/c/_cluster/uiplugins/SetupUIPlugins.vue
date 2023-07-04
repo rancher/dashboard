@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
@@ -66,7 +67,6 @@ export default {
       haveCharts:    false,
       installCharts: [],
       errors:        [],
-      repos:         this.$store.getters['catalog/repos'],
       addRepos:      {
         official: true,
         partners: true,
@@ -89,6 +89,7 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ repos: 'catalog/repos' }),
     hasRancherUIPluginsRepo() {
       return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
     },
@@ -145,8 +146,11 @@ export default {
       });
     },
 
-    enable() {
+    async enable() {
       this.errors = [];
+
+      // force update of cluster repos so that modal have the correct information about the official and partners repo
+      this.$emit('refreshCharts');
 
       // Reset checkbox based on if the repo is already installed
       this.addRepos = {
@@ -274,7 +278,7 @@ export default {
         </p>
         <Banner
           v-if="isAnyRepoAvailableForInstall"
-          color="warning"
+          color="info"
           class="mb-20"
         >
           {{ t('plugins.setup.install.airgap') }}

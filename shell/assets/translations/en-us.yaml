@@ -4147,8 +4147,8 @@ plugins:
     title: Extensions Safe Mode
     message: Extensions were not loaded
   addRepos:
-    banner: We have some new Rancher Extensions repositories that you can install. You can go to the Extensions menu on this screen and click 'Add Rancher Repositories'
-    title: Add Rancher Extensions repositories
+    banner: There are new extensions repositories available. To enable them, click the menu button at the top right of this page and select “Add Extensions Repositories”
+    title: Add Extensions repositories
     prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
   setup:
     installed: Already installed
@@ -4158,15 +4158,15 @@ plugins:
       cant: Automatic installation is not available - required Helm Charts could not be found
       can: You need to install the Extension Operator
       official: The Official Rancher Extensions Repository provides extensions published by Rancher
-      partners: The Partners Rancher Extensions Repository provides extensions published by Rancher Partners
-      community: The Community Rancher Extensions Repository provides extensions published by Rancher Community
+      partners: The Partners Extensions Repository provides extensions published by Rancher Partners
+      community: The Community Extensions Repository provides extensions published by Rancher Community
     install:
       title: Enable Extension Support?
       prompt: This will install the Helm charts needed to enable Extension support
-      airgap: Un-check these if your Rancher installation is air-gapped
-      addRancherRepo: Add Official Rancher Extension Repository
-      addPartnersRancherRepo: Add Partners Rancher Extension Repository
-      addCommunityRancherRepo: Add Community Rancher Extension Repository
+      airgap: Air-gapped installations should NOT enable this feature
+      addRancherRepo: Add Official Rancher Extensions Repository
+      addPartnersRancherRepo: Add Partners Extensions Repository
+      addCommunityRancherRepo: Add Community Extension sRepository
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?
@@ -4175,9 +4175,9 @@ plugins:
         official:
           title: Remove the Official Rancher Extensions Repository
         partners:
-          title: Remove the Partners Rancher Extensions Repository
+          title: Remove the Partners Extensions Repository
         community:
-          title: Remove the Community Rancher Extensions Repository
+          title: Remove the Community Extensions Repository
       crd:
         title: Remove the Rancher Extensions Custom Resource Definition
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.

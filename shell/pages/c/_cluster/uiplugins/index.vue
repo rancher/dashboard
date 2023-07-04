@@ -95,7 +95,7 @@ export default {
   async fetch() {
     const hash = {};
 
-    const isSetup = await this.updateInstallStatus();
+    const isSetup = await this.updateInstallStatus(true);
 
     if (isSetup) {
       if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
@@ -468,7 +468,7 @@ export default {
             changes++;
           }
           if (isCustomImage) {
-            this.refreshCharts();
+            this.refreshCharts(true);
           }
 
           this.updatePluginInstallStatus(plugin.name, false);
@@ -491,7 +491,6 @@ export default {
 
   methods: {
     async refreshCharts(forceChartsUpdate = false) {
-      console.error('refreshCharts forceChartsUpdate', forceChartsUpdate);
       await this.$store.dispatch('catalog/load', { reset: true, force: forceChartsUpdate });
       const c = this.$store.getters['catalog/rawCharts'];
 
@@ -527,6 +526,7 @@ export default {
     },
 
     removePluginSupport() {
+      this.refreshCharts(true);
       this.$refs.removeUIPlugins.showDialog();
     },
 
@@ -536,6 +536,7 @@ export default {
     },
 
     showAddExtensionReposDialog() {
+      this.refreshCharts(true);
       this.$refs.addExtensionReposDialog.showDialog();
     },
 
@@ -724,6 +725,7 @@ export default {
         v-else
         class="setup-message"
         @done="updateInstallStatus(true)"
+        @refreshCharts="refreshCharts(true)"
       />
     </div>
     <div v-else>
@@ -992,7 +994,7 @@ export default {
     />
     <RemoveUIPlugins
       ref="removeUIPlugins"
-      @done="updateInstallStatus(true)"
+      @done="updateInstallStatus"
     />
     <AddExtensionRepos
       ref="addExtensionReposDialog"
@@ -1222,6 +1224,10 @@ export default {
         padding: 0 5px;
       }
     }
+  }
+
+  ::v-deep .checkbox-label {
+    font-weight: normal !important;
   }
 
   @media screen and (max-width: 1200px) {
