@@ -294,8 +294,8 @@ export default {
           if (this.commands.length) {
             this.connect();
           } else {
-            // Output last error with a new line and carriage return
-            this.terminal.write(`${ this.errorMsg }\n\r`);
+            // Output an message to let he user know none of the shell commands worked
+            this.terminal.write(this.t('wm.containerShell.failed'));
           }
         }
       });
