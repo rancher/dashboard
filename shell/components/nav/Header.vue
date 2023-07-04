@@ -314,7 +314,7 @@ export default {
       const enabled = action.enabled ? action.enabled.apply(this, [opts]) : true;
 
       if (fn && enabled) {
-        fn.apply(this, [opts, [], { $route: this.$route} ]);
+        fn.apply(this, [opts, [], { $route: this.$route }]);
       }
     },
 

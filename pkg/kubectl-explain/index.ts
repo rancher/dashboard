@@ -3,7 +3,7 @@ import { ActionLocation, IPlugin } from '@shell/core/types';
 import { explain } from './slide-in';
 
 // Init the package
-export default function(plugin: IPlugin, internal: any) {
+export default function(plugin: IPlugin, internal: any): void {
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 
@@ -13,8 +13,8 @@ export default function(plugin: IPlugin, internal: any) {
   const store = internal.store;
 
   plugin.addAction(ActionLocation.HEADER, { product: ['explorer'] }, {
-    label: 'Explain ...',
-    svg: require('./explain.svg'),
+    label:  'Explain ...',
+    svg:    require('./explain.svg'),
     invoke: (opts, res, globals) => {
       explain(store, globals.$route);
     }

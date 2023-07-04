@@ -1,3 +1,5 @@
+import Vue from 'vue';
+
 import Panel from './SlideInPanel';
 
 let component;
@@ -38,11 +40,12 @@ export async function explain(store, route) {
         $dispatch: store.dispatch,
         typeName,
         schema,
-        busy: true,
+        busy:      true,
       }
     });
 
-    var div = document.createElement('div');
+    const div = document.createElement('div');
+
     div.id = 'kubectl-explain';
     document.body.appendChild(div);
 

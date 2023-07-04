@@ -21,18 +21,18 @@ export default {
 
   data() {
     return {
-      isOpen: false,
-      definition: undefined,
-      busy: true,
-      expandAll: false,
-      isResizing: false,
-      resizeLeft: '',
+      isOpen:         false,
+      definition:     undefined,
+      busy:           true,
+      expandAll:      false,
+      isResizing:     false,
+      resizeLeft:     '',
       resizePosition: 'absolute',
-      width: '33%',
-      right: '-33%',
-      breadcrumbs: undefined,
-      definitions: {},
-      noResource: false,
+      width:          '33%',
+      right:          '-33%',
+      breadcrumbs:    undefined,
+      definitions:    {},
+      noResource:     false,
     };
   },
 
@@ -101,11 +101,11 @@ export default {
     expand(definitions, definition, breadcrumbs = []) {
       Object.keys(definition?.properties || {}).forEach((propName) => {
         const prop = definition.properties[propName];
-        const propRef = prop.$ref || prop.items?.$ref; 
+        const propRef = prop.$ref || prop.items?.$ref;
 
         if (propRef && propRef.startsWith('#/definitions/')) {
           const p = propRef.split('/');
-          const id = p[p.length -1 ];
+          const id = p[p.length - 1];
 
           const ref = definitions[id];
 
@@ -123,7 +123,7 @@ export default {
 
             this.expand(definitions, ref, prop.$breadcrumbs);
           } else {
-            console.warn('Can not find definition for ' + id); // eslint-disable-line no-console
+            console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
           }
         }
 
@@ -139,7 +139,6 @@ export default {
       this.noResource = false;
 
       if (response.error) {
-        console.error(response.error);
         this.busy = false;
 
         return;
@@ -150,8 +149,6 @@ export default {
       if (!data) {
         return;
       }
-
-
 
       const schema = response.schema;
 
@@ -172,14 +169,12 @@ export default {
           group = group.split('.').reverse().join('.');
         }
 
-        const name = `${ group }.${ schema.attributes.version}.${ schema.attributes.kind}`;
+        const name = `${ group }.${ schema.attributes.version }.${ schema.attributes.kind }`;
         const defn = data.definitions[name];
 
         this.definitions = data.definitions;
 
         this.expand(data.definitions, defn, [name]);
-
-        // console.log(JSON.parse(JSON.stringify(defn, null, 2)));
 
         this.definition = defn;
       } else {
@@ -191,12 +186,11 @@ export default {
     startPanelResize(ev) {
       this.isResizing = true;
       this.$refs.resizer.setPointerCapture(ev.pointerId);
-
     },
     doPanelResize(ev) {
       if (this.isResizing) {
         this.resizePosition = 'fixed';
-        this.resizeLeft = ev.clientX + 'px';
+        this.resizeLeft = `${ ev.clientX }px`;
       }
     },
     endPanelResize(ev) {
@@ -225,7 +219,6 @@ export default {
         };
       });
 
-
       // this.expand(this.definitions, defn, [goto]);
       this.expand(this.definitions, defn, breadcrumbs);
 
@@ -251,7 +244,7 @@ export default {
         }
       }
 
-       this.navigate(breadcrumbs.map(b => b.id));
+      this.navigate(breadcrumbs.map(b => b.id));
     }
   },
 };
@@ -259,10 +252,18 @@ export default {
 
 <template>
   <div>
-    <div class="slide-in-glass" :class="{ 'slide-in-glass-open': isOpen }" @click="close()"></div>
-    <div class="slide-in" :class="{ 'slide-in-open': isOpen }" :style="{ width, right }">
-      <div class="panel-resizer"
+    <div
+      class="slide-in-glass"
+      :class="{ 'slide-in-glass-open': isOpen }"
+      @click="close()" />
+    <div
+      class="slide-in"
+      :class="{ 'slide-in-open': isOpen }"
+      :style="{ width, right }"
+    >
+      <div
         ref="resizer"
+        class="panel-resizer"
         v-bind:style="{ position: resizePosition, left: resizeLeft }"
         @pointerdown="startPanelResize"
         @pointermove="doPanelResize"
@@ -271,10 +272,23 @@ export default {
       <div class="main-panel">
         <!-- <div class="glass" /> -->
         <div class="header">
-          <div v-if="breadcrumbs" class="breadcrumbs">
-            <div v-for="(b, i) in breadcrumbs" :key="b.id">
-              <span v-if="i > 0" class="ml-5 mr-5">&gt;</span>
-              <a href="#" class="breadcrumb-link" @click="goto(b.id)">{{ b.name }}</a>
+          <div
+            v-if="breadcrumbs"
+            class="breadcrumbs"
+          >
+            <div
+              v-for="(b, i) in breadcrumbs"
+              :key="b.id"
+            >
+              <span
+                v-if="i > 0"
+                class="ml-5 mr-5"
+              >&gt;</span>
+              <a
+                href="#"
+                class="breadcrumb-link"
+                @click="goto(b.id)"
+              >{{ b.name }}</a>
             </div>
           </div>
           <div v-else @click="scrollTop()">{{ title }}</div>
@@ -307,7 +321,7 @@ export default {
           v-if="noResource"
           class="select-resource"
         >
-          <img src="./explain.svg" />
+          <img src="./explain.svg">
           <div>
             Select a Kubernetes resource to get the resource explanation
           </div>
@@ -411,7 +425,7 @@ export default {
     display: flex;
     flex-direction: column;
     position: fixed;
-    top: 0; 
+    top: 0;
     z-index: 2000;
     top: $header-height;
     height: calc(100vh - $header-height);
