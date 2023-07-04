@@ -65,7 +65,7 @@ describe('Users and Authentication', () => {
 
       // navigate to the roles page and make sure user can see it
       userRoles.goTo();
-      userRoles.listTitle().should('contain', 'Roles');
+      userRoles.listTitle().should('contain', 'Role Templates');
       userRoles.listElements().should('have.length.of.at.least', 1);
 
       // navigate to the users page and make sure user can see it

@@ -4440,7 +4440,6 @@ rbac:
   members:
     label: Members
   roletemplate:
-    label: Roles
     newUserDefault:
       no: No
       tooltip: This does not affect any bindings to the role that already exist.
@@ -7324,6 +7323,7 @@ manager:
     label: Node Templates
 
 auth:
+  roleTemplate: Role Templates
   config:
     label: Auth Provider
 vncConsole:
