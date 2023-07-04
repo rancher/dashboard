@@ -19,7 +19,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 
 // File specific consts
 const namespace = 'fleet-default';
-const type = 'provisioning.cattle.io.clusters';
+const type = 'provisioning.cattle.io.cluster';
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
@@ -64,12 +64,12 @@ describe('Cluster Manager', () => {
         createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
         createRKE2ClusterPage.create();
 
-        detailRKE2ClusterPage.waitForPage(undefined, 'registration');
-
         cy.wait('@createRequest').then((intercept) => {
           // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
           expect(isMatch(intercept.request.body, request)).to.equal(true);
         });
+
+        detailRKE2ClusterPage.waitForPage(undefined, 'registration');
       });
 
       it('can edit cluster and see changes afterwards', () => {
@@ -229,8 +229,6 @@ describe('Cluster Manager', () => {
         importClusterPage.nameNsDescription().name().set(importGenericName);
         importClusterPage.create();
 
-        detailClusterPage.waitForPage(undefined, 'registration');
-
         cy.wait('@importRequest').then((intercept) => {
           expect(intercept.request.body).to.deep.equal({
             type,
@@ -241,6 +239,8 @@ describe('Cluster Manager', () => {
             spec: {}
           });
         });
+
+        detailClusterPage.waitForPage(undefined, 'registration');
       });
 
       it('can navigate to cluster edit page', () => {
