@@ -1651,8 +1651,8 @@ export default {
 
       // store the current data for fleet and cluster agent so that we can re-apply it later if the save fails
       // we also have a before hook (check created() hooks) where the cleanup of the data occurs
-      const clusterAgentDeploymentCustomization = JSON.parse(JSON.stringify(this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]));
-      const fleetAgentDeploymentCustomization = JSON.parse(JSON.stringify(this.value.spec[FLEET_AGENT_CUSTOMIZATION]));
+      const clusterAgentDeploymentCustomization = this.value.spec[CLUSTER_AGENT_CUSTOMIZATION] ? JSON.parse(JSON.stringify(this.value.spec[CLUSTER_AGENT_CUSTOMIZATION])) : null;
+      const fleetAgentDeploymentCustomization = this.value.spec[FLEET_AGENT_CUSTOMIZATION] ? JSON.parse(JSON.stringify(this.value.spec[FLEET_AGENT_CUSTOMIZATION])) : null;
 
       await this.save(btnCb);
 
