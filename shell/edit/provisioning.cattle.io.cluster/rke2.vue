@@ -71,7 +71,7 @@ import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
-import AgentConfiguration, { cleanAgentConfiguration } from './AgentConfiguration';
+import AgentConfiguration from './AgentConfiguration';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 
@@ -289,17 +289,7 @@ export default {
       this.userChartValues[key] = value;
     });
 
-    // Ensure we have empty models for the two agent configurations
-
-    // Cluster Agent Configuration
-    if ( !this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]) {
-      set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, {});
-    }
-
-    // Fleet Agent Configuration
-    if ( !this.value.spec[FLEET_AGENT_CUSTOMIZATION] ) {
-      set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, {});
-    }
+    this.setAgentConfiguration();
   },
 
   data() {
@@ -1188,10 +1178,56 @@ export default {
     nlToBr,
     set,
 
+    cleanAgentConfiguration(model, key) {
+      if (!model || !model[key]) {
+        return;
+      }
+
+      const v = model[key];
+
+      if (Array.isArray(v) && v.length === 0) {
+        delete model[key];
+      } else if (v && typeof v === 'object') {
+        Object.keys(v).forEach((k) => {
+          // delete these auxiliary props used in podAffinity and nodeAffinity that shouldn't be sent to the server
+          if (k === '_namespaceOption' || k === '_namespaces' || k === '_anti' || k === '_id') {
+            delete v[k];
+          }
+
+          // prevent cleanup of "namespaceSelector" when an empty object because it represents all namespaces in pod/node affinity
+          // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
+          if (k !== 'namespaceSelector') {
+            this.cleanAgentConfiguration(v, k);
+          }
+        });
+
+        if (Object.keys(v).length === 0) {
+          delete model[key];
+        }
+      }
+    },
+
+    /**
+     * Clean agent configuration objects, so we only send values when the user has configured something
+     */
     agentConfigurationCleanup() {
-      // Clean agent configuration objects, so we only send values when the user has configured something
-      cleanAgentConfiguration(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION);
-      cleanAgentConfiguration(this.value.spec, FLEET_AGENT_CUSTOMIZATION);
+      this.cleanAgentConfiguration(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION);
+      this.cleanAgentConfiguration(this.value.spec, FLEET_AGENT_CUSTOMIZATION);
+    },
+
+    /**
+     * Ensure we have empty models for the two agent configurations
+     */
+    setAgentConfiguration() {
+      // Cluster Agent Configuration
+      if ( !this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]) {
+        set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, {});
+      }
+
+      // Fleet Agent Configuration
+      if ( !this.value.spec[FLEET_AGENT_CUSTOMIZATION] ) {
+        set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, {});
+      }
     },
 
     /**

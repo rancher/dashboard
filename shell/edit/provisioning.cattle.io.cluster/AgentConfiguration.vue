@@ -9,35 +9,6 @@ import { cleanUp } from '@shell/utils/object';
 import { fetchSetting } from '@shell/utils/settings';
 import { RadioGroup } from '@components/Form/Radio';
 
-export function cleanAgentConfiguration(model, key) {
-  if (!model || !model[key]) {
-    return;
-  }
-
-  const v = model[key];
-
-  if (Array.isArray(v) && v.length === 0) {
-    delete model[key];
-  } else if (v && typeof v === 'object') {
-    Object.keys(v).forEach((k) => {
-      // delete these auxiliary props used in podAffinity and nodeAffinity that shouldn't be sent to the server
-      if (k === '_namespaceOption' || k === '_namespaces' || k === '_anti' || k === '_id') {
-        delete v[k];
-      }
-
-      // prevent cleanup of "namespaceSelector" when an empty object because it represents all namespaces in pod/node affinity
-      // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
-      if (k !== 'namespaceSelector') {
-        cleanAgentConfiguration(v, k);
-      }
-    });
-
-    if (Object.keys(v).length === 0) {
-      delete model[key];
-    }
-  }
-}
-
 // Affinity radio button choices
 const DEFAULT = 'default';
 const CUSTOM = 'custom';
