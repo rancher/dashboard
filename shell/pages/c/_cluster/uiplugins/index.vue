@@ -742,6 +742,7 @@ export default {
           color="warning"
           class="mb-20"
           :closable="true"
+          data-testid="extensions-new-repos-banner"
           @close="updateAddReposSetting"
         >
           {{ t('plugins.addRepos.banner', {}, true) }}

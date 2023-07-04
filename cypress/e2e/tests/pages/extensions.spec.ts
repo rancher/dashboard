@@ -46,6 +46,18 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.extensionCard(extensionName).should('be.visible');
   });
 
+  it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
+    const extensionsPo = new ExtensionsPo();
+
+    extensionsPo.newReposBanner().dismissBanner();
+    extensionsPo.self().find('[data-testid="extensions-new-repos-banner"]').should('not.exist');
+
+    // let's refresh the page to make sure it doesn't appear again...
+    ExtensionsPo.goTo();
+    extensionsPo.title().should('contain', 'Extensions');
+    extensionsPo.self().find('[data-testid="extensions-new-repos-banner"]').should('not.exist');
+  });
+
   it('Should toggle the extension details', () => {
     const extensionsPo = new ExtensionsPo();
 

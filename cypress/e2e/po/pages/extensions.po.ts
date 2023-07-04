@@ -3,12 +3,13 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 export default class ExtensionsPo extends PagePo {
-  static url = '/c/local/uiplugins'
+  static url = '/c/_/uiplugins'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ExtensionsPo.url);
   }
@@ -98,6 +99,14 @@ export default class ExtensionsPo extends PagePo {
 
     // save it
     return appRepoCreate.save();
+  }
+
+  //  ------------------ new repos extension banner ------------------
+
+  newReposBanner() {
+    const newReposBanner = new BannersPo('[data-testid="extensions-new-repos-banner"]');
+
+    return newReposBanner;
   }
 
   // ------------------ extension card ------------------
@@ -212,16 +221,15 @@ export default class ExtensionsPo extends PagePo {
   }
 
   manageReposClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).clickMenuItem(0);
+    return new ActionMenuPo(this.self()).getMenuItem('Manage Repositories').click();
   }
 
-  // this will only appear with developer mode enabled
-  // developerLoadClick(): Cypress.Chainable {
-  //   return this.self().getId('action-menu-2-item').click();
-  // }
+  addRepositoriesClick(): Cypress.Chainable {
+    return new ActionMenuPo(this.self()).getMenuItem('Add Rancher Repositories').click();
+  }
 
   disableExtensionsClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).clickMenuItem(3);
+    return new ActionMenuPo(this.self()).getMenuItem('Disable Extension Support').click();
   }
 
   // ------------------ disable extensions OVERALL modal ------------------
