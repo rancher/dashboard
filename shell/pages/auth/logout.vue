@@ -11,8 +11,16 @@ export default {
 
 <template>
   <main class="main-layout">
-    <h1 class="text-center mt-50">
-      Logging Out&hellip;
-    </h1>
+    <div>
+      <h1 v-t="'logout.message'" />
+    </div>
   </main>
 </template>
+<style lang="scss" scoped>
+  main > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+  }
+</style>
