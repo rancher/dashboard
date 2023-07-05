@@ -7102,6 +7102,7 @@ featureFlags:
     fleet: 啓動 Rancher 時安裝 Fleet
     multi-cluster-management: Kubernetes 集羣的多集羣配置和管理。
     rke2: 啓用 RKE2
+    audit-log-ui-extension: 啟用審計日誌 UI 擴展, 能夠控制審計日誌 UI 擴展菜單是否顯示
 performance:
   label: UI 性能設置
   settingName: 性能
