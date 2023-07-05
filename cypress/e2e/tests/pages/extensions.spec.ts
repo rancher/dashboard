@@ -1,6 +1,8 @@
 import ExtensionsPo from '@/cypress/e2e/po/pages/extensions.po';
+import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 
-const extensionName = 'clock';
+const EXTENSION_NAME = 'clock';
+const PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 
 describe('Extensions page', { tags: '@adminUser' }, () => {
   before(() => {
@@ -19,6 +21,25 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   beforeEach(() => {
     cy.login();
     ExtensionsPo.goTo();
+  });
+
+  it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
+    const extensionsPo = new ExtensionsPo();
+
+    // go to "add rancher repositories"
+    extensionsPo.extensionMenuToggle();
+    extensionsPo.addRepositoriesClick();
+
+    // add the partners repo
+    extensionsPo.addReposModalAddClick();
+    extensionsPo.addReposModal().should('not.exist');
+
+    // go to repos list page
+    const appRepoList = new ReposListPagePo('local', 'apps');
+
+    appRepoList.goTo();
+    appRepoList.waitForPage();
+    appRepoList.sortableTable().rowElementWithName(PARTNERS_REPO_URL).should('exist');
   });
 
   it('Should disable and enable extension support', () => {
@@ -43,7 +64,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // let's make sure all went good
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.extensionCard(extensionName).should('be.visible');
+    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
@@ -67,18 +88,18 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.title().should('contain', 'Extensions');
 
     // show extension details
-    extensionsPo.extensionCardClick(extensionName);
+    extensionsPo.extensionCardClick(EXTENSION_NAME);
 
     // after card click, we should get the info slide in panel
     extensionsPo.extensionDetails().should('be.visible');
-    extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
 
     // close the details on the cross icon X
     extensionsPo.extensionDetailsCloseClick();
     extensionsPo.extensionDetails().should('not.be.visible');
 
     // show extension details again...
-    extensionsPo.extensionCardClick(extensionName);
+    extensionsPo.extensionCardClick(EXTENSION_NAME);
     extensionsPo.extensionDetails().should('be.visible');
 
     // clicking outside the details tab should also close it
@@ -92,7 +113,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.extensionTabAvailableClick();
 
     // click on install button on card
-    extensionsPo.extensionCardInstallClick(extensionName);
+    extensionsPo.extensionCardInstallClick(EXTENSION_NAME);
     extensionsPo.extensionInstallModal().should('be.visible');
 
     // select version and click install
@@ -105,8 +126,8 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
-    extensionsPo.extensionCardClick(extensionName);
-    extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+    extensionsPo.extensionCardClick(EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
     extensionsPo.extensionDetailsCloseClick();
   });
 
@@ -116,7 +137,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.extensionTabInstalledClick();
 
     // click on update button on card
-    extensionsPo.extensionCardUpdateClick(extensionName);
+    extensionsPo.extensionCardUpdateClick(EXTENSION_NAME);
     extensionsPo.installModalInstallClick();
 
     // let's check the extension reload banner and reload the page
@@ -126,7 +147,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     // make sure extension card is not available anymore on the updates tab
     // since we installed the latest version
     extensionsPo.extensionTabUpdatesClick();
-    extensionsPo.extensionCard(extensionName).should('not.exist');
+    extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
   });
 
   it('Should rollback an extension version', () => {
@@ -136,7 +157,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // click on the rollback button on card
     // this will rollback to the immediate previous version
-    extensionsPo.extensionCardRollbackClick(extensionName);
+    extensionsPo.extensionCardRollbackClick(EXTENSION_NAME);
     extensionsPo.installModalInstallClick();
 
     // let's check the extension reload banner and reload the page
@@ -145,7 +166,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // make sure extension card is on the updates tab
     extensionsPo.extensionTabUpdatesClick();
-    extensionsPo.extensionCard(extensionName).should('be.visible');
+    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
   it('Should uninstall an extension', () => {
@@ -154,7 +175,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.extensionTabInstalledClick();
 
     // click on uninstall button on card
-    extensionsPo.extensionCardUninstallClick(extensionName);
+    extensionsPo.extensionCardUninstallClick(EXTENSION_NAME);
     extensionsPo.extensionUninstallModal().should('be.visible');
     extensionsPo.uninstallModaluninstallClick();
 
@@ -164,7 +185,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.extensionCardClick(extensionName);
-    extensionsPo.extensionDetailsTitle().should('contain', extensionName);
+    extensionsPo.extensionCardClick(EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
   });
 });

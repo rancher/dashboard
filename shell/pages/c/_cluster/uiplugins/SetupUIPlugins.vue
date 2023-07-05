@@ -292,6 +292,7 @@ export default {
             :disabled="hasRancherUIPluginsRepo"
             :primary="true"
             label-key="plugins.setup.install.addRancherRepo"
+            data-testid="extension-enable-operator-official-repo"
           />
           <div
             v-if="hasRancherUIPluginsRepo"
@@ -309,6 +310,7 @@ export default {
             :disabled="hasRancherUIPartnersPluginsRepo"
             :primary="true"
             label-key="plugins.setup.install.addPartnersRancherRepo"
+            data-testid="extension-enable-operator-partners-repo"
           />
           <div
             v-if="hasRancherUIPartnersPluginsRepo"

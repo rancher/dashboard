@@ -9,7 +9,7 @@ import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
 export default class ExtensionsPo extends PagePo {
-  static url = '/c/_/uiplugins'
+  static url = '/c/local/uiplugins'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ExtensionsPo.url);
   }
@@ -53,6 +53,9 @@ export default class ExtensionsPo extends PagePo {
     return enableButton.isVisible().then((visible) => {
       if (visible) {
         return enableButton.click().then(() => {
+          // don't install the parners repo yet, as it's needed for the add repositories test
+          this.enableExtensionModalParnersRepoClick();
+
           return this.enableExtensionModalEnableClick();
         });
       } else {
@@ -72,7 +75,6 @@ export default class ExtensionsPo extends PagePo {
    */
   addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
     // we should be on the extensions page
-    // this.title().should('contain', 'Extensions');
     this.waitForPage();
 
     // go to app repos
@@ -232,7 +234,16 @@ export default class ExtensionsPo extends PagePo {
     return new ActionMenuPo(this.self()).getMenuItem('Disable Extension Support').click();
   }
 
-  // ------------------ disable extensions OVERALL modal ------------------
+  // ------------------ ADD RANCHER REPOSITORIES modal ------------------
+  addReposModal() {
+    return this.self().getId('add-extensions-repos-modal');
+  }
+
+  addReposModalAddClick(): Cypress.Chainable {
+    return this.addReposModal().get('.dialog-buttons button:last-child').click();
+  }
+
+  // ------------------ DISABLE EXTENSIONS modal ------------------
   disableExtensionModal() {
     return this.self().getId('disable-ext-modal');
   }
@@ -249,9 +260,13 @@ export default class ExtensionsPo extends PagePo {
     return this.disableExtensionModal().get('.dialog-buttons button:last-child').click();
   }
 
-  // ------------------ enable extensions OVERALL modal ------------------
+  // ------------------ ENABLE EXTENSIONS modal ------------------
   enableExtensionModal() {
     return this.self().get('[data-modal="confirm-uiplugins-setup"]');
+  }
+
+  enableExtensionModalParnersRepoClick(): Cypress.Chainable {
+    return this.enableExtensionModal().getId('extension-enable-operator-partners-repo').click();
   }
 
   enableExtensionModalCancelClick(): Cypress.Chainable {
