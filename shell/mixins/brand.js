@@ -1,3 +1,4 @@
+import { mapGetters } from 'vuex';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
@@ -23,13 +24,19 @@ export default {
         }
       });
     } catch (e) {}
+
+    // Setting this up front will remove `computed` churn, and we only care that we've initialised them
+    this.haveAppsAndSettings = !!this.apps && !!this.globalSettings;
   },
 
   data() {
-    return { apps: [], globalSettings: [] };
+    return {
+      apps: null, globalSettings: null, haveAppsAndSettings: null
+    };
   },
 
   computed: {
+    ...mapGetters({ loggedIn: 'auth/loggedIn' }),
 
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
@@ -61,7 +68,22 @@ export default {
     },
 
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
+      if (!this.canCalcCspAdapter) {
+        // We only have a watch on cspAdapter to kick off persisting the brand setting.
+        // So we need to ensure we don't return an undefined here... which would match the undefined gave if no csp app was found...
+        // .. and wouldn't kick off the watcher
+        return '';
+      }
+
+      // Note! these used to be `findBy(this.app)` however for that case we lost reactivity on the collection
+      // (computed fires before fetch, fetch happens and update apps, computed would not fire again - even with vue.set)
+      // So use `.find` here instead
+      return this.apps.find((a) => a.metadata.name === 'rancher-csp-adapter');
+    },
+
+    canCalcCspAdapter() {
+      // We need to take consider the loggedIn state, as the brand mixin is used in the logout page
+      return this.loggedIn && this.haveAppsAndSettings;
     }
   },
 
@@ -90,6 +112,14 @@ export default {
     },
 
     cspAdapter(neu) {
+      if (!this.canCalcCspAdapter) {
+        return;
+      }
+
+      // The brand setting will only get updated if
+      // 1) There should be a brand... but there's no brand setting
+      // 2) There should not be a brand... but there is a brand setting
+
       if (neu && !this.brand) {
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
