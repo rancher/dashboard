@@ -2555,7 +2555,7 @@ export default {
             v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')"
             color="warning"
           >
-            {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
+            {{ t('cluster.rke2.drain.deleteEmptyDir.warning', {}, true) }}
           </Banner>
           <div class="row">
             <div class="col span-6">
