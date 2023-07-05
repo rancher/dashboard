@@ -121,6 +121,12 @@ export default {
         const y = event.srcElement.scrollTop - top - 20;
         let found = false;
 
+        if (!this.doc?.toc || this.doc.toc.length === 0) {
+          this.selected = null;
+
+          return;
+        }
+
         // Debounce scroll events
         this.doc.toc?.forEach((item) => {
           const elm = document.getElementById(item.id);
