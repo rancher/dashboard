@@ -6,6 +6,8 @@ function delay(t, v) {
     setTimeout(resolve.bind(null, v), t);
   });
 }
+
+const managementRequest = jest.fn();
 const $store = {
   getters: {
     'management/byId': (type, id) => {
@@ -27,14 +29,18 @@ const $store = {
     'catalog/charts': [{}],
   },
   dispatch: (key) => {
-    const store = {
-      // 'catalog/getVersionInfo': JSON.parse(versionInfo),
-      'management/find': (key, a) => {
-        return key;
-      }
-    };
+    return new Promise((resolve, reject) => {
+      const store = {
+        'management/find': (key, a) => {
+          return key;
+        },
+        'management/request': managementRequest,
+      };
 
-    return store[key];
+      if (store[key]) {
+        return resolve(store[key]());
+      }
+    });
   },
   rootGetters: {
     'management/byId':     (type, id) => ({ nameDisplay: id }),
@@ -55,7 +61,6 @@ describe('global monitorning methods', () => {
       $store,
       $route,
       $router,
-      query:            { stores: [] }
     };
 
     globalMonitoring.methods.initGlobalMonitoringRoute.call(localThis);
@@ -63,5 +68,23 @@ describe('global monitorning methods', () => {
     await delay(1500);
 
     expect(localThis.$router.replace).toBeCalledTimes(1);
+  });
+
+  it('methods updateDownStreamClusterSecret to update secrets ', () => {
+    const localThis = {
+      t:                t => t,
+      monitoringStatus: { installed: true },
+      $set:             set,
+      $store,
+      $route,
+      $router,
+      value:            { thanos: { query: { enabledClusterStores: [] }, tls: { enabled: true } } },
+    };
+
+    globalMonitoring.methods.updateDownStreamClusterSecret.call(localThis, localThis.value.thanos.query);
+    expect(managementRequest).toHaveBeenCalledTimes(0);
+    localThis.value.thanos.query.enabledClusterStores = [{ id: 'test1' }, { id: 'test2' }];
+    globalMonitoring.methods.updateDownStreamClusterSecret.call(localThis, localThis.value.thanos.query);
+    expect(managementRequest).toHaveBeenCalledTimes(localThis.value.thanos.query.enabledClusterStores.length);
   });
 });
