@@ -918,8 +918,8 @@ export default {
             :required="true"
             :searchable="true"
             :disabled="disabled"
-            :label="t('cluster.machineConfig.aliyunecs.imageId.label')"
-            :placeholder="t('cluster.machineConfig.aliyunecs.imageId.placeholder')"
+            :label="t('cluster.machineConfig.aliyunecs.systemImageVersion.label')"
+            :placeholder="t('cluster.machineConfig.aliyunecs.systemImageVersion.placeholder')"
           />
         </div>
       </div>

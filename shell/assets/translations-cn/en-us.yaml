@@ -1438,6 +1438,9 @@ cluster:
       imageId:
         label: System image
         placeholder: System image
+      systemImageVersion:
+        label: Image Version
+        placeholder: Choose Image Version
       internetMaxBandwidth:
         label: Internet Max Bandwidth
         placeholder: 1 to 100

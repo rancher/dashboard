@@ -1445,6 +1445,9 @@ cluster:
       imageId:
         label: 系統鏡像
         placeholder: 系統鏡像
+      systemImageVersion:
+        label: 鏡像版本
+        placeholder: 选择鏡像版本
       internetMaxBandwidth:
         label: 最大網絡帶寬
         placeholder: 1到100
