@@ -714,7 +714,7 @@ export default {
       });
     },
     updateDownStreamClusterSecret(query) {
-      if (!this.value?.thanos?.tls?.enabled ) {
+      if (!this.value?.thanos?.tls?.enabled || !query?.enabledClusterStores || !query.enabledClusterStores.length ) {
         return;
       }
       query.enabledClusterStores.forEach((c) => {
