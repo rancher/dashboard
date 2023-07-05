@@ -88,7 +88,9 @@ auditLog:
     age: 存活時間
     requestTimestamp: 請求時間
   title: 審計日誌(實驗性)
-  k8sTitle: Kubernetes 審計日誌
+  k8sTitle: Kubernetes 審計日誌(實驗性)
+  cluster:
+    k8sAuditLog: 查看 API Server 審計日誌(實驗性)
   errors:
     notFound: 資源未找到
     unknownError: 未知錯誤 

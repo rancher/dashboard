@@ -6,15 +6,16 @@ import { AUDIT_LOG_UI_EXTENSION } from '@shell/store/features';
 
 export default class K8sAuditLogcluster extends cluster {
   get _availableActions() {
+    const extension = this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION);
     const out = super._availableActions;
     const k8sAuditLog = {
       action:   'viewK8sAuditLog',
-      label:    this.t('cluster.k8sAuditLog'),
+      label:    this.t( extension ? 'auditLog.cluster.k8sAuditLog' : 'cluster.k8sAuditLog'),
       bulkable: false,
       icon:     'icon icon-file',
     };
 
-    if (!this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION)) {
+    if (!extension) {
       const auditLogServerUrl = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
 
       k8sAuditLog.enabled = !!auditLogServerUrl;

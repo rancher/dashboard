@@ -89,7 +89,9 @@ auditLog:
     age: Age
     requestTimestamp: Request Time
   title: Audit Log(experimental)
-  k8sTitle: Kubernetes Audit Log
+  k8sTitle: Kubernetes Audit Log(experimental)
+  cluster:
+    k8sAuditLog: View API Server Audit Log(experimental)
   errors:
     notFound: Resource Not Found
     unknownError: unknown error

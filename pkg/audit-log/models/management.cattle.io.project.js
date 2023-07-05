@@ -7,14 +7,15 @@ import { AUDIT_LOG_UI_EXTENSION } from '@shell/store/features';
 
 export default class AuditLogProject extends project {
   get _availableActions() {
+    const extension = this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION);
     const out = super._availableActions;
     const auditLog = {
       action: 'auditLog',
       icon:   'icon icon-fw icon-globe',
-      label:  this.t('nav.auditLog'),
+      label:  this.t(extension ? 'auditLog.title' : 'nav.auditLog'),
     };
 
-    if (!this.$rootGetters['features/get'](AUDIT_LOG_UI_EXTENSION)) {
+    if (!extension) {
       const auditLogServerUrl = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.AUDIT_LOG_SERVER_URL)?.value;
 
       auditLog.enabled = !!auditLogServerUrl;

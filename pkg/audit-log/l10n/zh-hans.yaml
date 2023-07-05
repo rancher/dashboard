@@ -88,7 +88,9 @@ auditLog:
     age: 存活时间
     requestTimestamp: 请求时间
   title: 审计日志(实验性)
-  k8sTitle: Kubernetes 审计日志
+  k8sTitle: Kubernetes 审计日志(实验性)
+  cluster:
+    k8sAuditLog: 查看 API Server 审计日志(实验性)
   errors:
     notFound: 资源未找到
     unknownError: 未知错误 
