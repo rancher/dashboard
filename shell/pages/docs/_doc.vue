@@ -121,8 +121,14 @@ export default {
         const y = event.srcElement.scrollTop - top - 20;
         let found = false;
 
+        if (!this.doc?.toc || this.doc.toc.length === 0) {
+          this.selected = null;
+
+          return;
+        }
+
         // Debounce scroll events
-        this.doc.toc.forEach((item) => {
+        this.doc.toc?.forEach((item) => {
           const elm = document.getElementById(item.id);
           const tocElm = document.getElementById(`toc-link-${ item.id }`);
 
@@ -146,8 +152,8 @@ export default {
           }
         });
 
-        if (!found) {
-          const last = this.doc.toc[this.doc.toc.length - 1].id;
+        if (!found & this.doc.toc) {
+          const last = this.doc.toc[this.doc.toc.length - 1]?.id;
           const tocElm = document.getElementById(`toc-link-${ last }`);
 
           if ( tocElm ) {
