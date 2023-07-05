@@ -82,7 +82,8 @@ export default {
     },
 
     canCalcCspAdapter() {
-      // We need to take consider the loggedIn state, as the brand mixin is used in the logout page
+      // We need to take consider the loggedIn state, as the brand mixin is used in the logout page where we can be in a mixed state
+      // (things in store but user has no auth to make changes)
       return this.loggedIn && this.haveAppsAndSettings;
     }
   },
@@ -139,7 +140,7 @@ export default {
       } else if (!neu) {
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
-        if (brandSetting) {
+        if (brandSetting.value !== '') {
           brandSetting.value = '';
           brandSetting.save();
         }
