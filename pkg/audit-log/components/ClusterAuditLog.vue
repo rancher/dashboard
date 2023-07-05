@@ -239,54 +239,44 @@ export default {
 <template>
   <div class="global-audit-log">
     <PageTitle />
-    <div class="row mb-20">
-      <div class="col span-2">
-        <input
-          v-model="form.userdisplayname"
-          :placeholder="t('auditLog.form.operator.placeholder')"
-        >
-      </div>
+    <div class="form-content mb-20">
+      <input
+        v-model="form.userdisplayname"
+        :placeholder="t('auditLog.form.operator.placeholder')"
+      >
 
-      <div class="col span-2">
-        <input
-          v-model="form.fieldValue"
-          :placeholder="t('auditLog.form.name.label')"
+      <input
+        v-model="form.fieldValue"
+        :placeholder="t('auditLog.form.name.label')"
+      >
+      <select v-model="form.requestResType">
+        <option
+          v-for="t in resourceTypes"
+          :key="t.label"
+          :value="t.value"
         >
-      </div>
-      <div class="col span-2">
-        <select v-model="form.requestResType">
-          <option
-            v-for="t in resourceTypes"
-            :key="t.label"
-            :value="t.value"
-          >
-            {{ t.label }}
-          </option>
-        </select>
-      </div>
-      <div class="col span-2">
-        <select v-model="form.operation">
-          <option
-            v-for="a in resourceActions"
-            :key="a.label"
-            :value="a.value"
-          >
-            {{ a.label }}
-          </option>
-        </select>
-      </div>
-      <div class="col span-2">
-        <select v-model="form.dateRange">
-          <option
-            v-for="r in dateRanges"
-            :key="r.label"
-            :value="r.value"
-          >
-            {{ r.label }}
-          </option>
-        </select>
-      </div>
-      <div class="col span-2">
+          {{ t.label }}
+        </option>
+      </select>
+      <select v-model="form.operation">
+        <option
+          v-for="a in resourceActions"
+          :key="a.label"
+          :value="a.value"
+        >
+          {{ a.label }}
+        </option>
+      </select>
+      <select v-model="form.dateRange">
+        <option
+          v-for="r in dateRanges"
+          :key="r.label"
+          :value="r.value"
+        >
+          {{ r.label }}
+        </option>
+      </select>
+      <div class="actions">
         <button
           class="btn role-secondary"
           :disabled="loading || resourcesLoading"
@@ -400,9 +390,10 @@ export default {
   height: 36px;
   cursor: pointer;
 }
-.search-form {
+
+.form-content {
   display: flex;
-  gap: 10px;
+  gap: 1.75%;
 }
 .actions {
   display: flex;
