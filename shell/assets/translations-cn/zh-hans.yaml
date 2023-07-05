@@ -7102,6 +7102,7 @@ featureFlags:
     multi-cluster-management: Kubernetes 集群的多集群配置和管理。
     rke2: 启用 RKE2
     audit-log-ui-extension: 启用审计日志 UI 扩展, 能够控制审计日志 UI 扩展菜单是否显示
+    flat-networks-ui-extension: 启用扁平网络 UI 扩展，能够控制扁平网络 UI 扩展菜单是否显示
 performance:
   label: UI 性能设置
   settingName: 性能

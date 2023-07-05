@@ -7102,6 +7102,7 @@ featureFlags:
     fleet: 啟動 Rancher 時安裝 Fleet
     multi-cluster-management: Kubernetes 集群的多集群配置和管理。
     rke2: 啟用 RKE2
+    flat-networks-ui-extension: 啟用扁平網絡 UI 擴展，能夠控制扁平網絡 UI 擴展菜單是否顯示
 performance:
   label: UI 性能設置
   settingName: 性能
