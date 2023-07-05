@@ -64,6 +64,8 @@ if (skipSetup) {
 
 console.log(`    Dashboard URL: ${ baseUrl }`); // eslint-disable-line no-console
 
+const apiUrl = baseUrl.includes('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl;
+
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,
@@ -87,7 +89,7 @@ export default defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
-    api:               process.env.API || baseUrl.split('/').slice(0, -1).join('/'),
+    api:               process.env.API || apiUrl,
     username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
