@@ -7299,6 +7299,7 @@ support:
 embedding:
   retry: Retry
   unavailable: Cluster Manager UI is not available
+  k8sAuditlogServerUnavailable: K8s Audit Log UI is not available
 v1ClusterTools:
   monitoring:
     label: Monitoring (Legacy)

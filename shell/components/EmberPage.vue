@@ -94,12 +94,14 @@ export default {
       loadRequired:     false,
       emberCheck:       null,
       error:            false,
+      auditLogError:    false,
       heightSync:       null,
       frameHeight:      -1,
       frameWidth:       -1,
       wmHeight:         -1,
       showHeaderBanner: false,
       showFooterBanner: false,
+      auditUICheck:     null
     };
   },
 
@@ -258,6 +260,30 @@ export default {
           if (!this.$axios.isCancel(e)) {
             this.loaded = true;
             this.error = true;
+          }
+        }
+      } else if (iframeEl === null && this.src?.includes('/meta/auditui/')) {
+        // Fetch a page to check that the audit log UI is available
+        try {
+          this.auditLogError = false;
+          this.loaded = false;
+          this.auditUICheck = this.$axios.CancelToken.source();
+
+          // Make a head request to a known asset of the audit log UI
+          const pageUrl = this.src;
+          const response = await this.$axios.head(pageUrl, {
+            timeout:     PAGE_CHECK_TIMEOUT,
+            cancelToken: this.auditUICheck.token,
+          });
+
+          if (response.status !== 200) {
+            this.loaded = true;
+            this.auditLogError = true;
+          }
+        } catch (e) {
+          if (!this.$axios.isCancel(e)) {
+            this.loaded = true;
+            this.auditLogError = true;
           }
         }
       }
@@ -552,10 +578,15 @@ export default {
       class="inline-loading"
     />
     <div
-      v-if="error"
+      v-if="error || auditLogError"
       class="ember-page-error"
     >
-      <div>{{ t('embedding.unavailable') }}</div>
+      <div v-if="error">
+        {{ t('embedding.unavailable') }}
+      </div>
+      <div v-else-if="auditLogError">
+        {{ t('embedding.k8sAuditlogServerUnavailable') }}
+      </div>
       <button
         class="btn role-primary"
         @click="initFrame()"

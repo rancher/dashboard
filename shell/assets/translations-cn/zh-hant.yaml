@@ -7346,6 +7346,7 @@ support:
 embedding:
   retry: 重試
   unavailable: Cluster Manager UI 不可用
+  k8sAuditlogServerUnavailable: K8s 審計日誌服務 UI 不可用
 v1ClusterTools:
   monitoring:
     label: Monitoring（舊版）
