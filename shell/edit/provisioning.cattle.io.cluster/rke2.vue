@@ -1164,7 +1164,6 @@ export default {
   created() {
     this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
-    this.registerBeforeHook(this.agentConfigurationCleanup, 'cleanup-agent-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
 
@@ -1554,6 +1553,9 @@ export default {
     },
 
     async _doSaveOverride(btnCb) {
+      // We cannot use the hook, because it is triggered on YAML toggle without restore initialized data
+      this.agentConfigurationCleanup();
+
       if ( this.errors ) {
         clear(this.errors);
       }
