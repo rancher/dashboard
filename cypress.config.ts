@@ -64,7 +64,9 @@ if (skipSetup) {
 
 console.log(`    Dashboard URL: ${ baseUrl }`); // eslint-disable-line no-console
 
-const apiUrl = baseUrl.includes('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl;
+const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
+
+console.log(`    Rancher API URL: ${ apiUrl }`); // eslint-disable-line no-console
 
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
@@ -89,7 +91,7 @@ export default defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
-    api:               process.env.API || apiUrl,
+    api:               apiUrl,
     username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
