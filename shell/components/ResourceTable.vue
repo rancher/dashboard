@@ -58,6 +58,12 @@ export default {
       required: false
     },
 
+    keyField: {
+      // Field that is unique for each row.
+      type:    String,
+      default: '_key',
+    },
+
     headers: {
       type:    Array,
       default: null,
@@ -217,7 +223,7 @@ export default {
     _headers() {
       let headers;
       const showNamespace = this.showNamespaceColumn;
-      const type = this.schema?.id ? this.schema?.id : this.$route?.params?.resource ? this.$route?.params?.resource : undefined;
+      const type = this.schema?.id || this.$route?.params?.resource || undefined;
 
       if ( this.headers ) {
         headers = this.headers.slice();
@@ -234,14 +240,14 @@ export default {
         let insertPosition = headers.length;
 
         if (headers.length > 0) {
-          const ageColIndex = headers.findIndex(h => h.name === AGE.name);
+          const ageColIndex = headers.findIndex((h) => h.name === AGE.name);
 
           if (ageColIndex >= 0) {
             insertPosition = ageColIndex;
           } else {
             // we've found some labels with ' ', which isn't necessarily empty (explore action/button)
             // if we are to add cols, let's push them before these so that the UI doesn't look weird
-            const lastViableColIndex = headers.findIndex(h => (!h.label || !h.label?.trim()) && (!h.labelKey || !h.labelKey?.trim()));
+            const lastViableColIndex = headers.findIndex((h) => (!h.label || !h.label?.trim()) && (!h.labelKey || !h.labelKey?.trim()));
 
             if (lastViableColIndex >= 0) {
               insertPosition = lastViableColIndex;
@@ -489,7 +495,7 @@ export default {
     :has-advanced-filtering="hasAdvancedFiltering"
     :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
     :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
-    key-field="_key"
+    :key-field="keyField"
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
