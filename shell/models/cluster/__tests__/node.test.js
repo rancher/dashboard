@@ -26,4 +26,20 @@ describe('model: apps.deployment rollback', () => {
 
     expect(app.ramUsagePercentage).toBe(res);
   });
+
+  it('should contains cpuReservationUsage and ramReservationUsage props', () => {
+    const node = new Node({
+      metadata: {
+        annotations: {
+          'management.cattle.io/pod-requests': JSON.stringify({
+            cpu:    '100m',
+            memory: '10GiB'
+          })
+        }
+      }
+    });
+
+    expect(node.cpuReservationUsage).toBe(0.1);
+    expect(node.ramReservationUsage).toBe(10 * 1024 * 1024 * 1024);
+  });
 });
