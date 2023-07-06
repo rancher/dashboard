@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import NodeAffinity from '@shell/components/form/NodeAffinity.vue';
 import { _CREATE } from '@shell/config/query-params';
 
-describe('component: PodAffinity', () => {
+describe('component: NodeAffinity', () => {
   it('should display the weight input when the priority is preferred', () => {
     const nodeAffinity = {
       preferredDuringSchedulingIgnoredDuringExecution: [{
