@@ -145,6 +145,10 @@ export default {
       if (typeof label === 'string' || typeof label === 'number') {
         return label;
       } else {
+        if (opt?.optionKey) {
+          return get(opt, opt.optionKey);
+        }
+
         return Math.random(100000);
       }
     },
