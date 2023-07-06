@@ -257,11 +257,10 @@ export default {
     }
 
     // Namespaces if required - this is mainly for custom provisioners via extensions that want
-    // to allow creation their resources in a different namespace
+    // to allow creating their resources in a different namespace
     if (this.needsNamespace) {
-      const all = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
-
-      this.allNamespaces = all;
+      // TODO: RC permissions
+      this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
     }
 
     if ( !this.machinePools ) {
@@ -745,13 +744,14 @@ export default {
       return (this.machinePools || []).filter((x) => !x.remove);
     },
 
-    // Extension provider where being provisioned by an extension
+    /**
+     * Extension provider where being provisioned by an extension
+     */
     extensionProvider() {
       const extClass = this.$plugin.getDynamic('provisioner', this.provider);
-      let ext;
 
       if (extClass) {
-        ext = new extClass({
+        return new extClass({
           dispatch: this.$store.dispatch,
           getters:  this.$store.getters,
           axios:    this.$store.$axios,
@@ -760,10 +760,12 @@ export default {
         });
       }
 
-      return ext;
+      return undefined;
     },
 
-    // Is a namespace needed? Only supported for providers from extensions, otherwise default is no
+    /**
+     * Is a namespace needed? Only supported for providers from extensions, otherwise default is no
+     */
     needsNamespace() {
       return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
     },
@@ -1080,6 +1082,7 @@ export default {
     validationPassed() {
       const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
 
+      // TODO: RC just needs a mock in extension and then check for/used here? needs validating throughout
       // TODO
       let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId || !this.needCredential);
 

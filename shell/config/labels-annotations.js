@@ -54,7 +54,11 @@ export const CAPI = {
   DELETE_MACHINE:       'cluster.x-k8s.io/delete-machine',
   PROVIDER:             'provider.cattle.io',
   SECRET_AUTH:          'v2prov-secret-authorized-for-cluster',
-  SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal'
+  SECRET_WILL_DELETE:   'v2prov-authorized-secret-deletes-on-cluster-removal',
+  /**
+   * Annotation for overriding the cluster provider,
+   */
+  PROVIDER_UI:          'ui.rancher/provider'
 };
 
 export const CATALOG = {
@@ -150,9 +154,6 @@ export const CLUSTER_BADGE = {
   // Custom icon text - max 2 characters
   ICON_TEXT: 'ui.rancher/badge-icon-text',
 };
-
-// Annotation for overriding the cluster provider
-export const PROVIDER = 'ui.rancher/provider';
 
 export const SYSTEM_LABELS = [
   'io.cattle.lifecycle.',

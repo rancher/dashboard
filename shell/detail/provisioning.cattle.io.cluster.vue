@@ -686,6 +686,7 @@ export default {
       v-model="value"
       :default-tab="defaultTab"
       :need-related="hasLocalAccess"
+      :extension-params="{ provider: value.machineProvider }"
     >
       <Tab
         v-if="showMachines"

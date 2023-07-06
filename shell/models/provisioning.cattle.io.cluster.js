@@ -9,11 +9,11 @@ import { ucFirst } from '@shell/utils/string';
 import { compare } from '@shell/utils/version';
 import { AS, MODE, _VIEW, _YAML } from '@shell/config/query-params';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
-import { PROVIDER as PROVIDER_ANNOTATION } from '@shell/config/labels-annotations';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 /**
  * Class representing Cluster resource.
- * @extends SteveModal
+ * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
   get details() {
@@ -383,7 +383,7 @@ export default class ProvCluster extends SteveModel {
 
   get machineProvider() {
     // First check annotation - useful for clusters created by extension providers
-    const fromAnnotation = this.annotations?.[PROVIDER_ANNOTATION];
+    const fromAnnotation = this.annotations?.[CAPI_ANNOTATIONS.PROVIDER_UI];
 
     if (fromAnnotation) {
       return fromAnnotation;

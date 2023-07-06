@@ -101,7 +101,17 @@ export default {
       type:    Boolean,
       default: false
     },
+    /**
+     * Use these objects instead of namespaces
+     */
     namespacesOverride: {
+      type:    Array,
+      default: null,
+    },
+    /**
+     * User these namespaces instead of determining list within component
+     */
+    namespaceOptions: {
       type:    Array,
       default: null,
     },
@@ -128,10 +138,6 @@ export default {
     },
     namespaceKey: {
       type:    String,
-      default: null,
-    },
-    namespaceOptions: {
-      type:    Array,
       default: null,
     },
     descriptionKey: {
@@ -232,15 +238,21 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      // Use the provided namespaces options if supplied via the component property
-      let namespaces = this.namespaceOptions;
+      let namespaces;
 
-      if (namespaces) {
-        namespaces = (namespaces.map((ns) => ns.name) || []).sort();
+      if (this.namespacesOverride) {
+        // Use the resources provided
+        namespaces = this.namespacesOverride;
       } else {
-        const namespaceObjs = this.isCreate ? this.allowedNamespaces() : this.namespaces();
+        if (this.namespaceOptions) {
+          // Use the namespaces provided
+          namespaces = (this.namespaceOptions.map((ns) => ns.name) || []).sort();
+        } else {
+          // Determine the namespaces
+          const namespaceObjs = this.isCreate ? this.allowedNamespaces() : this.namespaces();
 
-        namespaces = Object.keys(namespaceObjs);
+          namespaces = Object.keys(namespaceObjs);
+        }
       }
 
       const options = namespaces
