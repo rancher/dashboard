@@ -14,7 +14,6 @@ import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
-import { importLogin } from '@shell/utils/dynamic-importer';
 import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -99,13 +98,14 @@ export default {
     }
 
     return {
-      vendor:     getVendor(),
+      vendor:             getVendor(),
       providers,
       hasOthers,
       hasLocal,
-      showLocal:  !hasOthers || (route.query[LOCAL] === _FLAGGED),
-      firstLogin: firstLoginSetting?.value === 'true',
-      singleProvider
+      showLocal:          !hasOthers || (route.query[LOCAL] === _FLAGGED),
+      firstLogin:         firstLoginSetting?.value === 'true',
+      singleProvider,
+      showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true'
     };
   },
 
@@ -176,7 +176,7 @@ export default {
 
   created() {
     this.providerComponents = this.providers.map((name) => {
-      return importLogin(configType[name]);
+      return this.$store.getters['type-map/importLogin'](configType[name] || name);
     });
   },
 
@@ -294,7 +294,7 @@ export default {
 <template>
   <main class="main-layout login">
     <div class="row gutless mb-20">
-      <div class="col span-6 p-20">
+      <div class="content col span-6 p-20">
         <p class="text-center">
           {{ t('login.howdy') }}
         </p>
@@ -400,6 +400,7 @@ export default {
         <template v-if="hasLocal">
           <form
             v-if="showLocal"
+            class="local"
             :class="{'mt-30': !hasLoginMessage}"
           >
             <div class="span-6 offset-3">
@@ -474,10 +475,13 @@ export default {
               {{ nonLocalPrompt }}
             </a>
           </div>
-          <div class="locale-elector">
-            <LocaleSelector mode="login" />
-          </div>
         </template>
+        <div
+          v-if="showLocaleSelector"
+          class="locale-elector"
+        >
+          <LocaleSelector mode="login" />
+        </div>
       </div>
 
       <BrandImage
@@ -494,6 +498,12 @@ export default {
 
     .row {
       align-items: center;
+
+      .content {
+        .local {
+          display: grid;
+        }
+      }
     }
 
     .landscape {
@@ -539,6 +549,16 @@ export default {
     }
   }
 
+  .gutless {
+    height: 100vh;
+    .span-6 {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      place-content: center;
+    }
+  }
   .locale-elector {
     position: absolute;
     bottom: 30px;

@@ -340,6 +340,11 @@ export default {
       this.queueUpdate();
     },
 
+    updateLabelSelector(e, props) {
+      this.set(props.row.value, 'labelSelector.matchExpressions', e);
+      this.queueUpdate();
+    },
+
     isEmpty,
     get,
     set
@@ -431,7 +436,7 @@ export default {
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
             :data-testid="`pod-affinity-expressions-index${props.i}`"
-            @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
+            @input="e=>updateLabelSelector(e, props)"
           />
           <div class="row mt-20">
             <div class="col span-9">

@@ -159,7 +159,7 @@ export default {
     <header>
       <div class="title">
         <h1 class="m-0">
-          {{ t('rbac.roletemplate.label') }}
+          {{ t('auth.roleTemplate') }}
         </h1>
       </div>
       <div class="actions-container">

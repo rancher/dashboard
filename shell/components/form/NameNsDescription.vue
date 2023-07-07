@@ -105,6 +105,10 @@ export default {
       type:    Array,
       default: null,
     },
+    createNamespaceOverride: {
+      type:    Boolean,
+      default: false,
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -224,7 +228,9 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      const options = Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces())
+      const namespaces = this.namespacesOverride ||
+        (Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces()));
+      const options = namespaces
         .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || ((obj) => ({
           label: obj.nameDisplay,
@@ -251,7 +257,7 @@ export default {
         kind:     'divider'
       };
 
-      const createOverhead = this.canCreateNamespace ? [createButton, divider] : [];
+      const createOverhead = this.canCreateNamespace || this.createNamespaceOverride ? [createButton, divider] : [];
 
       return [
         ...createOverhead,
@@ -348,7 +354,8 @@ export default {
     cancelCreateNamespace(e) {
       this.createNamespace = false;
       this.$parent.$emit('createNamespace', false);
-      this.namespace = this.$store.getters['defaultNamespace'];
+      // In practise we should always have a defaultNamespace... unless we're in non-kube extension world,  so fall back on options
+      this.namespace = this.$store.getters['defaultNamespace'] || this.options.find((o) => !!o.value)?.value ;
     },
 
     selectNamespace(e) {

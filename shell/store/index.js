@@ -211,7 +211,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
   let cacheKey = '';
 
   for (const key in activeNamespaceCache) {
-    // I though array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
+    // I thought array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
     // slower.
     cacheKey += key + activeNamespaceCache[key];
   }

@@ -2,7 +2,7 @@ import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2
 import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
 
-describe('Cluster Explorer', () => {
+describe('Cluster Explorer', { tags: '@adminUser' }, () => {
   beforeEach(() => {
     cy.login();
   });

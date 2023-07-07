@@ -140,7 +140,7 @@ import {
   ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
 } from '@shell/utils/string';
 import {
-  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
+  importChart, importList, importDetail, importEdit, listProducts, loadProduct, importCustomPromptRemove, resolveList, resolveEdit, resolveWindowComponent, importWindowComponent, importLogin, resolveChart, resolveDetail, importDialog, importMachineConfig, resolveMachineConfigComponent, resolveCloudCredentialComponent, importCloudCredential
 } from '@shell/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
@@ -1215,6 +1215,12 @@ export const getters = {
   importWindowComponent(state, getters, rootState) {
     return (rawType, subType) => {
       return loadExtension(rootState, 'windowComponents', getters.componentFor(rawType, subType), importWindowComponent);
+    };
+  },
+
+  importLogin(state, getters, rootState) {
+    return (authType) => {
+      return loadExtension(rootState, 'login', authType, importLogin);
     };
   },
 

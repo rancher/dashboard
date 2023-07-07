@@ -73,9 +73,10 @@ export default defineConfig({
     openMode: 0
   },
   env: {
+    grepFilterSpecs: true,
     baseUrl,
-    coverage:     false,
-    codeCoverage: {
+    coverage:        false,
+    codeCoverage:    {
       exclude: [
         'cypress/**/*.*',
         '**/__tests__/**/*.*',
@@ -86,15 +87,18 @@ export default defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
+    api:               process.env.API || process.env.TEST_BASE_URL.split('/').slice(0, -2).join('/'),
     username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
+    grepTags:          process.env.GREP_TAGS
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
+      require('@cypress/grep/src/plugin')(config);
 
       return config;
     },

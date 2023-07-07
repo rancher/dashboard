@@ -10,6 +10,8 @@ declare namespace Cypress {
 
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
     byLabel(label: string,): Chainable<Element>;
+    createUser(username: string, role?: string): Chainable;
+    setGlobalRoleBinding(userId: string, role: string): Chainable;
 
     /**
      *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.
@@ -46,7 +48,6 @@ declare namespace Cypress {
 
     interceptAny(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
-
-
+    iFrame(): Chainable<Element>;
   }
 }

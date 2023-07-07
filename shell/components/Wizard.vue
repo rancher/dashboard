@@ -478,6 +478,7 @@ $spacer: 10px;
   display: flex;
   align-content: space-between;
   align-items: center;
+  margin-bottom: 2*$spacer;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
@@ -527,18 +528,10 @@ $spacer: 10px;
           overflow: visible;
           padding-top: 7px;
 
-          .cru__content & {
-            padding-top: 0;
-
-          }
           & > span {
-            padding-bottom: 5px;
+            padding-bottom: 3px;
             margin-bottom: 5px;
             white-space: nowrap;
-
-            .cru__content & {
-              padding-bottom: 3px;
-            }
           }
         }
 
@@ -677,11 +670,5 @@ $spacer: 10px;
       }
     }
   }
-
-.wizard {
-  .header {
-    margin-bottom: 2*$spacer;
-  }
-}
 
 </style>

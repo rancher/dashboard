@@ -9,6 +9,7 @@ const isVisible = (selector: string) => () => {
 export default class ComponentPo {
   public self: () => CypressChainable;
   public isVisible?: () => Cypress.Chainable<boolean>;
+  protected selector = '';
 
   constructor(self: CypressChainable);
   constructor(selector: string, parent?: CypressChainable);
@@ -21,6 +22,7 @@ export default class ComponentPo {
         // only works if we can find the element via jquery
         this.isVisible = isVisible(selector);
       }
+      this.selector = selector;
     } else {
       // Note - if the element is removed from screen and shown again this will fail
       const [self] = args as [CypressChainable];
@@ -39,5 +41,9 @@ export default class ComponentPo {
 
   checkNotVisible(): Cypress.Chainable<boolean> {
     return this.self().scrollIntoView().should('not.be.visible');
+  }
+
+  checkExists(): Cypress.Chainable<boolean> {
+    return this.self().should('exist');
   }
 }

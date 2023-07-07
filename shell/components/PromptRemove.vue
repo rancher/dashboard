@@ -9,11 +9,13 @@ import { uniq } from '@shell/utils/array';
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
+import { LabeledInput } from '@components/Form/LabeledInput';
+
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton
+    Card, Checkbox, AsyncButton, LabeledInput
   },
   props: {
     /**
@@ -100,6 +102,11 @@ export default {
       if (this.toRemove.length > 1) {
         return null;
       }
+
+      if (this.toRemove[0].doneLocationRemove) {
+        return this.toRemove[0].doneLocationRemove;
+      }
+
       const currentRoute = this.toRemove[0].currentRoute();
       const out = {};
       const params = { ...currentRoute.params };
@@ -224,6 +231,7 @@ export default {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
       }
+
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
         let handled = this.$refs.customPrompt.remove(btnCB);
 
@@ -272,10 +280,16 @@ export default {
     },
     async parallelRemove(btnCB) {
       try {
+        if (typeof this.toRemove[0].bulkRemove !== 'undefined') {
+          await this.toRemove[0].bulkRemove(this.toRemove, {});
+        } else {
+          await Promise.all(this.toRemove.map((resource) => resource.remove()));
+        }
+
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
-        await Promise.all(this.toRemove.map((resource) => resource.remove()));
         await this.refreshSpoofedTypes(spoofedTypes);
+
         this.done();
       } catch (err) {
         this.error = err.message || err;
@@ -372,32 +386,42 @@ export default {
             </div>
           </template>
         </div>
-        <input
+        <LabeledInput
           v-if="needsConfirm"
           id="confirm"
           v-model="confirmName"
+          v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
         >
-        <div class="text-warning mb-10 mt-10">
-          {{ warning }}
-        </div>
-        <div class="text-error mb-10 mt-10">
-          {{ error }}
-        </div>
-        <div
-          v-if="!needsConfirm"
-          class="text-info mt-20"
-        >
-          {{ protip }}
-        </div>
-        <Checkbox
-          v-if="chartsToRemoveIsApp"
-          v-model="chartsDeleteCrd"
-          label-key="promptRemoveApp.removeCrd"
-          class="mt-10 type"
-          @input="chartAddCrdToRemove"
-        />
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+          <div
+            v-if="!needsConfirm"
+            class="text-info mt-20"
+          >
+            {{ protip }}
+          </div>
+          <Checkbox
+            v-if="chartsToRemoveIsApp"
+            v-model="chartsDeleteCrd"
+            label-key="promptRemoveApp.removeCrd"
+            class="mt-10 type"
+            @input="chartAddCrdToRemove"
+          />
+        </labeledinput>
+        <template v-else>
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+        </template>
       </div>
       <template #actions>
         <button
