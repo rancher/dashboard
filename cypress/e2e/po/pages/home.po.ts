@@ -1,10 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
+import BannerGraphicPo from '~/cypress/e2e/po/components/banner-graphic.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
 import SimpleBoxPo from '~/cypress/e2e/po/components/simple-box.po';
 import HomeClusterListPo from '~/cypress/e2e/po/lists/home-cluster-list.po';
-
-const banners = new BannersPo();
 
 export default class HomePagePo extends PagePo {
   static url = '/home'
@@ -13,10 +12,21 @@ export default class HomePagePo extends PagePo {
   }
 
   static goToAndWaitForGet() {
+    // There's a lot of tests that start off on the home page
+    // There's issues reporting when this page is ready, specifically for the user avatar click
+    // To help with this be super sure the page is ready
+
     PagePo.goToAndWaitForGet(HomePagePo.goTo, [
       'v1/counts',
       'v1/namespaces',
     ]);
+
+    const homePage = new HomePagePo();
+
+    homePage.list().checkVisible();
+    homePage.bannerGraphic().checkVisible();
+
+    return homePage;
   }
 
   constructor() {
@@ -28,11 +38,11 @@ export default class HomePagePo extends PagePo {
   }
 
   prefPageLink(): Cypress.Chainable {
-    return banners.getLoginPageBanner().find('a');
+    return this.getLoginPageBanner().self().find('a');
   }
 
   whatsNewBannerLink(): Cypress.Chainable {
-    return banners.changelog().find('a');
+    return this.changelog().self().find('a');
   }
 
   restoreAndWait() {
@@ -63,6 +73,26 @@ export default class HomePagePo extends PagePo {
     const simpleBox = new SimpleBoxPo();
 
     return simpleBox.simpleBox().find('.support-link > a');
+  }
+
+  bannerGraphic() {
+    return new BannerGraphicPo();
+  }
+
+  /**
+   * Get change log banner
+   * @returns
+   */
+  changelog() {
+    return new BannersPo(cy.getId('changelog-banner'));
+  }
+
+  /**
+   * Get set login page banner
+   * @returns
+   */
+  getLoginPageBanner() {
+    return new BannersPo(cy.getId('set-login-page-banner'));
   }
 
   /**

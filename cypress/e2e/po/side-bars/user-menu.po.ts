@@ -1,12 +1,30 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
+/**
+ * Container PO for the user avatar v-popover
+ */
 export default class UserMenuPo extends ComponentPo {
   constructor() {
     super('[data-testid="nav_header_showUserMenu"]');
   }
 
-  userMenuDropdown(): Cypress.Chainable {
-    return cy.getId('user-menu-dropdown');
+  /**
+   * Transient v-popover container
+   *
+   * This is added to the dom when the user clicks on the avatar.
+   *
+   * When added to the dom it may not yet be visible
+   *
+   */
+  private userMenuContainer() {
+    return this.self().get('.tooltip.popover.vue-popover-theme');
+  }
+
+  /**
+   * Our section within the transient userMenuContainer
+   */
+  userMenu(): Cypress.Chainable {
+    return this.self().getId(`user-menu-dropdown`);
   }
 
   /**
@@ -14,26 +32,46 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   toggle(): Cypress.Chainable {
-    this.self().should('be.visible');
-    const popover = this.self().find('.v-popover');
-
-    popover.should('be.visible');
-
-    return popover.click({ force: true });
+    return this.self().click();
   }
 
   /**
    * Check if menu is open
    */
   isOpen() {
-    this.userMenuDropdown().should('be.visible');
+    this.userMenuContainer().should('be.visible');
+    this.userMenu().should('be.visible');
+  }
+
+  ensureOpen() {
+    // Check the user avatar icon is there
+    this.checkVisible();
+
+    // Check the v-popper drop down is open, if not open it
+    // This isn't a pattern we want to use often, but this area has caused us lots of issues
+    // (userMenu can be visible pass checks... but not the parent... making userMenu not visible)
+    return this.userMenuContainer().should('have.length.gte', 0)
+      .then(($el) => {
+        if ($el.length) {
+          if ($el.attr('style')?.includes('visibility: hidden')) {
+            cy.log('User Avatar open but hidden, giving it a nudge');
+
+            return this.toggle();
+          }
+        } else {
+          cy.log('User Avatar not open, opening');
+
+          return this.toggle();
+        }
+      })
+      .then(() => this.isOpen());
   }
 
   /**
    * Check if menu is closed
    */
   isClosed() {
-    this.userMenuDropdown().should('not.exist');
+    this.userMenu().should('not.exist');
   }
 
   /**
@@ -41,7 +79,7 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   getMenuItems(): Cypress.Chainable {
-    return this.userMenuDropdown().find('li').should('be.visible').and('have.length', 4);
+    return this.userMenu().find('li').should('be.visible').and('have.length', 4);
   }
 
   /**
@@ -50,7 +88,7 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   clickMenuItem(label: string) {
-    this.toggle().then(() => {
+    this.ensureOpen().then(() => {
       return this.getMenuItems().contains(label).click();
     });
   }

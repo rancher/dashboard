@@ -46,4 +46,8 @@ export default class ComponentPo {
   checkExists(): Cypress.Chainable<boolean> {
     return this.self().should('exist');
   }
+
+  checkNotExists(): Cypress.Chainable<boolean> {
+    return this.self().should('not.exist');
+  }
 }
