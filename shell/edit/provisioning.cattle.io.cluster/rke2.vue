@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
+import { normalizeName } from '@shell/utils/kube';
 
 import {
   CAPI,
@@ -43,7 +44,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
-import NameNsDescription, { normalizeName } from '@shell/components/form/NameNsDescription';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { RadioGroup } from '@components/Form/Radio';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
@@ -1269,6 +1270,7 @@ export default {
     },
 
     async addMachinePool(idx) {
+      console.warn('rk2', 'addMachinePool', idx); // TODO: RC DEBUG remove
       // this.machineConfigSchema is the schema for the Machine Pool configuration for the given provider
       if ( !this.machineConfigSchema ) {
         return;
@@ -1279,7 +1281,7 @@ export default {
       let config;
 
       if (this.extensionProvider?.createMachinePoolMachineConfig) {
-        config = this.extensionProvider.createMachinePoolMachineConfig(idx, this.machinePools);
+        config = await this.extensionProvider.createMachinePoolMachineConfig(idx, this.machinePools);
       } else {
         // Default - use the schema
         config = await this.$store.dispatch('management/createPopulated', {
@@ -1368,8 +1370,8 @@ export default {
       const finalPools = [];
 
       // If the extension provider wants to do this, let them
-      if (this.extensionProvider?.saveMachinePools) {
-        return await this.extensionProvider.saveMachinePools(this.machinePools, this.value);
+      if (this.extensionProvider?.saveMachinePoolConfigs) {
+        return await this.extensionProvider.saveMachinePoolConfigs(this.machinePools, this.value);
       }
 
       for ( const entry of this.machinePools ) {

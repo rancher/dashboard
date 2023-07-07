@@ -8,16 +8,7 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-
-export function normalizeName(str) {
-  return (str || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
-}
+import { normalizeName } from '@shell/utils/kube';
 
 export default {
   name:       'NameNsDescription',
