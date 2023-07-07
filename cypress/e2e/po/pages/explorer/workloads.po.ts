@@ -11,7 +11,7 @@ export default class WorkloadPo extends PagePo {
     return super.goTo(WorkloadPo.createPath(clusterId));
   }
 
-  constructor(clusterId: string = 'local') {
+  constructor(clusterId = 'local') {
     super(WorkloadPo.createPath(clusterId));
   }
 
@@ -25,16 +25,15 @@ export default class WorkloadPo extends PagePo {
     return new Kubectl();
   }
 
-  deleteWithKubectl(name: string, namespace: string = 'default') {
+  deleteWithKubectl(name: string, namespace = 'default') {
     this.kubectl()
-    .openTerminal()
-    .executeCommand(`delete deployment ${name} -n ${namespace}`);
+      .openTerminal()
+      .executeCommand(`delete deployment ${ name } -n ${ namespace }`);
   }
 
   createWithKubectl(blueprints: string | Object, wait = 6000) {
     this.kubectl()
-    .openTerminal()
-    .executeMultilineCommand(blueprints, wait); 
+      .openTerminal()
+      .executeMultilineCommand(blueprints, wait);
   }
-  
 }

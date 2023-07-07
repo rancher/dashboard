@@ -1,6 +1,6 @@
 type Matcher = '$' | '^' | '~' | '*' | '';
 
-type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'WATCH' | 'LIST' | 'CREATE' | 'UP
+type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'WATCH' | 'LIST' | 'CREATE' | 'UP'
 
 // eslint-disable-next-line no-unused-vars
 declare namespace Cypress {

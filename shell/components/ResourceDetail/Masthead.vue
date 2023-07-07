@@ -216,7 +216,6 @@ export default {
     },
 
     parent() {
-
       const displayName = this.value?.parentNameOverride || this.$store.getters['type-map/labelFor'](this.schema);
       const product = this.$store.getters['currentProduct'].name;
 

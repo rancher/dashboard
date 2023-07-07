@@ -5,7 +5,6 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import WorkloadPo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
-
 export class workloadDetailsPageBasePo extends PagePo {
   static url: string;
 
@@ -16,7 +15,7 @@ export class workloadDetailsPageBasePo extends PagePo {
     namespaceId: string,
     queryParams?: { [key: string]: string }
   ) {
-    const urlStr = `/c/${clusterId}/explorer/${workloadType}/${namespaceId}/${workloadId}`;
+    const urlStr = `/c/${ clusterId }/explorer/${ workloadType }/${ namespaceId }/${ workloadId }`;
 
     if (!queryParams) {
       return urlStr;
@@ -24,7 +23,7 @@ export class workloadDetailsPageBasePo extends PagePo {
 
     const params = new URLSearchParams(queryParams);
 
-    return `${urlStr}?${params.toString()}`;
+    return `${ urlStr }?${ params.toString() }`;
   }
 
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
@@ -47,7 +46,7 @@ export class workloadDetailsPageBasePo extends PagePo {
     return new WorkloadPo();
   }
 
-  deleteWithKubectl(name: string, namespace: string = 'default') {
+  deleteWithKubectl(name: string, namespace = 'default') {
     this.workload().deleteWithKubectl(name, namespace);
   }
 
@@ -56,11 +55,9 @@ export class workloadDetailsPageBasePo extends PagePo {
   }
 }
 
-
 export class WorkloadsListPageBasePo extends PagePo {
-
   static createPath(clusterId: string, workloadType: string, queryParams?: { [key: string]: string }) {
-    const urlStr = `/c/${clusterId}/explorer/${workloadType}`;
+    const urlStr = `/c/${ clusterId }/explorer/${ workloadType }`;
 
     if (!queryParams) {
       return urlStr;
@@ -68,10 +65,10 @@ export class WorkloadsListPageBasePo extends PagePo {
 
     const params = new URLSearchParams(queryParams);
 
-    return `${urlStr}?${params.toString()}`;
+    return `${ urlStr }?${ params.toString() }`;
   }
 
-  constructor(clusterId: string = 'local', workloadType: string, queryParams?: { [key: string]: string }) {
+  constructor(clusterId = 'local', workloadType: string, queryParams?: { [key: string]: string }) {
     super(WorkloadsListPageBasePo.createPath(clusterId, workloadType, queryParams));
   }
 
@@ -83,8 +80,8 @@ export class WorkloadsListPageBasePo extends PagePo {
 
   resourceSortableTable() {
     const baseResourceList = new BaseResourceList(this.self());
-    return baseResourceList.resourceTable().sortableTable()
 
+    return baseResourceList.resourceTable().sortableTable();
   }
 
   listElementWithName(name: string) {
@@ -96,11 +93,9 @@ export class WorkloadsListPageBasePo extends PagePo {
   }
 }
 
-
 export class WorkloadsCreatePageBasePo extends PagePo {
-
   static createPath(clusterId: string, workloadType: string, queryParams?: { [key: string]: string }) {
-    const urlStr = `/c/${clusterId}/explorer/${workloadType}/create`;
+    const urlStr = `/c/${ clusterId }/explorer/${ workloadType }/create`;
 
     if (!queryParams) {
       return urlStr;
@@ -108,10 +103,10 @@ export class WorkloadsCreatePageBasePo extends PagePo {
 
     const params = new URLSearchParams(queryParams);
 
-    return `${urlStr}?${params.toString()}`;
+    return `${ urlStr }?${ params.toString() }`;
   }
 
-  constructor(clusterId: string = 'local', workloadType: string, queryParams?: { [key: string]: string }) {
+  constructor(clusterId = 'local', workloadType: string, queryParams?: { [key: string]: string }) {
     super(WorkloadsCreatePageBasePo.createPath(clusterId, workloadType, queryParams));
   }
 
@@ -138,7 +133,7 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  createWithUI(name: string, containerImage: string, namespace: string = 'default', namespaceOption = 1) {
+  createWithUI(name: string, containerImage: string, namespace = 'default', namespaceOption = 1) {
     this.selectNamespaceOption(namespaceOption);
     this.namespace().set(namespace);
     this.name().set(name);
@@ -150,7 +145,7 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return new WorkloadPo();
   }
 
-  deleteWithKubectl(name: string, namespace: string = 'default') {
+  deleteWithKubectl(name: string, namespace = 'default') {
     this.workload().deleteWithKubectl(name, namespace);
   }
 
@@ -161,5 +156,4 @@ export class WorkloadsCreatePageBasePo extends PagePo {
   // waitForCreate() {
   //   cy.interceptAny
   // }
-
 }
