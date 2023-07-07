@@ -4,7 +4,7 @@ import {
   SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE, WORKLOAD } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
@@ -435,7 +435,8 @@ export default async function({
     const resource = getResourceFromRoute(route);
 
     // if we have resource param, but can't get the schema, it means the resource doesn't exist!
-    if (resource && !store.getters['management/schemaFor'](resource) && !store.getters['rancher/schemaFor'](resource)) {
+    // NOTE: workload doesn't have a schema, so let's just bypass this with the identifier
+    if (resource && resource !== WORKLOAD && !store.getters['management/schemaFor'](resource) && !store.getters['rancher/schemaFor'](resource)) {
       store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
 
       return redirect(302, '/fail-whale');

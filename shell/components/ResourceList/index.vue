@@ -70,7 +70,7 @@ export default {
 
     if ( !this.hasFetch ) {
       if ( !schema ) {
-        store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceNotFound', { resource }, true)));
+        store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true)));
 
         return;
       }
