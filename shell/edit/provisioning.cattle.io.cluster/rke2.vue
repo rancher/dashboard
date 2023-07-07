@@ -1278,8 +1278,8 @@ export default {
 
       let config;
 
-      if (this.extensionProvider?.createMachinePool) {
-        config = this.extensionProvider.createMachinePool(idx, this.machinePools);
+      if (this.extensionProvider?.createMachinePoolMachineConfig) {
+        config = this.extensionProvider.createMachinePoolMachineConfig(idx, this.machinePools);
       } else {
         // Default - use the schema
         config = await this.$store.dispatch('management/createPopulated', {
@@ -1369,7 +1369,7 @@ export default {
 
       // If the extension provider wants to do this, let them
       if (this.extensionProvider?.saveMachinePools) {
-        return this.extensionProvider.saveMachinePools(this.machinePools, this.value);
+        return await this.extensionProvider.saveMachinePools(this.machinePools, this.value);
       }
 
       for ( const entry of this.machinePools ) {
