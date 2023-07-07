@@ -7356,7 +7356,7 @@ gitPicker:
     repo:
       label: Repository
       inputLabel: Repository
-      tooltip: Branch to deploy from
+      tooltip: Repository to deploy from
     commits:
       label: Commits
       tooltip: Commits to deploy from
@@ -7367,7 +7367,7 @@ gitPicker:
       label: Commit Message
     errors:
       noAccount: No GitHub account or Organization found. Please review your query and try again.
-      noBranch: No branch found. Please review your query and try again."
+      noBranch: No branch found. Please review your query and try again.
   gitlab:
     label: GitLab
     tableHeaders:
@@ -7393,7 +7393,7 @@ gitPicker:
     repo:
       label: Repository
       inputLabel: Repository
-      tooltip: Branch to deploy from
+      tooltip: Repository to deploy from
     commits:
       label: Commits
       tooltip: Commits to deploy from
@@ -7404,7 +7404,7 @@ gitPicker:
       label: Commit Message
     errors:
       noAccount: No GitLab account or Organization found. Please review your query and try again.
-      noBranch: No branch found. Please review your query and try again."
+      noBranch: No branch found. Please review your query and try again.
 
 networkAttachmentDefinition:
   tabs:

@@ -73,6 +73,7 @@ generic:
   techPreview: 技术预览
   type: 类型
   unknown: 未知
+  upload: 上传
   provisioning: '—'
   key: 键
   value: 值
@@ -4017,6 +4018,7 @@ plugins:
     host: 此扩展与此应用程序不兼容
     version: 此扩展与此 Rancher 版本不兼容
     load: 加载此扩展的代码时出错
+    developerPkg: 此扩展已在内部加载，因此我们不会加载外部版本
   success:
     title: 已加载扩展 {name}
     message: 扩展加载成功
@@ -4446,7 +4448,6 @@ rbac:
   members:
     label: 成员
   roletemplate:
-    label: 角色
     newUserDefault:
       no: 否
       tooltip: 不影响已有角色的绑定。
@@ -5593,8 +5594,8 @@ validation:
       tooLongPrefix: '"{key}" 前缀的长度不能超过 {max} 个字符'
   minLength: '"{key}" 必须多于 {min} 个字符'
   maxLength: '"{key}" 必须少于 {max} 个字符'
-  minValue: '"{key}" 必须多于 {min}'
-  maxValue: '"{key}" 必须小于 {max}'
+  minValue: '"{key}" 必须等于或多于 {min}'
+  maxValue: '"{key}" 必须等于或少于 {max}'
   betweenLengths: '"{key}" 必须包含 {min} 到 {max} 个字符'
   betweenValues: '"{key}" 必须介于 {min} 和 {max} 之间'
   noSchema: 没有找到可以验证的 schema
@@ -7340,6 +7341,7 @@ manager:
     label: 节点模板
 
 auth:
+  roleTemplate: 角色模板
   config:
     label: 认证
 vncConsole:
@@ -7590,6 +7592,82 @@ charts:
     ingress.host:
       label: 7 层负载均衡主机名
       description: "7 层负载均衡主机名"
+
+gitPicker:
+  github:
+    label: GitHub
+    tableHeaders:
+      choose:
+        label: 选择
+      sha:
+        label: SHA
+      author:
+        label: 作者
+        unknown: 未知
+      message:
+        label: 消息
+      date:
+        label: 日期
+    username:
+      label: 用户名/组织
+      inputLabel: 用户名/组织
+      tooltip: Git 仓库的用户名/组织
+    branch:
+      label: 分支
+      inputLabel: 分支
+      tooltip: 要部署的分支
+    repo:
+      label: 仓库
+      inputLabel: 仓库
+      tooltip: 要部署的仓库
+    commits:
+      label: Commit
+      tooltip: 要部署的 Commit
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: 未找到 GitHub 帐户或组织。请检查你的查询并重试。
+      noBranch: 未找到分支。请检查你的查询并重试。
+  gitlab:
+    label: GitLab
+    tableHeaders:
+      choose:
+        label: 选择
+      sha:
+        label: SHA
+      author:
+        label: 作者
+        unknown: 未知
+      message:
+        label: 消息
+      date:
+        label: 日期
+    username:
+      label: 用户名/组织
+      inputLabel: 用户名/组织
+      tooltip: Git 仓库的用户名/组织
+    branch:
+      label: 分支
+      inputLabel: 分支
+      tooltip: 要部署的分支
+    repo:
+      label: 仓库
+      inputLabel: 仓库
+      tooltip: 要部署的仓库
+    commits:
+      label: Commit
+      tooltip: 要部署的 Commit
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: 未找到 GitLab 帐户或组织。请检查你的查询并重试。
+      noBranch: 未找到分支。请检查你的查询并重试。
 
 networkAttachmentDefinition:
   tabs:
