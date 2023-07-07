@@ -50,7 +50,8 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
     'cluster',
     'id',
     'mode',
-    'params',
+    // Custom params provided by the extension, not to be confused with location params
+    'customParams',
   ];
 
   let res = true;
@@ -71,7 +72,7 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
           // also handle "mode" in a separate way because it mainly depends on query params
           } else if (param === 'mode') {
             res = checkRouteMode($route, locationConfigParam);
-          } else if (param === 'params') {
+          } else if (param === 'customParams') {
             // Need all keys and values to match
             let okay = true;
 
@@ -105,7 +106,7 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
   return res;
 }
 
-export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx, params) {
+export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx, customParams) {
   const extensionEnhancements = [];
 
   // gate it so that we prevent errors on older versions of dashboard
@@ -113,7 +114,7 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
     const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
 
     actions.forEach((action, i) => {
-      if (checkExtensionRouteBinding(currRoute, action.locationConfig, params || {})) {
+      if (checkExtensionRouteBinding(currRoute, action.locationConfig, customParams || {})) {
         // ADD CARD PLUGIN UI ENHANCEMENT
         if (actionType === ExtensionPoint.CARD) {
           // intercept to apply translation

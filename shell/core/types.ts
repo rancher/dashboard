@@ -138,7 +138,10 @@ export type LocationConfig = {
   cluster?: string[],
   id?: string[],
   mode?: string[],
-  params: { [key: string]: string},
+  /**
+   * Custom params provided by the extension, not to be confused with location params
+   */
+  customParams?: { [key: string]: string},
 };
 
 export interface ProductOptions {
