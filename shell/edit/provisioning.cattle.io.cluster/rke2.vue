@@ -259,7 +259,7 @@ export default {
     // Namespaces if required - this is mainly for custom provisioners via extensions that want
     // to allow creating their resources in a different namespace
     if (this.needsNamespace) {
-      // TODO: RC permissions
+      // TODO: RC permissions (local cluster namespaces)?
       this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
     }
 
@@ -1082,7 +1082,7 @@ export default {
     validationPassed() {
       const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
 
-      // TODO: RC just needs a mock in extension and then check for/used here? needs validating throughout
+      // TODO: RC detemine what this TODO means. should be fine?
       // TODO
       let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId || !this.needCredential);
 
