@@ -1,6 +1,5 @@
 import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo, WorkloadsDeploymentsDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint, deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
-import { before } from 'lodash';
 
 describe('Cluster Explorer', () => {
   beforeEach(() => {
@@ -51,8 +50,8 @@ describe('Cluster Explorer', () => {
       e2eWorkloads.push({ name: workloadName, namespace });
 
       beforeEach(() => {
-        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('testWorkload');
-        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('clonedPod');
+        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
+        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('clonedPod');
 
         deploymentsListPage.goTo();
         deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
@@ -75,7 +74,6 @@ describe('Cluster Explorer', () => {
     });
 
     describe('Delete: Deployments', () => {
-
       const deploymentsToDeleteWithUI = [deploymentCreateRequest.metadata.name];
 
       // To reduce test runtime, will use the same workload for all the tests
@@ -93,9 +91,9 @@ describe('Cluster Explorer', () => {
     // But need to reuse the same workload for multiple tests
     after(() => {
       deploymentsListPage.goTo();
-       e2eWorkloads.forEach(({ name, namespace }) => {
-         deploymentsListPage.deleteWithKubectl(name, namespace);
-       });
+      e2eWorkloads.forEach(({ name, namespace }) => {
+        deploymentsListPage.deleteWithKubectl(name, namespace);
+      });
     });
   });
 });

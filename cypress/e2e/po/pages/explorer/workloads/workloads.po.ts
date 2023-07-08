@@ -79,7 +79,6 @@ export class WorkloadsListPageBasePo extends PagePo {
     return baseResourceList.masthead().actions().eq(0).click();
   }
 
-
   resourcesList() {
     return new BaseResourceList(this.self());
   }
@@ -111,12 +110,10 @@ export class WorkloadsListPageBasePo extends PagePo {
   private workload() {
     return new WorkloadPo();
   }
-  
+
   deleteWithKubectl(name: string, namespace = 'default') {
     this.workload().deleteWithKubectl(name, namespace);
   }
-
-  
 }
 
 export class WorkloadsCreatePageBasePo extends PagePo {
