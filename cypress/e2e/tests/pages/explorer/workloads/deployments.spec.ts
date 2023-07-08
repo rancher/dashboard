@@ -1,5 +1,6 @@
 import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo, WorkloadsDeploymentsDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint, deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
+import { before } from 'lodash';
 
 describe('Cluster Explorer', () => {
   beforeEach(() => {
@@ -14,6 +15,7 @@ describe('Cluster Explorer', () => {
 
     beforeEach(() => {
       deploymentsCreatePage = new WorkloadsDeploymentsCreatePagePo('local');
+      deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
     });
 
     describe('Create: Deployments', () => {
@@ -49,11 +51,11 @@ describe('Cluster Explorer', () => {
       e2eWorkloads.push({ name: workloadName, namespace });
 
       beforeEach(() => {
-        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
-        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('clonedPod');
+        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('testWorkload');
+        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('clonedPod');
 
-        deploymentsCreatePage.goTo();
-        deploymentsCreatePage.createWithKubectl(createDeploymentBlueprint);
+        deploymentsListPage.goTo();
+        deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
       });
 
       it('Should be able to scale the number of pods', () => {
@@ -66,16 +68,34 @@ describe('Cluster Explorer', () => {
       // To reduce test runtime, will use the same workload for all the tests
       it('Should list the workloads', () => {
         deploymentsListPage.goTo();
+        e2eWorkloads.forEach(({ name }) => {
+          deploymentsListPage.listElementWithName(name).should('exist');
+        });
+      });
+    });
+
+    describe('Delete: Deployments', () => {
+
+      const deploymentsToDeleteWithUI = [deploymentCreateRequest.metadata.name];
+
+      // To reduce test runtime, will use the same workload for all the tests
+      it('Should be able to delete a workload', () => {
+        deploymentsListPage.goTo();
+        deploymentsToDeleteWithUI.forEach(( name ) => {
+          deploymentsListPage.listElementWithName(name).should('exist');
+          deploymentsListPage.deleteItemWithUI(name);
+          deploymentsListPage.listElementWithName(name).should('not.exist');
+        });
       });
     });
 
     // This is here because need to delete the workload after the test
     // But need to reuse the same workload for multiple tests
     after(() => {
-      deploymentsCreatePage.goTo();
-      e2eWorkloads.forEach(({ name, namespace }) => {
-        deploymentsCreatePage.deleteWithKubectl(name, namespace);
-      });
+      deploymentsListPage.goTo();
+       e2eWorkloads.forEach(({ name, namespace }) => {
+         deploymentsListPage.deleteWithKubectl(name, namespace);
+       });
     });
   });
 });

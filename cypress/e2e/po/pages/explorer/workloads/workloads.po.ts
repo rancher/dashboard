@@ -4,6 +4,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import WorkloadPo from '@/cypress/e2e/po/pages/explorer/workloads.po';
+import PromptRemove from '~/cypress/e2e/po/prompts/promptRemove.po';
 
 export class workloadDetailsPageBasePo extends PagePo {
   static url: string;
@@ -78,19 +79,44 @@ export class WorkloadsListPageBasePo extends PagePo {
     return baseResourceList.masthead().actions().eq(0).click();
   }
 
-  resourceSortableTable() {
-    const baseResourceList = new BaseResourceList(this.self());
 
-    return baseResourceList.resourceTable().sortableTable();
+  resourcesList() {
+    return new BaseResourceList(this.self());
+  }
+
+  sortableTable() {
+    return this.resourcesList().resourceTable().sortableTable();
+  }
+
+  deleteItemWithUI(name: string) {
+    this.sortableTable().rowActionMenuOpen(name, 10).getMenuItem('Delete').click();
+
+    const promptRemove = new PromptRemove();
+
+    promptRemove.remove();
+  }
+
+  createWithKubectl(blueprintJson: string | Object, wait = 6000) {
+    this.workload().createWithKubectl(blueprintJson, wait);
   }
 
   listElementWithName(name: string) {
-    this.resourceSortableTable().rowElementWithName(name);
+    return this.sortableTable().rowElementWithName(name);
   }
 
   goToDetailsPage(elemName: string) {
-    return this.resourceSortableTable().detailsPageLinkWithName(elemName).click();
+    return this.sortableTable().detailsPageLinkWithName(elemName).click();
   }
+
+  private workload() {
+    return new WorkloadPo();
+  }
+  
+  deleteWithKubectl(name: string, namespace = 'default') {
+    this.workload().deleteWithKubectl(name, namespace);
+  }
+
+  
 }
 
 export class WorkloadsCreatePageBasePo extends PagePo {
