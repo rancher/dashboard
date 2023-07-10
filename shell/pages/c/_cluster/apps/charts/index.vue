@@ -352,7 +352,10 @@ export default {
   <div v-else>
     <header>
       <div class="title">
-        <h1 class="m-0">
+        <h1
+          data-testid="charts-header-title"
+          class="m-0"
+        >
           {{ t('catalog.charts.header') }}
         </h1>
       </div>
