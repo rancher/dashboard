@@ -49,10 +49,6 @@ export const routerOptions = {
     component: () => interopDefault(import('../pages/prefs.vue' /* webpackChunkName: "pages/prefs" */)),
     name:      'prefs'
   }, {
-    path:      '/safeMode',
-    component: () => interopDefault(import('../pages/safeMode.vue' /* webpackChunkName: "pages/safeMode" */)),
-    name:      'safeMode'
-  }, {
     path:      '/support',
     component: () => interopDefault(import('../pages/support/index.vue' /* webpackChunkName: "pages/support/index" */)),
     name:      'support'
