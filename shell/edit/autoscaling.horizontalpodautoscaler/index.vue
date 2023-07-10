@@ -288,11 +288,13 @@ export default {
             <h3>
               {{ t('hpa.scaleDownRules.label') }}
             </h3>
-            <Checkbox
-              v-model="hasScaleDownRules"
-              :mode="mode"
-              :label="t('hpa.scaleDownRules.enable')"
-            />
+            <div class="row mb-10">
+              <Checkbox
+                v-model="hasScaleDownRules"
+                :mode="mode"
+                :label="t('hpa.scaleDownRules.enable')"
+              />
+            </div>
             <HpaScalingRule
               v-if="hasScaleDownRules"
               v-model="value"
@@ -304,11 +306,13 @@ export default {
             <h3>
               {{ t('hpa.scaleUpRules.label') }}
             </h3>
-            <Checkbox
-              v-model="hasScaleUpRules"
-              :mode="mode"
-              :label="t('hpa.scaleUpRules.enable')"
-            />
+            <div class="row mb-10">
+              <Checkbox
+                v-model="hasScaleUpRules"
+                :mode="mode"
+                :label="t('hpa.scaleUpRules.enable')"
+              />
+            </div>
             <HpaScalingRule
               v-if="hasScaleUpRules"
               v-model="value"

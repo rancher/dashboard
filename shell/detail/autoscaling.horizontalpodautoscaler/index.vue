@@ -207,8 +207,8 @@ export default {
             </div>
           </div>
           <div class="row">
-            <div class="col span-6">
-              <label><t k="hpa.scalingRule.policyHeader" /></label>
+            <div class="col span-6 info-column">
+              <label class="text-label"><t k="hpa.scalingRule.policyHeader" /></label>
               <ul
                 v-for="(current, currentIndex) in value.spec.behavior[type].policies"
                 :key="`${currentIndex}`"
@@ -221,12 +221,12 @@ export default {
               </ul>
             </div>
             <div class="col span-6">
-              <div>
-                <label><t k="hpa.scalingRule.selectPolicy" />: </label>
+              <div class="mb-5">
+                <label class="text-label"><t k="hpa.scalingRule.selectPolicy" />: </label>
                 <span>{{ value.spec.behavior[type].selectPolicy }}</span>
               </div>
-              <div>
-                <label><t k="hpa.scalingRule.stabilizationWindowSeconds" />: </label>
+              <div class="mb-5">
+                <label class="text-label"><t k="hpa.scalingRule.stabilizationWindowSeconds" />: </label>
                 <span>{{ value.spec.behavior[type].stabilizationWindowSeconds }}s</span>
               </div>
             </div>
