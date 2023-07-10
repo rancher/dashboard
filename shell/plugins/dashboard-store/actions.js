@@ -7,6 +7,7 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
+import { isArray } from 'lodash';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -138,6 +139,7 @@ export default {
   },
 
   async findAll(ctx, { type, opt }) {
+    let partial = false;
     const {
       getters, commit, dispatch, rootGetters
     } = ctx;
@@ -184,6 +186,13 @@ export default {
 
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
+    // we should always exclude managed fields when retreiving resources to cut down on payload size and store memory
+    if (isArray(opt?.excludeFields)) {
+      partial = true;
+      opt.excludeFields = [...opt.excludeFields, 'metadata.managedFields'];
+    } else {
+      opt.excludeFields = ['metadata.managedFields'];
+    }
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
@@ -236,7 +245,9 @@ export default {
           const tmp = queue;
 
           queue = [];
-          commit('loadMulti', { ctx, data: tmp });
+          commit('loadMulti', {
+            ctx, data: tmp, partial
+          });
         }
       } else {
         // The first line is the collection object (sans `data`)
@@ -291,7 +302,8 @@ export default {
         // while still knowing we need to load the full list later.
         commit('loadMulti', {
           ctx,
-          data: out.data
+          data: out.data,
+          partial
         });
       } else if (load === _MERGE) {
         // This is like loadMulti (updates existing entries) but also removes entries that no longer exist
@@ -301,7 +313,8 @@ export default {
           ctx,
           type,
           data:     out.data,
-          existing: true
+          existing: true,
+          partial
         });
       } else {
         commit('loadAll', {
@@ -311,6 +324,7 @@ export default {
           revision:  out.revision,
           skipHaveAll,
           namespace: opt.namespaced,
+          partial
         });
       }
     }

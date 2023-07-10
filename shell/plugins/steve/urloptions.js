@@ -4,6 +4,7 @@ export default function urlOptions(url, opt) {
   opt = opt || {};
 
   // Filter
+  // ToDo: Steve's filter options work differently nowadays (https://github.com/rancher/steve#filter)
   if ( opt.filter ) {
     const keys = Object.keys(opt.filter);
 
@@ -21,6 +22,16 @@ export default function urlOptions(url, opt) {
   }
   // End: Filter
 
+  // Exclude
+  // excludeFields should be an array of strings representing the paths of the fields to exclude
+  // only works on Steve but is ignored without error by Norman
+  if (opt.excludeFields && opt.excludeFields.length > 0) {
+    const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
+
+    url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
+  }
+  // End: Exclude
+
   // Limit
   const limit = opt.limit;
 
@@ -29,6 +40,7 @@ export default function urlOptions(url, opt) {
   }
   // End: Limit
 
+  // ToDo: Steve's sort options work differently nowadays (https://github.com/rancher/steve#sort)
   // Sort
   const sortBy = opt.sortBy;
 

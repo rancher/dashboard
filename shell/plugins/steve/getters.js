@@ -54,6 +54,16 @@ export default {
     }
     // End: Filter
 
+    // Exclude
+    // excludeFields should be an array of strings representing the paths of the fields to exclude
+    // only works on Steve but is ignored without error by Norman
+    if (opt.excludeFields && opt.excludeFields.length > 0) {
+      const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
+
+      url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
+    }
+    // End: Exclude
+
     // Limit
     const limit = opt.limit;
 
@@ -85,7 +95,7 @@ export default {
     // `namespaced` is either
     // - a string representing a single namespace - add restriction to the url
     // - an array of namespaces or projects - add restriction as a param
-    if (opt.namespaced && !pAndNFiltering.isApplicable(opt)) {
+    if (opt?.namespaced && !pAndNFiltering.isApplicable(opt)) {
       const parts = url.split('/');
 
       url = `${ parts.join('/') }/${ opt.namespaced }`;
