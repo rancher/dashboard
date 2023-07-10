@@ -59,10 +59,9 @@ const driverMap = {
 
 // Map a driver component back to the cloud credential field name their data has to be stored in
 const driverToFieldMap = {
-  aws:                 'amazonec2',
-  gcp:                 'google',
-  oracle:              'oci',
-  digitaloceanexample: 'digitalocean' // TODO: RC DEBUG remove
+  aws:    'amazonec2',
+  gcp:    'google',
+  oracle: 'oci',
 };
 
 // Machine driver fields that are probably a credential field

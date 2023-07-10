@@ -58,7 +58,7 @@ export const CAPI = {
   /**
    * Annotation for overriding the cluster provider,
    */
-  PROVIDER_UI:          'ui.rancher/provider'
+  UI_CUSTOM_PROVIDER:   'ui.rancher/provider'
 };
 
 export const CATALOG = {

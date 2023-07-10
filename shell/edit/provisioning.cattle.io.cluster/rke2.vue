@@ -1084,8 +1084,6 @@ export default {
     validationPassed() {
       const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
 
-      // TODO: RC detemine what this TODO means. should be fine?
-      // TODO
       let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId || !this.needCredential);
 
       // and in all of the validation statuses for each machine pool
@@ -1271,7 +1269,6 @@ export default {
     },
 
     async addMachinePool(idx) {
-      console.warn('rk2', 'addMachinePool', idx); // TODO: RC DEBUG remove
       // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
       if ( !this.machineConfigSchema ) {
         return;

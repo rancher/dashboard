@@ -54,7 +54,7 @@ which translates to:
 With this it's then possible to easily identify the parameters needed to populate the `LocationConfig` and add the UI enhancements to the areas that you like. YES, it's also possible to enhance other extensions!
 
 
-The admissable parameters for the `LocationConfig` object are:
+The admissible parameters for the `LocationConfig` object are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -64,6 +64,7 @@ The admissable parameters for the `LocationConfig` object are:
 |`cluster`| Array | Array of the cluster identifier. Ex: `local` |
 |`id`| Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
 |`mode`| Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissable values are: `edit`, `config`, `detail` and `list` |
+|`customParams` | Object | ResourceTab only, when configured by that instance. Key value object which must match the object supplied to the instance of ResourceTab. Can be used to only show feature given context specific params (rather than generic params for the given resource). |
 
 ### LocationConfig Examples
 

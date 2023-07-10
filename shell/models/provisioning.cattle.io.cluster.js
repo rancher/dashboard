@@ -383,7 +383,7 @@ export default class ProvCluster extends SteveModel {
 
   get machineProvider() {
     // First check annotation - useful for clusters created by extension providers
-    const fromAnnotation = this.annotations?.[CAPI_ANNOTATIONS.PROVIDER_UI];
+    const fromAnnotation = this.annotations?.[CAPI_ANNOTATIONS.UI_CUSTOM_PROVIDER];
 
     if (fromAnnotation) {
       return fromAnnotation;
