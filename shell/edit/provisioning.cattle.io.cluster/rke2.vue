@@ -158,128 +158,9 @@ export default {
   },
 
   async fetch() {
-    // Check presence of PSP in RKE2, which is where we show the templates
-    this.psps = await this.checkPsps();
-
-    if ( !this.rke2Versions ) {
-      const hash = {
-        rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
-        k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
-      };
-
-      if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
-        hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
-      }
-
-      if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
-        hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
-      }
-
-      // Get the latest versions from the global settings if possible
-      const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
-      const defaultRke2Setting = globalSettings.find((setting) => setting.id === 'rke2-default-version') || {};
-      const defaultK3sSetting = globalSettings.find((setting) => setting.id === 'k3s-default-version') || {};
-
-      let defaultRke2 = defaultRke2Setting?.value || defaultRke2Setting?.default;
-      let defaultK3s = defaultK3sSetting?.value || defaultK3sSetting?.default;
-
-      // RKE2: Use the channel if we can not get the version from the settings
-      if (!defaultRke2) {
-        hash.rke2Channels = this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' });
-      }
-
-      // K3S: Use the channel if we can not get the version from the settings
-      if (!defaultK3s) {
-        hash.k3sChannels = this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' });
-      }
-
-      const res = await allHash(hash);
-
-      this.allPSPs = res.allPSPs || [];
-      this.allPSAs = res.allPSAs || [];
-      this.rke2Versions = res.rke2Versions.data || [];
-      this.k3sVersions = res.k3sVersions.data || [];
-
-      if (!defaultRke2) {
-        const rke2Channels = res.rke2Channels.data || [];
-
-        defaultRke2 = rke2Channels.find((x) => x.id === 'default')?.latest;
-      }
-
-      if (!defaultK3s) {
-        const k3sChannels = res.k3sChannels.data || [];
-
-        defaultK3s = k3sChannels.find((x) => x.id === 'default')?.latest;
-      }
-
-      if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
-        throw new Error('No version info found in KDM');
-      }
-
-      // Store default versions
-      this.defaultRke2 = defaultRke2;
-      this.defaultK3s = defaultK3s;
-    }
-
-    if ( !this.value.spec ) {
-      set(this.value, 'spec', {});
-    }
-
-    if ( !this.value.spec.machineSelectorConfig ) {
-      set(this.value.spec, 'machineSelectorConfig', []);
-    }
-
-    if ( !this.value.spec.machineSelectorConfig.find((x) => !x.machineLabelSelector) ) {
-      this.value.spec.machineSelectorConfig.unshift({ config: {} });
-    }
-
-    if ( this.value.spec.cloudCredentialSecretName ) {
-      await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
-      this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
-    }
-
-    if ( !this.value.spec.kubernetesVersion ) {
-      set(this.value.spec, 'kubernetesVersion', this.defaultVersion);
-    }
-
-    if ( this.rkeConfig.etcd?.s3?.bucket ) {
-      this.s3Backup = true;
-    }
-
-    if ( !this.rkeConfig.etcd ) {
-      set(this.rkeConfig, 'etcd', {
-        disableSnapshots:     false,
-        s3:                   null,
-        snapshotRetention:    5,
-        snapshotScheduleCron: '0 */5 * * *',
-      });
-    } else if (typeof this.rkeConfig.etcd.disableSnapshots === 'undefined') {
-      const disableSnapshots = !this.rkeConfig.etcd.snapshotRetention && !this.rkeConfig.etcd.snapshotScheduleCron;
-
-      set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
-    }
-
-    // Namespaces if required - this is mainly for custom provisioners via extensions that want
-    // to allow creating their resources in a different namespace
-    if (this.needsNamespace) {
-      this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
-    }
-
-    if ( !this.machinePools ) {
-      await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
-      if ( this.mode === _CREATE && !this.machinePools.length ) {
-        await this.addMachinePool();
-      }
-    }
-
-    if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
-      set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-    }
-
-    if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
-      set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
-    }
-
+    this.psps = await this.getPsps();
+    await this.fetchRke2Versions();
+    await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
 
@@ -1176,6 +1057,135 @@ export default {
   methods: {
     nlToBr,
     set,
+
+    /**
+     * Initialize all the cluster specs
+     */
+    async initSpecs() {
+      if ( !this.value.spec ) {
+        set(this.value, 'spec', {});
+      }
+
+      if ( !this.value.spec.machineSelectorConfig ) {
+        set(this.value.spec, 'machineSelectorConfig', []);
+      }
+
+      if ( !this.value.spec.machineSelectorConfig.find((x) => !x.machineLabelSelector) ) {
+        this.value.spec.machineSelectorConfig.unshift({ config: {} });
+      }
+
+      if ( this.value.spec.cloudCredentialSecretName ) {
+        await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
+        this.credentialId = `${ this.value.spec.cloudCredentialSecretName }`;
+      }
+
+      if ( !this.value.spec.kubernetesVersion ) {
+        set(this.value.spec, 'kubernetesVersion', this.defaultVersion);
+      }
+
+      if ( this.rkeConfig.etcd?.s3?.bucket ) {
+        this.s3Backup = true;
+      }
+
+      if ( !this.rkeConfig.etcd ) {
+        set(this.rkeConfig, 'etcd', {
+          disableSnapshots:     false,
+          s3:                   null,
+          snapshotRetention:    5,
+          snapshotScheduleCron: '0 */5 * * *',
+        });
+      } else if (typeof this.rkeConfig.etcd.disableSnapshots === 'undefined') {
+        const disableSnapshots = !this.rkeConfig.etcd.snapshotRetention && !this.rkeConfig.etcd.snapshotScheduleCron;
+
+        set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
+      }
+
+      // Namespaces if required - this is mainly for custom provisioners via extensions that want
+      // to allow creating their resources in a different namespace
+      if (this.needsNamespace) {
+        this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
+      }
+
+      if ( !this.machinePools ) {
+        await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
+        if ( this.mode === _CREATE && !this.machinePools.length ) {
+          await this.addMachinePool();
+        }
+      }
+
+      if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
+        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+      }
+
+      if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+      }
+    },
+
+    /**
+     * Fetch RKE versions and their configurations to be mapped to the form
+     */
+    async fetchRke2Versions() {
+      if ( !this.rke2Versions ) {
+        const hash = {
+          rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
+          k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+        };
+
+        if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
+          hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+        }
+
+        if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
+          hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+        }
+
+        // Get the latest versions from the global settings if possible
+        const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
+        const defaultRke2Setting = globalSettings.find((setting) => setting.id === 'rke2-default-version') || {};
+        const defaultK3sSetting = globalSettings.find((setting) => setting.id === 'k3s-default-version') || {};
+
+        let defaultRke2 = defaultRke2Setting?.value || defaultRke2Setting?.default;
+        let defaultK3s = defaultK3sSetting?.value || defaultK3sSetting?.default;
+
+        // RKE2: Use the channel if we can not get the version from the settings
+        if (!defaultRke2) {
+          hash.rke2Channels = this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' });
+        }
+
+        // K3S: Use the channel if we can not get the version from the settings
+        if (!defaultK3s) {
+          hash.k3sChannels = this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' });
+        }
+
+        const res = await allHash(hash);
+
+        this.allPSPs = res.allPSPs || [];
+        this.allPSAs = res.allPSAs || [];
+        this.rke2Versions = res.rke2Versions.data || [];
+        this.k3sVersions = res.k3sVersions.data || [];
+
+        if (!defaultRke2) {
+          const rke2Channels = res.rke2Channels.data || [];
+
+          defaultRke2 = rke2Channels.find((x) => x.id === 'default')?.latest;
+        }
+
+        if (!defaultK3s) {
+          const k3sChannels = res.k3sChannels.data || [];
+
+          defaultK3s = k3sChannels.find((x) => x.id === 'default')?.latest;
+        }
+
+        if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
+          throw new Error('No version info found in KDM');
+        }
+
+        // Store default versions
+        this.defaultRke2 = defaultRke2;
+        this.defaultK3s = defaultK3s;
+      }
+    },
 
     cleanAgentConfiguration(model, key) {
       if (!model || !model[key]) {
@@ -2128,10 +2138,9 @@ export default {
     },
 
     /**
-     * Check if current cluster has PSP enabled
-     * Consider exclusively RKE2 provisioned clusters in edit mode
+     * Get provisioned RKE2 cluster PSPs in edit mode
      */
-    async checkPsps() {
+    async getPsps() {
       // As server returns 500 we exclude all the possible cases
       if (
         this.mode !== _CREATE &&
