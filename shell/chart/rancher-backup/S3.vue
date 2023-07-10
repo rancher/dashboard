@@ -35,6 +35,10 @@ export default {
     this.$emit('valid', this.valid);
   },
 
+  beforeDestroy() {
+    this.$emit('valid', true);
+  },
+
   watch: {
     valid() {
       this.$emit('valid', this.valid);
