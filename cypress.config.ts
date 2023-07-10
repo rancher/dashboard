@@ -96,7 +96,9 @@ export default defineConfig({
     username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
-    grepTags:          process.env.GREP_TAGS
+    grepTags:          process.env.GREP_TAGS,
+    clientId: process.env.TEST_CLIENT_ID,
+    clientSecret: process.env.TEST_CLIENT_SECRET,
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
