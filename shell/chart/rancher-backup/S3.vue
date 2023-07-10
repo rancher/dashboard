@@ -4,6 +4,7 @@ import { Checkbox } from '@components/Form/Checkbox';
 import FileSelector from '@shell/components/form/FileSelector';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
+
 export default {
   components: {
     LabeledInput,
@@ -30,6 +31,19 @@ export default {
     }
   },
 
+  mounted() {
+    this.$emit('valid', this.valid);
+  },
+
+  beforeDestroy() {
+    this.$emit('valid', true);
+  },
+
+  watch: {
+    valid() {
+      this.$emit('valid', this.valid);
+    }
+  },
   computed: {
     credentialSecret: {
       get() {
@@ -44,6 +58,9 @@ export default {
         this.$set(this.value, 'credentialSecretName', name);
         this.$set(this.value, 'credentialSecretNamespace', namespace);
       }
+    },
+    valid() {
+      return !!this.value.endpoint && !!this.value.bucketName;
     },
     ...mapGetters({ t: 'i18n/t' })
   },
@@ -87,8 +104,10 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model="value.bucketName"
+          data-testid="S3-bucketName"
           :mode="mode"
           :label="t('backupRestoreOperator.s3.bucketName')"
+          required
         />
       </div>
     </div>
@@ -114,6 +133,8 @@ export default {
           v-model="value.endpoint"
           :mode="mode"
           :label="t('backupRestoreOperator.s3.endpoint')"
+          data-testid="S3-endpoint"
+          required
         />
         <Checkbox
           v-model="value.insecureTLSSkipVerify"
