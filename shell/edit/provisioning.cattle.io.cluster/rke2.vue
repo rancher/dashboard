@@ -757,7 +757,8 @@ export default {
           getters:  this.$store.getters,
           axios:    this.$store.$axios,
           $plugin:  this.$store.app.$plugin,
-          $t:       this.t
+          $t:       this.t,
+          isCreate: this.isCreate
         });
       }
 
@@ -1271,7 +1272,7 @@ export default {
 
     async addMachinePool(idx) {
       console.warn('rk2', 'addMachinePool', idx); // TODO: RC DEBUG remove
-      // this.machineConfigSchema is the schema for the Machine Pool configuration for the given provider
+      // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
       if ( !this.machineConfigSchema ) {
         return;
       }
@@ -1281,7 +1282,7 @@ export default {
       let config;
 
       if (this.extensionProvider?.createMachinePoolMachineConfig) {
-        config = await this.extensionProvider.createMachinePoolMachineConfig(idx, this.machinePools);
+        config = await this.extensionProvider.createMachinePoolMachineConfig(idx, this.machinePools, this.value);
       } else {
         // Default - use the schema
         config = await this.$store.dispatch('management/createPopulated', {
@@ -1628,6 +1629,24 @@ export default {
         set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, fleetAgentDeploymentCustomization);
       }
     },
+
+    async actuallySave(url) {
+      if (this.extensionProvider?.saveCluster) {
+        return await this.extensionProvider?.saveCluster(this.value, this.schema);
+      }
+
+      if ( this.isCreate ) {
+        url = url || this.schema.linkFor('collection');
+        const res = await this.value.save({ url });
+
+        if (res) {
+          Object.assign(this.value, res);
+        }
+      } else {
+        await this.value.save();
+      }
+    },
+
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
     async createKubeconfigSecret(kubeconfig = '') {
       const clusterName = this.value.metadata.name;

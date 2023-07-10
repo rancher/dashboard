@@ -1,4 +1,12 @@
-export type ClusterSaveHook = (hook: (cluster: any) => void, name: string, priority?: number, ) => void;
+/**
+ * Register a function to run as part of the save cluster process
+ *
+ * @param hook function to run
+ * @param name unique identifier
+ * @param priority higher numbers are lower priority
+ * @param fnContext the `this` context from inside the function. If left blank will be a Vue component
+ */
+export type ClusterSaveHook = (hook: (cluster: any) => void, name: string, priority?: number, fnContext?: any) => void;
 
 /**
  * Interface that a custom Cluster Provisioner should implement
@@ -15,64 +23,12 @@ export interface IClusterProvisioner {
   /**
    * Should the UI show a namespace selector when using this provisioner
    */
-  namespaced: Boolean;
+  namespaced: boolean;
 
   /**
    * Icon shown when the user is selecting the type of cluster provider
    */
   icon: any;
-
-  /**
-   * Schema for machine config object. For example rke-machine-config.cattle.io.digitaloceanconfig
-   *
-   * The `id` should be in the format of `rke-machine-config.cattle.io.${ provider id }config`
-   *
-   * The `attributes: { kind: <value> }` should match the last part of the id
-   * The `attributes: { group: <value> }` should match the remaining parts of the id
-   */
-  machineConfigSchema?: { [key: string]: any };
-
-  /**
-   * Override the default method to create a machine config object that will be inserted into a new machine pool
-   *
-   * The machine config will be an instance related to the machine config schema
-   *
-   * This is usually used when the user has selected to add a machine pool when creating/editing the cluster
-   *
-   * @param idx Index of new pool
-   * @param pools Existing machine pools
-   * @returns Instance of a machine config
-   */
-  createMachinePoolMachineConfig?(idx: number, pools: any[]): Promise<{[key: string]: any}>;
-
-  /**
-   * Update the cluster before and or after the cluster is saved
-   *
-   * @param registerBeforeHook
-   *  Call `registerBeforeHook` with a function. The function will be executed before the cluster is saved.
-   *  This allows the model used in the API request to be updated before being sent.
-   * @param registerAfterHook
-   *  Call `registerAfterHook` with a function. The function will be executed after the cluster has been saved.
-   *  This allows the model received in response to the API request to be updated
-   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
-   */
-  registerSaveHooks?(registerBeforeHook: ClusterSaveHook, registerAfterHook: ClusterSaveHook, cluster: any): void;
-
-  /**
-   * Override the default process to save the machine config's associated with the machine pools
-   *
-   * If machine config's will be the pool's `config` property.
-   *
-   * The pool will have `create: true` if the pool is new or `update: true` if the pool already exists
-   *
-   * For information on proxying HTTP requests from the browser via Rancher https://rancher.github.io/dashboard/code-base-works/machine-drivers#api-calls
-   * These docs also cover how to reference a Cloud Credential and use it's properties in the proxy's request `Authorization` header
-   *
-   * @param pools Machine pools
-   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
-   * @returns Content of async result / promise N/A, only the success / fail state
-   */
-  saveMachinePoolConfigs?(pools: any[], cluster: any): Promise<any>
 
   /**
    * Existing tabs to show or hide in the cluster's detail view
@@ -111,13 +67,93 @@ export interface IClusterProvisioner {
   };
 
   /**
-   * Override the default process to save the cluster (`provisioning.cattle.io.cluster`)
+   * Getters / Functions for Managing Machine Configs
+   */
+
+  /**
+   * Schema for machine config object. For example rke-machine-config.cattle.io.digitaloceanconfig
+   *
+   * The `id` should be in the format of `rke-machine-config.cattle.io.${ provider id }config`
+   *
+   * The `attributes: { kind: <value> }` should match the last part of the id
+   * The `attributes: { group: <value> }` should match the remaining parts of the id
+   */
+  machineConfigSchema?: { [key: string]: any };
+
+  /**
+   * Override the default method to create a machine config object that will be inserted into a new machine pool
+   *
+   * The machine config will be an instance related to the machine config schema
+   *
+   * This is usually used when the user has selected to add a machine pool when creating/editing the cluster.
+   *
+   * > If the user updates the cluster's namespace after pools have been created.... the machine config's will need updating later on
+   *
+   * @param idx Index of new pool
+   * @param pools Existing machine pools
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   * @returns Instance of a machine config
+   */
+  createMachinePoolMachineConfig?(idx: number, pools: any[], cluster: any): Promise<{[key: string]: any}>;
+
+  /**
+   * Override the default process to save the machine config's associated with the machine pools
+   *
+   * If machine config's will be the pool's `config` property.
+   *
+   * The pool will have `create: true` if the pool is new or `update: true` if the pool already exists
    *
    * For information on proxying HTTP requests from the browser via Rancher https://rancher.github.io/dashboard/code-base-works/machine-drivers#api-calls
    * These docs also cover how to reference a Cloud Credential and use it's properties in the proxy's request `Authorization` header
    *
    * @param pools Machine pools
    * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   * @returns Content of async result / promise N/A, only the success / fail state
+   */
+  saveMachinePoolConfigs?(pools: any[], cluster: any): Promise<any>
+
+  /**
+   * Optionally override parts of the cluster save process with
+   * - hooks that run before or after the cluster resource is saved
+   * - the actual save of the cluster resource
+   */
+
+  /**
+   * Update the cluster before and or after the cluster is saved
+   *
+   * @param registerBeforeHook
+   *  Call `registerBeforeHook` with a function. The function will be executed before the cluster is saved.
+   *  This allows the model used in the API request to be updated before being sent.
+   * @param registerAfterHook
+   *  Call `registerAfterHook` with a function. The function will be executed after the cluster has been saved.
+   *  This allows the model received in response to the API request to be updated
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   */
+  registerSaveHooks?(registerBeforeHook: ClusterSaveHook, registerAfterHook: ClusterSaveHook, cluster: any): void;
+
+  /**
+   * Optionally override the save of the cluster resource itself.
+   *
+   * https://github.com/rancher/dashboard/blob/master/shell/mixins/create-edit-view/impl.js#L179
+   *
+   * This means a lot of the generic handling of cluster provisioning is not skipped (as per the `provision` method)
+   *
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   * @returns Rejected promise / exception from `await` if failed to save
+   */
+  saveCluster?(cluster: any): Promise<any>
+
+  /**
+   * Optionally override all of the ui's save cluster process (including hooks and saving the resource)
+   *
+   * https://github.com/rancher/dashboard/blob/master/shell/edit/provisioning.cattle.io.cluster/rke2.vue#L1420
+   *
+   * For information on proxying HTTP requests from the browser via Rancher https://rancher.github.io/dashboard/code-base-works/machine-drivers#api-calls
+   * These docs also cover how to reference a Cloud Credential and use it's properties in the proxy's request `Authorization` header
+   *
+   * @param pools Machine pools
+   * @param cluster The cluster (`provisioning.cattle.io.cluster`)
+   * @param isCreate True if the cluster is being created, false if an existing cluster being edited
    * @returns Array of errors. If there are no errors the array will be empty
    */
   provision?(cluster: any, pools: any[]): Promise<any[]>;
