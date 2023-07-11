@@ -380,12 +380,8 @@ export const routerOptions = {
     path:      '/',
     component: () => interopDefault(import('../pages/index.vue' /* webpackChunkName: "pages/index" */)),
     name:      'index'
-  },{
-    path:     '/verify-auth',
-    redirect: (to) => {
-      return 'auth/verify';
-    },
-  }],
+  }
+],
 
   fallback: false
 };
