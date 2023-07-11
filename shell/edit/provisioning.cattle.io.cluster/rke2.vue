@@ -262,7 +262,6 @@ export default {
     // Namespaces if required - this is mainly for custom provisioners via extensions that want
     // to allow creating their resources in a different namespace
     if (this.needsNamespace) {
-      // TODO: RC permissions (local cluster namespaces)?
       this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
     }
 

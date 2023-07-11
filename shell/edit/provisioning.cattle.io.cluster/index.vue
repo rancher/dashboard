@@ -153,6 +153,8 @@ export default {
         $plugin:  this.$store.app.$plugin,
         t:        (...args) => this.t.apply(this, args),
         isCreate: this.isCreate,
+        isEdit:   this.isEdit,
+        isView:   this.isView,
       }));
     } catch (e) {
       console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console

@@ -1,14 +1,20 @@
 # Cluster Provisioning (RKE2 / Custom)
 
-The Rancher UI provides a number of hooks to support custom components and processes when managing RKE2/Custom clusters.
+The Rancher UI provides a number of ways to customise the processes that creates RKE2/Custom clusters. This includes
+- Adding additional Cluster Provisioner types
+- Customising or replacing components used in the create process
+- Additional tabs
+- Hooks in to the processes that persist cluster resources
+- Overrides that replace the process to persist cluster resources
 
 ## Custom Components
-To implement components for an existing node driver see [Custom Node Driver UI](components/node-drivers.md). For example new / replacement components to manage cloud credentials and/or machine configs can be supplied.
+Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](components/node-drivers.md). 
 
-## Custom Create/Edit
+## Custom Cluster Provisioner
+New cluster provisioners can be added that can tailor the create/edit experience for their own needs.
 
 ### Resources
-Creating an cluster revolves around two resources
+Creating a cluster revolves around two resources
 - The machine configuration
   - The machine configuration defines how the individual nodes within a node pool will be provisioned. For instance which region and size they may be
   - These normally have an type of `rke-machine-config.cattle.io.<provider name>config`, which matches the id of it's schema object
@@ -16,7 +22,7 @@ Creating an cluster revolves around two resources
   - The `provisioning.cattle.io.cluster` which, aside from machine configuration, contains all details of the cluster
   - In the UI this is an instance of the `rancher/dashboard` `shell/models/provisioning.cattle.io.cluster.js` class
      - This has lots of great helper functions, most importantly `save`
-  - This process will create a cluster of type `custom`
+  - Cluster provisioners should always create an instance of this class
 
 ### Provisioner Class
 To customise the process of creating or editing these resources the extension should register a provisioner class which implements the `IClusterProvisioner` interface.
@@ -30,16 +36,17 @@ To customise the process of creating or editing these resources the extension sh
 Below is outline for the functionality the class provides, for detail about the `IClusterProvisioner` interface see the inline documentation.
 
 The class provides a way to...
-1. show a card for the new cluster type to the user when selecting the type of cluster to provision
+1. show a card for the new cluster type for the user to choose when selecting a provider
 1. handle custom machine configs that haven't necessarily been provided by the usual node driver way
 1. hooks to extend/override the cluster save process. Either..
     - Override all of the cluster save process
     - Extend/Override parts of the cluster save process. This allows a lot of the boilerplate code to manage addons, member bindings, etc to run
-    - run code before the cluster resource is saved
-    - replace the code that saves the core cluster
-    - run code after the cluster resource is saved
+      - run code before the cluster resource is saved
+      - replace the code that saves the core cluster
+      - run code after the cluster resource is saved
 1. show a custom label for the provider of the custom cluster
     - This is done by setting the `ui.rancher/provider` annotation in the cluster
+    - It's used in the UI whenever showing the cluster's provider
 1. show custom tabs on the Detail page of the custom cluster
 
 > To make API calls from the UI to a different domain see [here](../../code-base-works/machine-drivers.md#api-calls). For instance to fetch region or machine size information used to create a machine config
@@ -54,11 +61,11 @@ These can be provided as per the `Custom Components` section.
   plugin.register('machine-config', 'my-provisioner', () => import('./src/test.vue'));
 ```
 
-This example registers that no cloud credential is needed and registers a custom component to be used for Machine Configuration within a node/machine pool - this is the same as with Node Drivers - e.g. with the OpenStack node driver example.
+> This example registers that no cloud credential is needed and registers a custom component to be used for Machine Configuration within a node/machine pool - this is the same as with Node Drivers - e.g. with the OpenStack node driver example.
 
 ### Custom tabs in the Cluster's Cluster Configuration 
 
-When creating a cluster or editing the cluster the user can see a set of `Cluster Configuration` tabs that contain configuration applicable to the entire cluster.
+When creating or editing the cluster the user can see a set of `Cluster Configuration` tabs that contain configuration applicable to the entire cluster.
 
 Extensions can add additional tabs here.
 
@@ -72,7 +79,7 @@ Extensions can add additional tabs here.
     component: () => import('./src/example-cluster-config-tab.vue')
   });
 ```
-Note we use the new `queryParam` property to allow us to target the tab only when the cluster is of our provider type.
+> Note we use the new `queryParam` property to allow us to target the tab only when the cluster is of our provider type.
 
 ### Custom tabs in the Cluster's detail page
 

@@ -17,12 +17,38 @@ export type RegisterClusterSaveHook = (hook: ClusterSaveHook, name: string, prio
  * Params used when constructing an instance of the cluster provisioner
  */
 export interface ClusterProvisionerContext {
+  /**
+   * Dispatch vuex actions
+   */
   dispatch: any,
+  /**
+   * Get from vuex store
+   */
   getters: any,
+  /**
+   * Used to make http requests
+   */
   axios: any,
+  /**
+   * Definition of the extension
+   */
   $plugin: any,
+  /**
+   * Function to retrieve a localised string
+   */
   t: (key: string) => string,
+  /**
+   * Are we in the context of creating a cluster
+   */
   isCreate: boolean
+  /**
+   * Are we in the context of editing an existing cluster
+   */
+  isEdit: boolean
+  /**
+   * Are we viewing an existing cluster
+   */
+  isView: boolean
 }
 
 /**
