@@ -97,7 +97,7 @@ export type Action = {
   svg?: Function;
   icon?: string;
   multiple?: boolean;
-  enabled?: (ctx: any) => boolean;
+  enabled?: Function | boolean;
   invoke: (opts: ActionOpts, resources: any[]) => void | boolean | Promise<boolean>;
 };
 

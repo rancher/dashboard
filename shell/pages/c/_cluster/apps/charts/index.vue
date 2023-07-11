@@ -242,7 +242,7 @@ export default {
   },
 
   created() {
-    const release = this.currentCluster?.status?.version.gitVersion || '';
+    const release = this.currentCluster?.status?.version?.gitVersion || '';
     const isRKE2 = release.includes('rke2');
     const version = release.match(/\d+/g);
 
