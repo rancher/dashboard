@@ -236,7 +236,6 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <LabeledInput
-              data-testid="client-id"
               v-model="model.clientId"
               :label="t(`authConfig.${NAME}.clientId.label`)"
               :mode="mode"
@@ -244,7 +243,6 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledInput
-              data-testid="client-secret"
               v-model="model.clientSecret"
               type="password"
               :label="t(`authConfig.${NAME}.clientSecret.label`)"

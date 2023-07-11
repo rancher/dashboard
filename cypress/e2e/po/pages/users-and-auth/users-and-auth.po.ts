@@ -4,7 +4,6 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
-import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
 import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
 
 export default class UsersAndAuthPo extends PagePo {
@@ -63,19 +62,6 @@ export default class UsersAndAuthPo extends PagePo {
   selectCheckbox(label:string): CheckboxInputPo {
     return CheckboxInputPo.byLabel(this.self(), label);
   }
-
-  authversionGitHub(): RadioGroupInputPo {
-    return new RadioGroupInputPo('[data-testid="authConfig-gitHub"]');
-  }
-
-  clientId(): LabeledInputPo {
-    return new LabeledInputPo('[data-testid="client-id"]', this.self());
-  }
-
-  clientSecret(): LabeledInputPo {
-    return new LabeledInputPo('[data-testid="client-secret"]', this.self());
-  }
-
 
   saveCreateForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
