@@ -65,6 +65,7 @@ export enum PanelLocation {
 /** Enum regarding tab locations that are extensionable in the UI */
 export enum TabLocation {
   RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
+  CLUSTER_CREATE_RKE2 = 'cluster-create-rke2', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding card locations that are extensionable in the UI */
@@ -139,9 +140,15 @@ export type LocationConfig = {
   id?: string[],
   mode?: string[],
   /**
-   * Custom params provided by the extension, not to be confused with location params
+   * Query Params from URL
    */
-  customParams?: { [key: string]: string},
+  queryParam?: { [key: string]: string},
+  /**
+   * Context specific params.
+   *
+   * Components can provide additional context specific params that this value must match
+   */
+  context?: { [key: string]: string},
 };
 
 export interface ProductOptions {

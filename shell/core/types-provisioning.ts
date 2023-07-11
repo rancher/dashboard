@@ -1,12 +1,17 @@
 /**
+ * A function to run as part of the save cluster process
+ */
+export type ClusterSaveHook = (cluster: any) => Promise<any>
+
+/**
  * Register a function to run as part of the save cluster process
  *
  * @param hook function to run
  * @param name unique identifier
  * @param priority higher numbers are lower priority
- * @param fnContext the `this` context from inside the function. If left blank will be a Vue component
+ * @param fnContext the `this` context from inside the function. If left blank will be a Vue component (where this.value will be the cluster)
  */
-export type ClusterSaveHook = (hook: (cluster: any) => void, name: string, priority?: number, fnContext?: any) => void;
+export type RegisterClusterSaveHook = (hook: ClusterSaveHook, name: string, priority?: number, fnContext?: any) => void;
 
 /**
  * Interface that a custom Cluster Provisioner should implement
@@ -123,13 +128,13 @@ export interface IClusterProvisioner {
    *
    * @param registerBeforeHook
    *  Call `registerBeforeHook` with a function. The function will be executed before the cluster is saved.
-   *  This allows the model used in the API request to be updated before being sent.
+   *  This allows the model used in the API request to be updated before being sent
    * @param registerAfterHook
    *  Call `registerAfterHook` with a function. The function will be executed after the cluster has been saved.
    *  This allows the model received in response to the API request to be updated
    * @param cluster The cluster (`provisioning.cattle.io.cluster`)
    */
-  registerSaveHooks?(registerBeforeHook: ClusterSaveHook, registerAfterHook: ClusterSaveHook, cluster: any): void;
+  registerSaveHooks?(registerBeforeHook: RegisterClusterSaveHook, registerAfterHook: RegisterClusterSaveHook, cluster: any): void;
 
   /**
    * Optionally override the save of the cluster resource itself.

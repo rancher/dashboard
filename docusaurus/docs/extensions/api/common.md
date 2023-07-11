@@ -63,8 +63,9 @@ The admissible parameters for the `LocationConfig` object are:
 |`namespace`| Array | Array of the namespace identifier. Ex: `kube-system`, `cattle-global-data` or `cattle-system` |
 |`cluster`| Array | Array of the cluster identifier. Ex: `local` |
 |`id`| Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
-|`mode`| Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissable values are: `edit`, `config`, `detail` and `list` |
-|`customParams` | Object | ResourceTab only, when configured by that instance. Key value object which must match the object supplied to the instance of ResourceTab. Can be used to only show feature given context specific params (rather than generic params for the given resource). |
+|`mode`| Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissible values are: `edit`, `config`, `detail` and `list` |
+|`context` | Object | Requirements set by the context itself. This is a key value object that must match the object provided where the feature is used. For instance if a ResourceTab should only include a tab given specific information where the ResourceTab is used. Ex `{ provider: "digitalocean" }` |
+| `queryParam` | Object | This is a key value object that must match the url's query param key values
 
 ### LocationConfig Examples
 

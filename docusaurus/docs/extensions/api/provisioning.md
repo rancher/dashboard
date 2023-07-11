@@ -45,24 +45,43 @@ The class provides a way to...
 > To make API calls from the UI to a different domain see [here](../../code-base-works/machine-drivers.md#api-calls). For instance to fetch region or machine size information used to create a machine config
 
 ### Components
-In addition to the provisioner class, the user can provide components as per the `Custom Components` section.
+When creating or editing a cluster the user can see the cloud credential and machine pool components.
+
+These can be provided as per the `Custom Components` section.
 
 ```
   plugin.register('cloud-credential', 'my-provisioner', false);
   plugin.register('machine-config', 'my-provisioner', () => import('./src/test.vue'));
 ```
 
-This example registers that no cloud credential is needed and registers a custom component to be used for Machine Configuration within a node/machine pool - this is the same as with Node Drivers - e.g. with the OpenStack node driver example. 
+This example registers that no cloud credential is needed and registers a custom component to be used for Machine Configuration within a node/machine pool - this is the same as with Node Drivers - e.g. with the OpenStack node driver example.
+
+### Custom tabs in the Cluster's Cluster Configuration 
+
+When creating a cluster or editing the cluster the user can see a set of `Cluster Configuration` tabs that contain configuration applicable to the entire cluster.
+
+Extensions can add additional tabs here.
+
+```
+  plugin.addTab(TabLocation.CLUSTER_CREATE_RKE2, {
+    resource:     ['provisioning.cattle.io.cluster'],
+    queryParam:    { type: ExampleProvisioner.ID }
+  }, {
+    name:      'custom-cluster-config',
+    labelKey:     'exampleClusterConfigTab.tabLabel',
+    component: () => import('./src/example-cluster-config-tab.vue')
+  });
+```
+Note we use the new `queryParam` property to allow us to target the tab only when the cluster is of our provider type.
 
 ### Custom tabs in the Cluster's detail page
 
-When clicking on a created cluster in the UI the user is shown details for the cluster. This page has some tabs which may not be applicable
-to the custom provider. The provider class has a way to hide these. To add a new custom tab the following can be used
+When clicking on a created cluster in the UI the user is shown details for the cluster. This page has some tabs which may not be applicable to the custom provider. The provider class has a way to hide these. To add a new custom tab the following can be used
 
 ```
   plugin.addTab(TabLocation.RESOURCE_DETAIL, {
     resource:     ['provisioning.cattle.io.cluster'],
-    customParams:   { provider: ExampleProvisioner.ID }
+    context:   { provider: ExampleProvisioner.ID }
   }, {
     name:      'custom',
     label:     'Custom Tab',
@@ -70,7 +89,7 @@ to the custom provider. The provider class has a way to hide these. To add a new
   });
 ```
 
-Note we use the new `customParams` to allow us to target the tab only when the cluster is of our provider type.
+Note we use the new `context` property to allow us to target the tab only when the cluster is of our provider type.
 
 ### Localisation
 

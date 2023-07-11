@@ -3,6 +3,7 @@ import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
 import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
+import { diff, isEqual } from 'utils/object';
 
 function checkRouteProduct({ name, params, query }, locationConfigParam) {
   const product = getProductFromRoute({
@@ -34,7 +35,7 @@ function checkRouteMode({ name, query }, locationConfigParam) {
   return false;
 }
 
-function checkExtensionRouteBinding($route, locationConfig, customParams) {
+function checkExtensionRouteBinding($route, locationConfig, context) {
   // if no configuration is passed, consider it as global
   if (!Object.keys(locationConfig).length) {
     return true;
@@ -43,6 +44,7 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
   const { params } = $route;
 
   // "params" to be checked based on the locationConfig
+  // This has become overloaded with mode and context
   const paramsToCheck = [
     'product',
     'resource',
@@ -50,8 +52,10 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
     'cluster',
     'id',
     'mode',
-    // Custom params provided by the extension, not to be confused with location params
-    'customParams',
+    // url query params
+    'queryParam',
+    // Custom context specific params provided by the extension, not to be confused with location params
+    'context',
   ];
 
   let res = true;
@@ -72,17 +76,11 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
           // also handle "mode" in a separate way because it mainly depends on query params
           } else if (param === 'mode') {
             res = checkRouteMode($route, locationConfigParam);
-          } else if (param === 'customParams') {
+          } else if (param === 'context') {
             // Need all keys and values to match
-            let okay = true;
-
-            Object.keys(locationConfigParam).forEach((p) => {
-              const desired = locationConfigParam[p];
-              const actual = customParams[p];
-
-              okay = okay && (desired === actual);
-            });
-            res = okay;
+            res = isEqual(locationConfigParam, context);
+          } else if (param === 'queryParam') {
+            res = isEqual(locationConfigParam, $route.query);
           } else if (locationConfigParam === params[param]) {
             res = true;
           } else {
@@ -106,7 +104,7 @@ function checkExtensionRouteBinding($route, locationConfig, customParams) {
   return res;
 }
 
-export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx, customParams) {
+export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea, currRoute, translationCtx = pluginCtx, context) {
   const extensionEnhancements = [];
 
   // gate it so that we prevent errors on older versions of dashboard
@@ -114,7 +112,7 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
     const actions = pluginCtx.$plugin.getUIConfig(actionType, uiArea);
 
     actions.forEach((action, i) => {
-      if (checkExtensionRouteBinding(currRoute, action.locationConfig, customParams || {})) {
+      if (checkExtensionRouteBinding(currRoute, action.locationConfig, context || {})) {
         // ADD CARD PLUGIN UI ENHANCEMENT
         if (actionType === ExtensionPoint.CARD) {
           // intercept to apply translation

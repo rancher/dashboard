@@ -72,6 +72,8 @@ import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import AgentConfiguration, { cleanAgentConfiguration } from './AgentConfiguration';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { ExtensionPoint, TabLocation } from '@shell/core/types';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -373,6 +375,7 @@ export default {
       busy:                  false,
       machinePoolValidation: {}, // map of validation states for each machine pool
       allNamespaces:         [],
+      extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
     };
   },
 
@@ -3133,6 +3136,26 @@ export default {
           v-model="value"
           :mode="mode"
         />
+
+        <!-- Extension tabs -->
+        <Tab
+          v-for="tab, i in extensionTabs"
+          :key="`${tab.name}${i}`"
+          :name="tab.name"
+          :label="tab.label"
+          :label-key="tab.labelKey"
+          :weight="tab.weight"
+          :tooltip="tab.tooltip"
+          :show-header="tab.showHeader"
+          :display-alert-icon="tab.displayAlertIcon"
+          :error="tab.error"
+          :badge="tab.badge"
+        >
+          <component
+            :is="tab.component"
+            :resource="value"
+          />
+        </Tab>
       </Tabbed>
     </div>
 
