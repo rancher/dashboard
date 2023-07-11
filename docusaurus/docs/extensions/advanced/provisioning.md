@@ -1,6 +1,6 @@
 # Cluster Provisioning (RKE2 / Custom)
 
-The Rancher UI provides a number of ways to customise the processes that creates RKE2/Custom clusters. This includes
+The UI provides a number of ways to customise the processes that creates RKE2/Custom clusters. This includes
 - Adding additional Cluster Provisioner types
 - Customising or replacing components used in the create process
 - Additional tabs
@@ -8,7 +8,7 @@ The Rancher UI provides a number of ways to customise the processes that creates
 - Overrides that replace the process to persist cluster resources
 
 ## Custom Components
-Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](components/node-drivers.md). 
+Existing components that manage cloud credentials and machine configuration can be replaced as per [Custom Node Driver UI](../api/components/node-drivers.md). 
 
 ## Custom Cluster Provisioner
 New cluster provisioners can be added that can tailor the create/edit experience for their own needs.
