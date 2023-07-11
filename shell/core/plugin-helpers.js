@@ -3,7 +3,7 @@ import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
 import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
-import { diff, isEqual } from 'utils/object';
+import { isEqual } from '@shell/utils/object';
 
 function checkRouteProduct({ name, params, query }, locationConfigParam) {
   const product = getProductFromRoute({
