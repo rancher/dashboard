@@ -4,6 +4,7 @@ const serveStatic = require('serve-static');
 const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const sm = require('./server/server-middleware.js');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -318,6 +319,8 @@ module.exports = function(dir, _appConfig) {
           console.log('\n'); // eslint-disable-line no-console
           process.exit(1);
         });
+
+        app.use(sm);
 
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({

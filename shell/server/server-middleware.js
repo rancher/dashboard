@@ -1,11 +1,9 @@
-import { URL } from 'url';
+module.exports = function(req, res, next) {
+  if (req.url === '/floof') {
+    res.writeHead(301, { Location: req.url.replace(/floof/, 'floofy') });
+    res.end();
 
-export default function(req, res, next) {
-  const parsed = new URL(req.url, 'https://localhost');
-
-  if ( parsed.searchParams.has('spa') ) {
-    res.spa = true;
-    console.log('SPA mode enabled'); // eslint-disable-line no-console
+    return;
   }
 
   // We do this redirect so that /verify-auth can work with both standalone and
@@ -16,4 +14,4 @@ export default function(req, res, next) {
   }
 
   next();
-}
+};
