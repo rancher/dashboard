@@ -338,10 +338,7 @@ export default class GitRepo extends SteveModel {
         .find((bd) => bd.metadata?.labels?.[FLEET_ANNOTATIONS.CLUSTER] === c.metadata.name)
         ?.status?.resources || [];
 
-      console.log('clusterBundleDeploymentResources', clusterBundleDeploymentResources);
-      console.log(c.metadata.name);
       resources.forEach((r, i) => {
-        console.log(r, clusterBundleDeploymentResources[i]);
         let namespacedName = r.name;
 
         if (r.namespace) {
@@ -373,8 +370,6 @@ export default class GitRepo extends SteveModel {
             id:        r.name,
           }
         };
-
-        console.log(r);
 
         out.push({
           key:                    `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
