@@ -55,7 +55,7 @@ export default {
 </script>
 
 <template>
-  <span>
+  <span class="formatter-pod-images">
     <span>{{ mainImage }}</span><br>
     <span
       v-if="images.length-1>0"
@@ -64,3 +64,9 @@ export default {
     >{{ t('generic.plusMore', {n:images.length-1}) }}</span>
   </span>
 </template>
+
+<style scoped>
+  .formatter-pod-images {
+    word-break: break-all;
+  }
+</style>
