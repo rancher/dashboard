@@ -2,10 +2,6 @@ import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import NormanModel from '@shell/plugins/steve/norman-class';
 
 export default class PRTB extends NormanModel {
-  get canCustomEdit() {
-    return true;
-  }
-
   get canClone() {
     return false;
   }
@@ -39,13 +35,5 @@ export default class PRTB extends NormanModel {
 
   get nameDisplay() {
     return this.syncPrincipal?.nameDisplay || super.nameDisplay;
-  }
-
-  goToEdit() {
-    this.$dispatch('promptModal', {
-      component:      'EditProjectMemberDialog',
-      componentProps: { value: this, saveInModal: true },
-      modalSticky:    true
-    });
   }
 }
