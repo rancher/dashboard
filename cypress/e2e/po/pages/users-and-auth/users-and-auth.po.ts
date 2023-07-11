@@ -67,10 +67,6 @@ export default class UsersAndAuthPo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  save(): Cypress.Chainable {
-    return this.saveCreateForm().click();
-  }
-
   selectVerbs(itemRow: number, optionIndex: number) {
     const selectVerb = new LabeledSelectPo(`[data-testid="grant-resources-verbs${ itemRow }"]`, this.self());
 
