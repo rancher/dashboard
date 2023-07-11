@@ -151,7 +151,8 @@ export default {
         getters:  this.$store.getters,
         axios:    this.$store.$axios,
         $plugin:  this.$store.app.$plugin,
-        $t:       this.t
+        t:        (...args) => this.t.apply(this, args),
+        isCreate: this.isCreate,
       }));
     } catch (e) {
       console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console

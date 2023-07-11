@@ -14,6 +14,18 @@ export type ClusterSaveHook = (cluster: any) => Promise<any>
 export type RegisterClusterSaveHook = (hook: ClusterSaveHook, name: string, priority?: number, fnContext?: any) => void;
 
 /**
+ * Params used when constructing an instance of the cluster provisioner
+ */
+export interface ClusterProvisionerContext {
+  dispatch: any,
+  getters: any,
+  axios: any,
+  $plugin: any,
+  t: (key: string) => string,
+  isCreate: boolean
+}
+
+/**
  * Interface that a custom Cluster Provisioner should implement
  *
  * The majority of these hooks are used in shell/edit/provisioning.cattle.io.cluster/rke2.vue
@@ -23,17 +35,63 @@ export interface IClusterProvisioner {
   /**
    * Unique ID of the Cluster Provisioner
    */
-  id: String;
+  id: string;
 
   /**
    * Should the UI show a namespace selector when using this provisioner
    */
-  namespaced: boolean;
+  namespaced?: boolean;
+
+  /* --------------------------------------------------------------------------------------
+   * Define how the cluster provider is presented in a card to the user
+   * --------------------------------------------------------------------------------------- */
+
+  /**
+   * If missing the `cluster.provider.<provider id>` translation will be used
+   *
+   * It is recommended to not hardcode anything that might be localised
+   */
+  label?: string;
+
+  /**
+   * The description will be shown when the user is selecting the type of cluster provider
+   *
+   * This isn't normally used.
+   */
+  description?: string;
 
   /**
    * Icon shown when the user is selecting the type of cluster provider
    */
-  icon: any;
+  icon?: any;
+
+  /**
+   * Cluster providers are in groups
+   *
+   * `rke2` - default
+   * `kontainer`
+   * `custom2`
+   */
+  group?: string;
+
+  /**
+   * Disable the cluster provider card
+   */
+  disabled?: boolean;
+
+  /**
+   * Custom Dashboard route to navigate to when the cluster provider card is clicked
+   */
+  link?: string;
+
+  /**
+   * Text to show top right on the cluster provider card. For example `Experimental`
+   */
+  tag?: string;
+
+  /* --------------------------------------------------------------------------------------
+   * Custer Details View
+   * --------------------------------------------------------------------------------------- */
 
   /**
    * Existing tabs to show or hide in the cluster's detail view
@@ -71,9 +129,9 @@ export interface IClusterProvisioner {
     conditions: boolean
   };
 
-  /**
+  /* --------------------------------------------------------------------------------------
    * Getters / Functions for Managing Machine Configs
-   */
+  * --------------------------------------------------------------------------------------- */
 
   /**
    * Schema for machine config object. For example rke-machine-config.cattle.io.digitaloceanconfig
@@ -117,11 +175,11 @@ export interface IClusterProvisioner {
    */
   saveMachinePoolConfigs?(pools: any[], cluster: any): Promise<any>
 
-  /**
+  /* --------------------------------------------------------------------------------------
    * Optionally override parts of the cluster save process with
    * - hooks that run before or after the cluster resource is saved
    * - the actual save of the cluster resource
-   */
+  * --------------------------------------------------------------------------------------- */
 
   /**
    * Update the cluster before and or after the cluster is saved
@@ -147,6 +205,10 @@ export interface IClusterProvisioner {
    * @returns Rejected promise / exception from `await` if failed to save
    */
   saveCluster?(cluster: any): Promise<any>
+
+  /* --------------------------------------------------------------------------------------
+   * Optionally override all of cluster save process
+   * --------------------------------------------------------------------------------------- */
 
   /**
    * Optionally override all of the ui's save cluster process (including hooks and saving the resource)
