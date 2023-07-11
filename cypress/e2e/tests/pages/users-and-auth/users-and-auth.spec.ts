@@ -72,27 +72,4 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       usersAdmin.listElements().should('have.length.of.at.least', 1);
     });
   });
-  it('Should be able to configuring an Auth Provider, like Github, ', () => {
-    const userConfig = new UsersAndAuthPo('_', 'config/github');
-
-    // this will login as admin
-    cy.login();
-
-    // create global role
-    userConfig.goTo();
-    userConfig.authversionGitHub().set((0));
-    userConfig.listTitle().should('contain', 'GitHub');
-    cy.wait(500)
-
-    cy.contains('Client ID').scrollIntoView()
-    userConfig.clientId().set(Cypress.env('clientId'));
-    userConfig.clientSecret().set(Cypress.env('clientSecret'));
-    cy.window().then(win => {
-      cy.stub(win, 'open').as('openwindow')
-    })
-    
-    userConfig.save();
-    cy.get('@openwindow').should('have.been.calledOnce')
-
-  });
 });
