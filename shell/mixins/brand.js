@@ -13,7 +13,7 @@ export const hasCspAdapter = (apps) => {
 
 export default {
   async fetch() {
-    // For the setup and login page, the schemas won't be loaded - we don't need the apps in this case
+    // For the login page, the schemas won't be loaded - we don't need the apps in this case
     try {
       if (this.$store.getters['management/canList'](CATALOG.APP)) {
         this.apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
@@ -32,7 +32,7 @@ export default {
   },
 
   data() {
-    return { apps: null, globalSettings: null };
+    return { apps: [], globalSettings: [] };
   },
 
   computed: {
@@ -67,17 +67,11 @@ export default {
     },
 
     cspAdapter() {
-      if (!this.canCalcCspAdapter) {
-        // This is an odd state, so return something that will be different for when we get an actual response later on
+      if (!this.globalSettings.length) {
         return '';
       }
 
       return hasCspAdapter(this.apps);
-    },
-
-    canCalcCspAdapter() {
-      // Note $fetchState.pending won't work here... as it's initially false
-      return !!this.apps && !!this.globalSettings;
     }
   },
 
@@ -105,14 +99,7 @@ export default {
       }
     },
 
-    /**
-     * Persist the brand setting
-     */
     cspAdapter(neu) {
-      if (!this.canCalcCspAdapter) {
-        return;
-      }
-
       if (neu && !this.brand) {
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
