@@ -19,7 +19,7 @@ export default class UserMenuPo extends ComponentPo {
 
     popover.should('be.visible');
 
-    return popover.click({ force: true });
+    return popover.click();
   }
 
   /**
