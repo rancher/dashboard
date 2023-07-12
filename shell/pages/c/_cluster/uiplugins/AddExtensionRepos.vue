@@ -88,15 +88,17 @@ export default {
         }
       }
 
-      const res = await Promise.allSettled(promises);
+      if (promises.length) {
+        const res = await Promise.allSettled(promises);
 
-      res.forEach((result) => {
-        if (result.status === 'rejected') {
-          console.error(result.reason); // eslint-disable-line no-console
+        res.forEach((result) => {
+          if (result.status === 'rejected') {
+            console.error(result.reason); // eslint-disable-line no-console
 
-          this.errors.push(result.reason);
-        }
-      });
+            this.errors.push(result.reason);
+          }
+        });
+      }
 
       this.$emit('done');
 

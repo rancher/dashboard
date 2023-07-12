@@ -491,6 +491,8 @@ export default {
 
   methods: {
     async refreshCharts(forceChartsUpdate = false) {
+      // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
+      // tied to the SetupUIPlugins, AddExtensionRepos and RemoveUIPlugins checkboxes
       await this.$store.dispatch('catalog/load', { reset: true, force: forceChartsUpdate });
       const c = this.$store.getters['catalog/rawCharts'];
 

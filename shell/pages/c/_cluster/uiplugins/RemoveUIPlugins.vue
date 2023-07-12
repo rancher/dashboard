@@ -23,6 +23,7 @@ export default {
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
+      // we need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
       await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true } });
     }
 
