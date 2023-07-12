@@ -1,5 +1,6 @@
 # Safe Mode
 
-If you have developed and installed an Extension that has an issue that blocks the load of Rancher Dashboard, you might get "blocked" of accessing and navigating around Rancher Dashboard. In that case, there's a route path called `safeMode` that prevent's the load of installed Extensions, therefore regaining access to Rancher Dashboard.
+If you have an extension installed which blocks the loading or navigating of Rancher Dashboard, you can use Safe Mode to disable the misbehaving extensions. To use Safe Mode, there's a query parameter called `safeMode` which you can use.
 
-To enable this safe mode, you just need to enter your Rancher Dashboard in the following way: `https://<- YOUR RANCHER BASE URL ->/safeMode`.
+To enable Safe Mode, you must enter your Rancher Dashboard in the following way: 
+* `https://<- YOUR RANCHER BASE URL ->/<- ANY PAGE ->?safeMode`. 

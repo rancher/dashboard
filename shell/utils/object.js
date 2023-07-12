@@ -218,6 +218,33 @@ export function diff(from, to) {
   return out;
 }
 
+/**
+ * Super simple lodash isEqual equivalent.
+ *
+ * Only checks root properties for strict equality
+ */
+function isEqualBasic(from, to) {
+  const fromKeys = Object.keys(from || {});
+  const toKeys = Object.keys(to || {});
+
+  if (fromKeys.length !== toKeys.length) {
+    return false;
+  }
+
+  for (let i = 0; i < fromKeys.length; i++) {
+    const fromValue = from[fromKeys[i]];
+    const toValue = to[fromKeys[i]];
+
+    if (fromValue !== toValue) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export { isEqualBasic as isEqual };
+
 export function changeset(from, to, parentPath = []) {
   let out = {};
 

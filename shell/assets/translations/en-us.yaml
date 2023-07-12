@@ -1332,7 +1332,6 @@ cluster:
     deprecated: (deprecated)
     deprecatedPatches: Show deprecated Kubernetes patch versions
     deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
-  toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
     connecting: Connecting…
@@ -3021,6 +3020,9 @@ login:
   remember:
     label: Remember Username
 
+logout:
+  message: Logging Out...
+
 managementNode:
   customName: Custom Name
 
@@ -3989,7 +3991,9 @@ inactivity:
 
 # Rancher Extensions
 plugins:
-  incompatibleDisclaimer: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
+  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
+  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion })."
+  currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -4026,7 +4030,8 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
-    requiresVersion: "Requires Rancher {version}"
+    requiresRancherVersion: "Requires Rancher {version}"
+    requiresKubeVersion: "Requires Kube version {version}"
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available

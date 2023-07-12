@@ -265,10 +265,11 @@ export const DURATION = {
 };
 
 export const IMAGE = {
-  name:     'image',
-  labelKey: 'tableHeaders.image',
-  value:    'image',
-  sort:     ['image', 'nameSort'],
+  name:      'image',
+  labelKey:  'tableHeaders.image',
+  value:     'image',
+  sort:      ['image', 'nameSort'],
+  formatter: 'Image',
 };
 
 export const POD_IMAGES = {

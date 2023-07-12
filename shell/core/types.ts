@@ -1,6 +1,9 @@
 import { ProductFunction } from './plugin';
 import { RouteConfig, Location } from 'vue-router';
 
+// Cluster Provisioning types
+export * from './types-provisioning';
+
 // package.json metadata
 export interface PackageMetadata {
   name: string;
@@ -62,6 +65,7 @@ export enum PanelLocation {
 /** Enum regarding tab locations that are extensionable in the UI */
 export enum TabLocation {
   RESOURCE_DETAIL = 'tab', // eslint-disable-line no-unused-vars
+  CLUSTER_CREATE_RKE2 = 'cluster-create-rke2', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding card locations that are extensionable in the UI */
@@ -134,7 +138,17 @@ export type LocationConfig = {
   namespace?: string[],
   cluster?: string[],
   id?: string[],
-  mode?: string[]
+  mode?: string[],
+  /**
+   * Query Params from URL
+   */
+  queryParam?: { [key: string]: string},
+  /**
+   * Context specific params.
+   *
+   * Components can provide additional context specific params that this value must match
+   */
+  context?: { [key: string]: string},
 };
 
 export interface ProductOptions {
@@ -516,7 +530,7 @@ export interface IPlugin {
    * @param {String} name unique name of 'something'
    * @param {Function} fn function that dynamically loads the module for the thing being registered
    */
-  register(type: string, name: string, fn: Function): void;
+  register(type: string, name: string, fn: Function | Boolean): void;
 
   /**
    * Will return all of the configuration functions used for creating a new product.

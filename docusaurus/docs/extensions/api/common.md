@@ -54,7 +54,7 @@ which translates to:
 With this it's then possible to easily identify the parameters needed to populate the `LocationConfig` and add the UI enhancements to the areas that you like. YES, it's also possible to enhance other extensions!
 
 
-The admissable parameters for the `LocationConfig` object are:
+The admissible parameters for the `LocationConfig` object are:
 
 | Key | Type | Description |
 |---|---|---|
@@ -63,7 +63,9 @@ The admissable parameters for the `LocationConfig` object are:
 |`namespace`| Array | Array of the namespace identifier. Ex: `kube-system`, `cattle-global-data` or `cattle-system` |
 |`cluster`| Array | Array of the cluster identifier. Ex: `local` |
 |`id`| Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
-|`mode`| Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissable values are: `edit`, `config`, `detail` and `list` |
+|`mode`| Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissible values are: `edit`, `config`, `detail` and `list` |
+|`context` | Object | Requirements set by the context itself. This is a key value object that must match the object provided where the feature is used. For instance if a ResourceTab should only include a tab given specific information where the ResourceTab is used. Ex `{ provider: "digitalocean" }` |
+| `queryParam` | Object | This is a key value object that must match the url's query param key values
 
 ### LocationConfig Examples
 

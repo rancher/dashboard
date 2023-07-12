@@ -63,21 +63,24 @@ export default class ExtensionsPo extends PagePo {
   }
 
   /**
-   * install rancher-plugin-examples
+   * Adds a cluster repo for extensions
+   * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
+   * @param branch - The git branch to target
+   * @param name - A name for the repository
+   * @returns {Cypress.Chainable}
    */
-  installRancherPluginExamples() {
+  addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
     // we should be on the extensions page
     // this.title().should('contain', 'Extensions');
     this.waitForPage();
 
     // go to app repos
     this.extensionMenuToggle();
-
     this.manageReposClick();
 
+    // create a new clusterrepo
     const appRepoList = new ReposListPagePo('local', 'apps');
 
-    // create a new clusterrepo
     appRepoList.waitForPage();
     appRepoList.create();
 
@@ -89,9 +92,9 @@ export default class ExtensionsPo extends PagePo {
     appRepoCreate.selectRadioOptionGitRepo(1);
     appRepoCreate.nameNsDescription().name().self().scrollIntoView()
       .should('be.visible');
-    appRepoCreate.nameNsDescription().name().set('rancher-plugin-examples');
-    appRepoCreate.enterGitRepoName('https://github.com/rancher/ui-plugin-examples');
-    appRepoCreate.enterGitBranchName('main');
+    appRepoCreate.nameNsDescription().name().set(name);
+    appRepoCreate.enterGitRepoName(repo);
+    appRepoCreate.enterGitBranchName(branch);
 
     // save it
     return appRepoCreate.save();

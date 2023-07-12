@@ -1,7 +1,7 @@
 import { MANAGEMENT } from '@shell/config/types';
 import { Store } from 'vuex';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
-import { GC_PREFERENCES } from 'utils/gc/gc-types';
+import { GC_PREFERENCES } from '@shell/utils/gc/gc-types';
 
 export const fetchOrCreateSetting = async(store: Store<any>, id: string, val: string, save = true): Promise<any> => {
   let setting;
@@ -56,7 +56,7 @@ export const getPerformanceSetting = (rootGetters: Record<string, (arg0: string,
   manualRefresh: {};
   disableWebsocketNotification: boolean;
   garbageCollection: GC_PREFERENCES;
-  forceNsFilterV2: {};
+  forceNsFilterV2: any;
   advancedWorker: {};
 } => {
   const perfSettingResource = rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_PERFORMANCE);
