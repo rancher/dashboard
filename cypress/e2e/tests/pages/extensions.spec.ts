@@ -13,7 +13,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.installExtensionsOperatorIfNeeded();
 
     // install the rancher plugin examples
-    extensionsPo.installRancherPluginExamples();
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
   });
 
   beforeEach(() => {

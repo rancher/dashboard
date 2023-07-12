@@ -39,6 +39,7 @@ const sidebars = {
         'guide/build-for-container-registry',
         'guide/package-management',
         'guide/auth-providers',
+        'guide/custom-dev-build'
       ],
     },
     {
@@ -124,6 +125,7 @@ const sidebars = {
           label: 'Advanced',
           items: [
             'extensions/advanced/air-gapped-environments',
+            'extensions/advanced/provisioning',
             'extensions/advanced/localization',
             'extensions/advanced/hooks',
             'extensions/advanced/stores',
