@@ -6,6 +6,12 @@ import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 
+const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
+
+export const hasCspAdapter = (apps) => {
+  return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
+};
+
 export default {
   async fetch() {
     // For the login page, the schemas won't be loaded - we don't need the apps in this case
@@ -75,10 +81,10 @@ export default {
         return '';
       }
 
-      // Note! these used to be `findBy(this.app)` however for that case we lost reactivity on the collection
+      // Note! this used to be `findBy(this.app)` however for that case we lost reactivity on the collection
       // (computed fires before fetch, fetch happens and update apps, computed would not fire again - even with vue.set)
-      // So use `.find` here instead
-      return this.apps.find((a) => a.metadata.name === 'rancher-csp-adapter');
+      // So use `.find` in method instead
+      return hasCspAdapter(this.apps);
     },
 
     canCalcCspAdapter() {
