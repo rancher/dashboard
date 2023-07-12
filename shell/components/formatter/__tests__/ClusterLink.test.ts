@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils';
 import ClusterLink from '@shell/components/formatter/ClusterLink.vue';
 import '@shell/plugins/clean-tooltip-directive';
 
-describe('component: Conditions', () => {
+describe('component: ClusterLink', () => {
   const MOCKED_CONDITIONS_1 = [{
     status: '', type: 'Ready', reason: 'Waiting', error: true // When the only existing error has a type "Ready" and reason "Waiting"
   }];
