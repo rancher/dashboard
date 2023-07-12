@@ -1251,6 +1251,10 @@ export default {
       this.steps[0].ready = okRequires && okChart;
     },
 
+    updateStepTwoReady(update) {
+      this.updateStep('helmValues', { ready: update });
+    },
+
     getOptionLabel(opt) {
       return opt?.chartNameDisplay;
     },
@@ -1567,6 +1571,7 @@ export default {
                   @warn="e=>errors.push(e)"
                   @register-before-hook="registerBeforeHook"
                   @register-after-hook="registerAfterHook"
+                  @valid="updateStepTwoReady($event)"
                 />
               </Tabbed>
               <template v-else>

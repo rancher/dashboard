@@ -1,23 +1,13 @@
 import Vue from 'vue';
 
-import {
-  getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError, sanitizeComponent
-} from '../utils/nuxt';
+import { getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError } from '../utils/nuxt';
 import NuxtError from '../layouts/error.vue';
 import NuxtLoading from '../components/nav/GlobalLoading.vue';
 
 import '../assets/styles/app.scss';
+import { getLayouts } from './layouts';
 
-import blank from '../layouts/blank.vue';
-import defaultLayout from '../layouts/default.vue';
-import home from '../layouts/home.vue';
-import plain from '../layouts/plain.vue';
-import unauthenticated from '../layouts/unauthenticated.vue';
-import standalone from '../layouts/standalone.vue';
-
-const layouts = {
-  _blank: sanitizeComponent(blank), _default: sanitizeComponent(defaultLayout), _home: sanitizeComponent(home), _plain: sanitizeComponent(plain), _unauthenticated: sanitizeComponent(unauthenticated), _standalone: sanitizeComponent(standalone)
-};
+const layouts = getLayouts();
 
 export default {
   render(h) {

@@ -2,7 +2,7 @@ import ExtensionsPo from '@/cypress/e2e/po/pages/extensions.po';
 
 const extensionName = 'clock';
 
-describe('Extensions page', () => {
+describe('Extensions page', { tags: '@adminUser' }, () => {
   before(() => {
     cy.login();
 
@@ -13,7 +13,7 @@ describe('Extensions page', () => {
     extensionsPo.installExtensionsOperatorIfNeeded();
 
     // install the rancher plugin examples
-    extensionsPo.installRancherPluginExamples();
+    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-examples', 'main', 'rancher-plugin-examples');
   });
 
   beforeEach(() => {

@@ -6,10 +6,12 @@ import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
+import { normalizeName } from '@shell/utils/kube';
 
 import {
   CAPI,
   MANAGEMENT,
+  NAMESPACE,
   NORMAN,
   SCHEMA,
   DEFAULT_WORKSPACE,
@@ -42,7 +44,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
-import NameNsDescription, { normalizeName } from '@shell/components/form/NameNsDescription';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { RadioGroup } from '@components/Form/Radio';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
@@ -70,6 +72,8 @@ import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import AgentConfiguration, { cleanAgentConfiguration } from './AgentConfiguration';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { ExtensionPoint, TabLocation } from '@shell/core/types';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -255,6 +259,12 @@ export default {
       set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
     }
 
+    // Namespaces if required - this is mainly for custom provisioners via extensions that want
+    // to allow creating their resources in a different namespace
+    if (this.needsNamespace) {
+      this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
+    }
+
     if ( !this.machinePools ) {
       await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
       if ( this.mode === _CREATE && !this.machinePools.length ) {
@@ -362,7 +372,9 @@ export default {
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
       busy:                  false,
-      machinePoolValidation: {} // map of validation states for each machine pool
+      machinePoolValidation: {}, // map of validation states for each machine pool
+      allNamespaces:         [],
+      extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
     };
   },
 
@@ -370,6 +382,7 @@ export default {
     ...mapGetters({ allCharts: 'catalog/charts' }),
     ...mapGetters(['currentCluster']),
     ...mapGetters({ features: 'features/get' }),
+    ...mapGetters(['namespaces']),
 
     PUBLIC:   () => PUBLIC,
     PRIVATE:  () => PRIVATE,
@@ -734,6 +747,33 @@ export default {
       return (this.machinePools || []).filter((x) => !x.remove);
     },
 
+    /**
+     * Extension provider where being provisioned by an extension
+     */
+    extensionProvider() {
+      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
+
+      if (extClass) {
+        return new extClass({
+          dispatch: this.$store.dispatch,
+          getters:  this.$store.getters,
+          axios:    this.$store.$axios,
+          $plugin:  this.$store.app.$plugin,
+          $t:       this.t,
+          isCreate: this.isCreate
+        });
+      }
+
+      return undefined;
+    },
+
+    /**
+     * Is a namespace needed? Only supported for providers from extensions, otherwise default is no
+     */
+    needsNamespace() {
+      return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
+    },
+
     machineConfigSchema() {
       let schema;
 
@@ -743,6 +783,19 @@ export default {
         schema = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
       } else {
         schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
+      }
+
+      // If this is an extension provider then the extension can provide the schema
+      const extensionSchema = this.extensionProvider?.machineConfigSchema;
+
+      if (extensionSchema) {
+        // machineConfigSchema can either be the schema name (string) or the schema itself (object)
+        if (typeof extensionSchema === 'object') {
+          return extensionSchema;
+        }
+
+        // Name of schema to use
+        schema = extensionSchema;
       }
 
       return this.$store.getters['management/schemaFor'](schema);
@@ -1033,7 +1086,7 @@ export default {
     validationPassed() {
       const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
 
-      let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId);
+      let base = (this.provider === 'custom' || this.isElementalCluster || !!this.credentialId || !this.needCredential);
 
       // and in all of the validation statuses for each machine pool
       Object.values(this.machinePoolValidation).forEach((v) => (base = base && v));
@@ -1124,6 +1177,11 @@ export default {
     this.registerBeforeHook(this.agentConfigurationCleanup, 'cleanup-agent-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+
+    // Register any hooks for this extension provider
+    if (this.extensionProvider?.registerSaveHooks) {
+      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
+    }
   },
 
   methods: {
@@ -1213,18 +1271,27 @@ export default {
     },
 
     async addMachinePool(idx) {
+      // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
       if ( !this.machineConfigSchema ) {
         return;
       }
 
       const numCurrentPools = this.machinePools.length || 0;
 
-      const config = await this.$store.dispatch('management/createPopulated', {
-        type:     this.machineConfigSchema.id,
-        metadata: { namespace: DEFAULT_WORKSPACE }
-      });
+      let config;
 
-      config.applyDefaults(idx, this.machinePools);
+      if (this.extensionProvider?.createMachinePoolMachineConfig) {
+        config = await this.extensionProvider.createMachinePoolMachineConfig(idx, this.machinePools, this.value);
+      } else {
+        // Default - use the schema
+        config = await this.$store.dispatch('management/createPopulated', {
+          type:     this.machineConfigSchema.id,
+          metadata: { namespace: DEFAULT_WORKSPACE }
+        });
+
+        // If there is no specific model, the applyDefaults does nothing by default
+        config.applyDefaults(idx, this.machinePools);
+      }
 
       const name = `pool${ ++this.lastIdx }`;
       const pool = {
@@ -1233,6 +1300,7 @@ export default {
         remove: false,
         create: true,
         update: false,
+        uid:    name,
         pool:   {
           name,
           etcdRole:             numCurrentPools === 0,
@@ -1243,7 +1311,7 @@ export default {
           quantity:             1,
           unhealthyNodeTimeout: '0m',
           machineConfigRef:     {
-            kind: this.machineConfigSchema.attributes.kind,
+            kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
         },
@@ -1300,6 +1368,11 @@ export default {
 
     async saveMachinePools() {
       const finalPools = [];
+
+      // If the extension provider wants to do this, let them
+      if (this.extensionProvider?.saveMachinePoolConfigs) {
+        return await this.extensionProvider.saveMachinePoolConfigs(this.machinePools, this.value);
+      }
 
       for ( const entry of this.machinePools ) {
         if ( entry.remove ) {
@@ -1420,7 +1493,24 @@ export default {
     async saveOverride(btnCb) {
       this.$set(this, 'busy', true);
 
-      return await this._doSaveOverride((done) => {
+      // If the provider is from an extension, let it do the provision step
+      if (this.extensionProvider?.provision) {
+        const errors = await this.extensionProvider?.provision(this.value, this.machinePools);
+        const okay = (errors || []).length === 0;
+
+        this.errors = errors;
+        this.$set(this, 'busy', false);
+
+        btnCb(okay);
+
+        if (okay) {
+          // If saved okay, go to the done route
+          return this.done();
+        }
+      }
+
+      // Default save
+      return this._doSaveOverride((done) => {
         this.$set(this, 'busy', false);
 
         return btnCb(done);
@@ -1538,6 +1628,24 @@ export default {
         set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, fleetAgentDeploymentCustomization);
       }
     },
+
+    async actuallySave(url) {
+      if (this.extensionProvider?.saveCluster) {
+        return await this.extensionProvider?.saveCluster(this.value, this.schema);
+      }
+
+      if ( this.isCreate ) {
+        url = url || this.schema.linkFor('collection');
+        const res = await this.value.save({ url });
+
+        if (res) {
+          Object.assign(this.value, res);
+        }
+      } else {
+        await this.value.save();
+      }
+    },
+
     // create a secret to reference the harvester cluster kubeconfig in rkeConfig
     async createKubeconfigSecret(kubeconfig = '') {
       const clusterName = this.value.metadata.name;
@@ -2142,7 +2250,8 @@ export default {
         v-if="!isView"
         v-model="value"
         :mode="mode"
-        :namespaced="false"
+        :namespaced="needsNamespace"
+        :namespace-options="allNamespaces"
         name-label="cluster.name.label"
         name-placeholder="cluster.name.placeholder"
         description-label="cluster.description.label"
@@ -3026,6 +3135,26 @@ export default {
           v-model="value"
           :mode="mode"
         />
+
+        <!-- Extension tabs -->
+        <Tab
+          v-for="tab, i in extensionTabs"
+          :key="`${tab.name}${i}`"
+          :name="tab.name"
+          :label="tab.label"
+          :label-key="tab.labelKey"
+          :weight="tab.weight"
+          :tooltip="tab.tooltip"
+          :show-header="tab.showHeader"
+          :display-alert-icon="tab.displayAlertIcon"
+          :error="tab.error"
+          :badge="tab.badge"
+        >
+          <component
+            :is="tab.component"
+            :resource="value"
+          />
+        </Tab>
       </Tabbed>
     </div>
 
