@@ -81,10 +81,10 @@ export default {
         return '';
       }
 
-      // Note! these used to be `findBy(this.app)` however for that case we lost reactivity on the collection
+      // Note! this used to be `findBy(this.app)` however for that case we lost reactivity on the collection
       // (computed fires before fetch, fetch happens and update apps, computed would not fire again - even with vue.set)
-      // So use `.find` here instead
-      return this.apps.find((a) => a.metadata.name === 'rancher-csp-adapter');
+      // So use `.find` in method instead
+      return hasCspAdapter(this.apps);
     },
 
     canCalcCspAdapter() {
