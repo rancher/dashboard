@@ -3020,6 +3020,9 @@ login:
   remember:
     label: Remember Username
 
+logout:
+  message: Logging Out...
+
 managementNode:
   customName: Custom Name
 
