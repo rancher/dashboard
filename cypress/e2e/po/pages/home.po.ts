@@ -16,14 +16,7 @@ export default class HomePagePo extends PagePo {
     PagePo.goToAndWaitForGet(HomePagePo.goTo, [
       'v1/counts',
       'v1/namespaces',
-      'v1/management.cattle.io.nodetemplates'
     ]);
-
-    const homePage = new HomePagePo();
-
-    homePage.list().checkVisible();
-
-    return homePage;
   }
 
   constructor() {
