@@ -117,11 +117,9 @@ export default {
         return;
       }
 
-      // The brand setting will only get updated if
-      // 1) There should be a brand... but there's no brand setting
-      // 2) There should not be a brand... but there is a brand setting
-
+      // The brand setting will only get updated if...
       if (neu && !this.brand) {
+        // 1) There should be a brand... but there's no brand setting
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
         if (brandSetting) {
@@ -140,7 +138,8 @@ export default {
       } else if (!neu) {
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
-        if (brandSetting.value !== '') {
+        if (brandSetting && brandSetting.value !== '') {
+          // 2) There should not be a brand... but there is a brand setting
           brandSetting.value = '';
           brandSetting.save();
         }
