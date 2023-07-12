@@ -34,7 +34,7 @@ export default class ReposListPagePo extends PagePo {
   }
 
   waitForGoTo(endpoint: string) {
-    const interceptName = `validateGoTo${ Date.now() }`;
+    const interceptName = `validateGoTo${ Date.now() }*`;
 
     cy.intercept('GET', endpoint).as(interceptName);
     this.goTo();

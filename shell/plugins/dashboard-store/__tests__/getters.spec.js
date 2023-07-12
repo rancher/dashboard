@@ -5,14 +5,14 @@ describe('dashboard-store: getters', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
-      normalizeType: type => type,
+      normalizeType: (type) => type,
       schemaFor:     (type) => {
         if (type === 'typeFoo') {
           return { links: { collection: 'urlFoo' } };
         }
       },
       // this has its own tests so it just returns the input string
-      urlOptions: string => string
+      urlOptions: (string) => string
     };
 
     const urlForGetter = urlFor(state, getters);

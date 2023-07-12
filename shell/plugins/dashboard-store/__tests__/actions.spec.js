@@ -3,123 +3,199 @@ import _actions from '@shell/plugins/dashboard-store/actions';
 const { findAll } = _actions;
 
 describe('dashboard-store: actions', () => {
-  let dispatchCalls = {};
-  let commitCalls = {};
-  // we're dumping our commits into a map so we can reference them
-  // actions and mutations are stored against their name in an array so we can capture if they're called multiple times
-  // arguments past the name of the action or mutation are stored in an array in case there are multiple
-  const commit = (mutation, ...args) => {
-    commitCalls[mutation] = [...(commitCalls[mutation] || []), args];
-  };
-  const dispatch = (action, ...args) => {
-    dispatchCalls[action] = [...(dispatchCalls[action] || []), args];
-    if (action === 'request') {
-      return { data: [] };
-    }
-  };
-  const state = { config: { namespace: 'unitTest' } };
-  const getters = {
-    normalizeType:    (type) => type,
-    typeRegistered:   (type) => type === 'foo',
-    haveAll:          (type) => type === 'baz',
-    haveAllNamespace: (type, namespaced) => type === 'far' && namespaced === 'faz',
-    all:              (type) => [type],
-    urlFor:           (type, _, opt) => type, // we're not testing the urlFor getter so we don't need to do anything with opt here
-  };
-  const rootGetters = {
-    'type-map/optionsFor': (type) => {
-      return {};
-    },
-    'auth/fromHeader': 'foo'
+  const setupContext = () => {
+    const commit = jest.fn();
+    const dispatch = jest.fn((...args) => {
+      switch (args[0]) {
+      case 'request':
+        return { data: ['requestData'] };
+      }
+    });
+    const state = { config: { namespace: 'unitTest' } };
+    const getters = {
+      normalizeType:    jest.fn(() => 'getters.normalizeType'),
+      typeRegistered:   jest.fn(() => false),
+      haveAll:          jest.fn(() => false),
+      haveAllNamespace: jest.fn(() => false),
+      all:              jest.fn(() => 'getters.all'),
+      urlFor:           jest.fn(() => 'getters.urlFor'), // we're not testing the urlFor getter so we don't need to do anything with opt here
+    };
+    const rootGetters = {
+      'type-map/optionsFor': jest.fn(),
+      'auth/fromHeader':     'foo'
+    };
+
+    // we're not testing function output based off of state or getter inputs here since they are dependencies and should be tested independently
+    return {
+      state,
+      getters,
+      rootGetters,
+      commit,
+      dispatch
+    };
   };
 
-  // we're not testing function output based off of state or getter inputs here since they are dependencies and should be tested independently
-  const ctx = {
-    state,
-    getters,
-    rootGetters,
-    commit,
-    dispatch
-  };
+  const standardValidationChain = [
+    [
+      'returns a promise',
+      {
+        valueGetter:   (findAllPromise) => typeof findAllPromise.then,
+        valueExpected: 'function'
 
-  // setting afterEach here seems reasonable but isn't allowed by the linter
-  const resetCalls = () => {
-    dispatchCalls = {};
-    commitCalls = {};
-  };
+      }
+    ],
+    [
+      'calls the "all" getter with the normalizedType',
+      {
+        valueGetter:   (_, __, { getters }) => getters.all.mock.calls[0][0],
+        valueExpected: 'getters.normalizeType'
+      }
+    ],
+    [
+      'returns the value expected from the "all" getter',
+      {
+        valueGetter:   (_, findAllReturnValue) => findAllReturnValue,
+        valueExpected: 'getters.all'
+      }
+    ],
+    [
+      'first dispatch should be the "request" action',
+      {
+        valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[0][0],
+        valueExpected: 'request'
+      }
+    ],
+    [
+      'first dispatch parameters should be provided a normalized type and a url, streaming, and "metadata.managedFields" excluded under opt',
+      {
+        valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[0][1],
+        valueExpected: {
+          type: 'getters.normalizeType',
+          opt:  {
+            url:           'getters.urlFor',
+            stream:        true,
+            excludeFields: ['metadata.managedFields']
+          }
+        },
+        assertionMethod: 'toMatchObject'
+      }
+    ],
+    [
+      'second dispatch should be the "watch" action',
+      {
+        valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[1][0],
+        valueExpected: 'watch'
+      }
+    ],
+    [
+      'second dispatch parameters should have a normalized type and force set to false',
+      {
+        valueGetter:     (_, __, { dispatch }) => dispatch.mock.calls[1][1],
+        valueExpected:   { type: 'getters.normalizeType', force: false },
+        assertionMethod: 'toMatchObject'
+      }
+    ],
+    [
+      'should only make two dispatches',
+      {
+        valueGetter:     (_, __, { dispatch }) => dispatch.mock.calls,
+        valueExpected:   2,
+        assertionMethod: 'toHaveLength'
+      }
+    ],
+
+    [
+      'first commit should be the "registerType" mutation',
+      {
+        valueGetter:   (_, __, { commit }) => commit.mock.calls[0][0],
+        valueExpected: 'registerType'
+      }
+    ],
+    [
+      'first commit parameters should have a normalized type',
+      {
+        valueGetter:   (_, __, { commit }) => commit.mock.calls[0][1],
+        valueExpected: 'getters.normalizeType'
+      }
+    ],
+
+    [
+      'second commit should be the "loadAll" mutation',
+      {
+        valueGetter:   (_, __, { commit }) => commit.mock.calls[1][0],
+        valueExpected: 'loadAll'
+      }
+    ],
+    [
+      'second commit parameters should have a normalized type, ctx.state.config.namespace, data returned by request, and skipHaveAll set to false',
+      {
+        valueGetter:   (_, __, { commit }) => commit.mock.calls[1][1],
+        valueExpected: {
+          type:        'getters.normalizeType',
+          ctx:         { state: { config: { namespace: 'unitTest' } } },
+          data:        ['requestData'],
+          skipHaveAll: false,
+        },
+        assertionMethod: 'toMatchObject'
+      }
+    ],
+    [
+      'should only make two commits',
+      {
+        valueGetter:     (_, __, { commit }) => commit.mock.calls,
+        valueExpected:   2,
+        assertionMethod: 'toHaveLength'
+      }
+    ]
+  ];
 
   describe('dashboard-store > actions > findAll', () => {
-    let findAllPromise;
+    describe('called without a cache for the type in the second param', () => {
+      const ctx = setupContext();
+      const findAllPromise = findAll(ctx, { type: 'type' });
 
-    it('expects findAll to return a promise', () => {
-      resetCalls();
-      findAllPromise = findAll(ctx, { type: 'type:foo' });
+      const validationChain = standardValidationChain;
 
-      expect(typeof findAllPromise.then).toBe('function');
-    });
+      it.each(validationChain)(
+        '%s',
+        async(_, { valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
+          const findAllReturnValue = await findAllPromise;
 
-    it('expects basic findAll to return an array asynchronously', async() => {
-      const findAllReturnValue = await findAllPromise;
-
-      expect(findAllReturnValue).toHaveLength(1);
-      expect(findAllReturnValue[0]).toBe('type:foo');
-    });
-    it('expects basic findAll to dispatch the "request" action once with a url, streaming, and "metadata.managedFields" excluded', () => {
-      expect(dispatchCalls.request).toMatchObject([[{
-        type: 'type:foo',
-        opt:  {
-          url:           'type:foo',
-          stream:        true,
-          excludeFields: ['metadata.managedFields']
+          expect(valueGetter(findAllPromise, findAllReturnValue, ctx))[assertionMethod](valueExpected);
         }
-      }]]);
-    });
-    it('expects basic findAll to dispatch the "watch" action once', () => {
-      expect(dispatchCalls.watch).toMatchObject([[{ type: 'type:foo', force: false }]]);
-    });
-    it('expects basic findAll to commit the "registerType" mutation once', () => {
-      expect(commitCalls.registerType).toMatchObject([['type:foo']]);
-    });
-    it('expects basic findAll to commit the "loadAll" mutation once with ...', () => {
-      expect(commitCalls.loadAll).toMatchObject([[{
-        type:        'type:foo',
-        ctx:         { state: { config: { namespace: 'unitTest' } } },
-        data:        [],
-        skipHaveAll: false,
-      }]]);
+      );
     });
 
-    // make a request with excluded fields now
-    it('expects findAll with excludedFields to return an array asynchronously', async() => {
-      resetCalls();
-      const findAllReturnValue = await findAll(ctx, { type: 'type:foo', opt: { excludeFields: ['field:foo'] } });
+    describe('called without a cache for the type in the second param and an excluded fields array', () => {
+      const ctx = setupContext();
+      const findAllPromise = findAll(ctx, { type: 'type', opt: { excludeFields: ['field:foo'] } });
+      const validationChain = [
+        ...standardValidationChain.filter(([label]) => label !== 'first dispatch parameters should be provided a normalized type and a url, streaming, and "metadata.managedFields" excluded under opt'),
+        [
+          'first dispatch parameters should be provided a normalized type and a url, streaming, , and both "field:foo" and "metadata.managedFields" excluded',
+          {
+            valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[0][1],
+            valueExpected: {
+              type: 'getters.normalizeType',
+              opt:  {
+                url:           'getters.urlFor',
+                stream:        true,
+                excludeFields: ['field:foo', 'metadata.managedFields']
+              }
+            },
+            assertionMethod: 'toMatchObject'
+          }
+        ]
+      ];
 
-      expect(findAllReturnValue).toHaveLength(1);
-      expect(findAllReturnValue[0]).toBe('type:foo');
-    });
-    it('expects findAll with excludedFields to dispatch the "request" action once with a url, streaming, and "metadata.managedFields" and "field:foo" excluded', () => {
-      expect(dispatchCalls.request).toMatchObject([[{
-        type: 'type:foo',
-        opt:  {
-          url:           'type:foo',
-          stream:        true,
-          excludeFields: ['field:foo', 'metadata.managedFields']
+      it.each(validationChain)(
+        '%s',
+        async(_, { valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
+          const findAllReturnValue = await findAllPromise;
+
+          expect(valueGetter(findAllPromise, findAllReturnValue, ctx))[assertionMethod](valueExpected);
         }
-      }]]);
-    });
-    it('expects findAll with excludedFields to dispatch the "watch" action once', () => {
-      expect(dispatchCalls.watch).toMatchObject([[{ type: 'type:foo', force: false }]]);
-    });
-    it('expects findAll with excludedFields to commit the "registerType" mutation once', () => {
-      expect(commitCalls.registerType).toMatchObject([['type:foo']]);
-    });
-    it('expects findAll with excludedFields to commit the "loadAll" mutation once with ...', () => {
-      expect(commitCalls.loadAll).toMatchObject([[{
-        type:        'type:foo',
-        ctx:         { state: { config: { namespace: 'unitTest' } } },
-        data:        [],
-        skipHaveAll: false,
-      }]]);
+      );
     });
   });
 });
