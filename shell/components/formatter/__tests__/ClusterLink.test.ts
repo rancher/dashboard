@@ -1,11 +1,10 @@
 import { mount } from '@vue/test-utils';
 import ClusterLink from '@shell/components/formatter/ClusterLink.vue';
-import { cleanHtmlDirective } from '@shell/plugins/clean-html-directive';
-import { cleanTooltipDirective } from '@shell/plugins/clean-tooltip-directive';
+import '@shell/plugins/clean-tooltip-directive';
 
 describe('component: Conditions', () => {
   const MOCKED_CONDITIONS_1 = [{
-    status: '', type: 'Ready', reason: 'Waiting', error: true // When there's only one error with "Ready" type and "Waiting" reason
+    status: '', type: 'Ready', reason: 'Waiting', error: true // When the only existing error has a type "Ready" and reason "Waiting"
   }];
   const MOCKED_CONDITIONS_2 = [{
     status: 'any', type: 'any', error: true
@@ -30,8 +29,7 @@ describe('component: Conditions', () => {
           },
           reference: 'any',
           value:     'any'
-        },
-        directives: { cleanHtmlDirective, cleanTooltipDirective }
+        }
       });
       const el = wrapper.find(ERROR_ICON_SELECTOR);
 
