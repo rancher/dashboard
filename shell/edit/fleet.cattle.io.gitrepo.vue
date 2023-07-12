@@ -604,7 +604,7 @@ export default {
       </template>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.resources.label'" />
-      <div data-testid="GitRepo-correctDrift-container">
+      <div>
         <Checkbox
           v-model="value.spec.correctDrift.enabled"
           data-testid="GitRepo-correctDrift-checkbox"
