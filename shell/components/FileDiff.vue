@@ -1,6 +1,5 @@
 <script>
 import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim.js';
-import 'diff2html/bundles/css/diff2html.min.css';
 
 import { createPatch } from 'diff';
 
@@ -119,7 +118,8 @@ export default {
 </style>
 
 <style scoped lang="scss">
-// These styles predomindently but not exclusively ensure dark mode looks ok
+@import 'node_modules/diff2html/bundles/css/diff2html.min.css';
+
 ::v-deep .d2h-wrapper {
   .d2h-file-header {
     display: none;
