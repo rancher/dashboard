@@ -578,12 +578,8 @@ export const getters = {
 
     const base = 'https://github.com/rancher/rancher/releases';
 
-    if (version) {
-      const tag = version.match(/(v[0-9]+\.[0-9]+\.[0-9])(-rc[0-9])*/)?.[1];
-
-      if (tag) {
-        return `${ base }/tag/${ tag }`;
-      }
+    if (version && version.match(/v[0-9]+\.[0-9]+\.[0-9]$/)) {
+      return `${ base }/tag/${ version }`;
     }
 
     return `${ base }/latest`;
