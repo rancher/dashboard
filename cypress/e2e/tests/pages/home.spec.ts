@@ -3,12 +3,10 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '~/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
-import WhatsNewPagePo from '~/cypress/e2e/po/pages/docs/whats-new.po';
 
 const homePage = new HomePagePo();
 const homeClusterList = homePage.list();
 const provClusterList = new ClusterManagerListPagePo('local');
-const whatsNewPage = new WhatsNewPagePo();
 
 describe('Home Page', () => {
   beforeEach(() => {
@@ -17,13 +15,12 @@ describe('Home Page', () => {
     HomePagePo.goToAndWaitForGet();
   });
 
-  it('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it.only('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
-     * Click link on home page and verify user lands on What's new page
-     * Verify contents of What's new page
-     * Verify changlog banner is hidden after navigating to the page
+     * Verify changlog banner is hidden after clicking link
+     * Verify release notes link is valid github page
      */
-    const burgerMenuPo = new BurgerMenuPo();
+    // const burgerMenuPo = new BurgerMenuPo();
     const text: string[] = [];
 
     homePage.restoreAndWait();
@@ -36,14 +33,13 @@ describe('Home Page', () => {
       expect(el).contains(text[0]);
     });
 
-    homePage.whatsNewBannerLink().click();
-    whatsNewPage.waitForPage();
-    whatsNewPage.title().invoke('text').then((el: string) => {
-      expect(el.toLowerCase()).contains(text[0].toLowerCase());
+    homePage.whatsNewBannerLink().invoke('attr', 'href').then((releaseNotesUrl) => {
+      cy.request(releaseNotesUrl).then((res) => {
+        expect(res.status).equals(200);
+      });
     });
 
-    BurgerMenuPo.toggle();
-    burgerMenuPo.home().click();
+    homePage.whatsNewBannerLink().click();
     homePage.changelog().self().should('not.exist');
   });
 

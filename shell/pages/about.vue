@@ -6,6 +6,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { getVendor } from '@shell/config/private-label';
 import { downloadFile } from '@shell/utils/download';
+import { mapGetters } from 'vuex';
 
 export default {
   layout:     'plain',
@@ -22,6 +23,7 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
       return this.settings.find((s) => s.id === SETTING.VERSION_RANCHER);
     },
@@ -168,9 +170,13 @@ export default {
       </tr>
     </table>
     <p class="pt-20">
-      <nuxt-link :to="{ path: 'docs/whats-new'}">
+      <a
+        :href="releaseNotesUrl"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+      >
         {{ t('about.versions.releaseNotes') }}
-      </nuxt-link>
+      </a>
     </p>
     <template v-if="downloadImageList.length">
       <h3 class="pt-40">

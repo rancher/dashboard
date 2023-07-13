@@ -573,6 +573,22 @@ export const getters = {
     return state.targetRoute;
   },
 
+  releaseNotesUrl(state, getters) {
+    const version = getters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+
+    const base = 'https://github.com/rancher/rancher/releases';
+
+    if (version) {
+      const tag = version.match(/(v[0-9]+\.[0-9]+\.[0-9])(-rc[0-9])*/)?.[1];
+
+      if (tag) {
+        return `${ base }/tag/${ tag }`;
+      }
+    }
+
+    return `${ base }/latest`;
+  },
+
   ...gcGetters
 };
 
