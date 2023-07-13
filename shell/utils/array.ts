@@ -160,7 +160,7 @@ export function findStringIndex(items: string[], item: string, trim = true): num
 }
 
 export function hasDuplicatedStrings(items: string[], caseSensitive = true): boolean {
-  const normalizedItems = items.map(i => (caseSensitive ? i : i.toLowerCase()).trim());
+  const normalizedItems = items.map((i) => (caseSensitive ? i : i.toLowerCase()).trim());
 
   for (let i = 0; i < items.length; i++) {
     const index = findStringIndex(
@@ -188,14 +188,14 @@ export function uniq<T>(ary: T[]): T[] {
   return out;
 }
 
-export function concatStrings(a: string[], b: string[]) {
-  return [...a.map(aa => b.map(bb => aa.concat(bb)))].reduce((acc, arr) => [...arr, ...acc], []);
+export function concatStrings(a: string[], b: string[]): string[] {
+  return [...a.map((aa) => b.map((bb) => aa.concat(bb)))].reduce((acc, arr) => [...arr, ...acc], []);
 }
 
 interface KubeResource { metadata: { labels: { [name: string]: string} } } // Migrate to central kube types resource when those are brought in
 export function getUniqueLabelKeys<T extends KubeResource>(aryResources: T[]): string[] {
   const uniqueObj = aryResources.reduce((res, r) => {
-    Object.keys(r.metadata.labels).forEach(l => (res[l] = true));
+    Object.keys(r.metadata.labels).forEach((l) => (res[l] = true));
 
     return res;
   }, {} as {[label: string]: boolean});

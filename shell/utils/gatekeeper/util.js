@@ -2,7 +2,7 @@ import { GATEKEEPER, SCHEMA } from '@shell/config/types';
 
 export async function findAllConstraints(store) {
   const constraintTypes = await findAllConstraintTypes(store);
-  const nestedConstraints = constraintTypes.map(ct => store.dispatch('cluster/findAll', { type: ct, opt: { force: true } }));
+  const nestedConstraints = constraintTypes.map((ct) => store.dispatch('cluster/findAll', { type: ct, opt: { force: true } }));
 
   return (await Promise.all(nestedConstraints)).flat();
 }
@@ -30,6 +30,6 @@ export function findTemplateType(schemas) {
 
 function findConstraintTypes(schemas) {
   return schemas
-    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh')
-    .map(schema => schema.id);
+    .filter((schema) => schema?.attributes?.group === 'constraints.gatekeeper.sh')
+    .map((schema) => schema.id);
 }

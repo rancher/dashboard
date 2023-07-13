@@ -3,14 +3,13 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
-import { STATE, SIMPLE_NAME, IMAGE } from '@shell/config/table-headers';
+import { STATE, SIMPLE_NAME, IMAGE_NAME } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { findBy } from '@shell/utils/array';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import V1WorkloadMetrics from '@shell/mixins/v1-workload-metrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
-import Loading from '@shell/components/Loading';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
@@ -26,7 +25,6 @@ export default {
 
   components: {
     DashboardMetrics,
-    Loading,
     ResourceTabs,
     Tab,
     SortableTable,
@@ -159,7 +157,7 @@ export default {
           ...SIMPLE_NAME,
           value: 'name'
         },
-        IMAGE,
+        IMAGE_NAME,
         {
           name:          'isInit',
           labelKey:      'workload.container.init',
@@ -241,9 +239,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <ResourceTabs
-    v-else
     mode="view"
     class="mt-20"
     :value="value"

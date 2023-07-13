@@ -104,8 +104,8 @@ export function init(store) {
       });
 
       const uniquePrincipalIds = uniq(globalRoleBindings
-        .filter(grb => !!grb.groupPrincipalName)
-        .map(grb => grb.groupPrincipalName)
+        .filter((grb) => !!grb.groupPrincipalName)
+        .map((grb) => grb.groupPrincipalName)
       );
 
       const allPrincipalsP = uniquePrincipalIds
@@ -125,8 +125,8 @@ export function init(store) {
       const allPrincipals = await Promise.all(allPrincipalsP);
 
       return allPrincipals
-        .filter(p => !!p)
-        .map(p => ({
+        .filter((p) => !!p)
+        .map((p) => ({
           ...p,
           type: NORMAN.SPOOFED.GROUP_PRINCIPAL
         }));
@@ -144,7 +144,7 @@ export function init(store) {
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
 
   virtualType({
-    labelKey:   'rbac.roletemplate.label',
+    labelKey:   'auth.roleTemplate',
     icon:       'user',
     namespaced: false,
     name:       ROLES_VIRTUAL_TYPE,

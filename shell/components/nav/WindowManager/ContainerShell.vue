@@ -96,7 +96,7 @@ export default {
     },
 
     containerChoices() {
-      return this.pod?.spec?.containers?.map(x => x.name) || [];
+      return this.pod?.spec?.containers?.map((x) => x.name) || [];
     },
   },
 

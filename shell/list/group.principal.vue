@@ -42,7 +42,7 @@ export default {
       providers: authConfigSchema ? this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG }) : Promise.resolve([])
     });
 
-    const nonLocalAuthProvider = !!hash.providers.find(p => p.name !== 'local' && p.enabled === true);
+    const nonLocalAuthProvider = !!hash.providers.find((p) => p.name !== 'local' && p.enabled === true);
 
     this.canRefreshAccess = nonLocalAuthProvider && !!hash.user?.actions?.refreshauthprovideraccess;
     this.canCreateGlobalRoleBinding = nonLocalAuthProvider && grbSchema?.collectionMethods?.includes('POST');

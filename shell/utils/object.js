@@ -43,7 +43,7 @@ export function getAllValues(obj, path) {
   keysInOrder.forEach((currentKey) => {
     currentValue = currentValue.map((indexValue) => {
       if (Array.isArray(indexValue)) {
-        return indexValue.map(arr => arr[currentKey]).flat();
+        return indexValue.map((arr) => arr[currentKey]).flat();
       } else if (indexValue) {
         return indexValue[currentKey];
       } else {
@@ -52,7 +52,7 @@ export function getAllValues(obj, path) {
     }).flat();
   });
 
-  return currentValue.filter(val => val !== null);
+  return currentValue.filter((val) => val !== null);
 }
 
 export function get(obj, path) {
@@ -131,7 +131,7 @@ export function isSimpleKeyValue(obj) {
   return obj !== null &&
     !Array.isArray(obj) &&
     typeof obj === 'object' &&
-    Object.values(obj || {}).every(v => typeof v !== 'object');
+    Object.values(obj || {}).every((v) => typeof v !== 'object');
 }
 
 /*
@@ -174,7 +174,7 @@ export function definedKeys(obj) {
     if ( Array.isArray(val) ) {
       return key;
     } else if ( isObject(val) ) {
-      return ( definedKeys(val) || [] ).map(subkey => `${ key }.${ subkey }`);
+      return ( definedKeys(val) || [] ).map((subkey) => `${ key }.${ subkey }`);
     } else {
       return key;
     }
@@ -217,6 +217,33 @@ export function diff(from, to) {
 
   return out;
 }
+
+/**
+ * Super simple lodash isEqual equivalent.
+ *
+ * Only checks root properties for strict equality
+ */
+function isEqualBasic(from, to) {
+  const fromKeys = Object.keys(from || {});
+  const toKeys = Object.keys(to || {});
+
+  if (fromKeys.length !== toKeys.length) {
+    return false;
+  }
+
+  for (let i = 0; i < fromKeys.length; i++) {
+    const fromValue = from[fromKeys[i]];
+    const toValue = to[fromKeys[i]];
+
+    if (fromValue !== toValue) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export { isEqualBasic as isEqual };
 
 export function changeset(from, to, parentPath = []) {
   let out = {};
@@ -375,5 +402,5 @@ export function pickBy(obj = {}, predicate = (value, key) => false) {
  * @returns
  */
 export const toDictionary = (array, callback) => Object.assign(
-  {}, ...array.map(item => ({ [item]: callback(item) }))
+  {}, ...array.map((item) => ({ [item]: callback(item) }))
 );

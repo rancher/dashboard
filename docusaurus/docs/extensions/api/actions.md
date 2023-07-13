@@ -118,6 +118,7 @@ _BULKABLE/GLOBAL TABLE ACTION_
 |`svg`| Function | icon based on a SVG file which can be included using `@require` |
 |`divider`| Boolean | Shows a line separator (divider) in actions menu |
 |`multiple`| Boolean | Whether the action/button is bulkable (can be performed on multiple list items) |
+|`enabled`| Function | Whether the action/button is enabled or not |
 |`invoke`| Function | function executed when action/button is clicked |
 
 
@@ -143,6 +144,9 @@ plugin.addAction(
     label:    'some-extension-action',
     labelKey: 'plugin-examples.table-action-one',
     icon:     'icon-pipeline',
+    enabled(ctx: any) {
+      return true;
+    },
     invoke(opts: ActionOpts, values: any[]) {
       console.log('table action executed 1', this, opts, values); // eslint-disable-line no-console
     }
@@ -162,6 +166,9 @@ plugin.addAction(
     labelKey: 'plugin-examples.table-action-two',
     svg:      require('@pkg/test-features/icons/rancher-desktop.svg'),
     multiple: true,
+    enabled(ctx: any) {
+      return true;
+    },
     invoke(opts: ActionOpts, values: any[]) {
       console.log('table action executed 2', this); // eslint-disable-line no-console
       console.log(opts); // eslint-disable-line no-console

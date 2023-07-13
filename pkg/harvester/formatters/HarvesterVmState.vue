@@ -37,7 +37,7 @@ export default {
   computed: {
     networkImpassability() {
       const nodeName = this.row?.nodeName;
-      const nn = this.allNodeNetwork.find( N => N.attachNodeName === nodeName);
+      const nn = this.allNodeNetwork.find( (N) => N.attachNodeName === nodeName);
 
       return (!!nn?.message || !this.enableClusterNetwork) && this.row?.attachNetwork && this?.row?.actualState === 'Running';
     },
@@ -89,8 +89,15 @@ export default {
 
 <template>
   <span>
-    <HarvesterMigrationState v-show="isMigrating" :vm-resource="row" @state-changed="migrationStateChanged" />
-    <div v-show="!isMigrating" class="state">
+    <HarvesterMigrationState
+      v-show="isMigrating"
+      :vm-resource="row"
+      @state-changed="migrationStateChanged"
+    />
+    <div
+      v-show="!isMigrating"
+      class="state"
+    >
       <VMState :row="row" />
       <v-popover
         v-if="warningMessage.length"
@@ -102,7 +109,10 @@ export default {
         </span>
 
         <template slot="popover">
-          <p v-for="(message, index) in warningMessage" :key="message">
+          <p
+            v-for="(message, index) in warningMessage"
+            :key="message"
+          >
             {{ index + 1 }}. {{ message }}
           </p>
         </template>

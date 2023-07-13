@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { config } from '@vue/test-utils';
 import { directiveSsr as t } from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';

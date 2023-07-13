@@ -66,7 +66,7 @@ function cleanPodsByNamespaceCache(state, resource) {
 
     // Extra defensive check that the cache exists for the namespace being removed
     if (cache) {
-      const inList = cache.list.findIndex(p => p.id === resource.id);
+      const inList = cache.list.findIndex((p) => p.id === resource.id);
 
       if ( inList >= 0 ) {
         cache.list.splice(inList, 1);

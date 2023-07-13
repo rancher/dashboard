@@ -1,9 +1,9 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import UnitInputPo from '~/cypress/e2e/po/components/unit-input.po';
-import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
-import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
-import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
+import UnitInputPo from '@/cypress/e2e/po/components/unit-input.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
+import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import NameNsDescription from '@/cypress/e2e/po/components/name-ns-description.po';
 import ArrayList from '@/cypress/e2e/po/components/array-list.po';
 
@@ -22,7 +22,7 @@ function _parseArea(area:string) {
 }
 
 export default class AgentConfigurationRke2 extends ComponentPo {
-  constructor(selector: string = '.dashboard-root') {
+  constructor(selector = '.dashboard-root') {
     super(selector);
   }
 

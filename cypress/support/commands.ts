@@ -1,6 +1,8 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { Matcher } from '@/cypress/support/types';
 
+let token: any;
+
 /**
  * Login local authentication, including first login and bootstrap if not cached
  */
@@ -33,14 +35,79 @@ Cypress.Commands.add('login', (
       .should('eq', true);
     loginPage.submit();
 
-    cy.wait('@loginReq');
+    cy.wait('@loginReq').its('request.body')
+      .should(
+        'deep.equal',
+        {
+          username,
+          password,
+          description:  'UI session',
+          responseType: 'cookie'
+        }
+      );
   };
 
   if (cacheSession) {
     (cy as any).session([username, password], login);
+    cy.getCookie('CSRF').then((c) => {
+      token = c;
+    });
   } else {
     login();
   }
+});
+
+/**
+ * Create user via api request
+ */
+Cypress.Commands.add('createUser', (username, role?) => {
+  return cy.request({
+    method:           'POST',
+    url:              `${ Cypress.env('api') }/v3/users`,
+    failOnStatusCode: false,
+    headers:          {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:               'user',
+      enabled:            true,
+      mustChangePassword: false,
+      username,
+      password:           Cypress.env('password')
+    }
+  }).then((resp) => {
+    if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
+      cy.log('User already exists. Skipping user creation');
+    } else {
+      expect(resp.status).to.eq(201);
+
+      if (role) {
+        cy.setGlobalRoleBinding(resp.body.id, role);
+      }
+    }
+  });
+});
+
+/**
+ * Set global role binding for user via api request
+ */
+Cypress.Commands.add('setGlobalRoleBinding', (userId, role) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/globalrolebindings`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:         'globalRoleBinding',
+      globalRoleId: role,
+      userId
+    }
+  }).then((resp) => {
+    expect(resp.status).to.eq(201);
+  });
 });
 
 /**
@@ -108,4 +175,18 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 
       return Cypress.Blob.blobToBase64String(blob);
     });
+});
+
+Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
+  for (let i = 0; i < count; i++) {
+    cy.get('body').trigger('keydown', triggerKeys);
+  }
+});
+
+Cypress.Commands.add('iFrame', () => {
+  return cy
+    .get('[data-testid="ember-iframe"]', { log: false })
+    .its('0.contentDocument.body', { log: false })
+    .should('not.be.empty')
+    .then((body) => cy.wrap(body));
 });

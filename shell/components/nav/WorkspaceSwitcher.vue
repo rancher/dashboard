@@ -55,7 +55,7 @@ export default {
         this.value = '';
       }
 
-      const currentExists = curr.find(item => item.value === this.value);
+      const currentExists = curr.find((item) => item.value === this.value);
 
       if (curr.length && !currentExists) {
         this.value = curr[0]?.value;

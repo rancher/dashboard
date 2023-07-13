@@ -25,7 +25,10 @@ export default {
   <div>
     <Banner color="warning">
       <strong>{{ t('harvester.upgradePage.upgradeInfo.warning') }}:</strong>
-      <p v-clean-html="t('harvester.upgradePage.upgradeInfo.doc', {}, true)" class="mb-5">
+      <p
+        v-clean-html="t('harvester.upgradePage.upgradeInfo.doc', {}, true)"
+        class="mb-5"
+      >
       </p>
 
       <p class="mb-5">
@@ -33,7 +36,10 @@ export default {
       </p>
 
       <p class="mb-5">
-        {{ t('harvester.upgradePage.upgradeInfo.moreNotes') }} <a :href="releaseVersion" target="_blank">{{ t('generic.moreInfo') }} </a>
+        {{ t('harvester.upgradePage.upgradeInfo.moreNotes') }} <a
+          :href="releaseVersion"
+          target="_blank"
+        >{{ t('generic.moreInfo') }} </a>
       </p>
     </Banner>
   </div>

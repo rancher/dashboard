@@ -22,7 +22,7 @@ export default {
       WORKLOAD_TYPES.JOB,
       WORKLOAD_TYPES.STATEFUL_SET
     ];
-    const allWorkloadsNested = await Promise.all(types.map(type => this.$store.dispatch('cluster/findAll', { type })));
+    const allWorkloadsNested = await Promise.all(types.map((type) => this.$store.dispatch('cluster/findAll', { type })));
     const allWorkloads = allWorkloadsNested.flat();
 
     this.relatedWorkloadRows = allWorkloads.filter(this.filter);

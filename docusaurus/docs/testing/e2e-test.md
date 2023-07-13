@@ -200,3 +200,26 @@ Both unit and E2E tests generate coverage respectively with Jest and NYC. These 
 Special attention goes to the E2E as the code is instrumented with Babel and the configuration is set within Nuxt.js.
 
 >  Note: To enable instrumentation required for code coverage, you must set the environment variable `TEST_INSTRUMENT` to `true`.
+
+
+## Cypress Tags (cypress-grep plugin)
+
+Cypress-grep is a plugin that is integrated with our project to group e2e tests by adding tags to them. 
+
+Reasons we are grouping our tests:
+- To add test coverage for different types of users
+- In the future support sets of tests specific to the context they run in (PR CI, overnight, etc).
+
+Tags currently in use are `@adminUser` and `@standardUser`.
+
+We use `GREP_TAGS` and `TEST_USERNAME` environment variables to execute all tests which contain @adminUser or @standardUser tags respectively:
+
+E.g. when running locally:
+```
+GREP_TAGS=@adminUser TEST_USERNAME=admin yarn cy:run
+
+OR 
+
+GREP_TAGS=@standardUser TEST_USERNAME=<standard user username> yarn cy:run
+```
+More info about cypress-grep plugin can be found [here](https://www.npmjs.com/package/@cypress/grep#filter-with-tags).

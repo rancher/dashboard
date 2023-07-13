@@ -1,9 +1,9 @@
-import PagePo from '~/cypress/e2e/po/pages/page.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 export default class CreateKeyPagePo extends PagePo {
-  static url: string = '/account/create-key'
+  static url = '/account/create-key'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(CreateKeyPagePo.url);
   }

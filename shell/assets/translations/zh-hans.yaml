@@ -73,6 +73,7 @@ generic:
   techPreview: 技术预览
   type: 类型
   unknown: 未知
+  upload: 上传
   provisioning: '—'
   key: 键
   value: 值
@@ -117,6 +118,7 @@ locale:
   none: (None)
 
 nav:
+  harvesterDashboard: Harvester 仪表板
   backToRancher: Cluster Manager
   clusterTools: 集群工具
   kubeconfig:
@@ -179,6 +181,7 @@ nav:
     multiCluster: 全局应用
     legacy: 旧版应用
     configuration: 配置
+    hci: HCI
   search:
     placeholder: 输入关键词，搜索集群
     noResults: 没有匹配的集群
@@ -1282,9 +1285,6 @@ cluster:
         label: KubeconfigContent
       placeholder: '命名空间/名称'
       cluster: 导入的 Harvester 集群
-      affinity:
-        namespaces:
-          placeholder: 例如：default,system,base
       installGuestAgent: 安装访客代理
   description:
     label: 集群描述
@@ -1340,7 +1340,6 @@ cluster:
     deprecated: （已弃用）
     deprecatedPatches: 显示已弃用的 Kubernetes 补丁版本
     deprecatedPatchWarning: 建议为每个 Kubernetes 次要版本使用最新的补丁版本，已弃用的补丁版本可能对迁移有用。
-  toolsTip: 使用新集群工具来管理和安装 Monitoring、Logging 等工具。
   legacyWarning: 旧版功能开关已开启，但是不是所有旧版功能都在 Kubernetes 1.21+ 中支持。
   log:
     connecting: 正在连接
@@ -3997,17 +3996,19 @@ inactivity:
 
 # Rancher Extensions
 plugins:
-  incompatibleDisclaimer: "此扩展的最新版本 ({ version }) 与当前的 Rancher 版本 ({ rancherVersion }) 不兼容。"
+  incompatibleRancherVersion: "此扩展的最新版本 ({ version }) 与当前的 Rancher 版本 ({ rancherVersion }) 不兼容。"
   labels:
     builtin: 内置角色
     experimental: 实验功能
     third-party: 第三方
+    image: 镜像
     installing: 正在安装...
     uninstalling: 正在卸载...
   descriptions:
     experimental: 这是实验性扩展
     third-party: 此扩展由第三方提供
     built-in: 这是内置扩展
+    image: 已手动加载此扩展镜像
   error:
     title: 加载扩展时出错
     message: 无法加载扩展代码
@@ -4016,6 +4017,7 @@ plugins:
     host: 此扩展与此应用程序不兼容
     version: 此扩展与此 Rancher 版本不兼容
     load: 加载此扩展的代码时出错
+    developerPkg: 此扩展已在内部加载，因此我们不会加载外部版本
   success:
     title: 已加载扩展 {name}
     message: 扩展加载成功
@@ -4031,18 +4033,59 @@ plugins:
     detail: 详情
     versions: 版本
     versionError: 无法加载版本信息
-    requiresVersion: "需要 Rancher {version}"
+    requiresRancherVersion: "需要 Rancher {version}"
   empty:
     all: 扩展未安装或不可用
     available: 没有可用的扩展
     installed: 没有已安装的扩展
     updates: 没有可用于已安装扩展的更新
+    images: 未安装扩展镜像
   loadError: 加载此扩展的代码时出错
   helmError: "通过 Helm 安装扩展时出错"
   manageRepos: 管理仓库
+  manageCharts: 管理扩展 Chart
+  manageCatalog:
+    label: 管理扩展商店
+    title: 扩展
+    subtitle: 应用商店
+    imageLoad:
+      load: 导入扩展商店
+      prompt: 扩展商店包含了打包在镜像中的扩展资产，导入将获取该镜像，并托管一个 Helm 仓库来作为自定义构建扩展的商店。
+      fields:
+        image:
+          label: 商店镜像参考
+          placeholder: "例如：hub.docker.io/example-org/my-image:latest"
+        secrets:
+          banner: "如果托管目录镜像的仓库需要拉取 Secret，则必须在以下命名空间中创建它们：<pre>cattle-ui-plugin-system</pre>"
+      banner: 这将创建 Deployment、Service 和 Helm 仓库来服务扩展 Chart。
+      imageVersion:
+        title: 找不到镜像版本
+        message: 无法通过 {image} 确定镜像版本，默认为 latest
+      error:
+        exists:
+          deployment:
+            title: 部署冲突
+            message: 使用 {image} 镜像的容器已存在
+          service:
+            title: Service 冲突
+            message: 名称为 {svc} 的 Service 已存在
+          repo:
+            title: Helm 仓库冲突
+            message: 名称为 {repo} 的仓库已存在
+      success:
+        title: "导入的扩展商店来自：{name}"
+        message: 已成功导入扩展商店镜像
+    headers:
+      image:
+        name: 镜像
+        label: Deployment 镜像
+      cacheState:
+        name: cacheState
+        label: 缓存状态
   tabs:
     all: 全部
     available: 可用
+    images: 镜像
     installed: 已安装
     updates: 更新
   title: 扩展
@@ -4065,6 +4108,7 @@ plugins:
     label: 卸载
     title: "卸载扩展 {name}"
     prompt: "确定要卸载此扩展吗？"
+    custom: "确定要卸载此扩展镜像吗？此镜像提供的扩展也将被删除。"
   upgradeAvailable: 此扩展有可用的版本更新
   reload: 扩展已更改 - 需要重新加载
   safeMode:
@@ -4403,7 +4447,6 @@ rbac:
   members:
     label: 成员
   roletemplate:
-    label: 角色
     newUserDefault:
       no: 否
       tooltip: 不影响已有角色的绑定。
@@ -4599,8 +4642,8 @@ resourceList:
     create: 创建
     createFromYaml: 使用 YAML 文件创建
     createResource: "创建 {resourceName}"
-  nsFiltering: "{resource} 太多。<br>请通过选择上面的命名空间进行过滤。"
-  nsFilterToolTip: "资源太多，过滤仅限于单一 {mode}。"
+  nsFiltering: "请使用上面的过滤器选择一个或多个命名空间或项目。"
+  nsFilterToolTip: "仅限于过滤项目和命名空间"
 resourceLoadingIndicator:
   loading: 正在加载
 
@@ -4811,20 +4854,13 @@ servicesPage:
     title: 附加配置
     ipam:
       label: IPAM
-    healthCheckPort:
-      label: 健康检查端口
-    healthCheckSuccessThreshold:
-      label: 健康检查成功阙值
-      description: 如果探针连续检测到某个地址的成功次数达到成功阈值，后端服务器就可以开始转发流量。
-    healthCheckFailureThreshold:
-      label: 健康检查失败阈值
-      description: 如果健康检查失败的数量达到失败阈值，后端服务器将停止转发流量。
-    healthCheckPeriod:
-      label: 健康检查周期
-    healthCheckTimeout:
-      label: 健康检查超时
-    healthCheckEnabled:
-      label: 健康检查
+    useShareIP:
+      label: 使用共享 IP
+    useIpam:
+      label: 使用 IPAM
+    shareIP:
+      label: 共享 IP LB
+
   ips:
     define: 服务端口
     clusterIpHelpText: 集群 IP 地址必须在为 API server 配置的 CIDR 范围内。
@@ -5557,8 +5593,8 @@ validation:
       tooLongPrefix: '"{key}" 前缀的长度不能超过 {max} 个字符'
   minLength: '"{key}" 必须多于 {min} 个字符'
   maxLength: '"{key}" 必须少于 {max} 个字符'
-  minValue: '"{key}" 必须多于 {min}'
-  maxValue: '"{key}" 必须小于 {max}'
+  minValue: '"{key}" 必须等于或多于 {min}'
+  maxValue: '"{key}" 必须等于或少于 {max}'
   betweenLengths: '"{key}" 必须包含 {min} 到 {max} 个字符'
   betweenValues: '"{key}" 必须介于 {min} 和 {max} 之间'
   noSchema: 没有找到可以验证的 schema
@@ -6035,7 +6071,7 @@ workload:
         noExecute: 不执行
         noSchedule: "不调度"
         preferNoSchedule: 倾向于不调度
-      labelKey: 标签键
+      labelKey: 键
       operator: 运算符
       operatorOptions:
         equal: =
@@ -6372,6 +6408,11 @@ typeLabel:
     {count, plural,
       one { 集群成员 }
       other { 集群成员 }
+    }
+  projectroletemplatebinding: |-
+    {count, plural,
+      one { 项目成员 }
+      other { 项目成员 }
     }
   management.cattle.io.feature: |-
     {count, plural,
@@ -7012,6 +7053,7 @@ performance:
       启用后，资源会更快出现，但可能需要更长的时间来加载整个资源集。此设置仅适用于来自 Kubernetes API 的资源
     checkboxLabel: 启用增量加载
     inputLabel: 资源阈值
+    incompatibleDescription: "增量加载与命名空间/项目过滤不兼容，无法同时启用。"
   manualRefresh:
     label: 手动刷新
     setting: 你可以配置一个阈值，高于该阈值时则启用手动刷新。
@@ -7020,6 +7062,7 @@ performance:
       启用后，列表数据不会自动更新，用户必须手动刷新列表视图。此设置仅适用于来自 Kubernetes API 的资源
     checkboxLabel: 启用列表数据的手动刷新
     inputLabel: 资源阈值
+    incompatibleDescription: "手动刷新与命名空间/项目过滤不兼容，无法同时启用。"
   websocketNotification:
     label: WebSocket 通知
     description: |-
@@ -7047,12 +7090,10 @@ performance:
         description: 资源必须超过此数量才能考虑进行垃圾回收。
         inputLabel: 资源数量
   nsFiltering:
-    label: 命名空间过滤
-    description: 当列表无法显示太多资源时，用户需要选择一个命名空间并仅提取该命名空间中的资源。
-    checkboxLabel: 启用命名空间过滤
-    count:
-      inputLabel: 资源阈值
-      description: 需要按命名空间过滤的阈值
+    label: 要求命名空间/项目过滤
+    description: 用户需要选择命名空间和/或项目。这将限制查看列表时获取的资源数量，有助于在具有大量资源的系统中提高 UI 的响应速度。
+    checkboxLabel: 启用要求命名空间/项目过滤
+    incompatibleDescription: "\"要求命名空间/项目过滤\"与手动刷新和增量加载不兼容，无法同时启用。"
   advancedWorker:
     label: Websocket Web Worker
     description: 推送到 UI 的资源更新来自 WebSocket，并在 UI 线程中处理。启用此选项可在单独的线程中处理 Web Worker 中的集群 WebSocket 更新。这有助于提高 UI 在资源经常变化的系统中的响应能力。
@@ -7147,6 +7188,7 @@ resourceQuota:
     resourceType: 资源类型
   helpText: 配置整个命名空间可用的资源量。
   helpTextDetail: 整个命名空间可以使用的资源量。
+  helpTextHarvester: VM 需要预留额外的内存。
   configMaps: ConfigMaps
   limitsCpu: CPU 限制
   limitsMemory: 内存限制
@@ -7298,6 +7340,7 @@ manager:
     label: 节点模板
 
 auth:
+  roleTemplate: 角色模板
   config:
     label: 认证
 vncConsole:
@@ -7548,6 +7591,82 @@ charts:
     ingress.host:
       label: 7 层负载均衡主机名
       description: "7 层负载均衡主机名"
+
+gitPicker:
+  github:
+    label: GitHub
+    tableHeaders:
+      choose:
+        label: 选择
+      sha:
+        label: SHA
+      author:
+        label: 作者
+        unknown: 未知
+      message:
+        label: 消息
+      date:
+        label: 日期
+    username:
+      label: 用户名/组织
+      inputLabel: 用户名/组织
+      tooltip: Git 仓库的用户名/组织
+    branch:
+      label: 分支
+      inputLabel: 分支
+      tooltip: 要部署的分支
+    repo:
+      label: 仓库
+      inputLabel: 仓库
+      tooltip: 要部署的仓库
+    commits:
+      label: Commit
+      tooltip: 要部署的 Commit
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: 未找到 GitHub 帐户或组织。请检查你的查询并重试。
+      noBranch: 未找到分支。请检查你的查询并重试。
+  gitlab:
+    label: GitLab
+    tableHeaders:
+      choose:
+        label: 选择
+      sha:
+        label: SHA
+      author:
+        label: 作者
+        unknown: 未知
+      message:
+        label: 消息
+      date:
+        label: 日期
+    username:
+      label: 用户名/组织
+      inputLabel: 用户名/组织
+      tooltip: Git 仓库的用户名/组织
+    branch:
+      label: 分支
+      inputLabel: 分支
+      tooltip: 要部署的分支
+    repo:
+      label: 仓库
+      inputLabel: 仓库
+      tooltip: 要部署的仓库
+    commits:
+      label: Commit
+      tooltip: 要部署的 Commit
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: 未找到 GitLab 帐户或组织。请检查你的查询并重试。
+      noBranch: 未找到分支。请检查你的查询并重试。
 
 networkAttachmentDefinition:
   tabs:

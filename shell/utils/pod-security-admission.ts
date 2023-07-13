@@ -7,7 +7,7 @@ import { PSA } from '@shell/types/pod-security-admission';
  * Return PSA labels present in the resource
  * @returns string[]
  */
-export const getPSALabels = (resource: PSA): string[] => filter(keys(resource?.metadata?.labels), key => PSALabelsNamespaces.includes(key));
+export const getPSALabels = (resource: PSA): string[] => filter(keys(resource?.metadata?.labels), (key) => PSALabelsNamespaces.includes(key));
 
 /**
  * Return boolean value if the label is a PSA label

@@ -60,19 +60,31 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.sourceNode')" :value="sourceNode" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.sourceNode')"
+          :value="sourceNode"
+        />
       </div>
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.targetNode')" :value="targetNode" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.targetNode')"
+          :value="targetNode"
+        />
       </div>
     </div>
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.started')" :value="started" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.started')"
+          :value="started"
+        />
       </div>
       <div class="col span-6">
-        <LabelValue :name="t('harvester.virtualMachine.detail.details.ended')" :value="ended" />
+        <LabelValue
+          :name="t('harvester.virtualMachine.detail.details.ended')"
+          :value="ended"
+        />
       </div>
     </div>
   </div>

@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { hasFetch, normalizeError, addLifecycleHook } from '../utils/nuxt';
 
-const isSsrHydration = vm => vm.$vnode && vm.$vnode.elm && vm.$vnode.elm.dataset && vm.$vnode.elm.dataset.fetchKey;
+const isSsrHydration = (vm) => vm.$vnode && vm.$vnode.elm && vm.$vnode.elm.dataset && vm.$vnode.elm.dataset.fetchKey;
 const nuxtState = window.__NUXT__;
 
 export default {
@@ -84,7 +84,7 @@ async function $_fetch() { // eslint-disable-line camelcase
   const delayLeft = this._fetchDelay - (Date.now() - startTime);
 
   if (delayLeft > 0) {
-    await new Promise(resolve => setTimeout(resolve, delayLeft));
+    await new Promise((resolve) => setTimeout(resolve, delayLeft));
   }
 
   this.$fetchState.error = error;

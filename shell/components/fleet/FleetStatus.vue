@@ -50,8 +50,8 @@ export default {
   computed: {
     meta() {
       return {
-        total:      this.values.map(x => x.value).reduce((a, b) => a + b),
-        readyCount: this.values.filter(x => x.label === 'Success' || x.label === 'Ready').map(x => x.value).reduce((a, b) => a + b)
+        total:      this.values.map((x) => x.value).reduce((a, b) => a + b),
+        readyCount: this.values.filter((x) => x.label === 'Success' || x.label === 'Ready').map((x) => x.value).reduce((a, b) => a + b)
       };
     },
 
@@ -83,7 +83,7 @@ export default {
       if ( !this.max ) {
         max = 100;
         if ( out.length ) {
-          max = out.map(x => x.value).reduce((a, b) => a + b);
+          max = out.map((x) => x.value).reduce((a, b) => a + b);
         }
       }
 
@@ -112,7 +112,7 @@ export default {
         return obj;
       });
 
-      return [...out].filter(obj => obj.percent);
+      return [...out].filter((obj) => obj.percent);
     },
   },
 

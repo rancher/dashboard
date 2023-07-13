@@ -50,7 +50,7 @@ export default {
     const defaultReceiverValues = {};
     const receiverSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_RECEIVER_SPEC);
     const routeSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.ALERTMANAGERCONFIG_ROUTE_SPEC);
-    const receiverOptions = (this.value?.spec?.receivers || []).map(receiver => receiver.name);
+    const receiverOptions = (this.value?.spec?.receivers || []).map((receiver) => receiver.name);
 
     return {
       actionMenuTargetElement:  null,

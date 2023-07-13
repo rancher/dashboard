@@ -30,7 +30,7 @@ dynamicPluginLoader.register({
     // If we have a cluster id, try to load the plugin via the harvester cluster's `loadClusterPlugin`
     if (clusterId) {
       const provClusters = await store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-      const provCluster = provClusters.find(p => p.mgmt.id === clusterId);
+      const provCluster = provClusters.find((p) => p.mgmt.id === clusterId);
 
       if (provCluster) {
         const harvCluster = await store.dispatch('management/create', {
@@ -95,6 +95,7 @@ export function init($plugin, store) {
     showClusterSwitcher: false,
     weight:              100,
     to:                  harvesterClustersLocation,
+    category:            'hci',
   });
 
   configureType(HCI.CLUSTER, { showListMasthead: false });
@@ -104,7 +105,7 @@ export function init($plugin, store) {
     {
       ...VERSION,
       value:    'kubernetesVersion',
-      getValue: row => row.kubernetesVersion
+      getValue: (row) => row.kubernetesVersion
     },
     MACHINE_POOLS,
     AGE,

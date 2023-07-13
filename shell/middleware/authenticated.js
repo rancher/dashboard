@@ -23,7 +23,7 @@ const getPackageFromRoute = (route) => {
   // Sometimes meta is an array... sometimes not
   const arraySafe = Array.isArray(route.meta) ? route.meta : [route.meta];
 
-  return arraySafe.find(m => !!m.pkg)?.pkg;
+  return arraySafe.find((m) => !!m.pkg)?.pkg;
 };
 
 let beforeEachSetup = false;
@@ -320,7 +320,7 @@ export default async function({
     const oldProduct = getProductFromRoute(from);
 
     // Leave an old pkg where we weren't before?
-    const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find(p => p.name === oldPkg) : null;
+    const oldPkgPlugin = oldPkg ? Object.values($plugin.getPlugins()).find((p) => p.name === oldPkg) : null;
 
     if (oldPkg && oldPkg !== pkg ) {
       // Execute anything optional the plugin wants to. For example resetting it's store to remove data
@@ -338,7 +338,7 @@ export default async function({
     ];
 
     // Entering a new package where we weren't before?
-    const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find(p => p.name === pkg) : null;
+    const newPkgPlugin = pkg ? Object.values($plugin.getPlugins()).find((p) => p.name === pkg) : null;
 
     // Note - We can't block on oldPkg !== newPkg because on a fresh load the `from` route equals the `to` route
     if (pkg && (oldPkg !== pkg || from.fullPath === route.fullPath)) {
@@ -388,11 +388,12 @@ export default async function({
     await Promise.all([
       ...always,
       store.dispatch('loadCluster', {
-        id:     clusterId,
-        oldPkg: oldPkgPlugin,
-        newPkg: newPkgPlugin,
+        id:          clusterId,
+        oldPkg:      oldPkgPlugin,
+        newPkg:      newPkgPlugin,
         product,
         oldProduct,
+        targetRoute: route
       })
     ]);
 

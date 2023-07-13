@@ -4,8 +4,9 @@ import { get } from '@shell/utils/object';
 import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
-import { NAMESPACE } from '@shell/config/table-headers';
+import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
+import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -55,6 +56,12 @@ export default {
     loading: {
       type:     Boolean,
       required: false
+    },
+
+    keyField: {
+      // Field that is unique for each row.
+      type:    String,
+      default: '_key',
     },
 
     headers: {
@@ -216,6 +223,7 @@ export default {
     _headers() {
       let headers;
       const showNamespace = this.showNamespaceColumn;
+      const type = this.schema?.id || this.$route?.params?.resource || undefined;
 
       if ( this.headers ) {
         headers = this.headers.slice();
@@ -223,9 +231,49 @@ export default {
         headers = this.$store.getters['type-map/headersFor'](this.schema);
       }
 
+      // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
+      // gate it so that we prevent errors on older versions of dashboard
+      if (this.$store.$plugin?.getUIConfig) {
+        const extensionCols = this.$store.$plugin.getUIConfig(ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE);
+
+        // Try and insert the columns before the Age column
+        let insertPosition = headers.length;
+
+        if (headers.length > 0) {
+          const ageColIndex = headers.findIndex((h) => h.name === AGE.name);
+
+          if (ageColIndex >= 0) {
+            insertPosition = ageColIndex;
+          } else {
+            // we've found some labels with ' ', which isn't necessarily empty (explore action/button)
+            // if we are to add cols, let's push them before these so that the UI doesn't look weird
+            const lastViableColIndex = headers.findIndex((h) => (!h.label || !h.label?.trim()) && (!h.labelKey || !h.labelKey?.trim()));
+
+            if (lastViableColIndex >= 0) {
+              insertPosition = lastViableColIndex;
+            }
+          }
+        }
+
+        // adding extension defined cols to the correct header config
+        extensionCols.forEach((col) => {
+          if (col.locationConfig.resource) {
+            col.locationConfig.resource.forEach((resource) => {
+              if (resource && type === resource) {
+                // we need the 'value' prop to be populated in order for the rows to show the values
+                if (!col.value && col.getValue) {
+                  col.value = col.getValue;
+                }
+                headers.splice(insertPosition, 0, col);
+              }
+            });
+          }
+        });
+      }
+
       // If only one namespace is selected, hide the namespace column
       if ( !showNamespace ) {
-        const idx = headers.findIndex(header => header.name === NAMESPACE.name);
+        const idx = headers.findIndex((header) => header.name === NAMESPACE.name);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1);
@@ -236,7 +284,7 @@ export default {
       const custom = this.listGroupMapped[this.group];
 
       if (custom?.hideColumn) {
-        const idx = headers.findIndex(header => header.name === custom.hideColumn);
+        const idx = headers.findIndex((header) => header.name === custom.hideColumn);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1);
@@ -291,7 +339,7 @@ export default {
     group: {
       get() {
         // Check group is valid
-        const exists = this.groupOptions.find(g => g.value === this._group);
+        const exists = this.groupOptions.find((g) => g.value === this._group);
 
         if (!exists) {
           return DEFAULT_GROUP;
@@ -447,7 +495,7 @@ export default {
     :has-advanced-filtering="hasAdvancedFiltering"
     :adv-filter-hide-labels-as-cols="advFilterHideLabelsAsCols"
     :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
-    key-field="_key"
+    :key-field="keyField"
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"

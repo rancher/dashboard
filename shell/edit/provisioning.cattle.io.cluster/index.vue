@@ -138,6 +138,27 @@ export default {
         this.iconClasses[name] = `machine-driver ${ name }`;
       }
     });
+
+    // Custom Providers from extensions - initialize each with the store and the i18n service
+    // Wrap in try ... catch, to prevent errors in an extension breaking the page
+    try {
+      const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
+
+      // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
+      // so pass in specific services that the provisioner extension may need
+      this.extensions = extensionClasses.map((c) => new c({
+        dispatch: this.$store.dispatch,
+        getters:  this.$store.getters,
+        axios:    this.$store.$axios,
+        $plugin:  this.$store.app.$plugin,
+        t:        (...args) => this.t.apply(this, args),
+        isCreate: this.isCreate,
+        isEdit:   this.isEdit,
+        isView:   this.isView,
+      }));
+    } catch (e) {
+      console.error('Error loading provisioner(s) from extensions', e); // eslint-disable-line no-console
+    }
   },
 
   data() {
@@ -148,6 +169,7 @@ export default {
     return {
       nodeDrivers:      [],
       kontainerDrivers: [],
+      extensions:       [],
       subType,
       chart,
       isImport,
@@ -185,7 +207,7 @@ export default {
         if ( this.subType ) {
           // For RKE1 and hosted Kubernetes Clusters, set the ember link
           // so that we load the page rather than using RKE2 create
-          const selected = this.subTypes.find(s => s.id === this.subType);
+          const selected = this.subTypes.find((s) => s.id === this.subType);
 
           if (selected?.link) {
             return selected.link;
@@ -244,15 +266,15 @@ export default {
     subTypes() {
       const getters = this.$store.getters;
       const isImport = this.isImport;
-      const isElementalActive = !!this.activeProducts.find(item => item.name === ELEMENTAL_PRODUCT_NAME);
+      const isElementalActive = !!this.activeProducts.find((item) => item.name === ELEMENTAL_PRODUCT_NAME);
 
       const out = [];
 
       const templates = this.templateOptions;
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
-      const machineTypes = this.nodeDrivers.filter(x => x.spec.active && x.state === 'active').map(x => x.spec.displayName || x.id);
+      const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active').map((x) => x.spec.displayName || x.id);
 
-      this.kontainerDrivers.filter(x => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
+      this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
           addType(obj.driverName, 'kontainer', false);
         } else {
@@ -285,6 +307,11 @@ export default {
             addType(id, 'rke2', false);
           });
 
+          // Add from extensions
+          this.extensions.forEach((ext) => {
+            addExtensionType(ext, getters);
+          });
+
           addType('custom', 'custom2', false);
 
           if (isElementalActive) {
@@ -294,6 +321,31 @@ export default {
       }
 
       return out;
+
+      function addExtensionType(ext, getters) {
+        let iconClass = ext.iconClass;
+        let icon = ext.icon;
+
+        if (icon) {
+          iconClass = undefined;
+        } else if (!iconClass) {
+          icon = require('~shell/assets/images/generic-driver.svg');
+        }
+
+        const subtype = {
+          id:          ext.id,
+          label:       ext.label || getters['i18n/t'](`cluster.provider.${ ext.id }`),
+          description: ext.description,
+          icon,
+          iconClass,
+          group:       ext.group || 'rke2',
+          disabled:    ext.disabled || false,
+          link:        ext.link,
+          tag:         ext.tag
+        };
+
+        out.push(subtype);
+      }
 
       function addType(id, group, disabled = false, link = null, iconClass = undefined) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
@@ -357,11 +409,11 @@ export default {
     },
 
     firstNodeDriverItem() {
-      return this.groupedSubTypes.findIndex(obj => [_RKE1, _RKE2].includes(obj.name));
+      return this.groupedSubTypes.findIndex((obj) => [_RKE1, _RKE2].includes(obj.name));
     },
 
     firstCustomClusterItem() {
-      return this.groupedSubTypes.findIndex(obj => ['custom', 'custom1', 'custom2'].includes(obj.name));
+      return this.groupedSubTypes.findIndex((obj) => ['custom', 'custom1', 'custom2'].includes(obj.name));
     },
   },
 
@@ -426,7 +478,7 @@ export default {
         let localCluster;
 
         if (this.$store.getters[`management/canList`](MANAGEMENT.CLUSTER)) {
-          localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find(x => x.isLocal);
+          localCluster = this.$store.getters['management/all'](MANAGEMENT.CLUSTER).find((x) => x.isLocal);
         }
 
         chart.goToInstall(FROM_CLUSTER, localCluster?.id || BLANK_CLUSTER, true);

@@ -73,7 +73,7 @@ export default {
     },
 
     isCreatable() {
-      if ( this.schema && !this.schema?.collectionMethods.find(x => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
+      if ( this.schema && !this.schema?.collectionMethods.find((x) => ['blocked-post', 'post'].includes(x.toLowerCase())) ) {
         return false;
       }
 

@@ -4,7 +4,7 @@ import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 import {
   POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE,
 } from '@shell/config/types';
-import SortableTable from '@shell/components/SortableTable';
+import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
 import Loading from '@shell/components/Loading';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
@@ -47,7 +47,7 @@ export default {
     Loading,
     ResourceTabs,
     CountGauge,
-    SortableTable,
+    ResourceTable,
     PlusMinus
   },
 
@@ -215,7 +215,7 @@ export default {
     },
 
     podHeaders() {
-      return this.$store.getters['type-map/headersFor'](this.podSchema).filter(h => h !== NAMESPACE_COL);
+      return this.$store.getters['type-map/headersFor'](this.podSchema).filter((h) => h !== NAMESPACE_COL);
     },
 
     graphVarsWorkload() {
@@ -234,14 +234,14 @@ export default {
       const podGauges = Object.values(this.value.podGauges);
       const total = this.value.pods.length;
 
-      return !podGauges.find(pg => pg.count === total);
+      return !podGauges.find((pg) => pg.count === total);
     },
 
     showJobGaugeCircles() {
       const jobGauges = Object.values(this.value.jobGauges);
       const total = this.isCronJob ? this.totalRuns : this.value.pods.length;
 
-      return !jobGauges.find(jg => jg.count === total);
+      return !jobGauges.find((jg) => jg.count === total);
     },
 
     canScale() {
@@ -395,12 +395,12 @@ export default {
         :label="t('tableHeaders.jobs')"
         :weight="4"
       >
-        <SortableTable
+        <ResourceTable
           :rows="value.jobs"
           :headers="jobHeaders"
           key-field="id"
           :schema="jobSchema"
-          :show-groups="false"
+          :groupable="false"
           :search="false"
         />
       </Tab>
@@ -410,7 +410,7 @@ export default {
         :label="t('tableHeaders.pods')"
         :weight="4"
       >
-        <SortableTable
+        <ResourceTable
           v-if="value.pods"
           :rows="value.pods"
           :headers="podHeaders"
@@ -489,13 +489,13 @@ export default {
         >
           {{ t('workload.detail.serviceListCaption') }}
         </p>
-        <SortableTable
+        <ResourceTable
           v-if="serviceSchema && matchingServices.length > 0"
           :rows="matchingServices"
           :headers="serviceHeaders"
           key-field="id"
           :schema="serviceSchema"
-          :show-groups="false"
+          :groupable="false"
           :search="false"
           :table-actions="false"
         />
@@ -530,13 +530,13 @@ export default {
         >
           {{ t('workload.detail.ingressListCaption') }}
         </p>
-        <SortableTable
+        <ResourceTable
           v-if="ingressSchema && matchingIngresses.length > 0"
           :rows="matchingIngresses"
           :headers="ingressHeaders"
           key-field="id"
           :schema="ingressSchema"
-          :show-groups="false"
+          :groupable="false"
           :search="false"
           :table-actions="false"
         />

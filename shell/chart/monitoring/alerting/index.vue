@@ -47,9 +47,9 @@ export default {
 
       return secrets
         .filter(
-          sec => sec.metadata.namespace === DEFAULT_MONITORING_NAMESPACE
+          (sec) => sec.metadata.namespace === DEFAULT_MONITORING_NAMESPACE
         )
-        .map(sec => ({ label: sec.metadata.name, value: sec.metadata.name }));
+        .map((sec) => ({ label: sec.metadata.name, value: sec.metadata.name }));
     },
 
     canUseExistingSecret() {
@@ -63,7 +63,7 @@ export default {
 
     existingSecret() {
       return this.secrets.find(
-        sec => sec?.metadata?.name ===
+        (sec) => sec?.metadata?.name ===
             'alertmanager-rancher-monitoring-alertmanager' &&
           sec?.metadata?.namespace === DEFAULT_MONITORING_NAMESPACE
       );

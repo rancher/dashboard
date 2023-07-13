@@ -84,7 +84,11 @@ export default {
     />
 
     <Tabbed :side-tabs="true">
-      <Tab name="basics" :label="t('harvester.host.tabs.basics')" :weight="1">
+      <Tab
+        name="basics"
+        :label="t('harvester.host.tabs.basics')"
+        :weight="1"
+      >
         <div class="mb-20">
           <LabeledSelect
             v-model="type"

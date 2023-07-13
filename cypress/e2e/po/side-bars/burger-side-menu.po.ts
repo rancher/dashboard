@@ -10,7 +10,25 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static toggle(): Cypress.Chainable {
-    return cy.getId('top-level-menu').click({ force: true });
+    return cy.getId('top-level-menu').should('be.visible').click({ force: true });
+  }
+
+  /**
+   * Navigates to a top-level side menu entry by label (non-cluster)
+   * @returns {Cypress.Chainable}
+   */
+  static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
+    return this.sideMenu().should('exist').find('.option div:last-child').contains(label)
+      .click();
+  }
+
+  /**
+   * Navigates to a cluster on a top-level side menu entry by label
+   * @returns {Cypress.Chainable}
+   */
+  static burgerMenuNavToClusterbyLabel(label: string): Cypress.Chainable {
+    return this.sideMenu().should('exist').find('.option .cluster-name').contains(label)
+      .click();
   }
 
   /**
@@ -41,6 +59,14 @@ export default class BurgerMenuPo extends ComponentPo {
    */
   categories(): Cypress.Chainable {
     return this.self().find('.body .category');
+  }
+
+  /**
+   * Get menu category labels
+   * @returns {Cypress.Chainable}
+   */
+  static categoryByLabel(label: string): Cypress.Chainable {
+    return this.sideMenu().find('.body .category', { includeShadowDom: true }).contains(label);
   }
 
   /**

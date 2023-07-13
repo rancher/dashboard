@@ -14,8 +14,8 @@ export default {
 
   async fetch() {
     const provClusters = await this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
-    const readyClusters = provClusters.filter(c => c.mgmt?.isReady);
-    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters), this.$store);
+    const readyClusters = provClusters.filter((c) => c.mgmt?.isReady);
+    const clusterForCounts = filterHiddenLocalCluster(filterOnlyKubernetesClusters(readyClusters, this.$store), this.$store);
     const finalCounts = [];
     const promises = [];
     const topFifteenForResponseTime = [];
@@ -181,8 +181,8 @@ export default {
     setResourceResponseTiming(responseTimes) {
       responseTimes?.forEach((res) => {
         if ( res.outcome === 'success' ) {
-          const cluster = this.finalCounts.find(c => c.capiId === res.item.capiId);
-          const countIndex = cluster?.counts?.findIndex(c => c.resource === res.item.resource);
+          const cluster = this.finalCounts.find((c) => c.capiId === res.item.capiId);
+          const countIndex = cluster?.counts?.findIndex((c) => c.resource === res.item.resource);
 
           if ( (countIndex && countIndex !== -1) || countIndex === 0 ) {
             this.$set(cluster?.counts[countIndex], 'durationMs', res.durationMs);
@@ -196,13 +196,13 @@ export default {
     },
 
     nodeCount(counts) {
-      const resource = counts.findIndex(c => c.resource === 'node');
+      const resource = counts.findIndex((c) => c.resource === 'node');
 
       return counts[resource]?.count;
     },
 
     toggleTable(area) {
-      const itemIndex = this.finalCounts.findIndex(item => item.id === area);
+      const itemIndex = this.finalCounts.findIndex((item) => item.id === area);
 
       this.finalCounts[itemIndex].isTableVisible = !this.finalCounts[itemIndex].isTableVisible;
     },

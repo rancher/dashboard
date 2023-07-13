@@ -70,7 +70,7 @@ export default {
     }
 
     this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT })
-      .then(projects => this.$set(this, 'projects', projects));
+      .then((projects) => this.$set(this, 'projects', projects));
 
     const hydration = {
       normanPrincipals:  this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL }),
@@ -123,11 +123,11 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     clusterRoleTemplateBindings() {
-      return this.normanClusterRoleTemplateBindings.map(b => b.clusterroletemplatebinding) ;
+      return this.normanClusterRoleTemplateBindings.map((b) => b.clusterroletemplatebinding) ;
     },
     filteredClusterRoleTemplateBindings() {
       return this.clusterRoleTemplateBindings.filter(
-        b => b?.clusterName === this.$store.getters['currentCluster'].id
+        (b) => b?.clusterName === this.$store.getters['currentCluster'].id
       );
     },
     filteredProjects() {
@@ -222,10 +222,10 @@ export default {
       return this.$store.getters['currentCluster'].isLocal;
     },
     canEditProjectMembers() {
-      return this.normanProjectRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return this.normanProjectRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
     canEditClusterMembers() {
-      return this.normanClusterRTBSchema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return this.normanClusterRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
   },
   methods: {
@@ -250,12 +250,12 @@ export default {
     },
 
     getProjectRoleBinding(row, role) {
-      // Each row is a combination of user/group and project
-      // So find the specfic roleBindingTemplate corresponding to the specific role + project
+      // Each row is a combination of project, role and user/group
+      // So find the specfic roleBindingTemplate corresponding to the specific project, role + user/group
       const userOrGroupKey = row.userId ? 'userId' : 'groupPrincipalId';
 
       return this.projectRoleTemplateBindings.find((r) => {
-        return r.roleTemplateId === role.id && r[userOrGroupKey] === row[userOrGroupKey];
+        return r.projectId === row.projectId && r.roleTemplateId === role.id && r[userOrGroupKey] === row[userOrGroupKey];
       });
     },
 

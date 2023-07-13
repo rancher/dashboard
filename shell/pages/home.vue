@@ -103,7 +103,7 @@ export default {
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     manageLocation() {
@@ -160,7 +160,7 @@ export default {
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      row => row.mgmt?.nameDisplay
+          getValue:      (row) => row.mgmt?.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),
@@ -206,7 +206,7 @@ export default {
     ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
-      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || []), this.$store);
+      return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
     }
   },
 
@@ -306,6 +306,7 @@ export default {
       :title="t('landing.welcomeToRancher', {vendor})"
       :pref="HIDE_HOME_PAGE_CARDS"
       pref-key="welcomeBanner"
+      data-testid="home-banner-graphic"
     />
     <IndentedPanel class="mt-20 mb-20">
       <div
@@ -337,6 +338,7 @@ export default {
             <div class="col span-12">
               <Banner
                 color="set-login-page mt-0"
+                data-testid="set-login-page-banner"
                 :closable="true"
                 @close="closeSetLoginBanner()"
               >
@@ -384,6 +386,7 @@ export default {
                       v-if="canManageClusters"
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
+                      data-testid="cluster-management-manage-button"
                     >
                       {{ t('cluster.manageAction') }}
                     </n-link>
@@ -391,6 +394,7 @@ export default {
                       v-if="canCreateCluster"
                       :to="importLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-import-button"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
@@ -398,6 +402,7 @@ export default {
                       v-if="canCreateCluster"
                       :to="createLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-button"
                     >
                       {{ t('generic.create') }}
                     </n-link>

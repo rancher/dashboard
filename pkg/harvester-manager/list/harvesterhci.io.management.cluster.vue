@@ -70,12 +70,12 @@ export default {
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     rows() {
       return this.hciClusters.filter((c) => {
-        const cluster = this.mgmtClusters.find(cluster => cluster?.metadata?.name === c?.status?.clusterName);
+        const cluster = this.mgmtClusters.find((cluster) => cluster?.metadata?.name === c?.status?.clusterName);
 
         return isHarvesterCluster(cluster);
       });

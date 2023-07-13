@@ -26,7 +26,6 @@ import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { allHash } from '@shell/utils/promise';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Port } from '@shell/utils/validators/formRules';
-import { HCI as HCI_LABELS_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -90,7 +89,7 @@ export default {
       defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
       saving:                      false,
       sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
-        .map(v => this.$store.getters['i18n/t'](v))
+        .map((v) => this.$store.getters['i18n/t'](v))
         .map(ucFirst),
       sessionAffinityActionOptions: Object.values(
         SESSION_AFFINITY_ACTION_VALUES
@@ -192,7 +191,7 @@ export default {
     },
 
     provisioningCluster() {
-      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find(c => c?.status?.clusterName === this.currentCluster.metadata.name);
+      const out = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER).find((c) => c?.status?.clusterName === this.currentCluster.metadata.name);
 
       return out;
     },
@@ -243,7 +242,7 @@ export default {
   methods: {
     updateMatchingPods: throttle(function() {
       const { value: { spec: { selector = { } } } } = this;
-      const allInNamespace = this.allPods.filter(pod => pod.metadata.namespace === this.value?.metadata?.namespace);
+      const allInNamespace = this.allPods.filter((pod) => pod.metadata.namespace === this.value?.metadata?.namespace);
 
       if (isEmpty(selector)) {
         this.matchingPods = {
@@ -314,23 +313,6 @@ export default {
 
       if (ports && ports.length > 0) {
         this.value.spec.ports = this.targetPortsStrOrInt(this.value.spec.ports);
-      }
-
-      if (this.showHarvesterAddOnConfig) {
-        const clusters = this.$store.getters['management/all'](CAPI.RANCHER_CLUSTER);
-        const configs = this.$store.getters['management/all'](HCI.HARVESTER_CONFIG);
-        const cluster = clusters.find(c => c.status.clusterName === this.currentCluster.id);
-
-        const machinePools = cluster?.spec?.rkeConfig?.machinePools || [];
-        const machineConfigName = machinePools[0]?.machineConfigRef?.name;
-        const config = configs.find(c => c.id === `fleet-default/${ machineConfigName }`);
-
-        if (config) {
-          const { vmNamespace, networkName } = config;
-
-          this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NAMESPACE] = vmNamespace;
-          this.value.metadata.annotations[HCI_LABELS_ANNOTATIONS.CLOUD_PROVIDER_NETWORK] = networkName;
-        }
       }
     },
   },

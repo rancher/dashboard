@@ -23,6 +23,12 @@ export default {
       type:    String,
       default: null
     },
+    // change the grafana url prefix for local clusters in certain monitoring versions
+    // project monitoring (projectHelmCharts) supply a grafana url that never needs to be modified in this way
+    modifyPrefix: {
+      type:    Boolean,
+      default: true
+    },
     backgroundColor: {
       type:    String,
       default: '#1b1c21'
@@ -138,7 +144,7 @@ export default {
       const clusterId = this.$store.getters['currentCluster'].id;
       const params = this.computeParams();
 
-      return computeDashboardUrl(this.monitoringVersion, embedUrl, clusterId, params);
+      return computeDashboardUrl(this.monitoringVersion, embedUrl, clusterId, params, this.modifyPrefix);
     },
     computeParams() {
       const params = {};
@@ -253,10 +259,16 @@ export default {
       v-if="!loading && !error"
       class="external-link"
     >
+      <!-- https://github.com/harvester/harvester-installer/pull/512/files -->
+      <!-- It is necessary to include the parameter referer when accessing the Grafana page. -->
+      <!-- This parameter is required by the backend to identify the origin of the request from which cluster -->
+      <!-- The matching mechanism as follows: -->
+      <!-- ~.*/k8s/clusters/(c-m-.+)/.* -->
+      <!-- ~.*/dashboard/harvester/c/(c-m-.+)/.* -->
       <a
         :href="grafanaUrl"
         target="_blank"
-        rel="noopener noreferrer nofollow"
+        rel="noopener nofollow"
       >{{ t('grafanaDashboard.grafana') }} <i class="icon icon-external-link" /></a>
     </div>
   </div>

@@ -1,7 +1,7 @@
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
-import AccountPagePo from '~/cypress/e2e/po/pages/account-api-keys.po';
-import CreateKeyPagePo from '~/cypress/e2e/po/pages/account-api-keys-create_key.po';
+import AccountPagePo from '@/cypress/e2e/po/pages/account-api-keys.po';
+import CreateKeyPagePo from '@/cypress/e2e/po/pages/account-api-keys-create_key.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const userMenu = new UserMenuPo();
@@ -9,7 +9,7 @@ const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const apiKeysList = accountPage.list();
 
-describe('User can make changes to their account', () => {
+describe('User can make changes to their account', { tags: ['@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -22,10 +22,7 @@ describe('User can make changes to their account', () => {
      * Verify user can change their password and change it back
      */
 
-    HomePagePo.goTo();
-    userMenu.checkVisible();
-    userMenu.toggle();
-    userMenu.isOpen();
+    HomePagePo.goToAndWaitForGet();
     userMenu.clickMenuItem('Account & API Keys');
     accountPage.waitForPage();
     accountPage.checkIsCurrentPage();
@@ -58,6 +55,12 @@ describe('User can make changes to their account', () => {
     const keyDesc = `keyDescription${ Date.now() }`;
 
     accountPage.goTo();
+    accountPage.create();
+    createKeyPage.waitForPage();
+    createKeyPage.isCurrentPage();
+    createKeyPage.create();
+    createKeyPage.done();
+
     apiKeysList.resourceTable().sortableTable().selectAllCheckbox().set();
     apiKeysList.resourceTable().sortableTable().deleteButton().click();
 

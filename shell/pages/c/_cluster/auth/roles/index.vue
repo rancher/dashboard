@@ -49,13 +49,13 @@ export default {
     const roleTemplatesSchema = this.$store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
 
     const roleTemplateHeaders = this.$store.getters['type-map/headersFor'](roleTemplatesSchema);
-    const defaultHeaderIndex = roleTemplateHeaders.findIndex(header => header.name === 'default');
+    const defaultHeaderIndex = roleTemplateHeaders.findIndex((header) => header.name === 'default');
 
     return {
       tabs: {
         [GLOBAL]: {
-          canFetch:       globalRoleSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      globalRoleSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
+          canFetch:       globalRoleSchema?.collectionMethods.find((verb) => verb === 'GET'),
+          canCreate:      globalRoleSchema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb)),
           weight:         3,
           labelKey:       SUBTYPE_MAPPING.GLOBAL.labelKey,
           schema:         globalRoleSchema,
@@ -65,8 +65,8 @@ export default {
           },
         },
         [CLUSTER]: {
-          canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
+          canFetch:       roleTemplatesSchema?.collectionMethods.find((verb) => verb === 'GET'),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb)),
           labelKey:       SUBTYPE_MAPPING.CLUSTER.labelKey,
           weight:         2,
           schema:         roleTemplatesSchema,
@@ -77,8 +77,8 @@ export default {
           },
         },
         [PROJECT]: {
-          canFetch:       roleTemplatesSchema?.collectionMethods.find(verb => verb === 'GET'),
-          canCreate:      roleTemplatesSchema?.resourceMethods.find(verb => CREATE_VERBS.has(verb)),
+          canFetch:       roleTemplatesSchema?.collectionMethods.find((verb) => verb === 'GET'),
+          canCreate:      roleTemplatesSchema?.resourceMethods.find((verb) => CREATE_VERBS.has(verb)),
           labelKey:       SUBTYPE_MAPPING.NAMESPACE.labelKey,
           weight:         1,
           schema:         roleTemplatesSchema,
@@ -105,11 +105,11 @@ export default {
     },
 
     clusterResources() {
-      return this.roleTemplates.filter(r => r.context === SUBTYPE_MAPPING.CLUSTER.context);
+      return this.roleTemplates.filter((r) => r.context === SUBTYPE_MAPPING.CLUSTER.context);
     },
 
     namespaceResources() {
-      return this.roleTemplates.filter(r => r.context === SUBTYPE_MAPPING.NAMESPACE.context);
+      return this.roleTemplates.filter((r) => r.context === SUBTYPE_MAPPING.NAMESPACE.context);
     },
 
     type() {
@@ -159,7 +159,7 @@ export default {
     <header>
       <div class="title">
         <h1 class="m-0">
-          {{ t('rbac.roletemplate.label') }}
+          {{ t('auth.roleTemplate') }}
         </h1>
       </div>
       <div class="actions-container">
