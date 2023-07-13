@@ -193,6 +193,9 @@ export default {
           opt:  { watch: true }
         });
       } catch (e) {
+        if (e.status === 404) {
+          store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource, fqid }, true)));
+        }
         liveModel = {};
         notFound = fqid;
       }
@@ -367,18 +370,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else-if="notFound">
-    <IconMessage icon="icon-warning">
-      <template v-slot:message>
-        {{ t('generic.notFound') }}
-        <div>
-          <div>{{ t('generic.type') }}: {{ resource }}</div>
-          <div>{{ t('generic.id') }}: {{ notFound }}</div>
-        </div>
-      </template>
-    </IconMessage>
-  </div>
+  <Loading v-if="$fetchState.pending || notFound" />
   <div v-else>
     <Masthead
       v-if="showMasthead"
