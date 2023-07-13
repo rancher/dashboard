@@ -200,8 +200,8 @@ nav:
     authMiddleware: Auth Middleware
     clusterNotFound: Cluster { clusterId } not found
     productNotFound: Product { productNotFound } not found
-    resourceNotFound: Resource type { resource } not found, unable to display list
-    resourceListNotFound: Resource list for { resource } not found, unable to display list
+    resourceNotFound: Resource type { resource } not found
+    resourceListNotFound: Resource type { resource } not found, unable to display list
     resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
     separator: or
