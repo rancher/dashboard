@@ -127,7 +127,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
 }
 
 // Ensure the support link is added if needed
-function ensureSupportLink(links, hasSupport, isSupportPage, t, store) {
+export function ensureSupportLink(links, hasSupport, isSupportPage, t, store) {
   if (!hasSupport && !isSupportPage) {
     const supportLink = links.defaults?.find((link) => link.key === 'commercialSupport');
 
