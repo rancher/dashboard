@@ -1661,8 +1661,8 @@ export default {
         delete this.value.spec.rkeConfig.machineGlobalConfig.profile;
       }
 
-      // store the current data for fleet and cluster agent so that we can re-apply it later if the save fails
-      // we also have a before hook (check created() hooks) where the cleanup of the data occurs
+      // Store the current data for fleet and cluster agent so that we can re-apply it later if the save fails
+      // The cleanup occurs before save with agentConfigurationCleanup()
       const clusterAgentDeploymentCustomization = this.value.spec[CLUSTER_AGENT_CUSTOMIZATION] ? JSON.parse(JSON.stringify(this.value.spec[CLUSTER_AGENT_CUSTOMIZATION])) : null;
       const fleetAgentDeploymentCustomization = this.value.spec[FLEET_AGENT_CUSTOMIZATION] ? JSON.parse(JSON.stringify(this.value.spec[FLEET_AGENT_CUSTOMIZATION])) : null;
 
