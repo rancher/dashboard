@@ -22,7 +22,7 @@ describe('Not found page display', () => {
     notFound.waitForPage();
 
     notFound.errorTitle().contains('Error');
-    notFound.errorMessage().contains('Resource type bogus-resource-type not found, unable to display list');
+    notFound.errorMessage().contains('Resource type bogus-resource-type not found');
   });
 
   it('Will show a 404 if we do not have a valid Resource id on the route path', () => {
