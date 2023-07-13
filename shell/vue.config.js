@@ -219,8 +219,6 @@ module.exports = function(dir, _appConfig) {
   serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
   // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
-  // Add the standard dashboard server middleware after the middleware added to serve up UI packages
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
   // ===============================================================================================
   // Dashboard nuxt configuration
