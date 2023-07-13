@@ -47,7 +47,7 @@ export default {
         return formattedTooltip.toString().replace(/,/g, '');
       }
 
-      return false;
+      return '';
     },
   },
 
@@ -67,17 +67,19 @@ export default {
       v-if="row.unavailableMachines"
       v-clean-tooltip="row.unavailableMachines"
       class="conditions-alert-icon icon-alert icon"
+      data-testid="unavailable-machines-alert-icon"
     />
     <i
       v-if="row.rkeTemplateUpgrade"
       v-clean-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
       class="template-upgrade-icon icon-alert icon"
+      data-testid="rke-template-upgrade-alert-icon"
     />
     <i
       v-if="row.hasError && statusErrorConditions.length > 0"
       v-clean-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
       class="conditions-alert-icon icon-error icon-lg"
-      data-testid="conditions-alert-icon"
+      data-testid="conditions-has-error-icon"
     />
   </span>
 </template>
