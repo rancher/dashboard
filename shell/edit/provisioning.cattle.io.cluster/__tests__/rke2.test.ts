@@ -14,6 +14,7 @@ const defaultStubs = {
   LabeledSelect:            true,
   ACE:                      true,
   AgentEnv:                 true,
+  AgentConfiguration:       true,
   ArrayList:                true,
   ArrayListGrouped:         true,
   BadgeState:               true,
@@ -266,5 +267,70 @@ describe('component: rke2', () => {
     });
 
     expect((wrapper.vm as any).validationPassed).toBe(true);
+  });
+
+  describe('should initialize agent configuration values', () => {
+    it('adding default values if none', async() => {
+      const wrapper = mount(rke2, {
+        propsData: {
+          mode:     'create',
+          value:    { spec: { ...defaultSpec } },
+          provider: 'custom'
+        },
+        computed: defaultComputed,
+        mocks:    {
+          ...defaultMocks,
+          $store: {
+            getters:  defaultGetters,
+            dispatch: {
+              'management/request': jest.fn(),
+              'management/find':    jest.fn(),
+              'management/findAll': () => ([]),
+            }
+          },
+        },
+        stubs: defaultStubs
+      });
+      const defaultAgentConfig = {
+        clusterAgentDeploymentCustomization: {
+          overrideAffinity:             {},
+          appendTolerations:            [],
+          overrideResourceRequirements: {}
+        },
+        fleetAgentDeploymentCustomization: {
+          overrideAffinity:             {},
+          appendTolerations:            [],
+          overrideResourceRequirements: {}
+        }
+      };
+
+      expect(wrapper.props().value.spec).toContain(defaultAgentConfig);
+    });
+
+    it('should display agent configuration tab', async() => {
+      const wrapper = mount(rke2, {
+        propsData: {
+          mode:     'create',
+          value:    { spec: { ...defaultSpec } },
+          provider: 'custom'
+        },
+        computed: defaultComputed,
+        mocks:    {
+          ...defaultMocks,
+          $store: {
+            getters:  defaultGetters,
+            dispatch: {
+              'management/request': jest.fn(),
+              'management/find':    jest.fn(),
+              'management/findAll': () => ([]),
+            }
+          },
+        },
+        stubs: defaultStubs
+      });
+      const agent = wrapper.find('[data-testid="rke2-cluster-agent-config"]');
+
+      expect(agent.element).toBeDefined();
+    });
   });
 });
