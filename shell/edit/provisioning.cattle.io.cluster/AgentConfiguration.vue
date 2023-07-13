@@ -186,7 +186,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="value && Object.keys(value).length">
+  <div>
     <Banner
       :closable="false"
       color="info"

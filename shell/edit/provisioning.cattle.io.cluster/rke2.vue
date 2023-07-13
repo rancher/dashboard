@@ -3072,7 +3072,9 @@ export default {
           label-key="cluster.agentConfig.tabs.cluster"
         >
           <AgentConfiguration
+            v-if="value.spec.clusterAgentDeploymentCustomization"
             v-model="value.spec.clusterAgentDeploymentCustomization"
+            data-testid="rke2-cluster-agent-config"
             type="cluster"
             :mode="mode"
           />
@@ -3084,7 +3086,9 @@ export default {
           label-key="cluster.agentConfig.tabs.fleet"
         >
           <AgentConfiguration
+            v-if="value.spec.fleetAgentDeploymentCustomization"
             v-model="value.spec.fleetAgentDeploymentCustomization"
+            data-testid="rke2-fleet-agent-config"
             type="fleet"
             :mode="mode"
           />
