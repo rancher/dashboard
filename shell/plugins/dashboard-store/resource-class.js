@@ -858,7 +858,7 @@ export default class Resource {
     const currentRoute = this.currentRouter().app._route;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
-    let all = [
+    const all = [
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -911,18 +911,15 @@ export default class Resource {
       // Add a divider first
       all.push({ divider: true });
 
-      
-      extensionMenuActions.forEach(action => {
+      extensionMenuActions.forEach((action) => {
         const newActionInstance = { ...action };
-      
+
         // sets the enabled flag to true if omitted on the config
         if (!Object.keys(newActionInstance).includes('enabled')) {
           newActionInstance.enabled = true;
         } else if (Object.keys(newActionInstance).includes('enabled') && typeof newActionInstance.enabled === 'function') {          
-          const enabledFn = newActionInstance.enabled;
-
           Object.defineProperty(newActionInstance, 'enabled', {
-            get: () => enabledFn(this)
+            get: () => newActionInstance.enabled(this)
           });
         } else if (Object.keys(newActionInstance).includes('enabled')) {
           newActionInstance.enabled = newActionInstance.enabled;
