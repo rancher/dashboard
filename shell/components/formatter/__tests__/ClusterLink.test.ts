@@ -1,6 +1,5 @@
 import { mount } from '@vue/test-utils';
 import ClusterLink from '@shell/components/formatter/ClusterLink.vue';
-import '@shell/plugins/clean-tooltip-directive';
 
 describe('component: ClusterLink', () => {
   const UNAVAILABLE_MACHINES_ICON_SELECTOR = '[data-testid="unavailable-machines-alert-icon"]';

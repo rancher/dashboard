@@ -44,7 +44,7 @@ export default {
             formattedTooltip.push(`<p>${ [c.type] } (${ c.status })</p>`);
           });
 
-        return formattedTooltip.toString().replace(/,/g, '');
+        return formattedTooltip.toString().replaceAll(',', '');
       }
 
       return '';
