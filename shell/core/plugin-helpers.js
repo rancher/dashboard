@@ -129,15 +129,6 @@ export function getApplicableExtensionEnhancements(pluginCtx, actionType, uiArea
               actions[i].label = translationCtx.t(action.labelKey);
             }
 
-            // sets the enabled flag to true if omitted on the config
-            if (!Object.keys(action).includes('enabled')) {
-              actions[i].enabled = true;
-            } else if (Object.keys(action).includes('enabled') && typeof action.enabled === 'function') {
-              actions[i].enabled = action.enabled(translationCtx);
-            } else if (Object.keys(action).includes('enabled')) {
-              actions[i].enabled = action.enabled;
-            }
-
             // bulkable flag
             actions[i].bulkable = actions[i].multiple || actions[i].bulkable;
 

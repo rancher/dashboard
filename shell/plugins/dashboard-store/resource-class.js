@@ -910,7 +910,26 @@ export default class Resource {
     if (extensionMenuActions.length) {
       // Add a divider first
       all.push({ divider: true });
-      all = all.concat(extensionMenuActions);
+
+      
+      extensionMenuActions.forEach(action => {
+        const newActionInstance = { ...action };
+      
+        // sets the enabled flag to true if omitted on the config
+        if (!Object.keys(newActionInstance).includes('enabled')) {
+          newActionInstance.enabled = true;
+        } else if (Object.keys(newActionInstance).includes('enabled') && typeof newActionInstance.enabled === 'function') {          
+          const enabledFn = newActionInstance.enabled;
+
+          Object.defineProperty(newActionInstance, 'enabled', {
+            get: () => enabledFn(this)
+          });
+        } else if (Object.keys(newActionInstance).includes('enabled')) {
+          newActionInstance.enabled = newActionInstance.enabled;
+        }
+
+        all.push(newActionInstance);
+      });
     }
 
     return all;
