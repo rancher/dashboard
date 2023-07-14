@@ -163,6 +163,7 @@ export default {
         <RadioGroup
           v-model="targetType"
           name="targetType"
+          data-testid="authConfig-gitHub"
           :options="['public','private']"
           :mode="mode"
           :labels="[ t(`authConfig.${NAME}.target.public`), t(`authConfig.${NAME}.target.private`)]"
