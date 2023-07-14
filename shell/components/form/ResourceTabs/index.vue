@@ -13,6 +13,7 @@ import { _VIEW } from '@shell/config/query-params';
 import RelatedResources from '@shell/components/RelatedResources';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
+import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
 
 export default {
 
@@ -145,7 +146,7 @@ export default {
     },
     conditionsHaveIssues() {
       if (this.showConditions) {
-        return this.value.status?.conditions?.some((cond) => cond.error);
+        return this.value.status?.conditions?.filter((cond) => !isConditionReadyAndWaiting(cond)).some((cond) => cond.error);
       }
 
       return false;

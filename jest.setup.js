@@ -5,6 +5,7 @@ import VTooltip from 'v-tooltip';
 import VModal from 'vue-js-modal';
 import vSelect from 'vue-select';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
+import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
 

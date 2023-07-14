@@ -518,6 +518,14 @@ export function stateSort(color, display) {
   return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
 }
 
+export function isConditionReadyAndWaiting(condition) {
+  if (!condition) {
+    return false;
+  }
+
+  return condition?.type?.toLowerCase() === 'ready' && condition?.reason?.toLowerCase() === 'waiting';
+}
+
 function maybeFn(val) {
   if ( isFunction(val) ) {
     return val(this);
