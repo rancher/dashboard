@@ -433,10 +433,11 @@ export default async function({
     ]);
 
     const resource = getResourceFromRoute(route);
+    const inStore = store.getters['currentProduct'].inStore;
 
     // if we have resource param, but can't get the schema, it means the resource doesn't exist!
     // NOTE: workload doesn't have a schema, so let's just bypass this with the identifier
-    if (resource && resource !== WORKLOAD && !store.getters['management/schemaFor'](resource) && !store.getters['rancher/schemaFor'](resource)) {
+    if (resource && resource !== WORKLOAD && !store.getters['management/schemaFor'](resource) && !store.getters['rancher/schemaFor'](resource) && !store.getters[`${ inStore }/schemaFor`](resource)) {
       store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
 
       return redirect(302, '/fail-whale');
