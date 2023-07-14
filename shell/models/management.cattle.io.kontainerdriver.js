@@ -63,6 +63,14 @@ export default class KontainerDriver extends HybridModel {
   }
 
   get driverName() {
-    return KONTAINER_TO_DRIVER[this.id] || this.id;
+    let parsedDisplayName = null;
+
+    // all KontainerDriver ids should be lowercase... driverName is their universal identifier and it's always lowercase
+    // you can confirm with the constants on the top of this model file
+    if (this.status?.displayName) {
+      parsedDisplayName = this.status?.displayName.toLowerCase();
+    }
+
+    return KONTAINER_TO_DRIVER[this.id] || parsedDisplayName || this.id;
   }
 }

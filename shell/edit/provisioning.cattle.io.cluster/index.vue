@@ -274,16 +274,34 @@ export default {
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active').map((x) => x.spec.displayName || x.id);
 
+      console.log('vueKontainerTypes', vueKontainerTypes)
+
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
+        console.log('kontainerdriver', obj)
         if ( vueKontainerTypes.includes(obj.driverName) ) {
-          addType(obj.driverName, 'kontainer', false);
+          addType({
+            obj,
+            id: obj.driverName,
+            group: 'kontainer',
+            disabled: false
+          });
         } else {
-          addType(obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
+          addType({
+            obj,
+            id: obj.driverName,
+            group: 'kontainer',
+            disabled: false,
+            link: isImport ? obj.emberImportPath : obj.emberCreatePath
+          });
         }
       });
 
       if ( isImport ) {
-        addType('import', 'custom', false);
+        addType({
+          id: 'import',
+          group: 'custom',
+          disabled: false
+        });
       } else {
         templates.forEach((chart) => {
           out.push({
@@ -298,13 +316,28 @@ export default {
 
         if (this.isRke1 ) {
           machineTypes.forEach((id) => {
-            addType(id, 'rke1', false, `/g/clusters/add/launch/${ id }`, this.iconClasses[id]);
+            addType({
+              id,
+              group: 'rke1',
+              disabled: false,
+              link: `/g/clusters/add/launch/${ id }`,
+              iconClass: this.iconClasses[id]
+            });
           });
 
-          addType('custom', 'custom1', false, '/g/clusters/add/launch/custom');
+          addType({
+            id: 'custom',
+            group: 'custom1',
+            disabled: false,
+            link: '/g/clusters/add/launch/custom'
+          });
         } else {
           machineTypes.forEach((id) => {
-            addType(id, 'rke2', false);
+            addType({
+              id,
+              group: 'rke2',
+              disabled: false,
+            });
           });
 
           // Add from extensions
@@ -312,13 +345,23 @@ export default {
             addExtensionType(ext, getters);
           });
 
-          addType('custom', 'custom2', false);
+          addType({
+            id: 'custom',
+            group: 'custom2',
+            disabled: false
+          });
 
           if (isElementalActive) {
-            addType(ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
+            addType({
+              id: ELEMENTAL_CLUSTER_PROVIDER,
+              group: 'custom2',
+              disabled: false,
+            });
           }
         }
       }
+
+      console.log('SUBTYPES', out)
 
       return out;
 
@@ -347,7 +390,11 @@ export default {
         out.push(subtype);
       }
 
-      function addType(id, group, disabled = false, link = null, iconClass = undefined) {
+      function addType({obj = {}, id, group, disabled = false, link = null, iconClass = undefined} = arg) {
+        if (id === 'kd-hrb5n') {
+          console.error('KONTAINER DRIVER kd-hrb5n', obj)
+        }
+
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
@@ -404,6 +451,8 @@ export default {
       for ( const k in out ) {
         out[k].types = sortBy(out[k].types, 'label');
       }
+
+      console.log('GROUPED SUBTYPES', sortBy(Object.values(out), 'sort'))
 
       return sortBy(Object.values(out), 'sort');
     },
