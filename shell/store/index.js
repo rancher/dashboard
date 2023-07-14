@@ -34,6 +34,7 @@ import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE } from '@shell/store/store-types';
+import { isDevBuild } from '@shell/utils/version';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -578,7 +579,7 @@ export const getters = {
 
     const base = 'https://github.com/rancher/rancher/releases';
 
-    if (version && version.match(/v[0-9]+\.[0-9]+\.[0-9]$/)) {
+    if (version && !isDevBuild(version)) {
       return `${ base }/tag/${ version }`;
     }
 

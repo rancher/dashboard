@@ -1,5 +1,4 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterManagerImportGenericPagePo from '~/cypress/e2e/po/edit/provisioning.cattle.io.cluster/import/cluster-import.generic.po';
@@ -15,12 +14,11 @@ describe('Home Page', () => {
     HomePagePo.goToAndWaitForGet();
   });
 
-  it.only('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Verify changlog banner is hidden after clicking link
      * Verify release notes link is valid github page
      */
-    // const burgerMenuPo = new BurgerMenuPo();
     const text: string[] = [];
 
     homePage.restoreAndWait();
