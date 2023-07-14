@@ -604,6 +604,23 @@ export default {
       </template>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.resources.label'" />
+      <div>
+        <Checkbox
+          v-model="value.spec.correctDrift.enabled"
+          data-testid="GitRepo-correctDrift-checkbox"
+          class="check"
+          type="checkbox"
+          label-key="fleet.gitRepo.resources.correctDrift"
+          :mode="mode"
+        />
+        <Banner
+          data-testid="GitRepo-correctDrift-banner"
+          color="info"
+        >
+          {{ t('fleet.gitRepo.resources.correctDriftBanner') }}
+        </Banner>
+      </div>
+
       <Checkbox
         v-model="value.spec.keepResources"
         class="check"
@@ -614,7 +631,7 @@ export default {
       <Banner
         color="info"
       >
-        {{ t('fleet.gitRepo.resources.resourceBanner') }}
+        {{ t('fleet.gitRepo.resources.keepResourcesBanner') }}
       </Banner>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />

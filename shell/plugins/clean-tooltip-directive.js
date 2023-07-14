@@ -24,7 +24,7 @@ function bind(el, { value, oldValue, modifiers }) {
     });
 }
 
-const VCleanTooltip = {
+export const VCleanTooltip = {
   ...VTooltip,
   bind,
   update: bind,

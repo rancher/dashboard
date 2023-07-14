@@ -4,7 +4,7 @@ import {
   SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE, WORKLOAD } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
@@ -24,6 +24,16 @@ const getPackageFromRoute = (route) => {
   const arraySafe = Array.isArray(route.meta) ? route.meta : [route.meta];
 
   return arraySafe.find((m) => !!m.pkg)?.pkg;
+};
+
+const getResourceFromRoute = (to) => {
+  let resource = to.params?.resource;
+
+  if (!resource) {
+    resource = findMeta(to, 'resource');
+  }
+
+  return resource;
 };
 
 let beforeEachSetup = false;
@@ -71,8 +81,17 @@ export function getProductFromRoute(to) {
   return product;
 }
 
-function setProduct(store, to) {
+function setProduct(store, to, redirect) {
   let product = getProductFromRoute(to);
+
+  // since all products are hardcoded as routes (ex: c-local-explorer), if we match the wildcard route it means that the product does not exist
+  if ((product && (!to.matched.length || (to.matched.length && to.matched[0].path === '/c/:cluster/:product'))) ||
+  // if the product grabbed from the route is not registered, then we don't have it!
+  (product && !store.getters['type-map/isProductRegistered'](product))) {
+    store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.productNotFound', { productNotFound: product }, true)));
+
+    return () => redirect(302, '/fail-whale');
+  }
 
   if ( !product ) {
     product = EXPLORER;
@@ -92,6 +111,8 @@ function setProduct(store, to) {
     // There might be management catalog items in it vs cluster.
     store.commit('catalog/reset');
   }
+
+  return false;
 }
 
 export default async function({
@@ -288,12 +309,21 @@ export default async function({
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      setProduct(store, to);
+      const redirected = setProduct(store, to, redirect);
+
+      if (redirected) {
+        return redirected();
+      }
+
       next();
     });
 
     // Call it for the initial pageload
-    setProduct(store, route);
+    const redirected = setProduct(store, route, redirect);
+
+    if (redirected) {
+      return redirected();
+    }
 
     if (process.client) {
       store.app.router.afterEach((to, from) => {
@@ -376,7 +406,12 @@ export default async function({
     // When fleet moves to it's own package this should be moved to pkg onEnter/onLeave
     if ((oldProduct === FLEET_NAME || product === FLEET_NAME) && oldProduct !== product) {
       // See note above for store.app.router.beforeEach, need to setProduct manually, for the moment do this in a targeted way
-      setProduct(store, route);
+      const redirected = setProduct(store, route, redirect);
+
+      if (redirected) {
+        return redirected();
+      }
+
       store.commit('updateWorkspace', {
         value:   store.getters['prefs/get'](WORKSPACE) || DEFAULT_WORKSPACE,
         getters: store.getters
@@ -396,6 +431,16 @@ export default async function({
         targetRoute: route
       })
     ]);
+
+    const resource = getResourceFromRoute(route);
+
+    // if we have resource param, but can't get the schema, it means the resource doesn't exist!
+    // NOTE: workload doesn't have a schema, so let's just bypass this with the identifier
+    if (resource && resource !== WORKLOAD && !store.getters['management/schemaFor'](resource) && !store.getters['rancher/schemaFor'](resource)) {
+      store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
+
+      return redirect(302, '/fail-whale');
+    }
 
     if (!clusterId) {
       clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
@@ -422,7 +467,7 @@ export default async function({
       return redirect(302, '/home');
     } else {
       // Sets error 500 if lost connection to API
-      store.commit('setError', { error: e, locationError: new Error('Auth Middleware') });
+      store.commit('setError', { error: e, locationError: new Error(store.getters['i18n/t']('nav.failWhale.authMiddleware')) });
 
       return redirect(302, '/fail-whale');
     }

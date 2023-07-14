@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
 
 /**
@@ -14,6 +14,7 @@ const defaultStubs = {
   LabeledSelect:            true,
   ACE:                      true,
   AgentEnv:                 true,
+  AgentConfiguration:       true,
   ArrayList:                true,
   ArrayListGrouped:         true,
   BadgeState:               true,
@@ -266,5 +267,82 @@ describe('component: rke2', () => {
     });
 
     expect((wrapper.vm as any).validationPassed).toBe(true);
+  });
+
+  // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
+  // eslint-disable-next-line jest/no-disabled-tests
+  describe.skip('should initialize agent configuration values', () => {
+    it('adding default values if none', async() => {
+      const wrapper = shallowMount(rke2, {
+        propsData: {
+          mode:     'create',
+          value:    { spec: { ...defaultSpec } },
+          provider: 'custom'
+        },
+        computed: defaultComputed,
+        mocks:    {
+          ...defaultMocks,
+          $store: {
+            getters:  defaultGetters,
+            dispatch: {
+              'management/request': jest.fn(),
+              'management/find':    jest.fn(),
+              'management/findAll': () => ([]),
+            }
+          },
+        },
+        stubs: defaultStubs
+      });
+      const defaultAgentConfig = {
+        clusterAgentDeploymentCustomization: {
+          overrideAffinity:             {},
+          appendTolerations:            [],
+          overrideResourceRequirements: {}
+        },
+        fleetAgentDeploymentCustomization: {
+          overrideAffinity:             {},
+          appendTolerations:            [],
+          overrideResourceRequirements: {}
+        }
+      };
+
+      // Setting RKE to avoid calls
+      wrapper.setData({ rke2Versions: [] });
+
+      // await rke2.fetch.call(wrapper.vm);
+
+      expect(wrapper.props().value.spec).toContain(defaultAgentConfig);
+    });
+
+    it('should display agent configuration tab', async() => {
+      const wrapper = shallowMount(rke2, {
+        propsData: {
+          mode:     'create',
+          value:    { spec: { ...defaultSpec } },
+          provider: 'custom'
+        },
+        computed: defaultComputed,
+        mocks:    {
+          ...defaultMocks,
+          $store: {
+            getters:  defaultGetters,
+            dispatch: {
+              'management/request': jest.fn(),
+              'management/find':    jest.fn(),
+              'management/findAll': () => ([]),
+            }
+          },
+        },
+        stubs: defaultStubs
+      });
+      const agent = wrapper.find('[data-testid="rke2-cluster-agent-config"]');
+
+      // Setting RKE to avoid calls
+      wrapper.setData({ rke2Versions: [] });
+
+      await rke2.fetch.call(wrapper.vm);
+
+      expect(agent.element).toBeDefined();
+    });
   });
 });

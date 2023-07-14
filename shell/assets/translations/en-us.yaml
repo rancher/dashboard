@@ -197,6 +197,12 @@ nav:
     accountAndKeys: Account & API Keys
     logOut: Log Out
   failWhale:
+    authMiddleware: Auth Middleware
+    clusterNotFound: Cluster { clusterId } not found
+    productNotFound: Product { productNotFound } not found
+    resourceNotFound: Resource type { resource } not found
+    resourceListNotFound: Resource type { resource } not found, unable to display list
+    resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
     separator: or
 
@@ -2149,8 +2155,10 @@ fleet:
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     resources:
       label: 'Resource Handling'
-      keepResources: Keep resources after deletion
-      resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      keepResources: Always Keep Resources
+      keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      correctDrift: Enable Self-Healing
+      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on th ecluster will be lost.
     add:
       steps:
         repoInfo:

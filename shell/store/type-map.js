@@ -1361,6 +1361,14 @@ export const getters = {
       return _rowValueGetter(col);
     };
   },
+
+  isProductRegistered(state) {
+    return (productName) => {
+      const prod = state.products.find((p) => p.name === productName);
+
+      return !!prod;
+    };
+  },
 };
 
 export const mutations = {
