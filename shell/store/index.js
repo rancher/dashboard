@@ -34,6 +34,7 @@ import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
 import { STORE } from '@shell/store/store-types';
+import { isDevBuild } from '@shell/utils/version';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -571,6 +572,18 @@ export const getters = {
 
   targetRoute(state) {
     return state.targetRoute;
+  },
+
+  releaseNotesUrl(state, getters) {
+    const version = getters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+
+    const base = 'https://github.com/rancher/rancher/releases';
+
+    if (version && !isDevBuild(version)) {
+      return `${ base }/tag/${ version }`;
+    }
+
+    return `${ base }/latest`;
   },
 
   ...gcGetters
