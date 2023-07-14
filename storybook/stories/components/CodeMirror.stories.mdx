@@ -1,0 +1,55 @@
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import CodeMirror from '@shell/components/CodeMirror';
+
+<Meta 
+  title="Components/CodeMirror"
+  component={CodeMirror}
+/>
+
+export const Template = (args, { argTypes, events }) => ({
+  components: { CodeMirror },
+  props:      Object.keys(argTypes),
+  template:   `<CodeMirror v-bind="$props"/>`
+});
+
+
+# CodeMirror
+
+YAML editor for Rancher.
+
+### Description
+
+- Simple version for input editing
+- It can display diff
+
+<br/>
+
+#### CodeMirror
+
+<Canvas>
+  <Story
+    name="CodeMirror"
+    args={{
+      value: '',
+      mode: 'edit',
+      options: {},
+      asTextArea: false
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Import
+
+<Source
+  language='js'
+  light
+  format={false}
+  code={`
+    import CodeMirror from '@shell/components/CodeMirror';
+  `}
+/>
+
+### Props table
+
+<ArgsTable of={CodeMirror} />
