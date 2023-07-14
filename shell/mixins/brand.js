@@ -176,18 +176,6 @@ export default {
       title:     getVendor(),
     };
 
-    if (getVendor() === 'Harvester') {
-      const ico = require(`~shell/assets/images/pl/harvester.png`);
-
-      out.title = 'Harvester';
-      out.link = [{
-        hid:  'icon',
-        rel:  'icon',
-        type: 'image/x-icon',
-        href: ico
-      }];
-    }
-
     let brandMeta;
 
     if ( this.brand ) {

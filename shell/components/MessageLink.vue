@@ -2,7 +2,7 @@
 export default {
   props: {
     to: {
-      type:     String,
+      type:     [String, Object],
       required: true
     },
 

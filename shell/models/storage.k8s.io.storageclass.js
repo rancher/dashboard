@@ -112,16 +112,20 @@ export default class extends SteveModel {
     return this.patch(data, {}, true, true);
   }
 
-  setDefault() {
-    const allStorageClasses = this.$rootGetters['cluster/all'](STORAGE_CLASS) || [];
+  async setDefault() {
+    const inStore = this.$rootGetters['currentProduct'].inStore;
+    const allStorageClasses = this.$rootGetters[`${ inStore }/all`](STORAGE_CLASS) || [];
 
-    allStorageClasses.forEach((storageClass) => storageClass.resetDefault());
+    for (const storageClass of allStorageClasses) {
+      await storageClass.resetDefault();
+    }
+
     this.updateDefault(true);
   }
 
-  resetDefault() {
+  async resetDefault() {
     if (this.isDefault) {
-      this.updateDefault(false);
+      await this.updateDefault(false);
     }
   }
 
@@ -131,19 +135,25 @@ export default class extends SteveModel {
     if (this.isDefault) {
       out.unshift({
         action:  'resetDefault',
-        enabled: true,
+        enabled: this.canUpdate,
         icon:    'icon icon-fw icon-checkmark',
         label:   this.t('storageClass.actions.resetDefault'),
       });
     } else {
       out.unshift({
         action:  'setDefault',
-        enabled: true,
+        enabled: this.canUpdate,
         icon:    'icon icon-fw icon-checkmark',
         label:   this.t('storageClass.actions.setAsDefault'),
       });
     }
 
     return out;
+  }
+
+  cleanForNew() {
+    this.$dispatch(`cleanForNew`, this);
+
+    delete this?.metadata?.annotations?.[STORAGE.DEFAULT_STORAGE_CLASS];
   }
 }

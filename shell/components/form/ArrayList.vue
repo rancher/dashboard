@@ -66,6 +66,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    required: {
+      type:    Boolean,
+      default: false,
+    },
     defaultAddValue: {
       type:    [String, Number, Object, Array],
       default: ''
@@ -212,6 +216,12 @@ export default {
       <slot name="title">
         <h3>
           {{ title }}
+          <span
+            v-if="required"
+            class="required"
+          >
+            *
+          </span>
           <i
             v-if="showProtip"
             v-clean-tooltip="protip"
@@ -368,5 +378,9 @@ export default {
       float: right;
       padding: 5px 0;
     }
+  }
+
+  .required {
+    color: var(--error);
   }
 </style>
