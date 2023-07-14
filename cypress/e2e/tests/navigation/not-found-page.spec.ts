@@ -1,6 +1,6 @@
 import NotFoundPagePo from '@/cypress/e2e/po/pages/not-found-page.po';
 
-describe('Not found page display', () => {
+describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -43,5 +43,13 @@ describe('Not found page display', () => {
 
     notFound.errorTitle().contains('Error');
     notFound.errorMessage().contains('Product bogus-product-id not found');
+  });
+
+  it('Will not show a 404 if we have a valid product + resource', () => {
+    const notFound = new NotFoundPagePo('/c/local/explorer/pod');
+
+    notFound.goTo();
+    notFound.waitForPage();
+    notFound.errorTitle().should('not.exist');
   });
 });
