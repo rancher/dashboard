@@ -21,7 +21,7 @@ export default class PagePo extends ComponentPo {
     'v1/counts',
   ]) {
     getUrls.forEach((cUrl, i) => {
-      cy.intercept('GET', `${ cUrl }*`).as(`getUrl${ i }`);
+      cy.intercept('GET', cUrl).as(`getUrl${ i }`);
     });
 
     goTo();

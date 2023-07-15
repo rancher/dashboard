@@ -35,165 +35,182 @@ describe('dashboard-store: actions', () => {
     };
   };
 
-  const standardValidationChain = [
-    [
-      'returns a promise',
+  const standardAssertions = {
+    returnsPromise:
       {
-        valueGetter:   (findAllPromise) => typeof findAllPromise.then,
-        valueExpected: 'function'
+        assertionLabel: 'returns a promise',
+        valueGetter:    ({ findAllPromise }) => typeof findAllPromise.then,
+        valueExpected:  'function'
+      },
+    callsAll: {
+      assertionLabel: 'calls the "all" getter with the normalizedType',
+      valueGetter:    ({ getters }) => getters.all.mock.calls[0][0],
+      valueExpected:  'getters.normalizeType'
+    },
+    returnsFromAll: {
+      assertionLabel: 'returns the value expected from the "all" getter',
+      valueGetter:    ({ findAllReturnValue }) => findAllReturnValue,
+      valueExpected:  'getters.all'
+    },
+    firstDispatchAction: {
+      assertionLabel: 'first dispatch should be the "request" action',
+      valueGetter:    ({ dispatch }) => dispatch.mock.calls[0][0],
+      valueExpected:  'request'
+    },
+    firstDispatchParams: {
+      assertionLabel: 'first dispatch parameters should be provided a normalized type and a url, streaming, and "metadata.managedFields" excluded under opt',
+      valueGetter:    ({ dispatch }) => dispatch.mock.calls[0][1],
+      valueExpected:  {
+        type: 'getters.normalizeType',
+        opt:  {
+          url:           'getters.urlFor',
+          stream:        true,
+          excludeFields: ['metadata.managedFields']
+        }
+      },
+      assertionMethod: 'toMatchObject'
+    },
+    secondDispatchAction: {
+      assertionLabel: 'second dispatch should be the "watch" action',
+      valueGetter:    ({ dispatch }) => dispatch.mock.calls[1][0],
+      valueExpected:  'watch'
+    },
+    secondDispatchParams: {
+      assertionLabel:  'second dispatch parameters should have a normalized type and force set to false',
+      valueGetter:     ({ dispatch }) => dispatch.mock.calls[1][1],
+      valueExpected:   { type: 'getters.normalizeType', force: false },
+      assertionMethod: 'toMatchObject'
+    },
+    countDispatches: {
+      assertionLabel:  'should only make two dispatches',
+      valueGetter:     ({ dispatch }) => dispatch.mock.calls,
+      valueExpected:   2,
+      assertionMethod: 'toHaveLength'
+    },
+    firstCommitMutation: {
+      assertionLabel: 'first commit should be the "registerType" mutation',
+      valueGetter:    ({ commit }) => commit.mock.calls[0][0],
+      valueExpected:  'registerType'
+    },
+    firstCommitParams: {
+      assertionLabel: 'first commit parameter should be a normalized type',
+      valueGetter:    ({ commit }) => commit.mock.calls[0][1],
+      valueExpected:  'getters.normalizeType'
+    },
+    secondCommitMutation: {
+      assertionLabel: 'second commit should be the "loadAll" mutation',
+      valueGetter:    ({ commit }) => commit.mock.calls[1][0],
+      valueExpected:  'loadAll'
+    },
+    secondCommitParams: {
+      assertionLabel: 'second commit parameters should have a normalized type, ctx.state.config.namespace, data returned by request, and skipHaveAll set to false',
+      valueGetter:    ({ commit }) => commit.mock.calls[1][1],
+      valueExpected:  {
+        type:        'getters.normalizeType',
+        ctx:         { state: { config: { namespace: 'unitTest' } } },
+        data:        ['requestData'],
+        skipHaveAll: false,
+      },
+      assertionMethod: 'toMatchObject'
+    },
+    countCommits: {
+      assertionLabel:  'should only make two commits',
+      valueGetter:     ({ commit }) => commit.mock.calls,
+      valueExpected:   2,
+      assertionMethod: 'toHaveLength'
+    }
 
-      }
-    ],
-    [
-      'calls the "all" getter with the normalizedType',
-      {
-        valueGetter:   (_, __, { getters }) => getters.all.mock.calls[0][0],
-        valueExpected: 'getters.normalizeType'
-      }
-    ],
-    [
-      'returns the value expected from the "all" getter',
-      {
-        valueGetter:   (_, findAllReturnValue) => findAllReturnValue,
-        valueExpected: 'getters.all'
-      }
-    ],
-    [
-      'first dispatch should be the "request" action',
-      {
-        valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[0][0],
-        valueExpected: 'request'
-      }
-    ],
-    [
-      'first dispatch parameters should be provided a normalized type and a url, streaming, and "metadata.managedFields" excluded under opt',
-      {
-        valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[0][1],
-        valueExpected: {
-          type: 'getters.normalizeType',
-          opt:  {
-            url:           'getters.urlFor',
-            stream:        true,
-            excludeFields: ['metadata.managedFields']
-          }
-        },
-        assertionMethod: 'toMatchObject'
-      }
-    ],
-    [
-      'second dispatch should be the "watch" action',
-      {
-        valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[1][0],
-        valueExpected: 'watch'
-      }
-    ],
-    [
-      'second dispatch parameters should have a normalized type and force set to false',
-      {
-        valueGetter:     (_, __, { dispatch }) => dispatch.mock.calls[1][1],
-        valueExpected:   { type: 'getters.normalizeType', force: false },
-        assertionMethod: 'toMatchObject'
-      }
-    ],
-    [
-      'should only make two dispatches',
-      {
-        valueGetter:     (_, __, { dispatch }) => dispatch.mock.calls,
-        valueExpected:   2,
-        assertionMethod: 'toHaveLength'
-      }
-    ],
-
-    [
-      'first commit should be the "registerType" mutation',
-      {
-        valueGetter:   (_, __, { commit }) => commit.mock.calls[0][0],
-        valueExpected: 'registerType'
-      }
-    ],
-    [
-      'first commit parameters should have a normalized type',
-      {
-        valueGetter:   (_, __, { commit }) => commit.mock.calls[0][1],
-        valueExpected: 'getters.normalizeType'
-      }
-    ],
-
-    [
-      'second commit should be the "loadAll" mutation',
-      {
-        valueGetter:   (_, __, { commit }) => commit.mock.calls[1][0],
-        valueExpected: 'loadAll'
-      }
-    ],
-    [
-      'second commit parameters should have a normalized type, ctx.state.config.namespace, data returned by request, and skipHaveAll set to false',
-      {
-        valueGetter:   (_, __, { commit }) => commit.mock.calls[1][1],
-        valueExpected: {
-          type:        'getters.normalizeType',
-          ctx:         { state: { config: { namespace: 'unitTest' } } },
-          data:        ['requestData'],
-          skipHaveAll: false,
-        },
-        assertionMethod: 'toMatchObject'
-      }
-    ],
-    [
-      'should only make two commits',
-      {
-        valueGetter:     (_, __, { commit }) => commit.mock.calls,
-        valueExpected:   2,
-        assertionMethod: 'toHaveLength'
-      }
-    ]
-  ];
+  };
 
   describe('dashboard-store > actions > findAll', () => {
     describe('called without a cache for the type in the second param', () => {
-      const ctx = setupContext();
-      const findAllPromise = findAll(ctx, { type: 'type' });
+      const {
+        dispatch, commit, getters, rootGetters, state
+      } = setupContext();
 
-      const validationChain = standardValidationChain;
+      const findAllPromise = findAll(
+        {
+          dispatch, commit, getters, rootGetters, state
+        },
+        { type: 'type' }
+      );
 
-      it.each(validationChain)(
-        '%s',
-        async(_, { valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
+      const assertionChain = [
+        standardAssertions.returnsPromise,
+        standardAssertions.callsAll,
+        standardAssertions.returnsFromAll,
+        standardAssertions.firstDispatchAction,
+        standardAssertions.firstDispatchParams,
+        standardAssertions.secondDispatchAction,
+        standardAssertions.secondDispatchParams,
+        standardAssertions.countDispatches,
+        standardAssertions.firstCommitMutation,
+        standardAssertions.firstCommitParams,
+        standardAssertions.secondCommitMutation,
+        standardAssertions.secondCommitParams,
+        standardAssertions.countCommits
+      ];
+
+      it.each(assertionChain)(
+        '$assertionLabel',
+        async({ valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
           const findAllReturnValue = await findAllPromise;
 
-          expect(valueGetter(findAllPromise, findAllReturnValue, ctx))[assertionMethod](valueExpected);
+          expect(valueGetter({
+            findAllPromise, findAllReturnValue, getters, dispatch, commit
+          }))[assertionMethod](valueExpected);
         }
       );
     });
 
     describe('called without a cache for the type in the second param and an excluded fields array', () => {
-      const ctx = setupContext();
-      const findAllPromise = findAll(ctx, { type: 'type', opt: { excludeFields: ['field:foo'] } });
-      const validationChain = [
-        ...standardValidationChain.filter(([label]) => label !== 'first dispatch parameters should be provided a normalized type and a url, streaming, and "metadata.managedFields" excluded under opt'),
-        [
-          'first dispatch parameters should be provided a normalized type and a url, streaming, , and both "field:foo" and "metadata.managedFields" excluded',
-          {
-            valueGetter:   (_, __, { dispatch }) => dispatch.mock.calls[0][1],
-            valueExpected: {
-              type: 'getters.normalizeType',
-              opt:  {
-                url:           'getters.urlFor',
-                stream:        true,
-                excludeFields: ['field:foo', 'metadata.managedFields']
-              }
-            },
-            assertionMethod: 'toMatchObject'
-          }
-        ]
+      const {
+        dispatch, commit, getters, rootGetters, state
+      } = setupContext();
+
+      const findAllPromise = findAll(
+        {
+          dispatch, commit, getters, rootGetters, state
+        },
+        { type: 'type', opt: { excludeFields: ['field:foo'] } }
+      );
+
+      const assertionChain = [
+        standardAssertions.returnsPromise,
+        standardAssertions.callsAll,
+        standardAssertions.returnsFromAll,
+        standardAssertions.firstDispatchAction,
+        {
+          assertionLabel: 'first dispatch parameters should be provided a normalized type and a url, streaming, and both "field:foo" and "metadata.managedFields" excluded under opt',
+          valueGetter:    ({ dispatch }) => dispatch.mock.calls[0][1],
+          valueExpected:  {
+            type: 'getters.normalizeType',
+            opt:  {
+              url:           'getters.urlFor',
+              stream:        true,
+              excludeFields: ['field:foo', 'metadata.managedFields']
+            }
+          },
+          assertionMethod: 'toMatchObject'
+        },
+        standardAssertions.secondDispatchAction,
+        standardAssertions.secondDispatchParams,
+        standardAssertions.countDispatches,
+        standardAssertions.firstCommitMutation,
+        standardAssertions.firstCommitParams,
+        standardAssertions.secondCommitMutation,
+        standardAssertions.secondCommitParams,
+        standardAssertions.countCommits
       ];
 
-      it.each(validationChain)(
-        '%s',
-        async(_, { valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
+      it.each(assertionChain)(
+        '$assertionLabel',
+        async({ valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
           const findAllReturnValue = await findAllPromise;
 
-          expect(valueGetter(findAllPromise, findAllReturnValue, ctx))[assertionMethod](valueExpected);
+          expect(valueGetter({
+            findAllPromise, findAllReturnValue, dispatch, commit, getters
+          }))[assertionMethod](valueExpected);
         }
       );
     });

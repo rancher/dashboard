@@ -57,7 +57,7 @@ export default {
     // Exclude
     // excludeFields should be an array of strings representing the paths of the fields to exclude
     // only works on Steve but is ignored without error by Norman
-    if (opt.excludeFields && opt.excludeFields.length > 0) {
+    if (opt.excludeFields && opt.excludeFields.length > 0 && url.includes('/v1/')) {
       const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
 
       url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
