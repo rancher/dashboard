@@ -86,7 +86,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady']),
-    ...mapGetters(['currentCluster']),
+    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
     mcm: mapFeature(MULTI_CLUSTER),
 
     provClusters() {
@@ -203,8 +203,6 @@ export default {
       ];
     },
 
-    ...mapGetters(['currentCluster', 'defaultClusterId']),
-
     kubeClusters() {
       return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
     }
@@ -266,7 +264,6 @@ export default {
     showWhatsNew() {
       // Update the value, so that the message goes away
       markReadReleaseNotes(this.$store);
-      this.$router.push({ name: 'docs-doc', params: { doc: 'whats-new' } });
     },
 
     showUserPrefs() {
@@ -323,7 +320,10 @@ export default {
             </div>
             <a
               class="hand"
-              @click.prevent.stop="showWhatsNew"
+              :href="releaseNotesUrl"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              @click.stop="showWhatsNew"
             ><span v-clean-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>

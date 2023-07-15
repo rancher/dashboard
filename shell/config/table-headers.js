@@ -264,12 +264,12 @@ export const DURATION = {
   formatter: 'LiveDuration',
 };
 
-export const IMAGE = {
+export const IMAGE_NAME = {
   name:      'image',
   labelKey:  'tableHeaders.image',
   value:     'image',
   sort:      ['image', 'nameSort'],
-  formatter: 'Image',
+  formatter: 'ImageName',
 };
 
 export const POD_IMAGES = {

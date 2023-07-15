@@ -197,6 +197,12 @@ nav:
     accountAndKeys: Account & API Keys
     logOut: Log Out
   failWhale:
+    authMiddleware: Auth Middleware
+    clusterNotFound: Cluster { clusterId } not found
+    productNotFound: Product { productNotFound } not found
+    resourceNotFound: Resource type { resource } not found
+    resourceListNotFound: Resource type { resource } not found, unable to display list
+    resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
     separator: or
 
@@ -2149,8 +2155,10 @@ fleet:
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     resources:
       label: 'Resource Handling'
-      keepResources: Keep resources after deletion
-      resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      keepResources: Always Keep Resources
+      keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      correctDrift: Enable Self-Healing
+      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on th ecluster will be lost.
     add:
       steps:
         repoInfo:
@@ -2389,11 +2397,32 @@ hpa:
     name:
       label: Referent Name
       placeholder: e.g. php-apache
+  scaleDownRules:
+    label: Scale down behavior
+    enable: Configure scale down behavior
+  scaleUpRules:
+    label: Scale up behavior
+    enable: Configure scale up behavior
+  scalingRule:
+    policyHeader: Policies
+    addPolicy: Add policy
+    selectPolicy: Select policy
+    selectPolicyTooltip: Select the policy with the maximum value, minimum value or disable scaling.
+    stabilizationWindowSeconds: Stabilization window seconds
+    stabilizationWindowSecondsTooltip: Number of seconds for which past recommendations should be considered while scaling up or scaling down.
+    policy:
+      type: Type
+      typeTooltip: Set policy based on the amount of Pods to scale or the percentage of current replicas to scale.
+      value: Value
+      valueTooltip: The amount of change which is permitted by the policy.
+      periodSeconds: Period seconds
+      periodSecondsTooltip: The window of time for which the policy should hold true.
   tabs:
     labels: Labels
     metrics: Metrics
     target: Target
     workload: Workload
+    behavior: Behavior
   types:
     cpu: CPU
     memory: Memory

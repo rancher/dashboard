@@ -3,7 +3,7 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
-import { STATE, SIMPLE_NAME, IMAGE } from '@shell/config/table-headers';
+import { STATE, SIMPLE_NAME, IMAGE_NAME } from '@shell/config/table-headers';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { findBy } from '@shell/utils/array';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
@@ -140,7 +140,7 @@ export default {
           ...SIMPLE_NAME,
           value: 'name'
         },
-        IMAGE,
+        IMAGE_NAME,
         {
           name:          'isInit',
           labelKey:      'workload.container.init',

@@ -4,6 +4,7 @@ const serveStatic = require('serve-static');
 const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const serverMiddlewares = require('./server/server-middleware.js');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -218,8 +219,6 @@ module.exports = function(dir, _appConfig) {
   serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
   // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
-  // Add the standard dashboard server middleware after the middleware added to serve up UI packages
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
   // ===============================================================================================
   // Dashboard nuxt configuration
@@ -318,6 +317,8 @@ module.exports = function(dir, _appConfig) {
           console.log('\n'); // eslint-disable-line no-console
           process.exit(1);
         });
+
+        app.use(serverMiddlewares);
 
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
