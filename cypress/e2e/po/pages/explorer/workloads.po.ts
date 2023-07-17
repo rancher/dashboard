@@ -1,17 +1,17 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
-export default class WorkloadPo extends PagePo {
+export default class WorkloadPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/workload`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(WorkloadPo.createPath(clusterId));
+    return super.goTo(WorkloadPagePo.createPath(clusterId));
   }
 
   constructor(clusterId = 'local') {
-    super(WorkloadPo.createPath(clusterId));
+    super(WorkloadPagePo.createPath(clusterId));
   }
 
   goToDetailsPage(elemName: string) {
