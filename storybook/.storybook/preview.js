@@ -5,9 +5,13 @@ import { get } from '../../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
-import growl from './store/growl';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
 import ClientOnly from 'vue-client-only';
+
+// Store modules
+import growl from './store/growl';
+import codeMirror from './store/codeMirror';
+
 
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
@@ -43,7 +47,8 @@ export const store = new Vuex.Store({
     },
   },
   modules: {
-    growl
+    growl,
+    codeMirror
   }
 });
 
