@@ -114,6 +114,29 @@ Code Mirror is used mainly as YAML editor for all the K8S configurations.
   </Story>
 </Canvas>
 
+#### Options example
+
+This is an adopted case were we use CodeMirror to display a function with highlight syntax.
+
+<Canvas>
+  <Story
+    name="Options"
+    args={{
+      value: `
+      (arg) => {
+        if ('test this') {
+          return true;
+        }
+      }
+      `,
+      mode: 'edit',
+      options: {mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true},
+      asTextArea: false
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
 
 #### Textarea Input
 
