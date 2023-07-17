@@ -12,7 +12,6 @@ import ClientOnly from 'vue-client-only';
 import growl from './store/growl';
 import codeMirror from './store/codeMirror';
 
-
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
 
