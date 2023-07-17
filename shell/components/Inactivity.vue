@@ -5,7 +5,6 @@ import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
-import { end } from '@popperjs/core';
 
 export default {
   name:       'Inactivity',
