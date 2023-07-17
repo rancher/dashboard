@@ -5,6 +5,7 @@ import PercentageBar from '@shell/components/PercentageBar.vue';
 import throttle from 'lodash/throttle';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
+import { end } from '@popperjs/core';
 
 export default {
   name:       'Inactivity',
@@ -22,6 +23,7 @@ export default {
       courtesyTimerId:     null,
       courtesyCountdown:   null,
       trackInactivity:     throttle(this._trackInactivity, 1000),
+      id:                  null,
     };
   },
   async mounted() {
@@ -72,8 +74,17 @@ export default {
       this.clearAllTimeouts();
       const endTime = Date.now() + this.showModalAfter * 1000;
 
+      this.id = endTime;
+      this.$store.dispatch('performance/setId', this.id);
+
       const checkInactivityTimer = () => {
         const now = Date.now();
+
+        const id = this.$store.getters['performance/getId'];
+
+        if (this.id !== id) {
+          return;
+        }
 
         if (now >= endTime) {
           this.isOpen = true;
