@@ -13,6 +13,79 @@ export const Template = (args, { argTypes, events }) => ({
 });
 
 
+export const editorValueExample = `{
+  apiVersion: provisioning.cattle.io/v1
+kind: Cluster
+metadata:
+  name: #string
+  annotations:
+    {}
+  labels:
+    {}
+  namespace: fleet-default
+spec:
+  clusterAgentDeploymentCustomization:
+    appendTolerations:
+    overrideAffinity:
+  defaultPodSecurityAdmissionConfigurationTemplateName: ''
+  defaultPodSecurityPolicyTemplateName: ''
+  fleetAgentDeploymentCustomization:
+    overrideResourceRequirements:
+  kubernetesVersion: v1.26.6+rke2r1
+  localClusterAuthEndpoint:
+    caCerts: ''
+    enabled: false
+    fqdn: ''
+  rkeConfig:
+    chartValues:
+      rke2-calico: {}
+    etcd:
+      disableSnapshots: false
+      s3:
+      snapshotRetention: 5
+      snapshotScheduleCron: 0 */5 * * *
+    machineGlobalConfig:
+      cni: calico
+      disable-kube-proxy: false
+      etcd-expose-metrics: false
+      profile: null
+    machinePools:
+    machineSelectorConfig:
+      - config:
+          protect-kernel-defaults: false
+    registries:
+      configs:
+        {}
+        #  authConfigSecretName: string
+      mirrors:
+        {}
+        #  endpoint:
+    upgradeStrategy:
+      controlPlaneConcurrency: '1'
+      controlPlaneDrainOptions:
+        deleteEmptyDirData: true
+        disableEviction: false
+        enabled: false
+        force: false
+        gracePeriod: -1
+        ignoreDaemonSets: true
+        skipWaitForDeleteTimeoutSeconds: 0
+        timeout: 120
+      workerConcurrency: '1'
+      workerDrainOptions:
+        deleteEmptyDirData: true
+        disableEviction: false
+        enabled: false
+        force: false
+        gracePeriod: -1
+        ignoreDaemonSets: true
+        skipWaitForDeleteTimeoutSeconds: 0
+        timeout: 120
+  machineSelectorConfig:
+    - config: {}
+__clone: true
+}`
+
 # CodeMirror
 
 YAML editor for Rancher.
@@ -24,16 +97,39 @@ YAML editor for Rancher.
 
 <br/>
 
-#### CodeMirror
+#### YAML Editor
+
+Code Mirror is used mainly as YAML editor for all the K8S configurations.
 
 <Canvas>
   <Story
-    name="CodeMirror"
+    name="Yaml"
     args={{
-      value: '',
+      value: editorValueExample,
       mode: 'edit',
       options: {},
       asTextArea: false
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Textarea Input
+
+The input version is used mainly for cases where is necessary to display line breaks, e.g. ConfigMap chomping.
+
+<Canvas>
+  <Story
+    name="Textarea"
+    args={{
+      value: `
+Some
+values
+      `,
+      mode: 'edit',
+      options: {},
+      asTextArea: true
     }}>
     {Template.bind({})}
   </Story>
