@@ -9,6 +9,7 @@ const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
 import ClientOnly from 'vue-client-only';
 import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
 import ShortKey from 'vue-shortkey';
+import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
 
 // Store modules
 import growl from './store/growl';
@@ -34,6 +35,9 @@ Vue.component('nuxt-link', {
 })
 
 Vue.directive('clean-tooltip', VCleanTooltip);
+Vue.directive('trim-whitespace', {
+  inserted:        trimWhitespace,
+});
 
 window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
 
