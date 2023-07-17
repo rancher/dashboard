@@ -35,7 +35,9 @@ import {
   isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
-  UI_PLUGIN_LABELS
+  UI_PLUGIN_LABELS,
+  UI_PLUGINS_REPO_URL,
+  UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
@@ -120,6 +122,7 @@ export default {
     const res = await allHash(hash);
 
     this.plugins = res.plugins || [];
+    this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
 
@@ -145,7 +148,7 @@ export default {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     showAddReposBanner() {
-      return this.addExtensionReposBannerSetting?.value === 'true';
+      return this.addExtensionReposBannerSetting?.value === 'true' && (!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL) || !this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL));
     },
 
     applyDarkModeBg() {
@@ -747,7 +750,13 @@ export default {
           data-testid="extensions-new-repos-banner"
           @close="updateAddReposSetting"
         >
-          {{ t('plugins.addRepos.banner', {}, true) }}
+          <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
+          <button
+            class="ml-10 btn btn-sm role-primary"
+            @click="showAddExtensionReposDialog()"
+          >
+            {{ t('plugins.addRepos.bannerBtn') }}
+          </button>
         </Banner>
 
         <Tabbed

@@ -4147,7 +4147,8 @@ plugins:
     title: Extensions Safe Mode
     message: Extensions were not loaded
   addRepos:
-    banner: There are new extensions repositories available. To enable them, click the menu button at the top right of this page and select “Add Rancher Repositories”
+    banner: There are new extensions repositories available. To enable them, click the menu button at the top right of this page and select “Add Rancher Repositories”.
+    bannerBtn: Add repositories
     title: Add Extensions repositories
     prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
   setup:
