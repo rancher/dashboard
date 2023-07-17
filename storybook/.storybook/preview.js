@@ -7,6 +7,7 @@ import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
 import growl from './store/growl';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
+import ClientOnly from 'vue-client-only';
 
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
@@ -16,6 +17,9 @@ require('../../shell/plugins/tooltip');
 
 
 Vue.use(Vuex);
+
+// Component: <ClientOnly>
+Vue.component(ClientOnly.name, ClientOnly);
 
 Vue.component('nuxt-link', {
   props:   ['to'],
