@@ -9,6 +9,7 @@ import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import { parse } from '@shell/utils/url';
 
 export const STEVE_MODEL_TYPES = {
   NORMAN:  'norman',
@@ -26,6 +27,8 @@ const GC_IGNORE_TYPES = {
 export default {
   urlOptions: () => (url, opt) => {
     opt = opt || {};
+    const parsedUrl = parse(url);
+    const isSteve = parsedUrl.path.startsWith('/v1');
 
     // Filter
     // Steve's filter options work differently nowadays (https://github.com/rancher/steve#filter) #9341
@@ -58,7 +61,7 @@ export default {
     // Exclude
     // excludeFields should be an array of strings representing the paths of the fields to exclude
     // only works on Steve but is ignored without error by Norman
-    if (opt?.excludeFields?.length > 0 && url.includes('/v1/')) {
+    if (opt?.excludeFields?.length > 0 && isSteve) {
       const excludeParamsString = opt.excludeFields.map((field) => `exclude=${ field }`).join('&');
 
       url += `${ url.includes('?') ? '&' : '?' }${ excludeParamsString }`;
@@ -74,7 +77,7 @@ export default {
     // End: Limit
 
     // Sort
-    // ToDo: Steve's sort options work differently nowadays (https://github.com/rancher/steve#sort) #9341
+    // Steve's sort options work differently nowadays (https://github.com/rancher/steve#sort) #9341
     const sortBy = opt.sortBy;
 
     if ( sortBy ) {
