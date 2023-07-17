@@ -28,6 +28,7 @@ export default {
     opt = opt || {};
 
     // Filter
+    // Steve's filter options work differently nowadays (https://github.com/rancher/steve#filter) #9341
     if ( opt.filter ) {
       const keys = Object.keys(opt.filter);
 
@@ -73,6 +74,7 @@ export default {
     // End: Limit
 
     // Sort
+    // ToDo: Steve's sort options work differently nowadays (https://github.com/rancher/steve#sort) #9341
     const sortBy = opt.sortBy;
 
     if ( sortBy ) {
