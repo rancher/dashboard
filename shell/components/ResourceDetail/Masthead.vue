@@ -372,6 +372,10 @@ export default {
     hideNamespaceLocation() {
       return this.$store.getters['currentProduct'].hideNamespaceLocation;
     },
+
+    resourceExternalLink() {
+      return this.value.resourceExternalLink;
+    },
   },
 
   methods: {
@@ -438,6 +442,15 @@ export default {
                 class="icon icon-sm icon-istio"
               />
             </span>
+            <a
+              v-if="dev && !!resourceExternalLink"
+              class="resource-external"
+              rel="nofollow noopener noreferrer"
+              target="_blank"
+              :href="resourceExternalLink"
+            >
+              <i class="icon icon-external-link" />
+            </a>
           </h1>
         </div>
         <div
@@ -597,10 +610,8 @@ export default {
     }
   }
 
-  div.actions-container > div.actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+  .resource-external {
+    font-size: 18px;
   }
 
 </style>
