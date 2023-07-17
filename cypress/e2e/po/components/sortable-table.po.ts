@@ -55,6 +55,14 @@ export default class SortableTablePo extends ComponentPo {
     return cy.getId('sortable-table-promptRemove');
   }
 
+  deactivateButton() {
+    return cy.getId('sortable-table-deactivate');
+  }
+
+  activateButton() {
+    return cy.getId('sortable-table-activate');
+  }
+
   selectedCountText() {
     return cy.get('.action-availability');
   }

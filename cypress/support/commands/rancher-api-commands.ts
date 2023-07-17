@@ -61,6 +61,15 @@ Cypress.Commands.add('login', (
 });
 
 /**
+ * Logout of Rancher
+ */
+Cypress.Commands.add('logout', () => {
+  cy.intercept('POST', '/v3/tokens?action=logout').as('loggedOut');
+  cy.visit('/auth/logout?logged-out=true');
+  cy.wait('@loggedOut').its('response.statusCode').should('eq', 200);
+});
+
+/**
  * Create user via api request
  */
 Cypress.Commands.add('createUser', (params: CreateUserParams) => {
