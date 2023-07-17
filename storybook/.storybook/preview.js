@@ -26,6 +26,8 @@ Vue.component('nuxt-link', {
   template: '<a>link</a>',
 })
 
+window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
+
 // Defines namespaced modules for the Store.
 export const store = new Vuex.Store({
   getters: {
