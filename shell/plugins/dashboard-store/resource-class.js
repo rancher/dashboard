@@ -914,15 +914,24 @@ export default class Resource {
       extensionMenuActions.forEach((action) => {
         const newActionInstance = { ...action };
 
-        // sets the enabled flag to true if omitted on the config
-        if (!Object.keys(newActionInstance).includes('enabled')) {
+        const enabledFn = newActionInstance.enabled;
+        const typeofEnabled = typeof enabledFn;
+
+        switch (typeofEnabled) {
+        case 'undefined':
           newActionInstance.enabled = true;
-        } else if (Object.keys(newActionInstance).includes('enabled') && typeof newActionInstance.enabled === 'function') {          
-          Object.defineProperty(newActionInstance, 'enabled', {
-            get: () => newActionInstance.enabled(this)
-          });
-        } else if (Object.keys(newActionInstance).includes('enabled')) {
-          newActionInstance.enabled = newActionInstance.enabled;
+          break;
+        case 'function':
+          Object.defineProperty(newActionInstance, 'enabled', { get: () => enabledFn(this) });
+          break;
+        case 'boolean':
+          // no op, just use it directly
+          break;
+        default:
+          // unsupported value
+          console.warn(`Unsupported 'enabled' property type for action: ${ action.label || action.labelKey }` ); // eslint-disable-line no-console
+          delete newActionInstance.enabled;
+          break;
         }
 
         all.push(newActionInstance);
