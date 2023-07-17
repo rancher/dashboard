@@ -140,8 +140,6 @@ export default {
     >
       <Select
         v-model="serviceName"
-        option-label="label"
-        option-key="label"
         :options="serviceTargets"
         :status="serviceTargetStatus"
         :taggable="true"
