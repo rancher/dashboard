@@ -46,10 +46,22 @@ describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, ()
   });
 
   it('Will not show a 404 if we have a valid product + resource', () => {
-    const notFound = new NotFoundPagePo('/c/local/explorer/pod');
+    const podPage = new NotFoundPagePo('/c/local/explorer/pod');
 
-    notFound.goTo();
-    notFound.waitForPage();
-    notFound.errorTitle().should('not.exist');
+    podPage.goTo();
+    podPage.waitForPage();
+    podPage.errorTitle().should('not.exist');
+
+    const workloadPage = new NotFoundPagePo('/c/local/explorer/workload');
+
+    workloadPage.goTo();
+    workloadPage.waitForPage();
+    workloadPage.errorTitle().should('not.exist');
+
+    const clusterManager = new NotFoundPagePo('/c/_/manager/provisioning.cattle.io.cluster');
+
+    clusterManager.goTo();
+    clusterManager.waitForPage();
+    clusterManager.errorTitle().should('not.exist');
   });
 });
