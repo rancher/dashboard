@@ -46,11 +46,7 @@ export default {
     return {
       selectedSeverityLabel: null,
       ignoredAnnotations:    IGNORED_ANNOTATIONS,
-      severityOptions:       [
-        this.t('prometheusRule.alertingRules.labels.severity.choices.critical'),
-        this.t('prometheusRule.alertingRules.labels.severity.choices.warning'),
-        this.t('prometheusRule.alertingRules.labels.severity.choices.none'),
-      ],
+      severitys:             ['critical', 'warning', 'none'],
     };
   },
 
@@ -193,6 +189,15 @@ export default {
       }
 
       return false;
+    },
+
+    severityOptions() {
+      return this.severitys.map((severity) => {
+        return {
+          value: severity,
+          label: this.t(`prometheusRule.alertingRules.labels.severity.choices.${ severity }`)
+        };
+      });
     },
 
     waitToFireFor: {
