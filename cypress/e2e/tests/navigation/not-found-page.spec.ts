@@ -5,13 +5,13 @@ import WorkloadListPagePo from '~/cypress/e2e/po/pages/explorer/workloads.po';
 import HomePagePo from '~/cypress/e2e/po/pages/home.po';
 import PagePo from '~/cypress/e2e/po/pages/page.po';
 
-describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, () => {
+describe('Not found page display', () => {
   beforeEach(() => {
     cy.login();
   });
 
-  it('Will show a 404 if we do not have a valid Product id on the route path', () => {
-    const notFound = new NotFoundPagePo('/c/local/bogus-product-id');
+  it('Will show a 404 if we do not have a valid Product id on the route path', { tags: ['@adminUser', '@standardUser'] }, () => {
+    const notFound = new NotFoundPagePo('/c/_/bogus-product-id');
 
     notFound.goTo();
     notFound.waitForPage();
@@ -20,8 +20,8 @@ describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, ()
     notFound.errorMessage().contains('Product bogus-product-id not found');
   });
 
-  it('Will show a 404 if we do not have a valid Resource type on the route path', () => {
-    const notFound = new NotFoundPagePo('/c/local/explorer/bogus-resource-type');
+  it('Will show a 404 if we do not have a valid Resource type on the route path', { tags: ['@adminUser', '@standardUser'] }, () => {
+    const notFound = new NotFoundPagePo('/c/_/manager/bogus-resource-type');
 
     notFound.goTo();
     notFound.waitForPage();
@@ -30,18 +30,18 @@ describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, ()
     notFound.errorMessage().contains('Resource type bogus-resource-type not found');
   });
 
-  it('Will show a 404 if we do not have a valid Resource id on the route path', () => {
-    const notFound = new NotFoundPagePo('/c/local/explorer/node/bogus-resource-id');
+  it('Will show a 404 if we do not have a valid Resource id on the route path', { tags: ['@adminUser', '@standardUser'] }, () => {
+    const notFound = new NotFoundPagePo('/c/_/manager/provisioning.cattle.io.cluster/fleet-default/bogus-resource-id');
 
     notFound.goTo();
     notFound.waitForPage();
 
     notFound.errorTitle().contains('Error');
-    notFound.errorMessage().contains('Resource node with id bogus-resource-id not found, unable to display resource details');
+    notFound.errorMessage().contains('Resource provisioning.cattle.io.cluster with id fleet-default/bogus-resource-id not found, unable to display resource details');
   });
 
-  it('Will show a 404 if we do not have a valid product + resource + resource id', () => {
-    const notFound = new NotFoundPagePo('/c/local/bogus-product-id/bogus-resource/bogus-resource-id');
+  it('Will show a 404 if we do not have a valid product + resource + resource id', { tags: ['@adminUser', '@standardUser'] }, () => {
+    const notFound = new NotFoundPagePo('/c/_/bogus-product-id/bogus-resource/bogus-resource-id');
 
     notFound.goTo();
     notFound.waitForPage();
@@ -50,19 +50,7 @@ describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, ()
     notFound.errorMessage().contains('Product bogus-product-id not found');
   });
 
-  it('Will not show a 404 if we have a valid product + resource', () => {
-    const podPage = new NotFoundPagePo('/c/local/explorer/pod');
-
-    podPage.goTo();
-    podPage.waitForPage();
-    podPage.errorTitle().should('not.exist');
-
-    const workloadPage = new NotFoundPagePo('/c/local/explorer/workload');
-
-    workloadPage.goTo();
-    workloadPage.waitForPage();
-    workloadPage.errorTitle().should('not.exist');
-
+  it('Will not show a 404 if we have a valid product + resource', { tags: ['@adminUser', '@standardUser'] }, () => {
     const clusterManager = new NotFoundPagePo('/c/_/manager/provisioning.cattle.io.cluster');
 
     clusterManager.goTo();
@@ -70,7 +58,15 @@ describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, ()
     clusterManager.errorTitle().should('not.exist');
   });
 
-  it('Will not show a 404 if we have a valid product + resource and we nav to page', () => {
+  it('Will not show a 404 for a valid type that does not have a real schema', { tags: '@adminUser' }, () => {
+    const workloadPage = new NotFoundPagePo('/c/local/explorer/workload');
+
+    workloadPage.goTo();
+    workloadPage.waitForPage();
+    workloadPage.errorTitle().should('not.exist');
+  });
+
+  it('Will not show a 404 if we have a valid product + resource and we nav to page', { tags: '@adminUser' }, () => {
     const page = new PagePo('');
     const homePage = new HomePagePo();
     const notFoundPage = new NotFoundPagePo('');

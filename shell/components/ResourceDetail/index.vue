@@ -193,7 +193,7 @@ export default {
           opt:  { watch: true }
         });
       } catch (e) {
-        if (e.status === 404) {
+        if (e.status === 404 || e.status === 403) {
           store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource, fqid }, true)));
         }
         liveModel = {};
