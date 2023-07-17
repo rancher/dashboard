@@ -4,7 +4,7 @@ import {
   SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE, WORKLOAD } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
