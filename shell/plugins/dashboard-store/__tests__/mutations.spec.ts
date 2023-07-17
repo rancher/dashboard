@@ -256,8 +256,8 @@ describe('dashboard-store: mutations', () => {
         {
           ctx,
           batch: {
-            [POD]:                        { [pod.id]: pod },
-            [ WORKLOAD_TYPES.DEPLOYMENT]: { [deployment.id]: deployment }
+            [POD]:                       { [pod.id]: pod },
+            [WORKLOAD_TYPES.DEPLOYMENT]: { [deployment.id]: deployment }
           }
         }
       ],

@@ -2,8 +2,8 @@ import _getters from '@shell/plugins/steve/getters';
 
 const { urlFor, urlOptions } = _getters;
 
-describe('dashboard-store: getters', () => {
-  describe('dashboard-store > getters > urlFor', () => {
+describe('steve: getters', () => {
+  describe('steve > getters > urlFor', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
@@ -37,7 +37,7 @@ describe('dashboard-store: getters', () => {
       expect(urlForGetter('typeFoo', undefined, { namespaced: ['nsBar', 'nsBaz'] })).toBe('protocol/urlFoo');
     });
   });
-  describe('dashboard-store > getters > urlOptions', () => {
+  describe('steve > getters > urlOptions', () => {
     // we're not testing function output based off of state or getter inputs here since they are dependencies
     const state = { config: { baseUrl: 'protocol' } };
     const getters = {
