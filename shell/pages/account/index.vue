@@ -72,8 +72,22 @@ export default {
       return url;
     },
 
+    basePath() {
+      const baseUrl = document.querySelector('head > base')?.href;
+      // Note: router base comes from the ROUTER_BASE env var
+      const routerBase = this.$router.options.base;
+
+      if (!baseUrl || routerBase === '/') {
+        return `${ window.location.origin }/`;
+      }
+      const basePath = `${ baseUrl.slice(0, -(routerBase.length - 1)) }`;
+
+      return basePath;
+    },
+
     apiUrl() {
-      const base = this.apiUrlBase;
+      // const base = this.apiUrlBase;
+      const base = this.basePath;
       const path = API_ENDPOINT.replace(/^\/+/, '');
 
       return `${ base }${ path }`;
