@@ -1,0 +1,236 @@
+
+import { Canvas, Meta, Story, ArgsTable, Source } from '@storybook/addon-docs';
+import SortableTable from '@shell/components/SortableTable';
+
+<Meta 
+  title="Components/SortableTable"
+  component={SortableTable}
+/>
+
+export const Template = (args, { argTypes, events }) => ({
+  components: { SortableTable },
+  props:      Object.keys(argTypes),
+  template:   `<SortableTable v-bind="$props"/>`
+});
+
+
+# SortableTable
+
+Table with multiple purposes, including sorting.
+
+## Description
+
+This is just a visual rapresentation of the Rancher tables.
+As the component ties in to product config, models, stores, etc, consider some existing docs as well during the development
+
+- https://rancher.github.io/dashboard/code-base-works/sortable-table
+- https://rancher.github.io/dashboard/code-base-works/kubernetes-resources-data-load
+- https://rancher.github.io/dashboard/code-base-works/customising-how-k8s-resources-are-presented#list
+
+<br/>
+
+### Styles and sections
+
+#### Default view
+
+Default view case
+
+<Canvas>
+  <Story
+    name="Default view"
+    args={{
+      headers: [
+        {
+          name: 'name',
+          label: 'Name',
+        },
+        {
+          name: 'description',
+          label: 'Description',
+        },
+      ],
+      rows: [
+        {
+          name: 'Row 1',
+          description: 'This is the first row',
+        },
+        {
+          name: 'Row 2',
+          description: 'This is another row',
+        },
+        {
+          name: 'No description',
+          description: '',
+        },
+      ],
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Grouped
+
+Rows can be grouped by matching types.
+
+<Canvas>
+  <Story
+    name="Grouped view"
+    args={{
+      headers: [
+        {
+          name: 'name',
+          label: 'Name',
+        },
+        {
+          name: 'description',
+          label: 'Description',
+        },
+        {
+          name: 'type',
+          label: 'Type',
+        },
+      ],
+      rows: [
+        {
+          name: 'Row 1',
+          description: 'This is the first row',
+          type: 'first type',
+        },
+        {
+          name: 'Row 2',
+          description: 'This is another row',
+          type: 'first type',
+        },
+        {
+          name: 'No description',
+          description: '',
+          type: 'second type',
+        },
+      ],
+      groupBy: 'type',
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Simplified
+
+The default table can also be stripped out of each interactive functionality by props.
+
+<Canvas>
+  <Story
+    name="Simplified view"
+    args={{
+      headers: [
+        {
+          name: 'name',
+          label: 'Name',
+        },
+        {
+          name: 'description',
+          label: 'Description',
+        },
+      ],
+      rows: [
+        {
+          name: 'Row 1',
+          description: 'This is the first row',
+        },
+        {
+          name: 'Row 2',
+          description: 'This is another row',
+        },
+        {
+          name: 'No description',
+          description: '',
+        },
+      ],
+      search: false,
+      rowActions: false,
+      tableActions: false,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Loading
+
+<Canvas>
+  <Story
+    name="Loading"
+    args={{
+      headers: [
+        {
+          name: 'name',
+          label: 'Name',
+        },
+        {
+          name: 'description',
+          label: 'Description',
+        },
+      ],
+      rows: [],
+      loading: true
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+#### Slots
+
+### Functionalities
+
+#### Advanced Filtering
+
+Entries can be optionally filtered by key and term or optionally hide them.
+
+<Canvas>
+  <Story
+    name="Advanced Filtering"
+    args={{
+      headers: [
+        {
+          name: 'name',
+          label: 'Name',
+        },
+        {
+          name: 'description',
+          label: 'Description',
+        },
+      ],
+      rows: [
+        {
+          name: 'Row 1',
+          description: 'This is the first row',
+        },
+        {
+          name: 'Row 2',
+          description: 'This is another row',
+        },
+        {
+          name: 'No description',
+          description: '',
+        },
+      ],
+      hasAdvancedFiltering: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Sorting
+#### Action menu
+#### Row/All selection and total counter
+#### Context menu
+#### Buttons
+##### Refresh
+##### Download
+##### Delete
+#### Shortcuts
+#### Tooltips
+
+## Props table
+
+<ArgsTable of={SortableTable} />
