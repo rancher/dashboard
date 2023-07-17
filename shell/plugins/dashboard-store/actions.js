@@ -7,7 +7,6 @@ import { classify } from '@shell/plugins/dashboard-store/classify';
 import { normalizeType } from './normalize';
 import garbageCollect from '@shell/utils/gc/gc';
 import { addSchemaIndexFields } from '@shell/plugins/steve/schema.utils';
-import { isArray } from 'lodash';
 
 export const _ALL = 'all';
 export const _MERGE = 'merge';
@@ -139,6 +138,8 @@ export default {
   },
 
   async findAll(ctx, { type, opt }) {
+    // This flag is to be used when committing resources via a load mutation which remains unimplemented.
+    // Further development should use this flag to detect if a resource is partial and then determine if a full request is required for the purposes for which it's being requested.
     let partial = false;
     const {
       getters, commit, dispatch, rootGetters
@@ -187,7 +188,7 @@ export default {
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
     // we should always exclude managed fields when retreiving resources to cut down on payload size and store memory
-    if (isArray(opt?.excludeFields)) {
+    if (Array.isArray(opt?.excludeFields)) {
       partial = true;
       opt.excludeFields = [...opt.excludeFields, 'metadata.managedFields'];
     } else {
