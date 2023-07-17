@@ -51,9 +51,7 @@ function replaceResource(existing, data, getters) {
   return replace(existing, data);
 }
 
-export function load(state, {
-  data, ctx, existing, partial
-}) {
+export function load(state, { data, ctx, existing }) {
   const { getters } = ctx;
   let type = normalizeType(data.type);
   const keyField = getters.keyFieldForType(type);
@@ -63,10 +61,6 @@ export function load(state, {
   // Inject special fields for indexing schemas
   if ( type === SCHEMA ) {
     addSchemaIndexFields(data);
-  }
-
-  if (partial) {
-    Object.assign(data, { partial });
   }
 
   const id = data[keyField];
@@ -268,8 +262,7 @@ export function loadAll(state, {
   ctx,
   skipHaveAll,
   namespace,
-  revision,
-  partial
+  revision
 }) {
   const { getters } = ctx;
 
@@ -286,9 +279,7 @@ export function loadAll(state, {
   }
 
   const keyField = getters.keyFieldForType(type);
-  const proxies = data.map((resource) => {
-    return classify(ctx, Object.assign(resource, { partial }));
-  });
+  const proxies = data.map((x) => classify(ctx, x));
   const cache = registerType(state, type);
 
   clear(cache.list);
@@ -323,12 +314,10 @@ export default {
     Object.assign(state.config, config);
   },
 
-  loadMulti(state, { data, ctx, partial }) {
+  loadMulti(state, { data, ctx }) {
     // console.log('### Mutation loadMulti', data?.length);
     for ( const entry of data ) {
-      load(state, {
-        data: entry, ctx, partial
-      });
+      load(state, { data: entry, ctx });
     }
   },
 
@@ -352,9 +341,7 @@ export default {
    */
   batchChanges,
 
-  loadMerge(state, {
-    type, data: allLatest, ctx, partial
-  }) {
+  loadMerge(state, { type, data: allLatest, ctx }) {
     const { commit, getters } = ctx;
     // const allLatest = await dispatch('findAll', { type, opt: { force: true, load, _NONE } });
     // const allExisting = getters.all({type});
@@ -365,7 +352,7 @@ export default {
       const existing = state.types[type].map.get(entry[keyField]);
 
       load(state, {
-        data: entry, ctx, existing, partial
+        data: entry, ctx, existing
       });
     });
     cache.list.forEach((entry) => {
