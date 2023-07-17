@@ -14,6 +14,7 @@ import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
 // Store modules
 import growl from './store/growl';
 import codeMirror from './store/codeMirror';
+import table from './store/table';
 
 
 // Register custom i18n plugin
@@ -57,7 +58,8 @@ export const store = new Vuex.Store({
   },
   modules: {
     growl,
-    codeMirror
+    codeMirror,
+    table
   }
 });
 
