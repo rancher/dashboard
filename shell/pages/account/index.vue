@@ -77,8 +77,12 @@ export default {
       // Note: router base comes from the ROUTER_BASE env var
       const routerBase = this.$router.options.base;
 
-      if (!baseUrl || routerBase === '/') {
+      if (!baseUrl) {
         return `${ window.location.origin }/`;
+      }
+
+      if (routerBase === '/') {
+        return baseUrl;
       }
       const basePath = `${ baseUrl.slice(0, -(routerBase.length - 1)) }`;
 
