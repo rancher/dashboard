@@ -70,7 +70,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
     const extensionsPo = new ExtensionsPo();
 
-    extensionsPo.newReposBanner().closeButton();
+    extensionsPo.self().find('[data-testid="extensions-new-repos-banner-action-btn"]').click();
     extensionsPo.self().find('[data-testid="extensions-new-repos-banner"]').should('not.exist');
 
     // let's refresh the page to make sure it doesn't appear again...

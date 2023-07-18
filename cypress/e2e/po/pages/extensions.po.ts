@@ -103,14 +103,6 @@ export default class ExtensionsPo extends PagePo {
     return appRepoCreate.save();
   }
 
-  //  ------------------ new repos extension banner ------------------
-
-  newReposBanner() {
-    const newReposBanner = new BannersPo('[data-testid="extensions-new-repos-banner"]');
-
-    return newReposBanner;
-  }
-
   // ------------------ extension card ------------------
   extensionCard(extensionName: string) {
     return this.self().getId(`extension-card-${ extensionName }`);
