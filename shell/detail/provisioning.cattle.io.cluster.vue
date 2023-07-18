@@ -81,6 +81,24 @@ export default {
 
   async fetch() {
     await this.value.waitForProvisioner();
+
+    const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+
+    if (extClass) {
+      this.extProvider = new extClass({
+        dispatch: this.$store.dispatch,
+        getters:  this.$store.getters,
+        axios:    this.$store.$axios,
+        $plugin:  this.$store.app.$plugin,
+        $t:       this.t
+      });
+      this.extDetailTabs = {
+        ...this.extDetailTabs,
+        ...this.extProvider.detailTabs
+      };
+      this.extCustomParams = { provider: this.value.machineProvider };
+    }
+
     const fetchOne = {};
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
@@ -205,6 +223,18 @@ export default {
       logOpen:   false,
       logSocket: null,
       logs:      [],
+
+      extProvider:     null,
+      extCustomParams: null,
+      extDetailTabs:   {
+        machines:     true, // in this component
+        logs:         true, // in this component
+        registration: true, // in this component
+        snapshots:    true, // in this component
+        related:      true, // in ResourceTabs
+        events:       true, // in ResourceTabs
+        conditions:   true, // in ResourceTabs
+      },
 
       showWindowsWarning: false
     };
@@ -336,7 +366,9 @@ export default {
     },
 
     showMachines() {
-      return this.haveMachines && (this.value.isRke2 || !!this.machines.length);
+      const showMachines = this.haveMachines && (this.value.isRke2 || !!this.machines.length);
+
+      return showMachines && this.extDetailTabs.machines;
     },
 
     showNodes() {
@@ -345,9 +377,9 @@ export default {
 
     showSnapshots() {
       if (this.value.isRke1) {
-        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP);
+        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP) && this.extDetailTabs.snapshots;
       } else if (this.value.isRke2) {
-        return this.$store.getters['management/canList'](SNAPSHOT);
+        return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 
       return false;
@@ -476,15 +508,15 @@ export default {
       }
 
       if ( this.value.isImported ) {
-        return !this.value.mgmt?.isReady;
+        return !this.value.mgmt?.isReady && this.extDetailTabs.registration;
       }
 
       if ( this.value.isCustom ) {
-        return true;
+        return this.extDetailTabs.registration;
       }
 
       if ( this.value.isHostedKubernetesProvider && !this.isClusterReady ) {
-        return true;
+        return this.extDetailTabs.registration;
       }
 
       return false;
@@ -495,7 +527,9 @@ export default {
     },
 
     showLog() {
-      return this.value.mgmt?.hasLink('log');
+      const showLog = this.value.mgmt?.hasLink('log');
+
+      return showLog && this.extDetailTabs.logs;
     },
 
     dateTimeFormatStr() {
@@ -686,6 +720,10 @@ export default {
       v-model="value"
       :default-tab="defaultTab"
       :need-related="hasLocalAccess"
+      :extension-params="extCustomParams"
+      :needRelated="extDetailTabs.related"
+      :needEvents="extDetailTabs.events"
+      :needConditions="extDetailTabs.conditions"
     >
       <Tab
         v-if="showMachines"
@@ -773,6 +811,7 @@ export default {
           </template>
         </ResourceTable>
       </Tab>
+
       <Tab
         v-else-if="showNodes"
         name="node-pools"

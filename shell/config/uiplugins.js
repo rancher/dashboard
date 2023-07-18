@@ -29,6 +29,18 @@ export const UI_PLUGINS_REPO_NAME = 'rancher-ui-plugins';
 export const UI_PLUGINS_REPO_URL = 'https://github.com/rancher/ui-plugin-charts';
 export const UI_PLUGINS_REPO_BRANCH = 'main';
 
+// Info for the Helm Chart Repo for Partner Extensions
+export const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
+
+export const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
+export const UI_PLUGINS_PARTNERS_REPO_BRANCH = 'main';
+
+// Info for the Helm Chart Repo for Community Extensions
+export const UI_PLUGINS_COMMUNITY_REPO_NAME = 'community-extensions';
+
+export const UI_PLUGINS_COMMUNITY_REPO_URL = 'https://github.com/rancher/community-extensions';
+export const UI_PLUGINS_COMMUNITY_REPO_BRANCH = 'main';
+
 // Chart annotations
 export const UI_PLUGIN_CHART_ANNOTATIONS = {
   KUBE_VERSION:       'catalog.cattle.io/kube-version',

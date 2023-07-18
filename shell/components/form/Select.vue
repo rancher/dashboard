@@ -134,10 +134,26 @@ export default {
 
       return true;
     },
+    /**
+     * Get a unique value to represent the option
+     */
     getOptionKey(opt) {
+      // Use the property from a component level key
+      if (opt && this.optionKey) {
+        return get(opt, this.optionKey);
+      }
+
+      // Use the property from an option level key
+      // This doesn't seem right, think it was meant to represent the actual option key... rather than the key to find the option key
+      // This approach also doesn't appear in LabeledSelect
       if (opt?.optionKey) {
+        // opt.optionKey should in theory be optionKeyKey
         return get(opt, opt.optionKey);
       }
+
+      // There's no configuration to help us get a sensible key. Fall back on ..
+      // - the label
+      // - something random
 
       const label = this.getOptionLabel(opt);
 

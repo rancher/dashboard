@@ -182,7 +182,7 @@ export default function({
           console.error('Error removing plugin', e); // eslint-disable-line no-console
         }
 
-        delete plugins[plugin.name];
+        delete plugins[plugin.id];
       }
     },
 

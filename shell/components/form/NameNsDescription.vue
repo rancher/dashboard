@@ -8,16 +8,7 @@ import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { _VIEW, _EDIT, _CREATE } from '@shell/config/query-params';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-
-export function normalizeName(str) {
-  return (str || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
-}
+import { normalizeName } from '@shell/utils/kube';
 
 export default {
   name:       'NameNsDescription',
@@ -101,7 +92,17 @@ export default {
       type:    Boolean,
       default: false
     },
+    /**
+     * Use these objects instead of namespaces
+     */
     namespacesOverride: {
+      type:    Array,
+      default: null,
+    },
+    /**
+     * User these namespaces instead of determining list within component
+     */
+    namespaceOptions: {
       type:    Array,
       default: null,
     },
@@ -228,8 +229,23 @@ export default {
      * Map namespaces from the store to options, adding divider and create button
      */
     options() {
-      const namespaces = this.namespacesOverride ||
-        (Object.keys(this.isCreate ? this.allowedNamespaces() : this.namespaces()));
+      let namespaces;
+
+      if (this.namespacesOverride) {
+        // Use the resources provided
+        namespaces = this.namespacesOverride;
+      } else {
+        if (this.namespaceOptions) {
+          // Use the namespaces provided
+          namespaces = (this.namespaceOptions.map((ns) => ns.name) || []).sort();
+        } else {
+          // Determine the namespaces
+          const namespaceObjs = this.isCreate ? this.allowedNamespaces() : this.namespaces();
+
+          namespaces = Object.keys(namespaceObjs);
+        }
+      }
+
       const options = namespaces
         .map((namespace) => ({ nameDisplay: namespace, id: namespace }))
         .map(this.namespaceMapper || ((obj) => ({

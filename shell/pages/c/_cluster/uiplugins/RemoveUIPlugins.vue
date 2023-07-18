@@ -1,13 +1,18 @@
 <script>
+import { mapGetters } from 'vuex';
 import { CATALOG, UI_PLUGIN } from '@shell/config/types';
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHARTS,
+  UI_PLUGIN_OPERATOR_CRD_CHART_NAME,
   UI_PLUGINS_REPO_NAME,
   UI_PLUGINS_REPO_URL,
-  UI_PLUGIN_OPERATOR_CRD_CHART_NAME,
+  UI_PLUGINS_REPO_BRANCH,
+  UI_PLUGINS_PARTNERS_REPO_NAME,
+  UI_PLUGINS_PARTNERS_REPO_URL,
+  UI_PLUGINS_PARTNERS_REPO_BRANCH,
 } from '@shell/config/uiplugins';
 
 export default {
@@ -18,9 +23,8 @@ export default {
 
   async fetch() {
     if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
-      const repos = await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true } });
-
-      this.defaultRepo = repos.find((r) => r.name === UI_PLUGINS_REPO_NAME && r.spec.gitRepo === UI_PLUGINS_REPO_URL);
+      // we need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
+      await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true } });
     }
 
     if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
@@ -34,12 +38,40 @@ export default {
 
   data() {
     return {
-      errors:              [],
-      defaultRepo:         undefined,
-      removeRepo:          false,
+      errors:      [],
+      removeRepos: {
+        official: true,
+        partners: true
+      },
+      reposInfo: {
+        official: {
+          name:   UI_PLUGINS_REPO_NAME,
+          url:    UI_PLUGINS_REPO_URL,
+          branch: UI_PLUGINS_REPO_BRANCH,
+        },
+        partners: {
+          name:   UI_PLUGINS_PARTNERS_REPO_NAME,
+          url:    UI_PLUGINS_PARTNERS_REPO_URL,
+          branch: UI_PLUGINS_PARTNERS_REPO_BRANCH,
+        }
+      },
       removeCRD:           true,
       hasPluginsInstalled: false,
     };
+  },
+
+  computed: {
+    ...mapGetters({ repos: 'catalog/repos' }),
+    officialRepo() {
+      const repo = this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
+
+      return repo?.id ? repo : undefined;
+    },
+    partnersRepo() {
+      const repo = this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
+
+      return repo?.id ? repo : undefined;
+    }
   },
 
   methods: {
@@ -58,7 +90,10 @@ export default {
     },
 
     showDialog() {
-      this.removeRepo = !!this.defaultRepo;
+      this.removeRepos = {
+        official: !!this.officialRepo,
+        partners: !!this.partnersRepo,
+      };
       this.$modal.show('confirm-uiplugins-remove');
     },
 
@@ -83,14 +118,26 @@ export default {
         }
       }
 
-      if (this.removeRepo && this.defaultRepo) {
-        try {
-          await this.defaultRepo.remove();
-        } catch (e) {
-          this.errors.push(e.message);
+      // remove extension repos that have been picked
+      const promises = [];
+
+      for (const key in this.removeRepos) {
+        if (this.removeRepos[key] && this[`${ key }Repo`]) {
+          promises.push(this[`${ key }Repo`].remove());
         }
       }
 
+      const res = await Promise.allSettled(promises);
+
+      res.forEach((result) => {
+        if (result.status === 'rejected') {
+          console.error(result.reason); // eslint-disable-line no-console
+
+          this.errors.push(result.reason);
+        }
+      });
+
+      // forget PLUGINS type from store as it's not needed
       this.$store.dispatch('management/forgetType', UI_PLUGIN);
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -111,21 +158,43 @@ export default {
     @okay="doRemove"
   >
     <template>
-      <p>
+      <p class="mb-20">
         {{ t('plugins.setup.remove.prompt') }}
       </p>
+      <!-- Official repo -->
       <div
-        v-if="!!defaultRepo"
-        class="mt-20"
+        class="mb-15"
       >
         <Checkbox
-          v-model="removeRepo"
+          v-model="removeRepos.official"
           :primary="true"
-          label-key="plugins.setup.remove.registry.title"
-          data-testid="disable-ext-modal-remove-repo"
+          :disabled="!officialRepo"
+          label-key="plugins.setup.remove.registry.official.title"
+          data-testid="disable-ext-modal-remove-official-repo"
         />
-        <div class="checkbox-info">
-          {{ t('plugins.setup.remove.registry.prompt') }}
+        <div
+          v-if="!officialRepo"
+          class="checkbox-info"
+        >
+          ({{ t('plugins.setup.uninstalled') }})
+        </div>
+      </div>
+      <!-- Partners repo -->
+      <div
+        class="mb-15"
+      >
+        <Checkbox
+          v-model="removeRepos.partners"
+          :primary="true"
+          :disabled="!partnersRepo"
+          label-key="plugins.setup.remove.registry.partners.title"
+          data-testid="disable-ext-modal-remove-partners-repo"
+        />
+        <div
+          v-if="!partnersRepo"
+          class="checkbox-info"
+        >
+          ({{ t('plugins.setup.uninstalled') }})
         </div>
       </div>
       <div

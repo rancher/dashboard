@@ -2239,6 +2239,7 @@ fleet:
     addLabel: 添加
     banner: "{count, plural, =0 { 在这里添加命名空间会创建一个 GitRepoRestriction。} other { 只有 Git Repo Restriction 的 <code>allowedTargetNamespaces</code> 在此处管理，你可以对 Git Repo Restriction 进行其他更改。} }"
 footer:
+  cnforums: 中文社区
   docs: Rancher 官方文档
   download: 下载 CLI
   forums: 论坛
@@ -2246,7 +2247,8 @@ footer:
   slack: Slack 讨论群
   wechat:
     title: 微信
-    modalText: 扫码关注 Rancher 中国微信技术群
+    modalText: 扫描二维码添加 Rancher 小助手
+    modalText2: 加入 Rancher 官方微信群
 
 gatekeeperConstraint:
   downloadViolations: 下载违规
@@ -7237,6 +7239,7 @@ customLinks:
     valueLabel: URL
     showLabel: 显示
   defaults:
+    cnforums:   中文社区
     docs:       Rancher 官方文档
     forums:     论坛
     slack:      Slack

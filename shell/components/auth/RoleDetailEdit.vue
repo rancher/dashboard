@@ -668,6 +668,7 @@ export default {
                     :value="getRule('resources', props.row.value)"
                     :disabled="isBuiltin"
                     :options="resourceOptions"
+                    option-key="optionKey"
                     :searchable="true"
                     :taggable="true"
                     :mode="mode"

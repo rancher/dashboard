@@ -3,6 +3,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
@@ -52,6 +53,9 @@ export default class ExtensionsPo extends PagePo {
     return enableButton.isVisible().then((visible) => {
       if (visible) {
         return enableButton.click().then(() => {
+          // don't install the parners repo yet, as it's needed for the add repositories test
+          this.enableExtensionModalParnersRepoClick();
+
           return this.enableExtensionModalEnableClick();
         });
       } else {
@@ -63,21 +67,23 @@ export default class ExtensionsPo extends PagePo {
   }
 
   /**
-   * install rancher-plugin-examples
+   * Adds a cluster repo for extensions
+   * @param repo - The repository url (e.g. https://github.com/rancher/ui-plugin-examples)
+   * @param branch - The git branch to target
+   * @param name - A name for the repository
+   * @returns {Cypress.Chainable}
    */
-  installRancherPluginExamples() {
+  addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
     // we should be on the extensions page
-    // this.title().should('contain', 'Extensions');
     this.waitForPage();
 
     // go to app repos
     this.extensionMenuToggle();
-
     this.manageReposClick();
 
+    // create a new clusterrepo
     const appRepoList = new ReposListPagePo('local', 'apps');
 
-    // create a new clusterrepo
     appRepoList.waitForPage();
     appRepoList.create();
 
@@ -89,12 +95,20 @@ export default class ExtensionsPo extends PagePo {
     appRepoCreate.selectRadioOptionGitRepo(1);
     appRepoCreate.nameNsDescription().name().self().scrollIntoView()
       .should('be.visible');
-    appRepoCreate.nameNsDescription().name().set('rancher-plugin-examples');
-    appRepoCreate.enterGitRepoName('https://github.com/rancher/ui-plugin-examples');
-    appRepoCreate.enterGitBranchName('main');
+    appRepoCreate.nameNsDescription().name().set(name);
+    appRepoCreate.enterGitRepoName(repo);
+    appRepoCreate.enterGitBranchName(branch);
 
     // save it
     return appRepoCreate.save();
+  }
+
+  //  ------------------ new repos extension banner ------------------
+
+  newReposBanner() {
+    const newReposBanner = new BannersPo('[data-testid="extensions-new-repos-banner"]');
+
+    return newReposBanner;
   }
 
   // ------------------ extension card ------------------
@@ -209,25 +223,33 @@ export default class ExtensionsPo extends PagePo {
   }
 
   manageReposClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).clickMenuItem(0);
+    return new ActionMenuPo(this.self()).getMenuItem('Manage Repositories').click();
   }
 
-  // this will only appear with developer mode enabled
-  // developerLoadClick(): Cypress.Chainable {
-  //   return this.self().getId('action-menu-2-item').click();
-  // }
+  addRepositoriesClick(): Cypress.Chainable {
+    return new ActionMenuPo(this.self()).getMenuItem('Add Rancher Repositories').click();
+  }
 
   disableExtensionsClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).clickMenuItem(3);
+    return new ActionMenuPo(this.self()).getMenuItem('Disable Extension Support').click();
   }
 
-  // ------------------ disable extensions OVERALL modal ------------------
+  // ------------------ ADD RANCHER REPOSITORIES modal ------------------
+  addReposModal() {
+    return this.self().getId('add-extensions-repos-modal');
+  }
+
+  addReposModalAddClick(): Cypress.Chainable {
+    return this.addReposModal().get('.dialog-buttons button:last-child').click();
+  }
+
+  // ------------------ DISABLE EXTENSIONS modal ------------------
   disableExtensionModal() {
     return this.self().getId('disable-ext-modal');
   }
 
   removeRancherExtRepoCheckboxClick(): Cypress.Chainable {
-    return this.self().getId('disable-ext-modal-remove-repo').click();
+    return this.self().getId('disable-ext-modal-remove-official-repo').click();
   }
 
   disableExtensionModalCancelClick(): Cypress.Chainable {
@@ -238,9 +260,13 @@ export default class ExtensionsPo extends PagePo {
     return this.disableExtensionModal().get('.dialog-buttons button:last-child').click();
   }
 
-  // ------------------ enable extensions OVERALL modal ------------------
+  // ------------------ ENABLE EXTENSIONS modal ------------------
   enableExtensionModal() {
     return this.self().get('[data-modal="confirm-uiplugins-setup"]');
+  }
+
+  enableExtensionModalParnersRepoClick(): Cypress.Chainable {
+    return this.enableExtensionModal().getId('extension-enable-operator-partners-repo').click();
   }
 
   enableExtensionModalCancelClick(): Cypress.Chainable {
