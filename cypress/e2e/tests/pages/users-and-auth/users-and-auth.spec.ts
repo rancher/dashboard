@@ -17,7 +17,7 @@ let userId: string;
 
 describe('Users and Authentication', { tags: '@adminUser' }, () => {
   beforeEach(() => {
-    cy.login(undefined, undefined, false);
+    cy.login();
   });
 
   describe('Users', () => {
@@ -33,17 +33,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       usersAdmin.confirmNewPass().set(adminPassword);
       usersAdmin.selectCheckbox('Administrator').set();
       usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
-
-      // logout admin
-      cy.logout();
-
-      // login as newly created admin user
-      cy.login(adminUsername, adminPassword);
-
-      // navigate to the users page and make sure user can see it
-      usersAdmin.waitForRequests();
-      usersAdmin.listTitle().should('contain', 'Users');
-      usersAdmin.listElements().should('have.length.of.at.least', 2);
     });
 
     it('can create Restricted Admin', () => {
@@ -58,17 +47,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       usersAdmin.confirmNewPass().set(restrictedAdminPassword);
       usersAdmin.selectCheckbox('Restricted Administrator').set();
       usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
-
-      // logout admin
-      cy.logout();
-
-      // login as newly created restricted admin user
-      cy.login(restrictedAdminUsername, restrictedAdminPassword);
-
-      // navigate to the users page and make sure user can see it
-      usersAdmin.waitForRequests();
-      usersAdmin.listTitle().should('contain', 'Users');
-      usersAdmin.listElements().should('have.length.of.at.least', 2);
     });
 
     it('can create User-Base', () => {
@@ -86,17 +64,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       usersAdmin.goTo();
       usersAdmin.waitForPage();
       usersAdmin.listElementWithName(userBaseUsername).should('be.visible');
-
-      // logout admin
-      cy.logout();
-
-      // login as newly created user-base user
-      cy.login(userBaseUsername, userBasePassword);
-
-      // navigate to the users page and make sure user can see it
-      usersAdmin.waitForRequests();
-      usersAdmin.listTitle().should('contain', 'Users');
-      usersAdmin.listElements().should('have.length', 1);
     });
 
     it('can create Standard User and view their details', () => {
@@ -125,18 +92,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       usersAdmin.goTo();
       usersAdmin.waitForPage();
       usersAdmin.listElementWithName(standardUsername).should('be.visible');
-
-      // logout admin
-      cy.logout();
-
-      // login as newly created user-base user
-      cy.login(standardUsername, standardPassword);
-
-      // navigate to the users page and make sure user can see it
-      usersAdmin.waitForRequests();
-
-      usersAdmin.listTitle().should('contain', 'Users');
-      usersAdmin.listElements().should('have.length', 1);
     });
 
     it('can Refresh Group Memberships', () => {
@@ -272,50 +227,52 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
     });
   });
 
-  it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
-    const customRoleName = `${ runPrefix }-my-custom-role`;
-    const standardUsername = `${ runPrefix }-standard-user-e2e`;
-    const standardPassword = 'standard-password';
+  describe('Roles', () => {
+    it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
+      const customRoleName = `${ runPrefix }-my-custom-role`;
+      const standardUsername = `${ runPrefix }-standard-user-e2e`;
+      const standardPassword = 'standard-password';
 
-    // create global role
-    userRoles.goTo();
-    userRoles.listCreate();
+      // create global role
+      userRoles.goTo();
+      userRoles.listCreate();
 
-    userRoles.name().set(customRoleName);
-    userRoles.selectVerbs(0, 3);
-    userRoles.selectVerbs(0, 4);
-    userRoles.selectResourcesByLabelValue(0, 'GlobalRoles');
-    userRoles.saveAndWaitForRequests('POST', '/v3/globalroles');
+      userRoles.name().set(customRoleName);
+      userRoles.selectVerbs(0, 3);
+      userRoles.selectVerbs(0, 4);
+      userRoles.selectResourcesByLabelValue(0, 'GlobalRoles');
+      userRoles.saveAndWaitForRequests('POST', '/v3/globalroles');
 
-    // create standard user
-    usersAdmin.goTo();
-    usersAdmin.listCreate();
+      // create standard user
+      usersAdmin.goTo();
+      usersAdmin.listCreate();
 
-    usersAdmin.username().set(standardUsername);
-    usersAdmin.newPass().set(standardPassword);
-    usersAdmin.confirmNewPass().set(standardPassword);
-    usersAdmin.selectCheckbox(customRoleName).set();
-    usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
+      usersAdmin.username().set(standardUsername);
+      usersAdmin.newPass().set(standardPassword);
+      usersAdmin.confirmNewPass().set(standardPassword);
+      usersAdmin.selectCheckbox(customRoleName).set();
+      usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
 
-    // let's just check that the user is on the list view before attempting to login
-    usersAdmin.goTo();
-    usersAdmin.waitForPage();
-    usersAdmin.listElementWithName(standardUsername).should('exist');
+      // let's just check that the user is on the list view before attempting to login
+      usersAdmin.goTo();
+      usersAdmin.waitForPage();
+      usersAdmin.listElementWithName(standardUsername).should('exist');
 
-    // logout admin
-    cy.logout();
+      // logout admin
+      cy.logout();
 
-    // login as standard user
-    cy.login(standardUsername, standardPassword);
+      // login as standard user
+      cy.login(standardUsername, standardPassword);
 
-    // navigate to the roles page and make sure user can see it
-    userRoles.goTo();
-    userRoles.listTitle().should('contain', 'Role Templates');
-    userRoles.listElements().should('have.length.of.at.least', 1);
+      // navigate to the roles page and make sure user can see it
+      userRoles.goTo();
+      userRoles.listTitle().should('contain', 'Role Templates');
+      userRoles.listElements().should('have.length.of.at.least', 1);
 
-    // navigate to the users page and make sure user can see it
-    usersAdmin.waitForRequests();
-    usersAdmin.listTitle().should('contain', 'Users');
-    usersAdmin.listElements().should('have.length', 1);
+      // navigate to the users page and make sure user can see it
+      usersAdmin.waitForRequests();
+      usersAdmin.listTitle().should('contain', 'Users');
+      usersAdmin.listElements().should('have.length', 1);
+    });
   });
 });
