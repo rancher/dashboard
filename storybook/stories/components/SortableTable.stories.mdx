@@ -13,6 +13,38 @@ export const Template = (args, { argTypes, events }) => ({
   template:   `<SortableTable v-bind="$props"/>`
 });
 
+export const rows = [
+  {
+    name: 'Row 1',
+    description: 'This is the first row',
+    type: 'first type',
+  },
+  {
+    name: 'Row 2',
+    description: 'This is another row',
+    type: 'first type',
+  },
+  {
+    name: 'No description',
+    description: '',
+    type: 'second type',
+  },
+];
+
+export const headers = [
+  {
+    name: 'name',
+    label: 'Name',
+  },
+  {
+    name: 'description',
+    label: 'Description',
+  },
+  {
+    name: 'type',
+    label: 'Type',
+  },
+];
 
 # SortableTable
 
@@ -33,36 +65,14 @@ As the component ties in to product config, models, stores, etc, consider some e
 
 #### Default view
 
-Default view case
+Default view case without change any prop and just providing required data.
 
 <Canvas>
   <Story
     name="Default view"
     args={{
-      headers: [
-        {
-          name: 'name',
-          label: 'Name',
-        },
-        {
-          name: 'description',
-          label: 'Description',
-        },
-      ],
-      rows: [
-        {
-          name: 'Row 1',
-          description: 'This is the first row',
-        },
-        {
-          name: 'Row 2',
-          description: 'This is another row',
-        },
-        {
-          name: 'No description',
-          description: '',
-        },
-      ],
+      headers,
+      rows,
     }}>
     {Template.bind({})}
   </Story>
@@ -76,37 +86,8 @@ Rows can be grouped by matching types.
   <Story
     name="Grouped view"
     args={{
-      headers: [
-        {
-          name: 'name',
-          label: 'Name',
-        },
-        {
-          name: 'description',
-          label: 'Description',
-        },
-        {
-          name: 'type',
-          label: 'Type',
-        },
-      ],
-      rows: [
-        {
-          name: 'Row 1',
-          description: 'This is the first row',
-          type: 'first type',
-        },
-        {
-          name: 'Row 2',
-          description: 'This is another row',
-          type: 'first type',
-        },
-        {
-          name: 'No description',
-          description: '',
-          type: 'second type',
-        },
-      ],
+      headers,
+      rows,
       groupBy: 'type',
     }}>
     {Template.bind({})}
@@ -121,30 +102,8 @@ The default table can also be stripped out of each interactive functionality by 
   <Story
     name="Simplified view"
     args={{
-      headers: [
-        {
-          name: 'name',
-          label: 'Name',
-        },
-        {
-          name: 'description',
-          label: 'Description',
-        },
-      ],
-      rows: [
-        {
-          name: 'Row 1',
-          description: 'This is the first row',
-        },
-        {
-          name: 'Row 2',
-          description: 'This is another row',
-        },
-        {
-          name: 'No description',
-          description: '',
-        },
-      ],
+      headers,
+      rows,
       search: false,
       rowActions: false,
       tableActions: false,
@@ -156,20 +115,13 @@ The default table can also be stripped out of each interactive functionality by 
 
 #### Loading
 
+Loading status for the table.
+
 <Canvas>
   <Story
     name="Loading"
     args={{
-      headers: [
-        {
-          name: 'name',
-          label: 'Name',
-        },
-        {
-          name: 'description',
-          label: 'Description',
-        },
-      ],
+      headers,
       rows: [],
       loading: true
     }}>
@@ -189,30 +141,8 @@ Entries can be optionally filtered by key and term or optionally hide them.
   <Story
     name="Advanced Filtering"
     args={{
-      headers: [
-        {
-          name: 'name',
-          label: 'Name',
-        },
-        {
-          name: 'description',
-          label: 'Description',
-        },
-      ],
-      rows: [
-        {
-          name: 'Row 1',
-          description: 'This is the first row',
-        },
-        {
-          name: 'Row 2',
-          description: 'This is another row',
-        },
-        {
-          name: 'No description',
-          description: '',
-        },
-      ],
+      headers,
+      rows,
       hasAdvancedFiltering: true,
     }}>
     {Template.bind({})}
@@ -221,6 +151,20 @@ Entries can be optionally filtered by key and term or optionally hide them.
 
 
 #### Sorting
+
+
+<Canvas>
+  <Story
+    name="Sorting"
+    args={{
+      headers,
+      rows,
+      defaultSortBy: 'name'
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
 #### Action menu
 #### Row/All selection and total counter
 #### Context menu
