@@ -76,17 +76,24 @@ Cypress.Commands.add('createUser', (username, role?) => {
       username,
       password:           Cypress.env('password')
     }
-  }).then((resp) => {
-    if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
-      cy.log('User already exists. Skipping user creation');
-    } else {
-      expect(resp.status).to.eq(201);
+  })
+    .then((resp) => {
+      if (resp.status === 422 && resp.body.message === 'Username is already in use.') {
+        cy.log('User already exists. Skipping user creation');
 
-      if (role) {
-        cy.setGlobalRoleBinding(resp.body.id, role);
+        return '';
+      } else {
+        expect(resp.status).to.eq(201);
+
+        const userPrincipalId = resp.body.principalIds[0];
+
+        if (role) {
+          return cy.setGlobalRoleBinding(userPrincipalId, role)
+            .then(() => cy.setClusterRoleBinding('local', userPrincipalId, 'cluster-member'))
+            .then(() => cy.setProjectRoleBinding('local', userPrincipalId, 'Default', 'project-member'));
+        }
       }
-    }
-  });
+    });
 });
 
 /**
@@ -105,9 +112,79 @@ Cypress.Commands.add('setGlobalRoleBinding', (userId, role) => {
       globalRoleId: role,
       userId
     }
-  }).then((resp) => {
-    expect(resp.status).to.eq(201);
-  });
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * Set cluster role binding for user via api request
+ *
+ */
+Cypress.Commands.add('setClusterRoleBinding', (clusterId, userPrincipalId, role) => {
+  return cy.request({
+    method:  'POST',
+    url:     `${ Cypress.env('api') }/v3/clusterroletemplatebindings`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body: {
+      type:           'clusterRoleTemplateBinding',
+      clusterId,
+      roleTemplateId: role,
+      userPrincipalId
+    }
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * Set project role binding for user via api request
+ *
+ */
+Cypress.Commands.add('setProjectRoleBinding', (clusterId, userPrincipalId, projectName, role) => {
+  return cy.getProject(clusterId, projectName)
+    .then((project) => cy.request({
+      method:  'POST',
+      url:     `${ Cypress.env('api') }/v3/projectroletemplatebindings`,
+      headers: {
+        'x-api-csrf': token.value,
+        Accept:       'application/json'
+      },
+      body: {
+        type:           'projectroletemplatebinding',
+        roleTemplateId: role,
+        userPrincipalId,
+        projectId:      project.id
+      }
+    }))
+    .then((resp) => {
+      expect(resp.status).to.eq(201);
+    });
+});
+
+/**
+ * Get the project with the given name
+ */
+Cypress.Commands.add('getProject', (clusterId, projectName) => {
+  return cy.request({
+    method:  'GET',
+    url:     `${ Cypress.env('api') }/v3/projects?name=${ projectName }&clusterId=${ clusterId }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(200);
+      expect(resp.body?.data?.length).to.eq(1);
+
+      return resp.body.data[0];
+    });
 });
 
 /**

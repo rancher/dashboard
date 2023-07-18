@@ -1,4 +1,5 @@
 import { Verbs } from '@shell/types/api';
+import { UserPreferences } from '@shell/types/userPreferences';
 
 type Matcher = '$' | '^' | '~' | '*' | '';
 
@@ -9,9 +10,13 @@ declare namespace Cypress {
     state(state: any): any;
 
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
-    byLabel(label: string,): Chainable<Element>;
+    byLabel(label: string): Chainable<Element>;
+
     createUser(username: string, role?: string): Chainable;
     setGlobalRoleBinding(userId: string, role: string): Chainable;
+    setClusterRoleBinding(clusterId: string, userPrincipalId: string, role: string): Chainable;
+    setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;
+    getProject(clusterId: string, projectName: string): Chainable;
 
     /**
      *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.
