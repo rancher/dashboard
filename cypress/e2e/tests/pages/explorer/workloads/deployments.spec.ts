@@ -19,7 +19,7 @@ describe('Cluster Explorer', () => {
 
     describe('Create: Deployments', () => {
       beforeEach(() => {
-        cy.interceptAny('POST');
+        cy.interceptAllRequests('POST');
       });
 
       it('should be able to create a new deployment with basic options', () => {
@@ -30,7 +30,7 @@ describe('Cluster Explorer', () => {
 
         deploymentsCreatePage.createWithUI(name, containerImage, namespace);
 
-        cy.wait('@interceptAnyReq').then(({ request, response }) => {
+        cy.wait('@interceptAllRequests0').then(({ request, response }) => {
           expect(request.body).to.deep.eq(deploymentCreateRequest);
           expect(response.statusCode).to.eq(201);
           expect(response.body.metadata.name).to.eq(name);
@@ -50,8 +50,8 @@ describe('Cluster Explorer', () => {
       e2eWorkloads.push({ name: workloadName, namespace });
 
       beforeEach(() => {
-        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
-        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('clonedPod');
+        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('testWorkload');
+        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('clonedPod');
 
         deploymentsListPage.goTo();
         deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
@@ -74,16 +74,16 @@ describe('Cluster Explorer', () => {
     });
 
     describe('Delete: Deployments', () => {
-      const deploymentsToDeleteWithUI = [deploymentCreateRequest.metadata.name];
+      const deploymentName = deploymentCreateRequest.metadata.name;
 
       // To reduce test runtime, will use the same workload for all the tests
       it('Should be able to delete a workload', () => {
         deploymentsListPage.goTo();
-        deploymentsToDeleteWithUI.forEach(( name ) => {
-          deploymentsListPage.listElementWithName(name).should('exist');
-          deploymentsListPage.deleteItemWithUI(name);
-          deploymentsListPage.listElementWithName(name).should('not.exist');
-        });
+
+        deploymentsListPage.listElementWithName(deploymentName).should('exist');
+        deploymentsListPage.deleteItemWithUI(deploymentName);
+        deploymentsListPage.listElementWithName(deploymentName).should('not.exist');
+
       });
     });
 
