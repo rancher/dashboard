@@ -753,6 +753,15 @@ export const getters = {
     };
   },
 
+  isVirtual(state, getters, rootState, rootGetters) {
+    return (name, product) => {
+      product = product || rootGetters['productId'];
+      const productVirtualTypes = state.virtualTypes[product] || [];
+
+      return productVirtualTypes.some((st) => st.name === name);
+    };
+  },
+
   getSpoofedInstances(state, getters, rootState, rootGetters) {
     return async(type, product) => {
       product = product || rootGetters['productId'];

@@ -72,6 +72,12 @@ export default class PagePo extends ComponentPo {
     BurgerMenuPo.burgerMenuNavToClusterbyLabel(label);
   }
 
+  navToSideMenuGroupByLabel(label: string) {
+    const nav = new ProductNavPo();
+
+    nav.navToSideMenuGroupByLabel(label);
+  }
+
   navToSideMenuEntryByLabel(label: string) {
     const nav = new ProductNavPo();
 
