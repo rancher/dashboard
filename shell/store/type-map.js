@@ -151,8 +151,6 @@ import { sortBy } from '@shell/utils/sort';
 import { haveV1Monitoring, haveV2Monitoring } from '@shell/utils/monitoring';
 import { NEU_VECTOR_NAMESPACE } from '@shell/config/product/neuvector';
 
-import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
-
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
 export const BOTH = 'both';
@@ -229,33 +227,6 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     headers(type, headers) {
-      // gate it so that we prevent errors on older versions of dashboard
-      if (store.$plugin?.getUIConfig) {
-        const extensionCols = store.$plugin.getUIConfig(ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE);
-
-        // Try and insert the columns before the Age column, if that is the last column
-        let insertPosition = headers.length;
-
-        if (headers.length > 0) {
-          const lastColumn = headers[headers.length - 1];
-
-          if (lastColumn?.name === AGE.name) {
-            insertPosition--;
-          }
-        }
-
-        // adding extension defined cols to the correct header config
-        extensionCols.forEach((col) => {
-          if (col.locationConfig.resource) {
-            col.locationConfig.resource.forEach((resource) => {
-              if (resource && type === resource) {
-                headers.splice(insertPosition, 0, col);
-              }
-            });
-          }
-        });
-      }
-
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
         if (header.getValue) {
@@ -779,6 +750,15 @@ export const getters = {
       const productSpoofedTypes = state.spoofedTypes[product] || [];
 
       return productSpoofedTypes.some((st) => st.type === type);
+    };
+  },
+
+  isVirtual(state, getters, rootState, rootGetters) {
+    return (name, product) => {
+      product = product || rootGetters['productId'];
+      const productVirtualTypes = state.virtualTypes[product] || [];
+
+      return productVirtualTypes.some((st) => st.name === name);
     };
   },
 
@@ -1388,6 +1368,14 @@ export const getters = {
       const col = _findColumnByName(schema, colName);
 
       return _rowValueGetter(col);
+    };
+  },
+
+  isProductRegistered(state) {
+    return (productName) => {
+      const prod = state.products.find((p) => p.name === productName);
+
+      return !!prod;
     };
   },
 };

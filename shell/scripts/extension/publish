@@ -299,12 +299,12 @@ for d in pkg/*/ ; do
   fi
 done
 
-if [ -f ${ROOT_INDEX} ]; then
+if [ -f ${ROOT_INDEX} ] && [ "${GITHUB_BUILD}" == "false" ]; then
   UPDATE="--merge ${ROOT_INDEX}"
   helm repo index ${ASSETS} ${UPDATE}
 fi
 
-if [ -f ${ASSETS}/index.yaml ]; then
+if [ -f ${ASSETS}/index.yaml ] && ! [ -e "${ROOT_INDEX}" ]; then
   cp ${ASSETS}/index.yaml ${BASE_DIR}
 fi
 

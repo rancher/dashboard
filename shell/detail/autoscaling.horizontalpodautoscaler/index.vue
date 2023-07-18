@@ -94,7 +94,7 @@ export default {
       name="metrics"
       :label="t('hpa.tabs.metrics')"
       class="bordered-table hpa-metrics-table"
-      :weight="3"
+      :weight="4"
     >
       <div
         v-for="(metric, index) in mappedMetrics"
@@ -179,6 +179,55 @@ export default {
               </div>
               <div v-else>
                 <t k="hpa.detail.currentMetrics.noMetrics" />
+              </div>
+            </div>
+          </div>
+        </InfoBox>
+      </div>
+    </Tab>
+    <Tab
+      v-if="!!value.spec.behavior"
+      name="behavior"
+      :label="t('hpa.tabs.behavior')"
+      class="bordered-table hpa-behavior-table"
+      :weight="3"
+    >
+      <div
+        v-for="(type, i) in ['scaleDown', 'scaleUp']"
+        :key="`${i}`"
+      >
+        <InfoBox v-if="!!value.spec.behavior[type]">
+          <div class="row info-row">
+            <div class="col span-6 info-column">
+              <h4>
+                <t
+                  :k="`hpa.${type}Rules.label`"
+                />
+              </h4>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-6 info-column">
+              <label class="text-label"><t k="hpa.scalingRule.policyHeader" /></label>
+              <ul
+                v-for="(current, currentIndex) in value.spec.behavior[type].policies"
+                :key="`${currentIndex}`"
+              >
+                <li>
+                  <span>{{ current.value }}</span>
+                  <span>{{ current.type }}</span>
+                  <span>(for {{ current.periodSeconds }}s)</span>
+                </li>
+              </ul>
+            </div>
+            <div class="col span-6">
+              <div class="mb-5">
+                <label class="text-label"><t k="hpa.scalingRule.selectPolicy" />: </label>
+                <span>{{ value.spec.behavior[type].selectPolicy }}</span>
+              </div>
+              <div class="mb-5">
+                <label class="text-label"><t k="hpa.scalingRule.stabilizationWindowSeconds" />: </label>
+                <span>{{ value.spec.behavior[type].stabilizationWindowSeconds }}s</span>
               </div>
             </div>
           </div>

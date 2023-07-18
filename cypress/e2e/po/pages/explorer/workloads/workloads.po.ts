@@ -3,7 +3,7 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
-import WorkloadPo from '@/cypress/e2e/po/pages/explorer/workloads.po';
+import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import PromptRemove from '~/cypress/e2e/po/prompts/promptRemove.po';
 
 export class workloadDetailsPageBasePo extends PagePo {
@@ -44,7 +44,7 @@ export class workloadDetailsPageBasePo extends PagePo {
   }
 
   private workload() {
-    return new WorkloadPo();
+    return new WorkloadPagePo();
   }
 
   deleteWithKubectl(name: string, namespace = 'default') {
@@ -108,7 +108,7 @@ export class WorkloadsListPageBasePo extends PagePo {
   }
 
   private workload() {
-    return new WorkloadPo();
+    return new WorkloadPagePo();
   }
 
   deleteWithKubectl(name: string, namespace = 'default') {
@@ -165,7 +165,7 @@ export class WorkloadsCreatePageBasePo extends PagePo {
   }
 
   private workload() {
-    return new WorkloadPo();
+    return new WorkloadPagePo();
   }
 
   deleteWithKubectl(name: string, namespace = 'default') {

@@ -4,6 +4,8 @@ import { directiveSsr as t } from '@shell/plugins/i18n';
 import VTooltip from 'v-tooltip';
 import VModal from 'vue-js-modal';
 import vSelect from 'vue-select';
+import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
+import '@shell/plugins/replaceall';
 
 import Vue from 'vue';
 
@@ -29,7 +31,7 @@ beforeEach(() => {
   config.mocks['$plugin'] = { getDynamic: () => undefined };
 
   config.mocks['$store'] = { getters: { 'i18n/t': jest.fn() } };
-  config.directives = { t };
+  config.directives = { t, 'clean-tooltip': VCleanTooltip };
 
   // Overrides some components
   // config.stubs['my-component'] = { template: "<div></div> "};

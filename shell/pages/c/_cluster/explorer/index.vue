@@ -27,7 +27,7 @@ import {
   STATE,
 } from '@shell/config/table-headers';
 
-import { mapPref, CLUSTER_TOOLS_TIP, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
+import { mapPref, PSP_DEPRECATION_BANNER } from '@shell/store/prefs';
 import { haveV1Monitoring, monitoringStatus } from '@shell/utils/monitoring';
 import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -173,7 +173,6 @@ export default {
       return this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
     },
 
-    hideClusterToolsTip:      mapPref(CLUSTER_TOOLS_TIP),
     hidePspDeprecationBanner: mapPref(PSP_DEPRECATION_BANNER),
 
     hasV1Monitoring() {
@@ -441,14 +440,6 @@ export default {
         :raw="true"
       />
     </Banner>
-    <Banner
-      v-if="!hideClusterToolsTip"
-      :closable="true"
-      class="cluster-tools-tip"
-      color="info"
-      label-key="cluster.toolsTip"
-      @close="hideClusterToolsTip = true"
-    />
     <div
       class="cluster-dashboard-glance"
     >

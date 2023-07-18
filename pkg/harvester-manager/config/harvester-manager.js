@@ -51,6 +51,8 @@ dynamicPluginLoader.register({
             return harvesterClustersLocation;
           }
         }
+      } else {
+        return harvesterClustersLocation;
       }
     }
   }

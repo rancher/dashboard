@@ -518,6 +518,14 @@ export function stateSort(color, display) {
   return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
 }
 
+export function isConditionReadyAndWaiting(condition) {
+  if (!condition) {
+    return false;
+  }
+
+  return condition?.type?.toLowerCase() === 'ready' && condition?.reason?.toLowerCase() === 'waiting';
+}
+
 function maybeFn(val) {
   if ( isFunction(val) ) {
     return val(this);
@@ -858,7 +866,7 @@ export default class Resource {
     const currentRoute = this.currentRouter().app._route;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
-    let all = [
+    const all = [
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -910,7 +918,32 @@ export default class Resource {
     if (extensionMenuActions.length) {
       // Add a divider first
       all.push({ divider: true });
-      all = all.concat(extensionMenuActions);
+
+      extensionMenuActions.forEach((action) => {
+        const newActionInstance = { ...action };
+
+        const enabledFn = newActionInstance.enabled;
+        const typeofEnabled = typeof enabledFn;
+
+        switch (typeofEnabled) {
+        case 'undefined':
+          newActionInstance.enabled = true;
+          break;
+        case 'function':
+          Object.defineProperty(newActionInstance, 'enabled', { get: () => enabledFn(this) });
+          break;
+        case 'boolean':
+          // no op, just use it directly
+          break;
+        default:
+          // unsupported value
+          console.warn(`Unsupported 'enabled' property type for action: ${ action.label || action.labelKey }` ); // eslint-disable-line no-console
+          delete newActionInstance.enabled;
+          break;
+        }
+
+        all.push(newActionInstance);
+      });
     }
 
     return all;

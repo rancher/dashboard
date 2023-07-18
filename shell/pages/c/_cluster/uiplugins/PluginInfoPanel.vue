@@ -66,8 +66,9 @@ export default {
       const versionName = version || this.info.displayVersion;
 
       const isVersionNotCompatibleWithUi = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithUi);
+      const isVersionNotCompatibleWithKubeVersion = this.info.versions?.find((v) => v.version === versionName && !v.isCompatibleWithKubeVersion);
 
-      if (!this.info.chart || isVersionNotCompatibleWithUi) {
+      if (!this.info.chart || isVersionNotCompatibleWithUi || isVersionNotCompatibleWithKubeVersion) {
         return;
       }
 
@@ -103,6 +104,21 @@ export default {
         this.versionError = true;
         console.error('Unable to fetch VersionInfo: ', e); // eslint-disable-line no-console
       }
+    },
+
+    handleVersionBtnTooltip(version) {
+      if (version.requiredUiVersion) {
+        return this.t('plugins.info.requiresRancherVersion', { version: version.requiredUiVersion });
+      }
+      if (version.requiredKubeVersion) {
+        return this.t('plugins.info.requiresKubeVersion', { version: version.requiredKubeVersion });
+      }
+
+      return '';
+    },
+
+    handleVersionBtnClass(version) {
+      return { 'version-active': version.version === this.infoVersion, disabled: !version.isCompatibleWithUi || !version.isCompatibleWithKubeVersion };
     }
   }
 };
@@ -206,9 +222,9 @@ export default {
             :key="v.version"
           >
             <a
-              v-clean-tooltip="v.requiredUiVersion ? t('plugins.info.requiresVersion', { version: v.requiredUiVersion }) : ''"
+              v-clean-tooltip="handleVersionBtnTooltip(v)"
               class="version-link"
-              :class="{'version-active': v.version === infoVersion, 'disabled': !v.isCompatibleWithUi}"
+              :class="handleVersionBtnClass(v)"
               @click="loadPluginVersionInfo(v.version)"
             >
               {{ v.version }}
