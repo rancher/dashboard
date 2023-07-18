@@ -227,7 +227,7 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
     });
   });
 
-  describe('Roles', () => {
+  describe('Role Templates', () => {
     it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
       const customRoleName = `${ runPrefix }-my-custom-role`;
       const standardUsername = `${ runPrefix }-standard-user-e2e`;
