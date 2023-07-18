@@ -46,7 +46,7 @@
     "e2e:pre-prod": "yarn docker:local:stop && mkdir dist && TEST_INSTRUMENT=true ./scripts/build-e2e && ./scripts/e2e-docker-start ",
     "e2e:prod": "GREP_TAGS=$GREP_TAGS TEST_USERNAME=$TEST_USERNAME TEST_BASE_URL=https://127.0.0.1/dashboard yarn cy:run:sorry",
     "coverage": "npx nyc merge coverage coverage/coverage.json",
-    "storybook": "cd storybook && yarn install --no-lockfile && yarn storybook",
+    "storybook": "cd storybook && yarn install && yarn storybook",
     "build-storybook": "cd storybook && yarn install --no-lockfile && NODE_OPTIONS=--max_old_space_size=4096 yarn build-storybook --quiet",
     "docs:install": "cd docusaurus/ && yarn install",
     "docs:build": "cd docusaurus/ && yarn build",
