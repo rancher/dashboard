@@ -6,8 +6,8 @@ import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { addObject, addObjects, findBy, insertAt } from '@shell/utils/array';
 import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
-import { STATES_ENUM, colorForState, stateDisplay, stateSort } from 'plugins/dashboard-store/resource-class';
-import { NAME } from 'config/product/explorer';
+import { STATES_ENUM, colorForState, stateDisplay, stateSort } from '@shell/plugins/dashboard-store/resource-class';
+import { NAME } from '@shell/config/product/explorer';
 
 function quacksLikeAHash(str) {
   if (str.match(/^[a-f0-9]{40,}$/i)) {
