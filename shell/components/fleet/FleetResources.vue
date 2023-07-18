@@ -1,6 +1,6 @@
 <script>
 import SortableTable from '@shell/components/SortableTable';
-import { AGE } from 'config/table-headers';
+import { AGE } from '@shell/config/table-headers';
 
 export default {
   name: 'FleetResources',
