@@ -3,7 +3,6 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
-import BannersPo from '@/cypress/e2e/po/components/banners.po';
 import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
@@ -101,14 +100,6 @@ export default class ExtensionsPo extends PagePo {
 
     // save it
     return appRepoCreate.save();
-  }
-
-  //  ------------------ new repos extension banner ------------------
-
-  newReposBanner() {
-    const newReposBanner = new BannersPo('[data-testid="extensions-new-repos-banner"]');
-
-    return newReposBanner;
   }
 
   // ------------------ extension card ------------------

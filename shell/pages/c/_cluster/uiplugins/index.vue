@@ -541,6 +541,7 @@ export default {
     },
 
     showAddExtensionReposDialog() {
+      this.updateAddReposSetting();
       this.refreshCharts(true);
       this.$refs.addExtensionReposDialog.showDialog();
     },
@@ -745,14 +746,13 @@ export default {
         <Banner
           v-if="showAddReposBanner"
           color="warning"
-          class="mb-20"
-          :closable="true"
+          class="add-repos-banner mb-20"
           data-testid="extensions-new-repos-banner"
-          @close="updateAddReposSetting"
         >
           <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
           <button
             class="ml-10 btn btn-sm role-primary"
+            data-testid="extensions-new-repos-banner-action-btn"
             @click="showAddExtensionReposDialog()"
           >
             {{ t('plugins.addRepos.bannerBtn') }}
@@ -1237,9 +1237,14 @@ export default {
       }
     }
   }
-
   ::v-deep .checkbox-label {
     font-weight: normal !important;
+  }
+
+  ::v-deep .add-repos-banner .banner__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   @media screen and (max-width: 1200px) {
