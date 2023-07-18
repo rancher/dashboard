@@ -15,12 +15,12 @@ export const Template = (args, { argTypes, events }) => ({
 
 export const rows = [
   {
-    name: 'Row 1',
+    name: 'First row',
     description: 'This is the first row',
     type: 'first type',
   },
   {
-    name: 'Row 2',
+    name: 'Second row',
     description: 'This is another row',
     type: 'first type',
   },
@@ -152,28 +152,55 @@ Entries can be optionally filtered by key and term or optionally hide them.
 
 #### Sorting
 
+Sorting is defined by header configuration using the key `sort` and a list of key to be used.
 
 <Canvas>
   <Story
     name="Sorting"
     args={{
-      headers,
+      headers: headers.map(header => ({ ...header, sort: ['name'] })),
       rows,
-      defaultSortBy: 'name'
     }}>
     {Template.bind({})}
   </Story>
 </Canvas>
 
 #### Action menu
-#### Row/All selection and total counter
+
+Row can have action menu enabled by the configuration `rowActions`.
+
+<Canvas>
+  <Story
+    name="Action menu"
+    args={{
+      headers,
+      rows,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Pagination
+
+Table pagination can be enabled with `paging` and set the amount of entries with `rowsPerPage`.
+
+<Canvas>
+  <Story
+    name="Pagination"
+    args={{
+      headers,
+      rows: Array.from(new Array(100)).map((el, i) => ({
+        name: `Row ${i}`,
+      })),
+      paging: true,
+      rowsPerPage: 5
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
 #### Context menu
-#### Buttons
-##### Refresh
-##### Download
-##### Delete
-#### Shortcuts
-#### Tooltips
 
 ## Props table
 
