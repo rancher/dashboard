@@ -57,7 +57,7 @@ export default class HomePagePo extends PagePo {
     return new HomeClusterListPo('[data-testid="cluster-list-container"]');
   }
 
-  manangeButton() {
+  manageButton() {
     return cy.getId('cluster-management-manage-button');
   }
 

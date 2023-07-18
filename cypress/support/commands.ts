@@ -88,7 +88,7 @@ Cypress.Commands.add('createUser', (username, role?) => {
         const userPrincipalId = resp.body.principalIds[0];
 
         if (role) {
-          return cy.setGlobalRoleBinding(userPrincipalId, role)
+          return cy.setGlobalRoleBinding(resp.body.id, role)
             .then(() => cy.setClusterRoleBinding('local', userPrincipalId, 'cluster-member'))
             .then(() => cy.setProjectRoleBinding('local', userPrincipalId, 'Default', 'project-member'));
         }

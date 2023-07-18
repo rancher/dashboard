@@ -57,9 +57,7 @@ jobs:
         if: ${{ success() || failure() }}
         run: |
           yarn e2e:prod
-          echo "Result of e2e $?"
           yarn docker:local:stop
-          echo "Result of docker $?"
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 
