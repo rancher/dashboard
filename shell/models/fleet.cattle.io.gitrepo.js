@@ -390,7 +390,7 @@ export default class GitRepo extends SteveModel {
           detailLocation,
           conditions:             conditions[i],
           bundleDeploymentStatus: clusterBundleDeploymentResources?.[i],
-          creationTimestamp:      clusterBundleDeploymentResources?.[i]?.createdAt || new Date().toUTCString(),
+          creationTimestamp:      clusterBundleDeploymentResources?.[i]?.createdAt
         });
       });
     }
