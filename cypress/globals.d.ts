@@ -1,6 +1,6 @@
-type Matcher = '$' | '^' | '~' | '*' | '';
+import { Verbs } from '@shell/types/api';
 
-type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'WATCH' | 'LIST' | 'CREATE' | 'UP'
+type Matcher = '$' | '^' | '~' | '*' | '';
 
 // eslint-disable-next-line no-unused-vars
 declare namespace Cypress {
@@ -46,7 +46,7 @@ declare namespace Cypress {
 
     keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
 
-    interceptAny(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
+    interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
     iFrame(): Chainable<Element>;
   }

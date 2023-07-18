@@ -14,7 +14,7 @@ export class workloadDetailsPageBasePo extends PagePo {
     clusterId: string,
     workloadType: string,
     namespaceId: string,
-    queryParams?: { [key: string]: string }
+    queryParams?: Record<string, string>
   ) {
     const urlStr = `/c/${ clusterId }/explorer/${ workloadType }/${ namespaceId }/${ workloadId }`;
 
@@ -31,7 +31,7 @@ export class workloadDetailsPageBasePo extends PagePo {
     return super.goTo(this.url);
   }
 
-  constructor(workloadId: string, clusterId: string, workloadType: string, queryParams?: { [key: string]: string }, namespaceId = 'default') {
+  constructor(workloadId: string, clusterId: string, workloadType: string, queryParams?: Record<string, string>, namespaceId = 'default') {
     super(workloadDetailsPageBasePo.createPath(workloadId, clusterId, workloadType, namespaceId, queryParams));
 
     workloadDetailsPageBasePo.url = workloadDetailsPageBasePo.createPath(
@@ -57,7 +57,7 @@ export class workloadDetailsPageBasePo extends PagePo {
 }
 
 export class WorkloadsListPageBasePo extends PagePo {
-  static createPath(clusterId: string, workloadType: string, queryParams?: { [key: string]: string }) {
+  static createPath(clusterId: string, workloadType: string, queryParams?: Record<string, string>) {
     const urlStr = `/c/${ clusterId }/explorer/${ workloadType }`;
 
     if (!queryParams) {
@@ -69,7 +69,7 @@ export class WorkloadsListPageBasePo extends PagePo {
     return `${ urlStr }?${ params.toString() }`;
   }
 
-  constructor(clusterId = 'local', workloadType: string, queryParams?: { [key: string]: string }) {
+  constructor(clusterId = 'local', workloadType: string, queryParams?: Record<string, string>) {
     super(WorkloadsListPageBasePo.createPath(clusterId, workloadType, queryParams));
   }
 
@@ -117,7 +117,7 @@ export class WorkloadsListPageBasePo extends PagePo {
 }
 
 export class WorkloadsCreatePageBasePo extends PagePo {
-  static createPath(clusterId: string, workloadType: string, queryParams?: { [key: string]: string }) {
+  static createPath(clusterId: string, workloadType: string, queryParams?: Record<string, string>) {
     const urlStr = `/c/${ clusterId }/explorer/${ workloadType }/create`;
 
     if (!queryParams) {
@@ -129,7 +129,7 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return `${ urlStr }?${ params.toString() }`;
   }
 
-  constructor(clusterId = 'local', workloadType: string, queryParams?: { [key: string]: string }) {
+  constructor(clusterId = 'local', workloadType: string, queryParams?: Record<string, string>) {
     super(WorkloadsCreatePageBasePo.createPath(clusterId, workloadType, queryParams));
   }
 
