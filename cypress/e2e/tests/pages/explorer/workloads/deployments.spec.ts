@@ -50,8 +50,8 @@ describe('Cluster Explorer', () => {
       e2eWorkloads.push({ name: workloadName, namespace });
 
       beforeEach(() => {
-        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('testWorkload');
-        cy.intercept('GET', `/v1/apps.deployments/${namespace}/${workloadName}`).as('clonedPod');
+        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('testWorkload');
+        cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ workloadName }`).as('clonedPod');
 
         deploymentsListPage.goTo();
         deploymentsListPage.createWithKubectl(createDeploymentBlueprint);
@@ -83,7 +83,6 @@ describe('Cluster Explorer', () => {
         deploymentsListPage.listElementWithName(deploymentName).should('exist');
         deploymentsListPage.deleteItemWithUI(deploymentName);
         deploymentsListPage.listElementWithName(deploymentName).should('not.exist');
-
       });
     });
 
