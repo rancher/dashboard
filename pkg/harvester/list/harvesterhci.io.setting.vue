@@ -13,7 +13,6 @@ export default {
 
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](VIEW_IN_API);
-
     const isSingleProduct = !!this.$store.getters['isSingleProduct'];
 
     const hash = { harvesterSettings: this.$store.dispatch('harvester/findAll', { type: HCI.SETTING }) };
