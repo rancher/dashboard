@@ -16,8 +16,8 @@ describe('Cluster Explorer', { tags: '@adminUser' }, () => {
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
         beforeEach(() => {
-          cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }`).as('origPod');
-          cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }`).as('clonedPod');
+          cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
+          cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
 
           workloadsPodPage.goTo();
 
