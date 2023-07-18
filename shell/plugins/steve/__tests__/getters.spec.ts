@@ -71,8 +71,11 @@ describe('steve: getters', () => {
     it('returns a string with a multiple filter statements applied if a single filter statement is applied', () => {
       expect(urlOptionsGetter('foo', { filter: { bar: 'baz', far: 'faz' } })).toBe('foo?bar=baz&far=faz');
     });
-    it('returns a string with an exclude statement for "bar" if excludeFields is a single element array with the string "bar"', () => {
-      expect(urlOptionsGetter('/v1/foo', { excludeFields: ['bar'] })).toBe('/v1/foo?exclude=bar');
+    it('returns a string with an exclude statement for "bar" and "metadata.managedFields" if excludeFields is a single element array with the string "bar" and the url starts with "/v1/"', () => {
+      expect(urlOptionsGetter('/v1/foo', { excludeFields: ['bar'] })).toBe('/v1/foo?exclude=bar&exclude=metadata.managedFields');
+    });
+    it('returns a string without an exclude statement if excludeFields is but the url does not start with "/v1/"', () => {
+      expect(urlOptionsGetter('foo', { excludeFields: ['bar'] })).toBe('foo');
     });
     it('returns a string without an exclude statement if excludeFields is an array but the URL doesnt include the "/v1/ string"', () => {
       expect(urlOptionsGetter('foo', { excludeFields: ['bar'] })).toBe('foo');

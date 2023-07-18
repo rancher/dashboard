@@ -63,9 +63,8 @@ describe('dashboard-store: actions', () => {
       valueExpected:  {
         type: 'getters.normalizeType',
         opt:  {
-          url:           'getters.urlFor',
-          stream:        true,
-          excludeFields: ['metadata.managedFields']
+          url:    'getters.urlFor',
+          stream: true
         }
       },
       assertionMethod: 'toMatchObject'
@@ -158,58 +157,6 @@ describe('dashboard-store: actions', () => {
 
           expect(valueGetter({
             findAllPromise, findAllReturnValue, getters, dispatch, commit
-          }))[assertionMethod](valueExpected);
-        }
-      );
-    });
-
-    describe('called without a cache for the type in the second param and an excluded fields array', () => {
-      const {
-        dispatch, commit, getters, rootGetters, state
-      } = setupContext();
-
-      const findAllPromise = findAll(
-        {
-          dispatch, commit, getters, rootGetters, state
-        },
-        { type: 'type', opt: { excludeFields: ['field:foo'] } }
-      );
-
-      const assertionChain = [
-        standardAssertions.returnsPromise,
-        standardAssertions.callsAll,
-        standardAssertions.returnsFromAll,
-        standardAssertions.firstDispatchAction,
-        {
-          assertionLabel: 'first dispatch parameters should be provided a normalized type and a url, streaming, and both "field:foo" and "metadata.managedFields" excluded under opt',
-          valueGetter:    ({ dispatch }) => dispatch.mock.calls[0][1],
-          valueExpected:  {
-            type: 'getters.normalizeType',
-            opt:  {
-              url:           'getters.urlFor',
-              stream:        true,
-              excludeFields: ['field:foo', 'metadata.managedFields']
-            }
-          },
-          assertionMethod: 'toMatchObject'
-        },
-        standardAssertions.secondDispatchAction,
-        standardAssertions.secondDispatchParams,
-        standardAssertions.countDispatches,
-        standardAssertions.firstCommitMutation,
-        standardAssertions.firstCommitParams,
-        standardAssertions.secondCommitMutation,
-        standardAssertions.secondCommitParams,
-        standardAssertions.countCommits
-      ];
-
-      it.each(assertionChain)(
-        '$assertionLabel',
-        async({ valueGetter, valueExpected, assertionMethod = 'toBe' }) => {
-          const findAllReturnValue = await findAllPromise;
-
-          expect(valueGetter({
-            findAllPromise, findAllReturnValue, dispatch, commit, getters
           }))[assertionMethod](valueExpected);
         }
       );

@@ -184,7 +184,6 @@ export default {
 
     console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
-    // we should always exclude managed fields when retreiving resources to cut down on payload size and store memory
     opt.url = getters.urlFor(type, null, opt);
     opt.stream = opt.stream !== false && load !== _NONE;
     opt.depaginate = typeOptions?.depaginate;
