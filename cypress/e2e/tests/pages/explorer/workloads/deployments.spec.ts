@@ -1,7 +1,7 @@
 import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo, WorkloadsDeploymentsDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint, deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
 
-describe('Cluster Explorer', () => {
+describe('Cluster Explorer', { tags: ['@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
