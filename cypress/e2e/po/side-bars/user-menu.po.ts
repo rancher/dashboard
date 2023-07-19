@@ -88,8 +88,12 @@ export default class UserMenuPo extends ComponentPo {
    * @returns
    */
   clickMenuItem(label: string) {
-    this.ensureOpen().then(() => {
-      return this.getMenuItems().contains(label).click();
-    });
+    this.ensureOpen()
+      .then(() => this.ensureOpen())
+      .then(() => this.ensureOpen())
+      .then(() => this.ensureOpen())
+      .then(() => {
+        return this.getMenuItems().contains(label).click();
+      });
   }
 }
