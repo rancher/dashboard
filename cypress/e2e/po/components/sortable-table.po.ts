@@ -125,9 +125,8 @@ export default class SortableTablePo extends ComponentPo {
   /**
    * For a row with the given name open it's action menu and return the drop down
    */
-  rowActionMenuOpen(name: string, actionMenuColumn: number) {
-    this.rowWithName(name).column(actionMenuColumn)
-      .find('.btn')
+  rowActionMenuOpen(name: string) {
+    this.rowWithName(name).actionBtn()
       .click();
 
     return this.rowActionMenu();
