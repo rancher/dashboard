@@ -50,6 +50,14 @@ describe('Rancher setup', { tags: '@adminUser' }, () => {
     cy.login();
 
     // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
-    cy.createUser('standard_user', 'user');
+    cy.createUser({
+      username:    'standard_user0',
+      globalRole:  { role: 'user' },
+      projectRole: {
+        clusterId:   'local',
+        projectName: 'Default',
+        role:        'project-member',
+      }
+    });
   });
 });

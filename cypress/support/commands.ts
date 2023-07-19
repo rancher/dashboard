@@ -1,5 +1,6 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import { Matcher } from '@/cypress/support/types';
+import { CreateUserParams } from '@/cypress/globals';
 
 let token: any;
 
@@ -60,7 +61,11 @@ Cypress.Commands.add('login', (
 /**
  * Create user via api request
  */
-Cypress.Commands.add('createUser', (username, role?) => {
+Cypress.Commands.add('createUser', (params: CreateUserParams) => {
+  const {
+    username, globalRole, clusterRole, projectRole
+  } = params;
+
   return cy.request({
     method:           'POST',
     url:              `${ Cypress.env('api') }/v3/users`,
@@ -87,9 +92,22 @@ Cypress.Commands.add('createUser', (username, role?) => {
 
         const userPrincipalId = resp.body.principalIds[0];
 
-        if (role) {
-          return cy.setGlobalRoleBinding(resp.body.id, role)
-            .then(() => cy.setProjectRoleBinding('local', userPrincipalId, 'Default', 'project-member'));
+        if (globalRole) {
+          return cy.setGlobalRoleBinding(resp.body.id, globalRole.role)
+            .then(() => {
+              if (clusterRole) {
+                const { clusterId, role } = clusterRole;
+
+                return cy.setClusterRoleBinding(clusterId, userPrincipalId, role);
+              }
+            })
+            .then(() => {
+              if (projectRole) {
+                const { clusterId, projectName, role } = projectRole;
+
+                return cy.setProjectRoleBinding(clusterId, userPrincipalId, projectName, role);
+              }
+            });
         }
       }
     });
@@ -147,7 +165,7 @@ Cypress.Commands.add('setClusterRoleBinding', (clusterId, userPrincipalId, role)
  */
 Cypress.Commands.add('setProjectRoleBinding', (clusterId, userPrincipalId, projectName, role) => {
   return cy.getProject(clusterId, projectName)
-    .then((project) => cy.request({
+    .then((project: any) => cy.request({
       method:  'POST',
       url:     `${ Cypress.env('api') }/v3/projectroletemplatebindings`,
       headers: {

@@ -3,6 +3,22 @@ import { UserPreferences } from '@shell/types/userPreferences';
 
 type Matcher = '$' | '^' | '~' | '*' | '';
 
+export type CreateUserParams = {
+  username: string,
+  globalRole?: {
+    role: string,
+  },
+  clusterRole?: {
+    clusterId: string,
+    role: string,
+  },
+  projectRole?: {
+    clusterId: string,
+    projectName: string,
+    role: string,
+  }
+}
+
 // eslint-disable-next-line no-unused-vars
 declare namespace Cypress {
   interface Chainable {
@@ -12,7 +28,7 @@ declare namespace Cypress {
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
     byLabel(label: string): Chainable<Element>;
 
-    createUser(username: string, role?: string): Chainable;
+    createUser(params: CreateUserParams): Chainable;
     setGlobalRoleBinding(userId: string, role: string): Chainable;
     setClusterRoleBinding(clusterId: string, userPrincipalId: string, role: string): Chainable;
     setProjectRoleBinding(clusterId: string, userPrincipalId: string, projectName: string, role: string): Chainable;
