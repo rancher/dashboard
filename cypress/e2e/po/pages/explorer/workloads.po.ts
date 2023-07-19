@@ -1,8 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
+import Kubectl from '@/cypress/e2e/po/components/kubectl.po';
 
 export default class WorkloadPagePo extends PagePo {
-  private static createPath(clusterId: string) {
+  static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer/workload`;
   }
 
@@ -18,5 +19,21 @@ export default class WorkloadPagePo extends PagePo {
     const resourceTable = new ResourceTablePo(this.self());
 
     return resourceTable.sortableTable().detailsPageLinkWithName(elemName).click();
+  }
+
+  kubectl() {
+    return new Kubectl();
+  }
+
+  deleteWithKubectl(name: string, namespace = 'default') {
+    this.kubectl()
+      .openTerminal()
+      .executeCommand(`delete deployment ${ name } -n ${ namespace }`);
+  }
+
+  createWithKubectl(blueprints: string | Object, wait = 6000) {
+    this.kubectl()
+      .openTerminal()
+      .executeMultilineCommand(blueprints, wait);
   }
 }

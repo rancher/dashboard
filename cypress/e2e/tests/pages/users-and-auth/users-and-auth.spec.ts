@@ -18,7 +18,7 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
     const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
 
     // last API call on the user creation process (with global role assignment)
-    cy.intercept('GET', '/v1/management.cattle.io.globalrolebindings').as('globalRoleBindingCreated');
+    cy.intercept('GET', '/v1/management.cattle.io.globalrolebindings?exclude=metadata.managedFields').as('globalRoleBindingCreated');
 
     // this will login as admin
     cy.login();

@@ -310,7 +310,7 @@ export default {
           data:      out.data,
           revision:  out.revision,
           skipHaveAll,
-          namespace: opt.namespaced,
+          namespace: opt.namespaced
         });
       }
     }
