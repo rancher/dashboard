@@ -57,13 +57,6 @@ export default {
       selectNode = 'affinity';
     }
 
-    if (!nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution) {
-      this.$set(nodeAffinity, 'requiredDuringSchedulingIgnoredDuringExecution', { nodeSelectorTerms: [] } );
-    }
-    if (!nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution) {
-      this.$set(nodeAffinity, 'preferredDuringSchedulingIgnoredDuringExecution', []);
-    }
-
     return {
       selectNode, nodeName, nodeAffinity, nodeSelector
     };
