@@ -1,4 +1,4 @@
-import ExtensionsPo from '@/cypress/e2e/po/pages/extensions.po';
+import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 
 const EXTENSION_NAME = 'clock';
@@ -8,8 +8,10 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   before(() => {
     cy.login();
 
-    ExtensionsPo.goTo();
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     // install extensions operator if it's not installed
     extensionsPo.installExtensionsOperatorIfNeeded();
@@ -20,11 +22,11 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
   beforeEach(() => {
     cy.login();
-    ExtensionsPo.goTo();
+    ExtensionsPagePo.goTo();
   });
 
   it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     // go to "add rancher repositories"
     extensionsPo.extensionMenuToggle();
@@ -43,7 +45,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('Should disable and enable extension support', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     // open menu and click on disable extension support
     extensionsPo.extensionMenuToggle();
@@ -60,7 +62,8 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // wait for operation to finish and refresh...
     extensionsPo.extensionTabs.checkVisible();
-    ExtensionsPo.goTo();
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
 
     // let's make sure all went good
     extensionsPo.extensionTabAvailableClick();
@@ -68,19 +71,20 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.self().find('[data-testid="extensions-new-repos-banner-action-btn"]').click();
     extensionsPo.self().find('[data-testid="extensions-new-repos-banner"]').should('not.exist');
 
     // let's refresh the page to make sure it doesn't appear again...
-    ExtensionsPo.goTo();
+    extensionsPo.goTo();
+    extensionsPo.waitForPage();
     extensionsPo.title().should('contain', 'Extensions');
     extensionsPo.self().find('[data-testid="extensions-new-repos-banner"]').should('not.exist');
   });
 
   it('Should toggle the extension details', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.extensionTabAvailableClick();
 
@@ -108,7 +112,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('Should install an extension', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.extensionTabAvailableClick();
 
@@ -132,7 +136,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('Should update an extension version', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.extensionTabInstalledClick();
 
@@ -151,7 +155,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('Should rollback an extension version', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.extensionTabInstalledClick();
 
@@ -170,7 +174,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('Should uninstall an extension', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.extensionTabInstalledClick();
 

@@ -7,16 +7,16 @@ import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 
-export default class ExtensionsPo extends PagePo {
+export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ExtensionsPo.url);
+    return super.goTo(ExtensionsPagePo.url);
   }
 
   extensionTabs: TabbedPo;
 
   constructor() {
-    super(ExtensionsPo.url);
+    super(ExtensionsPagePo.url);
 
     this.extensionTabs = new TabbedPo('[data-testid="extension-tabs"]');
   }
