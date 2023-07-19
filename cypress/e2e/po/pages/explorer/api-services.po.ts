@@ -15,7 +15,10 @@ export class APIServicesPagePo extends PagePo {
   }
 
   waitForRequests() {
-    APIServicesPagePo.goToAndWaitForGet(this.goTo.bind(this), ['/v1/apiregistration.k8s.io.apiservices']);
+    APIServicesPagePo.goToAndWaitForGet(
+      this.goTo.bind(this),
+      ['/v1/apiregistration.k8s.io.apiservices?exclude=metadata.managedFields']
+    );
   }
 
   resourcesList() {
