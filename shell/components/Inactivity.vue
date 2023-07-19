@@ -6,6 +6,8 @@ import throttle from 'lodash/throttle';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 
+let globalId;
+
 export default {
   name:       'Inactivity',
   components: {
@@ -74,14 +76,12 @@ export default {
       const endTime = Date.now() + this.showModalAfter * 1000;
 
       this.id = endTime;
-      this.$store.dispatch('performance/setId', this.id);
+      globalId = endTime;
 
       const checkInactivityTimer = () => {
         const now = Date.now();
 
-        const id = this.$store.getters['performance/getId'];
-
-        if (this.id !== id) {
+        if (this.id !== globalId) {
           return;
         }
 
