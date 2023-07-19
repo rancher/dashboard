@@ -10,8 +10,29 @@ import SortableTable from '@shell/components/SortableTable';
 export const Template = (args, { argTypes, events }) => ({
   components: { SortableTable },
   props:      Object.keys(argTypes),
-  template:   `<SortableTable v-bind="$props"/>`
+  template:   `<SortableTable v-bind="$props">
+                  <template v-if="${'loadingSlot' in args}" v-slot:loading>${args.loadingSlot}</template>
+                  <template v-if="${'noRowSlot' in args}" v-slot:no-rows>${args.noRowSlot}</template>
+                  <template v-if="${'noResultsSlot' in args}" v-slot:no-results>${args.noResultsSlot}</template>
+                  <template v-if="${'titleSlot' in args}" v-slot:title>${args.titleSlot}</template>
+                  <template v-if="${'headerLeftSlot' in args}" v-slot:header-left>${args.headerLeftSlot}</template>
+                  <template v-if="${'headerMiddleSlot' in args}" v-slot:header-middle>${args.headerMiddleSlot}</template>
+                  <template v-if="${'headerRightSlot' in args}" v-slot:header-right>${args.headerRightSlot}</template>
+                  <template v-if="${'headerButtonSlot' in args}" v-slot:header-button>${args.headerButtonSlot}</template>
+                  <template v-if="${'groupRowSlot' in args}" v-slot:group-row>${args.groupRowSlot}</template>
+                  <template v-if="${'groupBySlot' in args}" v-slot:group-by>${args.groupBySlot}</template>
+                  <template v-if="${'mainRowSlot' in args}" v-slot:main-row>${args.mainRowSlot}</template>
+                  <template v-if="${'mainRowISlot' in args}" v-slot:"main-row:0">${args.mainRowISlot}</template>
+                  <template v-if="${'colISlot' in args}" v-slot:"col:name">${args.colISlot}</template>
+                  <template v-if="${'cellISlot' in args}" v-slot:"cell:name">${args.cellISlot}</template>
+                  <template v-if="${'rowActionsSlot' in args}" v-slot:row-actions>${args.rowActionsSlot}</template>
+                  <template v-if="${'subRowSlot' in args}" v-slot:sub-row>${args.subRowSlot}</template>
+                  <template v-if="${'shortkeysSlot' in args}" v-slot:shortkeys>${args.shortkeysSlot}</template>
+               </SortableTable>`
 });
+
+export const textSlotArea = (text) => `<div style="background: red; color: white">${text}</div>`;
+export const getButton = (text) => `<button className="btn role-primary">${text}</button>`;
 
 export const rows = [
   {
@@ -132,7 +153,263 @@ Loading status for the table.
   </Story>
 </Canvas>
 
+
+#### Sub rows
+
+Sub rows can be added to each row.
+
+<Canvas>
+  <Story
+    name="Sub rows"
+    args={{
+      headers,
+      rows,
+      subRows: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Expandeble Sub rows
+
+Sub rows can be optionally expanded.
+
+<Canvas>
+  <Story
+    name="Expandable Sub rows"
+    args={{
+      headers,
+      rows,
+      subRows: true,
+      subExpandable: true,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+subRows
+
 #### Slots
+
+#### Custom Loading slot
+
+Custom loading slot element.
+
+<Canvas>
+  <Story
+    name="Custom Loading slot"
+    args={{
+      headers,
+      rows: [],
+      loading: true, 
+      loadingSlot: textSlotArea(`Loading...`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Custom No Row slot
+
+Custom no row element.
+
+<Canvas>
+  <Story
+    name="Custom No Row slot"
+    args={{
+      headers,
+      rows: [],
+      noRowSlot: textSlotArea(`No row found`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Custom No Results slot
+
+Custom no results element, got while searching for an entry without results.
+
+<Canvas>
+  <Story
+    name="Custom No Results slot"
+    args={{
+      headers,
+      rows: [],
+      noResultsSlot: textSlotArea(`No result found`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Title slot
+
+Title for the table.
+
+<Canvas>
+  <Story
+    name="Title slot"
+    args={{
+      headers,
+      rows: [],
+      titleSlot: textSlotArea(`Table title`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Header Buttons slots
+
+Slots reserved for adding elements on the header, e.g. buttons.
+Areas are left, middle, right and generic.
+
+<Canvas>
+  <Story
+    name="Header Buttons slot"
+    args={{
+      headers,
+      rows: [],
+      headerLeftSlot: textSlotArea(getButton('Left button')),
+      headerMiddleSlot: textSlotArea(getButton('Middle button')),
+      headerRightSlot: textSlotArea(getButton('Right button')),
+      headerButtonSlot: textSlotArea(getButton('Header Button'))
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Group Row and Group By slots
+
+Elements added in case of groupped rows using `groupBy`.
+
+<Canvas>
+  <Story
+    name="Group Row slot"
+    args={{
+      headers,
+      rows,
+      groupBy: 'type',
+      groupRowSlot: textSlotArea(`Group row slot`),
+      groupBySlot: textSlotArea(`Group by slot`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+
+
+#### Main Row 	slot
+
+<Canvas>
+  <Story
+    name="Main Row  slot"
+    args={{
+      headers,
+      rows,
+      mainRowSlot: textSlotArea(`Main row slot`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Main Row Key	slot
+
+<Canvas>
+  <Story
+    name="Main Row Key slot"
+    args={{
+      headers,
+      rows,
+      mainRowISlot: textSlotArea(`Main row for this row slot`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Column Name	slot
+
+<Canvas>
+  <Story
+    name="Column Name slot"
+    args={{
+      headers,
+      rows,
+      colISlot: textSlotArea(`Slot to replace this column`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Cell Name	slot
+
+<Canvas>
+  <Story
+    name="Cell Name slot"
+    args={{
+      headers,
+      rows,
+      cellISlot: textSlotArea(`Slot to replace this cell`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Row actions slot
+
+<Canvas>
+  <Story
+    name="Row actions slot"
+    args={{
+      headers,
+      rows,
+      rowActionsSlot: textSlotArea(`Row actions slot`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Sub Row slot
+
+<Canvas>
+  <Story
+    name="Sub Row slot"
+    args={{
+      headers,
+      rows,
+      subRowSlot: textSlotArea(`Sub row slot`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Shortkeys slot
+
+Footer area slot used to add messages related to shortkeys.
+
+<Canvas>
+  <Story
+    name="Shortkeys slot"
+    args={{
+      headers,
+      rows: [],
+      shortkeysSlot: textSlotArea(`Use CMD+W to close this tab :)`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
 
 ### Functionalities
 
