@@ -74,6 +74,11 @@ const storePlugin = {
 Vue.use(storePlugin);
 
 export const parameters = {
+  options: {
+    storySort: {
+      order: ['Foundation', 'Form', 'Components', 'Examples'],
+    },
+  },
   previewTabs: {
     canvas: { hidden: false },
   },
