@@ -128,6 +128,8 @@ function invalidResource(store, to, redirect) {
   const product = store.getters['currentProduct'];
   const inStore = product?.inStore;
   const schemaFor = store.getters[`${ inStore }/schemaFor`]; // There's a chance we're in an extension's product who's store could be anything
+  const mgmtSchemaFor = store.getters['management/schemaFor']; // inStore/schemaFor wont cover management resources in downstream clusters
+  const rancherSchemaFor = store.getters['rancher/schemaFor']; // pages may reference a norman type in url eg cloud credentials
   const resource = getResourceFromRoute(to);
 
   // In order to check a resource is valid we need all of these
@@ -136,7 +138,7 @@ function invalidResource(store, to, redirect) {
   }
 
   // Resource is valid if a schema exists for it (standard resource, spoofed resource) or it's a virtual resource
-  const validResource = schemaFor(resource) || store.getters['type-map/isVirtual'](resource);
+  const validResource = schemaFor(resource) || store.getters['type-map/isVirtual'](resource) || mgmtSchemaFor(resource) || rancherSchemaFor(resource);
 
   if (validResource) {
     return false;

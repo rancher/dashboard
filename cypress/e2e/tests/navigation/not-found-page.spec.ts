@@ -58,6 +58,14 @@ describe('Not found page display', () => {
     clusterManager.errorTitle().should('not.exist');
   });
 
+  it('Will not show a 404 for a valid type from the Norman API', { tags: ['@adminUser', '@standardUser'] }, () => {
+    const cloudCredCreatePage = new NotFoundPagePo('/c/_/manager/cloudCredential/create');
+
+    cloudCredCreatePage.goTo();
+    cloudCredCreatePage.waitForPage();
+    cloudCredCreatePage.errorTitle().should('not.exist');
+  });
+
   it('Will not show a 404 for a valid type that does not have a real schema', { tags: '@adminUser' }, () => {
     const workloadPage = new NotFoundPagePo('/c/local/explorer/workload');
 
