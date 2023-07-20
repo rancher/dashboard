@@ -274,21 +274,22 @@ export default {
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active').map((x) => x.spec.displayName || x.id);
 
-      console.log('vueKontainerTypes', vueKontainerTypes);
-
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
-        console.log('kontainerdriver', obj);
         if ( vueKontainerTypes.includes(obj.driverName) ) {
+          // if builtIn, we can use the drivername as id, otherwise for "external"
+          // kontainerdrivers we need to pass the parsed display name as id
+          // so that we can get the correct info for the cluster card + get the correct
+          // interface in ember world for cluster creation/import
           addType({
             obj,
-            id:       obj.driverName,
+            id:       obj.spec?.builtIn ? obj.driverName : obj.parsedDisplayName,
             group:    'kontainer',
             disabled: false
           });
         } else {
           addType({
             obj,
-            id:       obj.driverName,
+            id:       obj.spec?.builtIn ? obj.driverName : obj.parsedDisplayName,
             group:    'kontainer',
             disabled: false,
             link:     isImport ? obj.emberImportPath : obj.emberCreatePath
@@ -361,8 +362,6 @@ export default {
         }
       }
 
-      console.log('SUBTYPES', out);
-
       return out;
 
       function addExtensionType(ext, getters) {
@@ -392,14 +391,12 @@ export default {
 
       function addType({
         obj = {}, id, group, disabled = false, link = null, iconClass = undefined
-      } = arg) {
-        if (id === 'kd-hrb5n') {
-          console.error('KONTAINER DRIVER kd-hrb5n', obj);
-        }
-
+      }) {
         const label = getters['i18n/withFallback'](`cluster.provider."${ id }"`, null, id);
         const description = getters['i18n/withFallback'](`cluster.providerDescription."${ id }"`, null, '');
         const tag = '';
+        const builtIn = obj.spec?.builtIn || false;
+        const parsedDisplayName = obj.parsedDisplayName;
 
         let icon;
 
@@ -422,7 +419,9 @@ export default {
           group,
           disabled,
           link,
-          tag
+          tag,
+          builtIn,
+          parsedDisplayName
         };
 
         out.push(subtype);
@@ -453,8 +452,6 @@ export default {
       for ( const k in out ) {
         out[k].types = sortBy(out[k].types, 'label');
       }
-
-      console.log('GROUPED SUBTYPES', sortBy(Object.values(out), 'sort'));
 
       return sortBy(Object.values(out), 'sort');
     },
@@ -521,7 +518,8 @@ export default {
     },
 
     clickedType(obj) {
-      const id = obj.id;
+      // we need to adjust the "id" for the ember interface for non-builtin kontainerdrivers
+      const id = obj.builtIn ? obj.id : obj.parsedDisplayName;
       const parts = id.split(':', 2);
 
       if ( parts[0] === 'chart' ) {
