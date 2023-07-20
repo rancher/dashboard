@@ -7,7 +7,6 @@ import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
 import BannersPo from '~/cypress/e2e/po/components/banners.po';
-import ComponentPo from '~/cypress/e2e/po/components/component.po';
 
 export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
