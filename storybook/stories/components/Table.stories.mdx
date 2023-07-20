@@ -38,7 +38,7 @@ export const Template = (args, { argTypes, events }) => ({
 });
 
 export const textSlotArea = (text) => `<div style="background: red; color: white">${text}</div>`;
-export const getButton = (text) => `<button className="btn role-primary">${text}</button>`;
+export const getButton = (text) => `${text}`;
 
 export const rows = [
   {
@@ -268,21 +268,21 @@ Title for the table.
 </Canvas>
 
 
-#### Header Buttons slots
+#### Header slots
 
-Slots reserved for adding elements on the header, e.g. buttons.
+Slots reserved for adding elements on the header.
 Areas are left, middle, right and generic.
 
 <Canvas>
   <Story
-    name="Header Buttons slot"
+    name="Header slots"
     args={{
       headers,
       rows: [],
-      headerLeftSlot: textSlotArea(getButton('Left button')),
-      headerMiddleSlot: textSlotArea(getButton('Middle button')),
-      headerRightSlot: textSlotArea(getButton('Right button')),
-      headerButtonSlot: textSlotArea(getButton('Header Button'))
+      headerLeftSlot: textSlotArea(getButton('Left')),
+      headerMiddleSlot: textSlotArea(getButton('Middle')),
+      headerRightSlot: textSlotArea(getButton('Right')),
+      headerButtonSlot: textSlotArea(getButton('Header'))
     }}>
     {Template.bind({})}
   </Story>
