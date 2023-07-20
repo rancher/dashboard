@@ -31,8 +31,9 @@ export default {
 
   data() {
     return {
-      allFleet:   [],
-      allBundles: []
+      allFleet:             [],
+      allBundles:           [],
+      allBundleDeployments: [],
     };
   },
 
@@ -79,6 +80,12 @@ export default {
         inStoreType: 'management',
         type:        FLEET.BUNDLE
       },
+
+      allBundleDeployments: {
+        inStoreType: 'management',
+        type:        FLEET.BUNDLE_DEPLOYMENT
+      },
+
       allFleet: {
         inStoreType: 'management',
         type:        FLEET.CLUSTER
@@ -89,6 +96,7 @@ export default {
       }
     }, this.$store);
 
+    this.allBundleDeployments = allDispatches.allBundleDeployments || [];
     this.allBundles = allDispatches.allBundles || [];
     this.allFleet = allDispatches.allFleet || [];
   },
