@@ -14,6 +14,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
 import { sortBy } from '@shell/utils/sort';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default {
   components: {
@@ -51,7 +52,7 @@ export default {
     // Was the dialog opened to restore a specific snapshot, or opened on a cluster to choose
     isCluster() {
       const isSnapshot = this.toRestore[0]?.type.toLowerCase() === NORMAN.ETCD_BACKUP ||
-        this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
+      this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
 
       return !isSnapshot;
     },
@@ -121,7 +122,8 @@ export default {
         promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
           const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-          return snapshots.filter((s) => s.clusterName === toRestoreClusterName);
+          return snapshots.filter((s) => s?.snapshotFile?.status !== STATES_ENUM.FAILED && s.clusterName === toRestoreClusterName
+          );
         });
       }
 
