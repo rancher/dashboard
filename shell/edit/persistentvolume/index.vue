@@ -258,6 +258,7 @@ export default {
           :label="t('persistentVolume.plugin.label')"
           :localized-label="true"
           option-label="labelKey"
+          data-testid="persistent-volume-plugin-select"
           :options="plugins"
           :mode="modeOverride"
           :required="true"
