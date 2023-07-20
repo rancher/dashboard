@@ -104,7 +104,12 @@ export default defineConfig({
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
       require('@cypress/grep/src/plugin')(config);
-
+      on('task', {
+        table(message) {
+          console.table(message);
+          return null;
+        },
+      });
       return config;
     },
     experimentalSessionAndOrigin: true,

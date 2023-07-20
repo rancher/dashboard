@@ -67,7 +67,7 @@ declare namespace Cypress {
     userPreferences(preferences?: Partial<UserPreferences>): Chainable<null>;
 
     requestBase64Image(url: string): Chainable;
-    checkAccessibility(path: string): Chainable;
+    checkPageAccessibility(): Chainable;
 
     keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
 
