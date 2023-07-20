@@ -4,7 +4,7 @@ import {
   SETUP, TIMED_OUT, UPGRADED, _FLAGGED, _UNFLAG
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
-import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE, WORKLOAD } from '@shell/config/types';
+import { MANAGEMENT, NORMAN, DEFAULT_WORKSPACE } from '@shell/config/types';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
 import { applyProducts } from '@shell/store/type-map';
 import { findBy } from '@shell/utils/array';
@@ -113,6 +113,48 @@ function setProduct(store, to, redirect) {
   }
 
   return false;
+}
+
+/**
+ * Check that the resource is valid, if not redirect to fail whale
+ *
+ * This requires that
+ * - product is set
+ * - product's store is set and setup (so we can check schema's within it)
+ * - product's store has the schemaFor getter (extension stores might not have it)
+ * - there's a resource associated with route (meta or param)
+ */
+function invalidResource(store, to, redirect) {
+  const product = store.getters['currentProduct'];
+  const resource = getResourceFromRoute(to);
+
+  // In order to check a resource is valid we need these
+  if (!product || !resource) {
+    return false;
+  }
+
+  // Note - don't use the current products store... because products can override stores for resources with `typeStoreMap`
+  const inStore = store.getters['currentStore'](resource);
+  // There's a chance we're in an extension's product who's store could be anything, so confirm schemaFor exists
+  const schemaFor = store.getters[`${ inStore }/schemaFor`];
+
+  // In order to check a resource is valid we need these
+  if (!inStore || !schemaFor) {
+    return false;
+  }
+
+  // Resource is valid if a schema exists for it (standard resource, spoofed resource) or it's a virtual resource
+  const validResource = schemaFor(resource) || store.getters['type-map/isVirtual'](resource);
+
+  if (validResource) {
+    return false;
+  }
+
+  // Unknown resource, redirect to fail whale
+
+  store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
+
+  return () => redirect(302, '/fail-whale');
 }
 
 export default async function({
@@ -302,14 +344,25 @@ export default async function({
   store.dispatch('gcRouteChanged', route);
 
   // Load stuff
+  let localCheckResource = false;
+
   await applyProducts(store, $plugin);
+
   // Setup a beforeEach hook once to keep track of the current product
   if ( !beforeEachSetup ) {
     beforeEachSetup = true;
+    // This only needs to happen when beforeEach hook hasn't run (the initial load)
+    localCheckResource = true;
 
     store.app.router.beforeEach((to, from, next) => {
       // NOTE - This beforeEach runs AFTER this middleware. So anything in this middleware that requires it must set it manually
-      const redirected = setProduct(store, to, redirect);
+      let redirected = setProduct(store, to, redirect);
+
+      if (redirected) {
+        return redirected();
+      }
+
+      redirected = invalidResource(store, to, redirect);
 
       if (redirected) {
         return redirected();
@@ -432,14 +485,12 @@ export default async function({
       })
     ]);
 
-    const resource = getResourceFromRoute(route);
+    if (localCheckResource) {
+      const redirected = invalidResource(store, route, redirect);
 
-    // if we have resource param, but can't get the schema, it means the resource doesn't exist!
-    // NOTE: workload doesn't have a schema, so let's just bypass this with the identifier
-    if (resource && resource !== WORKLOAD && !store.getters['management/schemaFor'](resource) && !store.getters['rancher/schemaFor'](resource)) {
-      store.dispatch('loadingError', new Error(store.getters['i18n/t']('nav.failWhale.resourceNotFound', { resource }, true)));
-
-      return redirect(302, '/fail-whale');
+      if (redirected) {
+        return redirected();
+      }
     }
 
     if (!clusterId) {

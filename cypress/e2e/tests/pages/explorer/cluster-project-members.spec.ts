@@ -7,7 +7,7 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const username = `${ runPrefix }-cluster-proj-member`;
 const standardPassword = 'standard-password';
 
-describe('Cluster Project and Members', () => {
+describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
   it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
     const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
 

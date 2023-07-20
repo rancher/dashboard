@@ -74,7 +74,7 @@
     "d3-selection": "1.4.1",
     "dagre-d3": "0.6.4",
     "dayjs": "1.8.29",
-    "diff2html": "2.11.2",
+    "diff2html": "3.4.24",
     "dompurify": "2.4.5",
     "event-target-shim": "5.0.1",
     "express": "4.17.1",

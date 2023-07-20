@@ -594,6 +594,10 @@ asyncButton:
     action: Apply
     success: Applied
     waiting: Applying&hellip;
+  add:
+    action: Add
+    success: Added
+    waiting: Adding&hellip;
   continue:
     action: Continue
     success: Saved
@@ -3699,7 +3703,7 @@ persistentVolume:
       label: Storage Policy ID
       placeholder: e.g. sp1
   csi:
-    label: CSI (Unsupported)
+    label: CSI
     suffix: (CSI)
     driver:
       label: Driver
@@ -4070,6 +4074,7 @@ plugins:
   loadError: An error occurred loading the code for this extension
   helmError: "An error occurred installing the extension via Helm"
   manageRepos: Manage Repositories
+  addRancherRepos: Add Rancher Repositories
   manageCharts: Manage Extension Charts
   manageCatalog:
     label: Manage Extension Catalogs
@@ -4141,23 +4146,39 @@ plugins:
   safeMode:
     title: Extensions Safe Mode
     message: Extensions were not loaded
+  addRepos:
+    banner: There are new extensions repositories available. To enable these repositories, click the button on the right.
+    bannerBtn: Add repositories
+    title: Add Extensions repositories
+    prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
   setup:
+    installed: Already installed
+    uninstalled: Already uninstalled
     title: Extension support is not enabled
     prompt:
       cant: Automatic installation is not available - required Helm Charts could not be found
       can: You need to install the Extension Operator
+      official: The Official Rancher Extensions Repository provides extensions published by Rancher
+      partners: The Partners Extensions Repository provides extensions published by Rancher Partners
+      community: The Community Extensions Repository provides extensions published by Rancher Community
     install:
       title: Enable Extension Support?
-      prompt: This will install the Helm charts to enable Extension support
-      airgap: The Rancher Extensions Repository provides extensions published by Rancher. Un-check if your Rancher installation is air-gapped
-      addRancherRepo: Add the Rancher Extension Repository
+      prompt: This will install the Helm charts needed to enable Extension support
+      airgap: Air-gapped installations should NOT enable this feature
+      addRancherRepo: Add Official Rancher Extensions Repository
+      addPartnersRancherRepo: Add Partners Extensions Repository
+      addCommunityRancherRepo: Add Community Extension sRepository
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?
       prompt: This will un-install the Helm charts that enable Extension support
       registry:
-        title: Remove the Rancher Extensions Repository
-        prompt: The Rancher Extensions Repository provides extensions published by Rancher
+        official:
+          title: Remove the Official Rancher Extensions Repository
+        partners:
+          title: Remove the Partners Extensions Repository
+        community:
+          title: Remove the Community Extensions Repository
       crd:
         title: Remove the Rancher Extensions Custom Resource Definition
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.

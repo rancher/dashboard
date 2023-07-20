@@ -5,6 +5,8 @@ import { mapPref, PLUGIN_DEVELOPER } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { allHash } from '@shell/utils/promise';
 import { CATALOG, UI_PLUGIN, SERVICE, MANAGEMENT } from '@shell/config/types';
+import { SETTING } from '@shell/config/settings';
+import { fetchOrCreateSetting } from '@shell/utils/settings';
 import { getVersionData } from '@shell/config/version';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
@@ -21,7 +23,9 @@ import DeveloperInstallDialog from './DeveloperInstallDialog.vue';
 import PluginInfoPanel from './PluginInfoPanel.vue';
 import SetupUIPlugins from './SetupUIPlugins';
 import RemoveUIPlugins from './RemoveUIPlugins';
+import AddExtensionRepos from './AddExtensionRepos';
 import CatalogList from './CatalogList/index.vue';
+import Banner from '@components/Banner/Banner.vue';
 import {
   isUIPlugin,
   uiPluginAnnotation,
@@ -31,7 +35,9 @@ import {
   isChartVersionHigher,
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
-  UI_PLUGIN_LABELS
+  UI_PLUGIN_LABELS,
+  UI_PLUGINS_REPO_URL,
+  UI_PLUGINS_PARTNERS_REPO_URL
 } from '@shell/config/uiplugins';
 
 const MAX_DESCRIPTION_LENGTH = 200;
@@ -50,6 +56,7 @@ export default {
     DeveloperInstallDialog,
     IconMessage,
     CatalogList,
+    Banner,
     CatalogLoadDialog,
     InstallDialog,
     LazyImage,
@@ -59,27 +66,29 @@ export default {
     UninstallDialog,
     SetupUIPlugins,
     RemoveUIPlugins,
+    AddExtensionRepos,
   },
 
   data() {
     return {
       TABS_VALUES,
-      view:              '',
-      charts:            [],
-      installing:        {},
-      errors:            {},
-      plugins:           [], // The installed plugins
-      helmOps:           [], // Helm operations
-      kubeVersion:       null,
-      loading:           true,
-      menuTargetElement: null,
-      menuTargetEvent:   null,
-      menuOpen:          false,
-      hasService:        false,
-      defaultIcon:       require('~shell/assets/images/generic-plugin.svg'),
-      reloadRequired:    false,
-      rancherVersion:    getVersionData()?.Version,
-      showCatalogList:   false
+      kubeVersion:                    null,
+      view:                           '',
+      charts:                         [],
+      installing:                     {},
+      errors:                         {},
+      plugins:                        [], // The installed plugins
+      helmOps:                        [], // Helm operations
+      addExtensionReposBannerSetting: undefined,
+      loading:                        true,
+      menuTargetElement:              null,
+      menuTargetEvent:                null,
+      menuOpen:                       false,
+      hasService:                     false,
+      defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
+      reloadRequired:                 false,
+      rancherVersion:                 getVersionData()?.Version,
+      showCatalogList:                false
     };
   },
 
@@ -88,7 +97,7 @@ export default {
   async fetch() {
     const hash = {};
 
-    const isSetup = await this.updateInstallStatus();
+    const isSetup = await this.updateInstallStatus(true);
 
     if (isSetup) {
       if (this.$store.getters['management/schemaFor'](UI_PLUGIN)) {
@@ -113,8 +122,11 @@ export default {
     const res = await allHash(hash);
 
     this.plugins = res.plugins || [];
+    this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
+
+    this.addExtensionReposBannerSetting = await fetchOrCreateSetting(this.$store, SETTING.ADD_EXTENSION_REPOS_BANNER_DISPLAY, 'true', true) || {};
 
     const c = this.$store.getters['catalog/rawCharts'];
 
@@ -135,6 +147,10 @@ export default {
     ...mapGetters({ uiErrors: 'uiplugins/errors' }),
     ...mapGetters({ theme: 'prefs/theme' }),
 
+    showAddReposBanner() {
+      return this.addExtensionReposBannerSetting?.value === 'true' && (!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL) || !this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL));
+    },
+
     applyDarkModeBg() {
       if (this.theme === 'dark') {
         return { 'dark-mode': true };
@@ -150,6 +166,13 @@ export default {
       menuActions.push({
         action:  'manageRepos',
         label:   this.t('plugins.manageRepos'),
+        enabled: true
+      });
+
+      // Add link to add extensions repositories (Official, Partners, etc)
+      menuActions.push({
+        action:  'addRancherRepos',
+        label:   this.t('plugins.addRancherRepos'),
         enabled: true
       });
 
@@ -448,7 +471,7 @@ export default {
             changes++;
           }
           if (isCustomImage) {
-            this.refreshCharts();
+            this.refreshCharts(true);
           }
 
           this.updatePluginInstallStatus(plugin.name, false);
@@ -470,14 +493,16 @@ export default {
   },
 
   methods: {
-    async refreshCharts() {
-      await this.$store.dispatch('catalog/load', { reset: true });
+    async refreshCharts(forceChartsUpdate = false) {
+      // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
+      // tied to the SetupUIPlugins, AddExtensionRepos and RemoveUIPlugins checkboxes
+      await this.$store.dispatch('catalog/load', { reset: true, force: forceChartsUpdate });
       const c = this.$store.getters['catalog/rawCharts'];
 
       this.charts = Object.values(c);
     },
 
-    async updateInstallStatus() {
+    async updateInstallStatus(forceChartsUpdate = false) {
       let hasService;
 
       try {
@@ -492,8 +517,8 @@ export default {
         hasService = false;
       }
 
-      if (hasService) {
-        this.refreshCharts();
+      if (hasService || forceChartsUpdate) {
+        this.refreshCharts(forceChartsUpdate);
       }
 
       Vue.set(this, 'hasService', hasService);
@@ -506,12 +531,19 @@ export default {
     },
 
     removePluginSupport() {
+      this.refreshCharts(true);
       this.$refs.removeUIPlugins.showDialog();
     },
 
     // Developer Load is in the action menu
     showDeveloperLoadDialog() {
       this.$refs.developerInstallDialog.showDialog();
+    },
+
+    showAddExtensionReposDialog() {
+      this.updateAddReposSetting();
+      this.refreshCharts(true);
+      this.$refs.addExtensionReposDialog.showDialog();
     },
 
     showCatalogLoadDialog() {
@@ -562,7 +594,6 @@ export default {
     },
 
     updatePluginInstallStatus(name, status) {
-      // console.log(`UPDATING PLUGIN STATUS: ${ name } ${ status }`);
       Vue.set(this.installing, name, status);
     },
 
@@ -595,6 +626,13 @@ export default {
 
     manageExtensionView() {
       this.showCatalogList = !this.showCatalogList;
+    },
+
+    updateAddReposSetting() {
+      if (this.addExtensionReposBannerSetting?.value === 'true') {
+        this.addExtensionReposBannerSetting.value = 'false';
+        this.addExtensionReposBannerSetting.save();
+      }
     }
   }
 };
@@ -670,6 +708,7 @@ export default {
           @devLoad="showDeveloperLoadDialog"
           @removePluginSupport="removePluginSupport"
           @manageRepos="manageRepos"
+          @addRancherRepos="showAddExtensionReposDialog"
           @manageExtensionView="manageExtensionView"
         />
       </div>
@@ -691,7 +730,8 @@ export default {
       <SetupUIPlugins
         v-else
         class="setup-message"
-        @done="updateInstallStatus"
+        @done="updateInstallStatus(true)"
+        @refreshCharts="refreshCharts(true)"
       />
     </div>
     <div v-else>
@@ -703,6 +743,22 @@ export default {
         />
       </template>
       <template v-else>
+        <Banner
+          v-if="showAddReposBanner"
+          color="warning"
+          class="add-repos-banner mb-20"
+          data-testid="extensions-new-repos-banner"
+        >
+          <span>{{ t('plugins.addRepos.banner', {}, true) }}</span>
+          <button
+            class="ml-10 btn btn-sm role-primary"
+            data-testid="extensions-new-repos-banner-action-btn"
+            @click="showAddExtensionReposDialog()"
+          >
+            {{ t('plugins.addRepos.bannerBtn') }}
+          </button>
+        </Banner>
+
         <Tabbed
           ref="tabs"
           :tabs-only="true"
@@ -952,6 +1008,10 @@ export default {
       ref="removeUIPlugins"
       @done="updateInstallStatus"
     />
+    <AddExtensionRepos
+      ref="addExtensionReposDialog"
+      @done="updateInstallStatus(true)"
+    />
   </div>
 </template>
 
@@ -1176,6 +1236,15 @@ export default {
         padding: 0 5px;
       }
     }
+  }
+  ::v-deep .checkbox-label {
+    font-weight: normal !important;
+  }
+
+  ::v-deep .add-repos-banner .banner__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   @media screen and (max-width: 1200px) {

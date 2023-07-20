@@ -183,6 +183,22 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
   }
 });
 
+/**
+ * Intercept all requests and return
+ * @param {array} intercepts - Array of intercepts to return
+ * return {array} - Array of intercepted request strings
+ * return {string} - Intercepted request string
+ */
+Cypress.Commands.add('interceptAllRequests', (method = '/GET/POST/PUT/PATCH/', urls = ['/v1/*']) => {
+  const interceptedUrls: string[] = urls.map((cUrl, i) => {
+    cy.intercept(method, cUrl).as(`interceptAllRequests${ i }`);
+
+    return `@interceptAllRequests${ i }`;
+  });
+
+  return cy.wrap(interceptedUrls);
+});
+
 Cypress.Commands.add('iFrame', () => {
   return cy
     .get('[data-testid="ember-iframe"]', { log: false })

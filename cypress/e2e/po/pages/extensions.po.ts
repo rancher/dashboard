@@ -52,6 +52,9 @@ export default class ExtensionsPo extends PagePo {
     return enableButton.isVisible().then((visible) => {
       if (visible) {
         return enableButton.click().then(() => {
+          // don't install the parners repo yet, as it's needed for the add repositories test
+          this.enableExtensionModalParnersRepoClick();
+
           return this.enableExtensionModalEnableClick();
         });
       } else {
@@ -71,7 +74,6 @@ export default class ExtensionsPo extends PagePo {
    */
   addExtensionsRepository(repo: string, branch: string, name: string): Cypress.Chainable {
     // we should be on the extensions page
-    // this.title().should('contain', 'Extensions');
     this.waitForPage();
 
     // go to app repos
@@ -212,25 +214,33 @@ export default class ExtensionsPo extends PagePo {
   }
 
   manageReposClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).clickMenuItem(0);
+    return new ActionMenuPo(this.self()).getMenuItem('Manage Repositories').click();
   }
 
-  // this will only appear with developer mode enabled
-  // developerLoadClick(): Cypress.Chainable {
-  //   return this.self().getId('action-menu-2-item').click();
-  // }
+  addRepositoriesClick(): Cypress.Chainable {
+    return new ActionMenuPo(this.self()).getMenuItem('Add Rancher Repositories').click();
+  }
 
   disableExtensionsClick(): Cypress.Chainable {
-    return new ActionMenuPo(this.self()).clickMenuItem(3);
+    return new ActionMenuPo(this.self()).getMenuItem('Disable Extension Support').click();
   }
 
-  // ------------------ disable extensions OVERALL modal ------------------
+  // ------------------ ADD RANCHER REPOSITORIES modal ------------------
+  addReposModal() {
+    return this.self().getId('add-extensions-repos-modal');
+  }
+
+  addReposModalAddClick(): Cypress.Chainable {
+    return this.addReposModal().get('.dialog-buttons button:last-child').click();
+  }
+
+  // ------------------ DISABLE EXTENSIONS modal ------------------
   disableExtensionModal() {
     return this.self().getId('disable-ext-modal');
   }
 
   removeRancherExtRepoCheckboxClick(): Cypress.Chainable {
-    return this.self().getId('disable-ext-modal-remove-repo').click();
+    return this.self().getId('disable-ext-modal-remove-official-repo').click();
   }
 
   disableExtensionModalCancelClick(): Cypress.Chainable {
@@ -241,9 +251,13 @@ export default class ExtensionsPo extends PagePo {
     return this.disableExtensionModal().get('.dialog-buttons button:last-child').click();
   }
 
-  // ------------------ enable extensions OVERALL modal ------------------
+  // ------------------ ENABLE EXTENSIONS modal ------------------
   enableExtensionModal() {
     return this.self().get('[data-modal="confirm-uiplugins-setup"]');
+  }
+
+  enableExtensionModalParnersRepoClick(): Cypress.Chainable {
+    return this.enableExtensionModal().getId('extension-enable-operator-partners-repo').click();
   }
 
   enableExtensionModalCancelClick(): Cypress.Chainable {

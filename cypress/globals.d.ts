@@ -1,3 +1,5 @@
+import { Verbs } from '@shell/types/api';
+
 type Matcher = '$' | '^' | '~' | '*' | '';
 
 // eslint-disable-next-line no-unused-vars
@@ -43,6 +45,8 @@ declare namespace Cypress {
     requestBase64Image(url: string): Chainable;
 
     keyboardControls(triggerKeys: Partial<any>, count: number): Chainable<Element>;
+
+    interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
     iFrame(): Chainable<Element>;
   }
