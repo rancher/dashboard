@@ -10,37 +10,37 @@ export default class FleetCluster extends SteveModel {
     const out = super._availableActions;
 
     insertAt(out, 0, {
-      action:   'pause',
-      label:    'Pause',
-      icon:     'icon icon-pause',
+      action: 'pause',
+      label: 'Pause',
+      icon: 'icon icon-pause',
       bulkable: true,
-      enabled:  !!this.links.update && !this.spec?.paused
+      enabled: !!this.links.update && !this.spec?.paused
     });
 
     insertAt(out, 1, {
-      action:   'unpause',
-      label:    'Unpause',
-      icon:     'icon icon-play',
+      action: 'unpause',
+      label: 'Unpause',
+      icon: 'icon icon-play',
       bulkable: true,
-      enabled:  !!this.links.update && this.spec?.paused === true
+      enabled: !!this.links.update && this.spec?.paused === true
     });
 
     insertAt(out, 2, {
-      action:   'forceUpdate',
-      label:    'Force Update',
-      icon:     'icon icon-refresh',
+      action: 'forceUpdate',
+      label: 'Force Update',
+      icon: 'icon icon-refresh',
       bulkable: true,
-      enabled:  !!this.links.update
+      enabled: !!this.links.update
     });
 
     if (!this.isRke2) {
       insertAt(out, 3, {
-        action:     'assignTo',
-        label:      'Change workspace',
-        icon:       'icon icon-copy',
-        bulkable:   true,
+        action: 'assignTo',
+        label: 'Change workspace',
+        icon: 'icon icon-copy',
+        bulkable: true,
         bulkAction: 'assignToBulk',
-        enabled:    !!this.links.update && !!this.mgmt,
+        enabled: !!this.links.update && !!this.mgmt,
       });
     }
 
@@ -89,7 +89,7 @@ export default class FleetCluster extends SteveModel {
   }
 
   get state() {
-    if ( this.spec?.paused === true ) {
+    if (this.spec?.paused === true) {
       return 'paused';
     }
 
@@ -124,19 +124,64 @@ export default class FleetCluster extends SteveModel {
     return mgmt;
   }
 
-  get norman() {
-    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata.labels?.[FLEET_LABELS.CLUSTER_NAME]);
+  get basicNorman() {
+    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME]);
 
     return norman;
   }
 
+  get norman() {
+
+    if (this.basicNorman) {
+      return this.basicNorman;
+    }
+    // If navigate to YAML view directly, norman is not loaded yet
+    return (async () => {
+
+      return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.metadata.labels[FLEET_LABELS.CLUSTER_NAME] }, { root: true });
+
+    })()
+
+  }
+
+  async normanClone() {
+    const norman = await this.norman;
+
+    const nc = await this.$dispatch('rancher/clone', { resource: norman }, { root: true });
+
+    if (!nc.metadata) {
+      nc.metadata = {};
+    }
+
+    return nc
+  }
+
+
   get groupByLabel() {
     const name = this.metadata.namespace;
 
-    if ( name ) {
+    if (name) {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
+  }
+
+  async saveYaml(yaml) {
+    await this._saveYaml(yaml);
+
+    const parsed = jsyaml.load(yaml)
+
+    const norman = await this.normanClone();
+    norman.labels = {
+      ...parsed.metadata.labels
+    }
+    norman.annotations = {
+      ...parsed.metadata.annotations
+    }
+
+    await norman.save();
+
+
   }
 }
