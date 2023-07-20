@@ -23,8 +23,9 @@ export const VOLUME_PLUGINS = [
     value:    'rbd',
   },
   {
-    labelKey: 'persistentVolume.csi.label',
-    value:    'csi',
+    labelKey:  'persistentVolume.csi.label',
+    value:     'csi',
+    supported: true
   },
   {
     labelKey: 'persistentVolume.fc.label',
