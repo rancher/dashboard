@@ -1,8 +1,10 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+import PromptRemove from '~/cypress/e2e/po/prompts/promptRemove.po';
 
 const EXTENSION_NAME = 'clock';
-const PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
+const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
+const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
 
 describe('Extensions page', { tags: '@adminUser' }, () => {
   before(() => {
@@ -22,11 +24,12 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
   beforeEach(() => {
     cy.login();
-    ExtensionsPagePo.goTo();
   });
 
   it('using "Add Rancher Repositories" should add a new repository (Partners repo)', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
 
     // go to "add rancher repositories"
     extensionsPo.extensionMenuToggle();
@@ -41,11 +44,13 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     appRepoList.goTo();
     appRepoList.waitForPage();
-    appRepoList.sortableTable().rowElementWithName(PARTNERS_REPO_URL).should('exist');
+    appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_URL).should('exist');
   });
 
   it('Should disable and enable extension support', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
 
     // open menu and click on disable extension support
     extensionsPo.extensionMenuToggle();
@@ -71,25 +76,50 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
+    const appRepoList = new ReposListPagePo('local', 'apps');
+
+    // Ensure that the banner should be shown (by confirming that a required repo isn't there)
+    appRepoList.goTo();
+    appRepoList.waitForPage();
+    appRepoList.sortableTable().noRowsShouldNotExist();
+    appRepoList.sortableTable().rowNames().then((names) => {
+      if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
+        appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME).getMenuItem('Delete').click();
+        const promptRemove = new PromptRemove();
+
+        return promptRemove.remove();
+      }
+    });
+
+    // Now go to extensions (by nav, not page load....)
+    appRepoList.navToMenuEntry('Extensions');
+
     const extensionsPo = new ExtensionsPagePo();
 
-    extensionsPo.self().find('[data-testid="extensions-new-repos-banner-action-btn"]').click();
-    extensionsPo.self().find('[data-testid="extensions-new-repos-banner"]').should('not.exist');
+    extensionsPo.waitForPage();
+    extensionsPo.loading().should('not.exist');
+
+    extensionsPo.repoBanner().checkVisible();
+    extensionsPo.repoBanner().self().find('[data-testid="extensions-new-repos-banner-action-btn"]').click();
+    extensionsPo.repoBanner().checkNotExists();
 
     // let's refresh the page to make sure it doesn't appear again...
     extensionsPo.goTo();
     extensionsPo.waitForPage();
-    extensionsPo.title().should('contain', 'Extensions');
-    extensionsPo.self().find('[data-testid="extensions-new-repos-banner"]').should('not.exist');
+    extensionsPo.waitForTitle();
+    extensionsPo.loading().should('not.exist');
+    extensionsPo.repoBanner().checkNotExists();
   });
 
   it('Should toggle the extension details', () => {
     const extensionsPo = new ExtensionsPagePo();
 
+    extensionsPo.goTo();
+
     extensionsPo.extensionTabAvailableClick();
 
     // we should be on the extensions page
-    extensionsPo.title().should('contain', 'Extensions');
+    extensionsPo.waitForTitle();
 
     // show extension details
     extensionsPo.extensionCardClick(EXTENSION_NAME);
@@ -113,6 +143,8 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
   it('Should install an extension', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
 
     extensionsPo.extensionTabAvailableClick();
 
@@ -138,6 +170,8 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   it('Should update an extension version', () => {
     const extensionsPo = new ExtensionsPagePo();
 
+    extensionsPo.goTo();
+
     extensionsPo.extensionTabInstalledClick();
 
     // click on update button on card
@@ -157,6 +191,8 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   it('Should rollback an extension version', () => {
     const extensionsPo = new ExtensionsPagePo();
 
+    extensionsPo.goTo();
+
     extensionsPo.extensionTabInstalledClick();
 
     // click on the rollback button on card
@@ -175,6 +211,8 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
   it('Should uninstall an extension', () => {
     const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
 
     extensionsPo.extensionTabInstalledClick();
 
