@@ -37,6 +37,7 @@ export default class UserMenuPo extends ComponentPo {
     this.self().click();
     this.self().click();
     this.self().click();
+    this.self().click();
   }
 
   /**
