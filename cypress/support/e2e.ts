@@ -1,6 +1,8 @@
 import '@cypress/code-coverage/support';
 import './commands/commands';
 import './commands/rancher-api-commands.ts';
+// axe import for A11Y
+import 'cypress-axe';
 import registerCypressGrep from '@cypress/grep/src/support';
 
 registerCypressGrep();
