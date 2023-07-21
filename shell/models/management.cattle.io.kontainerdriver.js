@@ -15,7 +15,11 @@ export const KONTAINER_TO_DRIVER = {
   huaweicontainercloudengine:       'huaweicce', // Does this actually exist?
   huaweiengine:                     'huaweicce',
   linodekubernetesengine:           'linodelke', // Does this actually exist?
+  // for dev
+  lke:                              'linodelke',
   lkeengine:                        'linodelke',
+  // for dev
+  oke:                              'oracleoke',
   okeengine:                        'oracleoke',
   oraclecontainerengine:            'oracleoke', // Does this actually exist?
   rke2:                             'rke2',
@@ -66,6 +70,7 @@ export default class KontainerDriver extends HybridModel {
     return KONTAINER_TO_DRIVER[this.id] || this.id;
   }
 
+  // this covers the Open Telekom usecase + all of non-builtin cluster drivers
   get parsedDisplayName() {
     let parsedDisplayName = '';
 
@@ -75,6 +80,6 @@ export default class KontainerDriver extends HybridModel {
       parsedDisplayName = this.status?.displayName.toLowerCase();
     }
 
-    return parsedDisplayName;
+    return KONTAINER_TO_DRIVER[parsedDisplayName] || parsedDisplayName;
   }
 }
