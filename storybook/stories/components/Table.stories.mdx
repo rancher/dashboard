@@ -160,43 +160,6 @@ Loading status for the table.
 </Canvas>
 
 
-#### Sub rows
-
-Sub rows can be added to each row.
-
-<Canvas>
-  <Story
-    name="Sub rows"
-    args={{
-      headers,
-      rows,
-      subRows: true,
-    }}>
-    {Template.bind({})}
-  </Story>
-</Canvas>
-
-
-#### Expandeble Sub rows
-
-Sub rows can be optionally expanded.
-
-<Canvas>
-  <Story
-    name="Expandable Sub rows"
-    args={{
-      headers,
-      rows,
-      subRows: true,
-      subExpandable: true,
-    }}>
-    {Template.bind({})}
-  </Story>
-</Canvas>
-
-
-subRows
-
 #### Slots
 
 #### Custom Loading slot
@@ -308,8 +271,6 @@ Elements added in case of groupped rows using `groupBy`.
 </Canvas>
 
 
-
-
 #### Main Row 	slot
 
 <Canvas>
@@ -387,13 +348,36 @@ Elements added in case of groupped rows using `groupBy`.
 
 #### Sub Row slot
 
+Rows may have extra sub rows, but it's necessary to enable them by prop `subRows`.
+
 <Canvas>
   <Story
     name="Sub Row slot"
     args={{
       headers,
+      subRows: true,
       rows,
       subRowSlot: textSlotArea(`Sub row slot`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+
+#### Sub Row slot - Expandable
+
+Sub rows may be turned expandable row by enabling `subExpandable`.
+
+<Canvas>
+  <Story
+    name="Sub Row slot expandable"
+    args={{
+      headers,
+      subExpandable: true,
+      subRows: true,
+      subExpandColumn: true,
+      rows,
+      subRowSlot: textSlotArea(`Sub row slot expandable`)
     }}>
     {Template.bind({})}
   </Story>
