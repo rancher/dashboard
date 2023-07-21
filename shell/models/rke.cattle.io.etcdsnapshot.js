@@ -5,7 +5,7 @@ import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import { ucFirst } from '@shell/utils/string';
-import { STATES_ENUM } from 'plugins/dashboard-store/resource-class';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class EtcdBackup extends NormanModel {
   /**
