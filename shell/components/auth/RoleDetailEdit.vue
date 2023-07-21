@@ -579,6 +579,7 @@ export default {
             name="storageSource"
             :label="defaultLabel"
             class="mb-10"
+            data-testid="roletemplate-creator-default-options"
             :options="newUserDefaultOptions"
             :mode="mode"
           />
@@ -592,6 +593,7 @@ export default {
             name="storageSource"
             :label="t('rbac.roletemplate.locked.label')"
             class="mb-10"
+            data-testid="roletemplate-locked-options"
             :options="lockedOptions"
             :mode="mode"
           />

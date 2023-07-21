@@ -1,4 +1,4 @@
-import UsersAndAuthPo from '~/cypress/e2e/po/pages/users-and-auth/users-and-auth.po';
+import UsersPo from '~/cypress/e2e/po/pages/users-and-auth/users.po';
 import ClusterProjectMembersPo from '~/cypress/e2e/po/pages/explorer/cluster-project-members.po';
 
 const runTimestamp = +new Date();
@@ -9,7 +9,7 @@ const standardPassword = 'standard-password';
 
 describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
   it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
-    const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
+    const usersAdmin = new UsersPo('_', 'management.cattle.io.user');
 
     // this will login as admin
     cy.login();

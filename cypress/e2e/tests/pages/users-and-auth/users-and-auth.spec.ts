@@ -1,10 +1,11 @@
-import UsersAndAuthPo from '~/cypress/e2e/po/pages/users-and-auth/users-and-auth.po';
+import UsersPo from '~/cypress/e2e/po/pages/users-and-auth/users.po';
+import RolesPo from '@/cypress/e2e/po/pages/users-and-auth/roles.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 
-const userRoles = new UsersAndAuthPo('_', 'roles', undefined);
-const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user', undefined);
+const globalRoles = new RolesPo('_', '#GLOBAL', undefined);
+const usersAdmin = new UsersPo('_', 'management.cattle.io.user', undefined);
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -12,6 +13,7 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 const standardUsername = `${ runPrefix }-standard-user`;
 const standardPassword = 'standardUser-password';
 const userBaseUsername = `${ runPrefix }-userBase-user`;
+const globalRoleName = `${ runPrefix }-my-global-role`;
 
 let userId: string;
 
@@ -84,7 +86,7 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
         usersAdmin.waitForPage();
         usersAdmin.listDetails(standardUsername, 2).find('a').click();
 
-        const userDetails = new UsersAndAuthPo('_', 'management.cattle.io.user', userId);
+        const userDetails = new UsersPo('_', 'management.cattle.io.user', userId);
 
         userDetails.waitForPage();
         cy.contains(`User: ${ standardUsername }`);
@@ -124,14 +126,14 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
 
       it('can Edit Config', () => {
         // Edit user and make sure edit is saved
-        const userEdit = new UsersAndAuthPo('_', 'management.cattle.io.user', userId);
+        const userEdit = new UsersPo('_', 'management.cattle.io.user', userId);
 
-        usersAdmin.goTo();
+        usersAdmin.waitForRequests();
         usersAdmin.clickRowActionMenuItem(standardUsername, 'Edit Config');
         userEdit.waitForPage('mode=edit');
         cy.contains(`User: ${ standardUsername }`);
         usersAdmin.description().set('e2e_test');
-        userRoles.saveAndWaitForRequests('PUT', `/v3/users/${ userId }`).then((res) => {
+        usersAdmin.saveAndWaitForRequests('PUT', `/v3/users/${ userId }`).then((res) => {
           expect(res.response?.statusCode).to.equal(200);
           expect(res.response?.body.description).to.equal('e2e_test');
         });
@@ -139,7 +141,7 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
 
       it('can View YAML', () => {
         // View YAML and verify user lands on correct page
-        const viewYaml = new UsersAndAuthPo('_', 'management.cattle.io.user', userId);
+        const viewYaml = new UsersPo('_', 'management.cattle.io.user', userId);
 
         usersAdmin.goTo();
         usersAdmin.clickRowActionMenuItem(standardUsername, 'View YAML');
@@ -228,20 +230,144 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
   });
 
   describe('Role Templates', () => {
+    it('can create a Global Role', () => {
+      // create global role
+      globalRoles.goTo();
+      globalRoles.waitForPage();
+      globalRoles.listCreate('Create Global Role');
+
+      const createGlobalRole = new RolesPo('_', '/management.cattle.io.globalrole/create', undefined);
+
+      createGlobalRole.waitForPage('roleContext=GLOBAL', 'grant-resources');
+      globalRoles.name().set(globalRoleName);
+      globalRoles.description().set('e2e-description');
+      globalRoles.selectCreatorDefaultRadioBtn(0);
+      globalRoles.selectVerbs(0, 3);
+      globalRoles.selectVerbs(0, 4);
+      globalRoles.selectResourcesByLabelValue(0, 'GlobalRoles');
+      globalRoles.saveAndWaitForRequests('POST', '/v3/globalroles').then((res) => {
+        const globalRoleId = res.response?.body.id;
+
+        // view role details
+        globalRoles.goTo();
+        globalRoles.waitForPage();
+        globalRoles.listDetails(globalRoleName, 2).find('a').click();
+
+        const globalRoleDetails = new RolesPo('_', 'management.cattle.io.globalrole', globalRoleId);
+
+        globalRoleDetails.waitForPage();
+        cy.contains(`GlobalRole: ${ globalRoleName }`);
+      });
+    });
+
+    it('can create a Cluster Role', () => {
+      const clusterRoles = new RolesPo('_', '#CLUSTER', undefined);
+      const clusterRoleName = `${ runPrefix }-my-cluster-role`;
+
+      // create cluster role
+      clusterRoles.goTo();
+      clusterRoles.waitForPage();
+      clusterRoles.listCreate('Create Cluster Role');
+
+      const createClusterRole = new RolesPo('_', '/management.cattle.io.roletemplate/create', undefined);
+
+      createClusterRole.waitForPage('roleContext=CLUSTER', 'grant-resources');
+      clusterRoles.name().set(clusterRoleName);
+      clusterRoles.description().set('e2e-description');
+      clusterRoles.selectCreatorDefaultRadioBtn(0);
+      clusterRoles.selectLockedRadioBtn(0);
+      clusterRoles.selectVerbs(0, 3);
+      clusterRoles.selectVerbs(0, 4);
+      clusterRoles.selectResourcesByLabelValue(0, 'ClusterRoles');
+      clusterRoles.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
+        const clusterRoleId = res.response?.body.id;
+
+        // view role details
+        clusterRoles.goTo();
+        clusterRoles.waitForPage();
+        clusterRoles.listDetails(clusterRoleName, 2).find('a').click();
+
+        const clusterRoleDetails = new RolesPo('_', 'management.cattle.io.roletemplate', clusterRoleId);
+
+        clusterRoleDetails.waitForPage();
+        cy.contains(`RoleTemplate: Cluster - ${ clusterRoleName }`);
+      });
+    });
+
+    it('can create a Project/Namespaces', () => {
+      const projectRoles = new RolesPo('_', '#NAMESPACE', undefined);
+      const projectRoleName = `${ runPrefix }-my-project-role`;
+
+      // create project role
+      projectRoles.goTo();
+      projectRoles.waitForPage();
+      projectRoles.listCreate('Create Project/Namespaces Role');
+
+      const createProjectRole = new RolesPo('_', '/management.cattle.io.roletemplate/create', undefined);
+
+      createProjectRole.waitForPage('roleContext=NAMESPACE', 'grant-resources');
+      projectRoles.name().set(projectRoleName);
+      projectRoles.description().set('e2e-description');
+      projectRoles.selectCreatorDefaultRadioBtn(0);
+      projectRoles.selectLockedRadioBtn(0);
+      projectRoles.selectVerbs(0, 3);
+      projectRoles.selectVerbs(0, 4);
+      projectRoles.selectResourcesByLabelValue(0, 'Namespaces');
+      projectRoles.saveAndWaitForRequests('POST', '/v3/roletemplates').then((res) => {
+        const projectRoleId = res.response?.body.id;
+
+        // view role details
+        projectRoles.goTo();
+        projectRoles.waitForPage();
+        projectRoles.listDetails(projectRoleName, 2).find('a').click();
+
+        const clusterRoleDetails = new RolesPo('_', 'management.cattle.io.roletemplate', projectRoleId);
+
+        clusterRoleDetails.waitForPage();
+        cy.contains(`RoleTemplate: Project/Namespaces - ${ projectRoleName }`);
+      });
+    });
+
+    it('can Download YAML', () => {
+      // Download YAML and verify file exists
+
+      globalRoles.waitForRequests();
+      globalRoles.listElementWithName(globalRoleName).click();
+      cy.intercept('GET', '/v1/management.cattle.io.globalroles/*').as('downloadYaml');
+      globalRoles.listDownloadYaml().click();
+      cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+      const downloadedFilename = path.join(downloadsFolder, `${ globalRoleName }.yaml`);
+
+      cy.readFile(downloadedFilename).should('exist');
+    });
+
+    it('can delete a role', () => {
+      // Delete role and verify role is removed from list
+      globalRoles.waitForRequests();
+      globalRoles.listElementWithName(globalRoleName).click();
+      globalRoles.listDelete().click();
+      const promptRemove = new PromptRemove();
+
+      cy.intercept('DELETE', '/v3/globalRoles/*').as('deleteRole');
+      promptRemove.remove();
+      cy.wait('@deleteRole').its('response.statusCode').should('eq', 200);
+      globalRoles.listElementWithName(globalRoleName).should('not.exist');
+    });
+
     it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
       const customRoleName = `${ runPrefix }-my-custom-role`;
       const standardUsername = `${ runPrefix }-standard-user-e2e`;
       const standardPassword = 'standard-password';
 
       // create global role
-      userRoles.goTo();
-      userRoles.listCreate();
+      globalRoles.goTo();
+      globalRoles.listCreate('Create Global Role');
 
-      userRoles.name().set(customRoleName);
-      userRoles.selectVerbs(0, 3);
-      userRoles.selectVerbs(0, 4);
-      userRoles.selectResourcesByLabelValue(0, 'GlobalRoles');
-      userRoles.saveAndWaitForRequests('POST', '/v3/globalroles');
+      globalRoles.name().set(customRoleName);
+      globalRoles.selectVerbs(0, 3);
+      globalRoles.selectVerbs(0, 4);
+      globalRoles.selectResourcesByLabelValue(0, 'GlobalRoles');
+      globalRoles.saveAndWaitForRequests('POST', '/v3/globalroles');
 
       // create standard user
       usersAdmin.goTo();
@@ -265,9 +391,9 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       cy.login(standardUsername, standardPassword);
 
       // navigate to the roles page and make sure user can see it
-      userRoles.goTo();
-      userRoles.listTitle().should('contain', 'Role Templates');
-      userRoles.listElements().should('have.length.of.at.least', 1);
+      globalRoles.goTo();
+      globalRoles.listTitle().should('contain', 'Role Templates');
+      globalRoles.listElements().should('have.length.of.at.least', 1);
 
       // navigate to the users page and make sure user can see it
       usersAdmin.waitForRequests();

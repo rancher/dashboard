@@ -63,6 +63,10 @@ export default class SortableTablePo extends ComponentPo {
     return cy.getId('sortable-table-activate');
   }
 
+  downloadYamlButton() {
+    return cy.getId('sortable-table-download');
+  }
+
   selectedCountText() {
     return cy.get('.action-availability');
   }

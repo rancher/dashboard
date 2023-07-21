@@ -6,56 +6,42 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
 import { CypressChainable } from '~/cypress/e2e/po/po.types';
+import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
 
-export default class UsersAndAuthPo extends PagePo {
-  private static createPath(clusterId: string, resource: string, userId?: string) {
-    return (userId ? `/c/${ clusterId }/auth/${ resource }/${ userId }` : `/c/${ clusterId }/auth/${ resource }`);
+export default class RolesPo extends PagePo {
+  private static createPath(clusterId: string, resource: string, roleId?: string) {
+    return (roleId ? `/c/${ clusterId }/auth/roles/${ resource }/${ roleId }` : `/c/${ clusterId }/auth/roles${ resource }`);
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = '_', resource = 'management.cattle.io.user', userId?: string) {
-    super(UsersAndAuthPo.createPath(clusterId, resource, userId));
+  constructor(clusterId = '_', resource: string, roleId?: string) {
+    super(RolesPo.createPath(clusterId, resource, roleId));
   }
 
   waitForRequests() {
-    UsersAndAuthPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0']);
+    RolesPo.goToAndWaitForGet(this.goTo.bind(this), ['/v1/management.cattle.io.roletemplates?exclude=metadata.managedFields']);
   }
 
-  listCreate() {
+  listCreate(label: string) {
     const baseResourceList = new BaseResourceList(this.self());
 
-    return baseResourceList.masthead().actions().eq(0).click();
+    return baseResourceList.masthead().actions().contains(label)
+      .click();
   }
 
-  listRefreshGroupMembership(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
-  }
-
-  listDeactivate() {
+  listDownloadYaml() {
     const baseResourceList = new BaseResourceList(this.self());
 
-    return baseResourceList.resourceTable().sortableTable().deactivateButton();
+    return baseResourceList.resourceTable().sortableTable().downloadYamlButton().first();
   }
 
-  listActivate() {
+  listDelete() {
     const baseResourceList = new BaseResourceList(this.self());
 
-    return baseResourceList.resourceTable().sortableTable().activateButton();
-  }
-
-  openBulkActionDropdown() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().bulkActionDropDownOpen();
-  }
-
-  bulkActionButton(name: string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().bulkActionDropDownButton(name);
+    return baseResourceList.resourceTable().sortableTable().deleteButton().first();
   }
 
   selectAll() {
@@ -99,20 +85,8 @@ export default class UsersAndAuthPo extends PagePo {
     return LabeledInputPo.byLabel(this.self(), 'Name');
   }
 
-  username(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Username');
-  }
-
   description(): LabeledInputPo {
     return LabeledInputPo.byLabel(this.self(), 'Description');
-  }
-
-  newPass(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'New Password');
-  }
-
-  confirmNewPass(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Confirm Password');
   }
 
   selectCheckbox(label:string): CheckboxInputPo {
@@ -123,11 +97,11 @@ export default class UsersAndAuthPo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  saveAndWaitForRequests(method: string, url: any, multipleCalls?: boolean): CypressChainable {
-    cy.intercept(method, url).as('requestUrl');
+  saveAndWaitForRequests(method: string, url: any): CypressChainable {
+    cy.intercept(method, url).as('request');
     this.saveCreateForm().click();
 
-    return (multipleCalls ? cy.wait(['@requestUrl', '@requestUrl'], { timeout: 10000 }) : cy.wait('@requestUrl', { timeout: 10000 }));
+    return cy.wait('@request', { timeout: 10000 });
   }
 
   selectVerbs(itemRow: number, optionIndex: number) {
@@ -142,5 +116,17 @@ export default class UsersAndAuthPo extends PagePo {
 
     selectResources.toggle();
     selectResources.clickOptionWithLabel(label);
+  }
+
+  selectCreatorDefaultRadioBtn(optionIndex: number): CypressChainable {
+    const selectRadio = new RadioGroupInputPo('[data-testid="roletemplate-creator-default-options"] div > .radio-container', this.self());
+
+    return selectRadio.set(optionIndex);
+  }
+
+  selectLockedRadioBtn(optionIndex: number): CypressChainable {
+    const selectRadio = new RadioGroupInputPo('[data-testid="roletemplate-locked-options"] div > .radio-container', this.self());
+
+    return selectRadio.set(optionIndex);
   }
 }
