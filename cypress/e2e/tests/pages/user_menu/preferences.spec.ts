@@ -276,7 +276,7 @@ describe('User can update their preferences', () => {
     prefPage.scalingDownPromptCheckbox().isUnchecked();
   });
 
-  it.only('Can select Enable "View in API"', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('Can select Enable "View in API"', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox and verify 'View in API' is enabled
     Deselect the checkbox and verify 'View in API' is hidden
