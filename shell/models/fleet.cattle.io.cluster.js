@@ -4,6 +4,7 @@ import { _RKE2 } from '@shell/store/prefs';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml } from '@shell/utils/string';
 import { insertAt } from '@shell/utils/array';
+import jsyaml from 'js-yaml';
 
 export default class FleetCluster extends SteveModel {
   get _availableActions() {
