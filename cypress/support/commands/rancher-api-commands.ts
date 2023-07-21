@@ -1,6 +1,8 @@
 import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
-import { Matcher } from '@/cypress/support/types';
 import { CreateUserParams } from '@/cypress/globals';
+
+// This file contains commands which makes API requests to the rancher API.
+// It includes the `login` command to store the `token` to use
 
 let token: any;
 
@@ -164,7 +166,7 @@ Cypress.Commands.add('setClusterRoleBinding', (clusterId, userPrincipalId, role)
  *
  */
 Cypress.Commands.add('setProjectRoleBinding', (clusterId, userPrincipalId, projectName, role) => {
-  return cy.getProject(clusterId, projectName)
+  return cy.getProjectByName(clusterId, projectName)
     .then((project: any) => cy.request({
       method:  'POST',
       url:     `${ Cypress.env('api') }/v3/projectroletemplatebindings`,
@@ -187,7 +189,7 @@ Cypress.Commands.add('setProjectRoleBinding', (clusterId, userPrincipalId, proje
 /**
  * Get the project with the given name
  */
-Cypress.Commands.add('getProject', (clusterId, projectName) => {
+Cypress.Commands.add('getProjectByName', (clusterId, projectName) => {
   return cy.request({
     method:  'GET',
     url:     `${ Cypress.env('api') }/v3/projects?name=${ projectName }&clusterId=${ clusterId }`,
@@ -202,27 +204,6 @@ Cypress.Commands.add('getProject', (clusterId, projectName) => {
 
       return resp.body.data[0];
     });
-});
-
-/**
- * Get input field for given label
- */
-Cypress.Commands.add('byLabel', (label) => {
-  return cy.get('.labeled-input').contains(label).siblings('input');
-});
-
-/**
- * Wrap the cy.find() command to simplify the selector declaration of the data-testid
- */
-Cypress.Commands.add('findId', (id: string, matcher?: Matcher = '') => {
-  return cy.find(`[data-testid${ matcher }="${ id }"]`);
-});
-
-/**
- * Wrap the cy.get() command to simplify the selector declaration of the data-testid
- */
-Cypress.Commands.add('getId', (id: string, matcher?: Matcher = '') => {
-  return cy.get(`[data-testid${ matcher }="${ id }"]`);
 });
 
 /**
@@ -271,32 +252,41 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
     });
 });
 
-Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
-  for (let i = 0; i < count; i++) {
-    cy.get('body').trigger('keydown', triggerKeys);
-  }
+/**
+ * Get a v3 / v1 resource
+ */
+Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId, expectedStatusCode = 200) => {
+  return cy.request({
+    method:  'GET',
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+  })
+    .then((resp) => {
+      if (expectedStatusCode) {
+        expect(resp.status).to.eq(expectedStatusCode);
+      }
+
+      return resp;
+    });
 });
 
 /**
- * Intercept all requests and return
- * @param {array} intercepts - Array of intercepts to return
- * return {array} - Array of intercepted request strings
- * return {string} - Intercepted request string
+ * set a v3 / v1 resource
  */
-Cypress.Commands.add('interceptAllRequests', (method = '/GET/POST/PUT/PATCH/', urls = ['/v1/*']) => {
-  const interceptedUrls: string[] = urls.map((cUrl, i) => {
-    cy.intercept(method, cUrl).as(`interceptAllRequests${ i }`);
-
-    return `@interceptAllRequests${ i }`;
-  });
-
-  return cy.wrap(interceptedUrls);
-});
-
-Cypress.Commands.add('iFrame', () => {
-  return cy
-    .get('[data-testid="ember-iframe"]', { log: false })
-    .its('0.contentDocument.body', { log: false })
-    .should('not.be.empty')
-    .then((body) => cy.wrap(body));
+Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, body) => {
+  return cy.request({
+    method:  'PUT',
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+    body
+  })
+    .then((resp) => {
+      expect(resp.status).to.eq(200);
+    });
 });

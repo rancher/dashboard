@@ -76,6 +76,22 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
   });
 
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
+    cy.getRancherResource('v3', 'setting', 'display-add-extension-repos-banner', null).then((resp: Cypress.Response<any>) => {
+      const notFound = resp.status === 404;
+      const requiredValue = resp.body?.value === 'true';
+
+      if (notFound || requiredValue) {
+        cy.log('Good test state', '/v3/setting/display-add-extension-repos-banner', resp.status, JSON.stringify(resp?.body || {}));
+      } else {
+        cy.log('Bad test state', '/v3/setting/display-add-extension-repos-banner', resp.status, JSON.stringify(resp?.body || {}));
+
+        return cy.setRancherResource('v3', 'setting', 'display-add-extension-repos-banner', {
+          ...resp.body,
+          value: 'true'
+        });
+      }
+    });
+
     const appRepoList = new ReposListPagePo('local', 'apps');
 
     // Ensure that the banner should be shown (by confirming that a required repo isn't there)
