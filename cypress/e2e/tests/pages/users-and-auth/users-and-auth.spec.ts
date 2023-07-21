@@ -249,7 +249,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
         const globalRoleId = res.response?.body.id;
 
         // view role details
-        globalRoles.goTo();
         globalRoles.waitForPage();
         globalRoles.listDetails(globalRoleName, 2).find('a').click();
 
@@ -283,7 +282,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
         const clusterRoleId = res.response?.body.id;
 
         // view role details
-        clusterRoles.goTo();
         clusterRoles.waitForPage();
         clusterRoles.listDetails(clusterRoleName, 2).find('a').click();
 
@@ -317,7 +315,6 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
         const projectRoleId = res.response?.body.id;
 
         // view role details
-        projectRoles.goTo();
         projectRoles.waitForPage();
         projectRoles.listDetails(projectRoleName, 2).find('a').click();
 
