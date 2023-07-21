@@ -10,37 +10,37 @@ export default class FleetCluster extends SteveModel {
     const out = super._availableActions;
 
     insertAt(out, 0, {
-      action: 'pause',
-      label: 'Pause',
-      icon: 'icon icon-pause',
+      action:   'pause',
+      label:    'Pause',
+      icon:     'icon icon-pause',
       bulkable: true,
-      enabled: !!this.links.update && !this.spec?.paused
+      enabled:  !!this.links.update && !this.spec?.paused
     });
 
     insertAt(out, 1, {
-      action: 'unpause',
-      label: 'Unpause',
-      icon: 'icon icon-play',
+      action:   'unpause',
+      label:    'Unpause',
+      icon:     'icon icon-play',
       bulkable: true,
-      enabled: !!this.links.update && this.spec?.paused === true
+      enabled:  !!this.links.update && this.spec?.paused === true
     });
 
     insertAt(out, 2, {
-      action: 'forceUpdate',
-      label: 'Force Update',
-      icon: 'icon icon-refresh',
+      action:   'forceUpdate',
+      label:    'Force Update',
+      icon:     'icon icon-refresh',
       bulkable: true,
-      enabled: !!this.links.update
+      enabled:  !!this.links.update
     });
 
     if (!this.isRke2) {
       insertAt(out, 3, {
-        action: 'assignTo',
-        label: 'Change workspace',
-        icon: 'icon icon-copy',
-        bulkable: true,
+        action:     'assignTo',
+        label:      'Change workspace',
+        icon:       'icon icon-copy',
+        bulkable:   true,
         bulkAction: 'assignToBulk',
-        enabled: !!this.links.update && !!this.mgmt,
+        enabled:    !!this.links.update && !!this.mgmt,
       });
     }
 
@@ -131,17 +131,14 @@ export default class FleetCluster extends SteveModel {
   }
 
   get norman() {
-
     if (this.basicNorman) {
       return this.basicNorman;
     }
+
     // If navigate to YAML view directly, norman is not loaded yet
-    return (async () => {
-
+    return (async() => {
       return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.metadata.labels[FLEET_LABELS.CLUSTER_NAME] }, { root: true });
-
-    })()
-
+    })();
   }
 
   async normanClone() {
@@ -153,9 +150,8 @@ export default class FleetCluster extends SteveModel {
       nc.metadata = {};
     }
 
-    return nc
+    return nc;
   }
-
 
   get groupByLabel() {
     const name = this.metadata.namespace;
@@ -170,18 +166,13 @@ export default class FleetCluster extends SteveModel {
   async saveYaml(yaml) {
     await this._saveYaml(yaml);
 
-    const parsed = jsyaml.load(yaml)
+    const parsed = jsyaml.load(yaml);
 
     const norman = await this.normanClone();
-    norman.labels = {
-      ...parsed.metadata.labels
-    }
-    norman.annotations = {
-      ...parsed.metadata.annotations
-    }
+
+    norman.labels = { ...parsed.metadata.labels };
+    norman.annotations = { ...parsed.metadata.annotations };
 
     await norman.save();
-
-
   }
 }
