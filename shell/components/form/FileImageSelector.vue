@@ -3,6 +3,8 @@ import LazyImage from '@shell/components/LazyImage';
 import FileSelector from '@shell/components/form/FileSelector';
 import { _VIEW } from '@shell/config/query-params';
 
+import { IMAGE_TYPE } from '@shell/utils/fileTypes';
+
 export default {
   components: { FileSelector, LazyImage },
   props:      {
@@ -35,6 +37,9 @@ export default {
   computed: {
     isView() {
       return this.mode === _VIEW;
+    },
+    getImageType() {
+      return IMAGE_TYPE;
     }
   },
   methods: {
@@ -44,6 +49,9 @@ export default {
      */
     setIcon(event) {
       this.$emit('input', event);
+    },
+    setError(error) {
+      this.$emit('error', error);
     }
   }
 };
@@ -58,7 +66,9 @@ export default {
     :read-as-data-url="true"
     :byte-limit="byteLimit"
     :label="label"
+    :fileType="getImageType"
     @selected="setIcon"
+    @error="setError"
   />
 
   <div

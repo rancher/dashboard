@@ -4,7 +4,7 @@ import ColorInput from '@shell/components/form/ColorInput';
 import TypeDescription from '@shell/components/TypeDescription';
 
 import { Checkbox } from '@components/Form/Checkbox';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileImageSelector from '@shell/components/form/FileImageSelector';
 import SimpleBox from '@shell/components/SimpleBox';
 import Loading from '@shell/components/Loading';
 import AsyncButton from '@shell/components/AsyncButton';
@@ -23,7 +23,7 @@ export default {
   layout: 'authenticated',
 
   components: {
-    LabeledInput, Checkbox, FileSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, TypeDescription
+    LabeledInput, Checkbox, FileImageSelector, Loading, SimpleBox, AsyncButton, Banner, ColorInput, TypeDescription
   },
 
   async fetch() {
@@ -222,14 +222,14 @@ export default {
       >
         <div class="col logo-container span-6">
           <div class="mb-10">
-            <FileSelector
+            <FileImageSelector
               :byte-limit="20000"
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.logos.uploadLight')"
               :mode="mode"
               @error="setError"
-              @selected="updateLogo($event, 'uiLogoLight')"
+              @input="updateLogo($event, 'uiLogoLight')"
             />
           </div>
           <SimpleBox
@@ -245,14 +245,14 @@ export default {
         </div>
         <div class="col logo-container span-6">
           <div class="mb-10">
-            <FileSelector
+            <FileImageSelector
               :byte-limit="20000"
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.logos.uploadDark')"
               :mode="mode"
               @error="setError"
-              @selected="updateLogo($event, 'uiLogoDark')"
+              @input="updateLogo($event, 'uiLogoDark')"
             />
           </div>
           <SimpleBox
@@ -289,14 +289,14 @@ export default {
       >
         <div class="col logo-container span-12">
           <div class="mb-10">
-            <FileSelector
+            <FileImageSelector
               :byte-limit="20000"
               :read-as-data-url="true"
               class="role-secondary"
               :label="t('branding.favicon.upload')"
               :mode="mode"
               @error="setError"
-              @selected="updateLogo($event, 'uiFavicon')"
+              @input="updateLogo($event, 'uiFavicon')"
             />
           </div>
           <SimpleBox v-if="uiFavicon">
