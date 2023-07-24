@@ -1,37 +1,28 @@
-<script lang="ts">
-import { defineComponent, computed } from 'vue';
+<script setup lang="ts">
+import { computed } from 'vue';
 
 type Props = {
-  primary: boolean;
-  secondary: boolean;
-  tertiary: boolean;
-};
+  primary?: boolean;
+  secondary?: boolean;
+  tertiary?: boolean;
+}
 
-export default defineComponent({
-  props: {
-    primary:   Boolean,
-    secondary: Boolean,
-    tertiary:  Boolean,
-  },
-  setup(props) {
-    const buttonRoles = [
-      { role: 'primary', className: 'role-primary' },
-      { role: 'secondary', className: 'role-secondary' },
-      { role: 'tertiary', className: 'role-tertiary' },
-    ];
+const buttonRoles = [
+  { role: 'primary', className: 'role-primary' },
+  { role: 'secondary', className: 'role-secondary' },
+  { role: 'tertiary', className: 'role-tertiary' },
+];
 
-    const buttonClass = computed(() => {
-      const activeRole = buttonRoles.find(({ role }) => props[role as keyof Props]);
+const props = defineProps<Props>();
 
-      return {
-        btn: true,
+const buttonClass = computed(() => {
+  const activeRole = buttonRoles.find(({ role }) => props[role as keyof Props]);
 
-        [activeRole?.className || 'role-primary']: true,
-      };
-    });
+  return {
+    btn: true,
 
-    return { props, buttonClass };
-  },
+    [activeRole?.className || 'role-primary']: true,
+  };
 });
 </script>
 
