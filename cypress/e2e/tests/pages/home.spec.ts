@@ -16,7 +16,7 @@ describe('Home Page', () => {
 
   it('Can navigate to What\'s new page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
-     * Verify changlog banner is hidden after clicking link
+     * Verify changelog banner is hidden after clicking link
      * Verify release notes link is valid github page
      */
     const text: string[] = [];
@@ -128,7 +128,7 @@ describe('Home Page', () => {
     const clusterManagerPage = new ClusterManagerListPagePo('_');
     const genericCreateClusterPage = new ClusterManagerImportGenericPagePo('_');
 
-    homePage.manangeButton().click();
+    homePage.manageButton().click();
     clusterManagerPage.waitForPage();
 
     HomePagePo.goToAndWaitForGet();

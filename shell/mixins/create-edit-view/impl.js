@@ -65,9 +65,9 @@ export default {
 
       let name = this.$route.name;
 
-      if ( name.endsWith('-id') ) {
+      if ( name?.endsWith('-id') ) {
         name = name.replace(/(-namespace)?-id$/, '');
-      } else if ( name.endsWith('-create') ) {
+      } else if ( name?.endsWith('-create') ) {
         name = name.replace(/-create$/, '');
       }
 
