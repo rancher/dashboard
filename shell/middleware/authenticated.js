@@ -126,7 +126,7 @@ function setProduct(store, to, redirect) {
  */
 function invalidResource(store, to, redirect) {
   const product = store.getters['currentProduct'];
-  const inStore = product?.inStore;
+  const inStore = store.getters['currentStore'];
   const schemaFor = store.getters[`${ inStore }/schemaFor`]; // There's a chance we're in an extension's product who's store could be anything
   const resource = getResourceFromRoute(to);
 
@@ -134,7 +134,6 @@ function invalidResource(store, to, redirect) {
   if (!product || !inStore || !schemaFor || !resource) {
     return false;
   }
-
   // Resource is valid if a schema exists for it (standard resource, spoofed resource) or it's a virtual resource
   const validResource = schemaFor(resource) || store.getters['type-map/isVirtual'](resource);
 
