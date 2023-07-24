@@ -1,7 +1,7 @@
 import { WorkloadsDeploymentsListPagePo, WorkloadsDeploymentsCreatePagePo, WorkloadsDeploymentsDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
 import { createDeploymentBlueprint, deploymentCreateRequest } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployment-create';
 
-describe('Cluster Explorer', { tags: ['@adminUser'] }, () => {
+describe('Cluster Explorer', () => {
   beforeEach(() => {
     cy.login();
   });
@@ -17,7 +17,7 @@ describe('Cluster Explorer', { tags: ['@adminUser'] }, () => {
       deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
     });
 
-    describe('Create: Deployments', () => {
+    describe('Create: Deployments', { tags: ['@adminUser'] },  () => {
       beforeEach(() => {
         cy.interceptAllRequests('POST');
       });
@@ -42,7 +42,7 @@ describe('Cluster Explorer', { tags: ['@adminUser'] }, () => {
       });
     });
 
-    describe('Update: Deployments', () => {
+    describe('Update: Deployments', { tags: ['@adminUser'] }, () => {
       const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(workloadName);
 
@@ -63,7 +63,7 @@ describe('Cluster Explorer', { tags: ['@adminUser'] }, () => {
       });
     });
 
-    describe('List: Deployments', () => {
+    describe('List: Deployments', { tags: ['@adminUser', '@standardUser'] }, () => {
       // To reduce test runtime, will use the same workload for all the tests
       it('Should list the workloads', () => {
         deploymentsListPage.goTo();
@@ -73,7 +73,7 @@ describe('Cluster Explorer', { tags: ['@adminUser'] }, () => {
       });
     });
 
-    describe('Delete: Deployments', () => {
+    describe('Delete: Deployments', { tags: ['@adminUser'] }, () => {
       const deploymentName = deploymentCreateRequest.metadata.name;
 
       // To reduce test runtime, will use the same workload for all the tests
