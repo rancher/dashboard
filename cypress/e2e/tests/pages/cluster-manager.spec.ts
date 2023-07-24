@@ -1,3 +1,5 @@
+import { isMatch } from 'lodash';
+
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import ClusterManagerDetailRke2CustomPagePo from '@/cypress/e2e/po/detail/provisioning.cattle.io.cluster/cluster-detail-rke2-custom.po';
@@ -16,6 +18,8 @@ const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
 
 // File specific consts
+const namespace = 'fleet-default';
+const type = 'provisioning.cattle.io.cluster';
 const clusterNamePartial = `${ runPrefix }-create`;
 const rke1CustomName = `${ clusterNamePartial }-rke1-custom`;
 const rke2CustomName = `${ clusterNamePartial }-rke2-custom`;
@@ -23,7 +27,7 @@ const importGenericName = `${ clusterNamePartial }-import-generic`;
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', () => {
+describe('Cluster Manager', { tags: '@adminUser' }, () => {
   const clusterList = new ClusterManagerListPagePo('local');
 
   beforeEach(() => {
@@ -38,6 +42,15 @@ describe('Cluster Manager', () => {
       const editCreatedClusterPage = new ClusterManagerEditRke2CustomPagePo(rke2CustomName);
 
       it('can create new cluster', () => {
+        cy.intercept('POST', `/v1/${ type }s`).as('createRequest');
+        const request = {
+          type,
+          metadata: {
+            namespace,
+            name: rke2CustomName
+          },
+        };
+
         cy.userPreferences();
 
         clusterList.goTo();
@@ -50,6 +63,11 @@ describe('Cluster Manager', () => {
         createRKE2ClusterPage.selectCustom(0);
         createRKE2ClusterPage.nameNsDescription().name().set(rke2CustomName);
         createRKE2ClusterPage.create();
+
+        cy.wait('@createRequest').then((intercept) => {
+          // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
+          expect(isMatch(intercept.request.body, request)).to.equal(true);
+        });
 
         detailRKE2ClusterPage.waitForPage(undefined, 'registration');
       });
@@ -102,7 +120,7 @@ describe('Cluster Manager', () => {
         clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
-        clusterList.sortableTable().rowNames().then((rows: any) => {
+        clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
           const promptRemove = new PromptRemove();
 
           promptRemove.confirm(rke2CustomName);
@@ -110,7 +128,7 @@ describe('Cluster Manager', () => {
 
           clusterList.waitForPage();
           clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-          clusterList.sortableTable().rowNames().should('not.contain', rke2CustomName);
+          clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', rke2CustomName);
         });
       });
     });
@@ -192,13 +210,15 @@ describe('Cluster Manager', () => {
   });
 
   describe('Imported', () => {
-    const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const importClusterPage = new ClusterManagerImportGenericPagePo('local');
 
     describe('Generic', () => {
       const editImportedClusterPage = new ClusterManagerEditGenericPagePo(importGenericName);
 
       it('can create new cluster', () => {
         const detailClusterPage = new ClusterManagerDetailImportedGenericPagePo(importGenericName);
+
+        cy.intercept('POST', `/v1/${ type }s`).as('importRequest');
 
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -208,6 +228,17 @@ describe('Cluster Manager', () => {
         importClusterPage.selectGeneric(0);
         importClusterPage.nameNsDescription().name().set(importGenericName);
         importClusterPage.create();
+
+        cy.wait('@importRequest').then((intercept) => {
+          expect(intercept.request.body).to.deep.equal({
+            type,
+            metadata: {
+              namespace,
+              name: importGenericName
+            },
+            spec: {}
+          });
+        });
 
         detailClusterPage.waitForPage(undefined, 'registration');
       });
@@ -226,7 +257,7 @@ describe('Cluster Manager', () => {
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
 
-        clusterList.sortableTable().rowNames().then((rows: any) => {
+        clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
           const promptRemove = new PromptRemove();
 
           promptRemove.confirm(importGenericName);
@@ -234,7 +265,7 @@ describe('Cluster Manager', () => {
 
           clusterList.waitForPage();
           clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-          clusterList.sortableTable().rowNames().should('not.contain', importGenericName);
+          clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', importGenericName);
         });
       });
     });

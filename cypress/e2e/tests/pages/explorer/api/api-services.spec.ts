@@ -1,6 +1,6 @@
 import { APIServicesPagePo } from '@/cypress/e2e/po/pages/explorer/api-services.po';
 
-describe('Cluster Explorer', () => {
+describe('Cluster Explorer', { tags: ['@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -14,7 +14,7 @@ describe('Cluster Explorer', () => {
       apiServicesPage.waitForRequests();
     });
 
-    it('Should be able to use shift+j to select corre', () => {
+    it('Should be able to use shift+j to select rows and the count of selected is correct', () => {
       apiServicesPage.title().should('contain', 'APIServices');
 
       const sortableTable = apiServicesPage.sortableTable();

@@ -7,10 +7,11 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import FileImageSelector from '@shell/components/form/FileImageSelector';
-import NameNsDescription, { normalizeName } from '@shell/components/form/NameNsDescription';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import { normalizeName } from '@shell/utils/kube';
 
 const LINK_TYPE_URL = 'url';
 const LINK_TYPE_SERVICE = 'service';

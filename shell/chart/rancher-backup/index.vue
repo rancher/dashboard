@@ -154,6 +154,9 @@ export default {
       }
 
       return 'none';
+    },
+    updatePageValid(update) {
+      this.$emit('valid', update);
     }
   },
   get
@@ -189,6 +192,7 @@ export default {
         :value="value.s3"
         :secrets="secrets"
         :mode="mode"
+        @valid="updatePageValid($event)"
       />
       <template v-else>
         <div class="row">

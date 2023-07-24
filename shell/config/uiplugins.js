@@ -29,8 +29,21 @@ export const UI_PLUGINS_REPO_NAME = 'rancher-ui-plugins';
 export const UI_PLUGINS_REPO_URL = 'https://github.com/rancher/ui-plugin-charts';
 export const UI_PLUGINS_REPO_BRANCH = 'main';
 
+// Info for the Helm Chart Repo for Partner Extensions
+export const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
+
+export const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
+export const UI_PLUGINS_PARTNERS_REPO_BRANCH = 'main';
+
+// Info for the Helm Chart Repo for Community Extensions
+export const UI_PLUGINS_COMMUNITY_REPO_NAME = 'community-extensions';
+
+export const UI_PLUGINS_COMMUNITY_REPO_URL = 'https://github.com/rancher/community-extensions';
+export const UI_PLUGINS_COMMUNITY_REPO_BRANCH = 'main';
+
 // Chart annotations
 export const UI_PLUGIN_CHART_ANNOTATIONS = {
+  KUBE_VERSION:       'catalog.cattle.io/kube-version',
   RANCHER_VERSION:    'catalog.cattle.io/rancher-version',
   EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extensions-version',
   UI_VERSION:         'catalog.cattle.io/ui-version',
@@ -121,16 +134,18 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
 }
 
 // Can a chart version be used for this Rancher (based on the annotations on the chart)?
-export function isSupportedChartVersion(chartVersion, rancherVersion) {
+export function isSupportedChartVersion(versionsData) {
+  const { version, rancherVersion, kubeVersion } = versionsData;
+
   // Plugin specified a required extension API version
-  const requiredAPI = chartVersion.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
+  const requiredAPI = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
 
   if (requiredAPI && !semver.satisfies(UI_PLUGIN_API_VERSION, requiredAPI)) {
     return false;
   }
 
   // Host application
-  const requiredHost = chartVersion.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST];
+  const requiredHost = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST];
 
   if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
     return false;
@@ -138,9 +153,18 @@ export function isSupportedChartVersion(chartVersion, rancherVersion) {
 
   // Rancher version
   if (rancherVersion) {
-    const requiredRancherVersion = chartVersion.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
+    const requiredRancherVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.RANCHER_VERSION];
 
     if (requiredRancherVersion && !semver.satisfies(rancherVersion, requiredRancherVersion)) {
+      return false;
+    }
+  }
+
+  // Kube version
+  if (kubeVersion) {
+    const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+
+    if (requiredKubeVersion && !semver.satisfies(kubeVersion, requiredKubeVersion)) {
       return false;
     }
   }
@@ -148,14 +172,18 @@ export function isSupportedChartVersion(chartVersion, rancherVersion) {
   return true;
 }
 
-export function isChartVersionAvailableForInstall(version, rancherVersion, returnObj = false) {
+export function isChartVersionAvailableForInstall(versionsData, returnObj = false) {
+  const { version, rancherVersion, kubeVersion } = versionsData;
+
   const parsedRancherVersion = rancherVersion.split('-')?.[0];
   const regexHashString = new RegExp('^[A-Za-z0-9]{9}$');
   const isRancherVersionHashString = regexHashString.test(rancherVersion);
   const requiredUiVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.UI_VERSION];
+  const requiredKubeVersion = version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
   const versionObj = { ...version };
 
   versionObj.isCompatibleWithUi = true;
+  versionObj.isCompatibleWithKubeVersion = true;
 
   // if it's a head version of Rancher, then we skip the validation and enable them all
   if (!isRancherVersionHashString && requiredUiVersion && !semver.satisfies(parsedRancherVersion, requiredUiVersion)) {
@@ -164,6 +192,23 @@ export function isChartVersionAvailableForInstall(version, rancherVersion, retur
     }
     versionObj.isCompatibleWithUi = false;
     versionObj.requiredUiVersion = requiredUiVersion;
+
+    if (returnObj) {
+      return versionObj;
+    }
+  }
+
+  // check kube version
+  if (kubeVersion && requiredKubeVersion && !semver.satisfies(kubeVersion, requiredKubeVersion)) {
+    if (!returnObj) {
+      return false;
+    }
+    versionObj.isCompatibleWithKubeVersion = false;
+    versionObj.requiredKubeVersion = requiredKubeVersion;
+
+    if (returnObj) {
+      return versionObj;
+    }
   }
 
   if (returnObj) {

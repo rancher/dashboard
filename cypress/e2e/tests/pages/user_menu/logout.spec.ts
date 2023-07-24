@@ -5,7 +5,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 const userMenu = new UserMenuPo();
 const loginPage = new LoginPagePo();
 
-describe('User can logout of Rancher', () => {
+describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -18,8 +18,6 @@ describe('User can logout of Rancher', () => {
     Verify user remains on login page
     */
     HomePagePo.goToAndWaitForGet();
-    userMenu.toggle();
-    userMenu.isOpen();
     userMenu.clickMenuItem('Log Out');
     loginPage.waitForPage();
     loginPage.username().checkVisible();

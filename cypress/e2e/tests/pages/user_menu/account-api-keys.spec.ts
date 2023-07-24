@@ -9,7 +9,7 @@ const accountPage = new AccountPagePo();
 const createKeyPage = new CreateKeyPagePo();
 const apiKeysList = accountPage.list();
 
-describe('User can make changes to their account', () => {
+describe('User can make changes to their account', { tags: ['@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -23,8 +23,6 @@ describe('User can make changes to their account', () => {
      */
 
     HomePagePo.goToAndWaitForGet();
-    userMenu.toggle();
-    userMenu.isOpen();
     userMenu.clickMenuItem('Account & API Keys');
     accountPage.waitForPage();
     accountPage.checkIsCurrentPage();
@@ -57,6 +55,12 @@ describe('User can make changes to their account', () => {
     const keyDesc = `keyDescription${ Date.now() }`;
 
     accountPage.goTo();
+    accountPage.create();
+    createKeyPage.waitForPage();
+    createKeyPage.isCurrentPage();
+    createKeyPage.create();
+    createKeyPage.done();
+
     apiKeysList.resourceTable().sortableTable().selectAllCheckbox().set();
     apiKeysList.resourceTable().sortableTable().deleteButton().click();
 

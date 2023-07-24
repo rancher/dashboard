@@ -1,7 +1,7 @@
 import { RancherSetupPagePo } from '@/cypress/e2e/po/pages/rancher-setup.po';
 import { RancherSetupAuthVerifyPage } from '@/cypress/e2e/po/pages/rancher-setup-auth-verify.po';
 
-describe('Rancher setup', () => {
+describe('Rancher setup', { tags: '@adminUser' }, () => {
   it('Requires initial setup', () => {
     cy.visit('');
 
@@ -44,5 +44,20 @@ describe('Rancher setup', () => {
     //   expect(login.response?.statusCode).to.equal(200);
     //   cy.url().should('equal', `${ Cypress.config().baseUrl }/home`);
     // });
+  });
+
+  it('Create standard user after login', () => {
+    cy.login();
+
+    // Note: the username argument here should match the TEST_USERNAME env var used when running non-admin tests
+    cy.createUser({
+      username:    'standard_user',
+      globalRole:  { role: 'user' },
+      projectRole: {
+        clusterId:   'local',
+        projectName: 'Default',
+        role:        'project-member',
+      }
+    });
   });
 });

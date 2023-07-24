@@ -43,12 +43,27 @@ jobs:
       - name: Prepare build
         run: yarn e2e:pre-prod
       
-      - name: Run tests
+      - name: Run admin user tests
         run: |
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+        env: 
+          GREP_TAGS: '@adminUser'
+          TEST_USERNAME: admin
 
+
+      - name: Run standard user tests
+        if: ${{ success() || failure() }}
+        run: |
+          yarn e2e:prod
+          yarn docker:local:stop
+          mkdir -p coverage-artifacts/coverage
+          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+        env: 
+          GREP_TAGS: '@standardUser'
+          TEST_USERNAME: standard_user
+        
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:

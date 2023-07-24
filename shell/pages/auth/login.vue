@@ -544,7 +544,7 @@ export default {
 
   .gutless {
     height: 100vh;
-    .span-6 {
+    & > .span-6 {
       overflow-y: auto;
       display: flex;
       flex-direction: column;

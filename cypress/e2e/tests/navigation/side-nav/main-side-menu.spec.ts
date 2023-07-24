@@ -9,26 +9,26 @@ describe('Side Menu: main', () => {
     BurgerMenuPo.toggle();
   });
 
-  it('Opens and closes on menu icon click', () => {
+  it('Opens and closes on menu icon click', { tags: ['@adminUser', '@standardUser'] }, () => {
     BurgerMenuPo.checkOpen();
     BurgerMenuPo.toggle();
     BurgerMenuPo.checkClosed();
   });
 
-  it('Can display list of available clusters', () => {
+  it('Can display list of available clusters', { tags: '@adminUser' }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.clusters().should('exist');
   });
 
-  it('Can display at least one menu category label', () => {
+  it('Can display at least one menu category label', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.categories().should('have.length.greaterThan', 0);
   });
 
   // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
-  it.skip('Contains valid links', () => {
+  it.skip('Contains valid links', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     // Navigate through all the links

@@ -12,13 +12,13 @@ const customRoleName = `${ runPrefix }-my-custom-role`;
 const standardUsername = `${ runPrefix }-standard-user`;
 const standardPassword = 'standard-password';
 
-describe('Users and Authentication', () => {
+describe('Users and Authentication', { tags: '@adminUser' }, () => {
   it('Standard user with List, Get & Resources: Global Roles should be able to list users in Users and Auth', () => {
     const userRoles = new UsersAndAuthPo('_', 'roles');
     const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
 
     // last API call on the user creation process (with global role assignment)
-    cy.intercept('GET', '/v1/management.cattle.io.globalrolebindings').as('globalRoleBindingCreated');
+    cy.intercept('GET', '/v1/management.cattle.io.globalrolebindings?exclude=metadata.managedFields').as('globalRoleBindingCreated');
 
     // this will login as admin
     cy.login();
@@ -54,8 +54,6 @@ describe('Users and Authentication', () => {
       usersAdmin.listElementWithName(standardUsername).should('exist');
 
       // logout admin
-      userMenu.toggle();
-      userMenu.isOpen();
       userMenu.clickMenuItem('Log Out');
       loginPage.waitForPage();
       loginPage.username().checkVisible();
@@ -65,7 +63,7 @@ describe('Users and Authentication', () => {
 
       // navigate to the roles page and make sure user can see it
       userRoles.goTo();
-      userRoles.listTitle().should('contain', 'Roles');
+      userRoles.listTitle().should('contain', 'Role Templates');
       userRoles.listElements().should('have.length.of.at.least', 1);
 
       // navigate to the users page and make sure user can see it

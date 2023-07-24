@@ -59,6 +59,18 @@ export default class SortableTablePo extends ComponentPo {
     return cy.get('.action-availability');
   }
 
+  /**
+   * Search box to query rows
+   * @param searchText
+   * @returns
+   */
+  filter(searchText: string) {
+    return cy.get('[data-testid="search-box-filter-row"] input')
+      .focus()
+      .clear()
+      .type(searchText);
+  }
+
   //
   // sortable-table
   //
@@ -79,16 +91,27 @@ export default class SortableTablePo extends ComponentPo {
     return new ListRowPo(this.rowElementWithName(name));
   }
 
-  rowNames() {
-    return this.rowElements().find('.cluster-link').then(($els: any) => {
+  /**
+   * Get rows names. To avoid the 'no rows' on first load use `noRowsShouldNotExist`
+   */
+  rowNames(rowNameSelector = 'td:nth-of-type(3)') {
+    return this.rowElements().find(rowNameSelector).then(($els: any) => {
       return (
-        Cypress.$.makeArray($els).map((el: any) => el.innerText)
+        Cypress.$.makeArray<string>($els).map((el: any) => el.innerText as string)
       );
     });
   }
 
   rowActionMenu() {
     return new ActionMenuPo();
+  }
+
+  noRowsShouldNotExist() {
+    return this.noRowsText().should('not.exist');
+  }
+
+  noRowsText() {
+    return this.self().find('tbody').find('.no-rows');
   }
 
   /**

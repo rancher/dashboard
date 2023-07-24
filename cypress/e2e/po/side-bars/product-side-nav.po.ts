@@ -29,6 +29,14 @@ export default class ProductNavPo extends ComponentPo {
   }
 
   /**
+   * Navigate to a side menu group by label
+   */
+  navToSideMenuGroupByLabel(label: string): Cypress.Chainable {
+    return this.self().should('exist').find('.header > a > h6').contains(label)
+      .click();
+  }
+
+  /**
    * Navigate to a side menu entry by label
    */
   navToSideMenuEntryByLabel(label: string): Cypress.Chainable {

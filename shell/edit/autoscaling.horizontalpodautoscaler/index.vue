@@ -12,12 +12,14 @@ import Tabbed from '@shell/components/Tabbed';
 import MetricsRow from '@shell/edit/autoscaling.horizontalpodautoscaler/metrics-row';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { DEFAULT_RESOURCE_METRIC } from '@shell/edit/autoscaling.horizontalpodautoscaler/resource-metric';
+import { Checkbox } from '@components/Form/Checkbox';
 
 import { API_SERVICE, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
 import isEmpty from 'lodash/isEmpty';
 import find from 'lodash/find';
 import endsWith from 'lodash/endsWith';
 import { findBy } from '@shell/utils/array';
+import HpaScalingRule from '@shell/edit/autoscaling.horizontalpodautoscaler/hpa-scaling-rule.vue';
 
 const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
 
@@ -25,7 +27,9 @@ export default {
   name: 'CruHPA',
 
   components: {
+    HpaScalingRule,
     ArrayListGrouped,
+    Checkbox,
     CruResource,
     LabeledInput,
     LabeledSelect,
@@ -106,6 +110,40 @@ export default {
       const match = findBy(allWorkloadsFiltered, 'metadata.name', name);
 
       return match ?? null;
+    },
+    hasScaleDownRules: {
+      get() {
+        return !!this.value.spec.behavior?.scaleDown;
+      },
+      set(hasScaleDownRules) {
+        if (hasScaleDownRules) {
+          if (!this.value.spec.behavior) {
+            this.$set(this.value.spec, 'behavior', {});
+          }
+          if (!this.value.spec.behavior?.scaleDown) {
+            this.$set(this.value.spec.behavior, 'scaleDown', {});
+          }
+        } else {
+          this.$delete(this.value.spec.behavior, 'scaleDown');
+        }
+      }
+    },
+    hasScaleUpRules: {
+      get() {
+        return !!this.value.spec.behavior?.scaleUp;
+      },
+      set(hasScaleUpRules) {
+        if (hasScaleUpRules) {
+          if (!this.value.spec.behavior) {
+            this.$set(this.value.spec, 'behavior', {});
+          }
+          if (!this.value.spec.behavior?.scaleUp) {
+            this.$set(this.value.spec.behavior, 'scaleUp', {});
+          }
+        } else {
+          this.$delete(this.value.spec.behavior, 'scaleUp');
+        }
+      }
     },
   },
 
@@ -241,6 +279,47 @@ export default {
               />
             </template>
           </ArrayListGrouped>
+        </Tab>
+        <Tab
+          name="behavior"
+          :label="t('hpa.tabs.behavior')"
+        >
+          <div class="col span-12 mb-10">
+            <h3>
+              {{ t('hpa.scaleDownRules.label') }}
+            </h3>
+            <div class="row mb-10">
+              <Checkbox
+                v-model="hasScaleDownRules"
+                :mode="mode"
+                :label="t('hpa.scaleDownRules.enable')"
+              />
+            </div>
+            <HpaScalingRule
+              v-if="hasScaleDownRules"
+              v-model="value"
+              type="scaleDown"
+              :mode="mode"
+            />
+          </div>
+          <div class="col span-12">
+            <h3>
+              {{ t('hpa.scaleUpRules.label') }}
+            </h3>
+            <div class="row mb-10">
+              <Checkbox
+                v-model="hasScaleUpRules"
+                :mode="mode"
+                :label="t('hpa.scaleUpRules.enable')"
+              />
+            </div>
+            <HpaScalingRule
+              v-if="hasScaleUpRules"
+              v-model="value"
+              type="scaleUp"
+              :mode="mode"
+            />
+          </div>
         </Tab>
         <Tab
           name="labels-and-annotations"
