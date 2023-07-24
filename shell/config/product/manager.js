@@ -38,6 +38,10 @@ export function init(store) {
         resource: CAPI.RANCHER_CLUSTER
       }
     },
+    typeStoreMap: {
+      [NORMAN.CLOUD_CREDENTIAL]: 'rancher',
+      cloudCredential:           'rancher',
+    }
   });
 
   virtualType({

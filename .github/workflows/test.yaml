@@ -56,7 +56,8 @@ jobs:
       - name: Run standard user tests
         if: ${{ success() || failure() }}
         run: |
-          yarn e2e:prod && yarn docker:local:stop
+          yarn e2e:prod
+          yarn docker:local:stop
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
         env: 

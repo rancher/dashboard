@@ -126,12 +126,20 @@ function setProduct(store, to, redirect) {
  */
 function invalidResource(store, to, redirect) {
   const product = store.getters['currentProduct'];
-  const inStore = product?.inStore;
-  const schemaFor = store.getters[`${ inStore }/schemaFor`]; // There's a chance we're in an extension's product who's store could be anything
   const resource = getResourceFromRoute(to);
 
-  // In order to check a resource is valid we need all of these
-  if (!product || !inStore || !schemaFor || !resource) {
+  // In order to check a resource is valid we need these
+  if (!product || !resource) {
+    return false;
+  }
+
+  // Note - don't use the current products store... because products can override stores for resources with `typeStoreMap`
+  const inStore = store.getters['currentStore'](resource);
+  // There's a chance we're in an extension's product who's store could be anything, so confirm schemaFor exists
+  const schemaFor = store.getters[`${ inStore }/schemaFor`];
+
+  // In order to check a resource is valid we need these
+  if (!inStore || !schemaFor) {
     return false;
   }
 

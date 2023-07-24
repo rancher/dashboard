@@ -83,16 +83,18 @@ export default {
       default: 'resource-details'
     }
   },
+
   async fetch() {
     const store = this.$store;
     const route = this.$route;
     const params = route.params;
-    const inStore = this.storeOverride || store.getters['currentStore'](params.resource);
+    let resource = this.resourceOverride || params.resource;
+
+    const inStore = this.storeOverride || store.getters['currentStore'](resource);
     const realMode = this.realMode;
 
     // eslint-disable-next-line prefer-const
     let { namespace, id } = params;
-    let resource = this.resourceOverride || params.resource;
 
     // There are 6 "real" modes that can be put into the query string
     // These are mapped down to the 3 regular page "mode"s that create-edit-view components

@@ -1,4 +1,4 @@
-import ExtensionsPo from '@/cypress/e2e/po/pages/extensions.po';
+import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/charts.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
@@ -10,8 +10,8 @@ describe('Kubewarden Extension', { tags: '@adminUser' }, () => {
   before(() => {
     cy.login();
 
-    ExtensionsPo.goTo();
-    const extensionsPo = new ExtensionsPo();
+    ExtensionsPagePo.goTo();
+    const extensionsPo = new ExtensionsPagePo();
     const kubewardenPo = new KubewardenExtensionPo();
 
     // install extensions operator if it's not installed
@@ -21,11 +21,11 @@ describe('Kubewarden Extension', { tags: '@adminUser' }, () => {
 
   beforeEach(() => {
     cy.login();
-    ExtensionsPo.goTo();
+    ExtensionsPagePo.goTo();
   });
 
   it('Should install Kubewarden extension', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.extensionTabAvailableClick();
 
@@ -83,7 +83,7 @@ describe('Kubewarden Extension', { tags: '@adminUser' }, () => {
   });
 
   it('Should uninstall Kubewarden', () => {
-    const extensionsPo = new ExtensionsPo();
+    const extensionsPo = new ExtensionsPagePo();
 
     extensionsPo.extensionTabInstalledClick();
 
