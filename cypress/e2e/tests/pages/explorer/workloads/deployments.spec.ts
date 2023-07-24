@@ -17,7 +17,7 @@ describe('Cluster Explorer', () => {
       deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
     });
 
-    describe('Create: Deployments', { tags: ['@adminUser'] },  () => {
+    describe('Create: Deployments', { tags: ['@adminUser'] }, () => {
       beforeEach(() => {
         cy.interceptAllRequests('POST');
       });
