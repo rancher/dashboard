@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-hooks */
 import { mount } from '@vue/test-utils';
 import Navlink from '@shell/edit/ui.cattle.io.navlink.vue';
 import { _CREATE } from '@shell/config/query-params';

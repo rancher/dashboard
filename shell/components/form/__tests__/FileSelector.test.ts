@@ -1,3 +1,4 @@
+/* eslint-disable jest/no-hooks */
 import FileSelector from '@shell/components/form/FileSelector';
 import { mount } from '@vue/test-utils';
 
