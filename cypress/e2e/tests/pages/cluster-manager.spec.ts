@@ -120,7 +120,7 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
         clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', { timeout: 15000 });
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
 
-        clusterList.sortableTable().rowNames().then((rows: any) => {
+        clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
           const promptRemove = new PromptRemove();
 
           promptRemove.confirm(rke2CustomName);
@@ -128,7 +128,7 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
 
           clusterList.waitForPage();
           clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-          clusterList.sortableTable().rowNames().should('not.contain', rke2CustomName);
+          clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', rke2CustomName);
         });
       });
     });
@@ -257,7 +257,7 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
         clusterList.sortableTable().bulkActionDropDownOpen();
         clusterList.sortableTable().bulkActionDropDownButton('Delete').click();
 
-        clusterList.sortableTable().rowNames().then((rows: any) => {
+        clusterList.sortableTable().rowNames('.cluster-link').then((rows: any) => {
           const promptRemove = new PromptRemove();
 
           promptRemove.confirm(importGenericName);
@@ -265,7 +265,7 @@ describe('Cluster Manager', { tags: '@adminUser' }, () => {
 
           clusterList.waitForPage();
           clusterList.sortableTable().checkRowCount(false, rows.length - 1);
-          clusterList.sortableTable().rowNames().should('not.contain', importGenericName);
+          clusterList.sortableTable().rowNames('.cluster-link').should('not.contain', importGenericName);
         });
       });
     });

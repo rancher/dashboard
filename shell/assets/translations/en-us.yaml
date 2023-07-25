@@ -3703,7 +3703,7 @@ persistentVolume:
       label: Storage Policy ID
       placeholder: e.g. sp1
   csi:
-    label: CSI (Unsupported)
+    label: CSI
     suffix: (CSI)
     driver:
       label: Driver

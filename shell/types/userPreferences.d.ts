@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-interface UserPreferences {
+export interface UserPreferences {
   'after-login-route': string,
   cluster: string,
   'group-by': string,

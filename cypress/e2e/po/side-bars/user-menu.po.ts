@@ -28,11 +28,16 @@ export default class UserMenuPo extends ComponentPo {
   }
 
   /**
-   * Toggle user menu
-   * @returns
+   * Open the user menu
+   *
+   * Multiple clicks because sometimes just one ... isn't enough
+   *
    */
-  toggle(): Cypress.Chainable {
-    return this.self().click();
+  open(): Cypress.Chainable {
+    this.self().click();
+    this.self().click();
+    this.self().click();
+    this.self().click();
   }
 
   /**
@@ -56,12 +61,12 @@ export default class UserMenuPo extends ComponentPo {
           if ($el.attr('style')?.includes('visibility: hidden')) {
             cy.log('User Avatar open but hidden, giving it a nudge');
 
-            return this.toggle();
+            return this.open();
           }
         } else {
           cy.log('User Avatar not open, opening');
 
-          return this.toggle();
+          return this.open();
         }
       })
       .then(() => this.isOpen());
@@ -87,7 +92,7 @@ export default class UserMenuPo extends ComponentPo {
    * @param label
    * @returns
    */
-  clickMenuItem(label: string) {
+  clickMenuItem(label: 'Preferences' | 'Account & API Keys' | 'Log Out') {
     this.ensureOpen().then(() => {
       return this.getMenuItems().contains(label).click();
     });
