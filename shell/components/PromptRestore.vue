@@ -114,7 +114,7 @@ export default {
       const cluster = this.toRestore?.[0];
       let promise;
 
-      if (!cluster.isRke2) {
+      if (!cluster?.isRke2) {
         promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
           return snapshots.filter((s) => s.clusterId === cluster.metadata.name);
         });
@@ -128,7 +128,7 @@ export default {
       }
 
       // Map of snapshots by name
-      const allSnapshosts = await promise.then((snapshots) => {
+      const allSnapshots = await promise.then((snapshots) => {
         return snapshots.reduce((v, s) => {
           v[s.name] = s;
 
@@ -138,7 +138,7 @@ export default {
         this.errors = exceptionToErrorsArray(err);
       });
 
-      this.allSnapshots = allSnapshosts;
+      this.allSnapshots = allSnapshots;
       this.sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['snapshotFile.createdAt', 'created', 'metadata.creationTimestamp'], true);
     },
 

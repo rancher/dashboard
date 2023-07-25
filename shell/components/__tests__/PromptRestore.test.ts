@@ -37,6 +37,7 @@ describe('component: GrowlManager', () => {
   localVue.use(Vuex);
 
   const testCases = [
+    [[], 0],
     [[FAILED_SNAPSHOT], 0],
     [[SUCCESSFUL_SNAPSHOT_1], 1],
     [[SUCCESSFUL_SNAPSHOT_1, SUCCESSFUL_SNAPSHOT_2], 2],
@@ -55,7 +56,7 @@ describe('component: GrowlManager', () => {
         },
       },
       getters: { 'i18n/t': () => jest.fn(), 'prefs/get': () => jest.fn() },
-      actions: { 'management/findAll': jest.fn().mockResolvedValue(snapShots) }
+      actions: { 'management/findAll': jest.fn().mockResolvedValue(snapShots), 'rancher/findAll': jest.fn().mockResolvedValue([]) }
     });
 
     const wrapper = shallowMount(PromptRestore as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
