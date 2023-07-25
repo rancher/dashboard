@@ -103,7 +103,7 @@ export default {
         `Determine etcd metrics`
       );
 
-      if (this.currentCluster.isLocal) {
+      if (this.currentCluster.isLocal && this.$store.getters['management/schemaFor'](MANAGEMENT.NODE)) {
         this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE });
       }
     }

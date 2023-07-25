@@ -21,7 +21,8 @@
     "@storybook/vue": "^6.3.8",
     "shell": "file:./..",
     "storybook-auto-events": "^0.1.1",
-    "storybook-dark-mode": "^1.0.8"
+    "storybook-dark-mode": "^1.0.8",
+    "vue-client-only": "2.1.0"
   },
   "dependencies": {
     "tsconfig-paths-webpack-plugin": "^4.0.0",

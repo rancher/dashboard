@@ -6,17 +6,18 @@ import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import NameNsDescriptionPo from '@/cypress/e2e/po/components/name-ns-description.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import AppClusterRepoEditPo from '@/cypress/e2e/po/edit/catalog.cattle.io.clusterrepo.po';
+import BannersPo from '~/cypress/e2e/po/components/banners.po';
 
-export default class ExtensionsPo extends PagePo {
+export default class ExtensionsPagePo extends PagePo {
   static url = '/c/local/uiplugins'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return super.goTo(ExtensionsPo.url);
+    return super.goTo(ExtensionsPagePo.url);
   }
 
   extensionTabs: TabbedPo;
 
   constructor() {
-    super(ExtensionsPo.url);
+    super(ExtensionsPagePo.url);
 
     this.extensionTabs = new TabbedPo('[data-testid="extension-tabs"]');
   }
@@ -26,6 +27,14 @@ export default class ExtensionsPo extends PagePo {
    */
   title(): Cypress.Chainable<string> {
     return this.self().getId('extensions-page-title').invoke('text');
+  }
+
+  waitForTitle() {
+    return this.title().should('contain', 'Extensions');
+  }
+
+  loading() {
+    return this.self().get('.data-loading');
   }
 
   /**
@@ -202,6 +211,11 @@ export default class ExtensionsPo extends PagePo {
 
   extensionReloadClick(): Cypress.Chainable {
     return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click();
+  }
+
+  // ------------------ new repos banner ------------------
+  repoBanner() {
+    return new BannersPo('[data-testid="extensions-new-repos-banner"]', this.self());
   }
 
   // ------------------ extension menu ------------------
