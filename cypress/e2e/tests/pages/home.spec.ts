@@ -163,12 +163,12 @@ describe('Home Page', () => {
 
     homePage.supportLinks().should('have.length', 6);
 
-    // click Docs
-    homePage.clickSupportLink(0, true);
-    cy.origin('https://rancher.com', () => {
-      cy.on('uncaught:exception', () => false);
-      cy.url().should('include', 'ranchermanager.docs.rancher.com');
-    });
+    // click Docs - see https://github.com/rancher/dashboard/issues/9417
+    // homePage.clickSupportLink(0, true);
+    // cy.origin('https://ranchermanager.docs.rancher.com', () => {
+    //   cy.on('uncaught:exception', () => false);
+    //   cy.url().should('include', 'ranchermanager.docs.rancher.com');
+    // });
 
     // click Forums link
     // NOTE: Cypress does not recognize when the Forum page's contents are loaded
@@ -179,19 +179,19 @@ describe('Home Page', () => {
     //   cy.url().should('include', 'forums.rancher.com/');
     // });
 
-    // click Slack link
-    HomePagePo.goToAndWaitForGet();
-    homePage.clickSupportLink(2, true);
-    cy.origin('https://rancher.io', () => {
-      cy.url().should('include', 'slack.rancher.io/');
-    });
+    // click Slack link - see https://github.com/rancher/dashboard/issues/9417
+    // HomePagePo.goToAndWaitForGet();
+    // homePage.clickSupportLink(2, true);
+    // cy.origin('https://slack.rancher.io', () => {
+    //   cy.url().should('include', 'slack.rancher.io/');
+    // });
 
-    // click File an Issue link
-    HomePagePo.goToAndWaitForGet();
-    homePage.clickSupportLink(3, true);
-    cy.origin('https://github.com', () => {
-      cy.url().should('include', 'github.com/login');
-    });
+    // click File an Issue link - see https://github.com/rancher/dashboard/issues/9417
+    // HomePagePo.goToAndWaitForGet();
+    // homePage.clickSupportLink(3, true);
+    // cy.origin('https://github.com', () => {
+    //   cy.url().should('include', 'github.com/login');
+    // });
 
     // click Get Started link
     HomePagePo.goToAndWaitForGet();
