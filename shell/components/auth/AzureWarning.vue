@@ -3,7 +3,7 @@
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { AZURE_MIGRATED } from '@shell/config/labels-annotations';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 export default {
   async fetch() {

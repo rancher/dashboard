@@ -32,9 +32,7 @@ import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
 import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
-
-import { BLANK_CLUSTER } from '@shell/store/index.js';
-import { STORE } from '@shell/store/store-types';
+import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 
 // minimum length of time a disconnect notification is shown
 const MINIMUM_TIME_NOTIFIED = 3000;
