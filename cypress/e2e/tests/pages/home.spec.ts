@@ -175,7 +175,6 @@ describe('Home Page', () => {
       // click Forums link
       // NOTE: Cypress does not recognize when the Forum page's contents are loaded
       // which is resulting in a time out error and this test to fail
-      HomePagePo.goToAndWaitForGet();
       homePage.clickSupportLink(1, true);
       cy.origin('https://rancher.com', () => {
         cy.url().should('include', 'forums.rancher.com/');
@@ -184,7 +183,6 @@ describe('Home Page', () => {
 
     it('can click on Slack link', () => {
       // click Slack link
-      HomePagePo.goToAndWaitForGet();
       homePage.clickSupportLink(2, true);
       cy.origin('https://slack.rancher.io', () => {
         cy.url().should('include', 'slack.rancher.io/');
@@ -193,7 +191,6 @@ describe('Home Page', () => {
 
     it('can click on File an Issue link', () => {
       // click File an Issue link
-      HomePagePo.goToAndWaitForGet();
       homePage.clickSupportLink(3, true);
       cy.origin('https://github.com', () => {
         cy.url().should('include', 'github.com/login');
@@ -202,14 +199,12 @@ describe('Home Page', () => {
 
     it('can click on Get Started link', () => {
       // click Get Started link
-      HomePagePo.goToAndWaitForGet();
       homePage.clickSupportLink(4);
       cy.url().should('include', 'docs/getting-started');
     });
 
     it('can click on Commercial Support link', () => {
       // click Commercial Support link
-      HomePagePo.goToAndWaitForGet();
       homePage.clickSupportLink(5);
       cy.url().should('include', '/support');
     });
