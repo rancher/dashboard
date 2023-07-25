@@ -165,7 +165,7 @@ describe('Home Page', () => {
 
     // click Docs
     homePage.clickSupportLink(0, true);
-    cy.origin('https://rancher.com', () => {
+    cy.origin('https://ranchermanager.docs.rancher.com', () => {
       cy.on('uncaught:exception', () => false);
       cy.url().should('include', 'ranchermanager.docs.rancher.com');
     });
@@ -182,7 +182,7 @@ describe('Home Page', () => {
     // click Slack link
     HomePagePo.goToAndWaitForGet();
     homePage.clickSupportLink(2, true);
-    cy.origin('https://rancher.io', () => {
+    cy.origin('https://slack.rancher.io', (...args) => {
       cy.url().should('include', 'slack.rancher.io/');
     });
 
