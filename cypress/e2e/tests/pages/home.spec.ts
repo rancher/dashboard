@@ -156,7 +156,7 @@ describe('Home Page', () => {
     });
   });
 
-  describe.only('Support Links', { tags: ['@adminUser', '@standardUser'] }, () => {
+  describe('Support Links', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Click the support links and verify user lands on the correct page
      */
