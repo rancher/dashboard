@@ -156,51 +156,62 @@ describe('Home Page', () => {
     });
   });
 
-  it('Can click on support links', { tags: ['@adminUser', '@standardUser'] }, () => {
+  describe.only('Support Links', { tags: ['@adminUser', '@standardUser'] }, () => {
     /**
      * Click the support links and verify user lands on the correct page
      */
+    it('can click on Docs link', () => {
+      homePage.supportLinks().should('have.length', 6);
 
-    homePage.supportLinks().should('have.length', 6);
+      // click Docs -- this test will sometimes fail due to https://github.com/rancher/rancher-docs/issues/727
+      homePage.clickSupportLink(0, true);
+      cy.origin('https://ranchermanager.docs.rancher.com', () => {
+        cy.on('uncaught:exception', () => false);
+        cy.url().should('include', 'ranchermanager.docs.rancher.com');
+      });
+    });
 
-    // click Docs - see https://github.com/rancher/dashboard/issues/9417
-    // homePage.clickSupportLink(0, true);
-    // cy.origin('https://ranchermanager.docs.rancher.com', () => {
-    //   cy.on('uncaught:exception', () => false);
-    //   cy.url().should('include', 'ranchermanager.docs.rancher.com');
-    // });
+    it.skip('can click on Forums link', () => {
+      // click Forums link
+      // NOTE: Cypress does not recognize when the Forum page's contents are loaded
+      // which is resulting in a time out error and this test to fail
+      HomePagePo.goToAndWaitForGet();
+      homePage.clickSupportLink(1, true);
+      cy.origin('https://rancher.com', () => {
+        cy.url().should('include', 'forums.rancher.com/');
+      });
+    });
 
-    // click Forums link
-    // NOTE: Cypress does not recognize when the Forum page's contents are loaded
-    // which is resulting in a time out error and this test to fail
-    // HomePagePo.goToAndWaitForGet();
-    // homePage.clickSupportLink(1, true);
-    // cy.origin('https://rancher.com', () => {
-    //   cy.url().should('include', 'forums.rancher.com/');
-    // });
+    it('can click on Slack link', () => {
+      // click Slack link
+      HomePagePo.goToAndWaitForGet();
+      homePage.clickSupportLink(2, true);
+      cy.origin('https://slack.rancher.io', () => {
+        cy.url().should('include', 'slack.rancher.io/');
+      });
+    });
 
-    // click Slack link - see https://github.com/rancher/dashboard/issues/9417
-    // HomePagePo.goToAndWaitForGet();
-    // homePage.clickSupportLink(2, true);
-    // cy.origin('https://slack.rancher.io', () => {
-    //   cy.url().should('include', 'slack.rancher.io/');
-    // });
+    it('can click on File an Issue link', () => {
+      // click File an Issue link
+      HomePagePo.goToAndWaitForGet();
+      homePage.clickSupportLink(3, true);
+      cy.origin('https://github.com', () => {
+        cy.url().should('include', 'github.com/login');
+      });
+    });
 
-    // click File an Issue link - see https://github.com/rancher/dashboard/issues/9417
-    // HomePagePo.goToAndWaitForGet();
-    // homePage.clickSupportLink(3, true);
-    // cy.origin('https://github.com', () => {
-    //   cy.url().should('include', 'github.com/login');
-    // });
+    it('can click on Get Started link', () => {
+      // click Get Started link
+      HomePagePo.goToAndWaitForGet();
+      homePage.clickSupportLink(4);
+      cy.url().should('include', 'docs/getting-started');
+    });
 
-    // click Get Started link
-    HomePagePo.goToAndWaitForGet();
-    homePage.clickSupportLink(4);
-    cy.url().should('include', 'docs/getting-started');
-
-    // click Commercial Support link
-    HomePagePo.goToAndWaitForGet();
-    homePage.clickSupportLink(5);
-    cy.url().should('include', '/support');
+    it('can click on Commercial Support link', () => {
+      // click Commercial Support link
+      HomePagePo.goToAndWaitForGet();
+      homePage.clickSupportLink(5);
+      cy.url().should('include', '/support');
+    });
   });
 });
