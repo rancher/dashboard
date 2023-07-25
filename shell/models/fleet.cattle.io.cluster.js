@@ -137,21 +137,14 @@ export default class FleetCluster extends SteveModel {
     }
 
     // If navigate to YAML view directly, norman is not loaded yet
-    return (async() => {
-      return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.metadata.labels[FLEET_LABELS.CLUSTER_NAME] }, { root: true });
-    })();
+    return this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.metadata.labels[FLEET_LABELS.CLUSTER_NAME] }, { root: true });
   }
 
   async normanClone() {
     const norman = await this.norman;
 
-    const nc = await this.$dispatch('rancher/clone', { resource: norman }, { root: true });
+    return this.$dispatch('rancher/clone', { resource: norman }, { root: true });
 
-    if (!nc.metadata) {
-      nc.metadata = {};
-    }
-
-    return nc;
   }
 
   get groupByLabel() {
@@ -171,8 +164,8 @@ export default class FleetCluster extends SteveModel {
 
     const norman = await this.normanClone();
 
-    norman.labels = { ...parsed.metadata.labels };
-    norman.annotations = { ...parsed.metadata.annotations };
+    norman.setLabels(parsed.metadata.labels);
+    norman.setAnnotations(parsed.metadata.annotations);
 
     await norman.save();
   }
