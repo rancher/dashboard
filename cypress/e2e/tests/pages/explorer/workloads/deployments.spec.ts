@@ -6,7 +6,7 @@ describe('Cluster Explorer', () => {
     cy.login();
   });
 
-  describe('Workloads', () => {
+  describe('Workloads', { tags: ['@adminUser', '@standardUser'] }, () => {
     let deploymentsListPage: WorkloadsDeploymentsListPagePo;
     let deploymentsCreatePage: WorkloadsDeploymentsCreatePagePo;
 
@@ -17,7 +17,7 @@ describe('Cluster Explorer', () => {
       deploymentsListPage = new WorkloadsDeploymentsListPagePo('local');
     });
 
-    describe('Create: Deployments', { tags: ['@adminUser'] }, () => {
+    describe('Create: Deployments', () => {
       beforeEach(() => {
         cy.interceptAllRequests('POST');
       });
@@ -42,7 +42,7 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe('Update: Deployments', { tags: ['@adminUser'] }, () => {
+    describe('Update: Deployments', () => {
       const { name: workloadName, namespace } = createDeploymentBlueprint.metadata;
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(workloadName);
 
@@ -63,7 +63,7 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe('List: Deployments', { tags: ['@adminUser', '@standardUser'] }, () => {
+    describe('List: Deployments', () => {
       // To reduce test runtime, will use the same workload for all the tests
       it('Should list the workloads', () => {
         deploymentsListPage.goTo();
@@ -73,7 +73,7 @@ describe('Cluster Explorer', () => {
       });
     });
 
-    describe('Delete: Deployments', { tags: ['@adminUser'] }, () => {
+    describe('Delete: Deployments', () => {
       const deploymentName = deploymentCreateRequest.metadata.name;
 
       // To reduce test runtime, will use the same workload for all the tests
