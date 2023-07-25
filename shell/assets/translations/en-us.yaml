@@ -4167,7 +4167,7 @@ plugins:
       airgap: Air-gapped installations should NOT enable this feature
       addRancherRepo: Add Official Rancher Extensions Repository
       addPartnersRancherRepo: Add Partners Extensions Repository
-      addCommunityRancherRepo: Add Community Extension sRepository
+      addCommunityRancherRepo: Add Community Extensions Repository
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?
