@@ -64,6 +64,7 @@ describe('component: FileSelector', () => {
       methods:   {},
     });
     const readAsArrayBufferSpy = jest.spyOn(FileReader.prototype, 'readAsArrayBuffer');
+    const readAsTextSpy = jest.spyOn(FileReader.prototype, 'readAsText');
 
     const event = {
       target: {
@@ -75,7 +76,8 @@ describe('component: FileSelector', () => {
 
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('selected')).toHaveLength(1);
-    expect(readAsArrayBufferSpy).toHaveBeenCalled();
+    expect(readAsArrayBufferSpy).toHaveBeenCalledWith(jpegBlobFile.slice(0, 4));
+    expect(readAsTextSpy).toHaveBeenCalledWith(jpegBlobFile);
   });
   it('should fail when expects an image but got json', async() => {
     wrapper = mount(FileSelector, {
@@ -84,6 +86,7 @@ describe('component: FileSelector', () => {
       methods:   {},
     });
     const readAsArrayBufferSpy = jest.spyOn(FileReader.prototype, 'readAsArrayBuffer');
+    const readAsTextSpy = jest.spyOn(FileReader.prototype, 'readAsText');
 
     const event = {
       target: {
@@ -95,6 +98,7 @@ describe('component: FileSelector', () => {
 
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('error')).toHaveLength(1);
-    expect(readAsArrayBufferSpy).toHaveBeenCalled();
+    expect(readAsArrayBufferSpy).toHaveBeenCalledWith(jsonBlobFile.slice(0, 4));
+    expect(readAsTextSpy).not.toHaveBeenCalledWith(jsonBlobFile);
   });
 });
