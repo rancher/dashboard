@@ -160,13 +160,13 @@ describe('Home Page', () => {
     /**
      * Click the support links and verify user lands on the correct page
      */
-    it('can click on Docs link', () => {
+    it.skip('can click on Docs link', () => {
       homePage.supportLinks().should('have.length', 6);
 
       // click Docs -- this test will sometimes fail due to https://github.com/rancher/rancher-docs/issues/727
+      // skipping this test until issue is resolved
       homePage.clickSupportLink(0, true);
       cy.origin('https://ranchermanager.docs.rancher.com', () => {
-        cy.on('uncaught:exception', () => false);
         cy.url().should('include', 'ranchermanager.docs.rancher.com');
       });
     });
