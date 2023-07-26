@@ -22,9 +22,9 @@ _Arguments_
 
 | Key | Type | Description |
 |---|---|---|
-|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page |
-|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page |
-|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area) |
+|`PanelLocation.DETAILS_MASTHEAD`| String | Location for a panel on the Details Masthead area of a Resource Detail page (only for modes `detail` (v2.7.2), `edit` (v2.7.2), `config` (v2.7.2) and `create` (v2.7.7)) |
+|`PanelLocation.DETAIL_TOP`| String | Location for a panel on the Detail Top area of a Resource Detail page (only for modes `detail` (v2.7.2), `edit` (v2.7.2), `config` (v2.7.) and `create` (v2.7.7)) |
+|`PanelLocation.RESOURCE_LIST`| String | Location for a panel on a Resource List View page (above the table area - only for mode `list` (v2.7.2)) |
 
 <br/>
 
