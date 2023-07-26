@@ -12,7 +12,7 @@ export default class EtcdBackup extends NormanModel {
    * Restrict actions for snapshots to restore only
    */
   get _availableActions() {
-    const enabled = get(this, 'snapshotFile.status') !== STATES_ENUM.FAILED;
+    const enabled = this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL;
 
     return [{
       action: 'promptRestore',
