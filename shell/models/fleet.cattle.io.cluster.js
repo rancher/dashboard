@@ -144,7 +144,6 @@ export default class FleetCluster extends SteveModel {
     const norman = await this.norman;
 
     return this.$dispatch('rancher/clone', { resource: norman }, { root: true });
-
   }
 
   get groupByLabel() {
