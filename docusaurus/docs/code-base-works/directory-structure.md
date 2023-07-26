@@ -27,6 +27,14 @@ Components in the dialog folder are used within the `PromptModal` component. Dis
 ## formatters 
 This is not a top-level folder in the shell, which uses `/components/formatter`, but a top-level `formatters` directory works the same way in an extension as the shell `formatter` directory does. Formatters are used to format data within tables. see [Defining Products](./products-and-navigation.md) for more information on configuring resource tables.
 
+## layouts
+Components in this folder are used as layouts in other components. This is an artifact from our Nuxt usage and more details can be read about that in the Nuxt [documentation](https://nuxt.com/docs/guide/directory-structure/layouts).
+
+The existing layouts available can be found [here](https://github.com/rancher/dashboard/tree/master/shell/layouts).
+
+### Overlapping Layout Names
+If an extension uses the same name as an existing layout the extension's layout will override the shell's layout. We discourage overlapping layout names as it may introduce side effects and bugs. We may completely prevent it from happening in the future. 
+
 ## machine-config**
 Machine configs are used to add provider-specific UI to the rke2/k3s provisioning page. Read more about provisioning [here](./machine-drivers.md)
 
