@@ -29,41 +29,13 @@ describe('component: FileSelector', () => {
     expect(wrapper.isVisible()).toBe(true);
     expect(uploadButton.exists()).toBeTruthy();
   });
-  it('should identify image correctly', async() => {
-    wrapper = mount(FileSelector, {
-      propsData: { label: 'upload', fileType: 'img' },
-      mocks:     {},
-      methods:   {},
-    });
-    const readAsArrayBufferSpy = jest.spyOn(FileReader.prototype, 'readAsArrayBuffer');
 
-    const testCases =
-    [
-      {
-        file:   jpegBlobFile,
-        result: true
-      },
-      {
-        file:   jsonBlobFile,
-        result: false
-      }
-    ];
-
-    for (const testCase of testCases) {
-      const res = await wrapper.vm.checkIsImage(testCase.file);
-
-      expect(res).toBe(testCase.result);
-
-      expect(readAsArrayBufferSpy).toHaveBeenCalledWith(testCase.file.slice(0, 4));
-    }
-  });
   it('should succeed when loading an image', async() => {
     wrapper = mount(FileSelector, {
-      propsData: { label: 'upload', fileType: 'img' },
+      propsData: { label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml' },
       mocks:     {},
       methods:   {},
     });
-    const readAsArrayBufferSpy = jest.spyOn(FileReader.prototype, 'readAsArrayBuffer');
     const readAsTextSpy = jest.spyOn(FileReader.prototype, 'readAsText');
 
     const event = {
@@ -76,29 +48,29 @@ describe('component: FileSelector', () => {
 
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('selected')).toHaveLength(1);
-    expect(readAsArrayBufferSpy).toHaveBeenCalledWith(jpegBlobFile.slice(0, 4));
     expect(readAsTextSpy).toHaveBeenCalledWith(jpegBlobFile);
   });
-  it('should fail when expects an image but got json', async() => {
+
+  it('should fail when file is too big', async() => {
     wrapper = mount(FileSelector, {
-      propsData: { label: 'upload', fileType: 'img' },
-      mocks:     {},
-      methods:   {},
+      propsData: {
+        label: 'upload', accept: 'image/jpeg,image/png,image/svg+xml', byteLimit: 10
+      },
+      mocks:   {},
+      methods: {},
     });
-    const readAsArrayBufferSpy = jest.spyOn(FileReader.prototype, 'readAsArrayBuffer');
     const readAsTextSpy = jest.spyOn(FileReader.prototype, 'readAsText');
 
     const event = {
       target: {
         files: [
-          jsonBlobFile
+          jpegBlobFile
         ]
       }
     };
 
     await wrapper.vm.fileChange(event);
     expect(wrapper.emitted('error')).toHaveLength(1);
-    expect(readAsArrayBufferSpy).toHaveBeenCalledWith(jsonBlobFile.slice(0, 4));
     expect(readAsTextSpy).not.toHaveBeenCalledWith(jsonBlobFile);
   });
 });

@@ -442,6 +442,7 @@ export default {
         :read-as-data-url="true"
         :mode="mode"
         :label="t('navLink.tabs.groupImage.iconSrc.label')"
+        accept="image/jpeg,image/png,image/svg+xml"
         @error="setImageError"
         @input="setIcon"
       />

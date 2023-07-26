@@ -228,6 +228,7 @@ export default {
               class="role-secondary"
               :label="t('branding.logos.uploadLight')"
               :mode="mode"
+              accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
               @input="updateLogo($event, 'uiLogoLight')"
             />
@@ -251,6 +252,7 @@ export default {
               class="role-secondary"
               :label="t('branding.logos.uploadDark')"
               :mode="mode"
+              accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
               @input="updateLogo($event, 'uiLogoDark')"
             />
@@ -295,6 +297,7 @@ export default {
               class="role-secondary"
               :label="t('branding.favicon.upload')"
               :mode="mode"
+              accept="image/jpeg,image/png,image/svg+xml"
               @error="setError"
               @input="updateLogo($event, 'uiFavicon')"
             />
