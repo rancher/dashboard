@@ -1464,6 +1464,10 @@ export default class Resource {
   }
 
   async saveYaml(yaml) {
+    this._saveYaml(yaml);
+  }
+
+  async _saveYaml(yaml) {
     /* Multipart support, but need to know the right cluster and work for management store
       and "apply" seems to only work for create, not update.
 
