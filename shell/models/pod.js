@@ -1,6 +1,6 @@
 import { insertAt } from '@shell/utils/array';
 import { colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
-import { NODE, WORKLOAD_TYPES } from '@shell/config/types';
+import { NODE, WORKLOAD_TYPES, MANAGEMENT } from '@shell/config/types';
 import { escapeHtml, shortenedImage } from '@shell/utils/string';
 import WorkloadService from '@shell/models/workload.service';
 
@@ -223,12 +223,19 @@ export default class Pod extends WorkloadService {
     }
 
     if ( this.spec.nodeName ) {
-      out.push({
-        label:         'Node',
-        formatter:     'LinkName',
-        formatterOpts: { type: NODE, value: this.spec.nodeName },
-        content:       this.spec.nodeName,
-      });
+      if (this.$rootGetters['management/schemaFor'](MANAGEMENT.NODE)) {
+        out.push({
+          label:         'Node',
+          formatter:     'LinkName',
+          formatterOpts: { type: NODE, value: this.spec.nodeName },
+          content:       this.spec.nodeName,
+        });
+      } else {
+        out.push({
+          label:   'Node',
+          content: this.spec.nodeName,
+        });
+      }
     }
 
     out.push({

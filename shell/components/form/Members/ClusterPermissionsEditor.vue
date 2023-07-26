@@ -194,7 +194,7 @@ export default {
       return this.customPermissions.reduce((acc, customPermissionsItem) => {
         const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
 
-        if (lockedExist.locked) {
+        if (lockedExist?.locked) {
           customPermissionsItem['locked'] = true;
           customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
         }
