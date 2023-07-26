@@ -7,7 +7,7 @@ import cronstrue from 'cronstrue';
 import { Translation } from '@shell/types/t';
 
 // import uniq from 'lodash/uniq';
-export type Validator = (val: any, arg?: any) => undefined | string;
+export type Validator<T = undefined | string> = (val: any, arg?: any) => T;
 
 export type ValidatorFactory = (arg1: any, arg2?: any) => Validator
 
@@ -53,7 +53,7 @@ export interface ValidationOptions {
 }
 
 // "t" is the function name we use for getting a translated string
-export default function(t: Translation, { key = 'Value' }: ValidationOptions): unknown {
+export default function(t: Translation, { key = 'Value' }: ValidationOptions): { [key:string]: Validator<any> | ValidatorFactory } {
   // utility validators these validators only get used by other validators
   const startDot: ValidatorFactory = (label: string): Validator => (val: string) => val?.slice(0, 1) === '.' ? t(`validation.dns.${ label }.startDot`, { key }) : undefined;
 
@@ -257,7 +257,7 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): u
 
   const clusterName: ValidatorFactory = (isRke2: boolean): Validator => (val: string | undefined) => isRke2 && (val || '')?.match(/^(c-.{5}|local)$/i) ? t('validation.cluster.name') : undefined;
 
-  const servicePort = (val: ServicePort) => {
+  const servicePort: Validator<string | Port | undefined> = (val: ServicePort) => {
     const {
       name,
       idx
