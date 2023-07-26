@@ -52,6 +52,7 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
     'cluster',
     'id',
     'mode',
+    'path',
     // url query params
     'queryParam',
     // Custom context specific params provided by the extension, not to be confused with location params
@@ -79,8 +80,18 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
           } else if (param === 'context') {
             // Need all keys and values to match
             res = isEqual(locationConfigParam, context);
+            // evaluate queryParam in route
           } else if (param === 'queryParam') {
             res = isEqual(locationConfigParam, $route.query);
+            // evaluate path in route
+          } else if (param === 'path' && locationConfigParam.urlPath) {
+            if (locationConfigParam.endsWith) {
+              res = $route.path.endsWith(locationConfigParam.urlPath);
+            } else if (!Object.keys(locationConfigParam).includes('exact') || locationConfigParam.exact) {
+              res = locationConfigParam.urlPath === $route.path;
+            } else {
+              res = $route.path.includes(locationConfigParam.urlPath);
+            }
           } else if (locationConfigParam === params[param]) {
             res = true;
           } else {

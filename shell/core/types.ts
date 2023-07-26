@@ -140,6 +140,10 @@ export type LocationConfig = {
   id?: string[],
   mode?: string[],
   /**
+   * path match from URL (excludes host address)
+   */
+  path?: { [key: string]: string | boolean}[],
+  /**
    * Query Params from URL
    */
   queryParam?: { [key: string]: string},
