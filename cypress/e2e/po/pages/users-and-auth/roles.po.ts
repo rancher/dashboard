@@ -35,7 +35,7 @@ export default class RolesPo extends PagePo {
   listDownloadYaml() {
     const baseResourceList = new BaseResourceList(this.self());
 
-    return baseResourceList.resourceTable().sortableTable().downloadYamlButton().first();
+    return baseResourceList.resourceTable().downloadYamlButton().first();
   }
 
   listDelete() {

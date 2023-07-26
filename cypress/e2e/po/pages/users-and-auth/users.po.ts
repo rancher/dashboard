@@ -34,15 +34,11 @@ export default class UsersPo extends PagePo {
   }
 
   listDeactivate() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().deactivateButton();
+    return cy.getId('sortable-table-deactivate');
   }
 
   listActivate() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().activateButton();
+    return cy.getId('sortable-table-activate');
   }
 
   openBulkActionDropdown() {
