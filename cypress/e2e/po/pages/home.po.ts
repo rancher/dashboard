@@ -72,7 +72,7 @@ export default class HomePagePo extends PagePo {
   supportLinks(): Cypress.Chainable {
     const simpleBox = new SimpleBoxPo();
 
-    return simpleBox.simpleBox().find('.support-link > a');
+    return simpleBox.simpleBox().find('.support-link > a').should('be.visible');
   }
 
   bannerGraphic() {

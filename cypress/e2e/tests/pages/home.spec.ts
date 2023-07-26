@@ -171,12 +171,10 @@ describe('Home Page', () => {
       });
     });
 
-    it.skip('can click on Forums link', () => {
+    it('can click on Forums link', () => {
       // click Forums link
-      // NOTE: Cypress does not recognize when the Forum page's contents are loaded
-      // which is resulting in a time out error and this test to fail
       homePage.clickSupportLink(1, true);
-      cy.origin('https://rancher.com', () => {
+      cy.origin('https://forums.rancher.com', () => {
         cy.url().should('include', 'forums.rancher.com/');
       });
     });
