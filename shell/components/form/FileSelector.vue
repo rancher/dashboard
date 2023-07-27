@@ -63,7 +63,8 @@ export default {
     accept: {
       type:    String,
       default: '*'
-    }
+    },
+
   },
 
   computed: {

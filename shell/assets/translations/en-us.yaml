@@ -3512,10 +3512,13 @@ navLink:
         label: Group name
         tooltip: Assign link to a group
       sideLabel:
-        label: Link Label
+        label: Link label
       description:
         label: Link description
+    groupImage:
+      label: Group Image
       iconSrc:
+        tip: 'Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
         label: Add image
 networkpolicy:
   egress:
