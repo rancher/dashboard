@@ -14,7 +14,7 @@ export default {
       // This is the workaround.
       isImported: props.row?.mgmt?.providerForEmberParam === 'import' ||
         // when imported cluster is Google GKE
-        props.row.mgmt?.spec?.gkeConfig?.imported
+        props.row?.mgmt?.spec?.gkeConfig?.imported
     };
   },
 };
