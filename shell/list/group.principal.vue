@@ -8,7 +8,7 @@ import { applyProducts } from '@shell/store/type-map';
 import { NAME } from '@shell/config/product/auth';
 import { MODE, _EDIT } from '@shell/config/query-params';
 import { mapState } from 'vuex';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { allHash } from '@shell/utils/promise';
 
 export default {
