@@ -1,13 +1,17 @@
-import { injectAxe, checkA11y } from 'axe-playwright';
+// .storybook/test-runner.js
+
+const { injectAxe, checkA11y } = require('axe-playwright');
 
 module.exports = {
-  preRender: async (page) => {
+  async preRender(page) {
     await injectAxe(page);
   },
-  postRender: async (page) => {
+  async postRender(page) {
     await checkA11y(page, '#root', {
       detailedReport: true,
-      detailedReportOptions: { html: true},
-    })
-  }
-}
+      detailedReportOptions: {
+        html: true,
+      },
+    });
+  },
+};
