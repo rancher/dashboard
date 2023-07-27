@@ -124,7 +124,7 @@ describe('rke1 agent configuration', () => {
     editClusterPage.clusterAgentConfiguration().cpuRequests().set(requestAndLimitsEditData.request.cpu.toString());
     editClusterPage.clusterAgentConfiguration().cpuLimits().set(requestAndLimitsEditData.limit.cpu.toString());
     editClusterPage.clusterAgentConfiguration().memoryRequests().set(requestAndLimitsEditData.request.memory.toString());
-    editClusterPage.clusterAgentConfiguration().memoryLimits().set(requestAndLimitsEditData.limit.cpu.toString());
+    editClusterPage.clusterAgentConfiguration().memoryLimits().set(requestAndLimitsEditData.limit.memory.toString());
 
     editClusterPage.clusterAgentConfiguration().tolerations().removeAllRows();
 

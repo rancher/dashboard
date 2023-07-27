@@ -581,20 +581,22 @@ export const payloadEditComparisonData = {
     ...payloadComparisonData,
     overrideResourceRequirements: {
       requests: {
-        cpu:    '10m',
-        memory: '20Mi'
+        cpu:    '20m',
+        memory: '30Mi'
       },
       limits: {
-        cpu:    '30m',
-        memory: '40Mi'
-      }
-    }
-  },
-  appendTolerations: [
-    {
-      key:      'key9000',
-      operator: 'Equals',
-      value:    'val9000'
+        cpu:    '40m',
+        memory: '50Mi'
+      },
+      type: '/v3/schemas/resourceRequirements'
     },
-  ]
+    appendTolerations: [
+      {
+        key:      'key9000',
+        operator: 'Equal',
+        value:    'val9000'
+      },
+    ]
+  },
+
 };
