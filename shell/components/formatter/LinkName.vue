@@ -1,6 +1,6 @@
 <script>
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { NODE as NODE_TYPE, MANAGEMENT } from '@shell/config/types';
+import { NODE as NODE_TYPE } from '@shell/config/types';
 
 export default {
   props: {
@@ -45,7 +45,7 @@ export default {
     },
     hasPermission() {
       if (this.type === NODE_TYPE) {
-        return this.$store.getters['management/schemaFor'](MANAGEMENT.NODE);
+        return this.$store.getters['management/schemaFor'](NODE_TYPE);
       }
 
       return true;
