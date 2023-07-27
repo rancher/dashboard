@@ -381,7 +381,6 @@ export default {
       }
 
       const count = matching.reduce((acc, status) => {
-        console.log('KKKKKK');
         const conditions = status.conditions.find((c) => c.status !== 'True');
 
         return !conditions ? acc : acc + 1;
