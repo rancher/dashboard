@@ -64,7 +64,7 @@ The admissible parameters for the `LocationConfig` object are:
 |`path`| `v2.7.7` | Array | Array of objects that does matching for the `path` part of the url. Admissable properties for the object are: `urlPath` (string), `exact` (boolean, default or omission: `true`, which defines the type of match it does) and `endsWith` (boolean, defaults to false) .Ex: { `urlPath`: '/c/local/explorer/projectsnamespaces',  `exact`: true } or { `urlPath`: 'explorer/projectsnamespaces',  `endsWith`: true } |
 |`cluster`| `v2.7.2` | Array | Array of the cluster identifier. Ex: `local` |
 |`id`| `v2.7.2` | Array | Array of the identifier for a given resource. Ex: `deployment-unt6xmz` |
-|`mode`| `v2.7.2` | Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissible values are: `edit`, `config`, `detail` and `list` |
+|`mode`| `v2.7.2` + `v2.7.7` | Array | Array of modes which relates to the type of view on which the given enhancement should be applied. Admissible values are: `edit` (v2.7.2), `config` (v2.7.2), `detail` (v2.7.2), `list` (v2.7.2) and `create` (v2.7.7) |
 |`context`| `v2.7.2`| Object | Requirements set by the context itself. This is a key value object that must match the object provided where the feature is used. For instance if a ResourceTab should only include a tab given specific information where the ResourceTab is used. Ex `{ provider: "digitalocean" }` |
 | `queryParam`| `v2.7.2` | Object | This is a key value object that must match the url's query param key values
 
