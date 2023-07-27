@@ -122,7 +122,7 @@ export default {
         promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
           const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-          return snapshots.filter((s) => s?.snapshotFile?.status !== STATES_ENUM.FAILED && s.clusterName === toRestoreClusterName
+          return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
           );
         });
       }
