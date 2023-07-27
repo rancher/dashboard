@@ -11,9 +11,9 @@ import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/ember/ember-a
  */
 export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManagerCreateRKE1PagePo {
   static url = `${ ClusterManagerCreatePagePo.url }/create?type=custom`
-  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(ClusterManagerCreateRke1CustomPagePo.url);
-  }
+  // static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+  //   return PagePo.goTo(ClusterManagerCreateRke1CustomPagePo.url);
+  // }
 
   goToCustomClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=custom`);

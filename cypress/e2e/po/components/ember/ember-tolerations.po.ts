@@ -1,11 +1,10 @@
 import EmberInputPo from '@/cypress/e2e/po/components/ember/ember-input.po';
 import EmberComponentPo from '@/cypress/e2e/po/components/ember/ember-component.po';
 import EmberSearchableSelectPo from '@/cypress/e2e/po/components/ember/ember-searchable-select.po';
-import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class EmberTolerationsPo extends EmberComponentPo {
   /**
-   * Add data to a toleration at given index
+   * Add data to a toleration at given index - assumes a toleration row at that index already exists
    * @param idx index of toleration to be edited
    * @param toleration data to be added where effect and operator are indices of desired value in dropdown
    */
@@ -30,6 +29,39 @@ export default class EmberTolerationsPo extends EmberComponentPo {
   addRow() {
     cy.iFrame().find(`${ this.selector } [data-testid="button-add-toleration"]`).click();
   }
+
+  removeRow(idx: number) {
+    this.findRow(idx).remove();
+  }
+
+  allRows() {
+    return cy.iFrame().then((iframe: any) => {
+      const queryResult = iframe.find(`${ this.selector } [data-testid="toleration-row"]`);
+
+      if (queryResult?.length > 0) {
+        return cy.iFrame().find(`${ this.selector } [data-testid="toleration-row"]`);
+      }
+
+      return null;
+    });
+  }
+
+  /**
+   * Remove all toleration rows if they exist- does not assume any rows exist
+   * @returns
+   */
+  removeAllRows() {
+    return this.allRows().then((rows: any) => {
+      if (rows) {
+        let idx = rows.length - 1;
+
+        while (idx >= 0) {
+          this.removeRow(idx);
+          idx--;
+        }
+      }
+    });
+  }
 }
 
 class EmberTolerationRowPo extends EmberComponentPo {
@@ -45,11 +77,23 @@ class EmberTolerationRowPo extends EmberComponentPo {
     return new EmberInputPo(`${ this.selector } [data-testid="input-toleration-seconds"]`);
   }
 
+  /**
+   *
+   * @returns Select with [Equals, Exists]
+   */
   operator(): EmberSearchableSelectPo {
     return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-operator"]`);
   }
 
+  /**
+   *
+   * @returns Select with [NoSchedule, NoExecute, PreferNoSchedule, All]
+   */
   effect(): EmberSearchableSelectPo {
     return new EmberSearchableSelectPo(`${ this.selector } [data-testid="input-toleration-effect"]`);
+  }
+
+  remove() {
+    return this.self().find('[data-testid="button-toleration-remove"]').click();
   }
 }

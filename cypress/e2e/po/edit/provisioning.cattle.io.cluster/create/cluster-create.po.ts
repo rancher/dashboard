@@ -7,8 +7,8 @@ import ClusterManagerCreateImportPagePo from '@/cypress/e2e/po/edit/provisioning
 export default abstract class ClusterManagerCreatePagePo extends ClusterManagerCreateImportPagePo {
   static url = '/c/local/manager/provisioning.cattle.io.cluster/create'
 
-  constructor() {
-    super(ClusterManagerCreatePagePo.url);
+  constructor(url: string = ClusterManagerCreatePagePo.url) {
+    super(url);
   }
 
   rkeToggle() {

@@ -7,6 +7,10 @@ export default class EmberNodeAffinityPo extends EmberComponentPo {
     return new NodeSelectorTermPo(`${ this.selector } [data-testid="node-selector-term"]div:nth-child(${ idx + 1 })`);
   }
 
+  /**
+   *
+   * @returns array of node affinity term elements, or null if none are defined
+   */
   allTerms() {
     return cy.iFrame().then((iframe) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="node-selector-term"]`);
@@ -19,6 +23,10 @@ export default class EmberNodeAffinityPo extends EmberComponentPo {
     });
   }
 
+  /**
+   * Remove existing node affinity terms - does not assume any are defined
+   * @returns
+   */
   removeAllTerms() {
     return this.allTerms().then((terms) => {
       if (terms) {
@@ -40,11 +48,17 @@ export default class EmberNodeAffinityPo extends EmberComponentPo {
     return cy.iFrame().find(`${ this.selector } [data-testid="button-add-node-selector"]`).click();
   }
 
-  // pod affinity po extends node affinity and adds a few fields in addition to _editTerms
+  // pod affinity po extends node affinity and adds a few fields in addition to _editTerm
   editTerm(termData: any, idx: number) {
     return this._editTerm(termData, idx);
   }
 
+  /**
+   * Edit a node affinity term - assumes term at given index exists
+   * Priority and weight are overwritted if provided; match expressions/fields are appended
+   * @param termData
+   * @param idx
+   */
   _editTerm(termData: any, idx: number) {
     const term = this.findTerm(idx);
 
@@ -106,6 +120,10 @@ export class MatchExpressionPo extends EmberComponentPo {
     return new EmberInputPo(`${ this.selector } [data-testid="input-match-expression-key"]`);
   }
 
+  /**
+   *
+   * @returns Select with options [InList, NotInList, Exists, DoesNoeExist, GreaterThan, LessThan]
+   */
   operator() {
     return new EmberNewSelectPo(`${ this.selector } [data-testid="select-match-expression-operator"]`);
   }
@@ -114,7 +132,10 @@ export class MatchExpressionPo extends EmberComponentPo {
     return new EmberInputPo(`${ this.selector } [data-testid="input-match-expression-values"] input`);
   }
 
-  // matchExpressions or matchFields
+  /**
+   *
+   * @returns select with options [matchExpressions, matchFields]
+   */
   type() {
     return new EmberNewSelectPo(`${ this.selector } [data-testid="select-match-expression-type"]`);
   }

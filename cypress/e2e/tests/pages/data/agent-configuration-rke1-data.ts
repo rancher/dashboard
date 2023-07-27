@@ -142,7 +142,6 @@ export const nodeAffinityData = [
   */
 export const podAffinityData = [
   {
-    // affinityType:  1,
     affinityType: 'Affinity',
 
     priority:      'Preferred',
@@ -171,7 +170,6 @@ export const podAffinityData = [
     weight:   10,
   },
   {
-    // affinityType:  1,
     affinityType: 'Affinity',
 
     priority:      'Required',
@@ -199,7 +197,6 @@ export const podAffinityData = [
     topology: 'some-topology2'
   },
   {
-    // affinityType:  1,
     affinityType: 'Affinity',
 
     priority:      'Required',
@@ -209,7 +206,6 @@ export const podAffinityData = [
   },
   {
     affinityType: 'AntiAffinity',
-    // affinityType:  0,
 
     priority:      'Preferred',
     namespaceType: 0,
@@ -237,7 +233,6 @@ export const podAffinityData = [
     weight:   10,
   },
   {
-    // affinityType:  0,
     affinityType: 'AntiAffinity',
 
     priority:      'Required',
@@ -265,12 +260,31 @@ export const podAffinityData = [
     topology: 'some-topology2'
   },
   {
-    // affinityType:  0,
     affinityType: 'AntiAffinity',
 
     priority:      'Required',
     namespaceType: 2,
     namespaces:    'system,fleet-default',
     topology:      'some-topology3'
+  },
+];
+
+export const requestAndLimitsEditData = {
+  request: {
+    cpu:    20,
+    memory: 30
+  },
+  limit: {
+    cpu:    40,
+    memory: 50
+  },
+};
+
+export const tolerationsEditData = [
+  {
+    key:      'key9000',
+    operator: 0,
+    effect:   3,
+    value:    'val9000'
   },
 ];

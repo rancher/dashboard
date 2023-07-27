@@ -8,6 +8,10 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
     return new PodAffinityTermPo(`${ this.selector } [data-testid="pod-affinity-term"]div:nth-child(${ idx + 1 })`);
   }
 
+  /**
+   *
+   * @returns array of all existing pod affinity term dom elements, or null if none are defined
+   */
   allTerms() {
     return cy.iFrame().then((iframe) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="pod-affinity-term"]`);
@@ -24,6 +28,12 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
     return cy.iFrame().find(`${ this.selector } [data-testid="button-add-pod-affinity-term"]`).click();
   }
 
+  /**
+   * Edit term at a given index - assumes term at that index already exisits
+   * termData topology, namespace type, affinity type, and priority overwrite existing options; expressions are appended
+   * @param termData
+   * @param idx
+   */
   editTerm(termData: any, idx:number) {
     const term = this.findTerm(idx);
 
@@ -48,11 +58,18 @@ export class PodAffinityTermPo extends NodeSelectorTermPo {
     return this.self().find('[data-testid="button-pod-affinity-remove"]').click();
   }
 
+  /**
+   *
+   * @returns Select with options [required, preferred]
+   */
   priority() {
     return new EmberNewSelectPo(`${ this.selector } [data-testid="select-pod-affinity-priority"]`);
   }
 
-  // affinity/anti-affinity
+  /**
+   *
+   * @returns Select with options [antiAffinity, affinity]
+   */
   type() {
     return new EmberNewSelectPo(`${ this.selector } [data-testid="select-pod-affinity-type"]`);
   }
@@ -65,6 +82,10 @@ export class PodAffinityTermPo extends NodeSelectorTermPo {
     return new EmberInputPo(`${ this.selector } [data-testid="input-pod-affinity-topology"]`);
   }
 
+  /**
+   *
+   * @returns Radio with options [this pods namespace, all namespaces, pods in these namespaces]
+   */
   namespaceType() {
     return new EmberRadioInputPo(`${ this.selector } [data-testid="radio-pod-affinity-namespace-type"]`);
   }
