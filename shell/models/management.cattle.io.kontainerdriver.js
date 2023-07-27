@@ -25,6 +25,7 @@ export const KONTAINER_TO_DRIVER = {
   baiducloudcontainerengine:        'baidu',
   opentelekomcloudcontainerengine:  'otccce',
   ack:                              'aliyunv2',
+  huawei:                           'huaweiccev2',
   tke:                              'tencenttkev2'
 };
 
@@ -34,6 +35,7 @@ export const DRIVER_TO_IMPORT = {
   amazoneks: 'eks',
   azureaks:  'aks',
   aliyun:    'ack',
+  huawei:    'huawei',
   tencent:   'tke',
 };
 

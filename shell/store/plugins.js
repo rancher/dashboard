@@ -30,6 +30,11 @@ const credentialOptions = {
     publicMode: 'full',
     keys:       ['accessKeyId', 'accessKeySecret']
   },
+  huawei: {
+    publicKey:  'accessKeyId',
+    publicMode: 'full',
+    keys:       ['accessKeyId', 'accessKeySecret', 'projectId']
+  },
 };
 
 // Credential drivers that rke1 supports
@@ -45,6 +50,7 @@ export const rke1Supports = [
   'vmwarevsphere',
   'aliyun',
   'tencent',
+  'huawei',
 ];
 
 // Map a credential driver name to a component name
@@ -66,6 +72,10 @@ const driverMap = {
   aliyunecs:                        'aliyun',
   aliyunkubernetescontainerservice: 'aliyun',
   tencentkubernetesengine:          'tke',
+  huaweikubernetesengine:           'huawei',
+  ackoperatorsetting:               'aliyun',
+  cceoperatorsetting:               'huawei',
+  tkeoperatorsetting:               'tke',
 };
 
 // Map a driver component back to the cloud credential field name their data has to be stored in

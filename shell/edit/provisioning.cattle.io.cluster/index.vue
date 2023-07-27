@@ -361,7 +361,7 @@ export default {
         let entry = out[name];
 
         // Support operator to hide v1 entry
-        if (row.id === 'aliyun' || row.id === 'tencenttke') {
+        if (row.id === 'aliyun' || row.id === 'tencenttke' || row.id === 'huaweicce') {
           continue;
         }
 

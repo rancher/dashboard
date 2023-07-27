@@ -1203,6 +1203,40 @@ cluster:
       accessKeySecret:
         label: Access Key Secret
         placeholder: Your TKE Access Key Secret
+    huawei:
+      accessKey:
+        help: You can find instructions on how to create Access Key <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606340.html" target="_blank">here</a>.
+        label: Access Key
+        placeholder: Your Huawei access key
+      projectId:
+        help: You can find instructions on how to obtain Project Id <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606344.html" target="_blank">here</a>.
+        label: Project Id
+        placeholder: Your CCE project id
+        required: Project Id is required.
+      secretKey:
+        help: You can find instructions on how to obtain Secret Key <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606340.html" target="_blank">here</a>.
+        label: Secret Key
+        placeholder: Your Huawei secret key
+      regionID:
+        help: The project ID needs to match the Default Region, otherwise cloud credentials will not be available. Can be referenced <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606340.html" target="_blank">here</a>.
+        label: Default Region
+        cn_north_1: CN North-Beijing1
+        cn_north_4: CN North-Beijing4
+        cn_east_3: CN East-Shanghai1
+        cn_east_2: CN East-Shanghai2
+        cn_south_1: CN South-Guangzhou
+        cn_southwest_2: CN Southwest-Guiyang1
+        ap_southeast_1: AP-Hong-Kong
+        ap_southeast_2: AP-Bangkok
+        ap_southeast_3: AP-Singapore
+        af_south_1: AF-Johannesburg
+        sa_brazil_1: LA-Sao Paulo1
+        la_south_2: LA-Santiago
+        cn_north_9: North-乌兰察布一
+        eu_west_0: Europe-Paris
+        eu_west_101: Europe-Dublin
+        tr_west_1: Turkey-Istanbul
+        ae_ad_1: Middle-East-Abu-Dhabi-OP5
     aws:
       accessKey:
         label: Access Key
@@ -1939,11 +1973,14 @@ cluster:
     softlayer: IBM Cloud
     tencenttke: Tencent TKE
     tkeoperatorsetting: Tencent TKE
-    tke: TKE
+    tke: Tencent
+    cceoperatorsetting: Huawei CCE
+    cce: CCE
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
     machineinventoryselectortemplate: Elemental Cluster
+    huawei: Hua Wei
   providerTag:
     rke2:
       harvester: '{tag}'

@@ -1210,6 +1210,40 @@ cluster:
       accessKeySecret:
         label: 访问密钥 Secret
         placeholder: 你的 腾讯云 访问密钥 Secret
+    huawei:
+      accessKey:
+        label: 访问密钥 ID
+        placeholder: CCE 访问密钥 ID
+        help: 創建访问密钥 ID 参考 <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606340.html" target="_blank">这里</a>.
+      secretKey:
+        label: 访问密钥
+        placeholder: CCE 访问密钥
+        help: 获取访问密钥参考 <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606340.html" target="_blank">这里</a>.
+      projectId:
+        label: 项目 ID
+        placeholder: CCE 项目 ID
+        help: 获取项目 ID 参考 <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606344.html" target="_blank">这里</a>.
+        required: 项目 ID 必須填写
+      regionID:
+        label: 默认区域
+        help: 项目 ID 需要和默认区域匹配，否者云凭证将不可用。可参考 <a href="https://support.huaweicloud.com/usermanual-ca/zh-cn_topic_0046606344.html" target="_blank">这里</a>.
+        cn_north_1: 华北-北京一
+        cn_north_4: 华北-北京四
+        cn_east_3: 华东-上海一
+        cn_east_2: 华东-上海二
+        cn_south_1: 华南-广州
+        cn_southwest_2: 西南-贵阳一
+        ap_southeast_1: 亚太-香港
+        ap_southeast_2: 亚太-曼谷
+        ap_southeast_3: 亚太-新加坡
+        af_south_1: 非洲-约翰内斯堡
+        sa_brazil_1: 拉美-圣保罗一
+        la_south_2: 拉美-圣地亚哥
+        cn_north_9: 华北-乌兰察布一
+        eu_west_0: 欧洲-巴黎
+        eu_west_101: 欧洲-都柏林
+        tr_west_1: 土耳其-伊斯坦布尔
+        ae_ad_1: 中东-阿布扎比-OP5
     aws:
       accessKey:
         label: Access Key
@@ -1893,7 +1927,7 @@ cluster:
   provider:
     ack: ACK
     ackoperatorsetting: Alibaba ACK
-    alibaba: Alibaba
+    alibaba: 阿里云
     aliyunecs: Aliyun ECS
     aliyunkubernetescontainerservice: Alibaba ACK
     aliyun: Alibaba ACK
@@ -1947,11 +1981,14 @@ cluster:
     softlayer: IBM 云
     tencenttke: 腾讯云 TKE
     tkeoperatorsetting: 腾讯云 TKE
-    tke: TKE
+    tke: 腾讯云
+    cceoperatorsetting: 华为 CCE
+    cce: CCE
     upcloud: UpCloud
     vmwarevsphere: VMware vSphere
     zstack: ZStack
     machineinventoryselectortemplate: Elemental 集群
+    huawei: 华为云
   providerTag:
     rke2:
       harvester: '{tag}'
