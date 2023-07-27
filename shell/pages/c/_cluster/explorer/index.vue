@@ -196,9 +196,7 @@ export default {
         provider = 'other';
       }
 
-      const importedMsg = this.currentCluster?.spec?.gkeConfig?.imported ? `${ this.t('generic.imported') } ` : '';
-
-      return importedMsg + this.t(`cluster.provider.${ provider }`);
+      return this.t(`cluster.provider.${ provider }`);
     },
 
     isHarvesterCluster() {
