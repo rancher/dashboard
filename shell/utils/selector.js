@@ -198,7 +198,8 @@ export function matches(obj, selector, labelKey = 'metadata.labels') {
       }
       break;
     case 'In':
-      if ( !value || !rule.values.length || !rule.values.includes(value) ) {
+      // we need to cater empty strings because when creating a label with value = null it's translated into a empty string value ''
+      if ( !rule.values.length || !rule.values.includes(value) ) {
         return false;
       }
       break;
@@ -224,5 +225,9 @@ export function matches(obj, selector, labelKey = 'metadata.labels') {
 }
 
 export function matching(ary, selector, labelKey) {
+  console.log('array', ary);
+  console.log('selector', selector);
+  console.log('labelKey', labelKey);
+
   return ary.filter((obj) => matches(obj, selector, labelKey));
 }
