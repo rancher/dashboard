@@ -20,7 +20,7 @@ export default class UsersPo extends PagePo {
   }
 
   waitForRequests() {
-    UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0', '/v1/management.cattle.io.users?exclude=metadata.managedFields']);
+    UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0']);
   }
 
   listCreate() {
