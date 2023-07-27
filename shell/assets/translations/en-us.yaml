@@ -30,6 +30,7 @@ generic:
     always: Always
     ifNotPresent: IfNotPresent
     never: Never
+  imported: Imported
   labels: Labels
   labelsAndAnnotations: Labels & Annotations
   podSecurityAdmission: Pod Security Admission

@@ -196,7 +196,9 @@ export default {
         provider = 'other';
       }
 
-      return this.t(`cluster.provider.${ provider }`);
+      const importedMsg = this.currentCluster?.spec?.gkeConfig?.imported ? `${ this.t('generic.imported') } ` : '';
+
+      return importedMsg + this.t(`cluster.provider.${ provider }`);
     },
 
     isHarvesterCluster() {
@@ -379,6 +381,7 @@ export default {
       }
 
       const count = matching.reduce((acc, status) => {
+        console.log('KKKKKK');
         const conditions = status.conditions.find((c) => c.status !== 'True');
 
         return !conditions ? acc : acc + 1;
