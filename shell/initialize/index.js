@@ -36,6 +36,7 @@ import '../plugins/extend-router';
 
 import consolePlugin from '../plugins/console';
 import intNumber from '../plugins/int-number';
+import positiveIntNumber from '../plugins/positive-int-number.js';
 import nuxtClientInit from '../plugins/nuxt-client-init';
 import replaceAll from '../plugins/replaceall';
 import backButton from '../plugins/back-button';
@@ -278,6 +279,10 @@ async function createApp(ssrContext, config = {}) {
 
   if (process.client && typeof intNumber === 'function') {
     await intNumber(app.context, inject);
+  }
+
+  if (process.client && typeof positiveIntNumber === 'function') {
+    await positiveIntNumber(app.context, inject);
   }
 
   if (process.client && typeof nuxtClientInit === 'function') {
