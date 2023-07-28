@@ -84,6 +84,7 @@ export default defineConfig({
       exclude: [
         'cypress/**/*.*',
         '**/__tests__/**/*.*',
+        '**/__mocks__/**/*.*',
         '**/shell/scripts/**/*.*',
       ],
       include: [
