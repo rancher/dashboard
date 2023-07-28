@@ -1,5 +1,6 @@
 <script>
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
+import { canViewResource } from '@shell/utils/auth';
 
 export default {
   props: {
@@ -41,6 +42,10 @@ export default {
       };
 
       return { name, params };
+    },
+
+    canViewResource() {
+      return canViewResource(this.$store, this.type);
     }
   }
 };
@@ -48,8 +53,14 @@ export default {
 
 <template>
   <span v-if="value">
-    <nuxt-link :to="url">
+    <nuxt-link
+      v-if="canViewResource"
+      :to="url"
+    >
       {{ value }}
     </nuxt-link>
+    <template v-else>
+      {{ value }}
+    </template>
   </span>
 </template>
