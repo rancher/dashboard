@@ -225,9 +225,5 @@ export function matches(obj, selector, labelKey = 'metadata.labels') {
 }
 
 export function matching(ary, selector, labelKey) {
-  console.log('array', ary);
-  console.log('selector', selector);
-  console.log('labelKey', labelKey);
-
   return ary.filter((obj) => matches(obj, selector, labelKey));
 }
