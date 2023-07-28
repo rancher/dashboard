@@ -40,8 +40,8 @@ export default {
 
     // The height of the window
     height: {
-      type:     Number,
-      required: true,
+      type:    Number,
+      default: undefined,
     },
 
     // The width of the window
