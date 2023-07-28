@@ -23,4 +23,8 @@ export default class ToggleSwitchPo extends ComponentPo {
   unCheck() {
     return this.self().find('input').uncheck({ force: true });
   }
+
+  check() {
+    return this.self().find('input').check({ force: true });
+  }
 }

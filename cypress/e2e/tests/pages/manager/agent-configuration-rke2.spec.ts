@@ -1,5 +1,7 @@
 /* eslint-disable cypress/no-unnecessary-waiting */
 import ClusterManagerCreateRke2CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke2-custom.po';
+import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+
 import {
   podAffinityData,
   requestAndLimitsData,
@@ -15,9 +17,15 @@ describe('Agent Configuration for RKE2', { tags: ['@manager', '@adminUser'] }, (
 
   it('Should send the correct payload to the server', () => {
     const createCustomClusterPage = new ClusterManagerCreateRke2CustomPagePo();
+    const clusterList = new ClusterManagerListPagePo('local');
 
-    createCustomClusterPage.goToCustomClusterCreation();
+    clusterList.goTo();
+    clusterList.checkIsCurrentPage();
+    clusterList.createCluster();
+
     createCustomClusterPage.waitForPage();
+    createCustomClusterPage.rkeToggle().check();
+    createCustomClusterPage.selectCustom(0);
 
     // intercept
     cy.intercept('POST', 'v1/provisioning.cattle.io.clusters').as('customRKE2ClusterCreation');
