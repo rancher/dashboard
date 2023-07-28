@@ -18,6 +18,7 @@ jest.mock('@shell/utils/crypto', () => {
 describe('component: ContainerShell', () => {
   const action = jest.fn();
   const translate = jest.fn();
+  const schemaFor = jest.fn();
   const onData = jest.fn();
   const loadAddon = jest.fn();
   const open = jest.fn();
@@ -66,7 +67,10 @@ describe('component: ContainerShell', () => {
     mocks: {
       $store: {
         dispatch: action,
-        getters:  { 'i18n/t': translate }
+        getters:  {
+          'i18n/t':            translate,
+          'cluster/schemaFor': schemaFor
+        }
       }
     }
   };
@@ -99,9 +103,23 @@ describe('component: ContainerShell', () => {
     expect(windowElement.exists()).toBe(true);
   });
 
-  it('the find action for the node is called', async() => {
+  it('the find action for the node is called if schemaFor finds a schema for NODE', async() => {
     resetMocks();
-    await wrapperPostMounted(defaultContainerShellParams);
+    const testSchemaFindsSchemaParams = {
+      ...defaultContainerShellParams,
+      mocks: {
+        ...defaultContainerShellParams.mocks,
+        $store: {
+          ...defaultContainerShellParams.mocks.$store,
+          getters: {
+            ...defaultContainerShellParams.mocks.$store.getters,
+            'cluster/schemaFor': jest.fn().mockImplementation(() => true)
+          }
+        }
+      }
+    };
+
+    await wrapperPostMounted(testSchemaFindsSchemaParams);
 
     const actionParams = action.mock.calls[0];
 

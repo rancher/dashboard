@@ -128,7 +128,14 @@ export default {
   async mounted() {
     const nodeId = this.pod.spec?.nodeName;
 
-    await this.$store.dispatch('cluster/find', { type: NODE, id: nodeId });
+    try {
+      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+
+      if (schema) {
+        await this.$store.dispatch('cluster/find', { type: NODE, id: nodeId });
+      }
+    } catch {}
+
     await this.setupTerminal();
     await this.connect();
 
