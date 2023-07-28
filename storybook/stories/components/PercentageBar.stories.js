@@ -1,7 +1,7 @@
 import PercentageBar from '@shell/components/PercentageBar';
 
 export default {
-  title:     'WIP/PercentageBar',
+  title:     'Components/PercentageBar',
   component: PercentageBar,
   argTypes:  {
     preferredDirection: {

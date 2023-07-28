@@ -16,9 +16,9 @@ export const Template = () => ({
   template:   '<GrowlManager />',
 })
 
-# GrowlManager
+# Growl
 
-The GrowlManager component is used to display asynchronous responses of specific actions overlaid on the top right of the window. The information shown in each message includes the severity, a summary, and any details.
+The Growl component is used to display asynchronous responses of specific actions overlaid on the top right of the window. The information shown in each message includes the severity, a summary, and any details.
 
 ### When to use it
 
@@ -33,7 +33,7 @@ The GrowlManager component is used to display asynchronous responses of specific
 
 ### Usage
 
-Messages with different levels of severity can be displayed in the GrowlManager component by dispatching actions to the `growl` store.
+Messages with different levels of severity can be displayed in the Growl component by dispatching actions to the `growl` store.
 
 
 #### Info (default)
@@ -78,7 +78,7 @@ this.$store.dispatch('growl/error', {
 
 
 <Canvas>
-  <Story name="GrowlManager">
+  <Story name="Growl">
     {Template.bind({})}
   </Story>
 </Canvas>

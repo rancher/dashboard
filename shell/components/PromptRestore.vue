@@ -14,6 +14,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@shell/store/prefs';
 import { escapeHtml } from '@shell/utils/string';
 import day from 'dayjs';
 import { sortBy } from '@shell/utils/sort';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default {
   components: {
@@ -51,7 +52,7 @@ export default {
     // Was the dialog opened to restore a specific snapshot, or opened on a cluster to choose
     isCluster() {
       const isSnapshot = this.toRestore[0]?.type.toLowerCase() === NORMAN.ETCD_BACKUP ||
-        this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
+      this.toRestore[0]?.type.toLowerCase() === SNAPSHOT;
 
       return !isSnapshot;
     },
@@ -113,7 +114,7 @@ export default {
       const cluster = this.toRestore?.[0];
       let promise;
 
-      if (!cluster.isRke2) {
+      if (!cluster?.isRke2) {
         promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
           return snapshots.filter((s) => s.clusterId === cluster.metadata.name);
         });
@@ -121,12 +122,13 @@ export default {
         promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
           const toRestoreClusterName = cluster?.clusterName || cluster?.metadata?.name;
 
-          return snapshots.filter((s) => s.clusterName === toRestoreClusterName);
+          return snapshots.filter((s) => s?.snapshotFile?.status === STATES_ENUM.SUCCESSFUL && s.clusterName === toRestoreClusterName
+          );
         });
       }
 
       // Map of snapshots by name
-      const allSnapshosts = await promise.then((snapshots) => {
+      const allSnapshots = await promise.then((snapshots) => {
         return snapshots.reduce((v, s) => {
           v[s.name] = s;
 
@@ -136,7 +138,7 @@ export default {
         this.errors = exceptionToErrorsArray(err);
       });
 
-      this.allSnapshots = allSnapshosts;
+      this.allSnapshots = allSnapshots;
       this.sortedSnapshots = sortBy(Object.values(this.allSnapshots), ['snapshotFile.createdAt', 'created', 'metadata.creationTimestamp'], true);
     },
 
