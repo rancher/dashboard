@@ -13,6 +13,9 @@ import { SECRET, BACKUP_RESTORE, CATALOG } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
 import { _CREATE } from '@shell/config/query-params';
+
+const OPAQUE_SECRET_TYPE = 'Opaque';
+
 export default {
 
   components: {
@@ -93,7 +96,14 @@ export default {
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter((secret) => !!(secret.data || {})['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map((secret) => secret.metadata.name);
+      const filtered = this.allSecrets.filter(
+        (secret) => !!(secret.data || {})['encryption-provider-config.yaml'] &&
+        secret.metadata.namespace === this.chartNamespace &&
+        !secret.metadata?.state?.error &&
+        secret._type === OPAQUE_SECRET_TYPE
+      );
+
+      return filtered.map((secret) => secret.metadata.name).sort();
     },
 
     isEncrypted() {
