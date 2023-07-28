@@ -34,15 +34,15 @@ export default class Pod extends WorkloadService {
   }
 
   get node() {
-    try {
-      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+    const schema = this.$store.getters[`cluster/schemaFor`](NODE);
 
-      if (schema) {
-        this.$dispatch(`find`, { type: NODE, id: this.spec.nodeName });
-      }
-    } catch {}
+    if (schema) {
+      this.$dispatch(`find`, { type: NODE, id: this.spec.nodeName });
 
-    return this.$getters['byId'](NODE, this.spec.nodeName);
+      return this.$getters['byId'](NODE, this.spec.nodeName);
+    }
+
+    return undefined;
   }
 
   get _availableActions() {
