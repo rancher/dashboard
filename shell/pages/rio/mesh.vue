@@ -95,13 +95,13 @@ async function loadData(store) {
 
   const known = {};
 
-  data.nodes = data.nodes.filter(x => !!x.app && !!x.namespace);
+  data.nodes = data.nodes.filter((x) => !!x.app && !!x.namespace);
   data.nodes.forEach((x) => {
     x.id = nodeIdFor(x);
     known[x.id] = true;
   });
 
-  data.edges = data.edges.filter(x => known[fromId(x)] && known[toId(x)]);
+  data.edges = data.edges.filter((x) => known[fromId(x)] && known[toId(x)]);
 
   return data;
 }
@@ -329,7 +329,7 @@ export default {
         g.setParent(id, nsId);
       }
 
-      const rpses = this.displayEdges.map(x => x.stats.rps);
+      const rpses = this.displayEdges.map((x) => x.stats.rps);
       const min = Math.min(...rpses);
       const max = Math.max(...rpses);
 

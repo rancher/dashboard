@@ -1,10 +1,10 @@
-import PagePo from '~/cypress/e2e/po/pages/page.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import ApiKeysListPo from '@/cypress/e2e/po/lists/account-api-keys-list.po';
-import PasswordPo from '~/cypress/e2e/po/components/password.po';
+import PasswordPo from '@/cypress/e2e/po/components/password.po';
 
 export default class AccountPagePo extends PagePo {
-  static url: string = '/account'
+  static url = '/account'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(AccountPagePo.url);
   }

@@ -90,7 +90,7 @@ export default {
 
   methods: {
     updateMatchingResources: throttle(function() {
-      this.allResourcesInScope = this.namespace ? this.allResources.filter(res => res.metadata.namespace === this.namespace) : this.allResources;
+      this.allResourcesInScope = this.namespace ? this.allResources.filter((res) => res.metadata.namespace === this.namespace) : this.allResources;
       const match = matching(this.allResourcesInScope, this.selectorExpressions);
       const matched = match.length || 0;
       const sample = match[0]?.nameDisplay;

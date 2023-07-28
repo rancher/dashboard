@@ -60,8 +60,8 @@ export default {
     this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.ROLE_TEMPLATE });
     this.$store.dispatch(`management/findAll`, { type: MANAGEMENT.USER });
 
-    // Add the current user as the project owner. This will get created by default
-    const bindings = [];
+    const bindings = allBindings
+      .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     if (this.mode === _CREATE && bindings.length === 0 && this.defaultBindingHandler) {
       const defaultBinding = await this.defaultBindingHandler();
@@ -98,11 +98,11 @@ export default {
   computed: {
     newBindings() {
       return this.bindings
-        .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
+        .filter((binding) => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
     },
     removedBindings() {
       return this.lastSavedBindings
-        .filter(binding => !this.bindings.includes(binding));
+        .filter((binding) => !this.bindings.includes(binding));
     },
     membershipUpdate() {
       const newBindings = this.newBindings;
@@ -118,7 +118,7 @@ export default {
             return binding.save();
           });
 
-          const removedPromises = removedBindings.map(binding => binding.remove());
+          const removedPromises = removedBindings.map((binding) => binding.remove());
 
           return Promise.all([...savedPromises, ...removedPromises]);
         }

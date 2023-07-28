@@ -14,10 +14,10 @@ export function getClusterPrefix(monitoringVersion, clusterId) {
   return clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
 }
 
-export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params) {
+export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params, modifyPrefix = true) {
   const url = parseUrl(embedUrl);
 
-  let newUrl = `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }`;
+  let newUrl = modifyPrefix ? `${ getClusterPrefix(monitoringVersion, clusterId) }${ url.path }` : url.path;
 
   if (url.query.viewPanel) {
     newUrl = addParam(newUrl, 'viewPanel', url.query.viewPanel);
@@ -32,14 +32,19 @@ export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, para
   return newUrl;
 }
 
-export async function dashboardExists(monitoringVersion, store, clusterId, embedUrl, storeName = 'cluster') {
+export async function dashboardExists(monitoringVersion, store, clusterId, embedUrl, storeName = 'cluster', projectId = null) {
   if ( !haveV2Monitoring(store.getters) ) {
     return false;
   }
 
   const url = parseUrl(embedUrl);
-  const prefix = `${ getClusterPrefix(monitoringVersion, clusterId) }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
-  const delimiter = 'http:rancher-monitoring-grafana:80/proxy/';
+  let prefix = `${ getClusterPrefix(monitoringVersion, clusterId) }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
+  let delimiter = 'http:rancher-monitoring-grafana:80/proxy/';
+
+  if (projectId) {
+    prefix = `${ getClusterPrefix(monitoringVersion, clusterId) }/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/`;
+    delimiter = `http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/`;
+  }
   const path = url.path.split(delimiter)[1];
   const uid = path.split('/')[1];
   const newUrl = `${ prefix }api/dashboards/uid/${ uid }`;
@@ -53,20 +58,27 @@ export async function dashboardExists(monitoringVersion, store, clusterId, embed
   }
 }
 
-export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster') {
+export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster', projectId = null) {
   let res;
 
-  try {
-    res = await store.dispatch(`${ storeName }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
-  } catch (err) {
-    return false;
+  let monitoringVersion = '';
+
+  if (!projectId) {
+    try {
+      res = await store.dispatch(`${ storeName }/find`, {
+        type: CATALOG.APP,
+        id:   'cattle-monitoring-system/rancher-monitoring'
+      });
+    } catch (err) {
+      return false;
+    }
+
+    monitoringVersion = res?.currentVersion;
   }
 
-  const monitoringVersion = res?.currentVersion;
+  const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName, projectId));
 
-  const existPromises = embeddedUrls.map(url => dashboardExists(monitoringVersion, store, clusterId, url, storeName));
-
-  return (await Promise.all(existPromises)).every(exists => exists);
+  return (await Promise.all(existPromises)).every((exists) => exists);
 }
 
 export function queryGrafana(monitoringVersion, dispatch, clusterId, query, range, step) {

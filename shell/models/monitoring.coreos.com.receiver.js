@@ -61,7 +61,7 @@ export default class Receiver extends SteveModel {
 
   remove() {
     return this.updateReceivers((currentReceivers) => {
-      return currentReceivers.filter(r => r.name !== this.spec?.name);
+      return currentReceivers.filter((r) => r.name !== this.spec?.name);
     });
   }
 
@@ -73,7 +73,7 @@ export default class Receiver extends SteveModel {
     }
 
     await this.updateReceivers((currentReceivers) => {
-      const existingReceiver = currentReceivers.find(r => r.name === this.spec?.name);
+      const existingReceiver = currentReceivers.find((r) => r.name === this.spec?.name);
 
       if (existingReceiver) {
         Object.assign(existingReceiver, this.spec);
@@ -129,18 +129,18 @@ export default class Receiver extends SteveModel {
 
   get receiverTypes() {
     const types = RECEIVERS_TYPES
-      .filter(type => type.name !== 'custom' && this.spec[type.key]?.length > 0)
-      .map(type => this.t(type.label));
+      .filter((type) => type.name !== 'custom' && this.spec[type.key]?.length > 0)
+      .map((type) => this.t(type.label));
 
-    const expectedKeys = RECEIVERS_TYPES.map(type => type.key).filter(key => key !== 'custom');
+    const expectedKeys = RECEIVERS_TYPES.map((type) => type.key).filter((key) => key !== 'custom');
 
     expectedKeys.push('name');
 
     const customKeys = Object.keys(this.spec)
-      .filter(key => !expectedKeys.includes(key));
+      .filter((key) => !expectedKeys.includes(key));
 
     if (customKeys.length > 0) {
-      const customLabel = this.t(RECEIVERS_TYPES.find(type => type.name === 'custom').label);
+      const customLabel = this.t(RECEIVERS_TYPES.find((type) => type.name === 'custom').label);
 
       types.push(customLabel);
     }
@@ -149,7 +149,7 @@ export default class Receiver extends SteveModel {
   }
 
   get updateReceivers() {
-    return fn => updateConfig(this.$dispatch, 'receivers', this.type, fn);
+    return (fn) => updateConfig(this.$dispatch, 'receivers', this.type, fn);
   }
 
   saveYaml(yaml) {
@@ -182,7 +182,7 @@ export default class Receiver extends SteveModel {
   }
 
   get hasDependentRoutes() {
-    return !!this.routes.find(route => route.spec.receiver === this.id);
+    return !!this.routes.find((route) => route.spec.receiver === this.id);
   }
 
   get preventDeletionMessage() {

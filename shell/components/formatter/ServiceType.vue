@@ -24,7 +24,7 @@ export default {
       cloned = 'headless';
     }
 
-    const match = DEFAULT_SERVICE_TYPES.find(s => s.id.toLowerCase() === cloned);
+    const match = DEFAULT_SERVICE_TYPES.find((s) => s.id.toLowerCase() === cloned);
     const translationLabel = match?.label;
     let translated;
 

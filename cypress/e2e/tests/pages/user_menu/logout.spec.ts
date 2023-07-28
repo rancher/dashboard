@@ -1,11 +1,11 @@
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
-import { LoginPagePo } from '~/cypress/e2e/po/pages/login-page.po';
+import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 
 const userMenu = new UserMenuPo();
 const loginPage = new LoginPagePo();
 
-describe('User can logout of Rancher', () => {
+describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -17,9 +17,7 @@ describe('User can logout of Rancher', () => {
     Attempt to navigate to the Home page without logging back in
     Verify user remains on login page
     */
-    HomePagePo.goTo();
-    userMenu.toggle();
-    userMenu.isOpen();
+    HomePagePo.goToAndWaitForGet();
     userMenu.clickMenuItem('Log Out');
     loginPage.waitForPage();
     loginPage.username().checkVisible();

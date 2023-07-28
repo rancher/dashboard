@@ -45,7 +45,7 @@ export default {
     },
     mainImage() {
       const images = this.images;
-      const filter = images.filter(image => !IGNORE_IMAGES.find(i => image.includes(i)));
+      const filter = images.filter((image) => !IGNORE_IMAGES.find((i) => image.includes(i)));
 
       return filter.length > 0 ? filter[0] : images[0];
     }
@@ -55,7 +55,7 @@ export default {
 </script>
 
 <template>
-  <span>
+  <span class="formatter-pod-images">
     <span>{{ mainImage }}</span><br>
     <span
       v-if="images.length-1>0"
@@ -64,3 +64,9 @@ export default {
     >{{ t('generic.plusMore', {n:images.length-1}) }}</span>
   </span>
 </template>
+
+<style scoped>
+  .formatter-pod-images {
+    word-break: break-all;
+  }
+</style>

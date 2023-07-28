@@ -71,7 +71,7 @@ export default (Vue as VueConstructor<Vue & InstanceType<typeof CreateEditView>>
     if (!this.value.configuration) {
       this.value.configuration = {
         defaults:   {},
-        exemptions: Object.assign({}, ...PSADimensions.map(dimension => ({ [dimension]: [] }))),
+        exemptions: Object.assign({}, ...PSADimensions.map((dimension) => ({ [dimension]: [] }))),
       } as PSAConfig;
     }
   }

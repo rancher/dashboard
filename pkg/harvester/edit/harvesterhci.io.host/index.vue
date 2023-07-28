@@ -58,7 +58,7 @@ export default {
     });
 
     const hostNetworks = hash.hostNetworks;
-    const hostNetworkResource = hostNetworks.find( O => this.value.id === O.attachNodeName);
+    const hostNetworkResource = hostNetworks.find( (O) => this.value.id === O.attachNodeName);
 
     if (hostNetworkResource) {
       this.hostNetworkResource = hostNetworkResource;
@@ -174,7 +174,7 @@ export default {
     },
 
     showFormattedWarning() {
-      const out = this.newDisks.filter(d => d.forceFormatted && d.isNew) || [];
+      const out = this.newDisks.filter((d) => d.forceFormatted && d.isNew) || [];
 
       return out.length > 0;
     },
@@ -265,8 +265,8 @@ export default {
     },
     async saveDisk() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const addDisks = this.newDisks.filter(d => d.isNew);
-      const removeDisks = this.disks.filter(d => !findBy(this.newDisks, 'name', d.name) && d.blockDevice);
+      const addDisks = this.newDisks.filter((d) => d.isNew);
+      const removeDisks = this.disks.filter((d) => !findBy(this.newDisks, 'name', d.name) && d.blockDevice);
 
       try {
         await Promise.all(addDisks.map((d) => {
@@ -348,7 +348,7 @@ export default {
           const sizeBytes = d.status?.deviceStatus?.capacity?.sizeBytes;
           const size = formatSi(sizeBytes, { increment: 1024 });
           const parentDevice = d.status?.deviceStatus?.parentDevice;
-          const isChildAdded = this.newDisks.find(newDisk => newDisk.blockDevice?.status?.deviceStatus?.parentDevice === devPath);
+          const isChildAdded = this.newDisks.find((newDisk) => newDisk.blockDevice?.status?.deviceStatus?.parentDevice === devPath);
           const name = d.displayName;
 
           let label = `${ name } (Type: ${ deviceType }, Size: ${ size })`;
@@ -401,8 +401,16 @@ export default {
       :namespaced="false"
       :mode="mode"
     />
-    <Tabbed ref="tabbed" class="mt-15" :side-tabs="true">
-      <Tab name="basics" :weight="100" :label="t('harvester.host.tabs.basics')">
+    <Tabbed
+      ref="tabbed"
+      class="mt-15"
+      :side-tabs="true"
+    >
+      <Tab
+        name="basics"
+        :weight="100"
+        :label="t('harvester.host.tabs.basics')"
+      >
         <LabeledInput
           v-model="customName"
           :label="t('harvester.host.detail.customName')"
@@ -417,7 +425,12 @@ export default {
           :mode="mode"
         />
       </Tab>
-      <Tab v-if="hasHostNetworksSchema" name="network" :weight="90" :label="t('harvester.host.tabs.network')">
+      <Tab
+        v-if="hasHostNetworksSchema"
+        name="network"
+        :weight="90"
+        :label="t('harvester.host.tabs.network')"
+      >
         <InfoBox class="wrapper">
           <div class="row">
             <div class="col span-6">
@@ -504,7 +517,10 @@ export default {
           </template>
         </ArrayListGrouped>
       </Tab>
-      <Tab name="labels" label-key="harvester.host.tabs.labels">
+      <Tab
+        name="labels"
+        label-key="harvester.host.tabs.labels"
+      >
         <KeyValue
           key="labels"
           :value="filteredLabels"
@@ -522,7 +538,12 @@ export default {
       color="warning"
       :label="t('harvester.host.disk.forceFormatted.toolTip')"
     />
-    <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
+    <Footer
+      :mode="mode"
+      :errors="errors"
+      @save="save"
+      @done="done"
+    />
   </div>
 </template>
 <style lang="scss" scoped>

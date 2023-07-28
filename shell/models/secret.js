@@ -293,7 +293,7 @@ export default class Secret extends SteveModel {
   get unrepeatedSans() {
     if (this._type === TYPES.TLS ) {
       if (this.certInfo?.sans?.filter) {
-        const commonBases = this.certInfo?.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
+        const commonBases = this.certInfo?.sans.filter((name) => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map((name) => name.substr(name.indexOf('.')));
         const displaySans = removeObjects(this.certInfo?.sans, commonBases);
 
         return displaySans;

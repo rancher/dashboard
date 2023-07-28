@@ -217,7 +217,7 @@ export function sortableNumericSuffix(str) {
     return str;
   }
 
-  return str.split(splitRegex).map(x => x.match(notNumericRegex) ? strPad(x, 10, '0') : x).join('').trim();
+  return str.split(splitRegex).map((x) => x.match(notNumericRegex) ? strPad(x, 10, '0') : x).join('').trim();
 }
 
 export function isNumeric(num) {

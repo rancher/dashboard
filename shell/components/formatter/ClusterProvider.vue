@@ -14,14 +14,25 @@ export default {
       // This is the workaround.
       isImported: props.row.mgmt?.providerForEmberParam === 'import'
     };
-  }
+  },
 };
 </script>
 
 <template>
   <div>
     <template v-if="row.machineProvider">
-      {{ row.machineProviderDisplay }}
+      <span v-if="row.isHarvester && row.mgmt && row.mgmt.isReady && !row.hasError">
+        <a
+          v-if="row.mgmt.isReady && !row.hasError"
+          role="button"
+          @click="row.goToHarvesterCluster()"
+        >
+          {{ row.machineProviderDisplay }}
+        </a>
+      </span>
+      <span v-else>
+        {{ row.machineProviderDisplay }}
+      </span>
     </template>
     <template v-else-if="row.isCustom">
       {{ t('cluster.provider.custom') }}

@@ -31,7 +31,7 @@ export function globalHandleError(error) {
 }
 
 export function interopDefault(promise) {
-  return promise.then(m => m.default || m);
+  return promise.then((m) => m.default || m);
 }
 
 export function hasFetch(vm) {
@@ -276,7 +276,7 @@ export async function setContext(app, context) {
       }
     };
     if (process.server) {
-      app.context.beforeNuxtRender = fn => context.beforeRenderFns.push(fn);
+      app.context.beforeNuxtRender = (fn) => context.beforeRenderFns.push(fn);
     }
     if (process.client) {
       app.context.nuxtState = window.__NUXT__;

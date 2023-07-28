@@ -5,8 +5,17 @@ import { get } from '../../shell/utils/object';
 import IntlMessageFormat from 'intl-messageformat';
 import installShortcut from './theme-shortcut';
 import withEvents from 'storybook-auto-events';
-import growl from './store/growl';
 const i18nStrings = require('../../shell/assets/translations/en-us.yaml');
+import ClientOnly from 'vue-client-only';
+import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive.js';
+import ShortKey from 'vue-shortkey';
+import { trimWhitespace } from '../../shell/plugins/trim-whitespace';
+
+// Store modules
+import growl from './store/growl';
+import codeMirror from './store/codeMirror';
+import table from './store/table';
+
 
 // Register custom i18n plugin
 require('../../shell/plugins/i18n');
@@ -16,11 +25,22 @@ require('../../shell/plugins/tooltip');
 
 
 Vue.use(Vuex);
+Vue.use(ShortKey, { prevent: ['input', 'textarea', 'select'] });
+
+// Component: <ClientOnly>
+Vue.component(ClientOnly.name, ClientOnly);
 
 Vue.component('nuxt-link', {
   props:   ['to'],
   template: '<a>link</a>',
 })
+
+Vue.directive('clean-tooltip', VCleanTooltip);
+Vue.directive('trim-whitespace', {
+  inserted:        trimWhitespace,
+});
+
+window.__codeMirrorLoader = () => import(/* webpackChunkName: "codemirror" */ '@shell/plugins/codemirror');
 
 // Defines namespaced modules for the Store.
 export const store = new Vuex.Store({
@@ -37,7 +57,9 @@ export const store = new Vuex.Store({
     },
   },
   modules: {
-    growl
+    growl,
+    codeMirror,
+    table
   }
 });
 
@@ -52,6 +74,11 @@ const storePlugin = {
 Vue.use(storePlugin);
 
 export const parameters = {
+  options: {
+    storySort: {
+      order: ['Foundation', 'Form', 'Components', 'Examples'],
+    },
+  },
   previewTabs: {
     canvas: { hidden: false },
   },

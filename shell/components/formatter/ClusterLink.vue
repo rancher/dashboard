@@ -1,5 +1,6 @@
 <script>
 import { get } from '@shell/utils/object';
+import { isConditionReadyAndWaiting } from '@shell/plugins/dashboard-store/resource-class';
 
 export default {
   props: {
@@ -27,10 +28,10 @@ export default {
 
     statusErrorConditions() {
       if (this.row.hasError) {
-        return this.row?.status.conditions.filter(condition => condition.error === true);
+        return this.row?.status.conditions.filter((cond) => cond.error === true && !isConditionReadyAndWaiting(cond));
       }
 
-      return false;
+      return [];
     },
 
     formattedConditions() {
@@ -46,7 +47,7 @@ export default {
         return formattedTooltip.toString().replaceAll(',', '');
       }
 
-      return false;
+      return '';
     },
   },
 
@@ -66,16 +67,19 @@ export default {
       v-if="row.unavailableMachines"
       v-clean-tooltip="row.unavailableMachines"
       class="conditions-alert-icon icon-alert icon"
+      data-testid="unavailable-machines-alert-icon"
     />
     <i
       v-if="row.rkeTemplateUpgrade"
       v-clean-tooltip="t('cluster.rkeTemplateUpgrade', { name: row.rkeTemplateUpgrade })"
       class="template-upgrade-icon icon-alert icon"
+      data-testid="rke-template-upgrade-alert-icon"
     />
     <i
-      v-if="row.hasError"
+      v-if="row.hasError && statusErrorConditions.length > 0"
       v-clean-tooltip="{ content: `<div>${formattedConditions}</div>`, html: true }"
       class="conditions-alert-icon icon-error icon-lg"
+      data-testid="conditions-has-error-icon"
     />
   </span>
 </template>

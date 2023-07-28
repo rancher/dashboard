@@ -52,7 +52,7 @@ export default {
 
     filteredNamespaces() {
       if (this.currentProject) {
-        return this.allNamespaces.filter(n => n.metadata.labels[PROJECT] === this.currentProject.metadata?.name);
+        return this.allNamespaces.filter((n) => n.metadata.labels[PROJECT] === this.currentProject.metadata?.name);
       }
 
       return [];
@@ -69,7 +69,7 @@ export default {
     },
 
     names() {
-      return this.filteredNamespaces.map(obj => obj.nameDisplay).slice(0, 5);
+      return this.filteredNamespaces.map((obj) => obj.nameDisplay).slice(0, 5);
     },
     // Only admins and cluster owners can see namespaces outside of projects
     canSeeProjectlessNamespaces() {
@@ -82,7 +82,7 @@ export default {
       // Delete all of thre namespaces and return false - this tells the prompt remove dialog to continue and delete the project
       // Delete all namespaces if the user wouldn't be able to see them after deleting the project
       if (this.deleteProjectNamespaces || !this.canSeeProjectlessNamespaces) {
-        return Promise.all(this.filteredNamespaces.map(n => n.remove())).then(() => false);
+        return Promise.all(this.filteredNamespaces.map((n) => n.remove())).then(() => false);
       }
 
       // Return false so that the main promptRemoval will continue to remove the project

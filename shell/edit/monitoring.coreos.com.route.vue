@@ -39,10 +39,10 @@ export default {
     const receivers = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.RECEIVER });
     const routes = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
 
-    this.receiverOptions = (await receivers).map(receiver => receiver.spec.name);
+    this.receiverOptions = (await receivers).map((receiver) => receiver.spec.name);
 
     if (this.isCreate) {
-      const nonRootRoutes = (await routes).filter(route => !route.isRoot);
+      const nonRootRoutes = (await routes).filter((route) => !route.isRoot);
 
       this.$set(this.value.spec, 'name', createDefaultRouteName(nonRootRoutes.length));
     }

@@ -9,7 +9,7 @@ export const STATE = {
   labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
-  getValue:  row => row.stateDisplay,
+  getValue:  (row) => row.stateDisplay,
   width:     100,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
@@ -38,7 +38,7 @@ export const NAME = {
   name:          'name',
   labelKey:      'tableHeaders.name',
   value:         'nameDisplay',
-  getValue:      row => row.nameDisplay,
+  getValue:      (row) => row.nameDisplay,
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
   canBeVariable: true,
@@ -144,7 +144,7 @@ export const NAMESPACE = {
   name:        'namespace',
   labelKey:    'tableHeaders.namespace',
   value:       'namespace',
-  getValue:    row => row.namespace,
+  getValue:    (row) => row.namespace,
   sort:        'namespace',
   dashIfEmpty: true,
 };
@@ -153,7 +153,7 @@ export const NODE = {
   name:          'node',
   labelKey:      'tableHeaders.node',
   value:         'spec.nodeName',
-  getValue:      row => row.spec?.nodeName,
+  getValue:      (row) => row.spec?.nodeName,
   sort:          'spec.nodeName',
   formatter:     'LinkName',
   formatterOpts: { type: NODE_TYPE },
@@ -164,7 +164,7 @@ export const NODE_NAME = {
   labelKey:  'tableHeaders.nodeName',
   sort:      'name',
   value:     'name',
-  getValue:  row => row.name,
+  getValue:  (row) => row.name,
   formatter: 'LinkDetail',
 };
 
@@ -180,7 +180,7 @@ export const VERSION = {
   labelKey: 'tableHeaders.version',
   sort:     'version',
   value:    'version',
-  getValue: row => row.version
+  getValue: (row) => row.version
 };
 
 export const CPU = {
@@ -216,7 +216,7 @@ export const PODS = {
   labelKey:  'tableHeaders.pods',
   sort:      'podConsumed',
   search:    false,
-  value:     row => row.podConsumedUsage,
+  value:     (row) => row.podConsumedUsage,
   formatter: 'PercentageBar',
   width:     120,
 };
@@ -225,7 +225,7 @@ export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
   value:     'creationTimestamp',
-  getValue:  row => row.creationTimestamp,
+  getValue:  (row) => row.creationTimestamp,
   sort:      'creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
@@ -235,7 +235,7 @@ export const AGE = {
 
 export const AGE_NORMAN = {
   ...AGE,
-  getValue: row => row.created,
+  getValue: (row) => row.created,
   value:    'created',
   sort:     'created:desc',
 };
@@ -264,18 +264,19 @@ export const DURATION = {
   formatter: 'LiveDuration',
 };
 
-export const IMAGE = {
-  name:     'image',
-  labelKey: 'tableHeaders.image',
-  value:    'image',
-  sort:     ['image', 'nameSort'],
+export const IMAGE_NAME = {
+  name:      'image',
+  labelKey:  'tableHeaders.image',
+  value:     'image',
+  sort:      ['image', 'nameSort'],
+  formatter: 'ImageName',
 };
 
 export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
   value:     'imageNames',
-  getValue:  row => row.imageNames,
+  getValue:  (row) => row.imageNames,
   sort:      'imageNames',
   // search:    'imageNames',
   formatter: 'PodImages'
@@ -287,7 +288,7 @@ export const POD_RESTARTS = {
   formatter:    'LivePodRestarts',
   delayLoading: true,
   value:        'restartCount',
-  getValue:     row => row.restartCount,
+  getValue:     (row) => row.restartCount,
   // This column is expensive to compute, so don't make it searchable
   search:       false,
   liveUpdates:  true
@@ -433,7 +434,7 @@ export const TYPE = {
   name:     'type',
   labelKey: 'tableHeaders.type',
   value:    'typeDisplay',
-  getValue: row => row.typeDisplay,
+  getValue: (row) => row.typeDisplay,
   sort:     ['typeDisplay'],
   width:    100,
 };
@@ -674,7 +675,7 @@ export const WORKLOAD_ENDPOINTS = {
   name:        'workloadEndpoints',
   labelKey:    'tableHeaders.endpoints',
   value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
-  getValue:    row => row.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS],
+  getValue:    (row) => row.metadata?.annotations?.[CATTLE_PUBLIC_ENDPOINTS],
   formatter:   'Endpoints',
   dashIfEmpty: true,
   breakpoint:  COLUMN_BREAKPOINTS.DESKTOP,

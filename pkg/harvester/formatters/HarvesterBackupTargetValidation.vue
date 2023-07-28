@@ -22,7 +22,7 @@ export default {
   computed: {
     isMatch() {
       const harvesterSettings = this.$store.getters['harvester/all'](HCI.SETTING) || [];
-      const resource = harvesterSettings.find( V => V.id === 'backup-target');
+      const resource = harvesterSettings.find( (V) => V.id === 'backup-target');
 
       return this.value === resource?.parseValue?.endpoint;
     }
@@ -36,7 +36,10 @@ export default {
   </div>
   <div v-else>
     {{ value }}
-    <p v-if="value" class="text-error">
+    <p
+      v-if="value"
+      class="text-error"
+    >
       {{ t('harvester.backup.matchTarget') }}
     </p>
   </div>

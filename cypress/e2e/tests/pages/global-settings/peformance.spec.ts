@@ -1,10 +1,10 @@
-import { PerformancePagePo } from '~/cypress/e2e/po/pages/global-settings/performance.po';
-import { SettingsPagePo } from '~/cypress/e2e/po/pages/global-settings/settings.po';
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '~/cypress/e2e/po/side-bars/product-side-nav.po';
+import { PerformancePagePo } from '@/cypress/e2e/po/pages/global-settings/performance.po';
+import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
-describe('Performance', () => {
+describe('Performance', { tags: '@adminUser' }, () => {
   // If we need to speed tests up these should be combined into a single `it` (so only one page load and one refresh is used)
   beforeEach(() => {
     cy.login();

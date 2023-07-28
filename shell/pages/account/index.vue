@@ -29,8 +29,8 @@ export default {
 
     // Get all settings - the API host setting may not be set, so this avoids a 404 request if we look for the specific setting
     const allSettings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.SETTING });
-    const apiHostSetting = allSettings.find(i => i.id === SETTING.API_HOST);
-    const serverUrlSetting = allSettings.find(i => i.id === SETTING.SERVER_URL);
+    const apiHostSetting = allSettings.find((i) => i.id === SETTING.API_HOST);
+    const serverUrlSetting = allSettings.find((i) => i.id === SETTING.SERVER_URL);
 
     this.apiHostSetting = apiHostSetting?.value;
     this.serverUrlSetting = serverUrlSetting?.value;

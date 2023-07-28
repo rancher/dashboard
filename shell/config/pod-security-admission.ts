@@ -79,4 +79,4 @@ export const PSALabelsNamespaces: string[] = [...PSALabelsNamespaceMode, ...PSAL
 /**
  * Generated table of icons with or hardcoded generated PSA labels
  */
-export const PSAIconsDisplay: Record<string, string> = Object.assign({}, ...PSALabelsNamespaces.map(psa => ({ [psa]: 'icon-pod_security' })));
+export const PSAIconsDisplay: Record<string, string> = Object.assign({}, ...PSALabelsNamespaces.map((psa) => ({ [psa]: 'icon-pod_security' })));

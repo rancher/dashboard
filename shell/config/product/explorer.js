@@ -30,6 +30,7 @@ export function init(store) {
     product,
     basicType,
     ignoreType,
+    ignoreGroup,
     mapGroup,
     weightGroup,
     weightType,
@@ -109,6 +110,19 @@ export function init(store) {
   ignoreType(NAMESPACE);
   ignoreType(MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
   ignoreType(MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
+
+  ignoreGroup('harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('kubevirt.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('network.harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
+  ignoreGroup('node.harvesterhci.io', (getters) => {
+    return getters['currentCluster']?.isHarvester && getters['isExplorer'];
+  });
 
   mapGroup(/^(core)?$/, 'core');
   mapGroup('apps', 'apps');

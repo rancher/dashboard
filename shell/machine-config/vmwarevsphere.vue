@@ -364,8 +364,8 @@ export default {
         dataCenter,
         library
       })
-        .filter(entry => entry[1])
-        .map(entry => `${ entry[0] }=${ entry[1] }`)
+        .filter((entry) => entry[1])
+        .map((entry) => `${ entry[0] }=${ entry[1] }`)
         .join('&');
 
       const url = `/meta/vsphere/${ resource }?${ queryParams }`;
@@ -381,7 +381,7 @@ export default {
     async loadDataCenters() {
       const options = await this.requestOptions('data-centers');
       const content = this.mapPathOptionsToContent(options);
-      const valueInContent = content.find(c => c.value === this.value.datacenter );
+      const valueInContent = content.find((c) => c.value === this.value.datacenter );
 
       if (!valueInContent) {
         set(this.value, 'datacenter', options[0]);
@@ -400,9 +400,9 @@ export default {
         const optionsPromise = this.requestOptions('tags');
 
         const [categories, options] = await Promise.all([categoriesPromise, optionsPromise]);
-        const content = this.mapTagsToContent(options).map(option => ({
+        const content = this.mapTagsToContent(options).map((option) => ({
           ...option,
-          category: categories.find(c => c.name === option.category)
+          category: categories.find((c) => c.name === option.category)
         }));
 
         this.resetValueIfNecessary('tag', content, options, true);
@@ -499,7 +499,7 @@ export default {
 
       const options = await this.requestOptions('content-libraries', this.value.datacenter);
       const content = this.mapPathOptionsToContent(options)
-        .filter(item => item.value !== '');
+        .filter((item) => item.value !== '');
 
       this.resetValueIfNecessary('contentLibrary', content, options);
 
@@ -575,10 +575,10 @@ export default {
     resetValueIfNecessary(key, content, options, isArray = false) {
       const isValueInContent = () => {
         if (isArray) {
-          return this.value[key].every(value => content.find(c => c.value === value));
+          return this.value[key].every((value) => content.find((c) => c.value === value));
         }
 
-        return content.find(c => c.value === this.value[key] );
+        return content.find((c) => c.value === this.value[key] );
       };
 
       if (!isValueInContent()) {
@@ -603,14 +603,14 @@ export default {
 
     mapHostOptionsToContent(hostOptions) {
       return this.mapPathOptionsToContent(hostOptions)
-        .map(c => c.value === '' ? {
+        .map((c) => c.value === '' ? {
           label: this.t('cluster.machineConfig.vsphere.hostOptions.any'),
           value: SENTINEL
         } : c);
     },
 
     mapFolderOptionsToContent(folderOptions) {
-      return folderOptions.map(option => ({
+      return folderOptions.map((option) => ({
         label: option || '\u00A0',
         value: option || ''
       }));
@@ -629,14 +629,14 @@ export default {
     },
 
     mapCustomAttributesToContent(customAttributes) {
-      return customAttributes.map(customAttribute => ({
+      return customAttributes.map((customAttribute) => ({
         label: customAttribute.name,
         value: customAttribute.key.toString()
       }));
     },
 
     mapTagsToContent(tags) {
-      return tags.map(tag => ({
+      return tags.map((tag) => ({
         ...tag,
         label: `${ tag.category } / ${ tag.name }`,
         value: tag.id

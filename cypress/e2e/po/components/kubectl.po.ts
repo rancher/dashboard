@@ -12,6 +12,8 @@ export default class Kubectl extends ComponentPo {
   openTerminal() {
     cy.get('#btn-kubectl').click();
     this.self().get('.window.show-grid .text-success').should('contain', 'Connected');
+
+    return this;
   }
 
   /**
@@ -33,6 +35,20 @@ export default class Kubectl extends ComponentPo {
       .type(`${ jsyaml.dump(jsonObject) }{enter}`)
       .type(`EOF{enter}`)
       .wait(wait);
+
+    return this;
+  }
+
+  openAndExecuteCommand(command: string, wait = 3000) {
+    this.openTerminal();
+    this.executeCommand(command, wait);
+
+    return this;
+  }
+
+  openAndExecuteMultilineCommand(jsonObject: Object, wait = 3000) {
+    this.openTerminal();
+    this.executeMultilineCommand(jsonObject, wait);
 
     return this;
   }

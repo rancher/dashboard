@@ -83,16 +83,18 @@ export default {
       default: 'resource-details'
     }
   },
+
   async fetch() {
     const store = this.$store;
     const route = this.$route;
     const params = route.params;
-    const inStore = this.storeOverride || store.getters['currentStore'](params.resource);
+    let resource = this.resourceOverride || params.resource;
+
+    const inStore = this.storeOverride || store.getters['currentStore'](resource);
     const realMode = this.realMode;
 
     // eslint-disable-next-line prefer-const
     let { namespace, id } = params;
-    let resource = this.resourceOverride || params.resource;
 
     // There are 6 "real" modes that can be put into the query string
     // These are mapped down to the 3 regular page "mode"s that create-edit-view components
@@ -193,6 +195,9 @@ export default {
           opt:  { watch: true }
         });
       } catch (e) {
+        if (e.status === 404 || e.status === 403) {
+          store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource, fqid }, true)));
+        }
         liveModel = {};
         notFound = fqid;
       }
@@ -367,18 +372,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div v-else-if="notFound">
-    <IconMessage icon="icon-warning">
-      <template v-slot:message>
-        {{ t('generic.notFound') }}
-        <div>
-          <div>{{ t('generic.type') }}: {{ resource }}</div>
-          <div>{{ t('generic.id') }}: {{ notFound }}</div>
-        </div>
-      </template>
-    </IconMessage>
-  </div>
+  <Loading v-if="$fetchState.pending || notFound" />
   <div v-else>
     <Masthead
       v-if="showMasthead"

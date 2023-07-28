@@ -33,13 +33,13 @@ export default class User extends HybridModel {
   get isCurrentUser() {
     const currentPrincipal = this.$rootGetters['auth/principalId'];
 
-    return !!(this.principalIds || []).find(p => p === currentPrincipal);
+    return !!(this.principalIds || []).find((p) => p === currentPrincipal);
   }
 
   get principals() {
     return this.principalIds
-      .map(id => this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, id))
-      .filter(p => p);
+      .map((id) => this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, id))
+      .filter((p) => p);
   }
 
   get nameDisplay() {
@@ -146,7 +146,7 @@ export default class User extends HybridModel {
   }
 
   async activateBulk(items) {
-    await Promise.all(items.map(item => item.setEnabled(true)));
+    await Promise.all(items.map((item) => item.setEnabled(true)));
   }
 
   async deactivate() {
@@ -154,7 +154,7 @@ export default class User extends HybridModel {
   }
 
   async deactivateBulk(items) {
-    await Promise.all(items.map(item => item.setEnabled(false)));
+    await Promise.all(items.map((item) => item.setEnabled(false)));
   }
 
   async refreshGroupMembership() {

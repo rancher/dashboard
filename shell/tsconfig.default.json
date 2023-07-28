@@ -33,4 +33,14 @@
       "./node_modules/@types"
     ],
   },
+  "exclude": [
+    "node_modules",
+    ".nuxt",
+    "dist",
+    "dist-pkg",
+    "shell/creators",
+    "shell/scripts",
+    "script/standalone",
+    "docusaurus"
+  ]
 }

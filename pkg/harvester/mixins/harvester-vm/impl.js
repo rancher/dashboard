@@ -38,7 +38,7 @@ export default {
     getSSHValue(id) {
       const sshs = this.$store.getters['harvester/all'](HCI.SSH) || [];
 
-      return sshs.find( O => O.id === id)?.spec?.publicKey || undefined;
+      return sshs.find( (O) => O.id === id)?.spec?.publicKey || undefined;
     },
 
     getOsType(vm) {
@@ -51,7 +51,7 @@ export default {
 
       OS.forEach((O) => {
         if (O.match) {
-          hasCustomQGA = O.match.find(type => type === osType);
+          hasCustomQGA = O.match.find((type) => type === osType);
         }
       });
 
@@ -88,7 +88,7 @@ export default {
         return oldValue;
       }
 
-      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( S => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
+      return dataFormat?.packages?.includes('qemu-guest-agent') && !!dataFormat?.runcmd?.find( (S) => Array.isArray(S) && S.join('-') === _QGA_JSON.runcmd[0].join('-'));
     },
 
     isInstallUSBTablet(spec) {
@@ -142,7 +142,7 @@ export default {
 
       const secretName = cloudInitNoCloud?.secretRef?.name || cloudInitNoCloud?.networkDataSecretRef?.name;
 
-      const secret = secrets.find(s => s.metadata.name === secretName);
+      const secret = secrets.find((s) => s.metadata.name === secretName);
 
       return secret;
     },
@@ -155,7 +155,7 @@ export default {
       return credentials.map((c) => {
         const source = !!c.userPassword ? 'userPassword' : 'sshPublicKey';
         const secretName = c[source]?.source?.secret?.secretName;
-        const secretRef = secrets.find(s => s.metadata.name === secretName);
+        const secretRef = secrets.find((s) => s.metadata.name === secretName);
         const out = {
           source, username: '', newPassword: '', users: [], sshkeys: [], secretName, secretRef
         };
@@ -239,7 +239,7 @@ export default {
       const allSSHs = this.$store.getters['harvester/all'](HCI.SSH) || [];
 
       out = (keys || []).map((id) => {
-        const hasSSHResource = allSSHs.find(ssh => ssh.id === id);
+        const hasSSHResource = allSSHs.find((ssh) => ssh.id === id);
 
         if (hasSSHResource) {
           return {
@@ -259,9 +259,9 @@ export default {
       const _userDataSSH = this.getSSHFromUserData(userData);
 
       _userDataSSH.map( (sshValue) => {
-        const hasSSHResource = allSSHs.find(ssh => this.compareSSHValue(sshValue, ssh.spec?.publicKey));
+        const hasSSHResource = allSSHs.find((ssh) => this.compareSSHValue(sshValue, ssh.spec?.publicKey));
 
-        if (hasSSHResource && !out.find(O => O.id === hasSSHResource.id)) {
+        if (hasSSHResource && !out.find((O) => O.id === hasSSHResource.id)) {
           out.push({
             id:   hasSSHResource.id,
             data: hasSSHResource,

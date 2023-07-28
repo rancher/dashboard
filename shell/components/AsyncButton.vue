@@ -14,7 +14,7 @@ const TOOLTIP = 'tooltip';
 
 export type AsyncButtonCallback = (success: boolean) => void;
 
-export default Vue.extend({
+export default Vue.extend<{ phase: string}, any, any, any>({
   props: {
     /**
      * Mode maps to keys in asyncButton.* translations

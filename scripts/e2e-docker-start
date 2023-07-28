@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+DIR=$(cd $(dirname $0)/..; pwd)
+
+# See `script/build-e2e`
+DASHBOARD_DIST=${DIR}/dist
+EMBER_DIST=${DIR}/dist_ember
+
+docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
+  -v ${DASHBOARD_DIST}:/usr/share/rancher/ui-dashboard/dashboard \
+  -v ${EMBER_DIST}:/usr/share/rancher/ui \
+  -e CATTLE_UI_OFFLINE_PREFERRED=true \
+  -e CATTLE_BOOTSTRAP_PASSWORD=password \
+  -e CATTLE_PASSWORD_MIN_LENGTH=3 \
+  --name cypress \
+  --privileged \
+  rancher/rancher:v2.7-head
+
+docker ps
+
+echo "Waiting for dashboard UI to be reachable (initial 20s wait) ..."
+
+sleep 20
+
+echo "Waiting for dashboard UI to be reachable ..."
+
+okay=0
+
+while [ $okay -lt 20 ]; do
+  STATUS=$(curl --silent --head -k https://127.0.0.1/dashboard/ | awk '/^HTTP/{print $2}')
+
+  echo "Status: $STATUS (Try: $okay)"
+
+  okay=$((okay+1))
+
+  if [ "$STATUS" == "200" ]; then
+    okay=100
+  else
+    sleep 5
+  fi
+done
+
+if [ "$STATUS" != "200" ]; then
+  echo "Dashboard did not become available in a reasonable time"
+  exit 1
+fi
+
+echo "Dashboard UI is ready"

@@ -104,12 +104,31 @@ export default {
 </script>
 
 <template>
-  <div class="row" @input="update">
+  <div
+    class="row"
+    @input="update"
+  >
     <div class="col span-12">
-      <LabeledSelect v-model="parseDefaultValue.type" class="mb-20" :label="t('harvester.fields.type')" :options="typeOption" @input="update" />
+      <LabeledSelect
+        v-model="parseDefaultValue.type"
+        class="mb-20"
+        :label="t('harvester.fields.type')"
+        :options="typeOption"
+        @input="update"
+      />
 
-      <LabeledInput v-model="parseDefaultValue.endpoint" class="mb-5" :placeholder="endpointPlaceholder" :mode="mode" label="Endpoint" />
-      <Tip class="mb-20" icon="icon icon-info" :text="t('harvester.backup.backupTargetTip')" />
+      <LabeledInput
+        v-model="parseDefaultValue.endpoint"
+        class="mb-5"
+        :placeholder="endpointPlaceholder"
+        :mode="mode"
+        label="Endpoint"
+      />
+      <Tip
+        class="mb-20"
+        icon="icon icon-info"
+        :text="t('harvester.backup.backupTargetTip')"
+      />
 
       <template v-if="isS3">
         <LabeledInput
@@ -146,7 +165,13 @@ export default {
           required
         />
 
-        <LabeledSelect v-model="parseDefaultValue.virtualHostedStyle" class="mb-20" label="Virtual Hosted-Style" :options="virtualHostedStyleType" @input="update" />
+        <LabeledSelect
+          v-model="parseDefaultValue.virtualHostedStyle"
+          class="mb-20"
+          label="Virtual Hosted-Style"
+          :options="virtualHostedStyleType"
+          @input="update"
+        />
 
         <div class="mb-20">
           <Tip icon="icon icon-info">

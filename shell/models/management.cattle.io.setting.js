@@ -21,7 +21,7 @@ export default class Setting extends HybridModel {
     });
 
     // Change the label on the first action (edit)
-    const editAction = out.find(action => action.action === 'goToEdit');
+    const editAction = out.find((action) => action.action === 'goToEdit');
 
     if (editAction) {
       editAction.label = this.t('advancedSettings.edit.label');

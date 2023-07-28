@@ -88,7 +88,7 @@ export default {
     filteredRows() {
       // If Harvester feature is enabled, hide Harvester Clusters
       if (this.harvesterEnabled) {
-        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rows), this.$store);
+        return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.rows, this.$store), this.$store);
       }
 
       // Otherwise, show Harvester clusters - these will be shown with a warning
@@ -104,7 +104,7 @@ export default {
         return 0;
       }
 
-      return this.rows.length - filterOnlyKubernetesClusters(this.rows).length;
+      return this.rows.length - filterOnlyKubernetesClusters(this.rows, this.$store).length;
     },
 
     createLocation() {
@@ -131,10 +131,17 @@ export default {
     canImport() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
+
+    nonStandardNamespaces() {
+      // Show the namespace grouping option if there's clusters with namespaces other than 'fleet-default' or 'fleet-local'
+      // This will be used when there's clusters from extension based provisioners
+      // We should re-visit this for scaling reasons
+      return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
+    }
   },
 
   $loadingResources() {
@@ -182,7 +189,7 @@ export default {
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
-      :namespaced="false"
+      :namespaced="nonStandardNamespaces"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"
@@ -220,9 +227,8 @@ export default {
         <span v-if="!row.stateParts.length">{{ row.nodes.length }}</span>
       </template>
       <template #cell:explorer="{row}">
-        <span v-if="row.mgmt && row.mgmt.isHarvester" />
         <n-link
-          v-else-if="row.mgmt && row.mgmt.isReady && !row.hasError"
+          v-if="row.mgmt && row.mgmt.isReady && !row.hasError"
           data-testid="cluster-manager-list-explore-management"
           class="btn btn-sm role-secondary"
           :to="{name: 'c-cluster', params: {cluster: row.mgmt.id}}"

@@ -1,11 +1,13 @@
 <script>
-import AsyncButton from '@shell/components/AsyncButton';
+import { mapGetters } from 'vuex';
+import AsyncButton, { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton';
 import IconMessage from '@shell/components/IconMessage.vue';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import Dialog from '@shell/components/Dialog.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import { ASYNC_BUTTON_STATES } from '@shell/components/AsyncButton.vue';
+import Banner from '@components/Banner/Banner.vue';
+
 import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHARTS,
@@ -13,12 +15,16 @@ import {
   UI_PLUGINS_REPO_NAME,
   UI_PLUGINS_REPO_URL,
   UI_PLUGINS_REPO_BRANCH,
+  UI_PLUGINS_PARTNERS_REPO_NAME,
+  UI_PLUGINS_PARTNERS_REPO_URL,
+  UI_PLUGINS_PARTNERS_REPO_BRANCH,
 } from '@shell/config/uiplugins';
 
 export default {
   components: {
     AsyncButton,
     Checkbox,
+    Banner,
     IconMessage,
     Dialog,
   },
@@ -30,7 +36,7 @@ export default {
     const found = [];
 
     UI_PLUGIN_CHARTS.forEach((c) => {
-      const f = charts.find(chart => chart.repoName === UI_PLUGIN_OPERATOR_REPO_NAME & chart.chartName === c);
+      const f = charts.find((chart) => chart.repoName === UI_PLUGIN_OPERATOR_REPO_NAME & chart.chartName === c);
 
       if (f) {
         found.push(f);
@@ -43,7 +49,8 @@ export default {
       this.installCharts = found;
 
       if (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)) {
-        await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO });
+        // we need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
+        await this.$store.dispatch('management/findAll', { type: CATALOG.CLUSTER_REPO, opt: { force: true } });
       }
     }
 
@@ -57,22 +64,41 @@ export default {
 
   data() {
     return {
-      loading:                true,
-      haveCharts:             false,
-      installCharts:          [],
-      errors:                 [],
-      addRepo:                true,
+      loading:       true,
+      haveCharts:    false,
+      installCharts: [],
+      errors:        [],
+      addRepos:      {
+        official: true,
+        partners: true,
+      },
+      reposInfo: {
+        official: {
+          name:   UI_PLUGINS_REPO_NAME,
+          url:    UI_PLUGINS_REPO_URL,
+          branch: UI_PLUGINS_REPO_BRANCH,
+        },
+        partners: {
+          name:   UI_PLUGINS_PARTNERS_REPO_NAME,
+          url:    UI_PLUGINS_PARTNERS_REPO_URL,
+          branch: UI_PLUGINS_PARTNERS_REPO_BRANCH,
+        }
+      },
       buttonState:            ASYNC_BUTTON_STATES.ACTION,
       defaultRegistrySetting: null,
     };
   },
 
   computed: {
+    ...mapGetters({ repos: 'catalog/repos' }),
     hasRancherUIPluginsRepo() {
-      // Look to see if the Rancher UI Plugins repository is already installed
-      const repos = this.$store.getters['catalog/repos'];
-
-      return !!repos.find(r => r.name === UI_PLUGINS_REPO_NAME);
+      return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_REPO_URL);
+    },
+    hasRancherUIPartnersPluginsRepo() {
+      return !!this.repos.find((r) => r.urlDisplay === UI_PLUGINS_PARTNERS_REPO_URL);
+    },
+    isAnyRepoAvailableForInstall() {
+      return !this.hasRancherUIPluginsRepo || !this.hasRancherUIPartnersPluginsRepo;
     }
   },
 
@@ -121,11 +147,17 @@ export default {
       });
     },
 
-    enable() {
+    async enable() {
       this.errors = [];
 
-      // Reset checkbox bsed on if the repo is already installed
-      this.addRepo = !this.hasRancherUIPluginsRepo;
+      // force update of cluster repos so that modal have the correct information about the official and partners repo
+      this.$emit('refreshCharts');
+
+      // Reset checkbox based on if the repo is already installed
+      this.addRepos = {
+        official: !this.hasRancherUIPluginsRepo,
+        partners: !this.hasRancherUIPartnersPluginsRepo,
+      };
 
       this.$modal.show('confirm-uiplugins-setup');
     },
@@ -137,13 +169,13 @@ export default {
       if (ok) {
         this.buttonState = ASYNC_BUTTON_STATES.WAITING;
 
-        if (this.addRepo) {
-          await this.addDefaultHelmRepository();
+        if (Object.values(this.addRepos).find((v) => v)) {
+          await this.addDefaultHelmRepositories();
         }
 
         await this.installPluginCharts();
 
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
 
         this.buttonState = this.errors.length > 0 ? ASYNC_BUTTON_STATES.ERROR : ASYNC_BUTTON_STATES.ACTION;
 
@@ -151,25 +183,33 @@ export default {
       }
     },
 
-    async addDefaultHelmRepository() {
-      const name = UI_PLUGINS_REPO_NAME;
+    async addDefaultHelmRepositories() {
+      const promises = [];
 
-      try {
-        const pluginCR = await this.$store.dispatch('management/create', {
-          type:     CATALOG.CLUSTER_REPO,
-          metadata: { name },
-          spec:     {
-            gitBranch: UI_PLUGINS_REPO_BRANCH,
-            gitRepo:   UI_PLUGINS_REPO_URL,
-          }
-        });
+      for (const key in this.addRepos) {
+        if (this.addRepos[key]) {
+          const pluginCR = await this.$store.dispatch('management/create', {
+            type:     CATALOG.CLUSTER_REPO,
+            metadata: { name: this.reposInfo[key].name },
+            spec:     {
+              gitBranch: this.reposInfo[key].branch,
+              gitRepo:   this.reposInfo[key].url,
+            }
+          });
 
-        return pluginCR.save();
-      } catch (e) {
-        console.error(e); // eslint-disable-line no-console
-
-        this.errors.push(e.message);
+          promises.push(pluginCR.save());
+        }
       }
+
+      const res = await Promise.allSettled(promises);
+
+      res.forEach((result) => {
+        if (result.status === 'rejected') {
+          console.error(result.reason); // eslint-disable-line no-console
+
+          this.errors.push(result.reason);
+        }
+      });
     },
 
     async installPluginCharts() {
@@ -183,7 +223,7 @@ export default {
         }
       }
 
-      return new Promise(resolve => setTimeout(resolve, 2000));
+      return new Promise((resolve) => setTimeout(resolve, 2000));
     }
   }
 };
@@ -234,20 +274,50 @@ export default {
       @closed="dialogClosed"
     >
       <template>
-        <p>
+        <p class="mb-20">
           {{ t('plugins.setup.install.prompt') }}
         </p>
+        <Banner
+          v-if="isAnyRepoAvailableForInstall"
+          color="info"
+          class="mb-20"
+        >
+          {{ t('plugins.setup.install.airgap') }}
+        </Banner>
+        <!-- Official rancher repo -->
         <div
-          v-if="!hasRancherUIPluginsRepo"
-          class="mt-20"
+          class="mb-15"
         >
           <Checkbox
-            v-model="addRepo"
+            v-model="addRepos.official"
+            :disabled="hasRancherUIPluginsRepo"
             :primary="true"
             label-key="plugins.setup.install.addRancherRepo"
+            data-testid="extension-enable-operator-official-repo"
           />
-          <div class="checkbox-info">
-            {{ t('plugins.setup.install.airgap') }}
+          <div
+            v-if="hasRancherUIPluginsRepo"
+            class="checkbox-info"
+          >
+            ({{ t('plugins.setup.installed') }})
+          </div>
+        </div>
+        <!-- Partners rancher repo -->
+        <div
+          class="mb-15"
+        >
+          <Checkbox
+            v-model="addRepos.partners"
+            :disabled="hasRancherUIPartnersPluginsRepo"
+            :primary="true"
+            label-key="plugins.setup.install.addPartnersRancherRepo"
+            data-testid="extension-enable-operator-partners-repo"
+          />
+          <div
+            v-if="hasRancherUIPartnersPluginsRepo"
+            class="checkbox-info"
+          >
+            ({{ t('plugins.setup.installed') }})
           </div>
         </div>
       </template>

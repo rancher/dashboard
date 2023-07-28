@@ -131,7 +131,7 @@ export default {
     perPageOptions() {
       const t = this.$store.getters['i18n/t'];
 
-      return this.$store.getters['prefs/options'](ROWS_PER_PAGE).map(count => ({
+      return this.$store.getters['prefs/options'](ROWS_PER_PAGE).map((count) => ({
         label: t('prefs.perPage.value', { count }),
         value: count
       }));
@@ -140,7 +140,7 @@ export default {
     menuClusterOptions() {
       const t = this.$store.getters['i18n/t'];
 
-      return this.$store.getters['prefs/options'](MENU_MAX_CLUSTERS).map(count => ({
+      return this.$store.getters['prefs/options'](MENU_MAX_CLUSTERS).map((count) => ({
         label: t('prefs.clusterToShow.value', { count }),
         value: count
       }));

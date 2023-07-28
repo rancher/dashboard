@@ -1,4 +1,4 @@
-export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, intervalMs = 500, log = false) => {
+export const waitFor = (testFn: Function, msg = '', timeoutMs = 3000000, intervalMs = 500, log = false): Promise<unknown> => {
   gatedLog('Starting wait for', msg);
 
   return new Promise((resolve, reject) => {

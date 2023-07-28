@@ -4,6 +4,7 @@ import { _RKE2 } from '@shell/store/prefs';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml } from '@shell/utils/string';
 import { insertAt } from '@shell/utils/array';
+import jsyaml from 'js-yaml';
 
 export default class FleetCluster extends SteveModel {
   get _availableActions() {
@@ -89,7 +90,7 @@ export default class FleetCluster extends SteveModel {
   }
 
   get state() {
-    if ( this.spec?.paused === true ) {
+    if (this.spec?.paused === true) {
       return 'paused';
     }
 
@@ -124,19 +125,47 @@ export default class FleetCluster extends SteveModel {
     return mgmt;
   }
 
-  get norman() {
-    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata.labels?.[FLEET_LABELS.CLUSTER_NAME]);
+  get basicNorman() {
+    const norman = this.$rootGetters['rancher/byId'](NORMAN.CLUSTER, this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME]);
 
     return norman;
+  }
+
+  get norman() {
+    if (this.basicNorman) {
+      return this.basicNorman;
+    }
+
+    // If navigate to YAML view directly, norman is not loaded yet
+    return this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: this.metadata.labels[FLEET_LABELS.CLUSTER_NAME] }, { root: true });
+  }
+
+  async normanClone() {
+    const norman = await this.norman;
+
+    return this.$dispatch('rancher/clone', { resource: norman }, { root: true });
   }
 
   get groupByLabel() {
     const name = this.metadata.namespace;
 
-    if ( name ) {
+    if (name) {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
     } else {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
+  }
+
+  async saveYaml(yaml) {
+    await this._saveYaml(yaml);
+
+    const parsed = jsyaml.load(yaml);
+
+    const norman = await this.normanClone();
+
+    norman.setLabels(parsed.metadata.labels);
+    norman.setAnnotations(parsed.metadata.annotations);
+
+    await norman.save();
   }
 }

@@ -20,8 +20,8 @@ export default {
       });
     },
 
-    registerAfterHook(boundFn, name, priority) {
-      this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority);
+    registerAfterHook(boundFn, name, priority = 99, boundFnContext) {
+      this._registerHook(AFTER_SAVE_HOOKS, boundFn, name, priority, boundFnContext);
     },
 
     async applyHooks(key, ...args) {

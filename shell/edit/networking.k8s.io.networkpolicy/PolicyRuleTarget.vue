@@ -166,8 +166,8 @@ export default {
       const exceptCidrs = this.value[TARGET_OPTIONS.IP_BLOCK]?.except || [];
 
       this.invalidCidrs = exceptCidrs
-        .filter(cidr => !isValidCIDR(cidr))
-        .map(invalidCidr => invalidCidr || '<blank>');
+        .filter((cidr) => !isValidCIDR(cidr))
+        .map((invalidCidr) => invalidCidr || '<blank>');
 
       if (this.value[TARGET_OPTIONS.IP_BLOCK]?.cidr && !isValidCIDR(this.value[TARGET_OPTIONS.IP_BLOCK].cidr)) {
         this.invalidCidr = this.value[TARGET_OPTIONS.IP_BLOCK].cidr;
@@ -177,7 +177,7 @@ export default {
     },
     getMatchingPods() {
       const namespaces = this.targetType === TARGET_OPTIONS.NAMESPACE_AND_POD_SELECTOR ? this.matchingNamespaces.matches : [{ id: this.namespace }];
-      const allInNamespace = this.allPods.filter(pod => namespaces.some(ns => ns.id === pod.metadata.namespace));
+      const allInNamespace = this.allPods.filter((pod) => namespaces.some((ns) => ns.id === pod.metadata.namespace));
       const match = matching(allInNamespace, this.podSelectorExpressions);
       const matched = match.length || 0;
       const sample = match[0]?.nameDisplay;
