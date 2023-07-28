@@ -316,7 +316,7 @@ export default {
 
       this.fitAddon.fit();
 
-      const { rows, cols } = this.fitAddon.proposeDimensions();
+      const { rows, cols } = this.fitAddon.proposeDimensions() || {};
 
       if (!this.isOpen) {
         return;
