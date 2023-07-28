@@ -3,7 +3,6 @@ import { allHash } from '@shell/utils/promise';
 import { addParams } from '@shell/utils/url';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import Select from '@shell/components/form/Select';
-import isEmpty from 'lodash/isEmpty';
 import { NODE } from '@shell/config/types';
 
 import Socket, {
@@ -16,13 +15,14 @@ import Socket, {
 } from '@shell/utils/socket';
 import Window from './Window';
 
-const DEFAULT_LINUX_COMMAND = [
-  '/bin/sh',
-  '-c',
-  'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh',
-];
-
-const DEFAULT_WINDOWS_COMMAND = ['cmd'];
+const commands = {
+  linux: [
+    '/bin/sh',
+    '-c',
+    'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh',
+  ],
+  windows: ['cmd']
+};
 
 export default {
   components: { Window, Select },
@@ -85,7 +85,9 @@ export default {
       node:           null,
       keepAliveTimer: null,
       errorMsg:       '',
-      commands:       [DEFAULT_LINUX_COMMAND, DEFAULT_WINDOWS_COMMAND]
+      backupShells:   ['linux', 'windows'],
+      os:             undefined,
+      retries:        0
     };
   },
 
@@ -124,7 +126,9 @@ export default {
   },
 
   async mounted() {
-    await this.fetchNode();
+    const nodeId = this.pod.spec?.nodeName;
+
+    await this.$store.dispatch('cluster/find', { type: NODE, id: nodeId });
     await this.setupTerminal();
     await this.connect();
 
@@ -135,32 +139,6 @@ export default {
   },
 
   methods: {
-    async fetchNode() {
-      if (this.node) {
-        return;
-      }
-
-      const nodeId = this.pod.spec?.nodeName;
-
-      if ( !nodeId ) {
-        return;
-      }
-
-      try {
-        this.node = await this.$store.dispatch('cluster/find', {
-          type: NODE,
-          id:   nodeId,
-        });
-
-        // If we got the node, change the order of the commands to try if we know it is Windows,
-        // so that we try the Windows command first.
-        if (!isEmpty(this.node) && this.node?.status?.nodeInfo?.operatingSystem === 'windows') {
-          this.commands = [DEFAULT_WINDOWS_COMMAND, DEFAULT_LINUX_COMMAND];
-        }
-      } catch (e) {
-        console.error('Failed to fetch node', nodeId); // eslint-disable-line no-console
-      }
-    },
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
@@ -230,7 +208,12 @@ export default {
         return;
       }
 
-      const cmd = this.commands.shift();
+      if (this.pod.os) {
+        this.os = this.pod.os;
+        this.backupShells = this.backupShells.filter((shell) => shell !== this.pod.os);
+      } else {
+        this.os = this.backupShells.shift();
+      }
 
       const url = addParams(
         `${ this.pod.links.view.replace(/^http/, 'ws') }/exec`,
@@ -240,7 +223,7 @@ export default {
           stdin:     1,
           stderr:    1,
           tty:       1,
-          command:   cmd,
+          command:   commands[this.os],
         }
       );
 
@@ -291,7 +274,15 @@ export default {
 
         // If we had an error message, try connecting with the next command
         if (this.errorMsg) {
-          if (this.commands.length) {
+          this.terminal.write(this.errorMsg);
+          if (this.backupShells.length && this.retries < 2) {
+            this.retries++;
+            // we're not really counting on this being a reactive change so there's no need to fire the whole action
+            this.pod.os = undefined;
+            // the pod will still return an os if one's been defined in the node so we'll skip the backups if that's the case and rely on retry count to break the retry loop
+            if (!this.pod.os) {
+              this.os = this.backupShells.shift();
+            }
             this.connect();
           } else {
             // Output an message to let he user know none of the shell commands worked
@@ -307,6 +298,10 @@ export default {
         this.errorMsg = '';
 
         if (`${ type }` === '1') {
+          if (msg) {
+            // we're not really counting on this being a reactive change so there's no need to fire the whole action
+            this.pod.os = this.os;
+          }
           this.terminal.write(msg);
         } else {
           console.error(msg); // eslint-disable-line no-console
