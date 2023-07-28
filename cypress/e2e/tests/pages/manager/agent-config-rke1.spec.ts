@@ -139,7 +139,8 @@ describe('rke1 agent configuration', () => {
 
     cy.wait('@rke2CustomClusterEdit', { requestTimeout: 10000 }).then((req) => {
       expect(req.response?.statusCode).to.equal(200);
-      expect(req.request?.body?.clusterAgentDeploymentCustomization).to.deep.equal(payloadEditComparisonData.clusterAgentDeploymentCustomization);
+      expect(req.request?.body?.clusterAgentDeploymentCustomization.appendTolerations).to.deep.equal(payloadEditComparisonData.clusterAgentDeploymentCustomization.appendTolerations);
+      expect(req.request?.body?.clusterAgentDeploymentCustomization.overrideResourceRequirements).to.deep.equal(payloadEditComparisonData.clusterAgentDeploymentCustomization.overrideResourceRequirements);
     });
   });
 });

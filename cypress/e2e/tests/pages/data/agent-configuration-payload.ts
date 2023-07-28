@@ -594,7 +594,7 @@ export const payloadEditComparisonData = {
       {
         key:      'key9000',
         operator: 'Equal',
-        value:    'val9000'
+        value:    'val9000',
       },
     ]
   },
