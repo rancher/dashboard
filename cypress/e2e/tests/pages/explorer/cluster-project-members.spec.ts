@@ -1,5 +1,5 @@
-import UsersPo from '~/cypress/e2e/po/pages/users-and-auth/users.po';
-import ClusterProjectMembersPo from '~/cypress/e2e/po/pages/explorer/cluster-project-members.po';
+import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
+import ClusterProjectMembersPo from '@/cypress/e2e/po/pages/explorer/cluster-project-members.po';
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;

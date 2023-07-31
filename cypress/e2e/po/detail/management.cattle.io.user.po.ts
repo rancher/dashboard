@@ -1,6 +1,6 @@
 import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
-import ResourceDetailPo from '~/cypress/e2e/po/edit/resource-detail.po';
-import PagePo from '~/cypress/e2e/po/pages/page.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 class MgmtUserResourceDetailComponentPo extends ResourceDetailPo {
   userCreateEditView(clusterId: string, userId?: string ) {

@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import MgmtUsersListPo from '@/cypress/e2e/po/lists/management.cattle.io.user.po';
-import MgmtUserEditPo from '~/cypress/e2e/po/edit/management.cattle.io.user.po';
+import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
 import MgmtUserResourceDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.user.po';
 
 export default class UsersPo extends PagePo {

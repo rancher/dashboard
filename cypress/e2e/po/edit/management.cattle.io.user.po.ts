@@ -1,8 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
-import { CypressChainable } from '~/cypress/e2e/po/po.types';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import { CypressChainable } from '@/cypress/e2e/po/po.types';
 
 export default class MgmtUserEditPo extends PagePo {
   private static createPath(clusterId: string, userId?: string ) {

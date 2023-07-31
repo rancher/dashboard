@@ -41,10 +41,6 @@ export default class MgmtUsersListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowElementWithName(name);
   }
 
-  title() {
-    return this.masthead().title();
-  }
-
   details(name: string, index: number) {
     return this.resourceTable().sortableTable().rowWithName(name).column(index);
   }
