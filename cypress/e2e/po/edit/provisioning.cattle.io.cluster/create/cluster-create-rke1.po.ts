@@ -26,7 +26,7 @@ export default abstract class ClusterManagerCreateRKE1PagePo extends ClusterMana
   }
 
   next() {
-    return cy.iFrame().find('button').contains('Next').click();
+    return cy.iFrame().find('[data-testid="save-cancel-rke1"] button[type=submit]').click();
   }
 
   done() {
