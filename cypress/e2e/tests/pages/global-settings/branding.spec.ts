@@ -96,7 +96,7 @@ describe('Branding', () => {
     cy.title().should('eq', settings.privateLabel.original);
   });
 
-  it.only('Logo', { tags: '@adminUser' }, () => {
+  it('Logo', { tags: '@adminUser' }, () => {
     const prefPage = new PreferencesPagePo();
 
     brandingPage.goTo();
