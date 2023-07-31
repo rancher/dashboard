@@ -178,13 +178,20 @@ export default {
     }
 
     /* The form state is intialized as a chartInstallAction resource. */
-    this.value = await this.$store.dispatch('cluster/create', {
-      type:     'chartInstallAction',
-      metadata: {
-        namespace: this.forceNamespace || this.$store.getters['defaultNamespace'],
-        name:      this.existing?.spec?.name || this.query.appName || '',
-      }
-    });
+    try {
+      this.value = await this.$store.dispatch('cluster/create', {
+        type:     'chartInstallAction',
+        metadata: {
+          namespace: this.forceNamespace || this.$store.getters['defaultNamespace'],
+          name:      this.existing?.spec?.name || this.query.appName || '',
+        }
+      });
+    } catch (e) {
+      console.error('Unable to create object of type `chartInstallAction`: ', e); // eslint-disable-line no-console
+
+      // Nothing's going to work without a `value`. See https://github.com/rancher/dashboard/issues/9452 to handle this and other catches.
+      return;
+    }
 
     /* Logic for when the Helm chart is not already installed */
     if ( !this.existing) {
@@ -837,15 +844,16 @@ export default {
 
       if (hasPermissionToSeeProvCluster) {
         const mgmCluster = this.$store.getters['currentCluster'];
+        const provClusterId = mgmCluster?.provClusterId;
         let provCluster;
 
         try {
-          provCluster = mgmCluster?.provClusterId ? await this.$store.dispatch('management/find', {
+          provCluster = provClusterId ? await this.$store.dispatch('management/find', {
             type: CAPI.RANCHER_CLUSTER,
-            id:   mgmCluster?.provClusterId
+            id:   provClusterId
           }) : {};
         } catch (e) {
-          console.error(`Unable to fetch prov cluster '${ mgmCluster?.provClusterId }': `, e); // eslint-disable-line no-console
+          console.error(`Unable to fetch prov cluster '${ provClusterId }': `, e); // eslint-disable-line no-console
         }
 
         if (provCluster?.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
