@@ -3,8 +3,6 @@ import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import ModalWithCardPo from '@/cypress/e2e/po/components/modal-with-card.po';
 import RootClusterPage from '@/cypress/e2e/po/pages/root-cluster-page';
-import ComponentPo from '~/cypress/e2e/po/components/component.po';
-
 export class HomeLinksPagePo extends RootClusterPage {
   static url = '/c/_/settings/links'
   static modal = new ModalWithCardPo();
