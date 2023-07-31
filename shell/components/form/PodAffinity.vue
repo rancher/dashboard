@@ -257,8 +257,9 @@ export default {
             podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
           }
         } else if (term.weight) {
-          const neu = { podAffinityTerm: term, weight: term.weight || this.defaultWeight };
+          const neu = { podAffinityTerm: { ...term }, weight: term.weight || this.defaultWeight };
 
+          delete neu.podAffinityTerm.weight;
           podAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
         } else {
           podAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
