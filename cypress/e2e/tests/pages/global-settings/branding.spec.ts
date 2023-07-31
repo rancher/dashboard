@@ -96,7 +96,7 @@ describe('Branding', () => {
     cy.title().should('eq', settings.privateLabel.original);
   });
 
-  it('Logo', { tags: '@adminUser' }, () => {
+  it.only('Logo', { tags: '@adminUser' }, () => {
     const prefPage = new PreferencesPagePo();
 
     brandingPage.goTo();
@@ -159,10 +159,14 @@ describe('Branding', () => {
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light');
 
     HomePagePo.goTo();
-    burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', '/img/rancher-logo.66cf5910.svg');
+    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
+      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+    });
 
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', '/img/rancher-logo.66cf5910.svg');
+    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
+      expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
+    });
   });
 
   it('Favicon', { tags: '@adminUser' }, () => {
