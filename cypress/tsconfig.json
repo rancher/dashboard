@@ -18,7 +18,8 @@
     "noEmit": true,
     "types": [
       "cypress",
-      "@cypress/grep"
+      "@cypress/grep",
+      "cypress-axe"
     ]
   },
   "include": [

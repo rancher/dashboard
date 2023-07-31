@@ -1,5 +1,34 @@
 import { Matcher } from '@/cypress/support/types';
 
+// Custom violation callback function that prints a list of violations
+const severityIndicators = {
+  minor:    '⚪',
+  moderate: '🟡',
+  serious:  '🟠',
+  critical: '🔴',
+};
+
+function printAccessibilityViolations(violations) {
+  violations.forEach((violation) => {
+    const nodes = Cypress.$(violation.nodes.map((item) => item.target).join(','));
+
+    Cypress.log({
+      name:         `${ severityIndicators[violation.impact] } A11y`,
+      consoleProps: () => violation,
+      $el:          nodes,
+      message:      `[${ violation.help }][${ violation.helpUrl }]`
+    });
+
+    violation.nodes.forEach(({ target }) => {
+      Cypress.log({
+        name:         `🔨`,
+        consoleProps: () => violation,
+        $el:          Cypress.$(target.join(',')),
+        message:      target
+      });
+    });
+  });
+}
 /**
  * Get input field for given label
  */
@@ -68,3 +97,11 @@ const runTimestamp = +new Date();
 Cypress.Commands.add('createE2EResourceName', (context) => {
   return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
 });
+
+Cypress.Commands.add(
+  'checkPageAccessibility',
+  { prevSubject: 'optional' },
+  (subject, { skipFailures = false } = {}) => {
+    cy.checkA11y(subject, null, printAccessibilityViolations, skipFailures);
+  },
+);
