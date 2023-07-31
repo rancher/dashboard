@@ -42,8 +42,8 @@ export default {
 
     // The height of the window
     height: {
-      type:     Number,
-      required: true,
+      type:    Number,
+      default: undefined,
     },
 
     // The width of the window
@@ -340,7 +340,7 @@ export default {
 
       this.fitAddon.fit();
 
-      const { rows, cols } = this.fitAddon.proposeDimensions();
+      const { rows, cols } = this.fitAddon.proposeDimensions() || {};
 
       if (!this.isOpen) {
         return;
