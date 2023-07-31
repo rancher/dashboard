@@ -3,9 +3,11 @@ import RolesPo from '@/cypress/e2e/po/pages/users-and-auth/roles.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
+import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
 
 const globalRoles = new RolesPo('_', '#GLOBAL', undefined);
-const usersAdmin = new UsersPo('_', 'management.cattle.io.user', undefined);
+const usersPo = new UsersPo('_');
+const userCreate = usersPo.createEdit();
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -27,113 +29,117 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       const adminUsername = `${ runPrefix }-admin-user`;
       const adminPassword = 'admin-password';
 
-      usersAdmin.goTo();
-      usersAdmin.listCreate();
+      usersPo.goTo();
+      usersPo.list().create();
 
-      usersAdmin.username().set(adminUsername);
-      usersAdmin.newPass().set(adminPassword);
-      usersAdmin.confirmNewPass().set(adminPassword);
-      usersAdmin.selectCheckbox('Administrator').set();
-      usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+      userCreate.waitForPage();
+      userCreate.username().set(adminUsername);
+      userCreate.newPass().set(adminPassword);
+      userCreate.confirmNewPass().set(adminPassword);
+      userCreate.selectCheckbox('Administrator').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
     });
 
     it('can create Restricted Admin', () => {
       const restrictedAdminUsername = `${ runPrefix }-restrictedAdmin-user`;
       const restrictedAdminPassword = 'restrictedAdmin-password';
 
-      usersAdmin.goTo();
-      usersAdmin.listCreate();
+      usersPo.goTo();
+      usersPo.list().create();
 
-      usersAdmin.username().set(restrictedAdminUsername);
-      usersAdmin.newPass().set(restrictedAdminPassword);
-      usersAdmin.confirmNewPass().set(restrictedAdminPassword);
-      usersAdmin.selectCheckbox('Restricted Administrator').set();
-      usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+      userCreate.waitForPage();
+      userCreate.username().set(restrictedAdminUsername);
+      userCreate.newPass().set(restrictedAdminPassword);
+      userCreate.confirmNewPass().set(restrictedAdminPassword);
+      userCreate.selectCheckbox('Restricted Administrator').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
     });
 
     it('can create User-Base', () => {
       const userBasePassword = 'userBase-password';
 
-      usersAdmin.goTo();
-      usersAdmin.listCreate();
+      usersPo.goTo();
+      usersPo.list().create();
 
-      usersAdmin.username().set(userBaseUsername);
-      usersAdmin.newPass().set(userBasePassword);
-      usersAdmin.confirmNewPass().set(userBasePassword);
-      usersAdmin.selectCheckbox('User-Base').set();
-      usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
+      userCreate.waitForPage();
+      userCreate.username().set(userBaseUsername);
+      userCreate.newPass().set(userBasePassword);
+      userCreate.confirmNewPass().set(userBasePassword);
+      userCreate.selectCheckbox('User-Base').set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
 
-      usersAdmin.goTo();
-      usersAdmin.waitForPage();
-      usersAdmin.listElementWithName(userBaseUsername).should('be.visible');
+      // usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(userBaseUsername).should('be.visible');
     });
 
     it('can create Standard User and view their details', () => {
-      usersAdmin.goTo();
-      usersAdmin.listCreate();
+      usersPo.goTo();
+      usersPo.list().create();
 
-      usersAdmin.username().set(standardUsername);
-      usersAdmin.newPass().set(standardPassword);
-      usersAdmin.confirmNewPass().set(standardPassword);
+      userCreate.username().set(standardUsername);
+      userCreate.newPass().set(standardPassword);
+      userCreate.confirmNewPass().set(standardPassword);
 
       // verify standard user checkbox selected by default
-      usersAdmin.selectCheckbox('Standard User').isChecked();
-      usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings').then((res) => {
+      userCreate.selectCheckbox('Standard User').isChecked();
+
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings').then((res) => {
         userId = res.response?.body.userId;
 
-        // view user's details
-        usersAdmin.goTo();
-        usersAdmin.waitForPage();
-        usersAdmin.listDetails(standardUsername, 2).find('a').click();
+        usersPo.waitForPage();
+        usersPo.list().elementWithName(standardUsername).should('be.visible');
 
-        const userDetails = new UsersPo('_', 'management.cattle.io.user', userId);
+        // view user's details
+        usersPo.list().details(standardUsername, 2).find('a').click();
+
+        const userDetails = usersPo.detail(userId);
 
         userDetails.waitForPage();
-        cy.contains(`User: ${ standardUsername }`);
+        userDetails.mastheadTitle().should('contain', standardUsername);
       });
-      usersAdmin.goTo();
-      usersAdmin.waitForPage();
-      usersAdmin.listElementWithName(standardUsername).should('be.visible');
     });
 
     it('can Refresh Group Memberships', () => {
       // Refresh Group Membership and verify request is made
-      usersAdmin.goTo();
+      usersPo.goTo();
       cy.intercept('POST', '/v3/users?action=refreshauthprovideraccess').as('refreshGroup');
-      usersAdmin.listRefreshGroupMembership().click();
+      usersPo.list().refreshGroupMembership().click();
       cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
     });
 
     describe('Action Menu', () => {
       it('can Deactivate and Activate user', () => {
         // Deactivate user and check state is Inactive
-        usersAdmin.goTo();
-        usersAdmin.clickRowActionMenuItem(standardUsername, 'Deactivate');
-        usersAdmin.listDetails(standardUsername, 1).should('include.text', 'Inactive');
+        usersPo.goTo();
+        usersPo.list().clickRowActionMenuItem(standardUsername, 'Deactivate');
+        usersPo.list().details(standardUsername, 1).should('include.text', 'Inactive');
 
         // Activate user and check state is Active
-        usersAdmin.clickRowActionMenuItem(standardUsername, 'Activate');
-        usersAdmin.listDetails(standardUsername, 1).should('include.text', 'Active');
+        usersPo.list().clickRowActionMenuItem(standardUsername, 'Activate');
+        usersPo.list().details(standardUsername, 1).should('include.text', 'Active');
       });
 
       it('can Refresh Group Memberships', () => {
         // Refresh Group Membership and verify request is made
         cy.intercept('POST', `/v3/users/${ userId }?action=refreshauthprovideraccess`).as('refreshGroup');
-        usersAdmin.waitForRequests();
-        usersAdmin.clickRowActionMenuItem(standardUsername, 'Refresh Group Memberships');
+        usersPo.waitForRequests();
+        usersPo.list().clickRowActionMenuItem(standardUsername, 'Refresh Group Memberships');
         cy.wait('@refreshGroup').its('response.statusCode').should('eq', 200);
       });
 
       it('can Edit Config', () => {
         // Edit user and make sure edit is saved
-        const userEdit = new UsersPo('_', 'management.cattle.io.user', userId);
+        const userEdit = usersPo.createEdit(userId);
 
-        usersAdmin.waitForRequests();
-        usersAdmin.clickRowActionMenuItem(standardUsername, 'Edit Config');
-        userEdit.waitForPage('mode=edit');
-        cy.contains(`User: ${ standardUsername }`);
-        usersAdmin.description().set('e2e_test');
-        usersAdmin.saveAndWaitForRequests('PUT', `/v3/users/${ userId }`).then((res) => {
+        usersPo.waitForRequests();
+        usersPo.list().clickRowActionMenuItem(standardUsername, 'Edit Config');
+        userEdit.waitForPage();
+        userEdit.mastheadTitle().should('contain', standardUsername);
+        const mgmtUserEditPo = new MgmtUserEditPo();
+
+        mgmtUserEditPo.description().set('e2e_test');
+        mgmtUserEditPo.saveAndWaitForRequests('PUT', `/v3/users/${ userId }`).then((res) => {
           expect(res.response?.statusCode).to.equal(200);
           expect(res.response?.body.description).to.equal('e2e_test');
         });
@@ -141,20 +147,22 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
 
       it('can View YAML', () => {
         // View YAML and verify user lands on correct page
-        const viewYaml = new UsersPo('_', 'management.cattle.io.user', userId);
 
-        usersAdmin.goTo();
-        usersAdmin.clickRowActionMenuItem(standardUsername, 'View YAML');
-        viewYaml.waitForPage('mode=view&as=yaml');
-        cy.contains(`User: ${ standardUsername }`);
+        // We don't have a good pattern for the view/edit yaml page yet
+        const viewYaml = usersPo.createEdit(userId);
+
+        usersPo.goTo();
+        usersPo.list().clickRowActionMenuItem(standardUsername, 'View YAML');
+        cy.url().should('include', `?mode=view&as=yaml`);
+        viewYaml.mastheadTitle().should('contain', standardUsername);
       });
 
       it('can Download YAML', () => {
         // Download YAML and verify file exists
         const downloadedFilename = path.join(downloadsFolder, `${ standardUsername }.yaml`);
 
-        usersAdmin.goTo();
-        usersAdmin.clickRowActionMenuItem(standardUsername, 'Download YAML');
+        usersPo.goTo();
+        usersPo.list().clickRowActionMenuItem(standardUsername, 'Download YAML');
         cy.readFile(downloadedFilename).should('exist').then((buffer) => {
           const obj: any = jsyaml.load(buffer);
 
@@ -167,8 +175,8 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
 
       it('can Delete user', () => {
         // Delete user and verify user is removed from list
-        usersAdmin.goTo();
-        usersAdmin.clickRowActionMenuItem(standardUsername, 'Delete');
+        usersPo.goTo();
+        usersPo.list().clickRowActionMenuItem(standardUsername, 'Delete');
 
         const promptRemove = new PromptRemove();
 
@@ -176,7 +184,7 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
         promptRemove.confirm(standardUsername);
         promptRemove.remove();
         cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
-        usersAdmin.listElementWithName(standardUsername).should('not.exist');
+        usersPo.list().elementWithName(standardUsername).should('not.exist');
       });
     });
 
@@ -184,28 +192,28 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       it('can Deactivate and Activate users', () => {
         // Deactivate user and check state is Inactive
         cy.intercept('PUT', '/v3/users/*').as('updateUsers');
-        usersAdmin.waitForRequests();
-        usersAdmin.selectAll().set();
-        usersAdmin.listDeactivate().click();
+        usersPo.waitForRequests();
+        usersPo.list().selectAll().set();
+        usersPo.list().deactivate().click();
         cy.wait('@updateUsers');
         cy.contains('Inactive');
-        usersAdmin.listDetails('admin', 1).should('include.text', 'Active');
-        usersAdmin.listDetails(userBaseUsername, 1).should('include.text', 'Inactive');
+        usersPo.list().details('admin', 1).should('include.text', 'Active');
+        usersPo.list().details(userBaseUsername, 1).should('include.text', 'Inactive');
 
         // Activate user and check state is Active
-        usersAdmin.listActivate().click();
+        usersPo.list().activate().click();
         cy.wait('@updateUsers');
-        usersAdmin.listDetails(userBaseUsername, 1).should('include.text', 'Active');
+        usersPo.list().details(userBaseUsername, 1).should('include.text', 'Active');
       });
 
       it('can Download YAML', () => {
         // Download YAML and verify file exists
-        usersAdmin.waitForRequests();
-        usersAdmin.selectAll().set();
-        usersAdmin.openBulkActionDropdown();
+        usersPo.waitForRequests();
+        usersPo.list().selectAll().set();
+        usersPo.list().openBulkActionDropdown();
 
         cy.intercept('GET', '/v1/management.cattle.io.users/*').as('downloadYaml');
-        usersAdmin.bulkActionButton('Download YAML').click();
+        usersPo.list().bulkActionButton('Download YAML').click();
         cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
         const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
 
@@ -214,17 +222,17 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
 
       it('can Delete user', () => {
         // Delete user and verify user is removed from list
-        usersAdmin.waitForRequests();
-        usersAdmin.listElementWithName(userBaseUsername).click();
-        usersAdmin.openBulkActionDropdown();
-        usersAdmin.bulkActionButton('Delete').click();
+        usersPo.waitForRequests();
+        usersPo.list().elementWithName(userBaseUsername).click();
+        usersPo.list().openBulkActionDropdown();
+        usersPo.list().bulkActionButton('Delete').click();
         const promptRemove = new PromptRemove();
 
         cy.intercept('DELETE', '/v3/users/*').as('deleteUser');
         promptRemove.confirm(userBaseUsername);
         promptRemove.remove();
         cy.wait('@deleteUser').its('response.statusCode').should('eq', 200);
-        usersAdmin.listElementWithName(userBaseUsername).should('not.exist');
+        usersPo.list().elementWithName(userBaseUsername).should('not.exist');
       });
     });
   });
@@ -367,19 +375,19 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       globalRoles.saveAndWaitForRequests('POST', '/v3/globalroles');
 
       // create standard user
-      usersAdmin.goTo();
-      usersAdmin.listCreate();
+      usersPo.goTo();
+      usersPo.list().create();
 
-      usersAdmin.username().set(standardUsername);
-      usersAdmin.newPass().set(standardPassword);
-      usersAdmin.confirmNewPass().set(standardPassword);
-      usersAdmin.selectCheckbox(customRoleName).set();
-      usersAdmin.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
+      userCreate.username().set(standardUsername);
+      userCreate.newPass().set(standardPassword);
+      userCreate.confirmNewPass().set(standardPassword);
+      userCreate.selectCheckbox(customRoleName).set();
+      userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings', true);
 
       // let's just check that the user is on the list view before attempting to login
-      usersAdmin.goTo();
-      usersAdmin.waitForPage();
-      usersAdmin.listElementWithName(standardUsername).should('exist');
+      usersPo.goTo();
+      usersPo.waitForPage();
+      usersPo.list().elementWithName(standardUsername).should('exist');
 
       // logout admin
       cy.logout();
@@ -393,9 +401,9 @@ describe('Users and Authentication', { tags: '@adminUser' }, () => {
       globalRoles.listElements().should('have.length.of.at.least', 1);
 
       // navigate to the users page and make sure user can see it
-      usersAdmin.waitForRequests();
-      usersAdmin.listTitle().should('contain', 'Users');
-      usersAdmin.listElements().should('have.length', 1);
+      usersPo.waitForRequests();
+      usersPo.list().title().should('contain', 'Users');
+      usersPo.list().elements().should('have.length', 1);
     });
   });
 });

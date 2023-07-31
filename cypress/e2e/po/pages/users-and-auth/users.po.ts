@@ -1,127 +1,34 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
-import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
-import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
-import ResourceListMastheadPo from '@/cypress/e2e/po/components/ResourceList/resource-list-masthead.po';
-import { CypressChainable } from '~/cypress/e2e/po/po.types';
+import MgmtUsersListPo from '@/cypress/e2e/po/lists/management.cattle.io.user.po';
+import MgmtUserEditPo from '~/cypress/e2e/po/edit/management.cattle.io.user.po';
+import MgmtUserResourceDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.user.po';
 
 export default class UsersPo extends PagePo {
-  private static createPath(clusterId: string, resource: string, userId?: string) {
-    return (userId ? `/c/${ clusterId }/auth/${ resource }/${ userId }` : `/c/${ clusterId }/auth/${ resource }`);
+  private static createPath(clusterId: string) {
+    return `/c/${ clusterId }/auth/management.cattle.io.user`;
   }
 
   static goTo(path: string): Cypress.Chainable<Cypress.AUTWindow> {
     throw new Error('invalid');
   }
 
-  constructor(clusterId = '_', resource = 'management.cattle.io.user', userId?: string) {
-    super(UsersPo.createPath(clusterId, resource, userId));
+  constructor(private clusterId = '_') {
+    super(UsersPo.createPath(clusterId));
   }
 
   waitForRequests() {
     UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0']);
   }
 
-  listCreate() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.masthead().actions().eq(0).click();
+  list() {
+    return new MgmtUsersListPo(this.self());
   }
 
-  listRefreshGroupMembership(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
+  createEdit(userId?: string) {
+    return new MgmtUserEditPo(this.clusterId, userId);
   }
 
-  listDeactivate() {
-    return cy.getId('sortable-table-deactivate');
-  }
-
-  listActivate() {
-    return cy.getId('sortable-table-activate');
-  }
-
-  openBulkActionDropdown() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().bulkActionDropDownOpen();
-  }
-
-  bulkActionButton(name: string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().bulkActionDropDownButton(name);
-  }
-
-  selectAll() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().selectAllCheckbox();
-  }
-
-  listElements() {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowElements();
-  }
-
-  listElementWithName(name: string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowElementWithName(name);
-  }
-
-  listTitle() {
-    const resourceListMasthead = new ResourceListMastheadPo(this.self());
-
-    return resourceListMasthead.title();
-  }
-
-  listDetails(name: string, index: number) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowWithName(name).column(index);
-  }
-
-  clickRowActionMenuItem(name: string, itemLabel:string) {
-    const baseResourceList = new BaseResourceList(this.self());
-
-    return baseResourceList.resourceTable().sortableTable().rowActionMenuOpen(name, 7).getMenuItem(itemLabel)
-      .click();
-  }
-
-  name(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Name');
-  }
-
-  username(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Username');
-  }
-
-  description(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Description');
-  }
-
-  newPass(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'New Password');
-  }
-
-  confirmNewPass(): LabeledInputPo {
-    return LabeledInputPo.byLabel(this.self(), 'Confirm Password');
-  }
-
-  selectCheckbox(label:string): CheckboxInputPo {
-    return CheckboxInputPo.byLabel(this.self(), label);
-  }
-
-  saveCreateForm(): AsyncButtonPo {
-    return new AsyncButtonPo('[data-testid="form-save"]', this.self());
-  }
-
-  saveAndWaitForRequests(method: string, url: any, multipleCalls?: boolean): CypressChainable {
-    cy.intercept(method, url).as('request');
-    this.saveCreateForm().click();
-
-    return (multipleCalls ? cy.wait(['@request', '@request'], { timeout: 10000 }) : cy.wait('@request', { timeout: 10000 }));
+  detail(userId: string) {
+    return new MgmtUserResourceDetailPo(this.clusterId, userId);
   }
 }
