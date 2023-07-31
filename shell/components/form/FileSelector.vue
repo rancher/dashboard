@@ -148,6 +148,7 @@ export default {
     :disabled="disabled"
     type="button"
     class="file-selector btn"
+    data-testid="file-selector__uploader-button"
     @click="selectFile"
   >
     <span>{{ label }}</span>

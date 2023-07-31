@@ -432,6 +432,7 @@ export default {
       >
         <BrandImage
           class="side-menu-logo-img"
+          data-testid="side-menu__logo-img"
           file-name="rancher-logo.svg"
         />
       </div>
