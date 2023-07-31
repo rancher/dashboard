@@ -11,8 +11,8 @@ export default class EmberNodeAffinityPo extends EmberComponentPo {
    *
    * @returns array of node affinity term elements, or null if none are defined
    */
-  allTerms() {
-    return cy.iFrame().then((iframe) => {
+  allTerms(): Cypress.Chainable<any> {
+    return cy.iFrame().then((iframe: any) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="node-selector-term"]`);
 
       if (queryResult?.length > 0) {
@@ -28,7 +28,7 @@ export default class EmberNodeAffinityPo extends EmberComponentPo {
    * @returns
    */
   removeAllTerms() {
-    return this.allTerms().then((terms) => {
+    return this.allTerms().then((terms: any) => {
       if (terms) {
         let idx = terms.length - 1;
 
@@ -48,18 +48,13 @@ export default class EmberNodeAffinityPo extends EmberComponentPo {
     return cy.iFrame().find(`${ this.selector } [data-testid="button-add-node-selector"]`).click();
   }
 
-  // pod affinity po extends node affinity and adds a few fields in addition to _editTerm
-  editTerm(termData: any, idx: number) {
-    return this._editTerm(termData, idx);
-  }
-
   /**
    * Edit a node affinity term - assumes term at given index exists
    * Priority and weight are overwritted if provided; match expressions/fields are appended
    * @param termData
    * @param idx
    */
-  _editTerm(termData: any, idx: number) {
+  editTerm(termData: any, idx: number) {
     const term = this.findTerm(idx);
 
     term.priority().clickOption(termData.priority);

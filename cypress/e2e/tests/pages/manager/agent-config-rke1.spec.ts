@@ -1,7 +1,7 @@
 import ClusterManagerCreateRke1PagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create-rke1-custom.po';
 import ClusterManagerEditRke1CustomPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-rke1-custom.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
-import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/embedded-ember/ember-agent-configuration.po';
+import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/ember/ember-agent-configuration.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 import { payloadComparisonData, payloadEditComparisonData } from '@/cypress/e2e/tests/pages/data/agent-configuration-payload';
@@ -97,10 +97,11 @@ describe('rke1 agent configuration', () => {
     createClusterPage.next();
 
     cy.wait('@rke1CustomClusterCreation', { requestTimeout: 10000 }).then((req) => {
-      expect(req.response?.statusCode).to.equal(201);
-      clusterId = req.response.body.id;
+      expect(req?.response?.statusCode).to.equal(201);
+      clusterId = req?.response?.body?.id;
 
       expect(req.request?.body?.clusterAgentDeploymentCustomization).to.deep.equal(payloadComparisonData.clusterAgentDeploymentCustomization);
+
       expect(req.request?.body?.fleetAgentDeploymentCustomization).to.deep.equal(payloadComparisonData.fleetAgentDeploymentCustomization);
     });
   });
@@ -138,7 +139,7 @@ describe('rke1 agent configuration', () => {
     editClusterPage.next();
 
     cy.wait('@rke2CustomClusterEdit', { requestTimeout: 10000 }).then((req) => {
-      expect(req.response?.statusCode).to.equal(200);
+      expect(req?.response?.statusCode).to.equal(200);
       expect(req.request?.body?.clusterAgentDeploymentCustomization.appendTolerations).to.deep.equal(payloadEditComparisonData.clusterAgentDeploymentCustomization.appendTolerations);
       expect(req.request?.body?.clusterAgentDeploymentCustomization.overrideResourceRequirements).to.deep.equal(payloadEditComparisonData.clusterAgentDeploymentCustomization.overrideResourceRequirements);
     });

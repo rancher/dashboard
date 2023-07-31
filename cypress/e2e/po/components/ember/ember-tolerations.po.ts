@@ -34,7 +34,7 @@ export default class EmberTolerationsPo extends EmberComponentPo {
     this.findRow(idx).remove();
   }
 
-  allRows() {
+  allRows(): Cypress.Chainable<any> {
     return cy.iFrame().then((iframe: any) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="toleration-row"]`);
 

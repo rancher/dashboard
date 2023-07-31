@@ -11,9 +11,9 @@ import EmberAgentConfigurationPo from '@/cypress/e2e/po/components/ember/ember-a
  */
 export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManagerCreateRKE1PagePo {
   static url = `${ ClusterManagerCreatePagePo.url }/create?type=custom`
-  // static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-  //   return PagePo.goTo(ClusterManagerCreateRke1CustomPagePo.url);
-  // }
+  static goTo(clusterUrl?: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(clusterUrl || ClusterManagerCreateRke1CustomPagePo.url);
+  }
 
   goToCustomClusterCreation(): Cypress.Chainable<Cypress.AUTWindow> {
     return PagePo.goTo(`${ ClusterManagerCreatePagePo.url }?type=custom`);
@@ -53,13 +53,5 @@ export default class ClusterManagerCreateRke1CustomPagePo extends ClusterManager
 
   fleetAgentConfiguration() {
     return new EmberAgentConfigurationPo('[data-testid="form-fleet-agent"]');
-  }
-
-  next() {
-    return cy.iFrame().find('[data-testid="save-cancel-rke1"] button[type=submit]').click();
-  }
-
-  done() {
-    return cy.iFrame().find('[data-testid="driver-rke__done"]').click();
   }
 }

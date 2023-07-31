@@ -79,7 +79,8 @@ declare global {
 
       interceptAllRequests(verbs: Verbs, urls: string[], timeout: number): Chainable<string>;
 
-    iFrame(): Chainable<Element>;
+      iFrame(): Chainable<Element>;
+    }
   }
 }
 }

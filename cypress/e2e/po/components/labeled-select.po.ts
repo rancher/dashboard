@@ -5,12 +5,17 @@ export default class LabeledSelectPo extends ComponentPo {
     return this.self().click();
   }
 
-  clickOption(optionIndex: number) {
-    return this.self().get(`.vs__dropdown-menu .vs__dropdown-option:nth-child(${ optionIndex })`).click();
+  /**
+     * Selects nth option dropdown, where the first optiodn is in position 1
+     * @param optionPosition
+     * @returns
+     */
+  clickOption(optionPosition: number) {
+    return this.self().get(`.vs__dropdown-menu .vs__dropdown-option:nth-child(${ optionPosition })`).click();
   }
 
   clickOptionWithLabel(label: string) {
-    return this.getOptions().contains('li', label).invoke('index').then((index) => {
+    return this.getOptions().contains('li', label).invoke('index').then((index: number) => {
       return this.clickOption(index + 1);
     });
   }

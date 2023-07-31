@@ -1,4 +1,3 @@
-// TODO nb other data uses indices starting at 1...?
 // tolerations data
 /*
     operator: 0-equal; 1-exists (no value)

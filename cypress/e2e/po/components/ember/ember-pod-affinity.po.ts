@@ -13,7 +13,7 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
    * @returns array of all existing pod affinity term dom elements, or null if none are defined
    */
   allTerms() {
-    return cy.iFrame().then((iframe) => {
+    return cy.iFrame().then((iframe: any) => {
       const queryResult = iframe.find(`${ this.selector } [data-testid="pod-affinity-term"]`);
 
       if (queryResult?.length > 0) {
@@ -49,7 +49,7 @@ export default class EmberPodAffinityPo extends EmberNodeAffinityPo {
       }
     }
 
-    this._editTerm(termData, idx);
+    super.editTerm(termData, idx);
   }
 }
 
