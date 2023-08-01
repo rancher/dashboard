@@ -137,7 +137,7 @@ describe('Roles', { tags: '@adminUser' }, () => {
 
     cy.intercept('DELETE', '/v3/globalRoles/*').as('deleteRole');
     promptRemove.remove();
-    cy.wait('@deleteRole').its('response.statusCode').should('eq', 200);
+    cy.wait('@deleteRole').its('response.statusCode').should('be.lessThan', 300); // Can sometimes be 204
     roles.list().elementWithName(globalRoleName).should('not.exist');
   });
 
