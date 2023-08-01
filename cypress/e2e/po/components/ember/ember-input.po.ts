@@ -23,6 +23,6 @@ export default class EmberInputPo extends EmberComponentPo {
    * @returns HTML Element
    */
   private input(): Cypress.Chainable {
-    return this.self().find('input');
+    return this.self();
   }
 }
