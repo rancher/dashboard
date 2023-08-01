@@ -11,6 +11,7 @@ import { set } from '@shell/utils/object';
 import { FLEET } from '@shell/config/types';
 import { convert, matching, simplify } from '@shell/utils/selector';
 import throttle from 'lodash/throttle';
+import { allHash } from '@shell/utils/promise';
 
 export default {
   name: 'CruClusterGroup',
@@ -27,10 +28,20 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
-      this.allClusters = await this.$store.getters['management/all'](FLEET.CLUSTER);
+    const _hash = {};
+
+    if (this.$store.getters['management/schemaFor'](FLEET.CLUSTER)) {
+      _hash.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     }
-    this.allWorkspaces = await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
+
+    if (this.$store.getters['management/schemaFor'](FLEET.WORKSPACE)) {
+      _hash.allWorkspaces = this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
+    }
+
+    const hash = await allHash(_hash);
+
+    this.allClusters = hash.allClusters || [];
+    this.allWorkspaces = hash.allWorkspaces || [];
 
     if ( !this.value.spec?.selector ) {
       this.value.spec = this.value.spec || {};

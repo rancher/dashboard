@@ -3,7 +3,7 @@ import { HARVESTER, MULTI_CLUSTER } from '@shell/store/features';
 import { STATE, NAME as NAME_COL, AGE, VERSION } from '@shell/config/table-headers';
 import { allHash } from '@shell/utils/promise';
 import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { HARVESTER_NAME } from '@shell/config/features';
 
 export const PRODUCT_NAME = 'harvester-manager';

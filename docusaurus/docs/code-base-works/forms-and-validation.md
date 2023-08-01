@@ -70,6 +70,8 @@ While individual fields are typically responsible for displaying their own valid
 To use the `form-validation` mixin, import the mixin and include it in `mixins` in the component like any other mixin. Once included, ensure the following:
 1. Set the "validation-passed" property on the `CruResource` component to "fvFormIsValid" (computed property provided by the mixin). This conditionally disables the "save" button on the form.
 2. Set the "errors" property on the `CruResource` component to "fvUnreportedValidationErrors" (computed property provided by the mixin) or some other value that aggregates errors not otherwise shown in the form as a fallback means of displaying error state to the user.
+3. Add ":rules" to the input component to bind validation rule to the field.
+
 
 The `form-validation` mixin itself includes most of the information a developer will need to use it in comments in the file itself but a high-level summary would cover the following points:
 

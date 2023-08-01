@@ -218,12 +218,10 @@ export default {
 
           if ( rule.operator === 'Exists' || rule.operator === 'DoesNotExist') {
             val = null;
-          } else if (!val) {
-            return;
           }
 
           if ( val !== null ) {
-            expression.values = val.split(/\s*,\s*/).filter((x) => !!x);
+            expression.values = val.split(/\s*,\s*/);
           }
 
           return expression;

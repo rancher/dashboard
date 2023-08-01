@@ -135,7 +135,8 @@ module.exports = {
     {
       files: [
         '**/*.test.{js,ts}',
-        '**/__tests__/**/*.{js,ts}'
+        '**/__tests__/**/*.{js,ts}',
+        '**/__mocks__/**/*.{js,ts}'
       ],
       rules: {
         '@typescript-eslint/no-empty-function':              'off',

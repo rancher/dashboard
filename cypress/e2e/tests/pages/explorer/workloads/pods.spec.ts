@@ -2,7 +2,7 @@ import { WorkloadsPodsListPagePo, WorkLoadsPodDetailsPagePo } from '@/cypress/e2
 import { createPodBlueprint, clonePodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
 
-describe('Cluster Explorer', { tags: '@adminUser' }, () => {
+describe('Cluster Explorer', () => {
   beforeEach(() => {
     cy.login();
   });
@@ -11,7 +11,19 @@ describe('Cluster Explorer', { tags: '@adminUser' }, () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-      describe('When cloning a pod', () => {
+      describe('Should open a terminal', { tags: ['@adminUser', '@standardUser'] }, () => {
+        beforeEach(() => {
+          workloadsPodPage.goTo();
+        });
+
+        it('should open a pod shell', () => {
+          const shellPodPo = new PodPo();
+
+          shellPodPo.openPodShell();
+        });
+      });
+
+      describe('When cloning a pod', { tags: ['@adminUser'] }, () => {
         const { name: origPodName, namespace } = createPodBlueprint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 

@@ -3,7 +3,6 @@ import { allHash } from '@shell/utils/promise';
 import { addParams } from '@shell/utils/url';
 import { base64Decode, base64Encode } from '@shell/utils/crypto';
 import Select from '@shell/components/form/Select';
-import isEmpty from 'lodash/isEmpty';
 import { NODE } from '@shell/config/types';
 
 import Socket, {
@@ -16,11 +15,14 @@ import Socket, {
 } from '@shell/utils/socket';
 import Window from './Window';
 
-const DEFAULT_COMMAND = [
-  '/bin/sh',
-  '-c',
-  'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh',
-];
+const commands = {
+  linux: [
+    '/bin/sh',
+    '-c',
+    'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh',
+  ],
+  windows: ['cmd']
+};
 
 export default {
   components: { Window, Select },
@@ -40,8 +42,8 @@ export default {
 
     // The height of the window
     height: {
-      type:     Number,
-      required: true,
+      type:    Number,
+      default: undefined,
     },
 
     // The width of the window
@@ -82,6 +84,10 @@ export default {
       backlog:        [],
       node:           null,
       keepAliveTimer: null,
+      errorMsg:       '',
+      backupShells:   ['linux', 'windows'],
+      os:             undefined,
+      retries:        0
     };
   },
 
@@ -120,7 +126,16 @@ export default {
   },
 
   async mounted() {
-    await this.fetchNode();
+    const nodeId = this.pod.spec?.nodeName;
+
+    try {
+      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+
+      if (schema) {
+        await this.$store.dispatch('cluster/find', { type: NODE, id: nodeId });
+      }
+    } catch {}
+
     await this.setupTerminal();
     await this.connect();
 
@@ -131,26 +146,6 @@ export default {
   },
 
   methods: {
-    async fetchNode() {
-      if (this.node) {
-        return;
-      }
-
-      const nodeId = this.pod.spec?.nodeName;
-
-      if ( !nodeId ) {
-        return;
-      }
-
-      try {
-        this.node = await this.$store.dispatch('cluster/find', {
-          type: NODE,
-          id:   nodeId,
-        });
-      } catch (e) {
-        console.error('Failed to fetch node', nodeId); // eslint-disable-line no-console
-      }
-    },
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
       const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
@@ -220,11 +215,11 @@ export default {
         return;
       }
 
-      const { node } = this;
-      let cmd = DEFAULT_COMMAND;
-
-      if (!isEmpty(node) && node?.status?.nodeInfo?.operatingSystem === 'windows') {
-        cmd = ['cmd'];
+      if (this.pod.os) {
+        this.os = this.pod.os;
+        this.backupShells = this.backupShells.filter((shell) => shell !== this.pod.os);
+      } else {
+        this.os = this.backupShells.shift();
       }
 
       const url = addParams(
@@ -235,7 +230,7 @@ export default {
           stdin:     1,
           stderr:    1,
           tty:       1,
-          command:   cmd,
+          command:   commands[this.os],
         }
       );
 
@@ -260,6 +255,7 @@ export default {
       this.socket.addEventListener(EVENT_CONNECTING, (e) => {
         this.isOpen = false;
         this.isOpening = true;
+        this.errorMsg = '';
       });
 
       this.socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
@@ -282,16 +278,44 @@ export default {
       this.socket.addEventListener(EVENT_DISCONNECTED, (e) => {
         this.isOpen = false;
         this.isOpening = false;
+
+        // If we had an error message, try connecting with the next command
+        if (this.errorMsg) {
+          this.terminal.write(this.errorMsg);
+          if (this.backupShells.length && this.retries < 2) {
+            this.retries++;
+            // we're not really counting on this being a reactive change so there's no need to fire the whole action
+            this.pod.os = undefined;
+            // the pod will still return an os if one's been defined in the node so we'll skip the backups if that's the case and rely on retry count to break the retry loop
+            if (!this.pod.os) {
+              this.os = this.backupShells.shift();
+            }
+            this.connect();
+          } else {
+            // Output an message to let he user know none of the shell commands worked
+            this.terminal.write(this.t('wm.containerShell.failed'));
+          }
+        }
       });
 
       this.socket.addEventListener(EVENT_MESSAGE, (e) => {
         const type = e.detail.data.substr(0, 1);
         const msg = base64Decode(e.detail.data.substr(1));
 
+        this.errorMsg = '';
+
         if (`${ type }` === '1') {
+          if (msg) {
+            // we're not really counting on this being a reactive change so there's no need to fire the whole action
+            this.pod.os = this.os;
+          }
           this.terminal.write(msg);
         } else {
           console.error(msg); // eslint-disable-line no-console
+
+          if (`${ type }` === '3') {
+            this.errorMsg = msg;
+          }
         }
       });
 
@@ -316,7 +340,7 @@ export default {
 
       this.fitAddon.fit();
 
-      const { rows, cols } = this.fitAddon.proposeDimensions();
+      const { rows, cols } = this.fitAddon.proposeDimensions() || {};
 
       if (!this.isOpen) {
         return;
