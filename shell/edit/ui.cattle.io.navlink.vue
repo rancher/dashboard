@@ -8,9 +8,10 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { RadioGroup } from '@components/Form/Radio';
 import FileImageSelector from '@shell/components/form/FileImageSelector';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import NameNsDescription, { normalizeName } from '@shell/components/form/NameNsDescription';
+import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { Banner } from '@components/Banner';
 import FormValidation from '@shell/mixins/form-validation';
+import { normalizeName } from '@shell/utils/kube';
 
 const LINK_TYPE_URL = 'url';
 const LINK_TYPE_SERVICE = 'service';
