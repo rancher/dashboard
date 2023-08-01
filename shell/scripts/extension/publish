@@ -24,15 +24,15 @@ GITHUB_BRANCH="main"
 usage() {
   echo "Usage: $0 [<options>] [plugins]"
   echo " options:"
-  echo "  -p           Push container images on build"
-  echo "  -f           Force building the chart even if it already exists"
-  echo "  -r <name>    Specify destination container registry for built images"
-  echo "  -o <name>    Specify destination container registry organization for built images"
-  echo "  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')"
-  echo "  -c           Build as a container image rather than publishing to Github"
   echo "  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin"
   echo "  -b <branch>  Specify destination GitHub branch"
   echo "  -t <tag>     Specify the Github release tag to build when a release has been tagged and published"
+  echo "  -f           Force building the chart even if it already exists"
+  echo "  -c           Build as a container image rather than publishing to Github"
+  echo "  -p           Push container images on build"
+  echo "  -r <name>    Specify destination container registry for built images"
+  echo "  -o <name>    Specify destination container registry organization for built images"
+  echo "  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')"
   exit 1
 }
 
@@ -124,7 +124,11 @@ if ! [[ -d ${BASE_DIR}/node_modules ]]; then
   exit 1
 fi
 
-COMMANDS=("node" "jq" "yq" "git" "docker" "helm" "yarn")
+COMMANDS=("node" "jq" "yq" "git" "helm" "yarn")
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  COMMANDS+=("docker")
+fi
+
 HAVE_COMMANDS="true"
 for CMD in "${COMMANDS[@]}"
 do
