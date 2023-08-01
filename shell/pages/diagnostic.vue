@@ -235,6 +235,7 @@ export default {
         'aws',
         'digitalocean',
         'linode',
+        'targetRoute', // contains circular references, isn't useful (added later to store)
       ];
 
       const clearListsKeys = [
