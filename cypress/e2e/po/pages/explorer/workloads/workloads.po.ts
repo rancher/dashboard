@@ -4,7 +4,7 @@ import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
-import PromptRemove from '~/cypress/e2e/po/prompts/promptRemove.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { WorkloadType } from '@shell/types/fleet';
 export class workloadDetailsPageBasePo extends PagePo {
   static url: string;
