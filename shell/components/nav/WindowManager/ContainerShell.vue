@@ -288,7 +288,7 @@ export default {
             this.pod.os = undefined;
             // the pod will still return an os if one's been defined in the node so we'll skip the backups if that's the case and rely on retry count to break the retry loop
             if (!this.pod.os) {
-              this.os = this.backupShells.shift();
+              this.os = undefined;
             }
             this.connect();
           } else {
