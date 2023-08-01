@@ -43,6 +43,15 @@ Cypress.Commands.add('interceptAllRequests', (method = '/GET/POST/PUT/PATCH/', u
   return cy.wrap(interceptedUrls);
 });
 
+/**
+ * Logout of Rancher
+ */
+Cypress.Commands.add('logout', () => {
+  cy.intercept('POST', '/v3/tokens?action=logout').as('loggedOut');
+  cy.visit('/auth/logout?logged-out=true');
+  cy.wait('@loggedOut').its('response.statusCode').should('eq', 200);
+});
+
 Cypress.Commands.add('iFrame', () => {
   return cy
     .get('[data-testid="ember-iframe"]', { log: false })

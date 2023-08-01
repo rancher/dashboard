@@ -1,6 +1,6 @@
 import ExtensionsPagePo from '@/cypress/e2e/po/pages/extensions.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
-import PromptRemove from '~/cypress/e2e/po/prompts/promptRemove.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
