@@ -9,15 +9,15 @@ describe('Diagnostics Page', { tags: ['@adminUser'] }, () => {
   });
 
   it('User should be able to download the diagnostics package JSON', () => {
-    const DiagnosticsPage = new DiagnosticsPagePo();
+    const diagnosticsPage = new DiagnosticsPagePo();
 
-    DiagnosticsPage.goTo();
+    diagnosticsPage.goTo();
 
     // open modal
-    DiagnosticsPage.downloadDiagnosticsPackageClick();
+    diagnosticsPage.diagnosticsPackageBtn().click(true);
 
     // modal button to actually trigger the download
-    DiagnosticsPage.downloadDiagnosticsModalActionClick();
+    diagnosticsPage.downloadDiagnosticsModalActionBtn().click(true);
 
     const downloadedFilename = path.join(downloadsFolder, 'rancher-diagnostic-data.json');
 
