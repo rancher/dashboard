@@ -19,6 +19,13 @@ import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
 
+function findRelationship(verb, type, relationships = []) {
+  const from = `${ verb }Type`;
+  const id = `${ verb }Id`;
+
+  return relationships.find((r) => r[from] === type)?.[id];
+}
+
 export default class MgmtCluster extends HybridModel {
   get details() {
     const out = [
@@ -440,9 +447,12 @@ export default class MgmtCluster extends HybridModel {
     // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
 
     const verb = this.isLocal || isRKE1 || this.isHostedKubernetesProvider ? 'to' : 'from';
-    const from = `${ verb }Type`;
-    const id = `${ verb }Id`;
+    const res = findRelationship(verb, CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
 
-    return this.metadata.relationships.find((r) => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
+    if (res) {
+      return res;
+    }
+
+    return findRelationship(verb === 'to' ? 'from' : 'to', CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
   }
 }

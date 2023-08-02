@@ -81,6 +81,9 @@ export default {
   ],
 
   async fetch() {
+    this.errors = [];
+    // IMPORTANT! Any exception thrown before this.value is set will result in an empty page
+
     /*
       fetchChart is defined in shell/mixins. It first checks the URL
       query for an app name and namespace. It uses those values to check
@@ -91,23 +94,43 @@ export default {
       it checks for target name and namespace values defined in the
       Helm chart itself.
     */
-    await this.fetchChart();
+    try {
+      await this.fetchChart();
+    } catch (e) {
+      console.warn('Unable to fetch chart: ', e); // eslint-disable-line no-console
+    }
 
-    await this.fetchAutoInstallInfo();
-    this.errors = [];
+    try {
+      await this.fetchAutoInstallInfo();
+    } catch (e) {
+      console.warn('Unable to determine if other charts require install: ', e); // eslint-disable-line no-console
+    }
 
     // If the chart doesn't contain system `systemDefaultRegistry` properties there's no point applying them
     if (this.showCustomRegistry) {
       // Note: Cluster scoped registry is only supported for node driver clusters
-      this.clusterRegistry = await this.getClusterRegistry();
-      this.globalRegistry = await this.getGlobalRegistry();
+      try {
+        this.clusterRegistry = await this.getClusterRegistry();
+      } catch (e) {
+        console.warn('Unable to get cluster registry: ', e); // eslint-disable-line no-console
+      }
+
+      try {
+        this.globalRegistry = await this.getGlobalRegistry();
+      } catch (e) {
+        console.warn('Unable to get global registry: ', e); // eslint-disable-line no-console
+      }
       this.defaultRegistrySetting = this.clusterRegistry || this.globalRegistry;
     }
 
-    this.serverUrlSetting = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'server-url'
-    });
+    try {
+      this.serverUrlSetting = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.SETTING,
+        id:   'server-url'
+      });
+    } catch (e) {
+      console.error('Unable to fetch `server-url` setting: ', e); // eslint-disable-line no-console
+    }
 
     /*
       Figure out the namespace where the chart is
@@ -137,20 +160,38 @@ export default {
     }
 
     /* Check if the app is deprecated. */
-    this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
+    try {
+      this.legacyApp = this.existing ? await this.existing.deployedAsLegacy() : false;
+    } catch (e) {
+      this.legacyApp = false;
+      console.warn('Unable to determine if existing install is a legacy app: ', e); // eslint-disable-line no-console
+    }
 
     /* Check if the app is a multicluster deprecated app.
     (Multicluster apps were replaced by Fleet.) */
-    this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
+
+    try {
+      this.mcapp = this.existing ? await this.existing.deployedAsMultiCluster() : false;
+    } catch (e) {
+      this.mcapp = false;
+      console.warn('Unable to determine if existing install is a mc app: ', e); // eslint-disable-line no-console
+    }
 
     /* The form state is intialized as a chartInstallAction resource. */
-    this.value = await this.$store.dispatch('cluster/create', {
-      type:     'chartInstallAction',
-      metadata: {
-        namespace: this.forceNamespace || this.$store.getters['defaultNamespace'],
-        name:      this.existing?.spec?.name || this.query.appName || '',
-      }
-    });
+    try {
+      this.value = await this.$store.dispatch('cluster/create', {
+        type:     'chartInstallAction',
+        metadata: {
+          namespace: this.forceNamespace || this.$store.getters['defaultNamespace'],
+          name:      this.existing?.spec?.name || this.query.appName || '',
+        }
+      });
+    } catch (e) {
+      console.error('Unable to create object of type `chartInstallAction`: ', e); // eslint-disable-line no-console
+
+      // Nothing's going to work without a `value`. See https://github.com/rancher/dashboard/issues/9452 to handle this and other catches.
+      return;
+    }
 
     /* Logic for when the Helm chart is not already installed */
     if ( !this.existing) {
@@ -803,12 +844,19 @@ export default {
 
       if (hasPermissionToSeeProvCluster) {
         const mgmCluster = this.$store.getters['currentCluster'];
-        const provCluster = mgmCluster?.provClusterId ? await this.$store.dispatch('management/find', {
-          type: CAPI.RANCHER_CLUSTER,
-          id:   mgmCluster.provClusterId
-        }) : {};
+        const provClusterId = mgmCluster?.provClusterId;
+        let provCluster;
 
-        if (provCluster.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
+        try {
+          provCluster = provClusterId ? await this.$store.dispatch('management/find', {
+            type: CAPI.RANCHER_CLUSTER,
+            id:   provClusterId
+          }) : {};
+        } catch (e) {
+          console.error(`Unable to fetch prov cluster '${ provClusterId }': `, e); // eslint-disable-line no-console
+        }
+
+        if (provCluster?.isRke2) { // isRke2 returns true for both RKE2 and K3s clusters.
           const agentConfig = provCluster.spec?.rkeConfig?.machineSelectorConfig?.find((x) => !x.machineLabelSelector).config;
 
           // If a cluster scoped registry exists,
@@ -819,10 +867,11 @@ export default {
             return clusterRegistry;
           }
         }
-        if (provCluster.isRke1) {
+
+        if (provCluster?.isRke1) {
           // For RKE1 clusters, the cluster scoped private registry is on the management
           // cluster, not the provisioning cluster.
-          const rke1Registries = mgmCluster.spec?.rancherKubernetesEngineConfig?.privateRegistries;
+          const rke1Registries = mgmCluster?.spec?.rancherKubernetesEngineConfig?.privateRegistries;
 
           if (rke1Registries?.length > 0) {
             const defaultRegistry = rke1Registries.find((registry) => {
