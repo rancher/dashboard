@@ -116,7 +116,7 @@ export default {
 
       if (!cluster?.isRke2) {
         promise = this.$store.dispatch('rancher/findAll', { type: NORMAN.ETCD_BACKUP }).then((snapshots) => {
-          return snapshots.filter((s) => s.clusterId === cluster.metadata.name);
+          return snapshots.filter((s) => s.state === STATES_ENUM.ACTIVE && s.clusterId === cluster.metadata.name);
         });
       } else {
         promise = this.$store.dispatch('management/findAll', { type: SNAPSHOT }).then((snapshots) => {
