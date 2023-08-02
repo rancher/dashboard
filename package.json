@@ -51,7 +51,8 @@
     "docs:install": "cd docusaurus/ && yarn install",
     "docs:build": "cd docusaurus/ && yarn build",
     "docs:start": "cd docusaurus/ && yarn start",
-    "publish:lib": "cd pkg/rancher-components && npm publish"
+    "publish:lib": "cd pkg/rancher-components && npm publish",
+    "publish-pkgs": "./shell/scripts/extension/publish"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "3.1.0",
