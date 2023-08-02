@@ -322,11 +322,11 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.isOpening).toBe(false);
     expect(wrapper.vm.errorMsg).toBe('eventMessageError');
     // the backup shell that was leftover was windows so it became the new os in dataprops
-    expect(wrapper.vm.os).toBe('windows');
+    expect(wrapper.vm.os).toBeUndefined();
     // but we still didn't write it to the pod itself since we don't know if it worked
     expect(defaultContainerShellParams.propsData.pod.os).toBeUndefined();
     // we can see here that we removed that last backup shell because we're attempting to use it now
-    expect(wrapper.vm.backupShells).toHaveLength(0);
+    expect(wrapper.vm.backupShells).toHaveLength(1);
     expect(connect.mock.calls).toHaveLength(2);
   });
 
@@ -351,8 +351,8 @@ describe('component: ContainerShell', () => {
     eventMessage({ detail: { data: `3${ linuxErrorMessage }` } });
     eventDisconnected();
 
-    expect(wrapper.vm.backupShells).toHaveLength(0);
-    expect(wrapper.vm.os).toBe('windows');
+    expect(wrapper.vm.backupShells).toHaveLength(1);
+    expect(wrapper.vm.os).toBeUndefined();
     // the pod os was 'linux' but we cleared it out since that didn't work
     expect(defaultContainerShellParams.propsData.pod.os).toBeUndefined();
     expect(connect.mock.calls).toHaveLength(2);
@@ -367,11 +367,11 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.isOpen).toBe(false);
     expect(wrapper.vm.isOpening).toBe(false);
     expect(wrapper.vm.errorMsg).toBe(windowsErrorMessage);
-    expect(wrapper.vm.os).toBe('windows');
+    expect(wrapper.vm.os).toBeUndefined();
     // we never found a shell that worked so we're going to leave the pod os as undefined
     expect(defaultContainerShellParams.propsData.pod.os).toBeUndefined();
     // we're out of backupShells now so we're not going to retry after that second disconnect
-    expect(connect.mock.calls).toHaveLength(2);
+    expect(connect.mock.calls).toHaveLength(3);
 
     resetMocks();
   });
@@ -409,8 +409,8 @@ describe('component: ContainerShell', () => {
     eventMessage({ detail: { data: `3${ linuxErrorMessage }` } });
     eventDisconnected();
 
-    expect(wrapper.vm.backupShells).toHaveLength(0);
-    expect(wrapper.vm.os).toBe('windows');
+    expect(wrapper.vm.backupShells).toHaveLength(1);
+    expect(wrapper.vm.os).toBeUndefined();
     expect(testUndefinedOsParams.propsData.pod.os).toBeUndefined();
 
     eventConnecting();
@@ -423,9 +423,9 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.isOpen).toBe(false);
     expect(wrapper.vm.isOpening).toBe(false);
     expect(wrapper.vm.errorMsg).toBe(windowsErrorMessage);
-    expect(wrapper.vm.os).toBe('windows');
+    expect(wrapper.vm.os).toBeUndefined();
     expect(testUndefinedOsParams.propsData.pod.os).toBeUndefined();
-    expect(connect.mock.calls).toHaveLength(2);
+    expect(connect.mock.calls).toHaveLength(3);
 
     resetMocks();
   });
@@ -461,8 +461,8 @@ describe('component: ContainerShell', () => {
     eventMessage({ detail: { data: `3${ linuxErrorMessage }` } });
     eventDisconnected();
 
-    expect(wrapper.vm.backupShells).toHaveLength(0);
-    expect(wrapper.vm.os).toBe('windows');
+    expect(wrapper.vm.backupShells).toHaveLength(1);
+    expect(wrapper.vm.os).toBeUndefined();
     expect(testUndefinedOsParams.propsData.pod.os).toBeUndefined();
     expect(wrapper.vm.errorMsg).toBe(linuxErrorMessage);
 
@@ -475,9 +475,9 @@ describe('component: ContainerShell', () => {
     expect(wrapper.vm.isOpen).toBe(true);
     expect(wrapper.vm.isOpening).toBe(false);
     expect(wrapper.vm.errorMsg).toBe('');
-    expect(wrapper.vm.os).toBe('windows');
+    expect(wrapper.vm.os).toBeUndefined();
     // the second shell worked so we're going to set it on the pod itself so if we need to connect again we'll just use the correct shell on the first attempt
-    expect(testUndefinedOsParams.propsData.pod.os).toBe('windows');
+    expect(testUndefinedOsParams.propsData.pod.os).toBeUndefined();
     expect(connect.mock.calls).toHaveLength(2);
 
     resetMocks();

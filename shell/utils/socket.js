@@ -11,6 +11,7 @@ const SECURE = 'wss://';
 
 const STATE_DISCONNECTED = 'disconnected';
 
+export const addEventListener = EventTarget.addEventListener;
 export const STATE_CONNECTING = 'connecting';
 export const STATE_CONNECTED = 'connected';
 const STATE_CLOSING = 'closing';
