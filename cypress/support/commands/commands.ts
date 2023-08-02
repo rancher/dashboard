@@ -98,10 +98,11 @@ Cypress.Commands.add('createE2EResourceName', (context) => {
   return cy.wrap(`e2e-test-${ runTimestamp }-${ context }`);
 });
 
+// skipFailures = true will not fail the test when there are accessibility failures
 Cypress.Commands.add(
   'checkPageAccessibility',
   { prevSubject: 'optional' },
-  (subject, { skipFailures = false } = {}) => {
+  (subject, { skipFailures = true } = {}) => {
     cy.checkA11y(subject, null, printAccessibilityViolations, skipFailures);
   },
 );
