@@ -12,19 +12,11 @@ export default class DiagnosticsPagePo extends PagePo {
     super(DiagnosticsPagePo.url);
   }
 
-  downloadDiagnosticsPackageClick() {
-    const btn = new AsyncButtonPo('[data-testid="diagnostics-download-diagnostic-package"]');
-
-    btn.click(true);
-
-    return this;
+  diagnosticsPackageBtn() {
+    return new AsyncButtonPo('[data-testid="diagnostics-download-diagnostic-package"]');
   }
 
-  downloadDiagnosticsModalActionClick() {
-    const btn = new AsyncButtonPo('[data-testid="download-diagnostics-modal-action"]');
-
-    btn.click(true);
-
-    return this;
+  downloadDiagnosticsModalActionBtn() {
+    return new AsyncButtonPo('[data-testid="download-diagnostics-modal-action"]');
   }
 }
