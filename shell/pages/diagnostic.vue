@@ -162,9 +162,8 @@ export default {
     },
 
     downloadData(btnCb) {
-      const date = new Date().toLocaleDateString();
-      const time = new Date().toLocaleTimeString();
-      const fileName = `rancher-diagnostic-data-${ date }-${ time.replaceAll(':', '_') }.json`;
+      // simplify filename due to e2e tests
+      const fileName = 'rancher-diagnostic-data.json';
       const data = {
         systemInformation: this.systemInformation,
         logs:              this.latestLogs,
@@ -235,6 +234,7 @@ export default {
         'aws',
         'digitalocean',
         'linode',
+        'targetRoute', // contains circular references, isn't useful (added later to store)
       ];
 
       const clearListsKeys = [
@@ -316,10 +316,12 @@ export default {
         <AsyncButton
           mode="timing"
           class="mr-20"
+          data-testid="diagnostics-generate-response-times"
           @click="gatherResponseTimes"
         />
         <AsyncButton
           mode="diagnostic"
+          data-testid="diagnostics-download-diagnostic-package"
           @click="promptDownload"
         />
       </div>
