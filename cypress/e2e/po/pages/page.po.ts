@@ -19,7 +19,7 @@ export default class PagePo extends ComponentPo {
    */
   static goToAndWaitForGet(goTo: () => Cypress.Chainable, getUrls = [
     'v1/counts',
-  ]) {
+  ], timeout = 10000) {
     getUrls.forEach((cUrl, i) => {
       cy.intercept('GET', cUrl).as(`getUrl${ i }`);
     });
@@ -30,7 +30,7 @@ export default class PagePo extends ComponentPo {
       // If an intercept for the url already exists... use the same wait (it'll fire on that one)
       const existingIndexOrCurrent = getUrls.indexOf(getUrls[i]);
 
-      cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout: 10000 });
+      cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout });
     }
   }
 

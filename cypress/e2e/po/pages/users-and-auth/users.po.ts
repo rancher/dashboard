@@ -17,7 +17,7 @@ export default class UsersPo extends PagePo {
   }
 
   waitForRequests() {
-    UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0']);
+    UsersPo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/users?limit=0'], 15000);
   }
 
   list() {
