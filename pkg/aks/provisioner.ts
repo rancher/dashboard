@@ -41,9 +41,10 @@ export class AKSProvisioner implements IClusterProvisioner {
   // }
 
   get link(): string {
+    // TODO nb add router to prov cluster context def
     const { router } = this.context;
 
-    return router.resolve({ name: 'c-cluster-manager-aks-create', params: { cluster: '_' } }).href;
+    return router.resolve({ name: 'c-cluster-manager-aks-create', params: { cluster: '_' } });
   }
 
   // get machineConfigSchema(): { [key: string]: any } {
