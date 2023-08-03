@@ -1,0 +1,240 @@
+import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
+import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
+import { LoginPagePo } from '~/cypress/e2e/po/pages/login-page.po';
+import BannersPo from '~/cypress/e2e/po/components/banners.po';
+
+const bannersPage = new BannersPagePo();
+const burgerMenu = new BurgerMenuPo();
+const loginPage = new LoginPagePo();
+
+const settings = {
+  bannerLabel:   'Rancher e2e',
+  textAlignment: {
+    original: 'Center',
+    new:      'Right'
+  },
+  fontSize: {
+    original: '14px',
+    new:      '20px'
+  },
+  textDecoration:  'Underline',
+  bannerTextColor: {
+    original: '#141419',
+    new:      '#f80dd8',
+    newRGB:   'rgb(248, 13, 216)',
+  },
+  bannerBackgroundColor: {
+    original: '#EEEFF4',
+    new:      '#ddd603',
+    newRGB:   'rgb(221, 214, 3)'
+  }
+
+};
+
+describe('Banners', () => {
+  beforeEach(() => {
+    cy.login();
+  });
+
+  it('can navigate to Banners Page', { tags: ['@adminUser', '@standardUser'] }, () => {
+    HomePagePo.goTo();
+
+    const productMenu = new ProductNavPo();
+
+    BurgerMenuPo.toggle();
+
+    burgerMenu.categories().contains(` Configuration `).should('exist');
+    const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
+
+    globalSettingsNavItem.should('exist');
+    globalSettingsNavItem.click();
+    const settingsPage = new SettingsPagePo();
+
+    settingsPage.waitForPageWithClusterId();
+
+    const bannersNavItem = productMenu.visibleNavTypes().contains('Banners');
+
+    bannersNavItem.should('exist');
+    bannersNavItem.click();
+
+    bannersPage.waitForPageWithClusterId();
+  });
+
+  it('can show and hide Header Banner', { tags: '@adminUser' }, () => {
+    bannersPage.goTo();
+
+    // Show Banner
+    bannersPage.headerBannerCheckbox().set();
+    bannersPage.headerInput().set(settings.bannerLabel);
+    bannersPage.textAlignmentRadioGroup('bannerHeader').set(2);
+    bannersPage.textDecorationCheckboxes('bannerHeader').set(2);
+    bannersPage.selectFontSizeByValue('bannerHeader', settings.fontSize.new);
+    bannersPage.textColorPicker(0).value().should('not.eq', settings.bannerTextColor.new);
+    bannersPage.textColorPicker(0).set(settings.bannerTextColor.new);
+    bannersPage.textColorPicker(1).value().should('not.eq', settings.bannerBackgroundColor.new);
+    bannersPage.textColorPicker(1).set(settings.bannerBackgroundColor.new);
+    bannersPage.applyAndWait('**/ui-banners');
+
+    // Check in session
+    bannersPage.banner().should('be.visible').then((el) => {
+      expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+    });
+    bannersPage.headerBannerCheckbox().isChecked();
+    bannersPage.textAlignmentRadioGroup('bannerHeader').isChecked(2);
+    bannersPage.textColorPicker(0).previewColor().should('eq', settings.bannerTextColor.newRGB);
+    bannersPage.textColorPicker(1).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+
+    // Check over reload
+    cy.reload();
+    bannersPage.banner().should('be.visible').then((el) => {
+      expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+    });
+    bannersPage.headerBannerCheckbox().isChecked();
+    bannersPage.textAlignmentRadioGroup('bannerHeader').isChecked(2);
+    bannersPage.textColorPicker(0).previewColor().should('eq', settings.bannerTextColor.newRGB);
+    bannersPage.textColorPicker(1).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+
+    // Hide Banner
+    bannersPage.headerBannerCheckbox().set();
+    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.banner().should('not.exist');
+  });
+
+  it('can show and hide Footer Banner', { tags: '@adminUser' }, () => {
+    bannersPage.goTo();
+
+    // Show Banner
+    bannersPage.footerBannerCheckbox().set();
+    bannersPage.footerInput().set(settings.bannerLabel);
+    bannersPage.textAlignmentRadioGroup('bannerFooter').set(2);
+    bannersPage.textDecorationCheckboxes('bannerFooter').set(2);
+    bannersPage.selectFontSizeByValue('bannerFooter', settings.fontSize.new);
+    bannersPage.textColorPicker(2).value().should('not.eq', settings.bannerTextColor.new);
+    bannersPage.textColorPicker(2).set(settings.bannerTextColor.new);
+    bannersPage.textColorPicker(3).value().should('not.eq', settings.bannerBackgroundColor.new);
+    bannersPage.textColorPicker(3).set(settings.bannerBackgroundColor.new);
+    bannersPage.applyAndWait('**/ui-banners');
+
+    // Check in session
+    bannersPage.banner().should('be.visible').then((el) => {
+      expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+    });
+    bannersPage.footerBannerCheckbox().isChecked();
+    bannersPage.textAlignmentRadioGroup('bannerFooter').isChecked(2);
+    bannersPage.textColorPicker(2).previewColor().should('eq', settings.bannerTextColor.newRGB);
+    bannersPage.textColorPicker(3).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+
+    // Check over reload
+    cy.reload();
+    bannersPage.banner().should('be.visible').then((el) => {
+      expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+    });
+    bannersPage.footerBannerCheckbox().isChecked();
+    bannersPage.textAlignmentRadioGroup('bannerFooter').isChecked(2);
+    bannersPage.textColorPicker(2).previewColor().should('eq', settings.bannerTextColor.newRGB);
+    bannersPage.textColorPicker(3).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+
+    // Hide Banner
+    bannersPage.footerBannerCheckbox().set();
+    bannersPage.applyAndWait('**/ui-banners');
+    bannersPage.banner().should('not.exist');
+  });
+
+  it('can show and hide Login Screen Banner', { tags: '@adminUser' }, () => {
+    cy.login(undefined, undefined, false);
+    bannersPage.goTo();
+
+    // Show Banner
+    bannersPage.loginScreenBannerCheckbox().checkVisible();
+    bannersPage.loginScreenBannerCheckbox().set();
+    bannersPage.loginScreenInput().set(settings.bannerLabel);
+    bannersPage.textAlignmentRadioGroup('bannerConsent').set(2);
+    bannersPage.textDecorationCheckboxes('bannerConsent').set(2);
+    bannersPage.selectFontSizeByValue('bannerConsent', settings.fontSize.new);
+    bannersPage.textColorPicker(4).value().should('not.eq', settings.bannerTextColor.new);
+    bannersPage.textColorPicker(4).set(settings.bannerTextColor.new);
+    bannersPage.textColorPicker(5).value().should('not.eq', settings.bannerBackgroundColor.new);
+    bannersPage.textColorPicker(5).set(settings.bannerBackgroundColor.new);
+    bannersPage.applyAndWait('**/ui-banners');
+
+    // Check login screen
+    cy.logout();
+    loginPage.waitForPage();
+    loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
+    bannersPage.banner().should('be.visible').then((el) => {
+      expect(el).to.have.attr('style').contains(`color: ${ settings.bannerTextColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`background-color: ${ settings.bannerBackgroundColor.newRGB }`);
+      expect(el).to.have.attr('style').contains(`text-align: ${ settings.textAlignment.new.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`ext-decoration: ${ settings.textDecoration.toLowerCase() }`);
+      expect(el).to.have.attr('style').contains(`font-size: ${ settings.fontSize.new }`);
+    });
+
+    // Check after login
+    cy.login(undefined, undefined, false);
+    bannersPage.goTo();
+    bannersPage.loginScreenBannerCheckbox().isChecked();
+    bannersPage.textAlignmentRadioGroup('bannerConsent').isChecked(2);
+    bannersPage.textColorPicker(4).previewColor().should('eq', settings.bannerTextColor.newRGB);
+    bannersPage.textColorPicker(5).previewColor().should('eq', settings.bannerBackgroundColor.newRGB);
+
+    // Hide banner
+    bannersPage.loginScreenBannerCheckbox().set();
+    bannersPage.applyAndWait('**/ui-banners');
+
+    // Check login screen
+    cy.logout();
+    loginPage.waitForPage();
+    loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
+    bannersPage.banner().should('not.exist');
+  });
+
+  it('can show and hide Login Failed Banner', { tags: '@adminUser' }, () => {
+    const banners = new BannersPo('.banner.error');
+
+    cy.login(undefined, undefined, false);
+    bannersPage.goTo();
+
+    // Show Banner
+    bannersPage.loginErrorCheckbox().checkVisible();
+    bannersPage.loginErrorCheckbox().set();
+    bannersPage.loginErrorInput().set(settings.bannerLabel);
+    bannersPage.applyAndWait('**/ui-banners');
+
+    // Check login screen
+    cy.logout();
+    loginPage.waitForPage();
+    loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
+    loginPage.submit();
+    loginPage.waitForPage();
+    banners.banner().contains(settings.bannerLabel).should('be.visible');
+  });
+
+  it('standard user has only read access to Banner page', { tags: '@standardUser' }, () => {
+    // verify action buttons/checkboxes etc. are disabled/hidden for standard user
+    bannersPage.goTo();
+    bannersPage.headerBannerCheckbox().isDisabled();
+    bannersPage.footerBannerCheckbox().isDisabled();
+    bannersPage.loginScreenBannerCheckbox().isDisabled();
+    bannersPage.loginErrorCheckbox().isDisabled();
+    bannersPage.applyButton().checkNotExists();
+  });
+});

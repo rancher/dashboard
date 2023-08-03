@@ -150,6 +150,7 @@ export default {
     <div
       v-if="!showAsDialog"
       class="banner"
+      data-testid="fixed__banner"
       :style="bannerStyle"
       :class="{'banner-consent': consent}"
     >
