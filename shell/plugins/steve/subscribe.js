@@ -222,6 +222,7 @@ const namespaceHandler = {
   },
 
   validChange: ({ getters, rootGetters }, type, data) => {
+    // TODO: RC
     const haveNamespace = getters.haveNamespace(type);
 
     if (haveNamespace?.length) {

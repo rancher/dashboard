@@ -126,7 +126,9 @@ export default {
 
       const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
 
-      if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
+      if (this.pagination) {
+        opt.pagination = this.pagination;
+      } else if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
         opt.namespaced = this.namespaceFilter; // namespaceFilter will only be populated if applicable for primary resource
       }
 

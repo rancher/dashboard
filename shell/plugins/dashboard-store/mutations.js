@@ -262,6 +262,7 @@ export function loadAll(state, {
   ctx,
   skipHaveAll,
   namespace,
+  pagination,
   revision
 }) {
   const { getters } = ctx;
@@ -295,8 +296,19 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
-    cache.haveNamespace = namespace;
-    cache.haveAll = !namespace;
+    if (pagination) {
+      cache.havePagination = pagination;
+      cache.haveNamespace = undefined;
+      cache.haveAll = undefined;
+    } else if (namespace) {
+      cache.havePagination = false;
+      cache.haveNamespace = namespace;
+      cache.haveAll = false;
+    } else {
+      cache.havePagination = false;
+      cache.haveNamespace = false;
+      cache.haveAll = true;
+    }
   }
 
   return proxies;

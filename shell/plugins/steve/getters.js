@@ -30,6 +30,8 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = parsedUrl.path.startsWith('/v1');
 
+    //  TODO: RC ADD PAGINATION
+
     // Filter
     // Steve's filter options work differently nowadays (https://github.com/rancher/steve#filter) #9341
     if ( opt.filter ) {

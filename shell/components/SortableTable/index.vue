@@ -48,10 +48,12 @@ export const COLUMN_BREAKPOINTS = {
 
 // Data Flow:
 // rows prop
-// -> arrangedRows (sorting.js)
-// -> filteredRows (filtering.js)
-// -> pagedRows    (paging.js)
-// -> groupedRows  (grouping.js)
+// --> sorting.js arrangedRows
+// --> filtering.js handleFiltering()
+// --> filtering.js filteredRows
+// --> paging.js pageRows
+// --> grouping.js groupedRows
+// --> index.vue displayedRows
 
 export default {
   name:       'SortableTable',
@@ -312,6 +314,11 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+
+    externalPagination: {
+      required: true,
+      default:  true
     }
   },
 

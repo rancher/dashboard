@@ -274,10 +274,32 @@ export default {
     return false;
   },
 
+  haveAllPaginated: (state, getters) => (type, pagination) => {
+    if (!pagination) {
+      return false;
+    }
+
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      // TODO: RC
+      // return entry.havePaginated === namespace;
+    }
+
+    return false;
+  },
+
   haveNamespace: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
     return state.types[type]?.haveNamespace || null;
+  },
+
+  havePaginated: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+
+    return state.types[type]?.havePaginated || null;
   },
 
   haveSelector: (state, getters) => (type, selector) => {
