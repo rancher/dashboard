@@ -8,7 +8,8 @@ import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import stevePaginationUtils from '@shell/plugins/steve/pagination-utils';
 import { parse } from '@shell/utils/url';
 import { splitObjectPath } from '@shell/utils/string';
 import { parseType } from '@shell/models/schema';
@@ -34,6 +35,16 @@ export default {
     opt = opt || {};
     const parsedUrl = parse(url);
     const isSteve = steveRegEx.test(parsedUrl.path);
+
+    // TODO: RC steve (mgmt steve) vs steve (proxy to kube)
+
+    // Pagination
+    const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
+
+    if (stevePagination) {
+      url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
+    }
+    // End: Pagination
 
     // labelSelector
     if ( opt.labelSelector ) {

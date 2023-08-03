@@ -17,7 +17,7 @@ import {
   NAMESPACE_FILTER_P_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
 import { KEY } from '@shell/utils/platform';
-import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 import { SETTING } from '@shell/config/settings';
 
 const forcedNamespaceValidTypes = [NAMESPACE_FILTER_KINDS.DIVIDER, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACE_FILTER_KINDS.NAMESPACE];

@@ -264,7 +264,7 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/groupBy`, { type, field });
     },
 
-    headers(type, headers) {
+    headers(type, headers, paginationHeaders = []) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
         if (header.getValue) {
@@ -277,6 +277,7 @@ export function DSL(store, product, module = 'type-map') {
       });
 
       store.commit(`${ module }/headers`, { type, headers });
+      store.commit(`${ module }/paginationHeaders`, { type, paginationHeaders });
     },
 
     hideBulkActions(type, field) {
@@ -406,6 +407,7 @@ export const state = function() {
     typeOptions:             [],
     groupBy:                 {},
     headers:                 {},
+    paginationHeaders:       {},
     hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
@@ -503,17 +505,18 @@ export const getters = {
 
   optionsFor(state) {
     const def = {
-      isCreatable:          true,
-      isEditable:           true,
-      isRemovable:          true,
-      showState:            true,
-      showAge:              true,
-      canYaml:              true,
-      namespaced:           null,
-      listGroups:           [],
-      depaginate:           false,
-      customRoute:          undefined,
-      resourceEditMasthead: true,
+      isCreatable:            true,
+      isEditable:             true,
+      isRemovable:            true,
+      showState:              true,
+      showAge:                true,
+      canYaml:                true,
+      namespaced:             null,
+      listGroups:             [],
+      listGroupsWillOverride: false,
+      depaginate:             false,
+      customRoute:            undefined,
+      resourceEditMasthead:   true,
     };
 
     return (schemaOrType) => {
@@ -1040,6 +1043,32 @@ export const getters = {
     };
   },
 
+  paginationHeadersFor(state, getters, rootState, rootGetters) {
+    return (schema) => {
+      const attributes = schema.attributes || {};
+      const columns = attributes.columns || [];
+
+      return state.paginationHeaders[schema.id]?.map((entry) => {
+        if ( typeof entry === 'string' ) {
+          const col = findBy(columns, 'name', entry);
+
+          if ( col ) {
+            return {
+              ...fromSchema(col, rootGetters), // TODO: RC neater way of doing this
+              search: _rowValueGetter(col, false),
+              sort:   [_rowValueGetter(col, false)], // Doesn't work at the moment
+            };
+          } else {
+            return null;
+          }
+        } else {
+          return entry;
+        }
+      })
+        .filter((col) => !!col);
+    };
+  },
+
   headersFor(state, getters, rootState, rootGetters) {
     return (schema) => {
       const attributes = schema.attributes || {};
@@ -1096,43 +1125,6 @@ export const getters = {
       }
 
       return out;
-
-      function fromSchema(col, rootGetters) {
-        let formatter, width, formatterOpts;
-
-        if ( (col.format === '' || col.format === 'date') && col.name === 'Age' ) {
-          return AGE;
-        }
-
-        if ( col.format === 'date' || col.type === 'date' ) {
-          formatter = 'Date';
-          width = 120;
-          formatterOpts = { multiline: true };
-        }
-
-        if ( col.type === 'number' || col.type === 'int' ) {
-          formatter = 'Number';
-        }
-
-        const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
-
-        const exists = rootGetters['i18n/exists'];
-        const t = rootGetters['i18n/t'];
-        const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
-        const description = col.description || '';
-        const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
-
-        return {
-          name:  col.name.toLowerCase(),
-          label: exists(labelKey) ? t(labelKey) : col.name,
-          value: _rowValueGetter(col),
-          sort:  [col.field],
-          formatter,
-          formatterOpts,
-          width,
-          tooltip
-        };
-      }
     };
   },
 
@@ -1633,6 +1625,10 @@ export const mutations = {
     state.headers[type] = headers;
   },
 
+  paginationHeaders(state, { type, paginationHeaders }) {
+    state.paginationHeaders[type] = paginationHeaders;
+  },
+
   hideBulkActions(state, { type, field }) {
     state.hideBulkActions[type] = field;
   },
@@ -1776,6 +1772,43 @@ export const actions = {
     commit('configureType', options);
   }
 };
+
+function fromSchema(col, rootGetters) {
+  let formatter, width, formatterOpts;
+
+  if ( (col.format === '' || col.format === 'date') && col.name === 'Age' ) {
+    return AGE;
+  }
+
+  if ( col.format === 'date' || col.type === 'date' ) {
+    formatter = 'Date';
+    width = 120;
+    formatterOpts = { multiline: true };
+  }
+
+  if ( col.type === 'number' || col.type === 'int' ) {
+    formatter = 'Number';
+  }
+
+  const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
+
+  const exists = rootGetters['i18n/exists'];
+  const t = rootGetters['i18n/t'];
+  const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
+  const description = col.description || '';
+  const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
+
+  return {
+    name:  col.name.toLowerCase(),
+    label: exists(labelKey) ? t(labelKey) : col.name,
+    value: _rowValueGetter(col),
+    sort:  [col.field],
+    formatter,
+    formatterOpts,
+    width,
+    tooltip
+  };
+}
 
 function _sortGroup(tree, mode) {
   const by = ['weight:desc', 'namespaced', 'label'];
@@ -1929,7 +1962,7 @@ function _findColumnByName(schema, colName) {
   return findBy(columns, 'name', colName);
 }
 
-function _rowValueGetter(col) {
+function _rowValueGetter(col, asFn = true) {
   // 'field' comes from the schema - typically it is of the form $.metadata.field[N]
   // We will use JsonPath to look up this value, which is costly - so if we can detect this format
   // Use a more efficient function to get the value
@@ -1939,7 +1972,11 @@ function _rowValueGetter(col) {
   if (found && found.length === 2) {
     const fieldIndex = parseInt(found[1], 10);
 
-    return (row) => row.metadata?.fields?.[fieldIndex];
+    if (asFn) {
+      return (row) => row.metadata?.fields?.[fieldIndex];
+    }
+
+    return `metadata.fields.${ fieldIndex }`;
   }
 
   return value;

@@ -2,13 +2,17 @@ import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
+import ResourceFetchApiPagination from '@shell/mixins/resource-fetch-api-pagination';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
 
 export default {
 
-  mixins: [ResourceFetchNamespaced],
+  mixins: [
+    ResourceFetchNamespaced,
+    ResourceFetchApiPagination
+  ],
 
   data() {
     // fetching the settings related to manual refresh from global settings
@@ -126,7 +130,9 @@ export default {
 
       const schema = this.$store.getters[`${ currStore }/schemaFor`](type);
 
-      if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
+      if (this.pagination) {
+        opt.pagination = this.pagination;
+      } else if (schema?.attributes?.namespaced) { // Is this specific resource namespaced (could be primary or secondary resource)?
         opt.namespaced = this.namespaceFilter; // namespaceFilter will only be populated if applicable for primary resource
       }
 

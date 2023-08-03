@@ -166,6 +166,16 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+
+    externalPagination: {
+      type:    Boolean,
+      default: false
+    },
+
+    externalPaginationResult: {
+      type:    Object,
+      default: null
     }
   },
 
@@ -186,6 +196,7 @@ export default {
   data() {
     const options = this.$store.getters[`type-map/optionsFor`](this.schema);
     const listGroups = options?.listGroups || [];
+    const listGroupsWillOverride = options?.listGroupsWillOverride;
     const listGroupMapped = listGroups.reduce((acc, grp) => {
       acc[grp.value] = grp;
 
@@ -196,7 +207,7 @@ export default {
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
 
     return {
-      listGroups, listGroupMapped, inStore
+      listGroups, listGroupsWillOverride, listGroupMapped, inStore
     };
   },
 
@@ -236,7 +247,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = this.$store.getters['type-map/headersFor'](this.schema);
+        headers = this.$store.getters['type-map/headersFor'](this.schema); // TODO: RC not required atm, but needs to be integrated with pagination headers
       }
 
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
@@ -296,6 +307,9 @@ export default {
       return headers;
     },
 
+    /**
+     * Take rows and filter out entries given the namespace filter
+     */
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
 
@@ -303,6 +317,7 @@ export default {
       if (
         !this.isNamespaced || // Resource type isn't namespaced
         this.ignoreFilter || // Component owner strictly states no filtering
+        this.externalPagination ||
         (isAll && !this.currentProduct?.hideSystemResources) || // Need all
         (this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false)// Store reports type has namespace filter, so rows already contain the correctly filtered resources
       ) {
@@ -384,6 +399,10 @@ export default {
     },
 
     groupOptions() {
+      if (this.listGroupsWillOverride && this.listGroups?.length) {
+        return this.listGroups;
+      }
+
       const standard = [
         {
           tooltipKey: 'resourceTable.groupBy.none',
@@ -508,6 +527,8 @@ export default {
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    :external-pagination="externalPagination"
+    :external-pagination-result="externalPaginationResult"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     v-on="$listeners"

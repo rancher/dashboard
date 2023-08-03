@@ -8,7 +8,8 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { sameContents } from '@shell/utils/array';
+import { sameArrayObjects, sameContents } from '@shell/utils/array';
+import { isEqual } from '@shell/utils/object';
 
 export default {
   name: ResourceListComponentName,
@@ -76,7 +77,8 @@ export default {
       }
 
       // See comment for `namespaceFilterRequired` watcher, skip fetch if we don't have a valid NS
-      if (!this.namespaceFilterRequired) {
+      // TODO: RC TODO tie in to comment above
+      if (!this.namespaceFilterRequired && !this.canPaginate) {
         await this.$fetchType(resource);
       }
     }
@@ -124,6 +126,10 @@ export default {
         return [];
       }
 
+      if (this.pagination) {
+        return this.paginationHeaders;
+      }
+
       return this.$store.getters['type-map/headersFor'](this.schema);
     },
 
@@ -155,7 +161,25 @@ export default {
       if (neu && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
-    }
+    },
+
+    pagination(neu, old) {
+      const { filter: neuFilter, sort: neuSort, ...newPrimitiveTypes } = neu;
+      const { filter: oldFilter, sort: oldSort, ...oldPrimitiveTypes } = old;
+
+      if (
+        isEqual(newPrimitiveTypes, oldPrimitiveTypes) &&
+        isEqual(neuFilter, oldFilter) &&
+        sameArrayObjects(neuSort, oldSort)
+      ) {
+        // TODO: RC TEST more
+        return;
+      }
+
+      if (neu && !this.hasFetch) {
+        this.$fetchType(this.resource);
+      }
+    },
   },
 
   created() {
@@ -225,11 +249,14 @@ export default {
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :external-pagination="!!pagination"
+      :external-pagination-result="paginationResult"
+      @pagination-changed="paginationChanged"
     />
   </div>
 </template>
 
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
     .header {
       position: relative;
     }
@@ -245,4 +272,4 @@ export default {
       top: 10px;
       right: 10px;
     }
-  </style>
+</style>

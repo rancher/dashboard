@@ -1,7 +1,6 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import { getPerformanceSetting } from '@shell/utils/settings';
-
-type Opt = { [key: string]: any, namespaced?: string[]}
+import { FindAllOpt } from '@shell/plugins/dashboard-store/dashboard-store.types';
 
 class ProjectAndNamespaceFiltering {
   static param = 'projectsornamespaces'
@@ -9,7 +8,7 @@ class ProjectAndNamespaceFiltering {
   /**
    * Does the request `opt` definition require resources are fetched from a specific set namespaces/projects?
    */
-  isApplicable(opt: Opt): boolean {
+  isApplicable(opt: FindAllOpt): boolean {
     return Array.isArray(opt.namespaced);
   }
 
@@ -37,7 +36,7 @@ class ProjectAndNamespaceFiltering {
   /**
    * Check if `opt` requires resources from specific ns/projects, if so return the required query param (x=y)
    */
-  checkAndCreateParam(opt: Opt): string {
+  checkAndCreateParam(opt: FindAllOpt): string {
     if (!this.isApplicable(opt)) {
       return '';
     }
@@ -45,17 +44,38 @@ class ProjectAndNamespaceFiltering {
     return this.createParam(opt.namespaced);
   }
 
-  private createParam(namespaceFilter: string[] | undefined): string {
+  public createParam(namespaceFilter: string[] | undefined): string {
     if (!namespaceFilter || !namespaceFilter.length) {
       return '';
     }
 
-    const projectsOrNamespaces = namespaceFilter
-      .map((f) => f.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
-        .replace(NAMESPACE_FILTER_P_FULL_PREFIX, ''))
-      .join(',');
+    const namespaces = namespaceFilter.reduce((res, n) => {
+      const name = n
+        .replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
+        .replace(NAMESPACE_FILTER_P_FULL_PREFIX, '');
 
-    return `${ ProjectAndNamespaceFiltering.param }=${ projectsOrNamespaces }`;
+      if (name.startsWith('-')) {
+        res.exclude.push(n.substring(1, n.length));
+      } else {
+        res.include.push(name);
+      }
+
+      return res;
+    }, { include: [] as string[], exclude: [] as string[] });
+
+    let res = '';
+
+    console.warn('pAndNUtil', 'createParam', namespaces.include, namespaces.exclude); // eslint-disable-line no-console
+
+    if (namespaces.include.length) {
+      res = `${ ProjectAndNamespaceFiltering.param }=${ namespaces.include.join(',') }`;
+    }
+
+    if (namespaces.exclude.length) {
+      res = `${ ProjectAndNamespaceFiltering.param }!=${ namespaces.exclude.join(',') }`;
+    }
+
+    return res;
   }
 }
 

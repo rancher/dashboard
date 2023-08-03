@@ -23,13 +23,22 @@ export default {
 
       const out = [...fromGroup, ...fromColumn];
 
-      addObject(out, 'nameSort');
+      if (this.externalPagination) {
+        addObject(out, 'metadata.name'); // TODO: RC FIX its a steve things
+      } else {
+        addObject(out, 'nameSort');
+      }
+
       addObject(out, 'id');
 
       return out;
     },
 
     arrangedRows() {
+      if (this.externalPagination) {
+        return;
+      }
+
       let key;
 
       if ( this.sortGenerationFn ) {
@@ -101,4 +110,16 @@ export default {
       this.setPage(1);
     },
   },
+
+  watch: {
+    sortFields(neu) {
+      console.warn('paging', 'watch', 'sortFields', neu); // eslint-disable-line no-console
+      this.debouncedPaginationChanged();
+    },
+
+    descending(neu) {
+      console.warn('paging', 'watch', 'descending', neu); // eslint-disable-line no-console
+      this.debouncedPaginationChanged();
+    }
+  }
 };

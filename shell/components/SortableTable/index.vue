@@ -49,10 +49,12 @@ export const COLUMN_BREAKPOINTS = {
 
 // Data Flow:
 // rows prop
-// -> arrangedRows (sorting.js)
-// -> filteredRows (filtering.js)
-// -> pagedRows    (paging.js)
-// -> groupedRows  (grouping.js)
+// --> sorting.js arrangedRows
+// --> filtering.js handleFiltering()
+// --> filtering.js filteredRows
+// --> paging.js pageRows
+// --> grouping.js groupedRows
+// --> index.vue displayedRows
 
 export default {
   name:       'SortableTable',
@@ -313,6 +315,15 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+
+    externalPagination: {
+      type:    Boolean,
+      default: false
+    },
+    externalPaginationResult: {
+      type:    Object,
+      default: null
     }
   },
 
@@ -327,12 +338,14 @@ export default {
     }
 
     return {
-      currentPhase:     ASYNC_BUTTON_STATES.WAITING,
-      expanded:         {},
+      currentPhase:               ASYNC_BUTTON_STATES.WAITING,
+      expanded:                   {},
       searchQuery,
       eventualSearchQuery,
-      actionOfInterest: null,
-      loadingDelay:     false,
+      subMatches:                 null,
+      actionOfInterest:           null,
+      loadingDelay:               false,
+      debouncedPaginationChanged: null,
     };
   },
 
@@ -346,6 +359,10 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main?.addEventListener('scroll', this._onScroll);
+
+    if (this.externalPagination) {
+      this.debouncedPaginationChanged();
+    }
   },
 
   beforeDestroy() {
@@ -429,6 +446,7 @@ export default {
 
   created() {
     this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
+    this.debouncedPaginationChanged = debounce(this.paginationChanged, 50);
   },
 
   computed: {
@@ -897,6 +915,26 @@ export default {
       this.$emit('clickedActionButton', {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
+      });
+    },
+
+    paginationChanged() {
+      // eslint-disable-next-line no-console
+      console.warn('ss', 'methods', 'paginationChanged', {
+        page:    this.page,
+        perPage: this.perPage,
+        filter:  this.searchFields,
+        sort:    this.sortFields,
+      });
+      this.$emit('pagination-changed', {
+        page:    this.page,
+        perPage: this.perPage,
+        filter:  {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
+        sort:       this.sortFields,
+        descending: this.descending
       });
     }
   }
@@ -1443,7 +1481,7 @@ export default {
   </div>
 </template>
 
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 
   .manual-refresh {
     height: 40px;
@@ -1607,9 +1645,9 @@ export default {
     margin-left: 10px;
     min-width: 180px;
   }
-  </style>
+</style>
 
-  <style lang="scss">
+<style lang="scss">
   //
   // Important: Almost all selectors in here need to be ">"-ed together so they
   // apply only to the current table, not one nested inside another table.
@@ -1941,4 +1979,4 @@ export default {
       min-width: 200px;
     }
   }
-  </style>
+</style>
