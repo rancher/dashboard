@@ -111,6 +111,7 @@ export default {
 
         <AsyncButton
           :mode="applyMode"
+          data-testid="download-diagnostics-modal-action"
           @click="apply"
         />
       </div>
