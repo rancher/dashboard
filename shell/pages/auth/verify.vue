@@ -42,12 +42,11 @@ export default {
       // (user probably can not do anything useful in the new window to rectify the error)
       if (window.opener && window.opener !== window && openerLoc && thisLoc &&
         openerLoc.origin === thisLoc.origin && openerLoc.pathname.startsWith('/c/local/auth/config/')) {
-
         reply(out, errorCode);
 
         return;
       }
-      
+
       redirect(`/auth/login?err=${ escape(out) }`);
 
       return;
