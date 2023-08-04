@@ -31,7 +31,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { keyForSubscribe } from '@shell/plugins/steve/resourceWatcher';
 import { waitFor } from '@shell/utils/async';
 import { WORKER_MODES } from './worker';
-import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from 'plugins/steve/projectAndNamespaceFiltering.utils';
 import { BLANK_CLUSTER, STORE } from '@shell/store/store-types.js';
 
 // minimum length of time a disconnect notification is shown

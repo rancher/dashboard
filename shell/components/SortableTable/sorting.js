@@ -4,6 +4,7 @@ import { addObject } from '@shell/utils/array';
 export default {
   computed: {
     sortFields() {
+      // TODO: RC WARNING - group sort?! DISABLE
       let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
       let fromColumn = [];
 
@@ -101,4 +102,16 @@ export default {
       this.setPage(1);
     },
   },
+
+  watch: {
+    sortFields(neu) {
+      console.warn('paging', 'watch', 'sortFields', neu);
+      this.paginationChanged();
+    },
+
+    descending(neu) {
+      console.warn('paging', 'watch', 'descending', neu);
+      this.paginationChanged();
+    }
+  }
 };

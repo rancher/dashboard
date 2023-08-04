@@ -1,7 +1,26 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import { getPerformanceSetting } from '@shell/utils/settings';
 
-type Opt = { [key: string]: any, namespaced?: string[]}
+export interface OptPagination {
+  namespaces?: string[];
+  page: number,
+  pageSize: number,
+  sort: { field: string, asc: boolean }[],
+  filter: { field: string, value: string }[]
+}
+
+// TODO: RC persist from response
+export interface StorePagination extends OptPagination {
+  count: number,
+  revision: number,
+}
+
+// TODO: RC
+export type FindAllOpt = {
+  [key: string]: any,
+  namespaced?: string[],
+  pagination?: OptPagination,
+}
 
 class ProjectAndNamespaceFiltering {
   static param = 'projectsornamespaces'
@@ -9,7 +28,7 @@ class ProjectAndNamespaceFiltering {
   /**
    * Does the request `opt` definition require resources are fetched from a specific set namespaces/projects?
    */
-  isApplicable(opt: Opt): boolean {
+  isApplicable(opt: FindAllOpt): boolean {
     return Array.isArray(opt.namespaced);
   }
 
@@ -37,7 +56,7 @@ class ProjectAndNamespaceFiltering {
   /**
    * Check if `opt` requires resources from specific ns/projects, if so return the required query param (x=y)
    */
-  checkAndCreateParam(opt: Opt): string {
+  checkAndCreateParam(opt: FindAllOpt): string {
     if (!this.isApplicable(opt)) {
       return '';
     }
@@ -45,14 +64,16 @@ class ProjectAndNamespaceFiltering {
     return this.createParam(opt.namespaced);
   }
 
-  private createParam(namespaceFilter: string[] | undefined): string {
+  public createParam(namespaceFilter: string[] | undefined): string {
     if (!namespaceFilter || !namespaceFilter.length) {
       return '';
     }
 
     const projectsOrNamespaces = namespaceFilter
-      .map((f) => f.replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
-        .replace(NAMESPACE_FILTER_P_FULL_PREFIX, ''))
+      .map((f) => f
+        .replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
+        .replace(NAMESPACE_FILTER_P_FULL_PREFIX, '')
+      )
       .join(',');
 
     return `${ ProjectAndNamespaceFiltering.param }=${ projectsOrNamespaces }`;

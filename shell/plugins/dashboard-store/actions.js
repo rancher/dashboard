@@ -315,7 +315,8 @@ export default {
           revision:   out.revision,
           skipHaveAll,
           namespace:  opt.namespaced,
-          pagination: opt.pagination
+          pagination: opt.pagination,
+          count:      out.count // TODO: RC steve specific
         });
       }
     }

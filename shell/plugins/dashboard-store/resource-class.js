@@ -645,7 +645,28 @@ export default class Resource {
   }
 
   get nameDisplay() {
-    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.name || this.metadata?.name || this.id;
+    return this[this.namePath];
+    // return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.name || this.metadata?.name || this.id;
+  }
+
+  get namePath() {
+    if (this.displayName) {
+      return 'displayName';
+    }
+    if (this.spec?.displayName) {
+      return 'spec.displayName';
+    }
+    if (this.metadata?.annotations?.[NORMAN_NAME]) {
+      return `metadata.annotations.${ NORMAN_NAME }`;
+    }
+    if (this.name) {
+      return 'name';
+    }
+    if (this.metadata?.name) {
+      return 'metadata.name';
+    }
+
+    return 'id';
   }
 
   get nameSort() {

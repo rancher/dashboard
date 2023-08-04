@@ -9,6 +9,7 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
+import { isEqual } from '@shell/utils/object';
 
 export default {
   name: ResourceListComponentName,
@@ -155,6 +156,25 @@ export default {
       if (neu && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
+    },
+
+    // TODO: RC comment
+    pagination(neu, old) {
+      const { filter: neuFilter, sort: neuSort, ...newPrimitiveTypes } = neu;
+      const { filter: oldFilter, sort: oldSort, ...oldPrimitiveTypes } = old;
+
+      debugger;
+      if (
+        isEqual(newPrimitiveTypes, oldPrimitiveTypes) &&
+        isEqual(neuFilter, oldFilter) &&
+        sameContents(neuSort, oldSort)
+      ) {
+        return;
+      }
+
+      if (neu && !this.hasFetch) {
+        this.$fetchType(this.resource);
+      }
     }
   },
 
@@ -225,11 +245,13 @@ export default {
       :adv-filter-prevent-filtering-labels="advFilterPreventFilteringLabels"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+      :external-pagination="!!pagination"
+      @pagination-changed="paginationChanged"
     />
   </div>
 </template>
 
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
     .header {
       position: relative;
     }
@@ -245,4 +267,4 @@ export default {
       top: 10px;
       right: 10px;
     }
-  </style>
+</style>

@@ -3,7 +3,7 @@ import HybridModel from './hybrid-class';
 
 export default class SteveModel extends HybridModel {
   get name() {
-    return this.metadata?.name || this._name;
+    return this.metadata?.name || this._name; // TODO: RC
   }
 
   get namespace() {

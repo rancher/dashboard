@@ -1,3 +1,5 @@
+import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER } from '@shell/utils/namespace-filter';
+import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 
@@ -7,44 +9,79 @@ import { ResourceListComponentName } from '../components/ResourceList/resource-l
 export default {
 
   data() {
-    return { forceUpdateLiveAndDelayed: 0 }; // TODO: RC
+    return {
+      forceUpdateLiveAndDelayed: 0,
+      // : OptPagination // TODO: RC
+      pPagination:               {
+        namespaces: undefined,
+        page:       1,
+        pageSize:   10,
+        sort:       [],
+        filter:     {}
+      }
+    };
   },
 
   methods: {
     haveAllPaginated(type) {
       return this.$store.getters['haveAllPaginated'](type);
     },
+
+    paginationChanged(event) {
+      console.warn('mixin', 'method', 'paginationChanged', event);
+
+      // this.currentProduct?.hideSystemResources // TODO: RC oh lordy - need to wire in this as a filter
+
+      this.pPagination = {
+        // namespaces: this.namespaceFilters,
+        ...this.pPagination,
+        page:     event.page,
+        pageSize: event.perPage,
+        sort:     event.sort?.map((field) => {
+          let safeField = field; // TODO: RC oh lordy
+
+          switch (field) {
+          case 'nameSort':
+            safeField = this.rows[0].namePath; // TODO: RC oh lordy
+            break;
+          case 'namespace':
+            safeField = 'metadata.namespace';
+            break;
+          case 'subTypeDisplay':
+            safeField = '_type'; // TODO: RC secret. this isn't by label of the type. this doesn't work anyway
+            break;
+          }
+
+          return {
+            field: safeField,
+            asc:   !event.descending
+          };
+        }),
+        filter: {} // TODO: RC oh lordy. this contains not only model values... but `getValue` fns as well
+      };
+      console.warn('mixin', 'method', 'paginationChanged', this.pPagination);
+    }
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster']),
-
-    // /**
-    //  * Does the user need to update the filter to supply a single namespace?
-    //  */
-    // namespaceFilterRequired() {
-    //   return this.__namespaceRequired && !this.__validFilter;
-    // },
-    // __validFilter
-
+    ...mapGetters(['currentProduct', 'currentCluster', 'namespaceFilters', 'namespaces']),
     /**
      * Returns the namespace that requests should be filtered by
      */
     pagination() {
-      // TODO: RC get from  store
+      // TODO: RC get from  store (including revision)
       // TODO: RC sortable table --> store
-      const pagination = {
-        page:      1,
-        total:     10,
-        filter:    '',
-        namespace: undefined,
-        sort:      {
-          field:     undefined,
-          direction: undefined,
-        }
-      };
+      console.warn('mixin', 'pagination', this.__paginationRequired, this.pPagination);
 
-      return this.__paginationRequired ? pagination : '';
+      // {
+      //   namespaces: undefined,
+      //   page:       1,
+      //   pageSize:   10,
+      //   sort:       [],
+      //   filter:     {}
+      // }
+
+      return this.__paginationRequired ? this.pPagination : '';
     },
 
     /**
@@ -65,7 +102,57 @@ export default {
   },
 
   watch: {
+    async namespaceFilters(neu) {
+      const isAll = this.$store.getters['isAllNamespaces'];
+
+      const namespaced = this.schema.attributes.namespaced;
+
+      if (
+        !namespaced ||
+        isAll || // this.currentProduct?.hideSystemResources // TODO: RC oh lordy
+        !this.__paginationRequired
+      ) {
+        return;
+      }
+
+      if (neu.length === 1) {
+        // ---------- make common
+        // const allNamespaces = this.$store.getters[`${ this.inStore }/all`](NAMESPACE);
+        // const allowedNamespaces = allNamespaces
+        //   .filter((ns) => state.prefs.data['all-namespaces'] ? true : !ns.isObscure); // Filter out Rancher system namespaces
+        // .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
+
+        // ---------
+
+        if (neu[0] === NAMESPACE_FILTER_ALL_SYSTEM) {
+          // get a list of all system namespaces
+
+          return ;
+        }
+
+        if (neu[0] === NAMESPACE_FILTER_ALL_USER) {
+          // get a list of all system namespaces... and NOT them
+
+          return ;
+        }
+      }
+
+      // ALL_SYSTEM
+      // ALL_USER
+      // ALL_ORPHANS
+      // export const NAMESPACE_FILTER_ALL_SYSTEM = `${ NAMESPACE_FILTER_ALL_PREFIX }://system`;
+      // export const NAMESPACE_FILTER_ALL_USER = `${ NAMESPACE_FILTER_ALL_PREFIX }://user`;
+      // export const NAMESPACE_FILTER_ALL_ORPHANS = `${ NAMESPACE_FILTER_ALL_PREFIX }://orphans`;
+
+      this.pPagination = {
+        ...this.pPagination,
+        namespaces: neu,
+      };
+    },
+
     async pagination(neu) {
+      console.warn('mixin', 'watch', 'pagination', this.pagination);
+
       // TODO: RC if not namespaced,  don't bother with ns      this.__areResourcesNamespaced
 
       if (neu) {
@@ -77,11 +164,12 @@ export default {
         //
         // This covers case 2
         if (this.$options.name !== ResourceListComponentName && !!this.$fetch) {
+          // TODO: RC
           await this.$fetch();
         }
         // Ensure any live/delayed columns get updated
         this.forceUpdateLiveAndDelayed = new Date().getTime();
       }
     }
-  }
+  },
 };

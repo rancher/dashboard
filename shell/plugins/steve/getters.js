@@ -8,7 +8,8 @@ import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import pAndNFiltering from '@shell/utils/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from 'plugins/steve/projectAndNamespaceFiltering.utils';
+import stevePaginationUtils from 'plugins/steve/pagination-utils';
 import { parse } from '@shell/utils/url';
 
 export const STEVE_MODEL_TYPES = {
@@ -31,6 +32,12 @@ export default {
     const isSteve = parsedUrl.path.startsWith('/v1');
 
     //  TODO: RC ADD PAGINATION
+    // Pagination
+    const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
+
+    if (stevePagination) {
+      url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
+    }
 
     // Filter
     // Steve's filter options work differently nowadays (https://github.com/rancher/steve#filter) #9341

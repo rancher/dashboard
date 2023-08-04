@@ -317,10 +317,12 @@ export default {
     },
 
     externalPagination: {
-      required: true,
-      default:  true
+      type:    Boolean,
+      default: false
     }
   },
+
+  // TODO: RC on group change.... do something
 
   data() {
     let searchQuery = '';
@@ -904,6 +906,22 @@ export default {
         event,
         targetElement: this.$refs[`actionButton${ i }`][0],
       });
+    },
+
+    paginationChanged() {
+      console.warn('ss', 'methods', 'paginationChanged', {
+        page:    this.page,
+        perPage: this.perPage,
+        filter:  this.searchFields,
+        sort:    this.sortFields,
+      });
+      this.$emit('pagination-changed', {
+        page:       this.page,
+        perPage:    this.perPage,
+        filter:     this.searchFields,
+        sort:       this.sortFields,
+        descending: this.descending
+      });
     }
   }
 };
@@ -1450,7 +1468,7 @@ export default {
   </div>
 </template>
 
-  <style lang="scss" scoped>
+<style lang="scss" scoped>
 
   .manual-refresh {
     height: 40px;
@@ -1614,9 +1632,9 @@ export default {
     margin-left: 10px;
     min-width: 180px;
   }
-  </style>
+</style>
 
-  <style lang="scss">
+<style lang="scss">
   //
   // Important: Almost all selectors in here need to be ">"-ed together so they
   // apply only to the current table, not one nested inside another table.
@@ -1948,4 +1966,4 @@ export default {
       min-width: 200px;
     }
   }
-  </style>
+</style>

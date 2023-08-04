@@ -162,7 +162,11 @@ export default {
     arrangedRows(q) {
       // The rows changed so the old filter result is no longer useful
       this.previousResult = null;
-    }
+    },
+
+    searchQuery() {
+      this.paginationChanged();
+    },
   },
 };
 

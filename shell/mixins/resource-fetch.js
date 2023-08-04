@@ -2,13 +2,17 @@ import { mapGetters } from 'vuex';
 import { COUNT, MANAGEMENT } from '@shell/config/types';
 import { SETTING, DEFAULT_PERF_SETTING } from '@shell/config/settings';
 import ResourceFetchNamespaced from '@shell/mixins/resource-fetch-namespaced';
+import ResourceFetchApiPagination from '@shell/mixins/resource-fetch-api-pagination';
 
 // Number of pages to fetch when loading incrementally
 const PAGES = 4;
 
 export default {
 
-  mixins: [ResourceFetchNamespaced],
+  mixins: [
+    ResourceFetchNamespaced,
+    ResourceFetchApiPagination
+  ],
 
   data() {
     // fetching the settings related to manual refresh from global settings

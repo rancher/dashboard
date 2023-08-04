@@ -157,6 +157,11 @@ export default {
     forceUpdateLiveAndDelayed: {
       type:    Number,
       default: 0
+    },
+
+    externalPagination: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -301,11 +306,14 @@ export default {
       if (
         !this.isNamespaced || // Resource type isn't namespaced
         this.ignoreFilter || // Component owner strictly states no filtering
+        this.externalPagination || // TODO: RC
         (isAll && !this.currentProduct?.hideSystemResources) || // Need all
         (this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false)// Store reports type has namespace filter, so rows already contain the correctly filtered resources
       ) {
         return this.rows || [];
       }
+
+      console.warn('NOOOOO');
 
       const includedNamespaces = this.$store.getters['namespaces']();
 
