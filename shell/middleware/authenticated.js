@@ -209,6 +209,13 @@ export default async function({
     if ( route.name === 'index' ) {
       return redirect(302, '/auth/login');
     } else {
+      // Don't lose the error code
+      const errorCode = route.query?.errorCode;
+
+      if (errorCode) {
+        return redirect(302, `/auth/login?errorCode=${ errorCode }`);
+      }
+
       return redirect(302, `/auth/login?${ TIMED_OUT }`);
     }
   }
