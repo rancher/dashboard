@@ -2040,6 +2040,7 @@ export default {
       :provider="provider"
       :cancel="cancelCredential"
       :showing-form="showForm"
+      :default-on-cancel="true"
       class="mt-20"
     />
 

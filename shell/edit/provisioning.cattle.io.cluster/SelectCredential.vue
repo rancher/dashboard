@@ -31,9 +31,17 @@ export default {
     },
 
     cancel: {
-      type:     Function,
-      required: true,
+      type:    Function,
+      default: null
     },
+
+    // revert to showing the credential that would be selected when the form initially loads instead of backing out of the page
+    // used when credentials are being created as part of the provisioning form
+    defaultOnCancel: {
+      type:    Boolean,
+      default: false
+    },
+
     showingForm: {
       type:     Boolean,
       required: true,
@@ -206,6 +214,11 @@ export default {
 
     backToExisting() {
       this.credentialId = _NONE;
+    },
+
+    // TODO nb this sends the user back to the cluster list page; do we ever want this...?
+    defaultOrCancel() {
+      this.defaultOnCancel ? this.credentialId = this.filteredCredentials[0]?.id : this.cancel();
     }
   },
 };
@@ -225,7 +238,7 @@ export default {
     class="select-credentials"
     :class="{'select-credentials__showingForm': showingForm}"
     @finish="save"
-    @cancel="cancel"
+    @cancel="defaultOrCancel"
     @error="e=>errors = e"
   >
     <div v-if="isNew">

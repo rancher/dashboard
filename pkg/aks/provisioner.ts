@@ -4,6 +4,7 @@ import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
 import CruAks from './components/CruAks.vue';
 import { configureCredential, mapDriver } from '@shell/store/plugins';
 import { Component } from 'vue/types/umd';
+import { Route } from 'vue-router';
 
 const RANCHER_CLUSTER = 'provisioning.cattle.io.cluster';
 
@@ -36,16 +37,16 @@ export class AKSProvisioner implements IClusterProvisioner {
     return this.context.t('aks.label');
   }
 
-  // get component(): Component {
-  //   return CruAks;
-  // }
-
-  get link(): string {
-    // TODO nb add router to prov cluster context def
-    const { router } = this.context;
-
-    return router.resolve({ name: 'c-cluster-manager-aks-create', params: { cluster: '_' } });
+  get component(): Component {
+    return CruAks;
   }
+
+  // get link(): Route {
+  //   // TODO nb add router to prov cluster context def
+  //   const { router } = this.context;
+
+  //   return router.resolve({ name: 'c-cluster-manager-aks-create', params: { cluster: '_' } }).route;
+  // }
 
   // get machineConfigSchema(): { [key: string]: any } {
   //   return { id: 'rke-machine-config.cattle.io.testconfig' };
