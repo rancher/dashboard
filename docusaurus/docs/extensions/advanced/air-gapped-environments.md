@@ -72,24 +72,14 @@ To build, simply run the following:
 yarn publish-pkgs -cp -r <REGISTRY> -o <ORGANIZATION>
 ```
 
-- `-c` - Specifies the script to build the extension as a container image
-- `-p` - To push the built image
-- `-r` - Specifies the Container Registry
-- `-o` - Specifies the Organization name for the image (defaults to 'rancher')
+| Option | Argument | Description |
+| -- | ---- | -------- |
+| `-c` | | specifies the container build | 
+| `-p` | | Option to push the built image into the registry |
+| `-r` | `<registry>` | specifies the registry where the image will be housed |
+| `-o` | `<organization>` | specifies the organization namespace for the registry |
 
-___Additional Script Usage___
-```sh
-Usage: yarn publish-pkgs [<options>] [plugins]
- options:
-  -p           Push container images on build
-  -f           Force building the chart even if it already exists
-  -r <name>    Specify destination container registry for built images
-  -o <name>    Specify destination container registry organization for built images
-  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')
-  -c           Build as a container image rather than publishing to Github
-  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin (implies -g)
-  -b <branch>  Specify destination GitHub branch (implies -g)
-```
+Reference the [Manually Publishing an Extension Catalog Image](../publishing#manually-publishing-an-extension-catalog-image) step in the Publishing section for more information.
 
 ## Importing the Extension Catalog Image
 

@@ -26,6 +26,7 @@ declare namespace Cypress {
     state(state: any): any;
 
     login(username?: string, password?: string, cacheSession?: boolean): Chainable<Element>;
+    logout(): Chainable;
     byLabel(label: string): Chainable<Element>;
 
     createUser(params: CreateUserParams): Chainable;

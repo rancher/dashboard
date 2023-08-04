@@ -1,7 +1,9 @@
 import { ActionLocation, CardLocation, ExtensionPoint } from '@shell/core/types';
 import { isMac } from '@shell/utils/platform';
 import { ucFirst, randomStr } from '@shell/utils/string';
-import { _EDIT, _CONFIG, _DETAIL, _LIST } from '@shell/config/query-params';
+import {
+  _EDIT, _CONFIG, _DETAIL, _LIST, _CREATE
+} from '@shell/config/query-params';
 import { getProductFromRoute } from '@shell/middleware/authenticated';
 import { isEqual } from '@shell/utils/object';
 
@@ -21,14 +23,17 @@ function checkRouteProduct({ name, params, query }, locationConfigParam) {
 }
 
 function checkRouteMode({ name, query }, locationConfigParam) {
-  if (locationConfigParam === _EDIT && query.mode && query.mode === _EDIT) {
+  if (locationConfigParam === _EDIT && query.mode && query.mode === _EDIT && !query.as) {
     return true;
   } else if (locationConfigParam === _CONFIG && query.as && query.as === _CONFIG) {
     return true;
-  } else if (locationConfigParam === _DETAIL && name.includes('-id')) {
+  } else if (locationConfigParam === _DETAIL && !query.as && name.includes('-id') && (!query.mode || query?.mode !== _EDIT)) {
     return true;
     // alias to target all list views
   } else if (locationConfigParam === _LIST && !name.includes('-id') && name.includes('-resource')) {
+    return true;
+    // alias to target create views
+  } else if (locationConfigParam === _CREATE && name.endsWith('-create')) {
     return true;
   }
 
@@ -52,6 +57,7 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
     'cluster',
     'id',
     'mode',
+    'path',
     // url query params
     'queryParam',
     // Custom context specific params provided by the extension, not to be confused with location params
@@ -79,8 +85,18 @@ function checkExtensionRouteBinding($route, locationConfig, context) {
           } else if (param === 'context') {
             // Need all keys and values to match
             res = isEqual(locationConfigParam, context);
+            // evaluate queryParam in route
           } else if (param === 'queryParam') {
             res = isEqual(locationConfigParam, $route.query);
+            // evaluate path in route
+          } else if (param === 'path' && locationConfigParam.urlPath) {
+            if (locationConfigParam.endsWith) {
+              res = $route.path.endsWith(locationConfigParam.urlPath);
+            } else if (!Object.keys(locationConfigParam).includes('exact') || locationConfigParam.exact) {
+              res = locationConfigParam.urlPath === $route.path;
+            } else {
+              res = $route.path.includes(locationConfigParam.urlPath);
+            }
           } else if (locationConfigParam === params[param]) {
             res = true;
           } else {

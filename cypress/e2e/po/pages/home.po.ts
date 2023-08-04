@@ -1,9 +1,9 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import PageActions from '@/cypress/e2e/po/side-bars/page-actions.po';
-import BannerGraphicPo from '~/cypress/e2e/po/components/banner-graphic.po';
-import BannersPo from '~/cypress/e2e/po/components/banners.po';
-import SimpleBoxPo from '~/cypress/e2e/po/components/simple-box.po';
-import HomeClusterListPo from '~/cypress/e2e/po/lists/home-cluster-list.po';
+import BannerGraphicPo from '@/cypress/e2e/po/components/banner-graphic.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
+import HomeClusterListPo from '@/cypress/e2e/po/lists/home-cluster-list.po';
 
 export default class HomePagePo extends PagePo {
   static url = '/home'

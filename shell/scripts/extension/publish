@@ -2,7 +2,6 @@
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 BASE_DIR="$(pwd)"
-BASE_EXT=$(basename ${BASE_DIR})
 
 CYAN="\033[96m"
 YELLOW="\033[93m"
@@ -17,6 +16,7 @@ REGISTRY_ORG=""
 IMAGE_PREFIX="ui-extension-"
 FORCE="false"
 GITHUB_BUILD="true"
+GITHUB_RELEASE_TAG=""
 
 GITHUB_SOURCE=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
 GITHUB_BRANCH="main"
@@ -24,18 +24,19 @@ GITHUB_BRANCH="main"
 usage() {
   echo "Usage: $0 [<options>] [plugins]"
   echo " options:"
-  echo "  -p           Push container images on build"
+  echo "  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin"
+  echo "  -b <branch>  Specify destination GitHub branch"
+  echo "  -t <tag>     Specify the Github release tag to build when a release has been tagged and published"
   echo "  -f           Force building the chart even if it already exists"
+  echo "  -c           Build as a container image rather than publishing to Github"
+  echo "  -p           Push container images on build"
   echo "  -r <name>    Specify destination container registry for built images"
   echo "  -o <name>    Specify destination container registry organization for built images"
   echo "  -i <prefix>  Specify prefix for the built container image (default: 'ui-extension-')"
-  echo "  -c           Build as a container image rather than publishing to Github"
-  echo "  -s <repo>    Specify destination GitHub repository (org/name) - defaults to the git origin"
-  echo "  -b <branch>  Specify destination GitHub branch"
   exit 1
 }
 
-while getopts "hvr:o:pi:fcb:s:" opt; do
+while getopts "hvr:o:pi:fcb:t:s:" opt; do
   case $opt in
     h)
       usage
@@ -66,6 +67,9 @@ while getopts "hvr:o:pi:fcb:s:" opt; do
       GITHUB_BUILD="true"
       GITHUB_BRANCH="${OPTARG}"
       ;;
+    t)
+      GITHUB_RELEASE_TAG="${OPTARG}"
+      ;;
     *)
       usage
       ;;
@@ -90,6 +94,10 @@ if [ "${GITHUB_BUILD}" == "true" ]; then
 
   echo -e "${CYAN}GitHub Repository: ${GITHUB_SOURCE}${RESET}"
   echo -e "${CYAN}GitHub Branch    : ${GITHUB_BRANCH}${RESET}"
+
+  if [[ -n "${GITHUB_RELEASE_TAG}" ]]; then
+    echo -e "${CYAN}GitHub Release   : ${GITHUB_RELEASE_TAG}${RESET}"
+  fi
 else
   echo -e ${CYAN}"Image prefix: ${IMAGE_PREFIX}${RESET}"
 fi
@@ -116,7 +124,11 @@ if ! [[ -d ${BASE_DIR}/node_modules ]]; then
   exit 1
 fi
 
-COMMANDS=("node" "jq" "yq" "git" "docker" "helm" "yarn")
+COMMANDS=("node" "jq" "yq" "git" "helm" "yarn")
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  COMMANDS+=("docker")
+fi
+
 HAVE_COMMANDS="true"
 for CMD in "${COMMANDS[@]}"
 do
@@ -132,7 +144,15 @@ fi
 
 # --------------------------------------------------------------------------------
 # Only do conatiner args checks if not GitHub publish
+# --------------------------------------------------------------------------------
 if [ "${GITHUB_BUILD}" == "false" ]; then
+  BASE_EXT=$(jq -r .name ${BASE_DIR}/package.json)
+  EXT_VERSION=$(jq -r .version ${BASE_DIR}/package.json)
+
+  if [ -z ${EXT_VERSION} ]; then
+    EXT_VERSION="0.0.0"
+  fi
+
   if [[ -z ${REGISTRY_ORG} ]]; then
     # Infer that the user has the same Docker registry org as their GitHub org
     GITHUB_REPO=$(git config --get remote.origin.url | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/')
@@ -143,6 +163,12 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
   if [[ -z ${REGISTRY_ORG} ]]; then
     # Inferring from the git config still failed
     echo "Cannot build images without valid organization for Docker images. Unable to infer REGISTRY_ORG="
+    exit 1
+  fi
+
+  if [ -n "${GITHUB_RELEASE_TAG}" ] && [[ ${GITHUB_RELEASE_TAG} != "${BASE_EXT}-${EXT_VERSION}" ]]; then
+    echo -e "${YELLOW}Github tagged release name does not match ${RESET}${BOLD}${BASE_EXT}-${EXT_VERSION}${RESET}"
+    echo -e "${YELLOW}Stopping build${RESET}"
     exit 1
   fi
 
@@ -184,6 +210,13 @@ for d in pkg/*/ ; do
     PKG_VERSION=$(jq -r .version ./pkg/${pkg}/package.json)
     PKG_NAME="${pkg}-${PKG_VERSION}"
     PKG_ASSET=${ASSETS}/${pkg}/${PKG_NAME}.tgz
+
+    # Skip the build for a package that does not match the tagged release name
+    if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
+      echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} does not match asset name${RESET}"
+      echo -e "${YELLOW}Skipping ${RESET}${BOLD}${PKG_NAME}${RESET}"
+      continue
+    fi
 
     echo -e "${CYAN}${BOLD}Building plugin: ${pkg} (${PKG_VERSION}) ${RESET}"
 
@@ -299,6 +332,15 @@ for d in pkg/*/ ; do
   fi
 done
 
+if [ "${GITHUB_BUILD}" == "true" ] && [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ "${BUILT}" == "false" ]; then
+  echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} did not match any package name.${RESET}"
+  echo -e "${YELLOW}Stopping build${RESET}"
+
+  rm -rf ${CHART_TMP}
+  rm -rf ${TMP} 
+  exit 1
+fi
+
 if [ -f ${ROOT_INDEX} ] && [ "${GITHUB_BUILD}" == "false" ]; then
   UPDATE="--merge ${ROOT_INDEX}"
   helm repo index ${ASSETS} ${UPDATE}
@@ -309,12 +351,6 @@ if [ -f ${ASSETS}/index.yaml ] && ! [ -e "${ROOT_INDEX}" ]; then
 fi
 
 if [ "${GITHUB_BUILD}" == "false" ]; then
-  EXT_VERSION=$(jq -r .version ${BASE_DIR}/package.json)
-
-  if [ -z ${EXT_VERSION} ]; then
-    EXT_VERSION="0.0.0"
-  fi
-
   echo -e "${CYAN}Base extension: ${BASE_EXT}${RESET}"
   echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
 
@@ -325,7 +361,11 @@ else
 fi
 
 if [ "${GITHUB_BUILD}" == "true" ] && [ -f ${ROOT_INDEX} ]; then
-  cp ${ROOT_INDEX} tmp
+  if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [ -f ${ASSETS}/index.yaml ]; then
+    cp ${ASSETS}/index.yaml tmp
+  else
+    cp ${ROOT_INDEX} tmp
+  fi
 fi
 
 if [ "${GITHUB_BUILD}" == "true" ] && [ "${BUILT}" == "true" ]; then

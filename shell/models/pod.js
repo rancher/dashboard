@@ -15,6 +15,36 @@ export const WORKLOAD_PRIORITY = {
 };
 
 export default class Pod extends WorkloadService {
+  _os = undefined;
+
+  get inStore() {
+    return this.$rootGetters['currentProduct'].inStore;
+  }
+
+  set os(operatingSystem) {
+    this._os = operatingSystem;
+  }
+
+  get os() {
+    if (this._os) {
+      return this._os;
+    }
+
+    return this?.node?.status?.nodeInfo?.operatingSystem;
+  }
+
+  get node() {
+    try {
+      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+
+      if (schema) {
+        this.$dispatch(`find`, { type: NODE, id: this.spec.nodeName });
+      }
+    } catch {}
+
+    return this.$getters['byId'](NODE, this.spec.nodeName);
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 

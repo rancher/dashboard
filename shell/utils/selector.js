@@ -198,7 +198,8 @@ export function matches(obj, selector, labelKey = 'metadata.labels') {
       }
       break;
     case 'In':
-      if ( !value || !rule.values.length || !rule.values.includes(value) ) {
+      // we need to cater empty strings because when creating a label with value = null it's translated into a empty string value ''
+      if ( !rule.values.length || !rule.values.includes(value) ) {
         return false;
       }
       break;

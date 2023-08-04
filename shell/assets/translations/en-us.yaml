@@ -3512,10 +3512,13 @@ navLink:
         label: Group name
         tooltip: Assign link to a group
       sideLabel:
-        label: Link Label
+        label: Link label
       description:
         label: Link description
+    groupImage:
+      label: Group Image
       iconSrc:
+        tip: 'Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
         label: Add image
 networkpolicy:
   egress:
@@ -4167,7 +4170,7 @@ plugins:
       airgap: Air-gapped installations should NOT enable this feature
       addRancherRepo: Add Official Rancher Extensions Repository
       addPartnersRancherRepo: Add Partners Extensions Repository
-      addCommunityRancherRepo: Add Community Extension sRepository
+      addCommunityRancherRepo: Add Community Extensions Repository
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?
@@ -5766,6 +5769,7 @@ wm:
   containerShell:
     clear: Clear
     containerName: "Container: {label}"
+    failed: "Unable to open a shell to the container (none of the shell commmands succeeded)\n\r"
   kubectlShell:
     title: "Kubectl: {name}"
 

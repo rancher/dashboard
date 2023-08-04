@@ -197,6 +197,12 @@ nav:
     accountAndKeys: 账号 & API 密钥
     logOut: 登出
   failWhale:
+    authMiddleware: 认证中间件
+    clusterNotFound: 未找到集群 { clusterId }
+    productNotFound: 未找到产品 {productNotFound}
+    resourceNotFound: 未找到资源类型 { resource }
+    resourceListNotFound: 未找到资源类型 { resource }，无法显示列表
+    resourceIdNotFound: 未找到 ID 为 { fqid } 的资源 { resources }，无法显示资源详细信息
     reload: 重新加载
     separator: 或者
 
@@ -589,6 +595,10 @@ asyncButton:
     action: 应用
     success: 已应用
     waiting: 正在应用&hellip;
+  add:
+    action: 添加
+    success: 已添加
+    waiting: 正在添加&hellip;
   continue:
     action: 继续
     success: 已保存
@@ -2157,8 +2167,10 @@ fleet:
       protocolBanner: 输入指向 git 仓库的有效 HTTPS 或 SSH URL。
     resources:
       label: '资源处理'
-      keepResources: 删除后保留资源
-      resourceBanner: 启用时，删除 GitRepo 或 Bundle 后将保留资源，只会删除 Helm Release Secret。
+      keepResources: 永远保留资源
+      keepResourcesBanner: 启用时，删除 GitRepo 或 Bundle 后将保留资源，只会删除 Helm Release Secret。
+      correctDrift: 启用自我修复
+      correctDriftBanner: 启用后，Fleet 将确保集群资源与 Git 仓库保持同步。在 ecluster 上进行的所有资源更改都将丢失。
     add:
       steps:
         repoInfo:
@@ -2399,11 +2411,32 @@ hpa:
     name:
       label: 引用名称
       placeholder: 例如：php-apache
+  scaleDownRules:
+    label: 缩减行为
+    enable: 配置缩减行为
+  scaleUpRules:
+    label: 扩展行为
+    enable: 配置扩展行为
+  scalingRule:
+    policyHeader: 策略
+    addPolicy: 添加策略
+    selectPolicy: 选择策略
+    selectPolicyTooltip: 选择具有最大值、最小值或禁用缩放的策略。
+    stabilizationWindowSeconds: 稳定窗口秒数
+    stabilizationWindowSecondsTooltip: 在扩展或缩减时应考虑过去建议的秒数。
+    policy:
+      type: 类型
+      typeTooltip: 根据要扩展的 Pod 数量或要扩展的当前副本百分比设置策略。
+      value: 值
+      valueTooltip: 策略允许的变更数量。
+      periodSeconds: 周期秒数
+      periodSecondsTooltip: 策略生效的时间窗口。
   tabs:
     labels: 标签
     metrics: 指标
     target: 目标
     workload: 工作负载
+    behavior: 行为
   types:
     cpu: CPU
     memory: 内存
@@ -3029,6 +3062,9 @@ login:
   useNonLocal: 使用非本地用户
   remember:
     label: 记住用户名
+
+logout:
+  message: 正在登出...
 
 managementNode:
   customName: 自定义名称
@@ -3677,7 +3713,7 @@ persistentVolume:
       label: 存储策略 ID
       placeholder: 例如：sp1
   csi:
-    label: CSI（不支持）
+    label: CSI
     suffix: (CSI)
     driver:
       label: 驱动
@@ -3999,6 +4035,8 @@ inactivity:
 # Rancher Extensions
 plugins:
   incompatibleRancherVersion: "此扩展的最新版本 ({ version }) 与当前的 Rancher 版本 ({ rancherVersion }) 不兼容。"
+  incompatibleKubeVersion: "此扩展的最新版本 ({ version }) 与当前的 Kube 版本 ({ kubeVersion }) 不兼容。"
+  currentInstalledVersionBlockedByKubeVersion: "此版本与当前 Kubernetes 版本 ({ kubeVersion }  Vs  { kubeVersionToCheck }) 不兼容。"
   labels:
     builtin: 内置角色
     experimental: 实验功能
@@ -4036,6 +4074,7 @@ plugins:
     versions: 版本
     versionError: 无法加载版本信息
     requiresRancherVersion: "需要 Rancher {version}"
+    requiresKubeVersion: "需要 Kube {version}"
   empty:
     all: 扩展未安装或不可用
     available: 没有可用的扩展
@@ -4045,6 +4084,7 @@ plugins:
   loadError: 加载此扩展的代码时出错
   helmError: "通过 Helm 安装扩展时出错"
   manageRepos: 管理仓库
+  addRancherRepos: 添加 Rancher 仓库
   manageCharts: 管理扩展 Chart
   manageCatalog:
     label: 管理扩展商店
@@ -4116,23 +4156,39 @@ plugins:
   safeMode:
     title: 扩展安全模式
     message: 未加载扩展
+  addRepos:
+    banner: 有新的扩展仓库可用。要启用这些仓库，请单击右侧的按钮。
+    bannerBtn: 添加仓库
+    title: 添加扩展仓库
+    prompt: 你可以安装多个 Rancher 扩展仓库来增加你的扩展商店
   setup:
+    installed: 已安装
+    uninstalled: 已卸载
     title: 未启用扩展支持
     prompt:
       cant: 自动安装不可用 - 找不到所需的 Helm Chart
       can: 你需要安装 Extension Operator
+      official: Official Rancher Extensions 仓库提供了由 Rancher 发布的扩展。
+      partners: Partners Extensions 仓库提供了由 Rancher 合作伙伴发布的扩展。
+      community: Community Extensions 仓库提供了由 Rancher 社区发布的扩展。
     install:
       title: 启用扩展支持？
-      prompt: 这将安装 Helm Chart 以启用扩展支持
-      airgap: Rancher Extensions 仓库提供了由 Rancher 发布的扩展。如果你的 Rancher 是离线的，请取消选中。
-      addRancherRepo: 添加 Rancher Extension 仓库
+      prompt: 这将安装启用扩展支持所需的 Helm Chart
+      airgap: 离线安装环境请不要启用此功能
+      addRancherRepo: 添加 Official Rancher Extensions 仓库
+      addPartnersRancherRepo: 添加 Partners Extensions 仓库
+      addCommunityRancherRepo: 添加 Community Extensions 仓库
     remove:
       label: 禁用扩展支持
       title: 禁用扩展支持？
       prompt: 这将卸载启用扩展支持的 Helm Chart
       registry:
-        title: 删除 Rancher Rancher Extensions 仓库
-        prompt: Rancher Extensions 仓库提供了由 Rancher 发布的扩展。
+        official:
+          title: 删除 Official Rancher Extensions 仓库
+        partners:
+          title: 删除 Partners Rancher Extensions 仓库
+        community:
+          title: 删除 Community Extensions 仓库
       crd:
         title: 删除 Rancher Extensions CRD
         prompt: 目前已安装了一个或多个扩展 - 如果你后续需要重新启用扩展支持，删除 CRD 后你需要手动重新安装这些扩展。
