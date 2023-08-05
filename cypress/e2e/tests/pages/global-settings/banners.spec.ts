@@ -4,7 +4,6 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { LoginPagePo } from '~/cypress/e2e/po/pages/login-page.po';
-import BannersPo from '~/cypress/e2e/po/components/banners.po';
 
 const bannersPage = new BannersPagePo();
 const burgerMenu = new BurgerMenuPo();
@@ -207,25 +206,44 @@ describe('Banners', () => {
     bannersPage.banner().should('not.exist');
   });
 
-  it('can show and hide Login Failed Banner', { tags: '@adminUser' }, () => {
-    const banners = new BannersPo('.banner.error');
+  // Note: This test needs to be in its own `describe` with two `it` blocks for Show and Hide scenarios.
+  // 401 error is throw when the user attempts to login with valid credentials the second time
+  // which unexpectedly fails the test. This an automation specific issue it seems
+  describe('Login Failed Banner', { tags: '@adminUser' }, () => {
+    it('Show Banner', () => {
+      cy.login(undefined, undefined, false);
+      bannersPage.goTo();
 
-    cy.login(undefined, undefined, false);
-    bannersPage.goTo();
+      // Show Banner
+      bannersPage.loginErrorCheckbox().checkVisible();
+      bannersPage.loginErrorCheckbox().set();
+      bannersPage.loginErrorInput().set(settings.bannerLabel);
+      bannersPage.applyAndWait('**/ui-banners');
 
-    // Show Banner
-    bannersPage.loginErrorCheckbox().checkVisible();
-    bannersPage.loginErrorCheckbox().set();
-    bannersPage.loginErrorInput().set(settings.bannerLabel);
-    bannersPage.applyAndWait('**/ui-banners');
+      // Check login screen
+      cy.logout();
+      loginPage.waitForPage();
+      loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
+      loginPage.submit();
+      loginPage.waitForPage();
+      cy.contains(settings.bannerLabel).should('be.visible');
+    });
 
-    // Check login screen
-    cy.logout();
-    loginPage.waitForPage();
-    loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
-    loginPage.submit();
-    loginPage.waitForPage();
-    banners.banner().contains(settings.bannerLabel).should('be.visible');
+    it('Hide banner', () => {
+      cy.login(undefined, undefined, false);
+      bannersPage.goTo();
+
+      // Hide banner
+      bannersPage.loginErrorCheckbox().checkVisible();
+      bannersPage.loginErrorCheckbox().set();
+      bannersPage.applyAndWait('**/ui-banners');
+
+      // Check login screen
+      cy.logout();
+      loginPage.waitForPage();
+      loginPage.loginPageMessage().contains('You have been logged out.').should('be.visible');
+      cy.contains(settings.bannerLabel).should('not.exist');
+    });
   });
 
   it('standard user has only read access to Banner page', { tags: '@standardUser' }, () => {
