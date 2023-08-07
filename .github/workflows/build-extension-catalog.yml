@@ -1,20 +1,34 @@
-name: Build and release container to registry
+name: Build and release Extension Catalog Image to registry
 
 on:
-  push:
-    branches:
-      - main
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  workflow_call:
+    inputs:
+      registry_target:
+        required: true
+        type: string
+      registry_user:
+        required: true
+        type: string
+      tagged_release:
+        required: false
+        type: string
+    secrets:
+      registry_token:
+        required: true
 
 jobs:
   build:
     name: Build container image
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      id-token: write
+      packages: write
+      pages: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -28,9 +42,9 @@ jobs:
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ${{ inputs.registry_target }}
+          username: ${{ inputs.registry_user }}
+          password: ${{ secrets.registry_token }}
 
       - name: Setup Helm
         uses: azure/setup-helm@v3
@@ -40,7 +54,7 @@ jobs:
       - name: Setup yq
         uses: chrisdickinson/setup-yq@v1.0.1
         with:
-          yq-version: v4.28.2
+          yq-version: v4.34.2
 
       - name: Setup Nodejs and npm
         uses: actions/setup-node@v3
@@ -61,4 +75,10 @@ jobs:
 
       - name: Build and push UI image
         run: |
-          yarn publish-pkgs -cp -r ${{ env.REGISTRY }} -o ${{ github.repository_owner }}
+          publish="yarn publish-pkgs -cp -r ${{ inputs.registry_target }} -o ${{ github.repository_owner }}"
+          
+          if [[ -n "${{ inputs.tagged_release }}" ]]; then
+            publish="$publish -t ${{ inputs.tagged_release }}"
+          fi
+          
+          $publish

@@ -1,0 +1,47 @@
+name: Build and Release Extensions
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  build-extension-charts:
+    name: Build and release Extension charts
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      id-token: write
+      packages: write
+      pages: write
+      pull-requests: write
+    with:
+      target_branch: gh-pages
+  
+  build-extension-catalog:
+    name: Build and release Extension Catalog Image
+    uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      id-token: write
+      packages: write
+      pages: write
+      pull-requests: write
+    with:
+      registry_target: ghcr.io
+      registry_user: ${{ github.actor }}
+    secrets: 
+      registry_token: ${{ secrets.GITHUB_TOKEN }}
