@@ -177,10 +177,7 @@ nav:
     user: Only User Namespaces
   apps: Apps
   categories:
-    explore: Explore Cluster
-    multiCluster: Global Apps
     legacy: Legacy Apps
-    configuration: Configuration
     hci: HCI
   search:
     placeholder: Type to search clusters

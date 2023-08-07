@@ -714,7 +714,7 @@ export default {
     }
 
     > .menu-spacer {
-      flex: 0 0 calc(var(--header-height) + 10px);
+      flex: 0 0 15px;
 
       &.isSingleProduct  {
         display: flex;

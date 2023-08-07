@@ -204,7 +204,7 @@ export default {
       const max = Math.min(maxToShow, this.clusters.length);
 
       if (el) {
-        const h = 33 * max;
+        const h = 43 * max;
 
         el.style.minHeight = `${ h }px`;
         el.style.maxHeight = `${ h }px`;
@@ -217,11 +217,14 @@ export default {
     },
 
     hide() {
+      console.log('before', this.shown);
       this.shown = false;
+      console.log('hide', this.shown);
     },
 
     toggle() {
       this.shown = !this.shown;
+      console.log('toggle', this.shown);
       this.$nextTick(() => {
         this.setClusterListHeight(this.maxClustersToShow);
       });
@@ -240,23 +243,7 @@ export default {
 </script>
 <template>
   <div>
-    <div
-      data-testid="top-level-menu"
-      class="menu"
-      :class="{'raised': shown, 'unraised':!shown}"
-      @click="toggle()"
-    >
-      <svg
-        class="menu-icon"
-        xmlns="http://www.w3.org/2000/svg"
-        height="24"
-        viewBox="0 0 24 24"
-        width="24"
-      ><path
-        d="M0 0h24v24H0z"
-        fill="none"
-      /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
-    </div>
+    
     <div
       v-if="shown"
       class="side-menu-glass"
@@ -264,13 +251,29 @@ export default {
     />
     <transition name="fade">
       <div
-        v-if="shown"
         data-testid="side-menu"
         class="side-menu"
+        :class="{'menu-open': shown, 'menu-close':!shown}"
         tabindex="-1"
       >
         <div class="title">
-          <div class="menu-spacer" />
+          <!-- <div class="menu-spacer" /> -->
+          <div
+            data-testid="top-level-menu"
+            class="menu"
+            @click="toggle()"
+          >
+            <svg
+              class="menu-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              height="24"
+              viewBox="0 0 24 24"
+              width="24"
+            ><path
+              d="M0 0h24v24H0z"
+              fill="none"
+            /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
+          </div>
           <div class="side-menu-logo">
             <BrandImage file-name="rancher-logo.svg" />
           </div>
@@ -297,9 +300,7 @@ export default {
           </div>
 
           <template v-if="hciApps.length">
-            <div class="category">
-              {{ t('nav.categories.hci') }}
-            </div>
+            <div class="category"></div>
             <div>
               <a
                 v-if="isRancherInHarvester"
@@ -334,10 +335,6 @@ export default {
           </template>
 
           <template v-if="clusters && !!clusters.length">
-            <div class="category">
-              {{ t('nav.categories.explore') }}
-            </div>
-
             <div
               v-if="showClusterSearch"
               class="search"
@@ -370,7 +367,7 @@ export default {
                   <ClusterProviderIcon
                     :small="true"
                     :cluster="c"
-                    class="rancher-provider-icon mr-10"
+                    class="rancher-provider-icon"
                   />
                   <div class="cluster-name">
                     {{ c.label }}
@@ -378,12 +375,12 @@ export default {
                 </nuxt-link>
                 <span
                   v-else
-                  class="option-disabled cluster selector disabled"
+                  class="option cluster selector disabled"
                 >
                   <ClusterProviderIcon
                     :small="true"
                     :cluster="c"
-                    class="rancher-provider-icon mr-10"
+                    class="rancher-provider-icon"
                   />
                   <div class="cluster-name">{{ c.label }}</div>
                 </span>
@@ -398,9 +395,7 @@ export default {
           </template>
 
           <template v-if="multiClusterApps.length">
-            <div class="category">
-              {{ t('nav.categories.multiCluster') }}
-            </div>
+            <div class="category"></div>
             <div
               v-for="a in multiClusterApps"
               :key="a.label"
@@ -419,9 +414,7 @@ export default {
             </div>
           </template>
           <template v-if="legacyEnabled">
-            <div class="category">
-              {{ t('nav.categories.legacy') }}
-            </div>
+            <div class="category"></div>
             <div
               v-for="a in legacyApps"
               :key="a.label"
@@ -440,9 +433,7 @@ export default {
             </div>
           </template>
           <template v-if="configurationApps.length">
-            <div class="category">
-              {{ t('nav.categories.configuration') }}
-            </div>
+            <div class="category"></div>
             <div
               v-for="a in configurationApps"
               :key="a.label"
@@ -485,37 +476,18 @@ export default {
   </div>
 </template>
 
-<style scoped>
-  .cluster.disabled > * {
-    cursor: not-allowed;
-    filter: grayscale(1);
-    color: var(--muted);
-  }
-</style>
-
 <style lang="scss">
   .localeSelector, .footer-tooltip {
     z-index: 1000;
   }
 
-  .cluster {
-    &.selector:not(.disabled):hover {
-      color: var(--primary-hover-text);
-      background: var(--primary-hover-bg);
-      border-radius: 5px;
-      text-decoration: none;
-
+  .option {
+    &:not(.disabled):hover,
+    &.nuxt-link-active {
       .rancher-provider-icon {
         .rancher-icon-fill {
           fill: var(--primary-hover-text);;
         }
-      }
-    }
-
-    .rancher-provider-icon {
-      .rancher-icon-fill {
-        // Should match .option color
-        fill: var(--link);
       }
     }
   }
@@ -533,68 +505,13 @@ export default {
       outline: 0;
     }
   }
-
 </style>
 
 <style lang="scss" scoped>
   $clear-search-size: 20px;
   $icon-size: 25px;
-  $option-padding: 4px;
+  $option-padding: 9px;
   $option-height: $icon-size + $option-padding + $option-padding;
-
-  .option {
-    align-items: center;
-    cursor: pointer;
-    display: flex;
-    color: var(--link);
-
-    &:hover {
-      text-decoration: none;
-    }
-
-    &:focus {
-      outline: 0;
-      > div {
-        text-decoration: underline;
-      }
-    }
-
-    > i {
-      width: $icon-size;
-      font-size: $icon-size;
-      margin-right: 8px;
-    }
-    svg {
-      margin-right: 8px;
-      fill: var(--link);
-    }
-    img {
-      margin-right: 8px;
-    }
-
-    > div {
-      color: var(--link);
-    }
-
-    &:hover {
-      color: var(--primary-hover-text);
-      background: var(--primary-hover-bg);
-      border-radius: 5px;
-      > div {
-        color: var(--primary-hover-text);
-      }
-      svg {
-        fill: var(--primary-hover-text);
-      }
-      div {
-        color: var(--primary-hover-text);
-      }
-    }
-  }
-
-  .option, .option-disabled {
-    padding: $option-padding 0 $option-padding 10px;
-  }
 
   .menu {
     position: absolute;
@@ -607,25 +524,20 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    &:hover {
-      background-color: var(--topmost-light-hover);
-    }
+
     .menu-icon {
       width: 24px;
       height: 24px;
       fill: var(--header-btn-text);
     }
-    &.raised {
-      z-index: 200;
-    }
   }
 
   .side-menu {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0px;
     bottom: 0;
-    width: 280px;
+    width: 54px;
     background-color: var(--topmenu-bg);
     z-index: 100;
     border-right: 1px solid var(--topmost-border);
@@ -633,9 +545,15 @@ export default {
     display: flex;
     flex-direction: column;
     padding: 0;
+    overflow: hidden;
+    transition: width 500ms;
 
     &:focus {
       outline: 0;
+    }
+
+     &.menu-open {
+      width: 300px;
     }
 
     .title {
@@ -646,10 +564,10 @@ export default {
       border-bottom: 1px solid var(--nav-border);
       justify-content: flex-start;
       align-items: center;
+
       .menu {
         display: flex;
         justify-content: center;
-        width: 55px;
         margin-right: 10px;
       }
       .menu-icon {
@@ -664,42 +582,89 @@ export default {
       flex: 1;
       display: flex;
       flex-direction: column;
-      margin: 10px 20px;
-      overflow-y: auto;
+      margin: 10px 0;
+      width: 300px;
+      
 
       .category {
-        padding: 10px 0;
-        text-transform: uppercase;
-        opacity: 0.8;
-        margin-top: 10px;
+        margin-top: 30px;
       }
 
-      .home {
-        color: var(--link);
-      }
-
-      .home:focus {
-        outline: 0;
-      }
-
-      .cluster {
+      .option {
         align-items: center;
+        cursor: pointer;
         display: flex;
+        color: var(--link);
+        font-size: 16px;
         height: $option-height;
-
         white-space: nowrap;
+
+        &:hover {
+          text-decoration: none;
+        }
+        &.disabled {
+          background: transparent;
+          cursor: not-allowed;
+
+          .rancher-provider-icon,
+          .cluster-name {
+            filter: grayscale(1);
+            color: var(--muted);
+          }
+        }
+
         &:focus {
           outline: 0;
+          > div {
+            text-decoration: underline;
+          }
         }
-        .cluster-name {
-          text-overflow: ellipsis;
-          overflow: hidden;
+
+        > i {
+          width: $icon-size;
+          font-size: $icon-size;
+          margin-right: 14px;
         }
-        > img {
-          max-height: $icon-size;
-          max-width: $icon-size;
-          margin-right: 8px;
+
+        .rancher-provider-icon,
+        svg {
+          margin-right: 14px;
+          fill: var(--link);
         }
+        img {
+          margin-right: 14px;
+        }
+        
+        &.nuxt-link-active {
+          background: var(--primary-hover-bg);
+          color: var(--primary-hover-text);
+
+          svg {
+            fill: var(--primary-hover-text);
+          }
+        }
+
+        &:hover {
+          color: var(--primary-hover-text);
+          background: var(--primary-hover-bg);
+          > div {
+            color: var(--primary-hover-text);
+          }
+          svg {
+            fill: var(--primary-hover-text);
+          }
+          div {
+            color: var(--primary-hover-text);
+          }
+          &.disabled {
+            background: transparent;
+            color: var(--muted);
+          }
+        }
+      }
+
+      .option, .option-disabled {
+        padding: $option-padding 0 $option-padding 14px;
       }
 
       .pad {
@@ -735,9 +700,10 @@ export default {
         padding: 8px
       }
     }
+  
     .footer {
       margin: 20px;
-
+      width: 240px;
       display: flex;
       flex: 0;
       flex-direction: row;
@@ -761,7 +727,6 @@ export default {
   }
 
   .side-menu-glass {
-    background-color: transparent;
     position: absolute;
     top: 0;
     left: 0px;
@@ -774,12 +739,12 @@ export default {
   .side-menu-logo {
     align-items: center;
     display: flex;
-    margin-left: 10px;
+    margin-left: 65px;
     opacity: 1;
     transition: opacity 1.2s;
     transition-delay: 0s;
-    height: 55px;
     max-width: 200px;
+    overflow: hidden;
     & IMG {
       object-fit: contain;
       height: 21px;
