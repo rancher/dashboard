@@ -336,6 +336,8 @@ export const actions = {
         return Promise.reject(LOGIN_ERRORS.CLIENT_UNAUTHORIZED);
       } else if ( err._status >= 400 && err._status <= 499 ) {
         return Promise.reject(LOGIN_ERRORS.CLIENT);
+      } else if (err.message) {
+        return Promise.reject(err.message);
       }
 
       return Promise.reject(LOGIN_ERRORS.SERVER);
