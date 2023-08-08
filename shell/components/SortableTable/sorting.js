@@ -4,7 +4,7 @@ import { addObject } from '@shell/utils/array';
 export default {
   computed: {
     sortFields() {
-      // TODO: RC WARNING - group sort?! DISABLE
+      // TODO: RC WARNING - group sort?! DISABLE ish...
       let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
       let fromColumn = [];
 
@@ -24,13 +24,17 @@ export default {
 
       const out = [...fromGroup, ...fromColumn];
 
-      addObject(out, 'nameSort');
+      addObject(out, 'nameSort'); // TODO: RC don't add this automatically
       addObject(out, 'id');
 
       return out;
     },
 
     arrangedRows() {
+      if (this.externalPagination) {
+        return;
+      }
+
       let key;
 
       if ( this.sortGenerationFn ) {

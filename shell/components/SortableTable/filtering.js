@@ -33,6 +33,10 @@ export default {
     }),
     */
     filteredRows() {
+      if (this.externalPagination) {
+        return;
+      }
+
       // PROP hasAdvancedFiltering comes from Advanced Filtering mixin (careful changing data var there...)
       if (!this.hasAdvancedFiltering) {
         return this.handleFiltering();

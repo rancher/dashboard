@@ -24,7 +24,6 @@ class StevePaginationUtils {
       params.push(`pagesize=${ opt.pagination.pageSize }`);
     }
 
-    debugger;
     if (opt.pagination.sort?.length) {
       const joined = opt.pagination.sort
         .map((s) => `${ s.asc ? '' : '-' }${ s.field }`)
@@ -33,7 +32,15 @@ class StevePaginationUtils {
       params.push(`sort=${ joined }`);
     }
 
-    // TODO: RC if not force... add revision
+    if (opt.pagination.filter?.length) {
+      const joined = opt.pagination.filter
+        .map(({ field, value }) => `${ field }=${ value }`)
+        .join(',');
+
+      params.push(`filter=${ joined }`);
+    }
+
+    // TODO: RC if not force... add revision?
 
     console.warn('steve page utils', 'checkAndCreateParam', 'res', params);
 

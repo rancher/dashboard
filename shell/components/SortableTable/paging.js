@@ -3,6 +3,8 @@ import { ROWS_PER_PAGE } from '@shell/store/prefs';
 export default {
   computed: {
     totalRows() {
+      debugger;
+
       return this.externalPagination ? 15 : this.filteredRows.length; // TODO: RC
     },
 
@@ -32,12 +34,11 @@ export default {
         to:    this.indexTo,
       };
 
-      console.warn('pagingDisplay', opt);
-
       return this.$store.getters['i18n/t'](this.pagingLabel, opt);
     },
 
     pagedRows() {
+      console.warn('sortable', 'mixin', 'paging', 'pagedRows', this.externalPagination);
       if (this.externalPagination) {
         return this.rows;
       } else if ( this.paging ) {

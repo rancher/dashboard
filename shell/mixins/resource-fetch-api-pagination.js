@@ -1,5 +1,4 @@
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER } from '@shell/utils/namespace-filter';
-import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 
@@ -30,34 +29,26 @@ export default {
     paginationChanged(event) {
       console.warn('mixin', 'method', 'paginationChanged', event);
 
-      // this.currentProduct?.hideSystemResources // TODO: RC oh lordy - need to wire in this as a filter
-
+      // TODO: RC wire in currentProduct?.hideSystemResources to namespaces?
       this.pPagination = {
         // namespaces: this.namespaceFilters,
         ...this.pPagination,
         page:     event.page,
         pageSize: event.perPage,
-        sort:     event.sort?.map((field) => {
-          let safeField = field; // TODO: RC oh lordy
-
-          switch (field) {
-          case 'nameSort':
-            safeField = this.rows[0].namePath; // TODO: RC oh lordy
-            break;
-          case 'namespace':
-            safeField = 'metadata.namespace';
-            break;
-          case 'subTypeDisplay':
-            safeField = '_type'; // TODO: RC secret. this isn't by label of the type. this doesn't work anyway
-            break;
-          }
-
-          return {
-            field: safeField,
-            asc:   !event.descending
-          };
-        }),
-        filter: {} // TODO: RC oh lordy. this contains not only model values... but `getValue` fns as well
+        // TODO: RC document. headers. sort
+        // `nameSort` --> path of name
+        // `namespace` --> metadata.namespaces
+        // `subTypeDisplay` --> `_type` (minus localisation and fallback)
+        sort:     event.sort?.map((field) => ({
+          field,
+          asc: !event.descending
+        })),
+        // TODO: RC document. headers. filter
+        // searchFields contains fns (getValue) to find the value to apply the searchQuery to
+        filter: event.filter.searchQuery ? event.filter.searchFields.map((field) => ({
+          field,
+          value: event.filter.searchQuery,
+        })) : []
       };
       console.warn('mixin', 'method', 'paginationChanged', this.pPagination);
     }
@@ -71,7 +62,7 @@ export default {
     pagination() {
       // TODO: RC get from  store (including revision)
       // TODO: RC sortable table --> store
-      console.warn('mixin', 'pagination', this.__paginationRequired, this.pPagination);
+      console.warn('mixin', 'pagination', 'pagination', this.__paginationRequired, this.pPagination);
 
       // {
       //   namespaces: undefined,

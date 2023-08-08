@@ -507,6 +507,7 @@ export default {
     :sort-generation-fn="safeSortGenerationFn"
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
+    :external-pagination="externalPagination"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     v-on="$listeners"

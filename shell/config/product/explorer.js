@@ -196,19 +196,99 @@ export function init(store) {
 
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
   headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
+
+  // export const STATE = {
+  //   name:      'state',
+  //   labelKey:  'tableHeaders.state',
+  //   sort:      ['stateSort', 'nameSort'],
+  //   value:     'stateDisplay',
+  //   getValue:  (row) => row.stateDisplay,
+  //   width:     100,
+  //   default:   'unknown',
+  //   formatter: 'BadgeStateFormatter',
+  // };
+
+  // export const NAME = {
+  //   name:          'name',
+  //   labelKey:      'tableHeaders.name',
+  //   value:         'nameDisplay',
+  //   getValue:      (row) => row.nameDisplay,
+  //   sort:          ['nameSort'],
+  //   formatter:     'LinkDetail',
+  //   canBeVariable: true,
+  // };
+
+  // export const NAMESPACE = {
+  //   name:        'namespace',
+  //   labelKey:    'tableHeaders.namespace',
+  //   value:       'namespace',
+  //   getValue:    (row) => row.namespace,
+  //   sort:        'namespace',
+  //   dashIfEmpty: true,
+  // };
+
+  // export const SUB_TYPE = {
+  //   name:     'subType',
+  //   labelKey: 'tableHeaders.subType',
+  //   value:    'subTypeDisplay',
+  //   sort:     ['subTypeDisplay'],
+  //   width:    120,
+  // };
+
+  // export const AGE = {
+  //   name:      'age',
+  //   labelKey:  'tableHeaders.age',
+  //   value:     'creationTimestamp',
+  //   getValue:  (row) => row.creationTimestamp,
+  //   sort:      'creationTimestamp:desc',
+  //   search:    false,
+  //   formatter: 'LiveDate',
+  //   width:     100,
+  //   align:     'left'
+  // };
+
+  const secretData = {
+    name:      'data',
+    labelKey:  'tableHeaders.data',
+    value:     'dataPreview',
+    formatter: 'SecretData'
+  };
+
   headers(SECRET, [
     STATE,
     NAME_COL,
     NAMESPACE_COL,
     SUB_TYPE,
-    {
-      name:      'data',
-      labelKey:  'tableHeaders.data',
-      value:     'dataPreview',
-      formatter: 'SecretData'
-    },
+    secretData,
     AGE
-  ]);
+  ], [{
+    ...STATE,
+    value:     'metadata.state.name',
+    sort:      ['metadata.state.name'],
+    search:    'metadata.state.name',
+    formatter: null // TODO: RC document. as we use raw value... we can't show anything but as sorting/filtering will be wrong. same goes for others
+  }, {
+    ...NAME_COL,
+    value:  'metadata.name',
+    sort:   ['metadata.name'],
+    search: 'metadata.name',
+  }, {
+    ...NAMESPACE_COL,
+    value:  'metadata.namespace',
+    sort:   ['metadata.namespace'],
+    search: 'metadata.namespace',
+  }, {
+    ...SUB_TYPE,
+    value:  '_type', // TODO: RC document. model - fallback. also translations
+    sort:   [], // TODO: RC does not work (backend doesn't sort on it)
+    search: false, // TODO: RC does not work (backend doesn't sort on it)
+  },
+  secretData,
+  {
+    ...AGE,
+    value: 'metadata.creationTimestamp',
+    sort:  'metadata.creationTimestamp:desc',
+  }]);
   headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
   headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
   headers(EVENT, [STATE, { ...LAST_SEEN_TIME, defaultSort: true }, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL]);

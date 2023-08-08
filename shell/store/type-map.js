@@ -226,7 +226,7 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/groupBy`, { type, field });
     },
 
-    headers(type, headers) {
+    headers(type, headers, paginationHeaders = []) {
       headers.forEach((header) => {
         // If on the client, then use the value getter if there is one
         if (header.getValue) {
@@ -239,6 +239,7 @@ export function DSL(store, product, module = 'type-map') {
       });
 
       store.commit(`${ module }/headers`, { type, headers });
+      store.commit(`${ module }/paginationHeaders`, { type, paginationHeaders });
     },
 
     hideBulkActions(type, field) {
@@ -368,6 +369,7 @@ export const state = function() {
     typeOptions:             [],
     groupBy:                 {},
     headers:                 {},
+    paginationHeaders:       {},
     hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
@@ -964,6 +966,13 @@ export const getters = {
     };
   },
 
+  paginationHeadersFor(state, getters, rootState, rootGetters) {
+    return (schema) => {
+      // TODO: RC what do if none? wire in to mixin?
+      return state.paginationHeaders[schema.id] || getters.headersFor(schema);
+    };
+  },
+
   headersFor(state, getters, rootState, rootGetters) {
     return (schema) => {
       const attributes = schema.attributes || {};
@@ -1536,6 +1545,10 @@ export const mutations = {
 
   headers(state, { type, headers }) {
     state.headers[type] = headers;
+  },
+
+  paginationHeaders(state, { type, paginationHeaders }) {
+    state.paginationHeaders[type] = paginationHeaders;
   },
 
   hideBulkActions(state, { type, field }) {

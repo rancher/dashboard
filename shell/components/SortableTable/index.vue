@@ -354,6 +354,10 @@ export default {
 
     this._onScroll = this.onScroll.bind(this);
     $main?.addEventListener('scroll', this._onScroll);
+
+    if (this.externalPagination) {
+      this.paginationChanged();
+    }
   },
 
   beforeDestroy() {
@@ -916,9 +920,12 @@ export default {
         sort:    this.sortFields,
       });
       this.$emit('pagination-changed', {
-        page:       this.page,
-        perPage:    this.perPage,
-        filter:     this.searchFields,
+        page:    this.page,
+        perPage: this.perPage,
+        filter:  {
+          searchFields: this.searchFields,
+          searchQuery:  this.searchQuery
+        },
         sort:       this.sortFields,
         descending: this.descending
       });
