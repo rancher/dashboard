@@ -245,7 +245,7 @@ export default {
         // Label can be overridden by chart annotation
         const label = uiPluginAnnotation(UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
-          name:         chart.chartNameDisplay,
+          name:         chart.chartName,
           label,
           description:  chart.chartDescription,
           id:           chart.id,
