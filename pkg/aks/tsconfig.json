@@ -15,7 +15,8 @@
     "preserveSymlinks": true,
     "typeRoots": [
       "../../node_modules",
-      "../../shell/types"
+      "../../shell/types",
+      "./types"
     ],
     "types": [
       "node",

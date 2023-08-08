@@ -343,6 +343,7 @@ export default {
 
         for ( const row of input ) {
           let value = row[this.valueName] || '';
+
           const decodedValue = base64Decode(row[this.valueName]);
           const asciiValue = asciiLike(decodedValue);
 

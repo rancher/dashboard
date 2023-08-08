@@ -1,7 +1,11 @@
 <script lang='ts'>
-import Vue from 'vue';
+import Vue, { defineComponent } from 'vue';
+
+import semver from 'semver';
+
 import { addParams, QueryParams } from '@shell/utils/url';
 import { randomStr } from '@shell/utils/string';
+import { removeObject } from '@shell/utils/array';
 import { _CREATE } from '@shell/config/query-params';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
@@ -9,55 +13,46 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
-import { removeObject } from 'utils/array';
+import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import FileSelector from '@shell/components/form/FileSelector.vue';
+import KeyValue from '@shell/components/form/KeyValue.vue';
+
+import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
+import { MANAGEMENT } from 'config/types';
+import { SETTING } from 'config/settings';
 
 const defaultNodePool = {
-  availabilityZones:   [],
+  availabilityZones:   ['1', '2', '3'],
   count:               1,
   enableAutoScaling:   false,
-  isNew:               true,
   maxPods:             110,
   maxSurge:            '1',
-  mode:                'System',
+  mode:                'User' as AKSPoolMode,
   name:                'agentpool',
   nodeLabels:          { },
   nodeTaints:          [],
   orchestratorVersion: '',
   osDiskSizeGB:        128,
-  osDiskType:          'Managed',
+  osDiskType:          'Managed' as AKSDiskType,
   osType:              'Linux',
-  type:                'aksnodepool',
+  // type:                'aksnodepool',
   vmSize:              '',
+  isNew:               true,
 };
 
-interface AKSNodePool {
-  availabilityZones?: String[],
-  count?: Number,
-  enableAutoScaling?: Boolean,
-  isNew?: Boolean,
-  maxPods?: Number,
-  maxSurge?: String,
-  mode?: String, // TODO nb what are options here?
-  name?: String,
-  nodeLabels?: Object,
-  nodeTaints?: any[], // TODO nb shape of node taints
-  orchestratorVersion?: String,
-  osDiskSizeGB?: Number,
-  osDiskType?: String,
-  osType?: String, // TODO nb ostype options
-  type?: String, // TODO nb options
-  vmSize?: String,
-  _id?: String
-}
-
-export default Vue.extend({
+export default defineComponent({
   name: 'CruAKS',
 
   components: {
     SelectCredential,
     CruResource,
     LabeledSelect,
-    AksNodePool
+    AksNodePool,
+    LabeledInput,
+    Checkbox,
+    FileSelector,
+    KeyValue
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -76,22 +71,31 @@ export default Vue.extend({
     }
   },
   data() {
+    const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
+
+    // todo nb wire into value
+    const config: any = {};
+
     return {
       credentialId: '',
       region:       '',
       aksVersion:   '',
+      // todo nb wire into config
       nodePools:    [] as AKSNodePool[],
+      config,
 
-      locationOptions:   [],
-      aksVersionOptions: [],
-      vmSizeOptions:     [],
-      defaultVmSize:     '',
+      supportedVersionRange,
+      locationOptions: [],
+      allAksVersions:  [],
+      vmSizeOptions:   [],
+      defaultVmSize:   '',
       // TODO nb on edit
-      clusterId:         null,
+      clusterId:       null,
 
-      loadingLocations: false,
-      loadingVersions:  false,
-      loadingVmSizes:   false
+      loadingLocations:    false,
+      loadingVersions:     false,
+      loadingVmSizes:      false,
+      containerMonitoring: (config.logAnalyticsWorkspaceGroup || config.logAnalyticsWorkspaceName)
 
     };
   },
@@ -101,6 +105,10 @@ export default Vue.extend({
     },
     showForm() {
       return this.credentialId;
+    },
+
+    aksVersionOptions() {
+      return this.supportedVersionRange ? this.allAksVersions.filter((v) => semver.satisfies(v, this.supportedVersionRange)) : this.allAksVersions;
     },
   },
 
@@ -154,8 +162,8 @@ export default Vue.extend({
         console.log('aks k8s versions: ', res);
 
         // TODO more reliable way to sort versions?
-        // TODO do we support all versions returned here?
-        this.aksVersionOptions = res.reverse();
+        this.allAksVersions = res.reverse();
+
         this.aksVersion = this.aksVersionOptions[0];
         this.loadingVersions = false;
       }).catch((err) => {
@@ -170,6 +178,7 @@ export default Vue.extend({
         console.log('aks vm sizes: ', res);
 
         this.vmSizeOptions = res;
+        // todo nb more intelligent default size
         this.defaultPoolSize = this.vmSizeOptions[0];
         this.loadingVmSizes = false;
       }).catch((err) => {
@@ -180,19 +189,20 @@ export default Vue.extend({
 
     addPool() {
       let poolName = `pool${ this.nodePools.length }`;
+      let mode: AKSPoolMode = 'User';
 
       if (!this.nodePools.length) {
         poolName = 'agentPool';
+        mode = 'System' as AKSPoolMode;
       }
 
-      // TODO nb default size default name
+      // TODO nb default size
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id: randomStr()
+        ...defaultNodePool, name: poolName, _id: randomStr(), mode, vmSize: this.defaultVmSize
       });
     },
 
-    // TODO nb pool interface
-    removePool(pool: any) {
+    removePool(pool: AKSNodePool) {
       removeObject(this.nodePools, pool);
     }
   },
@@ -241,6 +251,7 @@ export default Vue.extend({
           />
         </div>
       </div>
+
       <template v-if="region && region.length">
         <div class="row mb-10">
           <div class="col span-4">
@@ -251,6 +262,64 @@ export default Vue.extend({
               label="Kubernetes Version"
               :loading="loadingVersions"
               required
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledInput
+              v-model="config.linuxAdminUsername"
+              :mode="mode"
+              label="linux admin username"
+            />
+          </div>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-4">
+            <LabeledInput
+              v-model="config.resourceGroup"
+              :mode="mode"
+              label="cluster resource group"
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledInput
+              v-model="config.nodeResourceGroup"
+              :mode="mode"
+              label="node resource group"
+            />
+          </div>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-4">
+            <Checkbox
+              v-model="containerMonitoring"
+              :mode="mode"
+              label="configure container monitoring"
+            />
+          </div>
+          <template v-if="containerMonitoring">
+            <div class="col span-4">
+              <LabeledInput
+                v-model="config.logAnalyticsWorkspaceGroup"
+                :mode="mode"
+                label="log analytics workspace resource group"
+              />
+            </div>
+            <div class="col span-4">
+              <LabeledInput
+                v-model="config.logAnalyticsWorkspaceName"
+                :mode="mode"
+                label="log analytics workspace name"
+              />
+            </div>
+          </template>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-6">
+            <FileSelector
+              v-model="config.sshPublicKey"
+              :mode="mode"
+              label="upload ssh public key"
+              class="role-tertiary"
             />
           </div>
         </div>
@@ -266,14 +335,14 @@ export default Vue.extend({
             :pool="pool"
             :vm-size-options="vmSizeOptions"
             :loading-vm-sizes="loadingVmSizes"
-            :can-remove="i!==0"
+            :isPrimaryPool="i===0"
             @remove="removePool(pool)"
           />
         </div>
         <div>
           <button
             type="button"
-            class="btn role-primary"
+            class="btn role-tertiary"
             @click="addPool"
           >
             add node pool
