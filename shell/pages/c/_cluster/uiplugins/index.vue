@@ -305,7 +305,7 @@ export default {
         if (!chart) {
           // A plugin is loaded, but there is no chart, so add an item so that it shows up
           const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
-          const label = rancher[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
+          const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
             name:           p.name,
             label,
