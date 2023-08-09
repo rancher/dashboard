@@ -149,7 +149,7 @@ export default {
         return this.t('login.error');
       }
 
-      return this.err;
+      return this.err?.length ? this.t('login.specificError', { msg: this.err }) : '';
     },
 
     errorToDisplay() {
