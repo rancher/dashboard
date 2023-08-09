@@ -265,8 +265,7 @@ export function loadAll(state, {
   skipHaveAll,
   namespace,
   pagination,
-  revision,
-  count
+  revision
 }) {
   const { getters } = ctx;
 
@@ -302,11 +301,7 @@ export function loadAll(state, {
     // TODO: RC haveNamespace and havePagination to move to steve mutation
     if (pagination) {
       // : StorePagination
-      cache.havePagination = {
-        ...pagination,
-        count,
-        revision
-      };
+      cache.havePagination = pagination;
       cache.haveNamespace = undefined;
       cache.haveAll = undefined;
     } else if (namespace) {

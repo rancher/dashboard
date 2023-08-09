@@ -274,17 +274,12 @@ export default {
     return false;
   },
 
-  haveAllPaginated: (state, getters) => (type, pagination) => {
-    if (!pagination) {
-      return false;
-    }
-
+  haveAllPaginated: (state, getters) => (type) => {
     type = getters.normalizeType(type);
     const entry = state.types[type];
 
     if ( entry ) {
-      // TODO: RC
-      // return entry.havePaginated === namespace;
+      return !!entry.havePaginated;
     }
 
     return false;
@@ -299,7 +294,7 @@ export default {
   havePaginated: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
-    return state.types[type]?.havePaginated || null;
+    return state.types[type]?.havePagination || null;
   },
 
   haveSelector: (state, getters) => (type, selector) => {

@@ -3,9 +3,12 @@ import { ROWS_PER_PAGE } from '@shell/store/prefs';
 export default {
   computed: {
     totalRows() {
-      debugger;
+      console.warn('ss', 'mixins', 'paging', 'computed', 'totalrows', this.externalPaginationResult);
+      if (this.externalPagination) {
+        return this.externalPaginationResult?.count || 0;
+      }
 
-      return this.externalPagination ? 15 : this.filteredRows.length; // TODO: RC
+      return this.filteredRows.length;
     },
 
     indexFrom() {

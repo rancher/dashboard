@@ -165,7 +165,6 @@ export default {
       const { filter: neuFilter, sort: neuSort, ...newPrimitiveTypes } = neu;
       const { filter: oldFilter, sort: oldSort, ...oldPrimitiveTypes } = old;
 
-      debugger;
       if (
         isEqual(newPrimitiveTypes, oldPrimitiveTypes) &&
         isEqual(neuFilter, oldFilter) &&
@@ -177,7 +176,7 @@ export default {
       if (neu && !this.hasFetch) {
         this.$fetchType(this.resource);
       }
-    }
+    },
   },
 
   created() {
@@ -248,6 +247,7 @@ export default {
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       :external-pagination="!!pagination"
+      :external-pagination-result="paginationResult"
       @pagination-changed="paginationChanged"
     />
   </div>

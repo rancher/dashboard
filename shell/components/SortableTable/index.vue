@@ -319,6 +319,10 @@ export default {
     externalPagination: {
       type:    Boolean,
       default: false
+    },
+    externalPaginationResult: {
+      type:    Object,
+      default: null
     }
   },
 

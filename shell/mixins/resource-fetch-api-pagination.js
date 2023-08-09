@@ -55,7 +55,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster', 'namespaceFilters', 'namespaces']),
+    ...mapGetters(['currentProduct', 'currentCluster', 'namespaceFilters', 'namespaces', 'currentStore']), // TODO: RC currentStore
     /**
      * Returns the namespace that requests should be filtered by
      */
@@ -63,14 +63,6 @@ export default {
       // TODO: RC get from  store (including revision)
       // TODO: RC sortable table --> store
       console.warn('mixin', 'pagination', 'pagination', this.__paginationRequired, this.pPagination);
-
-      // {
-      //   namespaces: undefined,
-      //   page:       1,
-      //   pageSize:   10,
-      //   sort:       [],
-      //   filter:     {}
-      // }
 
       return this.__paginationRequired ? this.pPagination : '';
     },
@@ -88,6 +80,14 @@ export default {
       // return this.__areResourcesNamespaced;
 
       return true;
+    },
+
+    paginationResult() {
+      return this.havePaginated?.result;
+    },
+
+    havePaginated() {
+      return this.$store.getters[`cluster/havePaginated`](this.resource); // TODO: RC
     },
 
   },

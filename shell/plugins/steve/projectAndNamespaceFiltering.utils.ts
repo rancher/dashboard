@@ -10,9 +10,12 @@ export interface OptPagination {
 }
 
 // TODO: RC persist from response
-export interface StorePagination extends OptPagination {
-  count: number,
-  revision: number,
+export interface StorePagination {
+  request: OptPagination,
+  result: {
+    count: number,
+    pages: number
+  }
 }
 
 // TODO: RC

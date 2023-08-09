@@ -315,8 +315,13 @@ export default {
           revision:   out.revision,
           skipHaveAll,
           namespace:  opt.namespaced,
-          pagination: opt.pagination,
-          count:      out.count // TODO: RC steve specific
+          pagination: opt.pagination ? {
+            request: opt.pagination,
+            result:  {
+              count: out.count,
+              pages: out.pages
+            }
+          } : undefined,
         });
       }
     }

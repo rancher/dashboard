@@ -162,6 +162,11 @@ export default {
     externalPagination: {
       type:    Boolean,
       default: false
+    },
+
+    externalPaginationResult: {
+      type:    Object,
+      default: null
     }
   },
 
@@ -508,6 +513,7 @@ export default {
     :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
     :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
     :external-pagination="externalPagination"
+    :external-pagination-result="externalPaginationResult"
     @clickedActionButton="handleActionButtonClick"
     @group-value-change="group = $event"
     v-on="$listeners"
