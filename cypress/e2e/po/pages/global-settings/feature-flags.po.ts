@@ -13,21 +13,27 @@ export class FeatureFlagsPagePo extends RootClusterPage {
     super(FeatureFlagsPagePo.url);
   }
 
-  waitForRequests() {
-    FeatureFlagsPagePo.goToAndWaitForGet(this.goTo.bind(this), ['/v1/management.cattle.io.features?exclude=metadata.managedFields']);
-  }
-
   // Get feature flags list
   list() {
     return new MgmtFeatureFlagListPo(this.self());
   }
 
+  /**
+   * Get card action button
+   * @param label
+   * @returns
+   */
   cardActionButton(label: string): CypressChainable {
     const card = new CardPo();
 
     return card.getActionButton().contains(label);
   }
 
+  /**
+   * Get card body
+   * @param label
+   * @returns
+   */
   cardActionBody(label: string): CypressChainable {
     const card = new CardPo();
 
@@ -35,22 +41,15 @@ export class FeatureFlagsPagePo extends RootClusterPage {
   }
 
   /**
-   * Get banner
-   * @returns
-   */
-  banner(): Cypress.Chainable {
-    return cy.getId('fixed__banner');
-  }
-
-  /**
-   * Click apply button
+   * Click action button
+   * @param label Activate or Deactivate
    * @param endpoint
+   * @param value
    * @returns
    */
-  clickCardActionButtonAndWait(label: string, endpoint: string, value: boolean): Cypress.Chainable {
+  clickCardActionButtonAndWait(label: 'Activate' | 'Deactivate', endpoint: string, value: boolean): Cypress.Chainable {
     cy.intercept('PUT', `/v1/management.cattle.io.features/${ endpoint }`).as(endpoint);
     this.cardActionButton(label).click();
-    cy.on('uncaught:exception', () => false);
 
     return cy.wait(`@${ endpoint }`).then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
