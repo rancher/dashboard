@@ -7256,6 +7256,7 @@ resourceQuota:
   requestsGpuMemory: GPU Memory
   requestsStorageClassPVC: Storage Class PVC
   requestsStorageClassStorage: Storage Class Storage
+  helpTextHarvester: VMs need to reserve additional memory overhead.
 ##############################
 ### Support Page
 ##############################
