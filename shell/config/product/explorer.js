@@ -289,6 +289,22 @@ export function init(store) {
     value: 'metadata.creationTimestamp',
     sort:  'metadata.creationTimestamp:desc',
   }]);
+  configureType(SECRET, {
+    listGroups: [{
+      tooltipKey: 'resourceTable.groupBy.none',
+      icon:       'icon-list-flat',
+      value:      'none',
+    }, {
+      icon:       'icon-folder',
+      value:      'metadata.namespace',
+      field:      'metadata.namespace',
+      hideColumn: NAMESPACE_COL.name,
+      tooltipKey: 'resourceTable.groupBy.namespace'
+    }
+    ],
+    listGroupsWillOverride: true,
+  });
+
   headers(INGRESS, [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE]);
   headers(SERVICE, [STATE, NAME_COL, NAMESPACE_COL, TARGET_PORT, SELECTOR, SPEC_TYPE, AGE]);
   headers(EVENT, [STATE, { ...LAST_SEEN_TIME, defaultSort: true }, EVENT_TYPE, REASON, OBJECT, 'Subobject', 'Source', MESSAGE, 'First Seen', 'Count', NAME_COL, NAMESPACE_COL]);

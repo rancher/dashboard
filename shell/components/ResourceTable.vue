@@ -187,6 +187,7 @@ export default {
   data() {
     const options = this.$store.getters[`type-map/optionsFor`](this.schema);
     const listGroups = options?.listGroups || [];
+    const listGroupsWillOverride = options?.listGroupsWillOverride;
     const listGroupMapped = listGroups.reduce((acc, grp) => {
       acc[grp.value] = grp;
 
@@ -197,7 +198,7 @@ export default {
     const inStore = this.schema?.id ? this.$store.getters['currentStore'](this.schema.id) : undefined;
 
     return {
-      listGroups, listGroupMapped, inStore
+      listGroups, listGroupsWillOverride, listGroupMapped, inStore
     };
   },
 
@@ -238,7 +239,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = this.$store.getters['type-map/headersFor'](this.schema);
+        headers = this.$store.getters['type-map/headersFor'](this.schema); // TODO: RC
       }
 
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
@@ -343,7 +344,7 @@ export default {
       });
     },
 
-    _group: mapPref(GROUP_RESOURCES),
+    _group: mapPref(GROUP_RESOURCES), // TODO: RC ensure group preference sticks
 
     // The group stored in the preference (above) might not be valid for this resource table - so ensure we
     // choose a group that is applicable (the default)
@@ -395,6 +396,10 @@ export default {
     },
 
     groupOptions() {
+      if (this.listGroupsWillOverride && this.listGroups?.length) {
+        return this.listGroups;
+      }
+
       const standard = [
         {
           tooltipKey: 'resourceTable.groupBy.none',

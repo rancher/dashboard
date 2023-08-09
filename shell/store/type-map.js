@@ -467,17 +467,18 @@ export const getters = {
 
   optionsFor(state) {
     const def = {
-      isCreatable:          true,
-      isEditable:           true,
-      isRemovable:          true,
-      showState:            true,
-      showAge:              true,
-      canYaml:              true,
-      namespaced:           null,
-      listGroups:           [],
-      depaginate:           false,
-      customRoute:          undefined,
-      resourceEditMasthead: true,
+      isCreatable:            true,
+      isEditable:             true,
+      isRemovable:            true,
+      showState:              true,
+      showAge:                true,
+      canYaml:                true,
+      namespaced:             null,
+      listGroups:             [],
+      listGroupsWillOverride: false, // TODO: RC
+      depaginate:             false,
+      customRoute:            undefined,
+      resourceEditMasthead:   true,
     };
 
     return (schemaOrType) => {

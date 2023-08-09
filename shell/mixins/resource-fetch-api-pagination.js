@@ -1,4 +1,6 @@
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER } from '@shell/utils/namespace-filter';
+import { NAMESPACE } from 'config/types';
+import { ALL_NAMESPACES } from 'store/prefs';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
 
@@ -97,47 +99,58 @@ export default {
       const isAll = this.$store.getters['isAllNamespaces'];
 
       const namespaced = this.schema.attributes.namespaced;
+      const paginationRequires = this.__paginationRequired; // TODO: RC check
 
-      if (
-        !namespaced ||
-        isAll || // this.currentProduct?.hideSystemResources // TODO: RC oh lordy
-        !this.__paginationRequired
-      ) {
+      // TODO: RC wire this in to first fest
+
+      if (!namespaced || !paginationRequires) {
         return;
       }
 
-      if (neu.length === 1) {
-        // ---------- make common
-        // const allNamespaces = this.$store.getters[`${ this.inStore }/all`](NAMESPACE);
-        // const allowedNamespaces = allNamespaces
-        //   .filter((ns) => state.prefs.data['all-namespaces'] ? true : !ns.isObscure); // Filter out Rancher system namespaces
-        // .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
+      // ---------- make common
+      // const allNamespaces = this.$store.getters[`${ this.inStore }/all`](NAMESPACE);
+      // const allowedNamespaces = allNamespaces
+      //   .filter((ns) => state.prefs.data['all-namespaces'] ? true : !ns.isObscure); // Filter out Rancher system namespaces
+      // .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
 
-        // ---------
+      // ---------
+
+      const pref = this.$store.getters['prefs/get'](ALL_NAMESPACES);
+      const hideSystemResources = this.currentProduct.hideSystemResources; // TODO: RC test again at end
+
+      const allButHidingSystemResources = isAll && (hideSystemResources || pref);
+
+      let namespaces = neu;
+
+      const allNamespaces = this.$store.getters[`${ this.inStore }/all`](NAMESPACE);
+
+      if (allButHidingSystemResources) {
+        // Determine the disallowed namespaces (rather than possibly thousands of allowed)
+        namespaces = allNamespaces
+          .filter((ns) => {
+            const isObscure = pref ? false : ns.isObscure; // Filter out Rancher system namespaces
+            const isSystem = hideSystemResources ? ns.isSystem : false; // Filter out Fleet system namespaces
+
+            return isObscure || isSystem;
+          })
+          .map((ns) => `-${ ns.name }`);
+      } else if (neu.length === 1) {
+        console.warn(neu[0], NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER);
+
+        const allSystem = allNamespaces.filter((ns) => ns.isSystem);
 
         if (neu[0] === NAMESPACE_FILTER_ALL_SYSTEM) {
           // get a list of all system namespaces
-
-          return ;
-        }
-
-        if (neu[0] === NAMESPACE_FILTER_ALL_USER) {
-          // get a list of all system namespaces... and NOT them
-
-          return ;
+          namespaces = allSystem.map((ns) => `${ ns.name }`);
+        } else if (neu[0] === NAMESPACE_FILTER_ALL_USER) {
+          // Determine the disallowed namespaces (rather than possibly thousands of allowed)
+          namespaces = allSystem.map((ns) => `-${ ns.name }`);
         }
       }
 
-      // ALL_SYSTEM
-      // ALL_USER
-      // ALL_ORPHANS
-      // export const NAMESPACE_FILTER_ALL_SYSTEM = `${ NAMESPACE_FILTER_ALL_PREFIX }://system`;
-      // export const NAMESPACE_FILTER_ALL_USER = `${ NAMESPACE_FILTER_ALL_PREFIX }://user`;
-      // export const NAMESPACE_FILTER_ALL_ORPHANS = `${ NAMESPACE_FILTER_ALL_PREFIX }://orphans`;
-
       this.pPagination = {
         ...this.pPagination,
-        namespaces: neu,
+        namespaces,
       };
     },
 

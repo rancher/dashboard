@@ -72,14 +72,36 @@ class ProjectAndNamespaceFiltering {
       return '';
     }
 
-    const projectsOrNamespaces = namespaceFilter
-      .map((f) => f
-        .replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
-        .replace(NAMESPACE_FILTER_P_FULL_PREFIX, '')
-      )
-      .join(',');
+    // TODO: RC test n and p filtering outside of pagination
 
-    return `${ ProjectAndNamespaceFiltering.param }=${ projectsOrNamespaces }`;
+    debugger;
+    const namespaces = namespaceFilter.reduce((res, n) => {
+      const name = n
+        .replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')
+        .replace(NAMESPACE_FILTER_P_FULL_PREFIX, '');
+
+      if (name.startsWith('-')) {
+        res.exclude.push(n.substring(1, n.length));
+      } else {
+        res.include.push(name);
+      }
+
+      return res;
+    }, { include: [] as string[], exclude: [] as string[] });
+
+    let res = '';
+
+    console.warn('pAndNUtil', 'createParam', namespaces.include, namespaces.exclude);
+
+    if (namespaces.include.length) {
+      res = `${ ProjectAndNamespaceFiltering.param }=${ namespaces.include.join(',') }`;
+    }
+
+    if (namespaces.exclude.length) {
+      res = `${ ProjectAndNamespaceFiltering.param }!=${ namespaces.exclude.join(',') }`;
+    }
+
+    return res;
   }
 }
 
