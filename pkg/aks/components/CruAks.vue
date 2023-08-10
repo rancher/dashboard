@@ -167,6 +167,7 @@ export default defineComponent({
       }
     },
 
+    // todo nb clear addr ranges? Old UI doesn't do this: oversight?
     hasAzureCNI(neu) {
       if (!neu) {
         if (this.config.networkPolicy === 'azure') {
@@ -467,6 +468,36 @@ export default defineComponent({
                 :loading="loadingVirtualNetworks"
                 option-label="name"
                 @selecting="selectNetwork($event)"
+              />
+            </div>
+          </div>
+          <div class="row mb-10">
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.serviceCidr"
+                :mode="mode"
+                label="kubernetes service address range"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.podCidr"
+                :mode="mode"
+                label="kubernetes pod address range"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.dnsServiceIp"
+                :mode="mode"
+                label="kubernetes dns service ip range"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.dockerBridgeCidr"
+                :mode="mode"
+                label="docker bridge address"
               />
             </div>
           </div>
