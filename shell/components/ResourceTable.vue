@@ -224,7 +224,6 @@ export default {
     _headers() {
       let headers;
       const showNamespace = this.showNamespaceColumn;
-      // const type = this.schema?.id || this.$route?.params?.resource || undefined;
 
       if ( this.headers ) {
         headers = this.headers.slice();
