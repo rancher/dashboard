@@ -6,11 +6,12 @@ import pAndNFiltering from 'plugins/steve/projectAndNamespaceFiltering.utils';
  * - We ignore any events not from a required namespace (we have the conversion of project --> namespaces already)
  */
 class SubscribeNamespaceHandler {
-  typeIsNamespaced({ getters }: any, type: string) {
-    const haveNamespace = getters.haveNamespace(type);
-    const havePaginated = getters.havePaginated(type);
+  typeIsNamespaced({ getters }: any, type: string): boolean {
+    return getters.haveNamespace(type)?.length > 0;
+  }
 
-    return haveNamespace?.length || havePaginated?.request.namespaces?.length;
+  typeIsPaginated({ getters }: any, type: string): boolean {
+    return !!getters.havePaginated(type);
   }
 
   filteredNamespaces({ rootGetters }: any) {
@@ -38,6 +39,12 @@ class SubscribeNamespaceHandler {
       }
     }
 
+    if (this.typeIsPaginated({ getters }, type)) {
+      const page = getters['all'](type);
+
+      return !!page.find((pR: any) => pR.id === data.id);
+    }
+
     return true;
   }
 
@@ -45,23 +52,31 @@ class SubscribeNamespaceHandler {
     const namespaces = this.filteredNamespaces({ rootGetters });
 
     Object.entries(batch).forEach(([type, entries]) => {
-      if (!this.typeIsNamespaced({ getters }, type)) {
-        return;
-      }
+      if (this.typeIsNamespaced({ getters }, type)) {
+        const schema = getters.schemaFor(type);
 
-      const schema = getters.schemaFor(type);
-
-      if (!schema?.attributes?.namespaced) {
-        return;
-      }
-
-      Object.keys(entries).forEach((id) => {
-        const namespace = id.split('/')[0];
-
-        if (!namespace || !namespaces[namespace]) {
-          delete entries[id];
+        if (!schema?.attributes?.namespaced) {
+          return;
         }
-      });
+
+        Object.keys(entries).forEach((id) => {
+          const namespace = id.split('/')[0];
+
+          if (!namespace || !namespaces[namespace]) {
+            delete entries[id];
+          }
+        });
+      }
+
+      if (this.typeIsPaginated({ getters }, type)) {
+        const page = getters['all'](type);
+
+        Object.keys(entries).forEach((id) => {
+          if (!page.find((pR: any) => pR.id === id)) {
+            delete entries[id];
+          }
+        });
+      }
     });
 
     return batch;

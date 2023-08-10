@@ -66,6 +66,9 @@ class StevePaginationUtils {
       params.push(`filter=${ joined }`);
     }
 
+    // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
+    // but we shouldn't be fetching any pages big enough to exceed the default
+
     console.warn('steve page utils', 'checkAndCreateParam', 'res', params);
 
     return params.join('&');
