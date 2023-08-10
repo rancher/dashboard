@@ -5,7 +5,7 @@ import semver from 'semver';
 
 import { addParams, QueryParams } from '@shell/utils/url';
 import { randomStr } from '@shell/utils/string';
-import { removeObject } from '@shell/utils/array';
+import { isArray, removeObject } from '@shell/utils/array';
 import { _CREATE } from '@shell/config/query-params';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
@@ -81,21 +81,28 @@ export default defineComponent({
       region:       '',
       aksVersion:   '',
       // todo nb wire into config
+      // todo nb add initial pool
       nodePools:    [] as AKSNodePool[],
       config,
 
       supportedVersionRange,
-      locationOptions: [],
-      allAksVersions:  [],
-      vmSizeOptions:   [],
-      defaultVmSize:   '',
+      locationOptions:       [],
+      allAksVersions:        [],
+      vmSizeOptions:         [],
+      virtualNetworkOptions: [],
+      defaultVmSize:         '',
       // TODO nb on edit
-      clusterId:       null,
+      clusterId:             null,
+      // TODO nb translations
+      networkPluginOptions:  [
+        { value: 'kubenet', label: 'Kubenet' }, { value: 'azure', label: 'Azure CNI' }
+      ],
 
-      loadingLocations:    false,
-      loadingVersions:     false,
-      loadingVmSizes:      false,
-      containerMonitoring: (config.logAnalyticsWorkspaceGroup || config.logAnalyticsWorkspaceName)
+      loadingLocations:       false,
+      loadingVersions:        false,
+      loadingVmSizes:         false,
+      loadingVirtualNetworks: false,
+      containerMonitoring:    (config.logAnalyticsWorkspaceGroup || config.logAnalyticsWorkspaceName)
 
     };
   },
@@ -110,6 +117,32 @@ export default defineComponent({
     aksVersionOptions() {
       return this.supportedVersionRange ? this.allAksVersions.filter((v) => semver.satisfies(v, this.supportedVersionRange)) : this.allAksVersions;
     },
+
+    canEditLoadBalancerSKU() {
+      const poolsWithAZ = this.nodePools.filter((pool) => pool.availabilityZones && pool.availabilityZones.length);
+
+      return !poolsWithAZ.length;
+    },
+
+    hasAzureCNI() {
+      return this.config.networkPlugin === 'azure';
+    },
+
+    networkPolicyOptions() {
+      return [{
+        value: undefined,
+        label: 'None'
+      }, {
+        value: 'calico',
+        label: 'Calico',
+      },
+      {
+        value:    'azure',
+        label:    'Azure',
+        disabled: !this.hasAzureCNI
+      }
+      ];
+    },
   },
 
   watch: {
@@ -123,8 +156,27 @@ export default defineComponent({
       if (neu && neu.length) {
         this.getAksVersions();
         this.getVmSizes();
+        this.getVirtualNetworks();
       }
-    }
+    },
+
+    canEditLoadBalancerSKU(neu) {
+      if (!neu) {
+        // todo nb constants
+        this.$set(this.config, 'loadBalancerSku', 'Standard');
+      }
+    },
+
+    hasAzureCNI(neu) {
+      if (!neu) {
+        if (this.config.networkPolicy === 'azure') {
+          this.$set(this.config, 'networkPolicy', undefined);
+        }
+        delete this.config.virtualNetwork;
+        delete this.config.virtualNetworkResourceGroup;
+      }
+    },
+
   },
 
   methods: {
@@ -187,6 +239,21 @@ export default defineComponent({
       });
     },
 
+    getVirtualNetworks() {
+      this.loadingVirtualNetworks = true;
+      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVirtualNetworks') }).then((res) => {
+        console.log('aks virtual networks: ', res);
+        if (res && isArray(res)) {
+          this.virtualNetworkOptions = res;
+        }
+
+        this.loadingVirtualNetworks = false;
+      }).catch((err) => {
+        // TODO nb something
+        console.error(err);
+      });
+    },
+
     addPool() {
       let poolName = `pool${ this.nodePools.length }`;
       let mode: AKSPoolMode = 'User';
@@ -204,6 +271,11 @@ export default defineComponent({
 
     removePool(pool: AKSNodePool) {
       removeObject(this.nodePools, pool);
+    },
+
+    selectNetwork(network: any) {
+      this.$set(this.config, 'virtualNetwork', network.name);
+      this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
     }
   },
 
@@ -253,6 +325,7 @@ export default defineComponent({
       </div>
 
       <template v-if="region && region.length">
+        <!-- cluster config -->
         <div class="row mb-10">
           <div class="col span-4">
             <LabeledSelect
@@ -315,15 +388,91 @@ export default defineComponent({
         </div>
         <div class="row mb-10">
           <div class="col span-6">
-            <FileSelector
-              v-model="config.sshPublicKey"
+            <div class="ssh-key">
+              <LabeledInput
+                v-model="config.sshPublicKey"
+                :mode="mode"
+                label="SSH public key"
+                type="multiline"
+              />
+              <FileSelector
+                :mode="mode"
+                label="read from a file"
+                class="role-tertiary"
+                @selected="e=>$set(config, 'sshPublicKey', e)"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-12">
+            <KeyValue
+              v-model="config.tags"
               :mode="mode"
-              label="upload ssh public key"
-              class="role-tertiary"
+              title="tags"
             />
           </div>
         </div>
 
+        <!-- networking -->
+        <div class="row mb-10">
+          <div class="col span-4">
+            <!-- //todo nb loadbalancersku opts with constants -->
+            <LabeledSelect
+              v-model="config.loadBalancerSku"
+              label="loadbalancer sku"
+              tooltip="load balancer sku must be 'standard' if availability zones have been selected"
+              :disabled="!canEditLoadBalancerSKU"
+              :options="['Standard', 'Basic']"
+            />
+          </div>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-4">
+            <LabeledSelect
+              v-model="config.networkPolicy"
+              :mode="mode"
+              :options="networkPolicyOptions"
+              label="network policy"
+              tooltip="azure is only available when azure has been selected as the network plugin"
+            />
+          </div>
+          <div class="col span-4">
+            <LabeledInput
+              v-model="config.dnsPrefix"
+              :mode="mode"
+              label="dns prefix"
+            />
+          </div>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-4">
+            <LabeledSelect
+              v-model="config.networkPlugin"
+              :mode="mode"
+              :options="networkPluginOptions"
+              label="network plugin"
+            />
+          </div>
+        </div>
+        <!-- azure cni configuration -->
+        <template v-if="hasAzureCNI">
+          <div class="row mb-10">
+            <div class="col span-4">
+              <LabeledSelect
+                :value="config.virtualNetwork"
+                label="virtual network"
+                :mode="mode"
+                :options="virtualNetworkOptions"
+                :loading="loadingVirtualNetworks"
+                option-label="name"
+                @selecting="selectNetwork($event)"
+              />
+            </div>
+          </div>
+        </template>
+
+        <!-- node pools -->
         <div
           v-for="(pool, i) in nodePools"
           :key="pool._id"
