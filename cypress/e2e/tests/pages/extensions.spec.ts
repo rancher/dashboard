@@ -3,6 +3,7 @@ import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 const EXTENSION_NAME = 'clock';
+const EXTENSION_DISPLAY_NAME_V2 = 'Clock Ext';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
 
@@ -72,7 +73,8 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // let's make sure all went good
     extensionsPo.extensionTabAvailableClick();
-    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+    // latest version of the chosen extension uses display-name annotation which is different from the actual pkg name
+    extensionsPo.extensionCard(EXTENSION_DISPLAY_NAME_V2).should('be.visible');
   });
 
   it('New repos banner should only appear once (after dismiss should NOT appear again)', () => {
@@ -142,7 +144,7 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // after card click, we should get the info slide in panel
     extensionsPo.extensionDetails().should('be.visible');
-    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_DISPLAY_NAME_V2);
 
     // close the details on the cross icon X
     extensionsPo.extensionDetailsCloseClick();
@@ -179,8 +181,13 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     // make sure extension card is in the installed tab
     extensionsPo.extensionTabInstalledClick();
     extensionsPo.extensionCardClick(EXTENSION_NAME);
-    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_DISPLAY_NAME_V2);
     extensionsPo.extensionDetailsCloseClick();
+
+    // as a safeguard for https://github.com/rancher/dashboard/issues/9496
+    // we should check that extension is not available in "available" tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
   });
 
   it('Should update an extension version', () => {
@@ -244,6 +251,6 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     // make sure extension card is in the available tab
     extensionsPo.extensionTabAvailableClick();
     extensionsPo.extensionCardClick(EXTENSION_NAME);
-    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_NAME);
+    extensionsPo.extensionDetailsTitle().should('contain', EXTENSION_DISPLAY_NAME_V2);
   });
 });
