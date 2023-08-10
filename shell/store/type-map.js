@@ -967,9 +967,31 @@ export const getters = {
     };
   },
 
-  paginationHeadersFor(state) {
+  paginationHeadersFor(state, getters, rootState, rootGetters) {
     return (schema) => {
-      return state.paginationHeaders[schema.id];
+      const attributes = schema.attributes || {};
+      const columns = attributes.columns || [];
+
+      const c = state.paginationHeaders[schema.id]?.map((entry) => {
+        if ( typeof entry === 'string' ) {
+          const col = findBy(columns, 'name', entry);
+
+          if ( col ) {
+            return {
+              ...fromSchema(col, rootGetters),
+              sort:   false, // TODO: RC Process. LOST Pod Ready, Restarts, IP
+              search: false // TODO: RC Process. LOST Pod Ready, Restarts, IP
+            };
+          } else {
+            return null;
+          }
+        } else {
+          return entry;
+        }
+      })
+        .filter((col) => !!col);
+
+      return c;
     };
   },
 
@@ -1029,43 +1051,6 @@ export const getters = {
       }
 
       return out;
-
-      function fromSchema(col, rootGetters) {
-        let formatter, width, formatterOpts;
-
-        if ( (col.format === '' || col.format === 'date') && col.name === 'Age' ) {
-          return AGE;
-        }
-
-        if ( col.format === 'date' || col.type === 'date' ) {
-          formatter = 'Date';
-          width = 120;
-          formatterOpts = { multiline: true };
-        }
-
-        if ( col.type === 'number' || col.type === 'int' ) {
-          formatter = 'Number';
-        }
-
-        const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
-
-        const exists = rootGetters['i18n/exists'];
-        const t = rootGetters['i18n/t'];
-        const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
-        const description = col.description || '';
-        const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
-
-        return {
-          name:  col.name.toLowerCase(),
-          label: exists(labelKey) ? t(labelKey) : col.name,
-          value: _rowValueGetter(col),
-          sort:  [col.field],
-          formatter,
-          formatterOpts,
-          width,
-          tooltip
-        };
-      }
     };
   },
 
@@ -1694,6 +1679,43 @@ export const actions = {
     commit('configureType', options);
   }
 };
+
+function fromSchema(col, rootGetters) {
+  let formatter, width, formatterOpts;
+
+  if ( (col.format === '' || col.format === 'date') && col.name === 'Age' ) {
+    return AGE;
+  }
+
+  if ( col.format === 'date' || col.type === 'date' ) {
+    formatter = 'Date';
+    width = 120;
+    formatterOpts = { multiline: true };
+  }
+
+  if ( col.type === 'number' || col.type === 'int' ) {
+    formatter = 'Number';
+  }
+
+  const colName = col.name.includes(' ') ? col.name.split(' ').map((word) => word.charAt(0).toUpperCase() + word.substring(1) ).join('') : col.name;
+
+  const exists = rootGetters['i18n/exists'];
+  const t = rootGetters['i18n/t'];
+  const labelKey = `tableHeaders.${ colName.charAt(0).toLowerCase() + colName.slice(1) }`;
+  const description = col.description || '';
+  const tooltip = description && description[description.length - 1] === '.' ? description.slice(0, -1) : description;
+
+  return {
+    name:  col.name.toLowerCase(),
+    label: exists(labelKey) ? t(labelKey) : col.name,
+    value: _rowValueGetter(col),
+    sort:  [col.field],
+    formatter,
+    formatterOpts,
+    width,
+    tooltip
+  };
+}
 
 function _sortGroup(tree, mode) {
   const by = ['weight:desc', 'namespaced', 'label'];

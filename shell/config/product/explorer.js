@@ -18,7 +18,7 @@ import {
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
-  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE,
+  DURATION, MESSAGE, REASON, LAST_SEEN_TIME, EVENT_TYPE, OBJECT, ROLE
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
@@ -169,19 +169,6 @@ export function init(store) {
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);
 
-  // Allow Pods to be grouped by node
-  configureType(POD, {
-    listGroups: [
-      {
-        icon:       'icon-cluster',
-        value:      'role',
-        field:      'groupByNode',
-        hideColumn: 'groupByNode',
-        tooltipKey: 'resourceTable.groupBy.node'
-      }
-    ]
-  });
-
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
   configureType(WORKLOAD, {
@@ -259,7 +246,34 @@ export function init(store) {
   headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Completions', DURATION, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
-  headers(POD, [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
+
+  headers(POD,
+    [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, {
+      ...POD_IMAGES,
+      sort:   false,
+      search: 'spec.containers'
+    }, 'Ready', 'Restarts', 'IP', {
+      ...NODE_COL,
+      search: 'spec.nodeName'
+    },
+    STEVE_AGE_COL]
+  );
+  configureType(POD, {
+    listGroups: [
+      ...STEVE_LIST_GROUPS,
+      // Allow Pods to be grouped by node
+      {
+        icon:       'icon-cluster',
+        value:      'role',
+        field:      'spec.nodeName', // TODO: RC PROCESS this was spec?.nodeName in groupByNode
+        hideColumn: 'groupByNode',
+        tooltipKey: 'resourceTable.groupBy.node'
+      }
+    ],
+    listGroupsWillOverride: true,
+  });
+
   headers(MANAGEMENT.PSA, [STATE, NAME_COL, {
     ...DESCRIPTION,
     width: undefined

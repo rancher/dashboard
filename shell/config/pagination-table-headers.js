@@ -52,6 +52,7 @@ export const STEVE_LIST_GROUPS = [{
 // - update comments... everywhere
 // - remove debug consoles
 // - there are two subscribe messages sent for the list's type
+// - state but not state column
 
 // TODO: RC Comment
 // - only applies to
@@ -80,8 +81,11 @@ export const STEVE_LIST_GROUPS = [{
 // - secrets
 //   - the resource has a `_type` field, yet `sort=_type` does not work
 //   - the resource has a `_type` field, yet `filter_type` does not work
+// - pod
+//   - question. spec.containers is an array containers. we'd like to sort/search using container.image
 
 // TODO: RC Test cases
+// - non-paginated lists work fine
 // - group by namespace / no namespace
 // - group by namespace sticks on refresh
 // - the hideSystemResources product config (determines namespaces used in filters)
