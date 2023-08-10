@@ -139,6 +139,7 @@ export type LocationConfig = {
   cluster?: string[],
   id?: string[],
   mode?: string[],
+  hash?: string[],
   /**
    * path match from URL (excludes host address)
    */
