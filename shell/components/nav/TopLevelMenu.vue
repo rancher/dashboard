@@ -217,14 +217,11 @@ export default {
     },
 
     hide() {
-      console.log('before', this.shown);
       this.shown = false;
-      console.log('hide', this.shown);
     },
 
     toggle() {
       this.shown = !this.shown;
-      console.log('toggle', this.shown);
       this.$nextTick(() => {
         this.setClusterListHeight(this.maxClustersToShow);
       });
@@ -243,7 +240,6 @@ export default {
 </script>
 <template>
   <div>
-    
     <div
       v-if="shown"
       class="side-menu-glass"
@@ -257,7 +253,6 @@ export default {
         tabindex="-1"
       >
         <div class="title">
-          <!-- <div class="menu-spacer" /> -->
           <div
             data-testid="top-level-menu"
             class="menu"
@@ -300,11 +295,11 @@ export default {
           </div>
 
           <template v-if="hciApps.length">
-            <div class="category"></div>
+            <div class="category" />
             <div>
               <a
                 v-if="isRancherInHarvester"
-                class="option"
+                class="option disabled"
                 @click="goToHarvesterCluster()"
               >
                 <i
@@ -334,7 +329,7 @@ export default {
             </div>
           </template>
 
-          <template v-if="clusters && !!clusters.length">
+          <template v-if="clusters && clusters.length">
             <div
               v-if="showClusterSearch"
               class="search"
@@ -395,7 +390,7 @@ export default {
           </template>
 
           <template v-if="multiClusterApps.length">
-            <div class="category"></div>
+            <div class="category" />
             <div
               v-for="a in multiClusterApps"
               :key="a.label"
@@ -414,7 +409,7 @@ export default {
             </div>
           </template>
           <template v-if="legacyEnabled">
-            <div class="category"></div>
+            <div class="category" />
             <div
               v-for="a in legacyApps"
               :key="a.label"
@@ -433,7 +428,7 @@ export default {
             </div>
           </template>
           <template v-if="configurationApps.length">
-            <div class="category"></div>
+            <div class="category" />
             <div
               v-for="a in configurationApps"
               :key="a.label"
@@ -481,16 +476,16 @@ export default {
     z-index: 1000;
   }
 
-  .option {
-    &:not(.disabled):hover,
-    &.nuxt-link-active {
-      .rancher-provider-icon {
-        .rancher-icon-fill {
-          fill: var(--primary-hover-text);;
-        }
-      }
-    }
-  }
+  // .option {
+  //   &:not(.disabled):hover,
+  //   &.nuxt-link-active {
+  //     .rancher-provider-icon {
+  //       .rancher-icon-fill {
+  //         fill: var(--primary-hover-text);
+  //       }
+  //     }
+  //   }
+  // }
 
   .localeSelector {
     .popover-inner {
@@ -584,7 +579,6 @@ export default {
       flex-direction: column;
       margin: 10px 0;
       width: 300px;
-      
 
       .category {
         margin-top: 30px;
@@ -605,11 +599,21 @@ export default {
         &.disabled {
           background: transparent;
           cursor: not-allowed;
+          color: var(--muted);
 
           .rancher-provider-icon,
           .cluster-name {
             filter: grayscale(1);
             color: var(--muted);
+          }
+
+          &:hover {
+            background: transparent;
+            color: var(--muted);
+
+            > div {
+              color: var(--muted);
+            }
           }
         }
 
@@ -634,7 +638,7 @@ export default {
         img {
           margin-right: 14px;
         }
-        
+
         &.nuxt-link-active {
           background: var(--primary-hover-bg);
           color: var(--primary-hover-text);
@@ -656,10 +660,6 @@ export default {
           div {
             color: var(--primary-hover-text);
           }
-          &.disabled {
-            background: transparent;
-            color: var(--muted);
-          }
         }
       }
 
@@ -673,6 +673,8 @@ export default {
 
       .search {
         position: relative;
+        padding: 10px 20px;
+
         > input {
           background-color: transparent;
           margin-bottom: 8px;
@@ -700,13 +702,22 @@ export default {
         padding: 8px
       }
     }
-  
+
+    &.menu-open > .footer {
+        display: flex;
+        opacity: 1;
+        visibility: visible;
+      }
+
     .footer {
       margin: 20px;
       width: 240px;
-      display: flex;
       flex: 0;
       flex-direction: row;
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s, opacity 0.5s linear;
+
       > * {
         flex: 1;
         color: var(--link);
