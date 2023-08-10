@@ -71,11 +71,11 @@ export default {
     },
 
     page() {
-      this.paginationChanged();
+      this.debouncedPaginationChanged();
     },
 
     perPage() {
-      this.paginationChanged();
+      this.debouncedPaginationChanged();
     },
 
   },

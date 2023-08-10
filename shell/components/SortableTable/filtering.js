@@ -169,7 +169,7 @@ export default {
     },
 
     searchQuery() {
-      this.paginationChanged();
+      this.debouncedPaginationChanged();
     },
   },
 };

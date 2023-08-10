@@ -1,6 +1,28 @@
-import projectAndNamespaceFilteringUtils, { FindAllOpt } from 'plugins/steve/projectAndNamespaceFiltering.utils';
+import projectAndNamespaceFilteringUtils from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import { FindAllOpt } from '@shell/plugins/dashboard-store/dashboard-store.types';
+// import { getPerformanceSetting } from 'utils/settings';
 
+/**
+ * Help functions for steve pagination
+ */
 class StevePaginationUtils {
+  /**
+   * Is pagination enabled at a global level
+   */
+  isEnabled({ rootGetters }: any) {
+    const currentProduct = rootGetters['currentProduct'];
+
+    // Only enable for the cluster store at the moment. In theory this should work in management as well, as they're both 'steve' stores
+    if (currentProduct?.inStore !== 'cluster') {
+      return false;
+    }
+
+    // ... no perf setting yet
+    // const perfConfig = getPerformanceSetting(rootGetters);
+
+    return true;
+  }
+
   checkAndCreateParam(opt: FindAllOpt): string | undefined {
     if (!opt.pagination) {
       return;
@@ -16,12 +38,16 @@ class StevePaginationUtils {
       params.push(namespaceParam);
     }
 
-    if (opt.pagination.page) { // TODO: RC what if not here?
+    if (opt.pagination.page) {
       params.push(`page=${ opt.pagination.page }`);
+    } else {
+      throw new Error(`A pagination request is required but no 'page' property provided: ${ JSON.stringify(opt) }`);
     }
 
     if (opt.pagination.pageSize) {
       params.push(`pagesize=${ opt.pagination.pageSize }`);
+    } else {
+      throw new Error(`A pagination request is required but no 'page' property provided: ${ JSON.stringify(opt) }`);
     }
 
     if (opt.pagination.sort?.length) {
@@ -40,8 +66,6 @@ class StevePaginationUtils {
       params.push(`filter=${ joined }`);
     }
 
-    // TODO: RC if not force... add revision?
-
     console.warn('steve page utils', 'checkAndCreateParam', 'res', params);
 
     return params.join('&');
@@ -52,7 +76,6 @@ class StevePaginationUtils {
       return '';
     }
 
-    // TODO: RC do this at the moment, but in future need to handle NOT cases (aka all not system = user)
     return projectAndNamespaceFilteringUtils.createParam(opt.pagination?.namespaces);
   }
 }

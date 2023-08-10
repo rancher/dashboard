@@ -1,29 +1,6 @@
 import { NAMESPACE_FILTER_NS_FULL_PREFIX, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import { getPerformanceSetting } from '@shell/utils/settings';
-
-export interface OptPagination {
-  namespaces?: string[];
-  page: number,
-  pageSize: number,
-  sort: { field: string, asc: boolean }[],
-  filter: { field: string, value: string }[]
-}
-
-// TODO: RC persist from response
-export interface StorePagination {
-  request: OptPagination,
-  result: {
-    count: number,
-    pages: number
-  }
-}
-
-// TODO: RC
-export type FindAllOpt = {
-  [key: string]: any,
-  namespaced?: string[],
-  pagination?: OptPagination,
-}
+import { FindAllOpt } from '@shell/plugins/dashboard-store/dashboard-store.types';
 
 class ProjectAndNamespaceFiltering {
   static param = 'projectsornamespaces'
@@ -72,9 +49,6 @@ class ProjectAndNamespaceFiltering {
       return '';
     }
 
-    // TODO: RC test n and p filtering outside of pagination
-
-    debugger;
     const namespaces = namespaceFilter.reduce((res, n) => {
       const name = n
         .replace(NAMESPACE_FILTER_NS_FULL_PREFIX, '')

@@ -4,7 +4,6 @@ import { addObject } from '@shell/utils/array';
 export default {
   computed: {
     sortFields() {
-      // TODO: RC WARNING - group sort?! DISABLE ish...
       let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
       let fromColumn = [];
 
@@ -24,7 +23,12 @@ export default {
 
       const out = [...fromGroup, ...fromColumn];
 
-      addObject(out, 'nameSort'); // TODO: RC don't add this automatically
+      if (this.externalPagination) {
+        addObject(out, 'metadata.name'); // TODO: RC FIX
+      } else {
+        addObject(out, 'nameSort');
+      }
+
       addObject(out, 'id');
 
       return out;
@@ -110,12 +114,12 @@ export default {
   watch: {
     sortFields(neu) {
       console.warn('paging', 'watch', 'sortFields', neu);
-      this.paginationChanged();
+      this.debouncedPaginationChanged();
     },
 
     descending(neu) {
       console.warn('paging', 'watch', 'descending', neu);
-      this.paginationChanged();
+      this.debouncedPaginationChanged();
     }
   }
 };

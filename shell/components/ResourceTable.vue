@@ -305,6 +305,9 @@ export default {
       return headers;
     },
 
+    /**
+     * Take rows and filter out entries given the namespace filter
+     */
     filteredRows() {
       const isAll = this.$store.getters['isAllNamespaces'];
 
@@ -312,7 +315,7 @@ export default {
       if (
         !this.isNamespaced || // Resource type isn't namespaced
         this.ignoreFilter || // Component owner strictly states no filtering
-        this.externalPagination || // TODO: RC
+        this.externalPagination ||
         (isAll && !this.currentProduct?.hideSystemResources) || // Need all
         (this.inStore ? this.$store.getters[`${ this.inStore }/haveNamespace`](this.schema.id)?.length : false)// Store reports type has namespace filter, so rows already contain the correctly filtered resources
       ) {
@@ -344,7 +347,7 @@ export default {
       });
     },
 
-    _group: mapPref(GROUP_RESOURCES), // TODO: RC ensure group preference sticks
+    _group: mapPref(GROUP_RESOURCES),
 
     // The group stored in the preference (above) might not be valid for this resource table - so ensure we
     // choose a group that is applicable (the default)

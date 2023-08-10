@@ -326,7 +326,7 @@ export default {
     }
   },
 
-  // TODO: RC on group change.... do something
+  // TODO: RC ??? on group change.... do something
 
   data() {
     let searchQuery = '';
@@ -339,12 +339,13 @@ export default {
     }
 
     return {
-      currentPhase:     ASYNC_BUTTON_STATES.WAITING,
-      expanded:         {},
+      currentPhase:               ASYNC_BUTTON_STATES.WAITING,
+      expanded:                   {},
       searchQuery,
       eventualSearchQuery,
-      actionOfInterest: null,
-      loadingDelay:     false,
+      actionOfInterest:           null,
+      loadingDelay:               false,
+      debouncedPaginationChanged: null,
     };
   },
 
@@ -360,7 +361,7 @@ export default {
     $main?.addEventListener('scroll', this._onScroll);
 
     if (this.externalPagination) {
-      this.paginationChanged();
+      this.debouncedPaginationChanged();
     }
   },
 
@@ -445,6 +446,7 @@ export default {
 
   created() {
     this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
+    this.debouncedPaginationChanged = debounce(this.paginationChanged, 500);
   },
 
   computed: {
@@ -917,7 +919,6 @@ export default {
     },
 
     paginationChanged() {
-      // TODO: RC debounce
       console.warn('ss', 'methods', 'paginationChanged', {
         page:    this.page,
         perPage: this.perPage,

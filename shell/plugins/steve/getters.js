@@ -31,7 +31,8 @@ export default {
     const parsedUrl = parse(url);
     const isSteve = parsedUrl.path.startsWith('/v1');
 
-    //  TODO: RC ADD PAGINATION
+    // TODO: RC steve (mgmt steve) vs steve (proxy to kube)
+
     // Pagination
     const stevePagination = stevePaginationUtils.checkAndCreateParam(opt);
 

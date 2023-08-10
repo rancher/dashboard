@@ -3,16 +3,17 @@ import { NAMESPACE } from 'config/types';
 import { ALL_NAMESPACES } from 'store/prefs';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
+import stevePaginationUtils from 'plugins/steve/pagination-utils';
 
 /**
- * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace TODO: RC
+ * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace
  */
 export default {
 
   data() {
     return {
       forceUpdateLiveAndDelayed: 0,
-      // : OptPagination // TODO: RC
+      // This of type `OptPagination`
       pPagination:               {
         namespaces: undefined,
         page:       1,
@@ -29,24 +30,15 @@ export default {
     },
 
     paginationChanged(event) {
-      console.warn('mixin', 'method', 'paginationChanged', event);
-
-      // TODO: RC wire in currentProduct?.hideSystemResources to namespaces?
       this.pPagination = {
-        // namespaces: this.namespaceFilters,
+        // namespaces: this.namespaceFilters, // TODO: RC
         ...this.pPagination,
         page:     event.page,
         pageSize: event.perPage,
-        // TODO: RC document. headers. sort
-        // `nameSort` --> path of name
-        // `namespace` --> metadata.namespaces
-        // `subTypeDisplay` --> `_type` (minus localisation and fallback)
         sort:     event.sort?.map((field) => ({
           field,
           asc: !event.descending
         })),
-        // TODO: RC document. headers. filter
-        // searchFields contains fns (getValue) to find the value to apply the searchQuery to
         filter: event.filter.searchQuery ? event.filter.searchFields.map((field) => ({
           field,
           value: event.filter.searchQuery,
@@ -57,16 +49,23 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentProduct', 'currentCluster', 'namespaceFilters', 'namespaces', 'currentStore']), // TODO: RC currentStore
+    ...mapGetters(['currentProduct', 'namespaceFilters']),
+
+    canPaginate() {
+      return this.__paginationRequired && this.paginationHeaders;
+    },
+
     /**
      * Returns the namespace that requests should be filtered by
      */
     pagination() {
-      // TODO: RC get from  store (including revision)
-      // TODO: RC sortable table --> store
-      console.warn('mixin', 'pagination', 'pagination', this.__paginationRequired, this.pPagination);
+      console.warn('mixin', 'pagination', 'pagination', this.canPaginate, this.pPagination);
 
-      return this.__paginationRequired ? this.pPagination : '';
+      return this.canPaginate ? this.pPagination : '';
+    },
+
+    paginationHeaders() {
+      return this.$store.getters['type-map/paginationHeadersFor'](this.schema);
     },
 
     /**
@@ -75,13 +74,11 @@ export default {
      * We shouldn't show an error on pages with resources that aren't namespaced
      */
     __paginationRequired() {
-      // if (!pAndNFiltering.isEnabled(this.$store.getters)) {
-      //   return false;
-      // }
+      if (!stevePaginationUtils.isEnabled({ rootGetters: this.$store.getters })) {
+        return false;
+      }
 
-      // return this.__areResourcesNamespaced;
-
-      return true;
+      return this.__areResourcesNamespaced;
     },
 
     paginationResult() {
@@ -89,7 +86,8 @@ export default {
     },
 
     havePaginated() {
-      return this.$store.getters[`cluster/havePaginated`](this.resource); // TODO: RC
+      // Only currently works with cluster store, so no need to worry about the store the resources are in
+      return this.$store.getters[`cluster/havePaginated`](this.resource);
     },
 
   },
@@ -99,24 +97,14 @@ export default {
       const isAll = this.$store.getters['isAllNamespaces'];
 
       const namespaced = this.schema.attributes.namespaced;
-      const paginationRequires = this.__paginationRequired; // TODO: RC check
-
-      // TODO: RC wire this in to first fest
+      const paginationRequires = this.canPaginate;
 
       if (!namespaced || !paginationRequires) {
         return;
       }
 
-      // ---------- make common
-      // const allNamespaces = this.$store.getters[`${ this.inStore }/all`](NAMESPACE);
-      // const allowedNamespaces = allNamespaces
-      //   .filter((ns) => state.prefs.data['all-namespaces'] ? true : !ns.isObscure); // Filter out Rancher system namespaces
-      // .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
-
-      // ---------
-
       const pref = this.$store.getters['prefs/get'](ALL_NAMESPACES);
-      const hideSystemResources = this.currentProduct.hideSystemResources; // TODO: RC test again at end
+      const hideSystemResources = this.currentProduct.hideSystemResources;
 
       const allButHidingSystemResources = isAll && (hideSystemResources || pref);
 
@@ -135,8 +123,6 @@ export default {
           })
           .map((ns) => `-${ ns.name }`);
       } else if (neu.length === 1) {
-        console.warn(neu[0], NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER);
-
         const allSystem = allNamespaces.filter((ns) => ns.isSystem);
 
         if (neu[0] === NAMESPACE_FILTER_ALL_SYSTEM) {
@@ -157,7 +143,7 @@ export default {
     async pagination(neu) {
       console.warn('mixin', 'watch', 'pagination', this.pagination);
 
-      // TODO: RC if not namespaced,  don't bother with ns      this.__areResourcesNamespaced
+      // TODO: RC TEST - this shouldn't fire on lists that don't support pagination
 
       if (neu) {
         // When a NS filter is required and the user selects a different one, kick off a new set of API requests
@@ -168,7 +154,6 @@ export default {
         //
         // This covers case 2
         if (this.$options.name !== ResourceListComponentName && !!this.$fetch) {
-          // TODO: RC
           await this.$fetch();
         }
         // Ensure any live/delayed columns get updated

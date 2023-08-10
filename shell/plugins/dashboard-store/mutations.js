@@ -15,7 +15,7 @@ function registerType(state, type) {
       haveAll:        false,
       haveSelector:   {},
       haveNamespace:  undefined, // If the cached list only contains resources for a namespace, this will contain the ns name
-      havePagination: undefined, // TODO: RC
+      havePagination: undefined,
       revision:       0, // The highest known resourceVersion from the server for this type
       generation:     0, // Updated every time something is loaded for this type
       loadCounter:    0, // Used to cancel incremental loads if the page changes during load
@@ -298,9 +298,8 @@ export function loadAll(state, {
 
   // Allow requester to skip setting that everything has loaded
   if (!skipHaveAll) {
-    // TODO: RC haveNamespace and havePagination to move to steve mutation
     if (pagination) {
-      // : StorePagination
+      // havePagination is of type `StorePagination`
       cache.havePagination = pagination;
       cache.haveNamespace = undefined;
       cache.haveAll = undefined;

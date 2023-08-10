@@ -475,7 +475,7 @@ export const getters = {
       canYaml:                true,
       namespaced:             null,
       listGroups:             [],
-      listGroupsWillOverride: false, // TODO: RC
+      listGroupsWillOverride: false,
       depaginate:             false,
       customRoute:            undefined,
       resourceEditMasthead:   true,
@@ -967,10 +967,9 @@ export const getters = {
     };
   },
 
-  paginationHeadersFor(state, getters, rootState, rootGetters) {
+  paginationHeadersFor(state) {
     return (schema) => {
-      // TODO: RC what do if none? wire in to mixin?
-      return state.paginationHeaders[schema.id] || getters.headersFor(schema);
+      return state.paginationHeaders[schema.id];
     };
   },
 

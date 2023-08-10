@@ -22,6 +22,9 @@ import {
 } from '@shell/config/table-headers';
 
 import { DSL } from '@shell/store/type-map';
+import {
+  STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
+} from 'config/pagination-table-headers';
 
 export const NAME = 'explorer';
 
@@ -195,57 +198,23 @@ export function init(store) {
   configureType(MANAGEMENT.PSA, { localOnly: true });
 
   headers(PV, [STATE, NAME_COL, RECLAIM_POLICY, PERSISTENT_VOLUME_CLAIM, PERSISTENT_VOLUME_SOURCE, PV_REASON, AGE]);
-  headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
 
-  // export const STATE = {
-  //   name:      'state',
-  //   labelKey:  'tableHeaders.state',
-  //   sort:      ['stateSort', 'nameSort'],
-  //   value:     'stateDisplay',
-  //   getValue:  (row) => row.stateDisplay,
-  //   width:     100,
-  //   default:   'unknown',
-  //   formatter: 'BadgeStateFormatter',
-  // };
-
-  // export const NAME = {
-  //   name:          'name',
-  //   labelKey:      'tableHeaders.name',
-  //   value:         'nameDisplay',
-  //   getValue:      (row) => row.nameDisplay,
-  //   sort:          ['nameSort'],
-  //   formatter:     'LinkDetail',
-  //   canBeVariable: true,
-  // };
-
-  // export const NAMESPACE = {
-  //   name:        'namespace',
-  //   labelKey:    'tableHeaders.namespace',
-  //   value:       'namespace',
-  //   getValue:    (row) => row.namespace,
-  //   sort:        'namespace',
-  //   dashIfEmpty: true,
-  // };
-
-  // export const SUB_TYPE = {
-  //   name:     'subType',
-  //   labelKey: 'tableHeaders.subType',
-  //   value:    'subTypeDisplay',
-  //   sort:     ['subTypeDisplay'],
-  //   width:    120,
-  // };
-
-  // export const AGE = {
-  //   name:      'age',
-  //   labelKey:  'tableHeaders.age',
-  //   value:     'creationTimestamp',
-  //   getValue:  (row) => row.creationTimestamp,
-  //   sort:      'creationTimestamp:desc',
-  //   search:    false,
-  //   formatter: 'LiveDate',
-  //   width:     100,
-  //   align:     'left'
-  // };
+  headers(CONFIG_MAP,
+    [NAME_COL, NAMESPACE_COL, KEYS, AGE],
+    [
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL, {
+        ...KEYS,
+        sort:   false,
+        search: false,
+      },
+      STEVE_AGE_COL
+    ]
+  );
+  configureType(CONFIG_MAP, {
+    listGroups:             STEVE_LIST_GROUPS,
+    listGroupsWillOverride: true,
+  });
 
   const secretData = {
     name:      'data',
@@ -261,47 +230,20 @@ export function init(store) {
     SUB_TYPE,
     secretData,
     AGE
-  ], [{
-    ...STATE,
-    value:     'metadata.state.name',
-    sort:      ['metadata.state.name'],
-    search:    'metadata.state.name',
-    formatter: null // TODO: RC document. as we use raw value... we can't show anything but as sorting/filtering will be wrong. same goes for others
-  }, {
-    ...NAME_COL,
-    value:  'metadata.name',
-    sort:   ['metadata.name'],
-    search: 'metadata.name',
-  }, {
-    ...NAMESPACE_COL,
-    value:  'metadata.namespace',
-    sort:   ['metadata.namespace'],
-    search: 'metadata.namespace',
-  }, {
-    ...SUB_TYPE,
-    value:  '_type', // TODO: RC document. model - fallback. also translations
-    sort:   [], // TODO: RC does not work (backend doesn't sort on it)
-    search: false, // TODO: RC does not work (backend doesn't sort on it)
-  },
-  secretData,
-  {
-    ...AGE,
-    value: 'metadata.creationTimestamp',
-    sort:  'metadata.creationTimestamp:desc',
-  }]);
+  ], [
+    STEVE_STATE_COL,
+    STEVE_NAME_COL,
+    STEVE_NAMESPACE_COL, {
+      ...SUB_TYPE,
+      value:  '_type',
+      sort:   false,
+      search: false,
+    },
+    secretData,
+    STEVE_AGE_COL
+  ]);
   configureType(SECRET, {
-    listGroups: [{
-      tooltipKey: 'resourceTable.groupBy.none',
-      icon:       'icon-list-flat',
-      value:      'none',
-    }, {
-      icon:       'icon-folder',
-      value:      'metadata.namespace',
-      field:      'metadata.namespace',
-      hideColumn: NAMESPACE_COL.name,
-      tooltipKey: 'resourceTable.groupBy.namespace'
-    }
-    ],
+    listGroups:             STEVE_LIST_GROUPS,
     listGroupsWillOverride: true,
   });
 

@@ -154,13 +154,13 @@ export default {
       opt.force !== true &&
       (getters['haveAllPaginated'](type, opt.pagination) || getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))
     ) {
+      // TODO: RC TEST that when returning to a list we don't re-fetch
       const args = {
         type,
         revision:  '',
         // watchNamespace - used sometimes when we haven't fetched the results of a single namespace
         // namespaced - used when we have fetched the result of a single namespace (see https://github.com/rancher/dashboard/pull/7329/files)
         namespace: opt.watchNamespace || opt.namespaced
-        //  TODO: RC ALL watch and namespaced? this does the filtering
       };
 
       if (opt.watch !== false ) {

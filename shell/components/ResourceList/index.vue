@@ -77,7 +77,8 @@ export default {
       }
 
       // See comment for `namespaceFilterRequired` watcher, skip fetch if we don't have a valid NS
-      if (!this.namespaceFilterRequired && !this.__paginationRequired) { // TODO: RC comment. also we should show loading indicator
+      // TODO: RC TODO tie in to comment above
+      if (!this.namespaceFilterRequired && !this.canPaginate) { // TODO: RC comment. also we should show loading indicator
         await this.$fetchType(resource);
       }
     }
@@ -125,9 +126,11 @@ export default {
         return [];
       }
 
-      // TODO: RC
-      return this.$store.getters['type-map/paginationHeadersFor'](this.schema) ||
-      this.$store.getters['type-map/headersFor'](this.schema);
+      if (this.pagination) {
+        return this.paginationHeaders;
+      }
+
+      return this.$store.getters['type-map/headersFor'](this.schema);
     },
 
     groupBy() {
