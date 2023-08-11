@@ -6,7 +6,7 @@ describe('Cluster Explorer', () => {
     cy.login();
   });
 
-  describe('Workloads', { tags: ['@standardUser'] }, () => {
+  describe('Workloads', { tags: ['@standardUser', '@adminUser'] }, () => {
     let deploymentsListPage: WorkloadsDeploymentsListPagePo;
     let deploymentsCreatePage: WorkloadsDeploymentsCreatePagePo;
 
