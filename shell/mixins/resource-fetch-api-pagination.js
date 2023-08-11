@@ -31,7 +31,7 @@ export default {
 
     paginationChanged(event) {
       this.pPagination = {
-        // namespaces: this.namespaceFilters, // TODO: RC
+        // namespaces: this.namespaceFilters,
         ...this.pPagination,
         page:     event.page,
         pageSize: event.perPage,

@@ -24,7 +24,7 @@ export default {
       const out = [...fromGroup, ...fromColumn];
 
       if (this.externalPagination) {
-        addObject(out, 'metadata.name'); // TODO: RC FIX
+        addObject(out, 'metadata.name'); // TODO: RC FIX its a steve things
       } else {
         addObject(out, 'nameSort');
       }

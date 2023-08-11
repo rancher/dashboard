@@ -252,7 +252,7 @@ export function init(store) {
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, {
       ...POD_IMAGES,
       sort:   false,
-      search: 'spec.containers'
+      search: false
     }, 'Ready', 'Restarts', 'IP', {
       ...NODE_COL,
       search: 'spec.nodeName'
@@ -266,7 +266,7 @@ export function init(store) {
       {
         icon:       'icon-cluster',
         value:      'role',
-        field:      'spec.nodeName', // TODO: RC PROCESS this was spec?.nodeName in groupByNode
+        field:      'spec.nodeName',
         hideColumn: 'groupByNode',
         tooltipKey: 'resourceTable.groupBy.node'
       }

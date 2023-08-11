@@ -78,7 +78,7 @@ export default {
 
       // See comment for `namespaceFilterRequired` watcher, skip fetch if we don't have a valid NS
       // TODO: RC TODO tie in to comment above
-      if (!this.namespaceFilterRequired && !this.canPaginate) { // TODO: RC comment. also we should show loading indicator
+      if (!this.namespaceFilterRequired && !this.canPaginate) {
         await this.$fetchType(resource);
       }
     }
@@ -163,7 +163,6 @@ export default {
       }
     },
 
-    // TODO: RC comment
     pagination(neu, old) {
       const { filter: neuFilter, sort: neuSort, ...newPrimitiveTypes } = neu;
       const { filter: oldFilter, sort: oldSort, ...oldPrimitiveTypes } = old;
@@ -173,6 +172,7 @@ export default {
         isEqual(neuFilter, oldFilter) &&
         sameContents(neuSort, oldSort)
       ) {
+        // TODO: RC TEST more
         return;
       }
 

@@ -239,7 +239,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = this.$store.getters['type-map/headersFor'](this.schema); // TODO: RC
+        headers = this.$store.getters['type-map/headersFor'](this.schema); // TODO: RC not required atm, but needs to be integrated with pagination headers
       }
 
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook

@@ -979,8 +979,9 @@ export const getters = {
           if ( col ) {
             return {
               ...fromSchema(col, rootGetters),
-              sort:   false, // TODO: RC Process. LOST Pod Ready, Restarts, IP
-              search: false // TODO: RC Process. LOST Pod Ready, Restarts, IP
+              // Automatically disable sort and search, not currently supported API side
+              sort:   false,
+              search: false
             };
           } else {
             return null;

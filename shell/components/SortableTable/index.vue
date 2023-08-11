@@ -326,8 +326,6 @@ export default {
     }
   },
 
-  // TODO: RC ??? on group change.... do something
-
   data() {
     let searchQuery = '';
     let eventualSearchQuery = '';
