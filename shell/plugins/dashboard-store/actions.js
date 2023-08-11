@@ -152,7 +152,8 @@ export default {
     // No need to request the resources if we have them already
     if (
       opt.force !== true &&
-      (getters['haveAllPaginated'](type, opt.pagination) || getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))
+      (opt.pagination ? getters['haveAllPaginated'](type, opt.pagination) : true) &&
+      (getters['haveAll'](type) || getters['haveAllNamespace'](type, opt.namespaced))
     ) {
       // TODO: RC TEST that when returning to a list we don't re-fetch
       const args = {

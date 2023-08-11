@@ -274,12 +274,18 @@ export default {
     return false;
   },
 
-  haveAllPaginated: (state, getters) => (type) => {
+  haveAllPaginated: (state, getters) => (type, pagination) => {
+    if (!pagination) {
+      return false;
+    }
+
     type = getters.normalizeType(type);
     const entry = state.types[type];
 
     if ( entry ) {
-      return !!entry.havePaginated;
+      // TODO: RC FIXME confirm that pagination === entry.havePagination
+
+      return !!entry.havePagination;
     }
 
     return false;
