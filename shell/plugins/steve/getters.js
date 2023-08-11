@@ -8,8 +8,8 @@ import HybridModel, { cleanHybridResources } from './hybrid-class';
 import NormanModel from './norman-class';
 import { urlFor } from '@shell/plugins/dashboard-store/getters';
 import { normalizeType } from '@shell/plugins/dashboard-store/normalize';
-import pAndNFiltering from 'plugins/steve/projectAndNamespaceFiltering.utils';
-import stevePaginationUtils from 'plugins/steve/pagination-utils';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
+import stevePaginationUtils from '@shell/plugins/steve/pagination-utils';
 import { parse } from '@shell/utils/url';
 
 export const STEVE_MODEL_TYPES = {

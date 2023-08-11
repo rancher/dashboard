@@ -1,9 +1,9 @@
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER } from '@shell/utils/namespace-filter';
-import { NAMESPACE } from 'config/types';
-import { ALL_NAMESPACES } from 'store/prefs';
+import { NAMESPACE } from '@shell/config/types';
+import { ALL_NAMESPACES } from '@shell/store/prefs';
 import { mapGetters } from 'vuex';
 import { ResourceListComponentName } from '../components/ResourceList/resource-list.config';
-import stevePaginationUtils from 'plugins/steve/pagination-utils';
+import stevePaginationUtils from '@shell/plugins/steve/pagination-utils';
 
 /**
  * Companion mixin used with `resource-fetch` for `ResourceList` to determine if the user needs to filter the list by a single namespace

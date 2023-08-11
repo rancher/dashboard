@@ -1,4 +1,4 @@
-import pAndNFiltering from 'plugins/steve/projectAndNamespaceFiltering.utils';
+import pAndNFiltering from '@shell/plugins/steve/projectAndNamespaceFiltering.utils';
 
 /**
  * Sockets will not be able to subscribe to more than one namespace. If this is requested we pretend to handle it

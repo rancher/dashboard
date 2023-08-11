@@ -24,7 +24,7 @@ import {
 import { DSL } from '@shell/store/type-map';
 import {
   STEVE_AGE_COL, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL
-} from 'config/pagination-table-headers';
+} from '@shell/config/pagination-table-headers';
 
 export const NAME = 'explorer';
 
