@@ -341,6 +341,7 @@ export default {
       expanded:                   {},
       searchQuery,
       eventualSearchQuery,
+      subMatches:                 null,
       actionOfInterest:           null,
       loadingDelay:               false,
       debouncedPaginationChanged: null,
@@ -444,7 +445,7 @@ export default {
 
   created() {
     this.debouncedRefreshTableData = debounce(this.refreshTableData, 500);
-    this.debouncedPaginationChanged = debounce(this.paginationChanged, 500);
+    this.debouncedPaginationChanged = debounce(this.paginationChanged, 50);
   },
 
   computed: {

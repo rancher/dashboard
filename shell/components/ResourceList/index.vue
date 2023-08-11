@@ -8,7 +8,7 @@ import IconMessage from '@shell/components/IconMessage.vue';
 import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
-import { sameContents } from '@shell/utils/array';
+import { sameArrayObjects, sameContents } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
 
 export default {
@@ -170,7 +170,7 @@ export default {
       if (
         isEqual(newPrimitiveTypes, oldPrimitiveTypes) &&
         isEqual(neuFilter, oldFilter) &&
-        sameContents(neuSort, oldSort)
+        sameArrayObjects(neuSort, oldSort)
       ) {
         // TODO: RC TEST more
         return;

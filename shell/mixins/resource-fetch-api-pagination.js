@@ -52,14 +52,14 @@ export default {
     ...mapGetters(['currentProduct', 'namespaceFilters']),
 
     canPaginate() {
-      return this.__paginationRequired && this.paginationHeaders;
+      return this.__paginationRequired && !!this.paginationHeaders;
     },
 
     /**
      * Returns the namespace that requests should be filtered by
      */
     pagination() {
-      console.warn('mixin', 'pagination', 'pagination', this.canPaginate, this.pPagination);
+      console.warn('mixin', 'computed', 'pagination', this.canPaginate, this.pPagination);
 
       return this.canPaginate ? this.pPagination : '';
     },

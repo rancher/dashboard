@@ -322,8 +322,6 @@ export default {
         return this.rows || [];
       }
 
-      console.warn('NOOOOO');
-
       const includedNamespaces = this.$store.getters['namespaces']();
 
       // Shouldn't happen, but does for resources like management.cattle.io.preference
