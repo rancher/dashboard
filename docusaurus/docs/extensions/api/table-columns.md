@@ -6,7 +6,7 @@ Table Columns are added to Rancher via the `addTableColumn` method.
 
 *(Rancher version v2.7.2)*
 
-This method adds a table column to a `SortableTable`/`ResourceList` element-based table on the UI.
+This method adds a table column to a `ResourceTable` element-based table on the UI.
 
 Method:
 
