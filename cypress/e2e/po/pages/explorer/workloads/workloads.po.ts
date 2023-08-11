@@ -156,9 +156,8 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  createWithUI(name: string, containerImage: string, namespace = 'default') {
-    this.selectNamespaceOption(namespace);
-    this.namespace().set(namespace);
+  createWithUI(name: string, containerImage: string) {
+    // NB: namespace is selected by default
     this.name().set(name);
     this.containerImage().set(containerImage);
     this.saveCreateForm().click();
