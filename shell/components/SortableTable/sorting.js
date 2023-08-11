@@ -113,12 +113,12 @@ export default {
 
   watch: {
     sortFields(neu) {
-      console.warn('paging', 'watch', 'sortFields', neu);
+      console.warn('paging', 'watch', 'sortFields', neu); // eslint-disable-line no-console
       this.debouncedPaginationChanged();
     },
 
     descending(neu) {
-      console.warn('paging', 'watch', 'descending', neu);
+      console.warn('paging', 'watch', 'descending', neu); // eslint-disable-line no-console
       this.debouncedPaginationChanged();
     }
   }

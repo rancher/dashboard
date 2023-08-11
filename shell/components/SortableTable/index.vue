@@ -918,6 +918,7 @@ export default {
     },
 
     paginationChanged() {
+      // eslint-disable-next-line no-console
       console.warn('ss', 'methods', 'paginationChanged', {
         page:    this.page,
         perPage: this.perPage,

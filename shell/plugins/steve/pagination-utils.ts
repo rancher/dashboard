@@ -28,7 +28,7 @@ class StevePaginationUtils {
       return;
     }
 
-    console.warn('steve page utils', 'checkAndCreateParam', opt.pagination);
+    console.warn('steve page utils', 'checkAndCreateParam', opt.pagination); // eslint-disable-line no-console
 
     const params: string[] = [];
 
@@ -69,7 +69,7 @@ class StevePaginationUtils {
     // Note - There is a `limit` property that is by default 100,000. This can be disabled by using `limit=-1`,
     // but we shouldn't be fetching any pages big enough to exceed the default
 
-    console.warn('steve page utils', 'checkAndCreateParam', 'res', params);
+    console.warn('steve page utils', 'checkAndCreateParam', 'res', params); // eslint-disable-line no-console
 
     return params.join('&');
   }

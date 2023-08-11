@@ -65,7 +65,7 @@ class ProjectAndNamespaceFiltering {
 
     let res = '';
 
-    console.warn('pAndNUtil', 'createParam', namespaces.include, namespaces.exclude);
+    console.warn('pAndNUtil', 'createParam', namespaces.include, namespaces.exclude); // eslint-disable-line no-console
 
     if (namespaces.include.length) {
       res = `${ ProjectAndNamespaceFiltering.param }=${ namespaces.include.join(',') }`;

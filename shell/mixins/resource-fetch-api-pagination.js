@@ -44,7 +44,7 @@ export default {
           value: event.filter.searchQuery,
         })) : []
       };
-      console.warn('mixin', 'method', 'paginationChanged', this.pPagination);
+      console.warn('mixin', 'method', 'paginationChanged', this.pPagination); // eslint-disable-line no-console
     }
   },
 
@@ -59,7 +59,7 @@ export default {
      * Returns the namespace that requests should be filtered by
      */
     pagination() {
-      console.warn('mixin', 'computed', 'pagination', this.canPaginate, this.pPagination);
+      console.warn('mixin', 'computed', 'pagination', this.canPaginate, this.pPagination); // eslint-disable-line no-console
 
       return this.canPaginate ? this.pPagination : '';
     },
@@ -144,7 +144,7 @@ export default {
     },
 
     async pagination(neu) {
-      console.warn('mixin', 'watch', 'pagination', this.pagination);
+      console.warn('mixin', 'watch', 'pagination', this.pagination); // eslint-disable-line no-console
 
       // TODO: RC TEST - this shouldn't fire on lists that don't support pagination
 
