@@ -972,7 +972,7 @@ export const getters = {
       const attributes = schema.attributes || {};
       const columns = attributes.columns || [];
 
-      const c = state.paginationHeaders[schema.id]?.map((entry) => {
+      return state.paginationHeaders[schema.id]?.map((entry) => {
         if ( typeof entry === 'string' ) {
           const col = findBy(columns, 'name', entry);
 
@@ -991,8 +991,6 @@ export const getters = {
         }
       })
         .filter((col) => !!col);
-
-      return c;
     };
   },
 

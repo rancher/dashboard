@@ -52,7 +52,7 @@ export default {
     ...mapGetters(['currentProduct', 'namespaceFilters']),
 
     canPaginate() {
-      return this.__paginationRequired && !!this.paginationHeaders;
+      return this.__paginationRequired && !!this.paginationHeaders?.length;
     },
 
     /**

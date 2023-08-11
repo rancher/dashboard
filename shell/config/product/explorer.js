@@ -249,16 +249,19 @@ export function init(store) {
 
   headers(POD,
     [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, {
-      ...POD_IMAGES,
-      sort:   false,
-      search: false
-    }, 'Ready', 'Restarts', 'IP', {
-      ...NODE_COL,
-      search: 'spec.nodeName'
-    },
-    STEVE_AGE_COL]
-  );
+    [
+      STEVE_STATE_COL,
+      STEVE_NAME_COL,
+      STEVE_NAMESPACE_COL, {
+        ...POD_IMAGES,
+        sort:   false,
+        search: false
+      }, 'Ready', 'Restarts', 'IP', {
+        ...NODE_COL,
+        search: 'spec.nodeName'
+      },
+      STEVE_AGE_COL
+    ]);
   configureType(POD, {
     listGroups: [
       ...STEVE_LIST_GROUPS,
