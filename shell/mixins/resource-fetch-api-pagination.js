@@ -93,51 +93,54 @@ export default {
   },
 
   watch: {
-    async namespaceFilters(neu) {
-      const isAll = this.$store.getters['isAllNamespaces'];
+    namespaceFilters: {
+      immediate: true,
+      async handler(neu) {
+        const isAll = this.$store.getters['isAllNamespaces'];
 
-      const namespaced = this.schema.attributes.namespaced;
-      const paginationRequires = this.canPaginate;
+        const namespaced = this.schema.attributes.namespaced;
+        const paginationRequires = this.canPaginate;
 
-      if (!namespaced || !paginationRequires) {
-        return;
-      }
-
-      const pref = this.$store.getters['prefs/get'](ALL_NAMESPACES);
-      const hideSystemResources = this.currentProduct.hideSystemResources;
-
-      const allButHidingSystemResources = isAll && (hideSystemResources || pref);
-
-      let namespaces = neu;
-
-      const allNamespaces = this.$store.getters[`${ this.inStore }/all`](NAMESPACE);
-
-      if (allButHidingSystemResources) {
-        // Determine the disallowed namespaces (rather than possibly thousands of allowed)
-        namespaces = allNamespaces
-          .filter((ns) => {
-            const isObscure = pref ? false : ns.isObscure; // Filter out Rancher system namespaces
-            const isSystem = hideSystemResources ? ns.isSystem : false; // Filter out Fleet system namespaces
-
-            return isObscure || isSystem;
-          })
-          .map((ns) => `-${ ns.name }`);
-      } else if (neu.length === 1) {
-        const allSystem = allNamespaces.filter((ns) => ns.isSystem);
-
-        if (neu[0] === NAMESPACE_FILTER_ALL_SYSTEM) {
-          // get a list of all system namespaces
-          namespaces = allSystem.map((ns) => `${ ns.name }`);
-        } else if (neu[0] === NAMESPACE_FILTER_ALL_USER) {
-          // Determine the disallowed namespaces (rather than possibly thousands of allowed)
-          namespaces = allSystem.map((ns) => `-${ ns.name }`);
+        if (!namespaced || !paginationRequires) {
+          return;
         }
-      }
 
-      this.pPagination = {
-        ...this.pPagination,
-        namespaces,
-      };
+        const pref = this.$store.getters['prefs/get'](ALL_NAMESPACES);
+        const hideSystemResources = this.currentProduct.hideSystemResources;
+
+        const allButHidingSystemResources = isAll && (hideSystemResources || pref);
+
+        let namespaces = neu;
+
+        const allNamespaces = this.$store.getters[`${ this.inStore }/all`](NAMESPACE);
+
+        if (allButHidingSystemResources) {
+          // Determine the disallowed namespaces (rather than possibly thousands of allowed)
+          namespaces = allNamespaces
+            .filter((ns) => {
+              const isObscure = pref ? false : ns.isObscure; // Filter out Rancher system namespaces
+              const isSystem = hideSystemResources ? ns.isSystem : false; // Filter out Fleet system namespaces
+
+              return isObscure || isSystem;
+            })
+            .map((ns) => `-${ ns.name }`);
+        } else if (neu.length === 1) {
+          const allSystem = allNamespaces.filter((ns) => ns.isSystem);
+
+          if (neu[0] === NAMESPACE_FILTER_ALL_SYSTEM) {
+            // get a list of all system namespaces
+            namespaces = allSystem.map((ns) => `${ ns.name }`);
+          } else if (neu[0] === NAMESPACE_FILTER_ALL_USER) {
+            // Determine the disallowed namespaces (rather than possibly thousands of allowed)
+            namespaces = allSystem.map((ns) => `-${ ns.name }`);
+          }
+        }
+
+        this.pPagination = {
+          ...this.pPagination,
+          namespaces,
+        };
+      }
     },
 
     async pagination(neu) {

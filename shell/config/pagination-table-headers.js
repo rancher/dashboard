@@ -57,7 +57,6 @@ export const STEVE_LIST_GROUPS = [{
 // - add/update comments... everywhere
 // - remove debug consoles
 // - there are two subscribe messages sent for the list's type
-// - ns filter not applied on load / first visit
 // - there's no label on the namespace groups. this is due to the `field` used to search instead of the `value`
 
 // TODO: RC Comment
