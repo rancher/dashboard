@@ -82,8 +82,8 @@ export default {
         }
       ],
       imageTableHeaders: [
-        { ...SIMPLE_NAME, width: 400 },
-        IMAGE_SIZE
+        { ...SIMPLE_NAME, width: null },
+        { ...IMAGE_SIZE, width: 100 } // Ensure one header has a size, all other columns will scale
       ],
       taintTableHeaders: [
         KEY,

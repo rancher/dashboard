@@ -400,7 +400,10 @@ export default {
 
     pagingParams() {
       if ( !this.schema ) {
-        return {};
+        return {
+          singularLabel: '',
+          pluralLabel:   ''
+        };
       }
 
       return {
