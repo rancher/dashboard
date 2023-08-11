@@ -730,6 +730,44 @@ export default {
           overflow: hidden;
           text-overflow: ellipsis;
         }
+        img {
+          margin-right: 14px;
+        }
+
+        &.nuxt-link-active {
+          background: var(--primary-hover-bg);
+          color: var(--primary-hover-text);
+
+          svg {
+            fill: var(--primary-hover-text);
+          }
+
+          i {
+            color: var(--primary-hover-text);
+          }
+        }
+
+        &:hover {
+          color: var(--primary-hover-text);
+          background: var(--primary-hover-bg);
+          > div {
+            color: var(--primary-hover-text);
+          }
+          svg {
+            fill: var(--primary-hover-text);
+          }
+          div {
+            color: var(--primary-hover-text);
+          }
+          &.disabled {
+            background: transparent;
+            color: var(--muted);
+          }
+        }
+      }
+
+      .option, .option-disabled {
+        padding: $option-padding 0 $option-padding 14px;
       }
 
       .option, .option-disabled {

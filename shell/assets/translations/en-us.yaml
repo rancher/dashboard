@@ -188,6 +188,7 @@ nav:
     placeholder: Type to search clusters
     noResults: No matching clusters
     clusters: clusters
+    more: more
   resourceSearch:
     label: Resource Search
     toolTip: Resource Search {key}
