@@ -73,7 +73,6 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
 
     // let's make sure all went good
     extensionsPo.extensionTabAvailableClick();
-    // latest version of the chosen extension uses display-name annotation which is different from the actual pkg name
     extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
   });
 
