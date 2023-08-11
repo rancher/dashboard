@@ -46,12 +46,12 @@ export const STEVE_LIST_GROUPS = [{
 }];
 
 // TODO: RC TODO (can be later than alpha)
-// - loading indicator when pages are being requests (take care not to blip)
+// - loading indicator when pages are being requested (take care not to blip)
 // - performance setting (global enable / disable)
 // - improve - the list group by feature adds a namespace option if resource is namespaced. we replace this with config for paths via `listGroupsWillOverride`. this isn't so neat
 // - improve - there's a lot of computed properties in sortable table that fire when things happen in store. need to avoid these
-// - we re-fetch the list when we return to the page. this means the list is updated, but user has to wait for http request again
-// - resolve `TODO: RC FIX`
+// - we re-fetch the list when we return to the page. this means the list is updated, but user has to wait for http request again. could leave as is, candidate for refresh button
+// - resolve two `TODO: RC FIX`
 
 // TODO: RC TODO (should be part of alpha)
 // - add/update comments... everywhere
