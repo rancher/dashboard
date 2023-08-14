@@ -7,56 +7,53 @@ export class GitRepoCreatePo extends PagePo {
     static url: string;
 
     private static createPath(
-        clusterId: string,
-        queryParams?: Record<string, string>
+      clusterId: string,
+      queryParams?: Record<string, string>
     ) {
-        const urlStr = `/c/${clusterId}/fleet/fleet.cattle.io.gitrepo/create`;
+      const urlStr = `/c/${ clusterId }/fleet/fleet.cattle.io.gitrepo/create`;
 
-        if (!queryParams) {
-            return urlStr;
-        }
+      if (!queryParams) {
+        return urlStr;
+      }
 
-        const params = new URLSearchParams(queryParams);
+      const params = new URLSearchParams(queryParams);
 
-        return `${urlStr}?${params.toString()}`;
+      return `${ urlStr }?${ params.toString() }`;
     }
 
     static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-        return super.goTo(GitRepoCreatePo.createPath(clusterId));
+      return super.goTo(GitRepoCreatePo.createPath(clusterId));
     }
 
     constructor(clusterId: string) {
-        super(GitRepoCreatePo.createPath(clusterId));
+      super(GitRepoCreatePo.createPath(clusterId));
     }
 
     footer() {
-        return new CreateEditViewPo(this.self())
+      return new CreateEditViewPo(this.self());
     }
 
     setRepoName(name: string) {
-        return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
+      return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
     }
 
     setGitRepoUrl(url: string) {
-        return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
+      return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
     }
 
-    setGitRepoPath(path: string, index: number = 0) {
-       return this.gitRepoPaths().setValueAtIndex(index, path);
+    setGitRepoPath(path: string, index = 0) {
+      return this.gitRepoPaths().setValueAtIndex(index, path);
     }
 
     goToNext() {
-        return this.footer().nextPage();
+      return this.footer().nextPage();
     }
 
     create() {
-        return this.footer().create();
+      return this.footer().create();
     }
 
     gitRepoPaths() {
-        return new ArrayListPo('[data-testid="gitRepo-paths"]')
+      return new ArrayListPo('[data-testid="gitRepo-paths"]');
     }
-
-
-
 }

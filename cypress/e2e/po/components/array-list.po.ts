@@ -23,6 +23,7 @@ export default class ArrayListPo extends ComponentPo {
 
   setValueAtIndex(value: string, index: number): Cypress.Chainable {
     this.clickAdd();
+
     return this.self().find(`[data-testid="array-list-box${ index }"]`).find('input').type(value);
   }
 }

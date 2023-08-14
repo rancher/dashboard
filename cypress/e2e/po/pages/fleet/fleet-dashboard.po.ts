@@ -8,34 +8,31 @@ export class FleetDashboardPagePo extends PagePo {
     static url: string;
 
     private static createPath(
-        clusterId: string,
-        queryParams?: Record<string, string>
+      clusterId: string,
+      queryParams?: Record<string, string>
     ) {
-        const urlStr = `/c/${clusterId}/fleet`;
+      const urlStr = `/c/${ clusterId }/fleet`;
 
-        if (!queryParams) {
-            return urlStr;
-        }
+      if (!queryParams) {
+        return urlStr;
+      }
 
-        const params = new URLSearchParams(queryParams);
+      const params = new URLSearchParams(queryParams);
 
-        return `${urlStr}?${params.toString()}`;
+      return `${ urlStr }?${ params.toString() }`;
     }
 
     static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-        return super.goTo(FleetDashboardPagePo.createPath(clusterId));
+      return super.goTo(FleetDashboardPagePo.createPath(clusterId));
     }
 
     constructor(clusterId: string) {
-        super(FleetDashboardPagePo.createPath(clusterId));
+      super(FleetDashboardPagePo.createPath(clusterId));
     }
 
     resourceTable(name: string) {
-        const table = this.self().find(`[data-testid="collapsible-card-${ name }"]`);
-        return new ResourceTablePo(table);
+      const table = this.self().find(`[data-testid="collapsible-card-${ name }"]`);
+
+      return new ResourceTablePo(table);
     }
-
-    
-
-
 }

@@ -636,8 +636,8 @@ export default {
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
-        data-testid="gitRepo-paths"
         v-model="value.spec.paths"
+        data-testid="gitRepo-paths"
         :mode="mode"
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"

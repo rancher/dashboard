@@ -377,9 +377,9 @@ export default {
         :title="`${t('resourceDetail.masthead.workspace')}: ${ws.nameDisplay}`"
         :is-collapsed="isCollapsed[ws.id]"
         :is-title-clickable="true"
+        :data-testid="`collapsible-card-${ ws.id }`"
         @toggleCollapse="toggleCollapse($event, ws.id)"
         @titleClick="setWorkspaceFilterAndLinkToGitRepo(ws.id)"
-        :data-testid="`collapsible-card-${ ws.id }`"
       >
         <template v-slot:header-right>
           <div class="header-icons">

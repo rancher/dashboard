@@ -7,38 +7,37 @@ export class GitRepoCreatePo extends PagePo {
     static url: string;
 
     private static createPath(
-        clusterId: string,
-        queryParams?: Record<string, string>
+      clusterId: string,
+      queryParams?: Record<string, string>
     ) {
-        const urlStr = `/c/${clusterId}/fleet/management.cattle.io.fleetworkspace/create`;
+      const urlStr = `/c/${ clusterId }/fleet/management.cattle.io.fleetworkspace/create`;
 
-        if (!queryParams) {
-            return urlStr;
-        }
+      if (!queryParams) {
+        return urlStr;
+      }
 
-        const params = new URLSearchParams(queryParams);
+      const params = new URLSearchParams(queryParams);
 
-        return `${urlStr}?${params.toString()}`;
+      return `${ urlStr }?${ params.toString() }`;
     }
 
     static goTo(clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
-        return super.goTo(GitRepoCreatePo.createPath(clusterId));
+      return super.goTo(GitRepoCreatePo.createPath(clusterId));
     }
 
     constructor(clusterId: string) {
-        super(GitRepoCreatePo.createPath(clusterId));
+      super(GitRepoCreatePo.createPath(clusterId));
     }
 
     footer() {
-        return new CreateEditViewPo(this.self())
+      return new CreateEditViewPo(this.self());
     }
 
     setWorkspaceName(name: string) {
-        return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
+      return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
     }
 
-
     create() {
-        return this.footer().create();
+      return this.footer().create();
     }
 }
