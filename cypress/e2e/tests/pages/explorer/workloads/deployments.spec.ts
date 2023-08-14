@@ -28,7 +28,7 @@ describe('Cluster Explorer', () => {
 
         deploymentsCreatePage.goTo();
 
-        deploymentsCreatePage.createWithUI(name, containerImage, namespace);
+        deploymentsCreatePage.createWithUI(name, containerImage);
 
         cy.wait('@interceptAllRequests0').then(({ request, response }) => {
           expect(request.body).to.deep.eq(deploymentCreateRequest);

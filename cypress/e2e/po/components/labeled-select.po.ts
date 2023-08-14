@@ -14,7 +14,7 @@ export default class LabeledSelectPo extends ComponentPo {
       .then(($th) => {
         const index = $th.index();
 
-        return this.clickOption(index + 1);
+        return this.clickOption(index);
       });
   }
 
