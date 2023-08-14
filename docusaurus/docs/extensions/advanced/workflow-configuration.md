@@ -4,14 +4,25 @@
 
 To build the charts needed to provide a Helm repository, use the reusable workflow job found [here](https://github.com/rancher/dashboard/blob/master/.github/workflows/build-extension-charts.yml). When published you will be able to target the Github repository as a Helm repository, which will serve the charts for installation within the Rancher Dashboard.
 
+## Workflow Permissions
+
+Each workflow requires permissions to be set correctly to complete the release processes, both builds have specific needs with some overlap:
+
+| Property | Extension Type | Permission | Description |
+| -------- | :---: | :---: | ----------------- |
+| `actions` | Charts/Catalog | `write` | Requires `write` to [cancel a workflow](https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#cancel-a-workflow-run). |
+| `contents` | Charts*/Catalog | `write`*/`read` | Requires `read` for `actions/checkout`, and requires `write` (*only necessary in the Chart Build workflow) to `put` the contents of the built extension charts [into a branch](https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#create-or-update-file-contents). |
+| `deployments` | Charts | `write` | Requires `write` when [deploying `gh-pages`](https://docs.github.com/en/rest/deployments/deployments?apiVersion=2022-11-28#create-a-deployment). |
+| `packages` | Catalog | `write` | Requires `write` when a catalog image is created to [create the package](https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions#publishing-a-package-using-an-action). |
+| `pages` | Charts | `write` | Requires write to [request and create page builds](https://docs.github.com/en/rest/pages/pages?apiVersion=2022-11-28#request-a-github-pages-build) for the deployment. |
+
 ### Extension Chart Inputs
 
 | Property | Required | Description |
 | -------- | :---: | -----------------|
-| `permissions` | `true` | This gives the workflow permissions to checkout, build, and push to the repository or registry. |
+| `permissions` | `true` | This gives the workflow permissions to checkout, build, and push to the repository. |
 | `target_branch` | `true` | The Github branch target for the extension build assets |
 | `tagged_release` | `false` | Specifies the tag name when triggering workflows by publishing tagged releases. (Requires alternate dispatch rules) |
-
 
 ### Example usage
 
@@ -25,15 +36,10 @@ jobs:
       actions: write
       contents: write
       deployments: write
-      id-token: write
-      packages: write
       pages: write
-      pull-requests: write
     with:
       target_branch: gh-pages
 ```
-
-
 
 ## Extension Catalog Image Workflow
 
@@ -43,7 +49,7 @@ To build an Extension Catalog Image (ECI) for air-gapped/private repositories, u
 
 | Property | Required | Description |
 | -------- | :---: | -----------------|
-| `permissions` | `true` | This gives the workflow permissions to checkout, build, and push to the repository or registry. |
+| `permissions` | `true` | This gives the workflow permissions to checkout, build, and push to the registry. |
 | `registry_target` | `true` | The container registry to publish the catalog image |
 | `registry_user` | `true` | The username connected to the container registry |
 | `tagged_release` | `false` | Specifies the tag name when triggering workflows by publishing tagged releases. (Requires alternate dispatch rules) |
@@ -59,12 +65,8 @@ jobs:
     uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
     permissions:
       actions: write
-      contents: write
-      deployments: write
-      id-token: write
+      contents: read
       packages: write
-      pages: write
-      pull-requests: write
     with:
       registry_target: ghcr.io
       registry_user: ${{ github.actor }}

@@ -19,12 +19,8 @@ jobs:
     uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
     permissions:
       actions: write
-      contents: write
-      deployments: write
-      id-token: write
+      contents: read
       packages: write
-      pages: write
-      pull-requests: write
     with:
       registry_target: ghcr.io
       registry_user: ${{ github.actor }}

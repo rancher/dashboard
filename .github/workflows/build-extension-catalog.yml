@@ -23,12 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
-      contents: write
-      deployments: write
-      id-token: write
+      contents: read
       packages: write
-      pages: write
-      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -36,8 +32,8 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Parse Extension Name
         if: github.ref_type == 'tag'
