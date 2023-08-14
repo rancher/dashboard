@@ -295,11 +295,10 @@ export default {
           </div>
 
           <template v-if="hciApps.length">
-            <div class="category" />
-            <div>
+            <div class="category">
               <a
                 v-if="isRancherInHarvester"
-                class="option disabled"
+                class="option"
                 @click="goToHarvesterCluster()"
               >
                 <i
@@ -390,60 +389,63 @@ export default {
           </template>
 
           <template v-if="multiClusterApps.length">
-            <div class="category" />
-            <div
-              v-for="a in multiClusterApps"
-              :key="a.label"
-              @click="hide()"
-            >
-              <nuxt-link
-                class="option"
-                :to="a.to"
+            <div class="category">
+              <div
+                v-for="a in multiClusterApps"
+                :key="a.label"
+                @click="hide()"
               >
-                <IconOrSvg
-                  :icon="a.icon"
-                  :src="a.svg"
-                />
-                <div>{{ a.label }}</div>
-              </nuxt-link>
+                <nuxt-link
+                  class="option"
+                  :to="a.to"
+                >
+                  <IconOrSvg
+                    :icon="a.icon"
+                    :src="a.svg"
+                  />
+                  <div>{{ a.label }}</div>
+                </nuxt-link>
+              </div>
             </div>
           </template>
           <template v-if="legacyEnabled">
-            <div class="category" />
-            <div
-              v-for="a in legacyApps"
-              :key="a.label"
-              @click="hide()"
-            >
-              <nuxt-link
-                class="option"
-                :to="a.to"
+            <div class="category">
+              <div
+                v-for="a in legacyApps"
+                :key="a.label"
+                @click="hide()"
               >
-                <IconOrSvg
-                  :icon="a.icon"
-                  :src="a.svg"
-                />
-                <div>{{ a.label }}</div>
-              </nuxt-link>
+                <nuxt-link
+                  class="option"
+                  :to="a.to"
+                >
+                  <IconOrSvg
+                    :icon="a.icon"
+                    :src="a.svg"
+                  />
+                  <div>{{ a.label }}</div>
+                </nuxt-link>
+              </div>
             </div>
           </template>
           <template v-if="configurationApps.length">
-            <div class="category" />
-            <div
-              v-for="a in configurationApps"
-              :key="a.label"
-              @click="hide()"
-            >
-              <nuxt-link
-                class="option"
-                :to="a.to"
+            <div class="category">
+              <div
+                v-for="a in configurationApps"
+                :key="a.label"
+                @click="hide()"
               >
-                <IconOrSvg
-                  :icon="a.icon"
-                  :src="a.svg"
-                />
-                <div>{{ a.label }}</div>
-              </nuxt-link>
+                <nuxt-link
+                  class="option"
+                  :to="a.to"
+                >
+                  <IconOrSvg
+                    :icon="a.icon"
+                    :src="a.svg"
+                  />
+                  <div>{{ a.label }}</div>
+                </nuxt-link>
+              </div>
             </div>
           </template>
           <div class="pad" />
@@ -476,16 +478,16 @@ export default {
     z-index: 1000;
   }
 
-  // .option {
-  //   &:not(.disabled):hover,
-  //   &.nuxt-link-active {
-  //     .rancher-provider-icon {
-  //       .rancher-icon-fill {
-  //         fill: var(--primary-hover-text);
-  //       }
-  //     }
-  //   }
-  // }
+  .option {
+    &:not(.disabled):hover,
+    &.nuxt-link-active {
+      .rancher-provider-icon {
+        .rancher-icon-fill {
+          fill: var(--primary-hover-text);
+        }
+      }
+    }
+  }
 
   .localeSelector {
     .popover-inner {
