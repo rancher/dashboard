@@ -1,4 +1,4 @@
-name: Build and Release Extension
+name: Build and Release Extension Charts
 
 on:
   workflow_call:
@@ -20,7 +20,7 @@ defaults:
     working-directory: ./
 
 jobs:
-  build:
+  build-extension-artifact:
     name: Build extension artifact
     runs-on: ubuntu-latest
     permissions:
@@ -41,6 +41,14 @@ jobs:
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
 
       - name: Setup Helm
         uses: azure/setup-helm@v3
@@ -90,8 +98,8 @@ jobs:
 
   release:
     name: Release Build
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: build
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+    needs: build-extension-artifact
     runs-on: ubuntu-latest
     permissions:
       actions: write

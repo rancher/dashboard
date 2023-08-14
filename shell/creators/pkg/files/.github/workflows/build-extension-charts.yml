@@ -1,0 +1,29 @@
+name: Build and Release Extension Charts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+    working-directory: ./
+
+jobs:
+  build-extension-artifact:
+    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      id-token: write
+      packages: write
+      pages: write
+      pull-requests: write
+    with:
+      target_branch: gh-pages

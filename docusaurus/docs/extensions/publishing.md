@@ -127,7 +127,7 @@ yarn publish-pkgs -c -p -r <REGISTRY> -o <ORGANIZATION>
 
 ## Additional Release Configuration
 
-Depending on your use case, there are multiple options on building and creating releases. When building an extension within a Github repository, you have the option of utilizing an action that triggers a [prebuilt workflow](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows). When added to your extension, the `./github/workflows` directory will contain the file: `build-extensions.yml`. This workflow accomplishs two seperate build jobs:
+Depending on your use case, there are multiple options on building and creating releases. When building an extension within a Github repository, you have the option of utilizing an action that triggers [prebuilt workflows](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows). When added to your extension, the `./github/workflows` directory will contain the files: `build-extension-charts.yml` and `build-extension-catalog.yml`. These workflows accomplish two seperate actions:
 
 - `build-extension-charts` - Builds the Helm charts and necessary assets that are then published to the specified branch (defaults to `gh-pages`).
   - The versioning of these builds is determined by the Extension Package `version` property found in `./pkg/<package-name>/package.json`
@@ -136,15 +136,15 @@ Depending on your use case, there are multiple options on building and creating 
   - An ECI contains the Helm charts and assets within the image, and is determined by the main Extension `version` property found in `./package.json`
   - Find the reusable workflow file [here](https://github.com/rancher/dashboard/blob/master/.github/workflows/build-extension-catalog.yml)
 
-By default, both of these jobs are triggered by pushing into the `main` branch. This may not be your disired flow, and so you can modify the workflow file to fit your needs.
+By default, both of these actions are triggered by pushing into the `main` branch. This may not be your disired flow, and so you can modify the workflow file to fit your needs.
 
-> Note: Addition configuration information on the workflow can be found in the [Workflow Configuration](./advanced/workflow-configuration.md) section. 
+> Note: Addition configuration information on the workflows can be found in the [Workflow Configuration](./advanced/workflow-configuration.md) section. 
 
 > Note: For more information on events that trigger workflows, follow the [Github Documentation](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
 
 ### Triggering a Github Workflow on Tagged Release
 
-The workflow job `build-extension-charts` will create tagged releases whenever a build is published, this is accomplished by the [`helm/chart-releaser-action`](https://github.com/helm/chart-releaser-action). Instead of having the workflow run before a release is tagged, you can modify the workflow file to be triggered by a [tagged release](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release). This allows you to push code to the `main` branch and create pre-releases without worrying about the automated builds kicking off.
+The workflow `build-extension-charts` will create tagged releases whenever a build is published, this is accomplished by the [`helm/chart-releaser-action`](https://github.com/helm/chart-releaser-action). Instead of having the workflow run before a release is tagged, you can modify the workflow file to be triggered by a [tagged release](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#release). This allows you to push code to the `main` branch and create pre-releases without worrying about the automated builds kicking off.
 
 #### Requirements
 
@@ -160,7 +160,7 @@ When creating a Tagged Release, the tag name ***MUST*** match the proper Extensi
 
 #### Workflow Configuration
 
-To configure the workflow you will need to modify two sections, namely the [`on`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on) stanza and the `with` property in both jobs.
+To configure the workflows you will need to modify two sections, namely the [`on`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on) stanza and the `with` property in both jobs.
 
 **Adding the Tagged Release event:**
 ```yaml
@@ -182,20 +182,20 @@ With a `release` event type configured, you will need to modify the `with` prope
 
 This will provide the `publish-pkgs` script within the resuable workflow with the released tag name and ensure only the specified build is accomplished.
 
-#### Extension Workflow Example
+#### Extension Charts Workflow Example
 
 An example of modifying the `build-extensions.yml` workflow file to build when a tag is released:
 
 ```yaml
-# .github/workflows/build-extension.yml
-name: Build and Release Extensions
+# .github/workflows/build-extension-charts.yml
+name: Build and Release Extension Charts
 
 on:
   release:
     types: [released]
 ...
 jobs:
-  build-extension-charts:
+  build-extension-artifact:
     ...
     with:
       target_branch: gh-pages
@@ -207,8 +207,8 @@ jobs:
 The same steps apply for the `build-extension-catalog` job as `${{ github.ref_name }}` will use the commit `ref` name, the release tag in this case, which triggered the action:
 
 ```yaml
-# .github/workflows/build-container.yml
-name: Build and release container to registry
+# .github/workflows/build-extension-catalog.yml
+name: Build and release Extension Catalog Image to registry
 
 on:
   release:
@@ -229,7 +229,7 @@ jobs:
 
 #### Sequence of Events
 
-Once the modifications have been made to the workflow file, all that is required for a build to be initiated is to create a Release tag with the desired extension to be built. This will then trigger both of the workflows, the `publish-pkgs` script will determine if the provided tag name matches either the main Extension name or one of the Extension packages names.
+Once the modifications have been made to the workflow files, all that is required for a build to be initiated is to create a Release tag with the desired extension to be built. This will then trigger both of the workflows, the `parse-ext-name` script will determine if the provided tag name matches either the main Extension name or one of the Extension packages names.
 
 If the Tagged Release does not match the main Extension name, the ECI build will be canceled. Alternatively, if the Tagged Release name does not match an Extension package name, it will be skipped.
  

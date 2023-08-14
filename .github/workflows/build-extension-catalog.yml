@@ -17,9 +17,9 @@ on:
         required: true
 
 jobs:
-  build:
+  build-extension-catalog:
     name: Build container image
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -38,6 +38,14 @@ jobs:
         run: |
           git config user.name "${{ github.actor }}"
           git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "catalog"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2

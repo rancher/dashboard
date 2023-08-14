@@ -1,4 +1,4 @@
-name: Build and Release Extensions
+name: Build and Release Extension Catalog
 
 on:
   workflow_dispatch:
@@ -15,22 +15,7 @@ defaults:
     working-directory: ./
 
 jobs:
-  build-extension-charts:
-    name: Build and release Extension charts
-    uses: rancher/dashboard/.github/workflows/build-extension-charts.yml@master
-    permissions:
-      actions: write
-      contents: write
-      deployments: write
-      id-token: write
-      packages: write
-      pages: write
-      pull-requests: write
-    with:
-      target_branch: gh-pages
-  
   build-extension-catalog:
-    name: Build and release Extension Catalog Image
     uses: rancher/dashboard/.github/workflows/build-extension-catalog.yml@master
     permissions:
       actions: write
