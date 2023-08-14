@@ -10,12 +10,9 @@ export default class LabeledSelectPo extends ComponentPo {
   }
 
   clickOptionWithLabel(label: string) {
-    return this.getOptions().contains(label)
-      .then(($th) => {
-        const index = $th.index();
-
-        return this.clickOption(index);
-      });
+    return this.getOptions().contains('li', label).invoke('index').then((index) => {
+      return this.clickOption(index + 1);
+    });
   }
 
   /**
