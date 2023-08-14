@@ -7,6 +7,8 @@ import { addParams, QueryParams } from '@shell/utils/url';
 import { randomStr } from '@shell/utils/string';
 import { isArray, removeObject } from '@shell/utils/array';
 import { _CREATE } from '@shell/config/query-params';
+import { NORMAN, MANAGEMENT } from '@shell/config/types';
+
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -17,10 +19,13 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
+import ArrayList from '@shell/components/form/ArrayList.vue';
+import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
-import { MANAGEMENT } from 'config/types';
+
 import { SETTING } from 'config/settings';
+import { isEmpty } from '@shell/utils/object';
 
 const defaultNodePool = {
   availabilityZones:   ['1', '2', '3'],
@@ -28,7 +33,7 @@ const defaultNodePool = {
   enableAutoScaling:   false,
   maxPods:             110,
   maxSurge:            '1',
-  mode:                'User' as AKSPoolMode,
+  mode:                'System' as AKSPoolMode,
   name:                'agentpool',
   nodeLabels:          { },
   nodeTaints:          [],
@@ -37,8 +42,37 @@ const defaultNodePool = {
   osDiskType:          'Managed' as AKSDiskType,
   osType:              'Linux',
   // type:                'aksnodepool',
-  vmSize:              '',
+  // todo nb default from available opts?
+  vmSize:              'Standard_DS2_v2',
   isNew:               true,
+};
+
+const defaultAksConfig = {
+  // azureCredentialSecret: "cattle-global-data:cc-dn76r",
+  clusterName:        'nb-aks-3',
+  // dnsPrefix: "nb-dns",
+  imported:           false,
+  // kubernetesVersion: "1.26.6",
+  linuxAdminUsername: 'azureuser',
+  loadBalancerSku:    'Standard',
+  networkPlugin:      'kubenet',
+  nodePools:          [{ ...defaultNodePool }],
+  privateCluster:     false,
+  // resourceGroup: "nb-resource-group",
+  // resourceLocation: "eastus",
+  tags:               {}
+};
+
+const defaultCluster = {
+  dockerRootDir:           '/var/lib/docker',
+  enableClusterAlerting:   false,
+  enableClusterMonitoring: false,
+  enableNetworkPolicy:     false,
+  labels:                  {},
+  // name: "nb-aks-3",
+  // type: "cluster",
+  windowsPreferedCluster:  false,
+  aksConfig:               defaultAksConfig
 };
 
 export default defineComponent({
@@ -52,7 +86,9 @@ export default defineComponent({
     LabeledInput,
     Checkbox,
     FileSelector,
-    KeyValue
+    KeyValue,
+    ArrayList,
+    ClusterMembershipEditor
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -70,20 +106,39 @@ export default defineComponent({
       }
     }
   },
+
+  // todo nb fetch norman cluster on edit/clone
+  async fetch() {
+    if (this.value.normanCluster && !isEmpty(this.value.normanCluster)) {
+      this.normanCluster = this.value.normanCluster;
+    } else {
+      this.normanCluster = await this.$store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
+    }
+    if (!this.normanCluster.aksConfig) {
+      this.$set(this.normanCluster, 'aksConfig', defaultAksConfig);
+    }
+    if (!this.normanCluster.aksConfig.nodePools) {
+      this.$set(this.normanCluster.aksConfig, 'nodePools', [{ ...defaultNodePool }]);
+    }
+    this.config = this.normanCluster.aksConfig;
+    this.nodePools = this.normanCluster.aksConfig.nodePools;
+    this.containerMonitoring = (this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
+    this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
+    this.normanCluster.spec.aksConfig.nodePools.forEach((pool: AKSNodePool) => this.$set(pool, '_id', randomStr()));
+  },
+
   data() {
     const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
 
-    // todo nb wire into value
-    const config: any = {};
-
     return {
-      credentialId: '',
-      region:       '',
-      aksVersion:   '',
-      // todo nb wire into config
-      // todo nb add initial pool
-      nodePools:    [] as AKSNodePool[],
-      config,
+      normanCluster:    {} as any,
+      credentialId:     '',
+      region:           '',
+      aksVersion:       '',
+      nodePools:        [] as AKSNodePool[],
+      // todo nb aksConfig type?
+      config:           {} as any,
+      membershipUpdate: {},
 
       supportedVersionRange,
       locationOptions:       [],
@@ -91,8 +146,8 @@ export default defineComponent({
       vmSizeOptions:         [],
       virtualNetworkOptions: [],
       defaultVmSize:         '',
-      // TODO nb on edit
-      clusterId:             null,
+      // // TODO nb on edit
+      // clusterId:             null,
       // TODO nb translations
       networkPluginOptions:  [
         { value: 'kubenet', label: 'Kubenet' }, { value: 'azure', label: 'Azure CNI' }
@@ -102,11 +157,22 @@ export default defineComponent({
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      containerMonitoring:    (config.logAnalyticsWorkspaceGroup || config.logAnalyticsWorkspaceName)
+      containerMonitoring:    false,
+      setAuthorizedIPRanges:  false
 
     };
   },
+
+  created() {
+    this.registerBeforeHook(this.removePoolIds);
+    this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+  },
+
   computed: {
+    isNew() {
+      return this.mode === _CREATE;
+    },
+
     doneRoute() {
       return this.value?.listLocation?.name;
     },
@@ -143,12 +209,30 @@ export default defineComponent({
       }
       ];
     },
+
+    canEditPrivateCluster() {
+      return this.isNew && !this.setAuthorizedIPRanges;
+    },
+
+    clusterId() {
+      return this.value?.id || null;
+    },
+
+    canManageMembers() {
+      return canViewClusterMembershipEditor(this.$store);
+    },
+
+    // TODO nb remove
+    obsValue() {
+      return { ...this.value, norman: { ...this.normanCluster } };
+    }
   },
 
   watch: {
     credentialId(neu, old) {
       if (neu) {
         this.getLocations();
+        this.$set(this.config, 'azureCredentialSecret', this.credentialId);
       }
     },
 
@@ -157,6 +241,7 @@ export default defineComponent({
         this.getAksVersions();
         this.getVmSizes();
         this.getVirtualNetworks();
+        this.$set(this.config, 'resourceLocation', neu);
       }
     },
 
@@ -177,6 +262,12 @@ export default defineComponent({
         delete this.config.virtualNetworkResourceGroup;
       }
     },
+
+    setAuthorizedIpRanges(neu) {
+      if (neu) {
+        this.$set(this.config, 'privateCluster', false);
+      }
+    }
 
   },
 
@@ -214,10 +305,11 @@ export default defineComponent({
       this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVersions') }).then((res) => {
         console.log('aks k8s versions: ', res);
 
-        // TODO more reliable way to sort versions?
+        // TODO nb more reliable way to sort versions?
+        // todo nb filter out downgrades on edit
         this.allAksVersions = res.reverse();
 
-        this.aksVersion = this.aksVersionOptions[0];
+        this.config.kubernetesVersion = this.aksVersionOptions[0];
         this.loadingVersions = false;
       }).catch((err) => {
         // TODO nb something
@@ -277,6 +369,33 @@ export default defineComponent({
     selectNetwork(network: any) {
       this.$set(this.config, 'virtualNetwork', network.name);
       this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
+    },
+
+    removePoolIds() {
+      this.nodePools.forEach((pool) => delete pool._id);
+    },
+
+    setClusterName(name) {
+      this.$set(this.normanCluster, 'name', name);
+      this.$set(this.config, 'clusterName', name);
+    },
+
+    onMembershipUpdate(update) {
+      this.$set(this, 'membershipUpdate', update);
+    },
+
+    async saveRoleBindings() {
+      // await this.value.waitForMgmt();
+
+      if (this.membershipUpdate.save) {
+        // todo nb prov id?
+        debugger;
+        await this.membershipUpdate.save(this.normanCluster.id);
+      }
+    },
+
+    async actuallySave(cb) {
+      await this.normanCluster.save();
     }
   },
 
@@ -291,6 +410,7 @@ export default defineComponent({
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
     @error="e=>errors=e"
+    @finish="save"
   >
     <div class="mb-20">
       <SelectCredential
@@ -303,9 +423,26 @@ export default defineComponent({
       />
     </div>
     <div v-if="showForm">
-      <!-- //TODO member roles from rke2 components
-      //TODO labels/annotations from rke2 component
-      //TODO Namensdescription -->
+      <div class="row mb-10">
+        <div class="col span-6">
+          <LabeledInput
+            :value="normanCluster.name"
+            :mode="mode"
+            label="name"
+            required
+            @input="setClusterName"
+          />
+        </div>
+      </div>
+      //TODO labels/annotations from rke2 component -->
+      <div class="row mb-10">
+        <ClusterMembershipEditor
+          v-if="canManageMembers"
+          :mode="mode"
+          :parent-id="normanCluster.id ? normanCluster.id : null"
+          @membership-update="onMembershipUpdate"
+        />
+      </div>
       <div class="row mb-10">
         <div
           v-if="locationOptions.length"
@@ -330,7 +467,7 @@ export default defineComponent({
         <div class="row mb-10">
           <div class="col span-4">
             <LabeledSelect
-              v-model="aksVersion"
+              v-model="config.kubernetesVersion"
               :mode="mode"
               :options="aksVersionOptions"
               label="Kubernetes Version"
@@ -339,6 +476,7 @@ export default defineComponent({
             />
           </div>
           <div class="col span-4">
+            <!-- //todo nb default? -->
             <LabeledInput
               v-model="config.linuxAdminUsername"
               :mode="mode"
@@ -502,6 +640,49 @@ export default defineComponent({
             </div>
           </div>
         </template>
+        <div class="row mb-10">
+          <div class="col span-3">
+            <Checkbox
+              v-model="value.enableNetworkPolicy"
+              :mode="mode"
+              label="project network isolation"
+              :disabled="!isNew"
+            />
+          </div>
+          <div class="col span-3">
+            <Checkbox
+              v-model="config.httpApplicationRouting"
+              :mode="mode"
+              label="http application routing"
+            />
+          </div>
+          <div class="col span-3">
+            <Checkbox
+              v-model="setAuthorizedIPRanges"
+              :mode="mode"
+              label="set authorized ip ranges"
+              :disabled="config.privateCluster"
+            />
+          </div>
+
+          <div class="col span-3">
+            <Checkbox
+              v-model="config.privateCluster"
+              :mode="mode"
+              label="enable private cluster"
+              :disabled="!canEditPrivateCluster"
+            />
+          </div>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-6">
+            <ArrayList
+              v-model="config.authorizedIpRanges"
+              :mode="mode"
+              label="authorized ip ranges"
+            />
+          </div>
+        </div>
 
         <!-- node pools -->
         <div
