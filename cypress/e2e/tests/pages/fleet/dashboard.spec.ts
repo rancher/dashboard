@@ -18,7 +18,7 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
     const gitRepoCreatePage = new GitRepoCreatePo('local');
 
     gitRepoCreatePage.goTo();
-    gitRepoCreatePage.setRepoName('fleet-e2e-test');
+    gitRepoCreatePage.setRepoName('fleet-e2e-test-dashboard');
     gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-basic.git');
     gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
     gitRepoCreatePage.goToNext();
