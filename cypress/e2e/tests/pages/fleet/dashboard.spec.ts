@@ -1,4 +1,3 @@
-import { before } from 'lodash';
 import { FleetDashboardPagePo } from '~/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 import { GitRepoCreatePo } from '~/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 
@@ -13,19 +12,18 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
 
   beforeEach(() => { });
 
-  // before(() => {
-  //     cy.login();
+  before(() => {
+    cy.login();
 
-  //     const gitRepoCreatePage = new GitRepoCreatePo('local');
+    const gitRepoCreatePage = new GitRepoCreatePo('local');
 
-  //     gitRepoCreatePage.goTo();
-  //     gitRepoCreatePage.setRepoName('fleet-e2e-test');
-  //     gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-basic.git')
-  //     gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
-  //     gitRepoCreatePage.goToNext();
-  //     gitRepoCreatePage.create();
-
-  // });
+    gitRepoCreatePage.goTo();
+    gitRepoCreatePage.setRepoName('fleet-e2e-test');
+    gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-basic.git');
+    gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
+    gitRepoCreatePage.goToNext();
+    gitRepoCreatePage.create();
+  });
 
   let row: any;
 

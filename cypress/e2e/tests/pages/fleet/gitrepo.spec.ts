@@ -12,6 +12,7 @@ describe('Git Repo', { tags: '@adminUser' }, () => {
     beforeEach(() => {
       gitRepoCreatePage = new GitRepoCreatePo('local');
     });
+
     it('Should be able to create a git repo', () => {
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.setRepoName('fleet-e2e-test');
