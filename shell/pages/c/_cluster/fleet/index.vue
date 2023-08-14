@@ -379,6 +379,7 @@ export default {
         :is-title-clickable="true"
         @toggleCollapse="toggleCollapse($event, ws.id)"
         @titleClick="setWorkspaceFilterAndLinkToGitRepo(ws.id)"
+        :data-testid="`collapsible-card-${ ws.id }`"
       >
         <template v-slot:header-right>
           <div class="header-icons">
@@ -411,6 +412,7 @@ export default {
               <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
                 v-else
+                data-testid="clusters-ready"
                 :tooltip-text="getTooltipInfo('clusters', row)"
                 :badge-class="getStatusInfo('clusters', row).badgeClass"
                 :icon="getStatusInfo('clusters', row).icon"
@@ -421,6 +423,7 @@ export default {
               <span v-if="ws.type === 'namespace'"> - </span>
               <CompoundStatusBadge
                 v-else
+                data-testid="bundles-ready"
                 :tooltip-text="getTooltipInfo('bundles', row)"
                 :badge-class="getStatusInfo('bundles', row).badgeClass"
                 :icon="getStatusInfo('bundles', row).icon"
@@ -429,6 +432,7 @@ export default {
             </template>
             <template #cell:resourcesReady="{row}">
               <CompoundStatusBadge
+                data-testid="resources-ready"
                 :tooltip-text="getTooltipInfo('resources', row)"
                 :badge-class="getStatusInfo('resources', row).badgeClass"
                 :icon="getStatusInfo('resources', row).icon"
