@@ -7,6 +7,7 @@ describe('Git Repo', { tags: '@adminUser' }, () => {
 
   describe('Create', () => {
     let gitRepoCreatePage: GitRepoCreatePo;
+    const repoList = [];
 
     beforeEach(() => {
       gitRepoCreatePage = new GitRepoCreatePo('local');
@@ -19,6 +20,8 @@ describe('Git Repo', { tags: '@adminUser' }, () => {
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
       gitRepoCreatePage.goToNext();
       gitRepoCreatePage.create();
+
+      repoList.push('fleet-e2e-test-gitrepo');
     });
   });
 });

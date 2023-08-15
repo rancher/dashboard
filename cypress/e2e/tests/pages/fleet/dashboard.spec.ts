@@ -3,6 +3,7 @@ import { GitRepoCreatePo } from '~/cypress/e2e/po/pages/fleet/gitrepo-create.po'
 
 describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
+  const repoName = 'fleet-e2e-test-dashboard';
 
   beforeEach(() => {
     cy.login();
@@ -18,9 +19,10 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
     const gitRepoCreatePage = new GitRepoCreatePo('local');
 
     gitRepoCreatePage.goTo();
-    gitRepoCreatePage.setRepoName('fleet-e2e-test-dashboard');
+    gitRepoCreatePage.selectNamespace('fleet-local');
+    gitRepoCreatePage.setRepoName(repoName);
     gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-basic.git');
-    gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
+    // gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
     gitRepoCreatePage.goToNext();
     gitRepoCreatePage.create();
   });
@@ -44,5 +46,11 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
     const row = fleetLocalResourceTable.sortableTable().rowElements().eq(0);
 
     row.find('[data-testid="resources-ready"] span').should('have.text', '1/1');
+  });
+
+  after(() => {
+    const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
+
+    fleetLocalResourceTable.sortableTable().deleteItemWithUI(repoName);
   });
 });
