@@ -25,8 +25,6 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
     gitRepoCreatePage.create();
   });
 
-  let row: any;
-
   it('Should display cluster status', () => {
     const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
     const row = fleetLocalResourceTable.sortableTable().rowElements().eq(0);

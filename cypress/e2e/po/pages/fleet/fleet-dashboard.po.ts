@@ -1,7 +1,4 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import ArrayListPo from '~/cypress/e2e/po/components/array-list.po';
-import CreateEditViewPo from '~/cypress/e2e/po/components/create-edit-view.po';
-import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 import ResourceTablePo from '~/cypress/e2e/po/components/resource-table.po';
 
 export class FleetDashboardPagePo extends PagePo {
