@@ -292,6 +292,7 @@ export default {
 
     &.active {
       background-color: var(--nav-active);
+      background: red;
     }
   }
 
@@ -372,6 +373,10 @@ export default {
         }
       }
     }
+
+    &.expanded:has(> ul li.nuxt-link-active) {
+      background: #eee;
+    }
   }
 
  .body ::v-deep > .child.nuxt-link-active,
@@ -379,11 +384,12 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--body-text);
+      color: var(--primary-hover-text);
     }
 
     A {
-      background-color: var(--nav-active);
+      color: var(--primary-hover-text);
+      background-color: var(--primary-hover-bg);
     }
   }
 
