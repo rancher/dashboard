@@ -114,6 +114,7 @@ export default defineComponent({
           :mode="mode"
           label="Name"
           required
+          :disabled="!pool._isNew"
         />
       </div>
       <div class="col span-4">
@@ -124,7 +125,7 @@ export default defineComponent({
           :mode="mode"
           :multiple="true"
           :taggable="true"
-          :disabled="!pool.isNew"
+          :disabled="!pool._isNew"
         />
       </div>
       <div class="col span-2">
@@ -133,6 +134,7 @@ export default defineComponent({
           :mode="mode"
           :options="modeOptions"
           :name="`${pool._id}-mode`"
+          :disabled="!pool._isNew"
         >
           <template #label>
             <span class="text-label">mode</span>
@@ -149,7 +151,7 @@ export default defineComponent({
           label="VM Size"
           :loading="loadingVmSizes"
           :mode="mode"
-          :disabled="!pool.isNew"
+          :disabled="!pool._isNew"
         />
       </div>
       <div class="col span-3">
@@ -167,7 +169,7 @@ export default defineComponent({
           :options="osDiskTypeOptions"
           label="os disk type"
           :mode="mode"
-          :disabled="!pool.isNew"
+          :disabled="!pool._isNew"
         />
       </div>
       <div class="col span-3">
@@ -176,7 +178,7 @@ export default defineComponent({
           label="os disk size"
           :mode="mode"
           suffix="GB"
-          :disabled="!pool.isNew"
+          :disabled="!pool._isNew"
           type="number"
         />
       </div>

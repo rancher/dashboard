@@ -9,7 +9,11 @@ import { Route } from 'vue-router';
 const RANCHER_CLUSTER = 'provisioning.cattle.io.cluster';
 
 export class AKSProvisioner implements IClusterProvisioner {
-  static ID = 'azureaks-ext';
+  // on create this needs to overwrite the kontainer driver option with id 'azureaks' to load the extension form
+  // on edit, however, instead of selecting a driver we need to load the extension's form based of status.provisioner which is 'AKS'
+  static OVERWRITE_DRIVER = 'azureaks';
+
+  static ID = 'AKS'
 
   constructor(private context: ClusterProvisionerContext) {
     // configureCredential(this.id, 'azure' );
@@ -18,6 +22,10 @@ export class AKSProvisioner implements IClusterProvisioner {
 
   get id(): string {
     return AKSProvisioner.ID;
+  }
+
+  get overwriteDriver(): string {
+    return AKSProvisioner.OVERWRITE_DRIVER;
   }
 
   get namespaced(): boolean {

@@ -188,6 +188,16 @@ export default {
 
     emberLink() {
       if (this.value) {
+        // todo nb move this logic?
+        // todo nb verify that this doesn't break other cluster types
+
+        if (this.value.provisioner) {
+          const matchingSubtype = this.subTypes.find((st) => st.id === this.value.provisioner);
+
+          if (matchingSubtype) {
+            this.selectType(matchingSubtype.id, false);
+          }
+        }
         // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
         if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
@@ -207,21 +217,17 @@ export default {
         }
         if ( this.subType ) {
           // if driver type has a custom form component, don't load an ember page
-          // if (this.selectedSubType.component) {
-          //   return '';
-          // }
+          if (this.selectedSubType.component) {
+            return '';
+          }
           // For RKE1 and hosted Kubernetes Clusters, set the ember link
           // so that we load the page rather than using RKE2 create
           if (this.selectedSubType?.emberLink) {
-            return this.selectedSubType.emberLink
-            ;
+            return this.selectedSubType.emberLink;
           }
 
           this.selectType(this.subType, false);
 
-          return '';
-        }
-        if (this.value.isImport) {
           return '';
         }
 
@@ -290,7 +296,6 @@ export default {
       const vueKontainerTypes = getters['plugins/clusterDrivers'];
       const machineTypes = this.nodeDrivers.filter((x) => x.spec.active && x.state === 'active').map((x) => x.spec.displayName || x.id);
 
-      // TODO nb hide azure aks? Overwrite w/ extension provisioners?
       this.kontainerDrivers.filter((x) => (isImport ? x.showImport : x.showCreate)).forEach((obj) => {
         if ( vueKontainerTypes.includes(obj.driverName) ) {
           addType(obj.driverName, 'kontainer', false);
@@ -362,7 +367,13 @@ export default {
           component:   ext.component
         };
 
-        out.push(subtype);
+        const overwrite = out.find((st) => st.id === ext.overwriteDriver);
+
+        if (overwrite) {
+          out.splice(out.indexOf(overwrite), 1, subtype);
+        } else {
+          out.push(subtype);
+        }
       }
 
       function addType(id, group, disabled = false, emberLink = null, iconClass = undefined) {

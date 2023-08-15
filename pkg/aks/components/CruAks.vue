@@ -1,5 +1,5 @@
 <script lang='ts'>
-import Vue, { defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 
 import semver from 'semver';
 
@@ -25,7 +25,8 @@ import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
 
 import { SETTING } from 'config/settings';
-import { isEmpty } from '@shell/utils/object';
+import { sortable } from '@shell/utils/version';
+import { sortBy } from '@shell/utils/sort';
 
 const defaultNodePool = {
   availabilityZones:   ['1', '2', '3'],
@@ -41,25 +42,19 @@ const defaultNodePool = {
   osDiskSizeGB:        128,
   osDiskType:          'Managed' as AKSDiskType,
   osType:              'Linux',
-  // type:                'aksnodepool',
   // todo nb default from available opts?
   vmSize:              'Standard_DS2_v2',
-  isNew:               true,
+  _isNew:              true,
 };
 
 const defaultAksConfig = {
-  // azureCredentialSecret: "cattle-global-data:cc-dn76r",
   clusterName:        'nb-aks-3',
-  // dnsPrefix: "nb-dns",
   imported:           false,
-  // kubernetesVersion: "1.26.6",
   linuxAdminUsername: 'azureuser',
   loadBalancerSku:    'Standard',
   networkPlugin:      'kubenet',
   nodePools:          [{ ...defaultNodePool }],
   privateCluster:     false,
-  // resourceGroup: "nb-resource-group",
-  // resourceLocation: "eastus",
   tags:               {}
 };
 
@@ -69,8 +64,6 @@ const defaultCluster = {
   enableClusterMonitoring: false,
   enableNetworkPolicy:     false,
   labels:                  {},
-  // name: "nb-aks-3",
-  // type: "cluster",
   windowsPreferedCluster:  false,
   aksConfig:               defaultAksConfig
 };
@@ -109,8 +102,10 @@ export default defineComponent({
 
   // todo nb fetch norman cluster on edit/clone
   async fetch() {
-    if (this.value.normanCluster && !isEmpty(this.value.normanCluster)) {
-      this.normanCluster = this.value.normanCluster;
+    if (this.value.id) {
+      this.normanCluster = await this.value.findNormanCluster();
+      this.credentialId = this.normanCluster?.aksConfig?.azureCredentialSecret;
+      this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
     } else {
       this.normanCluster = await this.$store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
@@ -125,6 +120,11 @@ export default defineComponent({
     this.containerMonitoring = (this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
     this.normanCluster.spec.aksConfig.nodePools.forEach((pool: AKSNodePool) => this.$set(pool, '_id', randomStr()));
+    // if (this.credentialId && this.region) {
+    //   this.getAksVersions();
+    //   this.getVmSizes();
+    //   this.getVirtualNetworks();
+    // }
   },
 
   data() {
@@ -132,13 +132,11 @@ export default defineComponent({
 
     return {
       normanCluster:    {} as any,
-      credentialId:     '',
-      region:           '',
-      aksVersion:       '',
       nodePools:        [] as AKSNodePool[],
       // todo nb aksConfig type?
       config:           {} as any,
-      membershipUpdate: {},
+      membershipUpdate: {} as any,
+      originalVersion:  '',
 
       supportedVersionRange,
       locationOptions:       [],
@@ -146,10 +144,9 @@ export default defineComponent({
       vmSizeOptions:         [],
       virtualNetworkOptions: [],
       defaultVmSize:         '',
-      // // TODO nb on edit
-      // clusterId:             null,
+
       // TODO nb translations
-      networkPluginOptions:  [
+      networkPluginOptions: [
         { value: 'kubenet', label: 'Kubenet' }, { value: 'azure', label: 'Azure CNI' }
       ],
 
@@ -164,11 +161,12 @@ export default defineComponent({
   },
 
   created() {
-    this.registerBeforeHook(this.removePoolIds);
+    this.registerBeforeHook(this.cleanPoolsForSave);
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
 
   computed: {
+    // todo nb allow edit when no upstream cluster created yet
     isNew() {
       return this.mode === _CREATE;
     },
@@ -177,17 +175,35 @@ export default defineComponent({
       return this.value?.listLocation?.name;
     },
     showForm() {
-      return this.credentialId;
+      return this.config?.azureCredentialSecret;
     },
 
+    // todo nb sort
+    // todo nb do not allow downgrade
     aksVersionOptions() {
-      return this.supportedVersionRange ? this.allAksVersions.filter((v) => semver.satisfies(v, this.supportedVersionRange)) : this.allAksVersions;
+      const filteredAndSortable = this.allAksVersions.filter((v: string) => {
+        if (this.supportedVersionRange && !semver.satisfies(v, this.supportedVersionRange)) {
+          return false;
+        }
+        if (this.originalVersion && semver.gt(this.originalVersion, v)) {
+          return false;
+        }
+
+        return true;
+      }).map((v: string) => {
+        return {
+          value: v,
+          sort:  sortable(v)
+        };
+      });
+
+      return sortBy(filteredAndSortable, 'sort:desc');
     },
 
     canEditLoadBalancerSKU() {
       const poolsWithAZ = this.nodePools.filter((pool) => pool.availabilityZones && pool.availabilityZones.length);
 
-      return !poolsWithAZ.length;
+      return !poolsWithAZ.length && this.isNew;
     },
 
     hasAzureCNI() {
@@ -220,34 +236,12 @@ export default defineComponent({
 
     canManageMembers() {
       return canViewClusterMembershipEditor(this.$store);
-    },
-
-    // TODO nb remove
-    obsValue() {
-      return { ...this.value, norman: { ...this.normanCluster } };
     }
   },
 
   watch: {
-    credentialId(neu, old) {
-      if (neu) {
-        this.getLocations();
-        this.$set(this.config, 'azureCredentialSecret', this.credentialId);
-      }
-    },
-
-    region(neu) {
-      if (neu && neu.length) {
-        this.getAksVersions();
-        this.getVmSizes();
-        this.getVirtualNetworks();
-        this.$set(this.config, 'resourceLocation', neu);
-      }
-    },
-
     canEditLoadBalancerSKU(neu) {
       if (!neu) {
-        // todo nb constants
         this.$set(this.config, 'loadBalancerSku', 'Standard');
       }
     },
@@ -267,19 +261,35 @@ export default defineComponent({
       if (neu) {
         this.$set(this.config, 'privateCluster', false);
       }
+    },
+
+    'config.azureCredentialSecret'(neu) {
+      if (neu) {
+        this.getLocations();
+      }
+    },
+
+    'config.resourceLocation'(neu) {
+      if (neu) {
+        this.getAksVersions();
+        this.getVmSizes();
+        this.getVirtualNetworks();
+      }
     }
 
   },
 
   methods: {
     aksUrlFor(path: string, useRegion = true): string | null {
-      if (!this.credentialId) {
+      const { azureCredentialSecret, resourceLocation } = this.config;
+
+      if (!azureCredentialSecret) {
         return null;
       }
-      const params: QueryParams = { cloudCredentialId: this.credentialId };
+      const params: QueryParams = { cloudCredentialId: azureCredentialSecret };
 
       if (useRegion) {
-        params.region = this.region;
+        params.region = resourceLocation;
       }
       if (this.clusterId) {
         params.clusterId = this.clusterId;
@@ -295,8 +305,8 @@ export default defineComponent({
         this.locationOptions = res;
         this.loadingLocations = false;
       }).catch((err) => {
-        // TODO nb something
-        console.error(err);
+        // TODO nb formatting
+        this.errors.push(err);
       });
     },
 
@@ -304,16 +314,15 @@ export default defineComponent({
       this.loadingVersions = true;
       this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVersions') }).then((res) => {
         console.log('aks k8s versions: ', res);
+        this.allAksVersions = res;
 
-        // TODO nb more reliable way to sort versions?
-        // todo nb filter out downgrades on edit
-        this.allAksVersions = res.reverse();
-
-        this.config.kubernetesVersion = this.aksVersionOptions[0];
+        if (!this.config.kubernetesVersion) {
+          this.config.kubernetesVersion = this.aksVersionOptions[0];
+        }
         this.loadingVersions = false;
       }).catch((err) => {
-        // TODO nb something
-        console.error(err);
+        // TODO nb formatting
+        this.errors.push(err);
       });
     },
 
@@ -324,11 +333,12 @@ export default defineComponent({
 
         this.vmSizeOptions = res;
         // todo nb more intelligent default size
+        // todo nb set size on default node pool
         this.defaultPoolSize = this.vmSizeOptions[0];
         this.loadingVmSizes = false;
       }).catch((err) => {
-        // TODO nb something
-        console.error(err);
+        // TODO nb formatting
+        this.errors.push(err);
       });
     },
 
@@ -342,8 +352,8 @@ export default defineComponent({
 
         this.loadingVirtualNetworks = false;
       }).catch((err) => {
-        // TODO nb something
-        console.error(err);
+        // TODO nb formatting
+        this.errors.push(err);
       });
     },
 
@@ -371,25 +381,25 @@ export default defineComponent({
       this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
     },
 
-    removePoolIds() {
-      this.nodePools.forEach((pool) => delete pool._id);
+    cleanPoolsForSave() {
+      this.nodePools.forEach((pool) => {
+        delete pool._id;
+        delete pool._isNew;
+      });
     },
 
-    setClusterName(name) {
+    setClusterName(name: string) {
       this.$set(this.normanCluster, 'name', name);
       this.$set(this.config, 'clusterName', name);
     },
 
-    onMembershipUpdate(update) {
+    onMembershipUpdate(update: any) {
       this.$set(this, 'membershipUpdate', update);
     },
 
     async saveRoleBindings() {
-      // await this.value.waitForMgmt();
-
       if (this.membershipUpdate.save) {
         // todo nb prov id?
-        debugger;
         await this.membershipUpdate.save(this.normanCluster.id);
       }
     },
@@ -414,8 +424,8 @@ export default defineComponent({
   >
     <div class="mb-20">
       <SelectCredential
-        v-model="credentialId"
-        :mode="mode"
+        v-model="config.azureCredentialSecret"
+        :mode="isNew ? 'create' : 'view'"
         provider="azure"
         :default-on-cancel="true"
         :showing-form="true"
@@ -449,7 +459,7 @@ export default defineComponent({
           class="col span-4"
         >
           <LabeledSelect
-            v-model="region"
+            v-model="config.resourceLocation"
             :mode="mode"
             :options="locationOptions"
             option-label="displayName"
@@ -462,7 +472,7 @@ export default defineComponent({
         </div>
       </div>
 
-      <template v-if="region && region.length">
+      <template v-if="config.resourceLocation && config.resourceLocation.length">
         <!-- cluster config -->
         <div class="row mb-10">
           <div class="col span-4">
@@ -470,17 +480,19 @@ export default defineComponent({
               v-model="config.kubernetesVersion"
               :mode="mode"
               :options="aksVersionOptions"
-              label="Kubernetes Version"
+              label="kubernetes version"
+              option-key="value"
+              option-label="value"
               :loading="loadingVersions"
               required
             />
           </div>
           <div class="col span-4">
-            <!-- //todo nb default? -->
             <LabeledInput
               v-model="config.linuxAdminUsername"
               :mode="mode"
               label="linux admin username"
+              :disabled="!isNew"
             />
           </div>
         </div>
@@ -490,6 +502,7 @@ export default defineComponent({
               v-model="config.resourceGroup"
               :mode="mode"
               label="cluster resource group"
+              :disabled="!isNew"
             />
           </div>
           <div class="col span-4">
@@ -497,6 +510,7 @@ export default defineComponent({
               v-model="config.nodeResourceGroup"
               :mode="mode"
               label="node resource group"
+              :disabled="!isNew"
             />
           </div>
         </div>
@@ -556,12 +570,11 @@ export default defineComponent({
         <!-- networking -->
         <div class="row mb-10">
           <div class="col span-4">
-            <!-- //todo nb loadbalancersku opts with constants -->
             <LabeledSelect
               v-model="config.loadBalancerSku"
               label="loadbalancer sku"
               tooltip="load balancer sku must be 'standard' if availability zones have been selected"
-              :disabled="!canEditLoadBalancerSKU"
+              :disabled="!canEditLoadBalancerSKU || !isNew"
               :options="['Standard', 'Basic']"
             />
           </div>
@@ -574,6 +587,7 @@ export default defineComponent({
               :options="networkPolicyOptions"
               label="network policy"
               tooltip="azure is only available when azure has been selected as the network plugin"
+              :disabled="!isNew"
             />
           </div>
           <div class="col span-4">
@@ -581,6 +595,7 @@ export default defineComponent({
               v-model="config.dnsPrefix"
               :mode="mode"
               label="dns prefix"
+              :disabled="!isNew"
             />
           </div>
         </div>
@@ -591,6 +606,7 @@ export default defineComponent({
               :mode="mode"
               :options="networkPluginOptions"
               label="network plugin"
+              :disabled="!isNew"
             />
           </div>
         </div>
@@ -598,6 +614,7 @@ export default defineComponent({
         <template v-if="hasAzureCNI">
           <div class="row mb-10">
             <div class="col span-4">
+              <!-- //todo nb nicer display -->
               <LabeledSelect
                 :value="config.virtualNetwork"
                 label="virtual network"
@@ -605,6 +622,7 @@ export default defineComponent({
                 :options="virtualNetworkOptions"
                 :loading="loadingVirtualNetworks"
                 option-label="name"
+                :disabled="!isNew"
                 @selecting="selectNetwork($event)"
               />
             </div>
@@ -615,6 +633,7 @@ export default defineComponent({
                 v-model="config.serviceCidr"
                 :mode="mode"
                 label="kubernetes service address range"
+                :disabled="!isNew"
               />
             </div>
             <div class="col span-3">
@@ -622,6 +641,7 @@ export default defineComponent({
                 v-model="config.podCidr"
                 :mode="mode"
                 label="kubernetes pod address range"
+                :disabled="!isNew"
               />
             </div>
             <div class="col span-3">
@@ -629,6 +649,7 @@ export default defineComponent({
                 v-model="config.dnsServiceIp"
                 :mode="mode"
                 label="kubernetes dns service ip range"
+                :disabled="!isNew"
               />
             </div>
             <div class="col span-3">
@@ -636,6 +657,7 @@ export default defineComponent({
                 v-model="config.dockerBridgeCidr"
                 :mode="mode"
                 label="docker bridge address"
+                :disabled="!isNew"
               />
             </div>
           </div>

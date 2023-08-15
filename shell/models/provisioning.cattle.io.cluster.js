@@ -180,6 +180,16 @@ export default class ProvCluster extends SteveModel {
     return out;
   }
 
+  async findNormanCluster() {
+    const name = this.status?.clusterName;
+
+    if ( !name ) {
+      return null;
+    }
+
+    return await this.$dispatch('rancher/find', { type: NORMAN.CLUSTER, id: name }, { root: true });
+  }
+
   explore() {
     const location = {
       name:   'c-cluster',
