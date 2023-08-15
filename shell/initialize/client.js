@@ -79,30 +79,23 @@ if (debug) {
         handled = defaultErrorHandler(err, vm, info, ...rest);
       }
       if (handled === true) {
-        console.warn('nuxt client.js', 1);
-
         return handled;
       }
 
       if (vm && vm.$root) {
-        console.warn('nuxt client.js', 2);
         const nuxtApp = Object.keys(Vue.config.$nuxt)
           .find((nuxtInstance) => vm.$root[nuxtInstance]);
 
         // Show Nuxt Error Page
         if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
-          console.warn('nuxt client.js', 3);
           const currentApp = vm.$root[nuxtApp];
 
           // Load error layout
           let layout = (NuxtError.options || NuxtError).layout;
 
-          console.warn('nuxt client.js', 4, NuxtError.options, NuxtError );
-
           if (typeof layout === 'function') {
             layout = layout(currentApp.context);
           }
-          console.warn('nuxt client.js', 5, layout);
           if (layout) {
             await currentApp.loadLayout(layout).catch(() => {});
           }
