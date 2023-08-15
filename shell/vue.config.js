@@ -253,10 +253,6 @@ module.exports = function(dir, _appConfig) {
     console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
   }
 
-  if ( !dev ) {
-    console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
-  }
-
   if ( resourceBase ) {
     console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
   }
@@ -413,6 +409,12 @@ module.exports = function(dir, _appConfig) {
           rancherEnv,
           dashboardVersion
         }),
+
+        // Set some process properties from @nuxt/webpack/dist/webpack.js that are still in use
+        'process.mode':   JSON.stringify(dev ? 'development' : 'production'),
+        'process.dev':    dev,
+        'process.static': false,
+        'process.target': JSON.stringify('server'),
       }));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
