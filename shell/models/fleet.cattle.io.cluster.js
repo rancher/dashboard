@@ -34,7 +34,7 @@ export default class FleetCluster extends SteveModel {
       enabled:  !!this.links.update
     });
 
-    if (this.canChaneWorkspace) {
+    if (this.canChangeWorkspace) {
       insertAt(out, 3, {
         action:     'assignTo',
         label:      'Change workspace',
