@@ -57,7 +57,7 @@ export default defineComponent({
 
   data() {
     return {
-      taints: (this.pool.taints || []).map((taint: String) => {
+      taints: (this.pool.nodeTaints || []).map((taint: String) => {
         return { taint, _id: randomStr() };
       }),
       osDiskTypeOptions:       ['Managed', 'Ephemeral'] as AKSDiskType[],
@@ -88,7 +88,7 @@ export default defineComponent({
       this.$emit('input');
     },
 
-    removeTaint(idx: Number) {
+    removeTaint(idx: number) {
       this.taints.splice(idx, 1);
     }
   },
@@ -155,7 +155,7 @@ export default defineComponent({
         />
       </div>
       <div class="col span-3">
-        <!-- //todo nb when is this editable? -->
+        <!-- //todo nb when is this ever editable...? -->
         <LabeledSelect
           v-model="pool.osType"
           :options="[]"

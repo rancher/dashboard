@@ -1,4 +1,5 @@
 <script lang='ts'>
+// todo nb aksClusterConfig not properly deleted? Do we need to delete the norman aks cluster?
 import { defineComponent } from 'vue';
 
 import semver from 'semver';
@@ -11,7 +12,6 @@ import { NORMAN, MANAGEMENT } from '@shell/config/types';
 
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
-import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
@@ -20,13 +20,17 @@ import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
+import Labels from '@shell/components/form/Labels.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import CreateEditView from '@shell/mixins/create-edit-view';
 
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
 
 import { SETTING } from 'config/settings';
 import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
+import { clone } from '@shell/utils/object';
+import { diffUpstreamSpec } from '@pkg/aks/util/aks';
 
 const defaultNodePool = {
   availabilityZones:   ['1', '2', '3'],
@@ -42,7 +46,6 @@ const defaultNodePool = {
   osDiskSizeGB:        128,
   osDiskType:          'Managed' as AKSDiskType,
   osType:              'Linux',
-  // todo nb default from available opts?
   vmSize:              'Standard_DS2_v2',
   _isNew:              true,
 };
@@ -68,6 +71,10 @@ const defaultCluster = {
   aksConfig:               defaultAksConfig
 };
 
+const DEFAULT_REGION = 'eastus';
+
+const _NONE = 'none';
+
 export default defineComponent({
   name: 'CruAKS',
 
@@ -81,7 +88,8 @@ export default defineComponent({
     FileSelector,
     KeyValue,
     ArrayList,
-    ClusterMembershipEditor
+    ClusterMembershipEditor,
+    Labels
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -100,12 +108,12 @@ export default defineComponent({
     }
   },
 
-  // todo nb fetch norman cluster on edit/clone
   async fetch() {
     if (this.value.id) {
       this.normanCluster = await this.value.findNormanCluster();
-      this.credentialId = this.normanCluster?.aksConfig?.azureCredentialSecret;
       this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
+      // on edit, only values which have been changed will be sent in PUT request so we need to track the original spec
+      this.originalCluster = clone(this.normanCluster);
     } else {
       this.normanCluster = await this.$store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
@@ -120,11 +128,6 @@ export default defineComponent({
     this.containerMonitoring = (this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
     this.normanCluster.spec.aksConfig.nodePools.forEach((pool: AKSNodePool) => this.$set(pool, '_id', randomStr()));
-    // if (this.credentialId && this.region) {
-    //   this.getAksVersions();
-    //   this.getVmSizes();
-    //   this.getVirtualNetworks();
-    // }
   },
 
   data() {
@@ -137,13 +140,14 @@ export default defineComponent({
       config:           {} as any,
       membershipUpdate: {} as any,
       originalVersion:  '',
+      originalCluster:  {} as any,
 
       supportedVersionRange,
-      locationOptions:       [],
-      allAksVersions:        [],
-      vmSizeOptions:         [],
-      virtualNetworkOptions: [],
-      defaultVmSize:         '',
+      locationOptions:       [] as string[],
+      allAksVersions:        [] as string[],
+      vmSizeOptions:         [] as string[],
+      virtualNetworkOptions: [] as any[],
+      defaultVmSize:         defaultNodePool.vmSize as string,
 
       // TODO nb translations
       networkPluginOptions: [
@@ -162,11 +166,13 @@ export default defineComponent({
 
   created() {
     this.registerBeforeHook(this.cleanPoolsForSave);
+    this.registerBeforeHook(this.removeUnchangedConfigFields);
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
   },
 
   computed: {
     // todo nb allow edit when no upstream cluster created yet
+    // todo nb is this bad ux? Form will abruptly become largely un-editable
     isNew() {
       return this.mode === _CREATE;
     },
@@ -178,8 +184,8 @@ export default defineComponent({
       return this.config?.azureCredentialSecret;
     },
 
-    // todo nb sort
-    // todo nb do not allow downgrade
+    // filter out versions outside ui-k8s-supported-versions-range global setting and versions < current version
+    // sort versions, descending
     aksVersionOptions() {
       const filteredAndSortable = this.allAksVersions.filter((v: string) => {
         if (this.supportedVersionRange && !semver.satisfies(v, this.supportedVersionRange)) {
@@ -191,8 +197,16 @@ export default defineComponent({
 
         return true;
       }).map((v: string) => {
+        let label = v;
+
+        if (v === this.originalVersion) {
+          // todo nb localize
+          label = `${ v }(current)`;
+        }
+
         return {
           value: v,
+          label,
           sort:  sortable(v)
         };
       });
@@ -210,9 +224,10 @@ export default defineComponent({
       return this.config.networkPlugin === 'azure';
     },
 
+    // todo nb translate none option
     networkPolicyOptions() {
       return [{
-        value: undefined,
+        value: _NONE,
         label: 'None'
       }, {
         value: 'calico',
@@ -224,6 +239,19 @@ export default defineComponent({
         disabled: !this.hasAzureCNI
       }
       ];
+    },
+
+    networkPolicy: {
+      get() {
+        return this.config?.networkPolicy || _NONE;
+      },
+      set(neu) {
+        if (neu === _NONE) {
+          this.$set(this.config, 'networkPolicy', null);
+        } else {
+          this.$set(this.config, 'networkPolicy', neu);
+        }
+      }
     },
 
     canEditPrivateCluster() {
@@ -280,6 +308,7 @@ export default defineComponent({
   },
 
   methods: {
+    // todo nb move aks requests to utils for easier testing
     aksUrlFor(path: string, useRegion = true): string | null {
       const { azureCredentialSecret, resourceLocation } = this.config;
 
@@ -300,9 +329,16 @@ export default defineComponent({
 
     getLocations() {
       this.loadingLocations = true;
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksLocations', false) }).then((res) => {
+      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksLocations', false) }).then((res: any[]) => {
         console.log('aks regions: ', res);
         this.locationOptions = res;
+        if (!this.config?.resourceLocation) {
+          if (res.find((r) => r.name === DEFAULT_REGION)) {
+            this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
+          } else {
+            this.$set(this.config, 'resourceLocation', res[0]?.name);
+          }
+        }
         this.loadingLocations = false;
       }).catch((err) => {
         // TODO nb formatting
@@ -312,12 +348,12 @@ export default defineComponent({
 
     getAksVersions() {
       this.loadingVersions = true;
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVersions') }).then((res) => {
+      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVersions') }).then((res: string[]) => {
         console.log('aks k8s versions: ', res);
         this.allAksVersions = res;
 
         if (!this.config.kubernetesVersion) {
-          this.config.kubernetesVersion = this.aksVersionOptions[0];
+          this.$set(this.config, 'kubernetesVersion', this.aksVersionOptions[0]);
         }
         this.loadingVersions = false;
       }).catch((err) => {
@@ -326,15 +362,19 @@ export default defineComponent({
       });
     },
 
+    // todo nb sort
     getVmSizes() {
       this.loadingVmSizes = true;
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVMSizes') }).then((res) => {
+      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVMSizes') }).then((res: string[]) => {
         console.log('aks vm sizes: ', res);
+        if (isArray(res)) {
+          this.vmSizeOptions = res.sort();
 
-        this.vmSizeOptions = res;
-        // todo nb more intelligent default size
-        // todo nb set size on default node pool
-        this.defaultPoolSize = this.vmSizeOptions[0];
+          if (!this.vmSizeOptions.includes(this.defaultVmSize)) {
+            this.defaultVmSize = '';
+          }
+        }
+
         this.loadingVmSizes = false;
       }).catch((err) => {
         // TODO nb formatting
@@ -344,7 +384,7 @@ export default defineComponent({
 
     getVirtualNetworks() {
       this.loadingVirtualNetworks = true;
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVirtualNetworks') }).then((res) => {
+      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVirtualNetworks') }).then((res: any) => {
         console.log('aks virtual networks: ', res);
         if (res && isArray(res)) {
           this.virtualNetworkOptions = res;
@@ -366,7 +406,6 @@ export default defineComponent({
         mode = 'System' as AKSPoolMode;
       }
 
-      // TODO nb default size
       this.nodePools.push({
         ...defaultNodePool, name: poolName, _id: randomStr(), mode, vmSize: this.defaultVmSize
       });
@@ -381,13 +420,6 @@ export default defineComponent({
       this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
     },
 
-    cleanPoolsForSave() {
-      this.nodePools.forEach((pool) => {
-        delete pool._id;
-        delete pool._isNew;
-      });
-    },
-
     setClusterName(name: string) {
       this.$set(this.normanCluster, 'name', name);
       this.$set(this.config, 'clusterName', name);
@@ -399,11 +431,30 @@ export default defineComponent({
 
     async saveRoleBindings() {
       if (this.membershipUpdate.save) {
-        // todo nb prov id?
         await this.membershipUpdate.save(this.normanCluster.id);
       }
     },
 
+    cleanPoolsForSave() {
+      this.nodePools.forEach((pool) => {
+        delete pool._id;
+        delete pool._isNew;
+      });
+    },
+
+    // only save values that differ from upstream
+    // todo nb remove null?
+    removeUnchangedConfigFields() {
+      const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
+
+      if (upstreamConfig) {
+        const diff = diffUpstreamSpec(upstreamConfig, this.config);
+
+        this.$set(this.normanCluster, 'aksConfig', diff);
+      }
+    },
+
+    // todo nb fetch prov clusters so cluster list populated right away
     async actuallySave(cb) {
       await this.normanCluster.save();
     }
@@ -419,6 +470,7 @@ export default defineComponent({
     :can-yaml="false"
     :done-route="doneRoute"
     :errors="fvUnreportedValidationErrors"
+    :validation-passed="fvFormIsValid"
     @error="e=>errors=e"
     @finish="save"
   >
@@ -444,7 +496,6 @@ export default defineComponent({
           />
         </div>
       </div>
-      //TODO labels/annotations from rke2 component -->
       <div class="row mb-10">
         <ClusterMembershipEditor
           v-if="canManageMembers"
@@ -454,10 +505,17 @@ export default defineComponent({
         />
       </div>
       <div class="row mb-10">
+        <Labels
+          v-model="normanCluster"
+          :mode="mode"
+        />
+      </div>
+      <div class="row mb-10">
         <div
           v-if="locationOptions.length"
           class="col span-4"
         >
+          <!-- //TODO nb warn when changing if dependent vals have been changed -->
           <LabeledSelect
             v-model="config.resourceLocation"
             :mode="mode"
@@ -468,6 +526,7 @@ export default defineComponent({
             :reduce="opt=>opt.name"
             :loading="loadingLocations"
             required
+            :disabled="!isNew"
           />
         </div>
       </div>
@@ -482,7 +541,7 @@ export default defineComponent({
               :options="aksVersionOptions"
               label="kubernetes version"
               option-key="value"
-              option-label="value"
+              option-label="label"
               :loading="loadingVersions"
               required
             />
@@ -582,10 +641,12 @@ export default defineComponent({
         <div class="row mb-10">
           <div class="col span-4">
             <LabeledSelect
-              v-model="config.networkPolicy"
+              v-model="networkPolicy"
               :mode="mode"
               :options="networkPolicyOptions"
               label="network policy"
+              option-key="value"
+              :reduce="opt=>opt.value"
               tooltip="azure is only available when azure has been selected as the network plugin"
               :disabled="!isNew"
             />
@@ -714,7 +775,7 @@ export default defineComponent({
         >
           <AksNodePool
             :mode="mode"
-            :region="region"
+            :region="config.resourceLocation"
             :pool="pool"
             :vm-size-options="vmSizeOptions"
             :loading-vm-sizes="loadingVmSizes"
