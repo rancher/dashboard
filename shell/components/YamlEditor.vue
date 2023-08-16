@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import { saferDump } from '@shell/utils/create-yaml';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
+import DOMPurify from 'dompurify';
 
 export const EDITOR_MODES = {
   EDIT_CODE: 'EDIT_CODE',
@@ -197,7 +198,12 @@ export default {
       this.curValue = value;
       this.$refs.cm.updateValue(value);
     }
-  }
+  },
+
+  created() {
+    DOMPurify.setConfig({ ADD_ATTR: ['target'] });
+    DOMPurify.sanitize();
+  },
 };
 </script>
 
