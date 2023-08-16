@@ -1,5 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import ResourceTablePo from '~/cypress/e2e/po/components/resource-table.po';
+import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 
 export class FleetDashboardPagePo extends PagePo {
     static url: string;

@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import CreateEditViewPo from '~/cypress/e2e/po/components/create-edit-view.po';
-import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
+import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 
 export class GitRepoCreatePo extends PagePo {
     static url: string;

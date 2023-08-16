@@ -1,8 +1,8 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
-import ArrayListPo from '~/cypress/e2e/po/components/array-list.po';
-import CreateEditViewPo from '~/cypress/e2e/po/components/create-edit-view.po';
-import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
-import { WorkspaceSwitcherPo } from '~/cypress/e2e/po/components/namespace-filter.po';
+import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
+import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
+import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
+import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
 export class GitRepoCreatePo extends PagePo {
     static url: string;

@@ -1,5 +1,5 @@
-import { FleetDashboardPagePo } from '~/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
-import { GitRepoCreatePo } from '~/cypress/e2e/po/pages/fleet/gitrepo-create.po';
+import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 
 describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
   let fleetDashboardPage: FleetDashboardPagePo;
