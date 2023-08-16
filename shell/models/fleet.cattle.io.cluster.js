@@ -34,7 +34,7 @@ export default class FleetCluster extends SteveModel {
       enabled:  !!this.links.update
     });
 
-    if (!this.isRke2) {
+    if (this.canChaneWorkspace) {
       insertAt(out, 3, {
         action:     'assignTo',
         label:      'Change workspace',
@@ -77,6 +77,14 @@ export default class FleetCluster extends SteveModel {
 
   get canDelete() {
     return false;
+  }
+
+  get canChangeWorkspace() {
+    return !this.isRke2 && !this.isLocal;
+  }
+
+  get isLocal() {
+      return this.metadata.name === 'local' || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] === 'local';
   }
 
   get isRke2() {
