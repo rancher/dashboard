@@ -1,2 +1,10 @@
 aks:
   label: Azure AKS (ext)
+  location:
+    label: Region
+  clusterResourceGroup:
+    label: Cluster Resource Group
+  nodeResourceGroup:
+    label: Node Resource Group
+  dnsPrefix:
+    label: DNS Prefix

@@ -29,8 +29,9 @@ import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
 import { SETTING } from 'config/settings';
 import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
-import { clone } from '@shell/utils/object';
+import { clone, get } from '@shell/utils/object';
 import { diffUpstreamSpec } from '@pkg/aks/util/aks';
+import { mapGetters } from 'vuex';
 
 const defaultNodePool = {
   availabilityZones:   ['1', '2', '3'],
@@ -51,7 +52,7 @@ const defaultNodePool = {
 };
 
 const defaultAksConfig = {
-  clusterName:        'nb-aks-3',
+  clusterName:        '',
   imported:           false,
   linuxAdminUsername: 'azureuser',
   loadBalancerSku:    'Standard',
@@ -134,10 +135,10 @@ export default defineComponent({
     const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
 
     return {
-      normanCluster:    {} as any,
+      normanCluster:    { name: '' } as any,
       nodePools:        [] as AKSNodePool[],
       // todo nb aksConfig type?
-      config:           {} as any,
+      config:           { } as any,
       membershipUpdate: {} as any,
       originalVersion:  '',
       originalCluster:  {} as any,
@@ -159,8 +160,24 @@ export default defineComponent({
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
       containerMonitoring:    false,
-      setAuthorizedIPRanges:  false
-
+      setAuthorizedIPRanges:  false,
+      fvFormRuleSets:         [{
+        path:  'name',
+        rules: ['nameRequired'],
+      },
+      {
+        path:  'resourceGroup',
+        rules: ['resourceGroupRequired'],
+      },
+      {
+        path:  'nodeResourceGroup',
+        rules: ['nodeResourceGroupRequired'],
+      },
+      {
+        path:  'dnsPrefix',
+        rules: ['dnsPrefixRequired'],
+      },
+      ],
     };
   },
 
@@ -171,6 +188,31 @@ export default defineComponent({
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    fvExtraRules() {
+      const requiredTranslation = (labelKey = 'Value') => {
+        return this.t('validation.required', { key: this.t(labelKey) });
+      };
+
+      const labeledRequired = (labelKey: string, clusterKey: string) => {
+        return () => {
+          console.log('calculating required rule for key', clusterKey);
+
+          return clusterKey && !get(this.normanCluster, clusterKey) ? requiredTranslation(labelKey) : undefined;
+        };
+      };
+
+      return {
+        nameRequired:              labeledRequired('nameNsDescription.name.label', 'name'),
+        locationRequired:          labeledRequired('aks.location.label', 'aksConfig.location'),
+        resourceGroupRequired:     labeledRequired('aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
+        nodeResourceGroupRequired: labeledRequired('aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
+        dnsPrefixRequired:         labeledRequired('aks.dnsPrefix.label', 'aksConfig.dnsPrefix')
+
+      };
+    },
+
     // todo nb allow edit when no upstream cluster created yet
     // todo nb is this bad ux? Form will abruptly become largely un-editable
     isNew() {
@@ -492,6 +534,7 @@ export default defineComponent({
             :mode="mode"
             label="name"
             required
+            :rules="fvGetAndReportPathRules('name')"
             @input="setClusterName"
           />
         </div>
@@ -562,6 +605,8 @@ export default defineComponent({
               :mode="mode"
               label="cluster resource group"
               :disabled="!isNew"
+              :rules="fvGetAndReportPathRules('resourceGroup')"
+              :required="true"
             />
           </div>
           <div class="col span-4">
@@ -570,6 +615,8 @@ export default defineComponent({
               :mode="mode"
               label="node resource group"
               :disabled="!isNew"
+              :rules="fvGetAndReportPathRules('nodeResourceGroup')"
+              :required="true"
             />
           </div>
         </div>
@@ -657,6 +704,8 @@ export default defineComponent({
               :mode="mode"
               label="dns prefix"
               :disabled="!isNew"
+              :required="true"
+              :rules="fvGetAndReportPathRules('dnsPrefix')"
             />
           </div>
         </div>
