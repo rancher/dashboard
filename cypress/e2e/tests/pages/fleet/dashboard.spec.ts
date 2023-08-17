@@ -20,10 +20,10 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
 
     gitRepoCreatePage.goTo();
     gitRepoCreatePage.setRepoName(repoName);
+    gitRepoCreatePage.selectWorkspace('fleet-local');
     gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-examples.git');
     gitRepoCreatePage.setBranchName();
     // NB - This step is here because DOM may not be ready
-    gitRepoCreatePage.selectWorkspace('fleet-local');
     gitRepoCreatePage.goToNext();
     gitRepoCreatePage.create();
   });
