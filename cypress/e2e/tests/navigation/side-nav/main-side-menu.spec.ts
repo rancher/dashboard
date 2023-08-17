@@ -11,6 +11,7 @@ describe('Side Menu: main', () => {
     cy.login();
     HomePagePo.goTo();
     BurgerMenuPo.toggle();
+    modal = new ModalWithCardPo();
   });
   it('Opens and closes on menu icon click', { tags: ['@adminUser', '@standardUser'] }, () => {
     BurgerMenuPo.checkOpen();
