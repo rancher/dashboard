@@ -49,6 +49,9 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
   });
 
   after(() => {
+    fleetDashboardPage = new FleetDashboardPagePo('local');
+    fleetDashboardPage.goTo();
+
     const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
 
     fleetLocalResourceTable.sortableTable().deleteItemWithUI(repoName);
