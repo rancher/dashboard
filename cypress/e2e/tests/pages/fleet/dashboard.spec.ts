@@ -21,8 +21,8 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
     gitRepoCreatePage.goTo();
     gitRepoCreatePage.selectNamespace('fleet-local');
     gitRepoCreatePage.setRepoName(repoName);
-    gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-basic.git');
-    // gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
+    gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-examples.git');
+    gitRepoCreatePage.setBranchName();
     gitRepoCreatePage.goToNext();
     gitRepoCreatePage.create();
   });

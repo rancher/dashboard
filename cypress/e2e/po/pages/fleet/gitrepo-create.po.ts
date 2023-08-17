@@ -46,6 +46,10 @@ export class GitRepoCreatePo extends PagePo {
       return LabeledInputPo.byLabel(this.self(), 'Name').set(name);
     }
 
+    setBranchName(branch = 'dashboard-e2e-basic') {
+      return LabeledInputPo.byLabel(this.self(), 'Branch').set(branch);
+    }
+
     setGitRepoUrl(url: string) {
       return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
     }

@@ -536,6 +536,7 @@ export default {
         </div>
         <div class="col span-6">
           <InputWithSelect
+            :data-testid="`gitrepo-${ref}`"
             :mode="mode"
             :select-label="t('fleet.gitRepo.ref.label')"
             :select-value="ref"
