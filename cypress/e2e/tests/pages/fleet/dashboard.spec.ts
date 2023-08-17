@@ -32,21 +32,21 @@ describe('Fleet Dashboard', { tags: '@adminUser' }, () => {
     const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
     const row = fleetLocalResourceTable.sortableTable().rowElements().eq(0);
 
-    row.find('[data-testid="clusters-ready"] span').should('have.text', '1/1');
+    row.find('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
   });
 
   it('Should display bundles status', () => {
     const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
     const row = fleetLocalResourceTable.sortableTable().rowElements().eq(0);
 
-    row.find('[data-testid="bundles-ready"] span').should('have.text', '1/1');
+    row.find('.bg-success[data-testid="bundles-ready"] span').should('have.text', '1/1');
   });
 
   it('Should display resources status', () => {
     const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
     const row = fleetLocalResourceTable.sortableTable().rowElements().eq(0);
 
-    row.find('[data-testid="resources-ready"] span').should('have.text', '1/1');
+    row.find('.bg-success[data-testid="resources-ready"] span').should('have.text', '1/1');
   });
 
   after(() => {
