@@ -279,7 +279,7 @@ export default {
     },
 
     advancedTitleAlt() {
-      const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
+      const machineSelectorLength = this.rkeConfig.machineSelectorConfig?.length;
 
       return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
     },
@@ -293,6 +293,8 @@ export default {
     },
 
     agentConfig() {
+      console.warn('this.value', this.value);
+
       return this.value.agentConfig;
     },
 
@@ -503,9 +505,9 @@ export default {
      * Check if current CIS profile is required and listed in the options
      */
     isCisSupported() {
-      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+      const cisProfile = this.serverConfig?.profile || this.agentConfig?.profile;
 
-      return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
+      return !cisProfile || this.profileOptions?.map((option) => option.value).includes(cisProfile);
     },
 
     disableOptions() {
@@ -525,7 +527,7 @@ export default {
 
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
-      for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
+      for ( const opt of this.agentArgs?.['cloud-provider-name']?.options ) {
         // If we don't have a preferred provider... show all options
         const showAllOptions = preferred === undefined;
         // If we have a preferred provider... only show default, preferred and external
@@ -546,7 +548,7 @@ export default {
         }
       }
 
-      const cur = this.agentConfig['cloud-provider-name'];
+      const cur = this.agentConfig?.['cloud-provider-name'];
 
       if ( cur && !out.find((x) => x.value === cur) ) {
         out.unshift({ label: `${ cur } (Current)`, value: cur });
@@ -751,11 +753,11 @@ export default {
     },
 
     showCloudConfigYaml() {
-      if ( !this.agentArgs['cloud-provider-name'] ) {
+      if ( !this.agentArgs?.['cloud-provider-name'] ) {
         return false;
       }
 
-      const name = this.agentConfig['cloud-provider-name'];
+      const name = this.agentConfig?.['cloud-provider-name'];
 
       if ( !name ) {
         return false;
@@ -771,11 +773,11 @@ export default {
     },
 
     showVsphereNote() {
-      if ( !this.agentArgs['cloud-provider-name'] ) {
+      if ( !this.agentArgs?.['cloud-provider-name'] ) {
         return false;
       }
 
-      const name = this.agentConfig['cloud-provider-name'];
+      const name = this.agentConfig?.['cloud-provider-name'];
 
       return name === 'rancher-vsphere';
     },
@@ -785,7 +787,7 @@ export default {
     },
 
     showCloudProvider() {
-      return this.agentArgs['cloud-provider-name'];
+      return this.agentArgs?.['cloud-provider-name'];
     },
 
     addonNames() {
@@ -799,11 +801,11 @@ export default {
       }
 
       if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
-        if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
+        if ( this.agentConfig?.['cloud-provider-name'] === 'rancher-vsphere' ) {
           names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
         }
 
-        if ( this.agentConfig['cloud-provider-name'] === HARVESTER ) {
+        if ( this.agentConfig?.['cloud-provider-name'] === HARVESTER ) {
           names.push(HARVESTER_CLOUD_PROVIDER);
         }
       }
@@ -994,7 +996,7 @@ export default {
 
     addonNames(neu, old) {
       // To catch the 'some addons' --> 'no addons' case also check array length (`difference([], [1,2,3]) === []`)
-      const diff = old.length !== neu.length || difference(neu, old).length ;
+      const diff = old?.length !== neu?.length || difference(neu, old)?.length ;
 
       if (diff) {
         // Allow time for addonNames to update... then fetch any missing addons
@@ -1029,7 +1031,7 @@ export default {
     },
 
     showCloudProvider(neu) {
-      if (!neu) {
+      if (!neu && typeof this.agentConfig === 'object' && !Array.isArray(this.agentConfig) && this.agentConfig !== null) {
         // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
         // ... which will eventually update `value.spec.rkeConfig.chartValues`
         set(this.agentConfig, 'cloud-provider-name', undefined);
@@ -1609,7 +1611,7 @@ export default {
         }
       }
 
-      if (!this.value.metadata.name && this.agentConfig['cloud-provider-name'] === HARVESTER) {
+      if (!this.value.metadata.name && this.agentConfig?.['cloud-provider-name'] === HARVESTER) {
         this.errors.push(this.t('validation.required', { key: this.t('cluster.name.label') }, true));
       }
 
@@ -1626,7 +1628,7 @@ export default {
 
         const isUpgrade = this.isEdit && this.liveValue?.spec?.kubernetesVersion !== this.value?.spec?.kubernetesVersion;
 
-        if (this.agentConfig['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
+        if (this.agentConfig?.['cloud-provider-name'] === HARVESTER && clusterId && (this.isCreate || isUpgrade)) {
           const namespace = this.machinePools?.[0]?.config?.vmNamespace;
 
           const res = await this.$store.dispatch('management/request', {
@@ -2104,7 +2106,7 @@ export default {
     setHarvesterDefaultCloudProvider() {
       if (this.isHarvesterDriver &&
         this.mode === _CREATE &&
-        !this.agentConfig['cloud-provider-name'] &&
+        !this.agentConfig?.['cloud-provider-name'] &&
         !this.isHarvesterExternalCredential &&
         !this.isHarvesterIncompatible
       ) {
