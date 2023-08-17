@@ -129,7 +129,7 @@ describe('Branding', () => {
     });
 
     cy.fixture('logos/rancher-dark.png', 'base64').then((expectedBase64) => {
-      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
+      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
       burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
@@ -147,7 +147,7 @@ describe('Branding', () => {
     });
 
     cy.fixture('logos/rancher-light-grey.png', 'base64').then((expectedBase64) => {
-      burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
+      burgerMenu.headerBrandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
 
       BurgerMenuPo.toggle();
       burgerMenu.brandLogoImage().should('be.visible').and('have.attr', 'src', `data:image/png;base64,${ expectedBase64 }`);
@@ -159,7 +159,7 @@ describe('Branding', () => {
     brandingPage.applyAndWait('/v1/management.cattle.io.settings/ui-logo-light');
 
     HomePagePo.goTo();
-    burgerMenu.brandLogoImage().should('be.visible').then((el) => {
+    burgerMenu.headerBrandLogoImage().should('be.visible').then((el) => {
       expect(el).to.have.attr('src').includes('/img/rancher-logo.66cf5910.svg');
     });
 
