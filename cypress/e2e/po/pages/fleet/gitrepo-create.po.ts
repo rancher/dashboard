@@ -30,12 +30,12 @@ export class GitRepoCreatePo extends PagePo {
       super(GitRepoCreatePo.createPath(clusterId));
     }
 
-    selectNamespace(name: string) {
-      const namespaceFilter = new WorkspaceSwitcherPo();
+    selectWorkspace(name: string) {
+      const wsSwitcher = new WorkspaceSwitcherPo();
 
-      namespaceFilter.toggle();
+      wsSwitcher.toggle();
 
-      return namespaceFilter.clickOptionWithLabel(name);
+      return wsSwitcher.clickOptionWithLabel(name);
     }
 
     footer() {
