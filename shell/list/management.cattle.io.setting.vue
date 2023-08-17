@@ -92,6 +92,7 @@ export default {
       v-for="setting in settings"
       :key="setting.id"
       class="advanced-setting mb-20"
+      :data-testid="`advanced-setting-${setting.id}`"
     >
       <div class="header">
         <div class="title">
