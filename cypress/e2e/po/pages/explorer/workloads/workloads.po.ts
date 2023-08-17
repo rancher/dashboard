@@ -133,11 +133,11 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     super(WorkloadsCreatePageBasePo.createPath(clusterId, workloadType, queryParams));
   }
 
-  selectNamespaceOption(label: string) {
+  selectNamespace(label: string) {
     const selectVerb = new LabeledSelectPo(`[data-testid="name-ns-description-namespace"]`, this.self());
 
     selectVerb.toggle();
-    selectVerb.clickOptionWithLabel(label);
+    selectVerb.clickLabel(label);
   }
 
   namespace(): LabeledInputPo {
@@ -156,8 +156,9 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  createWithUI(name: string, containerImage: string) {
-    // NB: namespace is selected by default
+  createWithUI(name: string, containerImage: string, namespace = 'default') {
+    // NB: namespace is already selected by default
+    this.selectNamespace(namespace);
     this.name().set(name);
     this.containerImage().set(containerImage);
     this.saveCreateForm().click();
