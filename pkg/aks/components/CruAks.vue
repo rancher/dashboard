@@ -31,6 +31,8 @@ import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import { clone, get } from '@shell/utils/object';
 import { diffUpstreamSpec } from '@pkg/aks/util/aks';
+import { requiredInCluster } from '@pkg/aks/util/validators';
+
 import { mapGetters } from 'vuex';
 
 const defaultNodePool = {
@@ -190,25 +192,25 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    // fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined
+    // so we're ignoring that and passing in the key we want validated here
     fvExtraRules() {
-      const requiredTranslation = (labelKey = 'Value') => {
-        return this.t('validation.required', { key: this.t(labelKey) });
-      };
+      // const requiredTranslation = (labelKey = 'Value') => {
+      //   return this.t('validation.required', { key: this.t(labelKey) });
+      // };
 
-      const labeledRequired = (labelKey: string, clusterKey: string) => {
-        return () => {
-          console.log('calculating required rule for key', clusterKey);
-
-          return clusterKey && !get(this.normanCluster, clusterKey) ? requiredTranslation(labelKey) : undefined;
-        };
-      };
+      // const requiredInCluster = (labelKey: string, clusterKey: string) => {
+      //   return () => {
+      //     return clusterKey && !get(this.normanCluster, clusterKey) ? requiredTranslation(labelKey) : undefined;
+      //   };
+      // };
 
       return {
-        nameRequired:              labeledRequired('nameNsDescription.name.label', 'name'),
-        locationRequired:          labeledRequired('aks.location.label', 'aksConfig.location'),
-        resourceGroupRequired:     labeledRequired('aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
-        nodeResourceGroupRequired: labeledRequired('aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
-        dnsPrefixRequired:         labeledRequired('aks.dnsPrefix.label', 'aksConfig.dnsPrefix')
+        nameRequired:              requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+        locationRequired:          requiredInCluster(this, 'aks.location.label', 'aksConfig.location'),
+        resourceGroupRequired:     requiredInCluster(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
+        nodeResourceGroupRequired: requiredInCluster(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
+        dnsPrefixRequired:         requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix')
 
       };
     },

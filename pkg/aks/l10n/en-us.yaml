@@ -5,6 +5,8 @@ aks:
   clusterResourceGroup:
     label: Cluster Resource Group
   nodeResourceGroup:
+    tooltip: The cluster resource group contains the Kubernetes Service resource. The node resource group contains all infrastructure resources associated with the cluster. If left blank, Azure will automatically create a name in the format MC_<resource-group1>_<cluster-name>_<location>. This value cannot exceed 80 characters.
     label: Node Resource Group
+    placeholder: aks-node-resource-group
   dnsPrefix:
     label: DNS Prefix
