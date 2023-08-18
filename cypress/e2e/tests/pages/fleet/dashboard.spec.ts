@@ -35,10 +35,10 @@ describe.only('Fleet Dashboard', { tags: '@adminUser' }, () => {
     row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
     row.get('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
 
-    row.get('.bg-success[data-testid="clusters-ready"]').wait(6000).should('exist');
+    row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
     row.get('.bg-success[data-testid="bundles-ready"] span').should('have.text', '1/1');
 
-    row.get('.bg-success[data-testid="clusters-ready"]').wait(6000).should('exist');
+    row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
     row.get('.bg-success[data-testid="resources-ready"] span').should('have.text', '1/1');
   });
 
