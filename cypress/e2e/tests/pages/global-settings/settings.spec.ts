@@ -159,11 +159,7 @@ describe('Settings', () => {
     // Check new password requirement
     const banner = new BannersPo('.text-error');
 
-    accountPage.goTo();
-    accountPage.waitForPage();
-    accountPage.checkIsCurrentPage();
-    accountPage.title();
-
+    accountPage.waitForRequests();
     accountPage.changePassword();
     accountPage.currentPassword().set(Cypress.env('password'));
     accountPage.newPassword().set('NewPassword1');

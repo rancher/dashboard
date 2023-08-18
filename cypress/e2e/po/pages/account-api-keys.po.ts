@@ -13,6 +13,10 @@ export default class AccountPagePo extends PagePo {
     super(AccountPagePo.url);
   }
 
+  waitForRequests() {
+    AccountPagePo.goToAndWaitForGet(this.goTo.bind(this), ['/v3/tokens'], 10000);
+  }
+
   title(): Cypress.Chainable {
     return this.self().get('h1').should('have.text', 'Account and API Keys');
   }
