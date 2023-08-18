@@ -21,7 +21,6 @@ import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { ELEMENTAL_PRODUCT_NAME, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import Rke2Config from './rke2';
 import Import from './import';
-import EditImported from './EditImported';
 
 const SORT_GROUPS = {
   template:  1,
@@ -38,7 +37,7 @@ const SORT_GROUPS = {
 const PROXY_ENDPOINT = '/meta/proxy';
 
 export default {
-  name: 'CruCluster',
+  name: 'EditCluster',
 
   components: {
     CruResource,
@@ -47,8 +46,7 @@ export default {
     Loading,
     Rke2Config,
     SelectIconGrid,
-    ToggleSwitch,
-    EditImported
+    ToggleSwitch
   },
 
   mixins: [CreateEditView],
@@ -165,9 +163,8 @@ export default {
 
   data() {
     const subType = this.$route.query[SUB_TYPE] || null;
-
     const chart = this.$route.query[CHART] || null;
-    const isImport = this.realMode === _IMPORT || this.value.isImported;
+    const isImport = this.realMode === _IMPORT;
 
     return {
       nodeDrivers:      [],
@@ -189,9 +186,7 @@ export default {
     _RKE2:                () => _RKE2,
 
     emberLink() {
-      console.log(`this.subType : ${ this.subType } `);
       if (this.value) {
-        // console.log(`this.value: ${ this.value } this.mode: ${ this.mode }`);
         // For custom RKE2 clusters, don't load an Ember page.
         // It should be the dashboard.
         if ( this.value.isRke2 && ((this.value.isCustom && this.mode === _EDIT) || (this.value.isCustom && this.as === _CONFIG && this.mode === _VIEW) || (this.subType || '').toLowerCase() === 'custom')) {
@@ -222,16 +217,9 @@ export default {
 
           return '';
         }
-        if (this.value.isImported) {
-          // this.isImport = true;
-          return '';
-        }
 
         if ( this.value.mgmt?.emberEditPath ) {
           // Iframe an old page
-          // this.isImport = true;
-          // this.selectType('custom', true);
-
           return this.value.mgmt.emberEditPath;
         }
       }
@@ -277,7 +265,8 @@ export default {
 
     subTypes() {
       const getters = this.$store.getters;
-      const isImport = this.isImport;
+      let isImport = this.isImport;
+      let isEdit = false;
       const isElementalActive = !!this.activeProducts.find((item) => item.name === ELEMENTAL_PRODUCT_NAME);
 
       const out = [];
@@ -293,6 +282,10 @@ export default {
           addType(obj.driverName, 'kontainer', false, (isImport ? obj.emberImportPath : obj.emberCreatePath));
         }
       });
+      if (this.value.mgmt?.emberEditPath) {
+        isImport = true;
+        isEdit = true;
+      }
 
       if ( isImport ) {
         addType('import', 'custom', false);
@@ -427,11 +420,6 @@ export default {
     firstCustomClusterItem() {
       return this.groupedSubTypes.findIndex((obj) => ['custom', 'custom1', 'custom2'].includes(obj.name));
     },
-
-    isEditImported() {
-      return this.isImport && this.mode === _EDIT;
-    }
-
   },
 
   methods: {
@@ -527,33 +515,12 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
-  <div
-    v-else-if="emberLink"
-    class="embed"
-  >
-    <EmberPage
-      :force-new="true"
-      :src="emberLink"
-    />
-  </div>
-  <!-- <EditImported
-    v-else-if="isEditImported"
-    v-model="value"
-    :initial-value="initialValue"
-    :errors="errors"
-    component-testid="cluster-manager-import-edit"
-    @finish="saveOverride"
-    @error="e=>errors = e"
-  /> -->
   <CruResource
-    v-else
     :mode="mode"
     :validation-passed="true"
     :selected-subtype="subType"
     :resource="value"
     :errors="errors"
-    :subtypes="subTypes"
     :cancel-event="true"
     :prevent-enter-submit="true"
     class="create-cluster"
@@ -562,64 +529,13 @@ export default {
     @select-type="selectType"
     @error="e=>errors = e"
   >
-    <template #subtypes>
-      <div
-        v-for="(obj, i) in groupedSubTypes"
-        :key="obj.id"
-        class="mb-20"
-        style="width: 100%;"
-      >
-        <h4>
-          <div
-            v-if="showRkeToggle(i)"
-            class="grouped-type"
-          >
-            <ToggleSwitch
-              v-model="provisioner"
-              data-testid="cluster-manager-create-rke-switch"
-              class="rke-switch"
-              off-value="rke1"
-              :off-label="t('cluster.toggle.v1')"
-              on-value="rke2"
-              :on-label="t('cluster.toggle.v2')"
-            />
-          </div>
-          {{ obj.label }}
-        </h4>
-        <SelectIconGrid
-          :rows="obj.types"
-          key-field="id"
-          name-field="label"
-          side-label-field="tag"
-          :color-for="colorFor"
-          :component-testid="'cluster-manager-create-grid-' + i"
-          @clicked="clickedType"
-        />
-      </div>
-    </template>
-
-    <Import
-      v-if="isImport"
-      v-model="value"
-      :mode="mode"
-      :provider="subType"
-      :live-value="liveValue"
-    />
     <Rke2Config
-      v-else-if="subType"
       v-model="value"
-      :initial-value="initialValue"
+      :initial-value="value"
       :live-value="liveValue"
       :mode="mode"
       :provider="subType"
     />
-
-    <template
-      v-if="subType"
-      #form-footer
-    >
-      <div><!-- Hide the outer footer --></div>
-    </template>
   </CruResource>
 </template>
 
