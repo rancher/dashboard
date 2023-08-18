@@ -90,7 +90,7 @@ describe('Settings', () => {
     cy.login();
   });
 
-  it('can navigate to Settings page', { tags: ['@adminUser', '@standardUser'] }, () => {
+  it('can navigate to Settings page', { tags: ['@adminUser', '@standardUser', '@debug'] }, () => {
     HomePagePo.goTo();
 
     BurgerMenuPo.toggle();
@@ -142,7 +142,7 @@ describe('Settings', () => {
     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
   });
 
-  it('can update password-min-length', { tags: '@adminUser' }, () => {
+  it('can update password-min-length', { tags: ['@adminUser', '@debug'] }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('password-min-length');
@@ -162,8 +162,8 @@ describe('Settings', () => {
     accountPage.waitForRequests();
     accountPage.changePassword();
     accountPage.currentPassword().set(Cypress.env('password'));
-    accountPage.newPassword().set('NewPassword1');
-    accountPage.confirmPassword().set('NewPassword1');
+    accountPage.newPassword().set('New');
+    accountPage.confirmPassword().set('New');
     accountPage.apply();
     banner.banner().contains(`Password must be at least ${ settings['password-min-length'].new } characters`).should('be.visible');
 
