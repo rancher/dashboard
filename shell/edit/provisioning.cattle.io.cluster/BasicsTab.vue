@@ -1,0 +1,1978 @@
+<script>
+import difference from 'lodash/difference';
+import isArray from 'lodash/isArray';
+import merge from 'lodash/merge';
+import { mapGetters } from 'vuex';
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import { normalizeName } from '@shell/utils/kube';
+
+import {
+  CAPI,
+  MANAGEMENT,
+  NAMESPACE,
+  NORMAN,
+  DEFAULT_WORKSPACE,
+  SECRET,
+  HCI,
+  PSPS,
+} from '@shell/config/types';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
+
+import { findBy, removeObject } from '@shell/utils/array';
+import { clone, set, get, isEmpty } from '@shell/utils/object';
+import { allHash } from '@shell/utils/promise';
+import { sortBy } from '@shell/utils/sort';
+
+import { nlToBr } from '@shell/utils/string';
+import { compare, sortable } from '@shell/utils/version';
+import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import * as VERSION from '@shell/utils/version';
+import { Banner } from '@components/Banner';
+import { Checkbox } from '@components/Form/Checkbox';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
+import Tab from '@shell/components/Tabbed/Tab';
+import YamlEditor from '@shell/components/YamlEditor';
+import { LEGACY } from '@shell/store/features';
+import semver from 'semver';
+
+import { SETTING } from '@shell/config/settings';
+import { base64Encode } from '@shell/utils/crypto';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
+import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
+
+const HARVESTER = 'harvester';
+const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
+
+const NETBIOS_TRUNCATION_LENGTH = 15;
+
+/**
+ * Classes to be adopted by the node badges in Machine pools
+ */
+const NODE_TOTAL = {
+  error: {
+    color: 'bg-error',
+    icon:  'icon-x',
+  },
+  warning: {
+    color: 'bg-warning',
+    icon:  'icon-warning',
+  },
+  success: {
+    color: 'bg-success',
+    icon:  'icon-checkmark'
+  }
+};
+const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
+const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
+
+export default {
+  components: {
+    Banner,
+    Checkbox,
+    LabeledSelect,
+    Tab,
+    YamlEditor,
+  },
+
+  mixins: [CreateEditView, FormValidation],
+
+  props: {
+    mode: {
+      type:     String,
+      required: true,
+    },
+
+    value: {
+      type:     Object,
+      required: true,
+    },
+
+    provider: {
+      type:     String,
+      required: true,
+    },
+  },
+
+  async fetch() {
+    this.psps = await this.getPsps();
+    await this.fetchRke2Versions();
+    await this.initSpecs();
+    await this.initAddons();
+    await this.initRegistry();
+
+    Object.entries(this.chartValues).forEach(([name, value]) => {
+      const key = this.chartVersionKey(name);
+
+      this.userChartValues[key] = value;
+    });
+
+    this.setAgentConfiguration();
+  },
+
+  data() {
+    if ( !this.value.spec.rkeConfig ) {
+      set(this.value.spec, 'rkeConfig', {});
+    }
+
+    if ( !this.value.spec.rkeConfig.chartValues ) {
+      set(this.value.spec.rkeConfig, 'chartValues', {});
+    }
+
+    if ( !this.value.spec.rkeConfig.upgradeStrategy ) {
+      set(this.value.spec.rkeConfig, 'upgradeStrategy', {
+        controlPlaneConcurrency:  '1',
+        controlPlaneDrainOptions: {},
+        workerConcurrency:        '1',
+        workerDrainOptions:       {},
+      });
+    }
+
+    if ( !this.value.spec.rkeConfig.machineGlobalConfig ) {
+      set(this.value.spec, 'rkeConfig.machineGlobalConfig', {});
+    }
+
+    // Store the initial PSP template name, so we can set it back if needed
+    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
+    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
+
+    const truncateLimit = this.value.defaultHostnameLengthLimit;
+
+    return {
+      lastIdx:                     0,
+      allPSPs:                     null,
+      allPSAs:                     [],
+      credentialId:                '',
+      credential:                  null,
+      machinePools:                null,
+      rke2Versions:                null,
+      k3sVersions:                 null,
+      defaultRke2:                 '',
+      defaultK3s:                  '',
+      s3Backup:                    false,
+      versionInfo:                 {},
+      membershipUpdate:            {},
+      showDeprecatedPatchVersions: false,
+      systemRegistry:              null,
+      registryHost:                null,
+      registrySecret:              null,
+      userChartValues:             {},
+      clusterIsAlreadyCreated:     !!this.value.id,
+      harvesterVersionRange:       {},
+      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
+      previousKubernetesVersion,
+      cisOverride:                 false,
+      cisPsaChangeBanner:          false,
+      psps:                        null, // List of policies if any
+      truncateHostnames:           truncateLimit === NETBIOS_TRUNCATION_LENGTH,
+      truncateLimit,
+      allNamespaces:               [],
+    };
+  },
+
+  computed: {
+    ...mapGetters({ allCharts: 'catalog/charts' }),
+    ...mapGetters(['currentCluster']),
+    ...mapGetters({ features: 'features/get' }),
+    ...mapGetters(['namespaces']),
+
+    rkeConfig() {
+      return this.value.spec.rkeConfig;
+    },
+
+    /**
+     * Check presence of PSPs as template or CLI creation
+     */
+    hasPsps() {
+      return !!this.psps?.count;
+    },
+
+    isElementalCluster() {
+      return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
+    },
+
+    chartValues() {
+      return this.value.spec.rkeConfig.chartValues;
+    },
+
+    serverConfig() {
+      return this.value.spec.rkeConfig.machineGlobalConfig;
+    },
+
+    agentConfig() {
+      return this.value.agentConfig;
+    },
+
+    /**
+     * Define introduction of PSA and return need of PSA templates based on min k8s version
+     */
+    needsPSA() {
+      const release = this.value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
+
+      return isRequiredVersion;
+    },
+
+    /**
+     * Define PSP deprecation and restrict use of PSP based on min k8s version
+     */
+    needsPSP() {
+      return this.getNeedsPSP();
+    },
+
+    /**
+     * Define introduction of Rancher defined PSA templates
+     */
+    hasPsaTemplates() {
+      return !this.needsPSP;
+    },
+
+    versionOptions() {
+      const cur = this.liveValue?.spec?.kubernetesVersion || '';
+      const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
+      const existingK3s = this.mode === _EDIT && cur.includes('k3s');
+
+      let allValidRke2Versions = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
+      let allValidK3sVersions = this.getAllOptionsAfterCurrentVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
+
+      if (!this.showDeprecatedPatchVersions) {
+        // Normally, we only want to show the most recent patch version
+        // for each Kubernetes minor version. However, if the user
+        // opts in to showing deprecated versions, we don't filter them.
+        allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
+        allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
+      }
+
+      const showRke2 = allValidRke2Versions.length && !existingK3s;
+      const showK3s = allValidK3sVersions.length && !existingRke2;
+      const out = [];
+
+      if ( showRke2 ) {
+        if ( showK3s ) {
+          out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
+        }
+
+        out.push(...allValidRke2Versions);
+      }
+
+      if ( showK3s ) {
+        if ( showRke2 ) {
+          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
+        }
+
+        out.push(...allValidK3sVersions);
+      }
+
+      if ( cur ) {
+        const existing = out.find((x) => x.value === cur);
+
+        if ( existing ) {
+          existing.disabled = false;
+        }
+      }
+
+      return out;
+    },
+
+    isK3s() {
+      return (this.value?.spec?.kubernetesVersion || '').includes('k3s');
+    },
+
+    profileOptions() {
+      const out = (this.agentArgs?.profile?.options || []).map((x) => {
+        return { label: x, value: x };
+      });
+
+      out.unshift({
+        label: this.$store.getters['i18n/t']('cluster.rke2.cisProfile.option'),
+        value: ''
+      });
+
+      return out;
+    },
+
+    /**
+     * Allow to display override if PSA is needed and profile is set
+     */
+    hasCisOverride() {
+      return (this.serverConfig?.profile || this.agentConfig?.profile) && this.needsPSA &&
+        // Also check other cases on when to display the override
+        this.hasPsaTemplates && this.showCisProfile && this.isCisSupported;
+    },
+
+    pspOptions() {
+      if ( this.isK3s ) {
+        return null;
+      }
+
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
+        value: ''
+      }];
+
+      if ( this.allPSPs ) {
+        for ( const pspt of this.allPSPs ) {
+          out.push({
+            label: pspt.nameDisplay,
+            value: pspt.id,
+          });
+        }
+      }
+
+      const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
+
+      if ( cur && !out.find((x) => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
+    /**
+     * Disable PSA if CIS hardening is enabled, except override
+     */
+    isPsaDisabled() {
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+
+      return !(!cisValue || this.cisOverride) && this.hasPsaTemplates && this.isCisSupported;
+    },
+
+    /**
+     * Get the default label for the PSA template option
+     */
+    defaultPsaOptionLabel() {
+      const optionCase = !this.needsPSP && !this.isK3s ? 'default' : 'none';
+
+      return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
+    },
+
+    /**
+     * Convert PSA templates into options, sorting and flagging if any selected
+     */
+    psaOptions() {
+      if ( !this.needsPSA ) {
+        return [];
+      }
+      const out = [{
+        label: this.defaultPsaOptionLabel,
+        value: ''
+      }];
+
+      if ( this.allPSAs ) {
+        for ( const psa of this.allPSAs ) {
+          out.push({
+            label: psa.nameDisplay,
+            value: psa.id,
+          });
+        }
+      }
+      const cur = this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName;
+
+      if ( cur && !out.find((x) => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
+    /**
+     * Check if current CIS profile is required and listed in the options
+     */
+    isCisSupported() {
+      const cisProfile = this.serverConfig.profile || this.agentConfig.profile;
+
+      return !cisProfile || this.profileOptions.map((option) => option.value).includes(cisProfile);
+    },
+
+    disableOptions() {
+      return this.serverArgs.disable.options.map((value) => {
+        return {
+          label: this.$store.getters['i18n/withFallback'](`cluster.${ this.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
+          value,
+        };
+      });
+    },
+
+    cloudProviderOptions() {
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
+      }];
+
+      const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
+
+      for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
+        // If we don't have a preferred provider... show all options
+        const showAllOptions = preferred === undefined;
+        // If we have a preferred provider... only show default, preferred and external
+        const isPreferred = opt === preferred;
+        const isExternal = opt === 'external';
+        let disabled = false;
+
+        if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
+          disabled = true;
+        }
+
+        if (showAllOptions || isPreferred || isExternal) {
+          out.push({
+            label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
+            value: opt,
+            disabled,
+          });
+        }
+      }
+
+      const cur = this.agentConfig['cloud-provider-name'];
+
+      if ( cur && !out.find((x) => x.value === cur) ) {
+        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      }
+
+      return out;
+    },
+
+    selectedVersion() {
+      const str = this.value.spec.kubernetesVersion;
+
+      if ( !str ) {
+        return;
+      }
+
+      const out = findBy(this.versionOptions, 'value', str);
+
+      return out;
+    },
+
+    haveArgInfo() {
+      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
+    },
+
+    serverArgs() {
+      return this.selectedVersion?.serverArgs || {};
+    },
+
+    agentArgs() {
+      return this.selectedVersion?.agentArgs || {};
+    },
+
+    chartVersions() {
+      return this.selectedVersion?.charts || {};
+    },
+
+    showCisProfile() {
+      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
+    },
+
+    needCredential() {
+      if ( this.provider === 'custom' || this.provider === 'import' || this.isElementalCluster || this.mode === _VIEW ) {
+        return false;
+      }
+
+      if (this.customCredentialComponentRequired === false) {
+        return false;
+      }
+
+      return true;
+    },
+
+    /**
+     * Only for extensions - extension can register a 'false' cloud credential to indicate that a cloud credential is not needed
+     */
+    customCredentialComponentRequired() {
+      return this.$plugin.getDynamic('cloud-credential', this.provider);
+    },
+
+    hasMachinePools() {
+      if ( this.provider === 'custom' || this.provider === 'import' ) {
+        return false;
+      }
+
+      return true;
+    },
+
+    /**
+     * Extension provider where being provisioned by an extension
+     */
+    extensionProvider() {
+      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
+
+      if (extClass) {
+        return new extClass({
+          dispatch: this.$store.dispatch,
+          getters:  this.$store.getters,
+          axios:    this.$store.$axios,
+          $plugin:  this.$store.app.$plugin,
+          $t:       this.t,
+          isCreate: this.isCreate
+        });
+      }
+
+      return undefined;
+    },
+
+    /**
+     * Is a namespace needed? Only supported for providers from extensions, otherwise default is no
+     */
+    needsNamespace() {
+      return this.extensionProvider ? !!this.extensionProvider.namespaced : false;
+    },
+
+    machineConfigSchema() {
+      let schema;
+
+      if ( !this.hasMachinePools ) {
+        return null;
+      } else if (this.isElementalCluster) {
+        schema = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+      } else {
+        schema = `${ CAPI.MACHINE_CONFIG_GROUP }.${ this.provider }config`;
+      }
+
+      // If this is an extension provider then the extension can provide the schema
+      const extensionSchema = this.extensionProvider?.machineConfigSchema;
+
+      if (extensionSchema) {
+        // machineConfigSchema can either be the schema name (string) or the schema itself (object)
+        if (typeof extensionSchema === 'object') {
+          return extensionSchema;
+        }
+
+        // Name of schema to use
+        schema = extensionSchema;
+      }
+
+      return this.$store.getters['management/schemaFor'](schema);
+    },
+
+    nodeTotals() {
+      const roles = ['etcd', 'controlPlane', 'worker'];
+      const counts = {};
+      const out = {
+        color:   {},
+        label:   {},
+        icon:    {},
+        tooltip: {},
+      };
+
+      for ( const role of roles ) {
+        counts[role] = 0;
+        out.color[role] = NODE_TOTAL.success.color;
+        out.icon[role] = NODE_TOTAL.success.icon;
+      }
+
+      for ( const row of this.machinePools || [] ) {
+        if ( row.remove ) {
+          continue;
+        }
+
+        const qty = parseInt(row.pool.quantity, 10);
+
+        if ( isNaN(qty) ) {
+          continue;
+        }
+
+        for ( const role of roles ) {
+          counts[role] = counts[role] + (row.pool[`${ role }Role`] ? qty : 0);
+        }
+      }
+
+      for ( const role of roles ) {
+        out.label[role] = this.t(`cluster.machinePool.nodeTotals.label.${ role }`, { count: counts[role] });
+        out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
+      }
+
+      if ( counts.etcd === 0 ) {
+        out.color.etcd = NODE_TOTAL.error.color;
+        out.icon.etcd = NODE_TOTAL.error.icon;
+      } else if ( counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7 ) {
+        out.color.etcd = NODE_TOTAL.warning.color;
+        out.icon.etcd = NODE_TOTAL.warning.icon;
+      }
+
+      if ( counts.controlPlane === 0 ) {
+        out.color.controlPlane = NODE_TOTAL.error.color;
+        out.icon.controlPlane = NODE_TOTAL.error.icon;
+      } else if ( counts.controlPlane === 1 ) {
+        out.color.controlPlane = NODE_TOTAL.warning.color;
+        out.icon.controlPlane = NODE_TOTAL.warning.icon;
+      }
+
+      if ( counts.worker === 0 ) {
+        out.color.worker = NODE_TOTAL.error.color;
+        out.icon.worker = NODE_TOTAL.error.icon;
+      } else if ( counts.worker === 1 ) {
+        out.color.worker = NODE_TOTAL.warning.color;
+        out.icon.worker = NODE_TOTAL.warning.icon;
+      }
+
+      return out;
+    },
+
+    enabledSystemServices: {
+      get() {
+        const out = difference(this.serverArgs.disable.options, this.serverConfig.disable || []);
+
+        return out;
+      },
+
+      set(neu) {
+        const out = difference(this.serverArgs.disable.options, neu);
+
+        set(this.serverConfig, 'disable', out);
+      },
+    },
+
+    showCloudConfigYaml() {
+      if ( !this.agentArgs['cloud-provider-name'] ) {
+        return false;
+      }
+
+      const name = this.agentConfig['cloud-provider-name'];
+
+      if ( !name ) {
+        return false;
+      }
+
+      switch ( name ) {
+      case 'none': return false;
+      case 'aws': return false;
+      case 'rancher-vsphere': return false;
+      case HARVESTER: return false;
+      default: return true;
+      }
+    },
+
+    showVsphereNote() {
+      if ( !this.agentArgs['cloud-provider-name'] ) {
+        return false;
+      }
+
+      const name = this.agentConfig['cloud-provider-name'];
+
+      return name === 'rancher-vsphere';
+    },
+
+    showCni() {
+      return !!this.serverArgs.cni;
+    },
+
+    showCloudProvider() {
+      return this.agentArgs['cloud-provider-name'];
+    },
+
+    addonNames() {
+      const names = [];
+      const cni = this.serverConfig.cni;
+
+      if ( cni ) {
+        const parts = cni.split(',').map((x) => `rke2-${ x }`);
+
+        names.push(...parts);
+      }
+
+      if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
+        if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
+          names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
+        }
+
+        if ( this.agentConfig['cloud-provider-name'] === HARVESTER ) {
+          names.push(HARVESTER_CLOUD_PROVIDER);
+        }
+      }
+
+      return names;
+    },
+
+    addonVersions() {
+      const versions = this.addonNames.map((name) => this.chartVersionFor(name));
+
+      return versions.filter((x) => !!x);
+    },
+
+    showk8s21LegacyWarning() {
+      const isLegacyEnabled = this.features(LEGACY);
+
+      if (!isLegacyEnabled) {
+        return false;
+      }
+      const selectedVersion = semver.coerce(this.value.spec.kubernetesVersion);
+
+      return semver.satisfies(selectedVersion, '>=1.21.0');
+    },
+
+    isHarvesterDriver() {
+      return this.$route.query.type === HARVESTER;
+    },
+
+    defaultVersion() {
+      const all = this.versionOptions.filter((x) => !!x.value);
+      const first = all[0]?.value;
+      const preferred = all.find((x) => x.value === this.defaultRke2)?.value;
+
+      const rke2 = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, null);
+      const showRke2 = rke2.length;
+      let out;
+
+      if (this.isHarvesterDriver && showRke2) {
+        const satisfiesVersion = rke2.filter((v) => {
+          return isHarvesterSatisfiesVersion(v.value);
+        }) || [];
+
+        if (satisfiesVersion.length > 0) {
+          out = satisfiesVersion[0]?.value;
+        }
+      }
+
+      if ( !out ) {
+        out = preferred || first;
+      }
+
+      return out;
+    },
+
+    ciliumIpv6: {
+      get() {
+        // eslint-disable-next-line no-unused-vars
+        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
+
+        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
+      },
+      set(val) {
+        const name = this.chartVersionKey('rke2-cilium');
+        const values = this.userChartValues[name];
+
+        set(this, 'userChartValues', {
+          ...this.userChartValues,
+          [name]: {
+            ...values,
+            cilium: {
+              ...values?.cilium,
+              ipv6: {
+                ...values?.cilium?.ipv6,
+                enabled: val
+              }
+            }
+          }
+        });
+      }
+    },
+
+    isHarvesterExternalCredential() {
+      return this.credential?.harvestercredentialConfig?.clusterType === 'external';
+    },
+
+    isHarvesterIncompatible() {
+      let ccmRke2Version = (this.chartVersions['harvester-cloud-provider'] || {})['version'];
+      let csiRke2Version = (this.chartVersions['harvester-csi-driver'] || {})['version'];
+
+      const ccmVersion = this.harvesterVersionRange?.['harvester-cloud-provider'];
+      const csiVersion = this.harvesterVersionRange?.['harvester-csi-provider'];
+
+      if ((ccmRke2Version || '').endsWith('00')) {
+        ccmRke2Version = ccmRke2Version.slice(0, -2);
+      }
+
+      if ((csiRke2Version || '').endsWith('00')) {
+        csiRke2Version = csiRke2Version.slice(0, -2);
+      }
+
+      if (ccmVersion && csiVersion) {
+        if (semver.satisfies(ccmRke2Version, ccmVersion) &&
+          semver.satisfies(csiRke2Version, csiVersion)) {
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
+    },
+    unsupportedCloudProvider() {
+      // The current cloud provider
+      const cur = this.initialCloudProvider;
+
+      const provider = cur && this.cloudProviderOptions.find((x) => x.value === cur);
+
+      return !!provider?.unsupported;
+    },
+  },
+
+  watch: {
+    s3Backup(neu) {
+      if ( neu ) {
+        // We need to make sure that s3 doesn't already have an existing value otherwise when editing a cluster with s3 defined this will clear s3.
+        if (isEmpty(this.rkeConfig.etcd?.s3)) {
+          set(this.rkeConfig.etcd, 's3', {});
+        }
+      } else {
+        set(this.rkeConfig.etcd, 's3', null);
+      }
+    },
+
+    credentialId(val) {
+      if ( val ) {
+        this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
+
+        if (this.isHarvesterDriver) {
+          this.setHarvesterVersionRange();
+        }
+      } else {
+        this.credential = null;
+      }
+
+      this.value.spec.cloudCredentialSecretName = val;
+    },
+
+    addonNames(neu, old) {
+      // To catch the 'some addons' --> 'no addons' case also check array length (`difference([], [1,2,3]) === []`)
+      const diff = old.length !== neu.length || difference(neu, old).length ;
+
+      if (diff) {
+        // Allow time for addonNames to update... then fetch any missing addons
+        this.$nextTick(() => this.initAddons());
+      }
+    },
+
+    selectedVersion() {
+      this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
+
+      // Allow time for addonNames to update... then fetch any missing addons
+      this.$nextTick(() => this.initAddons());
+      if (this.mode === _CREATE) {
+        this.initServerAgentArgs();
+      }
+    },
+
+    showCni(neu) {
+      // Update `serverConfig.cni to recalculate addonNames...
+      // ... which will eventually update `value.spec.rkeConfig.chartValues`
+      if (neu) {
+        // Type supports CNI, assign default if we can
+        if (!this.serverConfig.cni) {
+          const def = this.serverArgs.cni.default;
+
+          set(this.serverConfig, 'cni', def);
+        }
+      } else {
+        // Type doesn't support cni, clear `cni`
+        set(this.serverConfig, 'cni', undefined);
+      }
+    },
+
+    showCloudProvider(neu) {
+      if (!neu) {
+        // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
+        // ... which will eventually update `value.spec.rkeConfig.chartValues`
+        set(this.agentConfig, 'cloud-provider-name', undefined);
+      }
+    },
+
+  },
+
+  mounted() {
+    window.rke = this;
+  },
+
+  created() {
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
+    this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
+
+    // Register any hooks for this extension provider
+    if (this.extensionProvider?.registerSaveHooks) {
+      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
+    }
+  },
+
+  methods: {
+    nlToBr,
+    set,
+
+    /**
+     * Initialize all the cluster specs
+     */
+    async initSpecs() {
+      if ( !this.value.spec ) {
+        set(this.value, 'spec', {});
+      }
+
+      if ( !this.value.spec.kubernetesVersion ) {
+        set(this.value.spec, 'kubernetesVersion', this.defaultVersion);
+      }
+
+      if ( this.rkeConfig.etcd?.s3?.bucket ) {
+        this.s3Backup = true;
+      }
+
+      if ( !this.rkeConfig.etcd ) {
+        set(this.rkeConfig, 'etcd', {
+          disableSnapshots:     false,
+          s3:                   null,
+          snapshotRetention:    5,
+          snapshotScheduleCron: '0 */5 * * *',
+        });
+      } else if (typeof this.rkeConfig.etcd.disableSnapshots === 'undefined') {
+        const disableSnapshots = !this.rkeConfig.etcd.snapshotRetention && !this.rkeConfig.etcd.snapshotScheduleCron;
+
+        set(this.rkeConfig.etcd, 'disableSnapshots', disableSnapshots);
+      }
+
+      // Namespaces if required - this is mainly for custom provisioners via extensions that want
+      // to allow creating their resources in a different namespace
+      if (this.needsNamespace) {
+        this.allNamespaces = await this.$store.dispatch('management/findAll', { type: NAMESPACE });
+      }
+
+      if ( !this.machinePools ) {
+        await this.initMachinePools(this.value.spec.rkeConfig.machinePools);
+        if ( this.mode === _CREATE && !this.machinePools.length ) {
+          await this.addMachinePool();
+        }
+      }
+
+      if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
+        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+      }
+
+      if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+      }
+    },
+
+    /**
+     * Fetch RKE versions and their configurations to be mapped to the form
+     */
+    async fetchRke2Versions() {
+      if ( !this.rke2Versions ) {
+        const hash = {
+          rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
+          k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
+        };
+
+        if ( this.$store.getters['management/canList'](MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE) ) {
+          hash.allPSPs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.POD_SECURITY_POLICY_TEMPLATE });
+        }
+
+        if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
+          hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
+        }
+
+        // Get the latest versions from the global settings if possible
+        const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
+        const defaultRke2Setting = globalSettings.find((setting) => setting.id === 'rke2-default-version') || {};
+        const defaultK3sSetting = globalSettings.find((setting) => setting.id === 'k3s-default-version') || {};
+
+        let defaultRke2 = defaultRke2Setting?.value || defaultRke2Setting?.default;
+        let defaultK3s = defaultK3sSetting?.value || defaultK3sSetting?.default;
+
+        // RKE2: Use the channel if we can not get the version from the settings
+        if (!defaultRke2) {
+          hash.rke2Channels = this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' });
+        }
+
+        // K3S: Use the channel if we can not get the version from the settings
+        if (!defaultK3s) {
+          hash.k3sChannels = this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' });
+        }
+
+        const res = await allHash(hash);
+
+        this.allPSPs = res.allPSPs || [];
+        this.allPSAs = res.allPSAs || [];
+        this.rke2Versions = res.rke2Versions.data || [];
+        this.k3sVersions = res.k3sVersions.data || [];
+
+        if (!defaultRke2) {
+          const rke2Channels = res.rke2Channels.data || [];
+
+          defaultRke2 = rke2Channels.find((x) => x.id === 'default')?.latest;
+        }
+
+        if (!defaultK3s) {
+          const k3sChannels = res.k3sChannels.data || [];
+
+          defaultK3s = k3sChannels.find((x) => x.id === 'default')?.latest;
+        }
+
+        if ( !this.rke2Versions.length && !this.k3sVersions.length ) {
+          throw new Error('No version info found in KDM');
+        }
+
+        // Store default versions
+        this.defaultRke2 = defaultRke2;
+        this.defaultK3s = defaultK3s;
+      }
+    },
+
+    cleanAgentConfiguration(model, key) {
+      if (!model || !model[key]) {
+        return;
+      }
+
+      const v = model[key];
+
+      if (Array.isArray(v) && v.length === 0) {
+        delete model[key];
+      } else if (v && typeof v === 'object') {
+        Object.keys(v).forEach((k) => {
+          // delete these auxiliary props used in podAffinity and nodeAffinity that shouldn't be sent to the server
+          if (k === '_namespaceOption' || k === '_namespaces' || k === '_anti' || k === '_id') {
+            delete v[k];
+          }
+
+          // prevent cleanup of "namespaceSelector" when an empty object because it represents all namespaces in pod/node affinity
+          // https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#podaffinityterm-v1-core
+          if (k !== 'namespaceSelector') {
+            this.cleanAgentConfiguration(v, k);
+          }
+        });
+
+        if (Object.keys(v).length === 0) {
+          delete model[key];
+        }
+      }
+    },
+    async getPsps() {
+      // As server returns 500 we exclude all the possible cases
+      if (
+        this.mode !== _CREATE &&
+        !this.isK3s &&
+        this.value.state !== 'reconciling' &&
+        this.getNeedsPSP(this.liveValue) // We consider editing only possible PSP cases
+      ) {
+        const clusterId = this.value.mgmtClusterId;
+        const url = `/k8s/clusters/${ clusterId }/v1/${ PSPS }`;
+
+        try {
+          return await this.$store.dispatch('cluster/request', { url });
+        } catch (error) {
+          // PSP may not exists for this cluster and an error is returned without need to handle
+        }
+      }
+    },
+
+    /**
+     * Clean agent configuration objects, so we only send values when the user has configured something
+     */
+    agentConfigurationCleanup() {
+      this.cleanAgentConfiguration(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION);
+      this.cleanAgentConfiguration(this.value.spec, FLEET_AGENT_CUSTOMIZATION);
+    },
+
+    /**
+     * Ensure we have empty models for the two agent configurations
+     */
+    setAgentConfiguration() {
+      // Cluster Agent Configuration
+      if ( !this.value.spec[CLUSTER_AGENT_CUSTOMIZATION]) {
+        set(this.value.spec, CLUSTER_AGENT_CUSTOMIZATION, {});
+      }
+
+      // Fleet Agent Configuration
+      if ( !this.value.spec[FLEET_AGENT_CUSTOMIZATION] ) {
+        set(this.value.spec, FLEET_AGENT_CUSTOMIZATION, {});
+      }
+    },
+
+    /**
+     * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
+     */
+    truncateName() {
+      if (this.truncateHostnames) {
+        this.value.defaultHostnameLengthLimit = NETBIOS_TRUNCATION_LENGTH;
+      } else {
+        this.value.removeDefaultHostnameLengthLimit();
+      }
+    },
+    /**
+     * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
+     */
+    getNeedsPSP(value = this.value) {
+      const release = value?.spec?.kubernetesVersion || '';
+      const version = release.match(/\d+/g);
+      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
+
+      return isRequiredVersion;
+    },
+
+    /**
+     * Get machine pools from the cluster configuration
+     * this.value.spec.rkeConfig.machinePools
+     */
+    async initMachinePools(existing) {
+      const out = [];
+
+      if ( existing?.length ) {
+        for ( const pool of existing ) {
+          let type;
+
+          if (this.isElementalCluster) {
+            type = ELEMENTAL_SCHEMA_IDS.MACHINE_INV_SELECTOR_TEMPLATES;
+          } else {
+            type = `${ CAPI.MACHINE_CONFIG_GROUP }.${ pool.machineConfigRef.kind.toLowerCase() }`;
+          }
+
+          let config;
+          let configMissing = false;
+
+          if ( this.$store.getters['management/canList'](type) ) {
+            try {
+              config = await this.$store.dispatch('management/find', {
+                type,
+                id: `${ this.value.metadata.namespace }/${ pool.machineConfigRef.name }`,
+              });
+            } catch (e) {
+              // Some users can't see the config, that's ok.
+              // we will display a banner for a 404 only for elemental
+              if (e?.status === 404) {
+                if (this.isElementalCluster) {
+                  configMissing = true;
+                }
+              }
+            }
+          }
+
+          // @TODO what if the pool is missing?
+          const id = `pool${ ++this.lastIdx }`;
+
+          out.push({
+            id,
+            remove: false,
+            create: false,
+            update: true,
+            pool:   clone(pool),
+            config: config ? await this.$store.dispatch('management/clone', { resource: config }) : null,
+            configMissing
+          });
+        }
+      }
+
+      this.machinePools = out;
+    },
+
+    async addMachinePool(idx) {
+      // this.machineConfigSchema is the schema for the Machine Pool's machine configuration for the given provider
+      if ( !this.machineConfigSchema ) {
+        return;
+      }
+
+      const numCurrentPools = this.machinePools.length || 0;
+
+      let config;
+
+      if (this.extensionProvider?.createMachinePoolMachineConfig) {
+        config = await this.extensionProvider.createMachinePoolMachineConfig(idx, this.machinePools, this.value);
+      } else {
+        // Default - use the schema
+        config = await this.$store.dispatch('management/createPopulated', {
+          type:     this.machineConfigSchema.id,
+          metadata: { namespace: DEFAULT_WORKSPACE }
+        });
+
+        // If there is no specific model, the applyDefaults does nothing by default
+        config.applyDefaults(idx, this.machinePools);
+      }
+
+      const name = `pool${ ++this.lastIdx }`;
+      const pool = {
+        id:     name,
+        config,
+        remove: false,
+        create: true,
+        update: false,
+        uid:    name,
+        pool:   {
+          name,
+          etcdRole:             numCurrentPools === 0,
+          controlPlaneRole:     numCurrentPools === 0,
+          workerRole:           true,
+          hostnamePrefix:       '',
+          labels:               {},
+          quantity:             1,
+          unhealthyNodeTimeout: '0m',
+          machineConfigRef:     {
+            kind: this.machineConfigSchema.attributes?.kind,
+            name: null,
+          },
+        },
+      };
+
+      if (this.provider === 'vmwarevsphere') {
+        pool.pool.machineOS = 'linux';
+      }
+
+      if (this.isElementalCluster) {
+        pool.pool.machineConfigRef.apiVersion = `${ this.machineConfigSchema.attributes.group }/${ this.machineConfigSchema.attributes.version }`;
+      }
+
+      this.machinePools.push(pool);
+
+      this.$nextTick(() => {
+        if ( this.$refs.pools?.select ) {
+          this.$refs.pools.select(name);
+        }
+      });
+    },
+
+    removeMachinePool(idx) {
+      const entry = this.machinePools[idx];
+
+      if ( !entry ) {
+        return;
+      }
+
+      if ( entry.create ) {
+        // If this is a new pool that isn't saved yet, it can just be dropped
+        removeObject(this.machinePools, entry);
+      } else {
+        // Mark for removal on save
+        entry.remove = true;
+      }
+    },
+
+    async syncMachineConfigWithLatest(machinePool) {
+      if (machinePool?.config?.id) {
+        // Use management/request instead of management/find to avoid overwriting the current machine pool in the store
+        const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
+        const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
+
+        const clonedCurrentConfig = await this.$store.dispatch('management/clone', { resource: machinePool.config });
+        const clonedLatestConfig = await this.$store.dispatch('management/clone', { resource: latestConfig });
+
+        // We don't allow the user to edit any of the fields in metadata from the UI so it's safe to override it with the
+        // metadata defined by the latest backend value. This is primarily used to ensure the resourceVersion is up to date.
+        delete clonedCurrentConfig.metadata;
+        machinePool.config = merge(clonedLatestConfig, clonedCurrentConfig);
+      }
+    },
+
+    async saveMachinePools() {
+      const finalPools = [];
+
+      // If the extension provider wants to do this, let them
+      if (this.extensionProvider?.saveMachinePoolConfigs) {
+        return await this.extensionProvider.saveMachinePoolConfigs(this.machinePools, this.value);
+      }
+
+      for ( const entry of this.machinePools ) {
+        if ( entry.remove ) {
+          continue;
+        }
+
+        await this.syncMachineConfigWithLatest(entry);
+
+        // Capitals and such aren't allowed;
+        set(entry.pool, 'name', normalizeName(entry.pool.name) || 'pool');
+
+        const prefix = `${ this.value.metadata.name }-${ entry.pool.name }`.substr(0, 50).toLowerCase();
+
+        if ( entry.create ) {
+          if ( !entry.config.metadata?.name ) {
+            entry.config.metadata.generateName = `nc-${ prefix }-`;
+          }
+
+          const neu = await entry.config.save();
+
+          entry.config = neu;
+          entry.pool.machineConfigRef.name = neu.metadata.name;
+          entry.create = false;
+          entry.update = true;
+        } else if ( entry.update ) {
+          entry.config = await entry.config.save();
+        }
+
+        // Ensure Elemental clusters have a hostname prefix
+        if (this.isElementalCluster && !entry.pool.hostnamePrefix ) {
+          entry.pool.hostnamePrefix = `${ prefix }-`;
+        }
+
+        finalPools.push(entry.pool);
+      }
+
+      this.value.spec.rkeConfig.machinePools = finalPools;
+    },
+
+    async cleanupMachinePools() {
+      for ( const entry of this.machinePools ) {
+        if ( entry.remove && entry.config ) {
+          try {
+            await entry.config.remove();
+          } catch (e) {}
+        }
+      }
+    },
+
+    async saveRoleBindings() {
+      await this.value.waitForMgmt();
+
+      if (this.membershipUpdate.save) {
+        await this.membershipUpdate.save(this.value.mgmt.id);
+      }
+    },
+
+    /**
+     * Ensure that all the existing node roles pool are at least 1 each
+     */
+    hasRequiredNodes() {
+      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every((color) => color !== NODE_TOTAL.error.color);
+    },
+
+    // create a secret to reference the harvester cluster kubeconfig in rkeConfig
+    async createKubeconfigSecret(kubeconfig = '') {
+      const clusterName = this.value.metadata.name;
+      const secret = await this.$store.dispatch('management/create', {
+        type:     SECRET,
+        metadata: {
+          namespace: 'fleet-default', generateName: 'harvesterconfig', annotations: { [CAPI_ANNOTATIONS.SECRET_AUTH]: clusterName, [CAPI_ANNOTATIONS.SECRET_WILL_DELETE]: 'true' }
+        },
+        data: { credential: base64Encode(kubeconfig) }
+      });
+
+      return secret.save({ url: '/v1/secrets', method: 'POST' });
+    },
+
+    chartVersionFor(chartName) {
+      const entry = this.chartVersions[chartName];
+
+      if ( !entry ) {
+        return null;
+      }
+
+      const out = this.$store.getters['catalog/version']({
+        repoType:    'cluster',
+        repoName:    entry.repo,
+        chartName,
+        versionName: entry.version,
+      });
+
+      return out;
+    },
+
+    async initAddons() {
+      for ( const v of this.addonVersions ) {
+        if ( this.versionInfo[v.name] ) {
+          continue;
+        }
+
+        const res = await this.$store.dispatch('catalog/getVersionInfo', {
+          repoType:    'cluster',
+          repoName:    v.repoName,
+          chartName:   v.name,
+          versionName: v.version
+        });
+
+        set(this.versionInfo, v.name, res);
+        const key = this.chartVersionKey(v.name);
+
+        if (!this.userChartValues[key]) {
+          this.userChartValues[key] = {};
+        }
+      }
+    },
+
+    refreshYamls() {
+      const keys = Object.keys(this.$refs).filter((x) => x.startsWith('yaml'));
+
+      for ( const k of keys ) {
+        const entry = this.$refs[k];
+        const list = isArray(entry) ? entry : [entry];
+
+        for ( const component of list ) {
+          component?.refresh(); // `yaml` ref can be undefined on switching from Basic to Addon tab (Azure --> Amazon --> addon)
+        }
+      }
+    },
+
+    initYamlEditor(name) {
+      const defaultChartValue = this.versionInfo[name];
+      const key = this.chartVersionKey(name);
+
+      return merge({}, defaultChartValue?.values || {}, this.userChartValues[key] || {});
+    },
+
+    initServerAgentArgs() {
+      for ( const k in this.serverArgs ) {
+        if ( this.serverConfig[k] === undefined ) {
+          const def = this.serverArgs[k].default;
+
+          set(this.serverConfig, k, (def !== undefined ? def : undefined));
+        }
+      }
+
+      for ( const k in this.agentArgs ) {
+        if ( this.agentConfig[k] === undefined ) {
+          const def = this.agentArgs[k].default;
+
+          set(this.agentConfig, k, (def !== undefined ? def : undefined));
+        }
+      }
+
+      if ( !this.serverConfig?.profile ) {
+        set(this.serverConfig, 'profile', null);
+      }
+    },
+    async initRegistry() {
+      // Check for an existing cluster scoped registry
+      const clusterRegistry = this.agentConfig?.['system-default-registry'] || '';
+
+      // Check for the global registry
+      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
+
+      // The order of precedence is to use the cluster scoped registry
+      // if it exists, then use the global scoped registry as a fallback
+      if (clusterRegistry) {
+        this.registryHost = clusterRegistry;
+      } else {
+        this.registryHost = this.systemRegistry;
+      }
+
+      let registrySecret = null;
+      let regs = this.rkeConfig.registries;
+
+      if ( !regs ) {
+        regs = {};
+        set(this.rkeConfig, 'registries', regs);
+      }
+
+      if ( !regs.configs ) {
+        set(regs, 'configs', {});
+      }
+
+      if ( !regs.mirrors ) {
+        set(regs, 'mirrors', {});
+      }
+
+      const hostname = Object.keys(regs.configs)[0];
+      const config = regs.configs[hostname];
+
+      if ( config ) {
+        registrySecret = config.authConfigSecretName;
+      }
+
+      this.registrySecret = registrySecret;
+
+      const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
+
+      if (this.registryHost || registrySecret || hasMirrorsOrAuthConfig) {
+        this.showCustomRegistryInput = true;
+
+        if (hasMirrorsOrAuthConfig) {
+          this.showCustomRegistryAdvancedInput = true;
+        }
+      }
+    },
+
+    chartVersionKey(name) {
+      const addonVersion = this.addonVersions.find((av) => av.name === name);
+
+      return addonVersion ? `${ name }-${ addonVersion.version }` : name;
+    },
+
+    getAllOptionsAfterCurrentVersion(versions, currentVersion, defaultVersion) {
+      const out = (versions || []).filter((obj) => !!obj.serverArgs).map((obj) => {
+        let disabled = false;
+        let experimental = false;
+        let isCurrentVersion = false;
+        let label = obj.id;
+
+        if ( currentVersion ) {
+          disabled = compare(obj.id, currentVersion) < 0;
+          isCurrentVersion = compare(obj.id, currentVersion) === 0;
+        }
+
+        if ( defaultVersion ) {
+          experimental = compare(defaultVersion, obj.id) < 0;
+        }
+
+        if (isCurrentVersion) {
+          label = `${ label } ${ this.t('cluster.kubernetesVersion.current') }`;
+        }
+
+        if (experimental) {
+          label = `${ label } ${ this.t('cluster.kubernetesVersion.experimental') }`;
+        }
+
+        return {
+          label,
+          value:      obj.id,
+          sort:       sortable(obj.id),
+          serverArgs: obj.serverArgs,
+          agentArgs:  obj.agentArgs,
+          charts:     obj.charts,
+          disabled,
+        };
+      });
+
+      if (currentVersion && !out.find((obj) => obj.value === currentVersion)) {
+        out.push({
+          label: `${ currentVersion } ${ this.t('cluster.kubernetesVersion.current') }`,
+          value: currentVersion,
+          sort:  sortable(currentVersion),
+        });
+      }
+
+      const sorted = sortBy(out, 'sort:desc');
+
+      const mostRecentPatchVersions = this.getMostRecentPatchVersions(sorted);
+
+      const sortedWithDeprecatedLabel = sorted.map((optionData) => {
+        const majorMinor = `${ semver.major(optionData.value) }.${ semver.minor(optionData.value) }`;
+
+        if (mostRecentPatchVersions[majorMinor] === optionData.value) {
+          return optionData;
+        }
+
+        return {
+          ...optionData,
+          label: `${ optionData.label } ${ this.t('cluster.kubernetesVersion.deprecated') }`
+        };
+      });
+
+      return sortedWithDeprecatedLabel;
+    },
+
+    getMostRecentPatchVersions(sortedVersions) {
+      // Get the most recent patch version for each Kubernetes minor version.
+      const versionMap = {};
+
+      sortedVersions.forEach((version) => {
+        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
+
+        if (!versionMap[majorMinor]) {
+          // Because we start with a sorted list of versions, we know the
+          // highest patch version is first in the list, so we only keep the
+          // first of each minor version in the list.
+          versionMap[majorMinor] = version.value;
+        }
+      });
+
+      return versionMap;
+    },
+
+    filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
+      // Get the most recent patch version for each Kubernetes minor version.
+      const mostRecentPatchVersions = this.getMostRecentPatchVersions(allVersions);
+
+      const filteredVersions = allVersions.filter((version) => {
+        // Always show pre-releases
+        if (semver.prerelease(version.value)) {
+          return true;
+        }
+
+        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
+
+        // Always show current version, else show if we haven't shown anything for this major.minor version yet
+        if (version.value === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
+          return true;
+        }
+
+        return false;
+      });
+
+      return filteredVersions;
+    },
+    get,
+
+    setHarvesterDefaultCloudProvider() {
+      if (this.isHarvesterDriver &&
+        this.mode === _CREATE &&
+        !this.agentConfig['cloud-provider-name'] &&
+        !this.isHarvesterExternalCredential &&
+        !this.isHarvesterIncompatible
+      ) {
+        this.agentConfig['cloud-provider-name'] = HARVESTER;
+      } else {
+        this.agentConfig['cloud-provider-name'] = '';
+      }
+    },
+
+    async setHarvesterVersionRange() {
+      const clusterId = this.credential?.decodedData?.clusterId;
+      const clusterType = this.credential?.decodedData?.clusterType;
+
+      if (clusterId && clusterType === 'imported') {
+        const url = `/k8s/clusters/${ clusterId }/v1`;
+        const res = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.SETTING }s` });
+
+        const version = (res?.data || []).find((s) => s.id === 'harvester-csi-ccm-versions');
+
+        if (version) {
+          this.harvesterVersionRange = JSON.parse(version.value || version.default || '{}');
+        } else {
+          this.harvesterVersionRange = {};
+        }
+      }
+      this.setHarvesterDefaultCloudProvider();
+    },
+
+    /**
+     * Reset PSA on several input changes for given conditions
+     */
+    togglePsaDefault() {
+      // This option is created from the server and is guaranteed to exist #8032
+      const hardcodedTemplate = 'rancher-restricted';
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+
+      if (!this.cisOverride) {
+        if (this.hasPsaTemplates && cisValue) {
+          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
+        }
+
+        this.cisPsaChangeBanner = this.hasPsaTemplates;
+      }
+    },
+
+    handleCisChange() {
+      this.togglePsaDefault();
+      this.updateCisProfile();
+    },
+
+    updateCisProfile() {
+      // If the user selects any Worker CIS Profile,
+      // protect-kernel-defaults should be set to false
+      // in the RKE2 worker/agent config.
+      const selectedCisProfile = this.agentConfig?.profile;
+
+      if (selectedCisProfile) {
+        set(this.agentConfig, 'protect-kernel-defaults', true);
+      } else {
+        set(this.agentConfig, 'protect-kernel-defaults', false);
+      }
+    },
+
+    /**
+     * Handle k8s changes side effects, like PSP and PSA resets
+     */
+    handleKubernetesChange(value) {
+      if (value) {
+        this.togglePsaDefault();
+        const version = VERSION.parse(value);
+        const major = parseInt(version?.[0] || 0);
+        const minor = parseInt(version?.[1] || 0);
+
+        // Reset PSA if not RKE2
+        if (!value.includes('rke2')) {
+          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+        } else {
+          // Reset PSP if it's legacy due k8s version 1.25+
+          if (major === 1 && minor >= 25) {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+          } else {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
+          }
+
+          this.previousKubernetesVersion = value;
+        }
+
+        // If Harvester driver, reset cloud provider if not compatible
+        if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
+          this.setHarvesterDefaultCloudProvider();
+        }
+
+        // Cloud Provider check
+        // If the cloud provider is unsupported, switch provider to 'external'
+        if (this.unsupportedCloudProvider) {
+          set(this.agentConfig, 'cloud-provider-name', 'external');
+        } else {
+          // Switch the cloud provider back to the initial value
+          // Use changed the Kubernetes version back to a version where the initial cloud provider is valid - so switch back to this one
+          // to undo the change to external that we may have made
+          // Note: Cloud Provider can only be changed on edit when the initial provider is no longer supported
+          set(this.agentConfig, 'cloud-provider-name', this.initialCloudProvider);
+        }
+      }
+    },
+
+    /**
+     * Keep last PSP value
+     */
+    handlePspChange(value) {
+      this.lastDefaultPodSecurityPolicyTemplateName = value;
+    },
+    canNotEditCloudProvider() {
+      const canNotEdit = this.clusterIsAlreadyCreated && !this.unsupportedCloudProvider;
+
+      return canNotEdit;
+    }
+  },
+};
+</script>
+
+<template>
+  <Tab
+    name="basic"
+    label-key="cluster.tabs.basic"
+    :weight="11"
+    @active="refreshYamls"
+  >
+    <Banner
+      v-if="!haveArgInfo"
+      color="warning"
+      :label="t('cluster.banner.haveArgInfo')"
+    />
+    <Banner
+      v-if="showk8s21LegacyWarning"
+      color="warning"
+      :label="t('cluster.legacyWarning')"
+    />
+    <Banner
+      v-if="isHarvesterDriver && isHarvesterIncompatible && showCloudProvider"
+      color="warning"
+    >
+      <span
+        v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
+      />
+    </Banner>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="value.spec.kubernetesVersion"
+          :mode="mode"
+          :options="versionOptions"
+          label-key="cluster.kubernetesVersion.label"
+          @input="handleKubernetesChange($event)"
+        />
+        <Checkbox
+          v-model="showDeprecatedPatchVersions"
+          :label="t('cluster.kubernetesVersion.deprecatedPatches')"
+          :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
+          class="patch-version"
+        />
+      </div>
+      <div
+        v-if="showCloudProvider"
+        class="col span-6"
+      >
+        <LabeledSelect
+          v-model="agentConfig['cloud-provider-name']"
+          :mode="mode"
+          :disabled="canNotEditCloudProvider"
+          :options="cloudProviderOptions"
+          :label="t('cluster.rke2.cloudProvider.label')"
+        />
+      </div>
+    </div>
+    <div
+      v-if="showCni"
+      :style="{'align-items':'center'}"
+      class="row"
+    >
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="serverConfig.cni"
+          :mode="mode"
+          :disabled="clusterIsAlreadyCreated"
+          :options="serverArgs.cni.options"
+          :label="t('cluster.rke2.cni.label')"
+        />
+      </div>
+      <div
+        v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'"
+        class="col"
+      >
+        <Checkbox
+          v-model="ciliumIpv6"
+          :mode="mode"
+          :label="t('cluster.rke2.address.ipv6.enable')"
+        />
+      </div>
+    </div>
+    <template v-if="showVsphereNote">
+      <Banner
+        color="warning"
+        label-key="cluster.cloudProvider.rancher-vsphere.note"
+      />
+    </template>
+    <template v-else-if="showCloudConfigYaml">
+      <div class="spacer" />
+
+      <div class="col span-12">
+        <Banner
+          v-if="unsupportedCloudProvider"
+          class="error mt-5"
+        >
+          {{ t('cluster.rke2.cloudProvider.unsupported') }}
+        </Banner>
+        <h3>
+          {{ t('cluster.rke2.cloudProvider.header') }}
+        </h3>
+        <YamlEditor
+          ref="yaml"
+          v-model="agentConfig['cloud-provider-config']"
+          :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+          initial-yaml-values="# Cloud Provider Config"
+          class="yaml-editor"
+        />
+      </div>
+    </template>
+
+    <div class="spacer" />
+
+    <h3>
+      {{ t('cluster.rke2.security.header') }}
+    </h3>
+    <Banner
+      v-if="isEdit && !needsPSP && hasPsps"
+      color="warning"
+      :label="t('cluster.banner.invalidPsps')"
+    />
+    <Banner
+      v-else-if="isCreate && !needsPSP"
+      color="info"
+      :label="t('cluster.banner.removedPsp')"
+    />
+    <Banner
+      v-else-if="isCreate && hasPsps"
+      color="info"
+      :label="t('cluster.banner.deprecatedPsp')"
+    />
+
+    <Banner
+      v-if="showCisProfile && !isCisSupported && isEdit"
+      color="info"
+    >
+      <p v-clean-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
+    </Banner>
+
+    <div class="row mb-10">
+      <div
+        v-if="pspOptions && needsPSP"
+        class="col span-6"
+      >
+        <!-- PSP template selector -->
+        <LabeledSelect
+          v-model="value.spec.defaultPodSecurityPolicyTemplateName"
+          data-testid="rke2-custom-edit-psp"
+          :mode="mode"
+          :options="pspOptions"
+          :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
+          @input="handlePspChange($event)"
+        />
+      </div>
+
+      <div
+        v-if="showCisProfile"
+        class="col span-6"
+      >
+        <LabeledSelect
+          v-if="serverArgs && serverArgs.profile"
+          v-model="serverConfig.profile"
+          :mode="mode"
+          :options="profileOptions"
+          :label="t('cluster.rke2.cis.sever')"
+          @input="handleCisChange"
+        />
+        <LabeledSelect
+          v-else-if="agentArgs && agentArgs.profile"
+          v-model="agentConfig.profile"
+          data-testid="rke2-custom-edit-cis-agent"
+          :mode="mode"
+          :options="profileOptions"
+          :label="t('cluster.rke2.cis.agent')"
+          @input="handleCisChange"
+        />
+      </div>
+    </div>
+
+    <template v-if="hasCisOverride">
+      <Checkbox
+        v-model="cisOverride"
+        :mode="mode"
+        :label="t('cluster.rke2.cis.override')"
+        @input="togglePsaDefault"
+      />
+
+      <Banner
+        v-if="cisOverride"
+        color="warning"
+        :label="t('cluster.rke2.banner.cisOverride')"
+      />
+      <Banner
+        v-if="cisPsaChangeBanner && !cisOverride"
+        color="info"
+        :label="t('cluster.rke2.banner.psaChange')"
+      />
+    </template>
+
+    <div
+      v-if="needsPSA"
+      class="row mb-10 mt-10"
+    >
+      <div class="col span-6">
+        <!-- PSA template selector -->
+        <LabeledSelect
+          v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
+          :mode="mode"
+          data-testid="rke2-custom-edit-psa"
+          :options="psaOptions"
+          :disabled="isPsaDisabled"
+          :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
+        />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col span-12 mt-20">
+        <Checkbox
+          v-if="serverArgs['secrets-encryption']"
+          v-model="serverConfig['secrets-encryption']"
+          :mode="mode"
+          label="Encrypt Secrets"
+        />
+        <Checkbox
+          v-model="value.spec.enableNetworkPolicy"
+          :mode="mode"
+          :label="t('cluster.rke2.enableNetworkPolicy.label')"
+        />
+      </div>
+    </div>
+
+    <div
+      v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy"
+      class="row"
+    >
+      <div class="col span-12">
+        <Banner
+          color="info"
+          :label="t('cluster.rke2.enableNetworkPolicy.warning')"
+        />
+      </div>
+    </div>
+
+    <div class="spacer" />
+
+    <div
+      v-if="serverArgs.disable"
+      class="row"
+    >
+      <div class="col span-12">
+        <div>
+          <h3>
+            {{ t('cluster.rke2.systemService.header') }}
+          </h3>
+        </div>
+        <Checkbox
+          v-for="opt in disableOptions"
+          :key="opt.value"
+          v-model="enabledSystemServices"
+          :mode="mode"
+          :label="opt.label"
+          :value-when-true="opt.value"
+        />
+      </div>
+    </div>
+  </Tab>
+</template>
+
+<style lang="scss" scoped>
+  .min-height {
+    min-height: 40em;
+  }
+  .patch-version {
+    margin-top: 5px;
+  }
+  .header-warnings .banner {
+    margin-bottom: 0;
+  }
+</style>

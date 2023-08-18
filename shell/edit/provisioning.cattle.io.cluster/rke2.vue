@@ -7,6 +7,8 @@ import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
+import MemberRolesTab from '@shell/edit/provisioning.cattle.io.cluster/MemberRolesTab';
+import BasicsTab from '@shell/edit/provisioning.cattle.io.cluster/BasicsTab';
 
 import {
   CAPI,
@@ -32,7 +34,6 @@ import { sortBy } from '@shell/utils/sort';
 import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
-import * as VERSION from '@shell/utils/version';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -52,9 +53,8 @@ import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
 import Questions from '@shell/components/Questions';
 
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
-import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
 
 import { SETTING } from '@shell/config/settings';
@@ -136,6 +136,8 @@ export default {
     Tabbed,
     UnitInput,
     YamlEditor,
+    MemberRolesTab,
+    BasicsTab
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -159,7 +161,7 @@ export default {
 
   async fetch() {
     this.psps = await this.getPsps();
-    await this.fetchRke2Versions();
+    //await this.fetchRke2Versions();
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
@@ -199,10 +201,6 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
-    // Store the initial PSP template name, so we can set it back if needed
-    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
-    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
-
     const truncateLimit = this.value.defaultHostnameLengthLimit;
 
     return {
@@ -210,7 +208,6 @@ export default {
       lastIdx:                         0,
       allPSPs:                         null,
       allPSAs:                         [],
-      nodeComponent:                   null,
       credentialId:                    '',
       credential:                      null,
       machinePools:                    null,
@@ -242,10 +239,6 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
-      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
-      previousKubernetesVersion,
-      cisOverride:           false,
-      cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
@@ -275,13 +268,6 @@ export default {
       return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
 
-    /**
-     * Check presence of PSPs as template or CLI creation
-     */
-    hasPsps() {
-      return !!this.psps?.count;
-    },
-
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
@@ -305,28 +291,10 @@ export default {
     },
 
     /**
-     * Define introduction of PSA and return need of PSA templates based on min k8s version
-     */
-    needsPSA() {
-      const release = this.value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
-
-      return isRequiredVersion;
-    },
-
-    /**
      * Define PSP deprecation and restrict use of PSP based on min k8s version
      */
     needsPSP() {
       return this.getNeedsPSP();
-    },
-
-    /**
-     * Define introduction of Rancher defined PSA templates
-     */
-    hasPsaTemplates() {
-      return !this.needsPSP;
     },
 
     unsupportedSelectorConfig() {
@@ -585,21 +553,6 @@ export default {
       return out;
     },
 
-    unsupportedCloudProvider() {
-      // The current cloud provider
-      const cur = this.initialCloudProvider;
-
-      const provider = cur && this.cloudProviderOptions.find((x) => x.value === cur);
-
-      return !!provider?.unsupported;
-    },
-
-    canNotEditCloudProvider() {
-      const canNotEdit = this.clusterIsAlreadyCreated && !this.unsupportedCloudProvider;
-
-      return canNotEdit;
-    },
-
     /**
      * Kube Version
      */
@@ -634,10 +587,6 @@ export default {
      */
     chartVersions() {
       return this.selectedVersion?.charts || {};
-    },
-
-    showCisProfile() {
-      return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
     },
 
     needCredential() {
@@ -789,54 +738,6 @@ export default {
       return out;
     },
 
-    enabledSystemServices: {
-      get() {
-        const out = difference(this.serverArgs.disable.options, this.serverConfig.disable || []);
-
-        return out;
-      },
-
-      set(neu) {
-        const out = difference(this.serverArgs.disable.options, neu);
-
-        set(this.serverConfig, 'disable', out);
-      },
-    },
-
-    showCloudConfigYaml() {
-      if ( !this.agentArgs['cloud-provider-name'] ) {
-        return false;
-      }
-
-      const name = this.agentConfig['cloud-provider-name'];
-
-      if ( !name ) {
-        return false;
-      }
-
-      switch ( name ) {
-      case 'none': return false;
-      case 'aws': return false;
-      case 'rancher-vsphere': return false;
-      case HARVESTER: return false;
-      default: return true;
-      }
-    },
-
-    showVsphereNote() {
-      if ( !this.agentArgs['cloud-provider-name'] ) {
-        return false;
-      }
-
-      const name = this.agentConfig['cloud-provider-name'];
-
-      return name === 'rancher-vsphere';
-    },
-
-    showCni() {
-      return !!this.serverArgs.cni;
-    },
-
     showCloudProvider() {
       return this.agentArgs['cloud-provider-name'];
     },
@@ -878,21 +779,6 @@ export default {
       return versions.filter((x) => !!x);
     },
 
-    showk8s21LegacyWarning() {
-      const isLegacyEnabled = this.features(LEGACY);
-
-      if (!isLegacyEnabled) {
-        return false;
-      }
-      const selectedVersion = semver.coerce(this.value.spec.kubernetesVersion);
-
-      return semver.satisfies(selectedVersion, '>=1.21.0');
-    },
-
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     isHarvesterDriver() {
       return this.$route.query.type === HARVESTER;
     },
@@ -921,33 +807,6 @@ export default {
       }
 
       return out;
-    },
-
-    ciliumIpv6: {
-      get() {
-        // eslint-disable-next-line no-unused-vars
-        const cni = this.serverConfig.cni; // force this property to recalculate if cni was changed away from cilium and chartValues['rke-cilium'] deleted
-
-        return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
-      },
-      set(val) {
-        const name = this.chartVersionKey('rke2-cilium');
-        const values = this.userChartValues[name];
-
-        set(this, 'userChartValues', {
-          ...this.userChartValues,
-          [name]: {
-            ...values,
-            cilium: {
-              ...values?.cilium,
-              ipv6: {
-                ...values?.cilium?.ipv6,
-                enabled: val
-              }
-            }
-          }
-        });
-      }
     },
 
     showIpv6Warning() {
@@ -1073,22 +932,6 @@ export default {
       }
     },
 
-    showCni(neu) {
-      // Update `serverConfig.cni to recalculate addonNames...
-      // ... which will eventually update `value.spec.rkeConfig.chartValues`
-      if (neu) {
-        // Type supports CNI, assign default if we can
-        if (!this.serverConfig.cni) {
-          const def = this.serverArgs.cni.default;
-
-          set(this.serverConfig, 'cni', def);
-        }
-      } else {
-        // Type doesn't support cni, clear `cni`
-        set(this.serverConfig, 'cni', undefined);
-      }
-    },
-
     showCloudProvider(neu) {
       if (!neu) {
         // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
@@ -1172,14 +1015,6 @@ export default {
         if ( this.mode === _CREATE && !this.machinePools.length ) {
           await this.addMachinePool();
         }
-      }
-
-      if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
-        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-      }
-
-      if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
-        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
       }
     },
 
@@ -1865,16 +1700,6 @@ export default {
       this.syncChartValues(name);
     },
 
-    initQuestions(name) {
-      const defaultChartValue = this.versionInfo[name];
-      const startingChartValue = this.initYamlEditor(name);
-
-      return {
-        ...defaultChartValue,
-        values: startingChartValue,
-      };
-    },
-
     initYamlEditor(name) {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
@@ -2221,91 +2046,6 @@ export default {
     },
 
     /**
-     * Reset PSA on several input changes for given conditions
-     */
-    togglePsaDefault() {
-      // This option is created from the server and is guaranteed to exist #8032
-      const hardcodedTemplate = 'rancher-restricted';
-      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
-
-      if (!this.cisOverride) {
-        if (this.hasPsaTemplates && cisValue) {
-          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
-        }
-
-        this.cisPsaChangeBanner = this.hasPsaTemplates;
-      }
-    },
-
-    handleCisChange() {
-      this.togglePsaDefault();
-      this.updateCisProfile();
-    },
-
-    updateCisProfile() {
-      // If the user selects any Worker CIS Profile,
-      // protect-kernel-defaults should be set to false
-      // in the RKE2 worker/agent config.
-      const selectedCisProfile = this.agentConfig?.profile;
-
-      if (selectedCisProfile) {
-        set(this.agentConfig, 'protect-kernel-defaults', true);
-      } else {
-        set(this.agentConfig, 'protect-kernel-defaults', false);
-      }
-    },
-
-    /**
-     * Handle k8s changes side effects, like PSP and PSA resets
-     */
-    handleKubernetesChange(value) {
-      if (value) {
-        this.togglePsaDefault();
-        const version = VERSION.parse(value);
-        const major = parseInt(version?.[0] || 0);
-        const minor = parseInt(version?.[1] || 0);
-
-        // Reset PSA if not RKE2
-        if (!value.includes('rke2')) {
-          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-        } else {
-          // Reset PSP if it's legacy due k8s version 1.25+
-          if (major === 1 && minor >= 25) {
-            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
-          } else {
-            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
-          }
-
-          this.previousKubernetesVersion = value;
-        }
-
-        // If Harvester driver, reset cloud provider if not compatible
-        if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
-          this.setHarvesterDefaultCloudProvider();
-        }
-
-        // Cloud Provider check
-        // If the cloud provider is unsupported, switch provider to 'external'
-        if (this.unsupportedCloudProvider) {
-          set(this.agentConfig, 'cloud-provider-name', 'external');
-        } else {
-          // Switch the cloud provider back to the initial value
-          // Use changed the Kubernetes version back to a version where the initial cloud provider is valid - so switch back to this one
-          // to undo the change to external that we may have made
-          // Note: Cloud Provider can only be changed on edit when the initial provider is no longer supported
-          set(this.agentConfig, 'cloud-provider-name', this.initialCloudProvider);
-        }
-      }
-    },
-
-    /**
-     * Keep last PSP value
-     */
-    handlePspChange(value) {
-      this.lastDefaultPodSecurityPolicyTemplateName = value;
-    },
-
-    /**
      * Track Machine Pool validation status
      */
     machinePoolValidationChanged(id, value) {
@@ -2466,290 +2206,19 @@ export default {
         class="min-height"
       >
         <!-- Basic -->
-        <Tab
-          name="basic"
-          label-key="cluster.tabs.basic"
-          :weight="11"
-          @active="refreshYamls"
-        >
-          <Banner
-            v-if="!haveArgInfo"
-            color="warning"
-            :label="t('cluster.banner.haveArgInfo')"
-          />
-          <Banner
-            v-if="showk8s21LegacyWarning"
-            color="warning"
-            :label="t('cluster.legacyWarning')"
-          />
-          <Banner
-            v-if="isHarvesterDriver && isHarvesterIncompatible && showCloudProvider"
-            color="warning"
-          >
-            <span
-              v-clean-html="t('cluster.harvester.warning.cloudProvider.incompatible', null, true)"
-            />
-          </Banner>
-          <div class="row mb-10">
-            <div class="col span-6">
-              <LabeledSelect
-                v-model="value.spec.kubernetesVersion"
-                :mode="mode"
-                :options="versionOptions"
-                label-key="cluster.kubernetesVersion.label"
-                @input="handleKubernetesChange($event)"
-              />
-              <Checkbox
-                v-model="showDeprecatedPatchVersions"
-                :label="t('cluster.kubernetesVersion.deprecatedPatches')"
-                :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
-                class="patch-version"
-              />
-            </div>
-            <div
-              v-if="showCloudProvider"
-              class="col span-6"
-            >
-              <LabeledSelect
-                v-model="agentConfig['cloud-provider-name']"
-                :mode="mode"
-                :disabled="canNotEditCloudProvider"
-                :options="cloudProviderOptions"
-                :label="t('cluster.rke2.cloudProvider.label')"
-              />
-            </div>
-          </div>
-          <div
-            v-if="showCni"
-            :style="{'align-items':'center'}"
-            class="row"
-          >
-            <div class="col span-6">
-              <LabeledSelect
-                v-model="serverConfig.cni"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :options="serverArgs.cni.options"
-                :label="t('cluster.rke2.cni.label')"
-              />
-            </div>
-            <div
-              v-if="serverConfig.cni === 'cilium' || serverConfig.cni === 'multus,cilium'"
-              class="col"
-            >
-              <Checkbox
-                v-model="ciliumIpv6"
-                :mode="mode"
-                :label="t('cluster.rke2.address.ipv6.enable')"
-              />
-            </div>
-          </div>
-          <template v-if="showVsphereNote">
-            <Banner
-              color="warning"
-              label-key="cluster.cloudProvider.rancher-vsphere.note"
-            />
-          </template>
-          <template v-else-if="showCloudConfigYaml">
-            <div class="spacer" />
-
-            <div class="col span-12">
-              <Banner
-                v-if="unsupportedCloudProvider"
-                class="error mt-5"
-              >
-                {{ t('cluster.rke2.cloudProvider.unsupported') }}
-              </Banner>
-              <h3>
-                {{ t('cluster.rke2.cloudProvider.header') }}
-              </h3>
-              <YamlEditor
-                ref="yaml"
-                v-model="agentConfig['cloud-provider-config']"
-                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-                initial-yaml-values="# Cloud Provider Config"
-                class="yaml-editor"
-              />
-            </div>
-          </template>
-
-          <div class="spacer" />
-
-          <h3>
-            {{ t('cluster.rke2.security.header') }}
-          </h3>
-          <Banner
-            v-if="isEdit && !needsPSP && hasPsps"
-            color="warning"
-            :label="t('cluster.banner.invalidPsps')"
-          />
-          <Banner
-            v-else-if="isCreate && !needsPSP"
-            color="info"
-            :label="t('cluster.banner.removedPsp')"
-          />
-          <Banner
-            v-else-if="isCreate && hasPsps"
-            color="info"
-            :label="t('cluster.banner.deprecatedPsp')"
-          />
-
-          <Banner
-            v-if="showCisProfile && !isCisSupported && isEdit"
-            color="info"
-          >
-            <p v-clean-html="t('cluster.rke2.banner.cisUnsupported', {cisProfile: serverConfig.profile || agentConfig.profile}, true)" />
-          </Banner>
-
-          <div class="row mb-10">
-            <div
-              v-if="pspOptions && needsPSP"
-              class="col span-6"
-            >
-              <!-- PSP template selector -->
-              <LabeledSelect
-                v-model="value.spec.defaultPodSecurityPolicyTemplateName"
-                data-testid="rke2-custom-edit-psp"
-                :mode="mode"
-                :options="pspOptions"
-                :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
-                @input="handlePspChange($event)"
-              />
-            </div>
-
-            <div
-              v-if="showCisProfile"
-              class="col span-6"
-            >
-              <LabeledSelect
-                v-if="serverArgs && serverArgs.profile"
-                v-model="serverConfig.profile"
-                :mode="mode"
-                :options="profileOptions"
-                :label="t('cluster.rke2.cis.sever')"
-                @input="handleCisChange"
-              />
-              <LabeledSelect
-                v-else-if="agentArgs && agentArgs.profile"
-                v-model="agentConfig.profile"
-                data-testid="rke2-custom-edit-cis-agent"
-                :mode="mode"
-                :options="profileOptions"
-                :label="t('cluster.rke2.cis.agent')"
-                @input="handleCisChange"
-              />
-            </div>
-          </div>
-
-          <template v-if="hasCisOverride">
-            <Checkbox
-              v-model="cisOverride"
-              :mode="mode"
-              :label="t('cluster.rke2.cis.override')"
-              @input="togglePsaDefault"
-            />
-
-            <Banner
-              v-if="cisOverride"
-              color="warning"
-              :label="t('cluster.rke2.banner.cisOverride')"
-            />
-            <Banner
-              v-if="cisPsaChangeBanner && !cisOverride"
-              color="info"
-              :label="t('cluster.rke2.banner.psaChange')"
-            />
-          </template>
-
-          <div
-            v-if="needsPSA"
-            class="row mb-10 mt-10"
-          >
-            <div class="col span-6">
-              <!-- PSA template selector -->
-              <LabeledSelect
-                v-model="value.spec.defaultPodSecurityAdmissionConfigurationTemplateName"
-                :mode="mode"
-                data-testid="rke2-custom-edit-psa"
-                :options="psaOptions"
-                :disabled="isPsaDisabled"
-                :label="t('cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.label')"
-              />
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col span-12 mt-20">
-              <Checkbox
-                v-if="serverArgs['secrets-encryption']"
-                v-model="serverConfig['secrets-encryption']"
-                :mode="mode"
-                label="Encrypt Secrets"
-              />
-              <Checkbox
-                v-model="value.spec.enableNetworkPolicy"
-                :mode="mode"
-                :label="t('cluster.rke2.enableNetworkPolicy.label')"
-              />
-              <!-- <Checkbox v-if="agentArgs.selinux" v-model="agentConfig.selinux" :mode="mode" label="SELinux" /> -->
-            </div>
-          </div>
-
-          <div
-            v-if="serverConfig.cni === 'cilium' && value.spec.enableNetworkPolicy"
-            class="row"
-          >
-            <div class="col span-12">
-              <Banner
-                color="info"
-                :label="t('cluster.rke2.enableNetworkPolicy.warning')"
-              />
-            </div>
-          </div>
-
-          <div class="spacer" />
-
-          <div
-            v-if="serverArgs.disable"
-            class="row"
-          >
-            <div class="col span-12">
-              <div>
-                <h3>
-                  {{ t('cluster.rke2.systemService.header') }}
-                </h3>
-              </div>
-              <Checkbox
-                v-for="opt in disableOptions"
-                :key="opt.value"
-                v-model="enabledSystemServices"
-                :mode="mode"
-                :label="opt.label"
-                :value-when-true="opt.value"
-              />
-            </div>
-          </div>
-        </Tab>
+        <BasicsTab
+          v-model="value"
+          :live-value="liveValue"
+          :mode="mode"
+          :provider="provider"
+        />
 
         <!-- Member Roles -->
-        <Tab
-          v-if="canManageMembers"
-          name="memberRoles"
-          label-key="cluster.tabs.memberRoles"
-          :weight="10"
-        >
-          <Banner
-            v-if="isEdit"
-            color="info"
-          >
-            {{ t('cluster.memberRoles.removeMessage') }}
-          </Banner>
-          <ClusterMembershipEditor
-            :mode="mode"
-            :parent-id="value.mgmt ? value.mgmt.id : null"
-            @membership-update="onMembershipUpdate"
-          />
-        </Tab>
+        <MemberRolesTab
+          v-model="value"
+          :mode="mode"
+          :onMembershipUpdate="onMembershipUpdate"
+        />
 
         <!-- etcd -->
         <Tab
