@@ -1,4 +1,4 @@
-import { mount, shallowMount } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 import BasicsTab from '@shell/edit/provisioning.cattle.io.cluster/BasicsTab';
 
 const defaultStubs = {
