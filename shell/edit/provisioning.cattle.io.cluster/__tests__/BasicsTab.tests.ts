@@ -2,11 +2,11 @@ import { mount, shallowMount } from '@vue/test-utils';
 import BasicsTab from '@shell/edit/provisioning.cattle.io.cluster/BasicsTab';
 
 const defaultStubs = {
-  Tab:              { template: '<div><slot></slot></div>' }, // Required to render the slot content
-  Banner:                   true,
-  LabeledSelect:            true,
-  YamlEditor:               true,
-  Checkbox: true
+  Tab:           { template: '<div><slot></slot></div>' }, // Required to render the slot content
+  Banner:        true,
+  LabeledSelect: true,
+  YamlEditor:    true,
+  Checkbox:      true
 };
 
 const defaultComputed = {
@@ -24,8 +24,7 @@ const defaultGetters = {
 };
 
 const defaultMocks = {
-  //$fetchState: { pending: false },
-  $route:      {
+  $route: {
     name:  'anything',
     query: { AS: 'yaml' },
   },
@@ -181,5 +180,4 @@ describe('component: rke2', () => {
 
     expect((select.vm as unknown as any).disabled).toBe(disabled);
   });
-
 });

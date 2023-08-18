@@ -161,7 +161,7 @@ export default {
 
   async fetch() {
     this.psps = await this.getPsps();
-    //await this.fetchRke2Versions();
+    // await this.fetchRke2Versions();
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
