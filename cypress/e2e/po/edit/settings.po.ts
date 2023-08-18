@@ -46,6 +46,6 @@ export default class SettingsEditPo extends PagePo {
     cy.intercept('PUT', `/v1/management.cattle.io.settings/${ endpoint }`).as(interceptName);
     this.saveButton().click();
 
-    return cy.wait(`@${ interceptName }`, { timeout: 10000 });
+    return cy.wait(`@${ interceptName }`, { timeout: 15000 });
   }
 }

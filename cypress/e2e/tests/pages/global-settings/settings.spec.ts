@@ -90,7 +90,7 @@ describe('Settings', () => {
     cy.login();
   });
 
-  it('can navigate to Settings page', { tags: ['@adminUser', '@standardUser', '@debug'] }, () => {
+  it('can navigate to Settings page', { tags: ['@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     BurgerMenuPo.toggle();
@@ -142,7 +142,7 @@ describe('Settings', () => {
     settingsPage.modifiedLabel('engine-iso-url').should('not.exist'); // modified label should not display after reset
   });
 
-  it('can update password-min-length', { tags: ['@adminUser', '@debug'] }, () => {
+  it('can update password-min-length', { tags: '@adminUser' }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.editSettingsByLabel('password-min-length');
