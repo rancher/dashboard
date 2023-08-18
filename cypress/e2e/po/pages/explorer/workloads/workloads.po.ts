@@ -88,7 +88,7 @@ export class WorkloadsListPageBasePo extends PagePo {
   }
 
   deleteItemWithUI(name: string) {
-    this.sortableTable().rowActionMenuOpen(name, 10).getMenuItem('Delete').click();
+    this.sortableTable().rowActionMenuOpen(name).getMenuItem('Delete').click();
 
     const promptRemove = new PromptRemove();
 
@@ -133,11 +133,11 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     super(WorkloadsCreatePageBasePo.createPath(clusterId, workloadType, queryParams));
   }
 
-  selectNamespaceOption(index: number) {
+  selectNamespace(label: string) {
     const selectVerb = new LabeledSelectPo(`[data-testid="name-ns-description-namespace"]`, this.self());
 
     selectVerb.toggle();
-    selectVerb.clickOption(index);
+    selectVerb.clickLabel(label);
   }
 
   namespace(): LabeledInputPo {
@@ -156,9 +156,9 @@ export class WorkloadsCreatePageBasePo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  createWithUI(name: string, containerImage: string, namespace = 'default', namespaceOption = 1) {
-    this.selectNamespaceOption(namespaceOption);
-    this.namespace().set(namespace);
+  createWithUI(name: string, containerImage: string, namespace = 'default') {
+    // NB: namespace is already selected by default
+    this.selectNamespace(namespace);
     this.name().set(name);
     this.containerImage().set(containerImage);
     this.saveCreateForm().click();

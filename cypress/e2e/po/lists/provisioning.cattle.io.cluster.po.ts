@@ -26,6 +26,6 @@ export default class ProvClusterListPo extends BaseResourceList {
   }
 
   actionMenu(clusterName: string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(clusterName, 8);
+    return this.resourceTable().sortableTable().rowActionMenuOpen(clusterName);
   }
 }
