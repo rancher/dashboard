@@ -21,6 +21,8 @@ import FileSelector from '@shell/components/form/FileSelector.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Labels from '@shell/components/form/Labels.vue';
+import Tab from '@shell/components/Tabbed/Tab.vue';
+import Tabbed from '@shell/components/Tabbed/index.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
@@ -92,7 +94,9 @@ export default defineComponent({
     KeyValue,
     ArrayList,
     ClusterMembershipEditor,
-    Labels
+    Labels,
+    Tabbed,
+    Tab
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -444,6 +448,7 @@ export default defineComponent({
     addPool() {
       let poolName = `pool${ this.nodePools.length }`;
       let mode: AKSPoolMode = 'User';
+      const _id = randomStr();
 
       if (!this.nodePools.length) {
         poolName = 'agentPool';
@@ -451,11 +456,24 @@ export default defineComponent({
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id: randomStr(), mode, vmSize: this.defaultVmSize
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize
+      });
+
+      this.$nextTick(() => {
+        if ( this.$refs.pools?.select ) {
+          this.$refs.pools.select(poolName);
+        }
       });
     },
 
-    removePool(pool: AKSNodePool) {
+    // removePool(pool: AKSNodePool) {
+    //   debugger;
+    //   removeObject(this.nodePools, pool);
+    // },
+
+    removePool(idx: number) {
+      const pool = this.nodePools[idx];
+
       removeObject(this.nodePools, pool);
     },
 
@@ -530,7 +548,7 @@ export default defineComponent({
     </div>
     <div v-if="showForm">
       <div class="row mb-10">
-        <div class="col span-6">
+        <div class="col span-4">
           <LabeledInput
             :value="normanCluster.name"
             :mode="mode"
@@ -540,22 +558,6 @@ export default defineComponent({
             @input="setClusterName"
           />
         </div>
-      </div>
-      <div class="row mb-10">
-        <ClusterMembershipEditor
-          v-if="canManageMembers"
-          :mode="mode"
-          :parent-id="normanCluster.id ? normanCluster.id : null"
-          @membership-update="onMembershipUpdate"
-        />
-      </div>
-      <div class="row mb-10">
-        <Labels
-          v-model="normanCluster"
-          :mode="mode"
-        />
-      </div>
-      <div class="row mb-10">
         <div
           v-if="locationOptions.length"
           class="col span-4"
@@ -574,6 +576,68 @@ export default defineComponent({
             :disabled="!isNew"
           />
         </div>
+      </div>
+
+      <div><h2>Node Pools</h2></div>
+      <Tabbed
+        ref="pools"
+        :side-tabs="true"
+        :show-tabs-add-remove="mode !== 'view'"
+        @addTab="addPool($event)"
+        @removeTab="removePool($event)"
+      >
+        <Tab
+          v-for="(pool, i) in nodePools"
+          :key="pool._id"
+          class="mb-10"
+          :name="pool.name"
+          :label="pool.name || '(Not Named)'"
+        >
+          <AksNodePool
+            :mode="mode"
+            :region="config.resourceLocation"
+            :pool="pool"
+            :vm-size-options="vmSizeOptions"
+            :loading-vm-sizes="loadingVmSizes"
+            :isPrimaryPool="i===0"
+            @remove="removePool(pool)"
+          />
+        </Tab>
+      </Tabbed>
+
+      <div class="row mb-10">
+        <ClusterMembershipEditor
+          v-if="canManageMembers"
+          :mode="mode"
+          :parent-id="normanCluster.id ? normanCluster.id : null"
+          @membership-update="onMembershipUpdate"
+        />
+      </div>
+      <div class="row mb-10">
+        <Labels
+          v-model="normanCluster"
+          :mode="mode"
+        />
+      </div>
+      <div class="row mb-10">
+        <!-- <div
+          v-if="locationOptions.length"
+          class="col span-4"
+        >
+          //TODO nb warn when changing if dependent vals have been changed
+          <LabeledSelect
+            v-model="config.resourceLocation"
+            :mode="mode"
+            :options="locationOptions"
+            option-label="displayName"
+            option-key="name"
+            label="Location"
+            :reduce="opt=>opt.name"
+            :loading="loadingLocations"
+            required
+            :disabled="!isNew"
+          />
+        </div> -->
       </div>
 
       <template v-if="config.resourceLocation && config.resourceLocation.length">

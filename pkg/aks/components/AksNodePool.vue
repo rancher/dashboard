@@ -255,13 +255,13 @@ export default defineComponent({
           effect
         </label>
         <div>
-          <button
+          <!-- <button
             type="button"
             class="btn role-link btn-sm"
             :style="{visibility: 'hidden'}"
           >
             remove
-          </button>
+          </button> -->
         </div>
       </div>
       <Taint
@@ -294,10 +294,10 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.pool {
-  border: 1px solid var(--link-border);
-  padding: 20px;
-}
+// .pool {
+//   border: 1px solid var(--link-border);
+//   padding: 20px;
+// }
 
 .remove-row {
   display: flex;
