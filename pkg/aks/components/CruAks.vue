@@ -741,16 +741,22 @@ export default defineComponent({
 
       <!-- //todo nb loading indicator? -->
       <template v-if="config.resourceLocation && config.resourceLocation.length">
+        <div class="mt-40">
+          <h2>Cluster Configuration</h2>
+        </div>
         <Tabbed
           :use-hash="false"
           :side-tabs="true"
         >
           <Tab
             :weight="99"
-            name="Cluster Options"
+            name="Basics"
           >
-            <div class="row mb-10">
-              <div class="col span-4">
+            <div
+              :style="{'display': 'flex', 'align-items':'center'}"
+              class="row mb-10"
+            >
+              <div class="col span-3">
                 <LabeledInput
                   v-model="config.linuxAdminUsername"
                   :mode="mode"
@@ -758,9 +764,7 @@ export default defineComponent({
                   :disabled="!isNew"
                 />
               </div>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-4">
+              <div class="col span-3">
                 <LabeledInput
                   v-model="config.resourceGroup"
                   :mode="mode"
@@ -771,7 +775,7 @@ export default defineComponent({
                   placeholder="aks-resource-group"
                 />
               </div>
-              <div class="col span-4">
+              <div class="col span-3">
                 <LabeledInput
                   v-model="config.nodeResourceGroup"
                   :mode="mode"
@@ -780,24 +784,25 @@ export default defineComponent({
                   placeholder="aks-node-resource-group"
                 />
               </div>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-4">
+              <div class="col span-3">
                 <Checkbox
                   v-model="containerMonitoring"
                   :mode="mode"
                   label="Configure Container Monitoring"
                 />
               </div>
+            </div>
+
+            <div class="row mb-10">
               <template v-if="containerMonitoring">
-                <div class="col span-4">
+                <div class="col span-3">
                   <LabeledInput
                     v-model="config.logAnalyticsWorkspaceGroup"
                     :mode="mode"
                     label="Log Analytics Workspace Resource Group"
                   />
                 </div>
-                <div class="col span-4">
+                <div class="col span-3">
                   <LabeledInput
                     v-model="config.logAnalyticsWorkspaceName"
                     :mode="mode"
@@ -819,14 +824,12 @@ export default defineComponent({
                   <FileSelector
                     :mode="mode"
                     label="Read from File"
-                    class="role-tertiary"
+                    class="role-tertiary mt-10"
                     @selected="e=>$set(config, 'sshPublicKey', e)"
                   />
                 </div>
               </div>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-12">
+              <div class="col span-6">
                 <KeyValue
                   v-model="config.tags"
                   :mode="mode"
@@ -847,7 +850,7 @@ export default defineComponent({
             name="Networking"
           >
             <div class="row mb-10">
-              <div class="col span-4">
+              <div class="col span-3">
                 <LabeledSelect
                   v-model="config.loadBalancerSku"
                   label="Loadbalancer SKU"
@@ -856,21 +859,7 @@ export default defineComponent({
                   :options="['Standard', 'Basic']"
                 />
               </div>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-4">
-                <LabeledSelect
-                  v-model="networkPolicy"
-                  :mode="mode"
-                  :options="networkPolicyOptions"
-                  label="Network Policy"
-                  option-key="value"
-                  :reduce="opt=>opt.value"
-                  tooltip="The Azure network policy is only available when the Azure network plugin is selected"
-                  :disabled="!isNew"
-                />
-              </div>
-              <div class="col span-4">
+              <div class="col span-3">
                 <LabeledInput
                   v-model="config.dnsPrefix"
                   :mode="mode"
@@ -883,7 +872,7 @@ export default defineComponent({
               </div>
             </div>
             <div class="row mb-10">
-              <div class="col span-4">
+              <div class="col span-3">
                 <LabeledSelect
                   v-model="config.networkPlugin"
                   :mode="mode"
@@ -892,11 +881,22 @@ export default defineComponent({
                   :disabled="!isNew"
                 />
               </div>
-            </div>
-            <!-- azure cni configuration -->
-            <template v-if="hasAzureCNI">
-              <div class="row mb-10">
-                <div class="col span-4">
+              <div class="col span-3">
+                <LabeledSelect
+                  v-model="networkPolicy"
+                  :mode="mode"
+                  :options="networkPolicyOptions"
+                  label="Network Policy"
+                  option-key="value"
+                  :reduce="opt=>opt.value"
+                  tooltip="The Azure network policy is only available when the Azure network plugin is selected"
+                  :disabled="!isNew"
+                />
+              </div>
+              <template v-if="hasAzureCNI">
+                <div
+                  class="col span-3"
+                >
                   <!-- //todo nb nicer display -->
                   <LabeledSelect
                     :value="config.virtualNetwork"
@@ -910,7 +910,11 @@ export default defineComponent({
                     @selecting="selectNetwork($event)"
                   />
                 </div>
-              </div>
+              </template>
+            </div>
+
+            <!-- azure cni configuration -->
+            <template v-if="hasAzureCNI">
               <div class="row mb-10">
                 <div class="col span-3">
                   <LabeledInput
@@ -947,22 +951,24 @@ export default defineComponent({
               </div>
             </template>
             <div class="row mb-10">
-              <div class="col span-3">
+              <div class="networking-checkboxes col span-6">
                 <Checkbox
                   v-model="value.enableNetworkPolicy"
                   :mode="mode"
                   label="Project Network Isolation"
                   :disabled="!isNew"
                 />
-              </div>
-              <div class="col span-3">
                 <Checkbox
                   v-model="config.httpApplicationRouting"
                   :mode="mode"
                   label="HTTP Application Routing"
                 />
-              </div>
-              <div class="col span-3">
+                <Checkbox
+                  v-model="config.privateCluster"
+                  :mode="mode"
+                  label="Enable Private Cluster"
+                  :disabled="!canEditPrivateCluster"
+                />
                 <Checkbox
                   v-model="setAuthorizedIPRanges"
                   :mode="mode"
@@ -970,21 +976,10 @@ export default defineComponent({
                   :disabled="config.privateCluster"
                 />
               </div>
-
-              <div class="col span-3">
-                <Checkbox
-                  v-model="config.privateCluster"
-                  :mode="mode"
-                  label="Enable Private Cluster"
-                  :disabled="!canEditPrivateCluster"
-                />
-              </div>
-            </div>
-            <div
-              v-if="setAuthorizedIPRanges"
-              class="row mb-10"
-            >
-              <div class="col span-6">
+              <div
+                v-if="setAuthorizedIPRanges"
+                class="col span-6"
+              >
                 <ArrayList
                   v-model="config.authorizedIpRanges"
                   :mode="mode"
@@ -1293,3 +1288,14 @@ export default defineComponent({
     </div>
   </CruResource>
 </template>
+
+<style lang="scss" scoped>
+  .networking-checkboxes {
+    display: flex;
+    flex-direction: column;
+
+    &>*{
+      margin-bottom: 10px;
+    }
+  }
+</style>

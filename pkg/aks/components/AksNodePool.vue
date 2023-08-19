@@ -103,10 +103,7 @@ export default defineComponent({
 
 <template>
   <div class="pool">
-    <div v-if="pool._validSize===false">
-      size invalid!
-    </div>
-    <div class="remove-row row">
+    <!-- <div class="remove-row row">
       <button
         v-if="!isPrimaryPool"
         type="button"
@@ -115,7 +112,7 @@ export default defineComponent({
       >
         remove pool
       </button>
-    </div>
+    </div> -->
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledInput
