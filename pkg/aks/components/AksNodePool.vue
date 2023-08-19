@@ -116,8 +116,8 @@ export default defineComponent({
         remove pool
       </button>
     </div>
-    <div class="row">
-      <div class="col span-4">
+    <div class="row mb-10">
+      <div class="col span-3">
         <LabeledInput
           v-model="pool.name"
           :mode="mode"
@@ -126,7 +126,18 @@ export default defineComponent({
           :disabled="!pool._isNew"
         />
       </div>
-      <div class="col span-4">
+      <div class="col span-3">
+        <LabeledSelect
+          v-model="pool.vmSize"
+          :options="vmSizeOptions"
+          label="VM Size"
+          :loading="loadingVmSizes"
+          :mode="mode"
+          :disabled="!pool._isNew"
+          :rules="[()=>pool._validSize === false ? 'This size is not avaiable in the selected region' : undefined]"
+        />
+      </div>
+      <div class="col span-3">
         <LabeledSelect
           v-model="pool.availabilityZones"
           :options="availabilityZoneOptions"
@@ -144,26 +155,17 @@ export default defineComponent({
           :options="modeOptions"
           :name="`${pool._id}-mode`"
           :disabled="!pool._isNew"
+          :row="true"
+          label="mode"
         >
           <template #label>
-            <span class="text-label">mode</span>
+            <span class="text-label">Mode</span>
           </template>
         </RadioGroup>
       </div>
     </div>
 
-    <div class="row">
-      <div class="col span-3">
-        <LabeledSelect
-          v-model="pool.vmSize"
-          :options="vmSizeOptions"
-          label="VM Size"
-          :loading="loadingVmSizes"
-          :mode="mode"
-          :disabled="!pool._isNew"
-          :rules="[()=>pool._validSize === false ? 'This size is not avaiable in the selected region' : undefined]"
-        />
-      </div>
+    <div class="row mb-10">
       <div class="col span-3">
         <!-- //todo nb when is this ever editable...? -->
         <LabeledSelect
@@ -194,8 +196,11 @@ export default defineComponent({
       </div>
     </div>
 
-    <div class="row">
-      <div class="col span-4">
+    <div
+      :style="{'display': 'flex', 'align-items':'center'}"
+      class="row mb-10"
+    >
+      <div class="col span-3">
         <LabeledInput
           v-model.number="pool.count"
           type="number"
@@ -204,7 +209,7 @@ export default defineComponent({
           :disabled="pool.enableAutoScaling"
         />
       </div>
-      <div class="col span-4">
+      <div class="col span-3">
         <LabeledInput
           v-model.number="pool.maxPods"
           type="number"
@@ -212,15 +217,13 @@ export default defineComponent({
           label="Max Pods per Node"
         />
       </div>
-      <div class="col span-4">
+      <div class="col span-3">
         <LabeledInput
           v-model="pool.maxSurge"
           :mode="mode"
           label="Max Surge"
         />
       </div>
-    </div>
-    <div class="row">
       <div class="col span-2">
         <Checkbox
           v-model="pool.enableAutoScaling"
@@ -228,8 +231,10 @@ export default defineComponent({
           label="Enable Auto Scaling"
         />
       </div>
+    </div>
+    <div class="row mb-10">
       <template v-if="pool.enableAutoScaling">
-        <div class="col span-4">
+        <div class="col span-3">
           <LabeledInput
             v-model.number="pool.minCount"
             type="number"
@@ -237,7 +242,7 @@ export default defineComponent({
             label="Minimum Pods"
           />
         </div>
-        <div class="col span-4">
+        <div class="col span-3">
           <LabeledInput
             v-model.number="pool.maxCount"
             type="number"
@@ -248,23 +253,26 @@ export default defineComponent({
       </template>
     </div>
 
-    <div>
-      <div>taints</div>
-      <!-- //todo nb less hacky way of styling labels -->
-      <div
-        v-if="taints.length"
-        class="row taints-labels"
-      >
-        <label class="text-label">
-          Key
-        </label>
-        <label class="text-label">
-          Value
-        </label>
-        <label class="text-label">
-          Effect
-        </label>
-        <div>
+    <div class="row">
+      <div class="col span-6">
+        <div class="text-label">
+          Taints
+        </div>
+        <!-- //todo nb less hacky way of styling labels -->
+        <div
+          v-if="taints.length"
+          class="row taints-labels"
+        >
+          <label class="text-label">
+            Key
+          </label>
+          <label class="text-label">
+            Value
+          </label>
+          <label class="text-label">
+            Effect
+          </label>
+          <div>
           <!-- <button
             type="button"
             class="btn role-link btn-sm"
@@ -272,33 +280,36 @@ export default defineComponent({
           >
             remove
           </button> -->
+          </div>
         </div>
+        <Taint
+          v-for="(keyedTaint, i) in taints"
+          :key="keyedTaint._id"
+          :taint="keyedTaint.taint"
+          :mode="mode"
+          @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
+          @remove="removeTaint(i)"
+        />
+        <button
+          type="button"
+          class="btn role-tertiary mt-20"
+          @click="addTaint"
+        >
+          Add Taint
+        </button>
       </div>
-      <Taint
-        v-for="(keyedTaint, i) in taints"
-        :key="keyedTaint._id"
-        :taint="keyedTaint.taint"
-        :mode="mode"
-        @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
-        @remove="removeTaint(i)"
-      />
-      <button
-        type="button"
-        class="btn role-tertiary"
-        @click="addTaint"
-      >
-        Add Taint
-      </button>
-    </div>
-    <div>
-      <div>labels</div>
-      <KeyValue
-        v-model="pool.labels"
-        :mode="mode"
-        :value-can-be-empty="true"
-        add-label="Add Label"
-        :read-allowed="false"
-      />
+      <div class="col span-6">
+        <div class="text-label">
+          Labels
+        </div>
+        <KeyValue
+          v-model="pool.labels"
+          :mode="mode"
+          :value-can-be-empty="true"
+          add-label="Add Label"
+          :read-allowed="false"
+        />
+      </div>
     </div>
   </div>
 </template>

@@ -113,7 +113,7 @@ export default defineComponent({
         class="btn role-link btn-sm"
         @click="$emit('remove')"
       >
-        remove
+        Remove
       </button>
     </div>
   </div>
