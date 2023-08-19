@@ -8,13 +8,10 @@
  * - fix column sizes
  * - fix capitalization of strings
  * - add placeholders
- * - track when user has touched region-specific fields
- * - add validation when user selects a region that doesn't contain chosen vm size, k8s version, or network
+ * x track when user has touched region-specific fields
+ * x add validation when user selects a region that doesn't contain chosen vm size, k8s version, or network
  * - set new defaults when user changes region-specific fields if they haven't been touched
  * - fix taints labels formatting
- * - fix active pool tab selection when pools are deleted
- * - fix error formatting when region-specific requests fail (test with Brazil US)
- * - networking tab error icon when virtual network selected isn't available in new region
  */
 
 import { defineComponent } from 'vue';
@@ -209,6 +206,14 @@ export default defineComponent({
         path:  'vmSize',
         rules: ['vmSizeAvailable']
       },
+      {
+        path:  'kubernetesVersion',
+        rules: ['k8sVersionAvailable']
+      },
+      {
+        path:  'networkPolicy',
+        rules: ['networkPolicyAvailable']
+      }
       ],
     };
   },
@@ -276,6 +281,26 @@ export default defineComponent({
               }
 
               return `The VM sizes selected for the pools ${ list } are not available in the selected region.`;
+            }
+          }
+
+          return undefined;
+        },
+        k8sVersionAvailable: () => {
+          if (this.touchedVersion) {
+            if (!this.aksVersionOptions.includes(this.config.kubernetesVersion)) {
+              return 'This version is not available in the selected region.';
+            }
+          }
+
+          return undefined;
+        },
+        networkPolicyAvailable: () => {
+          if (this.touchedVirtualNetwork) {
+            if (!this.virtualNetworkOptions.find((vn) => {
+              return ( vn.name === this.config.virtualNetwork && vn.resourceGroup === this.config.virtualNetworkResourceGroup);
+            })) {
+              return 'This virtual network is not available in the selected region.';
             }
           }
 
@@ -673,6 +698,7 @@ export default defineComponent({
             option-label="label"
             :loading="loadingVersions"
             required
+            :rules="fvGetAndReportPathRules('kubernetesVersion')"
           />
         </div>
       </div>
@@ -900,6 +926,7 @@ export default defineComponent({
                     :loading="loadingVirtualNetworks"
                     option-label="name"
                     :disabled="!isNew"
+                    :rules="fvGetAndReportPathRules('networkPolicy')"
                     @selecting="selectNetwork($event)"
                   />
                 </div>
