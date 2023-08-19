@@ -24,8 +24,6 @@ export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: strin
   return () :string | undefined => {
     const out = needsValidation(ctx) && clusterPath && !get(ctx.normanCluster, clusterPath) ? requiredTranslation(ctx, labelKey) : undefined;
 
-    console.log('validating for field: ', labelKey, 'with config: ', ctx.config, 'needs validation: ', needsValidation(ctx), 'returning: ', out);
-
     return out;
   };
 };

@@ -62,7 +62,7 @@ export default defineComponent({
       }),
       osDiskTypeOptions:       ['Managed', 'Ephemeral'] as AKSDiskType[],
       modeOptions:             ['User', 'System'] as AKSPoolMode[],
-      availabilityZoneOptions: [{ label: 'zone 1', value: '1' }, { label: 'zone 2', value: '2' }, { label: 'zone 3', value: '3' }]
+      availabilityZoneOptions: [{ label: 'zone 1', value: '1' }, { label: 'zone 2', value: '2' }, { label: 'zone 3', value: '3' }],
     };
   },
 
@@ -71,6 +71,12 @@ export default defineComponent({
       if (!neu) {
         delete this.pool.minCount;
         delete this.pool.maxCount;
+      }
+    },
+    'pool.vmSize'(neu) {
+      if (neu) {
+        console.log('vm size touched');
+        this.$emit('vmSizeSet');
       }
     }
   },
@@ -97,6 +103,9 @@ export default defineComponent({
 
 <template>
   <div class="pool">
+    <div v-if="pool._validSize===false">
+      size invalid!
+    </div>
     <div class="remove-row row">
       <button
         v-if="!isPrimaryPool"
@@ -152,6 +161,7 @@ export default defineComponent({
           :loading="loadingVmSizes"
           :mode="mode"
           :disabled="!pool._isNew"
+          :rules="[()=>pool._validSize === false ? 'This size is not avaiable in the selected region' : undefined]"
         />
       </div>
       <div class="col span-3">

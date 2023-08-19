@@ -1,5 +1,22 @@
 <script lang='ts'>
 // todo nb aksClusterConfig not properly deleted? Do we need to delete the norman aks cluster?
+
+/**
+ * TODOS musts
+ * - hide + label auth ip ranges
+ * - load prov clusters so it shows up in the list immediately after saving
+ * - fix column sizes
+ * - fix capitalization of strings
+ * - add placeholders
+ * - track when user has touched region-specific fields
+ * - add validation when user selects a region that doesn't contain chosen vm size, k8s version, or network
+ * - set new defaults when user changes region-specific fields if they haven't been touched
+ * - fix taints labels formatting
+ * - fix active pool tab selection when pools are deleted
+ * - fix error formatting when region-specific requests fail (test with Brazil US)
+ * - networking tab error icon when virtual network selected isn't available in new region
+ */
+
 import { defineComponent } from 'vue';
 
 import semver from 'semver';
@@ -76,7 +93,8 @@ const defaultCluster = {
   aksConfig:               defaultAksConfig
 };
 
-const DEFAULT_REGION = 'eastus';
+// const DEFAULT_REGION = 'eastus';
+const DEFAULT_REGION = '';
 
 const _NONE = 'none';
 
@@ -118,9 +136,8 @@ export default defineComponent({
   async fetch() {
     if (this.value.id) {
       this.normanCluster = await this.value.findNormanCluster();
+      // track original version on edit to ensure we don't offer k8s downgrades
       this.originalVersion = this.normanCluster?.aksConfig?.kubernetesVersion;
-      // on edit, only values which have been changed will be sent in PUT request so we need to track the original spec
-      this.originalCluster = clone(this.normanCluster);
     } else {
       this.normanCluster = await this.$store.dispatch('rancher/create', { type: NORMAN.CLUSTER, ...defaultCluster }, { root: true });
     }
@@ -147,7 +164,6 @@ export default defineComponent({
       config:           { } as any,
       membershipUpdate: {} as any,
       originalVersion:  '',
-      originalCluster:  {} as any,
 
       supportedVersionRange,
       locationOptions:       [] as string[],
@@ -155,6 +171,12 @@ export default defineComponent({
       vmSizeOptions:         [] as string[],
       virtualNetworkOptions: [] as any[],
       defaultVmSize:         defaultNodePool.vmSize as string,
+
+      // if the user changes these then switches to a region without them, show a fv error
+      // if they change region without having touched these, just update the (default) value
+      touchedVersion:        false,
+      touchedVmSize:         false,
+      touchedVirtualNetwork: false,
 
       // TODO nb translations
       networkPluginOptions: [
@@ -182,6 +204,10 @@ export default defineComponent({
       {
         path:  'dnsPrefix',
         rules: ['dnsPrefixRequired'],
+      },
+      {
+        path:  'vmSize',
+        rules: ['vmSizeAvailable']
       },
       ],
     };
@@ -214,7 +240,47 @@ export default defineComponent({
         locationRequired:          requiredInCluster(this, 'aks.location.label', 'aksConfig.location'),
         resourceGroupRequired:     requiredInCluster(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
         nodeResourceGroupRequired: requiredInCluster(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
-        dnsPrefixRequired:         requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix')
+        dnsPrefixRequired:         requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix'),
+        vmSizeAvailable:           () => {
+          console.log('verifying vm sizes: ', this.touchedVmSize);
+          if (this.touchedVmSize) {
+            let allAvailable = true;
+            const badPools = [] as string[];
+
+            this.nodePools.forEach((pool) => {
+              const id :string = pool._id;
+
+              if (!this.vmSizeOptions.find((opt) => opt === pool.vmSize)) {
+                this.$set(pool, '_validSize', false);
+                badPools.push(pool.name);
+                allAvailable = false;
+              } else {
+                this.$set(pool, '_validSize', true);
+              }
+            });
+            // todo nb clean this trash up; use translations
+            if (!allAvailable) {
+              const displayBadPools = badPools.map((pool) => `\"${ pool }\"`);
+
+              if (displayBadPools.length === 1) {
+                return `The VM size selected for the pool ${ displayBadPools[0] } is not available in the selected region.`;
+              }
+
+              displayBadPools[displayBadPools.length - 1] = `and ${ displayBadPools[displayBadPools.length - 1] }`;
+              let list;
+
+              if (displayBadPools.length > 2) {
+                list = displayBadPools.join(', ');
+              } else {
+                list = displayBadPools.join(' ');
+              }
+
+              return `The VM sizes selected for the pools ${ list } are not available in the selected region.`;
+            }
+          }
+
+          return undefined;
+        }
 
       };
     },
@@ -259,7 +325,13 @@ export default defineComponent({
         };
       });
 
-      return sortBy(filteredAndSortable, 'sort:desc');
+      const sorted = sortBy(filteredAndSortable, 'sort:desc');
+
+      if (!this.config.kubernetesVersion) {
+        this.$set(this.config, 'kubernetesVersion', sorted[0]);
+      }
+
+      return sorted;
     },
 
     canEditLoadBalancerSKU() {
@@ -327,6 +399,8 @@ export default defineComponent({
       if (!neu) {
         if (this.config.networkPolicy === 'azure') {
           this.$set(this.config, 'networkPolicy', undefined);
+          console.log('vn untouched');
+          this.touchedVirtualNetwork = false;
         }
         delete this.config.virtualNetwork;
         delete this.config.virtualNetworkResourceGroup;
@@ -345,14 +419,28 @@ export default defineComponent({
       }
     },
 
+    // todo nb validate k8s version, vm sizes, virtual network if touched
     'config.resourceLocation'(neu) {
       if (neu) {
         this.getAksVersions();
         this.getVmSizes();
         this.getVirtualNetworks();
       }
-    }
+    },
 
+    'config.virtualNetwork'(neu) {
+      if (neu) {
+        console.log('vn touched');
+        this.touchedVirtualNetwork = true;
+      }
+    },
+
+    'config.kubernetesVersion'(neu, old) {
+      if (neu && old) {
+        console.log('k8s version touched');
+        this.touchedVersion = true;
+      }
+    },
   },
 
   methods: {
@@ -400,9 +488,9 @@ export default defineComponent({
         console.log('aks k8s versions: ', res);
         this.allAksVersions = res;
 
-        if (!this.config.kubernetesVersion) {
-          this.$set(this.config, 'kubernetesVersion', this.aksVersionOptions[0]);
-        }
+        // if (!this.config.kubernetesVersion) {
+        //   this.$set(this.config, 'kubernetesVersion', this.aksVersionOptions[0]);
+        // }
         this.loadingVersions = false;
       }).catch((err) => {
         // TODO nb formatting
@@ -467,7 +555,6 @@ export default defineComponent({
     },
 
     // removePool(pool: AKSNodePool) {
-    //   debugger;
     //   removeObject(this.nodePools, pool);
     // },
 
@@ -501,6 +588,7 @@ export default defineComponent({
       this.nodePools.forEach((pool) => {
         delete pool._id;
         delete pool._isNew;
+        delete pool._validSize;
       });
     },
 
@@ -562,7 +650,6 @@ export default defineComponent({
           v-if="locationOptions.length"
           class="col span-4"
         >
-          <!-- //TODO nb warn when changing if dependent vals have been changed -->
           <LabeledSelect
             v-model="config.resourceLocation"
             :mode="mode"
@@ -576,6 +663,18 @@ export default defineComponent({
             :disabled="!isNew"
           />
         </div>
+        <div class="col span-4">
+          <LabeledSelect
+            v-model="config.kubernetesVersion"
+            :mode="mode"
+            :options="aksVersionOptions"
+            label="kubernetes version"
+            option-key="value"
+            option-label="label"
+            :loading="loadingVersions"
+            required
+          />
+        </div>
       </div>
 
       <div><h2>Node Pools</h2></div>
@@ -583,6 +682,7 @@ export default defineComponent({
         ref="pools"
         :side-tabs="true"
         :show-tabs-add-remove="mode !== 'view'"
+        :rules="fvGetAndReportPathRules('vmSize')"
         @addTab="addPool($event)"
         @removeTab="removePool($event)"
       >
@@ -592,6 +692,7 @@ export default defineComponent({
           class="mb-10"
           :name="pool.name"
           :label="pool.name || '(Not Named)'"
+          :error="pool._validSize === false"
         >
           <AksNodePool
             :mode="mode"
@@ -601,23 +702,24 @@ export default defineComponent({
             :loading-vm-sizes="loadingVmSizes"
             :isPrimaryPool="i===0"
             @remove="removePool(pool)"
+            @vmSizeSet="touchedVmSize = true"
           />
         </Tab>
       </Tabbed>
 
-      <div class="row mb-10">
+      <!-- <div class="row mb-10">
         <ClusterMembershipEditor
           v-if="canManageMembers"
           :mode="mode"
           :parent-id="normanCluster.id ? normanCluster.id : null"
           @membership-update="onMembershipUpdate"
         />
-      </div>
+      </div> -->
       <div class="row mb-10">
-        <Labels
+        <!-- <Labels
           v-model="normanCluster"
           :mode="mode"
-        />
+        /> -->
       </div>
       <div class="row mb-10">
         <!-- <div
@@ -640,9 +742,271 @@ export default defineComponent({
         </div> -->
       </div>
 
+      <!-- //todo nb loading indicator? -->
       <template v-if="config.resourceLocation && config.resourceLocation.length">
+        <Tabbed
+          :use-hash="false"
+          :side-tabs="true"
+        >
+          <Tab
+            :weight="99"
+            name="Cluster Options"
+          >
+            <div class="row mb-10">
+              <div class="col span-4">
+                <LabeledInput
+                  v-model="config.linuxAdminUsername"
+                  :mode="mode"
+                  label="linux admin username"
+                  :disabled="!isNew"
+                />
+              </div>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-4">
+                <LabeledInput
+                  v-model="config.resourceGroup"
+                  :mode="mode"
+                  label="cluster resource group"
+                  :disabled="!isNew"
+                  :rules="fvGetAndReportPathRules('resourceGroup')"
+                  :required="true"
+                />
+              </div>
+              <div class="col span-4">
+                <LabeledInput
+                  v-model="config.nodeResourceGroup"
+                  :mode="mode"
+                  label="node resource group"
+                  :disabled="!isNew"
+                  :rules="fvGetAndReportPathRules('nodeResourceGroup')"
+                  :required="true"
+                />
+              </div>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-4">
+                <Checkbox
+                  v-model="containerMonitoring"
+                  :mode="mode"
+                  label="configure container monitoring"
+                />
+              </div>
+              <template v-if="containerMonitoring">
+                <div class="col span-4">
+                  <LabeledInput
+                    v-model="config.logAnalyticsWorkspaceGroup"
+                    :mode="mode"
+                    label="log analytics workspace resource group"
+                  />
+                </div>
+                <div class="col span-4">
+                  <LabeledInput
+                    v-model="config.logAnalyticsWorkspaceName"
+                    :mode="mode"
+                    label="log analytics workspace name"
+                  />
+                </div>
+              </template>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-6">
+                <div class="ssh-key">
+                  <LabeledInput
+                    v-model="config.sshPublicKey"
+                    :mode="mode"
+                    label="SSH public key"
+                    type="multiline"
+                  />
+                  <FileSelector
+                    :mode="mode"
+                    label="read from a file"
+                    class="role-tertiary"
+                    @selected="e=>$set(config, 'sshPublicKey', e)"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-12">
+                <KeyValue
+                  v-model="config.tags"
+                  :mode="mode"
+                  title="tags"
+                />
+              </div>
+            </div>
+          </Tab>
+          <Tab
+            :weight="98"
+            name="Networking"
+          >
+            <div class="row mb-10">
+              <div class="col span-4">
+                <LabeledSelect
+                  v-model="config.loadBalancerSku"
+                  label="loadbalancer sku"
+                  tooltip="load balancer sku must be 'standard' if availability zones have been selected"
+                  :disabled="!canEditLoadBalancerSKU || !isNew"
+                  :options="['Standard', 'Basic']"
+                />
+              </div>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-4">
+                <LabeledSelect
+                  v-model="networkPolicy"
+                  :mode="mode"
+                  :options="networkPolicyOptions"
+                  label="network policy"
+                  option-key="value"
+                  :reduce="opt=>opt.value"
+                  tooltip="azure is only available when azure has been selected as the network plugin"
+                  :disabled="!isNew"
+                />
+              </div>
+              <div class="col span-4">
+                <LabeledInput
+                  v-model="config.dnsPrefix"
+                  :mode="mode"
+                  label="dns prefix"
+                  :disabled="!isNew"
+                  :required="true"
+                  :rules="fvGetAndReportPathRules('dnsPrefix')"
+                />
+              </div>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-4">
+                <LabeledSelect
+                  v-model="config.networkPlugin"
+                  :mode="mode"
+                  :options="networkPluginOptions"
+                  label="network plugin"
+                  :disabled="!isNew"
+                />
+              </div>
+            </div>
+            <!-- azure cni configuration -->
+            <template v-if="hasAzureCNI">
+              <div class="row mb-10">
+                <div class="col span-4">
+                  <!-- //todo nb nicer display -->
+                  <LabeledSelect
+                    :value="config.virtualNetwork"
+                    label="virtual network"
+                    :mode="mode"
+                    :options="virtualNetworkOptions"
+                    :loading="loadingVirtualNetworks"
+                    option-label="name"
+                    :disabled="!isNew"
+                    @selecting="selectNetwork($event)"
+                  />
+                </div>
+              </div>
+              <div class="row mb-10">
+                <div class="col span-3">
+                  <LabeledInput
+                    v-model="config.serviceCidr"
+                    :mode="mode"
+                    label="kubernetes service address range"
+                    :disabled="!isNew"
+                  />
+                </div>
+                <div class="col span-3">
+                  <LabeledInput
+                    v-model="config.podCidr"
+                    :mode="mode"
+                    label="kubernetes pod address range"
+                    :disabled="!isNew"
+                  />
+                </div>
+                <div class="col span-3">
+                  <LabeledInput
+                    v-model="config.dnsServiceIp"
+                    :mode="mode"
+                    label="kubernetes dns service ip range"
+                    :disabled="!isNew"
+                  />
+                </div>
+                <div class="col span-3">
+                  <LabeledInput
+                    v-model="config.dockerBridgeCidr"
+                    :mode="mode"
+                    label="docker bridge address"
+                    :disabled="!isNew"
+                  />
+                </div>
+              </div>
+            </template>
+            <div class="row mb-10">
+              <div class="col span-3">
+                <Checkbox
+                  v-model="value.enableNetworkPolicy"
+                  :mode="mode"
+                  label="project network isolation"
+                  :disabled="!isNew"
+                />
+              </div>
+              <div class="col span-3">
+                <Checkbox
+                  v-model="config.httpApplicationRouting"
+                  :mode="mode"
+                  label="http application routing"
+                />
+              </div>
+              <div class="col span-3">
+                <Checkbox
+                  v-model="setAuthorizedIPRanges"
+                  :mode="mode"
+                  label="set authorized ip ranges"
+                  :disabled="config.privateCluster"
+                />
+              </div>
+
+              <div class="col span-3">
+                <Checkbox
+                  v-model="config.privateCluster"
+                  :mode="mode"
+                  label="enable private cluster"
+                  :disabled="!canEditPrivateCluster"
+                />
+              </div>
+            </div>
+            <div class="row mb-10">
+              <div class="col span-6">
+                <ArrayList
+                  v-model="config.authorizedIpRanges"
+                  :mode="mode"
+                  label="authorized ip ranges"
+                />
+              </div>
+            </div>
+          </Tab>
+          <Tab
+            :weight="97"
+            name="Cluster Membership"
+          >
+            <ClusterMembershipEditor
+              v-if="canManageMembers"
+              :mode="mode"
+              :parent-id="normanCluster.id ? normanCluster.id : null"
+              @membership-update="onMembershipUpdate"
+            />
+          </Tab>
+          <Tab
+            :weight="96"
+            name="Labels and Annotations"
+          >
+            <Labels
+              v-model="normanCluster"
+              :mode="mode"
+            />
+          </Tab>
+        </Tabbed>
+
         <!-- cluster config -->
-        <div class="row mb-10">
+        <!-- <div class="row mb-10">
           <div class="col span-4">
             <LabeledSelect
               v-model="config.kubernetesVersion"
@@ -737,10 +1101,10 @@ export default defineComponent({
               title="tags"
             />
           </div>
-        </div>
+        </div> -->
 
         <!-- networking -->
-        <div class="row mb-10">
+        <!-- <div class="row mb-10">
           <div class="col span-4">
             <LabeledSelect
               v-model="config.loadBalancerSku"
@@ -786,11 +1150,10 @@ export default defineComponent({
             />
           </div>
         </div>
-        <!-- azure cni configuration -->
+        azure cni configuration
         <template v-if="hasAzureCNI">
           <div class="row mb-10">
             <div class="col span-4">
-              <!-- //todo nb nicer display -->
               <LabeledSelect
                 :value="config.virtualNetwork"
                 label="virtual network"
@@ -880,10 +1243,10 @@ export default defineComponent({
               label="authorized ip ranges"
             />
           </div>
-        </div>
+        </div> -->
 
         <!-- node pools -->
-        <div
+        <!-- <div
           v-for="(pool, i) in nodePools"
           :key="pool._id"
           class="mb-10"
@@ -906,7 +1269,7 @@ export default defineComponent({
           >
             add node pool
           </button>
-        </div>
+        </div> -->
       </template>
     </div>
   </CruResource>
