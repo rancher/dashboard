@@ -148,7 +148,11 @@ export default defineComponent({
     this.nodePools = this.normanCluster.aksConfig.nodePools;
     this.containerMonitoring = (this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
-    this.normanCluster.spec.aksConfig.nodePools.forEach((pool: AKSNodePool) => this.$set(pool, '_id', randomStr()));
+    // todo nb allow editing while aksStatus.upstreamSpec doesn't exist?
+    this.nodePools.forEach((pool: AKSNodePool) => {
+      this.$set(pool, '_id', randomStr());
+      this.$set(pool, '_isNew', this.isNew);
+    });
   },
 
   data() {
@@ -194,10 +198,10 @@ export default defineComponent({
         path:  'resourceGroup',
         rules: ['resourceGroupRequired'],
       },
-      {
-        path:  'nodeResourceGroup',
-        rules: ['nodeResourceGroupRequired'],
-      },
+      // {
+      //   path:  'nodeResourceGroup',
+      //   rules: ['nodeResourceGroupRequired'],
+      // },
       {
         path:  'dnsPrefix',
         rules: ['dnsPrefixRequired'],
@@ -241,12 +245,12 @@ export default defineComponent({
       // };
 
       return {
-        nameRequired:              requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
-        locationRequired:          requiredInCluster(this, 'aks.location.label', 'aksConfig.location'),
-        resourceGroupRequired:     requiredInCluster(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
-        nodeResourceGroupRequired: requiredInCluster(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
-        dnsPrefixRequired:         requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix'),
-        vmSizeAvailable:           () => {
+        nameRequired:          requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+        locationRequired:      requiredInCluster(this, 'aks.location.label', 'aksConfig.location'),
+        resourceGroupRequired: requiredInCluster(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
+        // nodeResourceGroupRequired: requiredInCluster(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
+        dnsPrefixRequired:     requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix'),
+        vmSizeAvailable:       () => {
           console.log('verifying vm sizes: ', this.touchedVmSize);
           if (this.touchedVmSize) {
             let allAvailable = true;
@@ -288,7 +292,7 @@ export default defineComponent({
         },
         k8sVersionAvailable: () => {
           if (this.touchedVersion) {
-            if (!this.aksVersionOptions.includes(this.config.kubernetesVersion)) {
+            if (!this.aksVersionOptions.find((v: any) => v.value === this.config.kubernetesVersion)) {
               return 'This version is not available in the selected region.';
             }
           }
@@ -313,7 +317,9 @@ export default defineComponent({
     // todo nb allow edit when no upstream cluster created yet
     // todo nb is this bad ux? Form will abruptly become largely un-editable
     isNew() {
-      return this.mode === _CREATE;
+      console.log('aksStatus: ', !this.normanCluster?.aksStatus?.upstreamSpec);
+
+      return this.mode === _CREATE || !this.normanCluster?.aksStatus?.upstreamSpec;
     },
 
     doneRoute() {
@@ -353,7 +359,7 @@ export default defineComponent({
       const sorted = sortBy(filteredAndSortable, 'sort:desc');
 
       if (!this.config.kubernetesVersion) {
-        this.$set(this.config, 'kubernetesVersion', sorted[0]);
+        this.$set(this.config, 'kubernetesVersion', sorted[0]?.value);
       }
 
       return sorted;
@@ -665,7 +671,7 @@ export default defineComponent({
           <LabeledInput
             :value="normanCluster.name"
             :mode="mode"
-            label="name"
+            label="Name"
             required
             :rules="fvGetAndReportPathRules('name')"
             @input="setClusterName"
@@ -693,7 +699,7 @@ export default defineComponent({
             v-model="config.kubernetesVersion"
             :mode="mode"
             :options="aksVersionOptions"
-            label="kubernetes version"
+            label="Kubernetes Version"
             option-key="value"
             option-label="label"
             :loading="loadingVersions"
@@ -733,41 +739,6 @@ export default defineComponent({
         </Tab>
       </Tabbed>
 
-      <!-- <div class="row mb-10">
-        <ClusterMembershipEditor
-          v-if="canManageMembers"
-          :mode="mode"
-          :parent-id="normanCluster.id ? normanCluster.id : null"
-          @membership-update="onMembershipUpdate"
-        />
-      </div> -->
-      <div class="row mb-10">
-        <!-- <Labels
-          v-model="normanCluster"
-          :mode="mode"
-        /> -->
-      </div>
-      <div class="row mb-10">
-        <!-- <div
-          v-if="locationOptions.length"
-          class="col span-4"
-        >
-          //TODO nb warn when changing if dependent vals have been changed
-          <LabeledSelect
-            v-model="config.resourceLocation"
-            :mode="mode"
-            :options="locationOptions"
-            option-label="displayName"
-            option-key="name"
-            label="Location"
-            :reduce="opt=>opt.name"
-            :loading="loadingLocations"
-            required
-            :disabled="!isNew"
-          />
-        </div> -->
-      </div>
-
       <!-- //todo nb loading indicator? -->
       <template v-if="config.resourceLocation && config.resourceLocation.length">
         <Tabbed
@@ -783,7 +754,7 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.linuxAdminUsername"
                   :mode="mode"
-                  label="linux admin username"
+                  label="Linux Admin Username"
                   :disabled="!isNew"
                 />
               </div>
@@ -793,20 +764,20 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.resourceGroup"
                   :mode="mode"
-                  label="cluster resource group"
+                  label="Cluster Resource Group"
                   :disabled="!isNew"
                   :rules="fvGetAndReportPathRules('resourceGroup')"
                   :required="true"
+                  placeholder="aks-resource-group"
                 />
               </div>
               <div class="col span-4">
                 <LabeledInput
                   v-model="config.nodeResourceGroup"
                   :mode="mode"
-                  label="node resource group"
+                  label="Node Resource Group"
                   :disabled="!isNew"
-                  :rules="fvGetAndReportPathRules('nodeResourceGroup')"
-                  :required="true"
+                  placeholder="aks-node-resource-group"
                 />
               </div>
             </div>
@@ -815,7 +786,7 @@ export default defineComponent({
                 <Checkbox
                   v-model="containerMonitoring"
                   :mode="mode"
-                  label="configure container monitoring"
+                  label="Configure Container Monitoring"
                 />
               </div>
               <template v-if="containerMonitoring">
@@ -823,14 +794,14 @@ export default defineComponent({
                   <LabeledInput
                     v-model="config.logAnalyticsWorkspaceGroup"
                     :mode="mode"
-                    label="log analytics workspace resource group"
+                    label="Log Analytics Workspace Resource Group"
                   />
                 </div>
                 <div class="col span-4">
                   <LabeledInput
                     v-model="config.logAnalyticsWorkspaceName"
                     :mode="mode"
-                    label="log analytics workspace name"
+                    label="Log Analytics Workspace Name"
                   />
                 </div>
               </template>
@@ -841,12 +812,13 @@ export default defineComponent({
                   <LabeledInput
                     v-model="config.sshPublicKey"
                     :mode="mode"
-                    label="SSH public key"
+                    label="SSH Public Key"
                     type="multiline"
+                    placeholder="Paste in your SSH public key"
                   />
                   <FileSelector
                     :mode="mode"
-                    label="read from a file"
+                    label="Read from File"
                     class="role-tertiary"
                     @selected="e=>$set(config, 'sshPublicKey', e)"
                   />
@@ -858,8 +830,15 @@ export default defineComponent({
                 <KeyValue
                   v-model="config.tags"
                   :mode="mode"
-                  title="tags"
-                />
+                  title="Tags"
+                  add-label="Add Tag"
+                >
+                  <template #title>
+                    <div class="text-label">
+                      Tags
+                    </div>
+                  </template>
+                </KeyValue>
               </div>
             </div>
           </Tab>
@@ -871,8 +850,8 @@ export default defineComponent({
               <div class="col span-4">
                 <LabeledSelect
                   v-model="config.loadBalancerSku"
-                  label="loadbalancer sku"
-                  tooltip="load balancer sku must be 'standard' if availability zones have been selected"
+                  label="Loadbalancer SKU"
+                  tooltip="The Loadbalancer SKU must be 'Standard' if availability zones have been selected"
                   :disabled="!canEditLoadBalancerSKU || !isNew"
                   :options="['Standard', 'Basic']"
                 />
@@ -884,10 +863,10 @@ export default defineComponent({
                   v-model="networkPolicy"
                   :mode="mode"
                   :options="networkPolicyOptions"
-                  label="network policy"
+                  label="Network Policy"
                   option-key="value"
                   :reduce="opt=>opt.value"
-                  tooltip="azure is only available when azure has been selected as the network plugin"
+                  tooltip="The Azure network policy is only available when the Azure network plugin is selected"
                   :disabled="!isNew"
                 />
               </div>
@@ -895,10 +874,11 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.dnsPrefix"
                   :mode="mode"
-                  label="dns prefix"
+                  label="DNS Prefix"
                   :disabled="!isNew"
                   :required="true"
                   :rules="fvGetAndReportPathRules('dnsPrefix')"
+                  placeholder="aks-dns-xxxxx"
                 />
               </div>
             </div>
@@ -908,7 +888,7 @@ export default defineComponent({
                   v-model="config.networkPlugin"
                   :mode="mode"
                   :options="networkPluginOptions"
-                  label="network plugin"
+                  label="Network Plugin"
                   :disabled="!isNew"
                 />
               </div>
@@ -920,7 +900,7 @@ export default defineComponent({
                   <!-- //todo nb nicer display -->
                   <LabeledSelect
                     :value="config.virtualNetwork"
-                    label="virtual network"
+                    label="Virtual Network"
                     :mode="mode"
                     :options="virtualNetworkOptions"
                     :loading="loadingVirtualNetworks"
@@ -936,7 +916,7 @@ export default defineComponent({
                   <LabeledInput
                     v-model="config.serviceCidr"
                     :mode="mode"
-                    label="kubernetes service address range"
+                    label="Kubernetes Service Address Range"
                     :disabled="!isNew"
                   />
                 </div>
@@ -944,7 +924,7 @@ export default defineComponent({
                   <LabeledInput
                     v-model="config.podCidr"
                     :mode="mode"
-                    label="kubernetes pod address range"
+                    label="Kubernetes Pod Address Range"
                     :disabled="!isNew"
                   />
                 </div>
@@ -952,7 +932,7 @@ export default defineComponent({
                   <LabeledInput
                     v-model="config.dnsServiceIp"
                     :mode="mode"
-                    label="kubernetes dns service ip range"
+                    label="Kubernetes DNS Service IP Range"
                     :disabled="!isNew"
                   />
                 </div>
@@ -960,7 +940,7 @@ export default defineComponent({
                   <LabeledInput
                     v-model="config.dockerBridgeCidr"
                     :mode="mode"
-                    label="docker bridge address"
+                    label="Docker Bridge Address"
                     :disabled="!isNew"
                   />
                 </div>
@@ -971,7 +951,7 @@ export default defineComponent({
                 <Checkbox
                   v-model="value.enableNetworkPolicy"
                   :mode="mode"
-                  label="project network isolation"
+                  label="Project Network Isolation"
                   :disabled="!isNew"
                 />
               </div>
@@ -979,14 +959,14 @@ export default defineComponent({
                 <Checkbox
                   v-model="config.httpApplicationRouting"
                   :mode="mode"
-                  label="http application routing"
+                  label="HTTP Application Routing"
                 />
               </div>
               <div class="col span-3">
                 <Checkbox
                   v-model="setAuthorizedIPRanges"
                   :mode="mode"
-                  label="set authorized ip ranges"
+                  label="Set Authorized IP Ranges"
                   :disabled="config.privateCluster"
                 />
               </div>
@@ -995,18 +975,29 @@ export default defineComponent({
                 <Checkbox
                   v-model="config.privateCluster"
                   :mode="mode"
-                  label="enable private cluster"
+                  label="Enable Private Cluster"
                   :disabled="!canEditPrivateCluster"
                 />
               </div>
             </div>
-            <div class="row mb-10">
+            <div
+              v-if="setAuthorizedIPRanges"
+              class="row mb-10"
+            >
               <div class="col span-6">
                 <ArrayList
                   v-model="config.authorizedIpRanges"
                   :mode="mode"
-                  label="authorized ip ranges"
-                />
+                  :initial-empty-row="true"
+                  value-placeholder="10.0.0.0/14"
+                  title="Authorized IP Ranges"
+                >
+                  <template #title>
+                    <div class="text-label">
+                      Authorized IP Ranges
+                    </div>
+                  </template>
+                </ArrayList>
               </div>
             </div>
           </Tab>
@@ -1030,6 +1021,7 @@ export default defineComponent({
               :mode="mode"
             />
           </Tab>
+          </tabs>
         </Tabbed>
 
         <!-- cluster config -->

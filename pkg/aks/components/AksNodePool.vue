@@ -130,7 +130,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="pool.availabilityZones"
           :options="availabilityZoneOptions"
-          label="availability zones"
+          label="Availability Zones"
           :mode="mode"
           :multiple="true"
           :taggable="true"
@@ -169,7 +169,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="pool.osType"
           :options="[]"
-          label="operating system"
+          label="Operating System"
           mode="view"
         />
       </div>
@@ -177,7 +177,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="pool.osDiskType"
           :options="osDiskTypeOptions"
-          label="os disk type"
+          label="OS Disk Type"
           :mode="mode"
           :disabled="!pool._isNew"
         />
@@ -185,7 +185,7 @@ export default defineComponent({
       <div class="col span-3">
         <UnitInput
           v-model="pool.osDiskSizeGB"
-          label="os disk size"
+          label="OS Disk Size"
           :mode="mode"
           suffix="GB"
           :disabled="!pool._isNew"
@@ -200,7 +200,7 @@ export default defineComponent({
           v-model.number="pool.count"
           type="number"
           :mode="mode"
-          label="node count"
+          label="Node Count"
           :disabled="pool.enableAutoScaling"
         />
       </div>
@@ -209,14 +209,14 @@ export default defineComponent({
           v-model.number="pool.maxPods"
           type="number"
           :mode="isPrimaryPool ? 'view' : mode"
-          label="max pods per node"
+          label="Max Pods per Node"
         />
       </div>
       <div class="col span-4">
         <LabeledInput
           v-model="pool.maxSurge"
           :mode="mode"
-          label="max surge"
+          label="Max Surge"
         />
       </div>
     </div>
@@ -225,7 +225,7 @@ export default defineComponent({
         <Checkbox
           v-model="pool.enableAutoScaling"
           :mode="mode"
-          label="enable auto scaling"
+          label="Enable Auto Scaling"
         />
       </div>
       <template v-if="pool.enableAutoScaling">
@@ -234,7 +234,7 @@ export default defineComponent({
             v-model.number="pool.minCount"
             type="number"
             :mode="mode"
-            label="minimum pods"
+            label="Minimum Pods"
           />
         </div>
         <div class="col span-4">
@@ -242,7 +242,7 @@ export default defineComponent({
             v-model.number="pool.maxCount"
             type="number"
             :mode="mode"
-            label="maximum pods"
+            label="Maximum Pods"
           />
         </div>
       </template>
@@ -256,13 +256,13 @@ export default defineComponent({
         class="row taints-labels"
       >
         <label class="text-label">
-          key
+          Key
         </label>
         <label class="text-label">
-          value
+          Value
         </label>
         <label class="text-label">
-          effect
+          Effect
         </label>
         <div>
           <!-- <button
@@ -287,7 +287,7 @@ export default defineComponent({
         class="btn role-tertiary"
         @click="addTaint"
       >
-        add taint
+        Add Taint
       </button>
     </div>
     <div>
@@ -296,7 +296,7 @@ export default defineComponent({
         v-model="pool.labels"
         :mode="mode"
         :value-can-be-empty="true"
-        add-label="add label"
+        add-label="Add Label"
         :read-allowed="false"
       />
     </div>
