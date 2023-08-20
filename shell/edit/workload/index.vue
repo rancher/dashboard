@@ -2,10 +2,11 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
+import VeeTokenValidations from 'mixins/vee-validations';
 
 export default {
   name:   'Workload',
-  mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
+  mixins: [CreateEditView, FormValidation, WorkLoadMixin, VeeTokenValidations], // The order here is important since WorkLoadMixin contains some FormValidation configuration
   props:  {
     value: {
       type:     Object,
@@ -81,7 +82,6 @@ export default {
     class="filled-height"
   >
     <CruResource
-      :validation-passed="fvFormIsValid"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
@@ -99,7 +99,7 @@ export default {
       <NameNsDescription
         :value="value"
         :mode="mode"
-        :rules="{name: fvGetAndReportPathRules('metadata.name'), namespace: fvGetAndReportPathRules('metadata.namespace'), description: []}"
+        :vee-token-rules="{ name: veeTokenRules.name }"
         @change="name=value.metadata.name"
         @isNamespaceNew="isNamespaceNew = $event"
       />
@@ -219,7 +219,7 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                      :rules="fvGetAndReportPathRules('image')"
+                      :vee-token-rules="veeTokenRules.image"
                     />
                   </div>
                   <div class="col span-6">

@@ -8,12 +8,14 @@ import { escapeHtml } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
 import { debounce } from 'lodash';
-
+import VeeTokenValidation from 'components/VeeValidation.vue';
 export default (
   Vue as VueConstructor<Vue & InstanceType<typeof LabeledFormElement> & InstanceType<typeof CompactInput>>
 ).extend({
-  components: { LabeledTooltip, TextAreaAutoGrow },
-  mixins:     [LabeledFormElement, CompactInput],
+  components: {
+    VeeTokenValidation, LabeledTooltip, TextAreaAutoGrow
+  },
+  mixins: [LabeledFormElement, CompactInput],
 
   props: {
     /**
@@ -91,6 +93,15 @@ export default (
       type:    Number,
       default: 0
     },
+
+    /**
+     * Validations rules
+     * ToDo change name
+     */
+    veeTokenRules: {
+      type:    [String, Object],
+      default: ''
+    }
   },
 
   data() {
@@ -248,92 +259,97 @@ export default (
 </script>
 
 <template>
-  <div
-    :class="{
-      'labeled-input': true,
-      focused,
-      [mode]: true,
-      disabled: isDisabled,
-      [status]: status,
-      suffix: hasSuffix,
-      'has-tooltip': hasTooltip,
-      'compact-input': isCompact,
-      hideArrows
-    }"
+  <VeeTokenValidation
+    v-slot="{ veeTokenValidationContext }"
+    :rules="veeTokenRules"
   >
-    <slot name="label">
-      <label v-if="hasLabel">
-        <t
-          v-if="labelKey"
-          :k="labelKey"
+    <div
+      :class="{
+        'labeled-input': true,
+        focused,
+        [mode]: true,
+        disabled: isDisabled,
+        [status]: status,
+        suffix: hasSuffix,
+        'has-tooltip': hasTooltip,
+        'compact-input': isCompact,
+        hideArrows
+      }"
+    >
+      <slot name="label">
+        <label v-if="hasLabel">
+          <t
+            v-if="labelKey"
+            :k="labelKey"
+          />
+          <template v-else-if="label">{{ label }}</template>
+
+          <span
+            v-if="requiredField"
+            class="required"
+          >*</span>
+        </label>
+      </slot>
+
+      <slot name="prefix" />
+
+      <slot name="field">
+        <TextAreaAutoGrow
+          v-if="type === 'multiline' || type === 'multiline-password'"
+          ref="value"
+          v-bind="$attrs"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :value="value"
+          :placeholder="_placeholder"
+          autocapitalize="off"
+          :class="{ conceal: type === 'multiline-password' }"
+          @input="onInput($event)"
+          @focus="onFocus"
+          @blur="onBlur"
         />
-        <template v-else-if="label">{{ label }}</template>
+        <input
+          v-else
+          ref="value"
+          :class="{ 'no-label': !hasLabel }"
+          v-bind="$attrs"
+          :maxlength="_maxlength"
+          :disabled="isDisabled"
+          :type="type === 'cron' ? 'text' : type"
+          :value="value"
+          :placeholder="_placeholder"
+          autocomplete="off"
+          autocapitalize="off"
+          :data-lpignore="ignorePasswordManagers"
+          @input="onInput($event.target.value)"
+          @focus="onFocus"
+          @blur="onBlur"
+          @change="onChange"
+        >
+      </slot>
 
-        <span
-          v-if="requiredField"
-          class="required"
-        >*</span>
-      </label>
-    </slot>
-
-    <slot name="prefix" />
-
-    <slot name="field">
-      <TextAreaAutoGrow
-        v-if="type === 'multiline' || type === 'multiline-password'"
-        ref="value"
-        v-bind="$attrs"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :value="value"
-        :placeholder="_placeholder"
-        autocapitalize="off"
-        :class="{ conceal: type === 'multiline-password' }"
-        @input="onInput($event)"
-        @focus="onFocus"
-        @blur="onBlur"
+      <slot name="suffix" />
+      <LabeledTooltip
+        v-if="hasTooltip && !focused"
+        :hover="hoverTooltip"
+        :value="tooltipValue"
+        :status="status"
       />
-      <input
-        v-else
-        ref="value"
-        :class="{ 'no-label': !hasLabel }"
-        v-bind="$attrs"
-        :maxlength="_maxlength"
-        :disabled="isDisabled"
-        :type="type === 'cron' ? 'text' : type"
-        :value="value"
-        :placeholder="_placeholder"
-        autocomplete="off"
-        autocapitalize="off"
-        :data-lpignore="ignorePasswordManagers"
-        @input="onInput($event.target.value)"
-        @focus="onFocus"
-        @blur="onBlur"
-        @change="onChange"
-      >
-    </slot>
-
-    <slot name="suffix" />
-    <LabeledTooltip
-      v-if="hasTooltip && !focused"
-      :hover="hoverTooltip"
-      :value="tooltipValue"
-      :status="status"
-    />
-    <LabeledTooltip
-      v-if="!!validationMessage"
-      :hover="hoverTooltip"
-      :value="validationMessage"
-    />
-    <label
-      v-if="cronHint"
-      class="cron-label"
-    >{{ cronHint }}</label>
-    <label
-      v-if="subLabel"
-      class="sub-label"
-    >{{ subLabel }}</label>
-  </div>
+      <LabeledTooltip
+        v-if="veeTokenValidationContext.touched && veeTokenValidationContext.invalid"
+        :hover="hoverTooltip"
+        :value="veeTokenValidationContext.errors.join(', ')"
+      />
+      <label
+        v-if="cronHint"
+        class="cron-label"
+      >{{ cronHint }}</label>
+      <label
+        v-if="subLabel"
+        class="sub-label"
+      >{{ subLabel }}</label>
+    </div>
+  </VeeTokenValidation>
 </template>
 <style scoped lang="scss">
 .labeled-input.view {

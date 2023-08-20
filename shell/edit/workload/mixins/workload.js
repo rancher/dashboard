@@ -281,16 +281,23 @@ export default {
         path: 'image', rootObject: this.container, rules: ['required'], translationKey: 'workload.container.image'
       }],
       fvReportedValidationPaths: ['spec'],
-      isNamespaceNew:            false,
-      idKey:                     ID_KEY
+
+      veeTokenRuleSets: {
+        image: {
+          id:             'container.image',
+          rules:          'required',
+          translationKey: 'workload.container.image'
+        }
+      },
+
+      isNamespaceNew: false,
+      idKey:          ID_KEY,
+      tabErrors:      { general: false },
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
-    tabErrors() {
-      return { general: this.fvGetPathErrors(['image'])?.length > 0 };
-    },
 
     defaultTab() {
       if (!!this.$route.query.sidecar || this.$route.query.init || this.mode === _CREATE) {
@@ -602,6 +609,11 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
+    async 'container.image'(value) {
+      const valid = await this.veeTokenValidate(value, this.veeTokenRuleSets.image.rules);
+
+      this.tabErrors.general = !valid;
+    }
   },
 
   created() {

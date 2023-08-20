@@ -9,6 +9,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
+import { ValidationObserver } from 'vee-validate';
 
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
@@ -28,7 +29,8 @@ export default {
     Banner,
     CruResourceFooter,
     ResourceYaml,
-    Wizard
+    Wizard,
+    ValidationObserver
   },
 
   props: {
@@ -69,9 +71,10 @@ export default {
 
     validationPassed: {
       type:    Boolean,
-      default: true
+      default: false
     },
 
+    // ToDo patch with new pattern
     errors: {
       type:    Array,
       default: () => []
@@ -80,6 +83,7 @@ export default {
     /**
      * Set of maps to convert error messages to something more user friendly and apply icons
      */
+    // ToDo patch with new pattern
     errorsMap: {
       type:    Object,
       default: null
@@ -183,23 +187,6 @@ export default {
   },
 
   computed: {
-    canSave() {
-      const { validationPassed, showAsForm, steps } = this;
-
-      if (showAsForm && steps?.length) {
-        return validationPassed && this.steps.every((step) => step.ready);
-      }
-
-      // Don't apply validation rules if the form is not shown.
-      if (!this.showAsForm) {
-        return true;
-      }
-
-      // Disable the save button if there are form validation
-      // errors while the user is typing.
-      return this.validationPassed;
-    },
-
     canDiff() {
       return this.initialYaml !== this.resourceYaml;
     },
@@ -246,15 +233,9 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     /**
-     * Prevent issues for malformed types injection
-     */
-    hasErrors() {
-      return this.errors?.length && Array.isArray(this.errors);
-    },
-
-    /**
      * Replace returned string with new picked value and icon
      */
+    // ToDo patch with new pattern
     mappedErrors() {
       return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
         ...acc,
@@ -271,8 +252,42 @@ export default {
       this.$emit('select-type', this._selectedSubtype);
     }
   },
-
   methods: {
+
+    displayUnreportedErrors(fields) {
+      if (fields) {
+        const rules = Object.values(this.$parent.veeTokenRules).map(({ id }) => id);
+
+        const ret = !!rules.find((id) => !Object.keys(fields).includes(id));
+
+        console.log(ret);
+
+        // ToDo this.errors must be removed and errors must be calculated using new pattern
+        return ret && this.errors;
+      }
+
+      return false;
+    },
+
+    canSave(veeTokenValidationContext) {
+      // Don't apply validation rules if the form is not shown.
+      if (!this.showAsForm) {
+        return true;
+      }
+
+      // Validation is force through input property
+      if (this.validationPassed) {
+        // Steps
+        if (this.steps?.length) {
+          return this.steps.every((step) => step.ready);
+        }
+
+        return true;
+      }
+
+      return !veeTokenValidationContext?.invalid;
+    },
+
     stringify,
 
     confirmCancel(isCancelNotBack = true) {
@@ -419,344 +434,348 @@ export default {
     >
       {{ description }}
     </p>
-    <form
-      :is="(isView? 'div' : 'form')"
-      data-testid="cru-form"
-      class="create-resource-container cru__form"
-      @submit.prevent
-      @keydown.enter="onPressEnter($event)"
+    <ValidationObserver
+      ref="validator"
+      v-slot="veeTokenValidationContext"
+      slim
     >
-      <div
-        v-if="hasErrors"
-        id="cru-errors"
-        class="cru__errors"
+      <form
+        :is="(isView? 'div' : 'form')"
+        class="create-resource-container cru__form"
+        @submit.prevent
+        @keydown.enter="onPressEnter($event)"
       >
-        <Banner
-          v-for="(err, i) in errors"
-          :key="i"
-          color="error"
-          :data-testid="`error-banner${i}`"
-          :label="stringify(mappedErrors[err].message)"
-          :icon="mappedErrors[err].icon"
-          :closable="true"
-          @close="closeError(i)"
-        />
-      </div>
-      <div
-        v-if="showSubtypeSelection"
-        class="subtypes-container cru__content"
-      >
-        <slot
-          name="subtypes"
-          :subtypes="subtypes"
-        >
-          <div
-            v-for="subtype in subtypes"
-            :key="subtype.id"
-            class="subtype-banner"
-            :class="{ selected: subtype.id === _selectedSubtype }"
-            @click="selectType(subtype.id, $event)"
-          >
-            <slot name="subtype-content">
-              <div class="subtype-container">
-                <div class="subtype-logo">
-                  <img
-                    v-if="subtype.bannerImage"
-                    :src="subtype.bannerImage"
-                    :alt="(resource.type ? resource.type + ': ' : '') + (subtype.label || '')"
-                  >
-                  <div
-                    v-else
-                    class="round-image"
-                  >
-                    <div
-                      v-if="subtype.bannerAbbrv"
-                      class="banner-abbrv"
-                    >
-                      <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
-                      <span
-                        v-else
-                        :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}"
-                      >{{ subtype.bannerAbbrv }}</span>
-                    </div>
-                    <div v-else>
-                      {{ subtype.id.slice(0, 1).toUpperCase() }}
-                    </div>
-                  </div>
-                </div>
-                <div class="subtype-body">
-                  <div
-                    class="title"
-                    :class="{'with-description': !!subtype.description}"
-                  >
-                    <h5>
-                      <span
-                        v-if="$store.getters['i18n/exists'](subtype.label)"
-                        v-clean-html="t(subtype.label)"
-                      />
-                      <span v-else>{{ subtype.label }}</span>
-                    </h5>
-                    <a
-                      v-if="subtype.docLink"
-                      :href="subtype.docLink"
-                      target="_blank"
-                      rel="noopener nofollow"
-                      class="flex-right"
-                    >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
-                  </div>
-                  <hr v-if="subtype.description">
-                  <div
-                    v-if="subtype.description"
-                    class="description"
-                  >
-                    <span
-                      v-if="$store.getters['i18n/exists'](subtype.description)"
-                      v-clean-html="t(subtype.description, {}, true)"
-                    />
-                    <span v-else>{{ subtype.description }}</span>
-                  </div>
-                </div>
-              </div>
-            </slot>
-          </div>
-        </slot>
-      </div>
-      <!------ MULTI STEP PROCESS ------>
-      <template v-if="showAsForm && steps.length">
         <div
-          v-if="_selectedSubtype || !subtypes.length"
-          class="resource-container cru__content cru__content-wizard"
+          v-if="displayUnreportedErrors(veeTokenValidationContext.fields)"
+          id="cru-errors"
+          class="cru__errors"
         >
-          <Wizard
-            v-if="resource"
-            ref="Wizard"
-            :header-mode="mode"
-            :steps="steps"
-            :errors="errors"
-            :finish-mode="finishMode"
-            class="wizard"
-            @error="e=>errors = e"
+          <Banner
+            v-for="(err, i) in errors"
+            :key="i"
+            color="error"
+            :label="stringify(mappedErrors[err].message)"
+            :icon="mappedErrors[err].icon"
+            :closable="true"
+            @close="closeError(i)"
+          />
+        </div>
+        <div
+          v-if="showSubtypeSelection"
+          class="subtypes-container cru__content"
+        >
+          <slot
+            name="subtypes"
+            :subtypes="subtypes"
           >
-            <template
-              #stepContainer="{activeStep}"
-              class="step-container"
+            <div
+              v-for="subtype in subtypes"
+              :key="subtype.id"
+              class="subtype-banner"
+              :class="{ selected: subtype.id === _selectedSubtype }"
+              @click="selectType(subtype.id, $event)"
             >
-              <template v-for="step in steps">
-                <div
-                  v-if="step.name === activeStep.name || step.hidden"
-                  :key="step.name"
-                  class="step-container__step"
-                  :class="{'hide': step.name !== activeStep.name && step.hidden}"
-                >
-                  <slot
-                    :step="step"
-                    :name="step.name"
-                  />
+              <slot name="subtype-content">
+                <div class="subtype-container">
+                  <div class="subtype-logo">
+                    <img
+                      v-if="subtype.bannerImage"
+                      :src="subtype.bannerImage"
+                      :alt="(resource.type ? resource.type + ': ' : '') + (subtype.label || '')"
+                    >
+                    <div
+                      v-else
+                      class="round-image"
+                    >
+                      <div
+                        v-if="subtype.bannerAbbrv"
+                        class="banner-abbrv"
+                      >
+                        <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
+                        <span
+                          v-else
+                          :style="{fontSize: abbrSizes[subtype.bannerAbbrv.length]}"
+                        >{{ subtype.bannerAbbrv }}</span>
+                      </div>
+                      <div v-else>
+                        {{ subtype.id.slice(0, 1).toUpperCase() }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="subtype-body">
+                    <div
+                      class="title"
+                      :class="{'with-description': !!subtype.description}"
+                    >
+                      <h5>
+                        <span
+                          v-if="$store.getters['i18n/exists'](subtype.label)"
+                          v-clean-html="t(subtype.label)"
+                        />
+                        <span v-else>{{ subtype.label }}</span>
+                      </h5>
+                      <a
+                        v-if="subtype.docLink"
+                        :href="subtype.docLink"
+                        target="_blank"
+                        rel="noopener nofollow"
+                        class="flex-right"
+                      >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
+                    </div>
+                    <hr v-if="subtype.description">
+                    <div
+                      v-if="subtype.description"
+                      class="description"
+                    >
+                      <span
+                        v-if="$store.getters['i18n/exists'](subtype.description)"
+                        v-clean-html="t(subtype.description, {}, true)"
+                      />
+                      <span v-else>{{ subtype.description }}</span>
+                    </div>
+                  </div>
                 </div>
-              </template>
-            </template>
-            <template #controlsContainer="{showPrevious, next, back, activeStep, canNext, activeStepIndex, visibleSteps}">
-              <template name="form-footer">
-                <CruResourceFooter
-                  class="cru__footer"
-                  :mode="mode"
-                  :is-form="showAsForm"
-                  :show-cancel="showCancel"
-                  @cancel-confirmed="confirmCancel"
-                >
-                  <!-- Pass down templates provided by the caller -->
-                  <template
-                    v-for="(_, slot) of $scopedSlots"
-                    v-slot:[slot]="scope"
+              </slot>
+            </div>
+          </slot>
+        </div>
+        <!------ MULTI STEP PROCESS ------>
+        <template v-if="showAsForm && steps.length">
+          <div
+            v-if="_selectedSubtype || !subtypes.length"
+            class="resource-container cru__content cru__content-wizard"
+          >
+            <Wizard
+              v-if="resource"
+              ref="Wizard"
+              :header-mode="mode"
+              :steps="steps"
+              :errors="errors"
+              :finish-mode="finishMode"
+              class="wizard"
+              @error="e=>errors = e"
+            >
+              <template
+                #stepContainer="{activeStep}"
+                class="step-container"
+              >
+                <template v-for="step in steps">
+                  <div
+                    v-if="step.name === activeStep.name || step.hidden"
+                    :key="step.name"
+                    class="step-container__step"
+                    :class="{'hide': step.name !== activeStep.name && step.hidden}"
                   >
                     <slot
-                      :name="slot"
-                      v-bind="scope"
-                    />
-                  </template>
-                  <div class="controls-steps">
-                    <button
-                      v-if="showYaml"
-                      type="button"
-                      class="btn role-secondary"
-                      @click="showPreviewYaml"
-                    >
-                      <t k="cruResource.previewYaml" />
-                    </button>
-                    <template
-                      v-if="showPrevious"
-                      name="back"
-                    >
-                      <button
-                        type="button"
-                        class="btn role-secondary"
-                        @click="back()"
-                      >
-                        <t k="wizard.previous" />
-                      </button>
-                    </template>
-                    <template
-                      v-if="activeStepIndex === visibleSteps.length-1"
-                      name="finish"
-                    >
-                      <AsyncButton
-                        v-if="!showSubtypeSelection && !isView"
-                        ref="save"
-                        :disabled="!activeStep.ready"
-                        :mode="finishButtonMode || mode"
-                        @click="$emit('finish', $event)"
-                      />
-                    </template>
-                    <template
-                      v-else
-                      name="next"
-                    >
-                      <button
-                        :disabled="!canNext"
-                        type="button"
-                        class="btn role-primary"
-                        @click="next()"
-                      >
-                        <t k="wizard.next" />
-                      </button>
-                    </template>
-                  </div>
-                </CruResourceFooter>
-              </template>
-            </template>
-          </Wizard>
-        </div>
-      </template>
-      <!------ SINGLE PROCESS ------>
-      <template v-else-if="showAsForm">
-        <div
-          v-if="_selectedSubtype || !subtypes.length"
-          class="resource-container cru__content"
-          :style="[minHeight ? { 'min-height': minHeight } : {}]"
-        >
-          <slot />
-        </div>
-        <slot name="form-footer">
-          <CruResourceFooter
-            class="cru__footer"
-            :mode="mode"
-            :is-form="showAsForm"
-            :show-cancel="showCancel"
-            :component-testid="componentTestid"
-            @cancel-confirmed="confirmCancel"
-          >
-            <!-- Pass down templates provided by the caller -->
-            <template
-              v-for="(_, slot) of $scopedSlots"
-              v-slot:[slot]="scope"
-            >
-              <slot
-                :name="slot"
-                v-bind="scope"
-              />
-            </template>
-
-            <template #default>
-              <div v-if="!isView">
-                <button
-                  v-if="showYaml"
-                  :data-testid="componentTestid + '-yaml'"
-                  type="button"
-                  class="btn role-secondary"
-                  @click="showPreviewYaml"
-                >
-                  <t k="cruResource.previewYaml" />
-                </button>
-                <AsyncButton
-                  v-if="!showSubtypeSelection"
-                  ref="save"
-                  :disabled="!canSave"
-                  :mode="finishButtonMode || mode"
-                  :data-testid="componentTestid + '-save'"
-                  @click="clickSave($event)"
-                />
-              </div>
-            </template>
-          </CruResourceFooter>
-        </slot>
-      </template>
-      <!------ YAML ------>
-      <section
-        v-else-if="showYaml"
-        class="cru-resource-yaml-container resource-container cru__content"
-      >
-        <ResourceYaml
-          ref="resourceyaml"
-          :value="resource"
-          :mode="mode"
-          :initial-yaml-for-diff="initialYaml"
-          :yaml="resourceYaml"
-          :offer-preview="isEdit"
-          :done-route="doneRoute"
-          :done-override="resource.doneOverride"
-          :errors="errors"
-          :apply-hooks="applyHooks"
-          class="resource-container cru__content"
-          @error="e=>$emit('error', e)"
-        >
-          <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
-            <slot name="cru-yaml-footer">
-              <CruResourceFooter
-                class="cru__footer"
-                :done-route="doneRoute"
-                :mode="mode"
-                :is-form="showAsForm"
-                @cancel-confirmed="confirmCancel"
-              >
-                <template #default="{checkCancel}">
-                  <div class="controls-middle">
-                    <button
-                      v-if="showPreview"
-                      type="button"
-                      class="btn role-secondary"
-                      :data-testid="componentTestid + '-yaml-yaml'"
-                      @click="yamlUnpreview"
-                    >
-                      <t k="resourceYaml.buttons.continue" />
-                    </button>
-                    <button
-                      v-if="!showPreview && isEdit"
-                      :data-testid="componentTestid + '-yaml-yaml-preview'"
-                      :disabled="!canDiff"
-                      type="button"
-                      class="btn role-secondary"
-                      @click="yamlPreview"
-                    >
-                      <t k="resourceYaml.buttons.diff" />
-                    </button>
-                  </div>
-                  <div
-                    v-if="_selectedSubtype || !subtypes.length"
-                    class="controls-right"
-                  >
-                    <button
-                      :data-testid="componentTestid + '-yaml-cancel'"
-                      type="button"
-                      class="btn role-secondary"
-                      @click="checkCancel(false)"
-                    >
-                      <t k="cruResource.backToForm" />
-                    </button>
-                    <AsyncButton
-                      v-if="!showSubtypeSelection"
-                      :data-testid="componentTestid + '-yaml-save'"
-                      :disabled="!canSave"
-                      :action-label="isEdit ? t('generic.save') : t('generic.create')"
-                      @click="cb=>yamlSave(cb)"
+                      :step="step"
+                      :name="step.name"
                     />
                   </div>
                 </template>
-              </CruResourceFooter>
-            </slot>
-          </template>
-        </ResourceYaml>
-      </section>
-    </form>
+              </template>
+              <template #controlsContainer="{showPrevious, next, back, activeStep, canNext, activeStepIndex, visibleSteps}">
+                <template name="form-footer">
+                  <CruResourceFooter
+                    class="cru__footer"
+                    :mode="mode"
+                    :is-form="showAsForm"
+                    :show-cancel="showCancel"
+                    @cancel-confirmed="confirmCancel"
+                  >
+                    <!-- Pass down templates provided by the caller -->
+                    <template
+                      v-for="(_, slot) of $scopedSlots"
+                      v-slot:[slot]="scope"
+                    >
+                      <slot
+                        :name="slot"
+                        v-bind="scope"
+                      />
+                    </template>
+                    <div class="controls-steps">
+                      <button
+                        v-if="showYaml"
+                        type="button"
+                        class="btn role-secondary"
+                        @click="showPreviewYaml"
+                      >
+                        <t k="cruResource.previewYaml" />
+                      </button>
+                      <template
+                        v-if="showPrevious"
+                        name="back"
+                      >
+                        <button
+                          type="button"
+                          class="btn role-secondary"
+                          @click="back()"
+                        >
+                          <t k="wizard.previous" />
+                        </button>
+                      </template>
+                      <template
+                        v-if="activeStepIndex === visibleSteps.length-1"
+                        name="finish"
+                      >
+                        <AsyncButton
+                          v-if="!showSubtypeSelection && !isView"
+                          ref="save"
+                          :disabled="!activeStep.ready"
+                          :mode="finishButtonMode || mode"
+                          @click="$emit('finish', $event)"
+                        />
+                      </template>
+                      <template
+                        v-else
+                        name="next"
+                      >
+                        <button
+                          :disabled="!canNext"
+                          type="button"
+                          class="btn role-primary"
+                          @click="next()"
+                        >
+                          <t k="wizard.next" />
+                        </button>
+                      </template>
+                    </div>
+                  </CruResourceFooter>
+                </template>
+              </template>
+            </Wizard>
+          </div>
+        </template>
+        <!------ SINGLE PROCESS ------>
+        <template v-else-if="showAsForm">
+          <div
+            v-if="_selectedSubtype || !subtypes.length"
+            class="resource-container cru__content"
+            :style="[minHeight ? { 'min-height': minHeight } : {}]"
+          >
+            <slot />
+          </div>
+          <slot name="form-footer">
+            <CruResourceFooter
+              class="cru__footer"
+              :mode="mode"
+              :is-form="showAsForm"
+              :show-cancel="showCancel"
+              :component-testid="componentTestid"
+              @cancel-confirmed="confirmCancel"
+            >
+              <!-- Pass down templates provided by the caller -->
+              <template
+                v-for="(_, slot) of $scopedSlots"
+                v-slot:[slot]="scope"
+              >
+                <slot
+                  :name="slot"
+                  v-bind="scope"
+                />
+              </template>
+
+              <template #default>
+                <div v-if="!isView">
+                  <button
+                    v-if="showYaml"
+                    :data-testid="componentTestid + '-yaml'"
+                    type="button"
+                    class="btn role-secondary"
+                    @click="showPreviewYaml"
+                  >
+                    <t k="cruResource.previewYaml" />
+                  </button>
+                  <AsyncButton
+                    v-if="!showSubtypeSelection"
+                    ref="save"
+                    :disabled="!canSave(veeTokenValidationContext)"
+                    :mode="finishButtonMode || mode"
+                    :data-testid="componentTestid + '-save'"
+                    @click="clickSave($event)"
+                  />
+                </div>
+              </template>
+            </CruResourceFooter>
+          </slot>
+        </template>
+        <!------ YAML ------>
+        <section
+          v-else-if="showYaml"
+          class="cru-resource-yaml-container resource-container cru__content"
+        >
+          <ResourceYaml
+            ref="resourceyaml"
+            :value="resource"
+            :mode="mode"
+            :initial-yaml-for-diff="initialYaml"
+            :yaml="resourceYaml"
+            :offer-preview="isEdit"
+            :done-route="doneRoute"
+            :done-override="resource.doneOverride"
+            :errors="errors"
+            :apply-hooks="applyHooks"
+            class="resource-container cru__content"
+            @error="e=>$emit('error', e)"
+          >
+            <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
+              <slot name="cru-yaml-footer">
+                <CruResourceFooter
+                  class="cru__footer"
+                  :done-route="doneRoute"
+                  :mode="mode"
+                  :is-form="showAsForm"
+                  @cancel-confirmed="confirmCancel"
+                >
+                  <template #default="{checkCancel}">
+                    <div class="controls-middle">
+                      <button
+                        v-if="showPreview"
+                        type="button"
+                        class="btn role-secondary"
+                        :data-testid="componentTestid + '-yaml-yaml'"
+                        @click="yamlUnpreview"
+                      >
+                        <t k="resourceYaml.buttons.continue" />
+                      </button>
+                      <button
+                        v-if="!showPreview && isEdit"
+                        :data-testid="componentTestid + '-yaml-yaml-preview'"
+                        :disabled="!canDiff"
+                        type="button"
+                        class="btn role-secondary"
+                        @click="yamlPreview"
+                      >
+                        <t k="resourceYaml.buttons.diff" />
+                      </button>
+                    </div>
+                    <div
+                      v-if="_selectedSubtype || !subtypes.length"
+                      class="controls-right"
+                    >
+                      <button
+                        :data-testid="componentTestid + '-yaml-cancel'"
+                        type="button"
+                        class="btn role-secondary"
+                        @click="checkCancel(false)"
+                      >
+                        <t k="cruResource.backToForm" />
+                      </button>
+                      <AsyncButton
+                        v-if="!showSubtypeSelection"
+                        :data-testid="componentTestid + '-yaml-save'"
+                        :disabled="!canSave(veeTokenValidationContext)"
+                        :action-label="isEdit ? t('generic.save') : t('generic.create')"
+                        @click="cb=>yamlSave(cb)"
+                      />
+                    </div>
+                  </template>
+                </CruResourceFooter>
+              </slot>
+            </template>
+          </ResourceYaml>
+        </section>
+      </form>
+    </ValidationObserver>
   </section>
 </template>
 

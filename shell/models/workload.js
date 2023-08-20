@@ -227,6 +227,16 @@ export default class Workload extends WorkloadService {
     return containers.length > 1 || initContainers.length;
   }
 
+  get veeTokenCustomValidationRules() {
+    return {
+      name: {
+        id:             'name',
+        rules:          'required',
+        translationKey: 'generic.name'
+      },
+    };
+  }
+
   get customValidationRules() {
     const type = this._type ? this._type : this.type;
 
