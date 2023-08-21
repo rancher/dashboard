@@ -10,12 +10,6 @@ export default class LabeledSelectPo extends ComponentPo {
   }
 
   clickOptionWithLabel(label: string) {
-    return this.getOptions().contains('li', label).invoke('index').then((index) => {
-      return this.clickOption(index + 1);
-    });
-  }
-
-  clickLabel(label: string) {
     return this.getOptions().contains('li', label).click();
   }
 
@@ -50,13 +44,5 @@ export default class LabeledSelectPo extends ComponentPo {
    */
   isClosed() {
     return this.getOptions().should('not.exist');
-  }
-
-  /**
-   * Filter list by typing name
-   * @returns
-   */
-  filterByName(name: string) {
-    return this.self().type(name);
   }
 }

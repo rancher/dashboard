@@ -536,6 +536,7 @@ export default {
         </div>
         <div class="col span-6">
           <InputWithSelect
+            :data-testid="`gitrepo-${ref}`"
             :mode="mode"
             :select-label="t('fleet.gitRepo.ref.label')"
             :select-value="ref"
@@ -637,6 +638,7 @@ export default {
       <h2 v-t="'fleet.gitRepo.paths.label'" />
       <ArrayList
         v-model="value.spec.paths"
+        data-testid="gitRepo-paths"
         :mode="mode"
         :initial-empty-row="false"
         :value-placeholder="t('fleet.gitRepo.paths.placeholder')"

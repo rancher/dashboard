@@ -3442,7 +3442,7 @@ namespace:
   workloads: Workloads
   label: Namespace
   selectNamespace: Select Namespace
-  createNamespace: Create a New Namespace
+  createNamespace: Create a new Namespace
   selectOrCreate: Select or Create a Namespace
   resourceStates:
       success: 'Active'
