@@ -7,8 +7,8 @@ import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
-import MemberRolesTab from '@shell/edit/provisioning.cattle.io.cluster/MemberRolesTab';
-import BasicsTab from '@shell/edit/provisioning.cattle.io.cluster/BasicsTab';
+import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles';
+import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
 
 import {
   CAPI,
@@ -135,8 +135,8 @@ export default {
     Tabbed,
     UnitInput,
     YamlEditor,
-    MemberRolesTab,
-    BasicsTab
+    MemberRoles,
+    Basics
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -2214,7 +2214,7 @@ export default {
           @active="refreshYamls"
         >
           <!-- Basic -->
-          <BasicsTab
+          <Basics
             v-model="value"
             :live-value="liveValue"
             :mode="mode"
@@ -2229,7 +2229,7 @@ export default {
           label-key="cluster.tabs.memberRoles"
           :weight="10"
         >
-          <MemberRolesTab
+          <MemberRoles
             v-model="value"
             :mode="mode"
             :onMembershipUpdate="onMembershipUpdate"

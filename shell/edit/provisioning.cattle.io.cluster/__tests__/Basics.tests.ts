@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import BasicsTab from '@shell/edit/provisioning.cattle.io.cluster/BasicsTab';
+import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
 
 const defaultStubs = {
   Tab:           { template: '<div><slot></slot></div>' }, // Required to render the slot content
@@ -56,7 +56,7 @@ describe('component: rke2', () => {
   ])('should display PSA option', (k8s) => {
     const label = 'whatever';
     const option = { label, value: label };
-    const wrapper = mount(BasicsTab, {
+    const wrapper = mount(Basics, {
       propsData: {
         mode:  'create',
         value: {
@@ -97,7 +97,7 @@ describe('component: rke2', () => {
   ])('should display for version %p PSA option label %p', (k8s, partialLabel) => {
     const label = `cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ partialLabel }`;
     const option = { label, value: label };
-    const wrapper = mount(BasicsTab, {
+    const wrapper = mount(Basics, {
       propsData: {
         mode:  'create',
         value: {
@@ -136,7 +136,7 @@ describe('component: rke2', () => {
     const label = 'whatever';
     const k8s = 'v1.25.0+rke2r1';
     const option = { label, value: label };
-    const wrapper = mount(BasicsTab, {
+    const wrapper = mount(Basics, {
       propsData: {
         mode:  'create',
         value: {
