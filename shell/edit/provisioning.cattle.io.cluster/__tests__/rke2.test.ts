@@ -38,8 +38,8 @@ const defaultStubs = {
   Tabbed:                   true,
   UnitInput:                true,
   YamlEditor:               true,
-  MemberRoles:               true,
-  Basics:                    true
+  MemberRoles:              true,
+  Basics:                   true
 };
 
 const defaultComputed = {
