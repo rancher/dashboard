@@ -335,6 +335,7 @@ export default {
 <template>
   <header
     ref="header"
+    data-testid="header"
   >
     <div>
       <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />

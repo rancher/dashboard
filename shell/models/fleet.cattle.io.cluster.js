@@ -84,7 +84,7 @@ export default class FleetCluster extends SteveModel {
   }
 
   get isLocal() {
-      return this.metadata.name === 'local' || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] === 'local';
+    return this.metadata.name === 'local' || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] === 'local';
   }
 
   get isRke2() {
