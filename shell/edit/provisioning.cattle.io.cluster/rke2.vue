@@ -53,7 +53,7 @@ import UnitInput from '@shell/components/form/UnitInput';
 import YamlEditor from '@shell/components/YamlEditor';
 import Questions from '@shell/components/Questions';
 
-import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
+import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import semver from 'semver';
 
@@ -115,7 +115,6 @@ export default {
     Banner,
     Checkbox,
     AgentConfiguration,
-    ClusterMembershipEditor,
     CruResource,
     DrainOptions,
     LabeledInput,
@@ -883,6 +882,9 @@ export default {
       Object.values(this.machinePoolValidation).forEach((v) => (base = base && v));
 
       return validRequiredPools && base;
+    },
+    canManageMembers() {
+      return canViewClusterMembershipEditor(this.$store);
     },
   },
 
@@ -2205,21 +2207,34 @@ export default {
         :side-tabs="true"
         class="min-height"
       >
-        <!-- Basic -->
-        <BasicsTab
-          v-model="value"
-          :live-value="liveValue"
-          :mode="mode"
-          :provider="provider"
-        />
+        <Tab
+          name="basic"
+          label-key="cluster.tabs.basic"
+          :weight="11"
+          @active="refreshYamls"
+        >
+          <!-- Basic -->
+          <BasicsTab
+            v-model="value"
+            :live-value="liveValue"
+            :mode="mode"
+            :provider="provider"
+          />
+        </Tab>
 
         <!-- Member Roles -->
-        <MemberRolesTab
-          v-model="value"
-          :mode="mode"
-          :onMembershipUpdate="onMembershipUpdate"
-        />
-
+        <Tab
+          v-if="canManageMembers"
+          name="memberRoles"
+          label-key="cluster.tabs.memberRoles"
+          :weight="10"
+        >
+          <MemberRolesTab
+            v-model="value"
+            :mode="mode"
+            :onMembershipUpdate="onMembershipUpdate"
+          />
+        </Tab>
         <!-- etcd -->
         <Tab
           name="etcd"

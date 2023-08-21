@@ -1,6 +1,5 @@
 <script>
 import difference from 'lodash/difference';
-import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
@@ -31,7 +30,6 @@ import * as VERSION from '@shell/utils/version';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
-import Tab from '@shell/components/Tabbed/Tab';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
@@ -71,7 +69,6 @@ export default {
     Banner,
     Checkbox,
     LabeledSelect,
-    Tab,
     YamlEditor,
   },
 
@@ -1371,19 +1368,6 @@ export default {
       }
     },
 
-    refreshYamls() {
-      const keys = Object.keys(this.$refs).filter((x) => x.startsWith('yaml'));
-
-      for ( const k of keys ) {
-        const entry = this.$refs[k];
-        const list = isArray(entry) ? entry : [entry];
-
-        for ( const component of list ) {
-          component?.refresh(); // `yaml` ref can be undefined on switching from Basic to Addon tab (Azure --> Amazon --> addon)
-        }
-      }
-    },
-
     initYamlEditor(name) {
       const defaultChartValue = this.versionInfo[name];
       const key = this.chartVersionKey(name);
@@ -1700,12 +1684,7 @@ export default {
 </script>
 
 <template>
-  <Tab
-    name="basic"
-    label-key="cluster.tabs.basic"
-    :weight="11"
-    @active="refreshYamls"
-  >
+  <div>
     <Banner
       v-if="!haveArgInfo"
       color="warning"
@@ -1962,7 +1941,7 @@ export default {
         />
       </div>
     </div>
-  </Tab>
+  </div>
 </template>
 
 <style lang="scss" scoped>

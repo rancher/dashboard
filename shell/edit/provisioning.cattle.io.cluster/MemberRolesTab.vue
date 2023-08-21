@@ -1,15 +1,12 @@
 <script>
 
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { Banner } from '@components/Banner';
-import Tab from '@shell/components/Tabbed/Tab';
 export default {
-  components: {
-    ClusterMembershipEditor, Banner, Tab
-  },
-  mixins: [CreateEditView],
-  props:  {
+  components: { ClusterMembershipEditor, Banner },
+  mixins:     [CreateEditView],
+  props:      {
     mode: {
       type:     String,
       required: true,
@@ -23,21 +20,11 @@ export default {
       type:     Function,
       required: true
     }
-  },
-  computed: {
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
   }
 };
 </script>
 <template>
-  <Tab
-    v-if="canManageMembers"
-    name="memberRoles"
-    label-key="cluster.tabs.memberRoles"
-    :weight="10"
-  >
+  <div>
     <Banner
       v-if="isEdit"
       color="info"
@@ -49,5 +36,5 @@ export default {
       :parent-id="value.mgmt ? value.mgmt.id : null"
       @membership-update="onMembershipUpdate"
     />
-  </Tab>
+  </div>
 </template>
