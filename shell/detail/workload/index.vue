@@ -2,7 +2,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import { NAMESPACE as NAMESPACE_COL } from '@shell/config/table-headers';
 import {
-  POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE,
+  POD, WORKLOAD_TYPES, SCALABLE_WORKLOAD_TYPES, SERVICE, INGRESS, NODE, NAMESPACE, EVENT
 } from '@shell/config/types';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -69,6 +69,7 @@ export default {
       allPods:      this.$store.dispatch('cluster/findAll', { type: POD }),
       allServices:  this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       allIngresses: this.$store.dispatch('cluster/findAll', { type: INGRESS }),
+      allEvents:    this.$store.dispatch('cluster/findAll', { type: EVENT }),
       // Nodes should be fetched because they may be referenced in the target
       // column of a service list item.
       allNodes:     hasNodes ? this.$store.dispatch('cluster/findAll', { type: NODE }) : []
@@ -100,6 +101,10 @@ export default {
     }
     this.findMatchingServices();
     this.findMatchingIngresses();
+  },
+
+  beforeDestroy() {
+    this.$store.dispatch('cluster/forgetType', EVENT);
   },
 
   data() {

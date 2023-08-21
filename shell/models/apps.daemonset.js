@@ -1,4 +1,6 @@
 import Workload from './workload';
+import { EVENT } from '@shell/config/types';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class DaemonSet extends Workload {
   async rollBack(cluster, daemonSet, revision) {
@@ -18,5 +20,31 @@ export default class DaemonSet extends Workload {
     ];
 
     await this.rollBackWorkload(cluster, daemonSet, 'daemonsets', body);
+  }
+
+  get latestEventForDaemonSet() {
+    const events = this.$getters['all'](EVENT) || [];
+    const daemonSetEvents = events.filter((ev) => ev.id?.includes(this.id)) || [];
+
+    if (daemonSetEvents.length) {
+      return daemonSetEvents[daemonSetEvents.length - 1];
+    }
+
+    return {};
+  }
+
+  get stateObj() {
+    // artificially manipulate state of DaemonSet to display error message in case of FailedCreate
+    // https://github.com/rancher/dashboard/issues/8502
+    if (this.latestEventForDaemonSet.reason === 'FailedCreate' && this.latestEventForDaemonSet.message) {
+      return {
+        name:          super.stateObj.name,
+        transitioning: false,
+        error:         true,
+        message:       this.latestEventForDaemonSet.message
+      };
+    }
+
+    return super.stateObj;
   }
 }

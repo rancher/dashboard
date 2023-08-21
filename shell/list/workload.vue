@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import {
-  WORKLOAD_TYPES, SCHEMA, NODE, POD, LIST_WORKLOAD_TYPES
+  WORKLOAD_TYPES, SCHEMA, NODE, POD, LIST_WORKLOAD_TYPES, EVENT
 } from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 
@@ -129,6 +129,11 @@ export default {
 
   methods: {
     loadHeathResources() {
+      // get events to populate possible error messages in daemonsets
+      // don't really agree with this, as it can be expensive in high scale systems for list views
+      // https://github.com/rancher/dashboard/issues/8502
+      this.$store.dispatch('cluster/findAll', { type: EVENT });
+
       // Fetch these in the background to populate workload health
       if ( this.allTypes ) {
         this.$fetchType(POD);
@@ -148,6 +153,10 @@ export default {
         }
       }
     }
+  },
+
+  beforeDestroy() {
+    this.$store.dispatch('cluster/forgetType', EVENT);
   },
 
   typeDisplay() {
