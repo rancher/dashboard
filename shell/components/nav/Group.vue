@@ -95,10 +95,8 @@ export default {
     groupSelected() {
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
-        console.log('groupSelected > isExpanded', this.hasActiveRoute())
         return;
       }
-      console.log('groupSelected')
       this.expandGroup();
 
       const items = this.group[this.childrenKey];
@@ -376,7 +374,7 @@ export default {
 
     &.expanded:has(> .active),
     &.expanded:has(> ul li.nuxt-link-active) {
-      background: #eee;
+      background: var(--nav-active);
     }
     &.expanded > .header h6 {
       font-weight: bold;
