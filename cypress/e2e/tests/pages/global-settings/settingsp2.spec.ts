@@ -101,7 +101,7 @@ describe('Settings', () => {
 
     settingsEdit.waitForPage();
     cy.contains('Setting: system-default-registry').should('be.visible');
-    settingsEdit.settingsInput().clear()
+    settingsEdit.settingsInput().clear();
     settingsEdit.saveAndWait('system-default-registry');
 
     settingsPage.waitForPage();
