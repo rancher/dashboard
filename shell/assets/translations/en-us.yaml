@@ -3041,7 +3041,7 @@ login:
     noResponse: "No response received"
   error: An error occurred logging in. Please try again.
   clientError: Invalid username or password. Please try again.
-  specificError: 'An error occured logging in: {msg}'
+  specificError: 'An error occurred logging in: {msg}'
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
   username: Username
