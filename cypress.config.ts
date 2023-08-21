@@ -3,6 +3,7 @@ import { defineConfig } from 'cypress';
 require('dotenv').config();
 
 const skipSetup = process.env.TEST_SKIP_SETUP === 'true';
+const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
 
 /**
  * Filter test spec paths based on env var configuration
@@ -79,7 +80,7 @@ export default defineConfig({
   env: {
     grepFilterSpecs: true,
     baseUrl,
-    coverage:        false,
+    coverage:        hasCoverage,
     codeCoverage:    {
       exclude: [
         'cypress/**/*.*',
