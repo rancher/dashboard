@@ -1,6 +1,5 @@
 import Workload from './workload';
 import { EVENT } from '@shell/config/types';
-import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class DaemonSet extends Workload {
   async rollBack(cluster, daemonSet, revision) {
