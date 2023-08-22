@@ -190,7 +190,7 @@ describe('Settings', () => {
     settingsEdit.waitForPage();
     cy.contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.selectSettingsByLabel('Local');
-    settingsEdit.saveAndWait('ui-offline-preferred').then(({ request, response }) => {
+    settingsEdit.saveAndWait('ui-offline-preferred', 'Local').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'true');
       expect(response?.body).to.have.property('value', 'true');
@@ -205,7 +205,7 @@ describe('Settings', () => {
     settingsEdit.waitForPage();
     cy.contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.selectSettingsByLabel('Remote');
-    settingsEdit.saveAndWait('ui-offline-preferred').then(({ request, response }) => {
+    settingsEdit.saveAndWait('ui-offline-preferred', 'Remote').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'false');
       expect(response?.body).to.have.property('value', 'false');
@@ -221,7 +221,7 @@ describe('Settings', () => {
     settingsEdit.waitForPage();
     cy.contains('Setting: ui-offline-preferred').should('be.visible');
     settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('ui-offline-preferred').then(({ request, response }) => {
+    settingsEdit.saveAndWait('ui-offline-preferred', 'dynamic').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'dynamic');
       expect(response?.body).to.have.property('value', 'dynamic');
@@ -333,7 +333,7 @@ describe('Settings', () => {
     cy.contains('Setting: telemetry-opt').should('be.visible');
     settingsEdit.useDefaultButton().should('be.disabled'); // button should be disabled for this settings option
     settingsEdit.selectSettingsByLabel('Prompt');
-    settingsEdit.saveAndWait('telemetry-opt').then(({ request, response }) => {
+    settingsEdit.saveAndWait('telemetry-opt', 'prompt').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'prompt');
       expect(response?.body).to.have.property('value', 'prompt');
@@ -348,7 +348,7 @@ describe('Settings', () => {
     settingsEdit.waitForPage();
     cy.contains('Setting: telemetry-opt').should('be.visible');
     settingsEdit.selectSettingsByLabel('Opt-in to Telemetry');
-    settingsEdit.saveAndWait('telemetry-opt').then(({ request, response }) => {
+    settingsEdit.saveAndWait('telemetry-opt', 'in').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'in');
       expect(response?.body).to.have.property('value', 'in');
@@ -363,7 +363,7 @@ describe('Settings', () => {
     settingsEdit.waitForPage();
     cy.contains('Setting: telemetry-opt').should('be.visible');
     settingsEdit.selectSettingsByLabel('Opt-out of Telemetry');
-    settingsEdit.saveAndWait('telemetry-opt').then(({ request, response }) => {
+    settingsEdit.saveAndWait('telemetry-opt', 'out').then(({ request, response }) => {
       expect(response?.statusCode).to.eq(200);
       expect(request.body).to.have.property('value', 'out');
       expect(response?.body).to.have.property('value', 'out');

@@ -40,8 +40,8 @@ export default class SettingsEditPo extends PagePo {
     return new AsyncButtonPo('[data-testid="form-save"]', this.self());
   }
 
-  saveAndWait(endpoint: string): Cypress.Chainable {
-    const interceptName = `${ endpoint }${ Date.now() }`;
+  saveAndWait(endpoint: string, value?: string): Cypress.Chainable {
+    const interceptName = value ? `${ endpoint }-${ value }${ Date.now() }` : `${ endpoint }${ Date.now() }`;
 
     cy.intercept('PUT', `/v1/management.cattle.io.settings/${ endpoint }`).as(interceptName);
     this.saveButton().click();
