@@ -16,8 +16,7 @@ import { allHash } from '@shell/utils/promise';
 import { NAMESPACE, _VIEW } from '@shell/config/query-params';
 import { sortBy } from '@shell/utils/sort';
 import { get } from '@shell/utils/object';
-
-const OPAQUE_SECRET_TYPE = 'Opaque';
+import { formatEncryptionSecretNames } from '@shell/utils/formatter';
 
 export default {
 
@@ -111,14 +110,7 @@ export default {
     },
 
     encryptionSecretNames() {
-      const filtered = this.allSecrets.filter(
-        (secret) => (secret.data || {})['encryption-provider-config.yaml'] &&
-        secret.metadata.namespace === this.chartNamespace &&
-        !secret.metadata?.state?.error &&
-        secret._type === OPAQUE_SECRET_TYPE
-      );
-
-      return filtered.map((secret) => secret.metadata.name).sort();
+      return formatEncryptionSecretNames(this.allSecrets, this.chartNamespace);
     },
 
     storageOptions() {
