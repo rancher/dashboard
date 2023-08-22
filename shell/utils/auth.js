@@ -159,5 +159,5 @@ export const canViewResource = (store, resource) => {
   // Resource is valid if a schema exists for it (standard resource, spoofed resource) or it's a virtual resource
   const validResource = schemaFor(resource) || store.getters['type-map/isVirtual'](resource);
 
-  return validResource;
+  return !!validResource;
 };
