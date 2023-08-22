@@ -34,8 +34,6 @@ export default {
     this.queueUpdate = debounce(this.getGroups, 500);
 
     this.getGroups();
-
-    // await this.$store.dispatch('prefs/setLastVisited', this.$route);
   },
 
   mounted() {
@@ -380,8 +378,6 @@ export default {
           grp.isExpanded = (grp.group.name === selected.name);
         }
       });
-
-      // this.$emit('expand', selected);
     },
 
     collapseAll() {
@@ -549,5 +545,74 @@ export default {
   }
   .flex {
     display: flex;
+  }
+
+  .tools {
+    display: flex;
+    margin: 10px;
+    text-align: center;
+
+    A {
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--body-text);
+      display: flex;
+      justify-content: center;
+      outline: 0;
+      flex: 1;
+      padding: 10px;
+
+      &:hover {
+        background: var(--nav-hover);
+        text-decoration: none;
+      }
+
+      > I {
+        margin-right: 4px;
+      }
+    }
+
+    &.nuxt-link-active:not(:hover) {
+      A {
+        background-color: var(--nav-active);
+      }
+    }
+  }
+
+  .version {
+    cursor: default;
+    margin: 0 10px 10px 10px;
+  }
+
+  .footer {
+    margin: 20px;
+
+    display: flex;
+    flex: 0;
+    flex-direction: row;
+    > * {
+      flex: 1;
+      color: var(--link);
+
+      &:last-child {
+        text-align: right;
+      }
+
+      &:first-child {
+        text-align: left;
+      }
+
+      text-align: center;
+    }
+
+    .version {
+      cursor: default;
+      margin: 0px;
+    }
+
+    .locale-chooser {
+      cursor: pointer;
+    }
   }
 </style>
