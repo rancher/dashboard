@@ -242,6 +242,7 @@ export default {
       <Header />
       <SideNav
         v-if="clusterReady"
+        class="default-side-nav"
       />
       <main
         v-if="clusterAndRouteReady"
@@ -346,20 +347,8 @@ export default {
       grid-area: header;
     }
 
-    NAV {
+    .default-side-nav {
       grid-area: nav;
-      position: relative;
-      background-color: var(--nav-bg);
-      border-right: var(--nav-border-size) solid var(--nav-border);
-      overflow-y: auto;
-
-      H6, .root.child .label {
-        margin: 0;
-        letter-spacing: normal;
-        line-height: initial;
-
-        A { padding-left: 0; }
-      }
     }
   }
 

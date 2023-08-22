@@ -534,20 +534,23 @@ export default {
   </nav>
 </template>
 
-<style lang="scss" scoped>
-  .side-nav {
-    display: flex;
-    flex-direction: column;
-    .nav {
-      flex: 1;
-      overflow-y: auto;
+<style lang="scss">
+  NAV {
+    position: relative;
+    background-color: var(--nav-bg);
+    border-right: var(--nav-border-size) solid var(--nav-border);
+    overflow-y: auto;
+
+    H6, .root.child .label {
+      margin: 0;
+      letter-spacing: normal;
+      line-height: initial;
+
+      A { padding-left: 0; }
     }
   }
-  .flex {
-    display: flex;
-  }
 
-  .tools {
+  NAV .tools {
     display: flex;
     margin: 10px;
     text-align: center;
@@ -580,12 +583,12 @@ export default {
     }
   }
 
-  .version {
+  NAV .version {
     cursor: default;
     margin: 0 10px 10px 10px;
   }
 
-  .footer {
+  NAV .footer {
     margin: 20px;
 
     display: flex;
@@ -615,4 +618,19 @@ export default {
       cursor: pointer;
     }
   }
+</style>
+
+<style lang="scss" scoped>
+  .side-nav {
+    display: flex;
+    flex-direction: column;
+    .nav {
+      flex: 1;
+      overflow-y: auto;
+    }
+  }
+  .flex {
+    display: flex;
+  }
+
 </style>
