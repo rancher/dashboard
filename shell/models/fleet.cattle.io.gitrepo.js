@@ -32,7 +32,8 @@ export default class GitRepo extends SteveModel {
 
     spec.paths = spec.paths || [];
     spec.clientSecretName = spec.clientSecretName || null;
-    spec.correctDrift = { enabled: false };
+
+    Vue.set(spec, 'correctDrift', { enabled: false});
 
     set(this, 'spec', spec);
     set(this, 'metadata', meta);
