@@ -534,92 +534,6 @@ export default {
   </nav>
 </template>
 
-<style lang="scss">
-  NAV {
-    position: relative;
-    background-color: var(--nav-bg);
-    border-right: var(--nav-border-size) solid var(--nav-border);
-    overflow-y: auto;
-
-    H6, .root.child .label {
-      margin: 0;
-      letter-spacing: normal;
-      line-height: initial;
-
-      A { padding-left: 0; }
-    }
-  }
-
-  NAV .tools {
-    display: flex;
-    margin: 10px;
-    text-align: center;
-
-    A {
-      align-items: center;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      color: var(--body-text);
-      display: flex;
-      justify-content: center;
-      outline: 0;
-      flex: 1;
-      padding: 10px;
-
-      &:hover {
-        background: var(--nav-hover);
-        text-decoration: none;
-      }
-
-      > I {
-        margin-right: 4px;
-      }
-    }
-
-    &.nuxt-link-active:not(:hover) {
-      A {
-        background-color: var(--nav-active);
-      }
-    }
-  }
-
-  NAV .version {
-    cursor: default;
-    margin: 0 10px 10px 10px;
-  }
-
-  NAV .footer {
-    margin: 20px;
-
-    display: flex;
-    flex: 0;
-    flex-direction: row;
-    > * {
-      flex: 1;
-      color: var(--link);
-
-      &:last-child {
-        text-align: right;
-      }
-
-      &:first-child {
-        text-align: left;
-      }
-
-      text-align: center;
-    }
-
-    .version {
-      cursor: default;
-      margin: 0px;
-    }
-
-    .locale-chooser {
-      cursor: pointer;
-    }
-  }
-</style>
-
 <style lang="scss" scoped>
   .side-nav {
     display: flex;
@@ -628,7 +542,91 @@ export default {
       flex: 1;
       overflow-y: auto;
     }
+
+    position: relative;
+    background-color: var(--nav-bg);
+    border-right: var(--nav-border-size) solid var(--nav-border);
+    overflow-y: auto;
+
+    // h6 is used in Group element
+    ::v-deep h6 {
+      margin: 0;
+      letter-spacing: normal;
+      line-height: initial;
+
+      A { padding-left: 0; }
+    }
+
+    .tools {
+      display: flex;
+      margin: 10px;
+      text-align: center;
+
+      A {
+        align-items: center;
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        color: var(--body-text);
+        display: flex;
+        justify-content: center;
+        outline: 0;
+        flex: 1;
+        padding: 10px;
+
+        &:hover {
+          background: var(--nav-hover);
+          text-decoration: none;
+        }
+
+        > I {
+          margin-right: 4px;
+        }
+      }
+
+      &.nuxt-link-active:not(:hover) {
+        A {
+          background-color: var(--nav-active);
+        }
+      }
+    }
+
+    .version {
+      cursor: default;
+      margin: 0 10px 10px 10px;
+    }
+
+    .footer {
+      margin: 20px;
+
+      display: flex;
+      flex: 0;
+      flex-direction: row;
+      > * {
+        flex: 1;
+        color: var(--link);
+
+        &:last-child {
+          text-align: right;
+        }
+
+        &:first-child {
+          text-align: left;
+        }
+
+        text-align: center;
+      }
+
+      .version {
+        cursor: default;
+        margin: 0px;
+      }
+
+      .locale-chooser {
+        cursor: pointer;
+      }
+    }
   }
+
   .flex {
     display: flex;
   }
