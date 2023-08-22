@@ -147,17 +147,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v34
-
-      - name: List all changed files
-        run: |
-          echo "Changed files:"
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "$file"
-          done
-
       - uses: actions/setup-node@v3
         with:
           node-version: '14.x'
