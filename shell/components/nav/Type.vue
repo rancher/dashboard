@@ -40,6 +40,10 @@ export default {
     showCount() {
       return typeof this.type.count !== 'undefined';
     },
+
+    namespaceIcon() {
+      return this.type.namespaced;
+    },
   },
 
   methods: {
@@ -101,6 +105,10 @@ export default {
         <Favorite
           v-if="showFavorite"
           :resource="type.name"
+        />
+        <i
+          v-if="namespaceIcon"
+          class="icon icon-namespace"
         />
         {{ type.count }}
       </span>
