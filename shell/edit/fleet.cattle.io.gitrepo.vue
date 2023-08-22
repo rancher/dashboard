@@ -81,6 +81,10 @@ export default {
 
     this.tlsMode = tls;
 
+    if (this.value.spec.correctDrift === undefined) {
+      this.value.spec.correctDrift = { enabled: false };
+    }
+
     this.updateTargets();
   },
 
