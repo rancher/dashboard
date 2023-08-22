@@ -10,13 +10,25 @@ describe('component: UnitInput', () => {
     expect(wrapper.isVisible()).toBe(true);
   });
 
-  it('should emit input event on value change', async() => {
+  it('should emit input event on "blur" ev', async() => {
     const wrapper = mount(UnitInput, { propsData: { value: 1, delay: 0 } });
-    const input = wrapper.find('input');
+    const inputBlur = wrapper.find('input');
 
-    await input.setValue(2);
-    await input.setValue(4);
-    input.trigger('blur');
+    await inputBlur.setValue(2);
+    await inputBlur.setValue(4);
+    inputBlur.trigger('blur');
+
+    expect(wrapper.emitted('input')).toHaveLength(1);
+  });
+
+  // the @change event coming from LabeledInput goes out as "input" type event
+  it('should emit input event on "change" ev', async() => {
+    const wrapper = mount(UnitInput, { propsData: { value: 1, delay: 0 } });
+    const inputChange = wrapper.find('input');
+
+    inputChange.setValue(4);
+    inputChange.setValue(5);
+    inputChange.trigger('change');
 
     expect(wrapper.emitted('input')).toHaveLength(1);
   });
