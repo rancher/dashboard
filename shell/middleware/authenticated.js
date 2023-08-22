@@ -15,7 +15,7 @@ import dynamicPluginLoader from '@shell/pkg/dynamic-plugin-loader';
 import { AFTER_LOGIN_ROUTE, WORKSPACE } from '@shell/store/prefs';
 import { BACK_TO } from '@shell/config/local-storage';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet.js';
-import { canViewResource } from 'utils/auth';
+import { canViewResource } from '@shell/utils/auth';
 
 const getPackageFromRoute = (route) => {
   if (!route?.meta) {
