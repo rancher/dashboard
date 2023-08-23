@@ -564,6 +564,7 @@ export default {
       />
 
       <SelectOrCreateAuthSecret
+        data-testid="gitrepo-helm-auth"
         :value="value.spec.helmSecretName"
         :register-before-hook="registerBeforeHook"
         :namespace="value.metadata.namespace"
