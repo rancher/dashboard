@@ -135,7 +135,7 @@ export default {
     width: 100%;
 
     @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
-      width: 350px;
+      width: 420px;
     }
   }
 
@@ -174,6 +174,7 @@ export default {
 
       > div {
         font-size: 16px;
+        margin-bottom: 20px;
       }
 
       > P {
@@ -183,7 +184,7 @@ export default {
 
     .icon-container {
       flex-basis: 10%;
-      padding: 10px;
+      padding: 10px 20px 10px 10px;
       i {
         font-size: 24px;
       }

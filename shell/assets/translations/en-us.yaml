@@ -2,6 +2,8 @@
 # Special stuff
 ##############################
 generic:
+  update: Update
+  warning: Warning
   add: Add
   all: All
   and: ' and '
@@ -15,6 +17,7 @@ generic:
   comma: ', '
   copy: Copy
   create: Create
+  creation: Creation
   created: Created
   customize: Customize
   dashboard: Dashboard
