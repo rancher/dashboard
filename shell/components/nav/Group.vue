@@ -293,10 +293,6 @@ export default {
     }
   }
 
-  .body {
-    margin-left: 10px;
-  }
-
   .accordion {
     .header {
       &:hover:not(.noHover) {
@@ -343,8 +339,9 @@ export default {
 
     &.depth-1 {
       > .header {
+        padding-left: 20px;
         > H6 {
-          line-height: 16px;
+          line-height: 14px;
           padding: 8px 0 7px 5px !important;
         }
         > I {
@@ -355,7 +352,6 @@ export default {
 
     &:not(.depth-0) {
       > .header {
-        padding-left: 10px;
         > H6 {
           // Child groups that aren't linked themselves
           display: inline-block;
@@ -400,6 +396,7 @@ export default {
       border-left: solid 5px transparent;
       line-height: 16px;
       font-size: 14px;
+      padding-left: 24px;
     }
 
     A:focus {

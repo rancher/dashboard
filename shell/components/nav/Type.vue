@@ -208,6 +208,7 @@ export default {
       A {
         font-size: 13px;
         padding: 5.5px 7px 5.5px 10px;
+        padding-left: 32px;
       }
 
       ::v-deep .label I {
