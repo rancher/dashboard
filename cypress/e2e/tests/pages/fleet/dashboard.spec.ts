@@ -29,8 +29,7 @@ describe.only('Fleet Dashboard', { tags: '@adminUser' }, () => {
   });
 
   it('Should display cluster status', () => {
-    const fleetLocalResourceTable = fleetDashboardPage.resourceTable('fleet-local');
-    const row = fleetLocalResourceTable.sortableTable().rowElements().eq(0);
+    const row = fleetDashboardPage.sortableTable('fleet-local').row(0);
 
     row.get('.bg-success[data-testid="clusters-ready"]').should('exist');
     row.get('.bg-success[data-testid="clusters-ready"] span').should('have.text', '1/1');
