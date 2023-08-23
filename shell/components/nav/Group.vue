@@ -69,7 +69,7 @@ export default {
         if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
 
-          return this.$route.fullPath === route?.route?.fullPath;
+          return this.$route.fullPath.split('#')[0] === route?.route?.fullPath;
         }
       }
 
@@ -271,12 +271,12 @@ export default {
       color: var(--body-text);
       user-select: none;
       text-transform: none;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     > A {
       display: block;
-      padding-left: 10px;
+      padding-left: 16px;
       &:hover{
           text-decoration: none;
         }
@@ -324,14 +324,14 @@ export default {
 
         > H6 {
           text-transform: none;
-          padding-left: 10px;
+          padding-left: 16px;
         }
 
         > I {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 10px 7px 9px 7px;
+          padding: 11px 10px 10px 7px;
           user-select: none;
         }
       }
