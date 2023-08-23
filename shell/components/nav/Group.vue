@@ -267,7 +267,7 @@ export default {
     cursor: pointer;
     color: var(--body-text);
 
-    > H6 {
+    H6 {
       color: var(--body-text);
       user-select: none;
       text-transform: none;
@@ -284,7 +284,6 @@ export default {
         outline:none;
       }
       > H6 {
-        font-size: 14px;
         text-transform: none;
       }
     }
@@ -313,6 +312,8 @@ export default {
   }
 
   .accordion {
+    margin-bottom: 8px;
+
     &.depth-0 {
       > .header {
         padding: 8px 0;
@@ -322,7 +323,6 @@ export default {
         }
 
         > H6 {
-          font-size: 14px;
           text-transform: none;
           padding-left: 10px;
         }
@@ -344,7 +344,6 @@ export default {
     &.depth-1 {
       > .header {
         > H6 {
-          font-size: 13px;
           line-height: 16px;
           padding: 8px 0 7px 5px !important;
         }
@@ -392,6 +391,7 @@ export default {
     A {
       color: var(--primary-hover-text);
       background-color: var(--primary-hover-bg);
+      font-weight: bold;
     }
   }
 
@@ -399,7 +399,7 @@ export default {
     A {
       border-left: solid 5px transparent;
       line-height: 16px;
-      font-size: 13px;
+      font-size: 14px;
     }
 
     A:focus {

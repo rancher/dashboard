@@ -108,7 +108,7 @@ export default {
         />
         <i
           v-if="namespaceIcon"
-          class="icon icon-namespace"
+          class="icon icon-namespace mr-4"
         />
         {{ type.count }}
       </span>
@@ -135,6 +135,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .mr-4 {
+    margin-right: 4px;
+  }
+
   .child {
     margin: 0 var(--outline) 0 0;
 
@@ -174,6 +178,7 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
       color: var(--body-text);
+      height: 33px;
 
       &:hover {
         background: var(--nav-hover);
