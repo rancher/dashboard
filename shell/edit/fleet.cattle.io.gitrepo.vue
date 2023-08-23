@@ -152,6 +152,7 @@ export default {
       stepRepoInfo,
       stepTargetInfo,
       addRepositorySteps,
+      displayhelmRepoUrlRegex: false
     };
   },
 
@@ -261,6 +262,7 @@ export default {
     targetCluster:              'updateTargets',
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
+    displayhelmRepoUrlRegex:    'updatehelmRepoUrlRegex',
 
     tlsMode:  'updateTls',
     caBundle: 'updateTls',
@@ -289,6 +291,9 @@ export default {
 
     updateCachedAuthVal(val, key) {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
+
+      this.displayhelmRepoUrlRegex = key === 'helmSecretName' && val && val.selected !== AUTH_TYPE._NONE;
+
     },
 
     updateAuth(val, key) {
@@ -301,6 +306,12 @@ export default {
       }
 
       this.updateCachedAuthVal(val, key);
+    },
+
+    updatehelmRepoUrlRegex() {
+      if (!this.displayhelmRepoUrlRegex) {
+        delete this.value.spec?.helmRepoUrlRegex;
+      }
     },
 
     updateTargets() {
@@ -580,6 +591,16 @@ export default {
         @input="updateAuth($event, 'helmSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
+
+      <div class="row mt-20" v-if="displayhelmRepoUrlRegex">
+        <div class="col span-6">
+        <LabeledInput
+            v-model="value.spec.helmRepoUrlRegex"
+            :mode="mode"
+            label-key="fleet.gitRepo.helmRepoUrlRegex"
+          />
+        </div>
+      </div>
 
       <template v-if="isTls">
         <div class="spacer" />

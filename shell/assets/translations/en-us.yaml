@@ -2214,6 +2214,7 @@ fleet:
     workspace:
       label: Workspace
       addWorkspace: Create a workspace
+    helmRepoUrlRegex: Helm Repo URL Regex
   clusterGroup:
     selector:
       label: Cluster Selectors
