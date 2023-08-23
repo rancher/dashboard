@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
 import {
@@ -80,6 +81,10 @@ export default {
     }
 
     this.tlsMode = tls;
+
+    if (this.value.spec.correctDrift === undefined) {
+      Vue.set(this.value.spec, 'correctDrift', { enabled: false });
+    }
 
     this.updateTargets();
   },
