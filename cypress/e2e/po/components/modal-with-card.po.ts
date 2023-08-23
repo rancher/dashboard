@@ -11,7 +11,7 @@ export default class ModalWithCardPo {
   }
 
   getModal(): CypressChainable {
-    return cy.get(this.modalSelector, { timeout: 15000 }).should('exist');
+    return cy.get(this.modalSelector).should('exist');
   }
 
   getCardTitle(): CypressChainable {

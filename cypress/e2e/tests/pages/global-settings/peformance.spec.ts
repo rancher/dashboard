@@ -54,6 +54,9 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
 
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
+      cy.wait(6000); // We wait for the modal to show
+
       expect(performancePage.inactivityModalCard().getModal().should('exist'));
 
       expect(performancePage.inactivityModalCard().getCardTitle().should('exist'));
