@@ -37,7 +37,7 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
     performancePage.waitForPageWithClusterId();
   });
 
-  context.only('Inactivity', () => {
+  describe('Inactivity', () => {
     it('should show the modal after 6 seconds', () => {
       const performancePage = new PerformancePagePo();
 
@@ -49,13 +49,10 @@ describe('Performance', { tags: ['@globalSettings', '@adminUser'] }, () => {
       performancePage.inactivityCheckbox().set();
       performancePage.inactivityCheckbox().isChecked();
       performancePage.inactivityInput().clear().type('0.10');
-      performancePage.applyButton().click();
+      performancePage.applyAndWait();
 
       // We need to reload the page to get the new settings to take effect.
       cy.reload();
-
-      // eslint-disable-next-line cypress/no-unnecessary-waiting
-      cy.wait(6000); // We wait for the modal to show
 
       expect(performancePage.inactivityModalCard().getModal().should('exist'));
 

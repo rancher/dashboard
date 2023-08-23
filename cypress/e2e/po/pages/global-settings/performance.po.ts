@@ -31,9 +31,16 @@ export class PerformancePagePo extends RootClusterPage {
     return new AsyncButtonPo('[data-testid="performance__save-btn"]', this.self());
   }
 
+  applyAndWait(): Cypress.Chainable {
+    cy.intercept('PUT', 'ui-performance').as('apply');
+    this.applyButton().click();
+
+    return cy.wait('@apply');
+  }
+
   restoresSettings() {
     this.inactivityInput().clear().type('900');
     this.inactivityCheckbox().set();
-    this.applyButton().click();
+    this.applyAndWait();
   }
 }
