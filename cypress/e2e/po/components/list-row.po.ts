@@ -13,4 +13,8 @@ export default class ListRowPo extends ComponentPo {
   actionBtn() {
     return this.self().find('.btn.actions');
   }
+
+  get(selector: string) {
+    return this.self().get(selector);
+  }
 }

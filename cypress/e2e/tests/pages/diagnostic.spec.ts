@@ -1,4 +1,4 @@
-import DiagnosticsPagePo from '~/cypress/e2e/po/pages/diagnostics.po';
+import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
 import * as path from 'path';
 
 const downloadsFolder = Cypress.config('downloadsFolder');

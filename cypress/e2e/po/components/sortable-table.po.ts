@@ -2,6 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import ActionMenuPo from '@/cypress/e2e/po/components/action-menu.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ListRowPo from '@/cypress/e2e/po/components/list-row.po';
+import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 
 export default class SortableTablePo extends ComponentPo {
   //
@@ -159,5 +160,13 @@ export default class SortableTablePo extends ComponentPo {
 
   selectedCount() {
     return cy.get('.row-check input[type="checkbox"]:checked').its('length');
+  }
+
+  deleteItemWithUI(name: string) {
+    const row = this.rowActionMenuOpen(name).getMenuItem('Delete').click();
+
+    new PromptRemove().remove();
+
+    return row;
   }
 }
