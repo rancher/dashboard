@@ -250,7 +250,7 @@ export default {
 
   computed: {
     defaultTab() {
-      if (this.showRegistration && !this.machines?.length) {
+      if (this.showRegistration && ((this.value.isRke2 && !this.machines?.length) || (!this.value.isRke2 && !this.nodes?.length))) {
         return 'registration';
       }
 
