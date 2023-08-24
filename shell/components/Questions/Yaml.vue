@@ -1,10 +1,14 @@
 <script>
 import YamlEditor from '@shell/components/YamlEditor';
 import Question from './Question';
+import { _VIEW } from '@shell/config/query-params';
 
 export default {
   components: { YamlEditor },
-  mixins:     [Question]
+  mixins:     [Question],
+  data() {
+    return { VIEW: _VIEW };
+  }
 };
 </script>
 
@@ -24,7 +28,7 @@ export default {
       </h3>
       <YamlEditor
         class="yaml-editor mb-6"
-        :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
+        :editor-mode="mode === VIEW ? 'VIEW_CODE' : 'EDIT_CODE'"
         :disabled="disabled"
         :value="value"
         :data-testid="`yaml-input-${question.variable}`"
