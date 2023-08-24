@@ -85,12 +85,10 @@ export default {
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
-      :errors="fvUnreportedValidationErrors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
       :value="value"
-      :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
       @error="e=>errors = e"
@@ -219,7 +217,6 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
-                      :vee-token-rules="veeTokenRules.image"
                     />
                   </div>
                   <div class="col span-6">

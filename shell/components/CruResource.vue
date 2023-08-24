@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import isEmpty from 'lodash/isEmpty';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
@@ -9,7 +10,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
-import { ValidationObserver } from 'vee-validate';
+import { ValidationObserver, validate } from 'vee-validate';
 
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
@@ -183,6 +184,7 @@ export default {
         5: '16px',
         6: '14px'
       },
+      veeTokenErrors: [],
     };
   },
 
@@ -233,17 +235,27 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     /**
+     * Prevent issues for malformed types injection
+     */
+    hasErrors() {
+      return this.veeTokenErrors?.length && Array.isArray(this.veeTokenErrors);
+    },
+
+    /**
      * Replace returned string with new picked value and icon
      */
-    // ToDo patch with new pattern
-    mappedErrors() {
-      return !this.errors ? {} : this.errorsMap || this.errors.reduce((acc, error) => ({
-        ...acc,
-        [error]: {
-          message: error,
-          icon:    null
-        }
-      }), {});
+    veeTokenMappedErrors() {
+      if (this.hasErrors) {
+        return this.veeTokenErrors.reduce((acc, error) => ({
+          ...acc,
+          [error]: {
+            message: error,
+            icon:    null
+          }
+        }), {});
+      }
+
+      return {};
     },
   },
 
@@ -252,23 +264,36 @@ export default {
       this.$emit('select-type', this._selectedSubtype);
     }
   },
-  methods: {
 
-    displayUnreportedErrors(fields) {
-      if (fields) {
+  watch: {
+    resource: {
+
+      /**
+       * Can be triggered on parent component with emit() or add a mixin and a watcher to the parent component
+       */
+
+      async handler(neu) {
+        if (!this.$refs.validator) {
+          return;
+        }
         const rules = Object.values(this.$parent.veeTokenRules).map(({ id }) => id);
 
-        const ret = !!rules.find((id) => !Object.keys(fields).includes(id));
+        const unreportedRule = rules.find((id) => !Object.keys(this.$refs.validator.fields).includes(id));
 
-        console.log(ret);
+        if (unreportedRule) {
+          const selectedRule = Object.values(this.$parent.veeTokenRules).find((r) => r.id === unreportedRule);
 
-        // ToDo this.errors must be removed and errors must be calculated using new pattern
-        return ret && this.errors;
-      }
+          const rule = await validate(neu.imageNames[0], selectedRule.rules, { customMessages: { [selectedRule.rules]: this.t(`validation.${ selectedRule.rules }`, { key: this.t(selectedRule.translationKey) }, true) } });
 
-      return false;
-    },
+          Vue.set(this, 'veeTokenErrors', rule.errors);
+        }
+      },
+      deep:      true,
+      immediate: true
+    }
+  },
 
+  methods: {
     canSave(veeTokenValidationContext) {
       // Don't apply validation rules if the form is not shown.
       if (!this.showAsForm) {
@@ -285,7 +310,7 @@ export default {
         return true;
       }
 
-      return !veeTokenValidationContext?.invalid;
+      return !veeTokenValidationContext?.invalid && this.veeTokenErrors.length === 0;
     },
 
     stringify,
@@ -446,16 +471,16 @@ export default {
         @keydown.enter="onPressEnter($event)"
       >
         <div
-          v-if="displayUnreportedErrors(veeTokenValidationContext.fields)"
+          v-if="hasErrors"
           id="cru-errors"
           class="cru__errors"
         >
           <Banner
-            v-for="(err, i) in errors"
+            v-for="(err, i) in veeTokenErrors"
             :key="i"
             color="error"
-            :label="stringify(mappedErrors[err].message)"
-            :icon="mappedErrors[err].icon"
+            :label="stringify(veeTokenMappedErrors[err].message)"
+            :icon="veeTokenMappedErrors[err].icon"
             :closable="true"
             @close="closeError(i)"
           />
