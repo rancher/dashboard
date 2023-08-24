@@ -211,7 +211,7 @@ export default {
       <i
         v-if="!onlyHasOverview && canCollapse"
         class="icon toggle"
-        :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}"
+        :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         @click="peek($event, true)"
       />
     </div>
@@ -266,6 +266,7 @@ export default {
     position: relative;
     cursor: pointer;
     color: var(--body-text);
+    height: 33px;
 
     H6 {
       color: var(--body-text);
@@ -327,7 +328,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 11px 10px 10px 7px;
+          padding: 9px 10px 9px 7px;
           user-select: none;
         }
       }
