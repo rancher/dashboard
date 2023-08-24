@@ -309,8 +309,6 @@ export default {
   }
 
   .accordion {
-    margin-bottom: 8px;
-
     &.depth-0 {
       > .header {
         padding: 8px 0;
@@ -328,13 +326,18 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 9px 10px 9px 7px;
+          padding: 10px 10px 9px 7px;
           user-select: none;
         }
       }
 
       > .body {
         margin-left: 0;
+        padding-bottom: 8px;
+
+        &.child {
+          background: yellow;
+        }
       }
     }
 
@@ -346,7 +349,7 @@ export default {
           padding: 8px 0 7px 5px !important;
         }
         > I {
-          padding: 9px 7px 8px 7px !important;
+          padding: 10px 7px 9px 7px !important;
         }
       }
     }
@@ -372,6 +375,7 @@ export default {
     &.expanded:has(> ul li.nuxt-link-active) {
       background: var(--nav-active);
     }
+
     &.expanded > .header h6 {
       font-weight: bold;
     }
@@ -398,6 +402,8 @@ export default {
       line-height: 16px;
       font-size: 14px;
       padding-left: 24px;
+      display: flex;
+      justify-content: space-between;
     }
 
     A:focus {
