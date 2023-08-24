@@ -27,16 +27,23 @@ export default {
     }
   },
 
+  data() {
+    return {
+      resourceQuota:                 this.value.spec.resourceQuota || { limit: {} },
+      namespaceDefaultResourceQuota: this.value.spec.namespaceDefaultResourceQuota || { limit: {} }
+    };
+  },
+
   computed: { ...ROW_COMPUTED },
 
   methods: {
     updateType(type) {
-      if (typeof this.value.spec.resourceQuota.limit[this.type] !== 'undefined') {
-        this.$delete(this.value.spec.resourceQuota.limit, this.type);
+      if (typeof this.resourceQuotaLimit[this.type] !== 'undefined') {
+        this.$delete(this.resourceQuotaLimit, this.type);
       }
 
-      if (typeof this.value.spec.namespaceDefaultResourceQuota.limit[this.type] !== 'undefined') {
-        this.$delete(this.value.spec.namespaceDefaultResourceQuota.limit, this.type);
+      if (typeof this.namespaceDefaultResourceQuotaLimit[this.type] !== 'undefined') {
+        this.$delete(this.namespaceDefaultResourceQuotaLimit, this.type);
       }
 
       this.$emit('type-change', type);
@@ -57,7 +64,7 @@ export default {
       @input="updateType($event)"
     />
     <UnitInput
-      v-model="value.spec.resourceQuota?.limit[type]"
+      v-model="resourceQuotaLimit[type]"
       class="mr-10"
       :mode="mode"
       :placeholder="typeOption.placeholder"
@@ -67,7 +74,7 @@ export default {
       :output-modifier="true"
     />
     <UnitInput
-      v-model="value.spec.namespaceDefaultResourceQuota?.limit[type]"
+      v-model="namespaceDefaultResourceQuotaLimit[type]"
       :mode="mode"
       :placeholder="typeOption.placeholder"
       :increment="typeOption.increment"
