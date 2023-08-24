@@ -27,18 +27,42 @@ export class PerformancePagePo extends RootClusterPage {
     return new ModalWithCardPo();
   }
 
+  websocketCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Disable websocket notifications');
+  }
+
+  incrementalLoadingCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Enable incremental loading');
+  }
+
+  manualRefreshCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Enable manual refresh of data for lists');
+  }
+
+  garbageCollectionCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Enable Garbage Collection');
+  }
+
+  namespaceFilteringCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Enable Required Namespace / Project Filtering');
+  }
+
+  websocketWebWorkerCheckbox(): CheckboxInputPo {
+    return CheckboxInputPo.byLabel(this.self(), 'Enable Advanced Websocket Web Worker ');
+  }
+
   applyButton() {
     return new AsyncButtonPo('[data-testid="performance__save-btn"]', this.self());
   }
 
-  applyAndWait(): Cypress.Chainable {
-    cy.intercept('PUT', 'ui-performance').as('apply');
+  applyAndWait(value?: string): Cypress.Chainable {
+    cy.intercept('PUT', 'ui-performance').as(`apply${ value }`);
     this.applyButton().click();
 
-    return cy.wait('@apply');
+    return cy.wait(`@apply${ value }`);
   }
 
-  restoresSettings() {
+  restoresInactivitySettings() {
     this.inactivityInput().clear().type('900');
     this.inactivityCheckbox().set();
     this.applyAndWait();
