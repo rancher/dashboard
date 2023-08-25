@@ -7,6 +7,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { findBy } from '@shell/utils/array';
 import { ExtensionPoint, TableColumnLocation } from '@shell/core/types';
+import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 
 // Default group-by in the case the group stored in the preference does not apply
 const DEFAULT_GROUP = 'namespace';
@@ -223,7 +224,6 @@ export default {
     _headers() {
       let headers;
       const showNamespace = this.showNamespaceColumn;
-      const type = this.schema?.id || this.$route?.params?.resource || undefined;
 
       if ( this.headers ) {
         headers = this.headers.slice();
@@ -234,7 +234,7 @@ export default {
       // add custom table columns provided by the extensions ExtensionPoint.TABLE_COL hook
       // gate it so that we prevent errors on older versions of dashboard
       if (this.$store.$plugin?.getUIConfig) {
-        const extensionCols = this.$store.$plugin.getUIConfig(ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE);
+        const extensionCols = getApplicableExtensionEnhancements(this, ExtensionPoint.TABLE_COL, TableColumnLocation.RESOURCE, this.$route);
 
         // Try and insert the columns before the Age column
         let insertPosition = headers.length;
@@ -257,17 +257,11 @@ export default {
 
         // adding extension defined cols to the correct header config
         extensionCols.forEach((col) => {
-          if (col.locationConfig.resource) {
-            col.locationConfig.resource.forEach((resource) => {
-              if (resource && type === resource) {
-                // we need the 'value' prop to be populated in order for the rows to show the values
-                if (!col.value && col.getValue) {
-                  col.value = col.getValue;
-                }
-                headers.splice(insertPosition, 0, col);
-              }
-            });
+          // we need the 'value' prop to be populated in order for the rows to show the values
+          if (!col.value && col.getValue) {
+            col.value = col.getValue;
           }
+          headers.splice(insertPosition, 0, col);
         });
       }
 

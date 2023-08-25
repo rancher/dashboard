@@ -243,9 +243,9 @@ export default {
 
       all = all.map((chart) => {
         // Label can be overridden by chart annotation
-        const label = uiPluginAnnotation(UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
+        const label = uiPluginAnnotation(chart, UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME) || chart.chartNameDisplay;
         const item = {
-          name:         chart.chartNameDisplay,
+          name:         chart.chartName,
           label,
           description:  chart.chartDescription,
           id:           chart.id,
@@ -305,7 +305,7 @@ export default {
         if (!chart) {
           // A plugin is loaded, but there is no chart, so add an item so that it shows up
           const rancher = typeof p.metadata?.rancher === 'object' ? p.metadata.rancher : {};
-          const label = rancher[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
+          const label = rancher.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.DISPLAY_NAME] || p.name;
           const item = {
             name:           p.name,
             label,

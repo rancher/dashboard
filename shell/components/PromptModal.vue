@@ -42,6 +42,9 @@ export default {
       const isSticky = !!this.modalData?.modalSticky;
 
       return !isSticky ? '' : 'display: flex; flex-direction: column; ';
+    },
+    closeOnClickOutside() {
+      return this.modalData?.closeOnClickOutside;
     }
   },
 
@@ -85,6 +88,7 @@ export default {
     :styles="`background-color: var(--nav-bg); border-radius: var(--border-radius); ${stickyProps} max-height: 95vh; ${cssProps}`"
     height="auto"
     :scrollable="true"
+    :click-to-close="closeOnClickOutside"
     @closed="close()"
   >
     <component
