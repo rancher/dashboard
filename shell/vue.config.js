@@ -77,7 +77,9 @@ module.exports = function(dir, _appConfig) {
   ];
 
   if (instrumentCode) {
-    babelPlugins.push('babel-plugin-istanbul');
+    babelPlugins.push([
+      'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
+    ]);
 
     console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
   }
@@ -456,7 +458,9 @@ module.exports = function(dir, _appConfig) {
       ];
 
       if (instrumentCode) {
-        babelPlugins.push('babel-plugin-istanbul');
+        babelPlugins.push([
+          'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
+        ]);
 
         console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
       }
