@@ -345,7 +345,7 @@ export default {
       > .header {
         padding-left: 20px;
         > H6 {
-          line-height: 14px;
+          line-height: 18px;
           padding: 8px 0 7px 5px !important;
         }
         > I {

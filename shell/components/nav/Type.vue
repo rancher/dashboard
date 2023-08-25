@@ -137,7 +137,6 @@ export default {
 <style lang="scss" scoped>
   .namespaced {
     margin-right: 4px;
-    vertical-align: middle;
   }
 
   .child {
@@ -146,7 +145,6 @@ export default {
     .label {
       align-items: center;
       grid-area: label;
-      // display: flex;
       overflow: hidden;
       text-overflow: ellipsis;
 
@@ -196,17 +194,13 @@ export default {
       font-size: 12px;
       position: relative;
       vertical-align: middle;
-      // line-height: 17px;
       margin-right: 4px;
     }
 
     .count {
-      // grid-area: count;
       font-size: 12px;
-      // text-align: right;
       justify-items: center;
       padding-right: 4px;
-      // line-height: 18px;
       display: flex;
       align-items: center;
     }
@@ -214,7 +208,6 @@ export default {
     &.nav-type:not(.depth-0) {
       A {
         font-size: 13px;
-        // padding: 5.5px 7px 5.5px 10px;
         padding-left: 32px;
       }
 
