@@ -764,6 +764,13 @@ export default {
             color: var(--muted);
           }
         }
+
+        .cluster-name {
+          max-width: 220px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
 
       .option, .option-disabled {
