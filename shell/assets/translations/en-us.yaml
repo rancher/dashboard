@@ -3041,7 +3041,7 @@ login:
     noResponse: "No response received"
   error: An error occurred logging in. Please try again.
   clientError: Invalid username or password. Please try again.
-  specificError: 'An error occured logging in: {msg}'
+  specificError: 'An error occurred logging in: {msg}'
   useLocal: Use a local user
   loginWithProvider: Log in with {provider}
   username: Username
@@ -3442,7 +3442,7 @@ namespace:
   workloads: Workloads
   label: Namespace
   selectNamespace: Select Namespace
-  createNamespace: Create a New Namespace
+  createNamespace: Create a new Namespace
   selectOrCreate: Select or Create a Namespace
   resourceStates:
       success: 'Active'
@@ -5634,6 +5634,8 @@ validation:
     logdna:
       apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
+  invalidCidr: "Invalid CIDR"
+  invalidIP: "Invalid IP"
   k8s:
     name: Must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc').
     identifier:

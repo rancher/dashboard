@@ -183,6 +183,20 @@ describe('Extensions page', { tags: '@adminUser' }, () => {
     extensionsPo.extensionDetailsCloseClick();
   });
 
+  it('Should not display installed extensions within the available tab', () => {
+    const extensionsPo = new ExtensionsPagePo();
+
+    extensionsPo.goTo();
+
+    // check for installed extension in "installed" tab
+    extensionsPo.extensionTabInstalledClick();
+    extensionsPo.extensionCard(EXTENSION_NAME).should('be.visible');
+
+    // check for installed extension in "available" tab
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.extensionCard(EXTENSION_NAME).should('not.exist');
+  });
+
   it('Should update an extension version', () => {
     const extensionsPo = new ExtensionsPagePo();
 

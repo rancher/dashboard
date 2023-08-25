@@ -144,3 +144,20 @@ export const checkPermissions = (types, getters) => {
 
   return allHash(hash);
 };
+
+export const canViewResource = (store, resource) => {
+  // Note - don't use the current products store... because products can override stores for resources with `typeStoreMap`
+  const inStore = store.getters['currentStore'](resource);
+  // There's a chance we're in an extension's product who's store could be anything, so confirm schemaFor exists
+  const schemaFor = store.getters[`${ inStore }/schemaFor`];
+
+  // In order to check a resource is valid we need these
+  if (!inStore || !schemaFor) {
+    return false;
+  }
+
+  // Resource is valid if a schema exists for it (standard resource, spoofed resource) or it's a virtual resource
+  const validResource = schemaFor(resource) || store.getters['type-map/isVirtual'](resource);
+
+  return !!validResource;
+};
