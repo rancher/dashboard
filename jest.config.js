@@ -45,7 +45,7 @@ module.exports = {
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
   coverageDirectory: '<rootDir>/coverage/unit',
-  coverageReporters: ['json', 'text-summary', 'html'],
+  coverageReporters: ['json', 'text-summary'],
   globals:           {
     'ts-jest': {
       isolatedModules: true,
