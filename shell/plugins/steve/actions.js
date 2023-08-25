@@ -8,6 +8,7 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
+import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
 
 export default {
 
@@ -128,9 +129,7 @@ export default {
 
         finishDeferred(key, 'resolve', out);
 
-        if (opt.method === 'post' || opt.method === 'put') {
-          handleValidationWarnings(res, that, rootGetters, opt.method);
-        }
+        handleKubeApiHeaderWarnings(res, dispatch, rootGetters, opt.method);
 
         return out;
       });
@@ -195,45 +194,6 @@ export default {
       finishDeferred(key, 'reject', out);
 
       return Promise.reject(out);
-    }
-
-    function handleValidationWarnings(res, that, rootGetters, method) {
-      const warnings = (res.headers?.warning || '').split(',');
-
-      if (!warnings.length || !warnings[0]) {
-        return;
-      }
-
-      // let's filter out "unknown field" warnings from the response headers
-      const relevantWarnings = warnings.filter((w) => !w.includes('299 - unknown field')) || [];
-
-      if (relevantWarnings.length) {
-        // we need to concatenate the remaining warnings because they might belong to the same message (comma split can have this side-effect)
-        const relevantWarningMessage = relevantWarnings.reduce((message, warning) => {
-          return `${ message }\n${ warning.trim() }`;
-        }, '');
-
-        const resourceType = res.data?.type ? res.data?.type : res.data?.kind ? res.data?.kind : rootGetters['i18n/t']('generic.resource', { count: 1 });
-        const action = method === 'put' ? rootGetters['i18n/t']('generic.update') : rootGetters['i18n/t']('generic.creation');
-        const title = `${ resourceType } ${ action } ${ rootGetters['i18n/t']('generic.warning') }`.toLowerCase();
-
-        that.dispatch('growl/warning', {
-          title,
-          message: relevantWarningMessage,
-          timeout: 0,
-        }, { root: true });
-      }
-
-      // now we output to the console all the warnings on the response headers
-      const message = warnings.reduce((message, warning) => {
-        return `${ message }\n${ warning.trim() }`;
-      }, `Validation Warnings for ${ opt.url }\n`);
-
-      if (process.env.dev) {
-        console.warn(`${ message }\n\n`, res.data); // eslint-disable-line no-console
-      } else {
-        console.debug(message); // eslint-disable-line no-console
-      }
     }
   },
 
