@@ -9,18 +9,24 @@ export default {
 </script>
 
 <template>
-  <div class="row">
+  <div
+    :data-testid="`boolean-row-${question.variable}`"
+    class="row"
+  >
     <div class="col span-6">
       <Checkbox
         :mode="mode"
         :label="displayLabel"
         :value="value"
         :disabled="disabled"
+        :tooltip="displayTooltip"
+        :data-testid="`boolean-input-${question.variable}`"
         @input="$emit('input', $event)"
       />
     </div>
     <div
       v-if="showDescription"
+      :data-testid="`boolean-description-${question.variable}`"
       class="col span-6 mt-10"
     >
       {{ displayDescription }}

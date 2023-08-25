@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "private": false,
   "rancher": {
-    "catalog.cattle.io/display-name": "Virtualization Manager"
+    "annotations": {
+      "catalog.cattle.io/display-name": "Virtualization Manager"
+    }
   },
   "scripts": {
     "dev": "./node_modules/.bin/nuxt dev",

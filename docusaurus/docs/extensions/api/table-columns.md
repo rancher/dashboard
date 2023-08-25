@@ -6,7 +6,9 @@ Table Columns are added to Rancher via the `addTableColumn` method.
 
 *(Rancher version v2.7.2)*
 
-This method adds a table column to a `SortableTable`/`ResourceList` element-based table on the UI.
+>**IMPORTANT NOTE:** on **Rancher version v2.8.0** we've introduced breaking changes to the behaviour of this extension enhancement (Table Columns). Previously, you would target the resource name of the table you were trying to extend, which was different from the usage of the [LocationConfig object](./common#locationconfig) in any of the other extension enhancements available. With these new changes, the [LocationConfig object](./common#locationconfig) will be used to target a specific page that contains a table and add it to that particular one, therefore having a better control of the new table column appearance.
+
+This method adds a table column to a `ResourceTable` element-based table on the UI.
 
 Method:
 

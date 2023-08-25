@@ -5,6 +5,6 @@ import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
  */
 export default class RepoListPo extends BaseResourceList {
   actionMenu(repoName: string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(repoName, 7);
+    return this.resourceTable().sortableTable().rowActionMenuOpen(repoName);
   }
 }

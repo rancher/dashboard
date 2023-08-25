@@ -16,4 +16,14 @@ export default class ArrayListPo extends ComponentPo {
   closeArrayListItem(index: number): Cypress.Chainable {
     return this.arrayListItem(index).find('.btn.role-link.close.btn-sm').click();
   }
+
+  clickAdd(): Cypress.Chainable {
+    return this.self().find(`[data-testid="array-list-button"]`).click();
+  }
+
+  setValueAtIndex(value: string, index: number): Cypress.Chainable {
+    this.clickAdd();
+
+    return this.self().find(`[data-testid="array-list-box${ index }"]`).find('input').type(value);
+  }
 }

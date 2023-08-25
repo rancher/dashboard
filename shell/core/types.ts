@@ -139,6 +139,7 @@ export type LocationConfig = {
   cluster?: string[],
   id?: string[],
   mode?: string[],
+  hash?: string[],
   /**
    * path match from URL (excludes host address)
    */
@@ -364,6 +365,23 @@ export interface ConfigureTypeOptions {
   // showConfigView
 }
 
+export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
+  /**
+   * The translation key displayed anywhere this type is referenced
+   */
+  labelKey: string;
+
+  /**
+   * An identifier that should be unique across all types
+   */
+  name: string;
+
+  /**
+   * The route that this type should correspond to {@link PluginRouteConfig} {@link RouteConfig}
+   */
+  route: PluginRouteConfig | RouteConfig;
+}
+
 export interface DSLReturnType {
   /**
    * Register multiple types by name and place them all in a group if desired. Primarily used for grouping things in the cluster explorer navigation.
@@ -405,6 +423,13 @@ export interface DSLReturnType {
   mapGroup: (groupName: string, label: string) => void;
 
   /**
+   * Create and configure a myriad of options for a type
+   * @param options {@link ConfigureVirtualTypeOptions}
+   * @returns {@link void}
+   */
+  virtualType: (options: ConfigureVirtualTypeOptions) => void;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // componentForType: (type: string, replacementType: string)
@@ -417,7 +442,6 @@ export interface DSLReturnType {
   // moveType: (match, group)
   // setGroupDefaultType: (input, defaultType)
   // spoofedType: (obj)
-  // virtualType: (obj)
   // weightGroup: (input, weight, forBasic)
   // weightType: (input, weight, forBasic)
 }
