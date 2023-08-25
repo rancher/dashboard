@@ -13,12 +13,17 @@ import ArrayType from './Array';
 import MapType from './QuestionMap';
 import ReferenceType from './Reference';
 import CloudCredentialType from './CloudCredential';
+import RadioType from './Radio';
+import YamlType from './Yaml';
 
 export const knownTypes = {
   string:          StringType,
-  hostname:        StringType, // @TODO
+  hostname:        StringType,
   multiline:       StringType,
   password:        StringType,
+  ipaddr:          StringType,
+  cidr:            StringType,
+  cron:            StringType,
   boolean:         BooleanType,
   enum:            EnumType,
   int:             IntType,
@@ -30,6 +35,8 @@ export const knownTypes = {
   storageclass:    ReferenceType,
   pvc:             ReferenceType,
   cloudcredential: CloudCredentialType,
+  radio:           RadioType,
+  yaml:            YamlType,
 };
 
 export function componentForQuestion(q) {

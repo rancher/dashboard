@@ -29,11 +29,12 @@ export default {
       <div class="col span-12 mt-10">
         <KeyValue
           :key="question.variable"
-          v-model="value[question.variable]"
+          v-model="value"
           :title="question.label"
           :mode="mode"
           :protip="false"
           :disabled="disabled"
+          :title-protip="displayTooltip"
           @input="update"
         />
       </div>

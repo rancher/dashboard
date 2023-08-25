@@ -5634,6 +5634,8 @@ validation:
     logdna:
       apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
+  invalidCidr: "Invalid CIDR"
+  invalidIP: "Invalid IP"
   k8s:
     name: Must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name', or '123-abc').
     identifier:

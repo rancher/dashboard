@@ -72,7 +72,6 @@ export function get(obj, path) {
       return '(JSON Path err)';
     }
   }
-
   if ( !path.includes('.') ) {
     return obj?.[path];
   }
