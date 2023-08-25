@@ -1,6 +1,6 @@
 <script>
 import Vue from 'vue';
-import isEmpty from 'lodash/isEmpty';
+import { isEmpty, uniq } from 'lodash';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
@@ -283,9 +283,15 @@ export default {
         if (unreportedRule) {
           const selectedRule = Object.values(this.$parent.veeTokenRules).find((r) => r.id === unreportedRule);
 
-          const rule = await validate(neu.imageNames[0], selectedRule.rules, { customMessages: { [selectedRule.rules]: this.t(`validation.${ selectedRule.rules }`, { key: this.t(selectedRule.translationKey) }, true) } });
+          const errors = [];
 
-          Vue.set(this, 'veeTokenErrors', rule.errors);
+          for ( const name of neu?.imageNames ) {
+            const rule = await validate(name, selectedRule.rules, { customMessages: { [selectedRule.rules]: this.t(`validation.${ selectedRule.rules }`, { key: this.t(selectedRule.translationKey) }, true) } });
+
+            errors.push(...rule.errors);
+          }
+
+          Vue.set(this, 'veeTokenErrors', uniq(errors));
         }
       },
       deep:      true,

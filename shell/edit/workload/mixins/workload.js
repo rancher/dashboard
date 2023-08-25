@@ -427,13 +427,7 @@ export default {
 
           return each;
         }),
-      ].map((container) => {
-        const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
-
-        container.error = containerImageRule(container);
-
-        return container;
-      });
+      ];
     },
 
     flatResources: {
@@ -609,10 +603,14 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
-    async 'container.image'(value) {
-      const valid = await this.veeTokenValidate(value, this.veeTokenRuleSets.image.rules);
+    'container.image': {
+      async handler(neu) {
+        const valid = await this.veeTokenValidate(neu, this.veeTokenRuleSets.image.rules);
 
-      this.tabErrors.general = !valid;
+        this.tabErrors.general = !valid;
+        this.container.error = !valid;
+      },
+      immediate: true
     }
   },
 
