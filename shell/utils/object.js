@@ -91,13 +91,20 @@ export function get(obj, path) {
 
 export function remove(obj, path) {
   const parentAry = splitObjectPath(path);
-  const leafKey = parentAry.pop();
 
-  const parent = get(obj, joinObjectPath(parentAry));
+  // Remove the very last part of the path
 
-  if ( parent ) {
-    Vue.set(parent, leafKey, undefined);
-    delete parent[leafKey];
+  if (parentAry.length === 1) {
+    Vue.set(obj, path, undefined);
+    delete obj[path];
+  } else {
+    const leafKey = parentAry.pop();
+    const parent = get(obj, joinObjectPath(parentAry));
+
+    if ( parent ) {
+      Vue.set(parent, leafKey, undefined);
+      delete parent[leafKey];
+    }
   }
 
   return obj;
