@@ -250,8 +250,10 @@ export default {
 
   computed: {
     defaultTab() {
-      if (this.showRegistration && ((this.value.isRke2 && !this.machines?.length) || (!this.value.isRke2 && !this.nodes?.length))) {
-        return 'registration';
+      if (this.showRegistration) {
+        if (this.value.isRke2 ? !this.machines?.length : !this.nodes?.length) {
+          return 'registration';
+        }
       }
 
       if (this.showMachines) {
