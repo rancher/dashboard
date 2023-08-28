@@ -406,6 +406,7 @@ export default {
                 {{ t('nav.search.noResults') }}
               </div>
             </div>
+          </template>
 
             <nuxt-link
               v-if="clusters.length > maxClustersToShow"

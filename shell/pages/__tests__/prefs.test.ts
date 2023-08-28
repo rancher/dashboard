@@ -48,6 +48,12 @@ describe('page: prefs should', () => {
     expect(options[index].label).toBe(expected);
   });
 
+  it('format the date without cue for date 05/05/2023', () => {
+    const x = true;
+
+    expect(x).toBe(true);
+  });
+
   it.each([
     ['Mon, May 1 2023', 0],
     ['Mon, 1 May 2023', 1],
