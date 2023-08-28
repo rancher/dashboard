@@ -406,6 +406,20 @@ export default {
                 {{ t('nav.search.noResults') }}
               </div>
             </div>
+
+            <nuxt-link
+              class="clusters-all"
+              :to="{name: 'c-cluster-product-resource', params: {
+                cluster: '_',
+                product: 'manager',
+                resource: 'provisioning.cattle.io.cluster'
+              } }"
+            >
+              <span>
+                {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
+                <i class="icon icon-chevron-right" />
+              </span>
+            </nuxt-link>
           </template>
 
             <nuxt-link
@@ -926,6 +940,16 @@ export default {
       .clusters-all {
         flex-direction: row;
         margin-left: $option-padding-left + 2;
+
+        span {
+          i {
+            display: none;
+          }
+        }
+      }
+      .clusters-all {
+        flex-direction: row;
+        margin-left: 8px;
 
         span {
           i {
