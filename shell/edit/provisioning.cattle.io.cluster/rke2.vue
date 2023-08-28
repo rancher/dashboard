@@ -9,6 +9,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
+import * as VERSION from '@shell/utils/version';
 
 import {
   CAPI,
@@ -160,7 +161,7 @@ export default {
 
   async fetch() {
     this.psps = await this.getPsps();
-    // await this.fetchRke2Versions();
+    await this.fetchRke2Versions();
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
@@ -201,10 +202,13 @@ export default {
     }
 
     const truncateLimit = this.value.defaultHostnameLengthLimit;
+    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
+    const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
 
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
+      versionsInfo:                    {},
       allPSPs:                         null,
       allPSAs:                         [],
       credentialId:                    '',
@@ -246,6 +250,10 @@ export default {
       allNamespaces:         [],
       initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
+      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
+      previousKubernetesVersion,
+      cisOverride:           false,
+      cisPsaChangeBanner:    false,
     };
   },
 
@@ -261,6 +269,12 @@ export default {
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
+    },
+    /**
+     * Define introduction of Rancher defined PSA templates
+     */
+    hasPsaTemplates() {
+      return !this.needsPSP;
     },
 
     hostnameTruncationManuallySet() {
@@ -294,6 +308,9 @@ export default {
      */
     needsPSP() {
       return this.getNeedsPSP();
+    },
+    showCni() {
+      return !!this.serverArgs.cni;
     },
 
     unsupportedSelectorConfig() {
@@ -923,6 +940,9 @@ export default {
         this.$nextTick(() => this.initAddons());
       }
     },
+    addonNamesChanged() {
+      this.$nextTick(() => this.initAddons());
+    },
 
     selectedVersion() {
       this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
@@ -941,7 +961,51 @@ export default {
         set(this.agentConfig, 'cloud-provider-name', undefined);
       }
     },
+    ciliumIpv6Changed(neu) {
+      const name = this.chartVersionKey('rke2-cilium');
+      const values = this.userChartValues[name];
 
+      set(this, 'userChartValues', {
+        ...this.userChartValues,
+        [name]: {
+          ...values,
+          cilium: {
+            ...values?.cilium,
+            ipv6: {
+              ...values?.cilium?.ipv6,
+              enabled: neu
+            }
+          }
+        }
+      });
+    },
+    kubernetesChanged(neu) {
+      this.handleKubernetesChange(neu);
+    },
+    pspChanged(neu) {
+      this.handlePspChange(neu);
+    },
+    cisChanged() {
+      this.handleCisChange();
+    },
+    psaDefaultChanged() {
+      this.togglePsaDefault();
+    },
+    showCni(neu) {
+      // Update `serverConfig.cni to recalculate addonNames...
+      // ... which will eventually update `value.spec.rkeConfig.chartValues`
+      if (neu) {
+        // Type supports CNI, assign default if we can
+        if (!this.serverConfig.cni) {
+          const def = this.serverArgs.cni.default;
+
+          set(this.serverConfig, 'cni', def);
+        }
+      } else {
+        // Type doesn't support cni, clear `cni`
+        set(this.serverConfig, 'cni', undefined);
+      }
+    }
   },
 
   mounted() {
@@ -1058,6 +1122,7 @@ export default {
 
         const res = await allHash(hash);
 
+        // Everything below this line should be cleaned up
         this.allPSPs = res.allPSPs || [];
         this.allPSAs = res.allPSAs || [];
         this.rke2Versions = res.rke2Versions.data || [];
@@ -1082,6 +1147,9 @@ export default {
         // Store default versions
         this.defaultRke2 = defaultRke2;
         this.defaultK3s = defaultK3s;
+        this.versionsInfo = {
+          ...res, defaultRke2, defaultK3s
+        };
       }
     },
 
@@ -2056,7 +2124,69 @@ export default {
       } else {
         this.$set(this.machinePoolValidation, id, value);
       }
-    }
+    },
+    /**
+     * Reset PSA on several input changes for given conditions
+     */
+    togglePsaDefault() {
+      // This option is created from the server and is guaranteed to exist #8032
+      const hardcodedTemplate = 'rancher-restricted';
+      const cisValue = this.agentConfig?.profile || this.serverConfig?.profile;
+
+      if (!this.cisOverride) {
+        if (this.hasPsaTemplates && cisValue) {
+          set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', hardcodedTemplate);
+        }
+
+        this.cisPsaChangeBanner = this.hasPsaTemplates;
+      }
+    },
+    updateCisProfile() {
+      // If the user selects any Worker CIS Profile,
+      // protect-kernel-defaults should be set to false
+      // in the RKE2 worker/agent config.
+      const selectedCisProfile = this.agentConfig?.profile;
+
+      if (selectedCisProfile) {
+        set(this.agentConfig, 'protect-kernel-defaults', true);
+      } else {
+        set(this.agentConfig, 'protect-kernel-defaults', false);
+      }
+    },
+    handleKubernetesChange(value) {
+      if (value) {
+        this.togglePsaDefault();
+        const version = VERSION.parse(value);
+        const major = parseInt(version?.[0] || 0);
+        const minor = parseInt(version?.[1] || 0);
+
+        // Reset PSA if not RKE2
+        if (!value.includes('rke2')) {
+          set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+        } else {
+          // Reset PSP if it's legacy due k8s version 1.25+
+          if (major === 1 && minor >= 25) {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+          } else {
+            set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', this.lastDefaultPodSecurityPolicyTemplateName);
+          }
+
+          this.previousKubernetesVersion = value;
+        }
+
+        // If Harvester driver, reset cloud provider if not compatible
+        if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
+          this.setHarvesterDefaultCloudProvider();
+        }
+      }
+    },
+    handlePspChange(value) {
+      this.lastDefaultPodSecurityPolicyTemplateName = value;
+    },
+    handleCisChange() {
+      this.togglePsaDefault();
+      this.updateCisProfile();
+    },
   },
 };
 </script>
@@ -2219,6 +2349,15 @@ export default {
             :live-value="liveValue"
             :mode="mode"
             :provider="provider"
+            :psps="psps"
+            :versionsInfo="versionsInfo"
+            :versionInfo="versionInfo"
+            :userChartValues="userChartValues"
+            :previousKubernetesVersion="previousKubernetesVersion"
+            :harvesterVersionRange="harvesterVersionRange"
+            :credential="credential"
+            :cisOverride="cisOverride"
+            :cisPsaChangeBanner="cisPsaChangeBanner"
           />
         </Tab>
 
@@ -2449,7 +2588,7 @@ export default {
           </Banner>
           <div class="row">
             <div class="col span-6">
-              <h3>Control Plane</h3>
+              <h3>{{ t('cluster.rke2.controlPlaneConcurrency.header') }}</h3>
               <LabeledInput
                 v-model="rkeConfig.upgradeStrategy.controlPlaneConcurrency"
                 :mode="mode"
@@ -2487,7 +2626,7 @@ export default {
           label-key="cluster.tabs.registry"
         >
           <div class="row">
-            <h3>Registry for Rancher System Container Images</h3>
+            <h3>{{ t('cluster.privateRegistry.label') }}</h3>
           </div>
           <div class="row">
             <div class="col span-12">
@@ -2790,9 +2929,6 @@ export default {
 <style lang="scss" scoped>
   .min-height {
     min-height: 40em;
-  }
-  .patch-version {
-    margin-top: 5px;
   }
   .header-warnings .banner {
     margin-bottom: 0;

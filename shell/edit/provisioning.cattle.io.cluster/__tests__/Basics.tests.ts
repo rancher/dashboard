@@ -14,6 +14,38 @@ const defaultComputed = {
     return false;
   },
 };
+const versionsInfoMock = {
+  allPSPs:      [],
+  allPSAs:      [],
+  rke2Versions: {
+    data: [
+      {
+        id: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      }
+    ]
+  },
+  k3sVersions: {
+    data: [
+      {
+        id: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.23.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+      }
+    ]
+  },
+  defaultRke2: 'v1.23.0+rke2r1',
+  defaultK3s:  'v1.23.0+k3s1'
+};
 
 const defaultGetters = {
   currentStore:           () => 'current_store',
@@ -31,7 +63,7 @@ const defaultMocks = {
 };
 
 const defaultSpec = {
-  rkeConfig:   { etcd: { disableSnapshots: false } },
+  rkeConfig:   { etcd: { disableSnapshots: false }, machineGlobalConfig: { cni: 'calico' } },
   chartValues: {},
 };
 
@@ -66,7 +98,13 @@ describe('component: rke2', () => {
             kubernetesVersion:                                    k8s
           }
         },
-        provider: 'whatever',
+        provider:              'whatever',
+        versionsInfo:          versionsInfoMock,
+        versionInfo:           {},
+        harvesterVersionRange: {},
+        userChartValues:       {},
+        cisOverride:           false,
+        cisPsaChangeBanner:    true
       },
       computed: defaultComputed,
       mocks:    {
@@ -107,7 +145,13 @@ describe('component: rke2', () => {
             kubernetesVersion:                                    k8s
           }
         },
-        provider: 'whatever',
+        provider:              'whatever',
+        versionsInfo:          versionsInfoMock,
+        versionInfo:           {},
+        harvesterVersionRange: {},
+        userChartValues:       {},
+        cisOverride:           true,
+        cisPsaChangeBanner:    true
       },
       computed: defaultComputed,
       mocks:    {
@@ -147,7 +191,13 @@ describe('component: rke2', () => {
             kubernetesVersion:                                    k8s
           }
         },
-        provider: 'custom',
+        provider:              'custom',
+        versionsInfo:          versionsInfoMock,
+        versionInfo:           {},
+        harvesterVersionRange: {},
+        userChartValues:       {},
+        cisOverride:           override,
+        cisPsaChangeBanner:    true
       },
       computed: {
         ...defaultComputed,
@@ -173,8 +223,6 @@ describe('component: rke2', () => {
       },
       stubs: defaultStubs
     });
-
-    wrapper.setData({ cisOverride: override });
 
     const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
 
