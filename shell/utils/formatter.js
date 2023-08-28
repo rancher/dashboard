@@ -1,5 +1,5 @@
 
-const OPAQUE_SECRET_TYPE = 'Opaque';
+import { SECRET_TYPES } from '@shell/config/secret';
 
 export function formatEncryptionSecretNames(secrets, chartNamespace) {
   return secrets.filter(
@@ -7,6 +7,6 @@ export function formatEncryptionSecretNames(secrets, chartNamespace) {
         secret.metadata.namespace === chartNamespace &&
         !secret.metadata?.state?.error &&
         !!secret.metadata?.name &&
-        secret._type === OPAQUE_SECRET_TYPE
+        secret._type === SECRET_TYPES.OPAQUE
   ).map((secret) => secret.metadata.name).sort();
 }
