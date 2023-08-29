@@ -72,7 +72,7 @@ describe('formatter', () => {
           error: true, message: 'Failed', name: 'active', transitioning: true
         }
       }
-    },];
+    }];
   const chart = 'test';
 
   it.each([[chart, 2], ['test1', 0]])( 'should show correct number of secrets', ( chartVal: string, result: number) => {
