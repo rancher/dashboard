@@ -14,13 +14,15 @@ import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { isRancherPrime } from '@shell/config/version';
+import Pinned from '@shell/components/nav/Pinned';
 
 export default {
 
   components: {
     BrandImage,
     ClusterProviderIconMenu,
-    IconOrSvg
+    IconOrSvg,
+    Pinned
   },
 
   data() {
@@ -386,6 +388,9 @@ export default {
                   <div class="cluster-name">
                     {{ c.label }}
                   </div>
+                  <Pinned
+                    :clusterId="c.id"
+                  />
                 </nuxt-link>
                 <span
                   v-else

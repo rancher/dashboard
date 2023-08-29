@@ -131,7 +131,7 @@ import {
   MANAGEMENT,
   NAMESPACE
 } from '@shell/config/types';
-import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
+import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES, PIN_TYPES } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@shell/utils/array';
@@ -499,6 +499,12 @@ export const getters = {
   isFavorite(state, getters, rootState, rootGetters) {
     return (schemaId) => {
       return rootGetters['prefs/get'](FAVORITE_TYPES).includes(schemaId) || false;
+    };
+  },
+
+  isPin(state, getters, rootState, rootGetters) {
+    return (clusterId) => {
+      return rootGetters['prefs/get'](PIN_TYPES).includes(clusterId) || false;
     };
   },
 
@@ -1649,6 +1655,22 @@ export const actions = {
     removeObject(types, type);
 
     dispatch('prefs/set', { key: FAVORITE_TYPES, value: types }, { root: true });
+  },
+
+  addPin({ dispatch, rootGetters }, type) {
+    const types = rootGetters['prefs/get'](PIN_TYPES) || [];
+
+    addObject(types, type);
+
+    dispatch('prefs/set', { key: PIN_TYPES, value: types }, { root: true });
+  },
+
+  removePin({ dispatch, rootGetters }, type) {
+    const types = rootGetters['prefs/get'](PIN_TYPES) || [];
+
+    removeObject(types, type);
+
+    dispatch('prefs/set', { key: PIN_TYPES, value: types }, { root: true });
   },
 
   toggleGroup({ dispatch, rootGetters }, { group, expanded }) {
