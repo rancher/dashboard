@@ -131,22 +131,6 @@ export const HARVESTER_TYPES = [
 export const ROW_COMPUTED = {
   typeOption() {
     return this.types.find((type) => type.value === this.type);
-  },
-  resourceQuotaLimit: {
-    get() {
-      return (this.resourceQuota.limit === null) ? {} : this.resourceQuota.limit;
-    },
-    set(val) {
-      this.resourceQuota.limit = val;
-    }
-  },
-  namespaceDefaultResourceQuotaLimit: {
-    get() {
-      return (this.namespaceDefaultResourceQuota.limit === null) ? {} : this.namespaceDefaultResourceQuota.limit;
-    },
-    set(val) {
-      this.namespaceDefaultResourceQuota.limit = val;
-    }
   }
 };
 

@@ -27,26 +27,40 @@ export default {
     }
   },
 
-  data() {
-    return {
-      resourceQuota:                 this.value.spec.resourceQuota || { limit: {} },
-      namespaceDefaultResourceQuota: this.value.spec.namespaceDefaultResourceQuota || { limit: {} }
-    };
-  },
+  computed: {
+    ...ROW_COMPUTED,
 
-  computed: { ...ROW_COMPUTED },
+    resourceQuotaLimit: {
+      get() {
+        return this.value.spec.resourceQuota?.limit || {};
+      },
+    },
+
+    namespaceDefaultResourceQuotaLimit: {
+      get() {
+        return this.value.spec.namespaceDefaultResourceQuota?.limit || {};
+      },
+    }
+  },
 
   methods: {
     updateType(type) {
-      if (typeof this.resourceQuotaLimit[this.type] !== 'undefined') {
-        this.$delete(this.resourceQuotaLimit, this.type);
+      if (typeof this.value.spec.resourceQuota?.limit[this.type] !== 'undefined') {
+        this.$delete(this.value.spec.resourceQuota.limit, this.type);
       }
-
-      if (typeof this.namespaceDefaultResourceQuotaLimit[this.type] !== 'undefined') {
-        this.$delete(this.namespaceDefaultResourceQuotaLimit, this.type);
+      if (typeof this.value.spec.namespaceDefaultResourceQuota?.limit[this.type] !== 'undefined') {
+        this.$delete(this.value.spec.namespaceDefaultResourceQuota.limit, this.type);
       }
 
       this.$emit('type-change', type);
+    },
+
+    updateQuotaLimit(prop, type, val) {
+      if (!this.value.spec[prop]) {
+        this.value.spec[prop] = { limit: { } };
+      }
+
+      this.value.spec[prop].limit[type] = val;
     }
   },
 };
@@ -64,7 +78,7 @@ export default {
       @input="updateType($event)"
     />
     <UnitInput
-      v-model="resourceQuotaLimit[type]"
+      :value="resourceQuotaLimit[type]"
       class="mr-10"
       :mode="mode"
       :placeholder="typeOption.placeholder"
@@ -72,15 +86,17 @@ export default {
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
+      @input="updateQuotaLimit('resourceQuota', type, $event)"
     />
     <UnitInput
-      v-model="namespaceDefaultResourceQuotaLimit[type]"
+      :value="namespaceDefaultResourceQuotaLimit[type]"
       :mode="mode"
       :placeholder="typeOption.placeholder"
       :increment="typeOption.increment"
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
+      @input="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
     />
   </div>
 </template>
