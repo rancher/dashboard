@@ -1,9 +1,11 @@
 <script>
-import ButtonDropdown from '@shell/components/ButtonDropdown';
-import Mount from '@shell/edit/workload/storage/Mount';
+import { clone } from '@shell/utils/object';
 import { _VIEW } from '@shell/config/query-params';
-import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { randomStr } from '@shell/utils/string';
+
+import Mount from '@shell/edit/workload/storage/Mount';
+import ButtonDropdown from '@shell/components/ButtonDropdown';
+import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 
 export default {
   name:       'ContainerMountPaths',
@@ -109,7 +111,7 @@ export default {
       const names = volumeMounts.map(({ name }) => name);
 
       // Extract storage volumes to allow mutation, if matches mount map
-      return this.value.volumes.filter((volume) => names.includes(volume.name));
+      return clone(this.value.volumes.filter((volume) => names.includes(volume.name)));
     },
 
     getSelectedContainerVolumes() {
@@ -118,7 +120,7 @@ export default {
       const names = volumeMounts.map(({ name }) => name);
 
       // Extract storage volumes to allow mutation, if matches mount map
-      return this.value.volumes.filter((volume) => names.includes(volume.name));
+      return clone(this.value.volumes.filter((volume) => names.includes(volume.name)));
     },
 
     /**
