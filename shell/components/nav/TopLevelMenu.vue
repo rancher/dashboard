@@ -914,6 +914,16 @@ export default {
           margin: 0;
          }
 
+        .clustersPinned {
+          border-bottom: 1px solid var(--nav-border);
+          margin-bottom: 8px;
+          padding-bottom: 8px;
+
+          .pin {
+            display: block;
+          }
+        }
+
         .nuxt-link-active {
           color: var(--primary-text);
         }
