@@ -3051,6 +3051,7 @@ login:
     noResponse: "没有收到响应。"
   error: 登录时发生错误，请重试。
   clientError: 无效的用户名或密码，请重试。
+  specificError: '登录时发生错误：{msg}'
   useLocal: 使用本地账号登录
   loginWithProvider: 使用 {provider} 登录
   username: 用户名
@@ -3525,8 +3526,11 @@ navLink:
         label: 链接标签
       description:
         label: 链接描述
+    groupImage:
+      label: 组图片
       iconSrc:
-        label: 添加镜像
+        tip: '图片的高度应为 21 像素，最大宽度为 200 像素。最大文件大小为 20KB。支持的格式：JPEG、PNG、SVG。'
+        label: 添加图片
 networkpolicy:
   egress:
     label: Egress 规则
@@ -5640,6 +5644,8 @@ validation:
     logdna:
       apiKey: 需要设置“API 密钥”。
   invalidCron: 无效的 cron 调度
+  invalidCidr: "无效的 CIDR"
+  invalidIP: "无效的 IP"
   k8s:
     name: 必须由小写字母数字或“-”组成，并且开头和结尾必须是字母数字（例如“my-name”或“123-abc”）。
     identifier:
@@ -5776,6 +5782,7 @@ wm:
   containerShell:
     clear: 清除
     containerName: "容器：{label}"
+    failed: "无法打开容器 shell（所有 shell 命令均未成功）\n\r"
   kubectlShell:
     title: "Kubectl: {name}"
 
