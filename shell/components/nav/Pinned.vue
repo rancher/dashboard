@@ -8,14 +8,14 @@ export default {
   },
 
   computed: {
-    isPined() {      
-      return this.$store.getters['type-map/isPined'](this.clusterId);
+    isPinned() {      
+      return this.$store.getters['type-map/isPinned'](this.clusterId);
     }
   },
 
   methods: {
     toggle() {
-      if ( this.isPined ) {
+      if ( this.isPinned ) {
         this.$store.dispatch('type-map/removePin', this.clusterId);
       } else {
         this.$store.dispatch('type-map/addPin', this.clusterId);
@@ -28,9 +28,9 @@ export default {
 <template>
   <i
     :tabindex="0"
-    :aria-checked="!!isPined"
+    :aria-checked="!!isPinned"
     class="pin icon"
-    :class="{'icon-star-open': !isPined, 'icon-star': isPined}"
+    :class="{'icon-star-open': !isPinned, 'icon-star': isPinned}"
     aria-role="button"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
@@ -39,18 +39,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .favorite {
-    position: relative;
-    cursor: pointer;
-    font-size: 20px;
-    transform: ease-in-out-all 1s;
-
-    &.icon-star-open {
-      color: var(--muted);
-    }
-
-    &.icon-star-closed {
-      color: var(--body-text);
-    }
+  .icon {
+    font-size: 14px;
   }
 </style>

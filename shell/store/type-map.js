@@ -502,7 +502,7 @@ export const getters = {
     };
   },
 
-  isPin(state, getters, rootState, rootGetters) {
+  isPinned(state, getters, rootState, rootGetters) {
     return (clusterId) => {
       return rootGetters['prefs/get'](PIN_TYPES).includes(clusterId) || false;
     };
