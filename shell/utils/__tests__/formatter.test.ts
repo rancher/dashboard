@@ -60,7 +60,19 @@ describe('formatter', () => {
           error: false, message: 'Resource is always ready', name: 'active', transitioning: false
         }
       }
-    }];
+    },
+    {
+      id:       'test6',
+      _type:    'Opaque',
+      data:     { hash: 'test5', 'encryption-provider-config.yaml': 'MTIzNFFhYWEh' },
+      metadata: {
+        name:      'test5',
+        namespace: 'test',
+        state:     {
+          error: true, message: 'Failed', name: 'active', transitioning: true
+        }
+      }
+    },];
   const chart = 'test';
 
   it.each([[chart, 2], ['test1', 0]])( 'should show correct number of secrets', ( chartVal: string, result: number) => {
