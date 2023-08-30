@@ -1,13 +1,13 @@
 export const gitRepoCreateRequest = {
     "type": "fleet.cattle.io.gitrepo",
     "metadata": {
-        "namespace": "fleet-local",
+        "namespace": "fleet-default",
         "name": "fleet-e2e-test-gitrepo"
     },
     "spec": {
         "repo": "https://github.com/Shavindra/fleet-examples.git",
         "branch": "dashboard-e2e-basic",
-        "paths": [],
+        "paths": ['simple'],
         "correctDrift": {
             "enabled": false
         },
@@ -27,7 +27,7 @@ export const gitRepoCreateRequest = {
             }
         ],
         "insecureSkipTLSVerify": false,
-        "helmRepoURLRegex": "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+        "helmRepoURLRegex": "https://charts.rancher.io/*",
         "helmSecretName": "auth-95j88"
     }
 }

@@ -580,17 +580,6 @@ export default {
         @input="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
-
-      <div class="row mt-20" v-if="displayhelmRepoURLRegex">
-        <div class="col span-6">
-        <LabeledInput
-            data-testid="gitrepo-helm-repo-url-regex"
-            v-model="value.spec.helmRepoURLRegex"
-            :mode="mode"
-            label-key="fleet.gitRepo.helmRepoURLRegex"
-          />
-        </div>
-      </div>
       
       <SelectOrCreateAuthSecret
         data-testid="gitrepo-helm-auth"
@@ -607,7 +596,15 @@ export default {
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
 
-
+      <div class="row mt-20" v-if="displayhelmRepoURLRegex">
+        <div class="col span-6" data-testid="gitrepo-helm-repo-url-regex">
+        <LabeledInput
+            v-model="value.spec.helmRepoURLRegex"
+            :mode="mode"
+            label-key="fleet.gitRepo.helmRepoURLRegex"
+          />
+        </div>
+      </div>
 
       <template v-if="isTls">
         <div class="spacer" />

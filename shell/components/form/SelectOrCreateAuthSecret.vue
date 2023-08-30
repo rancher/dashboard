@@ -470,6 +470,7 @@ export default {
     >
       <div :class="firstCol">
         <LabeledSelect
+          data-testid="auth-secret-select"
           v-model="selected"
           :mode="mode"
           :label-key="labelKey"
@@ -481,6 +482,7 @@ export default {
       <template v-if="selected === _SSH">
         <div :class="moreCols">
           <LabeledInput
+            data-testid="auth-secret-ssh-public-key"
             v-model="publicKey"
             :mode="mode"
             type="multiline"
@@ -489,6 +491,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
+            data-testid="auth-secret-ssh-private-key"
             v-model="privateKey"
             :mode="mode"
             type="multiline"
@@ -499,6 +502,7 @@ export default {
       <template v-else-if="selected === _BASIC">
         <div :class="moreCols">
           <LabeledInput
+            data-testid="auth-secret-basic-public-key"
             v-model="publicKey"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.basic.username"
@@ -506,6 +510,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
+            data-testid="auth-secret-basic-private-key"
             v-model="privateKey"
             :mode="mode"
             type="password"
@@ -516,6 +521,7 @@ export default {
       <template v-else-if="selected === _S3">
         <div :class="moreCols">
           <LabeledInput
+            data-testid="auth-secret-s3-public-key"
             v-model="publicKey"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.s3.accessKey"
@@ -523,6 +529,7 @@ export default {
         </div>
         <div :class="moreCols">
           <LabeledInput
+            data-testid="auth-secret-s3-private-key"
             v-model="privateKey"
             :mode="mode"
             type="password"
