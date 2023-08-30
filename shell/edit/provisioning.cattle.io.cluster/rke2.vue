@@ -792,10 +792,10 @@ export default {
       const names = [];
       const cni = this.serverConfig.cni;
 
-      if ( cni ) {
-        const parts = cni.split(',').map((x) => `rke2-${ x }`);
-
-        names.push(...parts);
+      if (typeof cni === 'string') {
+        names.push(...cni.split(',').map((x) => `rke2-${ x }`));
+      } else if (Array.isArray(cni)) {
+        names.push(...cni.map((x) => `rke2-${ x }`));
       }
 
       if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
