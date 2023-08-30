@@ -1,4 +1,4 @@
-git pl<script>
+<script>
 export default {
   props: {
     clusterId: {
@@ -8,7 +8,7 @@ export default {
   },
 
   computed: {
-    isPinned() {      
+    isPinned() {
       return this.$store.getters['type-map/isPinned'](this.clusterId);
     }
   },

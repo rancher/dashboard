@@ -30,10 +30,10 @@ export default {
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
-      shown:             false,
+      shown:           false,
       displayVersion,
       fullVersion,
-      clusterFilter:     '',
+      clusterFilter:   '',
       hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
       showPinClusters: false
@@ -90,9 +90,10 @@ export default {
         kubeClusters = kubeClusters.filter((c) => !!available[c]);
       }
 
-      return kubeClusters.map((x) => {  
+      return kubeClusters.map((x) => {
         const pCluster = pClusters?.find((c) => c.mgmt.id === x.id);
         const pin = this.pinnedClusters.some((c) => c === x.id);
+
         return {
           id:              x.id,
           label:           x.nameDisplay,
@@ -113,14 +114,14 @@ export default {
 
       const sorted = sortBy(out, ['ready:desc', 'ready', 'label']);
 
-      if(search) {
+      if (search) {
         this.showPinClusters = false;
 
         return sorted;
       }
 
       this.showPinClusters = true;
-      
+
       // If more than 8 elements, return the first 8 clusters
       if (sorted.length >= this.maxClustersToShow) {
         const sortedPinOut = sorted.slice(0, this.maxClustersToShow);
@@ -436,6 +437,11 @@ export default {
                     />
                     <div class="cluster-name">{{ c.label }}</div>
                   </span>
+                </div>
+                <div
+                  class="category-title"
+                >
+                  <hr>
                 </div>
               </div>
               <div
@@ -925,18 +931,8 @@ export default {
           margin: 0;
          }
 
-        .clustersPinned {
-          border-bottom: 1px solid var(--nav-border);
-          margin-bottom: 8px;
-          padding-bottom: 8px;
-
-          .pin {
-            display: block;
-          }
-        }
-
         .nuxt-link-active {
-          color: white;
+          color: var(--primary-text);
         }
 
         &-search {
@@ -987,6 +983,25 @@ export default {
       .none-matching {
         padding: 8px
       }
+      .clustersPinned {
+        .category {
+          &-title {
+            margin: 8px 0;
+            margin-left: 16px;
+
+            hr {
+              margin: 0;
+              width: 94%;
+              transition: all 0.5s ease-in-out;
+              max-width: 100%;
+            }
+          }
+        }
+
+        .pin {
+          display: block;
+        }
+      }
 
       .category {
         display: flex;
@@ -1030,7 +1045,6 @@ export default {
           span {
             opacity: 0;
           }
-
           hr {
             width: 40px;
           }
@@ -1043,6 +1057,16 @@ export default {
         span {
           i {
             display: none;
+          }
+        }
+      }
+
+      .clustersPinned {
+        .category {
+          &-title {
+            hr {
+              width: 25px;
+            }
           }
         }
       }
