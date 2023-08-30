@@ -131,18 +131,18 @@ export default {
     const addRepositorySteps = [stepRepoInfo, stepTargetInfo].sort((a, b) => (b.weight || 0) - (a.weight || 0));
 
     return {
-      allClusters:          [],
-      allClusterGroups:     [],
-      allWorkspaces:        [],
-      tempCachedValues:     {},
-      username:             null,
-      password:             null,
-      publicKey:            null,
-      privateKey:           null,
-      tlsMode:              null,
-      caBundle:             null,
-      targetAdvancedErrors: null,
-      matchingClusters:     null,
+      allClusters:             [],
+      allClusterGroups:        [],
+      allWorkspaces:           [],
+      tempCachedValues:        {},
+      username:                null,
+      password:                null,
+      publicKey:               null,
+      privateKey:              null,
+      tlsMode:                 null,
+      caBundle:                null,
+      targetAdvancedErrors:    null,
+      matchingClusters:        null,
       ref,
       refValue,
       targetMode,
@@ -292,10 +292,9 @@ export default {
     updateCachedAuthVal(val, key) {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
 
-      if(key === 'helmSecretName') {
+      if (key === 'helmSecretName') {
         this.displayhelmRepoURLRegex = val && val.selected !== AUTH_TYPE._NONE;
       }
-
     },
 
     updateAuth(val, key) {
@@ -580,7 +579,7 @@ export default {
         @input="updateAuth($event, 'clientSecretName')"
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
-      
+
       <SelectOrCreateAuthSecret
         data-testid="gitrepo-helm-auth"
         :value="value.spec.helmSecretName"
@@ -596,9 +595,15 @@ export default {
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
 
-      <div class="row mt-20" v-if="displayhelmRepoURLRegex">
-        <div class="col span-6" data-testid="gitrepo-helm-repo-url-regex">
-        <LabeledInput
+      <div
+        v-if="displayhelmRepoURLRegex"
+        class="row mt-20"
+      >
+        <div
+          class="col span-6"
+          data-testid="gitrepo-helm-repo-url-regex"
+        >
+          <LabeledInput
             v-model="value.spec.helmRepoURLRegex"
             :mode="mode"
             label-key="fleet.gitRepo.helmRepoURLRegex"

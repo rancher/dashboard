@@ -3,8 +3,7 @@ import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/namespace-filter.po';
-import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
-import SelectOrCreateAuthPo from '~/cypress/e2e/po/components/select-or-create-auth.po';
+import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
 
 export class GitRepoCreatePo extends PagePo {
     static url: string;
@@ -55,8 +54,8 @@ export class GitRepoCreatePo extends PagePo {
     setGitRepoUrl(url: string) {
       return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
     }
-    
-    setHelmRepoURLRegex(regexStr = "https://charts.rancher.io/*") {
+
+    setHelmRepoURLRegex(regexStr = 'https://charts.rancher.io/*') {
       return LabeledInputPo.bySelector(this.self(), '[data-testid="gitrepo-helm-repo-url-regex"]').set(regexStr);
     }
 
@@ -77,7 +76,7 @@ export class GitRepoCreatePo extends PagePo {
     }
 
     authSelect(selector: string) {
-      return new SelectOrCreateAuthPo(selector)
+      return new SelectOrCreateAuthPo(selector);
     }
 
     helmAuth() {

@@ -34,13 +34,9 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
  * return {string} - Intercepted request string
  */
 Cypress.Commands.add('interceptAllRequests', (method = '/GET/POST/PUT/PATCH/', urls = [/v1\/(.+)/]) => {
-
   const interceptedUrls: string[] = urls.map((cUrl, i) => {
-    console.log(`Intercepting ${ method } ${ cUrl }`);
-    cy.log(`Intercepting ${ method } ${ cUrl }`)
     cy.intercept(method, cUrl).as(`interceptAllRequests${ i }`);
-    console.log(`@interceptAllRequests${ i }`);
-    cy.log(`@interceptAllRequests${ i }`)
+
     return `@interceptAllRequests${ i }`;
   });
 
@@ -63,4 +59,3 @@ Cypress.Commands.add('iFrame', () => {
     .should('not.be.empty')
     .then((body) => cy.wrap(body));
 });
-

@@ -33,7 +33,7 @@ export class FleetDashboardPagePo extends PagePo {
       return new ResourceTablePo(table);
     }
 
-    sortableTable(tableName: string = 'fleet-local') {
+    sortableTable(tableName = 'fleet-local') {
       return this.resourceTable(tableName).sortableTable();
     }
 }
