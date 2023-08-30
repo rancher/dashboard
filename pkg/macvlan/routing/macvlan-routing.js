@@ -5,7 +5,7 @@ import InstallView from '../components/InstallView.vue';
 const routes = [
   {
     name:      `${ MACVLAN_PRODUCT_NAME }-c-cluster-resource-install`,
-    path:      '/c/:cluster/:product/:resource/install',
+    path:      `/c/:cluster/:product/:resource/installView`,
     component: InstallView
   },
   {
