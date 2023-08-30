@@ -292,7 +292,9 @@ export default {
     updateCachedAuthVal(val, key) {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
 
-      this.displayhelmRepoUrlRegex = key === 'helmSecretName' && val && val.selected !== AUTH_TYPE._NONE;
+      if(key === 'helmSecretName') {
+        this.displayhelmRepoUrlRegex = val && val.selected !== AUTH_TYPE._NONE;
+      }
 
     },
 
@@ -593,7 +595,7 @@ export default {
       />
 
       <div class="row mt-20" v-if="displayhelmRepoUrlRegex">
-        <div class="col span-6">
+        <div class="col span-4">
         <LabeledInput
             v-model="value.spec.helmRepoUrlRegex"
             :mode="mode"
