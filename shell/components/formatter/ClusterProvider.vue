@@ -7,14 +7,20 @@ export default {
     },
   },
   data(props) {
+    const mgmt = props.row?.mgmt;
+
     return {
       // The isImported getter on the provisioning cluster
       // model doesn't work for imported K3s clusters, in
       // which case it returns 'k3s' instead of 'imported.'
       // This is the workaround.
-      isImported: props.row?.mgmt?.providerForEmberParam === 'import' ||
-        // when imported cluster is Google GKE
-        props.row?.mgmt?.spec?.gkeConfig?.imported
+      isImported: mgmt?.providerForEmberParam === 'import' ||
+        // when imported cluster is GKE
+        !!mgmt?.spec?.gkeConfig?.imported ||
+        // or AKS
+        !!mgmt?.spec?.aksConfig?.imported ||
+        // or EKS
+        !!mgmt?.spec?.eksConfig?.imported
     };
   },
 };

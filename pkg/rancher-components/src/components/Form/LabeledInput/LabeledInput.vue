@@ -207,6 +207,13 @@ export default (
     },
 
     /**
+     * Emit on input change
+     */
+    onChange(event: Event): void {
+      this.$emit('change', event);
+    },
+
+    /**
      * Emit on input with delay. Note: Arrow function is avoided due context
      * binding.
      */
@@ -299,6 +306,7 @@ export default (
         @input="onInput($event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
+        @change="onChange"
       >
     </slot>
 

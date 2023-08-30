@@ -203,10 +203,9 @@ describe('component: NamespaceFilter', () => {
       jest.spyOn(NamespaceFilter.computed.value, 'get').mockReturnValue([]);
       const wrapper = mount(NamespaceFilter, {
         computed: {
-          options:             () => [],
-          currentProduct:      () => undefined,
-          namespaceFilterMode: () => undefined,
-          key:                 () => key,
+          options:        () => [],
+          currentProduct: () => undefined,
+          key:            () => key,
         },
         mocks: {
           $store: {

@@ -1,12 +1,14 @@
-name: Build and Release Extension
+name: Build and Release Extension Charts
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      target_branch:
+        required: true
+        type: string
+      tagged_release:
+        required: false
+        type: string
 
 env:
   ACTIONS_RUNNER_DEBUG: false
@@ -18,10 +20,12 @@ defaults:
     working-directory: ./
 
 jobs:
-  build:
+  build-extension-artifact:
     name: Build extension artifact
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      actions: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -30,8 +34,16 @@ jobs:
 
       - name: Configure Git
         run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Parse Extension Name
+        if: github.ref_type == 'tag'
+        id: parsed-name
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          yarn parse-tag-name ${{ inputs.tagged_release }} ${{ github.run_id }} "charts"
 
       - name: Setup Helm
         uses: azure/setup-helm@v3
@@ -41,7 +53,7 @@ jobs:
       - name: Setup yq
         uses: chrisdickinson/setup-yq@v1.0.1
         with:
-          yq-version: v4.28.2
+          yq-version: v4.34.2
 
       - name: Setup Nodejs and npm
         uses: actions/setup-node@v3
@@ -64,7 +76,13 @@ jobs:
         shell: bash
         id: build_script
         run: |
-          yarn publish-pkgs -s "${{ github.repository }}" -b gh-pages
+          publish="yarn publish-pkgs -s ${{ github.repository }} -b ${{ inputs.target_branch }}"
+
+          if [[ -n "${{ inputs.tagged_release }}" ]]; then
+            publish="$publish -t ${{ inputs.tagged_release }}"
+          fi
+          
+          $publish
 
       - name: Upload charts artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -75,20 +93,24 @@ jobs:
 
   release:
     name: Release Build
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: build
+    if: github.ref_type == 'tag' || (github.ref == 'refs/heads/main' && github.event_name != 'pull_request')
+    needs: build-extension-artifact
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      actions: write
+      contents: write
+      deployments: write
+      pages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: gh-pages
+          ref: "${{ inputs.target_branch }}"
 
       - name: Configure Git
         run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Download build artifact
         uses: actions/download-artifact@v3
@@ -108,3 +130,4 @@ jobs:
         env:
           CR_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
           CR_SKIP_EXISTING: true
+
