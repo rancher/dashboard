@@ -283,15 +283,10 @@ export default {
         if (unreportedRule) {
           const selectedRule = Object.values(this.$parent.veeTokenRules).find((r) => r.id === unreportedRule);
 
-          const errors = [];
+          const rule = await validate({ value: neu[selectedRule.path], getters: this.$store.getters }, selectedRule.rules);
 
-          for ( const name of neu?.imageNames ) {
-            const rule = await validate(name, selectedRule.rules, { customMessages: { [selectedRule.rules]: this.t(`validation.${ selectedRule.rules }`, { key: this.t(selectedRule.translationKey) }, true) } });
-
-            errors.push(...rule.errors);
-          }
-
-          Vue.set(this, 'veeTokenErrors', uniq(errors));
+          // each rule has errors
+          Vue.set(this, 'veeTokenErrors', uniq(rule.errors[0]));
         }
       },
       deep:      true,

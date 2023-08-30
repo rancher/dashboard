@@ -47,10 +47,10 @@ import { UI_MANAGED } from '@shell/config/labels-annotations';
 import { removeObject } from '@shell/utils/array';
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import formRulesGenerator from '@shell/utils/validators/formRules';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { defaultContainer } from '@shell/models/workload';
 import { allHash } from '@shell/utils/promise';
+import { validate } from 'vee-validate';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -285,8 +285,9 @@ export default {
       veeTokenRuleSets: {
         image: {
           id:             'container.image',
-          rules:          'required',
-          translationKey: 'workload.container.image'
+          rules:          'containerImages',
+          translationKey: 'workload.container.image',
+          path:           'spec'
         }
       },
 
@@ -604,11 +605,11 @@ export default {
       delete this.value.apiVersion;
     },
     'container.image': {
-      async handler(neu) {
-        const valid = await this.veeTokenValidate(neu, this.veeTokenRuleSets.image.rules);
+      async handler() {
+        const rule = await validate({ value: this.value[this.veeTokenRuleSets.image.path], getters: this.$store.getters }, this.veeTokenRuleSets.image.rules);
 
-        this.tabErrors.general = !valid;
-        this.container.error = !valid;
+        this.tabErrors.general = !rule.valid;
+        this.container.error = !rule.valid;
       },
       immediate: true
     }
