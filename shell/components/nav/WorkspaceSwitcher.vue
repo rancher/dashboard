@@ -84,7 +84,10 @@ export default {
 </script>
 
 <template>
-  <div class="filter">
+  <div
+    class="filter"
+    data-testid="workspace-switcher"
+  >
     <Select
       ref="select"
       v-model="value"

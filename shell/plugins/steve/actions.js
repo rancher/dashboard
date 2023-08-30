@@ -8,6 +8,7 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import jsyaml from 'js-yaml';
+import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
 
 export default {
 
@@ -85,7 +86,7 @@ export default {
 
     while (true) {
       try {
-        const out = await makeRequest(this, opt);
+        const out = await makeRequest(this, opt, rootGetters);
 
         if (!opt.depaginate) {
           return out;
@@ -116,7 +117,7 @@ export default {
       }
     }
 
-    function makeRequest(that, opt) {
+    function makeRequest(that, opt, rootGetters) {
       return that.$axios(opt).then((res) => {
         let out;
 
@@ -128,9 +129,7 @@ export default {
 
         finishDeferred(key, 'resolve', out);
 
-        if (opt.method === 'post' || opt.method === 'put') {
-          handleValidationWarnings(res);
-        }
+        handleKubeApiHeaderWarnings(res, dispatch, rootGetters, opt.method);
 
         return out;
       });
@@ -195,24 +194,6 @@ export default {
       finishDeferred(key, 'reject', out);
 
       return Promise.reject(out);
-    }
-
-    function handleValidationWarnings(res) {
-      const warnings = (res.headers?.warning || '').split(',');
-
-      if (!warnings.length || !warnings[0]) {
-        return;
-      }
-
-      const message = warnings.reduce((message, warning) => {
-        return `${ message }\n${ warning.trim() }`;
-      }, `Validation Warnings for ${ opt.url }\n`);
-
-      if (process.env.dev) {
-        console.warn(`${ message }\n\n`, res.data); // eslint-disable-line no-console
-      } else {
-        console.debug(message); // eslint-disable-line no-console
-      }
     }
   },
 
