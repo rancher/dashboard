@@ -271,27 +271,26 @@ module.exports = function(dir, _appConfig) {
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
   const proxy = {
     ...appConfig.proxies,
-    '/k8s':             configHelper.proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-    '/pp':              configHelper.proxyWsOpts(api), // For (epinio) standalone API
-    '/api':             configHelper.proxyWsOpts(api), // Management k8s API
-    '/apis':            configHelper.proxyWsOpts(api), // Management k8s API
-    '/v1':              configHelper.proxyWsOpts(api), // Management Steve API
-    '/v3':              configHelper.proxyWsOpts(api), // Rancher API
-    '/v3-public':       configHelper.proxyOpts(api), // Rancher Unauthed API
-    '/api-ui':          configHelper.proxyOpts(api), // Browser API UI
-    '/meta':            configHelper.proxyMetaOpts(api), // Browser API UI
-    '/v1-*':            configHelper.proxyOpts(api), // SAML, KDM, etc
-    '/rancherversion':  configHelper.proxyPrimeOpts(api), // Rancher version endpoint
-    '/rhn/manager/api': configHelper.proxyOpts(api),
+    '/k8s':            configHelper.proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/pp':             configHelper.proxyWsOpts(api), // For (epinio) standalone API
+    '/api':            configHelper.proxyWsOpts(api), // Management k8s API
+    '/apis':           configHelper.proxyWsOpts(api), // Management k8s API
+    '/v1':             configHelper.proxyWsOpts(api), // Management Steve API
+    '/v3':             configHelper.proxyWsOpts(api), // Rancher API
+    '/v3-public':      configHelper.proxyOpts(api), // Rancher Unauthed API
+    '/api-ui':         configHelper.proxyOpts(api), // Browser API UI
+    '/meta':           configHelper.proxyMetaOpts(api), // Browser API UI
+    '/v1-*':           configHelper.proxyOpts(api), // SAML, KDM, etc
+    '/rancherversion': configHelper.proxyPrimeOpts(api), // Rancher version endpoint
     // These are for Ember embedding
-    '/c/*/edit':        configHelper.proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
-    '/k/':              configHelper.proxyOpts('https://127.0.0.1:8000'),
-    '/g/':              configHelper.proxyOpts('https://127.0.0.1:8000'),
-    '/n/':              configHelper.proxyOpts('https://127.0.0.1:8000'),
-    '/p/':              configHelper.proxyOpts('https://127.0.0.1:8000'),
-    '/assets':          configHelper.proxyOpts('https://127.0.0.1:8000'),
-    '/translations':    configHelper.proxyOpts('https://127.0.0.1:8000'),
-    '/engines-dist':    configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/c/*/edit':       configHelper.proxyOpts('https://127.0.0.1:8000'), // Can't proxy all of /c because that's used by Vue too
+    '/k/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/g/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/n/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/p/':             configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/assets':         configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/translations':   configHelper.proxyOpts('https://127.0.0.1:8000'),
+    '/engines-dist':   configHelper.proxyOpts('https://127.0.0.1:8000'),
   };
 
   const config = {
