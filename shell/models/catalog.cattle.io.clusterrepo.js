@@ -29,11 +29,15 @@ export default class ClusterRepo extends SteveModel {
     return out;
   }
 
-  refresh() {
+  async refresh() {
     const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
     this.spec.forceUpdate = now;
-    this.save();
+    await this.save();
+
+    await this.waitForState('active', 10000, 1000);
+
+    this.$dispatch('catalog/load', { force: true, reset: true }, { root: true });
   }
 
   get isGit() {

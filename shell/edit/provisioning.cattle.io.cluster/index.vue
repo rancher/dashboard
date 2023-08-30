@@ -83,9 +83,7 @@ export default {
       mgmtClusters: this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER }),
       provClusters: this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
 
-      // have force: true and reset: true because of cluster templates, which can be changed and updated via repo refresh
-      // https://github.com/rancher/dashboard/issues/9510
-      catalog: this.$store.dispatch('catalog/load', { force: true, reset: true }),
+      catalog: this.$store.dispatch('catalog/load'),
     };
 
     if (this.$store.getters[`management/canList`](MANAGEMENT.NODE_DRIVER)) {
