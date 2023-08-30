@@ -226,15 +226,14 @@ export default {
 
           return true;
         }).map((x) => {
+          const {
+            dataPreview, subTypeDisplay, metadata, id
+          } = x;
 
-          const { dataPreview, subTypeDisplay, metadata, id } = x;
-
-          const label = subTypeDisplay && dataPreview 
-          ? `${ metadata.name } (${ x.subTypeDisplay }: ${ dataPreview })` 
-          : `${ metadata.name } (${ x.subTypeDisplay })`
+          const label = subTypeDisplay && dataPreview ? `${ metadata.name } (${ x.subTypeDisplay }: ${ dataPreview })` : `${ metadata.name } (${ x.subTypeDisplay })`;
 
           return {
-            label: label,
+            label,
             group: metadata.namespace,
             value: id,
           };
