@@ -1,5 +1,5 @@
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
-import { FleetDashboardPagePo } from '~/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 
 describe('Git Repo', { tags: '@adminUser' }, () => {
   beforeEach(() => {

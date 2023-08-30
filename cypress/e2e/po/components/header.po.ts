@@ -1,5 +1,5 @@
-import ComponentPo from '~/cypress/e2e/po/components/component.po';
-import { WorkspaceSwitcherPo } from '~/cypress/e2e/po/components/namespace-filter.po';
+import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 
 export class HeaderPo extends ComponentPo {
   constructor() {
