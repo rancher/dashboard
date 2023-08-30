@@ -51,17 +51,6 @@ describe('formatter', () => {
       }
     },
     {
-      id:       'test3',
-      _type:    'Opaque',
-      data:     { hash: 'test', 'encryption-provider-config.yaml': 'MTIzNFFhYWEh' },
-      metadata: {
-        namespace: 'test',
-        state:     {
-          error: false, message: 'Resource is always ready', name: 'active', transitioning: false
-        }
-      }
-    },
-    {
       id:       'test6',
       _type:    'Opaque',
       data:     { hash: 'test5', 'encryption-provider-config.yaml': 'MTIzNFFhYWEh' },
@@ -75,7 +64,7 @@ describe('formatter', () => {
     }];
   const chart = 'test';
 
-  it.each([[chart, 2], ['test1', 0]])( 'should show correct number of secrets', ( chartVal: string, result: number) => {
+  it.each([[chart, 2], ['test1', 0]])('should show correct number of secrets', (chartVal: string, result: number) => {
     const res = formatEncryptionSecretNames(secrets, chartVal);
 
     expect(res).toHaveLength(result);
