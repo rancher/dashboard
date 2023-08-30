@@ -53,9 +53,13 @@ export class GitRepoCreatePo extends PagePo {
     setGitRepoUrl(url: string) {
       return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
     }
+    
+    setHelmRepoURLRegex(regexStr = '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') {
+      return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(regexStr);
+    }
 
     setGitRepoPath(path: string, index = 0) {
-      return this.gitRepoPaths().setValueAtIndex(index, path);
+      return this.gitRepoPaths().setValueAtIndex(path, index);
     }
 
     goToNext() {

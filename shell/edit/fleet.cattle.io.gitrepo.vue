@@ -152,7 +152,7 @@ export default {
       stepRepoInfo,
       stepTargetInfo,
       addRepositorySteps,
-      displayhelmRepoUrlRegex: false
+      displayhelmRepoURLRegex: false
     };
   },
 
@@ -262,7 +262,7 @@ export default {
     targetCluster:              'updateTargets',
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
-    displayhelmRepoUrlRegex:    'updatehelmRepoUrlRegex',
+    displayhelmRepoURLRegex:    'updatehelmRepoURLRegex',
 
     tlsMode:  'updateTls',
     caBundle: 'updateTls',
@@ -293,7 +293,7 @@ export default {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
 
       if(key === 'helmSecretName') {
-        this.displayhelmRepoUrlRegex = val && val.selected !== AUTH_TYPE._NONE;
+        this.displayhelmRepoURLRegex = val && val.selected !== AUTH_TYPE._NONE;
       }
 
     },
@@ -310,9 +310,9 @@ export default {
       this.updateCachedAuthVal(val, key);
     },
 
-    updatehelmRepoUrlRegex() {
-      if (!this.displayhelmRepoUrlRegex) {
-        delete this.value.spec?.helmRepoUrlRegex;
+    updatehelmRepoURLRegex() {
+      if (!this.displayhelmRepoURLRegex) {
+        delete this.value.spec?.helmRepoURLRegex;
       }
     },
 
@@ -581,6 +581,17 @@ export default {
         @inputauthval="updateCachedAuthVal($event, 'clientSecretName')"
       />
 
+      <div class="row mt-20" v-if="displayhelmRepoURLRegex">
+        <div class="col span-6">
+        <LabeledInput
+            data-testid="gitrepo-helm-repo-url-regex"
+            v-model="value.spec.helmRepoURLRegex"
+            :mode="mode"
+            label-key="fleet.gitRepo.helmRepoURLRegex"
+          />
+        </div>
+      </div>
+      
       <SelectOrCreateAuthSecret
         data-testid="gitrepo-helm-auth"
         :value="value.spec.helmSecretName"
@@ -596,15 +607,7 @@ export default {
         @inputauthval="updateCachedAuthVal($event, 'helmSecretName')"
       />
 
-      <div class="row mt-20" v-if="displayhelmRepoUrlRegex">
-        <div class="col span-4">
-        <LabeledInput
-            v-model="value.spec.helmRepoUrlRegex"
-            :mode="mode"
-            label-key="fleet.gitRepo.helmRepoUrlRegex"
-          />
-        </div>
-      </div>
+
 
       <template v-if="isTls">
         <div class="spacer" />
