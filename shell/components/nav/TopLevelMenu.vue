@@ -464,6 +464,7 @@ export default {
                     {{ c.label }}
                   </div>
                   <Pinned
+                    :class="{'showPin': c.pinned}"
                     :clusterId="c.id"
                   />
                 </nuxt-link>
@@ -756,6 +757,10 @@ export default {
           margin-left: auto;
           margin-right: 4px;
           display: none;
+
+          &.showPin {
+            display: block;
+          }
         }
 
         &:hover {
