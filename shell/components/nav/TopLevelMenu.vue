@@ -914,16 +914,6 @@ export default {
           margin: 0;
          }
 
-        .clustersPinned {
-          border-bottom: 1px solid var(--nav-border);
-          margin-bottom: 8px;
-          padding-bottom: 8px;
-
-          .pin {
-            display: block;
-          }
-        }
-
         .nuxt-link-active {
           color: var(--primary-text);
         }
@@ -1053,6 +1043,19 @@ export default {
           }
         }
       }
+
+      .clustersPinned {
+        .category {
+          &-title {
+            hr {
+              width: 25px;
+            }
+          }
+        }
+      }
+      .clusters-all {
+        flex-direction: row;
+        margin-left: 8px;
 
       .clustersPinned {
         .category {
