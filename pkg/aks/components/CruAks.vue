@@ -1,17 +1,12 @@
 <script lang='ts'>
-// todo nb aksClusterConfig not properly deleted? Do we need to delete the norman aks cluster?
 
 /**
- * TODOS musts
- * - hide + label auth ip ranges
+ * TODOS
  * - load prov clusters so it shows up in the list immediately after saving
- * - fix column sizes
- * - fix capitalization of strings
- * - add placeholders
- * x track when user has touched region-specific fields
- * x add validation when user selects a region that doesn't contain chosen vm size, k8s version, or network
  * - set new defaults when user changes region-specific fields if they haven't been touched
  * - fix taints labels formatting
+ * - aksConfig resource not deleted...?
+ * - registration tab shows on detail view
  */
 
 import { defineComponent } from 'vue';
