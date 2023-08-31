@@ -64,9 +64,8 @@ describe('Users', { tags: '@adminUser' }, () => {
     userCreate.selectCheckbox('User-Base').set();
     userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
 
-    // usersPo.goTo();
     usersPo.waitForPage();
-    usersPo.list().elementWithName(userBaseUsername).should('be.visible');
+    usersPo.list().elementWithName(userBaseUsername).scrollIntoView().should('be.visible');
   });
 
   it('can create Standard User and view their details', () => {
@@ -84,7 +83,7 @@ describe('Users', { tags: '@adminUser' }, () => {
       userId = res.response?.body.userId;
 
       usersPo.waitForPage();
-      usersPo.list().elementWithName(standardUsername).should('be.visible');
+      usersPo.list().elementWithName(standardUsername).scrollIntoView().should('be.visible');
 
       // view user's details
       usersPo.list().details(standardUsername, 2).find('a').click();

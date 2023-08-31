@@ -563,9 +563,8 @@ export default {
 
   .menu {
     position: absolute;
-    left: 0;
-    width: 55px;
-    height: 55px;
+    width: 54px;
+    height: 54px;
     top: 0;
     grid-area: menu;
     cursor: pointer;
