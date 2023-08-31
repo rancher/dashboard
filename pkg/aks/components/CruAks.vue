@@ -107,8 +107,8 @@ export default defineComponent({
     ArrayList,
     ClusterMembershipEditor,
     Labels,
-    // Tabbed,
-    // Tab,
+    Tabbed,
+    Tab,
     Accordion
   },
 
@@ -706,6 +706,35 @@ export default defineComponent({
           />
         </div>
       </div>
+      <div><h4>Node Pools</h4></div>
+      <Tabbed
+        ref="pools"
+        :side-tabs="true"
+        :show-tabs-add-remove="mode !== 'view'"
+        :rules="fvGetAndReportPathRules('vmSize')"
+        class="mb-10"
+        @addTab="addPool($event)"
+        @removeTab="removePool($event)"
+      >
+        <Tab
+          v-for="(pool, i) in nodePools"
+          :key="pool._id"
+          :name="pool.name"
+          :label="pool.name || '(Not Named)'"
+          :error="pool._validSize === false"
+        >
+          <AksNodePool
+            :mode="mode"
+            :region="config.resourceLocation"
+            :pool="pool"
+            :vm-size-options="vmSizeOptions"
+            :loading-vm-sizes="loadingVmSizes"
+            :isPrimaryPool="i===0"
+            @remove="removePool(pool)"
+            @vmSizeSet="touchedVmSize = true"
+          />
+        </Tab>
+      </Tabbed>
 
       <template v-if="config.resourceLocation && config.resourceLocation.length">
         <Accordion
@@ -809,6 +838,7 @@ export default defineComponent({
         <Accordion
           class="mb-10"
           title="Networking"
+          :open-initially="true"
         >
           <div class="row mb-10">
             <div class="col span-3">
@@ -977,7 +1007,7 @@ export default defineComponent({
             :mode="mode"
           />
         </Accordion>
-        <Accordion
+        <!-- <Accordion
           :open-initially="true"
           class="mb-10"
           title="Node Pools"
@@ -1007,7 +1037,7 @@ export default defineComponent({
           >
             Add Node Pool
           </button>
-        </Accordion>
+        </Accordion> -->
       </template>
     </div>
   </CruResource>
