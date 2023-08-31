@@ -1,3 +1,5 @@
+// Taken from @nuxt/vue-app/template/client.js
+
 import Vue from 'vue';
 import fetch from 'unfetch';
 import middleware from '../config/middleware.js';
@@ -21,7 +23,7 @@ import { createApp, NuxtError } from './index.js';
 import fetchMixin from '../mixins/fetch.client';
 import NuxtLink from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
 
-// Mimic old @nuxt/node_modules/vue-app/template/client.js
+// Mimic old @nuxt/vue-app/template/client.js
 const isDev = process.env.dev;
 const debug = isDev;
 

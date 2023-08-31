@@ -1,3 +1,5 @@
+// Taken from @nuxt/vue-app/template/index.js
+
 import Vue from 'vue';
 import Meta from 'vue-meta';
 import ClientOnly from 'vue-client-only';

@@ -410,11 +410,6 @@ module.exports = function(dir, _appConfig) {
           dashboardVersion
         }),
 
-        // Set some process properties from @nuxt/webpack/dist/webpack.js that are still in use
-        'process.mode':   JSON.stringify(dev ? 'development' : 'production'),
-        'process.dev':    dev,
-        'process.static': false,
-        'process.target': JSON.stringify('server'),
       }));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
