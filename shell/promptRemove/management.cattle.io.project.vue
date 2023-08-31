@@ -71,9 +71,12 @@ export default {
     names() {
       return this.filteredNamespaces.map((obj) => obj.nameDisplay).slice(0, 5);
     },
-    // Only admins and cluster owners can see namespaces outside of projects
-    canSeeProjectlessNamespaces() {
-      return this.currentCluster.canUpdate;
+
+    canManageNamespaces() {
+      // Only admins and cluster owners can see namespaces outside of projects
+      // BUT cluster members can also manage projects and namespaces and may want to not delete the namespaces associated with the project
+      // as per https://github.com/rancher/dashboard/issues/9517 despite the namespaces cannot be seen afterwards (projectless)
+      return this.currentCluster.canUpdate || (this.currentProject.canDelete && this.filteredNamespaces.length && this.filteredNamespaces[0]?.canDelete);
     }
   },
   methods: {
@@ -81,7 +84,7 @@ export default {
     remove() {
       // Delete all of thre namespaces and return false - this tells the prompt remove dialog to continue and delete the project
       // Delete all namespaces if the user wouldn't be able to see them after deleting the project
-      if (this.deleteProjectNamespaces || !this.canSeeProjectlessNamespaces) {
+      if (this.deleteProjectNamespaces || !this.canManageNamespaces) {
         return Promise.all(this.filteredNamespaces.map((n) => n.remove())).then(() => false);
       }
 
@@ -97,7 +100,7 @@ export default {
     <div>
       <div class="mb-10">
         {{ t('promptRemove.attemptingToRemove', { type }) }} <span class="display-name">{{ `${displayName}.` }}</span>
-        <template v-if="!canSeeProjectlessNamespaces">
+        <template v-if="!canManageNamespaces">
           <span class="delete-warning"> {{ t('promptRemove.willDeleteAssociatedNamespaces') }}</span> <br>
           <div
             v-clean-html="resourceNames(names, plusMore, t)"
@@ -106,7 +109,7 @@ export default {
         </template>
       </div>
       <div
-        v-if="filteredNamespaces.length > 0 && canSeeProjectlessNamespaces"
+        v-if="filteredNamespaces.length > 0 && canManageNamespaces"
         class="mt-20 remove-project-dialog"
       >
         <Checkbox

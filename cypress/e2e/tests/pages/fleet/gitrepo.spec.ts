@@ -1,6 +1,9 @@
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+<<<<<<< HEAD
 import { gitRepoCreateRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
+=======
+>>>>>>> master
 
 describe('Git Repo', { tags: '@adminUser' }, () => {
   describe('Create', () => {
@@ -12,7 +15,6 @@ describe('Git Repo', { tags: '@adminUser' }, () => {
       gitRepoCreatePage = new GitRepoCreatePo('local');
       cy.interceptAllRequests('POST');
       gitRepoCreatePage.goTo();
-
       const { name } = gitRepoCreateRequest.metadata;
       const {
         repo, branch, paths, helmRepoURLRegex

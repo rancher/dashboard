@@ -1,5 +1,5 @@
 import { FleetClusterListPagePo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.cluster.po';
-import { MenuActions } from '@shell/types/menu-actions';
+import { MenuActions } from '@/cypress/support/types/menu-actions';
 
 describe('Fleet Clusters', () => {
   describe('List', () => {

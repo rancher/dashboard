@@ -1,4 +1,4 @@
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { LOCAL_CLUSTER, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { CAPI, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { _RKE2 } from '@shell/store/prefs';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -84,7 +84,7 @@ export default class FleetCluster extends SteveModel {
   }
 
   get isLocal() {
-    return this.metadata.name === 'local' || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] === 'local';
+    return this.metadata.name === LOCAL_CLUSTER || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] === LOCAL_CLUSTER;
   }
 
   get isRke2() {
