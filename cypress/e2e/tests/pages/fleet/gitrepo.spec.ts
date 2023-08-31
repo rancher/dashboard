@@ -17,7 +17,7 @@ describe('Git Repo', { tags: '@adminUser' }, () => {
     it('Should be able to create a git repo', () => {
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.setRepoName('fleet-e2e-test-gitrepo');
-      gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-examples.git');
+      gitRepoCreatePage.setGitRepoUrl('https://github.com/rancher/fleet-test-data.git');
       gitRepoCreatePage.setBranchName();
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
       gitRepoCreatePage.goToNext();
