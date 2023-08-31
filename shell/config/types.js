@@ -312,4 +312,4 @@ export const AUTH_TYPE = {
   _S3:    '_S3'
 };
 
-export const LOCAL_CLUSTER = 'local'
+export const LOCAL_CLUSTER = 'local';
