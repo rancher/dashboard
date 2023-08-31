@@ -16,6 +16,8 @@ import { allHash } from '@shell/utils/promise';
 import { NAMESPACE, _VIEW } from '@shell/config/query-params';
 import { sortBy } from '@shell/utils/sort';
 import { get } from '@shell/utils/object';
+import { formatEncryptionSecretNames } from '@shell/utils/formatter';
+
 export default {
 
   components: {
@@ -108,7 +110,7 @@ export default {
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter((secret) => (secret.data || {})['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map((secret) => secret.metadata.name);
+      return formatEncryptionSecretNames(this.allSecrets, this.chartNamespace);
     },
 
     storageOptions() {
