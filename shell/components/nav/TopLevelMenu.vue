@@ -575,11 +575,7 @@ export default {
 
   .menu {
     position: absolute;
-<<<<<<< HEAD
     width: $app-bar-collapsed-width;
-=======
-    width: 54px;
->>>>>>> 7e66f7c9d (fix: users e2e test)
     height: 54px;
     top: 0;
     grid-area: menu;
