@@ -22,7 +22,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
-    return this.sideMenu().should('exist').find('.option div:last-child').contains(label)
+    return this.sideMenu().should('exist').find('.option').contains(label)
       .click();
   }
 
