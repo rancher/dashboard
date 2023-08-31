@@ -2,11 +2,11 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
-import VeeTokenValidations from 'mixins/vee-validations';
+import VeeTokenRules from 'mixins/vee-rules';
 
 export default {
   name:   'Workload',
-  mixins: [CreateEditView, FormValidation, WorkLoadMixin, VeeTokenValidations], // The order here is important since WorkLoadMixin contains some FormValidation configuration
+  mixins: [CreateEditView, FormValidation, WorkLoadMixin, VeeTokenRules], // The order here is important since WorkLoadMixin contains some FormValidation configuration
   props:  {
     value: {
       type:     Object,

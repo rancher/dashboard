@@ -1,6 +1,5 @@
 <script>
-import Vue from 'vue';
-import { isEmpty, uniq } from 'lodash';
+import { isEmpty } from 'lodash';
 import { createYamlWithOptions } from '@shell/utils/create-yaml';
 import { clone, get } from '@shell/utils/object';
 import { SCHEMA, NAMESPACE } from '@shell/config/types';
@@ -10,7 +9,7 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify, exceptionToErrorsArray } from '@shell/utils/error';
 import CruResourceFooter from '@shell/components/CruResourceFooter';
-import { ValidationObserver, validate } from 'vee-validate';
+import { ValidationObserver } from 'vee-validate';
 
 import {
   _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
@@ -18,12 +17,15 @@ import {
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+import VeeTokenValidation from 'mixins/vee-validation';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
 export default {
 
   name: 'CruResource',
+
+  mixins: [VeeTokenValidation],
 
   components: {
     AsyncButton,
@@ -262,35 +264,6 @@ export default {
   created() {
     if ( this._selectedSubtype ) {
       this.$emit('select-type', this._selectedSubtype);
-    }
-  },
-
-  watch: {
-    resource: {
-
-      /**
-       * Can be triggered on parent component with emit() or add a mixin and a watcher to the parent component
-       */
-
-      async handler(neu) {
-        if (!this.$refs.validator) {
-          return;
-        }
-        const rules = Object.values(this.$parent.veeTokenRules).map(({ id }) => id);
-
-        const unreportedRule = rules.find((id) => !Object.keys(this.$refs.validator.fields).includes(id));
-
-        if (unreportedRule) {
-          const selectedRule = Object.values(this.$parent.veeTokenRules).find((r) => r.id === unreportedRule);
-
-          const rule = await validate({ value: neu[selectedRule.path], getters: this.$store.getters }, selectedRule.rules);
-
-          // each rule has errors
-          Vue.set(this, 'veeTokenErrors', uniq(rule.errors[0]));
-        }
-      },
-      deep:      true,
-      immediate: true
     }
   },
 

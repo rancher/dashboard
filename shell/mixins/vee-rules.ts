@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import { validate } from 'vee-validate';
 
 interface Data {
 }
@@ -19,11 +18,4 @@ export default Vue.extend<Data, any, any, any>({
       };
     }
   },
-  methods: {
-    async veeTokenValidate(val: any, rule: any ) {
-      const res = await validate(val, rule);
-
-      return res.valid;
-    },
-  }
 });

@@ -50,7 +50,7 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { defaultContainer } from '@shell/models/workload';
 import { allHash } from '@shell/utils/promise';
-import { validate } from 'vee-validate';
+import { veeTokenValidateUtil } from '@shell/utils/vee-validators';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -606,10 +606,10 @@ export default {
     },
     'container.image': {
       async handler() {
-        const rule = await validate({ value: this.value[this.veeTokenRuleSets.image.path], getters: this.$store.getters }, this.veeTokenRuleSets.image.rules);
+        const res = await veeTokenValidateUtil(this.value, this.veeTokenRuleSets.image, this.$store.getters);
 
-        this.tabErrors.general = !rule.valid;
-        this.container.error = !rule.valid;
+        this.tabErrors.general = !res.valid;
+        this.container.error = !res.valid;
       },
       immediate: true
     }

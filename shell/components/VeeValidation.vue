@@ -1,14 +1,12 @@
 <script lang="ts">
-import Vue, { PropType } from 'vue';
+import Vue from 'vue';
 import ErrorMessage from '@components/ErrorMessage/ErrorMessage.vue';
-import VeeTokenValidations from 'mixins/vee-validations';
 import { ValidationProvider } from 'vee-validate';
 
 interface Data {}
 
 export default Vue.extend<Data, any, any, any>({
   components: { ErrorMessage, ValidationProvider },
-  mixins:     [VeeTokenValidations],
   props:      {
     rules: {
       type:     [String, Object],
