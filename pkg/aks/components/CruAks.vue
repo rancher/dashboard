@@ -583,15 +583,15 @@ export default defineComponent({
       });
     },
 
-    removePool(pool: AKSNodePool) {
-      removeObject(this.nodePools, pool);
-    },
-
-    // removePool(idx: number) {
-    //   const pool = this.nodePools[idx];
-
+    // removePool(pool: AKSNodePool) {
     //   removeObject(this.nodePools, pool);
     // },
+
+    removePool(idx: number) {
+      const pool = this.nodePools[idx];
+
+      removeObject(this.nodePools, pool);
+    },
 
     selectNetwork(network: any) {
       this.$set(this.config, 'virtualNetwork', network.name);
@@ -1024,7 +1024,7 @@ export default defineComponent({
   }
 
   .node-pool {
-    border: 1px solid var(--subtle-border);
+    // border: 1px solid var(--subtle-border);
     padding: 10px;
   }
 </style>

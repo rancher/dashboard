@@ -32,11 +32,13 @@ export default Vue.extend({
       @click="toggle"
     >
       <i
-        class="icon icon-sm text-primary"
+        class="icon text-primary"
         :class="{'icon-chevron-down':isOpen, 'icon-chevron-up':!isOpen}"
       />
       <slot name="header">
-        <span>{{ title }}</span>
+        <h4 class="mb-0">
+          {{ title }}
+        </h4>
       </slot>
     </div>
     <div
@@ -49,10 +51,13 @@ export default Vue.extend({
 </template>
 
 <style lang="scss" scoped>
+.accordion-container {
+  border: 1px solid var(--border)
+}
 .accordion-header {
   display: flex;
   align-items: center;
-  border: 1px solid var(--primary-active-bg);
+  // border: 1px solid var(--primary-active-bg);
   &>*{
     padding: 5px 0px 5px 0px;
   }
@@ -61,7 +66,7 @@ export default Vue.extend({
   }
 }
 .accordion-body {
-  border: 1px solid var(--border);
+  // border: 1px solid var(--border);
   padding: 10px;
 }
 </style>
