@@ -317,6 +317,7 @@ export default {
     flex: 1 1 auto;
     overflow-y: auto;
     min-height: 0px;
+    padding-left: 55px;
 
     &:has(.side-menu) {
     padding-left: $app-bar-collapsed-width;

@@ -30,7 +30,7 @@ export default {
   },
 
   beforeDestroy() {
-    clearTimeout(this.timer);
+    clearTimeout(this.timer);c
   }
 };
 </script>
