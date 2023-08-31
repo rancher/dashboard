@@ -5,7 +5,7 @@ export const gitRepoCreateRequest = {
     name:      'fleet-e2e-test-gitrepo'
   },
   spec: {
-    repo:         'https://github.com/Shavindra/fleet-examples.git',
+    repo:         'https://github.com/rancher/fleet-test-data.git',
     branch:       'dashboard-e2e-basic',
     paths:        ['simple'],
     correctDrift: { enabled: false },
