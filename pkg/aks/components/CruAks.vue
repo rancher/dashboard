@@ -32,6 +32,8 @@ import ArrayList from '@shell/components/form/ArrayList.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
+import Accordion from '@pkg/aks/components/Accordion.vue';
+
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
@@ -105,8 +107,9 @@ export default defineComponent({
     ArrayList,
     ClusterMembershipEditor,
     Labels,
-    Tabbed,
-    Tab
+    // Tabbed,
+    // Tab,
+    Accordion
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -580,15 +583,15 @@ export default defineComponent({
       });
     },
 
-    // removePool(pool: AKSNodePool) {
-    //   removeObject(this.nodePools, pool);
-    // },
-
-    removePool(idx: number) {
-      const pool = this.nodePools[idx];
-
+    removePool(pool: AKSNodePool) {
       removeObject(this.nodePools, pool);
     },
+
+    // removePool(idx: number) {
+    //   const pool = this.nodePools[idx];
+
+    //   removeObject(this.nodePools, pool);
+    // },
 
     selectNetwork(network: any) {
       this.$set(this.config, 'virtualNetwork', network.name);
@@ -704,581 +707,307 @@ export default defineComponent({
         </div>
       </div>
 
-      <div><h2>Node Pools</h2></div>
-      <Tabbed
-        ref="pools"
-        :side-tabs="true"
-        :show-tabs-add-remove="mode !== 'view'"
-        :rules="fvGetAndReportPathRules('vmSize')"
-        @addTab="addPool($event)"
-        @removeTab="removePool($event)"
-      >
-        <Tab
-          v-for="(pool, i) in nodePools"
-          :key="pool._id"
-          class="mb-10"
-          :name="pool.name"
-          :label="pool.name || '(Not Named)'"
-          :error="pool._validSize === false"
-        >
-          <AksNodePool
-            :mode="mode"
-            :region="config.resourceLocation"
-            :pool="pool"
-            :vm-size-options="vmSizeOptions"
-            :loading-vm-sizes="loadingVmSizes"
-            :isPrimaryPool="i===0"
-            @remove="removePool(pool)"
-            @vmSizeSet="touchedVmSize = true"
-          />
-        </Tab>
-      </Tabbed>
-
-      <!-- //todo nb loading indicator? -->
       <template v-if="config.resourceLocation && config.resourceLocation.length">
-        <div class="mt-40">
-          <h2>Cluster Configuration</h2>
-        </div>
-        <Tabbed
-          :use-hash="false"
-          :side-tabs="true"
+        <Accordion
+          :open-initially="true"
+          class="mb-10"
+          title="Basics"
         >
-          <Tab
-            :weight="99"
-            name="Basics"
+          <div
+            :style="{'display': 'flex', 'align-items':'center'}"
+            class="row mb-10"
           >
-            <div
-              :style="{'display': 'flex', 'align-items':'center'}"
-              class="row mb-10"
-            >
-              <div class="col span-3">
-                <LabeledInput
-                  v-model="config.linuxAdminUsername"
-                  :mode="mode"
-                  label="Linux Admin Username"
-                  :disabled="!isNew"
-                />
-              </div>
-              <div class="col span-3">
-                <LabeledInput
-                  v-model="config.resourceGroup"
-                  :mode="mode"
-                  label="Cluster Resource Group"
-                  :disabled="!isNew"
-                  :rules="fvGetAndReportPathRules('resourceGroup')"
-                  :required="true"
-                  placeholder="aks-resource-group"
-                />
-              </div>
-              <div class="col span-3">
-                <LabeledInput
-                  v-model="config.nodeResourceGroup"
-                  :mode="mode"
-                  label="Node Resource Group"
-                  :disabled="!isNew"
-                  placeholder="aks-node-resource-group"
-                />
-              </div>
-              <div class="col span-3">
-                <Checkbox
-                  v-model="containerMonitoring"
-                  :mode="mode"
-                  label="Configure Container Monitoring"
-                />
-              </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.linuxAdminUsername"
+                :mode="mode"
+                label="Linux Admin Username"
+                :disabled="!isNew"
+              />
             </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.resourceGroup"
+                :mode="mode"
+                label="Cluster Resource Group"
+                :disabled="!isNew"
+                :rules="fvGetAndReportPathRules('resourceGroup')"
+                :required="true"
+                placeholder="aks-resource-group"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.nodeResourceGroup"
+                :mode="mode"
+                label="Node Resource Group"
+                :disabled="!isNew"
+                placeholder="aks-node-resource-group"
+              />
+            </div>
+            <div class="col span-3">
+              <Checkbox
+                v-model="containerMonitoring"
+                :mode="mode"
+                label="Configure Container Monitoring"
+              />
+            </div>
+          </div>
 
-            <div class="row mb-10">
-              <template v-if="containerMonitoring">
-                <div class="col span-3">
-                  <LabeledInput
-                    v-model="config.logAnalyticsWorkspaceGroup"
-                    :mode="mode"
-                    label="Log Analytics Workspace Resource Group"
-                  />
-                </div>
-                <div class="col span-3">
-                  <LabeledInput
-                    v-model="config.logAnalyticsWorkspaceName"
-                    :mode="mode"
-                    label="Log Analytics Workspace Name"
-                  />
-                </div>
-              </template>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-6">
-                <div class="ssh-key">
-                  <LabeledInput
-                    v-model="config.sshPublicKey"
-                    :mode="mode"
-                    label="SSH Public Key"
-                    type="multiline"
-                    placeholder="Paste in your SSH public key"
-                  />
-                  <FileSelector
-                    :mode="mode"
-                    label="Read from File"
-                    class="role-tertiary mt-10"
-                    @selected="e=>$set(config, 'sshPublicKey', e)"
-                  />
-                </div>
-              </div>
-              <div class="col span-6">
-                <KeyValue
-                  v-model="config.tags"
-                  :mode="mode"
-                  title="Tags"
-                  add-label="Add Tag"
-                >
-                  <template #title>
-                    <div class="text-label">
-                      Tags
-                    </div>
-                  </template>
-                </KeyValue>
-              </div>
-            </div>
-          </Tab>
-          <Tab
-            :weight="98"
-            name="Networking"
-          >
-            <div class="row mb-10">
+          <div class="row mb-10">
+            <template v-if="containerMonitoring">
               <div class="col span-3">
-                <LabeledSelect
-                  v-model="config.loadBalancerSku"
-                  label="Loadbalancer SKU"
-                  tooltip="The Loadbalancer SKU must be 'Standard' if availability zones have been selected"
-                  :disabled="!canEditLoadBalancerSKU || !isNew"
-                  :options="['Standard', 'Basic']"
+                <LabeledInput
+                  v-model="config.logAnalyticsWorkspaceGroup"
+                  :mode="mode"
+                  label="Log Analytics Workspace Resource Group"
                 />
               </div>
               <div class="col span-3">
                 <LabeledInput
-                  v-model="config.dnsPrefix"
+                  v-model="config.logAnalyticsWorkspaceName"
                   :mode="mode"
-                  label="DNS Prefix"
-                  :disabled="!isNew"
-                  :required="true"
-                  :rules="fvGetAndReportPathRules('dnsPrefix')"
-                  placeholder="aks-dns-xxxxx"
+                  label="Log Analytics Workspace Name"
                 />
-              </div>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-3">
-                <LabeledSelect
-                  v-model="config.networkPlugin"
-                  :mode="mode"
-                  :options="networkPluginOptions"
-                  label="Network Plugin"
-                  :disabled="!isNew"
-                />
-              </div>
-              <div class="col span-3">
-                <LabeledSelect
-                  v-model="networkPolicy"
-                  :mode="mode"
-                  :options="networkPolicyOptions"
-                  label="Network Policy"
-                  option-key="value"
-                  :reduce="opt=>opt.value"
-                  tooltip="The Azure network policy is only available when the Azure network plugin is selected"
-                  :disabled="!isNew"
-                />
-              </div>
-              <template v-if="hasAzureCNI">
-                <div
-                  class="col span-3"
-                >
-                  <!-- //todo nb nicer display -->
-                  <LabeledSelect
-                    :value="config.virtualNetwork"
-                    label="Virtual Network"
-                    :mode="mode"
-                    :options="virtualNetworkOptions"
-                    :loading="loadingVirtualNetworks"
-                    option-label="name"
-                    :disabled="!isNew"
-                    :rules="fvGetAndReportPathRules('networkPolicy')"
-                    @selecting="selectNetwork($event)"
-                  />
-                </div>
-              </template>
-            </div>
-
-            <!-- azure cni configuration -->
-            <template v-if="hasAzureCNI">
-              <div class="row mb-10">
-                <div class="col span-3">
-                  <LabeledInput
-                    v-model="config.serviceCidr"
-                    :mode="mode"
-                    label="Kubernetes Service Address Range"
-                    :disabled="!isNew"
-                  />
-                </div>
-                <div class="col span-3">
-                  <LabeledInput
-                    v-model="config.podCidr"
-                    :mode="mode"
-                    label="Kubernetes Pod Address Range"
-                    :disabled="!isNew"
-                  />
-                </div>
-                <div class="col span-3">
-                  <LabeledInput
-                    v-model="config.dnsServiceIp"
-                    :mode="mode"
-                    label="Kubernetes DNS Service IP Range"
-                    :disabled="!isNew"
-                  />
-                </div>
-                <div class="col span-3">
-                  <LabeledInput
-                    v-model="config.dockerBridgeCidr"
-                    :mode="mode"
-                    label="Docker Bridge Address"
-                    :disabled="!isNew"
-                  />
-                </div>
               </div>
             </template>
-            <div class="row mb-10">
-              <div class="networking-checkboxes col span-6">
-                <Checkbox
-                  v-model="value.enableNetworkPolicy"
+          </div>
+          <div class="row mb-10">
+            <div class="col span-6">
+              <div class="ssh-key">
+                <LabeledInput
+                  v-model="config.sshPublicKey"
                   :mode="mode"
-                  label="Project Network Isolation"
+                  label="SSH Public Key"
+                  type="multiline"
+                  placeholder="Paste in your SSH public key"
+                />
+                <FileSelector
+                  :mode="mode"
+                  label="Read from File"
+                  class="role-tertiary mt-10"
+                  @selected="e=>$set(config, 'sshPublicKey', e)"
+                />
+              </div>
+            </div>
+            <div class="col span-6">
+              <KeyValue
+                v-model="config.tags"
+                :mode="mode"
+                title="Tags"
+                add-label="Add Tag"
+              >
+                <template #title>
+                  <div class="text-label">
+                    Tags
+                  </div>
+                </template>
+              </KeyValue>
+            </div>
+          </div>
+        </Accordion>
+        <Accordion
+          class="mb-10"
+          title="Networking"
+        >
+          <div class="row mb-10">
+            <div class="col span-3">
+              <LabeledSelect
+                v-model="config.loadBalancerSku"
+                label="Loadbalancer SKU"
+                tooltip="The Loadbalancer SKU must be 'Standard' if availability zones have been selected"
+                :disabled="!canEditLoadBalancerSKU || !isNew"
+                :options="['Standard', 'Basic']"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.dnsPrefix"
+                :mode="mode"
+                label="DNS Prefix"
+                :disabled="!isNew"
+                :required="true"
+                :rules="fvGetAndReportPathRules('dnsPrefix')"
+                placeholder="aks-dns-xxxxx"
+              />
+            </div>
+          </div>
+          <div class="row mb-10">
+            <div class="col span-3">
+              <LabeledSelect
+                v-model="config.networkPlugin"
+                :mode="mode"
+                :options="networkPluginOptions"
+                label="Network Plugin"
+                :disabled="!isNew"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledSelect
+                v-model="networkPolicy"
+                :mode="mode"
+                :options="networkPolicyOptions"
+                label="Network Policy"
+                option-key="value"
+                :reduce="opt=>opt.value"
+                tooltip="The Azure network policy is only available when the Azure network plugin is selected"
+                :disabled="!isNew"
+              />
+            </div>
+            <template v-if="hasAzureCNI">
+              <div
+                class="col span-3"
+              >
+                <!-- //todo nb nicer display -->
+                <LabeledSelect
+                  :value="config.virtualNetwork"
+                  label="Virtual Network"
+                  :mode="mode"
+                  :options="virtualNetworkOptions"
+                  :loading="loadingVirtualNetworks"
+                  option-label="name"
+                  :disabled="!isNew"
+                  :rules="fvGetAndReportPathRules('networkPolicy')"
+                  @selecting="selectNetwork($event)"
+                />
+              </div>
+            </template>
+          </div>
+
+          <!-- azure cni configuration -->
+          <template v-if="hasAzureCNI">
+            <div class="row mb-10">
+              <div class="col span-3">
+                <LabeledInput
+                  v-model="config.serviceCidr"
+                  :mode="mode"
+                  label="Kubernetes Service Address Range"
                   :disabled="!isNew"
                 />
-                <Checkbox
-                  v-model="config.httpApplicationRouting"
+              </div>
+              <div class="col span-3">
+                <LabeledInput
+                  v-model="config.podCidr"
                   :mode="mode"
-                  label="HTTP Application Routing"
-                />
-                <Checkbox
-                  v-model="config.privateCluster"
-                  :mode="mode"
-                  label="Enable Private Cluster"
-                  :disabled="!canEditPrivateCluster"
-                />
-                <Checkbox
-                  v-model="setAuthorizedIPRanges"
-                  :mode="mode"
-                  label="Set Authorized IP Ranges"
-                  :disabled="config.privateCluster"
+                  label="Kubernetes Pod Address Range"
+                  :disabled="!isNew"
                 />
               </div>
-              <div
-                v-if="setAuthorizedIPRanges"
-                class="col span-6"
-              >
-                <ArrayList
-                  v-model="config.authorizedIpRanges"
+              <div class="col span-3">
+                <LabeledInput
+                  v-model="config.dnsServiceIp"
                   :mode="mode"
-                  :initial-empty-row="true"
-                  value-placeholder="10.0.0.0/14"
-                  title="Authorized IP Ranges"
-                >
-                  <template #title>
-                    <div class="text-label">
-                      Authorized IP Ranges
-                    </div>
-                  </template>
-                </ArrayList>
+                  label="Kubernetes DNS Service IP Range"
+                  :disabled="!isNew"
+                />
               </div>
-            </div>
-          </Tab>
-          <Tab
-            :weight="97"
-            name="Cluster Membership"
-          >
-            <ClusterMembershipEditor
-              v-if="canManageMembers"
-              :mode="mode"
-              :parent-id="normanCluster.id ? normanCluster.id : null"
-              @membership-update="onMembershipUpdate"
-            />
-          </Tab>
-          <Tab
-            :weight="96"
-            name="Labels and Annotations"
-          >
-            <Labels
-              v-model="normanCluster"
-              :mode="mode"
-            />
-          </Tab>
-          </tabs>
-        </Tabbed>
-
-        <!-- cluster config -->
-        <!-- <div class="row mb-10">
-          <div class="col span-4">
-            <LabeledSelect
-              v-model="config.kubernetesVersion"
-              :mode="mode"
-              :options="aksVersionOptions"
-              label="kubernetes version"
-              option-key="value"
-              option-label="label"
-              :loading="loadingVersions"
-              required
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model="config.linuxAdminUsername"
-              :mode="mode"
-              label="linux admin username"
-              :disabled="!isNew"
-            />
-          </div>
-        </div>
-        <div class="row mb-10">
-          <div class="col span-4">
-            <LabeledInput
-              v-model="config.resourceGroup"
-              :mode="mode"
-              label="cluster resource group"
-              :disabled="!isNew"
-              :rules="fvGetAndReportPathRules('resourceGroup')"
-              :required="true"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model="config.nodeResourceGroup"
-              :mode="mode"
-              label="node resource group"
-              :disabled="!isNew"
-              :rules="fvGetAndReportPathRules('nodeResourceGroup')"
-              :required="true"
-            />
-          </div>
-        </div>
-        <div class="row mb-10">
-          <div class="col span-4">
-            <Checkbox
-              v-model="containerMonitoring"
-              :mode="mode"
-              label="configure container monitoring"
-            />
-          </div>
-          <template v-if="containerMonitoring">
-            <div class="col span-4">
-              <LabeledInput
-                v-model="config.logAnalyticsWorkspaceGroup"
-                :mode="mode"
-                label="log analytics workspace resource group"
-              />
-            </div>
-            <div class="col span-4">
-              <LabeledInput
-                v-model="config.logAnalyticsWorkspaceName"
-                :mode="mode"
-                label="log analytics workspace name"
-              />
+              <div class="col span-3">
+                <LabeledInput
+                  v-model="config.dockerBridgeCidr"
+                  :mode="mode"
+                  label="Docker Bridge Address"
+                  :disabled="!isNew"
+                />
+              </div>
             </div>
           </template>
-        </div>
-        <div class="row mb-10">
-          <div class="col span-6">
-            <div class="ssh-key">
-              <LabeledInput
-                v-model="config.sshPublicKey"
-                :mode="mode"
-                label="SSH public key"
-                type="multiline"
-              />
-              <FileSelector
-                :mode="mode"
-                label="read from a file"
-                class="role-tertiary"
-                @selected="e=>$set(config, 'sshPublicKey', e)"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="row mb-10">
-          <div class="col span-12">
-            <KeyValue
-              v-model="config.tags"
-              :mode="mode"
-              title="tags"
-            />
-          </div>
-        </div> -->
-
-        <!-- networking -->
-        <!-- <div class="row mb-10">
-          <div class="col span-4">
-            <LabeledSelect
-              v-model="config.loadBalancerSku"
-              label="loadbalancer sku"
-              tooltip="load balancer sku must be 'standard' if availability zones have been selected"
-              :disabled="!canEditLoadBalancerSKU || !isNew"
-              :options="['Standard', 'Basic']"
-            />
-          </div>
-        </div>
-        <div class="row mb-10">
-          <div class="col span-4">
-            <LabeledSelect
-              v-model="networkPolicy"
-              :mode="mode"
-              :options="networkPolicyOptions"
-              label="network policy"
-              option-key="value"
-              :reduce="opt=>opt.value"
-              tooltip="azure is only available when azure has been selected as the network plugin"
-              :disabled="!isNew"
-            />
-          </div>
-          <div class="col span-4">
-            <LabeledInput
-              v-model="config.dnsPrefix"
-              :mode="mode"
-              label="dns prefix"
-              :disabled="!isNew"
-              :required="true"
-              :rules="fvGetAndReportPathRules('dnsPrefix')"
-            />
-          </div>
-        </div>
-        <div class="row mb-10">
-          <div class="col span-4">
-            <LabeledSelect
-              v-model="config.networkPlugin"
-              :mode="mode"
-              :options="networkPluginOptions"
-              label="network plugin"
-              :disabled="!isNew"
-            />
-          </div>
-        </div>
-        azure cni configuration
-        <template v-if="hasAzureCNI">
           <div class="row mb-10">
-            <div class="col span-4">
-              <LabeledSelect
-                :value="config.virtualNetwork"
-                label="virtual network"
+            <div class="networking-checkboxes col span-6">
+              <Checkbox
+                v-model="value.enableNetworkPolicy"
                 :mode="mode"
-                :options="virtualNetworkOptions"
-                :loading="loadingVirtualNetworks"
-                option-label="name"
-                :disabled="!isNew"
-                @selecting="selectNetwork($event)"
-              />
-            </div>
-          </div>
-          <div class="row mb-10">
-            <div class="col span-3">
-              <LabeledInput
-                v-model="config.serviceCidr"
-                :mode="mode"
-                label="kubernetes service address range"
+                label="Project Network Isolation"
                 :disabled="!isNew"
               />
-            </div>
-            <div class="col span-3">
-              <LabeledInput
-                v-model="config.podCidr"
+              <Checkbox
+                v-model="config.httpApplicationRouting"
                 :mode="mode"
-                label="kubernetes pod address range"
-                :disabled="!isNew"
+                label="HTTP Application Routing"
+              />
+              <Checkbox
+                v-model="config.privateCluster"
+                :mode="mode"
+                label="Enable Private Cluster"
+                :disabled="!canEditPrivateCluster"
+              />
+              <Checkbox
+                v-model="setAuthorizedIPRanges"
+                :mode="mode"
+                label="Set Authorized IP Ranges"
+                :disabled="config.privateCluster"
               />
             </div>
-            <div class="col span-3">
-              <LabeledInput
-                v-model="config.dnsServiceIp"
+            <div
+              v-if="setAuthorizedIPRanges"
+              class="col span-6"
+            >
+              <ArrayList
+                v-model="config.authorizedIpRanges"
                 :mode="mode"
-                label="kubernetes dns service ip range"
-                :disabled="!isNew"
-              />
+                :initial-empty-row="true"
+                value-placeholder="10.0.0.0/14"
+                title="Authorized IP Ranges"
+              >
+                <template #title>
+                  <div class="text-label">
+                    Authorized IP Ranges
+                  </div>
+                </template>
+              </ArrayList>
             </div>
-            <div class="col span-3">
-              <LabeledInput
-                v-model="config.dockerBridgeCidr"
-                :mode="mode"
-                label="docker bridge address"
-                :disabled="!isNew"
-              />
-            </div>
           </div>
-        </template>
-        <div class="row mb-10">
-          <div class="col span-3">
-            <Checkbox
-              v-model="value.enableNetworkPolicy"
-              :mode="mode"
-              label="project network isolation"
-              :disabled="!isNew"
-            />
-          </div>
-          <div class="col span-3">
-            <Checkbox
-              v-model="config.httpApplicationRouting"
-              :mode="mode"
-              label="http application routing"
-            />
-          </div>
-          <div class="col span-3">
-            <Checkbox
-              v-model="setAuthorizedIPRanges"
-              :mode="mode"
-              label="set authorized ip ranges"
-              :disabled="config.privateCluster"
-            />
-          </div>
-
-          <div class="col span-3">
-            <Checkbox
-              v-model="config.privateCluster"
-              :mode="mode"
-              label="enable private cluster"
-              :disabled="!canEditPrivateCluster"
-            />
-          </div>
-        </div>
-        <div class="row mb-10">
-          <div class="col span-6">
-            <ArrayList
-              v-model="config.authorizedIpRanges"
-              :mode="mode"
-              label="authorized ip ranges"
-            />
-          </div>
-        </div> -->
-
-        <!-- node pools -->
-        <!-- <div
-          v-for="(pool, i) in nodePools"
-          :key="pool._id"
+        </Accordion>
+        <Accordion
           class="mb-10"
+          title="Cluster Members"
         >
-          <AksNodePool
+          <ClusterMembershipEditor
+            v-if="canManageMembers"
             :mode="mode"
-            :region="config.resourceLocation"
-            :pool="pool"
-            :vm-size-options="vmSizeOptions"
-            :loading-vm-sizes="loadingVmSizes"
-            :isPrimaryPool="i===0"
-            @remove="removePool(pool)"
+            :parent-id="normanCluster.id ? normanCluster.id : null"
+            @membership-update="onMembershipUpdate"
           />
-        </div>
-        <div>
+        </Accordion>
+        <Accordion
+          class="mb-10"
+          title="Labels and Annotations"
+        >
+          <Labels
+            v-model="normanCluster"
+            :mode="mode"
+          />
+        </Accordion>
+        <Accordion
+          :open-initially="true"
+          class="mb-10"
+          title="Node Pools"
+        >
+          <div
+            v-for="(pool, i) in nodePools"
+            :key="pool._id"
+            :name="pool.name"
+            class="mb-10"
+          >
+            <AksNodePool
+              :mode="mode"
+              :region="config.resourceLocation"
+              :pool="pool"
+              :vm-size-options="vmSizeOptions"
+              :loading-vm-sizes="loadingVmSizes"
+              :isPrimaryPool="i===0"
+              class="node-pool"
+              @remove="removePool(pool)"
+              @vmSizeSet="touchedVmSize = true"
+            />
+          </div>
           <button
             type="button"
-            class="btn role-tertiary"
+            class="btn role-tertiary mt-20"
             @click="addPool"
           >
-            add node pool
+            Add Node Pool
           </button>
-        </div> -->
+        </Accordion>
       </template>
     </div>
   </CruResource>
@@ -1292,5 +1021,10 @@ export default defineComponent({
     &>*{
       margin-bottom: 10px;
     }
+  }
+
+  .node-pool {
+    border: 1px solid var(--subtle-border);
+    padding: 10px;
   }
 </style>
