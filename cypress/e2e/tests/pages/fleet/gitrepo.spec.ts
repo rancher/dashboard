@@ -1,9 +1,6 @@
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
 import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
-<<<<<<< HEAD
 import { gitRepoCreateRequest } from '@/cypress/e2e/blueprints/fleet/gitrepos';
-=======
->>>>>>> master
 
 describe('Git Repo', { tags: '@adminUser' }, () => {
   describe('Create', () => {
