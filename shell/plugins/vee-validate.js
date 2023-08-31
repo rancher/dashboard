@@ -3,7 +3,7 @@ import * as veeRules from 'vee-validate/dist/rules';
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import CustomValidators from '@shell/utils/custom-validators';
 
-function extend(rule) {
+export function extend(rule) {
   const veeRule = (veeRules || [])[rule];
 
   veeExtend(rule, {
@@ -13,7 +13,7 @@ function extend(rule) {
   });
 }
 
-function create(rule, args) {
+export function create(rule, args) {
   veeExtend(rule, {
     params:  ['message'],
     message: '{message}',

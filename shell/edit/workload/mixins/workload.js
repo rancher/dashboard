@@ -51,6 +51,7 @@ import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { defaultContainer } from '@shell/models/workload';
 import { allHash } from '@shell/utils/promise';
 import { veeTokenValidateUtil } from '@shell/utils/vee-validators';
+import { create } from '@shell/plugins/vee-validate';
 
 const TAB_WEIGHT_MAP = {
   general:              99,
@@ -295,6 +296,18 @@ export default {
       idKey:          ID_KEY,
       tabErrors:      { general: false },
     };
+  },
+
+  mounted() {
+    /**
+     * Define extra rule
+     */
+    create('container-name', {
+      validate: (value) => {
+        return /[0-9]/.test(value);
+      },
+      computesRequired: true,
+    });
   },
 
   computed: {

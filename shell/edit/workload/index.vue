@@ -21,6 +21,17 @@ export default {
   data() {
     return { selectedName: null };
   },
+  computed: {
+    veeTokenExtraRules() {
+      return {
+        containerName: {
+          id:             'containerName',
+          rules:          'container-name',
+          translationKey: 'generic.name',
+        },
+      };
+    }
+  },
   methods: {
     changed(tab) {
       const key = this.idKey;
@@ -196,6 +207,7 @@ export default {
                       v-model="allContainers[i].name"
                       :mode="mode"
                       :label="t('workload.container.containerName')"
+                      :vee-token-rules="veeTokenRules.containerName"
                     />
                   </div>
                   <div class="col span-6">
