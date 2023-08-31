@@ -374,10 +374,10 @@ export default {
     &.expanded:has(> .active),
     &.expanded:has(> ul li.nuxt-link-active) {
       background: var(--nav-active);
-    }
 
-    &.expanded > .header h6 {
-      font-weight: bold;
+      > .header h6 {
+        font-weight: bold;
+      }
     }
   }
 

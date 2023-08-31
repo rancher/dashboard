@@ -208,7 +208,6 @@ export default {
     &.nav-type:not(.depth-0) {
       A {
         font-size: 13px;
-        padding-left: 32px;
       }
 
       ::v-deep .label I {
