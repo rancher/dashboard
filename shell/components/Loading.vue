@@ -75,7 +75,7 @@ export default {
     }
 
     &-content-mode {
-      left: calc(var(--nav-width) + 55px);
+      left: calc(var(--nav-width) + 70px);
       top: var(--header-height);
     }
   }

@@ -450,7 +450,7 @@ export default {
                     :icon="a.icon"
                     :src="a.svg"
                   />
-                  <div>{{ a.label }}</div>
+                  <span class="option-link">{{ a.label }}</span>
                 </nuxt-link>
               </div>
             </template>
@@ -559,11 +559,12 @@ export default {
   $clear-search-size: 20px;
   $icon-size: 25px;
   $option-padding: 9px;
+  $option-padding-left: 13px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
   .menu {
     position: absolute;
-    width: 54px;
+    width: 70px;
     height: 54px;
     top: 0;
     grid-area: menu;
@@ -584,7 +585,7 @@ export default {
     top: 0;
     left: 0px;
     bottom: 0;
-    width: 54px;
+    width: 70px;
     background-color: var(--topmenu-bg);
     z-index: 100;
     border-right: 1px solid var(--topmost-border);
@@ -615,15 +616,19 @@ export default {
       .menu {
         display: flex;
         justify-content: center;
-        margin-right: 10px;
       }
       .menu-icon {
         width: 24px;
         height: 24px;
       }
     }
+    .home {
+      svg {
+         margin-left: 8px;
+      }
+    }
     .home-text {
-      margin-left: 10px;
+      margin-left: $option-padding-left - 2;
     }
     .body {
       flex: 1;
@@ -669,18 +674,19 @@ export default {
         }
 
         > i {
-          width: $icon-size;
+          display: block;
+          width: 42px;
           font-size: $icon-size;
-          margin-right: 14px;
+          margin-right: 16px;
         }
 
         .rancher-provider-icon,
         svg {
-          margin-right: 14px;
+          margin-right: 16px;
           fill: var(--link);
         }
         img {
-          margin-right: 14px;
+          margin-right: 16px;
         }
 
         &.nuxt-link-active {
@@ -723,7 +729,7 @@ export default {
       }
 
       .option, .option-disabled {
-        padding: $option-padding 0 $option-padding 14px;
+        padding: $option-padding 0 $option-padding $option-padding-left;
       }
 
       .search {
@@ -763,7 +769,6 @@ export default {
         min-height: 15vh;
 
          a, span {
-          padding-left: 6px;
           margin: 0;
          }
 
@@ -774,14 +779,14 @@ export default {
         &-search {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 14px;
           margin: 16px 0;
           height: 42px;
 
           .search {
             transition: all 0.5s ease-in-out;
             transition-delay: 2s;
-            width: 75%;
+            width: 72%;
             height: 42px;
 
             input {
@@ -798,7 +803,7 @@ export default {
             align-items: center;
             justify-content: center;
             color: var(--default-active-text);
-            margin-left: 6px;
+            margin-left: $option-padding-left;
             border-radius: 5px;
             font-size: 9px;
             font-weight: bold;
@@ -844,11 +849,15 @@ export default {
 
           hr {
             margin: 0;
-            max-width: 25px;
+            max-width: 50px;
             width: 0;
             transition: all 0.5s ease-in-out;
           }
         }
+
+         i {
+            padding-left: $option-padding-left - 4;
+          }
       }
     }
 
@@ -860,13 +869,13 @@ export default {
           }
 
           hr {
-            width: 25px;
+            width: 40px;
           }
         }
       }
       .clusters-all {
         flex-direction: row;
-        margin-left: 8px;
+        margin-left: $option-padding-left + 2;
 
         span {
           i {
@@ -918,7 +927,7 @@ export default {
   .side-menu-logo {
     align-items: center;
     display: flex;
-    margin-left: 65px;
+    margin-left: 71px;
     opacity: 1;
     transition: opacity 1.2s;
     transition-delay: 0s;

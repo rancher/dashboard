@@ -317,7 +317,7 @@ export default {
     flex: 1 1 auto;
     overflow-y: auto;
     min-height: 0px;
-    padding-left: 55px;
+    padding-left: 70px;
 
     &.pin-right {
       grid-template-areas:
