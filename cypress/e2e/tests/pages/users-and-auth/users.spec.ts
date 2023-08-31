@@ -1,8 +1,8 @@
+import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import * as path from 'path';
 import * as jsyaml from 'js-yaml';
-import MgmtUserEditPo from '@/cypress/e2e/po/edit/management.cattle.io.user.po';
+import * as path from 'path';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();

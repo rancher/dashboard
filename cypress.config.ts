@@ -67,7 +67,6 @@ console.log(`    Dashboard URL: ${ baseUrl }`); // eslint-disable-line no-consol
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
 
 console.log(`    Rancher API URL: ${ apiUrl }`); // eslint-disable-line no-console
-
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,

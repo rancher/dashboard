@@ -13,6 +13,10 @@ export default class BurgerMenuPo extends ComponentPo {
     return cy.getId('top-level-menu').should('be.visible').click({ force: true });
   }
 
+  static open(): Cypress.Chainable {
+    return cy.getId('top-level-menu').should('be.visible').click({ force: true });
+  }
+
   /**
    * Navigates to a top-level side menu entry by label (non-cluster)
    * @returns {Cypress.Chainable}
@@ -35,14 +39,22 @@ export default class BurgerMenuPo extends ComponentPo {
    * Check if menu is open
    */
   static checkOpen() {
-    this.sideMenu().should('exist');
+    this.sideMenu().should('have.class', 'menu-open');
   }
 
   /**
    * Check if menu is closed
    */
   static checkClosed() {
-    this.sideMenu().should('not.exist');
+    this.sideMenu().should('have.class', 'menu-close');
+  }
+
+  static checkTooltipOn(): Cypress.Chainable {
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'has-tooltip');
+  }
+
+  static checkTooltipOff(): Cypress.Chainable {
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'has-tooltip');
   }
 
   /**

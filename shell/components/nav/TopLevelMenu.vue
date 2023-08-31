@@ -1,6 +1,6 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
-import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
+import ClusterProviderIconMenu from '@shell/components/ClusterProviderIconMenu';
 import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
@@ -18,7 +18,7 @@ export default {
 
   components: {
     BrandImage,
-    ClusterProviderIcon,
+    ClusterProviderIconMenu,
     IconOrSvg
   },
 
@@ -74,9 +74,9 @@ export default {
           return p;
         }, {});
 
-        // Filter to only show mgmt clusters that exist for the available provisionning clusters
+        // Filter to only show mgmt clusters that exist for the available provisioning clusters
         // Addresses issue where a mgmt cluster can take some time to get cleaned up after the corresponding
-        // provisionning cluster has been deleted
+        // provisioning cluster has been deleted
         kubeClusters = kubeClusters.filter((c) => !!available[c]);
       }
 
@@ -91,7 +91,8 @@ export default {
           providerNavLogo: x.providerMenuLogo,
           badge:           x.badge,
           isLocal:         x.isLocal,
-          isHarvester:     x.isHarvester
+          isHarvester:     x.isHarvester,
+          pinned:          true,
         };
       });
     },
@@ -101,9 +102,22 @@ export default {
 
       const out = search ? this.clusters.filter((item) => item.label.toLowerCase().includes(search)) : this.clusters;
 
-      const sorted = sortBy(out, ['name:desc', 'label']);
+      const sorted = sortBy(out, ['ready:desc', 'ready']);
+      // If more than 8 elements, return the first 8 clusters
 
-      return sorted;
+      if (sorted.length >= this.maxClustersToShow) {
+        return sorted.slice(0, this.maxClustersToShow);
+      } else {
+        return sorted;
+      }
+    },
+
+    showMoreNumber() {
+      if (!this.clustersFiltered || !this.showClusterSearch) {
+        return;
+      }
+
+      return this.clustersFiltered.length;
     },
 
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
@@ -198,18 +212,6 @@ export default {
   },
 
   methods: {
-    // Cluster list number of items shown is configurable via user preference
-    setClusterListHeight(maxToShow) {
-      const el = this.$refs.clusterList;
-      const max = Math.min(maxToShow, this.clusters.length);
-
-      if (el) {
-        const h = 33 * max;
-
-        el.style.minHeight = `${ h }px`;
-        el.style.maxHeight = `${ h }px`;
-      }
-    },
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -222,9 +224,6 @@ export default {
 
     toggle() {
       this.shown = !this.shown;
-      this.$nextTick(() => {
-        this.setClusterListHeight(this.maxClustersToShow);
-      });
     },
 
     async goToHarvesterCluster() {
@@ -234,29 +233,23 @@ export default {
         await localCluster.goToHarvesterCluster();
       } catch {
       }
-    }
+    },
+    getTooltipConfig(item) {
+      if (!this.shown && !item) {
+        return;
+      }
+
+      if (!this.shown) {
+        return { content: item, placement: 'right' };
+      } else {
+        return { content: undefined };
+      }
+    },
   }
 };
 </script>
 <template>
   <div>
-    <div
-      data-testid="top-level-menu"
-      class="menu"
-      :class="{'raised': shown, 'unraised':!shown}"
-      @click="toggle()"
-    >
-      <svg
-        class="menu-icon"
-        xmlns="http://www.w3.org/2000/svg"
-        height="24"
-        viewBox="0 0 24 24"
-        width="24"
-      ><path
-        d="M0 0h24v24H0z"
-        fill="none"
-      /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
-    </div>
     <div
       v-if="shown"
       class="side-menu-glass"
@@ -264,24 +257,40 @@ export default {
     />
     <transition name="fade">
       <div
-        v-if="shown"
         data-testid="side-menu"
         class="side-menu"
+        :class="{'menu-open': shown, 'menu-close':!shown}"
         tabindex="-1"
       >
         <div class="title">
-          <div class="menu-spacer" />
+          <div
+            data-testid="top-level-menu"
+            class="menu"
+            @click="toggle()"
+          >
+            <svg
+              class="menu-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              height="24"
+              viewBox="0 0 24 24"
+              width="24"
+            ><path
+              d="M0 0h24v24H0z"
+              fill="none"
+            /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
+          </div>
           <div class="side-menu-logo">
             <BrandImage file-name="rancher-logo.svg" />
           </div>
         </div>
         <div class="body">
-          <div @click="hide()">
+          <div>
             <nuxt-link
               class="option cluster selector home"
               :to="{ name: 'home' }"
             >
               <svg
+                v-tooltip="getTooltipConfig(t('nav.home'))"
                 xmlns="http://www.w3.org/2000/svg"
                 height="24"
                 viewBox="0 0 24 24"
@@ -290,16 +299,39 @@ export default {
                 d="M0 0h24v24H0z"
                 fill="none"
               /><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" /></svg>
-              <div>
+              <div class="home-text">
                 {{ t('nav.home') }}
               </div>
             </nuxt-link>
+
+            <div
+              v-if="showClusterSearch"
+              class="clusters-search"
+            >
+              <div class="clusters-search-count">
+                <span>{{ showMoreNumber }}</span>
+                {{ t('nav.search.clusters') }}
+              </div>
+
+              <div
+                class="search"
+              >
+                <input
+                  ref="clusterFilter"
+                  v-model="clusterFilter"
+                  :placeholder="t('nav.search.placeholder')"
+                >
+                <i
+                  v-if="clusterFilter"
+                  class="icon icon-close"
+                  @click="clusterFilter=''"
+                />
+              </div>
+            </div>
           </div>
 
           <template v-if="hciApps.length">
-            <div class="category">
-              {{ t('nav.categories.hci') }}
-            </div>
+            <div class="category" />
             <div>
               <a
                 v-if="isRancherInHarvester"
@@ -334,25 +366,6 @@ export default {
           </template>
 
           <template v-if="clusters && !!clusters.length">
-            <div class="category">
-              {{ t('nav.categories.explore') }}
-            </div>
-
-            <div
-              v-if="showClusterSearch"
-              class="search"
-            >
-              <input
-                ref="clusterFilter"
-                v-model="clusterFilter"
-                :placeholder="t('nav.search.placeholder')"
-              >
-              <i
-                v-if="clusterFilter"
-                class="icon icon-close"
-                @click="clusterFilter=''"
-              />
-            </div>
             <div
               ref="clusterList"
               class="clusters"
@@ -364,13 +377,14 @@ export default {
               >
                 <nuxt-link
                   v-if="c.ready"
+                  :data-testid="`menu-cluster-${ c.id }`"
                   class="cluster selector option"
                   :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                 >
-                  <ClusterProviderIcon
-                    :small="true"
+                  <ClusterProviderIconMenu
+                    v-tooltip="getTooltipConfig(c?.label)"
                     :cluster="c"
-                    class="rancher-provider-icon mr-10"
+                    class="rancher-provider-icon"
                   />
                   <div class="cluster-name">
                     {{ c.label }}
@@ -378,12 +392,12 @@ export default {
                 </nuxt-link>
                 <span
                   v-else
-                  class="option-disabled cluster selector disabled"
+                  class="option cluster selector disabled"
                 >
-                  <ClusterProviderIcon
-                    :small="true"
+                  <ClusterProviderIconMenu
+                    v-tooltip="getTooltipConfig(c?.label)"
                     :cluster="c"
-                    class="rancher-provider-icon mr-10"
+                    class="rancher-provider-icon"
                   />
                   <div class="cluster-name">{{ c.label }}</div>
                 </span>
@@ -395,74 +409,110 @@ export default {
                 {{ t('nav.search.noResults') }}
               </div>
             </div>
+
+            <nuxt-link
+              v-if="clusters.length > maxClustersToShow"
+              class="clusters-all"
+              :to="{name: 'c-cluster-product-resource', params: {
+                cluster: '_',
+                product: 'manager',
+                resource: 'provisioning.cattle.io.cluster'
+              } }"
+            >
+              <span>
+                {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
+                <i class="icon icon-chevron-right" />
+              </span>
+            </nuxt-link>
           </template>
 
-          <template v-if="multiClusterApps.length">
-            <div class="category">
-              {{ t('nav.categories.multiCluster') }}
-            </div>
-            <div
-              v-for="a in multiClusterApps"
-              :key="a.label"
-              @click="hide()"
-            >
-              <nuxt-link
-                class="option"
-                :to="a.to"
+          <div class="category">
+            <template v-if="multiClusterApps.length">
+              <div
+                class="category-title"
               >
-                <IconOrSvg
-                  :icon="a.icon"
-                  :src="a.svg"
-                />
-                <div>{{ a.label }}</div>
-              </nuxt-link>
-            </div>
-          </template>
-          <template v-if="legacyEnabled">
-            <div class="category">
-              {{ t('nav.categories.legacy') }}
-            </div>
-            <div
-              v-for="a in legacyApps"
-              :key="a.label"
-              @click="hide()"
-            >
-              <nuxt-link
-                class="option"
-                :to="a.to"
+                <hr>
+                <span>
+                  {{ t('nav.categories.multiCluster') }}
+                </span>
+              </div>
+              <div
+                v-for="a in multiClusterApps"
+                :key="a.label"
+                @click="hide()"
               >
-                <IconOrSvg
-                  :icon="a.icon"
-                  :src="a.svg"
-                />
-                <div>{{ a.label }}</div>
-              </nuxt-link>
-            </div>
-          </template>
-          <template v-if="configurationApps.length">
-            <div class="category">
-              {{ t('nav.categories.configuration') }}
-            </div>
-            <div
-              v-for="a in configurationApps"
-              :key="a.label"
-              @click="hide()"
-            >
-              <nuxt-link
-                class="option"
-                :to="a.to"
+                <nuxt-link
+                  class="option"
+                  :to="a.to"
+                >
+                  <IconOrSvg
+                    v-tooltip="getTooltipConfig(a?.label)"
+                    :icon="a.icon"
+                    :src="a.svg"
+                  />
+                  <div>{{ a.label }}</div>
+                </nuxt-link>
+              </div>
+            </template>
+            <template v-if="legacyEnabled">
+              <div
+                class="category-title"
               >
-                <IconOrSvg
-                  :icon="a.icon"
-                  :src="a.svg"
-                />
-                <div>{{ a.label }}</div>
-              </nuxt-link>
-            </div>
-          </template>
-          <div class="pad" />
+                <hr>
+                <span>
+                  {{ t('nav.categories.multiCluster') }}
+                </span>
+              </div>
+              <div
+                v-for="a in legacyApps"
+                :key="a.label"
+                @click="hide()"
+              >
+                <nuxt-link
+                  class="option"
+                  :to="a.to"
+                >
+                  <IconOrSvg
+                    v-tooltip="getTooltipConfig(a?.label)"
+                    :icon="a.icon"
+                    :src="a.svg"
+                  />
+                  <div>{{ a.label }}</div>
+                </nuxt-link>
+              </div>
+            </template>
+            <template v-if="configurationApps.length">
+              <div
+                class="category-title"
+              >
+                <hr>
+                <span>
+                  {{ t('nav.categories.multiCluster') }}
+                </span>
+              </div>
+              <div
+                v-for="a in configurationApps"
+                :key="a.label"
+                @click="hide()"
+              >
+                <nuxt-link
+                  class="option"
+                  :to="a.to"
+                >
+                  <IconOrSvg
+                    v-tooltip="getTooltipConfig(a?.label)"
+                    :icon="a.icon"
+                    :src="a.svg"
+                  />
+                  <div>{{ a.label }}</div>
+                </nuxt-link>
+              </div>
+            </template>
+          </div>
         </div>
-        <div class="footer">
+        <div
+          class="footer"
+        >
           <div
             v-if="canEditSettings"
             @click="hide()"
@@ -485,39 +535,9 @@ export default {
   </div>
 </template>
 
-<style scoped>
-  .cluster.disabled > * {
-    cursor: not-allowed;
-    filter: grayscale(1);
-    color: var(--muted);
-  }
-</style>
-
 <style lang="scss">
   .localeSelector, .footer-tooltip {
     z-index: 1000;
-  }
-
-  .cluster {
-    &.selector:not(.disabled):hover {
-      color: var(--primary-hover-text);
-      background: var(--primary-hover-bg);
-      border-radius: 5px;
-      text-decoration: none;
-
-      .rancher-provider-icon {
-        .rancher-icon-fill {
-          fill: var(--primary-hover-text);;
-        }
-      }
-    }
-
-    .rancher-provider-icon {
-      .rancher-icon-fill {
-        // Should match .option color
-        fill: var(--link);
-      }
-    }
   }
 
   .localeSelector {
@@ -533,99 +553,39 @@ export default {
       outline: 0;
     }
   }
-
 </style>
 
 <style lang="scss" scoped>
   $clear-search-size: 20px;
   $icon-size: 25px;
-  $option-padding: 4px;
+  $option-padding: 9px;
   $option-height: $icon-size + $option-padding + $option-padding;
-
-  .option {
-    align-items: center;
-    cursor: pointer;
-    display: flex;
-    color: var(--link);
-
-    &:hover {
-      text-decoration: none;
-    }
-
-    &:focus {
-      outline: 0;
-      > div {
-        text-decoration: underline;
-      }
-    }
-
-    > i {
-      width: $icon-size;
-      font-size: $icon-size;
-      margin-right: 8px;
-    }
-    svg {
-      margin-right: 8px;
-      fill: var(--link);
-    }
-    img {
-      margin-right: 8px;
-    }
-
-    > div {
-      color: var(--link);
-    }
-
-    &:hover {
-      color: var(--primary-hover-text);
-      background: var(--primary-hover-bg);
-      border-radius: 5px;
-      > div {
-        color: var(--primary-hover-text);
-      }
-      svg {
-        fill: var(--primary-hover-text);
-      }
-      div {
-        color: var(--primary-hover-text);
-      }
-    }
-  }
-
-  .option, .option-disabled {
-    padding: $option-padding 0 $option-padding 10px;
-  }
 
   .menu {
     position: absolute;
     left: 0;
     width: 55px;
-    height: 54px;
+    height: 55px;
     top: 0;
     grid-area: menu;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    &:hover {
-      background-color: var(--topmost-light-hover);
-    }
+
     .menu-icon {
       width: 24px;
       height: 24px;
       fill: var(--header-btn-text);
     }
-    &.raised {
-      z-index: 200;
-    }
   }
 
   .side-menu {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0px;
     bottom: 0;
-    width: 280px;
+    width: 54px;
     background-color: var(--topmenu-bg);
     z-index: 100;
     border-right: 1px solid var(--topmost-border);
@@ -633,9 +593,15 @@ export default {
     display: flex;
     flex-direction: column;
     padding: 0;
+    overflow: hidden;
+    transition: width 500ms;
 
     &:focus {
       outline: 0;
+    }
+
+     &.menu-open {
+      width: 300px;
     }
 
     .title {
@@ -646,64 +612,119 @@ export default {
       border-bottom: 1px solid var(--nav-border);
       justify-content: flex-start;
       align-items: center;
+
       .menu {
         display: flex;
         justify-content: center;
-        width: 55px;
         margin-right: 10px;
       }
       .menu-icon {
         width: 24px;
         height: 24px;
       }
-      .menu-spacer {
-        width: 55px;
-      }
+    }
+    .home-text {
+      margin-left: 10px;
     }
     .body {
       flex: 1;
       display: flex;
       flex-direction: column;
-      margin: 10px 20px;
-      overflow-y: auto;
+      margin: 10px 0;
+      width: 300px;
+      overflow: auto;
 
-      .category {
-        padding: 10px 0;
-        text-transform: uppercase;
-        opacity: 0.8;
-        margin-top: 10px;
-      }
-
-      .home {
-        color: var(--link);
-      }
-
-      .home:focus {
-        outline: 0;
-      }
-
-      .cluster {
+      .option {
         align-items: center;
+        cursor: pointer;
         display: flex;
+        color: var(--link);
+        font-size: 14px;
         height: $option-height;
-
         white-space: nowrap;
+
+        .cluster-badge-logo-text {
+          color: var(--default-active-text);
+          font-weight: 500;
+        }
+
+        &:hover {
+          text-decoration: none;
+        }
+        &.disabled {
+          background: transparent;
+          cursor: not-allowed;
+
+          .rancher-provider-icon,
+          .cluster-name {
+            filter: grayscale(1);
+            color: var(--muted);
+          }
+        }
+
         &:focus {
           outline: 0;
+          > div {
+            text-decoration: underline;
+          }
         }
+
+        > i {
+          width: $icon-size;
+          font-size: $icon-size;
+          margin-right: 14px;
+        }
+
+        .rancher-provider-icon,
+        svg {
+          margin-right: 14px;
+          fill: var(--link);
+        }
+        img {
+          margin-right: 14px;
+        }
+
+        &.nuxt-link-active {
+          background: var(--primary-hover-bg);
+          color: var(--primary-hover-text);
+
+          svg {
+            fill: var(--primary-hover-text);
+          }
+
+          i {
+            color: var(--primary-hover-text);
+          }
+        }
+
+        &:hover {
+          color: var(--primary-hover-text);
+          background: var(--primary-hover-bg);
+          > div {
+            color: var(--primary-hover-text);
+          }
+          svg {
+            fill: var(--primary-hover-text);
+          }
+          div {
+            color: var(--primary-hover-text);
+          }
+          &.disabled {
+            background: transparent;
+            color: var(--muted);
+          }
+        }
+
         .cluster-name {
-          text-overflow: ellipsis;
+          max-width: 220px;
+          white-space: nowrap;
           overflow: hidden;
-        }
-        > img {
-          max-height: $icon-size;
-          max-width: $icon-size;
-          margin-right: 8px;
+          text-overflow: ellipsis;
         }
       }
 
-      .pad {
-        flex: 1;
+      .option, .option-disabled {
+        padding: $option-padding 0 $option-padding 14px;
       }
 
       .search {
@@ -716,7 +737,7 @@ export default {
         > i {
           position: absolute;
           font-size: $clear-search-size;
-          top: 9px;
+          top: 11px;
           right: 8px;
           opacity: 0.7;
           cursor: pointer;
@@ -726,18 +747,143 @@ export default {
         }
       }
 
+      .clusters-all {
+        display: flex;
+        flex-direction: row-reverse;
+        margin-right: 16px;
+        margin-top: 10px;
+
+        span {
+          display: flex;
+          align-items: center;
+        }
+      }
+
       .clusters {
         overflow-y: auto;
-        overflow-x: hidden;
+        min-height: 15vh;
+
+         a, span {
+          padding-left: 6px;
+          margin: 0;
+         }
+
+        .nuxt-link-active {
+          color: white;
+        }
+
+        &-search {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin: 16px 0;
+          height: 42px;
+
+          .search {
+            transition: all 0.5s ease-in-out;
+            transition-delay: 2s;
+            width: 75%;
+            height: 42px;
+
+            input {
+              height: 100%;
+            }
+          }
+
+          &-count {
+            display: flex;
+            flex-direction: column;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--default-active-text);
+            margin-left: 6px;
+            border-radius: 5px;
+            font-size: 9px;
+            font-weight: bold;
+
+            span {
+              font-size: 12px;
+            }
+
+            .nuxt-link-active {
+              &:hover {
+                text-decoration: none;
+              }
+            }
+          }
+        }
       }
 
       .none-matching {
         padding: 8px
       }
+
+      .category {
+        display: flex;
+        flex-direction: column;
+        place-content: flex-end;
+        flex: 1;
+
+        &-title {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+          align-items: center;
+          margin: 20px 0 10px 0;
+          margin-left: 16px;
+          font-size: 14px;
+          text-transform: uppercase;
+
+          span {
+            transition: all 0.5s ease-in-out;
+            display: flex;
+            max-height: 16px;
+          }
+
+          hr {
+            margin: 0;
+            max-width: 25px;
+            width: 0;
+            transition: all 0.5s ease-in-out;
+          }
+        }
+      }
     }
+
+    &.menu-close {
+      .category {
+        &-title {
+          span {
+            opacity: 0;
+          }
+
+          hr {
+            width: 25px;
+          }
+        }
+      }
+      .clusters-all {
+        flex-direction: row;
+        margin-left: 8px;
+
+        span {
+          i {
+            display: none;
+          }
+        }
+      }
+      .footer {
+        visibility: hidden;
+      }
+    }
+
     .footer {
       margin: 20px;
-
+      width: 240px;
+      visibility: visible;
       display: flex;
       flex: 0;
       flex-direction: row;
@@ -761,7 +907,6 @@ export default {
   }
 
   .side-menu-glass {
-    background-color: transparent;
     position: absolute;
     top: 0;
     left: 0px;
@@ -774,12 +919,12 @@ export default {
   .side-menu-logo {
     align-items: center;
     display: flex;
-    margin-left: 10px;
+    margin-left: 65px;
     opacity: 1;
     transition: opacity 1.2s;
     transition-delay: 0s;
-    height: 55px;
     max-width: 200px;
+    overflow: hidden;
     & IMG {
       object-fit: contain;
       height: 21px;

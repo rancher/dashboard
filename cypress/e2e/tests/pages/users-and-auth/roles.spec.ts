@@ -1,5 +1,5 @@
-import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import RolesPo from '@/cypress/e2e/po/pages/users-and-auth/roles.po';
+import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import * as path from 'path';
 
@@ -15,6 +15,7 @@ const globalRoleName = `${ runPrefix }-my-global-role`;
 describe('Roles', { tags: '@adminUser' }, () => {
   beforeEach(() => {
     cy.login();
+    cy.viewport(1280, 720);
   });
 
   it('can create a Global Role', () => {

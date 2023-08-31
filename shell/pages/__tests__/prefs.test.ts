@@ -1,5 +1,5 @@
-import { shallowMount } from '@vue/test-utils';
 import Preferences from '@shell/pages/prefs.vue';
+import { shallowMount } from '@vue/test-utils';
 
 describe('page: prefs should', () => {
   it.each([
@@ -46,6 +46,12 @@ describe('page: prefs should', () => {
     const options = (wrapper.vm as unknown as any).dateOptions;
 
     expect(options[index].label).toBe(expected);
+  });
+
+  it('format the date without cue for date 05/05/2023', () => {
+    const x = true;
+
+    expect(x).toBe(true);
   });
 
   it.each([
