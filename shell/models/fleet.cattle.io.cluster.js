@@ -1,4 +1,4 @@
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { LOCAL_CLUSTER, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { CAPI, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { _RKE2 } from '@shell/store/prefs';
 import SteveModel from '@shell/plugins/steve/steve-class';
@@ -34,7 +34,7 @@ export default class FleetCluster extends SteveModel {
       enabled:  !!this.links.update
     });
 
-    if (!this.isRke2) {
+    if (this.canChangeWorkspace) {
       insertAt(out, 3, {
         action:     'assignTo',
         label:      'Change workspace',
@@ -77,6 +77,14 @@ export default class FleetCluster extends SteveModel {
 
   get canDelete() {
     return false;
+  }
+
+  get canChangeWorkspace() {
+    return !this.isRke2 && !this.isLocal;
+  }
+
+  get isLocal() {
+    return this.metadata.name === LOCAL_CLUSTER || this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] === LOCAL_CLUSTER;
   }
 
   get isRke2() {

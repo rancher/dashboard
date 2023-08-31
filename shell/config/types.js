@@ -311,3 +311,5 @@ export const AUTH_TYPE = {
   _SSH:   '_ssh',
   _S3:    '_S3'
 };
+
+export const LOCAL_CLUSTER = 'local';
