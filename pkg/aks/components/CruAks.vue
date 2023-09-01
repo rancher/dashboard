@@ -7,6 +7,7 @@
  * - fix taints labels formatting
  * - aksConfig resource not deleted...?
  * - registration tab shows on detail view
+ * - no norman????
  */
 
 import { defineComponent } from 'vue';
