@@ -491,21 +491,6 @@ export default {
             </div>
 
             <nuxt-link
-              class="clusters-all"
-              :to="{name: 'c-cluster-product-resource', params: {
-                cluster: '_',
-                product: 'manager',
-                resource: 'provisioning.cattle.io.cluster'
-              } }"
-            >
-              <span>
-                {{ shown ? t('nav.seeAllClusters') : t('nav.seeAllClustersCollapsed') }}
-                <i class="icon icon-chevron-right" />
-              </span>
-            </nuxt-link>
-          </template>
-
-            <nuxt-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
               :to="{name: 'c-cluster-product-resource', params: {
