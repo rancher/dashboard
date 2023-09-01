@@ -395,10 +395,11 @@ export default {
 
         // check if kube version compatibility is met for installed extension
         if (plugin.uiplugin) {
-          const pluginSupportedKubeVersion = plugin?.uiplugin?.metadata?.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+          const pluginSupportedKubeVersion = plugin?.uiplugin?.spec?.plugin?.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
 
           if (pluginSupportedKubeVersion) {
-            const version = { annotations: { ...plugin?.uiplugin?.metadata?.annotations } };
+            // format needed for checks
+            const version = { annotations: { ...plugin?.uiplugin?.spec?.plugin?.metadata } };
 
             if (this.kubeVersion && !isSupportedChartVersion({ version, kubeVersion: this.kubeVersion })) {
               this.showKubeVersionIncompatibilityBanner = true;
@@ -463,8 +464,11 @@ export default {
         this.latestInstalledPlugin = undefined;
 
         if (installedVersion.annotations) {
-          plugin.metadata.annotations = {
-            ...plugin.metadata.annotations,
+          if (!plugin.spec.plugin.metadata) {
+            plugin.spec.plugin.metadata = {};
+          }
+          plugin.spec.plugin.metadata = {
+            ...plugin.spec.plugin.metadata,
             ...installedVersion.annotations
           };
 

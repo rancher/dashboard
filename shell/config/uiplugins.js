@@ -91,7 +91,7 @@ export function uiPluginAnnotation(chart, name) {
 
 // Should we load a plugin, based on the metadata returned by the backend?
 // Returns error key string or false
-export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
+export function shouldNotLoadPlugin(plugin, rancherVersion, kubeVersion, loadedPlugins) {
   if (!plugin.name || !plugin.version || !plugin.endpoint) {
     return 'plugins.error.generic';
   }
@@ -108,6 +108,15 @@ export function shouldNotLoadPlugin(plugin, rancherVersion, loadedPlugins) {
 
   if (requiredHost && requiredHost !== UI_PLUGIN_HOST_APP) {
     return 'plugins.error.host';
+  }
+
+  // Kube version
+  if (kubeVersion) {
+    const requiredKubeVersion = plugin.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+
+    if (requiredKubeVersion && !semver.satisfies(kubeVersion, requiredKubeVersion)) {
+      return 'plugins.error.kubeVersion';
+    }
   }
 
   // Rancher version
