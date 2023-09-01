@@ -48,6 +48,7 @@ jobs:
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
+          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
         env: 
           GREP_TAGS: '@adminUser'
           TEST_USERNAME: admin
@@ -71,7 +72,7 @@ jobs:
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
@@ -95,6 +96,7 @@ jobs:
           yarn test:ci
           mkdir -p coverage-artifacts/coverage
           cp coverage/unit/coverage-final.json coverage-artifacts/coverage/coverage-unit.json
+          cp -r coverage/unit/ coverage-artifacts/coverage/unit/
 
       - name: Upload coverage
         uses: actions/upload-artifact@v3
@@ -144,12 +146,13 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
+
       - uses: actions/setup-node@v3
         with:
           node-version: '14.x'
 
       - name: Download Coverage Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-coverage
 

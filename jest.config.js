@@ -27,6 +27,8 @@ module.exports = {
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
+    '!<rootDir>/.nuxt',
+    '!<rootDir>/.nuxt-prod',
   ],
   modulePathIgnorePatterns: [
     '<rootDir>/cypress/',
@@ -34,6 +36,9 @@ module.exports = {
     '<rootDir>/docusaurus/',
     '<rootDir>/stories/',
     '<rootDir>/shell/scripts/',
+    '<rootDir>/drone',
+    '<rootDir>/.nuxt',
+    '<rootDir>/.nuxt-prod',
   ],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
