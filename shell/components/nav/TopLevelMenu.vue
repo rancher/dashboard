@@ -128,7 +128,7 @@ export default {
 
         return sortedPinOut.filter((item) => !item.pinned);
       } else {
-        return sorted;
+        return sorted.filter((item) => !item.pinned);
       }
     },
 
@@ -444,41 +444,43 @@ export default {
                   <hr>
                 </div>
               </div>
-              <div
-                v-for="c in clustersFiltered"
-                :key="c.id"
-                @click="hide()"
-              >
-                <nuxt-link
-                  v-if="c.ready"
-                  :data-testid="`menu-cluster-${ c.id }`"
-                  class="cluster selector option"
-                  :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+              <div class="clustersList">
+                <div
+                  v-for="c in clustersFiltered"
+                  :key="c.id"
+                  @click="hide()"
                 >
-                  <ClusterProviderIconMenu
-                    v-tooltip="getTooltipConfig(c.label)"
-                    :cluster="c"
-                    class="rancher-provider-icon"
-                  />
-                  <div class="cluster-name">
-                    {{ c.label }}
-                  </div>
-                  <Pinned
-                    :class="{'showPin': c.pinned}"
-                    :clusterId="c.id"
-                  />
-                </nuxt-link>
-                <span
-                  v-else
-                  class="option cluster selector disabled"
-                >
-                  <ClusterProviderIconMenu
-                    v-tooltip="getTooltipConfig(c.label)"
-                    :cluster="c"
-                    class="rancher-provider-icon"
-                  />
-                  <div class="cluster-name">{{ c.label }}</div>
-                </span>
+                  <nuxt-link
+                    v-if="c.ready"
+                    :data-testid="`menu-cluster-${ c.id }`"
+                    class="cluster selector option"
+                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                  >
+                    <ClusterProviderIconMenu
+                      v-tooltip="getTooltipConfig(c?.label)"
+                      :cluster="c"
+                      class="rancher-provider-icon"
+                    />
+                    <div class="cluster-name">
+                      {{ c.label }}
+                    </div>
+                    <Pinned
+                      :class="{'showPin': c.pinned}"
+                      :clusterId="c.id"
+                    />
+                  </nuxt-link>
+                  <span
+                    v-else
+                    class="option cluster selector disabled"
+                  >
+                    <ClusterProviderIconMenu
+                      v-tooltip="getTooltipConfig(c?.label)"
+                      :cluster="c"
+                      class="rancher-provider-icon"
+                    />
+                    <div class="cluster-name">{{ c.label }}</div>
+                  </span>
+                </div>
               </div>
               <div
                 v-if="clustersFiltered.length === 0 && shown"
