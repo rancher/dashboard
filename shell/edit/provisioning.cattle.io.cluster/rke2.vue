@@ -245,6 +245,7 @@ export default {
       busy:                  false,
       machinePoolValidation: {}, // map of validation states for each machine pool
       allNamespaces:         [],
+      initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
     };
   },
@@ -548,13 +549,53 @@ export default {
 
       const cur = this.agentConfig['cloud-provider-name'];
 
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      if (cur && !out.find((x) => x.value === cur)) {
+        // Localization missing
+        // Look up cur in the localization file
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ cur }".label`, null, cur);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       cur,
+          unsupported: true,
+          disabled:    true
+        });
+      }
+
+      const initial = this.initialCloudProvider;
+
+      if (cur !== initial && initial && !out.find((x) => x.value === initial)) {
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ initial }".label`, null, initial);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       initial,
+          unsupported: true,
+          disabled:    true
+        });
       }
 
       return out;
     },
 
+    unsupportedCloudProvider() {
+      // The current cloud provider
+      const cur = this.initialCloudProvider;
+
+      const provider = cur && this.cloudProviderOptions.find((x) => x.value === cur);
+
+      return !!provider?.unsupported;
+    },
+
+    canNotEditCloudProvider() {
+      const canNotEdit = this.clusterIsAlreadyCreated && !this.unsupportedCloudProvider;
+
+      return canNotEdit;
+    },
+
+    /**
+     * Kube Version
+     */
     selectedVersion() {
       const str = this.value.spec.kubernetesVersion;
 
@@ -1164,6 +1205,18 @@ export default {
         this.allPSAs = res.allPSAs || [];
         this.rke2Versions = res.rke2Versions.data || [];
         this.k3sVersions = res.k3sVersions.data || [];
+
+        // For testing ---------------------------------------------------------------------------------------------
+        // Fake a 1.27 version by copying the latest version (1.26) and remove the aws cloud provider from it
+        // const add = JSON.parse(JSON.stringify(this.rke2Versions[this.rke2Versions.length -1]));
+
+        // add.id = 'v1.27.0+rke2r1';
+        // add.version = add.id;
+        // add.agentArgs['cloud-provider-name'].options = add.agentArgs['cloud-provider-name'].options.filter((a) => a !== 'aws'); // Remove the aws cloud provider
+
+        // this.rke2Versions.push(add);
+
+        /// ^^^ End of code that should be removed ---------------------------------------------------------------------------------------
 
         if (!defaultRke2) {
           const rke2Channels = res.rke2Channels.data || [];
@@ -2226,6 +2279,18 @@ export default {
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
           this.setHarvesterDefaultCloudProvider();
         }
+
+        // Cloud Provider check
+        // If the cloud provider is unsupported, switch provider to 'external'
+        if (this.unsupportedCloudProvider) {
+          set(this.agentConfig, 'cloud-provider-name', 'external');
+        } else {
+          // Switch the cloud provider back to the initial value
+          // Use changed the Kubernetes version back to a version where the initial cloud provider is valid - so switch back to this one
+          // to undo the change to external that we may have made
+          // Note: Cloud Provider can only be changed on edit when the initial provider is no longer supported
+          set(this.agentConfig, 'cloud-provider-name', this.initialCloudProvider);
+        }
       }
     },
 
@@ -2444,7 +2509,7 @@ export default {
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
+                :disabled="canNotEditCloudProvider"
                 :options="cloudProviderOptions"
                 :label="t('cluster.rke2.cloudProvider.label')"
               />
@@ -2485,6 +2550,12 @@ export default {
             <div class="spacer" />
 
             <div class="col span-12">
+              <Banner
+                v-if="unsupportedCloudProvider"
+                class="error mt-5"
+              >
+                {{ t('cluster.rke2.cloudProvider.unsupported') }}
+              </Banner>
               <h3>
                 {{ t('cluster.rke2.cloudProvider.header') }}
               </h3>
