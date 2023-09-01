@@ -46,8 +46,6 @@ export default async function(context) {
       })
     });
 
-    console.error('reqs', reqs);
-
     if (reqs.installedPlugins.status === 'fulfilled' && reqs.installedPlugins.value._status === 200) {
       const entries = reqs.installedPlugins.value.entries || reqs.installedPlugins.value.Entries || {};
 
