@@ -43,7 +43,7 @@ export default {
       return metrics.map((metric) => {
         const metricValue = get(metric, camelCase(metric.type));
         const targetType = metricValue?.target?.type;
-        const currentMatch = findBy(currentMetrics, 'type', metric.type);
+        const currentMatch = findBy(currentMetrics, 'resource.name', metric.resource.name);
         const current = currentMatch ? get(currentMatch, `${ camelCase(metric.type) }.current`) : null;
         const currentMetricsKVs = [];
 
