@@ -55,11 +55,6 @@ export default {
       required: false
     },
 
-    versionsInfo: {
-      type:     Object,
-      required: true
-    },
-
     versionInfo: {
       type:     Object,
       required: true
@@ -91,6 +86,41 @@ export default {
       type:     Boolean,
       required: true
     },
+    allPSPs: {
+      type:     Array,
+      required: false,
+      default:  null
+    },
+    allPSAs: {
+      type:     Array,
+      required: true
+    },
+    rke2Versions: {
+      type:     Array,
+      required: false,
+      default:  null
+    },
+    k3sVersions: {
+      type:     Array,
+      required: false,
+      default:  null
+    },
+    defaultRke2: {
+      type:     String,
+      required: false,
+      default:  ''
+    },
+    defaultK3s: {
+      type:     String,
+      required: false,
+      default:  ''
+    },
+    addonVersions: {
+      type:     Array,
+      required: false,
+      default:  null
+    }
+
   },
 
   data() {
@@ -106,25 +136,6 @@ export default {
     ...mapGetters(['currentCluster']),
     ...mapGetters({ features: 'features/get' }),
     ...mapGetters(['namespaces']),
-
-    allPSPs() {
-      return this.versionsInfo?.allPSPs || [];
-    },
-    allPSAs() {
-      return this.versionsInfo?.allPSAs || [];
-    },
-    rke2Versions() {
-      return this.versionsInfo?.rke2Versions?.data || [];
-    },
-    k3sVersions() {
-      return this.versionsInfo?.k3sVersions?.data || [];
-    },
-    defaultRke2() {
-      return this.versionsInfo?.defaultRke2;
-    },
-    defaultK3s() {
-      return this.versionsInfo?.defaultK3s;
-    },
 
     /**
      * Check presence of PSPs as template or CLI creation
@@ -441,7 +452,7 @@ export default {
       set(neu) {
         const out = difference(this.serverArgs.disable.options, neu);
 
-        set(this.serverConfig, 'disable', out);
+        this.$emit('enabledSystemServicesChanged', out);
       },
     },
 
@@ -481,29 +492,6 @@ export default {
 
     showCloudProvider() {
       return this.agentArgs['cloud-provider-name'];
-    },
-
-    addonNames() {
-      const names = [];
-      const cni = this.serverConfig.cni;
-
-      if ( cni ) {
-        const parts = cni.split(',').map((x) => `rke2-${ x }`);
-
-        names.push(...parts);
-      }
-
-      if (this.showCloudProvider) { // Shouldn't be removed such that changes to it will re-trigger this watch
-        if ( this.agentConfig['cloud-provider-name'] === 'rancher-vsphere' ) {
-          names.push('rancher-vsphere-cpi', 'rancher-vsphere-csi');
-        }
-
-        if ( this.agentConfig['cloud-provider-name'] === HARVESTER ) {
-          names.push(HARVESTER_CLOUD_PROVIDER);
-        }
-      }
-
-      return names;
     },
 
     showk8s21LegacyWarning() {
@@ -603,20 +591,6 @@ export default {
 
       return canNotEdit;
     }
-  },
-
-  watch: {
-
-    addonNames(neu, old) {
-      // To catch the 'some addons' --> 'no addons' case also check array length (`difference([], [1,2,3]) === []`)
-      const diff = old.length !== neu.length || difference(neu, old).length ;
-
-      if (diff) {
-        // Allow time for addonNames to update... then fetch any missing addons
-        this.$emit('addonNamesChanged'); // this.$nextTick(() => this.initAddons());
-      }
-    }
-
   },
 
   mounted() {

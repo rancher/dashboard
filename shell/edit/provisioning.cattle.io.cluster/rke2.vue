@@ -7,9 +7,6 @@ import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
-import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles';
-import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
-import * as VERSION from '@shell/utils/version';
 
 import {
   CAPI,
@@ -35,6 +32,7 @@ import { sortBy } from '@shell/utils/sort';
 import { camelToTitle, nlToBr } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
+import * as VERSION from '@shell/utils/version';
 
 import ArrayList from '@shell/components/form/ArrayList';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
@@ -75,10 +73,8 @@ import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../co
 import AgentConfiguration from './AgentConfiguration';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
-
-const PUBLIC = 'public';
-const PRIVATE = 'private';
-const ADVANCED = 'advanced';
+import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles';
+import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
@@ -201,14 +197,15 @@ export default {
       set(this.value.spec, 'rkeConfig.machineSelectorConfig', [{ config: {} }]);
     }
 
-    const truncateLimit = this.value.defaultHostnameLengthLimit;
-    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
+    // Store the initial PSP template name, so we can set it back if needed
     const lastDefaultPodSecurityPolicyTemplateName = this.value.spec.defaultPodSecurityPolicyTemplateName;
+    const previousKubernetesVersion = this.value.spec.kubernetesVersion;
+
+    const truncateLimit = this.value.defaultHostnameLengthLimit;
 
     return {
       loadedOnce:                      false,
       lastIdx:                         0,
-      versionsInfo:                    {},
       allPSPs:                         null,
       allPSAs:                         [],
       credentialId:                    '',
@@ -242,6 +239,10 @@ export default {
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange: {},
+      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
+      previousKubernetesVersion,
+      cisOverride:           false,
+      cisPsaChangeBanner:    false,
       psps:                  null, // List of policies if any
       truncateHostnames:     truncateLimit === NETBIOS_TRUNCATION_LENGTH,
       truncateLimit,
@@ -250,10 +251,6 @@ export default {
       allNamespaces:         [],
       initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
-      lastDefaultPodSecurityPolicyTemplateName, // Used for reset on k8s version changes
-      previousKubernetesVersion,
-      cisOverride:           false,
-      cisPsaChangeBanner:    false,
     };
   },
 
@@ -263,18 +260,8 @@ export default {
     ...mapGetters({ features: 'features/get' }),
     ...mapGetters(['namespaces']),
 
-    PUBLIC:   () => PUBLIC,
-    PRIVATE:  () => PRIVATE,
-    ADVANCED: () => ADVANCED,
-
     rkeConfig() {
       return this.value.spec.rkeConfig;
-    },
-    /**
-     * Define introduction of Rancher defined PSA templates
-     */
-    hasPsaTemplates() {
-      return !this.needsPSP;
     },
 
     hostnameTruncationManuallySet() {
@@ -309,8 +296,12 @@ export default {
     needsPSP() {
       return this.getNeedsPSP();
     },
-    showCni() {
-      return !!this.serverArgs.cni;
+
+    /**
+     * Define introduction of Rancher defined PSA templates
+     */
+    hasPsaTemplates() {
+      return !this.needsPSP;
     },
 
     unsupportedSelectorConfig() {
@@ -754,6 +745,10 @@ export default {
       return out;
     },
 
+    showCni() {
+      return !!this.serverArgs.cni;
+    },
+
     showCloudProvider() {
       return this.agentArgs['cloud-provider-name'];
     },
@@ -793,6 +788,10 @@ export default {
       const versions = this.addonNames.map((name) => this.versionInfo[name]?.chart);
 
       return versions.filter((x) => !!x);
+    },
+
+    canManageMembers() {
+      return canViewClusterMembershipEditor(this.$store);
     },
 
     isHarvesterDriver() {
@@ -900,9 +899,6 @@ export default {
 
       return validRequiredPools && base;
     },
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
   },
 
   watch: {
@@ -940,9 +936,6 @@ export default {
         this.$nextTick(() => this.initAddons());
       }
     },
-    addonNamesChanged() {
-      this.$nextTick(() => this.initAddons());
-    },
 
     selectedVersion() {
       this.versionInfo = {}; // Invalidate cache such that version info relevent to selected kube version is updated
@@ -954,43 +947,6 @@ export default {
       }
     },
 
-    showCloudProvider(neu) {
-      if (!neu) {
-        // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
-        // ... which will eventually update `value.spec.rkeConfig.chartValues`
-        set(this.agentConfig, 'cloud-provider-name', undefined);
-      }
-    },
-    ciliumIpv6Changed(neu) {
-      const name = this.chartVersionKey('rke2-cilium');
-      const values = this.userChartValues[name];
-
-      set(this, 'userChartValues', {
-        ...this.userChartValues,
-        [name]: {
-          ...values,
-          cilium: {
-            ...values?.cilium,
-            ipv6: {
-              ...values?.cilium?.ipv6,
-              enabled: neu
-            }
-          }
-        }
-      });
-    },
-    kubernetesChanged(neu) {
-      this.handleKubernetesChange(neu);
-    },
-    pspChanged(neu) {
-      this.handlePspChange(neu);
-    },
-    cisChanged() {
-      this.handleCisChange();
-    },
-    psaDefaultChanged() {
-      this.togglePsaDefault();
-    },
     showCni(neu) {
       // Update `serverConfig.cni to recalculate addonNames...
       // ... which will eventually update `value.spec.rkeConfig.chartValues`
@@ -1005,11 +961,15 @@ export default {
         // Type doesn't support cni, clear `cni`
         set(this.serverConfig, 'cni', undefined);
       }
-    }
-  },
+    },
 
-  mounted() {
-    window.rke = this;
+    showCloudProvider(neu) {
+      if (!neu) {
+        // No cloud provider available? Then clear cloud provider setting. This will recalculate addonNames...
+        // ... which will eventually update `value.spec.rkeConfig.chartValues`
+        set(this.agentConfig, 'cloud-provider-name', undefined);
+      }
+    },
   },
 
   created() {
@@ -1025,7 +985,6 @@ export default {
   },
 
   methods: {
-    nlToBr,
     set,
 
     /**
@@ -1082,6 +1041,14 @@ export default {
           await this.addMachinePool();
         }
       }
+
+      if ( this.value.spec.defaultPodSecurityPolicyTemplateName === undefined ) {
+        set(this.value.spec, 'defaultPodSecurityPolicyTemplateName', '');
+      }
+
+      if ( this.value.spec.defaultPodSecurityAdmissionConfigurationTemplateName === undefined ) {
+        set(this.value.spec, 'defaultPodSecurityAdmissionConfigurationTemplateName', '');
+      }
     },
 
     /**
@@ -1122,7 +1089,6 @@ export default {
 
         const res = await allHash(hash);
 
-        // Everything below this line should be cleaned up
         this.allPSPs = res.allPSPs || [];
         this.allPSAs = res.allPSAs || [];
         this.rke2Versions = res.rke2Versions.data || [];
@@ -1147,9 +1113,6 @@ export default {
         // Store default versions
         this.defaultRke2 = defaultRke2;
         this.defaultK3s = defaultK3s;
-        this.versionsInfo = {
-          ...res, defaultRke2, defaultK3s
-        };
       }
     },
 
@@ -2116,16 +2079,6 @@ export default {
     },
 
     /**
-     * Track Machine Pool validation status
-     */
-    machinePoolValidationChanged(id, value) {
-      if (value === undefined) {
-        this.$delete(this.machinePoolValidation, id);
-      } else {
-        this.$set(this.machinePoolValidation, id, value);
-      }
-    },
-    /**
      * Reset PSA on several input changes for given conditions
      */
     togglePsaDefault() {
@@ -2141,6 +2094,12 @@ export default {
         this.cisPsaChangeBanner = this.hasPsaTemplates;
       }
     },
+
+    handleCisChange() {
+      this.togglePsaDefault();
+      this.updateCisProfile();
+    },
+
     updateCisProfile() {
       // If the user selects any Worker CIS Profile,
       // protect-kernel-defaults should be set to false
@@ -2153,6 +2112,10 @@ export default {
         set(this.agentConfig, 'protect-kernel-defaults', false);
       }
     },
+
+    /**
+     * Handle k8s changes side effects, like PSP and PSA resets
+     */
     handleKubernetesChange(value) {
       if (value) {
         this.togglePsaDefault();
@@ -2180,12 +2143,56 @@ export default {
         }
       }
     },
+
+    /**
+     * Keep last PSP value
+     */
     handlePspChange(value) {
       this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
-    handleCisChange() {
+
+    /**
+     * Track Machine Pool validation status
+     */
+    machinePoolValidationChanged(id, value) {
+      if (value === undefined) {
+        this.$delete(this.machinePoolValidation, id);
+      } else {
+        this.$set(this.machinePoolValidation, id, value);
+      }
+    },
+    handleEnabledSystemServicesChanged(val) {
+      set(this.serverConfig, 'disable', val);
+    },
+    handleCiliumIpv6Changed(neu) {
+      const name = this.chartVersionKey('rke2-cilium');
+      const values = this.userChartValues[name];
+
+      set(this, 'userChartValues', {
+        ...this.userChartValues,
+        [name]: {
+          ...values,
+          cilium: {
+            ...values?.cilium,
+            ipv6: {
+              ...values?.cilium?.ipv6,
+              enabled: neu
+            }
+          }
+        }
+      });
+    },
+    handleKubernetesChanged(neu) {
+      this.handleKubernetesChange(neu);
+    },
+    handlePspChanged(neu) {
+      this.handlePspChange(neu);
+    },
+    handleCisChanged() {
+      this.handleCisChange();
+    },
+    handlePsaDefaultChanged() {
       this.togglePsaDefault();
-      this.updateCisProfile();
     },
   },
 };
@@ -2350,7 +2357,6 @@ export default {
             :mode="mode"
             :provider="provider"
             :psps="psps"
-            :versionsInfo="versionsInfo"
             :versionInfo="versionInfo"
             :userChartValues="userChartValues"
             :previousKubernetesVersion="previousKubernetesVersion"
@@ -2358,6 +2364,19 @@ export default {
             :credential="credential"
             :cisOverride="cisOverride"
             :cisPsaChangeBanner="cisPsaChangeBanner"
+            :allPSPs="allPSPs"
+            :allPSAs="allPSAs"
+            :rke2Versions="rke2Versions"
+            :k3sVersions="k3sVersions"
+            :defaultRke2="defaultRke2"
+            :defaultK3s="defaultK3s"
+            :addonVersions="addonVersions"
+            @ciliumIpv6Changed="handleCiliumIpv6Changed"
+            @enabledSystemServicesChanged="handleEnabledSystemServicesChanged"
+            @kubernetesChanged="handleKubernetesChanged"
+            @pspChanged="handlePspChanged"
+            @cisChanged="handleCisChanged"
+            @psaDefaultChanged="handlePsaDefaultChanged"
           />
         </Tab>
 
@@ -2929,6 +2948,9 @@ export default {
 <style lang="scss" scoped>
   .min-height {
     min-height: 40em;
+  }
+  .patch-version {
+    margin-top: 5px;
   }
   .header-warnings .banner {
     margin-bottom: 0;
