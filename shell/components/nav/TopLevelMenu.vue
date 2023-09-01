@@ -320,7 +320,6 @@ export default {
               </div>
             </div>
           </div>
-
           <template v-if="hciApps.length">
             <div class="category" />
             <div>
@@ -764,7 +763,7 @@ export default {
 
       .clusters {
         overflow-y: auto;
-        min-height: 10vh;
+        min-height: 15vh;
 
          a, span {
           margin: 0;
