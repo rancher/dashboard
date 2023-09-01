@@ -2361,6 +2361,9 @@ growl:
   podSecurity:
     message: "The creation of this Pod would violate existing restricted policies for the adopted Namespace"
     title: PodSecurity violation
+  kubeApiHeaderWarning:
+    titleCreate: "{resourceType} Creation Warning"
+    titleUpdate: "{resourceType} Update Warning"
 
 hpa:
   detail:

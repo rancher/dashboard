@@ -46,7 +46,7 @@ export default class MgmtUsersListPo extends BaseResourceList {
   }
 
   clickRowActionMenuItem(name: string, itemLabel:string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(name, 7).getMenuItem(itemLabel)
+    return this.resourceTable().sortableTable().rowActionMenuOpen(name).getMenuItem(itemLabel)
       .click();
   }
 }

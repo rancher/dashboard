@@ -1,5 +1,5 @@
 import { GitRepoCreatePo } from '@/cypress/e2e/po/pages/fleet/gitrepo-create.po';
-import { FleetDashboardPagePo } from '~/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
+import { FleetDashboardPagePo } from '@/cypress/e2e/po/pages/fleet/fleet-dashboard.po';
 
 describe('Git Repo', { tags: '@adminUser' }, () => {
   beforeEach(() => {
@@ -17,7 +17,7 @@ describe('Git Repo', { tags: '@adminUser' }, () => {
     it('Should be able to create a git repo', () => {
       gitRepoCreatePage.goTo();
       gitRepoCreatePage.setRepoName('fleet-e2e-test-gitrepo');
-      gitRepoCreatePage.setGitRepoUrl('https://github.com/Shavindra/fleet-examples.git');
+      gitRepoCreatePage.setGitRepoUrl('https://github.com/rancher/fleet-test-data.git');
       gitRepoCreatePage.setBranchName();
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex('simple', 0);
       gitRepoCreatePage.goToNext();
