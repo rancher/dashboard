@@ -46,6 +46,8 @@ export default async function(context) {
       })
     });
 
+    console.error('reqs', reqs);
+
     if (reqs.installedPlugins.status === 'fulfilled' && reqs.installedPlugins.value._status === 200) {
       const entries = reqs.installedPlugins.value.entries || reqs.installedPlugins.value.Entries || {};
 
@@ -72,7 +74,7 @@ export default async function(context) {
       // Not found, so extensions operator probably not installed
         console.log('Could not load UI Extensions list (Extensions Operator may not be installed)'); // eslint-disable-line no-console
       } else {
-        console.error('Could not load UI Extensions list', e); // eslint-disable-line no-console
+        console.error('Could not load UI Extensions list', reqs.installedPlugins.reason); // eslint-disable-line no-console
       }
     }
 
