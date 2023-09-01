@@ -112,14 +112,6 @@ export default {
       }
     },
 
-    showMoreNumber() {
-      if (!this.clustersFiltered || !this.showClusterSearch) {
-        return;
-      }
-
-      return this.clustersFiltered.length;
-    },
-
     maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
 
     multiClusterApps() {
@@ -309,7 +301,7 @@ export default {
               class="clusters-search"
             >
               <div class="clusters-search-count">
-                <span>{{ showMoreNumber }}</span>
+                <span>{{ clusters.length }}</span>
                 {{ t('nav.search.clusters') }}
               </div>
 
@@ -460,7 +452,7 @@ export default {
               >
                 <hr>
                 <span>
-                  {{ t('nav.categories.multiCluster') }}
+                  {{ t('nav.categories.legacy') }}
                 </span>
               </div>
               <div
@@ -487,7 +479,7 @@ export default {
               >
                 <hr>
                 <span>
-                  {{ t('nav.categories.multiCluster') }}
+                  {{ t('nav.categories.configuration') }}
                 </span>
               </div>
               <div
@@ -559,7 +551,7 @@ export default {
   $clear-search-size: 20px;
   $icon-size: 25px;
   $option-padding: 9px;
-  $option-padding-left: 13px;
+  $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
   .menu {
@@ -574,8 +566,8 @@ export default {
     justify-content: center;
 
     .menu-icon {
-      width: 24px;
-      height: 24px;
+      width: 25px;
+      height: 25px;
       fill: var(--header-btn-text);
     }
   }
@@ -618,13 +610,15 @@ export default {
         justify-content: center;
       }
       .menu-icon {
-        width: 24px;
-        height: 24px;
+        width: 25px;
+        height: 25px;
       }
     }
     .home {
       svg {
-         margin-left: 8px;
+        width: 25px;
+        height: 25px;
+        margin-left: 10px;
       }
     }
     .home-text {
@@ -677,7 +671,7 @@ export default {
           display: block;
           width: 42px;
           font-size: $icon-size;
-          margin-right: 16px;
+          margin-right: 14px;
         }
 
         .rancher-provider-icon,
@@ -766,7 +760,7 @@ export default {
 
       .clusters {
         overflow-y: auto;
-        min-height: 15vh;
+        min-height: 10vh;
 
          a, span {
           margin: 0;
@@ -805,11 +799,11 @@ export default {
             color: var(--default-active-text);
             margin-left: $option-padding-left;
             border-radius: 5px;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: bold;
 
             span {
-              font-size: 12px;
+              font-size: 14px;
             }
 
             .nuxt-link-active {
@@ -836,7 +830,7 @@ export default {
           flex-direction: row;
           align-items: flex-start;
           align-items: center;
-          margin: 20px 0 10px 0;
+          margin: 15px 0;
           margin-left: 16px;
           font-size: 14px;
           text-transform: uppercase;
@@ -856,7 +850,7 @@ export default {
         }
 
          i {
-            padding-left: $option-padding-left - 4;
+            padding-left: $option-padding-left - 5;
           }
       }
     }

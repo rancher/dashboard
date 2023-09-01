@@ -1,8 +1,8 @@
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
-import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();

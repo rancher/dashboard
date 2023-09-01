@@ -7,10 +7,10 @@ describe('Side Menu: main', () => {
   let modal;
 
   beforeEach(() => {
+    modal = new ModalWithCardPo();
     cy.login();
     HomePagePo.goTo();
     BurgerMenuPo.toggle();
-    modal = new ModalWithCardPo();
   });
   it('Opens and closes on menu icon click', { tags: ['@adminUser', '@standardUser'] }, () => {
     BurgerMenuPo.checkOpen();
