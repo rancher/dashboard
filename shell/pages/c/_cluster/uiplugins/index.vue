@@ -73,23 +73,25 @@ export default {
   data() {
     return {
       TABS_VALUES,
-      kubeVersion:                    null,
-      view:                           '',
-      charts:                         [],
-      installing:                     {},
-      errors:                         {},
-      plugins:                        [], // The installed plugins
-      helmOps:                        [], // Helm operations
-      addExtensionReposBannerSetting: undefined,
-      loading:                        true,
-      menuTargetElement:              null,
-      menuTargetEvent:                null,
-      menuOpen:                       false,
-      hasService:                     false,
-      defaultIcon:                    require('~shell/assets/images/generic-plugin.svg'),
-      reloadRequired:                 false,
-      rancherVersion:                 getVersionData()?.Version,
-      showCatalogList:                false
+      kubeVersion:                          null,
+      view:                                 '',
+      charts:                               [],
+      installing:                           {},
+      errors:                               {},
+      plugins:                              [], // The installed plugins
+      helmOps:                              [], // Helm operations
+      addExtensionReposBannerSetting:       undefined,
+      showKubeVersionIncompatibilityBanner: false,
+      latestInstalledPlugin:                undefined,
+      loading:                              true,
+      menuTargetElement:                    null,
+      menuTargetEvent:                      null,
+      menuOpen:                             false,
+      hasService:                           false,
+      defaultIcon:                          require('~shell/assets/images/generic-plugin.svg'),
+      reloadRequired:                       false,
+      rancherVersion:                       getVersionData()?.Version,
+      showCatalogList:                      false
     };
   },
 
@@ -382,6 +384,9 @@ export default {
         }
       });
 
+      // hide the kube incompatibility banner before kube version check
+      this.showKubeVersionIncompatibilityBanner = false;
+
       all.forEach((plugin) => {
         // Clamp the lengths of the descriptions
         if (plugin.description && plugin.description.length > MAX_DESCRIPTION_LENGTH) {
@@ -390,14 +395,14 @@ export default {
 
         // check if kube version compatibility is met for installed extension
         if (plugin.uiplugin) {
-          const versionInstalled = plugin.uiplugin.spec?.plugin?.version;
-          const versionInstalledData = plugin.versions.find((v) => v.version === versionInstalled);
+          const pluginSupportedKubeVersion = plugin?.uiplugin?.metadata?.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
 
-          if (versionInstalledData) {
-            const kubeVersionToCheck = versionInstalledData.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION];
+          if (pluginSupportedKubeVersion) {
+            const version = { annotations: { ...plugin?.uiplugin?.metadata?.annotations } };
 
-            if (this.kubeVersion && !isSupportedChartVersion({ version: versionInstalledData, kubeVersion: this.kubeVersion })) {
-              plugin.installedError = this.t('plugins.currentInstalledVersionBlockedByKubeVersion', { kubeVersion: this.kubeVersion, kubeVersionToCheck }, true);
+            if (this.kubeVersion && !isSupportedChartVersion({ version, kubeVersion: this.kubeVersion })) {
+              this.showKubeVersionIncompatibilityBanner = true;
+              plugin.installedError = this.t('plugins.currentInstalledVersionBlockedByKubeVersion', { kubeVersion: this.kubeVersion, kubeVersionToCheck: pluginSupportedKubeVersion }, true);
             }
           }
         }
@@ -448,6 +453,24 @@ export default {
       const installed = this.$store.getters['uiplugins/plugins'];
       const shouldHaveLoaded = (installed || []).filter((p) => !this.uiErrors[p.name] && !p.builtin);
       let changes = 0;
+
+      // An install occured and a plugin was added, let add all annotations to the UIPlugin resource (useful for other checks)
+      if (neu?.length === 1 && !installed.find((x) => neu[0].id === x.id) &&
+      this.latestInstalledPlugin && neu[0].name === this.latestInstalledPlugin.name) {
+        const plugin = neu[0];
+        const installedVersion = this.latestInstalledPlugin?.versions?.find((v) => v.version === plugin.version);
+
+        this.latestInstalledPlugin = undefined;
+
+        if (installedVersion.annotations) {
+          plugin.metadata.annotations = {
+            ...plugin.metadata.annotations,
+            ...installedVersion.annotations
+          };
+
+          plugin.save();
+        }
+      }
 
       // Did the user remove an extension
       if (neu?.length < shouldHaveLoaded.length) {
@@ -575,6 +598,9 @@ export default {
       if (plugin) {
         // Change the view to installed if we started installing a plugin
         this.$refs.tabs?.select(TABS_VALUES.INSTALLED);
+
+        // let's record the latest installed plugin
+        this.latestInstalledPlugin = plugin;
 
         // Clear the load error, if there was one previously
         this.$store.dispatch('uiplugins/setError', { name: plugin.name, error: false });
@@ -747,6 +773,15 @@ export default {
           >
             {{ t('plugins.addRepos.bannerBtn') }}
           </button>
+        </Banner>
+
+        <Banner
+          v-if="showKubeVersionIncompatibilityBanner"
+          color="error"
+          class="mb-20"
+          data-testid="extensions-kube-incompatibility-banner"
+        >
+          <span>{{ t('plugins.kubeIncompatibility.banner', {}, true) }}</span>
         </Banner>
 
         <Tabbed

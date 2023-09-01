@@ -63,7 +63,7 @@ export default async function(context) {
     // Load all of the plugins
     const pluginLoads = await allHashSettled(hash);
 
-    // Some pluigns may have failed to load - store this
+    // Some plugins may have failed to load - store this
     Object.keys(pluginLoads).forEach((name) => {
       const res = pluginLoads[name];
 

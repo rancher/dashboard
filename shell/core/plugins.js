@@ -43,7 +43,7 @@ export default function({
       return internal;
     },
 
-    // Load a plugin from a UI package
+    // Load a plugin from a UI package (external packages, not built-in)
     loadPluginAsync(plugin) {
       const { name, version } = plugin;
       const id = `${ name }-${ version }`;
