@@ -882,12 +882,13 @@ export default {
         }
       }
       .footer {
+        margin: 20px 15px;
+
         .support {
           display: none;
         }
 
         .version{
-          font-size: 12px;
           text-align: left;
         }
       }
