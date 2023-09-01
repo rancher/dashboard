@@ -129,6 +129,8 @@ export default {
         return sortedPinOut;
       } else {
         return sorted.filter((item) => !item.pinned);
+
+        return sorted.filter((item) => !item.pinned);
       }
     },
 
