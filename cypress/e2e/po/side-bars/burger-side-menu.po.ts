@@ -13,10 +13,6 @@ export default class BurgerMenuPo extends ComponentPo {
     return cy.getId('top-level-menu').should('be.visible').click({ force: true });
   }
 
-  static open(): Cypress.Chainable {
-    return cy.getId('top-level-menu').should('be.visible').click({ force: true });
-  }
-
   /**
    * Navigates to a top-level side menu entry by label (non-cluster)
    * @returns {Cypress.Chainable}
