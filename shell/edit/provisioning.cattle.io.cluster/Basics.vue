@@ -21,7 +21,6 @@ import semver from 'semver';
 import { KIND, ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
 
 const HARVESTER = 'harvester';
-const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 
 export default {
   components: {

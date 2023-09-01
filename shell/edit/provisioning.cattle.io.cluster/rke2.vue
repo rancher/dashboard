@@ -29,7 +29,7 @@ import {
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
 
-import { camelToTitle, nlToBr } from '@shell/utils/string';
+import { camelToTitle } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import * as VERSION from '@shell/utils/version';
