@@ -230,7 +230,7 @@ export default {
             dataPreview, subTypeDisplay, metadata, id
           } = x;
 
-          const label = subTypeDisplay && dataPreview ? `${ metadata.name } (${ x.subTypeDisplay }: ${ dataPreview })` : `${ metadata.name } (${ x.subTypeDisplay })`;
+          const label = subTypeDisplay && dataPreview ? `${ metadata.name } (${ subTypeDisplay }: ${ dataPreview })` : `${ metadata.name } (${ subTypeDisplay })`;
 
           return {
             label,
