@@ -4,7 +4,7 @@ import ClusterProviderIconMenu from '@shell/components/ClusterProviderIconMenu';
 import IconOrSvg from '../IconOrSvg';
 import { mapGetters } from 'vuex';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { mapPref, MENU_MAX_CLUSTERS } from '@shell/store/prefs';
+import { MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
@@ -27,11 +27,12 @@ export default {
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
-      shown:         false,
+      shown:             false,
       displayVersion,
       fullVersion,
-      clusterFilter: '',
+      clusterFilter:     '',
       hasProvCluster,
+      maxClustersToShow: MENU_MAX_CLUSTERS,
     };
   },
 
@@ -111,8 +112,6 @@ export default {
         return sorted;
       }
     },
-
-    maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
 
     multiClusterApps() {
       const options = this.options;
@@ -507,16 +506,21 @@ export default {
         >
           <div
             v-if="canEditSettings"
+            class="support"
             @click="hide()"
           >
-            <nuxt-link :to="{name: 'support'}">
+            <nuxt-link
+              :to="{name: 'support'}"
+            >
               {{ t('nav.support', {hasSupport}) }}
             </nuxt-link>
           </div>
-          <div @click="hide()">
+          <div
+            class="version"
+            @click="hide()"
+          >
             <nuxt-link
               :to="{ name: 'about' }"
-              class="version"
             >
               {{ t('about.title') }}
             </nuxt-link>
@@ -878,14 +882,20 @@ export default {
         }
       }
       .footer {
-        visibility: hidden;
+        .support {
+          display: none;
+        }
+
+        .version{
+          font-size: 12px;
+          text-align: left;
+        }
       }
     }
 
     .footer {
       margin: 20px;
       width: 240px;
-      visibility: visible;
       display: flex;
       flex: 0;
       flex-direction: row;

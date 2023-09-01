@@ -1,0 +1,7 @@
+2023/09/01 12:07:36 [INFO] Starting rke.cattle.io/v1, Kind=RKEBootstrap controller
+2023/09/01 12:07:36 [INFO] Bootstrap Password: lvpqrg8qx9fk5hsr4jrt664sx5rfj5wwphsqw8s4x4ddlv7g7jszs9
+2023/09/01 12:07:37 [INFO] Starting rke.cattle.io/v1, Kind=RKEBootstrapTemplate controller
+2023/09/01 12:07:38 [INFO] Starting rke.cattle.io/v1, Kind=RKEBootstrap controller
+2023/09/01 12:07:38 [INFO] Starting rke.cattle.io/v1, Kind=RKEBootstrapTemplate controller
+2023/09/01 12:07:39 [INFO] Watching metadata for rke.cattle.io/v1, Kind=RKEBootstrapTemplate
+2023/09/01 12:07:39 [INFO] Watching metadata for rke.cattle.io/v1, Kind=RKEBootstrap
