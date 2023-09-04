@@ -763,7 +763,7 @@ export default {
 
       .clusters {
         overflow-y: auto;
-        min-height: 15vh;
+        min-height: 35vh;
 
          a, span {
           margin: 0;
