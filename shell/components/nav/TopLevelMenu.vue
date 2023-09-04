@@ -139,14 +139,6 @@ export default {
       return sorted;
     },
 
-    showMoreNumber() {
-      if (!this.clustersFiltered || !this.showClusterSearch) {
-        return;
-      }
-
-      return this.clustersFiltered.length;
-    },
-
     multiClusterApps() {
       const options = this.options;
 
@@ -741,6 +733,7 @@ export default {
           font-size: 16px;
           margin-left: auto;
           display: none;
+          color: var(--body-text);
 
           &.showPin {
             display: block;
@@ -751,7 +744,8 @@ export default {
           text-decoration: none;
 
           .pin {
-             display: block;
+            display: block;
+            color: var(--darker-text);
           }
         }
         &.disabled {
