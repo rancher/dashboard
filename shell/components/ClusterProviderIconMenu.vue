@@ -78,7 +78,7 @@ export default {
     </div>
     <i
       v-if="cluster.pinned"
-      class="icon icon-star cluster-pin-icon"
+      class="icon icon-pin cluster-pin-icon"
     />
   </div>
 </template>
@@ -97,7 +97,8 @@ export default {
     position: absolute;
     top: -6px;
     right: -4px;
-    width: 14px;
+    font-size: 12px;
+    transform: scaleX(-1);
   }
 
   .cluster-badge-logo {

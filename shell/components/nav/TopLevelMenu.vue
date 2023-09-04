@@ -742,7 +742,6 @@ export default {
         .pin {
           font-size: 14px;
           margin-left: auto;
-          margin-right: 4px;
           display: none;
 
           &.showPin {

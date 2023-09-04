@@ -30,7 +30,7 @@ export default {
     :tabindex="0"
     :aria-checked="!!isPinned"
     class="pin icon"
-    :class="{'icon-star-open': !isPinned, 'icon-star': isPinned}"
+    :class="{'icon-pin-outlined': !isPinned, 'icon-pin': isPinned}"
     aria-role="button"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
@@ -41,5 +41,6 @@ export default {
 <style lang="scss" scoped>
   .icon {
     font-size: 14px;
+    transform: scaleX(-1);
   }
 </style>
