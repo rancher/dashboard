@@ -1933,12 +1933,13 @@ export default {
   }
 
   .paging {
-    margin-top: 10px;
+    margin-top: 20px;
     text-align: center;
 
     SPAN {
       display: inline-block;
       min-width: 200px;
+      padding: 0 20px 0 20px;
     }
   }
   </style>
