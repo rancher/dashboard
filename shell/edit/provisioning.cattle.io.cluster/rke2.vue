@@ -71,6 +71,7 @@ import SelectCredential from './SelectCredential';
 import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import AgentConfiguration, { cleanAgentConfiguration } from './AgentConfiguration';
+import CustomContainerdConfig from './CustomContainerdConfig.vue';
 
 const PUBLIC = 'public';
 const PRIVATE = 'private';
@@ -133,6 +134,7 @@ export default {
     Tabbed,
     UnitInput,
     YamlEditor,
+    CustomContainerdConfig
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -3054,6 +3056,10 @@ export default {
           :mode="mode"
         />
         <Labels
+          v-model="value"
+          :mode="mode"
+        />
+        <CustomContainerdConfig
           v-model="value"
           :mode="mode"
         />

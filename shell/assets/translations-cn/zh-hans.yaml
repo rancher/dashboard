@@ -2130,6 +2130,7 @@ cluster:
     registry: 镜像仓库
     upgrade: 升级策略
     registration: 注册
+    customContainerdConfig: 自定义 containerd 配置
   rotateCertificates:
     label: 轮换证书
     modalTitle: 轮换集群证书
@@ -2174,6 +2175,13 @@ cluster:
       metrics-server: Metrics Server
       servicelb: Klipper 服务 LB
       traefik: Traefik Ingress
+  customContainerdConfig:
+    machineSelector:
+      label: 添加主机选择器
+      title: '标签匹配的主机: '
+    template:
+      title: Containerd 配置模板
+    title: 自定义 containerd 配置
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"

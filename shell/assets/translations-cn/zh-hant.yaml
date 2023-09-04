@@ -2138,6 +2138,7 @@ cluster:
     registry: 鏡像倉庫
     upgrade: 升級策略
     registration: 註冊
+    customContainerdConfig: 自定義 containerd 配置
   rotateCertificates:
     label: 輪換證書
     modalTitle: 輪換集羣證書
@@ -2175,6 +2176,13 @@ cluster:
     tabs:
       cluster: Cluster Agent
       fleet: Fleet Agent
+  customContainerdConfig:
+    title: 自定義 containerd 配置
+    machineSelector:
+      label: 添加主機選擇器
+      title: '標籤匹配的主機: '
+    template:
+      title: Containerd 配置模板
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"
