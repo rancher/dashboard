@@ -27,6 +27,7 @@
         <YamlEditor
           ref="yaml-values"
           v-model="row.value.containerdConfigTemplate"
+          :lint="false"
           :scrolling="true"
           :as-object="true"
           :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"

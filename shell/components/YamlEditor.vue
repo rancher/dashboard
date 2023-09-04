@@ -51,6 +51,11 @@ export default {
       default: false,
     },
 
+    lint: {
+      type:    Boolean,
+      default: true
+    },
+
     /**
      * Inherited global identifier prefix for tests
      * Define a term based on the parent component to avoid conflicts on multiple components
@@ -101,7 +106,7 @@ export default {
         readOnly,
         gutters,
         mode:            'yaml',
-        lint:            !readOnly,
+        lint:            !readOnly && this.lint,
         lineNumbers:     !readOnly,
         styleActiveLine: true,
         tabSize:         2,
