@@ -740,7 +740,7 @@ export default {
         }
 
         .pin {
-          font-size: 14px;
+          font-size: 16px;
           margin-left: auto;
           display: none;
 
