@@ -30,13 +30,13 @@ export default {
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
-      shown:           false,
+      shown:             false,
       displayVersion,
       fullVersion,
-      clusterFilter:   '',
+      clusterFilter:     '',
       hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
-      showPinClusters: false
+      showPinClusters:   false
     };
   },
 
@@ -124,9 +124,9 @@ export default {
 
       // If more than 8 elements, return the first 8 clusters
       if (sorted.length >= this.maxClustersToShow) {
-        const sortedPinOut = sorted.slice(0, this.maxClustersToShow);
+        const sortedPinOut = sorted.filter((item) => !item.pinned).slice(0, this.maxClustersToShow);
 
-        return sortedPinOut.filter((item) => !item.pinned);
+        return sortedPinOut;
       } else {
         return sorted.filter((item) => !item.pinned);
       }
@@ -146,8 +146,6 @@ export default {
 
       return this.clustersFiltered.length;
     },
-
-    maxClustersToShow: mapPref(MENU_MAX_CLUSTERS),
 
     multiClusterApps() {
       const options = this.options;
@@ -1056,7 +1054,7 @@ export default {
         .category {
           &-title {
             hr {
-              width: 25px;
+              width: 40px;
             }
           }
         }

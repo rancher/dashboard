@@ -102,7 +102,9 @@ export default class BurgerMenuPo extends ComponentPo {
   }
 
   pinCluster(): Cypress.Chainable {
-    return this.clustersList().first().trigger('mouseover').find('.pin').invoke('show').click();
+    return this.clustersList().first().trigger('mouseover').find('.pin')
+      .invoke('show')
+      .click();
   }
 
   pinClustersList(): Cypress.Chainable {
@@ -112,6 +114,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * Get the Home link
    * @returns {Cypress.Chainable}
    */
+
   home(): Cypress.Chainable {
     return this.self().find('.body > div > a').first();
   }
