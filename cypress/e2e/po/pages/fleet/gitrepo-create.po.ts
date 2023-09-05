@@ -75,12 +75,11 @@ export class GitRepoCreatePo extends PagePo {
       return new ArrayListPo('[data-testid="gitRepo-paths"]');
     }
 
-    authSelect(selector: string) {
+    authSelectOrCreate(selector: string) {
       return new SelectOrCreateAuthPo(selector);
     }
 
-    helmAuth() {
-      return this.authSelect('[data-testid="gitrepo-helm-auth"]');
-      // const another = LabeledSelectPo.byLabel(this.self(), 'Helm Auth');
+    helmAuthSelectOrCreate() {
+      return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
     }
 }

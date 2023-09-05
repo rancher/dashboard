@@ -21,7 +21,7 @@ describe('Git Repo', { tags: '@adminUser' }, () => {
       gitRepoCreatePage.setGitRepoUrl(repo);
       gitRepoCreatePage.selectWorkspace('fleet-default');
       gitRepoCreatePage.setBranchName(branch);
-      gitRepoCreatePage.helmAuth().createBasicAuth('test', 'test');
+      gitRepoCreatePage.helmAuthSelectOrCreate().createBasicAuth('test', 'test');
       gitRepoCreatePage.setHelmRepoURLRegex(helmRepoURLRegex);
 
       gitRepoCreatePage.gitRepoPaths().setValueAtIndex(paths[0], 0);

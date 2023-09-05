@@ -152,7 +152,7 @@ export default {
       stepRepoInfo,
       stepTargetInfo,
       addRepositorySteps,
-      displayhelmRepoURLRegex: false
+      displayHelmRepoURLRegex: false
     };
   },
 
@@ -262,7 +262,7 @@ export default {
     targetCluster:              'updateTargets',
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
-    displayhelmRepoURLRegex:    'updatehelmRepoURLRegex',
+    displayHelmRepoURLRegex:    'updateHelmRepoURLRegexValue',
 
     tlsMode:  'updateTls',
     caBundle: 'updateTls',
@@ -293,7 +293,7 @@ export default {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
 
       if (key === 'helmSecretName') {
-        this.displayhelmRepoURLRegex = val && val.selected !== AUTH_TYPE._NONE;
+        this.displayHelmRepoURLRegex = val && val.selected !== AUTH_TYPE._NONE;
       }
     },
 
@@ -309,8 +309,8 @@ export default {
       this.updateCachedAuthVal(val, key);
     },
 
-    updatehelmRepoURLRegex() {
-      if (!this.displayhelmRepoURLRegex) {
+    updateHelmRepoURLRegexValue() {
+      if (!this.displayHelmRepoURLRegex) {
         delete this.value.spec?.helmRepoURLRegex;
       }
     },
@@ -596,7 +596,7 @@ export default {
       />
 
       <div
-        v-if="displayhelmRepoURLRegex"
+        v-if="displayHelmRepoURLRegex"
         class="row mt-20"
       >
         <div
