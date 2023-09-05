@@ -262,8 +262,6 @@ export default {
     targetCluster:              'updateTargets',
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
-    displayHelmRepoURLRegex:    'updateHelmRepoURLRegexValue',
-
     tlsMode:  'updateTls',
     caBundle: 'updateTls',
 
@@ -293,7 +291,7 @@ export default {
       this.tempCachedValues[key] = typeof val === 'string' ? { selected: val } : { ...val };
 
       if (key === 'helmSecretName') {
-        this.displayHelmRepoURLRegex = val && val.selected !== AUTH_TYPE._NONE;
+        this.toggleHelmRepoURLRegex(val && val.selected !== AUTH_TYPE._NONE);
       }
     },
 
@@ -309,8 +307,10 @@ export default {
       this.updateCachedAuthVal(val, key);
     },
 
-    updateHelmRepoURLRegexValue() {
-      if (!this.displayHelmRepoURLRegex) {
+    toggleHelmRepoURLRegex(active) {
+      this.displayHelmRepoURLRegex = active;
+
+      if (!active) {
         delete this.value.spec?.helmRepoURLRegex;
       }
     },
