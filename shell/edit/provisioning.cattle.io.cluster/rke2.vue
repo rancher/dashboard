@@ -2007,9 +2007,6 @@ export default {
         }
       });
     },
-    handleKubernetesChanged(neu) {
-      this.handleKubernetesChange(neu);
-    },
     handlePspChanged(neu) {
       this.handlePspChange(neu);
     },
@@ -2198,7 +2195,7 @@ export default {
             :addonVersions="addonVersions"
             @ciliumIpv6Changed="handleCiliumIpv6Changed"
             @enabledSystemServicesChanged="handleEnabledSystemServicesChanged"
-            @kubernetesChanged="handleKubernetesChanged"
+            @kubernetesChanged="handleKubernetesChange"
             @pspChanged="handlePspChanged"
             @cisChanged="handleCisChanged"
             @psaDefaultChanged="handlePsaDefaultChanged"

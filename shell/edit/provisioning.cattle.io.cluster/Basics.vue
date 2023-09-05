@@ -753,7 +753,7 @@ export default {
           :mode="mode"
           :options="versionOptions"
           label-key="cluster.kubernetesVersion.label"
-          @input="$emit('kubernetesChanged', value)"
+          @input="$emit('kubernetesChanged', $event)"
         />
         <Checkbox
           v-model="showDeprecatedPatchVersions"
@@ -869,7 +869,7 @@ export default {
           :mode="mode"
           :options="pspOptions"
           :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
-          @input="$emit('pspChanged', value)"
+          @input="$emit('pspChanged', $event)"
         />
       </div>
 
