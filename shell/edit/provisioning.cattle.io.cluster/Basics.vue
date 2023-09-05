@@ -262,7 +262,6 @@ export default {
       if ( this.isK3s ) {
         return null;
       }
-
       const out = [{
         label: this.$store.getters['i18n/t']('cluster.rke2.defaultPodSecurityPolicyTemplateName.option'),
         value: ''
@@ -276,7 +275,6 @@ export default {
           });
         }
       }
-
       const cur = this.value.spec.defaultPodSecurityPolicyTemplateName;
 
       if ( cur && !out.find((x) => x.value === cur) ) {
@@ -356,7 +354,6 @@ export default {
         label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
         value: '',
       }];
-
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
@@ -370,7 +367,6 @@ export default {
         if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
           disabled = true;
         }
-
         if (showAllOptions || isPreferred || isExternal) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
@@ -379,7 +375,6 @@ export default {
           });
         }
       }
-
       const cur = this.agentConfig['cloud-provider-name'];
 
       if ( cur && !out.find((x) => x.value === cur) ) {
