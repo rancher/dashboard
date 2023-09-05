@@ -262,8 +262,8 @@ export default {
     targetCluster:              'updateTargets',
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
-    tlsMode:  'updateTls',
-    caBundle: 'updateTls',
+    tlsMode:                    'updateTls',
+    caBundle:                   'updateTls',
 
     workspace(neu) {
       if ( this.isCreate ) {
