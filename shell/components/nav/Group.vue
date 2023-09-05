@@ -96,6 +96,13 @@ export default {
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
         return;
+      } else {
+        // Remove all active class if click on group header and not active route
+        const headerEl = document.querySelectorAll('.header');
+
+        headerEl.forEach((el) => {
+          el.classList.remove('active');
+        });
       }
       this.expandGroup();
 
@@ -131,6 +138,11 @@ export default {
 
     // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
     peek($event) {
+      // Add active class to the current header if click on chevron icon
+      $event.target.parentElement.classList.remove('active');
+      if (this.hasActiveRoute()) {
+        $event.target.parentElement.classList.add('active');
+      }
       this.isExpanded = !this.isExpanded;
       $event.stopPropagation();
     },
@@ -288,9 +300,13 @@ export default {
         text-transform: none;
       }
     }
-
+    &.bg-yellow,
     &.active {
       background-color: var(--nav-active);
+
+      h6 {
+        font-weight: bold;
+      }
     }
   }
 
@@ -381,8 +397,8 @@ export default {
     }
   }
 
- .body ::v-deep > .child.nuxt-link-active,
- .header ::v-deep > .child.nuxt-link-exact-active {
+  .body ::v-deep > .child.nuxt-link-active,
+  .header ::v-deep > .child.nuxt-link-exact-active {
     padding: 0;
 
     A, A I {
@@ -410,4 +426,8 @@ export default {
       outline: none;
     }
   }
+
+  // .bg-yellow {
+  //   background: yellow;
+  // }
 </style>
