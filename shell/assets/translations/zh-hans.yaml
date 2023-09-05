@@ -1838,7 +1838,7 @@ cluster:
     modal:
       pspChange:
         title: 弃用 Pod 安全策略
-        body: 从 v1.25 版开始，Kubernetes 已经取消了对 Pod 安全策略 (PSP) 的支持。如果你的集群通过集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 启用了 PodSecurityPolicy 准入控制器，你必须在继续升级之前<i>手动</i>删除它。此外，集群中存在的任何 PSP 将不再可用或强制执行。是否继续操作？
+        body: <p>从 v1.25 版开始，Kubernetes 已经取消了对 Pod 安全策略 (PSP) 的支持。如果你的集群通过集群 YAML 中的 “kube-apiserver-arg.enable-admission-plugins” 启用了 PodSecurityPolicy 准入控制器，你必须在继续升级之前<i>手动</i>删除它。此外，集群中存在的任何 PSP 将不再可用或强制执行。是否继续操作？</p>
     snapshots:
       suffix: 每个节点的快照
     systemService:
