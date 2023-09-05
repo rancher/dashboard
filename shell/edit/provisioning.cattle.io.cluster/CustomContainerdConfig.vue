@@ -3,7 +3,7 @@
     name="customContainerdConfig"
     label-key="cluster.tabs.customContainerdConfig"
     :weight="-1"
-    @active="refreshYamls"
+    @active="refreshTomls"
   >
     <!-- <h3>{{ t('cluster.customContainerdConfig.title') }}</h3> -->
     <ArrayListGrouped
@@ -24,8 +24,8 @@
         />
         <div class="spacer" />
         <h3>{{ t('cluster.customContainerdConfig.template.title') }}</h3>
-        <YamlEditor
-          ref="yaml-values"
+        <TomlEditor
+          ref="toml-values"
           v-model="row.value.containerdConfigTemplate"
           :lint="false"
           :scrolling="true"
@@ -41,7 +41,7 @@
 import Tab from '@shell/components/Tabbed/Tab';
 import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
-import YamlEditor from '@shell/components/YamlEditor';
+import TomlEditor from '@shell/components/TomlEditor';
 import isArray from 'lodash/isArray';
 
 export default {
@@ -49,7 +49,7 @@ export default {
     Tab,
     ArrayListGrouped,
     MatchExpressions,
-    YamlEditor
+    TomlEditor
   },
   props: {
     mode: {
@@ -64,15 +64,15 @@ export default {
   },
 
   methods: {
-    refreshYamls() {
-      const keys = Object.keys(this.$refs).filter(x => x.startsWith('yaml'));
+    refreshTomls() {
+      const keys = Object.keys(this.$refs).filter(x => x.startsWith('toml'));
 
       for ( const k of keys ) {
         const entry = this.$refs[k];
         const list = isArray(entry) ? entry : [entry];
 
         for ( const component of list ) {
-          component?.refresh(); // `yaml` ref can be undefined on switching from Basic to Addon tab (Azure --> Amazon --> addon)
+          component?.refresh();
         }
       }
     },
