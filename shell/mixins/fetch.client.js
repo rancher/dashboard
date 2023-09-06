@@ -75,9 +75,9 @@ async function $_fetch() { // eslint-disable-line camelcase
   try {
     await this.$options.fetch.call(this);
   } catch (err) {
-    if (process.dev) {
-      console.error('Error in fetch():', err); // eslint-disable-line no-console
-    }
+    // In most cases we don't handle errors at all in `fetch`es. Lets always log to help in production
+    console.error('Error in fetch():', err); // eslint-disable-line no-console
+
     error = normalizeError(err);
   }
 

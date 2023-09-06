@@ -1,3 +1,5 @@
+// Taken from @nuxt/vue-app/template/App.js
+
 import Vue from 'vue';
 
 import { getMatchedComponentsInstances, getChildrenComponentInstancesUsingFetch, promisify, globalHandleError } from '../utils/nuxt';
