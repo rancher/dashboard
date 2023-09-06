@@ -7,7 +7,7 @@
   >
     <!-- <h3>{{ t('cluster.customContainerdConfig.title') }}</h3> -->
     <ArrayListGrouped
-      v-model="value.spec.rkeConfig.containerSelectorConfig"
+      v-model="value.spec.rkeConfig.containerdSelectorConfig"
       class="mb-20"
       :add-label="t('cluster.customContainerdConfig.machineSelector.label')"
       :can-remove="canRemoveRow"
