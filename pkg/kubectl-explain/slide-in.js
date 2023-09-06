@@ -34,6 +34,10 @@ export async function explain(store, route) {
   const typeName = route.params?.resource;
   const schema = typeName ? store.getters[`cluster/schemaFor`](typeName) : undefined;
 
+  console.log('EXPLAIN');
+  console.log(route);
+  console.log(typeName);
+
   if (!component) {
     component = new Vue(Panel, {
       props: {

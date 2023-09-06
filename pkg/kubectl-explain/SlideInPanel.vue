@@ -173,6 +173,10 @@ export default {
         const defn = data.definitions[name];
 
         this.definitions = data.definitions;
+        this.expanded = {};
+
+        // this.breadcrumbs = [name];
+        // this.expandAll = false;
 
         this.expand(data.definitions, defn, [name]);
 
@@ -303,7 +307,7 @@ export default {
           />
         </div>
         <div v-if="busy"
-          class="loading"
+          class="loading panel-loading"
         >
           <div>
             <i class="icon icon-lg icon-spinner icon-spin" />
@@ -458,5 +462,9 @@ export default {
       opacity: 0.5;
       z-index: 1000;
     }
+  }
+
+  .panel-loading {
+    margin-top: 20px;
   }
 </style>
