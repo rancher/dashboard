@@ -17,6 +17,11 @@ aks:
     notNamed: Not Named
     vmSize:
       label: VM Size
+      notAvailableInRegion: |-
+        {count, plural,
+        =1 {The VM size selected for the pool  is not available in the selected region.}
+        other {The VM sizes selected for the following pools are not available in the selected region: }
+        }
     availabilityZones:
       label: Availability Zones
     osType:
@@ -72,6 +77,9 @@ aks:
     placeholder: aks-dns-xxxxxx
   networkPlugin:
     label: Network Plugin
+    options:
+      kubenet: Kubenet
+      azure: Azure CNI
   networkPolicy:
     label: Network Policy
     tooltip: The Azure network policy is only available when the Azure network plugin is selected

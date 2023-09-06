@@ -75,7 +75,6 @@ export default defineComponent({
     },
     'pool.vmSize'(neu) {
       if (neu) {
-        console.log('vm size touched');
         this.$emit('vmSizeSet');
       }
     }
@@ -103,16 +102,6 @@ export default defineComponent({
 
 <template>
   <div class="pool">
-    <!-- <div class="remove-row row">
-      <button
-        v-if="!isPrimaryPool"
-        type="button"
-        class="btn role-link"
-        @click="$emit('remove')"
-      >
-        remove pool
-      </button>
-    </div> -->
     <div class="row mb-10">
       <div class="col span-3">
         <LabeledInput

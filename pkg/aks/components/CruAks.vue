@@ -2,12 +2,11 @@
 
 /**
  * TODOS
- * - load prov clusters so it shows up in the list immediately after saving
  * - set new defaults when user changes region-specific fields if they haven't been touched
  * - fix taints labels formatting
- * - aksConfig resource not deleted...?
  * - registration tab shows on detail view
  * - no norman????
+ * - validate that we have a system node pool/check if requirement
  */
 
 import { defineComponent } from 'vue';
@@ -88,8 +87,7 @@ const defaultCluster = {
   aksConfig:               defaultAksConfig
 };
 
-// const DEFAULT_REGION = 'eastus';
-const DEFAULT_REGION = '';
+const DEFAULT_REGION = 'eastus';
 
 const _NONE = 'none';
 
@@ -156,6 +154,7 @@ export default defineComponent({
 
   data() {
     const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
+    const t = this.$store.getters['i18n/t'];
 
     return {
       normanCluster:    { name: '' } as any,
@@ -178,9 +177,8 @@ export default defineComponent({
       touchedVmSize:         false,
       touchedVirtualNetwork: false,
 
-      // TODO nb translations
       networkPluginOptions: [
-        { value: 'kubenet', label: 'Kubenet' }, { value: 'azure', label: 'Azure CNI' }
+        { value: 'kubenet', label: t('aks.networkPlugin.options.kubenet') }, { value: 'azure', label: t('aks.networkPlugin.options.azure') }
       ],
 
       loadingLocations:       false,
@@ -233,31 +231,18 @@ export default defineComponent({
     // fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined
     // so we're ignoring that and passing in the key we want validated here
     fvExtraRules() {
-      // const requiredTranslation = (labelKey = 'Value') => {
-      //   return this.t('validation.required', { key: this.t(labelKey) });
-      // };
-
-      // const requiredInCluster = (labelKey: string, clusterKey: string) => {
-      //   return () => {
-      //     return clusterKey && !get(this.normanCluster, clusterKey) ? requiredTranslation(labelKey) : undefined;
-      //   };
-      // };
-
       return {
         nameRequired:          requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
         locationRequired:      requiredInCluster(this, 'aks.location.label', 'aksConfig.location'),
         resourceGroupRequired: requiredInCluster(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
-        // nodeResourceGroupRequired: requiredInCluster(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
         dnsPrefixRequired:     requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix'),
+        // todo nb move to validators file...?
         vmSizeAvailable:       () => {
-          console.log('verifying vm sizes: ', this.touchedVmSize);
           if (this.touchedVmSize) {
             let allAvailable = true;
             const badPools = [] as string[];
 
             this.nodePools.forEach((pool) => {
-              const id :string = pool._id;
-
               if (!this.vmSizeOptions.find((opt) => opt === pool.vmSize)) {
                 this.$set(pool, '_validSize', false);
                 badPools.push(pool.name);
@@ -266,24 +251,8 @@ export default defineComponent({
                 this.$set(pool, '_validSize', true);
               }
             });
-            // todo nb clean this trash up; use translations
             if (!allAvailable) {
-              const displayBadPools = badPools.map((pool) => `\"${ pool }\"`);
-
-              if (displayBadPools.length === 1) {
-                return `The VM size selected for the pool ${ displayBadPools[0] } is not available in the selected region.`;
-              }
-
-              displayBadPools[displayBadPools.length - 1] = `and ${ displayBadPools[displayBadPools.length - 1] }`;
-              let list;
-
-              if (displayBadPools.length > 2) {
-                list = displayBadPools.join(', ');
-              } else {
-                list = displayBadPools.join(' ');
-              }
-
-              return `The VM sizes selected for the pools ${ list } are not available in the selected region.`;
+              return this.t('aks.nodePools.vmSize.notAvailableInRegion', { pool: badPools[0], count: badPools.length });
             }
           }
 
@@ -316,8 +285,6 @@ export default defineComponent({
     // todo nb allow edit when no upstream cluster created yet
     // todo nb is this bad ux? Form will abruptly become largely un-editable
     isNew() {
-      console.log('aksStatus: ', !this.normanCluster?.aksStatus?.upstreamSpec);
-
       return this.mode === _CREATE || !this.normanCluster?.aksStatus?.upstreamSpec;
     },
 
@@ -374,11 +341,10 @@ export default defineComponent({
       return this.config.networkPlugin === 'azure';
     },
 
-    // todo nb translate none option
     networkPolicyOptions() {
       return [{
         value: _NONE,
-        label: 'None'
+        label: this.t('generic.none')
       }, {
         value: 'calico',
         label: 'Calico',
@@ -395,7 +361,7 @@ export default defineComponent({
       get() {
         return this.config?.networkPolicy || _NONE;
       },
-      set(neu) {
+      set(neu: string) {
         if (neu === _NONE) {
           this.$set(this.config, 'networkPolicy', null);
         } else {
@@ -429,7 +395,6 @@ export default defineComponent({
       if (!neu) {
         if (this.config.networkPolicy === 'azure') {
           this.$set(this.config, 'networkPolicy', undefined);
-          console.log('vn untouched');
           this.touchedVirtualNetwork = false;
         }
         delete this.config.virtualNetwork;
@@ -449,7 +414,6 @@ export default defineComponent({
       }
     },
 
-    // todo nb validate k8s version, vm sizes, virtual network if touched
     'config.resourceLocation'(neu) {
       if (neu) {
         this.getAksVersions();
@@ -584,10 +548,6 @@ export default defineComponent({
       });
     },
 
-    // removePool(pool: AKSNodePool) {
-    //   removeObject(this.nodePools, pool);
-    // },
-
     removePool(idx: number) {
       const pool = this.nodePools[idx];
 
@@ -636,7 +596,12 @@ export default defineComponent({
 
     // todo nb fetch prov clusters so cluster list populated right away
     async actuallySave(cb) {
-      await this.normanCluster.save();
+      try {
+        await this.normanCluster.save();
+        cb(true);
+      } catch {
+        cb(false);
+      }
     }
   },
 
@@ -1009,37 +974,6 @@ export default defineComponent({
             :mode="mode"
           />
         </Accordion>
-        <!-- <Accordion
-          :open-initially="true"
-          class="mb-10"
-          title="Node Pools"
-        >
-          <div
-            v-for="(pool, i) in nodePools"
-            :key="pool._id"
-            :name="pool.name"
-            class="mb-10"
-          >
-            <AksNodePool
-              :mode="mode"
-              :region="config.resourceLocation"
-              :pool="pool"
-              :vm-size-options="vmSizeOptions"
-              :loading-vm-sizes="loadingVmSizes"
-              :isPrimaryPool="i===0"
-              class="node-pool"
-              @remove="removePool(pool)"
-              @vmSizeSet="touchedVmSize = true"
-            />
-          </div>
-          <button
-            type="button"
-            class="btn role-tertiary mt-20"
-            @click="addPool"
-          >
-            Add Node Pool
-          </button>
-        </Accordion> -->
       </template>
     </div>
   </CruResource>
