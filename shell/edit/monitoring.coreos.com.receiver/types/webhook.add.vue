@@ -38,7 +38,7 @@ export default {
           value: 'service-now'
         }
       ],
-      webhookType: RECEIVERS_TYPES.find(type => type.name === 'webhook'),
+      webhookType: RECEIVERS_TYPES.find((type) => type.name === 'webhook'),
       isView:      this.mode === _VIEW
     };
   },

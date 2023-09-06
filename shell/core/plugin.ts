@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { RouteConfig } from 'vue-router';
 import { DSL as STORE_DSL } from '@shell/store/type-map';
 import {
@@ -10,11 +11,11 @@ import {
   IPlugin,
   LocationConfig,
   ExtensionPoint,
+
+  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
 } from './types';
 import coreStore, { coreStoreModule, coreStoreState } from '@shell/plugins/dashboard-store';
-import {
-  PluginRouteConfig, RegisterStore, UnregisterStore, CoreStoreSpecifics, CoreStoreConfig, OnNavToPackage, OnNavAwayFromPackage, OnLogOut
-} from '@shell/core/types';
+import { registerLayout } from '@shell/initialize/layouts';
 
 export type ProductFunction = (plugin: IPlugin, store: any) => void;
 
@@ -267,6 +268,14 @@ export class Plugin implements IPlugin {
       }
 
       this.l10n[name].push(fn);
+    } else if (type === 'layouts') {
+      fn().then((component: any) => {
+        if (component.default) {
+          registerLayout(name, component.default);
+        } else {
+          console.error(`Failed to load layout ${ name } because the file didn't export a default component.`); // eslint-disable-line no-console
+        }
+      });
     } else {
       if (!this.types[type]) {
         this.types[type] = {};

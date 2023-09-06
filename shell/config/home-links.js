@@ -42,6 +42,12 @@ const SUPPORT_LINK = {
   readonly: true
 };
 
+const CN_FORUMS_LINK = {
+  key:     'cnforums',
+  value:   'https://forums.rancher.cn/',
+  enabled: true,
+};
+
 // We add a version attribute to the setting so we know what has been migrated and which version of the setting we have
 export const CUSTOM_LINKS_VERSION = 'v1';
 
@@ -68,7 +74,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
 
       // Map the link name stored to the default link, if it exists
       defaults.forEach((link) => {
-        const enabled = uiLinks.defaults.find(linkName => linkName === link.key);
+        const enabled = uiLinks.defaults.find((linkName) => linkName === link.key);
 
         link.enabled = !!enabled;
       });
@@ -76,7 +82,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
       uiLinks.defaults = defaults;
     }
 
-    return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t);
+    return ensureSupportLink(uiLinks, hasSupport, isSupportPage, t, store);
   }
 
   // No new setting, so return the required structure
@@ -99,7 +105,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     // Should we show the default set of links?
     if (uiCommunitySetting?.value === 'false') {
       // Hide all of the default links
-      links.defaults.forEach(link => (link.enabled = false));
+      links.defaults.forEach((link) => (link.enabled = false));
     }
 
     // Do we have a custom 'File an issue' link ?
@@ -110,7 +116,7 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
       });
 
       // Hide the default 'File an issue' link
-      const issueLink = links.defaults?.find(link => link.key === 'issues');
+      const issueLink = links.defaults?.find((link) => link.key === 'issues');
 
       if (issueLink) {
         issueLink.enabled = false;
@@ -121,17 +127,23 @@ export async function fetchLinks(store, hasSupport, isSupportPage, t) {
     console.warn('Could not parse legacy link settings', e); // eslint-disable-line no-console
   }
 
-  return ensureSupportLink(links, hasSupport, isSupportPage, t);
+  return ensureSupportLink(links, hasSupport, isSupportPage, t, store);
 }
 
 // Ensure the support link is added if needed
-function ensureSupportLink(links, hasSupport, isSupportPage, t) {
+export function ensureSupportLink(links, hasSupport, isSupportPage, t, store) {
   if (!hasSupport && !isSupportPage) {
-    const supportLink = links.defaults?.find(link => link.key === 'commercialSupport');
+    const supportLink = links.defaults?.find((link) => link.key === 'commercialSupport');
 
     if (!supportLink) {
       links.defaults.push(SUPPORT_LINK);
     }
+  }
+
+  const selectedLocaleLabel = store.getters['i18n/selectedLocaleLabel'];
+
+  if (selectedLocaleLabel === t('locale.zh-hans')) {
+    links.defaults.push(CN_FORUMS_LINK);
   }
 
   // Localise the default links

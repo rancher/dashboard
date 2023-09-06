@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
 import auditLogRoutes from './routes/audit-log-routes';

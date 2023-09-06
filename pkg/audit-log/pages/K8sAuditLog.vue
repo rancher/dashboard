@@ -24,7 +24,7 @@ export default {
       return this.auditLogSetting?.value && this.auditLogCollector;
     },
     auditLogCollector() {
-      return this.apps.find(app => app.spec?.chart?.metadata?.name === 'rancher-k8s-auditlog-collector');
+      return this.apps.find((app) => app.spec?.chart?.metadata?.name === 'rancher-k8s-auditlog-collector');
     },
     auditLogServiceAddress() {
       return this.auditLogSetting?.value;

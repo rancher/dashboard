@@ -1,7 +1,7 @@
 import cluster from '@shell/models/provisioning.cattle.io.cluster.js';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { AUDIT_LOG_UI_EXTENSION } from '@shell/store/features';
 
 export default class K8sAuditLogcluster extends cluster {

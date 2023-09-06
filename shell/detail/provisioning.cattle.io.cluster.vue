@@ -1,7 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import { Banner } from '@components/Banner';
-import ResourceTable from '@shell/components/ResourceTable';
+import ResourceTable, { defaultTableSortGenerationFn } from '@shell/components/ResourceTable';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
 import CopyCode from '@shell/components/CopyCode';
@@ -31,7 +31,6 @@ import Socket, {
 import { get } from '@shell/utils/object';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 import { isAlternate } from '@shell/utils/platform';
-import { defaultTableSortGenerationFn } from '@shell/components/ResourceTable.vue';
 
 let lastId = 1;
 const ansiup = new AnsiUp();
@@ -82,6 +81,24 @@ export default {
 
   async fetch() {
     await this.value.waitForProvisioner();
+
+    const extClass = this.$plugin.getDynamic('provisioner', this.value.machineProvider);
+
+    if (extClass) {
+      this.extProvider = new extClass({
+        dispatch: this.$store.dispatch,
+        getters:  this.$store.getters,
+        axios:    this.$store.$axios,
+        $plugin:  this.$store.app.$plugin,
+        $t:       this.t
+      });
+      this.extDetailTabs = {
+        ...this.extDetailTabs,
+        ...this.extProvider.detailTabs
+      };
+      this.extCustomParams = { provider: this.value.machineProvider };
+    }
+
     const fetchOne = {};
 
     if ( this.$store.getters['management/canList'](CAPI.MACHINE_DEPLOYMENT) ) {
@@ -122,7 +139,7 @@ export default {
 
     if (fetchOneRes.normanClusters) {
       // Does the user have access to the local cluster? Need to in order to be able to show the 'Related Resources' tab
-      this.hasLocalAccess = !!fetchOneRes.normanClusters.find(c => c.internal);
+      this.hasLocalAccess = !!fetchOneRes.normanClusters.find((c) => c.internal);
     }
 
     const fetchTwo = {};
@@ -206,6 +223,18 @@ export default {
       logOpen:   false,
       logSocket: null,
       logs:      [],
+
+      extProvider:     null,
+      extCustomParams: null,
+      extDetailTabs:   {
+        machines:     true, // in this component
+        logs:         true, // in this component
+        registration: true, // in this component
+        snapshots:    true, // in this component
+        related:      true, // in ResourceTabs
+        events:       true, // in ResourceTabs
+        conditions:   true, // in ResourceTabs
+      },
 
       showWindowsWarning: false
     };
@@ -303,7 +332,7 @@ export default {
         const templateNamePrefix = `${ pool.metadata.name }-`;
 
         // All of these properties are needed to ensure the pool displays correctly and that we can scale up and down
-        pool._template = this.machineTemplates.find(t => t.metadata.name.startsWith(templateNamePrefix));
+        pool._template = this.machineTemplates.find((t) => t.metadata.name.startsWith(templateNamePrefix));
         pool._cluster = this.value;
         pool._clusterSpec = mp;
 
@@ -320,16 +349,16 @@ export default {
     },
 
     nodes() {
-      const nodes = this.allNodes.filter(x => x.mgmtClusterId === this.value.mgmtClusterId);
+      const nodes = this.allNodes.filter((x) => x.mgmtClusterId === this.value.mgmtClusterId);
 
       return [...nodes, ...this.fakeNodes];
     },
 
     fakeNodes() {
       // When a pool has no nodes it's not shown.... so add a fake node to it
-      const emptyNodePools = this.allNodePools.filter(x => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
+      const emptyNodePools = this.allNodePools.filter((x) => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
 
-      return emptyNodePools.map(np => ({
+      return emptyNodePools.map((np) => ({
         spec:       { nodePoolName: np.id.replace('/', ':') },
         mainRowKey: 'isFake',
         pool:       np,
@@ -337,7 +366,9 @@ export default {
     },
 
     showMachines() {
-      return this.haveMachines && (this.value.isRke2 || !!this.machines.length);
+      const showMachines = this.haveMachines && (this.value.isRke2 || !!this.machines.length);
+
+      return showMachines && this.extDetailTabs.machines;
     },
 
     showNodes() {
@@ -346,9 +377,9 @@ export default {
 
     showSnapshots() {
       if (this.value.isRke1) {
-        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP);
+        return this.$store.getters['rancher/canList'](NORMAN.ETCD_BACKUP) && this.extDetailTabs.snapshots;
       } else if (this.value.isRke2) {
-        return this.$store.getters['management/canList'](SNAPSHOT);
+        return this.$store.getters['management/canList'](SNAPSHOT) && this.extDetailTabs.snapshots;
       }
 
       return false;
@@ -356,7 +387,7 @@ export default {
 
     showEksNodeGroupWarning() {
       if ( this.value.provisioner === 'EKS' && this.value.state !== STATES_ENUM.ACTIVE) {
-        const desiredTotal = this.value.eksNodeGroups.filter(g => g.desiredSize === 0);
+        const desiredTotal = this.value.eksNodeGroups.filter((g) => g.desiredSize === 0);
 
         if ( desiredTotal.length === this.value.eksNodeGroups.length ) {
           return true;
@@ -412,7 +443,7 @@ export default {
         return [];
       }
 
-      return (this.etcdBackups || []).filter(x => x.clusterId === mgmtId);
+      return (this.etcdBackups || []).filter((x) => x.clusterId === mgmtId);
     },
 
     rke2Snapshots() {
@@ -477,15 +508,15 @@ export default {
       }
 
       if ( this.value.isImported ) {
-        return !this.value.mgmt?.isReady;
+        return !this.value.mgmt?.isReady && this.extDetailTabs.registration;
       }
 
       if ( this.value.isCustom ) {
-        return true;
+        return this.extDetailTabs.registration;
       }
 
       if ( this.value.isHostedKubernetesProvider && !this.isClusterReady ) {
-        return true;
+        return this.extDetailTabs.registration;
       }
 
       return false;
@@ -496,7 +527,9 @@ export default {
     },
 
     showLog() {
-      return this.value.mgmt?.hasLink('log');
+      const showLog = this.value.mgmt?.hasLink('log');
+
+      return showLog && this.extDetailTabs.logs;
     },
 
     dateTimeFormatStr() {
@@ -510,7 +543,7 @@ export default {
     },
 
     hasWindowsMachine() {
-      return this.machines.some(machine => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
+      return this.machines.some((machine) => get(machine, 'status.nodeInfo.operatingSystem') === 'windows');
     },
 
     snapshotsGroupBy() {
@@ -687,6 +720,10 @@ export default {
       v-model="value"
       :default-tab="defaultTab"
       :need-related="hasLocalAccess"
+      :extension-params="extCustomParams"
+      :needRelated="extDetailTabs.related"
+      :needEvents="extDetailTabs.events"
+      :needConditions="extDetailTabs.conditions"
     >
       <Tab
         v-if="showMachines"
@@ -774,6 +811,7 @@ export default {
           </template>
         </ResourceTable>
       </Tab>
+
       <Tab
         v-else-if="showNodes"
         name="node-pools"

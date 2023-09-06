@@ -38,7 +38,7 @@ export default {
       return this.project?.spec?.resourceQuota?.limit || {};
     },
     namespaceResourceQuotaLimits() {
-      return this.project.namespaces.map(namespace => ({
+      return this.project.namespaces.map((namespace) => ({
         ...namespace.resourceQuota.limit,
         id: namespace.id
       }));
@@ -54,7 +54,7 @@ export default {
   methods: {
     remainingTypes(currentType) {
       return this.mappedTypes
-        .filter(type => !this.types.includes(type.value) || type.value === currentType);
+        .filter((type) => !this.types.includes(type.value) || type.value === currentType);
     },
     update(key, value) {
       const resourceQuota = {

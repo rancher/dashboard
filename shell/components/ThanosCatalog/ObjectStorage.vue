@@ -133,7 +133,7 @@ export default {
     },
     setObjectStorageComponent(pervider) {
       if (pervider) {
-        const os = this.objectStorageProviders.find(os => os.value === pervider);
+        const os = this.objectStorageProviders.find((os) => os.value === pervider);
 
         if (os) {
           this.$set(this, 'objectStorageComponent', os.component);

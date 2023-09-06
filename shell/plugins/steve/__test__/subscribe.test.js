@@ -3,16 +3,16 @@ import { actions } from '@shell/plugins/steve/subscribe.js';
 
 describe('plugin: subscribe, actions: ws.resource.change', () => {
   it('should be rke2 growl success', () => {
-    const growlSuccess = jest.fn(t => t);
+    const growlSuccess = jest.fn((t) => t);
     const ctx = {
       getters: {
-        normalizeType: type => type,
-        typeEntry:     type => '',
+        normalizeType: (type) => type,
+        typeEntry:     (type) => '',
       },
       dispatch:    growlSuccess,
       rootGetters: {
         'management/byId':     (type, id) => ({ nameDisplay: id }),
-        'type-map/optionsFor': type => ({ type }),
+        'type-map/optionsFor': (type) => ({ type }),
         'i18n/t':              (type, p) => p?.name ? type + p.name : type
       }
     };
@@ -36,16 +36,16 @@ describe('plugin: subscribe, actions: ws.resource.change', () => {
   });
 
   it('should be rke2 growl fail', () => {
-    const growlFail = jest.fn(t => t);
+    const growlFail = jest.fn((t) => t);
     const ctx = {
       getters: {
-        normalizeType: type => type,
-        typeEntry:     type => '',
+        normalizeType: (type) => type,
+        typeEntry:     (type) => '',
       },
       dispatch:    growlFail,
       rootGetters: {
         'management/byId':     (type, id) => ({ nameDisplay: id }),
-        'type-map/optionsFor': type => ({ type }),
+        'type-map/optionsFor': (type) => ({ type }),
         'i18n/t':              (type, p) => p?.name ? type + p.name : type
       }
     };
@@ -68,16 +68,16 @@ describe('plugin: subscribe, actions: ws.resource.change', () => {
   });
 
   it('should be rke growl success', () => {
-    const growlSuccess = jest.fn(t => t);
+    const growlSuccess = jest.fn((t) => t);
     const ctx = {
       getters: {
-        normalizeType: type => type,
-        typeEntry:     type => '',
+        normalizeType: (type) => type,
+        typeEntry:     (type) => '',
       },
       dispatch:    growlSuccess,
       rootGetters: {
         'management/byId':     (type, id) => ({ nameDisplay: id }),
-        'type-map/optionsFor': type => ({ type }),
+        'type-map/optionsFor': (type) => ({ type }),
         'i18n/t':              (type, p) => p?.name ? type + p.name : type
       }
     };
@@ -103,16 +103,16 @@ describe('plugin: subscribe, actions: ws.resource.change', () => {
   });
 
   it('should be rke growl fail when state failed', () => {
-    const growlFail = jest.fn(t => t);
+    const growlFail = jest.fn((t) => t);
     const ctx = {
       getters: {
-        normalizeType: type => type,
-        typeEntry:     type => '',
+        normalizeType: (type) => type,
+        typeEntry:     (type) => '',
       },
       dispatch:    growlFail,
       rootGetters: {
         'management/byId':     (type, id) => ({ nameDisplay: id }),
-        'type-map/optionsFor': type => ({ type }),
+        'type-map/optionsFor': (type) => ({ type }),
         'i18n/t':              (type, p) => p?.name ? type + p.name : type
       }
     };
@@ -138,16 +138,16 @@ describe('plugin: subscribe, actions: ws.resource.change', () => {
   });
 
   it('should be rke growl fail when state error', () => {
-    const growlFail = jest.fn(t => t);
+    const growlFail = jest.fn((t) => t);
     const ctx = {
       getters: {
-        normalizeType: type => type,
-        typeEntry:     type => '',
+        normalizeType: (type) => type,
+        typeEntry:     (type) => '',
       },
       dispatch:    growlFail,
       rootGetters: {
         'management/byId':     (type, id) => ({ nameDisplay: id }),
-        'type-map/optionsFor': type => ({ type }),
+        'type-map/optionsFor': (type) => ({ type }),
         'i18n/t':              (type, p) => p?.name ? type + p.name : type
       }
     };

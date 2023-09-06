@@ -4,6 +4,13 @@
 
 To get started running the UI for development:
 
+Prerequisites:
+
+* Node 16 (later versions are currently not supported)
+
+* yarn:
+  ```npm install --global yarn```
+
 Run:
 
 ```bash

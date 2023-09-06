@@ -6,6 +6,8 @@ import throttle from 'lodash/throttle';
 import { MANAGEMENT } from '@shell/config/types';
 import { DEFAULT_PERF_SETTING, SETTING } from '@shell/config/settings';
 
+let globalId;
+
 export default {
   name:       'Inactivity',
   components: {
@@ -22,6 +24,7 @@ export default {
       courtesyTimerId:     null,
       courtesyCountdown:   null,
       trackInactivity:     throttle(this._trackInactivity, 1000),
+      id:                  null,
     };
   },
   async mounted() {
@@ -72,8 +75,15 @@ export default {
       this.clearAllTimeouts();
       const endTime = Date.now() + this.showModalAfter * 1000;
 
+      this.id = endTime;
+      globalId = endTime;
+
       const checkInactivityTimer = () => {
         const now = Date.now();
+
+        if (this.id !== globalId) {
+          return;
+        }
 
         if (now >= endTime) {
           this.isOpen = true;

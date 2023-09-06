@@ -19,10 +19,17 @@ export default {
     </div>
     <div
       v-if="value.isGit"
-      class="span-6"
+      class="span-3"
     >
       <h3>{{ t('tableHeaders.branch') }}</h3>
       <span>{{ value.branchDisplay }}</span>
+    </div>
+    <div
+      v-if="value.isGit"
+      class="span-3"
+    >
+      <h3>{{ t('tableHeaders.commit') }}</h3>
+      <span>{{ value.status.commit }}</span>
     </div>
   </div>
 </template>

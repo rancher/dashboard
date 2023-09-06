@@ -147,9 +147,9 @@ export default {
       if (this.configs.length === 0) {
         return Promise.reject(new Error(`'Device Plugin Options' is Required`));
       }
-      const allNames = this.configs.map(c => c.name);
+      const allNames = this.configs.map((c) => c.name);
 
-      if (allNames.some(item => item.trim() === '')) {
+      if (allNames.some((item) => item.trim() === '')) {
         return Promise.reject(new Error('Config name is required'));
       }
       const names = new Set(allNames);
@@ -204,7 +204,7 @@ export default {
 
           return config;
         });
-      const index = configs.findIndex(c => c.name === 'default');
+      const index = configs.findIndex((c) => c.name === 'default');
 
       if (index > -1) {
         const d = configs.splice(index, 1);
@@ -303,7 +303,7 @@ export default {
       this.selectedDefaultConfig = tab.name === 'default';
     },
     updateResources(r, c) {
-      c.config.sharing.timeSlicing.resources = r.filter(item => item.name && item.replicas);
+      c.config.sharing.timeSlicing.resources = r.filter((item) => item.name && item.replicas);
     },
   }
 };

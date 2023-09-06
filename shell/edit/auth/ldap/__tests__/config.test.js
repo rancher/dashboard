@@ -4,7 +4,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 
 describe('component: shell/edit/auth/ldap/config', () => {
   it('should hide user/group unique id attribute config if type shibboleth', () => {
-    const tMock = jest.fn(t => t);
+    const tMock = jest.fn((t) => t);
 
     shallowMount(Config, {
       propsData: {
@@ -19,7 +19,7 @@ describe('component: shell/edit/auth/ldap/config', () => {
   });
 
   it('should show user/group unique id attribute config if type is not shibboleth', () => {
-    const tMock = jest.fn(t => t);
+    const tMock = jest.fn((t) => t);
 
     shallowMount(Config, {
       propsData: {
@@ -33,7 +33,7 @@ describe('component: shell/edit/auth/ldap/config', () => {
     expect(tMock).toHaveBeenCalledWith('authConfig.ldap.userUniqueIdAttribute.label');
   });
   it('should update user/group unique id attribute config if them changed', async() => {
-    const tMock = jest.fn(t => t);
+    const tMock = jest.fn((t) => t);
     const wrapper = mount(Config, {
       propsData: {
         value: {
@@ -45,8 +45,8 @@ describe('component: shell/edit/auth/ldap/config', () => {
       mocks: { t: tMock }
     });
     const allComponents = wrapper.findAllComponents(LabeledInput);
-    const userUniqueIdComponent = allComponents.filter(c => c.props('label') === 'authConfig.ldap.userUniqueIdAttribute.label');
-    const groupUniqueIdComponent = allComponents.filter(c => c.props('label') === 'authConfig.ldap.groupUniqueIdAttribute.label');
+    const userUniqueIdComponent = allComponents.filter((c) => c.props('label') === 'authConfig.ldap.userUniqueIdAttribute.label');
+    const groupUniqueIdComponent = allComponents.filter((c) => c.props('label') === 'authConfig.ldap.groupUniqueIdAttribute.label');
 
     expect(userUniqueIdComponent.exists()).toBe(true);
     expect(groupUniqueIdComponent.exists()).toBe(true);

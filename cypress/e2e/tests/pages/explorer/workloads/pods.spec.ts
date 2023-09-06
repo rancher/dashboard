@@ -11,13 +11,25 @@ describe('Cluster Explorer', () => {
     describe('Pods', () => {
       const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
-      describe('When cloning a pod', () => {
+      describe('Should open a terminal', { tags: ['@adminUser', '@standardUser'] }, () => {
+        beforeEach(() => {
+          workloadsPodPage.goTo();
+        });
+
+        it('should open a pod shell', () => {
+          const shellPodPo = new PodPo();
+
+          shellPodPo.openPodShell();
+        });
+      });
+
+      describe('When cloning a pod', { tags: ['@adminUser'] }, () => {
         const { name: origPodName, namespace } = createPodBlueprint.metadata;
         const { name: clonePodName } = clonePodBlueprint.metadata;
 
         beforeEach(() => {
-          cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }`).as('origPod');
-          cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }`).as('clonedPod');
+          cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?exclude=metadata.managedFields`).as('origPod');
+          cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?exclude=metadata.managedFields`).as('clonedPod');
 
           workloadsPodPage.goTo();
 

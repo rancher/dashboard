@@ -28,7 +28,7 @@ describe('component: aliyunecs', () => {
           dispatch: () => jest.fn(),
           getters:  {
             'aliyun/defaultValue': getters.defaultValue(),
-            'i18n/t':              t => t,
+            'i18n/t':              (t) => t,
           }
         }
       }

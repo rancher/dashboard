@@ -200,16 +200,25 @@ export default {
     <h3>{{ t('harvester.host.tabs.overview') }}</h3>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.customName')" :value="customName" />
+        <LabelValue
+          :name="t('harvester.host.detail.customName')"
+          :value="customName"
+        />
       </div>
       <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.hostIP')" :value="value.internalIp" />
+        <LabelValue
+          :name="t('harvester.host.detail.hostIP')"
+          :value="value.internalIp"
+        />
       </div>
     </div>
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.os')" :value="value.status.nodeInfo.osImage" />
+        <LabelValue
+          :name="t('harvester.host.detail.os')"
+          :value="value.status.nodeInfo.osImage"
+        />
       </div>
       <div class="col span-6">
         <div class="role">
@@ -227,17 +236,30 @@ export default {
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.create')" :value="value.metadata.creationTimestamp" />
+        <LabelValue
+          :name="t('harvester.host.detail.create')"
+          :value="value.metadata.creationTimestamp"
+        />
       </div>
       <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.update')" :value="lastUpdateTime" />
+        <LabelValue
+          :name="t('harvester.host.detail.update')"
+          :value="lastUpdateTime"
+        />
       </div>
     </div>
 
     <div class="row mb-20">
       <div class="col span-6">
-        <LabelValue :name="t('harvester.host.detail.consoleUrl')" :value="consoleUrl.value">
-          <a slot="value" :href="consoleUrl.value" target="_blank">{{ consoleUrl.display }}</a>
+        <LabelValue
+          :name="t('harvester.host.detail.consoleUrl')"
+          :value="consoleUrl.value"
+        >
+          <a
+            slot="value"
+            :href="consoleUrl.value"
+            target="_blank"
+          >{{ consoleUrl.display }}</a>
         </LabelValue>
       </div>
     </div>
@@ -245,16 +267,25 @@ export default {
     <div v-if="hasHostNetworksSchema">
       <hr class="divider" />
       <h3>{{ t('harvester.host.detail.title.network') }}</h3>
-      <Banner v-if="networkMessage" color="error">
+      <Banner
+        v-if="networkMessage"
+        color="error"
+      >
         {{ networkMessage }}
       </Banner>
       <div class="row mb-20">
         <div class="col span-6">
-          <LabelValue :name="t('harvester.host.detail.networkType')" :value="networkType" />
+          <LabelValue
+            :name="t('harvester.host.detail.networkType')"
+            :value="networkType"
+          />
         </div>
 
         <div class="col span-6">
-          <LabelValue :name="t('harvester.host.detail.nic')" :value="nic" />
+          <LabelValue
+            :name="t('harvester.host.detail.nic')"
+            :value="nic"
+          />
         </div>
       </div>
     </div>
@@ -306,15 +337,24 @@ export default {
     <h3>{{ t('harvester.host.detail.more') }}</h3>
     <div class="row mb-20">
       <div class="col span-4">
-        <LabelValue :name="t('harvester.host.detail.uuid')" :value="value.status.nodeInfo.systemUUID" />
+        <LabelValue
+          :name="t('harvester.host.detail.uuid')"
+          :value="value.status.nodeInfo.systemUUID"
+        />
       </div>
 
       <div class="col span-4">
-        <LabelValue :name="t('harvester.host.detail.kernel')" :value="value.status.nodeInfo.kernelVersion" />
+        <LabelValue
+          :name="t('harvester.host.detail.kernel')"
+          :value="value.status.nodeInfo.kernelVersion"
+        />
       </div>
 
       <div class="col span-4">
-        <LabelValue :name="t('harvester.host.detail.containerRuntime')" :value="value.status.nodeInfo.containerRuntimeVersion" />
+        <LabelValue
+          :name="t('harvester.host.detail.containerRuntime')"
+          :value="value.status.nodeInfo.containerRuntimeVersion"
+        />
       </div>
     </div>
   </div>

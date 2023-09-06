@@ -10,7 +10,7 @@ export default {
     ...mapState('growl', ['stack']),
 
     shouldRun() {
-      return this.stack.length && this.stack.find(x => x.timeout > 0);
+      return this.stack.length && this.stack.find((x) => x.timeout > 0);
     }
   },
 

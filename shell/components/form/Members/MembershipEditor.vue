@@ -71,7 +71,7 @@ export default {
     const [allBindings] = await Promise.all(userHydration);
 
     const bindings = allBindings
-      .filter(b => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
+      .filter((b) => normalizeId(get(b, this.parentKey)) === normalizeId(this.parentId));
 
     this.$set(this, 'lastSavedBindings', [...bindings]);
 
@@ -97,11 +97,11 @@ export default {
   computed: {
     newBindings() {
       return this.bindings
-        .filter(binding => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
+        .filter((binding) => !binding.id && !this.lastSavedBindings.includes(binding) && !binding.isDefaultBinding);
     },
     removedBindings() {
       return this.lastSavedBindings
-        .filter(binding => !this.bindings.includes(binding));
+        .filter((binding) => !this.bindings.includes(binding));
     },
     membershipUpdate() {
       const newBindings = this.newBindings;
@@ -117,7 +117,7 @@ export default {
             return binding.save();
           });
 
-          const removedPromises = removedBindings.map(binding => binding.remove());
+          const removedPromises = removedBindings.map((binding) => binding.remove());
 
           return Promise.all([...savedPromises, ...removedPromises]);
         }
@@ -157,7 +157,7 @@ export default {
     editMember(binding, remove) {
       this.$store.dispatch('cluster/promptModal', {
         component:      this.editMemberDialogName,
-        componentProps: { onAdd: p => this.onUpdate(p, remove), value: binding.value },
+        componentProps: { onAdd: (p) => this.onUpdate(p, remove), value: binding.value },
         modalSticky:    this.modalSticky
       });
     },
@@ -227,7 +227,7 @@ export default {
         <button
           type="button"
           :disabled="isView"
-          class="btn btn-sm role-link"
+          class="btn role-link"
           @click="remove"
         >
           <i class="icon icon-trash" />
@@ -236,7 +236,7 @@ export default {
           v-if="editMemberDialogName"
           type="button"
           :disabled="isView"
-          class="btn btn-sm role-link"
+          class="btn role-link"
           @click="editMember(row, remove)"
         >
           <i class="icon icon-edit" />

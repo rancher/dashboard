@@ -245,7 +245,7 @@ export const actions = {
       params,
     });
 
-    return data.filter(obj => obj.OSType === 'linux');
+    return data.filter((obj) => obj.OSType === 'linux');
   },
   async systemDiskCategories({ dispatch }, params) {
     const data = await dispatch('fetchAvailableResource', {

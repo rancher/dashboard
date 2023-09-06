@@ -12,7 +12,7 @@ export default class ClusterProjectMembersPo extends PagePo {
     throw new Error('invalid');
   }
 
-  constructor(clusterId: string = 'local', tabId: string = 'cluster-membership') {
+  constructor(clusterId = 'local', tabId = 'cluster-membership') {
     super(ClusterProjectMembersPo.createPath(clusterId, tabId));
   }
 

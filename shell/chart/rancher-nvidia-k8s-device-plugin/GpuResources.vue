@@ -18,7 +18,7 @@ export default {
     },
   },
   data() {
-    const rows = this.value.map(item => ({ ...item }));
+    const rows = this.value.map((item) => ({ ...item }));
 
     return { rows };
   },
@@ -59,7 +59,7 @@ export default {
       this.queueUpdate();
     },
     update() {
-      const out = this.rows.map(item => ({ ...item }));
+      const out = this.rows.map((item) => ({ ...item }));
 
       this.$emit('input', out);
     },

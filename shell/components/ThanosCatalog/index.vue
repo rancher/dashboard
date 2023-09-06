@@ -109,7 +109,7 @@ export default {
       return this.enabled && this.latestVersion && this.templateVersion && this.latestVersion !== this.templateVersion;
     },
     chartVersions() {
-      return uniqBy(this.chart?.versions || [], 'version').map(v => ({
+      return uniqBy(this.chart?.versions || [], 'version').map((v) => ({
         label: v.version,
         value: v.version,
       })).sort();

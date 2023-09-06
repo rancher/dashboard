@@ -38,7 +38,7 @@ import PageHeaderActions from '@shell/mixins/page-actions';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import { getClusterFromRoute, getProductFromRoute } from '@shell/middleware/authenticated';
 import { BOTTOM } from '@shell/utils/position';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import AutoLogout from '@shell/mixins/auto-logout';
 
 const SET_LOGIN_ACTION = 'set-as-login';
@@ -171,10 +171,13 @@ export default {
       if (this.isSingleProduct?.getVersionInfo) {
         return this.isSingleProduct?.getVersionInfo(this.$store);
       }
-
       const { displayVersion } = getVersionInfo(this.$store);
 
       return displayVersion;
+    },
+
+    singleProductAbout() {
+      return this.isSingleProduct?.aboutPage;
     },
 
     harvesterVersion() {
@@ -421,8 +424,8 @@ export default {
           if ( productId === EXPLORER || !this.isExplorer ) {
             addObjects(out, more);
           } else {
-            const root = more.find(x => x.name === 'root');
-            const other = more.filter(x => x.name !== 'root');
+            const root = more.find((x) => x.name === 'root');
+            const other = more.filter((x) => x.name !== 'root');
 
             const group = {
               name:     productId,
@@ -614,7 +617,7 @@ export default {
         // Only expand one group - so after the first has been expanded, no more will
         // This prevents the 'More Resources' group being expanded in addition to the normal group
         let canExpand = true;
-        const expanded = refs.filter(grp => grp.isExpanded)[0];
+        const expanded = refs.filter((grp) => grp.isExpanded)[0];
 
         if (expanded && expanded.hasActiveRoute()) {
           this.$nextTick(() => expanded.syncNav());
@@ -742,14 +745,22 @@ export default {
           v-else
           class="version text-muted flex"
         >
-          <span>{{ displayVersion }}</span>
-          <span
-            v-if="isVirtualCluster && isExplorer"
-            v-tooltip="{content: harvesterVersion, placement: 'top'}"
-            class="clip text-muted ml-5"
+          <nuxt-link
+            v-if="singleProductAbout"
+            :to="singleProductAbout"
           >
-            (Harvester-{{ harvesterVersion }})
-          </span>
+            {{ displayVersion }}
+          </nuxt-link>
+          <template v-else>
+            <span>{{ displayVersion }}</span>
+            <span
+              v-if="isVirtualCluster && isExplorer"
+              v-tooltip="{content: harvesterVersion, placement: 'top'}"
+              class="clip text-muted ml-5"
+            >
+              (Harvester-{{ harvesterVersion }})
+            </span>
+          </template>
         </div>
       </nav>
       <main

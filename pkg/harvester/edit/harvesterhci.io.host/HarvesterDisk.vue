@@ -132,7 +132,10 @@ export default {
 </script>
 
 <template>
-  <div class="disk" @input="update">
+  <div
+    class="disk"
+    @input="update"
+  >
     <div class="mt-30" />
     <Banner
       v-if="mountedMessage && isProvisioned"
@@ -173,7 +176,10 @@ export default {
           </div>
         </div>
       </div>
-      <div v-if="!value.isNew" class="row mt-30">
+      <div
+        v-if="!value.isNew"
+        class="row mt-30"
+      >
         <div class="col flex span-12">
           <LabelValue
             name="Storage Available"
@@ -200,7 +206,10 @@ export default {
         />
       </div>
     </div>
-    <div v-if="value.isNew && !isFormatted" class="row mt-10">
+    <div
+      v-if="value.isNew && !isFormatted"
+      class="row mt-10"
+    >
       <div class="col span-6">
         <RadioGroup
           v-model="value.forceFormatted"

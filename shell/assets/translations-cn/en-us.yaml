@@ -109,6 +109,7 @@ generic:
   labels: Labels
   podSecurityAdmission: Pod Security Admission
   here: here
+  upload: Upload
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -198,6 +199,12 @@ nav:
   failWhale:
     reload: Reload
     separator: or
+    authMiddleware: Auth Middleware
+    clusterNotFound: Cluster { clusterId } not found
+    productNotFound: Product { productNotFound } not found
+    resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
+    resourceListNotFound: Resource type { resource } not found, unable to display list
+    resourceNotFound: Resource type { resource } not found
   vlanSubnet:
     label: Flat Network
   imageRepo:
@@ -758,6 +765,10 @@ asyncButton:
     action: Generate Response Times
     success: Response Times Generated
     waiting: Generating&hellip;
+  add:
+    action: Add
+    success: Added
+    waiting: Adding&hellip;
 backupRestoreOperator:
   backupFilename: Backup Filename
   deleteTimeout:
@@ -2416,9 +2427,12 @@ fleet:
       label: Workspace
       addWorkspace: Create a workspace
     resources:
-      keepResources: Keep resources after deletion
+      keepResources: Always Keep Resources
       label: Resource Handling
       resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      correctDrift: Enable Self-Healing
+      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on th ecluster will be lost.
+      keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -2595,6 +2609,7 @@ hpa:
     metrics: Metrics
     target: Target
     workload: Workload
+    behavior: Behavior
   types:
     cpu: CPU
     memory: Memory
@@ -2609,6 +2624,26 @@ hpa:
     max: Maximum Replicas
     min: Minimum Replicas
     targetReference: Target Reference
+  scaleDownRules:
+    enable: Configure scale down behavior
+    label: Scale down behavior
+  scaleUpRules:
+    enable: Configure scale up behavior
+    label: Scale up behavior
+  scalingRule:
+    addPolicy: Add policy
+    policy:
+      periodSeconds: Period seconds
+      periodSecondsTooltip: The window of time for which the policy should hold true.
+      type: Type
+      typeTooltip: Set policy based on the amount of Pods to scale or the percentage of current replicas to scale.
+      value: Value
+      valueTooltip: The amount of change which is permitted by the policy.
+    policyHeader: Policies
+    selectPolicy: Select policy
+    selectPolicyTooltip: Select the policy with the maximum value, minimum value or disable scaling.
+    stabilizationWindowSeconds: Stabilization window seconds
+    stabilizationWindowSecondsTooltip: Number of seconds for which past recommendations should be considered while scaling up or scaling down.
 import:
   title: Import YAML
   defaultNamespace:
@@ -3217,6 +3252,7 @@ login:
   useNonLocal: Use a non-local user
   remember:
     label: Remember Username
+  specificError: 'An error occurred logging in: {msg}'
 managementNode:
   customName: Custom Name
 members:
@@ -3700,11 +3736,16 @@ navLink:
         tooltip: Assign link to a group
         placeholder: Please enter a group name
       sideLabel:
-        label: Link Label
+        label: Link label
       description:
         label: Link description
       iconSrc:
         label: Add image
+    groupImage:
+      iconSrc:
+        label: Add image
+        tip: 'Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
+      label: Group Image
 networkpolicy:
   egress:
     label: Egress Rules
@@ -3893,7 +3934,7 @@ persistentVolume:
       label: Storage Policy ID
       placeholder: e.g. sp1
   csi:
-    label: CSI (Unsupported)
+    label: CSI
     driver:
       label: Driver
       placeholder: e.g. driver.longhorn.io
@@ -5701,9 +5742,9 @@ validation:
   betweenLengths: '"{key}" must contain between {min} and {max} characters'
   betweenValues: '"{key}" must be between {min} and {max}'
   maxLength: '"{key}" must contain less than {max} characters'
-  maxValue: '"{key}" must be lower than {max}'
+  maxValue: '"{key}" must be equal or lower than {max}'
   minLength: '"{key}" must contain more than {min} characters'
-  minValue: '"{key}" must be higher than {min}'
+  minValue: '"{key}" must be equal or higher than {min}'
 wizard:
   previous: Previous
   finish: Finish
@@ -5750,6 +5791,7 @@ wm:
     permissionDenied:
       message: Permission Denied
       title: Error Open Shell
+    failed: "Unable to open a shell to the container (none of the shell commmands succeeded)\n\r"
   kubectlShell:
     title: "Kubectl: {name}"
 workload:
@@ -7393,6 +7435,7 @@ manager:
 auth:
   config:
     label: Auth Provider
+  roleTemplate: Role Templates
 vncConsole:
   error:
     message: Web VNC console connection is disconnected
@@ -7446,12 +7489,15 @@ plugins:
     message: Could not load extension code
     title: Error loading extension
     version: This Extension is not compatible with this version of Rancher
+    developerPkg: This Extension has been loaded internally, so we won't load the external version
   helmError: An error occurred installing the extension via Helm
   info:
     detail: Detail
     versionError: Could not load version information
     versions: Versions
     requiresVersion: Requires Rancher {version}
+    requiresKubeVersion: Requires Kube version {version}
+    requiresRancherVersion: Requires Rancher {version}
   install:
     label: Install
     prompt: Are you sure that you want to install this Extension?
@@ -7477,13 +7523,18 @@ plugins:
     title: Extensions Safe Mode
   setup:
     install:
-      addRancherRepo: Add the Rancher Extension Repository
-      airgap: The Rancher Extensions Repository provides extensions published by Rancher. Un-check if your Rancher installation is air-gapped
-      prompt: This will install the Helm charts to enable Extension support
+      addRancherRepo: Add Official Rancher Extensions Repository
+      airgap: Air-gapped installations should NOT enable this feature
+      prompt: This will install the Helm charts needed to enable Extension support
       title: Enable Extension Support?
+      addCommunityRancherRepo: Add Community Extensions Repository
+      addPartnersRancherRepo: Add Partners Extensions Repository
     prompt:
       can: You need to install the Extension Operator
       cant: Automatic installation is not available - required Helm Charts could not be found
+      community: The Community Extensions Repository provides extensions published by Rancher Community
+      official: The Official Rancher Extensions Repository provides extensions published by Rancher
+      partners: The Partners Extensions Repository provides extensions published by Rancher Partners
     remove:
       crd:
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
@@ -7493,8 +7544,16 @@ plugins:
       registry:
         prompt: The Rancher Extensions Repository provides extensions published by Rancher
         title: Remove the Rancher Extensions Repository
+        community:
+          title: Remove the Community Extensions Repository
+        official:
+          title: Remove the Official Rancher Extensions Repository
+        partners:
+          title: Remove the Partners Extensions Repository
       title: Disable Extension Support?
     title: Extension support is not enabled
+    installed: Already installed
+    uninstalled: Already uninstalled
   success:
     message: Extension was loaded successfully
     title: Loaded extension {name}
@@ -7556,6 +7615,15 @@ plugins:
     subtitle: Catalogs
     title: Extension
   manageCharts: Manage Extension Charts
+  addRancherRepos: Add Rancher Repositories
+  addRepos:
+    banner: There are new extensions repositories available. To enable these repositories, click the button on the right.
+    bannerBtn: Add repositories
+    prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
+    title: Add Extensions repositories
+  currentInstalledVersionBlockedByKubeVersion: This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck }).
+  incompatibleKubeVersion: The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion }).
+  incompatibleRancherVersion: The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion }).
 clusterConnectMode:
   actions:
     restartConfirm: Are You Sure You Want To Save Connect Mode And Restart {name} Cluster Controller？
@@ -7961,3 +8029,80 @@ inactivity:
 networkAttachmentDefinition:
   tabs:
     config: Config
+gitPicker:
+  github:
+    branch:
+      inputLabel: Branch
+      label: Branch
+      tooltip: Branch to deploy
+    commit:
+      inputLabel: Commit
+      label: Commit
+    commitMessage:
+      label: Commit Message
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    errors:
+      noAccount: No GitHub account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again.
+    label: GitHub
+    repo:
+      inputLabel: Repository
+      label: Repository
+      tooltip: Repository to deploy from
+    tableHeaders:
+      author:
+        label: Author
+        unknown: Unknown
+      choose:
+        label: Select
+      date:
+        label: Date
+      message:
+        label: Message
+      sha:
+        label: SHA
+    username:
+      inputLabel: Username / Organization
+      label: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+  gitlab:
+    branch:
+      inputLabel: Branch
+      label: Branch
+      tooltip: Branch to deploy
+    commit:
+      inputLabel: Commit
+      label: Commit
+    commitMessage:
+      label: Commit Message
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    errors:
+      noAccount: No GitLab account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again.
+    label: GitLab
+    repo:
+      inputLabel: Repository
+      label: Repository
+      tooltip: Repository to deploy from
+    tableHeaders:
+      author:
+        label: Author
+        unknown: Unknown
+      choose:
+        label: Select
+      date:
+        label: Date
+      message:
+        label: Message
+      sha:
+        label: SHA
+    username:
+      inputLabel: Username / Organization
+      label: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+logout:
+  message: Logging Out...

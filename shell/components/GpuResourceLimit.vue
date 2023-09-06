@@ -177,9 +177,9 @@ export default {
       }, []);
     },
     gpuResourceNames() {
-      const deviceList = this.currentCluster?.metadata?.annotations?.['gpu.pandaria.io/devicelist']?.split(',')?.filter(item => item?.trim()) ?? [];
+      const deviceList = this.currentCluster?.metadata?.annotations?.['gpu.pandaria.io/devicelist']?.split(',')?.filter((item) => item?.trim()) ?? [];
 
-      return deviceList.map(d => ({
+      return deviceList.map((d) => ({
         label: d,
         value: d
       }));

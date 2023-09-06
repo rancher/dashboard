@@ -246,6 +246,7 @@ export default {
       :side-by-side="diffMode === 'split'"
       :orig="original"
       :neu="curValue"
+      :footer-space="80"
     />
   </div>
 </template>

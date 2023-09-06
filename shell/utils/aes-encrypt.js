@@ -1,7 +1,7 @@
 import Crypto from 'crypto-js';
 
 function getSecret() {
-  const CSRF = document.cookie.split(';').find(item => item.includes('CSRF'));
+  const CSRF = document.cookie.split(';').find((item) => item.includes('CSRF'));
 
   if (CSRF === undefined) {
     console.error('cannot get CSRF'); // eslint-disable-line no-console

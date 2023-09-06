@@ -56,7 +56,7 @@ export default {
     pvcsResource() {
       const allPVCs = this.$store.getters['harvester/all'](PVC) || [];
 
-      return allPVCs.find(P => P.metadata.name === this.value.volumeName);
+      return allPVCs.find((P) => P.metadata.name === this.value.volumeName);
     },
 
     isDisabled() {
@@ -102,7 +102,10 @@ export default {
 
 <template>
   <div>
-    <Loading mode="relative" :loading="loading" />
+    <Loading
+      mode="relative"
+      :loading="loading"
+    />
     <div class="row mb-20">
       <div
         class="col span-6"
@@ -172,7 +175,11 @@ export default {
         data-testid="input-hev-bus"
         class="col span-3"
       >
-        <InputOrDisplay :name="t('harvester.virtualMachine.volume.bus')" :value="value.bus" :mode="mode">
+        <InputOrDisplay
+          :name="t('harvester.virtualMachine.volume.bus')"
+          :value="value.bus"
+          :mode="mode"
+        >
           <LabeledSelect
             v-model="value.bus"
             :label="t('harvester.virtualMachine.volume.bus')"

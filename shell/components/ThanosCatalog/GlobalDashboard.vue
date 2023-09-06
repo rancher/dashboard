@@ -60,7 +60,7 @@ export default {
   async fetch() {
     const storageClass = await this.$store.dispatch('management/findAll', { type: STORAGE_CLASS });
 
-    const storageClassesOptions = storageClass.map(s => ({
+    const storageClassesOptions = storageClass.map((s) => ({
       label: s.id,
       value: s.id
     }));

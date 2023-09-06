@@ -34,7 +34,7 @@ describe('component: TopLevelMenu', () => {
       }
     };
 
-    expect(TopLevelMenu.computed.clusters.call(localThis).map(c => ({ id: c.id, isHarvester: c.isHarvester }))).toContainEqual(harvester);
+    expect(TopLevelMenu.computed.clusters.call(localThis).map((c) => ({ id: c.id, isHarvester: c.isHarvester }))).toContainEqual(harvester);
   });
 
   it('should not contain harvester cluster', () => {

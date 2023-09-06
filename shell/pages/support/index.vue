@@ -5,9 +5,10 @@ import CommunityLinks from '@shell/components/CommunityLinks';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
-import { findBy } from '@shell/utils/array';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
+import { hasCspAdapter } from 'mixins/brand';
+import { generateSupportLink } from '@shell/utils/version';
 
 export default {
   layout: 'home',
@@ -68,7 +69,7 @@ export default {
 
   computed: {
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
+      return hasCspAdapter(this.apps);
     },
 
     hasSupport() {
@@ -90,11 +91,17 @@ export default {
     },
 
     supportConfigLink() {
-      if (!this.cspAdapter) {
+      const adapter = this.cspAdapter;
+
+      if (!adapter) {
         return false;
       }
 
-      return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
+      if (adapter.metadata.name === 'rancher-csp-billing-adapter') {
+        return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig?usePAYG=true`;
+      } else {
+        return `${ this.serverUrl }/v1/generateSUSERancherSupportConfig`;
+      }
     },
 
     title() {
@@ -103,6 +110,12 @@ export default {
 
     sccLink() {
       return this.hasAWSSupport ? addParam('https://support-cn.rancher.cn', 'from_marketplace', '1') : 'https://support-cn.rancher.cn';
+    },
+
+    supportLink() {
+      const version = this.settings?.find((s) => s.id === SETTING.VERSION_RANCHER)?.value;
+
+      return generateSupportLink(version);
     }
   },
 

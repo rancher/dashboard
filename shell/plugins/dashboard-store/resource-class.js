@@ -518,6 +518,14 @@ export function stateSort(color, display) {
   return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
 }
 
+export function isConditionReadyAndWaiting(condition) {
+  if (!condition) {
+    return false;
+  }
+
+  return condition?.type?.toLowerCase() === 'ready' && condition?.reason?.toLowerCase() === 'waiting';
+}
+
 function maybeFn(val) {
   if ( isFunction(val) ) {
     return val(this);
@@ -858,7 +866,7 @@ export default class Resource {
     const currentRoute = this.currentRouter().app._route;
     const extensionMenuActions = getApplicableExtensionEnhancements(this.$rootState, ExtensionPoint.ACTION, ActionLocation.TABLE, currentRoute, this);
 
-    let all = [
+    const all = [
       { divider: true },
       {
         action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
@@ -922,7 +930,32 @@ export default class Resource {
     if (extensionMenuActions.length) {
       // Add a divider first
       all.push({ divider: true });
-      all = all.concat(extensionMenuActions);
+
+      extensionMenuActions.forEach((action) => {
+        const newActionInstance = { ...action };
+
+        const enabledFn = newActionInstance.enabled;
+        const typeofEnabled = typeof enabledFn;
+
+        switch (typeofEnabled) {
+        case 'undefined':
+          newActionInstance.enabled = true;
+          break;
+        case 'function':
+          Object.defineProperty(newActionInstance, 'enabled', { get: () => enabledFn(this) });
+          break;
+        case 'boolean':
+          // no op, just use it directly
+          break;
+        default:
+          // unsupported value
+          console.warn(`Unsupported 'enabled' property type for action: ${ action.label || action.labelKey }` ); // eslint-disable-line no-console
+          delete newActionInstance.enabled;
+          break;
+        }
+
+        all.push(newActionInstance);
+      });
     }
 
     return all;
@@ -951,7 +984,7 @@ export default class Resource {
   }
 
   get canCreate() {
-    if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+    if ( this.schema && !this.schema?.collectionMethods.find((x) => x.toLowerCase() === 'post') ) {
       return false;
     }
 
@@ -967,7 +1000,7 @@ export default class Resource {
   }
 
   get canEditYaml() {
-    return this.schema?.resourceMethods?.find(x => x === 'blocked-PUT') ? false : this.canUpdate;
+    return this.schema?.resourceMethods?.find((x) => x === 'blocked-PUT') ? false : this.canUpdate;
   }
 
   // ------------------------------------------------------------------
@@ -1443,6 +1476,10 @@ export default class Resource {
   }
 
   async saveYaml(yaml) {
+    this._saveYaml(yaml);
+  }
+
+  async _saveYaml(yaml) {
     /* Multipart support, but need to know the right cluster and work for management store
       and "apply" seems to only work for create, not update.
 
@@ -1501,7 +1538,7 @@ export default class Resource {
     const rules = [];
 
     const customValidationRulesets = this?.customValidationRules
-      .filter(rule => !!rule.validators || !!rule.required)
+      .filter((rule) => !!rule.validators || !!rule.required)
       .map((rule) => {
         const formRules = formRulesGenerator(this.t, { displayKey: rule?.translationKey ? this.t(rule.translationKey) : 'Value' });
 
@@ -1522,10 +1559,10 @@ export default class Resource {
               return formRules[rule];
             }
             )
-            .filter(rule => !!rule)
+            .filter((rule) => !!rule)
         };
       })
-      .filter(ruleset => ruleset.rules.length > 0);
+      .filter((ruleset) => ruleset.rules.length > 0);
 
     rules.push(...customValidationRulesets);
 
@@ -1542,7 +1579,7 @@ export default class Resource {
         customValidationRules = customValidationRules();
       }
 
-      customValidationRules.filter(rule => !ignorePaths.includes(rule.path)).forEach((rule) => {
+      customValidationRules.filter((rule) => !ignorePaths.includes(rule.path)).forEach((rule) => {
         const {
           path,
           requiredIf: requiredIfPath,
@@ -1726,7 +1763,7 @@ export default class Resource {
         const allOfResourceType = this.$rootGetters['cluster/all']( type );
 
         this.ownersByType[kind].forEach((resource, idx) => {
-          const resourceInstance = allOfResourceType.find(resourceByType => resourceByType?.metadata?.uid === resource.uid);
+          const resourceInstance = allOfResourceType.find((resourceByType) => resourceByType?.metadata?.uid === resource.uid);
 
           if (resourceInstance) {
             owners.push(resourceInstance);
@@ -1749,7 +1786,7 @@ export default class Resource {
       details.push({
         label:     this.t('resourceDetail.detailTop.ownerReferences', { count: this.owners.length }),
         formatter: 'ListLinkDetail',
-        content:   this.owners.map(owner => ({
+        content:   this.owners.map((owner) => ({
           key:   owner.id,
           row:   owner,
           col:   {},

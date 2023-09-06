@@ -90,7 +90,7 @@ export default {
         const fileName = filePath.substr(filePath.lastIndexOf('/') + 1);
 
         if ( typeof XMLHttpRequest !== 'undefined' ) {
-          const csrf = document.cookie.split(';').find(item => item.includes('CSRF'));
+          const csrf = document.cookie.split(';').find((item) => item.includes('CSRF'));
           const body = JSON.stringify({
             containerName: get(this, 'currentContainer'),
             filePath,

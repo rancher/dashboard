@@ -3,12 +3,12 @@ export default {
   props: {
     initialSrc: {
       type:    String,
-      default: require('~shell/assets/images/generic-catalog.svg'),
+      default: require('@shell/assets/images/generic-catalog.svg'),
     },
 
     errorSrc: {
       type:    String,
-      default: require('~shell/assets/images/generic-catalog.svg'),
+      default: require('@shell/assets/images/generic-catalog.svg'),
     },
 
     src: {

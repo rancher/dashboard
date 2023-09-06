@@ -181,6 +181,8 @@ export default {
     $route(nue) {
       if (nue) {
         this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, nue);
+
+        this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
       }
     }
   },
@@ -191,8 +193,6 @@ export default {
     window.addEventListener('resize', this.debouncedLayoutHeader);
 
     this.$nextTick(() => this.layoutHeader(null, true));
-
-    this.navHeaderRight = this.$plugin?.getDynamic('component', 'NavHeaderRight');
   },
 
   beforeDestroy() {
@@ -292,7 +292,7 @@ export default {
       // Make sure we wait at least 1 second so that the user can see the visual indication that the config has been copied
       allHash({
         copy:     this.currentCluster.copyKubeConfig(),
-        minDelay: new Promise(resolve => setTimeout(resolve, 1000))
+        minDelay: new Promise((resolve) => setTimeout(resolve, 1000))
       }).finally(() => {
         this.kubeConfigCopying = false;
 

@@ -109,6 +109,7 @@ generic:
   labels: 標籤
   podSecurityAdmission: Pod 安全准入
   here: 此處
+  upload: 上傳
 locale:
   en-us: English
   zh-hans: 简体中文
@@ -181,6 +182,7 @@ nav:
     multiCluster: 全局應用
     legacy: 舊版應用
     configuration: 配置
+    hci: HCI
   search:
     placeholder: 輸入關鍵詞，搜索集羣
     noResults: 沒有匹配的集羣
@@ -198,6 +200,12 @@ nav:
   failWhale:
     reload: 重新加載
     separator: 或者
+    authMiddleware: 認證中間件
+    clusterNotFound: 未找到集群 { clusterId }
+    productNotFound: 未找到產品 {productNotFound}
+    resourceIdNotFound: 未找到 ID 為 { fqid } 的資源 { resources }，無法顯示資源詳細信息
+    resourceListNotFound: 未找到資源類型 { resource }，無法顯示列表
+    resourceNotFound: 未找到資源類型 { resource }
   vlanSubnet:
     label: 扁平網絡
   imageRepo:
@@ -209,6 +217,7 @@ nav:
   globalMonitoring:
     label: 全局監控
     dashboard: Dashboard
+  harvesterDashboard: Harvester 儀錶板
 product:
   apps: 應用
   auth: 用戶 & 認證
@@ -759,6 +768,10 @@ asyncButton:
     action: 生成響應時間
     success: 已生成響應時間
     waiting: 正在生成&hellip;
+  add:
+    action: 添加
+    success: 已添加
+    waiting: 正在添加&hellip;
 backupRestoreOperator:
   backupFilename: 備份文件名
   deleteTimeout:
@@ -2424,9 +2437,12 @@ fleet:
       label: 工作空間
       addWorkspace: 創建工作空間
     resources:
-      keepResources: 刪除後保留資源
+      keepResources: 永遠保留資源
       label: 資源處理
       resourceBanner: 啓用時，刪除 GitRepo 或 Bundle 後將保留資源，只會刪除 Helm Release Secret。
+      correctDrift: 啟用自我修復
+      correctDriftBanner: 啟用後，Fleet 將確保集群資源與 Git 倉庫保持同步。在 ecluster 上進行的所有資源更改都將丟失。
+      keepResourcesBanner: 啟用時，刪除 GitRepo 或 Bundle 後將保留資源，只會刪除 Helm Release Secret。
   clusterGroup:
     selector:
       label: 集羣選擇器
@@ -2465,6 +2481,7 @@ footer:
     title: 微信
     modalText: 掃描二維碼添加 Rancher 小助手
     modalText2: 加入 Rancher 官方微信羣
+  cnforums: 中文社區
 gatekeeperConstraint:
   match:
     title: 匹配
@@ -2609,6 +2626,7 @@ hpa:
     metrics: 指標
     target: 目標
     workload: 工作負載
+    behavior: 行為
   types:
     cpu: CPU
     memory: 內存
@@ -2623,6 +2641,26 @@ hpa:
     max: 最大副本數
     min: 最小副本數
     targetReference: 目標引用
+  scaleDownRules:
+    enable: 配置縮減行為
+    label: 縮減行為
+  scaleUpRules:
+    enable: 配置擴展行為
+    label: 擴展行為
+  scalingRule:
+    addPolicy: 添加策略
+    policy:
+      periodSeconds: 周期秒數
+      periodSecondsTooltip: 策略生效的時間窗口。
+      type: 類型
+      typeTooltip: 根據要擴展的 Pod 數量或要擴展的當前副本百分比設置策略。
+      value: 值
+      valueTooltip: 策略允許的變更數量。
+    policyHeader: 策略
+    selectPolicy: 選擇策略
+    selectPolicyTooltip: 選擇具有最大值、最小值或禁用縮放的策略。
+    stabilizationWindowSeconds: 穩定窗口秒數
+    stabilizationWindowSecondsTooltip: 在擴展或縮減時應考慮過去建議的秒數。
 import:
   title: 導入 YAML
   defaultNamespace:
@@ -3907,7 +3945,7 @@ persistentVolume:
       label: 存儲策略 ID
       placeholder: 例如：sp1
   csi:
-    label: CSI（不支持）
+    label: CSI
     driver:
       label: 驅動
       placeholder: 例如：driver.longhorn.io
@@ -4685,8 +4723,8 @@ resourceList:
     create: 創建
     createFromYaml: 使用 YAML 文件創建
     createResource: "創建 {resourceName}"
-  nsFilterToolTip: 資源太多，過濾僅限於單一 {mode}。
-  nsFiltering: '{resource} 太多。<br>請通過選擇上面的命名空間進行過濾。'
+  nsFilterToolTip: 僅限於過濾項目和命名空間
+  nsFiltering: '請使用上面的過濾器選擇一個或多個命名空間或項目。'
 resourceLoadingIndicator:
   loading: 正在加載
 resourceTable:
@@ -4957,6 +4995,12 @@ servicesPage:
     ipam:
       label: IPAM
     title: 附加配置
+    shareIP:
+      label: 共享 IP LB
+    useIpam:
+      label: 使用 IPAM
+    useShareIP:
+      label: 使用共享 IP
   listeningPorts: 該 Service 在此端口上公開。
   serviceListDescription: Service 用於定義一組可以使用單個 IP 地址和端口訪問的邏輯 Pod。
   targetPorts: Service 會向這個端口發送請求，被選中的 Pod 會監聽這個端口。
@@ -5739,9 +5783,9 @@ validation:
   betweenLengths: '"{key}" 必須包含 {min} 到 {max} 個字符'
   betweenValues: '"{key}" 必須介於 {min} 和 {max} 之間'
   maxLength: '"{key}" 必須少於 {max} 個字符'
-  maxValue: '"{key}" 必須小於 {max}'
+  maxValue: '"{key}" 必須等於或少於 {max}'
   minLength: '"{key}" 必須多於 {min} 個字符'
-  minValue: '"{key}" 必須多於 {min}'
+  minValue: '"{key}" 必須等於或多於 {min}'
 wizard:
   previous: 上一步
   finish: 完成
@@ -6156,7 +6200,7 @@ workload:
         noExecute: 不執行
         noSchedule: "不調度"
         preferNoSchedule: 傾向於不調度
-      labelKey: 標籤鍵
+      labelKey: 鍵
       operator: 運算符
       operatorOptions:
         equal: =
@@ -6961,6 +7005,11 @@ typeLabel:
       one { PriorityClass }
       other { PriorityClass }
     }
+  projectroletemplatebinding: |-
+    {count, plural,
+      one { 項目成員 }
+      other { 項目成員 }
+    }
 action:
   clone: 克隆
   disable: 禁用
@@ -7165,6 +7214,7 @@ performance:
       啓用後，資源會更快出現，但可能需要更長的時間來加載整個資源集。此設置僅適用於來自 Kubernetes API 的資源
     checkboxLabel: 啓用增量加載
     inputLabel: 資源閾值
+    incompatibleDescription: 增量加載與命名空間/項目過濾不兼容，無法同時啟用。
   manualRefresh:
     label: 手動刷新
     setting: 你可以配置一個閾值，高於該閾值時則啓用手動刷新。
@@ -7174,6 +7224,7 @@ performance:
     checkboxLabel: 啓用列表數據的手動刷新
     inputLabel: 資源閾值
     banner: 此設置是實驗性的，可能會在後續版本中刪除或更新。
+    incompatibleDescription: 手動刷新與命名空間/項目過濾不兼容，無法同時啟用。
   gc:
     banner: 此設置是實驗性的，可能會在後續版本中刪除或更新。
     checkboxLabel: 啓用垃圾回收
@@ -7202,12 +7253,13 @@ performance:
     label: WebSocket 通知
   experimental: 此設置是實驗性的，可能會在後續版本中刪除或更新。
   nsFiltering:
-    checkboxLabel: 啓用命名空間過濾
+    checkboxLabel: 啟用要求命名空間/項目過濾
     count:
       description: 需要按命名空間過濾的閾值
       inputLabel: 資源閾值
-    description: 當列表無法顯示太多資源時，用戶需要選擇一個命名空間並僅提取該命名空間中的資源。
-    label: 命名空間過濾
+    description: 用戶需要選擇命名空間和/或項目。這將限制查看列表時獲取的資源數量，有助於在具有大量資源的系統中提高 UI 的響應速度。
+    label: 要求命名空間/項目過濾
+    incompatibleDescription: '"要求命名空間/項目過濾"與手動刷新和增量加載不兼容，無法同時啟用。'
   advancedWorker:
     checkboxLabel: 啓用高級 Websocket Web Worker
     description: 推送到 UI 的資源更新來自 WebSocket，並在 UI 線程中處理。啓用此選項可在單獨的線程中處理 Web Worker 中的集羣 WebSocket 更新。這有助於提高 UI 在資源經常變化的系統中的響應能力。
@@ -7348,6 +7400,7 @@ resourceQuota:
   requestsGpuMemory: GPU Memory
   requestsStorageClassPVC: Storage Class PVC
   requestsStorageClassStorage: Storage Class 存儲
+  helpTextHarvester: VM 需要預留額外的內存。
 ##############################
 ### Support Page
 ##############################
@@ -7439,6 +7492,7 @@ manager:
 auth:
   config:
     label: 認證
+  roleTemplate: 角色模板
 vncConsole:
   error:
     message: Web VNC 控制檯連接斷開
@@ -7685,6 +7739,7 @@ customLinks:
     issues: 提交 GitHub Issue
     slack: Slack
     mirror: 下載 Rancher 資源
+    cnforums: 中文社區
   description: 配置要在主頁上顯示的鏈接。你可以配置自定義鏈接以及顯示或隱藏默認鏈接。
   displayTitle: 鏈接
   label: 主頁鏈接
@@ -7702,6 +7757,7 @@ plugins:
     built-in: 這是內置擴展
     experimental: 這是實驗性擴展
     third-party: 此擴展由第三方提供
+    image: 已手動加載此擴展鏡像
   developer:
     fields:
       name: 擴展模塊名稱
@@ -7715,6 +7771,7 @@ plugins:
     available: 沒有可用的擴展
     installed: 沒有已安裝的擴展
     updates: 沒有可用於已安裝擴展的更新
+    images: 未安裝擴展鏡像
   error:
     api: 此擴展與 Extensions API 不兼容
     generic: 擴展錯誤
@@ -7723,12 +7780,15 @@ plugins:
     message: 無法加載擴展代碼
     title: 加載擴展時出錯
     version: 此擴展與此 Rancher 版本不兼容
+    developerPkg: 此擴展已在內部加載，因此我們不會加載外部版本
   helmError: 通過 Helm 安裝擴展時出錯
   info:
     detail: 詳情
     versionError: 無法加載版本信息
     versions: 版本
     requiresVersion: 需要 Rancher {version}
+    requiresKubeVersion: 需要 Kube {version}
+    requiresRancherVersion: 需要 Rancher {version}
   install:
     label: 安裝
     prompt: 確定要安裝此擴展嗎？
@@ -7741,6 +7801,7 @@ plugins:
     installing: 正在安裝...
     third-party: 第三方
     uninstalling: 正在卸載...
+    image: 鏡像
   loadError: 加載此擴展的代碼時出錯
   manageRepos: 管理倉庫
   reload: 擴展已更改 - 需要重新加載
@@ -7753,24 +7814,37 @@ plugins:
     title: 擴展安全模式
   setup:
     install:
-      addRancherRepo: 添加 Rancher Extension 倉庫
-      airgap: Rancher Extensions 倉庫提供了由 Rancher 發佈的擴展。如果你的 Rancher 是離線的，請取消選中。
-      prompt: 這將安裝 Helm Chart 以啓用擴展支持
+      addRancherRepo: 添加 Official Rancher Extensions 倉庫
+      airgap: 離線安裝環境請不要啟用此功能
+      prompt: 這將安裝啟用擴展支持所需的 Helm Chart
       title: 啓用擴展支持？
+      addCommunityRancherRepo: 添加 Community Extensions 倉庫
+      addPartnersRancherRepo: 添加 Partners Extensions 倉庫
     prompt:
       can: 你需要安裝 Extension Operator
       cant: 自動安裝不可用 - 找不到所需的 Helm Chart
+      community: Community Extensions 倉庫提供了由 Rancher 社區發布的擴展。
+      official: Official Rancher Extensions 倉庫提供了由 Rancher 發布的擴展。
+      partners: Partners Extensions 倉庫提供了由 Rancher 合作夥伴發布的擴展。
     remove:
       label: 禁用擴展支持
       prompt: 這將卸載啓用擴展支持的 Helm Chart
       registry:
         prompt: Rancher Extensions 倉庫提供了由 Rancher 發佈的擴展。
         title: 刪除 Rancher Rancher Extensions 倉庫
+        community:
+          title: 刪除 Community Extensions 倉庫
+        official:
+          title: 刪除 Official Rancher Extensions 倉庫
+        partners:
+          title: 刪除 Partners Rancher Extensions 倉庫
       title: 禁用擴展支持？
       crd:
         prompt: 目前已安裝了一個或多個擴展 - 如果你後續需要重新啓用擴展支持，刪除 CRD 後你需要手動重新安裝這些擴展。
         title: 刪除 Rancher Extensions CRD
     title: 未啓用擴展支持
+    installed: 已安裝
+    uninstalled: 已卸載
   success:
     message: 擴展加載成功
     title: 已加載擴展 {name}
@@ -7779,11 +7853,13 @@ plugins:
     available: 可用
     installed: 已安裝
     updates: 更新
+    images: 鏡像
   title: 擴展
   uninstall:
     label: 卸載
     prompt: 確定要卸載此擴展嗎？
     title: 卸載擴展 {name}
+    custom: 確定要卸載此擴展鏡像嗎？此鏡像提供的擴展也將被刪除。
   update:
     label: 更新
     prompt: 確定要更新此擴展嗎？
@@ -7791,6 +7867,54 @@ plugins:
   upgradeAvailable: 此擴展有可用的版本更新
   version: 版本：{version}
   incompatibleDisclaimer: 此擴展的最新版本 ({ version }) 與當前的 Rancher 版本 ({ rancherVersion }) 不兼容。
+  addRancherRepos: 添加 Rancher 倉庫
+  addRepos:
+    banner: 有新的擴展倉庫可用。要啟用這些倉庫，請單擊右側的按鈕。
+    bannerBtn: 添加倉庫
+    prompt: 你可以安裝多個 Rancher 擴展倉庫來增加你的擴展商店
+    title: 添加擴展倉庫
+  currentInstalledVersionBlockedByKubeVersion: 此版本與當前 Kubernetes 版本 ({ kubeVersion }  Vs  { kubeVersionToCheck }) 不兼容。
+  incompatibleKubeVersion: 此擴展的最新版本 ({ version }) 與當前的 Kube 版本 ({ kubeVersion }) 不兼容。
+  incompatibleRancherVersion: 此擴展的最新版本 ({ version }) 與當前的 Rancher 版本 ({ rancherVersion }) 不兼容。
+  manageCatalog:
+    headers:
+      cacheState:
+        label: 緩存狀態
+        name: cacheState
+      image:
+        label: Deployment 鏡像
+        name: 鏡像
+    imageLoad:
+      banner: 這將創建 Deployment、Service 和 Helm 倉庫來服務擴展 Chart。
+      error:
+        exists:
+          deployment:
+            message: 使用 {image} 鏡像的容器已存在
+            title: 部署衝突
+          repo:
+            message: 名稱為 {repo} 的倉庫已存在
+            title: Helm 倉庫衝突
+          service:
+            message: 名稱為 {svc} 的 Service 已存在
+            title: Service 衝突
+      fields:
+        image:
+          label: 商店鏡像參考
+          placeholder: 例如：hub.docker.io/example-org/my-image:latest
+        secrets:
+          banner: 如果託管目錄鏡像的倉庫需要拉取 Secret，則必須在以下命名空間中創建它們：<pre>cattle-ui-plugin-system</pre>
+      imageVersion:
+        message: 無法通過 {image} 確定鏡像版本，默認為 latest
+        title: 找不到鏡像版本
+      load: 導入擴展商店
+      prompt: 擴展商店包含了打包在鏡像中的擴展資產，導入將獲取該鏡像，並託管一個 Helm 倉庫來作為自定義構建擴展的商店。
+      success:
+        message: 已成功導入擴展商店鏡像
+        title: 導入的擴展商店來自：{name}
+    label: 管理擴展商店
+    subtitle: 應用商店
+    title: 擴展
+  manageCharts: 管理擴展 Chart
 clusterConnectMode:
   actions:
     restartConfirm: 您確定保存連接模式並重啓 {name} 集羣控制器嗎？
@@ -8196,3 +8320,80 @@ inactivity:
 networkAttachmentDefinition:
   tabs:
     config: 配置
+gitPicker:
+  github:
+    branch:
+      inputLabel: 分支
+      label: 分支
+      tooltip: 要部署的分支
+    commit:
+      inputLabel: Commit
+      label: Commit
+    commitMessage:
+      label: Commit Message
+    commits:
+      label: Commit
+      tooltip: 要部署的 Commit
+    errors:
+      noAccount: 未找到 GitHub 帳戶或組織。請檢查你的查詢並重試。
+      noBranch: 未找到分支。請檢查你的查詢並重試。
+    label: GitHub
+    repo:
+      inputLabel: 倉庫
+      label: 倉庫
+      tooltip: 要部署的倉庫
+    tableHeaders:
+      author:
+        label: 作者
+        unknown: 未知
+      choose:
+        label: 選擇
+      date:
+        label: 日期
+      message:
+        label: 消息
+      sha:
+        label: SHA
+    username:
+      inputLabel: 用戶名/組織
+      label: 用戶名/組織
+      tooltip: Git 倉庫的用戶名/組織
+  gitlab:
+    branch:
+      inputLabel: 分支
+      label: 分支
+      tooltip: 要部署的分支
+    commit:
+      inputLabel: Commit
+      label: Commit
+    commitMessage:
+      label: Commit Message
+    commits:
+      label: Commit
+      tooltip: 要部署的 Commit
+    errors:
+      noAccount: 未找到 GitLab 帳戶或組織。請檢查你的查詢並重試。
+      noBranch: 未找到分支。請檢查你的查詢並重試。
+    label: GitLab
+    repo:
+      inputLabel: 倉庫
+      label: 倉庫
+      tooltip: 要部署的倉庫
+    tableHeaders:
+      author:
+        label: 作者
+        unknown: 未知
+      choose:
+        label: 選擇
+      date:
+        label: 日期
+      message:
+        label: 消息
+      sha:
+        label: SHA
+    username:
+      inputLabel: 用戶名/組織
+      label: 用戶名/組織
+      tooltip: Git 倉庫的用戶名/組織
+logout:
+  message: 正在登出...

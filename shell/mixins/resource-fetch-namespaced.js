@@ -33,7 +33,7 @@ export default {
      * If the Project/Namespace filter from the header contains a valid ns / project filter ... return it
      */
     __validFilter() {
-      const valid = this.namespaceFilters.length && this.namespaceFilters.every(f => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX));
+      const valid = this.namespaceFilters.length && this.namespaceFilters.every((f) => f.startsWith(NAMESPACE_FILTER_NS_PREFIX) || f.startsWith(NAMESPACE_FILTER_P_PREFIX));
 
       return valid ? this.namespaceFilters : null;
     },

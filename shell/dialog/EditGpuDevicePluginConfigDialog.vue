@@ -112,7 +112,7 @@ export default {
       return this.model?.metadata?.name;
     },
     configs() {
-      const options = Object.keys(this.pluginConfigMap?.data ?? {}).map(item => ({
+      const options = Object.keys(this.pluginConfigMap?.data ?? {}).map((item) => ({
         label:   item,
         value:   item,
         content: this.pluginConfigMap?.data[item],
@@ -122,7 +122,7 @@ export default {
     },
     configContent() {
       const config = this.config;
-      const c = this.configs.find(item => item.value === config);
+      const c = this.configs.find((item) => item.value === config);
 
       if (!c) {
         return '';

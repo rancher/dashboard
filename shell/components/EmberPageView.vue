@@ -34,7 +34,7 @@ export default {
         return '';
       }
       const query = this.$route.query;
-      const q = Object.entries(query).map(e => `${ e[0] }=${ e[1] }`).join('&');
+      const q = Object.entries(query).map((e) => `${ e[0] }=${ e[1] }`).join('&');
 
       return `${ pagePath }${ q ? `?${ q }` : '' }`;
     },

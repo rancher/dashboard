@@ -57,7 +57,7 @@ describe('support forcibly delete namespaces', () => {
   it('checked removeFinalizer has warning', () => {
     const localThis = {
       removeFinalizers: true,
-      t:                jest.fn(t => t)
+      t:                jest.fn((t) => t)
     };
 
     PromptRemove.methods.finalizersToRemove.call(localThis);

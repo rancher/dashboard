@@ -121,7 +121,7 @@ export default {
   },
   methods: {
     getRoleType(role) {
-      if (this.globalPermissions.find(p => p === role.id)) {
+      if (this.globalPermissions.find((p) => p === role.id)) {
         return 'global';
       } else if (role.builtin) {
         return 'builtin';
@@ -160,7 +160,7 @@ export default {
 
         Object.values(this.sortedRoles).forEach((roles) => {
           roles.forEach((mappedRole) => {
-            const boundRole = boundRoles.find(boundRole => boundRole.globalRoleName === mappedRole.id);
+            const boundRole = boundRoles.find((boundRole) => boundRole.globalRoleName === mappedRole.id);
 
             if (!!boundRole) {
               this.selectedRoles.push(mappedRole.id);
@@ -185,10 +185,10 @@ export default {
     },
     checkboxChanged() {
       const addRoles = this.selectedRoles
-        .filter(selected => !this.startingSelectedRoles.find(startingRole => startingRole.roleId === selected));
+        .filter((selected) => !this.startingSelectedRoles.find((startingRole) => startingRole.roleId === selected));
       const removeBindings = this.startingSelectedRoles
-        .filter(startingRole => !this.selectedRoles.find(selected => selected === startingRole.roleId))
-        .map(startingRole => startingRole.bindingId);
+        .filter((startingRole) => !this.selectedRoles.find((selected) => selected === startingRole.roleId))
+        .map((startingRole) => startingRole.bindingId);
 
       this.roleChanges = {
         initialRoles: this.startingSelectedRoles,
@@ -211,22 +211,22 @@ export default {
       } else {
         requestOptions.userName = userId || this.userId;
       }
-      const newBindings = await Promise.all(this.roleChanges.addRoles.map(role => this.$store.dispatch(`management/create`, {
+      const newBindings = await Promise.all(this.roleChanges.addRoles.map((role) => this.$store.dispatch(`management/create`, {
         ...requestOptions,
         globalRoleName: role,
       })));
 
       // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
-      await Promise.all(newBindings.map(newBinding => newBinding.save({ redirectUnauthorized: false })));
+      await Promise.all(newBindings.map((newBinding) => newBinding.save({ redirectUnauthorized: false })));
     },
     async saveRemovedRoles() {
-      const existingBindings = await Promise.all(this.roleChanges.removeBindings.map(bindingId => this.$store.dispatch('management/find', {
+      const existingBindings = await Promise.all(this.roleChanges.removeBindings.map((bindingId) => this.$store.dispatch('management/find', {
         type: MANAGEMENT.GLOBAL_ROLE_BINDING,
         id:   bindingId
       })));
 
       // Save all changes (and ensure user isn't logged out if they don't have permissions to make a change)
-      await Promise.all(existingBindings.map(existingBinding => existingBinding.remove({ redirectUnauthorized: false })));
+      await Promise.all(existingBindings.map((existingBinding) => existingBinding.remove({ redirectUnauthorized: false })));
     },
     /**
      * userId is optional, used when a user has just been created
@@ -251,7 +251,7 @@ export default {
         });
       });
 
-      return allRolesRules.some(rule => this.isRuleValid(rule));
+      return allRolesRules.some((rule) => this.isRuleValid(rule));
     },
     isRuleValid(rule) {
       // Brought over from Ember
@@ -282,7 +282,7 @@ export default {
 
         if (isArray(verbs) && verbs.length > 1) {
           // console.log(`verbsRequiredForLogin status 1: `, restrictedTarget.every(rt => verbs.includes(rt)), verbs);
-          return restrictedTarget.every(rt => verbs.includes(rt));
+          return restrictedTarget.every((rt) => verbs.includes(rt));
         }
 
         // console.log(`verbsRequiredForLogin status 2: `, verbsRequiredForLogin.includes(verbs[0]), verbsRequiredForLogin, verbs);

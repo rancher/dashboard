@@ -153,7 +153,7 @@ export default {
       } else if (this.loadedCredentialIdFor !== this.credentialId) {
         this.allCredentials = await this.$store.dispatch('rancher/findAll', { type: NORMAN.CLOUD_CREDENTIAL });
 
-        const currentCredential = this.allCredentials.find(obj => obj.id === this.credentialId);
+        const currentCredential = this.allCredentials.find((obj) => obj.id === this.credentialId);
 
         this.value.environment = currentCredential.azurecredentialConfig.environment;
       }

@@ -383,7 +383,7 @@ export default {
       if (!this.value?.thanos?.store?.enabled || !type) {
         return [];
       }
-      const provider = this.objectStorageProviders.find(p => p.value === type);
+      const provider = this.objectStorageProviders.find((p) => p.value === type);
       const answers = provider?.answers;
 
       return Object.values(answers);
@@ -397,7 +397,7 @@ export default {
       }
 
       if (showAsForm) {
-        return Object.values(tabErrors).every(i => i === false);
+        return Object.values(tabErrors).every((i) => i === false);
       }
 
       // Don't apply validation rules if the form is not shown.
@@ -407,7 +407,7 @@ export default {
 
       // Disable the save button if there are form validation
       // errors while the user is typing.
-      return Object.values(tabErrors).every(i => i === false);
+      return Object.values(tabErrors).every((i) => i === false);
     },
 
   },
@@ -530,7 +530,7 @@ export default {
       if (!inputValue && this.chart?.versions?.length) {
         this.version = this.chart.versions[0];
       } else {
-        this.version = this.chart.versions.find(v => v.version === inputValue) || {};
+        this.version = this.chart.versions.find((v) => v.version === inputValue) || {};
       }
     },
 
@@ -749,7 +749,7 @@ export default {
       const promises = [];
       let tokens = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
 
-      tokens = tokens.filter(t => t.description === GLOBAL_MONITORING_TOKEN) || [];
+      tokens = tokens.filter((t) => t.description === GLOBAL_MONITORING_TOKEN) || [];
 
       if (tokens && tokens.length) {
         tokens.forEach((token) => {
@@ -890,7 +890,7 @@ export default {
           applyAction: async(buttonDone) => {
             const projects = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT });
 
-            const projectId = projects.find(p => p.spec.displayName === 'System')?.id;
+            const projectId = projects.find((p) => p.spec.displayName === 'System')?.id;
             const monitoringId = `${ projectId.split('/')[1] }:global-monitoring`;
 
             this.$store.dispatch('rancher/request', {
@@ -950,7 +950,7 @@ export default {
       this.$router.go(0);
     },
     fvGetPathValues(path) {
-      const relevantRuleset = this.fvRulesets.find(ruleset => ruleset.path === path);
+      const relevantRuleset = this.fvRulesets.find((ruleset) => ruleset.path === path);
 
       if (!relevantRuleset) {
         return [];

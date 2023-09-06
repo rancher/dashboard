@@ -3,7 +3,7 @@ import Wizard from '@shell/components/Wizard.vue';
 import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT } from '@shell/config/types';
 import { REPO_TYPE, REPO, CHART } from '@shell/config/query-params';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { Banner } from '@components/Banner';
@@ -81,7 +81,7 @@ export default {
       const domain = URL_DOMAIN_REG.exec(url)?.[0] ?? url;
 
       values.push(domain);
-      whitelistSetting.value = [...new Set(values)].filter(v => v).join(',');
+      whitelistSetting.value = [...new Set(values)].filter((v) => v).join(',');
 
       auditLogSetting.value = url;
       await Promise.all([whitelistSetting.save(), auditLogSetting.save()]);
@@ -98,7 +98,7 @@ export default {
       }
     },
     async chartRoute() {
-      if (this.steps.find(s => s.name === 'deploymentComponents')) {
+      if (this.steps.find((s) => s.name === 'deploymentComponents')) {
         try {
           await this.saveAuditLogSetting();
         } catch (err) {
@@ -134,7 +134,7 @@ export default {
           return;
         }
         this.errors = [];
-        const step = this.steps.find(s => s.name === 'deploymentComponents');
+        const step = this.steps.find((s) => s.name === 'deploymentComponents');
 
         if (step) {
           step.ready = true;

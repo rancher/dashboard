@@ -20,7 +20,7 @@ describe('component: ForceUpdateMachinePlanDialog', () => {
       mocks: {
         $store: {
           dispatch: jest.fn(() => Promise.resolve({})),
-          getters:  { 'i18n/t': t => t, 'i18n/exists': k => k }
+          getters:  { 'i18n/t': (t) => t, 'i18n/exists': (k) => k }
         }
       },
     });

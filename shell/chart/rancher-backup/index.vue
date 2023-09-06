@@ -67,11 +67,11 @@ export default {
 
   computed: {
     defaultStorageClass() {
-      return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
+      return this.storageClasses.filter((sc) => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
     },
 
     availablePVs() {
-      return this.persistentVolumes.filter(pv => pv.status.phase.toLowerCase() !== 'bound');
+      return this.persistentVolumes.filter((pv) => pv.status.phase.toLowerCase() !== 'bound');
     },
 
     radioOptions() {
@@ -154,6 +154,9 @@ export default {
       }
 
       return 'none';
+    },
+    updatePageValid(update) {
+      this.$emit('valid', update);
     }
   },
   get
@@ -189,6 +192,7 @@ export default {
         :value="value.s3"
         :secrets="secrets"
         :mode="mode"
+        @valid="updatePageValid($event)"
       />
       <template v-else>
         <div class="row">

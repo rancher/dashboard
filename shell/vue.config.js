@@ -4,6 +4,7 @@ const serveStatic = require('serve-static');
 const webpack = require('webpack');
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const serverMiddlewares = require('./server/server-middleware.js');
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -162,7 +163,7 @@ module.exports = function(dir, _appConfig) {
     const items = fs.readdirSync(path.relative(dir, './pkg'));
 
     // Ignore hidden folders
-    items.filter(name => !name.startsWith('.')).forEach((name) => {
+    items.filter((name) => !name.startsWith('.')).forEach((name) => {
       const f = require(path.join(dir, 'pkg', name, 'package.json'));
 
       // Package file must have rancher field to be a plugin
@@ -200,7 +201,7 @@ module.exports = function(dir, _appConfig) {
   const pkgImport = new webpack.NormalModuleReplacementPlugin(/^@pkg/, (resource) => {
     const ctx = resource.context.split('/');
     // Find 'pkg' folder in the contxt
-    const index = ctx.findIndex(s => s === 'pkg');
+    const index = ctx.findIndex((s) => s === 'pkg');
 
     if (index !== -1 && (index + 1) < ctx.length) {
       const pkg = ctx[index + 1];
@@ -218,8 +219,6 @@ module.exports = function(dir, _appConfig) {
   serverMiddleware.push({ path: `/pkg/`, handler: serveStatic(`${ dir }/dist-pkg/`) });
   // Endpoint to download and unpack a tgz from the local verdaccio rgistry (dev)
   serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'verdaccio-middleware'));
-  // Add the standard dashboard server middleware after the middleware added to serve up UI packages
-  serverMiddleware.push(path.resolve(dir, SHELL, 'server', 'server-middleware'));
 
   // ===============================================================================================
   // Dashboard nuxt configuration
@@ -271,6 +270,9 @@ module.exports = function(dir, _appConfig) {
   }
   const rancherEnv = process.env.RANCHER_ENV || 'web';
 
+  const loginLocaleSelector = process.env.LOGIN_LOCALE_SELECTOR || 'true';
+  const excludeOperatorPkg = process.env.EXCLUDE_OPERATOR_PKG || 'false';
+
   console.log(`API: '${ api }'. Env: '${ rancherEnv }'`); // eslint-disable-line no-console
   const proxy = {
     ...appConfig.proxies,
@@ -316,6 +318,8 @@ module.exports = function(dir, _appConfig) {
           process.exit(1);
         });
 
+        app.use(serverMiddlewares);
+
         Object.keys(proxy).forEach((p) => {
           const px = createProxyMiddleware({
             ...proxy[p],
@@ -330,7 +334,7 @@ module.exports = function(dir, _appConfig) {
 
         server.websocketProxies.push({
           upgrade(req, socket, head) {
-            const path = Object.keys(socketProxies).find(path => req.url.startsWith(path));
+            const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
 
             if (path) {
               const proxy = socketProxies[path];
@@ -381,6 +385,7 @@ module.exports = function(dir, _appConfig) {
       config.resolve.alias['@pkg'] = path.join(dir, 'pkg');
       config.resolve.alias['./node_modules'] = path.join(dir, 'node_modules');
       config.resolve.alias['@components'] = COMPONENTS_DIR;
+      config.resolve.alias['vue$'] = dev ? path.resolve(process.cwd(), 'node_modules', 'vue') : 'vue';
       config.resolve.modules.push(__dirname);
       config.plugins.push(virtualModules);
       config.plugins.push(autoImport);
@@ -389,17 +394,19 @@ module.exports = function(dir, _appConfig) {
       // DefinePlugin does string replacement within our code. We may want to consider replacing it with something else. In code we'll see something like
       // process.env.commit even though process and env aren't even defined objects. This could cause people to be mislead.
       config.plugins.push(new webpack.DefinePlugin({
-        'process.client':              JSON.stringify(true),
-        'process.env.commit':          JSON.stringify(commit),
-        'process.env.version':         JSON.stringify(dashboardVersion),
-        'process.env.dev':             JSON.stringify(dev),
-        'process.env.pl':              JSON.stringify(pl),
-        'process.env.perfTest':        JSON.stringify(perfTest),
-        'process.env.rancherEnv':      JSON.stringify(rancherEnv),
-        'process.env.harvesterPkgUrl': JSON.stringify(process.env.HARVESTER_PKG_URL),
-        'process.env.api':             JSON.stringify(api),
+        'process.client':                  JSON.stringify(true),
+        'process.env.commit':              JSON.stringify(commit),
+        'process.env.version':             JSON.stringify(dashboardVersion),
+        'process.env.dev':                 JSON.stringify(dev),
+        'process.env.pl':                  JSON.stringify(pl),
+        'process.env.perfTest':            JSON.stringify(perfTest),
+        'process.env.loginLocaleSelector': JSON.stringify(loginLocaleSelector),
+        'process.env.excludeOperatorPkg':  JSON.stringify(excludeOperatorPkg),
+        'process.env.rancherEnv':          JSON.stringify(rancherEnv),
+        'process.env.harvesterPkgUrl':     JSON.stringify(process.env.HARVESTER_PKG_URL),
+        'process.env.api':                 JSON.stringify(api),
         // Store the Router Base as env variable that we can use in `shell/config/router.js`
-        'process.env.routerBase':      JSON.stringify(routerBasePath),
+        'process.env.routerBase':          JSON.stringify(routerBasePath),
 
         // This is a replacement of the nuxt publicRuntimeConfig
         'nuxt.publicRuntimeConfig': JSON.stringify({

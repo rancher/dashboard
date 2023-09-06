@@ -7,7 +7,7 @@ export default {
       let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
       let fromColumn = [];
 
-      const column = (this.columns || this.headers).find(x => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
+      const column = (this.columns || this.headers).find((x) => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
 
       if ( this.sortBy && column && column.sort ) {
         fromColumn = column.sort;
@@ -58,8 +58,8 @@ export default {
 
     // Try to find a reasonable default sort
     if ( !this._defaultSortBy ) {
-      const markedColumn = this.headers.find(x => !!x.defaultSort);
-      const nameColumn = this.headers.find( x => x.name === 'name');
+      const markedColumn = this.headers.find((x) => !!x.defaultSort);
+      const nameColumn = this.headers.find( (x) => x.name === 'name');
 
       if ( markedColumn ) {
         this._defaultSortBy = markedColumn.name;
@@ -68,7 +68,7 @@ export default {
         this._defaultSortBy = nameColumn.name;
       } else {
         // The first column that isn't state
-        const first = this.headers.filter( x => x.name !== 'state' )[0];
+        const first = this.headers.filter( (x) => x.name !== 'state' )[0];
 
         if ( first ) {
           this._defaultSortBy = first.name;
@@ -80,7 +80,7 @@ export default {
     }
 
     // If the sort column doesn't exist or isn't specified, use default
-    if ( !sortBy || !this.headers.find(x => x.name === sortBy ) ) {
+    if ( !sortBy || !this.headers.find((x) => x.name === sortBy ) ) {
       sortBy = this._defaultSortBy;
     }
 

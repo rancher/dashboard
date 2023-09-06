@@ -306,7 +306,7 @@ describe('component: ContainerResourceLimit, method: updateBeforeSave', () => {
 
   describe('component: ContainerResourceLimit, show or hide max/min cpu/memory limit', () => {
     it('should show max/min cpu/memory limit', () => {
-      const tMock = jest.fn(t => t);
+      const tMock = jest.fn((t) => t);
 
       const wrapper = shallowMount(ContainerResourceLimit, { mocks: { t: tMock } });
 

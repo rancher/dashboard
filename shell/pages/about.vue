@@ -6,6 +6,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
 import { getVendor } from '@shell/config/private-label';
 import { downloadFile } from '@shell/utils/download';
+import { mapGetters } from 'vuex';
 
 export default {
   layout:     'plain',
@@ -22,33 +23,34 @@ export default {
     };
   },
   computed: {
+    ...mapGetters(['releaseNotesUrl']),
     rancherVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_RANCHER);
+      return this.settings.find((s) => s.id === SETTING.VERSION_RANCHER);
     },
     appName() {
       return getVendor();
     },
     cliVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_CLI);
+      return this.settings.find((s) => s.id === SETTING.VERSION_CLI);
     },
     helmVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_HELM);
+      return this.settings.find((s) => s.id === SETTING.VERSION_HELM);
     },
     dockerMachineVersion() {
-      return this.settings.find(s => s.id === SETTING.VERSION_MACHINE);
+      return this.settings.find((s) => s.id === SETTING.VERSION_MACHINE);
     },
     downloads() {
       return [
-        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find(s => s.id === SETTING.CLI_URL.DARWIN)?.value, null),
-        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find(s => s.id === SETTING.CLI_URL.LINUX)?.value, this.downloadLinuxImages),
-        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find(s => s.id === SETTING.CLI_URL.WINDOWS)?.value, this.downloadWindowsImages)
+        this.createOSOption('about.os.mac', 'icon-apple', this.settings?.find((s) => s.id === SETTING.CLI_URL.DARWIN)?.value, null),
+        this.createOSOption('about.os.linux', 'icon-linux', this.settings?.find((s) => s.id === SETTING.CLI_URL.LINUX)?.value, this.downloadLinuxImages),
+        this.createOSOption('about.os.windows', 'icon-windows', this.settings?.find((s) => s.id === SETTING.CLI_URL.WINDOWS)?.value, this.downloadWindowsImages)
       ];
     },
     downloadImageList() {
-      return this.downloads.filter(d => !!d.imageList);
+      return this.downloads.filter((d) => !!d.imageList);
     },
     downloadCli() {
-      return this.downloads.filter(d => !!d.cliLink);
+      return this.downloads.filter((d) => !!d.cliLink);
     }
   },
   methods: {
@@ -168,9 +170,13 @@ export default {
       </tr>
     </table>
     <p class="pt-20">
-      <nuxt-link :to="{ path: 'docs/whats-new'}">
+      <a
+        :href="releaseNotesUrl"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+      >
         {{ t('about.versions.releaseNotes') }}
-      </nuxt-link>
+      </a>
     </p>
     <template v-if="downloadImageList.length">
       <h3 class="pt-40">

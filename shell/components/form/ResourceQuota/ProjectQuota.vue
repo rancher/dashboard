@@ -75,7 +75,7 @@ export default {
   computed: {
     mappedTypes() {
       return this.types
-        .map(type => ({
+        .map((type) => ({
           label:       this.t(type.labelKey),
           baseUnit:    type.baseUnitKey ? this.t(type.baseUnitKey) : undefined,
           placeholder: this.t(type.placeholderKey),
@@ -83,15 +83,15 @@ export default {
         }));
     },
     typeValues() {
-      return [...new Set(this.typeQuotas.map(tq => tq.type))];
+      return [...new Set(this.typeQuotas.map((tq) => tq.type))];
     },
     typeSCValuesMap() {
       const typeQuotas = this.typeQuotas;
 
       return TYPES_WITH_STORAGE_CLASS.reduce((t, c) => {
-        const quotas = typeQuotas.filter(tq => tq.type === c);
+        const quotas = typeQuotas.filter((tq) => tq.type === c);
 
-        t[c] = quotas?.map(item => item.limit.sc ?? item.nsLimit.sc) ?? [];
+        t[c] = quotas?.map((item) => item.limit.sc ?? item.nsLimit.sc) ?? [];
 
         return t;
       }, {});
@@ -110,7 +110,7 @@ export default {
         const nsQuotaLimit = { limit: {} };
         const quotaLimit = { limit: {} };
 
-        v.filter(t => TYPES_WITH_STORAGE_CLASS.includes(t.type) && (t.limit || t.nsLimit))
+        v.filter((t) => TYPES_WITH_STORAGE_CLASS.includes(t.type) && (t.limit || t.nsLimit))
           .forEach((q) => {
             if (q.nsLimit.limit) {
               const limit = nsQuotaLimit.limit[q.type] ?? {};
@@ -126,7 +126,7 @@ export default {
             }
           });
 
-        v.filter(t => !TYPES_WITH_STORAGE_CLASS.includes(t.type) && (t.limit || t.nsLimit))
+        v.filter((t) => !TYPES_WITH_STORAGE_CLASS.includes(t.type) && (t.limit || t.nsLimit))
           .forEach((q) => {
             if (q.nsLimit) {
               nsQuotaLimit.limit[q.type] = q.nsLimit;
@@ -164,8 +164,8 @@ export default {
       const values = this.typeSCValuesMap[type];
 
       return this.storageClasses
-        .filter(sc => !values.includes(sc.id) || sc.id === currentSc)
-        .map(sc => ({ label: sc.id, value: sc.id }));
+        .filter((sc) => !values.includes(sc.id) || sc.id === currentSc)
+        .map((sc) => ({ label: sc.id, value: sc.id }));
     },
 
     updateType(type, quota) {

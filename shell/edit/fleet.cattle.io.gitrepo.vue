@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { mapGetters } from 'vuex';
 import {
@@ -80,6 +81,10 @@ export default {
     }
 
     this.tlsMode = tls;
+
+    if (this.value.spec.correctDrift === undefined) {
+      Vue.set(this.value.spec, 'correctDrift', { enabled: false });
+    }
 
     this.updateTargets();
   },
@@ -185,7 +190,7 @@ export default {
         .filter((x) => {
           return x.metadata.namespace === this.value.metadata.namespace;
         })
-        .filter(x => !isHarvesterCluster(x))
+        .filter((x) => !isHarvesterCluster(x))
         .map((x) => {
           return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
         });
@@ -202,7 +207,7 @@ export default {
       }
 
       const groups = this.allClusterGroups
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
         .map((x) => {
           return { label: x.nameDisplay, value: `group://${ x.metadata.name }` };
         });
@@ -223,16 +228,16 @@ export default {
 
     clusterNames() {
       const out = this.allClusters
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
-        .map(x => x.metadata.name);
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => x.metadata.name);
 
       return out;
     },
 
     clusterGroupNames() {
       const out = this.allClusterGroups
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
-        .map(x => x.metadata.name);
+        .filter((x) => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => x.metadata.name);
 
       return out;
     },
@@ -604,6 +609,23 @@ export default {
       </template>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.resources.label'" />
+      <div>
+        <Checkbox
+          v-model="value.spec.correctDrift.enabled"
+          data-testid="GitRepo-correctDrift-checkbox"
+          class="check"
+          type="checkbox"
+          label-key="fleet.gitRepo.resources.correctDrift"
+          :mode="mode"
+        />
+        <Banner
+          data-testid="GitRepo-correctDrift-banner"
+          color="info"
+        >
+          {{ t('fleet.gitRepo.resources.correctDriftBanner') }}
+        </Banner>
+      </div>
+
       <Checkbox
         v-model="value.spec.keepResources"
         class="check"
@@ -614,7 +636,7 @@ export default {
       <Banner
         color="info"
       >
-        {{ t('fleet.gitRepo.resources.resourceBanner') }}
+        {{ t('fleet.gitRepo.resources.keepResourcesBanner') }}
       </Banner>
       <div class="spacer" />
       <h2 v-t="'fleet.gitRepo.paths.label'" />

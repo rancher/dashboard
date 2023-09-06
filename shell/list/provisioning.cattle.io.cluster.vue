@@ -131,10 +131,17 @@ export default {
     canImport() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     harvesterEnabled: mapFeature(HARVESTER_FEATURE),
+
+    nonStandardNamespaces() {
+      // Show the namespace grouping option if there's clusters with namespaces other than 'fleet-default' or 'fleet-local'
+      // This will be used when there's clusters from extension based provisioners
+      // We should re-visit this for scaling reasons
+      return this.filteredRows.some((c) => c.metadata.namespace !== 'fleet-local' && c.metadata.namespace !== 'fleet-default');
+    }
   },
 
   $loadingResources() {
@@ -182,7 +189,7 @@ export default {
     <ResourceTable
       :schema="schema"
       :rows="filteredRows"
-      :namespaced="false"
+      :namespaced="nonStandardNamespaces"
       :loading="loading"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
       :data-testid="'cluster-list'"

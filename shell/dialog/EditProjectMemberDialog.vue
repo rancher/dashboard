@@ -84,15 +84,15 @@ export default {
       const principalProperty = await this.principalProperty();
       const toRemoved = [];
       const toSaved = [];
-      const roleTemplateId = this.member.roleTemplateIds.find(rtId => rtId === this.value.roleTemplateId);
+      const roleTemplateId = this.member.roleTemplateIds.find((rtId) => rtId === this.value.roleTemplateId);
 
       if (roleTemplateId) {
-        toSaved.push(...this.member.roleTemplateIds.filter(rtId => rtId !== this.value.roleTemplateId));
+        toSaved.push(...this.member.roleTemplateIds.filter((rtId) => rtId !== this.value.roleTemplateId));
       } else {
         toRemoved.push(this.value);
         toSaved.push(...this.member.roleTemplateIds);
       }
-      const roleTemplates = await Promise.all(toSaved.map(roleTemplateId => this.$store.dispatch(`rancher/create`, {
+      const roleTemplates = await Promise.all(toSaved.map((roleTemplateId) => this.$store.dispatch(`rancher/create`, {
         type:                NORMAN.PROJECT_ROLE_TEMPLATE_BINDING,
         roleTemplateId,
         [principalProperty]: this.member.principalId,
@@ -107,8 +107,8 @@ export default {
       try {
         const { toRemoved, toSaved } = await this.createBindings();
 
-        await Promise.all(toSaved.map(rt => rt.save()));
-        await Promise.all(toRemoved.map(binding => binding.remove()));
+        await Promise.all(toSaved.map((rt) => rt.save()));
+        await Promise.all(toRemoved.map((binding) => binding.remove()));
         btnCB(true);
         setTimeout(this.close, 500);
       } catch (err) {

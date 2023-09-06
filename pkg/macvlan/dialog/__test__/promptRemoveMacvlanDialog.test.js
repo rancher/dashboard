@@ -13,7 +13,7 @@ describe('component: macvlan', () => {
         $store: {
           dispatch: () => jest.fn(),
           getters:  {
-            'i18n/t':                     t => t,
+            'i18n/t':                     (t) => t,
             'management/byId':            () => jest.fn(),
             'prefs/get':                  () => resource,
             'resource-fetch/refreshFlag': () => jest.fn(),
@@ -26,6 +26,6 @@ describe('component: macvlan', () => {
       },
     });
 
-    expect(wrapper.vm.headers.map(item => item.name)).toStrictEqual(headerKeys);
+    expect(wrapper.vm.headers.map((item) => item.name)).toStrictEqual(headerKeys);
   });
 });

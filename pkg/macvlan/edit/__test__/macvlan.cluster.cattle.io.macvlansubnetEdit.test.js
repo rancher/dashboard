@@ -38,10 +38,10 @@ describe('macvlansubnet: edit', () => {
         $store:  {
           getters: {
             'cluster/all':                () => [],
-            'i18n/exists':                key => key,
+            'i18n/exists':                (key) => key,
             currentStore:                 () => 'cluster',
             'cluster/schemaFor':          () => ({ id: 'macvlan', name: 'macvlan' }),
-            'i18n/t':                     t => t,
+            'i18n/t':                     (t) => t,
             'resource-fetch/refreshFlag': () => jest.fn(),
             'macvlan/emptyForm':          emptyForm,
             'management/all':             () => [],

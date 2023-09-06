@@ -44,7 +44,7 @@ export default {
 
   created() {
     this.value.value = this.value.value || this.value.default;
-    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map(id => ({
+    this.enumOptions = this.setting?.kind === 'enum' ? this.setting.options.map((id) => ({
       label: `advancedSettings.enum.${ this.value.id }.${ id }`,
       value: id,
     })) : [];
@@ -129,7 +129,7 @@ export default {
           const originDomain = URL_DOMAIN_REG.exec(this.originValue)?.[0] ?? '';
 
           if (originDomain !== 'forums.rancher.com') {
-            values = values.filter(v => v !== originDomain);
+            values = values.filter((v) => v !== originDomain);
           }
         }
         const v = this.value.value?.trim();
@@ -140,7 +140,7 @@ export default {
           values.push(newDomain);
         }
 
-        s.value = [...new Set(values)].filter(v => v).join(',');
+        s.value = [...new Set(values)].filter((v) => v).join(',');
 
         return s.save();
       }

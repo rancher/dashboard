@@ -1,9 +1,9 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
-import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '~/cypress/e2e/po/side-bars/product-side-nav.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 export default class PagePo extends ComponentPo {
-  constructor(protected path: string, selector: string = '.dashboard-root') {
+  constructor(protected path: string, selector = '.dashboard-root') {
     super(selector);
   }
 
@@ -19,7 +19,7 @@ export default class PagePo extends ComponentPo {
    */
   static goToAndWaitForGet(goTo: () => Cypress.Chainable, getUrls = [
     'v1/counts',
-  ]) {
+  ], timeout = 10000) {
     getUrls.forEach((cUrl, i) => {
       cy.intercept('GET', cUrl).as(`getUrl${ i }`);
     });
@@ -30,12 +30,12 @@ export default class PagePo extends ComponentPo {
       // If an intercept for the url already exists... use the same wait (it'll fire on that one)
       const existingIndexOrCurrent = getUrls.indexOf(getUrls[i]);
 
-      cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout: 10000 });
+      cy.wait([`@getUrl${ existingIndexOrCurrent }`], { timeout });
     }
   }
 
-  goTo(): Cypress.Chainable<Cypress.AUTWindow> {
-    return PagePo.goTo(this.path);
+  goTo(params?: string, fragment?: string): Cypress.Chainable<Cypress.AUTWindow> {
+    return PagePo.goTo(`${ this.path }${ !!params ? `?${ params }` : '' }${ !!fragment ? `#${ fragment }` : '' }`);
   }
 
   waitForPage(params?: string, fragment?: string) {
@@ -51,7 +51,7 @@ export default class PagePo extends ComponentPo {
   }
 
   isCurrentPage(): Cypress.Chainable<boolean> {
-    return cy.url().then(url => url === Cypress.config().baseUrl + this.path);
+    return cy.url().then((url) => url === Cypress.config().baseUrl + this.path);
   }
 
   checkIsCurrentPage() {
@@ -70,6 +70,12 @@ export default class PagePo extends ComponentPo {
   navToClusterMenuEntry(label: string) {
     BurgerMenuPo.toggle();
     BurgerMenuPo.burgerMenuNavToClusterbyLabel(label);
+  }
+
+  navToSideMenuGroupByLabel(label: string) {
+    const nav = new ProductNavPo();
+
+    nav.navToSideMenuGroupByLabel(label);
   }
 
   navToSideMenuEntryByLabel(label: string) {

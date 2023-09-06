@@ -19,6 +19,13 @@ import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
 // If the logo is not named with the provider name, add an override here
 const PROVIDER_LOGO_OVERRIDE = {};
 
+function findRelationship(verb, type, relationships = []) {
+  const from = `${ verb }Type`;
+  const id = `${ verb }Id`;
+
+  return relationships.find((r) => r[from] === type)?.[id];
+}
+
 export default class MgmtCluster extends HybridModel {
   get details() {
     const out = [
@@ -76,7 +83,7 @@ export default class MgmtCluster extends HybridModel {
   get machinePools() {
     const pools = this.$getters['all'](MANAGEMENT.NODE_POOL);
 
-    return pools.filter(x => x.spec?.clusterName === this.id);
+    return pools.filter((x) => x.spec?.clusterName === this.id);
   }
 
   get provisioner() {
@@ -405,10 +412,10 @@ export default class MgmtCluster extends HybridModel {
     const nodes = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
     const nodeMetrics = await this.$dispatch('cluster/findAll', { type: NODE }, { root: true });
 
-    const someNonWorkerRoles = nodes.some(node => node.hasARole && !node.isWorker);
+    const someNonWorkerRoles = nodes.some((node) => node.hasARole && !node.isWorker);
 
     const metrics = nodeMetrics.filter((metric) => {
-      const node = nodes.find(nd => nd.id === metric.id);
+      const node = nodes.find((nd) => nd.id === metric.id);
 
       return node && (!someNonWorkerRoles || node.isWorker);
     });
@@ -430,7 +437,7 @@ export default class MgmtCluster extends HybridModel {
   }
 
   get nodes() {
-    return this.$getters['all'](MANAGEMENT.NODE).filter(node => node.id.startsWith(this.id));
+    return this.$getters['all'](MANAGEMENT.NODE).filter((node) => node.id.startsWith(this.id));
   }
 
   get provClusterId() {
@@ -440,9 +447,12 @@ export default class MgmtCluster extends HybridModel {
     // cluster has the less human readable management cluster ID in it: fleet-default/c-khk48
 
     const verb = this.isLocal || isRKE1 || this.isHostedKubernetesProvider ? 'to' : 'from';
-    const from = `${ verb }Type`;
-    const id = `${ verb }Id`;
+    const res = findRelationship(verb, CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
 
-    return this.metadata.relationships.find(r => r[from] === CAPI.RANCHER_CLUSTER)?.[id];
+    if (res) {
+      return res;
+    }
+
+    return findRelationship(verb === 'to' ? 'from' : 'to', CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
   }
 }

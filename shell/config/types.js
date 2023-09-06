@@ -153,6 +153,8 @@ export const LONGHORN = {
   VOLUMES:       'longhorn.io.volume',
 };
 
+export const LONGHORN_DRIVER = 'driver.longhorn.io';
+
 export const SNAPSHOT = 'rke.cattle.io.etcdsnapshot';
 
 // --------------------------------------

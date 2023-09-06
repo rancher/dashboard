@@ -19,7 +19,7 @@ describe('component: DownloadFileDialog', () => {
       mocks: {
         $store: {
           dispatch: jest.fn(() => Promise.resolve({})),
-          getters:  { 'i18n/t': jest.fn(), 'i18n/exists': k => k }
+          getters:  { 'i18n/t': jest.fn(), 'i18n/exists': (k) => k }
         }
       }
     });

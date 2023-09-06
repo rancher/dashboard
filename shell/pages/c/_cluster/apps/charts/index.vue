@@ -113,18 +113,18 @@ export default {
     },
 
     flattenedRepoNames() {
-      const allChecked = this.repoOptionsForDropdown.find(repo => repo.all && repo.enabled);
+      const allChecked = this.repoOptionsForDropdown.find((repo) => repo.all && repo.enabled);
 
       if (allChecked) {
         return allChecked.label;
       }
 
       // None checked
-      if (!this.repoOptionsForDropdown.find(repo => repo.enabled)) {
+      if (!this.repoOptionsForDropdown.find((repo) => repo.enabled)) {
         return this.t('generic.none');
       }
 
-      const shownRepos = this.repoOptions.filter(repo => !this.hideRepos.includes(repo._key));
+      const shownRepos = this.repoOptions.filter((repo) => !this.hideRepos.includes(repo._key));
       const reducedRepos = shownRepos.reduce((acc, c, i) => {
         acc += c.label;
         const length = shownRepos.length;
@@ -180,7 +180,7 @@ export default {
     getFeaturedCharts() {
       const allCharts = (this.filteredCharts || []);
 
-      const featuredCharts = allCharts.filter(value => value.featured).sort((a, b) => a.featured - b.featured);
+      const featuredCharts = allCharts.filter((value) => value.featured).sort((a, b) => a.featured - b.featured);
 
       return featuredCharts.slice(0, 5);
     },
@@ -242,7 +242,7 @@ export default {
   },
 
   created() {
-    const release = this.currentCluster?.status?.version.gitVersion || '';
+    const release = this.currentCluster?.status?.version?.gitVersion || '';
     const isRKE2 = release.includes('rke2');
     const version = release.match(/\d+/g);
 
@@ -352,7 +352,10 @@ export default {
   <div v-else>
     <header>
       <div class="title">
-        <h1 class="m-0">
+        <h1
+          data-testid="charts-header-title"
+          class="m-0"
+        >
           {{ t('catalog.charts.header') }}
         </h1>
       </div>

@@ -24,7 +24,7 @@ export default class Deployment extends Workload {
     if (this.pods.length) {
       return this.pods?.[0]?.ownersByType?.ReplicaSet?.[0]?.name;
     } else {
-      const condition = this.status?.conditions?.find(condition => condition.type === 'Progressing' && condition.message);
+      const condition = this.status?.conditions?.find((condition) => condition.type === 'Progressing' && condition.message);
 
       return condition ? condition.message?.match(/"(\S*)"/)[1] : set?.[0]?.toId?.replace(`${ this.namespace }/`, '');
     }

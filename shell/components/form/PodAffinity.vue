@@ -286,7 +286,7 @@ export default {
     },
 
     priorityDisplay(term) {
-      return term.weight ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
+      return 'weight' in term ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
     },
 
     changeNamespaceMode(val, term, idx) {
@@ -333,10 +333,15 @@ export default {
 
       // namespaces would be String if there is no namespace
       if (typeof namespaces === 'string') {
-        nsArray = namespaces.split(',').map(ns => ns.trim()).filter(ns => ns?.length);
+        nsArray = namespaces.split(',').map((ns) => ns.trim()).filter((ns) => ns?.length);
       }
 
       this.$set(term, 'namespaces', nsArray);
+      this.queueUpdate();
+    },
+
+    updateLabelSelector(e, props) {
+      this.set(props.row.value, 'labelSelector.matchExpressions', e);
       this.queueUpdate();
     },
 
@@ -431,7 +436,7 @@ export default {
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
             :data-testid="`pod-affinity-expressions-index${props.i}`"
-            @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
+            @input="e=>updateLabelSelector(e, props)"
           />
           <div class="row mt-20">
             <div class="col span-9">
@@ -463,7 +468,7 @@ export default {
               />
             </div>
             <div
-              v-if="props.row.value.weight"
+              v-if="'weight' in props.row.value"
               class="col span-3"
             >
               <LabeledInput

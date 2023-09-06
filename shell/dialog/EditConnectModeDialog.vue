@@ -228,7 +228,7 @@ export default {
       this.errors = [];
       const d = this.mode?.apiEndpoints || [];
 
-      if (d.length === 0 || d.some(s => !s.trim())) {
+      if (d.length === 0 || d.some((s) => !s.trim())) {
         this.errors = [this.t('clusterConnectMode.apiEndpoint.required')];
         buttonDone(false);
 
@@ -245,8 +245,8 @@ export default {
           data:   this.mode,
         });
 
-        if (endpointStatus.some(s => !s.status)) {
-          this.errors = [...new Set(endpointStatus.filter(s => !s.status).map(s => s.error))];
+        if (endpointStatus.some((s) => !s.status)) {
+          this.errors = [...new Set(endpointStatus.filter((s) => !s.status).map((s) => s.error))];
           this.testSuccess = false;
           buttonDone(false);
         } else {

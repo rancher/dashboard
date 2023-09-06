@@ -129,7 +129,7 @@ export default {
       // Ensure username is unique (this does not happen in the backend)
       const users = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER });
 
-      if (users.find(u => u.username === this.form.username)) {
+      if (users.find((u) => u.username === this.form.username)) {
         throw new Error(this.t('user.edit.credentials.username.exists'));
       }
 
@@ -168,7 +168,7 @@ export default {
         // - Fetching the norman user again sometimes shows the correct value, sometimes not
         // - Even if the fetched norman user shows the correct value, it doesn't show up in the steve user
         //   - Looks like we re-request the stale version via socket?
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
 
       // Save user updates

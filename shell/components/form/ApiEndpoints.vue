@@ -75,7 +75,7 @@ export default {
     onPaste(rows, index, event, update) {
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
-      const split = text.split('\n').map(value => ({ value }));
+      const split = text.split('\n').map((value) => ({ value }));
 
       split[0].value = `${ rows[index].value }${ split[0].value }`;
 

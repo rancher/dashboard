@@ -65,7 +65,7 @@ export default {
 
   methods: {
     refreshTomls() {
-      const keys = Object.keys(this.$refs).filter(x => x.startsWith('toml'));
+      const keys = Object.keys(this.$refs).filter((x) => x.startsWith('toml'));
 
       for ( const k of keys ) {
         const entry = this.$refs[k];

@@ -14,13 +14,13 @@ describe('computed: groupedSubTypes', () => {
         { id },
       ],
       $store: {
-        getters:  { 'i18n/withFallback': key => key },
+        getters:  { 'i18n/withFallback': (key) => key },
         dispatch: (key) => {
           return new Promise((resolve, reject) => {
             const store = {
-              'catalog/load':       key => key,
-              'rancher/find':       key => key,
-              'management/findAll': key => key,
+              'catalog/load':       (key) => key,
+              'rancher/find':       (key) => key,
+              'management/findAll': (key) => key,
             };
 
             if (store[key]) {

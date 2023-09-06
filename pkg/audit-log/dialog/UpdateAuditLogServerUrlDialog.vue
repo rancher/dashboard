@@ -36,7 +36,7 @@ export default {
       const domain = URL_DOMAIN_REG.exec(url)?.[0] ?? url;
 
       values.push(domain);
-      whitelistSetting.value = [...new Set(values)].filter(v => v).join(',');
+      whitelistSetting.value = [...new Set(values)].filter((v) => v).join(',');
 
       auditLogSetting.value = url;
       try {

@@ -52,7 +52,7 @@ describe('component: LiveDate', () => {
     let element = wrapper.find('span');
 
     expect(element.text()).toContain('Just now');
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     await wrapper.vm.liveUpdate(Date.now());
 
     element = wrapper.find('span');

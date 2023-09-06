@@ -10,7 +10,7 @@ const CLUSTER = 'local';
 
 describe('component: SelectIconGrid.vue', () => {
   it('is iframe', () => {
-    const routerPush = jest.fn(t => t);
+    const routerPush = jest.fn((t) => t);
     const wrapper = mount(SelectIconGrid, {
       propsData: { rows: [row] },
       mocks:     {

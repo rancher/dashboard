@@ -27,7 +27,7 @@ export default {
     },
     currentProjectName() {
       const projectId = this.row.metadata?.labels?.project;
-      const project = projectId && this.projects.find(obj => obj.id === projectId.replace('-p-', '/p-'));
+      const project = projectId && this.projects.find((obj) => obj.id === projectId.replace('-p-', '/p-'));
 
       return project?.nameDisplay || 'All';
     }

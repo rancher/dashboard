@@ -61,7 +61,7 @@ export default {
           continue;
         }
 
-        mirrors[entry.hostname] = { endpoint: entry.endpoints.split(/\s*,\s*/).map(x => x.trim()) };
+        mirrors[entry.hostname] = { endpoint: entry.endpoints.split(/\s*,\s*/).map((x) => x.trim()) };
         if (entry.rewrite) {
           mirrors[entry.hostname].rewrite = entry.rewrite;
         }

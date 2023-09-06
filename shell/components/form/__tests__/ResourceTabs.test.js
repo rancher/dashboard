@@ -51,7 +51,7 @@ describe('component: ResourceTabs', () => {
     });
 
     expect(wrapper.vm.showEvents).toBe(true);
-    expect(wrapper.findAllComponents(Tab).filter(t => t.props('labelKey') === 'resourceTabs.events.tab')).toHaveLength(1);
+    expect(wrapper.findAllComponents(Tab).filter((t) => t.props('labelKey') === 'resourceTabs.events.tab')).toHaveLength(1);
   });
   it('should remove event tab', () => {
     const wrapper = shallowMount(ResourceTabs, {
@@ -69,6 +69,6 @@ describe('component: ResourceTabs', () => {
     });
 
     expect(wrapper.vm.showEvents).toBe(false);
-    expect(wrapper.findAllComponents(Tab).filter(t => t.props('labelKey') === 'resourceTabs.events.tab')).toHaveLength(0);
+    expect(wrapper.findAllComponents(Tab).filter((t) => t.props('labelKey') === 'resourceTabs.events.tab')).toHaveLength(0);
   });
 });

@@ -83,7 +83,7 @@ export default Vue.extend({
       // Generate PSA form controls
       psaControls:           toDictionary(PSAModes, getPsaControl) as Record<PSAMode, PSAControl>,
       psaExemptionsControls: toDictionary(PSADimensions, getExemptionControl) as Record<PSADimension, PSAExemptionControl>,
-      options:               PSALevels.map(level => ({
+      options:               PSALevels.map((level) => ({
         value: level,
         label: this.t(`podSecurityAdmission.labels.${ level }`)
       })),
@@ -145,7 +145,7 @@ export default Vue.extend({
      */
     updateExemptions(): void {
       const exemptions = PSADimensions.reduce((acc, dimension) => {
-        const value = this.psaExemptionsControls[dimension].value.split(',').map(value => value.trim());
+        const value = this.psaExemptionsControls[dimension].value.split(',').map((value) => value.trim());
         const active = this.psaExemptionsControls[dimension].active;
 
         return {
@@ -182,7 +182,7 @@ export default Vue.extend({
      */
     getPsaExemptions(): Record<PSADimension, PSAExemptionControl> {
       return PSADimensions.reduce((acc, dimension) => {
-        const values = (this.exemptions[dimension] || []).map(value => value.trim()).join(',');
+        const values = (this.exemptions[dimension] || []).map((value) => value.trim()).join(',');
 
         return {
           ...acc,

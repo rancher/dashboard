@@ -148,14 +148,14 @@ export default {
 
       if (this.permissionGroup === 'custom') {
         return this.customPermissions
-          .filter(permission => permission.value)
-          .map(permission => permission.key);
+          .filter((permission) => permission.value)
+          .map((permission) => permission.key);
       }
 
       return [this.permissionGroup];
     },
     options() {
-      const customRoles = this.customRoles.map(role => ({
+      const customRoles = this.customRoles.map((role) => ({
         label:       role.nameDisplay,
         description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('members.clusterPermissions.noDescription'),
         value:       role.id
@@ -192,7 +192,7 @@ export default {
 
     customPermissionsUpdate() {
       return this.customPermissions.reduce((acc, customPermissionsItem) => {
-        const lockedExist = this.roleTemplates.find(roleTemplateItem => roleTemplateItem.displayName === customPermissionsItem.label);
+        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.displayName === customPermissionsItem.label);
 
         if (lockedExist?.locked) {
           customPermissionsItem['locked'] = true;
@@ -228,7 +228,7 @@ export default {
     async updateBindings() {
       if (this.principalId) {
         const principalProperty = await this.principalProperty();
-        const bindingPromises = this.roleTemplateIds.map(id => this.$store.dispatch(`rancher/create`, {
+        const bindingPromises = this.roleTemplateIds.map((id) => this.$store.dispatch(`rancher/create`, {
           type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
           clusterId:           this.clusterName,
           roleTemplateId:      id,
@@ -254,10 +254,10 @@ export default {
         // clusterName,
       } = this.initValue;
 
-      this.permissionGroup = this.options.find(o => o.value === roleTemplateName)?.value ?? PERMISSION_GROUP_MAP[roleTemplateName] ?? 'custom';
+      this.permissionGroup = this.options.find((o) => o.value === roleTemplateName)?.value ?? PERMISSION_GROUP_MAP[roleTemplateName] ?? 'custom';
       this.principalId = userPrincipalName ?? groupPrincipalName;
       if (this.permissionGroup === 'custom') {
-        const cp = this.customPermissions.find(p => roleTemplateName === p.key);
+        const cp = this.customPermissions.find((p) => roleTemplateName === p.key);
 
         if (cp) {
           cp.value = true;

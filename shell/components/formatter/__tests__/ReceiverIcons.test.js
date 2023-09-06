@@ -6,7 +6,7 @@ const webhookKey = 'monitoringReceiver.webhook.label';
 
 describe('component: ReceiverIcons, methods: getReceiverTypes', () => {
   it('only one pandaria webhook', () => {
-    const localThis = { t: key => key };
+    const localThis = { t: (key) => key };
     const out = ReceiverIcons.methods.getReceiverTypes.call(localThis, {
       name:           'test',
       webhookConfigs: [{
@@ -20,7 +20,7 @@ describe('component: ReceiverIcons, methods: getReceiverTypes', () => {
   });
 
   it('more pandaria webhooks', () => {
-    const localThis = { t: key => key };
+    const localThis = { t: (key) => key };
     const out = ReceiverIcons.methods.getReceiverTypes.call(localThis, {
       name:           'test',
       webhookConfigs: [{
@@ -42,7 +42,7 @@ describe('component: ReceiverIcons, methods: getReceiverTypes', () => {
   });
 
   it('three pandaria webhooks and two other types', () => {
-    const localThis = { t: key => key };
+    const localThis = { t: (key) => key };
     const out = ReceiverIcons.methods.getReceiverTypes.call(localThis, {
       name:           'test',
       webhookConfigs: [{
@@ -73,7 +73,7 @@ describe('component: ReceiverIcons, methods: getReceiverTypes', () => {
   });
 
   it('none pandaria webhooks and two other types', () => {
-    const localThis = { t: key => key };
+    const localThis = { t: (key) => key };
     const out = ReceiverIcons.methods.getReceiverTypes.call(localThis, {
       name:           'test',
       webhookConfigs: [{

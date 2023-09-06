@@ -24,8 +24,8 @@ describe('fx: fetchLinks', () => {
       },
       'i18n/t':       (type, p) => p?.name ? type + p.name : type,
       'catalog/repo': ({ repoType, repoName }) => ({
-        doAction:         t => t,
-        waitForOperation: t => t,
+        doAction:         (t) => t,
+        waitForOperation: (t) => t,
       }),
       'catalog/charts': [{}],
     },
@@ -47,7 +47,7 @@ describe('fx: fetchLinks', () => {
     },
     rootGetters: {
       'management/byId':     (type, id) => ({ nameDisplay: id }),
-      'type-map/optionsFor': type => ({ type }),
+      'type-map/optionsFor': (type) => ({ type }),
       'i18n/t':              (type, p) => p?.name ? type + p.name : type
     }
   };
@@ -69,7 +69,7 @@ describe('fx: fetchLinks', () => {
     ];
 
     testCases.forEach(([key, value]) => {
-      const link = result.defaults.find(link => link.key === key);
+      const link = result.defaults.find((link) => link.key === key);
 
       expect(link.value).toBe(value);
     });

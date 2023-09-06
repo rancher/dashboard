@@ -151,7 +151,7 @@ export default {
       });
 
       const res = await allHash(hash).then((h) => {
-        const out = (h.instanceTypes || this.instanceTypes).filter(obj => h.availableInstanceTypes.includes(obj.InstanceTypeId));
+        const out = (h.instanceTypes || this.instanceTypes).filter((obj) => h.availableInstanceTypes.includes(obj.InstanceTypeId));
 
         h.availableInstanceTypes = sortBy(out, ['isDefault:desc', 'InstanceTypeFamily']);
 
@@ -484,7 +484,7 @@ export default {
       });
 
       allHash(hash).then((h) => {
-        const out = (this.instanceTypes || []).filter(obj => h.availableInstanceTypes.includes(obj.InstanceTypeId));
+        const out = (this.instanceTypes || []).filter((obj) => h.availableInstanceTypes.includes(obj.InstanceTypeId));
 
         this.availableInstanceTypes = sortBy(out, ['isDefault:desc', 'InstanceTypeFamily']);
 
@@ -590,7 +590,7 @@ export default {
         return [];
       }
 
-      return this.vSwitches.filter(i => i.ZoneId === this.value.zone).map((obj) => {
+      return this.vSwitches.filter((i) => i.ZoneId === this.value.zone).map((obj) => {
         return {
           label: `${ obj.IsDefault ? this.t('cluster.machineConfig.aliyunecs.vswitchId.default') : obj.VSwitchName } (${ obj.VSwitchId })`,
           value: obj.VSwitchId,
@@ -598,7 +598,7 @@ export default {
       }).sort();
     },
     internetChargeTypeOptions() {
-      return OPTION_CHARGETYPES.map(item => ({
+      return OPTION_CHARGETYPES.map((item) => ({
         value: item.value,
         label: this.t(item.label),
       }));

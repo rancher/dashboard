@@ -96,12 +96,12 @@ export const likelyFields = [
   'token', 'apikey',
   'secret',
   'clientid', 'clientsecret', 'subscriptionid', 'tenantid',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are maaaaybe a credential field
 export const iffyFields = [
   'location', 'region',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the whole value
 export const fullFields = [
@@ -109,18 +109,18 @@ export const fullFields = [
   'accesskey',
   'accesskeyid',
   'clientid'
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the beginning of
 export const prefixFields = [
   'token',
   'apikey',
   'secret',
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver fields that are safe to display the end of
 export const suffixFields = [
-].map(x => simplify(x));
+].map((x) => simplify(x));
 
 // Machine driver to cloud provider mapping
 const driverToCloudProviderMap = {

@@ -47,7 +47,7 @@ export default class VirtVmInstance extends HarvesterResource {
 
   get vmimResource() {
     const all = this.$rootGetters['harvester/all'](HCI.VMIM) || [];
-    const vmimList = all.filter(vmim => vmim.spec?.vmiName === this.metadata?.name);
+    const vmimList = all.filter((vmim) => vmim.spec?.vmiName === this.metadata?.name);
 
     if (vmimList.length === 0) {
       return [];
@@ -88,7 +88,7 @@ export default class VirtVmInstance extends HarvesterResource {
 
   get isPaused() {
     const conditions = this?.status?.conditions || [];
-    const isPause = conditions.filter(cond => cond.type === PAUSED).length > 0;
+    const isPause = conditions.filter((cond) => cond.type === PAUSED).length > 0;
 
     return isPause ? {
       status:  PAUSED,
@@ -107,7 +107,7 @@ export default class VirtVmInstance extends HarvesterResource {
   get isTerminated() {
     const conditions = this?.status?.conditions || [];
 
-    return conditions.find(cond => cond.type === 'Ready')?.status === 'False';
+    return conditions.find((cond) => cond.type === 'Ready')?.status === 'False';
   }
 
   get getVMIApiPath() {

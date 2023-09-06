@@ -212,7 +212,7 @@ export default {
         errors.push(message);
       };
 
-      const cpuLimts = ['minCpu', 'requestsCpu', 'limitsCpu', 'maxCpu'].filter(k => limit[k]);
+      const cpuLimts = ['minCpu', 'requestsCpu', 'limitsCpu', 'maxCpu'].filter((k) => limit[k]);
 
       if (cpuLimts.length > 1) {
         cpuLimts.reduce((pre, cur) => {
@@ -222,7 +222,7 @@ export default {
         });
       }
 
-      const memoryLimits = ['minMemory', 'requestsMemory', 'limitsMemory', 'maxMemory'].filter(k => limit[k]);
+      const memoryLimits = ['minMemory', 'requestsMemory', 'limitsMemory', 'maxMemory'].filter((k) => limit[k]);
 
       if (memoryLimits.length > 1) {
         memoryLimits.reduce((pre, cur) => {

@@ -73,6 +73,7 @@ generic:
   techPreview: Tech Preview
   type: Type
   unknown: Unknown
+  upload: Upload
   provisioning: '—'
   key: Key
   value: Value
@@ -196,6 +197,12 @@ nav:
     accountAndKeys: Account & API Keys
     logOut: Log Out
   failWhale:
+    authMiddleware: Auth Middleware
+    clusterNotFound: Cluster { clusterId } not found
+    productNotFound: Product { productNotFound } not found
+    resourceNotFound: Resource type { resource } not found
+    resourceListNotFound: Resource type { resource } not found, unable to display list
+    resourceIdNotFound: Resource { resource } with id { fqid } not found, unable to display resource details
     reload: Reload
     separator: or
 
@@ -587,6 +594,10 @@ asyncButton:
     action: Apply
     success: Applied
     waiting: Applying&hellip;
+  add:
+    action: Add
+    success: Added
+    waiting: Adding&hellip;
   continue:
     action: Continue
     success: Saved
@@ -1331,7 +1342,6 @@ cluster:
     deprecated: (deprecated)
     deprecatedPatches: Show deprecated Kubernetes patch versions
     deprecatedPatchWarning: We recommend using the latest patch version for each minor Kubernetes version. Deprecated patch versions can be useful for migration purposes.
-  toolsTip: Use the new Cluster Tools to manage and install Monitoring, Logging and other tools
   legacyWarning: The legacy feature flag is enabled and not all legacy features are supported in Kubernetes 1.21+.
   log:
     connecting: Connecting…
@@ -2149,8 +2159,10 @@ fleet:
       protocolBanner: Enter a valid HTTPS or SSH URL to a git repository.
     resources:
       label: 'Resource Handling'
-      keepResources: Keep resources after deletion
-      resourceBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      keepResources: Always Keep Resources
+      keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
+      correctDrift: Enable Self-Healing
+      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on th ecluster will be lost.
     add:
       steps:
         repoInfo:
@@ -2389,11 +2401,32 @@ hpa:
     name:
       label: Referent Name
       placeholder: e.g. php-apache
+  scaleDownRules:
+    label: Scale down behavior
+    enable: Configure scale down behavior
+  scaleUpRules:
+    label: Scale up behavior
+    enable: Configure scale up behavior
+  scalingRule:
+    policyHeader: Policies
+    addPolicy: Add policy
+    selectPolicy: Select policy
+    selectPolicyTooltip: Select the policy with the maximum value, minimum value or disable scaling.
+    stabilizationWindowSeconds: Stabilization window seconds
+    stabilizationWindowSecondsTooltip: Number of seconds for which past recommendations should be considered while scaling up or scaling down.
+    policy:
+      type: Type
+      typeTooltip: Set policy based on the amount of Pods to scale or the percentage of current replicas to scale.
+      value: Value
+      valueTooltip: The amount of change which is permitted by the policy.
+      periodSeconds: Period seconds
+      periodSecondsTooltip: The window of time for which the policy should hold true.
   tabs:
     labels: Labels
     metrics: Metrics
     target: Target
     workload: Workload
+    behavior: Behavior
   types:
     cpu: CPU
     memory: Memory
@@ -3021,6 +3054,9 @@ login:
   remember:
     label: Remember Username
 
+logout:
+  message: Logging Out...
+
 managementNode:
   customName: Custom Name
 
@@ -3477,10 +3513,13 @@ navLink:
         label: Group name
         tooltip: Assign link to a group
       sideLabel:
-        label: Link Label
+        label: Link label
       description:
         label: Link description
+    groupImage:
+      label: Group Image
       iconSrc:
+        tip: 'Image height should be 21 pixels with a max width of 200 pixels. Max file size is 20KB. Accepted formats: JPEG, PNG, SVG.'
         label: Add image
 networkpolicy:
   egress:
@@ -3668,7 +3707,7 @@ persistentVolume:
       label: Storage Policy ID
       placeholder: e.g. sp1
   csi:
-    label: CSI (Unsupported)
+    label: CSI
     suffix: (CSI)
     driver:
       label: Driver
@@ -3989,7 +4028,9 @@ inactivity:
 
 # Rancher Extensions
 plugins:
-  incompatibleDisclaimer: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
+  incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ rancherVersion })."
+  incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ kubeVersion })."
+  currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   labels:
     builtin: Built-in
     experimental: Experimental
@@ -4010,6 +4051,7 @@ plugins:
     host: This Extension is not compatible with this application
     version: This Extension is not compatible with this version of Rancher
     load: An error occurred loading the code for this Extension
+    developerPkg: This Extension has been loaded internally, so we won't load the external version
   success:
     title: Loaded extension {name}
     message: Extension was loaded successfully
@@ -4025,7 +4067,8 @@ plugins:
     detail: Detail
     versions: Versions
     versionError: Could not load version information
-    requiresVersion: "Requires Rancher {version}"
+    requiresRancherVersion: "Requires Rancher {version}"
+    requiresKubeVersion: "Requires Kube version {version}"
   empty:
     all: Extensions are neither installed nor available
     available: No Extensions available
@@ -4035,6 +4078,7 @@ plugins:
   loadError: An error occurred loading the code for this extension
   helmError: "An error occurred installing the extension via Helm"
   manageRepos: Manage Repositories
+  addRancherRepos: Add Rancher Repositories
   manageCharts: Manage Extension Charts
   manageCatalog:
     label: Manage Extension Catalogs
@@ -4106,23 +4150,39 @@ plugins:
   safeMode:
     title: Extensions Safe Mode
     message: Extensions were not loaded
+  addRepos:
+    banner: There are new extensions repositories available. To enable these repositories, click the button on the right.
+    bannerBtn: Add repositories
+    title: Add Extensions repositories
+    prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
   setup:
+    installed: Already installed
+    uninstalled: Already uninstalled
     title: Extension support is not enabled
     prompt:
       cant: Automatic installation is not available - required Helm Charts could not be found
       can: You need to install the Extension Operator
+      official: The Official Rancher Extensions Repository provides extensions published by Rancher
+      partners: The Partners Extensions Repository provides extensions published by Rancher Partners
+      community: The Community Extensions Repository provides extensions published by Rancher Community
     install:
       title: Enable Extension Support?
-      prompt: This will install the Helm charts to enable Extension support
-      airgap: The Rancher Extensions Repository provides extensions published by Rancher. Un-check if your Rancher installation is air-gapped
-      addRancherRepo: Add the Rancher Extension Repository
+      prompt: This will install the Helm charts needed to enable Extension support
+      airgap: Air-gapped installations should NOT enable this feature
+      addRancherRepo: Add Official Rancher Extensions Repository
+      addPartnersRancherRepo: Add Partners Extensions Repository
+      addCommunityRancherRepo: Add Community Extensions Repository
     remove:
       label: Disable Extension Support
       title: Disable Extension Support?
       prompt: This will un-install the Helm charts that enable Extension support
       registry:
-        title: Remove the Rancher Extensions Repository
-        prompt: The Rancher Extensions Repository provides extensions published by Rancher
+        official:
+          title: Remove the Official Rancher Extensions Repository
+        partners:
+          title: Remove the Partners Extensions Repository
+        community:
+          title: Remove the Community Extensions Repository
       crd:
         title: Remove the Rancher Extensions Custom Resource Definition
         prompt: There are one or more extensions installed - removing the CRD will require you to manually reinstall these extensions if you subsequently re-enable extensions support.
@@ -4439,7 +4499,6 @@ rbac:
   members:
     label: Members
   roletemplate:
-    label: Roles
     newUserDefault:
       no: No
       tooltip: This does not affect any bindings to the role that already exist.
@@ -5586,8 +5645,8 @@ validation:
       tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
   minLength: '"{key}" must contain more than {min} characters'
   maxLength: '"{key}" must contain less than {max} characters'
-  minValue: '"{key}" must be higher than {min}'
-  maxValue: '"{key}" must be lower than {max}'
+  minValue: '"{key}" must be equal or higher than {min}'
+  maxValue: '"{key}" must be equal or lower than {max}'
   betweenLengths: '"{key}" must contain between {min} and {max} characters'
   betweenValues: '"{key}" must be between {min} and {max}'
   noSchema: No schema found to validate
@@ -5711,6 +5770,7 @@ wm:
   containerShell:
     clear: Clear
     containerName: "Container: {label}"
+    failed: "Unable to open a shell to the container (none of the shell commmands succeeded)\n\r"
   kubectlShell:
     title: "Kubectl: {name}"
 
@@ -7323,11 +7383,88 @@ manager:
     label: Node Templates
 
 auth:
+  roleTemplate: Role Templates
   config:
     label: Auth Provider
 vncConsole:
   error:
     message: Web VNC console connection is disconnected
+
+gitPicker:
+  github:
+    label: GitHub
+    tableHeaders:
+      choose:
+        label: Select
+      sha:
+        label: SHA
+      author:
+        label: Author
+        unknown: Unknown
+      message:
+        label: Message
+      date:
+        label: Date
+    username:
+      label: Username / Organization
+      inputLabel: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+    branch:
+      label: Branch
+      inputLabel: Branch
+      tooltip: Branch to deploy
+    repo:
+      label: Repository
+      inputLabel: Repository
+      tooltip: Repository to deploy from
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: No GitHub account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again.
+  gitlab:
+    label: GitLab
+    tableHeaders:
+      choose:
+        label: Select
+      sha:
+        label: SHA
+      author:
+        label: Author
+        unknown: Unknown
+      message:
+        label: Message
+      date:
+        label: Date
+    username:
+      label: Username / Organization
+      inputLabel: Username / Organization
+      tooltip: Username / Organization of the Git Repository
+    branch:
+      label: Branch
+      inputLabel: Branch
+      tooltip: Branch to deploy
+    repo:
+      label: Repository
+      inputLabel: Repository
+      tooltip: Repository to deploy from
+    commits:
+      label: Commits
+      tooltip: Commits to deploy from
+    commit:
+      label: Commit
+      inputLabel: Commit
+    commitMessage:
+      label: Commit Message
+    errors:
+      noAccount: No GitLab account or Organization found. Please review your query and try again.
+      noBranch: No branch found. Please review your query and try again.
 
 networkAttachmentDefinition:
   tabs:

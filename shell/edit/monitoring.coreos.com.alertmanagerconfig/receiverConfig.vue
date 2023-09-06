@@ -202,7 +202,7 @@ export default {
       return {
         duplicateName: () => {
           const receiversArray = this.alertmanagerConfigResource.spec.receivers;
-          const receiverNamesArray = receiversArray.map(R => R.name);
+          const receiverNamesArray = receiversArray.map((R) => R.name);
           const receiversSet = new Set(receiverNamesArray);
 
           if (receiversArray.length !== receiversSet.size) {

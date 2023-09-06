@@ -33,7 +33,7 @@ export default {
   async fetch() {
     this.nodeDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_DRIVER });
     this.kontainerDrivers = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.KONTAINER_DRIVER });
-    this.operatorDrivers = await this.$store.dispatch('rancher/request', { url: `v3/${ NORMAN.OPERATOR_SETTINGS }` }).then(res => res.data).catch(() => ([]));
+    this.operatorDrivers = await this.$store.dispatch('rancher/request', { url: `v3/${ NORMAN.OPERATOR_SETTINGS }` }).then((res) => res.data).catch(() => ([]));
 
     // Force reload the cloud cred schema and any missing subtypes because there aren't change events sent when drivers come/go
     try {
@@ -108,15 +108,15 @@ export default {
       const out = [];
 
       const drivers = [...this.nodeDrivers, ...this.kontainerDrivers]
-        .filter(x => x.spec.active && x.id !== 'rancherkubernetesengine')
-        .map(x => x.spec.displayName || x.id);
-      const operatorDrivers = this.operatorDrivers.filter(x => x.state === 'active').map(x => x.id);
+        .filter((x) => x.spec.active && x.id !== 'rancherkubernetesengine')
+        .map((x) => x.spec.displayName || x.id);
+      const operatorDrivers = this.operatorDrivers.filter((x) => x.state === 'active').map((x) => x.id);
 
       drivers.push(...operatorDrivers);
-      let types = uniq(drivers.map(x => this.$store.getters['plugins/credentialDriverFor'](x)));
+      let types = uniq(drivers.map((x) => this.$store.getters['plugins/credentialDriverFor'](x)));
 
       if ( !this.rke2Enabled ) {
-        types = types.filter(x => rke1Supports.includes(x));
+        types = types.filter((x) => rke1Supports.includes(x));
       }
 
       const schema = this.$store.getters['rancher/schemaFor'](NORMAN.CLOUD_CREDENTIAL);

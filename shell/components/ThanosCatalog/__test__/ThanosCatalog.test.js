@@ -4,7 +4,7 @@ import { _EDIT } from '@shell/config/query-params';
 
 const $route = { params: { cluster: 'local' }, hash: '' };
 const $router = {
-  currentRoute: '', replace: r => r, push: jest.fn()
+  currentRoute: '', replace: (r) => r, push: jest.fn()
 };
 
 describe('global monitorning ThanosCatalog', () => {
@@ -48,6 +48,6 @@ describe('global monitorning ThanosCatalog', () => {
     await wrapper.trigger('keydown.enter');
 
     expect(wrapper.emitted('updateVersion')).toHaveLength(1);
-    expect($router.push).toBeCalledTimes(1);
+    expect($router.push).toHaveBeenCalledTimes(1);
   });
 });

@@ -37,7 +37,7 @@ export default {
     },
 
     accessibleResources() {
-      return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
+      return RESOURCES.filter((resource) => this.$store.getters['cluster/schemaFor'](resource));
     },
 
     totalCountGaugeInput() {

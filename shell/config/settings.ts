@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 // Settings
 import { GC_DEFAULTS } from '../utils/gc/gc-types';
 import { MANAGEMENT } from './types';
@@ -110,6 +111,10 @@ export const SETTING = {
    */
   CLUSTER_AGENT_DEFAULT_AFFINITY:       'cluster-agent-default-affinity',
   FLEET_AGENT_DEFAULT_AFFINITY:         'fleet-agent-default-affinity',
+  /**
+   * manage rancher repositories in extensions (official, partners repos)
+   */
+  ADD_EXTENSION_REPOS_BANNER_DISPLAY:   'display-add-extension-repos-banner'
 };
 
 // These are the settings that are allowed to be edited via the UI

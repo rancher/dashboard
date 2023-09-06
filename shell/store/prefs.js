@@ -60,8 +60,8 @@ export const THEME = create('theme', 'auto', {
   options:     ['light', 'auto', 'dark'],
   asCookie,
   parseJSON,
-  mangleRead:  x => x.replace(/^ui-/, ''),
-  mangleWrite: x => `ui-${ x }`,
+  mangleRead:  (x) => x.replace(/^ui-/, ''),
+  mangleWrite: (x) => `ui-${ x }`,
 });
 export const PREFERS_SCHEME = create('pcs', '', { asCookie, asUserPreference: false });
 export const LOCALE = create('locale', 'en-us', { asCookie });
@@ -111,9 +111,6 @@ export const _RKE1 = 'rke1';
 export const _RKE2 = 'rke2';
 export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2] });
 
-// Promo for Cluster Tools feature on Cluster Dashboard page
-export const CLUSTER_TOOLS_TIP = create('hide-cluster-tools-tip', false, { parseJSON });
-
 // Promo for Pod Security Policies (PSPs) being deprecated on kube version 1.25 on Cluster Dashboard page
 export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', false, { parseJSON });
 
@@ -141,7 +138,7 @@ export const state = function() {
 };
 
 export const getters = {
-  get: state => (key) => {
+  get: (state) => (key) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -159,7 +156,7 @@ export const getters = {
     return def;
   },
 
-  defaultValue: state => (key) => {
+  defaultValue: (state) => (key) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -169,7 +166,7 @@ export const getters = {
     return clone(definition.def);
   },
 
-  options: state => (key) => {
+  options: (state) => (key) => {
     const definition = state.definitions[key];
 
     if (!definition) {
@@ -531,7 +528,7 @@ function getLoginRoute(route) {
   const routeParams = route.params || {};
 
   // Find the 'resource' part of the route, if it is there
-  const index = parts.findIndex(p => p === 'resource');
+  const index = parts.findIndex((p) => p === 'resource');
 
   if (index >= 0) {
     parts = parts.slice(0, index);

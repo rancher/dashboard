@@ -79,10 +79,10 @@ export default {
 
   computed: {
     typeOption() {
-      return this.types.find(type => type.value === this.type);
+      return this.types.find((type) => type.value === this.type);
     },
     scOption() {
-      return this.storageClasses.map(sc => ({ label: sc.id, value: sc.id }));
+      return this.storageClasses.map((sc) => ({ label: sc.id, value: sc.id }));
     },
     limitValue() {
       return parseSi(this.prqLimits);
@@ -109,8 +109,8 @@ export default {
       const sc = this.storageClass;
 
       return this.namespaceResourceQuotaLimits
-        .filter(resourceQuota => resourceQuota[this.type] && resourceQuota.id !== this.namespace.id)
-        .map(resourceQuota => parseSi(sc ? resourceQuota[this.type]?.[sc] : resourceQuota[this.type], this.siOptions));
+        .filter((resourceQuota) => resourceQuota[this.type] && resourceQuota.id !== this.namespace.id)
+        .map((resourceQuota) => parseSi(sc ? resourceQuota[this.type]?.[sc] : resourceQuota[this.type], this.siOptions));
     },
     namespaceContribution() {
       return this.namespaceLimits.reduce((sum, limit) => sum + limit, 0);

@@ -33,8 +33,8 @@ export default {
       const toSaved = [];
 
       if (this.isEdit && this.value) {
-        if (this.bindings.find(b => b.roleTemplateId === this.value.roleTemplateName)) {
-          toSaved.push(...this.bindings.filter(b => b.roleTemplateId !== this.value.roleTemplateName));
+        if (this.bindings.find((b) => b.roleTemplateId === this.value.roleTemplateName)) {
+          toSaved.push(...this.bindings.filter((b) => b.roleTemplateId !== this.value.roleTemplateName));
         } else {
           toRemoved.push(this.value);
           toSaved.push(...this.bindings);
@@ -43,8 +43,8 @@ export default {
         toSaved.push(...this.bindings);
       }
       try {
-        await Promise.all(toSaved.map(binding => binding.save()));
-        await Promise.all(toRemoved.map(binding => binding.remove()));
+        await Promise.all(toSaved.map((binding) => binding.save()));
+        await Promise.all(toRemoved.map((binding) => binding.remove()));
 
         btnCb(true);
       } catch (err) {

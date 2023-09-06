@@ -14,7 +14,6 @@ import Password from '@shell/components/form/Password';
 import { sortBy } from '@shell/utils/sort';
 import { configType } from '@shell/models/management.cattle.io.authconfig';
 import { mapGetters } from 'vuex';
-import { importLogin } from '@shell/utils/dynamic-importer';
 import { _ALL_IF_AUTHED, _MULTI } from '@shell/plugins/dashboard-store/actions';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { SETTING } from '@shell/config/settings';
@@ -38,10 +37,10 @@ export default {
 
   async asyncData({ route, redirect, store }) {
     const drivers = await store.dispatch('auth/getAuthProviders');
-    const providers = sortBy(drivers.map(x => x.id), ['id']);
+    const providers = sortBy(drivers.map((x) => x.id), ['id']);
 
     const hasLocal = providers.includes('local');
-    const hasOthers = hasLocal && !!providers.find(x => x !== 'local');
+    const hasOthers = hasLocal && !!providers.find((x) => x !== 'local');
 
     if ( hasLocal ) {
       // Local is special and handled here so that it can be toggled
@@ -128,13 +127,14 @@ export default {
     }
 
     return {
-      vendor:     getVendor(),
+      vendor:             getVendor(),
       providers,
       hasOthers,
       hasLocal,
-      showLocal:  !hasOthers || (route.query[LOCAL] === _FLAGGED),
-      firstLogin: firstLoginSetting?.value === 'true',
+      showLocal:          !hasOthers || (route.query[LOCAL] === _FLAGGED),
+      firstLogin:         firstLoginSetting?.value === 'true',
       singleProvider,
+      showLocaleSelector: !process.env.loginLocaleSelector || process.env.loginLocaleSelector === 'true',
       disabledEncryption,
       footerText,
       footerUrl,
@@ -235,7 +235,7 @@ export default {
 
   created() {
     this.providerComponents = this.providers.map((name) => {
-      return importLogin(configType[name]);
+      return this.$store.getters['type-map/importLogin'](configType[name] || name);
     });
   },
 
@@ -313,7 +313,7 @@ export default {
 
         if ( this.remember ) {
           this.$cookies.set(USERNAME, this.username, {
-            encode:   x => x,
+            encode:   (x) => x,
             maxAge:   86400 * 365,
             path:     '/',
             sameSite: true,
@@ -549,10 +549,13 @@ export default {
               {{ nonLocalPrompt }}
             </a>
           </div>
-          <div class="locale-elector">
-            <LocaleSelector mode="login" />
-          </div>
         </template>
+        <div
+          v-if="showLocaleSelector"
+          class="locale-elector"
+        >
+          <LocaleSelector mode="login" />
+        </div>
       </div>
       <img
         v-if="uiLoginLandscape"
@@ -642,6 +645,16 @@ export default {
     }
   }
 
+  .gutless {
+    height: 100vh;
+    & > .span-6 {
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      place-content: center;
+    }
+  }
   .locale-elector {
     position: absolute;
     bottom: 30px;

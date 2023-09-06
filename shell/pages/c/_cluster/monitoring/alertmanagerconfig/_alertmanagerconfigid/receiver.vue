@@ -165,7 +165,7 @@ export default {
       const receivers = this.alertmanagerConfigResource?.spec?.receivers || [];
       const errors = [];
 
-      if (receivers.find(item => !item.name)) {
+      if (receivers.find((item) => !item.name)) {
         errors.push(this.t('validation.required', { key: this.t('generic.name') }, true));
       }
 

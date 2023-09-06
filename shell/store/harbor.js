@@ -188,7 +188,7 @@ export const actions = {
       }
 
       const imageTag = searchImage.includes(':') ? searchImage.substr(searchImage.indexOf(':') + 1) : null;
-      const tag = tags.find(t => t.name === imageTag);
+      const tag = tags.find((t) => t.name === imageTag);
 
       commit('setImageTag', tag && tag.name);
       commit('setHarborImageTags', tags);
@@ -201,7 +201,7 @@ export const actions = {
         Array.from(tagList).forEach(({ name }) => {
           names.push(name);
         });
-        tags = tagsResultFormat(tagsSortingInit(tagList.map(t => t.name)));
+        tags = tagsResultFormat(tagsSortingInit(tagList.map((t) => t.name)));
       } catch (err) {
         tags = tagList;
       }
@@ -210,7 +210,7 @@ export const actions = {
 
       if (searchImage.includes(':')) {
         const imageTag = searchImage.substr(searchImage.indexOf(':') + 1);
-        const tag = tags.find(t => t.name === imageTag);
+        const tag = tags.find((t) => t.name === imageTag);
 
         if (tag?.name) {
           commit('setImageTag', tag.name);

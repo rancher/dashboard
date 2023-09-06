@@ -210,7 +210,9 @@ You'll notice that if you reload the Rancher UI, the extension is not persistent
 
 Creating a Release for your extension is the official avenue for loading extensions into any Rancher instance. As mentioned in the [Introduction](./introduction.md), the extension can be packaged into a Helm chart and added as a Helm repository to be easily accessible from your Rancher Manager.
 
-We have created a workflow for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart. Then it will give your Github repository a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher. 
+We have created [two workflows](https://github.com/rancher/dashboard/tree/master/shell/creators/pkg/files/.github/workflows) for [Github Actions](https://docs.github.com/en/actions) which will automatically build, package, and release your extension as a Helm chart for use within your Github repository, and an [Extension Catalog Image](./advanced/air-gapped-environments) (ECI) which is published into a specified container registry (`ghcr.io` by default). Depending on the use case, you can utilize the Github repository as a [Helm repository](https://helm.sh/docs/topics/chart_repository/) endpoint which we can use to consume the chart in Rancher, or you can import the ECI into the Extension Catalog list and serve the Helm charts locally.
+
+> Note: If you wish to build and publish the Helm chart or the ECI manually or with specific configurations, you can follow the steps listed in the [Publishing an Extension](./publishing) section.
 
 ### Release Prerequisites
 
@@ -250,9 +252,7 @@ To add the workflow to your extension, use the `-w` option when running the `@ra
 yarn create @rancher/pkg test -w
 ```
 
-This will create a `.github` directory within the root folder of your app which will contain the `build-extension.yml` workflow file. Initially the release is gated by a Push or Pull Request targeting the `main` branch. To update your workflow with different events to trigger the workflow, you can find more information in the [Github docs](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows).
-
-> Note: If you wish to build and publish the Helm chart manually or to a specific registry, you can follow the steps listed in the [Publishing an Extension section](./publishing#manually-publishing-an-extension).
+This will create a `.github` directory within the root folder of your app which will contain the `build-extension.yml` workflow file. Initially the release is gated by a Push or Pull Request targeting the `main` branch. To update your workflow with different events to trigger the workflow, see the [Additional Release Configuration](./publishing#additional-release-configuration) section.
 
 ### Consuming the Helm chart
 

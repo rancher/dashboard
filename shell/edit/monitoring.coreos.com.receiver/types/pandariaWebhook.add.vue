@@ -27,7 +27,7 @@ export default {
           value: 'ALIYUN_SMS'
         },
       ],
-      webhookType: RECEIVERS_TYPES.find(type => type.name === 'pandariaWebhook'),
+      webhookType: RECEIVERS_TYPES.find((type) => type.name === 'pandariaWebhook'),
       isView:      this.mode === _VIEW
     };
   },

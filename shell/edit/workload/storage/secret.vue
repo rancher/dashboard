@@ -134,11 +134,11 @@ export default {
       if (type === 'secret') {
         const name = source.secretName;
 
-        return this.secrets.find(s => s.metadata?.name === name);
+        return this.secrets.find((s) => s.metadata?.name === name);
       } else if (type === 'configMap') {
         const name = source.name;
 
-        return this.configMaps.find(c => c.metadata?.name === name);
+        return this.configMaps.find((c) => c.metadata?.name === name);
       }
 
       return null;

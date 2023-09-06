@@ -1,9 +1,16 @@
+import { mapGetters } from 'vuex';
 import { CATALOG, MANAGEMENT } from '@shell/config/types';
 import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { findBy } from '@shell/utils/array';
 import { createCssVars } from '@shell/utils/color';
 import { _ALL_IF_AUTHED } from '@shell/plugins/dashboard-store/actions';
+
+const cspAdaptorApp = ['rancher-csp-adapter', 'rancher-csp-billing-adapter'];
+
+export const hasCspAdapter = (apps) => {
+  return apps?.find((a) => cspAdaptorApp.includes(a.metadata?.name));
+};
 
 export default {
   async fetch() {
@@ -23,13 +30,19 @@ export default {
         }
       });
     } catch (e) {}
+
+    // Setting this up front will remove `computed` churn, and we only care that we've initialised them
+    this.haveAppsAndSettings = !!this.apps && !!this.globalSettings;
   },
 
   data() {
-    return { apps: [], globalSettings: [] };
+    return {
+      apps: null, globalSettings: null, haveAppsAndSettings: null
+    };
   },
 
   computed: {
+    ...mapGetters({ loggedIn: 'auth/loggedIn' }),
 
     brand() {
       const setting = findBy(this.globalSettings, 'id', SETTING.BRAND);
@@ -61,7 +74,23 @@ export default {
     },
 
     cspAdapter() {
-      return findBy(this.apps, 'metadata.name', 'rancher-csp-adapter' );
+      if (!this.canCalcCspAdapter) {
+        // We only have a watch on cspAdapter to kick off persisting the brand setting.
+        // So we need to ensure we don't return an undefined here... which would match the undefined gave if no csp app was found...
+        // .. and wouldn't kick off the watcher
+        return '';
+      }
+
+      // Note! this used to be `findBy(this.app)` however for that case we lost reactivity on the collection
+      // (computed fires before fetch, fetch happens and update apps, computed would not fire again - even with vue.set)
+      // So use `.find` in method instead
+      return hasCspAdapter(this.apps);
+    },
+
+    canCalcCspAdapter() {
+      // We need to take consider the loggedIn state, as the brand mixin is used in the logout page where we can be in a mixed state
+      // (things in store but user has no auth to make changes)
+      return this.loggedIn && this.haveAppsAndSettings;
     }
   },
 
@@ -90,7 +119,13 @@ export default {
     },
 
     cspAdapter(neu) {
+      if (!this.canCalcCspAdapter) {
+        return;
+      }
+
+      // The brand setting will only get updated if...
       if (neu && !this.brand) {
+        // 1) There should be a brand... but there's no brand setting
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
         if (brandSetting) {
@@ -103,13 +138,14 @@ export default {
           if (url) {
             this.$store.dispatch('management/create', {
               type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'csp', default: ''
-            }).then(setting => setting.save());
+            }).then((setting) => setting.save());
           }
         }
       } else if (!neu) {
         const brandSetting = findBy(this.globalSettings, 'id', SETTING.BRAND);
 
-        if (brandSetting) {
+        if (brandSetting && brandSetting.value !== '') {
+          // 2) There should not be a brand... but there is a brand setting
           brandSetting.value = '';
           brandSetting.save();
         }

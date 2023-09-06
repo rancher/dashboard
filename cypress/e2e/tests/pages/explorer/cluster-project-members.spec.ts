@@ -1,5 +1,5 @@
-import UsersAndAuthPo from '~/cypress/e2e/po/pages/users-and-auth/users-and-auth.po';
-import ClusterProjectMembersPo from '~/cypress/e2e/po/pages/explorer/cluster-project-members.po';
+import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
+import ClusterProjectMembersPo from '@/cypress/e2e/po/pages/explorer/cluster-project-members.po';
 
 const runTimestamp = +new Date();
 const runPrefix = `e2e-test-${ runTimestamp }`;
@@ -7,21 +7,22 @@ const runPrefix = `e2e-test-${ runTimestamp }`;
 const username = `${ runPrefix }-cluster-proj-member`;
 const standardPassword = 'standard-password';
 
-describe('Cluster Project and Members', () => {
+describe('Cluster Project and Members', { tags: ['@adminUser'] }, () => {
   it('Members added to both Cluster Membership should not show "Loading..." next to their names', () => {
-    const usersAdmin = new UsersAndAuthPo('_', 'management.cattle.io.user');
+    const usersAdmin = new UsersPo('_');
+    const userCreate = usersAdmin.createEdit();
 
     // this will login as admin
     cy.login();
 
     // create a standard user
     usersAdmin.goTo();
-    usersAdmin.listCreate();
+    usersAdmin.list().create();
 
-    usersAdmin.username().set(username);
-    usersAdmin.newPass().set(standardPassword);
-    usersAdmin.confirmNewPass().set(standardPassword);
-    usersAdmin.saveCreateForm().click();
+    userCreate.username().set(username);
+    userCreate.newPass().set(standardPassword);
+    userCreate.confirmNewPass().set(standardPassword);
+    userCreate.saveCreateForm().click();
     usersAdmin.waitForPageWithExactUrl();
 
     // add user to Cluster membership

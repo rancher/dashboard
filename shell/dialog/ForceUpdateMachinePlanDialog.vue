@@ -53,7 +53,7 @@ export default {
 
   computed: {
     names() {
-      return this.toUpdate.map(obj => obj.nameDisplay).slice(0, 5);
+      return this.toUpdate.map((obj) => obj.nameDisplay).slice(0, 5);
     },
 
     plusMore() {

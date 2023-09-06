@@ -10,12 +10,13 @@ import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
 import { pullAllBy } from 'lodash';
+import { LabeledInput } from '@components/Form/LabeledInput';
 
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton
+    Card, Checkbox, AsyncButton, LabeledInput
   },
   props: {
     /**
@@ -45,10 +46,10 @@ export default {
   },
   computed: {
     hasTerminatingState() {
-      return !!this.toRemove.find(item => item.state === 'terminating');
+      return !!this.toRemove.find((item) => item.state === 'terminating');
     },
     names() {
-      return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
+      return this.toRemove.map((obj) => obj.nameDisplay).slice(0, 5);
     },
 
     nameToMatchPosition() {
@@ -106,6 +107,11 @@ export default {
       if (this.toRemove.length > 1) {
         return null;
       }
+
+      if (this.toRemove[0].doneLocationRemove) {
+        return this.toRemove[0].doneLocationRemove;
+      }
+
       const currentRoute = this.toRemove[0].currentRoute();
       const out = {};
       const params = { ...currentRoute.params };
@@ -190,7 +196,7 @@ export default {
     // if none found (delete is allowed), then check for any resources with a warning message
     toRemove(neu) {
       let message;
-      const preventDeletionMessages = neu.filter(item => item.preventDeletionMessage);
+      const preventDeletionMessages = neu.filter((item) => item.preventDeletionMessage);
 
       this.preventDelete = false;
 
@@ -198,7 +204,7 @@ export default {
         this.preventDelete = true;
         message = preventDeletionMessages[0].preventDeletionMessage;
       } else {
-        const warnDeletionMessages = neu.filter(item => item.warnDeletionMessage);
+        const warnDeletionMessages = neu.filter((item) => item.warnDeletionMessage);
 
         if (!!warnDeletionMessages.length) {
           message = warnDeletionMessages[0].warnDeletionMessage;
@@ -228,7 +234,7 @@ export default {
 
     async remove(btnCB) {
       if (this.removeFinalizers) {
-        await Promise.all(this.toRemove.map(resource => resource.removeFinalizers().save()));
+        await Promise.all(this.toRemove.map((resource) => resource.removeFinalizers().save()));
         pullAllBy(this.toRemove, [{ state: 'terminating' }], 'state');
         this.removeFinalizers = false;
 
@@ -243,6 +249,7 @@ export default {
         // doneLocation will recompute to undefined when delete request completes
         this.cachedDoneLocation = { ...this.doneLocation };
       }
+
       if (this.hasCustomRemove && this.$refs?.customPrompt?.remove) {
         let handled = this.$refs.customPrompt.remove(btnCB);
 
@@ -266,7 +273,7 @@ export default {
           return;
         }
       }
-      const serialRemove = this.toRemove.some(resource => resource.removeSerially);
+      const serialRemove = this.toRemove.some((resource) => resource.removeSerially);
 
       if (serialRemove) {
         this.serialRemove(btnCB);
@@ -291,10 +298,16 @@ export default {
     },
     async parallelRemove(btnCB) {
       try {
+        if (typeof this.toRemove[0].bulkRemove !== 'undefined') {
+          await this.toRemove[0].bulkRemove(this.toRemove, {});
+        } else {
+          await Promise.all(this.toRemove.map((resource) => resource.remove()));
+        }
+
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
-        await Promise.all(this.toRemove.map(resource => resource.remove()));
         await this.refreshSpoofedTypes(spoofedTypes);
+
         this.done();
       } catch (err) {
         this.error = err.message || err;
@@ -308,7 +321,7 @@ export default {
       this.close();
     },
     getSpoofedTypes(resources) {
-      const uniqueResourceTypes = uniq(this.toRemove.map(resource => resource.type));
+      const uniqueResourceTypes = uniq(this.toRemove.map((resource) => resource.type));
 
       return uniqueResourceTypes.filter(this.$store.getters['type-map/isSpoofed']);
     },
@@ -316,7 +329,7 @@ export default {
     // If spoofed we need to reload the values as the server can't have watchers for them.
     refreshSpoofedTypes(types) {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const promises = types.map(type => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
+      const promises = types.map((type) => this.$store.dispatch(`${ inStore }/findAll`, { type, opt: { force: true } }, { root: true }));
 
       return Promise.all(promises);
     },
@@ -405,39 +418,49 @@ export default {
             </div>
           </template>
         </div>
-        <input
+        <LabeledInput
           v-if="needsConfirm"
           id="confirm"
           v-model="confirmName"
+          v-focus
           :data-testid="componentTestid + '-input'"
           type="text"
         >
-        <div class="text-warning mb-10 mt-10">
-          {{ warning }}
-        </div>
-        <div class="text-error mb-10 mt-10">
-          {{ error }}
-        </div>
-        <div
-          v-if="!needsConfirm"
-          class="text-info mt-20"
-        >
-          {{ protip }}
-        </div>
-        <Checkbox
-          v-if="chartsToRemoveIsApp"
-          v-model="chartsDeleteCrd"
-          label-key="promptRemoveApp.removeCrd"
-          class="mt-10 type"
-          @input="chartAddCrdToRemove"
-        />
-        <Checkbox
-          v-if="hasTerminatingState"
-          v-model="removeFinalizers"
-          label-key="promptForceRemove.forceDelete"
-          class="mt-10 type"
-          @input="finalizersToRemove"
-        />
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+          <div
+            v-if="!needsConfirm"
+            class="text-info mt-20"
+          >
+            {{ protip }}
+          </div>
+          <Checkbox
+            v-if="chartsToRemoveIsApp"
+            v-model="chartsDeleteCrd"
+            label-key="promptRemoveApp.removeCrd"
+            class="mt-10 type"
+            @input="chartAddCrdToRemove"
+          />
+          <Checkbox
+            v-if="hasTerminatingState"
+            v-model="removeFinalizers"
+            label-key="promptForceRemove.forceDelete"
+            class="mt-10 type"
+            @input="finalizersToRemove"
+          />
+        </labeledinput>
+        <template v-else>
+          <div class="text-warning mb-10 mt-10">
+            {{ warning }}
+          </div>
+          <div class="text-error mb-10 mt-10">
+            {{ error }}
+          </div>
+        </template>
       </div>
       <template #actions>
         <button

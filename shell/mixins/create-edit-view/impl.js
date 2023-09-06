@@ -65,9 +65,9 @@ export default {
 
       let name = this.$route.name;
 
-      if ( name.endsWith('-id') ) {
+      if ( name?.endsWith('-id') ) {
         name = name.replace(/(-namespace)?-id$/, '');
-      } else if ( name.endsWith('-create') ) {
+      } else if ( name?.endsWith('-create') ) {
         name = name.replace(/-create$/, '');
       }
 
@@ -124,7 +124,7 @@ export default {
       }
 
       try {
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
+        await this.applyHooks(BEFORE_SAVE_HOOKS, this.value);
 
         // Remove the labels map if it's empty
         if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
@@ -152,7 +152,7 @@ export default {
           await this.$store.dispatch('cluster/findAll', { type: this.value.type, opt: { force: true } }, { root: true });
         }
 
-        await this.applyHooks(AFTER_SAVE_HOOKS);
+        await this.applyHooks(AFTER_SAVE_HOOKS, this.value);
         buttonDone && buttonDone(true);
 
         this.done();

@@ -1,5 +1,5 @@
-import { mount } from '@vue/test-utils';
 import SimpleBox from '@shell/components/SimpleBox.vue';
+import { mount } from '@vue/test-utils';
 
 describe('component: SimpleBox.vue', () => {
   const wrapper = mount(SimpleBox, { propsData: { title: 'Simple box title' } });

@@ -15,6 +15,36 @@ export const WORKLOAD_PRIORITY = {
 };
 
 export default class Pod extends WorkloadService {
+  _os = undefined;
+
+  get inStore() {
+    return this.$rootGetters['currentProduct'].inStore;
+  }
+
+  set os(operatingSystem) {
+    this._os = operatingSystem;
+  }
+
+  get os() {
+    if (this._os) {
+      return this._os;
+    }
+
+    return this?.node?.status?.nodeInfo?.operatingSystem;
+  }
+
+  get node() {
+    try {
+      const schema = this.$store.getters[`cluster/schemaFor`](NODE);
+
+      if (schema) {
+        this.$dispatch(`find`, { type: NODE, id: this.spec.nodeName });
+      }
+    } catch {}
+
+    return this.$getters['byId'](NODE, this.spec.nodeName);
+  }
+
   get _availableActions() {
     const out = super._availableActions;
 
@@ -59,7 +89,7 @@ export default class Pod extends WorkloadService {
 
   get defaultContainerName() {
     const containers = this.spec.containers;
-    const desirable = containers.filter(c => c.name !== 'istio-proxy');
+    const desirable = containers.filter((c) => c.name !== 'istio-proxy');
 
     if ( desirable.length ) {
       return desirable[0].name;
@@ -179,7 +209,7 @@ export default class Pod extends WorkloadService {
   }
 
   get imageNames() {
-    return this.spec.containers.map(container => shortenedImage(container.image));
+    return this.spec.containers.map((container) => shortenedImage(container.image));
   }
 
   get workloadRef() {
@@ -261,7 +291,7 @@ export default class Pod extends WorkloadService {
   processSaveResponse(res) {
     if (res._headers && res._headers.warning) {
       const warnings = res._headers.warning.split('299') || [];
-      const hasPsaWarnings = warnings.filter(warning => warning.includes('violate PodSecurity')).length;
+      const hasPsaWarnings = warnings.filter((warning) => warning.includes('violate PodSecurity')).length;
 
       if (hasPsaWarnings) {
         this.$dispatch('growl/warning', {
@@ -315,7 +345,7 @@ export default class Pod extends WorkloadService {
       return '';
     }
     if (networkStatus) {
-      const macvlan = networkStatus.find(n => n.interface === 'eth1');
+      const macvlan = networkStatus.find((n) => n.interface === 'eth1');
 
       return `${ (macvlan && macvlan.ips && macvlan.ips[1]) || '' }`;
     }
@@ -350,7 +380,7 @@ export default class Pod extends WorkloadService {
       return '';
     }
     if (networkStatus) {
-      const macvlan = networkStatus.find(n => n.interface === 'eth1');
+      const macvlan = networkStatus.find((n) => n.interface === 'eth1');
 
       return `${ (macvlan && macvlan.ips && macvlan.ips[0]) || '' }`;
     }

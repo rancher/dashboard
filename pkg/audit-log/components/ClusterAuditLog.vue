@@ -71,7 +71,7 @@ export default {
           label: this.t('auditLog.form.type.label'),
           value: ''
         },
-        ...this.resources.map(r => ({ label: r.resourceType, value: r.resourceType }))
+        ...this.resources.map((r) => ({ label: r.resourceType, value: r.resourceType }))
       ];
     },
 
@@ -100,13 +100,13 @@ export default {
         return actions;
       }
 
-      const r = this.resources.find(r => this.form.requestResType === r.resourceType);
+      const r = this.resources.find((r) => this.form.requestResType === r.resourceType);
 
       if (!r) {
         return actions;
       }
 
-      actions.push(...r.resourceActions.map(a => ({ label: a, value: a })));
+      actions.push(...r.resourceActions.map((a) => ({ label: a, value: a })));
 
       return actions;
     }
@@ -134,7 +134,7 @@ export default {
       this.loading = true;
       try {
         const queryForm = { ...this.queryForm, clusterID: this.currentCluster.id };
-        const query = Object.entries(queryForm).map(e => `${ e[0] }=${ e[1] }`).join('&');
+        const query = Object.entries(queryForm).map((e) => `${ e[0] }=${ e[1] }`).join('&');
         const { data, pagination } = await this.$store.dispatch('management/request', {
           url:    `/meta/auditlog/${ this.serverAddress.replace('//', '/') }/v1/auditlogs?${ query }`,
           method: 'GET'
@@ -175,7 +175,7 @@ export default {
       const q = { pagesize };
       const keys = ['userdisplayname', 'operation', 'requestResType', 'order'];
 
-      keys.filter(k => f[k]).forEach((k) => {
+      keys.filter((k) => f[k]).forEach((k) => {
         q[k] = f[k];
       });
 

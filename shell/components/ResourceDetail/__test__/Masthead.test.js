@@ -1,7 +1,7 @@
 import Masthead from '@shell/components/ResourceDetail/Masthead.vue';
 import { mount } from '@vue/test-utils';
 
-describe('Test navlink name nowrap', () => {
+describe('test navlink name nowrap', () => {
   it('should have name-display class', () => {
     const wrapper = mount(Masthead, {
       stubs: { 'nuxt-link': true },
@@ -12,7 +12,7 @@ describe('Test navlink name nowrap', () => {
             'cluster/schemaFor':   () => ({ id: 'ui.cattle.io.navlink', name: 'navlink' }),
             'type-map/labelFor':   () => 'navlink',
             'type-map/optionsFor': () => {},
-            'i18n/t':              t => t,
+            'i18n/t':              (t) => t,
             currentProduct:        { name: 'explorer' }
           }
         }

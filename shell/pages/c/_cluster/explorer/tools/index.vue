@@ -47,7 +47,7 @@ export default {
       }
 
       // Need the project ID of the system project in order to get the apps
-      const systemProject = projects.find(p => p.spec?.displayName === 'System');
+      const systemProject = projects.find((p) => p.spec?.displayName === 'System');
 
       if (systemProject) {
         const id = systemProject.id.replace('/', ':');
@@ -86,11 +86,11 @@ export default {
     },
 
     rancherCatalog() {
-      return this.$store.getters['catalog/repos'].find(x => x.isRancher);
+      return this.$store.getters['catalog/repos'].find((x) => x.isRancher);
     },
 
     pandariaCatalog() {
-      return this.$store.getters['catalog/repos'].find(x => x.isPandaria);
+      return this.$store.getters['catalog/repos'].find((x) => x.isPandaria);
     },
 
     installedApps() {
@@ -125,7 +125,7 @@ export default {
         showTypes:      [CATALOG_ANNOTATIONS._CLUSTER_TOOL],
       });
 
-      charts = charts.filter(c => c.sideLabel !== 'Experimental');
+      charts = charts.filter((c) => c.sideLabel !== 'Experimental');
 
       //  If legacy support is enabled, show V1 charts for some V1 Cluster tools
       if (this.legacyEnabled) {
@@ -231,18 +231,18 @@ export default {
       const c = this.v1SystemCatalog?.[id];
 
       if (c?.spec?.versions) {
-        c.spec.versions.forEach(v => versions.push({ version: v.version }));
+        c.spec.versions.forEach((v) => versions.push({ version: v.version }));
       }
 
       return versions;
     },
 
     checkLegacyApp(chartsWithApps, v1Apps, v1ChartName, v2ChartName, v1AppName, showOnlyIfInstalled) {
-      const v1 = chartsWithApps.find(a => a.chart.chartName === v1ChartName);
-      const v2 = chartsWithApps.find(a => a.chart.chartName === v2ChartName);
+      const v1 = chartsWithApps.find((a) => a.chart.chartName === v1ChartName);
+      const v2 = chartsWithApps.find((a) => a.chart.chartName === v2ChartName);
 
       if (v1) {
-        const v1App = v1Apps.find(a => a.id.indexOf(v1AppName) > 0);
+        const v1App = v1Apps.find((a) => a.id.indexOf(v1AppName) > 0);
 
         v1.app = v1App;
 
@@ -259,7 +259,7 @@ export default {
           }
         } else if (showOnlyIfInstalled) {
           // Remove the v1 chart if it is not already installed for charts which we no longer support
-          chartsWithApps = chartsWithApps.filter(c => c !== v1);
+          chartsWithApps = chartsWithApps.filter((c) => c !== v1);
         }
 
         if (v2) {

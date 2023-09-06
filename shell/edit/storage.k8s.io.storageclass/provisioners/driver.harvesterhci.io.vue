@@ -49,7 +49,7 @@ export default {
       const kubernetesVersionExtension = this.currentCluster.kubernetesVersionExtension;
 
       if (kubernetesVersionExtension.startsWith('+rke2')) {
-        const charts = ((this.rke2Versions?.data || []).find(v => v.id === kubernetesVersion) || {}).charts;
+        const charts = ((this.rke2Versions?.data || []).find((v) => v.id === kubernetesVersion) || {}).charts;
         let csiVersion = charts?.['harvester-csi-driver']?.version || '';
 
         if (csiVersion.endsWith('00')) {

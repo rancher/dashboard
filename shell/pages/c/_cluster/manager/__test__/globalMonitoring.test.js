@@ -23,8 +23,8 @@ const $store = {
     },
     'i18n/t':       (type, p) => p?.name ? type + p.name : type,
     'catalog/repo': ({ repoType, repoName }) => ({
-      doAction:         t => t,
-      waitForOperation: t => t,
+      doAction:         (t) => t,
+      waitForOperation: (t) => t,
     }),
     'catalog/charts': [{}],
   },
@@ -44,7 +44,7 @@ const $store = {
   },
   rootGetters: {
     'management/byId':     (type, id) => ({ nameDisplay: id }),
-    'type-map/optionsFor': type => ({ type }),
+    'type-map/optionsFor': (type) => ({ type }),
     'i18n/t':              (type, p) => p?.name ? type + p.name : type
   }
 };
@@ -53,9 +53,9 @@ const $route = { params: { cluster: 'test' } };
 const $router = { replace: jest.fn() };
 
 describe('global monitorning methods', () => {
-  it('methods initGlobalMonitoringRoute jump to page ', async() => {
+  it('methods initGlobalMonitoringRoute jump to page', async() => {
     const localThis = {
-      t:                t => t,
+      t:                (t) => t,
       monitoringStatus: { installed: true },
       $set:             set,
       $store,
@@ -67,12 +67,12 @@ describe('global monitorning methods', () => {
 
     await delay(1500);
 
-    expect(localThis.$router.replace).toBeCalledTimes(1);
+    expect(localThis.$router.replace).toHaveBeenCalledTimes(1);
   });
 
-  it('methods updateDownStreamClusterSecret to update secrets ', () => {
+  it('methods updateDownStreamClusterSecret to update secrets', () => {
     const localThis = {
-      t:                t => t,
+      t:                (t) => t,
       monitoringStatus: { installed: true },
       $set:             set,
       $store,

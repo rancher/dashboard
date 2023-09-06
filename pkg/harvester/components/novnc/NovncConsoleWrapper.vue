@@ -214,15 +214,29 @@ export default {
           </button>
 
           <template slot="popover">
-            <novnc-console-item :items="keymap" :path="keysRecord" :pos="0" @update="update" @sendKeys="sendKeys" />
+            <novnc-console-item
+              :items="keymap"
+              :path="keysRecord"
+              :pos="0"
+              @update="update"
+              @sendKeys="sendKeys"
+            />
           </template>
         </v-popover>
 
-        <button v-if="hasSoftRebootAction" class="btn btn-sm bg-primary" @click="softReboot">
+        <button
+          v-if="hasSoftRebootAction"
+          class="btn btn-sm bg-primary"
+          @click="softReboot"
+        >
           {{ t("harvester.action.softreboot") }}
         </button>
       </div>
-      <NovncConsole v-if="url && !isDown" ref="novncConsole" :url="url" />
+      <NovncConsole
+        v-if="url && !isDown"
+        ref="novncConsole"
+        :url="url"
+      />
       <p v-if="isDown">
         {{ t("harvester.virtualMachine.detail.console.down") }}
       </p>

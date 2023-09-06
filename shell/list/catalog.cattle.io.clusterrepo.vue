@@ -30,7 +30,7 @@ export default {
 
   computed: {
     filterHideRows() {
-      return this.rows.filter(repo => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
+      return this.rows.filter((repo) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
     }
   }
 };

@@ -311,7 +311,7 @@ export default {
           data:      out.data,
           revision:  out.revision,
           skipHaveAll,
-          namespace: opt.namespaced,
+          namespace: opt.namespaced
         });
       }
     }
@@ -555,7 +555,7 @@ export default {
   },
 
   createMany(ctx, data) {
-    return data.map(d => classify(ctx, d));
+    return data.map((d) => classify(ctx, d));
   },
 
   createPopulated(ctx, userData) {
@@ -574,8 +574,8 @@ export default {
   // Remove all entries for that type and stop watching it
   forgetType({ commit, dispatch, state }, type) {
     state.started
-      .filter(entry => entry.type === type)
-      .forEach(entry => dispatch('unwatch', entry));
+      .filter((entry) => entry.type === type)
+      .forEach((entry) => dispatch('unwatch', entry));
 
     commit('forgetType', type);
   },
@@ -634,7 +634,7 @@ export default {
         if (tries === SCHEMA_CHECK_RETRY_LOG) {
           console.warn(`Schema for ${ type } not available... retrying...`); // eslint-disable-line no-console
         }
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         tries--;
       }
     }

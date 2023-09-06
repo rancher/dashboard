@@ -184,7 +184,7 @@ export default {
       const { validationPassed, showAsForm, steps } = this;
 
       if (showAsForm && steps?.length) {
-        return validationPassed && this.steps.every(step => step.ready);
+        return validationPassed && this.steps.every((step) => step.ready);
       }
 
       // Don't apply validation rules if the form is not shown.
@@ -288,7 +288,7 @@ export default {
     closeError(index) {
       const errors = this.errors.filter((_, i) => i !== index);
 
-      this.$emit('error', errors);
+      this.$emit('error', errors, this.errors[index]);
     },
 
     emitOrRoute() {

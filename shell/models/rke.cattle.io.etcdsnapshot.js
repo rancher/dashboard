@@ -5,17 +5,20 @@ import { findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { base64Decode } from '@shell/utils/crypto';
 import { ucFirst } from '@shell/utils/string';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 export default class EtcdBackup extends NormanModel {
   /**
    * Restrict actions for snapshots to restore only
    */
   get _availableActions() {
+    const enabled = this.snapshotFile?.status === STATES_ENUM.SUCCESSFUL;
+
     return [{
-      action:  'promptRestore',
-      enabled: true,
-      icon:    'icon icon-fw icon-backup-restore',
-      label:   'Restore'
+      action: 'promptRestore',
+      enabled,
+      icon:   'icon icon-fw icon-backup-restore',
+      label:  'Restore'
     }];
   }
 
@@ -48,7 +51,7 @@ export default class EtcdBackup extends NormanModel {
   }
 
   get errorMessage() {
-    const inError = get(this, 'snapshotFile.status') === 'failed';
+    const inError = get(this, 'snapshotFile.status') === STATES_ENUM.FAILED;
 
     if (inError) {
       return base64Decode(this.snapshotFile?.message);
@@ -59,10 +62,10 @@ export default class EtcdBackup extends NormanModel {
 
   get stateDescription() {
     const trans = this.stateObj?.transitioning || false;
-    const error = this.stateObj?.error || this.snapshotFile?.status === 'failed' || false;
+    const error = this.stateObj?.error || this.snapshotFile?.status === STATES_ENUM.FAILED || false;
     const message = this.stateObj?.message;
 
-    const fileMessage = this.snapshotFile?.status === 'failed' ? base64Decode(this.snapshotFile?.message) : null;
+    const fileMessage = this.snapshotFile?.status === STATES_ENUM.FAILED ? base64Decode(this.snapshotFile?.message) : null;
 
     return trans || error ? fileMessage || ucFirst(message) : '';
   }

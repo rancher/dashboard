@@ -5,4 +5,8 @@ export default class ResourceTablePo extends ComponentPo {
   sortableTable() {
     return new SortableTablePo(this.self());
   }
+
+  downloadYamlButton() {
+    return cy.getId('sortable-table-download');
+  }
 }

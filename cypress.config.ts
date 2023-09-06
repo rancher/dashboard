@@ -18,7 +18,7 @@ const getSpecPattern = (): string[] => {
   const activePaths = optionalPaths.filter(({ active }) => Boolean(active)).map(({ path }) => path);
 
   // List the test directories to be included
-  const testDirs = ['pages', 'navigation', 'global-ui'].map(dir => `cypress/e2e/tests/${ dir }/**/*.spec.ts`);
+  const testDirs = ['pages', 'navigation', 'global-ui'].map((dir) => `cypress/e2e/tests/${ dir }/**/*.spec.ts`);
 
   return [
     ...activePaths,
@@ -64,6 +64,10 @@ if (skipSetup) {
 
 console.log(`    Dashboard URL: ${ baseUrl }`); // eslint-disable-line no-console
 
+const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
+
+console.log(`    Rancher API URL: ${ apiUrl }`); // eslint-disable-line no-console
+
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,
@@ -73,12 +77,14 @@ export default defineConfig({
     openMode: 0
   },
   env: {
+    grepFilterSpecs: true,
     baseUrl,
-    coverage:     false,
-    codeCoverage: {
+    coverage:        false,
+    codeCoverage:    {
       exclude: [
         'cypress/**/*.*',
         '**/__tests__/**/*.*',
+        '**/__mocks__/**/*.*',
         '**/shell/scripts/**/*.*',
       ],
       include: [
@@ -86,15 +92,18 @@ export default defineConfig({
         'pkg/rancher-components/src/components/**/*.{vue,ts,js}',
       ]
     },
+    api:               apiUrl,
     username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
+    grepTags:          process.env.GREP_TAGS
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
     setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
+      require('@cypress/grep/src/plugin')(config);
 
       return config;
     },

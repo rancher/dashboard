@@ -1,8 +1,8 @@
-import { BrandingPagePo } from '~/cypress/e2e/po/pages/global-settings/branding.po';
-import { SettingsPagePo } from '~/cypress/e2e/po/pages/global-settings/settings.po';
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '~/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '~/cypress/e2e/po/side-bars/product-side-nav.po';
+import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.po';
+import { SettingsPagePo } from '@/cypress/e2e/po/pages/global-settings/settings.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 const settings = {
   privateLabel: {
@@ -27,7 +27,7 @@ describe('Branding', () => {
     cy.login();
   });
 
-  it('Can navigate to Branding Page', () => {
+  it('Can navigate to Branding Page', { tags: ['@adminUser', '@standardUser'] }, () => {
     HomePagePo.goTo();
 
     const burgerMenu = new BurgerMenuPo();
@@ -54,7 +54,7 @@ describe('Branding', () => {
     brandingPage.waitForPageWithClusterId();
   });
 
-  it('Private Label', () => {
+  it('Private Label', { tags: '@adminUser' }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -102,7 +102,7 @@ describe('Branding', () => {
     // Requires a way to check the actual image changes
   });
 
-  it('Primary Color', () => {
+  it('Primary Color', { tags: '@adminUser' }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();
@@ -134,7 +134,7 @@ describe('Branding', () => {
     brandingPage.applyAndWait('**/ui-primary-color');
   });
 
-  it('Link Color', () => {
+  it('Link Color', { tags: '@adminUser' }, () => {
     const brandingPage = new BrandingPagePo();
 
     brandingPage.goTo();

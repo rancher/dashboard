@@ -34,7 +34,7 @@ describe('component: pandariaWebhook', () => {
     expect(inputWraps).toHaveLength(expectd);
   });
 
-  it('ALIYUN_SMS should display phone number input', () => {
+  it('aLIYUN_SMS should display phone number input', () => {
     const wrapper = mount(pandariaWebhook, {
       propsData: {
         value: {},

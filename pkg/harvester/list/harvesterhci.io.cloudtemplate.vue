@@ -25,7 +25,7 @@ export default {
 
     const configSchema = this.$store.getters['harvester/schemaFor'](CONFIG_MAP);
 
-    if (!configSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
+    if (!configSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post')) {
       this.$store.dispatch('type-map/configureType', { match: HCI.CLOUD_TEMPLATE, isCreatable: false });
     }
   },
@@ -50,7 +50,7 @@ export default {
     },
 
     filteredRows() {
-      return this.rows.filter(r => !!r.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT]);
+      return this.rows.filter((r) => !!r.metadata?.labels?.[HCI_ANNOTATIONS.CLOUD_INIT]);
     },
 
     schema() {

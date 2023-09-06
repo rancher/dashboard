@@ -70,7 +70,7 @@ export default {
           '/global-audit-log'
         ];
 
-        if (/^(\/c|p|g|n\/)/.test(typePath) && legacyPaths.some(p => typePath?.indexOf(p) > -1)) {
+        if (/^(\/c|p|g|n\/)/.test(typePath) && legacyPaths.some((p) => typePath?.indexOf(p) > -1)) {
           if (typePath !== this.$route.path) {
             this.$emit('selected');
 

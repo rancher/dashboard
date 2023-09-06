@@ -28,7 +28,7 @@ export default {
   mixins: [Closeable],
 
   async fetch() {
-    this.links = await fetchLinks(this.$store, this.hasSupport, this.isSupportPage, str => this.t(str));
+    this.links = await fetchLinks(this.$store, this.hasSupport, this.isSupportPage, (str) => this.t(str));
   },
 
   data() {
@@ -72,7 +72,7 @@ export default {
       }
 
       if (this.links.defaults) {
-        all.push(...this.links.defaults.filter(link => link.enabled));
+        all.push(...this.links.defaults.filter((link) => link.enabled));
       }
 
       return all;

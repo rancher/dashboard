@@ -33,13 +33,12 @@ import { allHash, allHashSettled } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
 import { addParam } from '@shell/utils/url';
 import semver from 'semver';
-import { STORE } from '@shell/store/store-types';
+import { STORE, BLANK_CLUSTER } from '@shell/store/store-types';
+import { isDevBuild } from '@shell/utils/version';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
 export const strict = false;
-
-export const BLANK_CLUSTER = '_';
 
 export const plugins = [
   Steve({
@@ -133,11 +132,11 @@ const getActiveSingleNamespaces = (getters, filters) => {
 const getReadOnlyActiveNamespaces = (namespaces, activeNamespaces) => {
   const readonlyNamespaces = Object
     .values(namespaces)
-    .filter(ns => !!ns.links.update)
+    .filter((ns) => !!ns.links.update)
     .map(({ id }) => id);
 
   return Object.keys(activeNamespaces)
-    .filter(ns => readonlyNamespaces.includes(ns))
+    .filter((ns) => readonlyNamespaces.includes(ns))
     .reduce((acc, ns) => ({
       ...acc,
       [ns]: true
@@ -179,12 +178,12 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
   const allNamespaces = hasNamespaces ? state.allNamespaces : getters[`${ inStore }/all`](NAMESPACE);
 
   const allowedNamespaces = allNamespaces
-    .filter(ns => state.prefs.data['all-namespaces'] ? true : !ns.isObscure) // Filter out Rancher system namespaces
-    .filter(ns => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
+    .filter((ns) => state.prefs.data['all-namespaces'] ? true : !ns.isObscure) // Filter out Rancher system namespaces
+    .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
 
   // Retrieve all the filters selected by the user
   const filters = state.namespaceFilters.filter(
-    filters => !!filters && !`${ filters }`.startsWith(NAMESPACED_PREFIX)
+    (filters) => !!filters && !`${ filters }`.startsWith(NAMESPACED_PREFIX)
   );
 
   const activeNamespaces = {
@@ -211,7 +210,7 @@ const updateActiveNamespaceCache = (state, activeNamespaceCache) => {
   let cacheKey = '';
 
   for (const key in activeNamespaceCache) {
-    // I though array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
+    // I thought array.join would be faster than string concatenation, but in places like this where the array must first be constructed it's
     // slower.
     cacheKey += key + activeNamespaceCache[key];
   }
@@ -309,7 +308,7 @@ export const getters = {
   getStoreNameByProductId(state) {
     const products = state['type-map']?.products;
 
-    return (products.find(p => p.name === state.productId) || {})?.inStore || 'cluster';
+    return (products.find((p) => p.name === state.productId) || {})?.inStore || 'cluster';
   },
 
   currentStore(state, getters) {
@@ -344,7 +343,7 @@ export const getters = {
 
     const desired = getters['prefs/get'](CLUSTER_PREF);
 
-    if ( clusters.find(x => x.id === desired) ) {
+    if ( clusters.find((x) => x.id === desired) ) {
       return desired;
     } else if ( clusters.length ) {
       return clusters[0].id;
@@ -368,7 +367,7 @@ export const getters = {
       return true;
     }
 
-    return state.namespaceFilters.filter(x => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
+    return state.namespaceFilters.filter((x) => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -396,7 +395,7 @@ export const getters = {
   },
 
   namespaceFilters(state) {
-    const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
+    const filters = state.namespaceFilters.filter((x) => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
 
     return filters;
   },
@@ -477,7 +476,7 @@ export const getters = {
     const inStore = product.inStore;
     const filteredMap = getters['activeNamespaceCache'];
     const isAll = getters['isAllNamespaces'];
-    const all = getters[`${ inStore }/all`](NAMESPACE).map(x => x.id);
+    const all = getters[`${ inStore }/all`](NAMESPACE).map((x) => x.id);
     let out;
 
     function isOk() {
@@ -564,13 +563,25 @@ export const getters = {
 
   isStandaloneHarvester(state, getters) {
     const clusters = getters['management/all'](MANAGEMENT.CLUSTER);
-    const cluster = clusters.find(c => c.id === 'local') || {};
+    const cluster = clusters.find((c) => c.id === 'local') || {};
 
     return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
   },
 
   targetRoute(state) {
     return state.targetRoute;
+  },
+
+  releaseNotesUrl(state, getters) {
+    const version = getters['management/byId'](MANAGEMENT.SETTING, 'server-version')?.value;
+
+    const base = 'https://github.com/rancher/rancher/releases';
+
+    if (version && !isDevBuild(version)) {
+      return `${ base }/tag/${ version }`;
+    }
+
+    return `${ base }/latest`;
   },
 
   ...gcGetters
@@ -590,7 +601,7 @@ export const mutations = {
   },
 
   updateNamespaces(state, { filters, all }) {
-    state.namespaceFilters = filters.filter(x => !!x);
+    state.namespaceFilters = filters.filter((x) => !!x);
 
     if ( all ) {
       state.allNamespaces = all;
@@ -741,19 +752,19 @@ export const actions = {
     const isMultiCluster = getters['isMultiCluster'];
 
     // If the local cluster is a Harvester cluster and 'rancher-manager-support' is true, it means that the embedded Rancher is being used.
-    const localCluster = res.clusters?.find(c => c.id === 'local');
+    const localCluster = res.clusters?.find((c) => c.id === 'local');
 
     if (localCluster?.isHarvester) {
       const harvesterSetting = await dispatch('cluster/findAll', { type: HCI.SETTING, opt: { url: `/v1/harvester/${ HCI.SETTING }s` } });
-      const rancherManagerSupport = harvesterSetting.find(setting => setting.id === 'rancher-manager-support');
+      const rancherManagerSupport = harvesterSetting.find((setting) => setting.id === 'rancher-manager-support');
       const isRancherInHarvester = (rancherManagerSupport?.value || rancherManagerSupport?.default) === 'true';
 
       commit('isRancherInHarvester', isRancherInHarvester);
     }
 
-    const pl = res.settings?.find(x => x.id === 'ui-pl')?.value;
-    const brand = res.settings?.find(x => x.id === SETTING.BRAND)?.value;
-    const systemNamespaces = res.settings?.find(x => x.id === SETTING.SYSTEM_NAMESPACES);
+    const pl = res.settings?.find((x) => x.id === 'ui-pl')?.value;
+    const brand = res.settings?.find((x) => x.id === SETTING.BRAND)?.value;
+    const systemNamespaces = res.settings?.find((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
       setVendor(pl);
@@ -784,23 +795,23 @@ export const actions = {
 
     if (res.globalRoleBindings && getters['auth/me']?.id) {
       const id = getters['auth/me']?.id;
-      const adminGlobalRoleBindings = res.globalRoleBindings.filter(binding => binding.globalRoleName === 'admin');
-      const readOnlyAdminGlobalRoleBindings = res.globalRoleBindings.filter(binding => binding.globalRoleName === 'read-only-pandaria');
-      let admin = adminGlobalRoleBindings.find(grb => grb?.userName === id);
-      let readOnlyAdmin = readOnlyAdminGlobalRoleBindings.find(grb => grb?.userName === id);
-      const agrbs = adminGlobalRoleBindings.filter(grb => grb?.groupPrincipalName);
-      const roagrbs = readOnlyAdminGlobalRoleBindings.filter(grb => grb?.groupPrincipalName);
+      const adminGlobalRoleBindings = res.globalRoleBindings.filter((binding) => binding.globalRoleName === 'admin');
+      const readOnlyAdminGlobalRoleBindings = res.globalRoleBindings.filter((binding) => binding.globalRoleName === 'read-only-pandaria');
+      let admin = adminGlobalRoleBindings.find((grb) => grb?.userName === id);
+      let readOnlyAdmin = readOnlyAdminGlobalRoleBindings.find((grb) => grb?.userName === id);
+      const agrbs = adminGlobalRoleBindings.filter((grb) => grb?.groupPrincipalName);
+      const roagrbs = readOnlyAdminGlobalRoleBindings.filter((grb) => grb?.groupPrincipalName);
 
       if ((!readOnlyAdmin || !admin) && (roagrbs.length > 0 || agrbs.length > 0)) {
         const promises = {};
 
         if (agrbs.length > 0) {
-          promises['admins'] = Promise.all(agrbs.map( grb => dispatch('rancher/find', {
+          promises['admins'] = Promise.all(agrbs.map( (grb) => dispatch('rancher/find', {
             type: NORMAN.PRINCIPAL, id: grb.groupPrincipalName, opt: { url: `/v3/principals/${ encodeURIComponent(grb.groupPrincipalName) }` }
           }, { root: true })));
         }
         if (roagrbs.length > 0) {
-          promises['readOnlyAdmins'] = Promise.all(roagrbs.map(grb => dispatch('rancher/find', {
+          promises['readOnlyAdmins'] = Promise.all(roagrbs.map((grb) => dispatch('rancher/find', {
             type: NORMAN.PRINCIPAL, id: grb.groupPrincipalName, opt: { url: `/v3/principals/${ encodeURIComponent(grb.groupPrincipalName) }` }
           }, { root: true })));
         }
@@ -808,10 +819,10 @@ export const actions = {
           const resp = await allHash(promises);
 
           if (!admin && agrbs.length > 0) {
-            admin = resp.admins.find(p => p.me === true);
+            admin = resp.admins.find((p) => p.me === true);
           }
           if (!readOnlyAdmin && roagrbs.length > 0) {
-            readOnlyAdmin = resp.readOnlyAdmins.find(p => p.me === true);
+            readOnlyAdmin = resp.readOnlyAdmins.find((p) => p.me === true);
           }
         } catch (err) {
           // do nothing
@@ -853,14 +864,14 @@ export const actions = {
     }
 
     const oldPkgClusterStore = oldPkg?.stores.find(
-      s => getters[`${ s.storeName }/isClusterStore`]
+      (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
     const newPkgClusterStore = newPkg?.stores.find(
-      s => getters[`${ s.storeName }/isClusterStore`]
+      (s) => getters[`${ s.storeName }/isClusterStore`]
     )?.storeName;
 
-    const productConfig = state['type-map']?.products?.find(p => p.name === product);
+    const productConfig = state['type-map']?.products?.find((p) => p.name === product);
     const forgetCurrentCluster = ((state.clusterId && id) || !samePackage) && !productConfig?.inExplorer;
 
     // Should we leave/forget the current cluster? Only if we're going from an existing cluster to a new cluster, or the package has changed

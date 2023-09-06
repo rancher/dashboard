@@ -56,11 +56,11 @@ export default {
     },
 
     filteredRows() {
-      return this.fleetClusters.filter(c => !isHarvesterCluster(c));
+      return this.fleetClusters.filter((c) => !isHarvesterCluster(c));
     },
 
     fleetClusters() {
-      return this.allClusters.filter(c => c.type === FLEET.CLUSTER);
+      return this.allClusters.filter((c) => c.type === FLEET.CLUSTER);
     },
 
     hiddenHarvesterCount() {

@@ -17,7 +17,7 @@ import { getVersionInfo, readReleaseNotes, markReadReleaseNotes, markSeenRelease
 import PageHeaderActions from '@shell/mixins/page-actions';
 import { getVendor } from '@shell/config/private-label';
 import { mapFeature, MULTI_CLUSTER } from '@shell/store/features';
-import { BLANK_CLUSTER } from '@shell/store';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 
 import { RESET_CARDS_ACTION, SET_LOGIN_ACTION } from '@shell/config/page-actions';
@@ -86,7 +86,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady']),
-    ...mapGetters(['currentCluster']),
+    ...mapGetters(['currentCluster', 'defaultClusterId', 'releaseNotesUrl']),
     mcm: mapFeature(MULTI_CLUSTER),
 
     provClusters() {
@@ -103,7 +103,7 @@ export default {
     canCreateCluster() {
       const schema = this.$store.getters['management/schemaFor'](CAPI.RANCHER_CLUSTER);
 
-      return !!schema?.collectionMethods.find(x => x.toLowerCase() === 'post');
+      return !!schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
     },
 
     manageLocation() {
@@ -160,7 +160,7 @@ export default {
           value:         'nameDisplay',
           sort:          ['nameSort'],
           canBeVariable: true,
-          getValue:      row => row.mgmt?.nameDisplay
+          getValue:      (row) => row.mgmt?.nameDisplay
         },
         {
           label:     this.t('landing.clusters.provider'),
@@ -202,8 +202,6 @@ export default {
         // }
       ];
     },
-
-    ...mapGetters(['currentCluster', 'defaultClusterId']),
 
     kubeClusters() {
       return filterHiddenLocalCluster(filterOnlyKubernetesClusters(this.provClusters || [], this.$store), this.$store);
@@ -266,7 +264,6 @@ export default {
     showWhatsNew() {
       // Update the value, so that the message goes away
       markReadReleaseNotes(this.$store);
-      this.$router.push({ name: 'docs-doc', params: { doc: 'whats-new' } });
     },
 
     showUserPrefs() {
@@ -306,6 +303,7 @@ export default {
       :title="t('landing.welcomeToRancher', {vendor})"
       :pref="HIDE_HOME_PAGE_CARDS"
       pref-key="welcomeBanner"
+      data-testid="home-banner-graphic"
     />
     <IndentedPanel class="mt-20 mb-20">
       <div
@@ -322,7 +320,10 @@ export default {
             </div>
             <a
               class="hand"
-              @click.prevent.stop="showWhatsNew"
+              :href="releaseNotesUrl"
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              @click.stop="showWhatsNew"
             ><span v-clean-html="t('landing.whatsNewLink')" /></a>
           </Banner>
         </div>
@@ -337,6 +338,7 @@ export default {
             <div class="col span-12">
               <Banner
                 color="set-login-page mt-0"
+                data-testid="set-login-page-banner"
                 :closable="true"
                 @close="closeSetLoginBanner()"
               >
@@ -384,6 +386,7 @@ export default {
                       v-if="canManageClusters"
                       :to="manageLocation"
                       class="btn btn-sm role-secondary"
+                      data-testid="cluster-management-manage-button"
                     >
                       {{ t('cluster.manageAction') }}
                     </n-link>
@@ -391,6 +394,7 @@ export default {
                       v-if="canCreateCluster"
                       :to="importLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-import-button"
                     >
                       {{ t('cluster.importAction') }}
                     </n-link>
@@ -398,6 +402,7 @@ export default {
                       v-if="canCreateCluster"
                       :to="createLocation"
                       class="btn btn-sm role-primary"
+                      data-testid="cluster-create-button"
                     >
                       {{ t('generic.create') }}
                     </n-link>

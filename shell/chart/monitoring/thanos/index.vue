@@ -168,7 +168,7 @@ export default {
         off: {
           'prometheus.prometheusSpec.thanos.grpcServerTlsConfig': undefined,
           'prometheus.prometheusSpec.containers':                 this.value.prometheus.prometheusSpec.containers.replace(this.containers, ''),
-          'prometheus.prometheusSpec.volumes':                    this.value.prometheus.prometheusSpec.volumes.filter(item => item.name !== 'thanos-sidecar-tls'),
+          'prometheus.prometheusSpec.volumes':                    this.value.prometheus.prometheusSpec.volumes.filter((item) => item.name !== 'thanos-sidecar-tls'),
         }
       };
     },
@@ -274,7 +274,7 @@ export default {
       const out = arr1;
 
       arr2.forEach((obj2) => {
-        if (arr1.find(obj1 => isEqual(obj1, obj2))) {
+        if (arr1.find((obj1) => isEqual(obj1, obj2))) {
           return;
         }
 

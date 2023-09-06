@@ -1,11 +1,11 @@
 import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import { createPodBlueprint } from '@/cypress/e2e/blueprints/explorer/workload-pods';
 import PodPo from '@/cypress/e2e/po/components/workloads/pod.po';
-import WorkloadPo from '@/cypress/e2e/po/pages/explorer/workloads.po';
+import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 const podName = 'some-pod-name';
 
-describe('Workloads', () => {
+describe('Workloads', { tags: '@adminUser' }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -22,7 +22,7 @@ describe('Workloads', () => {
     createPodPo.createPodViaKubectl(createPodBlueprint);
 
     // check if Pod is in the Workloads list
-    const workload = new WorkloadPo('local');
+    const workload = new WorkloadPagePo('local');
 
     workload.goTo();
     workload.goToDetailsPage(podName);

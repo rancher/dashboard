@@ -12,12 +12,12 @@ describe('navlink: support labels and iframe', () => {
         $store:  {
           getters: {
             'cluster/all':         () => [],
-            'i18n/exists':         key => key,
+            'i18n/exists':         (key) => key,
             currentStore:          () => 'cluster',
             'cluster/schemaFor':   () => ({ id: 'ui.cattle.io.navlink', name: 'navlink' }),
             'type-map/labelFor':   () => 'navlink',
             'type-map/optionsFor': () => {},
-            'i18n/t':              t => t,
+            'i18n/t':              (t) => t,
             currentProduct:        { name: 'explorer' }
           }
         }
@@ -38,12 +38,12 @@ describe('navlink: support labels and iframe', () => {
         $store:  {
           getters: {
             'cluster/all':         () => [],
-            'i18n/exists':         key => key,
+            'i18n/exists':         (key) => key,
             currentStore:          () => 'cluster',
             'cluster/schemaFor':   () => ({ id: 'ui.cattle.io.navlink', name: 'navlink' }),
             'type-map/labelFor':   () => 'navlink',
             'type-map/optionsFor': () => {},
-            'i18n/t':              t => t,
+            'i18n/t':              (t) => t,
             currentProduct:        { name: 'explorer' }
           }
         }

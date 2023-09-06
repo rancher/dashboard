@@ -1,7 +1,7 @@
 <script>
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 import Alert from '@shell/components/Alert';
-import SortableTable from '@shell/components/SortableTable';
+import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
 import {
   EFFECT,
@@ -36,7 +36,7 @@ export default {
     Loading,
     ResourceTabs,
     Tab,
-    SortableTable,
+    ResourceTable,
     EmberPage,
   },
 
@@ -84,8 +84,8 @@ export default {
         }
       ],
       imageTableHeaders: [
-        { ...SIMPLE_NAME, width: 400 },
-        IMAGE_SIZE
+        { ...SIMPLE_NAME, width: null },
+        { ...IMAGE_SIZE, width: 100 } // Ensure one header has a size, all other columns will scale
       ],
       taintTableHeaders: [
         KEY,
@@ -143,7 +143,7 @@ export default {
 
     infoTableRows() {
       return Object.keys(this.value.status.nodeInfo)
-        .map(key => ({
+        .map((key) => ({
           key:   this.t(`node.detail.tab.info.key.${ key }`),
           value: this.value.status.nodeInfo[key]
         }));
@@ -152,7 +152,7 @@ export default {
     imageTableRows() {
       const images = this.value.status.images || [];
 
-      return images.map(image => ({
+      return images.map((image) => ({
         // image.names[1] typically has the user friendly name but on occasion there's only one name and we should use that
         name:      image.names ? (image.names[1] || image.names[0]) : '---',
         sizeBytes: image.sizeBytes
@@ -299,7 +299,7 @@ export default {
         :label="t('node.detail.tab.pods')"
         :weight="4"
       >
-        <SortableTable
+        <ResourceTable
           key-field="_key"
           :headers="podTableHeaders"
           :rows="value.pods"
@@ -332,7 +332,7 @@ export default {
         class="bordered-table"
         :weight="2"
       >
-        <SortableTable
+        <ResourceTable
           key-field="_key"
           :headers="infoTableHeaders"
           :rows="infoTableRows"
@@ -347,7 +347,7 @@ export default {
         :label="t('node.detail.tab.images')"
         :weight="1"
       >
-        <SortableTable
+        <ResourceTable
           key-field="_key"
           :headers="imageTableHeaders"
           :rows="imageTableRows"
@@ -360,7 +360,7 @@ export default {
         :label="t('node.detail.tab.taints')"
         :weight="0"
       >
-        <SortableTable
+        <ResourceTable
           key-field="_key"
           :headers="taintTableHeaders"
           :rows="taintTableRows"

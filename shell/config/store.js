@@ -26,6 +26,7 @@ let store = {};
   resolveStoreModules(require('../store/digitalocean.js'), 'digitalocean.js');
   resolveStoreModules(require('../store/features.js'), 'features.js');
   resolveStoreModules(require('../store/github.js'), 'github.js');
+  resolveStoreModules(require('../store/gitlab.js'), 'gitlab.js');
   resolveStoreModules(require('../store/growl.js'), 'growl.js');
   resolveStoreModules(require('../store/i18n.js'), 'i18n.js');
   resolveStoreModules(require('../store/linode.js'), 'linode.js');
@@ -51,6 +52,7 @@ let store = {};
       '../store/digitalocean.js',
       '../store/features.js',
       '../store/github.js',
+      '../store/gitlab.js',
       '../store/growl.js',
       '../store/i18n.js',
       '../store/index.js',

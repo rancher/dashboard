@@ -119,11 +119,11 @@ export default {
 
   computed: {
     errorStrings() {
-      return ( this.errors || [] ).map(x => stringify(x));
+      return ( this.errors || [] ).map((x) => stringify(x));
     },
 
     activeStepIndex() {
-      return this.visibleSteps.findIndex(s => s.name === this.activeStep.name);
+      return this.visibleSteps.findIndex((s) => s.name === this.activeStep.name);
     },
 
     showPrevious() {
@@ -155,7 +155,7 @@ export default {
     },
 
     readySteps() {
-      return this.visibleSteps.filter(step => step.ready);
+      return this.visibleSteps.filter((step) => step.ready);
     },
 
     showSteps() {
@@ -163,11 +163,11 @@ export default {
     },
 
     stepsLoaded() {
-      return !this.steps.some(step => step.loading === true);
+      return !this.steps.some((step) => step.loading === true);
     },
 
     visibleSteps() {
-      return this.steps.filter(step => !step.hidden);
+      return this.steps.filter((step) => !step.hidden);
     },
 
     nextButtonStyle() {
@@ -236,7 +236,7 @@ export default {
         return false;
       }
 
-      const idx = this.visibleSteps.findIndex(s => s.name === step.name);
+      const idx = this.visibleSteps.findIndex((s) => s.name === step.name);
 
       if (idx === 0 && !this.editFirstStep) {
         return false;
@@ -480,6 +480,7 @@ $spacer: 10px;
   display: flex;
   align-content: space-between;
   align-items: center;
+  margin-bottom: 2*$spacer;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
@@ -529,18 +530,10 @@ $spacer: 10px;
           overflow: visible;
           padding-top: 7px;
 
-          .cru__content & {
-            padding-top: 0;
-
-          }
           & > span {
-            padding-bottom: 5px;
+            padding-bottom: 3px;
             margin-bottom: 5px;
             white-space: nowrap;
-
-            .cru__content & {
-              padding-bottom: 3px;
-            }
           }
         }
 
@@ -679,11 +672,5 @@ $spacer: 10px;
       }
     }
   }
-
-.wizard {
-  .header {
-    margin-bottom: 2*$spacer;
-  }
-}
 
 </style>

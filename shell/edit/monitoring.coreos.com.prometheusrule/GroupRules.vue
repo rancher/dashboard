@@ -51,18 +51,18 @@ export default {
     recordingRules() {
       const { value: rules } = this;
 
-      return rules.filter(rule => has(rule, 'record'));
+      return rules.filter((rule) => has(rule, 'record'));
     },
     alertingRules() {
       const { value: rules } = this;
 
-      return rules.filter(rule => has(rule, 'alert'));
+      return rules.filter((rule) => has(rule, 'alert'));
     },
     customRules() {
       const { value: rules } = this;
 
       return rules.filter(
-        rule => !has(rule, 'alert') && !has(rule, 'record')
+        (rule) => !has(rule, 'alert') && !has(rule, 'record')
       );
     },
     hideRecordingRulesOnView() {
@@ -77,12 +77,12 @@ export default {
     disableAddRecord() {
       const { value: rules } = this;
 
-      return rules.find(rule => has(rule, 'alert'));
+      return rules.find((rule) => has(rule, 'alert'));
     },
     disableAddAlert() {
       const { value: rules } = this;
 
-      return rules.find(rule => has(rule, 'record'));
+      return rules.find((rule) => has(rule, 'record'));
     },
   },
 

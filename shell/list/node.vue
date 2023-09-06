@@ -81,7 +81,7 @@ export default {
 
   computed: {
     hasWindowsNodes() {
-      return (this.rows || []).some(node => node.status.nodeInfo.operatingSystem === 'windows');
+      return (this.rows || []).some((node) => node.status.nodeInfo.operatingSystem === 'windows');
     },
 
     tableGroup: mapPref(GROUP_RESOURCES),
@@ -104,18 +104,18 @@ export default {
         {
           ...KUBE_NODE_OS,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          getValue:   row => row.status?.nodeInfo?.operatingSystem
+          getValue:   (row) => row.status?.nodeInfo?.operatingSystem
         },
         {
           ...CPU,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          getValue:   row => row.cpuUsagePercentage,
+          getValue:   (row) => row.cpuUsagePercentage,
           formatter:  'CpuUsage',
           width:      240
         }, {
           ...RAM,
           breakpoint: COLUMN_BREAKPOINTS.LAPTOP,
-          getValue:   row => row.ramUsagePercentage,
+          getValue:   (row) => row.ramUsagePercentage,
           formatter:  'MemoryUsage',
           width:      240
         }];
@@ -124,7 +124,7 @@ export default {
         headers.push({
           ...PODS,
           breakpoint: COLUMN_BREAKPOINTS.DESKTOP,
-          getValue:   row => row.podConsumedUsage,
+          getValue:   (row) => row.podConsumedUsage,
           formatter:  'PodUsage'
         });
       }

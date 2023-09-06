@@ -1,18 +1,18 @@
 import actions from '@shell/plugins/dashboard-store/actions';
 
 describe('dashboard-store: actions', () => {
-  const growlWarning = jest.fn(t => t);
+  const growlWarning = jest.fn((t) => t);
   const ctx = {
     getters: {
-      typeRegistered:  type => type,
-      keyFieldForType: type => type,
-      byId:            type => type,
+      typeRegistered:  (type) => type,
+      keyFieldForType: (type) => type,
+      byId:            (type) => type,
     },
     dispatch: growlWarning,
     commit(key, params) {
       const commit = {
-        load:         params => params,
-        registerType: params => params,
+        load:         (params) => params,
+        registerType: (params) => params,
       };
 
       return commit[key](params);

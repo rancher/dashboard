@@ -185,19 +185,19 @@ export default {
           value = [value];
         }
 
-        const IPFormatError = value.find(r => !ipv4RegExp.test(r.rangeEnd) || !ipv4RegExp.test(r.rangeStart));
+        const IPFormatError = value.find((r) => !ipv4RegExp.test(r.rangeEnd) || !ipv4RegExp.test(r.rangeStart));
 
         if (IPFormatError) {
           return this.t('macvlan.ipRange.IPFormatError', { info: `，${ IPFormatError.rangeStart || 0 } - ${ IPFormatError.rangeEnd || 0 }` });
         }
 
-        const IPInCidrError = value.find(r => !this.ip4CIDRContains(this.config.spec?.cidr, r.rangeEnd) || !this.ip4CIDRContains(this.config.spec?.cidr, r.rangeStart));
+        const IPInCidrError = value.find((r) => !this.ip4CIDRContains(this.config.spec?.cidr, r.rangeEnd) || !this.ip4CIDRContains(this.config.spec?.cidr, r.rangeStart));
 
         if (IPInCidrError) {
           return this.t('macvlan.ipRange.IPInCidrError', { info: `${ IPInCidrError.rangeStart } - ${ IPInCidrError.rangeEnd }` });
         }
 
-        const IPRangeError = value.find(r => this.comapreIP4(r.rangeStart, r.rangeEnd) > 0);
+        const IPRangeError = value.find((r) => this.comapreIP4(r.rangeStart, r.rangeEnd) > 0);
 
         if (IPRangeError) {
           return this.t('macvlan.ipRange.IPRangeError', {
@@ -214,16 +214,16 @@ export default {
         if (!isArray(value)) {
           value = [value];
         }
-        if (value.some(r => !r.dst)) {
+        if (value.some((r) => !r.dst)) {
           return this.t('macvlan.route.routeDstReq');
         }
-        if (value.some(r => !!r.dst && !cidrIPV4RegExp.test(r.dst))) {
+        if (value.some((r) => !!r.dst && !cidrIPV4RegExp.test(r.dst))) {
           return this.t('macvlan.route.routeDstFormatError');
         }
-        if (value.some(r => !!r.gw && !ipv4RegExp.test(r.gw))) {
+        if (value.some((r) => !!r.gw && !ipv4RegExp.test(r.gw))) {
           return this.t('macvlan.route.routeGwFormatError');
         }
-        if (value.some(r => ((r.iface && r.iface !== 'eth0') || !r.iface) && !!r.gw && ipv4RegExp.test(r.gw) && !this.ip4CIDRContains(this.config.spec?.cidr, r.gw))) {
+        if (value.some((r) => ((r.iface && r.iface !== 'eth0') || !r.iface) && !!r.gw && ipv4RegExp.test(r.gw) && !this.ip4CIDRContains(this.config.spec?.cidr, r.gw))) {
           return this.t('macvlan.route.routeGwInCidrError');
         }
       };
@@ -237,7 +237,7 @@ export default {
       const existedMasterMacvlan = this.existedMasterMacvlan;
       const name = this.config.metadata.name;
 
-      return existedMasterMacvlan.filter(r => r.metadata.name !== name && r.spec.ranges && r.spec.ranges.length > 0).map(r => `${ r.spec.ranges.map(item => `${ item.rangeStart } - ${ item.rangeEnd }`).join(', ') }`).join(', ');
+      return existedMasterMacvlan.filter((r) => r.metadata.name !== name && r.spec.ranges && r.spec.ranges.length > 0).map((r) => `${ r.spec.ranges.map((item) => `${ item.rangeStart } - ${ item.rangeEnd }`).join(', ') }`).join(', ');
     },
 
     existedMasterMacvlan() {
@@ -335,20 +335,20 @@ export default {
       const ipRanges = this.config.spec.ranges || [];
       const ipRangesExisted = this.existedMasterMacvlan;
       const name = this.config.metadata.name;
-      const targetIpRanges = ipRangesExisted.filter(r => r.metadata.name !== name && r.spec.ranges).reduce((t, c) => {
+      const targetIpRanges = ipRangesExisted.filter((r) => r.metadata.name !== name && r.spec.ranges).reduce((t, c) => {
         t.push(...c.spec.ranges);
 
         return t;
       }, []);
 
-      return ipRanges.some(r => targetIpRanges.some(tr => this.comapreIP4(r.rangeStart, tr.rangeStart) >= 0 && this.comapreIP4(r.rangeStart, tr.rangeEnd) <= 0) ||
-        targetIpRanges.some(tr => this.comapreIP4(r.rangeEnd, tr.rangeStart) >= 0 && this.comapreIP4(r.rangeEnd, tr.rangeEnd) <= 0) ||
-        targetIpRanges.some(tr => this.comapreIP4(r.rangeStart, tr.rangeStart) < 0 && this.comapreIP4(r.rangeEnd, tr.rangeEnd) > 0));
+      return ipRanges.some((r) => targetIpRanges.some((tr) => this.comapreIP4(r.rangeStart, tr.rangeStart) >= 0 && this.comapreIP4(r.rangeStart, tr.rangeEnd) <= 0) ||
+        targetIpRanges.some((tr) => this.comapreIP4(r.rangeEnd, tr.rangeStart) >= 0 && this.comapreIP4(r.rangeEnd, tr.rangeEnd) <= 0) ||
+        targetIpRanges.some((tr) => this.comapreIP4(r.rangeStart, tr.rangeStart) < 0 && this.comapreIP4(r.rangeEnd, tr.rangeEnd) > 0));
     },
     hasDuplicateCidr(cidr) {
       const existedMasterMacvlan = this.existedMasterMacvlan;
 
-      return existedMasterMacvlan.some(item => item.spec.cidr === cidr);
+      return existedMasterMacvlan.some((item) => item.spec.cidr === cidr);
     },
     loadExistedMasterMacvlan() {
       const { master, vlan } = this.config.spec;

@@ -29,7 +29,7 @@ export default {
 
     const pvcSchema = this.$store.getters['harvester/schemaFor'](PVC);
 
-    if (!pvcSchema?.collectionMethods.find(x => x.toLowerCase() === 'post')) {
+    if (!pvcSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post')) {
       this.$store.dispatch('type-map/configureType', { match: HCI.VOLUME, isCreatable: false });
     }
 
@@ -112,9 +112,15 @@ export default {
     key-field="_key"
     v-on="$listeners"
   >
-    <template slot="cell:AttachedVM" slot-scope="scope">
+    <template
+      slot="cell:AttachedVM"
+      slot-scope="scope"
+    >
       <div>
-        <n-link v-if="getVMName(scope.row)" :to="goTo(scope.row)">
+        <n-link
+          v-if="getVMName(scope.row)"
+          :to="goTo(scope.row)"
+        >
           {{ getVMName(scope.row) }}
         </n-link>
       </div>

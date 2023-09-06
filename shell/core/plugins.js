@@ -72,7 +72,7 @@ export default function({
         element.async = true;
 
         // id is `<product>-<version>`.
-        const oldPlugin = Object.values(plugins).find(p => id.startsWith(p.name));
+        const oldPlugin = Object.values(plugins).find((p) => id.startsWith(p.name));
 
         let removed = Promise.resolve();
 
@@ -182,13 +182,13 @@ export default function({
           console.error('Error removing plugin', e); // eslint-disable-line no-console
         }
 
-        delete plugins[plugin.name];
+        delete plugins[plugin.id];
       }
     },
 
     // Remove the plugin
     async removePlugin(name) {
-      const plugin = Object.values(plugins).find(p => p.name === name);
+      const plugin = Object.values(plugins).find((p) => p.name === name);
 
       if (!plugin) {
         return;
@@ -226,13 +226,13 @@ export default function({
       pluginRoutes.uninstall(plugin);
 
       // Call plugin uninstall hooks
-      plugin.uninstallHooks.forEach(fn => fn(plugin, this.internal()));
+      plugin.uninstallHooks.forEach((fn) => fn(plugin, this.internal()));
 
       // Remove the plugin itself
       promises.push( store.dispatch('uiplugins/removePlugin', name));
 
       // Unregister vuex stores
-      plugin.stores.forEach(pStore => pStore.unregister(store));
+      plugin.stores.forEach((pStore) => pStore.unregister(store));
 
       // Remove validators
       Object.keys(plugin.validators).forEach((key) => {
@@ -246,7 +246,7 @@ export default function({
     },
 
     removeTypeFromStore(store, storeName, types) {
-      return (types || []).map(type => store.commit(`${ storeName }/forgetType`, type));
+      return (types || []).map((type) => store.commit(`${ storeName }/forgetType`, type));
     },
 
     // Apply the plugin based on its metadata
@@ -283,7 +283,7 @@ export default function({
       }
 
       // Register vuex stores
-      plugin.stores.forEach(pStore => pStore.register()(store));
+      plugin.stores.forEach((pStore) => pStore.register()(store));
 
       // Locales
       plugin.locales.forEach((localeObj) => {
@@ -325,7 +325,7 @@ export default function({
     unregister(type, name, fn) {
       if (type === 'l10n') {
         if (dynamic[type]?.[name]) {
-          const index = dynamic[type][name].find(func => func === fn);
+          const index = dynamic[type][name].find((func) => func === fn);
 
           if (index !== -1) {
             dynamic[type][name].splice(index, 1);

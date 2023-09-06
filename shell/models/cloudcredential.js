@@ -37,7 +37,7 @@ export default class CloudCredential extends NormanModel {
   }
 
   get configKey() {
-    return Object.keys(this).find( k => k.endsWith('credentialConfig'));
+    return Object.keys(this).find( (k) => k.endsWith('credentialConfig'));
   }
 
   get provider() {

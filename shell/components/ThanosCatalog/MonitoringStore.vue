@@ -57,15 +57,15 @@ export default {
       const out = [];
       const installedClusterId = this.value.global.clusterId;
       const installedCluster = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, installedClusterId || 'local');
-      const mgmtClusters = this.originClusters.filter(c => c.stateDisplay === 'Active' || c.mgmtClusterId === installedCluster.id).map(c => c.mgmt);
+      const mgmtClusters = this.originClusters.filter((c) => c.stateDisplay === 'Active' || c.mgmtClusterId === installedCluster.id).map((c) => c.mgmt);
 
-      mgmtClusters.filter(c => c.metadata.state.name === 'active' || c.id === installedCluster.id).forEach((cluster) => {
+      mgmtClusters.filter((c) => c.metadata.state.name === 'active' || c.id === installedCluster.id).forEach((cluster) => {
         const obj = { ...cluster };
         const node = nodes.find((node) => {
           return node.id.indexOf(cluster.id) === 0;
         });
 
-        const currentClusterSetting = enabledClustersBySetting.find(obj => obj.id === cluster.id);
+        const currentClusterSetting = enabledClustersBySetting.find((obj) => obj.id === cluster.id);
 
         const address = node?.ipAddress;
         const monitoringNodeIp = address ? `${ address }:30901` : '';
@@ -95,15 +95,15 @@ export default {
         return;
       }
 
-      out = difference(stores, this.query.enabledClusterStores.map(c => c.address));
+      out = difference(stores, this.query.enabledClusterStores.map((c) => c.address));
 
       this.$set(this.query, 'otherClusterStores', out);
     },
 
     updateClusterStore() {
       let out = [];
-      const enabledClusters = this.clusters.filter(c => !!c.monitoringEabled);
-      const clusterStores = enabledClusters.map(s => s.clusterStore || s.monitoringNodeIp);
+      const enabledClusters = this.clusters.filter((c) => !!c.monitoringEabled);
+      const clusterStores = enabledClusters.map((s) => s.clusterStore || s.monitoringNodeIp);
       const otherClusterStores = this.query.otherClusterStores;
 
       out = [...clusterStores, ...otherClusterStores];

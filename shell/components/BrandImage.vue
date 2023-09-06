@@ -21,19 +21,19 @@ export default {
     ...mapGetters({ theme: 'prefs/theme' }),
 
     brand() {
-      const setting = this.managementSettings.filter(setting => setting.id === SETTING.BRAND)[0] || {};
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.BRAND)[0] || {};
 
       return setting.value;
     },
 
     uiLogoLight() {
-      const setting = this.managementSettings.filter(setting => setting.id === SETTING.LOGO_LIGHT)[0] || {};
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGO_LIGHT)[0] || {};
 
       return setting.value;
     },
 
     uiLogoDark() {
-      const setting = this.managementSettings.filter(setting => setting.id === SETTING.LOGO_DARK)[0] || {};
+      const setting = this.managementSettings.filter((setting) => setting.id === SETTING.LOGO_DARK)[0] || {};
 
       return setting.value;
     },

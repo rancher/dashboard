@@ -1,11 +1,11 @@
-import PagePo from '~/cypress/e2e/po/pages/page.po';
-import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
-import ButtonGroupPo from '~/cypress/e2e/po/components/button-group.po';
-import RadioGroupInputPo from '~/cypress/e2e/po/components/radio-group-input.po';
-import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
+import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
+import ButtonGroupPo from '@/cypress/e2e/po/components/button-group.po';
+import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import LabeledSelectPo from '@/cypress/e2e/po/components/labeled-select.po';
 
 export default class PreferencesPagePo extends PagePo {
-  static url: string = '/prefs'
+  static url = '/prefs'
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(PreferencesPagePo.url);
   }

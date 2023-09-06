@@ -3,7 +3,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 Cypress.config();
-describe('Side navigation: Cluster ', () => {
+describe('Side navigation: Cluster ', { tags: '@adminUser' }, () => {
   beforeEach(() => {
     cy.login();
 
@@ -78,7 +78,7 @@ describe('Side navigation: Cluster ', () => {
       productNavPo.visibleNavTypes().each((link, idx) => {
         productNavPo.visibleNavTypes().eq(idx)
           .click({ force: true })
-          .then(linkEl => cy.url().should('equal', linkEl.prop('href')));
+          .then((linkEl) => cy.url().should('equal', linkEl.prop('href')));
       });
     });
   });

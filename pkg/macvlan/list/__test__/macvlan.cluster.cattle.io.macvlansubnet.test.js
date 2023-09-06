@@ -27,6 +27,6 @@ describe('component: macvlan', () => {
       },
     });
 
-    expect(wrapper.vm.headers.map(item => item.name)).toStrictEqual(headerKeys);
+    expect(wrapper.vm.headers.map((item) => item.name)).toStrictEqual(headerKeys);
   });
 });

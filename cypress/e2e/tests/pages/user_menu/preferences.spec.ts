@@ -1,9 +1,9 @@
-import HomePagePo from '~/cypress/e2e/po/pages/home.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
-import BannersPo from '~/cypress/e2e/po/components/banners.po';
-import ReposListPagePo from '~/cypress/e2e/po/pages/repositories.po';
-// import ClusterManagerListPagePo from '~/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
+import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+// import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
 const prefPage = new PreferencesPagePo();
@@ -11,20 +11,18 @@ const repoListPage = new ReposListPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
-describe('Standard user can update their preferences', () => {
+describe('User can update their preferences', () => {
   beforeEach(() => {
     cy.login();
   });
 
-  it('Can navigate to Preferences Page', () => {
+  it('Can navigate to Preferences Page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Open user menu and navigate to Preferences page
     Verify url includes endpoint '/prefs'
     Verify preference page title
     */
     HomePagePo.goToAndWaitForGet();
-    userMenu.toggle();
-    userMenu.isOpen();
     userMenu.clickMenuItem('Preferences');
     userMenu.isClosed();
     prefPage.waitForPage();
@@ -32,7 +30,7 @@ describe('Standard user can update their preferences', () => {
     prefPage.title();
   });
 
-  it('Can select a language', () => {
+  it('Can select a language', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select language
     */
@@ -53,7 +51,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select a theme', () => {
+  it('Can select a theme', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select theme and verify that its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -78,7 +76,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select login landing page', () => {
+  it('Can select login landing page', { tags: '@adminUser' }, () => {
     /*
     Select each radio button and verify its highlighted
     Validate http request's payload & response contain correct values per selection
@@ -131,7 +129,7 @@ describe('Standard user can update their preferences', () => {
     });
   });
 
-  it('Can select date format', () => {
+  it('Can select date format', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -161,7 +159,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select time format', () => {
+  it('Can select time format', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -188,7 +186,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select Table Rows per Page', () => {
+  it('Can select Table Rows per Page', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -218,7 +216,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select Number of clusters to show in side menu ', () => {
+  it('Can select Number of clusters to show in side menu ', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select each option
     Validate http request's payload & response contain correct values per selection
@@ -253,7 +251,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select Confirmation Setting', () => {
+  it('Can select Confirmation Setting', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox
     Validate http request's payload & response contain correct values per selection
@@ -278,7 +276,7 @@ describe('Standard user can update their preferences', () => {
     prefPage.scalingDownPromptCheckbox().isUnchecked();
   });
 
-  it('Can select Enable "View in API"', () => {
+  it('Can select Enable "View in API"', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox and verify 'View in API' is enabled
     Deselect the checkbox and verify 'View in API' is hidden
@@ -295,7 +293,7 @@ describe('Standard user can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isChecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     repoList.actionMenu('Partners').getMenuItem('View in API').should('exist');
 
     prefPage.goTo();
@@ -309,11 +307,11 @@ describe('Standard user can update their preferences', () => {
     });
     prefPage.viewInApiCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     repoList.actionMenu('Partners').getMenuItem('View in API').should('not.exist');
   });
 
-  it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', () => {
+  it('Can select Show system Namespaces managed by Rancher (not intended for editing or deletion)', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select checkbox option
     Validate http request's payload & response contain correct values per selection
@@ -338,7 +336,7 @@ describe('Standard user can update their preferences', () => {
     prefPage.allNamespacesCheckbox().isUnchecked();
   });
 
-  it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', () => {
+  it('Can select Enable Dark/Light Theme keyboard shortcut toggle (shift+T)', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select checkbox option
     Validate http request's payload & response contain correct values per selection
@@ -363,7 +361,7 @@ describe('Standard user can update their preferences', () => {
     prefPage.themeShortcutCheckbox().isUnchecked();
   });
 
-  it('Can select Hide All Type Description Boxes', () => {
+  it('Can select Hide All Type Description Boxes', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select the checkbox and verify description banner hidden
     Deselect the checkbox and verify description banner displays
@@ -377,7 +375,7 @@ describe('Standard user can update their preferences', () => {
     cy.wait('@prefUpdate').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isChecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     banners.self().should('not.exist');
 
     prefPage.goTo();
@@ -387,11 +385,11 @@ describe('Standard user can update their preferences', () => {
     cy.wait('@prefUpdate2').its('response.statusCode').should('eq', 200);
     prefPage.hideDescriptionsCheckbox().isUnchecked();
 
-    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos');
+    repoListPage.waitForGoTo('/v1/catalog.cattle.io.clusterrepos?exclude=metadata.managedFields');
     banners.self().should('exist');
   });
 
-  it('Can select a YAML Editor Key Mapping option', () => {
+  it('Can select a YAML Editor Key Mapping option', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select key mapping option
     Validate http request's payload & response contain correct values per selection
@@ -416,7 +414,7 @@ describe('Standard user can update their preferences', () => {
     }
   });
 
-  it('Can select a Helm Charts option', () => {
+  it('Can select a Helm Charts option', { tags: ['@adminUser', '@standardUser'] }, () => {
     /*
     Select Helm Charts mapping option
     Validate http request's payload & response contain correct values per selection

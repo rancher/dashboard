@@ -64,7 +64,7 @@ export default {
     });
 
     await Promise.all(
-      Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })
+      Object.values(WORKLOAD_TYPES).map((type) => this.$store.dispatch('cluster/findAll', { type })
       )
     );
 
@@ -115,7 +115,7 @@ export default {
       return this.currentCluster.status.provider.toLowerCase();
     },
     workloads() {
-      return Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.getters['cluster/all'](type)
+      return Object.values(WORKLOAD_TYPES).flatMap((type) => this.$store.getters['cluster/all'](type)
       );
     },
   },

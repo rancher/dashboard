@@ -83,7 +83,7 @@ export default {
           label: this.t('auditLog.form.type.label'),
           value: ''
         },
-        ...this.resources.map(r => ({ label: r.resourceType, value: r.resourceType }))
+        ...this.resources.map((r) => ({ label: r.resourceType, value: r.resourceType }))
       ];
     },
 
@@ -147,7 +147,7 @@ export default {
       this.loading = true;
       try {
         const queryForm = { ...this.queryForm };
-        const query = Object.entries(queryForm).map(e => `${ e[0] }=${ e[1] }`).join('&');
+        const query = Object.entries(queryForm).map((e) => `${ e[0] }=${ e[1] }`).join('&');
         const { data, pagination } = await this.$store.dispatch('management/request', {
           url:    `/meta/auditlog/${ this.serverAddress.replace('//', '/') }/v1/k8sauditlogs?${ query }`,
           method: 'GET'
@@ -188,7 +188,7 @@ export default {
       const q = { pagesize };
       const keys = ['verb', 'requestURIContains', 'clusterID'];
 
-      keys.filter(k => f[k]).forEach((k) => {
+      keys.filter((k) => f[k]).forEach((k) => {
         q[k] = f[k];
       });
 

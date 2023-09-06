@@ -1,18 +1,19 @@
+/* eslint-disable jest/no-hooks */
 import { mount, Wrapper } from '@vue/test-utils';
 import { StringList } from './index';
 
-describe('StringList.vue', () => {
+describe('stringList.vue', () => {
   let wrapper: Wrapper<InstanceType<typeof StringList>>;
 
   beforeEach(() => {
     wrapper = mount(StringList, { propsData: { items: [] } });
   });
 
-  describe('List box', () => {
+  describe('list box', () => {
     it('is empty', () => {
       const box = wrapper.find('[data-testid="div-string-list-box"]').element as HTMLElement;
 
-      expect(box.children.length).toBe(0);
+      expect(box.children).toHaveLength(0);
     });
 
     it('show multiple items', async() => {
@@ -22,7 +23,7 @@ describe('StringList.vue', () => {
 
       const elements = wrapper.findAll('[data-testid^="div-item"]');
 
-      expect(elements.length).toBe(10);
+      expect(elements).toHaveLength(10);
     });
 
     it('double click triggers inline edit mode', async() => {
@@ -130,7 +131,7 @@ describe('StringList.vue', () => {
     });
   });
 
-  describe('Buttons', () => {
+  describe('buttons', () => {
     it('are visible by default', () => {
       const actionButtons = wrapper.find('[data-testid="div-action-buttons"]');
 
@@ -144,7 +145,7 @@ describe('StringList.vue', () => {
       expect(actionButtons.element).toBeUndefined();
     });
 
-    describe('Add button', () => {
+    describe('add button', () => {
       it('is enabled by default', () => {
         const addButton = wrapper.find('[data-testid="button-add"]')?.element as HTMLButtonElement;
 
@@ -176,7 +177,7 @@ describe('StringList.vue', () => {
       });
     });
 
-    describe('Remove button', () => {
+    describe('remove button', () => {
       it('is disabled by default', () => {
         const removeButton = wrapper.find('[data-testid="button-remove"]');
         const buttonElem = removeButton.element as HTMLButtonElement;
@@ -279,7 +280,7 @@ describe('StringList.vue', () => {
     });
   });
 
-  describe('List edit', () => {
+  describe('list edit', () => {
     const validItem = '    item name   ';
     const emptyItem = '  ';
 
@@ -397,7 +398,7 @@ describe('StringList.vue', () => {
     });
   });
 
-  describe('Errors handling', () => {
+  describe('errors handling', () => {
     it('show duplicate warning icon when errorMessages is defined', async() => {
       const items = ['test'];
 

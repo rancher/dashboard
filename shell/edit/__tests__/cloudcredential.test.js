@@ -3,7 +3,7 @@ import Cloudcredential from '@shell/edit/cloudcredential.vue';
 describe('fetch: cloudcredential', () => {
   it('should fetch operator driver', async() => {
     const value = {};
-    let requestFun = key => (key);
+    let requestFun = (key) => (key);
     const localThis = {
       value,
       $store: {

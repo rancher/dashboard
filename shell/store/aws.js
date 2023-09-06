@@ -190,7 +190,7 @@ export const actions = {
       const res = await client[cmd](opt);
 
       if ( !key ) {
-        key = Object.keys(res).find(x => isArray(res[x]));
+        key = Object.keys(res).find((x) => isArray(res[x]));
       }
 
       addObjects(out, res[key]);

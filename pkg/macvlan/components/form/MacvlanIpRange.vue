@@ -52,7 +52,7 @@ export default {
     },
     validationMessage() {
       // we want to grab the required rule passed in if we can but if it's not there then we can just grab it from the formRulesGenerator
-      const requiredRule = this.rules.find(rule => rule?.name === 'required');
+      const requiredRule = this.rules.find((rule) => rule?.name === 'required');
       const ruleMessages = [];
       const value = this?.value;
 
