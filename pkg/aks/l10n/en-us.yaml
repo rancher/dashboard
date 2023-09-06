@@ -7,6 +7,8 @@ aks:
     placeholder: 'aks-resource-group'
   kubernetesVersion:
     label: Kubernetes Version
+    current: '{version} (Current)'
+    notAvailableInRegion: This version is not available in the selected region.
   nodeResourceGroup:
     tooltip: The cluster resource group contains the Kubernetes Service resource. The node resource group contains all infrastructure resources associated with the cluster. If left blank, Azure will automatically create a name in the format MC_<resource-group1>_<cluster-name>_<location>. This value cannot exceed 80 characters.
     label: Node Resource Group
@@ -14,12 +16,13 @@ aks:
   dnsPrefix:
     label: DNS Prefix
   nodePools:
+    title: Node Pools
     notNamed: Not Named
     vmSize:
       label: VM Size
       notAvailableInRegion: |-
         {count, plural,
-        =1 {The VM size selected for the pool  is not available in the selected region.}
+        =1 {The VM size selected for the pool {pool} is not available in the selected region.}
         other {The VM sizes selected for the following pools are not available in the selected region: }
         }
     availabilityZones:
@@ -48,6 +51,8 @@ aks:
       value: Value
       effect: Effect
       addTaint: Add Taint
+    mode:
+      systemRequired: At least one node pool must use the 'system' mode.
   linuxAdminUsername:
     label: Linux Admin Username
     placeholder: azureuser
@@ -85,14 +90,21 @@ aks:
     tooltip: The Azure network policy is only available when the Azure network plugin is selected
   virtualNetwork:
     label: Virtual Network
+    notAvailableInRegion: This virtual network is not available in the selected region.
   serviceCidr:
-    label: Kubernetes Service Address Range  
+    label: Kubernetes Service Address Range
+    placeholder: e.g. 172.17.0.1/16  
+    tooltip: This range must not overlap with any Subnet IP ranges.
   podCidr:
     label: Kubernetes Pod Address Range
+    placeholder: e.g. 172.17.0.1/16
   dnsServiceIp:
-    label: Kubernetes DNS Service IP Range    
+    label: Kubernetes DNS Service IP Address    
+    tooltip: This address must be within the Kubernetes service address range.
   dockerBridgeCidr:
     label: Docker Bridge Address
+    placeholder: e.g. 172.17.0.1/16
+    tooltip: This range must not be in any subnet ranges, or the Kubernetes service address range.
   enableNetworkPolicy:
     label: Project Network Isolation
   httpApplicationRouting:
@@ -103,3 +115,19 @@ aks:
     label: Set Authorized IP Ranges
   authorizedIpRanges:
     label: Authorized IP Ranges
+  errors:
+    regions: 'An error occured while fetching the available regions: {e}'
+    vmSizes: 'An error occured while fetching the available VM sizes: {e}'
+    virtualNetworks: 'An error occured while fetching the available virtual networks: {e}'
+    kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
+    clusterName: 
+      chars: Name may only contain alphanumerics, underscores, and hyphens.
+      startEnd: Name must start and end with an alphanumeric.
+      length: Name may not exceed 63 characters.
+    resourceGroup:
+      length: "{key} cannot exceed 80 characters."
+      chars: "{key} may only consist of underscores, periods, hyphens, parentheses, and letters or digits."
+      periodEnd: "{key} cannot end with a period."
+    authorizedIpRanges: Authorized IP ranges must be CIDR notation ipv4 ranges, or single ipv4 addresses.
+    ipv4Cidr: "{key} must be a valid CIDR notation ipv4 range."
+    ipv4: "{key} must be a valid ipv4 address."

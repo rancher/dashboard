@@ -2,11 +2,11 @@
 
 /**
  * TODOS
- * - set new defaults when user changes region-specific fields if they haven't been touched
  * - fix taints labels formatting
  * - registration tab shows on detail view
  * - no norman????
- * - validate that we have a system node pool/check if requirement
+ * - validate resource group and node group w/ ember regex
+ * - validate cluster name
  */
 
 import { defineComponent } from 'vue';
@@ -42,28 +42,39 @@ import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
 import { SETTING } from 'config/settings';
 import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
-import { clone, get } from '@shell/utils/object';
 import { diffUpstreamSpec } from '@pkg/aks/util/aks';
-import { requiredInCluster } from '@pkg/aks/util/validators';
+import {
+  requiredInCluster,
+  clusterNameChars,
+  clusterNameStartEnd,
+  clusterNameLength,
+  resourceGroupChars,
+  resourceGroupEnd,
+  resourceGroupLength,
+  ipv4WithOrWithoutCidr,
+  ipv4WithCidr
+} from '@pkg/aks/util/validators';
 
 import { mapGetters } from 'vuex';
+import { parseAzureError } from 'cloud-credential/azure.vue';
+import { error } from 'cypress/types/jquery';
 
 const defaultNodePool = {
-  availabilityZones:   ['1', '2', '3'],
-  count:               1,
-  enableAutoScaling:   false,
-  maxPods:             110,
-  maxSurge:            '1',
-  mode:                'System' as AKSPoolMode,
-  name:                'agentpool',
-  nodeLabels:          { },
-  nodeTaints:          [],
-  orchestratorVersion: '',
-  osDiskSizeGB:        128,
-  osDiskType:          'Managed' as AKSDiskType,
-  osType:              'Linux',
-  vmSize:              'Standard_DS2_v2',
-  _isNew:              true,
+  availabilityZones:     ['1', '2', '3'],
+  count:                 1,
+  enableAutoScaling:     false,
+  maxPods:               110,
+  maxSurge:              '1',
+  mode:                  'System' as AKSPoolMode,
+  name:                  'agentpool',
+  nodeLabels:            { },
+  nodeTaints:            [],
+  orchestratorVersion:   '',
+  osDiskSizeGB:          128,
+  osDiskType:            'Managed' as AKSDiskType,
+  osType:                'Linux',
+  vmSize:                'Standard_DS2_v2',
+  _isNewOrUnprovisioned: true,
 };
 
 const defaultAksConfig = {
@@ -145,10 +156,9 @@ export default defineComponent({
     this.nodePools = this.normanCluster.aksConfig.nodePools;
     this.containerMonitoring = (this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
-    // todo nb allow editing while aksStatus.upstreamSpec doesn't exist?
     this.nodePools.forEach((pool: AKSNodePool) => {
       this.$set(pool, '_id', randomStr());
-      this.$set(pool, '_isNew', this.isNew);
+      this.$set(pool, '_isNewOrUnprovisioned', this.isNewOrUnprovisioned);
     });
   },
 
@@ -189,16 +199,16 @@ export default defineComponent({
       setAuthorizedIPRanges:  false,
       fvFormRuleSets:         [{
         path:  'name',
-        rules: ['nameRequired'],
+        rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       },
       {
         path:  'resourceGroup',
-        rules: ['resourceGroupRequired'],
+        rules: ['resourceGroupRequired', 'resourceGroupLength', 'resourceGroupChars', 'resourceGroupEnd'],
       },
-      // {
-      //   path:  'nodeResourceGroup',
-      //   rules: ['nodeResourceGroupRequired'],
-      // },
+      {
+        path:  'nodeResourceGroup',
+        rules: ['nodeResourceGroupChars', 'nodeResourceGroupLength', 'nodeResourceGroupEnd'],
+      },
       {
         path:  'dnsPrefix',
         rules: ['dnsPrefixRequired'],
@@ -214,7 +224,27 @@ export default defineComponent({
       {
         path:  'networkPolicy',
         rules: ['networkPolicyAvailable']
-      }
+      },
+      {
+        path:  'nodePools',
+        rules: ['systemPoolRequired']
+      },
+      {
+        path:  'authorizedIpRanges',
+        rules: ['ipv4WithOrWithoutCidr']
+      },
+      {
+        path:  'serviceCidr',
+        rules: ['serviceCidr']
+      },
+      {
+        path:  'podCidr',
+        rules: ['podCidr']
+      },
+      {
+        path:  'dockerBridgeCidr',
+        rules: ['dockerBridgeCidr']
+      },
       ],
     };
   },
@@ -232,12 +262,26 @@ export default defineComponent({
     // so we're ignoring that and passing in the key we want validated here
     fvExtraRules() {
       return {
-        nameRequired:          requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
-        locationRequired:      requiredInCluster(this, 'aks.location.label', 'aksConfig.location'),
-        resourceGroupRequired: requiredInCluster(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
-        dnsPrefixRequired:     requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix'),
+        nameRequired:            requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
+        locationRequired:        requiredInCluster(this, 'aks.location.label', 'aksConfig.location'),
+        resourceGroupRequired:   requiredInCluster(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
+        dnsPrefixRequired:       requiredInCluster(this, 'aks.dnsPrefix.label', 'aksConfig.dnsPrefix'),
+        clusterNameChars:        clusterNameChars(this),
+        clusterNameStartEnd:     clusterNameStartEnd(this),
+        clusterNameLength:       clusterNameLength(this),
+        resourceGroupChars:      resourceGroupChars(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
+        nodeResourceGroupChars:  resourceGroupChars(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
+        resourceGroupLength:     resourceGroupLength(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
+        nodeResourceGroupLength: resourceGroupLength(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
+        resourceGroupEnd:        resourceGroupEnd(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
+        nodeResourceGroupEnd:    resourceGroupEnd(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
+        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this, 'aks.authorizedIpRanges.label', 'aksConfig.authorizedIpRanges'),
+        serviceCidr:             ipv4WithCidr(this, 'aks.serviceCidr.label', 'aksConfig.serviceCidr'),
+        podCidr:                 ipv4WithCidr(this, 'aks.podCidr.label', 'aksConfig.podCidr'),
+        dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'aksConfig.dockerBridgeCidr'),
+
         // todo nb move to validators file...?
-        vmSizeAvailable:       () => {
+        vmSizeAvailable: () => {
           if (this.touchedVmSize) {
             let allAvailable = true;
             const badPools = [] as string[];
@@ -261,7 +305,7 @@ export default defineComponent({
         k8sVersionAvailable: () => {
           if (this.touchedVersion) {
             if (!this.aksVersionOptions.find((v: any) => v.value === this.config.kubernetesVersion)) {
-              return 'This version is not available in the selected region.';
+              return this.t('aks.kubernetesVersion.notAvailableInRegion');
             }
           }
 
@@ -272,19 +316,22 @@ export default defineComponent({
             if (!this.virtualNetworkOptions.find((vn) => {
               return ( vn.name === this.config.virtualNetwork && vn.resourceGroup === this.config.virtualNetworkResourceGroup);
             })) {
-              return 'This virtual network is not available in the selected region.';
+              return this.t('aks.virtualNetwork.notAvailableInRegion');
             }
           }
 
           return undefined;
-        }
+        },
+        systemPoolRequired: () => {
+          const systemPool = this.nodePools.find((pool) => pool.mode === 'System');
+
+          return systemPool ? undefined : this.t('aks.nodePools.mode.systemRequired');
+        },
 
       };
     },
 
-    // todo nb allow edit when no upstream cluster created yet
-    // todo nb is this bad ux? Form will abruptly become largely un-editable
-    isNew() {
+    isNewOrUnprovisioned() {
       return this.mode === _CREATE || !this.normanCluster?.aksStatus?.upstreamSpec;
     },
 
@@ -311,8 +358,7 @@ export default defineComponent({
         let label = v;
 
         if (v === this.originalVersion) {
-          // todo nb localize
-          label = `${ v }(current)`;
+          label = this.t('aks.kubernetesVersion.current', { version: v });
         }
 
         return {
@@ -334,7 +380,7 @@ export default defineComponent({
     canEditLoadBalancerSKU() {
       const poolsWithAZ = this.nodePools.filter((pool) => pool.availabilityZones && pool.availabilityZones.length);
 
-      return !poolsWithAZ.length && this.isNew;
+      return !poolsWithAZ.length && this.isNewOrUnprovisioned;
     },
 
     hasAzureCNI() {
@@ -371,7 +417,7 @@ export default defineComponent({
     },
 
     canEditPrivateCluster() {
-      return this.isNew && !this.setAuthorizedIPRanges;
+      return this.isNewOrUnprovisioned && !this.setAuthorizedIPRanges;
     },
 
     clusterId() {
@@ -424,14 +470,12 @@ export default defineComponent({
 
     'config.virtualNetwork'(neu) {
       if (neu) {
-        console.log('vn touched');
         this.touchedVirtualNetwork = true;
       }
     },
 
     'config.kubernetesVersion'(neu, old) {
       if (neu && old) {
-        console.log('k8s version touched');
         this.touchedVersion = true;
       }
     },
@@ -459,8 +503,9 @@ export default defineComponent({
 
     getLocations() {
       this.loadingLocations = true;
+      // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
+      this.$set(this.config, 'resourceLocation', '');
       this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksLocations', false) }).then((res: any[]) => {
-        console.log('aks regions: ', res);
         this.locationOptions = res;
         if (!this.config?.resourceLocation) {
           if (res.find((r) => r.name === DEFAULT_REGION)) {
@@ -470,33 +515,29 @@ export default defineComponent({
           }
         }
         this.loadingLocations = false;
-      }).catch((err) => {
-        // TODO nb formatting
-        this.errors.push(err);
+      }).catch((err: any) => {
+        const parsedError = parseAzureError(err.error || '');
+
+        this.errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
       });
     },
 
     getAksVersions() {
       this.loadingVersions = true;
       this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVersions') }).then((res: string[]) => {
-        console.log('aks k8s versions: ', res);
+        // the default version is set once these are filtered and sorted in computed prop
         this.allAksVersions = res;
-
-        // if (!this.config.kubernetesVersion) {
-        //   this.$set(this.config, 'kubernetesVersion', this.aksVersionOptions[0]);
-        // }
         this.loadingVersions = false;
-      }).catch((err) => {
-        // TODO nb formatting
-        this.errors.push(err);
+      }).catch((err: any) => {
+        const parsedError = parseAzureError(err.error || '');
+
+        this.errors.push(this.t('aks.errors.kubernetesVersions', { e: parsedError || err }));
       });
     },
 
-    // todo nb sort
     getVmSizes() {
       this.loadingVmSizes = true;
       this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVMSizes') }).then((res: string[]) => {
-        console.log('aks vm sizes: ', res);
         if (isArray(res)) {
           this.vmSizeOptions = res.sort();
 
@@ -506,24 +547,25 @@ export default defineComponent({
         }
 
         this.loadingVmSizes = false;
-      }).catch((err) => {
-        // TODO nb formatting
-        this.errors.push(err);
+      }).catch((err: any) => {
+        const parsedError = parseAzureError(err.error || '');
+
+        this.errors.push(this.t('aks.errors.vmSizes', { e: parsedError || err }));
       });
     },
 
     getVirtualNetworks() {
       this.loadingVirtualNetworks = true;
       this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVirtualNetworks') }).then((res: any) => {
-        console.log('aks virtual networks: ', res);
         if (res && isArray(res)) {
           this.virtualNetworkOptions = res;
         }
 
         this.loadingVirtualNetworks = false;
-      }).catch((err) => {
-        // TODO nb formatting
-        this.errors.push(err);
+      }).catch((err: any) => {
+        const parsedError = parseAzureError(err.error || '');
+
+        this.errors.push(this.t('aks.errors.virtualNetworks', { e: parsedError || err }));
       });
     },
 
@@ -577,7 +619,7 @@ export default defineComponent({
     cleanPoolsForSave() {
       this.nodePools.forEach((pool) => {
         delete pool._id;
-        delete pool._isNew;
+        delete pool._isNewOrUnprovisioned;
         delete pool._validSize;
       });
     },
@@ -594,14 +636,8 @@ export default defineComponent({
       }
     },
 
-    // todo nb fetch prov clusters so cluster list populated right away
-    async actuallySave(cb) {
-      try {
-        await this.normanCluster.save();
-        cb(true);
-      } catch {
-        cb(false);
-      }
+    async actuallySave() {
+      await this.normanCluster.save();
     }
   },
 
@@ -622,7 +658,7 @@ export default defineComponent({
     <div class="mb-20">
       <SelectCredential
         v-model="config.azureCredentialSecret"
-        :mode="isNew ? 'create' : 'view'"
+        :mode="isNewOrUnprovisioned ? 'create' : 'view'"
         provider="azure"
         :default-on-cancel="true"
         :showing-form="true"
@@ -655,7 +691,7 @@ export default defineComponent({
             :reduce="opt=>opt.name"
             :loading="loadingLocations"
             required
-            :disabled="!isNew"
+            :disabled="!isNewOrUnprovisioned"
           />
         </div>
         <div class="col span-4">
@@ -672,7 +708,7 @@ export default defineComponent({
           />
         </div>
       </div>
-      <div><h4>Node Pools</h4></div>
+      <div><h4>{{ t('aks.nodePools.title') }}</h4></div>
       <Tabbed
         ref="pools"
         :side-tabs="true"
@@ -689,6 +725,8 @@ export default defineComponent({
           :label="pool.name || t('aks.nodePools.notNamed')"
           :error="pool._validSize === false"
         >
+          <!-- calling fvUnreportedValidationErrors here forces the pool mode validator to run when mode changes
+          other validators are run when inputs in this form are touched, not node pools -->
           <AksNodePool
             :mode="mode"
             :region="config.resourceLocation"
@@ -717,7 +755,7 @@ export default defineComponent({
                 v-model="config.linuxAdminUsername"
                 :mode="mode"
                 label-key="aks.linuxAdminUsername.label"
-                :disabled="!isNew"
+                :disabled="!isNewOrUnprovisioned"
                 placeholder-key="aks.linuxAdminUsername.placeholder"
               />
             </div>
@@ -726,7 +764,7 @@ export default defineComponent({
                 v-model="config.resourceGroup"
                 :mode="mode"
                 label-key="aks.clusterResourceGroup.label"
-                :disabled="!isNew"
+                :disabled="!isNewOrUnprovisioned"
                 :rules="fvGetAndReportPathRules('resourceGroup')"
                 :required="true"
                 placeholder-key="aks.clusterResourceGroup.placeholder"
@@ -737,7 +775,8 @@ export default defineComponent({
                 v-model="config.nodeResourceGroup"
                 :mode="mode"
                 label-key="aks.nodeResourceGroup.label"
-                :disabled="!isNew"
+                :rules="fvGetAndReportPathRules('nodeResourceGroup')"
+                :disabled="!isNewOrUnprovisioned"
                 placeholder-key="aks.nodeResourceGroup.placeholder"
               />
             </div>
@@ -812,8 +851,8 @@ export default defineComponent({
               <LabeledSelect
                 v-model="config.loadBalancerSku"
                 label-key="aks.loadBalancerSku.label"
-                tooltip-key="aks.loadBalancerSku.tooltip"
-                :disabled="!canEditLoadBalancerSKU || !isNew"
+                :tooltip="t('aks.loadBalancerSku.tooltip')"
+                :disabled="!canEditLoadBalancerSKU || !isNewOrUnprovisioned"
                 :options="['Standard', 'Basic']"
               />
             </div>
@@ -822,7 +861,7 @@ export default defineComponent({
                 v-model="config.dnsPrefix"
                 :mode="mode"
                 label-key="aks.dns.label"
-                :disabled="!isNew"
+                :disabled="!isNewOrUnprovisioned"
                 :required="true"
                 :rules="fvGetAndReportPathRules('dnsPrefix')"
                 placeholder-key="aks.dns.placeholder"
@@ -836,7 +875,7 @@ export default defineComponent({
                 :mode="mode"
                 :options="networkPluginOptions"
                 label-key="aks.networkPlugin.label"
-                :disabled="!isNew"
+                :disabled="!isNewOrUnprovisioned"
               />
             </div>
             <div class="col span-3">
@@ -848,7 +887,7 @@ export default defineComponent({
                 option-key="value"
                 :reduce="opt=>opt.value"
                 tooltip-key="aks.networkPolicy.tooltip"
-                :disabled="!isNew"
+                :disabled="!isNewOrUnprovisioned"
               />
             </div>
             <template v-if="hasAzureCNI">
@@ -863,7 +902,7 @@ export default defineComponent({
                   :options="virtualNetworkOptions"
                   :loading="loadingVirtualNetworks"
                   option-label="name"
-                  :disabled="!isNew"
+                  :disabled="!isNewOrUnprovisioned"
                   :rules="fvGetAndReportPathRules('networkPolicy')"
                   @selecting="selectNetwork($event)"
                 />
@@ -879,7 +918,9 @@ export default defineComponent({
                   v-model="config.serviceCidr"
                   :mode="mode"
                   label-key="aks.serviceCidr.label"
-                  :disabled="!isNew"
+                  :tooltip="t('aks.serviceCidr.tooltip')"
+                  :disabled="!isNewOrUnprovisioned"
+                  :rules="fvGetAndReportPathRules('serviceCidr')"
                 />
               </div>
               <div class="col span-3">
@@ -887,7 +928,8 @@ export default defineComponent({
                   v-model="config.podCidr"
                   :mode="mode"
                   label-key="aks.podCidr.label"
-                  :disabled="!isNew"
+                  :disabled="!isNewOrUnprovisioned"
+                  :rules="fvGetAndReportPathRules('podCidr')"
                 />
               </div>
               <div class="col span-3">
@@ -895,7 +937,8 @@ export default defineComponent({
                   v-model="config.dnsServiceIp"
                   :mode="mode"
                   label-key="aks.dnsServiceIp.label"
-                  :disabled="!isNew"
+                  :tooltip="t('aks.dnsServiceIp.tooltip')"
+                  :disabled="!isNewOrUnprovisioned"
                 />
               </div>
               <div class="col span-3">
@@ -903,7 +946,9 @@ export default defineComponent({
                   v-model="config.dockerBridgeCidr"
                   :mode="mode"
                   label-key="aks.dockerBridgeCidr.label"
-                  :disabled="!isNew"
+                  :tooltip="t('aks.dockerBridgeCidr.tooltip')"
+                  :disabled="!isNewOrUnprovisioned"
+                  :rules="fvGetAndReportPathRules('dockerBridgeCidr')"
                 />
               </div>
             </div>
@@ -914,7 +959,7 @@ export default defineComponent({
                 v-model="value.enableNetworkPolicy"
                 :mode="mode"
                 label-key="aks.enableNetworkPolicy.label"
-                :disabled="!isNew"
+                :disabled="!isNewOrUnprovisioned"
               />
               <Checkbox
                 v-model="config.httpApplicationRouting"
@@ -943,7 +988,8 @@ export default defineComponent({
                 :mode="mode"
                 :initial-empty-row="true"
                 value-placeholder="10.0.0.0/14"
-                :rules="t('aks.authorizedIpRanges.label')"
+                :label="t('aks.authorizedIpRanges.label')"
+                :rules="fvGetAndReportPathRules('authorizedIpRanges')"
               >
                 <template #title>
                   <div class="text-label">

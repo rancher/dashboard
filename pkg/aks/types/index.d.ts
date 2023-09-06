@@ -20,6 +20,6 @@ export interface AKSNodePool {
   osType?: String, // TODO nb is this ever configurable?
   type?: String,
   vmSize?: String,
-  _isNew?: Boolean,
+  _isNewOrUnprovisioned?: Boolean,
   _id?: String
 }

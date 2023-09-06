@@ -48,11 +48,6 @@ export default defineComponent({
       default: false
     },
 
-    // primary pool cannot be deleted and mode cannot be selected
-    isPrimaryPool: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   data() {
@@ -109,7 +104,7 @@ export default defineComponent({
           :mode="mode"
           label-key="generic.name"
           required
-          :disabled="!pool._isNew"
+          :disabled="!pool._isNewOrUnprovisioned"
         />
       </div>
       <div class="col span-3">
@@ -119,7 +114,7 @@ export default defineComponent({
           label-key="aks.nodePools.vmSize.label"
           :loading="loadingVmSizes"
           :mode="mode"
-          :disabled="!pool._isNew"
+          :disabled="!pool._isNewOrUnprovisioned"
           :rules="[()=>pool._validSize === false ? 'This size is not avaiable in the selected region' : undefined]"
         />
       </div>
@@ -131,7 +126,7 @@ export default defineComponent({
           :mode="mode"
           :multiple="true"
           :taggable="true"
-          :disabled="!pool._isNew"
+          :disabled="!pool._isNewOrUnprovisioned"
         />
       </div>
       <div class="col span-2">
@@ -140,9 +135,10 @@ export default defineComponent({
           :mode="mode"
           :options="modeOptions"
           :name="`${pool._id}-mode`"
-          :disabled="!pool._isNew"
+          :disabled="!pool._isNewOrUnprovisioned"
           :row="true"
           label-key="generic.mode"
+          @input="$emit('validationChanged')"
         >
           <template #label>
             <span class="text-label">Mode</span>
@@ -167,7 +163,7 @@ export default defineComponent({
           :options="osDiskTypeOptions"
           label-key="aks.nodePools.osDiskType.label"
           :mode="mode"
-          :disabled="!pool._isNew"
+          :disabled="!pool._isNewOrUnprovisioned"
         />
       </div>
       <div class="col span-3">
@@ -176,7 +172,7 @@ export default defineComponent({
           label-key="aks.nodePools.osDiskSize.label"
           :mode="mode"
           suffix="GB"
-          :disabled="!pool._isNew"
+          :disabled="!pool._isNewOrUnprovisioned"
           type="number"
         />
       </div>
@@ -199,7 +195,7 @@ export default defineComponent({
         <LabeledInput
           v-model.number="pool.maxPods"
           type="number"
-          :mode="isPrimaryPool ? 'view' : mode"
+          :mode="mode"
           label-key="aks.nodePools.maxPods.label"
         />
       </div>
