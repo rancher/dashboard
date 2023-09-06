@@ -215,6 +215,9 @@ export default {
 
     hide() {
       this.shown = false;
+      if (this.clustersFiltered === 0) {
+        this.clusterFilter = '';
+      }
     },
 
     toggle() {
@@ -588,7 +591,7 @@ export default {
     background-color: var(--topmenu-bg);
     z-index: 100;
     border-right: 1px solid var(--topmost-border);
-    box-shadow: 0 0 15px 4px var(--topmost-shadow);
+    // box-shadow: 0 0 15px 4px var(--topmost-shadow);
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -767,15 +770,15 @@ export default {
 
       .clusters {
         overflow-y: auto;
-        min-height: 35vh;
+        max-height: 35vh;
+
+        @media screen and (max-height: 720px) {
+          min-height: 80px;
+        }
 
          a, span {
           margin: 0;
          }
-
-        // .nuxt-link-active {
-        //   color: white;
-        // }
 
         &-search {
           display: flex;
