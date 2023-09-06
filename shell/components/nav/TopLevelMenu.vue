@@ -60,6 +60,10 @@ export default {
       return this.features(LEGACY);
     },
 
+    emptyCluster() {
+      return BLANK_CLUSTER;
+    },
+
     showClusterSearch() {
       return this.clusters.length > this.maxClustersToShow;
     },
@@ -636,7 +640,7 @@ export default {
       svg {
         width: 25px;
         height: 25px;
-        margin-left: 10px;
+        margin-left: 8px;
       }
     }
     .home-text {
