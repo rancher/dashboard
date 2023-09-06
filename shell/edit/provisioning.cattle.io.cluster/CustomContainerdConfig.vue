@@ -10,7 +10,6 @@
       v-model="value.spec.rkeConfig.containerdSelectorConfig"
       class="mb-20"
       :add-label="t('cluster.customContainerdConfig.machineSelector.label')"
-      :can-remove="canRemoveRow"
       :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }}"
     >
       <template #default="{row}">
@@ -75,10 +74,7 @@ export default {
           component?.refresh();
         }
       }
-    },
-    canRemoveRow(row, idx) {
-      return idx !== 0;
-    },
+    }
   },
   // created() {
   //   if (!this.value.spec.rkeConfig?.containerdSelectorConfig) {
