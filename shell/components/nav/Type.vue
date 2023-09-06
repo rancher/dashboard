@@ -40,6 +40,10 @@ export default {
     showCount() {
       return typeof this.type.count !== 'undefined';
     },
+
+    namespaceIcon() {
+      return this.type.namespaced;
+    },
   },
 
   methods: {
@@ -102,6 +106,10 @@ export default {
           v-if="showFavorite"
           :resource="type.name"
         />
+        <i
+          v-if="namespaceIcon"
+          class="icon icon-namespace namespaced"
+        />
         {{ type.count }}
       </span>
     </a>
@@ -127,13 +135,16 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .namespaced {
+    margin-right: 4px;
+  }
+
   .child {
     margin: 0 var(--outline) 0 0;
 
     .label {
       align-items: center;
       grid-area: label;
-      display: flex;
       overflow: hidden;
       text-overflow: ellipsis;
 
@@ -166,6 +177,7 @@ export default {
       text-overflow: ellipsis;
       white-space: nowrap;
       color: var(--body-text);
+      height: 33px;
 
       &:hover {
         background: var(--nav-hover);
@@ -181,20 +193,21 @@ export default {
       grid-area: favorite;
       font-size: 12px;
       position: relative;
+      vertical-align: middle;
+      margin-right: 4px;
     }
 
     .count {
-      grid-area: count;
       font-size: 12px;
-      text-align: right;
       justify-items: center;
       padding-right: 4px;
+      display: flex;
+      align-items: center;
     }
 
     &.nav-type:not(.depth-0) {
       A {
         font-size: 13px;
-        padding: 5.5px 7px 5.5px 10px;
       }
 
       ::v-deep .label I {
