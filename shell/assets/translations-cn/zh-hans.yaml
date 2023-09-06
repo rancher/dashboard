@@ -2195,6 +2195,7 @@ cluster:
     template:
       title: Containerd 配置模板
     title: 自定义 containerd 配置
+    tips: 取消设置后，主机上的 config.toml.tmpl 不会自动清理，需要手动删除。
 clusterIndexPage:
   hardwareResourceGauge:
     consumption: "{total} {units} {suffix} 中的 {useful}"

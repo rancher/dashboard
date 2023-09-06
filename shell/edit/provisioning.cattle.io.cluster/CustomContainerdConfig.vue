@@ -6,6 +6,11 @@
     @active="refreshTomls"
   >
     <!-- <h3>{{ t('cluster.customContainerdConfig.title') }}</h3> -->
+    <Banner
+      :closable="false"
+      color="info"
+      label-key="cluster.customContainerdConfig.tips"
+    />
     <ArrayListGrouped
       v-model="value.spec.rkeConfig.containerdSelectorConfig"
       class="mb-20"
@@ -42,13 +47,15 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import TomlEditor from '@shell/components/TomlEditor';
 import isArray from 'lodash/isArray';
+import { Banner } from '@components/Banner';
 
 export default {
   components: {
     Tab,
     ArrayListGrouped,
     MatchExpressions,
-    TomlEditor
+    TomlEditor,
+    Banner
   },
   props: {
     mode: {
