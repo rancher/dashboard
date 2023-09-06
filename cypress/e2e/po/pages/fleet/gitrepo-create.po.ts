@@ -3,6 +3,7 @@ import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import CreateEditViewPo from '@/cypress/e2e/po/components/create-edit-view.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import { WorkspaceSwitcherPo } from '@/cypress/e2e/po/components/namespace-filter.po';
+import SelectOrCreateAuthPo from '@/cypress/e2e/po/components/select-or-create-auth.po';
 
 export class GitRepoCreatePo extends PagePo {
     static url: string;
@@ -54,8 +55,12 @@ export class GitRepoCreatePo extends PagePo {
       return LabeledInputPo.byLabel(this.self(), 'Repository URL').set(url);
     }
 
+    setHelmRepoURLRegex(regexStr = 'https://charts.rancher.io/*') {
+      return LabeledInputPo.bySelector(this.self(), '[data-testid="gitrepo-helm-repo-url-regex"]').set(regexStr);
+    }
+
     setGitRepoPath(path: string, index = 0) {
-      return this.gitRepoPaths().setValueAtIndex(index, path);
+      return this.gitRepoPaths().setValueAtIndex(path, index);
     }
 
     goToNext() {
@@ -68,5 +73,13 @@ export class GitRepoCreatePo extends PagePo {
 
     gitRepoPaths() {
       return new ArrayListPo('[data-testid="gitRepo-paths"]');
+    }
+
+    authSelectOrCreate(selector: string) {
+      return new SelectOrCreateAuthPo(selector);
+    }
+
+    helmAuthSelectOrCreate() {
+      return this.authSelectOrCreate('[data-testid="gitrepo-helm-auth"]');
     }
 }

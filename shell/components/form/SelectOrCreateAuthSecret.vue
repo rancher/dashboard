@@ -477,6 +477,7 @@ export default {
       <div :class="firstCol">
         <LabeledSelect
           v-model="selected"
+          data-testid="auth-secret-select"
           :mode="mode"
           :label-key="labelKey"
           :loading="$fetchState.pending"
@@ -488,6 +489,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
+            data-testid="auth-secret-ssh-public-key"
             :mode="mode"
             type="multiline"
             label-key="selectOrCreateAuthSecret.ssh.publicKey"
@@ -496,6 +498,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="privateKey"
+            data-testid="auth-secret-ssh-private-key"
             :mode="mode"
             type="multiline"
             label-key="selectOrCreateAuthSecret.ssh.privateKey"
@@ -506,6 +509,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
+            data-testid="auth-secret-basic-public-key"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.basic.username"
           />
@@ -513,6 +517,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="privateKey"
+            data-testid="auth-secret-basic-private-key"
             :mode="mode"
             type="password"
             label-key="selectOrCreateAuthSecret.basic.password"
@@ -523,6 +528,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="publicKey"
+            data-testid="auth-secret-s3-public-key"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.s3.accessKey"
           />
@@ -530,6 +536,7 @@ export default {
         <div :class="moreCols">
           <LabeledInput
             v-model="privateKey"
+            data-testid="auth-secret-s3-private-key"
             :mode="mode"
             type="password"
             label-key="selectOrCreateAuthSecret.s3.secretKey"
