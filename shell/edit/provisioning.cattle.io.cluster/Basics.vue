@@ -940,7 +940,7 @@ export default {
           v-if="serverArgs['secrets-encryption']"
           v-model="serverConfig['secrets-encryption']"
           :mode="mode"
-          label="Encrypt Secrets"
+          :label="t('cluster.rke2.secretEncryption.label')"
         />
         <Checkbox
           v-model="value.spec.enableNetworkPolicy"

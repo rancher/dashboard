@@ -1862,6 +1862,8 @@ cluster:
       option:
         none: (None)
         default: Default - RKE2 Embedded
+    secretEncryption:
+      label: Encrypt Secrets
     cisProfile:
       option: (None)
     enableNetworkPolicy:
