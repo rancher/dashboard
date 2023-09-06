@@ -28,7 +28,11 @@ export default {
         return '';
       }
 
-      const segments = input.match(/([A-Z]?[a-z]+|\d+)/g);
+      if (input.length <= 3) {
+        return input;
+      }
+
+      const segments = input.match(/([A-Za-z]+|\d+)/g);
 
       if (!segments) return ''; // In case no valid segments are found
 
@@ -62,7 +66,7 @@ export default {
   >
     <div
       class="cluster-badge-logo"
-      :class="!isEnabled ? 'disabled' : ''"
+      :class="{ 'disabled': !isEnabled }"
       :style="{borderBottom: cluster.badge?.color ? `4px solid ${cluster.badge?.color}` : ''}"
     >
       <span

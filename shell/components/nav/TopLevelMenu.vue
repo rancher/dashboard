@@ -2,6 +2,7 @@
 import BrandImage from '@shell/components/BrandImage';
 import ClusterProviderIconMenu from '@shell/components/ClusterProviderIconMenu';
 import IconOrSvg from '../IconOrSvg';
+import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { mapGetters } from 'vuex';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
 import { MENU_MAX_CLUSTERS } from '@shell/store/prefs';
@@ -58,6 +59,10 @@ export default {
       return this.features(LEGACY);
     },
 
+    emptyCluster() {
+      return BLANK_CLUSTER;
+    },
+
     showClusterSearch() {
       return this.clusters.length > this.maxClustersToShow;
     },
@@ -103,8 +108,7 @@ export default {
 
       const out = search ? this.clusters.filter((item) => item.label.toLowerCase().includes(search)) : this.clusters;
 
-      const sorted = sortBy(out, ['ready:desc', 'ready']);
-      // If more than 8 elements, return the first 8 clusters
+      const sorted = sortBy(out, ['ready:desc', 'ready', 'label']);
 
       if (sorted.length >= this.maxClustersToShow) {
         return sorted.slice(0, this.maxClustersToShow);
@@ -372,7 +376,7 @@ export default {
                   :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                 >
                   <ClusterProviderIconMenu
-                    v-tooltip="getTooltipConfig(c?.label)"
+                    v-tooltip="getTooltipConfig(c.label)"
                     :cluster="c"
                     class="rancher-provider-icon"
                   />
@@ -385,7 +389,7 @@ export default {
                   class="option cluster selector disabled"
                 >
                   <ClusterProviderIconMenu
-                    v-tooltip="getTooltipConfig(c?.label)"
+                    v-tooltip="getTooltipConfig(c.label)"
                     :cluster="c"
                     class="rancher-provider-icon"
                   />
@@ -393,7 +397,7 @@ export default {
                 </span>
               </div>
               <div
-                v-if="clustersFiltered.length === 0"
+                v-if="clustersFiltered.length === 0 && shown"
                 class="none-matching"
               >
                 {{ t('nav.search.noResults') }}
@@ -404,7 +408,7 @@ export default {
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
               :to="{name: 'c-cluster-product-resource', params: {
-                cluster: '_',
+                cluster: emptyCluster,
                 product: 'manager',
                 resource: 'provisioning.cattle.io.cluster'
               } }"
@@ -436,7 +440,7 @@ export default {
                   :to="a.to"
                 >
                   <IconOrSvg
-                    v-tooltip="getTooltipConfig(a?.label)"
+                    v-tooltip="getTooltipConfig(a.label)"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -463,7 +467,7 @@ export default {
                   :to="a.to"
                 >
                   <IconOrSvg
-                    v-tooltip="getTooltipConfig(a?.label)"
+                    v-tooltip="getTooltipConfig(a.label)"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -490,7 +494,7 @@ export default {
                   :to="a.to"
                 >
                   <IconOrSvg
-                    v-tooltip="getTooltipConfig(a?.label)"
+                    v-tooltip="getTooltipConfig(a.label)"
                     :icon="a.icon"
                     :src="a.svg"
                   />
@@ -559,7 +563,7 @@ export default {
 
   .menu {
     position: absolute;
-    width: 70px;
+    width: $app-bar-width;
     height: 54px;
     top: 0;
     grid-area: menu;
@@ -580,7 +584,7 @@ export default {
     top: 0;
     left: 0px;
     bottom: 0;
-    width: 70px;
+    width: $app-bar-width;
     background-color: var(--topmenu-bg);
     z-index: 100;
     border-right: 1px solid var(--topmost-border);
@@ -621,7 +625,7 @@ export default {
       svg {
         width: 25px;
         height: 25px;
-        margin-left: 10px;
+        margin-left: 8px;
       }
     }
     .home-text {
@@ -769,9 +773,9 @@ export default {
           margin: 0;
          }
 
-        .nuxt-link-active {
-          color: white;
-        }
+        // .nuxt-link-active {
+        //   color: white;
+        // }
 
         &-search {
           display: flex;
