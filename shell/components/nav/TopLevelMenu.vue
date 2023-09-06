@@ -1053,16 +1053,7 @@ export default {
           }
         }
       }
-      .clusters-all {
-        flex-direction: row;
-        margin-left: 8px;
 
-        span {
-          i {
-            display: none;
-          }
-        }
-      }
       .footer {
         margin: 20px 15px;
 
