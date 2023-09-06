@@ -369,6 +369,9 @@ export default {
         if (found) {
           imageType = found?.Platform;
           imageVersionChoose = this.groupImages?.[imageType] || [] ;
+        } else {
+          imageVersionChoose = this.groupImages?.[imageType] || [] ;
+          this.value.imageId = imageVersionChoose?.[0]?.value;
         }
       }
 
