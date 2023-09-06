@@ -1,6 +1,6 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
-import ClusterProviderIconMenu from '@shell/components/ClusterProviderIconMenu';
+import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 import IconOrSvg from '../IconOrSvg';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { mapGetters } from 'vuex';
@@ -20,7 +20,7 @@ export default {
 
   components: {
     BrandImage,
-    ClusterProviderIconMenu,
+    ClusterIconMenu,
     IconOrSvg,
     Pinned
   },
@@ -404,7 +404,7 @@ export default {
                     class="cluster selector option"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
-                    <ClusterProviderIconMenu
+                    <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c?.label)"
                       :cluster="c"
                       class="rancher-provider-icon"
@@ -420,7 +420,7 @@ export default {
                     v-else
                     class="option cluster selector disabled"
                   >
-                    <ClusterProviderIconMenu
+                    <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c?.label)"
                       :cluster="c"
                       class="rancher-provider-icon"
@@ -446,7 +446,7 @@ export default {
                     class="cluster selector option"
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
-                    <ClusterProviderIconMenu
+                    <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c?.label)"
                       :cluster="c"
                       class="rancher-provider-icon"
@@ -463,7 +463,7 @@ export default {
                     v-else
                     class="option cluster selector disabled"
                   >
-                    <ClusterProviderIconMenu
+                    <ClusterIconMenu
                       v-tooltip="getTooltipConfig(c?.label)"
                       :cluster="c"
                       class="rancher-provider-icon"
