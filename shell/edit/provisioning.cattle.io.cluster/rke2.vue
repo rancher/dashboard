@@ -219,6 +219,13 @@ export default {
       defaultRke2:                     '',
       defaultK3s:                      '',
       s3Backup:                        false,
+      /**
+       * All info related to a specific version of the chart
+       *
+       * This includes chart itself, README and values
+       *
+       * { [chartName:string]: { chart: json, readme: string, values: json } }
+       */
       versionInfo:                     {},
       membershipUpdate:                {},
       showDeprecatedPatchVersions:     false,
@@ -245,6 +252,7 @@ export default {
       busy:                  false,
       machinePoolValidation: {}, // map of validation states for each machine pool
       allNamespaces:         [],
+      initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'],
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
     };
   },
@@ -548,13 +556,53 @@ export default {
 
       const cur = this.agentConfig['cloud-provider-name'];
 
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      if (cur && !out.find((x) => x.value === cur)) {
+        // Localization missing
+        // Look up cur in the localization file
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ cur }".label`, null, cur);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       cur,
+          unsupported: true,
+          disabled:    true
+        });
+      }
+
+      const initial = this.initialCloudProvider;
+
+      if (cur !== initial && initial && !out.find((x) => x.value === initial)) {
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ initial }".label`, null, initial);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       initial,
+          unsupported: true,
+          disabled:    true
+        });
       }
 
       return out;
     },
 
+    unsupportedCloudProvider() {
+      // The current cloud provider
+      const cur = this.initialCloudProvider;
+
+      const provider = cur && this.cloudProviderOptions.find((x) => x.value === cur);
+
+      return !!provider?.unsupported;
+    },
+
+    canNotEditCloudProvider() {
+      const canNotEdit = this.clusterIsAlreadyCreated && !this.unsupportedCloudProvider;
+
+      return canNotEdit;
+    },
+
+    /**
+     * Kube Version
+     */
     selectedVersion() {
       const str = this.value.spec.kubernetesVersion;
 
@@ -579,6 +627,11 @@ export default {
       return this.selectedVersion?.agentArgs || {};
     },
 
+    /**
+     * The addons (kube charts) applicable for the selected kube version
+     *
+     * { [chartName:string]: { repo: string, version: string } }
+     */
     chartVersions() {
       return this.selectedVersion?.charts || {};
     },
@@ -788,6 +841,9 @@ export default {
       return this.agentArgs['cloud-provider-name'];
     },
 
+    /**
+     * The chart names of the addons applicable to the current kube version and selected cloud provider
+     */
     addonNames() {
       const names = [];
       const cni = this.serverConfig.cni;
@@ -811,8 +867,13 @@ export default {
       return names;
     },
 
+    /**
+     * The charts of the addons applicable to the current kube version and selected cloud provider
+     *
+     * These are the charts themselves and do not include chart readme or values
+     */
     addonVersions() {
-      const versions = this.addonNames.map((name) => this.chartVersionFor(name));
+      const versions = this.addonNames.map((name) => this.versionInfo[name]?.chart);
 
       return versions.filter((x) => !!x);
     },
@@ -1723,41 +1784,37 @@ export default {
       });
     },
 
-    chartVersionFor(chartName) {
-      const entry = this.chartVersions[chartName];
-
-      if ( !entry ) {
-        return null;
-      }
-
-      const out = this.$store.getters['catalog/version']({
-        repoType:    'cluster',
-        repoName:    entry.repo,
-        chartName,
-        versionName: entry.version,
-      });
-
-      return out;
-    },
-
+    /**
+     * Ensure all chart information required to show addons is available
+     *
+     * This basically means
+     * 1) That the full chart relating to the addon is fetched (which includes core chart, readme and values)
+     * 2) We're ready to cache any values the user provides for each addon
+     */
     async initAddons() {
-      for ( const v of this.addonVersions ) {
-        if ( this.versionInfo[v.name] ) {
+      for ( const chartName of this.addonNames ) {
+        const entry = this.chartVersions[chartName];
+
+        if ( this.versionInfo[chartName] ) {
           continue;
         }
 
-        const res = await this.$store.dispatch('catalog/getVersionInfo', {
-          repoType:    'cluster',
-          repoName:    v.repoName,
-          chartName:   v.name,
-          versionName: v.version
-        });
+        try {
+          const res = await this.$store.dispatch('catalog/getVersionInfo', {
+            repoType:    'cluster',
+            repoName:    entry.repo,
+            chartName,
+            versionName: entry.version,
+          });
 
-        set(this.versionInfo, v.name, res);
-        const key = this.chartVersionKey(v.name);
+          set(this.versionInfo, chartName, res);
+          const key = this.chartVersionKey(chartName);
 
-        if (!this.userChartValues[key]) {
-          this.userChartValues[key] = {};
+          if (!this.userChartValues[key]) {
+            this.userChartValues[key] = {};
+          }
+        } catch (e) {
+          console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
         }
       }
     },
@@ -2226,6 +2283,18 @@ export default {
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
           this.setHarvesterDefaultCloudProvider();
         }
+
+        // Cloud Provider check
+        // If the cloud provider is unsupported, switch provider to 'external'
+        if (this.unsupportedCloudProvider) {
+          set(this.agentConfig, 'cloud-provider-name', 'external');
+        } else {
+          // Switch the cloud provider back to the initial value
+          // Use changed the Kubernetes version back to a version where the initial cloud provider is valid - so switch back to this one
+          // to undo the change to external that we may have made
+          // Note: Cloud Provider can only be changed on edit when the initial provider is no longer supported
+          set(this.agentConfig, 'cloud-provider-name', this.initialCloudProvider);
+        }
       }
     },
 
@@ -2444,7 +2513,7 @@ export default {
               <LabeledSelect
                 v-model="agentConfig['cloud-provider-name']"
                 :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
+                :disabled="canNotEditCloudProvider"
                 :options="cloudProviderOptions"
                 :label="t('cluster.rke2.cloudProvider.label')"
               />
@@ -2485,6 +2554,12 @@ export default {
             <div class="spacer" />
 
             <div class="col span-12">
+              <Banner
+                v-if="unsupportedCloudProvider"
+                class="error mt-5"
+              >
+                {{ t('cluster.rke2.cloudProvider.unsupported') }}
+              </Banner>
               <h3>
                 {{ t('cluster.rke2.cloudProvider.header') }}
               </h3>

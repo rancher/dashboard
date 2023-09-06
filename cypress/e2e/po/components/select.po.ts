@@ -1,6 +1,6 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
-export default class LabeledSelectPo extends ComponentPo {
+export default class SelectPo extends ComponentPo {
   toggle() {
     return this.self().click();
   }

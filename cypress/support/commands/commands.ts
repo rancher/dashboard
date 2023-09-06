@@ -33,7 +33,7 @@ Cypress.Commands.add('keyboardControls', (triggerKeys: any = {}, count = 1) => {
  * return {array} - Array of intercepted request strings
  * return {string} - Intercepted request string
  */
-Cypress.Commands.add('interceptAllRequests', (method = '/GET/POST/PUT/PATCH/', urls = ['/v1/*']) => {
+Cypress.Commands.add('interceptAllRequests', (method = '/GET/POST/PUT/PATCH/', urls = [/v1\/(.+)/]) => {
   const interceptedUrls: string[] = urls.map((cUrl, i) => {
     cy.intercept(method, cUrl).as(`interceptAllRequests${ i }`);
 

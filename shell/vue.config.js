@@ -72,7 +72,9 @@ module.exports = function(dir, _appConfig) {
   ];
 
   if (instrumentCode) {
-    babelPlugins.push('babel-plugin-istanbul');
+    babelPlugins.push([
+      'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
+    ]);
 
     console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
   }
@@ -248,10 +250,6 @@ module.exports = function(dir, _appConfig) {
     console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
   }
 
-  if ( !dev ) {
-    console.log(`Version: ${ dashboardVersion }`); // eslint-disable-line no-console
-  }
-
   if ( resourceBase ) {
     console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
   }
@@ -408,6 +406,7 @@ module.exports = function(dir, _appConfig) {
           rancherEnv,
           dashboardVersion
         }),
+
       }));
 
       // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
@@ -451,7 +450,9 @@ module.exports = function(dir, _appConfig) {
       ];
 
       if (instrumentCode) {
-        babelPlugins.push('babel-plugin-istanbul');
+        babelPlugins.push([
+          'babel-plugin-istanbul', { extension: ['.js', '.vue'] }, 'add-vue'
+        ]);
 
         console.warn('Instrumenting code for coverage'); // eslint-disable-line no-console
       }

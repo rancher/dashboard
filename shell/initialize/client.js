@@ -1,3 +1,5 @@
+// Taken from @nuxt/vue-app/template/client.js
+
 import Vue from 'vue';
 import fetch from 'unfetch';
 import middleware from '../config/middleware.js';
@@ -20,6 +22,10 @@ import {
 import { createApp, NuxtError } from './index.js';
 import fetchMixin from '../mixins/fetch.client';
 import NuxtLink from '../components/nuxt/nuxt-link.client.js'; // should be included after ./index.js
+
+// Mimic old @nuxt/vue-app/template/client.js
+const isDev = process.env.dev;
+const debug = isDev;
 
 // Fetch mixin
 if (!Vue.__nuxt__fetch__mixin__) {
@@ -51,69 +57,71 @@ if ($config._app) {
 
 Object.assign(Vue.config, { silent: false, performance: true });
 
-const logs = NUXT.logs || [];
+if (debug) {
+  const logs = NUXT.logs || [];
 
-if (logs.length > 0) {
-  const ssrLogStyle = 'background: #2E495E;border-radius: 0.5em;color: white;font-weight: bold;padding: 2px 0.5em;';
+  if (logs.length > 0) {
+    const ssrLogStyle = 'background: #2E495E;border-radius: 0.5em;color: white;font-weight: bold;padding: 2px 0.5em;';
 
-  console.group && console.group('%cNuxt SSR', ssrLogStyle); // eslint-disable-line no-console
-  logs.forEach((logObj) => (console[logObj.type] || console.log)(...logObj.args)); // eslint-disable-line no-console
-  delete NUXT.logs;
-  console.groupEnd && console.groupEnd(); // eslint-disable-line no-console
-}
+    console.group && console.group('%cNuxt SSR', ssrLogStyle); // eslint-disable-line no-console
+    logs.forEach((logObj) => (console[logObj.type] || console.log)(...logObj.args)); // eslint-disable-line no-console
+    delete NUXT.logs;
+    console.groupEnd && console.groupEnd(); // eslint-disable-line no-console
+  }
 
-// Setup global Vue error handler
-if (!Vue.config.$nuxt) {
-  const defaultErrorHandler = Vue.config.errorHandler;
+  // Setup global Vue error handler
+  if (!Vue.config.$nuxt) {
+    const defaultErrorHandler = Vue.config.errorHandler;
 
-  Vue.config.errorHandler = async(err, vm, info, ...rest) => {
+    Vue.config.errorHandler = async(err, vm, info, ...rest) => {
     // Call other handler if exist
-    let handled = null;
+      let handled = null;
 
-    if (typeof defaultErrorHandler === 'function') {
-      handled = defaultErrorHandler(err, vm, info, ...rest);
-    }
-    if (handled === true) {
-      return handled;
-    }
-
-    if (vm && vm.$root) {
-      const nuxtApp = Object.keys(Vue.config.$nuxt)
-        .find((nuxtInstance) => vm.$root[nuxtInstance]);
-
-      // Show Nuxt Error Page
-      if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
-        const currentApp = vm.$root[nuxtApp];
-
-        // Load error layout
-        let layout = (NuxtError.options || NuxtError).layout;
-
-        if (typeof layout === 'function') {
-          layout = layout(currentApp.context);
-        }
-        if (layout) {
-          await currentApp.loadLayout(layout).catch(() => {});
-        }
-        currentApp.setLayout(layout);
-
-        currentApp.error(err);
+      if (typeof defaultErrorHandler === 'function') {
+        handled = defaultErrorHandler(err, vm, info, ...rest);
       }
-    }
+      if (handled === true) {
+        return handled;
+      }
 
-    if (typeof defaultErrorHandler === 'function') {
-      return handled;
-    }
+      if (vm && vm.$root) {
+        const nuxtApp = Object.keys(Vue.config.$nuxt)
+          .find((nuxtInstance) => vm.$root[nuxtInstance]);
 
-    // Log to console
-    if (process.env.NODE_ENV !== 'production') {
-      console.error(err); // eslint-disable-line no-console
-    } else {
-      console.error(err.message || err); // eslint-disable-line no-console
-    }
-  };
-  Vue.config.$nuxt = {};
+        // Show Nuxt Error Page
+        if (nuxtApp && vm.$root[nuxtApp].error && info !== 'render function') {
+          const currentApp = vm.$root[nuxtApp];
+
+          // Load error layout
+          let layout = (NuxtError.options || NuxtError).layout;
+
+          if (typeof layout === 'function') {
+            layout = layout(currentApp.context);
+          }
+          if (layout) {
+            await currentApp.loadLayout(layout).catch(() => {});
+          }
+          currentApp.setLayout(layout);
+
+          currentApp.error(err);
+        }
+      }
+
+      if (typeof defaultErrorHandler === 'function') {
+        return handled;
+      }
+
+      // Log to console
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(err); // eslint-disable-line no-console
+      } else {
+        console.error(err.message || err); // eslint-disable-line no-console
+      }
+    };
+    Vue.config.$nuxt = {};
+  }
+  Vue.config.$nuxt.$nuxt = true;
 }
-Vue.config.$nuxt.$nuxt = true;
 
 const errorHandler = Vue.config.errorHandler || console.error; // eslint-disable-line no-console
 
@@ -623,7 +631,9 @@ function fixPrepatch(to, ___) {
     checkForErrors(this);
 
     // Hot reloading
-    setTimeout(() => hotReloadAPI(this), 100);
+    if (isDev) {
+      setTimeout(() => hotReloadAPI(this), 100);
+    }
   });
 }
 
@@ -794,8 +804,10 @@ async function mountApp(__app) {
       // Call window.{{globals.readyCallback}} callbacks
       nuxtReady(_app);
 
-      // Enable hot reloading
-      hotReloadAPI(_app);
+      if (isDev) {
+        // Enable hot reloading
+        hotReloadAPI(_app);
+      }
     });
   };
 

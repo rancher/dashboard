@@ -1833,7 +1833,7 @@ cluster:
     modal:
       pspChange:
         title: Pod Security Policy deprecation
-        body: Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?
+        body: <p>Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?</p>
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -1849,6 +1849,7 @@ cluster:
       header: Cloud Provider Config
       defaultValue:
         label: Default - RKE2 Embedded
+      unsupported: The current Cloud Provider is not supported by this version of Kubernetes. The Cloud Provider has been changed to External. Please use the Cloud Provider Config to supply an out-of-tree configuration as needed.
     security:
       header: Security
     cis:
@@ -2165,7 +2166,7 @@ fleet:
       keepResources: Always Keep Resources
       keepResourcesBanner: When enabled above, resources will be kept when deleting a GitRepo or Bundle - only Helm release secrets will be deleted.
       correctDrift: Enable Self-Healing
-      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on th ecluster will be lost.
+      correctDriftBanner: When enabled, Fleet will ensure that the cluster resources are kept in sync with the git repository. All resource changes made on the cluster will be lost.
     add:
       steps:
         repoInfo:
@@ -2217,6 +2218,7 @@ fleet:
     workspace:
       label: Workspace
       addWorkspace: Create a workspace
+    helmRepoURLRegex: Helm Repos (URL Regex)
   clusterGroup:
     selector:
       label: Cluster Selectors
