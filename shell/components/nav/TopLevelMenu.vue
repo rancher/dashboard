@@ -566,7 +566,7 @@ export default {
 
   .menu {
     position: absolute;
-    width: $app-bar-width;
+    width: $app-bar-collapsed-width;
     height: 54px;
     top: 0;
     grid-area: menu;
@@ -587,11 +587,10 @@ export default {
     top: 0;
     left: 0px;
     bottom: 0;
-    width: $app-bar-width;
+    width: $app-bar-collapsed-width;
     background-color: var(--topmenu-bg);
     z-index: 100;
     border-right: 1px solid var(--topmost-border);
-    // box-shadow: 0 0 15px 4px var(--topmost-shadow);
     display: flex;
     flex-direction: column;
     padding: 0;
