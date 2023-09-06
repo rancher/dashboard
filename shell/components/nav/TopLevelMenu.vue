@@ -108,7 +108,7 @@ export default {
 
       const out = search ? this.clusters.filter((item) => item.label.toLowerCase().includes(search)) : this.clusters;
 
-      const sorted = sortBy(out, ['ready:desc', 'ready', 'label']);
+      const sorted = sortBy(out, ['ready:desc', 'label']);
 
       if (sorted.length >= this.maxClustersToShow) {
         return sorted.slice(0, this.maxClustersToShow);
