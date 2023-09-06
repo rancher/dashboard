@@ -1,10 +1,16 @@
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 export default Vue.extend({
   props: {
     title: {
-      type:     String,
-      required: true
+      type:    String,
+      default: ''
+    },
+
+    titleKey: {
+      type:    String,
+      default: null
     },
 
     openInitially: {
@@ -16,6 +22,8 @@ export default Vue.extend({
   data() {
     return { isOpen: this.openInitially };
   },
+
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   methods: {
     toggle() {
@@ -37,7 +45,7 @@ export default Vue.extend({
       />
       <slot name="header">
         <h4 class="mb-0">
-          {{ title }}
+          {{ titleKey ? t(titleKey) : title }}
         </h4>
       </slot>
     </div>

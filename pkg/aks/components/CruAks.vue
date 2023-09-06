@@ -670,7 +670,7 @@ export default defineComponent({
           <LabeledInput
             :value="normanCluster.name"
             :mode="mode"
-            label="Name"
+            label-key="generic.name"
             required
             :rules="fvGetAndReportPathRules('name')"
             @input="setClusterName"
@@ -686,7 +686,7 @@ export default defineComponent({
             :options="locationOptions"
             option-label="displayName"
             option-key="name"
-            label="Location"
+            label-key="aks.location.label"
             :reduce="opt=>opt.name"
             :loading="loadingLocations"
             required
@@ -698,7 +698,7 @@ export default defineComponent({
             v-model="config.kubernetesVersion"
             :mode="mode"
             :options="aksVersionOptions"
-            label="Kubernetes Version"
+            label-key="aks.kubernetesVersion.label"
             option-key="value"
             option-label="label"
             :loading="loadingVersions"
@@ -721,7 +721,7 @@ export default defineComponent({
           v-for="(pool, i) in nodePools"
           :key="pool._id"
           :name="pool.name"
-          :label="pool.name || '(Not Named)'"
+          :label="pool.name || t('aks.nodePools.notNamed')"
           :error="pool._validSize === false"
         >
           <AksNodePool
@@ -741,7 +741,7 @@ export default defineComponent({
         <Accordion
           :open-initially="true"
           class="mb-10"
-          title="Basics"
+          title-key="aks.accordions.basics"
         >
           <div
             :style="{'display': 'flex', 'align-items':'center'}"
@@ -751,35 +751,36 @@ export default defineComponent({
               <LabeledInput
                 v-model="config.linuxAdminUsername"
                 :mode="mode"
-                label="Linux Admin Username"
+                label-key="aks.linuxAdminUsername.label"
                 :disabled="!isNew"
+                placeholder-key="aks.linuxAdminUsername.placeholder"
               />
             </div>
             <div class="col span-3">
               <LabeledInput
                 v-model="config.resourceGroup"
                 :mode="mode"
-                label="Cluster Resource Group"
+                label-key="aks.clusterResourceGroup.label"
                 :disabled="!isNew"
                 :rules="fvGetAndReportPathRules('resourceGroup')"
                 :required="true"
-                placeholder="aks-resource-group"
+                placeholder-key="aks.clusterResourceGroup.placeholder"
               />
             </div>
             <div class="col span-3">
               <LabeledInput
                 v-model="config.nodeResourceGroup"
                 :mode="mode"
-                label="Node Resource Group"
+                label-key="aks.nodeResourceGroup.label"
                 :disabled="!isNew"
-                placeholder="aks-node-resource-group"
+                placeholder-key="aks.nodeResourceGroup.placeholder"
               />
             </div>
             <div class="col span-3">
               <Checkbox
                 v-model="containerMonitoring"
                 :mode="mode"
-                label="Configure Container Monitoring"
+                label-key="aks.containerMonitoring.label"
               />
             </div>
           </div>
@@ -790,14 +791,14 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.logAnalyticsWorkspaceGroup"
                   :mode="mode"
-                  label="Log Analytics Workspace Resource Group"
+                  label-key="aks.logAnalyticsWorkspaceGroup.label"
                 />
               </div>
               <div class="col span-3">
                 <LabeledInput
                   v-model="config.logAnalyticsWorkspaceName"
                   :mode="mode"
-                  label="Log Analytics Workspace Name"
+                  label-key="aks.logAnalyticsWorkspaceName.label"
                 />
               </div>
             </template>
@@ -808,13 +809,13 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.sshPublicKey"
                   :mode="mode"
-                  label="SSH Public Key"
+                  label-key="aks.sshPublicKey.label"
                   type="multiline"
-                  placeholder="Paste in your SSH public key"
+                  placeholder-key="aks.sshPublicKey.placeholder"
                 />
                 <FileSelector
                   :mode="mode"
-                  label="Read from File"
+                  :label="t('aks.sshPublicKey.readFromFile')"
                   class="role-tertiary mt-10"
                   @selected="e=>$set(config, 'sshPublicKey', e)"
                 />
@@ -824,12 +825,12 @@ export default defineComponent({
               <KeyValue
                 v-model="config.tags"
                 :mode="mode"
-                title="Tags"
-                add-label="Add Tag"
+                :title="t('aks.tags.label')"
+                :add-label="t('aks.tags.addLabel')"
               >
                 <template #title>
                   <div class="text-label">
-                    Tags
+                    {{ t('aks.tags.label') }}
                   </div>
                 </template>
               </KeyValue>
@@ -838,15 +839,15 @@ export default defineComponent({
         </Accordion>
         <Accordion
           class="mb-10"
-          title="Networking"
+          title-key="aks.accordions.networking"
           :open-initially="true"
         >
           <div class="row mb-10">
             <div class="col span-3">
               <LabeledSelect
                 v-model="config.loadBalancerSku"
-                label="Loadbalancer SKU"
-                tooltip="The Loadbalancer SKU must be 'Standard' if availability zones have been selected"
+                label-key="aks.loadBalancerSku.label"
+                tooltip-key="aks.loadBalancerSku.tooltip"
                 :disabled="!canEditLoadBalancerSKU || !isNew"
                 :options="['Standard', 'Basic']"
               />
@@ -855,11 +856,11 @@ export default defineComponent({
               <LabeledInput
                 v-model="config.dnsPrefix"
                 :mode="mode"
-                label="DNS Prefix"
+                label-key="aks.dns.label"
                 :disabled="!isNew"
                 :required="true"
                 :rules="fvGetAndReportPathRules('dnsPrefix')"
-                placeholder="aks-dns-xxxxx"
+                placeholder-key="aks.dns.placeholder"
               />
             </div>
           </div>
@@ -869,7 +870,7 @@ export default defineComponent({
                 v-model="config.networkPlugin"
                 :mode="mode"
                 :options="networkPluginOptions"
-                label="Network Plugin"
+                label-key="aks.networkPlugin.label"
                 :disabled="!isNew"
               />
             </div>
@@ -878,10 +879,10 @@ export default defineComponent({
                 v-model="networkPolicy"
                 :mode="mode"
                 :options="networkPolicyOptions"
-                label="Network Policy"
+                label-key="aks.networkPolicy.label"
                 option-key="value"
                 :reduce="opt=>opt.value"
-                tooltip="The Azure network policy is only available when the Azure network plugin is selected"
+                tooltip-key="aks.networkPolicy.tooltip"
                 :disabled="!isNew"
               />
             </div>
@@ -892,7 +893,7 @@ export default defineComponent({
                 <!-- //todo nb nicer display -->
                 <LabeledSelect
                   :value="config.virtualNetwork"
-                  label="Virtual Network"
+                  label-key="aks.virtualNetwork.label"
                   :mode="mode"
                   :options="virtualNetworkOptions"
                   :loading="loadingVirtualNetworks"
@@ -912,7 +913,7 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.serviceCidr"
                   :mode="mode"
-                  label="Kubernetes Service Address Range"
+                  label-key="aks.serviceCidr.label"
                   :disabled="!isNew"
                 />
               </div>
@@ -920,7 +921,7 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.podCidr"
                   :mode="mode"
-                  label="Kubernetes Pod Address Range"
+                  label-key="aks.podCidr.label"
                   :disabled="!isNew"
                 />
               </div>
@@ -928,7 +929,7 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.dnsServiceIp"
                   :mode="mode"
-                  label="Kubernetes DNS Service IP Range"
+                  label-key="aks.dnsServiceIp.label"
                   :disabled="!isNew"
                 />
               </div>
@@ -936,7 +937,7 @@ export default defineComponent({
                 <LabeledInput
                   v-model="config.dockerBridgeCidr"
                   :mode="mode"
-                  label="Docker Bridge Address"
+                  label-key="aks.dockerBridgeCidr.label"
                   :disabled="!isNew"
                 />
               </div>
@@ -947,24 +948,24 @@ export default defineComponent({
               <Checkbox
                 v-model="value.enableNetworkPolicy"
                 :mode="mode"
-                label="Project Network Isolation"
+                label-key="aks.enableNetworkPolicy.label"
                 :disabled="!isNew"
               />
               <Checkbox
                 v-model="config.httpApplicationRouting"
                 :mode="mode"
-                label="HTTP Application Routing"
+                label-key="aks.httpApplicationRouting.label"
               />
               <Checkbox
                 v-model="config.privateCluster"
                 :mode="mode"
-                label="Enable Private Cluster"
+                label-key="aks.privateCluster.label"
                 :disabled="!canEditPrivateCluster"
               />
               <Checkbox
                 v-model="setAuthorizedIPRanges"
                 :mode="mode"
-                label="Set Authorized IP Ranges"
+                label-key="aks.setAuthorizedIPRanges.label"
                 :disabled="config.privateCluster"
               />
             </div>
@@ -977,11 +978,11 @@ export default defineComponent({
                 :mode="mode"
                 :initial-empty-row="true"
                 value-placeholder="10.0.0.0/14"
-                title="Authorized IP Ranges"
+                :rules="t('aks.authorizedIpRanges.label')"
               >
                 <template #title>
                   <div class="text-label">
-                    Authorized IP Ranges
+                    {{ t('aks.authorizedIpRanges.label') }}
                   </div>
                 </template>
               </ArrayList>
@@ -990,7 +991,7 @@ export default defineComponent({
         </Accordion>
         <Accordion
           class="mb-10"
-          title="Cluster Members"
+          title-key="aks.accordions.clusterMembers"
         >
           <ClusterMembershipEditor
             v-if="canManageMembers"
@@ -1001,7 +1002,7 @@ export default defineComponent({
         </Accordion>
         <Accordion
           class="mb-10"
-          title="Labels and Annotations"
+          title-key="aks.accordions.labels"
         >
           <Labels
             v-model="normanCluster"

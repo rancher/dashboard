@@ -118,7 +118,7 @@ export default defineComponent({
         <LabeledInput
           v-model="pool.name"
           :mode="mode"
-          label="Name"
+          label-key="generic.name"
           required
           :disabled="!pool._isNew"
         />
@@ -127,7 +127,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="pool.vmSize"
           :options="vmSizeOptions"
-          label="VM Size"
+          label-key="aks.nodePools.vmSize.label"
           :loading="loadingVmSizes"
           :mode="mode"
           :disabled="!pool._isNew"
@@ -138,7 +138,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="pool.availabilityZones"
           :options="availabilityZoneOptions"
-          label="Availability Zones"
+          label-key="aks.nodePools.availabilityZones.label"
           :mode="mode"
           :multiple="true"
           :taggable="true"
@@ -153,7 +153,7 @@ export default defineComponent({
           :name="`${pool._id}-mode`"
           :disabled="!pool._isNew"
           :row="true"
-          label="mode"
+          label-key="generic.mode"
         >
           <template #label>
             <span class="text-label">Mode</span>
@@ -168,7 +168,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="pool.osType"
           :options="[]"
-          label="Operating System"
+          label-key="aks.nodePools.osType.label"
           mode="view"
         />
       </div>
@@ -176,7 +176,7 @@ export default defineComponent({
         <LabeledSelect
           v-model="pool.osDiskType"
           :options="osDiskTypeOptions"
-          label="OS Disk Type"
+          label-key="aks.nodePools.osDiskType.label"
           :mode="mode"
           :disabled="!pool._isNew"
         />
@@ -184,7 +184,7 @@ export default defineComponent({
       <div class="col span-3">
         <UnitInput
           v-model="pool.osDiskSizeGB"
-          label="OS Disk Size"
+          label-key="aks.nodePools.osDiskSize.label"
           :mode="mode"
           suffix="GB"
           :disabled="!pool._isNew"
@@ -202,7 +202,7 @@ export default defineComponent({
           v-model.number="pool.count"
           type="number"
           :mode="mode"
-          label="Node Count"
+          label-key="aks.nodePools.count.label"
           :disabled="pool.enableAutoScaling"
         />
       </div>
@@ -211,21 +211,21 @@ export default defineComponent({
           v-model.number="pool.maxPods"
           type="number"
           :mode="isPrimaryPool ? 'view' : mode"
-          label="Max Pods per Node"
+          label-key="aks.nodePools.maxPods.label"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
           v-model="pool.maxSurge"
           :mode="mode"
-          label="Max Surge"
+          label-key="aks.nodePools.maxSurge.label"
         />
       </div>
       <div class="col span-2">
         <Checkbox
           v-model="pool.enableAutoScaling"
           :mode="mode"
-          label="Enable Auto Scaling"
+          label-key="aks.nodePools.enableAutoScaling.label"
         />
       </div>
     </div>
@@ -236,7 +236,7 @@ export default defineComponent({
             v-model.number="pool.minCount"
             type="number"
             :mode="mode"
-            label="Minimum Pods"
+            label-key="aks.nodePools.minCount.label"
           />
         </div>
         <div class="col span-3">
@@ -244,7 +244,7 @@ export default defineComponent({
             v-model.number="pool.maxCount"
             type="number"
             :mode="mode"
-            label="Maximum Pods"
+            label-key="aks.nodePools.maxCount.label"
           />
         </div>
       </template>
@@ -253,7 +253,7 @@ export default defineComponent({
     <div class="row">
       <div class="col span-6">
         <div class="text-label">
-          Taints
+          {{ t('aks.nodePools.taints.label') }}
         </div>
         <!-- //todo nb less hacky way of styling labels -->
         <div
@@ -261,13 +261,13 @@ export default defineComponent({
           class="row taints-labels"
         >
           <label class="text-label">
-            Key
+            {{ t('aks.nodePools.taints.key') }}
           </label>
           <label class="text-label">
-            Value
+            {{ t('aks.nodePools.taints.value') }}
           </label>
           <label class="text-label">
-            Effect
+            {{ t('aks.nodePools.taints.effect') }}
           </label>
           <div>
           <!-- <button
@@ -292,18 +292,18 @@ export default defineComponent({
           class="btn role-tertiary mt-20"
           @click="addTaint"
         >
-          Add Taint
+          {{ t('aks.nodePools.taints.addTaint') }}
         </button>
       </div>
       <div class="col span-6">
         <div class="text-label">
-          Labels
+          {{ t('labels.labels.title') }}
         </div>
         <KeyValue
           v-model="pool.labels"
           :mode="mode"
           :value-can-be-empty="true"
-          add-label="Add Label"
+          add-label-key="Add Label"
           :read-allowed="false"
         />
       </div>

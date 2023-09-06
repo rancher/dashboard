@@ -4,9 +4,94 @@ aks:
     label: Region
   clusterResourceGroup:
     label: Cluster Resource Group
+    placeholder: 'aks-resource-group'
+  kubernetesVersion:
+    label: Kubernetes Version
   nodeResourceGroup:
     tooltip: The cluster resource group contains the Kubernetes Service resource. The node resource group contains all infrastructure resources associated with the cluster. If left blank, Azure will automatically create a name in the format MC_<resource-group1>_<cluster-name>_<location>. This value cannot exceed 80 characters.
     label: Node Resource Group
     placeholder: aks-node-resource-group
   dnsPrefix:
     label: DNS Prefix
+  nodePools:
+    notNamed: Not Named
+    vmSize:
+      label: VM Size
+    availabilityZones:
+      label: Availability Zones
+    osType:
+      label: Operating System
+    osDiskType:
+      label: OS Disk Type
+    osDiskSize:
+      label: OS Disk Size
+    count:
+      label: Node Count
+    maxPods:
+      label: Max Pods per Node
+    maxSurge:
+      label: Max Surge
+    enableAutoScaling:
+      label: Enable Auto Scaling
+    minCount:
+      label: Minimum Pods
+    maxCount:
+      label: Maximum Pods
+    taints:
+      label: Taints
+      key: Key
+      value: Value
+      effect: Effect
+      addTaint: Add Taint
+  linuxAdminUsername:
+    label: Linux Admin Username
+    placeholder: azureuser
+  accordions:
+    basics: Basics
+    networking: Networking
+    clusterMembers: Cluster Members
+    labels: Labels and Annotations
+  containerMonitoring:
+    label: Configure Container Monitoring
+  logAnalyticsWorkspaceGroup:
+    label: Log Analytics Workspace Resource Group
+  logAnalyticsWorkspaceName:
+    label: Log Analytics Workspace Name
+  sshPublicKey:
+    label: SSH Public Key
+    placeholder: Paste in your SSH public key
+    readFromFile: Read from File
+  tags:
+    label: Tags
+    addLabel: Add Tag
+  loadBalancerSku:
+    label: Load Balancer SKU
+    tooltip: The Load Balancer SKU must be 'Standard' if availability zones have been selected
+  dns:
+    label: DNS Prefix
+    placeholder: aks-dns-xxxxxx
+  networkPlugin:
+    label: Network Plugin
+  networkPolicy:
+    label: Network Policy
+    tooltip: The Azure network policy is only available when the Azure network plugin is selected
+  virtualNetwork:
+    label: Virtual Network
+  serviceCidr:
+    label: Kubernetes Service Address Range  
+  podCidr:
+    label: Kubernetes Pod Address Range
+  dnsServiceIp:
+    label: Kubernetes DNS Service IP Range    
+  dockerBridgeCidr:
+    label: Docker Bridge Address
+  enableNetworkPolicy:
+    label: Project Network Isolation
+  httpApplicationRouting:
+    label: HTTP Application Routing
+  privateCluster:
+    label: Enable Private Cluster
+  setAuthorizedIPRanges:
+    label: Set Authorized IP Ranges
+  authorizedIpRanges:
+    label: Authorized IP Ranges
