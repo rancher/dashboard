@@ -60,10 +60,6 @@ export default {
       return this.features(LEGACY);
     },
 
-    emptyCluster() {
-      return BLANK_CLUSTER;
-    },
-
     showClusterSearch() {
       return this.clusters.length > this.maxClustersToShow;
     },
@@ -238,9 +234,9 @@ export default {
       }
     },
     getTooltipConfig(item) {
-      if (!this.shown && !item) {
-        return;
-      }
+      // if (!this.shown && !item) {
+      //   return;
+      // }
 
       if (!this.shown) {
         return {
@@ -640,7 +636,7 @@ export default {
       svg {
         width: 25px;
         height: 25px;
-        margin-left: 8px;
+        margin-left: 10px;
       }
     }
     .home-text {
