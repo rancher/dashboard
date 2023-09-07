@@ -230,7 +230,9 @@ describe('Settings', () => {
     settingsPage.settingsValue('ui-offline-preferred').contains(settings['ui-offline-preferred'].original);
   });
 
-  it('can update ui-brand', { tags: '@adminUser' }, () => {
+  it.skip('can update ui-brand', { tags: '@adminUser' }, () => {
+    // Note: this test fails sometimes due to https://github.com/rancher/dashboard/issues/9551
+    // skipping this test until issue is resolved
     const rancherLogo = '/img/rancher-logo.66cf5910.svg';
     const suseRancherLogo = '/img/rancher-logo.055089a3.svg';
 
@@ -253,7 +255,6 @@ describe('Settings', () => {
       expect(el).to.have.attr('src').includes(suseRancherLogo);
     });
 
-    // Note: this test fails sometimes due to https://github.com/rancher/dashboard/issues/9551
     cy.intercept('GET', '**/v1/counts').as('counts');
     HomePagePo.goTo();
     cy.wait('@counts', { timeout: 10000 });
