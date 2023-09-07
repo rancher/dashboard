@@ -3227,6 +3227,17 @@ logging:
     password: 密码
     port: 端口
     ttl: 每个键的 TTL
+  docsInfo:
+    label: 有关配置请参考
+    doc: Logging Operator 官方文档
+  extension:
+    storage: 
+      title: 存储
+      selectContainer: 选择容器
+      mountPath: 容器路径
+      mountFile: 容器文件名
+  allWorkloadType:
+    label: 所有 Workload 类型
 longhorn:
   overview:
     title: 概述
@@ -6284,6 +6295,7 @@ workload:
     volumeName: 卷名称
     volumePath: 卷路径
     noVolumes: 在 Pod 选项卡中添加卷后，卷将显示在此处
+    noContainers: 在 Workload 选项卡中添加容器后，容器将显示在此处
     selectVolume: 选择卷
     keyToPath:
       addAction: 添加项目

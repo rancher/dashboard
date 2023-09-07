@@ -3211,6 +3211,17 @@ logging:
     password: Password from Secret
     port: Port
     ttl: TTL for each key
+  docsInfo:
+    label: For configuration, please refer to
+    doc: Logging Operator Official documents
+  extension:
+    storage: 
+      title: Storage
+      selectContainer: Select Container
+      mountPath: Container Path
+      mountFile: Container File Name
+  allWorkloadType:
+    label: All Workload Types
 longhorn:
   overview:
     title: Overview
@@ -6245,6 +6256,7 @@ workload:
     volumeName: Volume Name
     volumePath: Volume Path
     noVolumes: Volumes will appear here after they are added in the Pod tab
+    noContainers: Container will appear here after they are added in the Workload tab
     selectVolume: Select Volume
     keyToPath:
       addAction: Add Item

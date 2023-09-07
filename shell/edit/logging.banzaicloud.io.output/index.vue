@@ -170,6 +170,22 @@ export default {
       @finish="saveSettings"
       @cancel="done"
     >
+      <template v-slot:noticeBanner>
+        <Banner
+          :closable="true"
+          color="info"
+          @close="hideClusterToolsTip = true"
+        >
+          <div>
+            {{ t('logging.docsInfo.label') }}
+            <a
+              href="https://kube-logging.dev/docs/configuration/crds/v1beta1/"
+              target="_blank"
+              rel="noopener nofollow noreferrer"
+            >{{ t('logging.docsInfo.doc') }}</a>
+          </div>
+        </Banner>
+      </template>
       <NameNsDescription
         v-if="!isView"
         :value="value"

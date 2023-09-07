@@ -143,6 +143,10 @@ export const routerOptions = {
     component: () => interopDefault(import('../pages/c/_cluster/logging/index.vue' /* webpackChunkName: "pages/c/_cluster/logging/index" */)),
     name:      'c-cluster-logging'
   }, {
+    path:      '/c/:cluster/logging/:resource/extension',
+    component: () => interopDefault(import('../pages/c/_cluster/logging/extension.vue' /* webpackChunkName: "pages/c/_cluster/logging/extension" */)),
+    name:      'c-cluster-logging-extension'
+  }, {
     path:      '/c/:cluster/longhorn',
     component: () => interopDefault(import('../pages/c/_cluster/longhorn/index.vue' /* webpackChunkName: "pages/c/_cluster/longhorn/index" */)),
     name:      'c-cluster-longhorn'

@@ -236,6 +236,8 @@ export const ISTIO = {
 export const LOGGING = {
   // LOGGING:        'logging.banzaicloud.io.logging',
   CLUSTER_FLOW:   'logging.banzaicloud.io.clusterflow',
+  HOST_TAILER:    'logging-extensions.banzaicloud.io.hosttailer',
+  EVENT_TAILER:   'logging-extensions.banzaicloud.io.eventtailer',
   CLUSTER_OUTPUT: 'logging.banzaicloud.io.clusteroutput',
   FLOW:           'logging.banzaicloud.io.flow',
   OUTPUT:         'logging.banzaicloud.io.output',

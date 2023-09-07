@@ -26,6 +26,9 @@ export function init(store) {
   basicType([
     'logging-overview',
     'logging.banzaicloud.io.common',
+    'logging-extensions',
+    LOGGING.HOST_TAILER,
+    LOGGING.EVENT_TAILER,
     LOGGING.CLUSTER_FLOW,
     LOGGING.CLUSTER_OUTPUT,
     LOGGING.FLOW,
@@ -39,6 +42,22 @@ export function init(store) {
     route:      { name: 'c-cluster-logging' },
     exact:      true,
     overview:   true,
+    weight:     100,
+  });
+
+  virtualType({
+    label:      'Extension',
+    namespaced: false,
+    icon:       'compass',
+    name:       'logging-extensions',
+    route:      {
+      name:   'c-cluster-logging-extension',
+      params: {
+        product:  'logging',
+        resource: 'workload',
+      }
+    },
+    weight: 200,
   });
 
   spoofedType({
