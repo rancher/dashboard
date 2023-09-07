@@ -29,7 +29,16 @@ describe('Side Menu: main', () => {
 
     burgerMenuPo.pinCluster();
     burgerMenuPo.pinClustersList().should('exist');
+    burgerMenuPo.unpinCluster();
+    burgerMenuPo.pinClustersListNot().should('not.exit');
   });
+
+  // it('Unpinned clusters from pinned clusters list', { tags: '@adminUser' }, () => {
+  //   const burgerMenuPo = new BurgerMenuPo();
+
+  //   burgerMenuPo.unpinCluster();
+  //   burgerMenuPo.pinClustersList().should('not.exit');
+  // });
 
   it('Can display at least one menu category label', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
