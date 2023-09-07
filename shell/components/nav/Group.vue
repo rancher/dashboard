@@ -303,10 +303,6 @@ export default {
     }
     &.active {
       background-color: var(--nav-active);
-
-      h6 {
-        font-weight: bold;
-      }
     }
   }
 
@@ -385,10 +381,6 @@ export default {
     &.expanded:has(> .active),
     &.expanded:has(> ul li.nuxt-link-active) {
       background: var(--nav-active);
-
-      > .header h6 {
-        font-weight: bold;
-      }
     }
 
     &.expanded:has(> ul li.root) {
@@ -425,7 +417,6 @@ export default {
       outline: none;
     }
 
-    &.nav-type,
     &.root {
       background: transparent;
       A {
