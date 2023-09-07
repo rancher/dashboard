@@ -312,6 +312,7 @@ export default {
         label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
         value: '',
       }];
+
       const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
       for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
@@ -325,6 +326,7 @@ export default {
         if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
           disabled = true;
         }
+
         if (showAllOptions || isPreferred || isExternal) {
           out.push({
             label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
@@ -333,10 +335,33 @@ export default {
           });
         }
       }
+
       const cur = this.agentConfig['cloud-provider-name'];
 
-      if ( cur && !out.find((x) => x.value === cur) ) {
-        out.unshift({ label: `${ cur } (Current)`, value: cur });
+      if (cur && !out.find((x) => x.value === cur)) {
+        // Localization missing
+        // Look up cur in the localization file
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ cur }".label`, null, cur);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       cur,
+          unsupported: true,
+          disabled:    true
+        });
+      }
+
+      const initial = this.initialCloudProvider;
+
+      if (cur !== initial && initial && !out.find((x) => x.value === initial)) {
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ initial }".label`, null, initial);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       initial,
+          unsupported: true,
+          disabled:    true
+        });
       }
 
       return out;

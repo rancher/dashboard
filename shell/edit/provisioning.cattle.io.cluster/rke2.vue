@@ -1966,6 +1966,18 @@ export default {
         if (this.isHarvesterDriver && this.mode === _CREATE && this.isHarvesterIncompatible) {
           this.setHarvesterDefaultCloudProvider();
         }
+
+        // Cloud Provider check
+        // If the cloud provider is unsupported, switch provider to 'external'
+        if (this.unsupportedCloudProvider) {
+          set(this.agentConfig, 'cloud-provider-name', 'external');
+        } else {
+          // Switch the cloud provider back to the initial value
+          // Use changed the Kubernetes version back to a version where the initial cloud provider is valid - so switch back to this one
+          // to undo the change to external that we may have made
+          // Note: Cloud Provider can only be changed on edit when the initial provider is no longer supported
+          set(this.agentConfig, 'cloud-provider-name', this.initialCloudProvider);
+        }
       }
     },
 
