@@ -131,7 +131,7 @@ export default {
 
     pinFiltered() {
       const out = this.clusters.filter((item) => item.pinned);
-      const sorted = sortBy(out, ['ready:desc', 'ready']);
+      const sorted = sortBy(out, ['ready:desc', 'label']);
 
       return sorted;
     },
