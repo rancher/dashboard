@@ -259,6 +259,7 @@ export default {
             @expand="expandGroup($event)"
             @close="close($event)"
           />
+          {{groups}}
         </li>
         <Type
           v-else-if="!child.overview || group.name === 'starred'"
@@ -300,7 +301,6 @@ export default {
         text-transform: none;
       }
     }
-    &.bg-yellow,
     &.active {
       background-color: var(--nav-active);
 
@@ -349,11 +349,6 @@ export default {
 
       > .body {
         margin-left: 0;
-        padding-bottom: 8px;
-
-        &.child {
-          background: yellow;
-        }
       }
     }
 
@@ -395,6 +390,10 @@ export default {
         font-weight: bold;
       }
     }
+
+    &.expanded:has(> ul li.root) {
+      background: transparent;
+    }
   }
 
   .body ::v-deep > .child.nuxt-link-active,
@@ -425,9 +424,14 @@ export default {
     A:focus {
       outline: none;
     }
+
+    &.nav-type,
+    &.root {
+      background: transparent;
+      A {
+        padding-left: 16px;
+      }
+    }
   }
 
-  // .bg-yellow {
-  //   background: yellow;
-  // }
 </style>
