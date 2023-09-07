@@ -1976,6 +1976,10 @@ export default {
       this.lastDefaultPodSecurityPolicyTemplateName = value;
     },
 
+    handleShowDeprecatedPatchVersionsChanged(value) {
+      this.showDeprecatedPatchVersions = value;
+    },
+
     /**
      * Track Machine Pool validation status
      */
@@ -2193,12 +2197,19 @@ export default {
             :defaultRke2="defaultRke2"
             :defaultK3s="defaultK3s"
             :addonVersions="addonVersions"
+            :showDeprecatedPatchVersions="showDeprecatedPatchVersions"
+            :needsPSP="needsPSP"
+            :selectedVersion="selectedVersion"
+            :isHarvesterDriver="isHarvesterDriver"
+            :isHarvesterIncompatible="isHarvesterIncompatible"
+            :versionOptions="versionOptions"
             @ciliumIpv6Changed="handleCiliumIpv6Changed"
             @enabledSystemServicesChanged="handleEnabledSystemServicesChanged"
             @kubernetesChanged="handleKubernetesChange"
             @pspChanged="handlePspChanged"
             @cisChanged="handleCisChanged"
             @psaDefaultChanged="handlePsaDefaultChanged"
+            @showDeprecatedPatchVersionsChanged="handleShowDeprecatedPatchVersionsChanged"
           />
         </Tab>
 

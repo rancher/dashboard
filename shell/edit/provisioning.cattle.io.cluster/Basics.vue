@@ -4,14 +4,7 @@ import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 
-import { _EDIT } from '@shell/config/query-params';
-
-import { findBy } from '@shell/utils/array';
 import { set, get } from '@shell/utils/object';
-import { sortBy } from '@shell/utils/sort';
-
-import { compare, sortable } from '@shell/utils/version';
-import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
@@ -118,15 +111,38 @@ export default {
       type:     Array,
       required: false,
       default:  null
+    },
+    needsPSP: {
+      type:     Boolean,
+      required: true
+    },
+    selectedVersion: {
+      type:     Object,
+      required: true
+    },
+    versionOptions: {
+      type:     Array,
+      required: true
+    },
+    isHarvesterDriver: {
+      type:     Boolean,
+      required: true
+    },
+    isHarvesterIncompatible: {
+      type:     Boolean,
+      required: true
+    },
+    showDeprecatedPatchVersions: {
+      type:     Boolean,
+      required: true
     }
 
   },
 
   data() {
     return {
-      showDeprecatedPatchVersions: false,
-      clusterIsAlreadyCreated:     !!this.value.id,
-      initialCloudProvider:        this.value?.agentConfig?.['cloud-provider-name'],
+      clusterIsAlreadyCreated: !!this.value.id,
+      initialCloudProvider:    this.value?.agentConfig?.['cloud-provider-name'],
     };
   },
 
@@ -146,10 +162,6 @@ export default {
 
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
-    },
-
-    chartValues() {
-      return this.value.spec.rkeConfig.chartValues;
     },
 
     serverConfig() {
@@ -172,64 +184,10 @@ export default {
     },
 
     /**
-     * Define PSP deprecation and restrict use of PSP based on min k8s version
-     */
-    needsPSP() {
-      return this.getNeedsPSP();
-    },
-
-    /**
      * Define introduction of Rancher defined PSA templates
      */
     hasPsaTemplates() {
       return !this.needsPSP;
-    },
-
-    versionOptions() {
-      const cur = this.liveValue?.spec?.kubernetesVersion || '';
-      const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
-      const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-
-      let allValidRke2Versions = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
-      let allValidK3sVersions = this.getAllOptionsAfterCurrentVersion(this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
-
-      if (!this.showDeprecatedPatchVersions) {
-        // Normally, we only want to show the most recent patch version
-        // for each Kubernetes minor version. However, if the user
-        // opts in to showing deprecated versions, we don't filter them.
-        allValidRke2Versions = this.filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
-        allValidK3sVersions = this.filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
-      }
-
-      const showRke2 = allValidRke2Versions.length && !existingK3s;
-      const showK3s = allValidK3sVersions.length && !existingRke2;
-      const out = [];
-
-      if ( showRke2 ) {
-        if ( showK3s ) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
-        }
-
-        out.push(...allValidRke2Versions);
-      }
-
-      if ( showK3s ) {
-        if ( showRke2 ) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
-        }
-
-        out.push(...allValidK3sVersions);
-      }
-
-      if ( cur ) {
-        const existing = out.find((x) => x.value === cur);
-
-        if ( existing ) {
-          existing.disabled = false;
-        }
-      }
-
-      return out;
     },
 
     isK3s() {
@@ -384,18 +342,6 @@ export default {
       return out;
     },
 
-    selectedVersion() {
-      const str = this.value.spec.kubernetesVersion;
-
-      if ( !str ) {
-        return;
-      }
-
-      const out = findBy(this.versionOptions, 'value', str);
-
-      return out;
-    },
-
     haveArgInfo() {
       return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
     },
@@ -414,26 +360,6 @@ export default {
 
     showCisProfile() {
       return (this.provider === 'custom' || this.isElementalCluster) && ( this.serverArgs?.profile || this.agentArgs?.profile );
-    },
-
-    /**
-     * Extension provider where being provisioned by an extension
-     */
-    extensionProvider() {
-      const extClass = this.$plugin.getDynamic('provisioner', this.provider);
-
-      if (extClass) {
-        return new extClass({
-          dispatch: this.$store.dispatch,
-          getters:  this.$store.getters,
-          axios:    this.$store.$axios,
-          $plugin:  this.$store.app.$plugin,
-          $t:       this.t,
-          isCreate: this.isCreate
-        });
-      }
-
-      return undefined;
     },
 
     enabledSystemServices: {
@@ -499,36 +425,6 @@ export default {
       return semver.satisfies(selectedVersion, '>=1.21.0');
     },
 
-    isHarvesterDriver() {
-      return this.$route.query.type === HARVESTER;
-    },
-
-    defaultVersion() {
-      const all = this.versionOptions.filter((x) => !!x.value);
-      const first = all[0]?.value;
-      const preferred = all.find((x) => x.value === this.defaultRke2)?.value;
-
-      const rke2 = this.getAllOptionsAfterCurrentVersion(this.rke2Versions, null);
-      const showRke2 = rke2.length;
-      let out;
-
-      if (this.isHarvesterDriver && showRke2) {
-        const satisfiesVersion = rke2.filter((v) => {
-          return isHarvesterSatisfiesVersion(v.value);
-        }) || [];
-
-        if (satisfiesVersion.length > 0) {
-          out = satisfiesVersion[0]?.value;
-        }
-      }
-
-      if ( !out ) {
-        out = preferred || first;
-      }
-
-      return out;
-    },
-
     ciliumIpv6: {
       get() {
         // eslint-disable-next-line no-unused-vars
@@ -545,32 +441,6 @@ export default {
       return this.credential?.harvestercredentialConfig?.clusterType === 'external';
     },
 
-    isHarvesterIncompatible() {
-      let ccmRke2Version = (this.chartVersions['harvester-cloud-provider'] || {})['version'];
-      let csiRke2Version = (this.chartVersions['harvester-csi-driver'] || {})['version'];
-
-      const ccmVersion = this.harvesterVersionRange?.['harvester-cloud-provider'];
-      const csiVersion = this.harvesterVersionRange?.['harvester-csi-provider'];
-
-      if ((ccmRke2Version || '').endsWith('00')) {
-        ccmRke2Version = ccmRke2Version.slice(0, -2);
-      }
-
-      if ((csiRke2Version || '').endsWith('00')) {
-        csiRke2Version = csiRke2Version.slice(0, -2);
-      }
-
-      if (ccmVersion && csiVersion) {
-        if (semver.satisfies(ccmRke2Version, ccmVersion) &&
-          semver.satisfies(csiRke2Version, csiVersion)) {
-          return false;
-        } else {
-          return true;
-        }
-      } else {
-        return false;
-      }
-    },
     unsupportedCloudProvider() {
       // The current cloud provider
       const cur = this.initialCloudProvider;
@@ -587,139 +457,13 @@ export default {
     }
   },
 
-  mounted() {
-    window.rke = this;
-  },
-
-  created() {
-    // Register any hooks for this extension provider
-    if (this.extensionProvider?.registerSaveHooks) {
-      this.extensionProvider.registerSaveHooks(this.registerBeforeHook, this.registerAfterHook, this.value);
-    }
-  },
-
   methods: {
     set,
-
-    /**
-     * Define PSP deprecation and restrict use of PSP based on min k8s version and current/edited mode
-     */
-    getNeedsPSP(value = this.value) {
-      const release = value?.spec?.kubernetesVersion || '';
-      const version = release.match(/\d+/g);
-      const isRequiredVersion = version?.length ? +version[0] === 1 && +version[1] < 25 : false;
-
-      return isRequiredVersion;
-    },
 
     chartVersionKey(name) {
       const addonVersion = this.addonVersions.find((av) => av.name === name);
 
       return addonVersion ? `${ name }-${ addonVersion.version }` : name;
-    },
-
-    getAllOptionsAfterCurrentVersion(versions, currentVersion, defaultVersion) {
-      const out = (versions || []).filter((obj) => !!obj.serverArgs).map((obj) => {
-        let disabled = false;
-        let experimental = false;
-        let isCurrentVersion = false;
-        let label = obj.id;
-
-        if ( currentVersion ) {
-          disabled = compare(obj.id, currentVersion) < 0;
-          isCurrentVersion = compare(obj.id, currentVersion) === 0;
-        }
-
-        if ( defaultVersion ) {
-          experimental = compare(defaultVersion, obj.id) < 0;
-        }
-
-        if (isCurrentVersion) {
-          label = `${ label } ${ this.t('cluster.kubernetesVersion.current') }`;
-        }
-
-        if (experimental) {
-          label = `${ label } ${ this.t('cluster.kubernetesVersion.experimental') }`;
-        }
-
-        return {
-          label,
-          value:      obj.id,
-          sort:       sortable(obj.id),
-          serverArgs: obj.serverArgs,
-          agentArgs:  obj.agentArgs,
-          charts:     obj.charts,
-          disabled,
-        };
-      });
-
-      if (currentVersion && !out.find((obj) => obj.value === currentVersion)) {
-        out.push({
-          label: `${ currentVersion } ${ this.t('cluster.kubernetesVersion.current') }`,
-          value: currentVersion,
-          sort:  sortable(currentVersion),
-        });
-      }
-
-      const sorted = sortBy(out, 'sort:desc');
-
-      const mostRecentPatchVersions = this.getMostRecentPatchVersions(sorted);
-
-      const sortedWithDeprecatedLabel = sorted.map((optionData) => {
-        const majorMinor = `${ semver.major(optionData.value) }.${ semver.minor(optionData.value) }`;
-
-        if (mostRecentPatchVersions[majorMinor] === optionData.value) {
-          return optionData;
-        }
-
-        return {
-          ...optionData,
-          label: `${ optionData.label } ${ this.t('cluster.kubernetesVersion.deprecated') }`
-        };
-      });
-
-      return sortedWithDeprecatedLabel;
-    },
-
-    getMostRecentPatchVersions(sortedVersions) {
-      // Get the most recent patch version for each Kubernetes minor version.
-      const versionMap = {};
-
-      sortedVersions.forEach((version) => {
-        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-        if (!versionMap[majorMinor]) {
-          // Because we start with a sorted list of versions, we know the
-          // highest patch version is first in the list, so we only keep the
-          // first of each minor version in the list.
-          versionMap[majorMinor] = version.value;
-        }
-      });
-
-      return versionMap;
-    },
-
-    filterOutDeprecatedPatchVersions(allVersions, currentVersion) {
-      // Get the most recent patch version for each Kubernetes minor version.
-      const mostRecentPatchVersions = this.getMostRecentPatchVersions(allVersions);
-
-      const filteredVersions = allVersions.filter((version) => {
-        // Always show pre-releases
-        if (semver.prerelease(version.value)) {
-          return true;
-        }
-
-        const majorMinor = `${ semver.major(version.value) }.${ semver.minor(version.value) }`;
-
-        // Always show current version, else show if we haven't shown anything for this major.minor version yet
-        if (version.value === currentVersion || mostRecentPatchVersions[majorMinor] === version.value) {
-          return true;
-        }
-
-        return false;
-      });
-
-      return filteredVersions;
     },
     get,
   },
@@ -756,10 +500,11 @@ export default {
           @input="$emit('kubernetesChanged', $event)"
         />
         <Checkbox
-          v-model="showDeprecatedPatchVersions"
+          :value="showDeprecatedPatchVersions"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           class="patch-version"
+          @input="$emit('showDeprecatedPatchVersionsChanged', $event)"
         />
       </div>
       <div
