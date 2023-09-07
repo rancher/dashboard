@@ -235,7 +235,11 @@ export default {
       }
 
       if (!this.shown) {
-        return { content: item, placement: 'right' };
+        return {
+          content:       this.shown ? null : item,
+          placement:     'right',
+          popperOptions: { modifiers: { preventOverflow: { enabled: false } } }
+        };
       } else {
         return { content: undefined };
       }
@@ -628,7 +632,7 @@ export default {
       }
     }
     .home-text {
-      margin-left: $option-padding-left - 5;
+      margin-left: $option-padding-left - 7;
     }
     .body {
       flex: 1;
