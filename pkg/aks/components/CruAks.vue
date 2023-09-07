@@ -34,7 +34,7 @@ import Accordion from '@pkg/aks/components/Accordion.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 import CreateEditView from '@shell/mixins/create-edit-view';
 
-import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
+import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
 
 import { SETTING } from 'config/settings';
 import { sortable } from '@shell/utils/version';
@@ -151,7 +151,7 @@ export default defineComponent({
     }
     this.config = this.normanCluster.aksConfig;
     this.nodePools = this.normanCluster.aksConfig.nodePools;
-    this.containerMonitoring = (this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
+    this.containerMonitoring = !!(this.config.logAnalyticsWorkspaceGroup || this.config.logAnalyticsWorkspaceName);
     this.setAuthorizedIPRanges = !!(this.config?.authorizedIpRanges || []).length;
     this.nodePools.forEach((pool: AKSNodePool) => {
       this.$set(pool, '_id', randomStr());
@@ -166,8 +166,7 @@ export default defineComponent({
     return {
       normanCluster:    { name: '' } as any,
       nodePools:        [] as AKSNodePool[],
-      // todo nb aksConfig type?
-      config:           { } as any,
+      config:           { } as AKSConfig,
       membershipUpdate: {} as any,
       originalVersion:  '',
 

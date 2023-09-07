@@ -85,12 +85,12 @@ export const resourceGroupEnd = (ctx: any, labelKey:string, clusterPath:string) 
 // ipv4 regex from https://stackoverflow.com/questions/5284147/validating-ipv4-addresses-with-regexp
 
 // ipv4 with or without cidr
-export const ipv4WithOrWithoutCidr = (ctx: any, labelKey = 'aks.authorizedIpRanges.label', clusterPath: string) => {
+export const ipv4WithOrWithoutCidr = (ctx: any) => {
   // this is used for an array of inputs; each input is passed in here to validate
   return (ip = '') :string | undefined => {
     const isValid = ip.match(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/);
 
-    return isValid || !ip.length ? undefined : ctx.t('aks.errors.ipv4WithorWithoutCidr', { key: ctx.t(labelKey) });
+    return isValid || !ip.length ? undefined : ctx.t('aks.errors.authorizedIpRanges');
   };
 };
 
@@ -113,14 +113,3 @@ export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) =>
     return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.ipv4Cidr', { key: ctx.t(labelKey) });
   };
 };
-
-// // ipv6 regex from https://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
-// export const ipv6 = (ctx: any, labelKey: string, clusterPath: string) => {
-//   return () :string | undefined => {
-//     const toValidate = get(ctx.normanCluster, clusterPath) || '';
-
-//     const isValid = toValidate.match(/^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/);
-
-//     return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.ipv6', { key: ctx.t(labelKey) });
-//   };
-// };
