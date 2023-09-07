@@ -303,6 +303,7 @@ export default {
     },
 
     'value.region'() {
+      this.updateNetwork();
       this.$fetch();
     },
 
