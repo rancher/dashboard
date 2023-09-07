@@ -234,9 +234,9 @@ export default {
       }
     },
     getTooltipConfig(item) {
-      // if (!this.shown && !item) {
-      //   return;
-      // }
+      if (!this.shown && !item) {
+        return;
+      }
 
       if (!this.shown) {
         return {
