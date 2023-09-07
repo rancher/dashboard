@@ -41,6 +41,10 @@ export default {
   },
 
   watch: {
+    'value.decodedData.regionID'(neu) {
+      this.$emit('validationChanged', !!neu);
+    },
+
     'value.decodedData.projectID'(neu) {
       this.$emit('validationChanged', !!neu);
     },
@@ -79,7 +83,7 @@ export default {
 
   mounted() {
     if (!this.value?.decodedData?.regionID) {
-      this.value.decodedData.regionID = 'cn-east-3';
+      this.value.setData('regionID', 'cn-east-3');
     }
   }
 };
