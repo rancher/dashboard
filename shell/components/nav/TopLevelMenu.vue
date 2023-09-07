@@ -861,6 +861,9 @@ export default {
     }
 
     &.menu-close {
+      .side-menu-logo  {
+        opacity: 0;
+      }
       .category {
         &-title {
           span {
@@ -933,22 +936,17 @@ export default {
   .side-menu-logo {
     align-items: center;
     display: flex;
-    margin-left: 71px;
+    transform: translateX($app-bar-collapsed-width);
     opacity: 1;
-    transition: opacity 1.2s;
-    transition-delay: 0s;
     max-width: 200px;
+    width: 100%;
+    justify-content: center;
+    transition: all 0.5s;
     overflow: hidden;
     & IMG {
       object-fit: contain;
       height: 21px;
       max-width: 200px;
-    }
-  }
-
-  .fade-enter-active {
-    .side-menu-logo {
-      opacity: 0;
     }
   }
 
@@ -967,10 +965,6 @@ export default {
 
   .fade-enter {
     left: -300px;
-
-    .side-menu-logo {
-      opacity: 0;
-    }
   }
 
   .locale-chooser {
