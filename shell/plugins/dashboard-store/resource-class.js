@@ -1464,7 +1464,7 @@ export default class Resource {
   }
 
   async saveYaml(yaml) {
-    this._saveYaml(yaml);
+    await this._saveYaml(yaml);
   }
 
   async _saveYaml(yaml) {
