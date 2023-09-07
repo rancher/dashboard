@@ -24,6 +24,13 @@ describe('Side Menu: main', () => {
     burgerMenuPo.clusters().should('exist');
   });
 
+  it('Can display list of pinned clusters', { tags: '@adminUser' }, () => {
+    const burgerMenuPo = new BurgerMenuPo();
+
+    burgerMenuPo.pinCluster();
+    burgerMenuPo.pinClustersList().should('exist');
+  });
+
   it('Can display at least one menu category label', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
