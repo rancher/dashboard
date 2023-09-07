@@ -17,11 +17,12 @@
       :add-label="t('cluster.customContainerdConfig.machineSelector.label')"
       :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }}"
     >
-      <template #default="{row}">
+      <template #default="{row, i}">
         <h3>{{ t('cluster.customContainerdConfig.machineSelector.title') }}</h3>
         <MatchExpressions
           v-model="row.value.machineLabelSelector"
           class="mb-20"
+          type="pod"
           :mode="mode"
           :show-remove="false"
           :initial-empty-row="true"
@@ -29,11 +30,9 @@
         <div class="spacer" />
         <h3>{{ t('cluster.customContainerdConfig.template.title') }}</h3>
         <TomlEditor
-          ref="toml-values"
+          :ref="'tomlValues'+i"
           v-model="row.value.containerdConfigTemplate"
           :lint="false"
-          :scrolling="true"
-          :as-object="true"
           :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
           :hide-preview-buttons="true"
         />
@@ -90,6 +89,3 @@ export default {
   // }
 };
 </script>
-<style scoped>
-
-</style>

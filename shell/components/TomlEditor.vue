@@ -21,11 +21,6 @@ export default {
       }
     },
 
-    asObject: {
-      type:    Boolean,
-      default: false,
-    },
-
     initialTomlValues: {
       type:    [String, Object],
       default: '',
@@ -44,11 +39,6 @@ export default {
     hidePreviewButtons: {
       type:    Boolean,
       default: false,
-    },
-
-    lint: {
-      type:    Boolean,
-      default: true
     },
 
     /**
@@ -93,7 +83,7 @@ export default {
         gutters,
         mode:            'toml',
         lint:            !readOnly && this.lint,
-        lineNumbers:     !readOnly,
+        lineNumbers:     true,
         styleActiveLine: true,
         tabSize:         2,
         indentWithTabs:  false,
