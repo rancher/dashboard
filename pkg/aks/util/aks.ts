@@ -3,7 +3,6 @@ import { set, get } from '@shell/utils/object';
 import { addParams, QueryParams } from '@shell/utils/url';
 
 // get vm sizes, regions, virtual networks, k8s versions
-// todo nb aksConfig type
 export function getAKSOptions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string, resource: string) :Promise<any> | null {
   if (!azureCredentialSecret) {
     return null;
@@ -22,24 +21,6 @@ export function getAKSOptions(ctx: any, azureCredentialSecret: string, resourceL
 
   return ctx.$store.dispatch('cluster/request', { url });
 }
-
-// aksUrlFor(path: string, useRegion = true): string | null {
-//   const { azureCredentialSecret, resourceLocation } = this.config;
-
-//   if (!azureCredentialSecret) {
-//     return null;
-//   }
-//   const params: QueryParams = { cloudCredentialId: azureCredentialSecret };
-
-//   if (useRegion) {
-//     params.region = resourceLocation;
-//   }
-//   if (this.clusterId) {
-//     params.clusterId = this.clusterId;
-//   }
-
-//   return addParams(`/meta/${ path }`, params );
-// }
 
 /**
  * Hosted provider (aks gke eks) edit functionality differs from other k8s resources

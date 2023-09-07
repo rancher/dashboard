@@ -431,7 +431,6 @@ export default defineComponent({
       }
     },
 
-    // todo nb clear addr ranges? Old UI doesn't do this: oversight?
     hasAzureCNI(neu) {
       if (!neu) {
         if (this.config.networkPolicy === 'azure') {

@@ -149,7 +149,6 @@ export default defineComponent({
 
     <div class="row mb-10">
       <div class="col span-3">
-        <!-- //todo nb when is this ever editable...? -->
         <LabeledSelect
           v-model="pool.osType"
           :options="[]"

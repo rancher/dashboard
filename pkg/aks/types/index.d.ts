@@ -13,7 +13,7 @@ export interface AKSNodePool {
   mode?: AKSPoolMode,
   name?: String,
   nodeLabels?: Object,
-  nodeTaints?: String[], // TODO nb shape of node taints?
+  nodeTaints?: String[],
   orchestratorVersion?: String,
   osDiskSizeGB?: Number,
   osDiskType?: AKSDiskType,

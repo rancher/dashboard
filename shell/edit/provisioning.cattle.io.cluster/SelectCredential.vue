@@ -216,7 +216,6 @@ export default {
       this.credentialId = _NONE;
     },
 
-    // TODO nb this sends the user back to the cluster list page; do we ever want this...?
     defaultOrCancel() {
       this.defaultOnCancel ? this.credentialId = this.filteredCredentials[0]?.id : this.cancel();
     }
