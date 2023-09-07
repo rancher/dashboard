@@ -112,7 +112,6 @@ export default {
     background: var(--nav-icon-badge-bg);
     border: 1px solid var(--default-border);
     border-radius: 5px;
-    padding-top: 2px;
     font-size: 12px;
     text-transform: uppercase;
 
