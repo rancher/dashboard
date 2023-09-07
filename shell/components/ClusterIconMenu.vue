@@ -74,7 +74,6 @@ export default {
       >
         {{ smallIdentifier(cluster.label) }}
       </span>
-      <!-- {{ cluster.badge.iconText }} -->
     </div>
     <i
       v-if="cluster.pinned"
