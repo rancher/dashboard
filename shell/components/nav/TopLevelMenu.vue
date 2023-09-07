@@ -34,6 +34,7 @@ export default {
       clusterFilter:     '',
       hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
+      emptyCluster:      BLANK_CLUSTER
     };
   },
 
@@ -57,10 +58,6 @@ export default {
 
     legacyEnabled() {
       return this.features(LEGACY);
-    },
-
-    emptyCluster() {
-      return BLANK_CLUSTER;
     },
 
     showClusterSearch() {
@@ -233,9 +230,9 @@ export default {
       }
     },
     getTooltipConfig(item) {
-      if (!this.shown && !item) {
-        return;
-      }
+      // if (!this.shown && !item) {
+      //   return;
+      // }
 
       if (!this.shown) {
         return { content: item, placement: 'right' };
@@ -627,11 +624,11 @@ export default {
       svg {
         width: 25px;
         height: 25px;
-        margin-left: 8px;
+        margin-left: 10px;
       }
     }
     .home-text {
-      margin-left: $option-padding-left - 2;
+      margin-left: $option-padding-left - 5;
     }
     .body {
       flex: 1;
@@ -769,7 +766,6 @@ export default {
 
       .clusters {
         overflow-y: auto;
-        max-height: 35vh;
 
         @media screen and (max-height: 720px) {
           min-height: 80px;
