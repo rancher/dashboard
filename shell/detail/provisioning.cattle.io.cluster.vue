@@ -90,8 +90,7 @@ export default {
         getters:  this.$store.getters,
         axios:    this.$store.$axios,
         $plugin:  this.$store.app.$plugin,
-        $t:       this.t,
-        router:   this.$router
+        $t:       this.t
       });
       this.extDetailTabs = {
         ...this.extDetailTabs,

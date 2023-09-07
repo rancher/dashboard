@@ -1,6 +1,5 @@
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
-import routes from './routing';
 import { AKSProvisioner } from './provisioner';
 
 // Init the package
@@ -13,9 +12,4 @@ export default function(plugin: IPlugin): void {
 
   // Register custom provisioner object
   plugin.register('provisioner', AKSProvisioner.ID, AKSProvisioner);
-
-  plugin.addRoutes(routes);
-
-  // Load a product
-  // plugin.addProduct(require('./product'));
 }

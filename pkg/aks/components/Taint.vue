@@ -11,11 +11,7 @@ import { mapGetters } from 'vuex';
 const EFFECT_OPTIONS = ['PreferNoSchedule', 'NoExecute', 'NoSchedule'];
 
 export default defineComponent({
-  components: {
-    // LabeledInput,
-    // LabeledSelect,
-    Select
-  },
+  components: { Select },
 
   props: {
     mode: {
@@ -106,14 +102,3 @@ export default defineComponent({
     </td>
   </tr>
 </template>
-
-<style lang="scss" scoped>
-// .taint {
-//   display: flex;
-//   align-items: center;
-
-//   &>:not(:last-child) {
-//     margin-right: 10px;
-//   }
-// }
-</style>

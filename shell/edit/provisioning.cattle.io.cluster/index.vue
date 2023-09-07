@@ -152,7 +152,6 @@ export default {
         axios:    this.$store.$axios,
         $plugin:  this.$store.app.$plugin,
         t:        (...args) => this.t.apply(this, args),
-        router:   this.$router,
         isCreate: this.isCreate,
         isEdit:   this.isEdit,
         isView:   this.isView,

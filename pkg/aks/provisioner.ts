@@ -32,7 +32,6 @@ export class AKSProvisioner implements IClusterProvisioner {
     return true;
   }
 
-  // TODO nb remove from shell/assets/providers
   get icon(): any {
     return require('./assets/aks.svg');
   }

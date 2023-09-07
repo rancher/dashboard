@@ -233,44 +233,6 @@ export default defineComponent({
         </div>
       </template>
     </div>
-
-    <!-- <div class="row">
-      <div class="col span-12">
-        <div class="text-label">
-          {{ t('aks.nodePools.taints.label') }}
-        </div>
-        <div
-          v-if="taints.length"
-          class="row taints-labels"
-        >
-          <label class="text-label">
-            {{ t('aks.nodePools.taints.key') }}
-          </label>
-          <label class="text-label">
-            {{ t('aks.nodePools.taints.value') }}
-          </label>
-          <label class="text-label">
-            {{ t('aks.nodePools.taints.effect') }}
-          </label>
-          <div />
-        </div>
-        <Taint
-          v-for="(keyedTaint, i) in taints"
-          :key="keyedTaint._id"
-          :taint="keyedTaint.taint"
-          :mode="mode"
-          @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
-          @remove="removeTaint(i)"
-        />
-        <button
-          type="button"
-          class="btn role-tertiary mt-20"
-          @click="addTaint"
-        >
-          {{ t('aks.nodePools.taints.addTaint') }}
-        </button>
-      </div>
-    </div> -->
     <div class="row mb-10">
       <div class="col span-12">
         <div class="text-label">
@@ -334,11 +296,6 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-// .pool {
-//   border: 1px solid var(--link-border);
-//   padding: 20px;
-// }
-
 .remove-row {
   display: flex;
   justify-content: flex-end;
