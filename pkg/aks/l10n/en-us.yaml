@@ -128,6 +128,6 @@ aks:
       length: "{key} cannot exceed 80 characters."
       chars: "{key} may only consist of underscores, periods, hyphens, parentheses, and letters or digits."
       periodEnd: "{key} cannot end with a period."
-    authorizedIpRanges: Authorized IP ranges must be CIDR notation ipv4 ranges, or single ipv4 addresses.
+    ipv4WithorWithoutCidr: "{key} must be CIDR notation ipv4 ranges, or single ipv4 addresses."
     ipv4Cidr: "{key} must be a valid CIDR notation ipv4 range."
     ipv4: "{key} must be a valid ipv4 address."

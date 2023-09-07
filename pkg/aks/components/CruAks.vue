@@ -2,11 +2,8 @@
 
 /**
  * TODOS
- * - fix taints labels formatting
  * - registration tab shows on detail view
- * - no norman????
- * - validate resource group and node group w/ ember regex
- * - validate cluster name
+ * - authorized ip ranges error message formatting
  */
 
 import { defineComponent } from 'vue';
@@ -42,7 +39,7 @@ import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
 import { SETTING } from 'config/settings';
 import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
-import { diffUpstreamSpec } from '@pkg/aks/util/aks';
+import { diffUpstreamSpec, getAKSOptions } from '@pkg/aks/util/aks';
 import {
   requiredInCluster,
   clusterNameChars,
@@ -275,12 +272,11 @@ export default defineComponent({
         nodeResourceGroupLength: resourceGroupLength(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
         resourceGroupEnd:        resourceGroupEnd(this, 'aks.clusterResourceGroup.label', 'aksConfig.resourceGroup'),
         nodeResourceGroupEnd:    resourceGroupEnd(this, 'aks.nodeResourceGroup.label', 'aksConfig.nodeResourceGroup'),
-        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this, 'aks.authorizedIpRanges.label', 'aksConfig.authorizedIpRanges'),
+        ipv4WithOrWithoutCidr:   ipv4WithOrWithoutCidr(this, 'aks.authirizedIpRanges.label', 'aksConfig.authorizedIpRanges'),
         serviceCidr:             ipv4WithCidr(this, 'aks.serviceCidr.label', 'aksConfig.serviceCidr'),
         podCidr:                 ipv4WithCidr(this, 'aks.podCidr.label', 'aksConfig.podCidr'),
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'aksConfig.dockerBridgeCidr'),
 
-        // todo nb move to validators file...?
         vmSizeAvailable: () => {
           if (this.touchedVmSize) {
             let allAvailable = true;
@@ -456,6 +452,7 @@ export default defineComponent({
 
     'config.azureCredentialSecret'(neu) {
       if (neu) {
+        this.resetCredentialDependentProperties();
         this.getLocations();
       }
     },
@@ -482,91 +479,104 @@ export default defineComponent({
   },
 
   methods: {
-    // todo nb move aks requests to utils for easier testing
-    aksUrlFor(path: string, useRegion = true): string | null {
-      const { azureCredentialSecret, resourceLocation } = this.config;
-
-      if (!azureCredentialSecret) {
-        return null;
-      }
-      const params: QueryParams = { cloudCredentialId: azureCredentialSecret };
-
-      if (useRegion) {
-        params.region = resourceLocation;
-      }
-      if (this.clusterId) {
-        params.clusterId = this.clusterId;
-      }
-
-      return addParams(`/meta/${ path }`, params );
+    // reset properties dependent on AKS queries so if they're lodaded with a valid credential then an invalid credential is selected, they're cleared
+    resetCredentialDependentProperties() {
+      this.locationOptions = [];
+      this.allAksVersions = [];
+      this.vmSizeOptions = [];
+      this.virtualNetworkOptions = [];
+      delete this.config?.kubernetesVersion;
+      this.errors = [];
     },
 
     getLocations() {
       this.loadingLocations = true;
       // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
       this.$set(this.config, 'resourceLocation', '');
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksLocations', false) }).then((res: any[]) => {
-        this.locationOptions = res;
-        if (!this.config?.resourceLocation) {
-          if (res.find((r) => r.name === DEFAULT_REGION)) {
-            this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
-          } else {
-            this.$set(this.config, 'resourceLocation', res[0]?.name);
-          }
-        }
-        this.loadingLocations = false;
-      }).catch((err: any) => {
-        const parsedError = parseAzureError(err.error || '');
 
-        this.errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
-      });
+      const { azureCredentialSecret, resourceLocation } = this.config;
+
+      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksLocations')
+        .then((res: any[]) => {
+          this.locationOptions = res;
+          if (!this.config?.resourceLocation) {
+            if (res.find((r) => r.name === DEFAULT_REGION)) {
+              this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
+            } else {
+              this.$set(this.config, 'resourceLocation', res[0]?.name);
+            }
+          }
+          this.loadingLocations = false;
+        }).catch((err: any) => {
+          this.loadingLocations = false;
+          const parsedError = parseAzureError(err.error || '');
+
+          this.errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
+        });
     },
 
     getAksVersions() {
       this.loadingVersions = true;
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVersions') }).then((res: string[]) => {
-        // the default version is set once these are filtered and sorted in computed prop
-        this.allAksVersions = res;
-        this.loadingVersions = false;
-      }).catch((err: any) => {
-        const parsedError = parseAzureError(err.error || '');
+      this.allAksVersions = [];
+      const { azureCredentialSecret, resourceLocation } = this.config;
 
-        this.errors.push(this.t('aks.errors.kubernetesVersions', { e: parsedError || err }));
-      });
+      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksVersions')
+        .then((res: string[]) => {
+        // the default version is set once these are filtered and sorted in computed prop
+          this.allAksVersions = res;
+          this.loadingVersions = false;
+        }).catch((err: any) => {
+          this.loadingVersions = false;
+
+          const parsedError = parseAzureError(err.error || '');
+
+          this.errors.push(this.t('aks.errors.kubernetesVersions', { e: parsedError || err }));
+        });
     },
 
     getVmSizes() {
       this.loadingVmSizes = true;
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVMSizes') }).then((res: string[]) => {
-        if (isArray(res)) {
-          this.vmSizeOptions = res.sort();
+      this.vmSizeOptions = [];
+      const { azureCredentialSecret, resourceLocation } = this.config;
 
-          if (!this.vmSizeOptions.includes(this.defaultVmSize)) {
-            this.defaultVmSize = '';
+      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksVMSizes')
+        .then((res: string[]) => {
+          if (isArray(res)) {
+            this.vmSizeOptions = res.sort();
+
+            if (!this.vmSizeOptions.includes(this.defaultVmSize)) {
+              this.defaultVmSize = '';
+            }
           }
-        }
 
-        this.loadingVmSizes = false;
-      }).catch((err: any) => {
-        const parsedError = parseAzureError(err.error || '');
+          this.loadingVmSizes = false;
+        }).catch((err: any) => {
+          this.loadingVmSizes = false;
 
-        this.errors.push(this.t('aks.errors.vmSizes', { e: parsedError || err }));
-      });
+          const parsedError = parseAzureError(err.error || '');
+
+          this.errors.push(this.t('aks.errors.vmSizes', { e: parsedError || err }));
+        });
     },
 
     getVirtualNetworks() {
       this.loadingVirtualNetworks = true;
-      this.$store.dispatch('cluster/request', { url: this.aksUrlFor('aksVirtualNetworks') }).then((res: any) => {
-        if (res && isArray(res)) {
-          this.virtualNetworkOptions = res;
-        }
+      this.virtualNetworkOptions = [];
+      const { azureCredentialSecret, resourceLocation } = this.config;
 
-        this.loadingVirtualNetworks = false;
-      }).catch((err: any) => {
-        const parsedError = parseAzureError(err.error || '');
+      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksVirtualNetworks')
+        .then((res: any) => {
+          if (res && isArray(res)) {
+            this.virtualNetworkOptions = res;
+          }
 
-        this.errors.push(this.t('aks.errors.virtualNetworks', { e: parsedError || err }));
-      });
+          this.loadingVirtualNetworks = false;
+        }).catch((err: any) => {
+          const parsedError = parseAzureError(err.error || '');
+
+          this.loadingVirtualNetworks = false;
+          this.errors.push(this.t('aks.errors.virtualNetworks', { e: parsedError || err }));
+        });
     },
 
     addPool() {
@@ -678,7 +688,7 @@ export default defineComponent({
           />
         </div>
         <div
-          v-if="locationOptions.length"
+
           class="col span-4"
         >
           <LabeledSelect
@@ -694,7 +704,9 @@ export default defineComponent({
             :disabled="!isNewOrUnprovisioned"
           />
         </div>
-        <div class="col span-4">
+        <div
+          class="col span-4"
+        >
           <LabeledSelect
             v-model="config.kubernetesVersion"
             :mode="mode"
@@ -708,39 +720,39 @@ export default defineComponent({
           />
         </div>
       </div>
-      <div><h4>{{ t('aks.nodePools.title') }}</h4></div>
-      <Tabbed
-        ref="pools"
-        :side-tabs="true"
-        :show-tabs-add-remove="mode !== 'view'"
-        :rules="fvGetAndReportPathRules('vmSize')"
-        class="mb-10"
-        @addTab="addPool($event)"
-        @removeTab="removePool($event)"
-      >
-        <Tab
-          v-for="(pool, i) in nodePools"
-          :key="pool._id"
-          :name="pool.name"
-          :label="pool.name || t('aks.nodePools.notNamed')"
-          :error="pool._validSize === false"
-        >
-          <!-- calling fvUnreportedValidationErrors here forces the pool mode validator to run when mode changes
-          other validators are run when inputs in this form are touched, not node pools -->
-          <AksNodePool
-            :mode="mode"
-            :region="config.resourceLocation"
-            :pool="pool"
-            :vm-size-options="vmSizeOptions"
-            :loading-vm-sizes="loadingVmSizes"
-            :isPrimaryPool="i===0"
-            @remove="removePool(pool)"
-            @vmSizeSet="touchedVmSize = true"
-          />
-        </Tab>
-      </Tabbed>
-
       <template v-if="config.resourceLocation && config.resourceLocation.length">
+        <div><h4>{{ t('aks.nodePools.title') }}</h4></div>
+        <Tabbed
+          ref="pools"
+          :side-tabs="true"
+          :show-tabs-add-remove="mode !== 'view'"
+          :rules="fvGetAndReportPathRules('vmSize')"
+          class="mb-10"
+          @addTab="addPool($event)"
+          @removeTab="removePool($event)"
+        >
+          <Tab
+            v-for="(pool, i) in nodePools"
+            :key="pool._id"
+            :name="pool.name"
+            :label="pool.name || t('aks.nodePools.notNamed')"
+            :error="pool._validSize === false"
+          >
+            <!-- calling fvUnreportedValidationErrors here forces the pool mode validator to run when mode changes
+          other validators are run when inputs in this form are touched, not node pools -->
+            <AksNodePool
+              :mode="mode"
+              :region="config.resourceLocation"
+              :pool="pool"
+              :vm-size-options="vmSizeOptions"
+              :loading-vm-sizes="loadingVmSizes"
+              :isPrimaryPool="i===0"
+              @remove="removePool(pool)"
+              @vmSizeSet="touchedVmSize = true"
+            />
+          </Tab>
+        </Tabbed>
+
         <Accordion
           :open-initially="true"
           class="mb-10"
@@ -990,6 +1002,7 @@ export default defineComponent({
                 value-placeholder="10.0.0.0/14"
                 :label="t('aks.authorizedIpRanges.label')"
                 :rules="fvGetAndReportPathRules('authorizedIpRanges')"
+                @input="$emit('validationChanged')"
               >
                 <template #title>
                   <div class="text-label">

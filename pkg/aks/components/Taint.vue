@@ -6,6 +6,7 @@ import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import Select from '@shell/components/form/Select.vue';
 import { _CREATE, _VIEW } from '@shell/config/query-params';
+import { mapGetters } from 'vuex';
 
 const EFFECT_OPTIONS = ['PreferNoSchedule', 'NoExecute', 'NoSchedule'];
 
@@ -57,6 +58,7 @@ export default defineComponent({
   },
 
   computed: {
+    ...mapGetters({ t: 'i18n/t' }),
     isEdit() {
       return this.mode !== _VIEW;
     },
@@ -69,63 +71,49 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="taint">
-    <!-- <LabeledInput
-      v-model="key"
-      label="key"
-      :mode="mode"
-    />
-
-    <LabeledInput
-      v-model="value"
-      label="value"
-      :mode="mode"
-    />
-
-    <LabeledSelect
-      v-model="effect"
-      :mode="mode"
-      :options="effectOptions"
-      label="effect"
-    /> -->
-    <input
-      v-model="key"
-      label="key"
-      :mode="mode"
-    >
-
-    <input
-      v-model="value"
-      label="value"
-      :mode="mode"
-    >
-
-    <Select
-      v-model="effect"
-      :mode="mode"
-      :options="effectOptions"
-      label="effect"
-    />
-    <div>
+  <tr class="taint">
+    <td>
+      <input
+        v-model="key"
+        label="key"
+        :mode="mode"
+      >
+    </td>
+    <td>
+      <input
+        v-model="value"
+        label="value"
+        :mode="mode"
+      >
+    </td>
+    <td>
+      <Select
+        v-model="effect"
+        :mode="mode"
+        :options="effectOptions"
+        label="effect"
+      />
+    </td>
+    <td>
       <button
         v-if="isEdit"
         type="button"
         class="btn role-link btn-sm"
         @click="$emit('remove')"
       >
-        Remove
+        {{ t('generic.remove') }}
       </button>
-    </div>
-  </div>
+    </td>
+  </tr>
 </template>
 
 <style lang="scss" scoped>
-.taint {
-  display: flex;
-  align-items: center;
+// .taint {
+//   display: flex;
+//   align-items: center;
 
-  &>:not(:last-child) {
-    margin-right: 10px;
-  }
-}
+//   &>:not(:last-child) {
+//     margin-right: 10px;
+//   }
+// }
 </style>

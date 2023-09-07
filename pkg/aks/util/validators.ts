@@ -5,7 +5,7 @@
 
 import { get } from '@shell/utils/object';
 
-// no need to try to validate any fields if the user is still selecting a credential
+// no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
 const needsValidation = (ctx: any) => {
   return !!ctx.config.azureCredentialSecret && !!ctx.config.resourceLocation;
 };
@@ -26,8 +26,6 @@ export const requiredInCluster = (ctx: any, labelKey: string, clusterPath: strin
 export const clusterNameChars = (ctx: any) => {
   return () :string | undefined => {
     const { name = '' } = get(ctx, 'normanCluster');
-
-    // const nameIsValid = name.match(/^([A-Z]|[a-z])+([A-Z]|[a-z]|[0-9]|\.|_)*([A-Z]|[a-z])+$/);
     const nameIsValid = name.match(/([A-Z]|[a-z]|[0-9]|\.|_)*$/);
 
     return !needsValidation(ctx) || nameIsValid ? undefined : ctx.t('aks.errors.clusterName.chars');
@@ -92,7 +90,7 @@ export const ipv4WithOrWithoutCidr = (ctx: any, labelKey = 'aks.authorizedIpRang
   return (ip = '') :string | undefined => {
     const isValid = ip.match(/^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/);
 
-    return isValid || !ip.length ? undefined : ctx.t(labelKey);
+    return isValid || !ip.length ? undefined : ctx.t('aks.errors.ipv4WithorWithoutCidr', { key: ctx.t(labelKey) });
   };
 };
 

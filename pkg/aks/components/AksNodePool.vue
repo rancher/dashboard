@@ -235,12 +235,11 @@ export default defineComponent({
       </template>
     </div>
 
-    <div class="row">
-      <div class="col span-6">
+    <!-- <div class="row">
+      <div class="col span-12">
         <div class="text-label">
           {{ t('aks.nodePools.taints.label') }}
         </div>
-        <!-- //todo nb less hacky way of styling labels -->
         <div
           v-if="taints.length"
           class="row taints-labels"
@@ -254,15 +253,7 @@ export default defineComponent({
           <label class="text-label">
             {{ t('aks.nodePools.taints.effect') }}
           </label>
-          <div>
-          <!-- <button
-            type="button"
-            class="btn role-link btn-sm"
-            :style="{visibility: 'hidden'}"
-          >
-            remove
-          </button> -->
-          </div>
+          <div />
         </div>
         <Taint
           v-for="(keyedTaint, i) in taints"
@@ -280,7 +271,54 @@ export default defineComponent({
           {{ t('aks.nodePools.taints.addTaint') }}
         </button>
       </div>
-      <div class="col span-6">
+    </div> -->
+    <div class="row mb-10">
+      <div class="col span-12">
+        <div class="text-label">
+          {{ t('aks.nodePools.taints.label') }}
+        </div>
+        <table
+          v-if="taints && taints.length"
+          class="taints"
+        >
+          <tr>
+            <th>
+              <label class="text-label">
+                {{ t('aks.nodePools.taints.key') }}
+              </label>
+            </th>
+            <th>
+              <label class="text-label">
+                {{ t('aks.nodePools.taints.value') }}
+              </label>
+            </th>
+            <th>
+              <label class="text-label">
+                {{ t('aks.nodePools.taints.effect') }}
+              </label>
+            </th>
+            <th />
+          </tr>
+          <Taint
+            v-for="(keyedTaint, i) in taints"
+            :key="keyedTaint._id"
+            :taint="keyedTaint.taint"
+            :mode="mode"
+            @input="e=>updateTaint({_id:keyedTaint._id, taint: e}, i)"
+            @remove="removeTaint(i)"
+          />
+        </table>
+        <button
+          type="button"
+          class="btn role-tertiary mt-20"
+          @click="addTaint"
+        >
+          {{ t('aks.nodePools.taints.addTaint') }}
+        </button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-12">
         <div class="text-label">
           {{ t('labels.labels.title') }}
         </div>
@@ -306,14 +344,15 @@ export default defineComponent({
   display: flex;
   justify-content: flex-end;
 }
-
-.taints-labels{
-  display: flex;
-  justify-content: space-between;
-
-  &>label {
-    flex-grow: 1;
-    margin-right: 10px
+.taints {
+  width: 100%;
+  th,::v-deep td{
+    text-align: left;
+    padding-right: 10px;
+    font-weight: inherit;
+  }
+  th>* {
+    margin: 0px;
   }
 }
 </style>
