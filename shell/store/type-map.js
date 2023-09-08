@@ -131,7 +131,7 @@ import {
   MANAGEMENT,
   NAMESPACE
 } from '@shell/config/types';
-import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES, PIN_TYPES } from '@shell/store/prefs';
+import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES, PINNED_CLUSTERS } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@shell/utils/array';
@@ -502,11 +502,11 @@ export const getters = {
     };
   },
 
-  isPinned(state, getters, rootState, rootGetters) {
-    return (clusterId) => {
-      return rootGetters['prefs/get'](PIN_TYPES).includes(clusterId) || false;
-    };
-  },
+  // isClusterPinned(state, getters, rootState, rootGetters) {
+  //   return (clusterId) => {
+  //     return rootGetters['prefs/get'](PINNED_CLUSTERS).includes(clusterId) || false;
+  //   };
+  // },
 
   typeWeightFor(state) {
     return (type, forBasic) => {
@@ -1657,21 +1657,21 @@ export const actions = {
     dispatch('prefs/set', { key: FAVORITE_TYPES, value: types }, { root: true });
   },
 
-  addPin({ dispatch, rootGetters }, type) {
-    const types = rootGetters['prefs/get'](PIN_TYPES) || [];
+  // pinCluster({ dispatch, rootGetters }, type) {
+  //   const types = rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
 
-    addObject(types, type);
+  //   addObject(types, type);
 
-    dispatch('prefs/set', { key: PIN_TYPES, value: types }, { root: true });
-  },
+  //   dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  // },
 
-  removePin({ dispatch, rootGetters }, type) {
-    const types = rootGetters['prefs/get'](PIN_TYPES) || [];
+  // unpinCluster({ dispatch, rootGetters }, type) {
+  //   const types = rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
 
-    removeObject(types, type);
+  //   removeObject(types, type);
 
-    dispatch('prefs/set', { key: PIN_TYPES, value: types }, { root: true });
-  },
+  //   dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  // },
 
   toggleGroup({ dispatch, rootGetters }, { group, expanded }) {
     const groups = rootGetters['prefs/get'](EXPANDED_GROUPS);
