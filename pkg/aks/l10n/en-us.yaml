@@ -1,5 +1,5 @@
 aks:
-  label: Azure AKS (ext)
+  label: Azure AKS
   location:
     label: Region
   clusterResourceGroup:
