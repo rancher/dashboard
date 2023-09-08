@@ -18,7 +18,7 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   static burgerMenuNavToMenubyLabel(label: string): Cypress.Chainable {
-    return this.sideMenu().should('exist').find('.option div:last-child').contains(label)
+    return this.sideMenu().should('exist').find('.option').contains(label)
       .click();
   }
 
@@ -35,14 +35,22 @@ export default class BurgerMenuPo extends ComponentPo {
    * Check if menu is open
    */
   static checkOpen() {
-    this.sideMenu().should('exist');
+    this.sideMenu().should('have.class', 'menu-open');
   }
 
   /**
    * Check if menu is closed
    */
   static checkClosed() {
-    this.sideMenu().should('not.exist');
+    this.sideMenu().should('have.class', 'menu-close');
+  }
+
+  static checkTooltipOn(): Cypress.Chainable {
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.class', 'has-tooltip');
+  }
+
+  static checkTooltipOff(): Cypress.Chainable {
+    return cy.get('.option').get('.cluster-icon-menu').first().should('have.not.class', 'has-tooltip');
   }
 
   /**

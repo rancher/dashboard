@@ -1,7 +1,7 @@
-import Vue from 'vue';
+import { SETTING } from '@shell/config/settings';
 import { MANAGEMENT, STEVE } from '@shell/config/types';
 import { clone } from '@shell/utils/object';
-import { SETTING } from '@shell/config/settings';
+import Vue from 'vue';
 
 const definitions = {};
 /**
@@ -115,8 +115,7 @@ export const PROVISIONER = create('provisioner', _RKE2, { options: [_RKE1, _RKE2
 export const PSP_DEPRECATION_BANNER = create('hide-psp-deprecation-banner', false, { parseJSON });
 
 // Maximum number of clusters to show in the slide-in menu
-export const MENU_MAX_CLUSTERS = create('menu-max-clusters', 4, { options: [2, 3, 4, 5, 6, 7, 8, 9, 10], parseJSON });
-
+export const MENU_MAX_CLUSTERS = 10;
 // Prompt for confirm when scaling down node pool in GUI and save the pref
 export const SCALE_POOL_PROMPT = create('scale-pool-prompt', null, { parseJSON });
 // --------------------

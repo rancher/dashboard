@@ -139,6 +139,8 @@ nav:
   rotateEncryptionKeys: Rotate Encryption Keys
   saveAsRKETemplate: Save as RKE Template
   takeSnapshot: Take Snapshot
+  seeAllClusters: See all clusters
+  seeAllClustersCollapsed: See all
   group:
     cluster: Cluster
     inUse: More Resources
@@ -185,6 +187,7 @@ nav:
   search:
     placeholder: Type to search clusters
     noResults: No matching clusters
+    clusters: clusters
   resourceSearch:
     label: Resource Search
     toolTip: Resource Search {key}
@@ -4092,14 +4095,14 @@ plugins:
     subtitle: Catalogs
     imageLoad:
       load: Import Extension Catalog
-      prompt: An Extension Catalog contains extension assets bundled into an image, importing will take the image and host a Helm repository to act as a catalog for custom built Extensions. 
+      prompt: An Extension Catalog contains extension assets bundled into an image, importing will take the image and host a Helm repository to act as a catalog for custom built Extensions.
       fields:
         image:
           label: Catalog Image Reference
           placeholder: "e.g. hub.docker.io/example-org/my-image:latest"
         secrets:
           banner: "If the registry that hosts the Catalog Image requires Pull Secrets, they must be created in the following namespace:<pre>cattle-ui-plugin-system</pre>"
-      banner: This will create an Deployment, Service, and Helm repository to serve the extension charts. 
+      banner: This will create an Deployment, Service, and Helm repository to serve the extension charts.
       imageVersion:
         title: Image Version Not Found
         message: Unable to determine image version from {image}, defaulting to latest
