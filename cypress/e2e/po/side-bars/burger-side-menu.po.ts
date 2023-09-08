@@ -114,4 +114,12 @@ export default class BurgerMenuPo extends ComponentPo {
   home(): Cypress.Chainable {
     return this.self().find('.body > div > a').first();
   }
+
+  /**
+   * Get the About link
+   * @returns {Cypress.Chainable}
+   */
+  about(): Cypress.Chainable {
+    return cy.getId('footer__about_link');
+  }
 }

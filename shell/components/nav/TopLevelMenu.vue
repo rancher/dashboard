@@ -623,6 +623,8 @@ export default {
           >
             <nuxt-link
               :to="{ name: 'about' }"
+              class="version"
+              data-testid="footer__about_link"
             >
               {{ t('about.title') }}
             </nuxt-link>
