@@ -665,6 +665,7 @@ export default defineComponent({
     <div class="mb-20">
       <SelectCredential
         v-model="config.azureCredentialSecret"
+        data-testid="cruaks-select-credential"
         :mode="isNewOrUnprovisioned ? 'create' : 'view'"
         provider="azure"
         :default-on-cancel="true"
@@ -672,7 +673,10 @@ export default defineComponent({
         class="mt-20"
       />
     </div>
-    <div v-if="showForm">
+    <div
+      v-if="showForm"
+      data-testid="cruaks-form"
+    >
       <div class="row mb-10">
         <div class="col span-4">
           <LabeledInput
