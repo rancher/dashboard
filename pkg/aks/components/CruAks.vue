@@ -694,6 +694,7 @@ export default defineComponent({
         >
           <LabeledSelect
             v-model="config.resourceLocation"
+            data-testid="cruaks-resourcelocation"
             :mode="mode"
             :options="locationOptions"
             option-label="displayName"
@@ -710,6 +711,7 @@ export default defineComponent({
         >
           <LabeledSelect
             v-model="config.kubernetesVersion"
+            data-testid="cruaks-kubernetesversion"
             :mode="mode"
             :options="aksVersionOptions"
             label-key="aks.kubernetesVersion.label"
