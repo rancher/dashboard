@@ -46,14 +46,17 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
     diagnosticsPo.waitForPage();
   });
 
-  // it('can View release notes', function () {
-  //   aboutPage.goTo();
-  //   aboutPage.waitForPage();
-  //   aboutPage.clickVersionLink('View release notes');
-  //   cy.origin('https://github.com/rancher/rancher', { args: { this.rancherVersion } }, ({ this.rancherVersion }) => {
-  //     cy.url().should('include', `https://github.com/rancher/rancher/releases/tag/${ this.rancherVersion }`);
-  //   });
-  // });
+  it('can View release notes', function() {
+    aboutPage.goTo();
+    aboutPage.waitForPage();
+    aboutPage.clickVersionLink('View release notes');
+
+    const url = `https://github.com/rancher/rancher/releases/tag/${ this.rancherVersion }`;
+
+    cy.origin('https://github.com/rancher/rancher', { args: { url } }, ({ url }) => {
+      cy.url().should('include', url);
+    });
+  });
 
   describe('Versions', () => {
     beforeEach(() => {
