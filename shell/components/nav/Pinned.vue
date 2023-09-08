@@ -1,24 +1,26 @@
 <script>
 export default {
   props: {
-    clusterId: {
-      type:     String,
+    cluster: {
+      type:     Object,
       required: true,
     }
   },
 
   computed: {
-    isPinned() {
-      return this.$store.getters['type-map/isPinned'](this.clusterId);
+    isClusterPinned() {
+      return this.cluster.isClusterPinned;
     }
   },
 
   methods: {
     toggle() {
-      if ( this.isPinned ) {
-        this.$store.dispatch('type-map/removePin', this.clusterId);
+      if ( this.isClusterPinned ) {
+        this.$store.dispatch('type-map/unpinCluster', this.cluster.id);
+        // this.cluster.unpinCluster();
       } else {
-        this.$store.dispatch('type-map/addPin', this.clusterId);
+        this.$store.dispatch('type-map/pinCluster', this.cluster.id);
+        // this.cluster.pinCluster();
       }
     }
   }
@@ -28,9 +30,9 @@ export default {
 <template>
   <i
     :tabindex="0"
-    :aria-checked="!!isPinned"
+    :aria-checked="!!isClusterPinned"
     class="pin icon"
-    :class="{'icon-pin-outlined': !isPinned, 'icon-pin': isPinned}"
+    :class="{'icon-pin-outlined': !isClusterPinned, 'icon-pin': isClusterPinned}"
     aria-role="button"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"

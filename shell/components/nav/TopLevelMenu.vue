@@ -5,7 +5,7 @@ import IconOrSvg from '../IconOrSvg';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { mapGetters } from 'vuex';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { mapPref, MENU_MAX_CLUSTERS, PIN_TYPES } from '@shell/store/prefs';
+import { mapPref, MENU_MAX_CLUSTERS, PINNED_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
@@ -67,10 +67,11 @@ export default {
       return this.clusters.length > this.maxClustersToShow;
     },
 
-    pinnedClusters: mapPref(PIN_TYPES),
+    pinnedClusters: mapPref(PINNED_CLUSTERS),
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+      // console.log(all)
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
       let pClusters = null;
 
@@ -101,7 +102,10 @@ export default {
           badge:           x.badge,
           isLocal:         x.isLocal,
           isHarvester:     x.isHarvester,
-          pinned:          pin,
+          pinned:          x.isClusterPinned,
+          // isPinned:        () => x.isClusterPinned,
+          // pinCluster:      () => x.pinCluster(),
+          // unpinCluster:    () => x.unpinCluster()
         };
       });
     },
@@ -426,7 +430,7 @@ export default {
                       {{ c.label }}
                     </div>
                     <Pinned
-                      :clusterId="c.id"
+                      :cluster="c"
                     />
                   </nuxt-link>
                   <span
@@ -469,7 +473,7 @@ export default {
                     </div>
                     <Pinned
                       :class="{'showPin': c.pinned}"
-                      :clusterId="c.id"
+                      :cluster="c"
                     />
                   </nuxt-link>
                   <span

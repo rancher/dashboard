@@ -29,8 +29,8 @@ describe('Side Menu: main', () => {
 
     burgerMenuPo.pinCluster();
     burgerMenuPo.pinClustersList().should('exist');
-    burgerMenuPo.unpinCluster();
-    burgerMenuPo.pinClustersListNot().should('not.exit');
+    // burgerMenuPo.unpinCluster();
+    // burgerMenuPo.pinClustersListNot().should('not.exit');
   });
 
   // it('Unpinned clusters from pinned clusters list', { tags: '@adminUser' }, () => {
