@@ -8,8 +8,38 @@ const aboutPage = new AboutPagePo();
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUser', '@debug'] }, () => {
+  let rancherVersion: any;
+  let macOsVersion: any;
+  let linuxVersion: any;
+  let windowsVersion: any;
+
   before(() => {
     cy.login();
+    aboutPage.goTo();
+
+    aboutPage.getLinkDestination('View release notes').then((el) => {
+      rancherVersion = el.split('/')[7];
+    });
+
+    aboutPage.getLinkDestination('rancher-darwin').then((el) => {
+      macOsVersion = el.split('/')[5];
+    });
+
+    aboutPage.getLinkDestination('rancher-linux').then((el) => {
+      linuxVersion = el.split('/')[5];
+    });
+
+    aboutPage.getLinkDestination('rancher-windows').then((el) => {
+      windowsVersion = el.split('/')[5];
+    });
+  });
+
+  beforeEach(() => {
+    cy.wrap(rancherVersion).as('rancherVersion');
+    cy.wrap(macOsVersion).as('macOsVersion');
+    cy.wrap(linuxVersion).as('linuxVersion');
+    cy.wrap(windowsVersion).as('windowsVersion');
+    aboutPage.goTo();
   });
 
   it('can navigate to About page', () => {
@@ -33,14 +63,6 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
   });
 
   describe('Versions', () => {
-    beforeEach(() => {
-      aboutPage.goTo();
-
-      aboutPage.getLinkDestination('View release notes').then((el) => {
-        cy.wrap(el.split('/')[7]).as('rancherVersion');
-      });
-    });
-
     it('can see rancher version', function() {
       // Check Rancher version
       cy.contains(this.rancherVersion).should('be.visible');
@@ -86,14 +108,6 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
   });
 
   describe('Image List', () => {
-    beforeEach(() => {
-      aboutPage.goTo();
-
-      aboutPage.getLinkDestination('View release notes').then((el) => {
-        cy.wrap(el.split('/')[7]).as('rancherVersion');
-      });
-    });
-
     it('can download Linux Image List', function() {
       // Download txt and verify file exists
       const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
@@ -113,23 +127,6 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
 
   describe.skip('CLI Downloads', () => {
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
-
-    beforeEach(() => {
-      aboutPage.goTo();
-
-      aboutPage.getLinkDestination('rancher-darwin').then((el) => {
-        cy.wrap(el.split('/')[5]).as('macOsVersion');
-      });
-
-      aboutPage.getLinkDestination('rancher-linux').then((el) => {
-        cy.wrap(el.split('/')[5]).as('linuxVersion');
-      });
-
-      aboutPage.getLinkDestination('rancher-windows').then((el) => {
-        cy.wrap(el.split('/')[5]).as('windowsVersion');
-      });
-    });
-
     it('can download macOS CLI', function() {
       // Download CLI and verify it exists
       const downloadedFilename = path.join(downloadsFolder, `${ this.macOsVersion }`);
