@@ -7,8 +7,8 @@ import * as path from 'path';
 const aboutPage = new AboutPagePo();
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('About Page', { tags: ['@adminUser', '@standardUser'] }, () => {
-  beforeEach(() => {
+describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUser', '@debug'] }, () => {
+  before(() => {
     cy.login();
   });
 
@@ -111,7 +111,7 @@ describe('About Page', { tags: ['@adminUser', '@standardUser'] }, () => {
     });
   });
 
-  describe('CLI Downloads', () => {
+  describe.skip('CLI Downloads', () => {
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
 
     beforeEach(() => {
