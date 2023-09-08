@@ -24,21 +24,13 @@ describe('Side Menu: main', () => {
     burgerMenuPo.clusters().should('exist');
   });
 
-  it('Can display list of pinned clusters', { tags: '@adminUser' }, () => {
+  it('Pinned and unpinned cluster', { tags: '@adminUser' }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
     burgerMenuPo.pinCluster();
     burgerMenuPo.pinClustersList().should('exist');
-    // burgerMenuPo.unpinCluster();
-    // burgerMenuPo.pinClustersListNot().should('not.exit');
+    burgerMenuPo.unpinClusters().first().find('.pin').click();
   });
-
-  // it('Unpinned clusters from pinned clusters list', { tags: '@adminUser' }, () => {
-  //   const burgerMenuPo = new BurgerMenuPo();
-
-  //   burgerMenuPo.unpinCluster();
-  //   burgerMenuPo.pinClustersList().should('not.exit');
-  // });
 
   it('Can display at least one menu category label', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
