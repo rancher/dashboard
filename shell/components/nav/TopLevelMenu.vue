@@ -837,7 +837,7 @@ export default {
         > input {
           background-color: transparent;
           margin-bottom: 8px;
-          padding-right: 34px;
+          padding-right: 35px;
         }
         > i {
           position: absolute;
