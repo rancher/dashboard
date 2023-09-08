@@ -929,6 +929,8 @@ export default {
       }
 
       .none-matching {
+        width: 100%;
+        text-align: center;
         padding: 8px
       }
 
