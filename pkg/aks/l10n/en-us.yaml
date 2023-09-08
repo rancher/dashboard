@@ -42,9 +42,9 @@ aks:
     enableAutoScaling:
       label: Enable Auto Scaling
     minCount:
-      label: Minimum Pods
+      label: Minimum Nodes
     maxCount:
-      label: Maximum Pods
+      label: Maximum Nodes
     taints:
       label: Taints
       key: Key

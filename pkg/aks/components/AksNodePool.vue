@@ -66,6 +66,9 @@ export default defineComponent({
       if (!neu) {
         delete this.pool.minCount;
         delete this.pool.maxCount;
+      } else {
+        this.$set(this.pool, 'minCount', 1);
+        this.$set(this.pool, 'maxCount', 3);
       }
     },
     'pool.vmSize'(neu) {

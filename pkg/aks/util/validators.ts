@@ -113,3 +113,6 @@ export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) =>
     return isValid || !toValidate.length ? undefined : ctx.t('aks.errors.ipv4Cidr', { key: ctx.t(labelKey) });
   };
 };
+
+// The DNS name can contain only letters, numbers, and hyphens. The name must start and end with a letter or a number.
+// The value is in between 1 and 54 characters long.

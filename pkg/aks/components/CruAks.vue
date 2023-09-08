@@ -1,26 +1,22 @@
 <script lang='ts'>
-
-/**
- * TODOS
- * - registration tab shows on detail view
- * - authorized ip ranges error message formatting
- */
-
 import { defineComponent } from 'vue';
-
 import semver from 'semver';
+import { mapGetters } from 'vuex';
 
-import { addParams, QueryParams } from '@shell/utils/url';
 import { randomStr } from '@shell/utils/string';
 import { isArray, removeObject } from '@shell/utils/array';
 import { _CREATE } from '@shell/config/query-params';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
+import { sortable } from '@shell/utils/version';
+import { sortBy } from '@shell/utils/sort';
+import { SETTING } from '@shell/config/settings';
+import { parseAzureError } from '@shell/cloud-credential/azure.vue';
 
+import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
 import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import CruResource from '@shell/components/CruResource.vue';
-import FormValidation from '@shell/mixins/form-validation';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import FileSelector from '@shell/components/form/FileSelector.vue';
@@ -29,16 +25,9 @@ import ArrayList from '@shell/components/form/ArrayList.vue';
 import Labels from '@shell/components/form/Labels.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
 import Tabbed from '@shell/components/Tabbed/index.vue';
-import Accordion from '@pkg/aks/components/Accordion.vue';
-
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
-import CreateEditView from '@shell/mixins/create-edit-view';
 
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
-
-import { SETTING } from 'config/settings';
-import { sortable } from '@shell/utils/version';
-import { sortBy } from '@shell/utils/sort';
 import { diffUpstreamSpec, getAKSOptions } from '@pkg/aks/util/aks';
 import {
   requiredInCluster,
@@ -49,12 +38,11 @@ import {
   resourceGroupEnd,
   resourceGroupLength,
   ipv4WithOrWithoutCidr,
-  ipv4WithCidr
+  ipv4WithCidr,
 } from '@pkg/aks/util/validators';
 
-import { mapGetters } from 'vuex';
-import { parseAzureError } from 'cloud-credential/azure.vue';
-import { error } from 'cypress/types/jquery';
+import Accordion from '@pkg/aks/components/Accordion.vue';
+import AksNodePool from '@pkg/aks/components/AksNodePool.vue';
 
 const defaultNodePool = {
   availabilityZones:     ['1', '2', '3'],
@@ -632,16 +620,15 @@ export default defineComponent({
       });
     },
 
-    // only save values that differ from upstream
-    // todo nb remove null?
+    // only save values that differ from upstream aks spec
     removeUnchangedConfigFields() {
-      const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
+      // const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
 
-      if (upstreamConfig) {
-        const diff = diffUpstreamSpec(upstreamConfig, this.config);
+      // if (upstreamConfig) {
+      //   const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-        this.$set(this.normanCluster, 'aksConfig', diff);
-      }
+      //   this.$set(this.normanCluster, 'aksConfig', diff);
+      // }
     },
 
     async actuallySave() {
@@ -736,8 +723,6 @@ export default defineComponent({
             :label="pool.name || t('aks.nodePools.notNamed')"
             :error="pool._validSize === false"
           >
-            <!-- calling fvUnreportedValidationErrors here forces the pool mode validator to run when mode changes
-          other validators are run when inputs in this form are touched, not node pools -->
             <AksNodePool
               :mode="mode"
               :region="config.resourceLocation"
@@ -745,6 +730,7 @@ export default defineComponent({
               :vm-size-options="vmSizeOptions"
               :loading-vm-sizes="loadingVmSizes"
               :isPrimaryPool="i===0"
+              :rules="fvGetAndReportPathRules('minCount', 'maxCount')"
               @remove="removePool(pool)"
               @vmSizeSet="touchedVmSize = true"
             />

@@ -50,7 +50,7 @@ export default Vue.extend({
       </slot>
     </div>
     <div
-      v-if="isOpen"
+      v-show="isOpen"
       class="accordion-body"
     >
       <slot />
@@ -65,7 +65,6 @@ export default Vue.extend({
 .accordion-header {
   display: flex;
   align-items: center;
-  // border: 1px solid var(--primary-active-bg);
   &>*{
     padding: 5px 0px 5px 0px;
   }
@@ -74,7 +73,6 @@ export default Vue.extend({
   }
 }
 .accordion-body {
-  // border: 1px solid var(--border);
   padding: 10px;
 }
 </style>

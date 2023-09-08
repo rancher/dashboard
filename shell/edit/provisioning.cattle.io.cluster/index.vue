@@ -187,9 +187,6 @@ export default {
 
     emberLink() {
       if (this.value) {
-        // todo nb move this logic?
-        // todo nb verify that this doesn't break other cluster types
-
         if (this.value.provisioner) {
           const matchingSubtype = this.subTypes.find((st) => st.id === this.value.provisioner);
 
