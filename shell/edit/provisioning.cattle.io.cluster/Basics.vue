@@ -379,6 +379,11 @@ export default {
       return this.selectedVersion?.agentArgs || {};
     },
 
+    /**
+     * The addons (kube charts) applicable for the selected kube version
+     *
+     * { [chartName:string]: { repo: string, version: string } }
+     */
     chartVersions() {
       return this.selectedVersion?.charts || {};
     },
