@@ -114,6 +114,10 @@ export default {
       }
     },
 
+    clusterFilterCount() {
+      return this.clusterFilter ? this.clustersFiltered.length : this.clusters.length;
+    },
+
     multiClusterApps() {
       const options = this.options;
 
@@ -308,8 +312,12 @@ export default {
               class="clusters-search"
             >
               <div class="clusters-search-count">
-                <span>{{ clusters.length }}</span>
+                <span>{{ clusterFilterCount }}</span>
                 {{ t('nav.search.clusters') }}
+                <i
+                  v-if="clusterFilter"
+                  class="icon icon-filter_alt"
+                />
               </div>
 
               <div
@@ -798,6 +806,7 @@ export default {
           }
 
           &-count {
+            position: relative;
             display: flex;
             flex-direction: column;
             width: 42px;
@@ -819,6 +828,13 @@ export default {
               &:hover {
                 text-decoration: none;
               }
+            }
+
+            i {
+              font-size: 12px;
+              position: absolute;
+              right: -3px;
+              top: 2px;
             }
           }
         }
