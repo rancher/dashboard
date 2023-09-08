@@ -457,24 +457,23 @@ export default class MgmtCluster extends HybridModel {
     return findRelationship(verb === 'to' ? 'from' : 'to', CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
   }
 
-  get isClusterPinned() {
+  get pinned() {
     return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
   }
 
-  // pinCluster() {
-  //   debugger
-  //   const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+  pin() {
+    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
 
-  //   addObject(types, this.id);
+    addObject(types, this.id);
 
-  //   this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
-  // }
+    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  }
 
-  // unpinCluster() {
-  //   const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-  //   removeObject(types, this.id);
+  unpin() {
+    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
 
-  //   this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
-  // }
-  
+    removeObject(types, this.id);
+
+    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  }
 }

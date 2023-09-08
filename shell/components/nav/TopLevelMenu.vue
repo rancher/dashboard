@@ -71,7 +71,6 @@ export default {
 
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      // console.log(all)
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
       let pClusters = null;
 
@@ -91,7 +90,6 @@ export default {
 
       return kubeClusters.map((x) => {
         const pCluster = pClusters?.find((c) => c.mgmt.id === x.id);
-        const pin = this.pinnedClusters.some((c) => c === x.id);
 
         return {
           id:              x.id,
@@ -102,10 +100,9 @@ export default {
           badge:           x.badge,
           isLocal:         x.isLocal,
           isHarvester:     x.isHarvester,
-          pinned:          x.isClusterPinned,
-          // isPinned:        () => x.isClusterPinned,
-          // pinCluster:      () => x.pinCluster(),
-          // unpinCluster:    () => x.unpinCluster()
+          pinned:          x.pinned,
+          pin:             () => x.pin(),
+          unpin:           () => x.unpin()
         };
       });
     },
@@ -138,10 +135,6 @@ export default {
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
       return sorted;
-    },
-
-    clusterFilterCount() {
-      return this.clusterFilter ? this.clustersFiltered.length : this.clusters.length;
     },
 
     clusterFilterCount() {
@@ -443,6 +436,9 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">{{ c.label }}</div>
+                    <Pinned
+                      :cluster="c"
+                    />
                   </span>
                 </div>
                 <div
@@ -486,6 +482,10 @@ export default {
                       class="rancher-provider-icon"
                     />
                     <div class="cluster-name">{{ c.label }}</div>
+                    <Pinned
+                      :class="{'showPin': c.pinned}"
+                      :cluster="c"
+                    />
                   </span>
                 </div>
               </div>
@@ -772,6 +772,10 @@ export default {
             filter: grayscale(1);
             color: var(--muted);
           }
+
+          .pin {
+            cursor: pointer;
+          }
         }
 
         &:focus {
@@ -825,6 +829,11 @@ export default {
           &.disabled {
             background: transparent;
             color: var(--muted);
+
+            > .pin {
+              color:var(--default-text);
+              display: block;
+            }
           }
         }
 

@@ -131,7 +131,7 @@ import {
   MANAGEMENT,
   NAMESPACE
 } from '@shell/config/types';
-import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES, PINNED_CLUSTERS } from '@shell/store/prefs';
+import { VIEW_IN_API, EXPANDED_GROUPS, FAVORITE_TYPES } from '@shell/store/prefs';
 import {
   addObject, findBy, insertAt, isArray, removeObject, filterBy
 } from '@shell/utils/array';
@@ -501,12 +501,6 @@ export const getters = {
       return rootGetters['prefs/get'](FAVORITE_TYPES).includes(schemaId) || false;
     };
   },
-
-  // isClusterPinned(state, getters, rootState, rootGetters) {
-  //   return (clusterId) => {
-  //     return rootGetters['prefs/get'](PINNED_CLUSTERS).includes(clusterId) || false;
-  //   };
-  // },
 
   typeWeightFor(state) {
     return (type, forBasic) => {
@@ -1656,22 +1650,6 @@ export const actions = {
 
     dispatch('prefs/set', { key: FAVORITE_TYPES, value: types }, { root: true });
   },
-
-  // pinCluster({ dispatch, rootGetters }, type) {
-  //   const types = rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-
-  //   addObject(types, type);
-
-  //   dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
-  // },
-
-  // unpinCluster({ dispatch, rootGetters }, type) {
-  //   const types = rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-
-  //   removeObject(types, type);
-
-  //   dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
-  // },
 
   toggleGroup({ dispatch, rootGetters }, { group, expanded }) {
     const groups = rootGetters['prefs/get'](EXPANDED_GROUPS);
