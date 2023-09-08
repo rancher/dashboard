@@ -30,6 +30,7 @@ describe('Side Menu: main', () => {
     burgerMenuPo.pinCluster();
     burgerMenuPo.pinClustersList().should('exist');
     burgerMenuPo.unpinClusters().first().find('.pin').click();
+    burgerMenuPo.pinClustersList().should('not.exist');
   });
 
   it('Can display at least one menu category label', { tags: ['@adminUser', '@standardUser'] }, () => {
