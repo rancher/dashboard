@@ -36,7 +36,6 @@ import '../plugins/global-formatters';
 import '../plugins/trim-whitespace';
 import '../plugins/extend-router';
 
-import consolePlugin from '../plugins/console';
 import intNumber from '../plugins/int-number';
 import nuxtClientInit from '../plugins/nuxt-client-init';
 import replaceAll from '../plugins/replaceall';
@@ -272,10 +271,6 @@ async function createApp(ssrContext, config = {}) {
 
   if (typeof axiosShell === 'function') {
     await axiosShell(app.context, inject);
-  }
-
-  if (process.client && typeof consolePlugin === 'function') {
-    await consolePlugin(app.context, inject);
   }
 
   if (process.client && typeof intNumber === 'function') {
