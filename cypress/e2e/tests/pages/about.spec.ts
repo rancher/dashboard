@@ -10,20 +10,6 @@ const downloadsFolder = Cypress.config('downloadsFolder');
 describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
-    aboutPage.goTo();
-    aboutPage.waitForPage();
-    aboutPage.getLinkDestination('View release notes').then((el) => {
-      cy.wrap(el.split('/')[7]).as('rancherVersion');
-    });
-    aboutPage.getLinkDestination('rancher-darwin').then((el) => {
-      cy.wrap(el.split('/')[5]).as('macOsVersion');
-    });
-    aboutPage.getLinkDestination('rancher-linux').then((el) => {
-      cy.wrap(el.split('/')[5]).as('linuxVersion');
-    });
-    aboutPage.getLinkDestination('rancher-windows').then((el) => {
-      cy.wrap(el.split('/')[5]).as('windowsVersion');
-    });
   });
 
   it('can navigate to About page', () => {
@@ -46,26 +32,28 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
     diagnosticsPo.waitForPage();
   });
 
-  it('can View release notes', function() {
-    aboutPage.goTo();
-    aboutPage.waitForPage();
-    aboutPage.clickVersionLink('View release notes');
-
-    const url = `https://github.com/rancher/rancher/releases/tag/${ this.rancherVersion }`;
-
-    cy.origin('https://github.com/rancher/rancher', { args: { url } }, ({ url }) => {
-      cy.url().should('include', url);
-    });
-  });
-
   describe('Versions', () => {
     beforeEach(() => {
       aboutPage.goTo();
+
+      aboutPage.getLinkDestination('View release notes').then((el) => {
+        cy.wrap(el.split('/')[7]).as('rancherVersion');
+      });
     });
 
     it('can see rancher version', function() {
       // Check Rancher version
       cy.contains(this.rancherVersion).should('be.visible');
+    });
+
+    it('can View release notes', function() {
+      aboutPage.clickVersionLink('View release notes');
+
+      const url = `https://github.com/rancher/rancher/releases/tag/${ this.rancherVersion }`;
+
+      cy.origin('https://github.com/rancher/rancher', { args: { url } }, ({ url }) => {
+        cy.url().should('include', url);
+      });
     });
 
     it('can navigate to /rancher/rancher', () => {
@@ -100,6 +88,10 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
   describe('Image List', () => {
     beforeEach(() => {
       aboutPage.goTo();
+
+      aboutPage.getLinkDestination('View release notes').then((el) => {
+        cy.wrap(el.split('/')[7]).as('rancherVersion');
+      });
     });
 
     it('can download Linux Image List', function() {
@@ -121,6 +113,23 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
 
   describe('CLI Downloads', () => {
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
+
+    beforeEach(() => {
+      aboutPage.goTo();
+
+      aboutPage.getLinkDestination('rancher-darwin').then((el) => {
+        cy.wrap(el.split('/')[5]).as('macOsVersion');
+      });
+
+      aboutPage.getLinkDestination('rancher-linux').then((el) => {
+        cy.wrap(el.split('/')[5]).as('linuxVersion');
+      });
+
+      aboutPage.getLinkDestination('rancher-windows').then((el) => {
+        cy.wrap(el.split('/')[5]).as('windowsVersion');
+      });
+    });
+
     it('can download macOS CLI', function() {
       // Download CLI and verify it exists
       const downloadedFilename = path.join(downloadsFolder, `${ this.macOsVersion }`);
