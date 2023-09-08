@@ -1,4 +1,5 @@
 <script>
+// Allow the user to pin a cluster by clicking it.
 export default {
   props: {
     cluster: {
@@ -8,19 +9,17 @@ export default {
   },
 
   computed: {
-    isClusterPinned() {
-      return this.cluster.isClusterPinned;
+    pinned() {
+      return this.cluster.pinned;
     }
   },
 
   methods: {
     toggle() {
-      if ( this.isClusterPinned ) {
-        this.$store.dispatch('type-map/unpinCluster', this.cluster.id);
-        // this.cluster.unpinCluster();
+      if ( this.pinned ) {
+        this.cluster.unpin();
       } else {
-        this.$store.dispatch('type-map/pinCluster', this.cluster.id);
-        // this.cluster.pinCluster();
+        this.cluster.pin();
       }
     }
   }
@@ -30,9 +29,9 @@ export default {
 <template>
   <i
     :tabindex="0"
-    :aria-checked="!!isClusterPinned"
+    :aria-checked="!!pinned"
     class="pin icon"
-    :class="{'icon-pin-outlined': !isClusterPinned, 'icon-pin': isClusterPinned}"
+    :class="{'icon-pin-outlined': !pinned, 'icon-pin': pinned}"
     aria-role="button"
     @click.stop.prevent="toggle"
     @keydown.enter.prevent="toggle"
