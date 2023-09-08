@@ -41,6 +41,9 @@ export default {
     hosttailerSchema() {
       return this.$store.getters['cluster/schemaFor'](LOGGING.HOST_TAILER);
     },
+    uid() {
+      return this.workload?.metadata?.uid;
+    }
   },
   methods: {
     close() {
@@ -62,9 +65,7 @@ export default {
     },
     updateVolumes(hosttailerVolumes) {
       const { volumes = [] } = this.value;
-      const { namespace, kind, nameDisplay } = this.workload;
-      const type = kind.toLowerCase();
-      const namePrefix = `host-path-${ namespace }-${ type }-${ nameDisplay }`;
+      const namePrefix = `host-path-${ this.uid }`;
 
       this.value.volumes = [
         ...volumes.filter(item => !item.name.includes(namePrefix)),
@@ -74,37 +75,15 @@ export default {
     updateVolumeMounts(containers) {
       containers.forEach((container) => {
         if (container.volumeMounts && container.volumeMounts.length) {
-          const volumeMountFiles = [];
-
           container.volumeMounts.map((mount) => {
-            if (mount.name && mount.name.startsWith('host-path-$namespace-$type-$workload')) {
-              const namespace = this.workload.namespace;
-              const type = this.workload.kind.toLowerCase();
-              const workloadName = this.workload.nameDisplay;
+            if (mount.name && mount.name.startsWith('host-path-$uid')) {
+              const name = mount.name.replace('host-path-$uid', `host-path-${ this.uid }`);
 
-              const name = mount.name.replace('host-path-$namespace-$type-$workload', `host-path-${ namespace }-${ type }-${ workloadName }`);
-
-              mount.name = `${ name }-dir`;
-
-              if (mount.mountFile) {
-                const filePath = this.getMountFilePath(mount);
-
-                volumeMountFiles.push({
-                  mountPath: filePath,
-                  name:      `${ name }-file`
-                });
-
-                delete mount.mountFile;
-              }
+              mount.name = `${ name }-${ container.name }`;
             }
 
             return mount;
           });
-
-          // Add Container-File path to container volumeMounts
-          if (volumeMountFiles.length) {
-            container.volumeMounts.push(...volumeMountFiles);
-          }
         }
       });
     },
@@ -118,16 +97,12 @@ export default {
 
       containers.forEach((container) => {
         const volumeMounts = container.volumeMounts || [];
-        const name = 'host-path-$namespace-$type-$workload';
+        const name = 'host-path-$uid';
 
         volumeMounts.forEach((mount) => {
           if (mount.name === name) {
             if (!mount.mountPath) {
               errors.push(this.t('validation.required', { key: this.t('logging.extension.storage.mountPath') }));
-            }
-
-            if (!mount.mountFile) {
-              errors.push(this.t('validation.required', { key: this.t('logging.extension.storage.mountFile') }));
             }
           }
         });
@@ -176,28 +151,20 @@ export default {
     },
 
     getHosttailerVolumesByVolumeMounts(containers) {
-      const { namespace, kind, nameDisplay } = this.workload;
-      const type = kind.toLowerCase();
+      const uid = this.uid;
       const out = [];
 
       containers.forEach((container) => {
         const volumeMounts = container.volumeMounts || [];
 
-        if (!out.length && volumeMounts.find(item => item.name === `host-path-${ namespace }-${ type }-${ nameDisplay }-dir`)) {
+        if (volumeMounts.find(item => item.name === `host-path-${ uid }-${ container.name }`)) {
           out.push(...[{
             _type:    'hostPath',
             hostPath: {
-              type: 'FileOrCreate',
-              path: `/var/log/hosttailer/${ namespace }/${ type }/${ nameDisplay }.log`
-            },
-            name: `host-path-${ namespace }-${ type }-${ nameDisplay }-file`
-          }, {
-            _type:    'hostPath',
-            hostPath: {
               type: 'DirectoryOrCreate',
-              path: `/var/log/hosttailer/${ namespace }/${ type }`
+              path: `/var/log/hosttailer/${ uid }`
             },
-            name: `host-path-${ namespace }-${ type }-${ nameDisplay }-dir`
+            name: `host-path-${ uid }-${ container.name }`
           }]);
         }
       });
@@ -206,13 +173,8 @@ export default {
     },
 
     async updateOrCreateHostTailer(hosttailerVolumes) {
-      const {
-        namespace, kind, nameDisplay, apiVersion
-      } = this.workload;
-      const type = kind.toLowerCase();
-      const name = `${ namespace }-${ type }-${ nameDisplay }`;
       const hosttailers = await this.$store.dispatch('cluster/findAll', { type: LOGGING.HOST_TAILER });
-      const hosttailer = hosttailers.find(hosttailer => hosttailer.metadata.name === `file-hosttailer-${ name }`);
+      const hosttailer = hosttailers.find(hosttailer => hosttailer.id === 'cattle-logging-system/file-hosttailer');
       const isCreate = !hosttailer;
       const headers = {
         'content-type': 'application/yaml',
@@ -220,28 +182,19 @@ export default {
       };
       let data = {};
 
-      const fileTailers = hosttailerVolumes.filter(v => v.name && v.name.endsWith('-file')).map((volume) => {
-        const path = volume.hostPath.path;
+      const fileTailersAll = hosttailer?.spec?.fileTailers || [];
+      const fileTailers = fileTailersAll.filter(fileTailer => !fileTailer.name.startsWith(this.uid));
+
+      hosttailerVolumes.forEach((volume) => {
+        const path = `${ volume.hostPath.path }/*`;
         const volumeName = volume.name.replace('host-path-', '');
 
-        return {
+        fileTailers.push({
           name:     `${ volumeName }-logfile`,
           path,
           disabled: false
-        };
+        }) ;
       });
-
-      if (!fileTailers.length) {
-        if (!isCreate) {
-          this.hosttailerSchema.followLink('remove', {
-            url:    hosttailer.links.remove,
-            method: 'DELETE',
-            headers,
-          });
-        }
-
-        return;
-      }
 
       if (!isCreate) {
         data = hosttailer;
@@ -251,16 +204,8 @@ export default {
           apiVersion: 'logging-extensions.banzaicloud.io/v1alpha1',
           kind:       'HostTailer',
           metadata:   {
-            name:            `file-hosttailer-${ name }`,
-            namespace,
-            ownerReferences: [
-              {
-                apiVersion,
-                kind,
-                uid:  this.workload.metadata.uid,
-                name: this.workload.metadata.name,
-              }
-            ]
+            name:      `file-hosttailer`,
+            namespace: 'cattle-logging-system',
           },
           spec: { fileTailers }
         };

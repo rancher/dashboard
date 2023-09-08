@@ -51,7 +51,7 @@ export default {
 
       this.containers.forEach((container) => {
         if (!containerNames.includes(container.name)) {
-          const namePrefix = `host-path-$namespace-$type-$workload`;
+          const namePrefix = `host-path-$uid`;
           const volumeMounts = container.volumeMounts || [];
 
           container.volumeMounts = volumeMounts.filter(mount => mount.name && !mount.name.startsWith(namePrefix));
@@ -81,33 +81,23 @@ export default {
   methods: {
     initVolumeMounts() {
       const containers = this.containers;
-      const { namespace, kind, nameDisplay } = this.workload;
-      const type = kind.toLowerCase();
+      const uid = this.workload.metadata.uid;
 
       containers.forEach((container) => {
         const volumeMounts = container.volumeMounts || [];
-        const loggingMounts = [];
-        const out = [];
 
-        volumeMounts.forEach((mount) => {
-          const namePrefix = `host-path-${ namespace }-${ type }-${ nameDisplay }`;
+        const out = volumeMounts.map((mount) => {
+          const name = `host-path-${ uid }-${ container.name }`;
 
-          if (mount.name && mount.name.startsWith(`${ namePrefix }`)) {
-            if (mount.name && mount.name === `${ namePrefix }-file`) {
-              const pos = mount.mountPath.lastIndexOf('\/');
-
-              loggingMounts.push({
-                name:      `host-path-$namespace-$type-$workload`,
-                mountPath: mount.mountPath.substr(0, pos ),
-                mountFile: mount.mountPath.substr(pos + 1 )
-              });
-            }
+          if (mount.name === name) {
+            return {
+              name:      `host-path-$uid`,
+              mountPath: mount.mountPath,
+            };
           } else {
-            out.push(mount);
+            return mount;
           }
         });
-
-        out.push(...loggingMounts);
 
         this.$set(container, 'volumeMounts', out);
       });
@@ -115,15 +105,14 @@ export default {
 
     getSelectedContainers() {
       const { containers = [] } = this.value;
-      const { namespace, kind, nameDisplay } = this.workload;
-      const type = kind.toLowerCase();
-      const namePrefix = `host-path-${ namespace }-${ type }-${ nameDisplay }`;
+      const uid = this.workload.metadata.uid;
+      const namePrefix = `host-path-${ uid }`;
 
       if (containers.length === 1) {
         return containers;
       }
 
-      return containers.filter(container => container.volumeMounts && container.volumeMounts.length && container.volumeMounts.find(item => item.name === `${ namePrefix }-dir`));
+      return containers.filter(container => container.volumeMounts && container.volumeMounts.length && container.volumeMounts.find(item => item.name && item.name.startsWith(namePrefix)));
     },
 
     removeContainerItem(container) {

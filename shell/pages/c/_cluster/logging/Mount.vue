@@ -40,7 +40,7 @@ export default {
 
   methods: {
     add() {
-      this.volumeMounts.push({ name: `host-path-$namespace-$type-$workload` });
+      this.volumeMounts.push({ name: `host-path-$uid` });
     },
 
     remove(volumeMount) {
@@ -60,10 +60,6 @@ export default {
         {{ t('logging.extension.storage.mountPath') }}
         <span class="text-error">*</span>
       </span>
-      <span>
-        {{ t('logging.extension.storage.mountFile') }}
-        <span class="text-error">*</span>
-      </span>
       <span />
     </div>
     <template
@@ -78,12 +74,6 @@ export default {
           <LabeledInput
             :id="`mount-path-${i}`"
             v-model="volumeMount.mountPath"
-            :mode="mode"
-          />
-        </div>
-        <div>
-          <LabeledInput
-            v-model="volumeMount.mountFile"
             :mode="mode"
           />
         </div>
@@ -114,10 +104,10 @@ export default {
   </div>
 </template>
 
-<style lang='scss'>
+<style scoped lang='scss'>
 .mount-headers, .mount-rows{
   display: grid;
-  grid-template-columns: 42% 42% 5% auto;
+  grid-template-columns: 80% 5% auto;
   grid-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;

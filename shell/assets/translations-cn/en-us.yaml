@@ -3218,7 +3218,7 @@ logging:
     storage: 
       title: Storage
       selectContainer: Select Container
-      mountPath: Container Path
+      mountPath: Container directory
       mountFile: Container File Name
   allWorkloadType:
     label: All Workload Types

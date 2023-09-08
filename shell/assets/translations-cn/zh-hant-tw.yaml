@@ -3235,7 +3235,7 @@ logging:
     storage: 
       title: 存儲
       selectContainer: 選擇容器
-      mountPath: 容器路徑
+      mountPath: 容器目錄
       mountFile: 容器文件名
   allWorkloadType:
     label: 所有 Workload 類型
