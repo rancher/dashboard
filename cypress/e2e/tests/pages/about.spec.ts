@@ -7,7 +7,7 @@ import * as path from 'path';
 const aboutPage = new AboutPagePo();
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('About Page', { testIsolation: 'off' }, () => {
+describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUser'] }, () => {
   let rancherVersion: any;
   let macOsVersion: any;
   let linuxVersion: any;
