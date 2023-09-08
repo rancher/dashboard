@@ -47,20 +47,12 @@ export default {
       required: false
     },
 
-    versionInfo: {
-      type:     Object,
-      required: true
-    },
     credential: {
       type:     Object,
       default:  null,
       required: false
     },
 
-    harvesterVersionRange: {
-      type:     Object,
-      required: true
-    },
     userChartValues: {
       type:     Object,
       required: true
@@ -69,11 +61,7 @@ export default {
       type:     Boolean,
       required: true
     },
-    previousKubernetesVersion: {
-      type:     String,
-      default:  '',
-      required: false
-    },
+
     cisPsaChangeBanner: {
       type:     Boolean,
       required: true
@@ -87,26 +75,7 @@ export default {
       type:     Array,
       required: true
     },
-    rke2Versions: {
-      type:     Array,
-      required: false,
-      default:  null
-    },
-    k3sVersions: {
-      type:     Array,
-      required: false,
-      default:  null
-    },
-    defaultRke2: {
-      type:     String,
-      required: false,
-      default:  ''
-    },
-    defaultK3s: {
-      type:     String,
-      required: false,
-      default:  ''
-    },
+
     addonVersions: {
       type:     Array,
       required: false,
