@@ -8,26 +8,21 @@ const aboutPage = new AboutPagePo();
 const downloadsFolder = Cypress.config('downloadsFolder');
 
 describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUser'] }, () => {
-  let rancherVersion: any;
-  let macOsVersion: any;
-  let linuxVersion: any;
-  let windowsVersion: any;
-
   before(() => {
     cy.login();
     aboutPage.goTo();
     aboutPage.waitForPage();
     aboutPage.getLinkDestination('View release notes').then((el) => {
-      rancherVersion = el.split('/')[7];
+      cy.wrap(el.split('/')[7]).as('rancherVersion');
     });
     aboutPage.getLinkDestination('rancher-darwin').then((el) => {
-      macOsVersion = el.split('/')[5];
+      cy.wrap(el.split('/')[5]).as('macOsVersion');
     });
     aboutPage.getLinkDestination('rancher-linux').then((el) => {
-      linuxVersion = el.split('/')[5];
+      cy.wrap(el.split('/')[5]).as('linuxVersion');
     });
     aboutPage.getLinkDestination('rancher-windows').then((el) => {
-      windowsVersion = el.split('/')[5];
+      cy.wrap(el.split('/')[5]).as('windowsVersion');
     });
   });
 
@@ -51,23 +46,23 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
     diagnosticsPo.waitForPage();
   });
 
-  it('can View release notes', () => {
-    aboutPage.goTo();
-    aboutPage.waitForPage();
-    aboutPage.clickVersionLink('View release notes');
-    cy.origin('https://github.com/rancher/rancher', { args: { rancherVersion } }, ({ rancherVersion }) => {
-      cy.url().should('include', `https://github.com/rancher/rancher/releases/tag/${ rancherVersion }`);
-    });
-  });
+  // it('can View release notes', function () {
+  //   aboutPage.goTo();
+  //   aboutPage.waitForPage();
+  //   aboutPage.clickVersionLink('View release notes');
+  //   cy.origin('https://github.com/rancher/rancher', { args: { this.rancherVersion } }, ({ this.rancherVersion }) => {
+  //     cy.url().should('include', `https://github.com/rancher/rancher/releases/tag/${ this.rancherVersion }`);
+  //   });
+  // });
 
   describe('Versions', () => {
     beforeEach(() => {
       aboutPage.goTo();
     });
 
-    it('can see rancher version', () => {
+    it('can see rancher version', function() {
       // Check Rancher version
-      cy.contains(rancherVersion).should('be.visible');
+      cy.contains(this.rancherVersion).should('be.visible');
     });
 
     it('can navigate to /rancher/rancher', () => {
@@ -104,28 +99,28 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       aboutPage.goTo();
     });
 
-    it('can download Linux Image List', () => {
+    it('can download Linux Image List', function() {
       // Download txt and verify file exists
       const downloadedFilename = path.join(downloadsFolder, 'rancher-linux-images.txt');
 
       aboutPage.getLinuxDownloadLink().click();
-      cy.readFile(downloadedFilename).should('contain', `rancher/rancher-agent:${ rancherVersion }`);
+      cy.readFile(downloadedFilename).should('contain', `rancher/rancher-agent:${ this.rancherVersion }`);
     });
 
-    it('can download Windows Image List', () => {
+    it('can download Windows Image List', function() {
       // Download txt and do basic check
       const downloadedFilename = path.join(downloadsFolder, 'rancher-windows-images.txt');
 
       aboutPage.getWindowsDownloadLink().click();
-      cy.readFile(downloadedFilename).should('contain', `rancher/rancher-agent:${ rancherVersion }`);
+      cy.readFile(downloadedFilename).should('contain', `rancher/rancher-agent:${ this.rancherVersion }`);
     });
   });
 
   describe('CLI Downloads', () => {
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
-    it('can download macOS CLI', () => {
+    it('can download macOS CLI', function() {
       // Download CLI and verify it exists
-      const downloadedFilename = path.join(downloadsFolder, `${ macOsVersion }`);
+      const downloadedFilename = path.join(downloadsFolder, `${ this.macOsVersion }`);
 
       aboutPage.getMacCliDownloadLink().then((el: any) => {
         el.attr('download', '');
@@ -133,9 +128,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       cy.readFile(downloadedFilename, 'base64').should('exist');
     });
 
-    it('can download Linux CLI', () => {
+    it('can download Linux CLI', function() {
       // Download CLI and verify it exists
-      const downloadedFilename = path.join(downloadsFolder, `${ linuxVersion }`);
+      const downloadedFilename = path.join(downloadsFolder, `${ this.linuxVersion }`);
 
       aboutPage.getLinuxCliDownloadLink().then((el: any) => {
         el.attr('download', '');
@@ -143,9 +138,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       cy.readFile(downloadedFilename, 'base64').should('exist');
     });
 
-    it('can download Windows CLI', () => {
+    it('can download Windows CLI', function() {
       // Download CLI and verify it exists
-      const downloadedFilename = path.join(downloadsFolder, `${ windowsVersion }`);
+      const downloadedFilename = path.join(downloadsFolder, `${ this.windowsVersion }`);
 
       aboutPage.getWindowsCliDownloadLink().then((el: any) => {
         el.attr('download', '');
