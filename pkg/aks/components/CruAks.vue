@@ -115,6 +115,7 @@ export default defineComponent({
       default: _CREATE
     },
 
+    // provisioning cluster object
     value: {
       type:    Object,
       default: () => {
@@ -123,6 +124,7 @@ export default defineComponent({
     }
   },
 
+  // AKS provisioning needs to use the norman API - a provisioning cluster resource will be created byt he BE when the norman cluster is made but v2 prov clusters don't contain the relevant aks configuration fields
   async fetch() {
     if (this.value.id) {
       this.normanCluster = await this.value.findNormanCluster();
@@ -148,6 +150,7 @@ export default defineComponent({
   },
 
   data() {
+    // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
     const supportedVersionRange = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
     const t = this.$store.getters['i18n/t'];
 
@@ -242,8 +245,11 @@ export default defineComponent({
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    // fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined
-    // so we're ignoring that and passing in the key we want validated here
+    /**
+     * fv mixin accepts a rootObject in rules but doesn't seem to like that the norman cluster isn't yet defined when the rule set is defined so we're ignoring that and passing in the key we want validated here
+     * entire context is passed in so validators can check if a credential is selected and only run when the rest of the form is shown + use the i18n/t getter + get the norman cluster
+     *  */
+
     fvExtraRules() {
       return {
         nameRequired:            requiredInCluster(this, 'nameNsDescription.name.label', 'name'),
@@ -314,6 +320,8 @@ export default defineComponent({
       };
     },
 
+    // upstreamSpec will be null if the user created a cluster with some invalid options such that it ultimately fails to create anything in aks
+    // this allows them to go back and correct their mistakes without re-making the whole cluster
     isNewOrUnprovisioned() {
       return this.mode === _CREATE || !this.normanCluster?.aksStatus?.upstreamSpec;
     },
@@ -321,6 +329,7 @@ export default defineComponent({
     doneRoute() {
       return this.value?.listLocation?.name;
     },
+
     showForm() {
       return this.config?.azureCredentialSecret;
     },
@@ -451,6 +460,7 @@ export default defineComponent({
       }
     },
 
+    // a validation error is shown if the region is changed and the below two fields are no longer valid - if the user hasn't set them we should just update to a valid default and not show the error
     'config.virtualNetwork'(neu) {
       if (neu) {
         this.touchedVirtualNetwork = true;
@@ -572,6 +582,7 @@ export default defineComponent({
 
       if (!this.nodePools.length) {
         poolName = 'agentPool';
+        // there must be at least one System pool so if it's the first pool, default to that
         mode = 'System' as AKSPoolMode;
       }
 
@@ -612,6 +623,7 @@ export default defineComponent({
       }
     },
 
+    // these fields are used purely in UI, to track individual nodepool components
     cleanPoolsForSave() {
       this.nodePools.forEach((pool) => {
         delete pool._id;
@@ -620,15 +632,15 @@ export default defineComponent({
       });
     },
 
-    // only save values that differ from upstream aks spec
+    // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
     removeUnchangedConfigFields() {
-      // const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
+      const upstreamConfig = this.normanCluster?.status?.aksStatus?.upstreamSpec;
 
-      // if (upstreamConfig) {
-      //   const diff = diffUpstreamSpec(upstreamConfig, this.config);
+      if (upstreamConfig) {
+        const diff = diffUpstreamSpec(upstreamConfig, this.config);
 
-      //   this.$set(this.normanCluster, 'aksConfig', diff);
-      // }
+        this.$set(this.normanCluster, 'aksConfig', diff);
+      }
     },
 
     async actuallySave() {
