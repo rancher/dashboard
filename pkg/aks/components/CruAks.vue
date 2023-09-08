@@ -890,7 +890,6 @@ export default defineComponent({
               <div
                 class="col span-3"
               >
-                <!-- //todo nb nicer display -->
                 <LabeledSelect
                   :value="config.virtualNetwork"
                   label-key="aks.virtualNetwork.label"
