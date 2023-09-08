@@ -140,6 +140,10 @@ export default {
       return this.clusterFilter ? this.clustersFiltered.length : this.clusters.length;
     },
 
+    clusterFilterCount() {
+      return this.clusterFilter ? this.clustersFiltered.length : this.clusters.length;
+    },
+
     multiClusterApps() {
       const options = this.options;
 
