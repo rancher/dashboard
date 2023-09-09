@@ -290,3 +290,20 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
       expect(resp.status).to.eq(200);
     });
 });
+
+/**
+ * Get rancher version
+ */
+Cypress.Commands.add('getRancherVersion', () => {
+  return cy.request({
+    method:  'GET',
+    url:     `${ Cypress.env('api') }/rancherversion`,
+    headers: {
+      'x-api-csrf': token.value,
+      Accept:       'application/json'
+    },
+  })
+    .then((resp) => {
+      return resp;
+    });
+});
