@@ -292,16 +292,16 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 });
 
 /**
- * Get rancher version
+ * Get user preferences
  */
-Cypress.Commands.add('getRancherVersion', () => {
+Cypress.Commands.add('getUserPreferences', () => {
   return cy.request({
     method:  'GET',
-    url:     `${ Cypress.env('api') }/rancherversion`,
+    url:     `https://localhost:8005/v1/userpreferences`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
-    },
+    }
   })
     .then((resp) => {
       return resp;

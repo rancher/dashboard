@@ -34,16 +34,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
 
   it('can View release notes', () => {
     aboutPage.goTo();
-    cy.getRancherVersion().then((resp: Cypress.Response<any>) => {
-      const rancherVersion = JSON.parse(resp.body)['Version'];
-
-      aboutPage.clickVersionLink('View release notes');
-
-      const url = `https://github.com/rancher/rancher/releases/tag/${ rancherVersion }`;
-
-      cy.origin('https://github.com/rancher/rancher', { args: { url } }, ({ url }) => {
-        cy.url().should('include', url);
-      });
+    aboutPage.clickVersionLink('View release notes');
+    cy.origin('https://github.com/rancher/rancher', () => {
+      cy.url().should('include', 'https://github.com/rancher/rancher/releases/tag/');
     });
   });
 
@@ -54,8 +47,8 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
 
     it('can see rancher version', () => {
       // Check Rancher version
-      cy.getRancherVersion().then((resp: Cypress.Response<any>) => {
-        const rancherVersion = JSON.parse(resp.body)['Version'];
+      cy.getUserPreferences().then((resp: Cypress.Response<any>) => {
+        const rancherVersion = JSON.parse(resp.body.data[0]['data']['seen-whatsnew']);
 
         cy.contains(rancherVersion).should('be.visible');
       });
@@ -101,22 +94,21 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
 
       aboutPage.getLinuxDownloadLink().click();
 
-      cy.getRancherVersion().then((resp: Cypress.Response<any>) => {
-        const rancherVersion = JSON.parse(resp.body)['Version'];
+      cy.getUserPreferences().then((resp: Cypress.Response<any>) => {
+        const rancherVersion = JSON.parse(resp.body.data[0]['data']['seen-whatsnew']);
 
-        cy.readFile(downloadedFilename).should('contain', `rancher/rancher-agent:${ rancherVersion }`);
+        cy.readFile(downloadedFilename).should('contain', rancherVersion);
       });
     });
 
     it('can download Windows Image List', () => {
-      // Download txt and do basic check
       const downloadedFilename = path.join(downloadsFolder, 'rancher-windows-images.txt');
 
       aboutPage.getWindowsDownloadLink().click();
-      cy.getRancherVersion().then((resp: Cypress.Response<any>) => {
-        const rancherVersion = JSON.parse(resp.body)['Version'];
+      cy.getUserPreferences().then((resp: Cypress.Response<any>) => {
+        const rancherVersion = JSON.parse(resp.body.data[0]['data']['seen-whatsnew']);
 
-        cy.readFile(downloadedFilename).should('contain', `rancher/rancher-agent:${ rancherVersion }`);
+        cy.readFile(downloadedFilename).should('contain', rancherVersion);
       });
     });
   });

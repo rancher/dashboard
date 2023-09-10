@@ -37,7 +37,7 @@ declare namespace Cypress {
 
     getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, expectedStatusCode: string): Chainable;
     setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: string): Chainable;
-    getRancherVersion(): Chainable;
+    getUserPreferences(): Chainable;
 
     /**
      *  Wrapper for cy.get() to simply define the data-testid value that allows you to pass a matcher to find the element.
