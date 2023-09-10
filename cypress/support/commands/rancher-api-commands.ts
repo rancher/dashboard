@@ -297,7 +297,7 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 Cypress.Commands.add('getUserPreferences', () => {
   return cy.request({
     method:  'GET',
-    url:     `https://localhost:8005/v1/userpreferences`,
+    url:     `${ Cypress.env('api') }v1/userpreferences`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
