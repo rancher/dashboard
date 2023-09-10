@@ -113,7 +113,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
     });
   });
 
-  describe.only('CLI Downloads', () => {
+  describe('CLI Downloads', () => {
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
     beforeEach(() => {
       aboutPage.goTo();
