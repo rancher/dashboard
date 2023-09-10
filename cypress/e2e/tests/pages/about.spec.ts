@@ -113,53 +113,51 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
     });
   });
 
-  describe.skip('CLI Downloads', () => {
+  describe.only('CLI Downloads', () => {
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
-
     beforeEach(() => {
       aboutPage.goTo();
+    });
 
+    it('can download macOS CLI', () => {
       aboutPage.getLinkDestination('rancher-darwin').then((el) => {
-        cy.wrap(el.split('/')[5]).as('macOsVersion');
-      });
+        const macOsVersion = el.split('/')[5];
+        // Download CLI and verify it exists
+        const downloadedFilename = path.join(downloadsFolder, macOsVersion);
 
+        aboutPage.getMacCliDownloadLink().then((el: any) => {
+          el.attr('download', '');
+        }).click();
+        cy.readFile(downloadedFilename, 'base64').should('exist');
+      });
+    });
+
+    it('can download Linux CLI', () => {
       aboutPage.getLinkDestination('rancher-linux').then((el) => {
-        cy.wrap(el.split('/')[5]).as('linuxVersion');
-      });
+        const linuxVersion = el.split('/')[5];
 
+        // Download CLI and verify it exists
+        const downloadedFilename = path.join(downloadsFolder, linuxVersion);
+
+        aboutPage.getLinuxCliDownloadLink().then((el: any) => {
+          el.attr('download', '');
+        }).click();
+        cy.readFile(downloadedFilename, 'base64').should('exist');
+      });
+    });
+
+    it('can download Windows CLI', () => {
       aboutPage.getLinkDestination('rancher-windows').then((el) => {
-        cy.wrap(el.split('/')[5]).as('windowsVersion');
+        const windowsVersion = el.split('/')[5];
+
+        // Download CLI and verify it exists
+        const downloadedFilename = path.join(downloadsFolder, windowsVersion);
+
+        aboutPage.getWindowsCliDownloadLink().then((el: any) => {
+          el.attr('download', '');
+        }).click();
+        cy.readFile(downloadedFilename, 'base64').should('exist');
       });
-    });
-
-    it('can download macOS CLI', function() {
-      // Download CLI and verify it exists
-      const downloadedFilename = path.join(downloadsFolder, `${ this.macOsVersion }`);
-
-      aboutPage.getMacCliDownloadLink().then((el: any) => {
-        el.attr('download', '');
-      }).click();
-      cy.readFile(downloadedFilename, 'base64').should('exist');
-    });
-
-    it('can download Linux CLI', function() {
-      // Download CLI and verify it exists
-      const downloadedFilename = path.join(downloadsFolder, `${ this.linuxVersion }`);
-
-      aboutPage.getLinuxCliDownloadLink().then((el: any) => {
-        el.attr('download', '');
-      }).click();
-      cy.readFile(downloadedFilename, 'base64').should('exist');
-    });
-
-    it('can download Windows CLI', function() {
-      // Download CLI and verify it exists
-      const downloadedFilename = path.join(downloadsFolder, `${ this.windowsVersion }`);
-
-      aboutPage.getWindowsCliDownloadLink().then((el: any) => {
-        el.attr('download', '');
-      }).click();
-      cy.readFile(downloadedFilename, 'base64').should('exist');
     });
   });
 });
