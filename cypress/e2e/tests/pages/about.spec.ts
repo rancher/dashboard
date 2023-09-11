@@ -117,18 +117,20 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
     // workaround to make the following CLI tests work https://github.com/cypress-io/cypress/issues/8089#issuecomment-1585159023
     beforeEach(() => {
       aboutPage.goTo();
+      cy.intercept('GET', 'https://releases.rancher.com/cli2/**').as('download');
     });
 
     it('can download macOS CLI', () => {
       aboutPage.getLinkDestination('rancher-darwin').then((el) => {
         const macOsVersion = el.split('/')[5];
-        // Download CLI and verify it exists
-        const downloadedFilename = path.join(downloadsFolder, macOsVersion);
 
         aboutPage.getMacCliDownloadLink().then((el: any) => {
           el.attr('download', '');
         }).click();
-        cy.readFile(downloadedFilename, 'base64').should('exist');
+        cy.wait('@download').then(({ request, response }) => {
+          expect(response?.statusCode).to.eq(200);
+          expect(request.url).includes(macOsVersion);
+        });
       });
     });
 
@@ -136,13 +138,13 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       aboutPage.getLinkDestination('rancher-linux').then((el) => {
         const linuxVersion = el.split('/')[5];
 
-        // Download CLI and verify it exists
-        const downloadedFilename = path.join(downloadsFolder, linuxVersion);
-
         aboutPage.getLinuxCliDownloadLink().then((el: any) => {
           el.attr('download', '');
         }).click();
-        cy.readFile(downloadedFilename, 'base64').should('exist');
+        cy.wait('@download').then(({ request, response }) => {
+          expect(response?.statusCode).to.eq(200);
+          expect(request.url).includes(linuxVersion);
+        });
       });
     });
 
@@ -150,13 +152,13 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       aboutPage.getLinkDestination('rancher-windows').then((el) => {
         const windowsVersion = el.split('/')[5];
 
-        // Download CLI and verify it exists
-        const downloadedFilename = path.join(downloadsFolder, windowsVersion);
-
         aboutPage.getWindowsCliDownloadLink().then((el: any) => {
           el.attr('download', '');
         }).click();
-        cy.readFile(downloadedFilename, 'base64').should('exist');
+        cy.wait('@download').then(({ request, response }) => {
+          expect(response?.statusCode).to.eq(200);
+          expect(request.url).includes(windowsVersion);
+        });
       });
     });
   });
