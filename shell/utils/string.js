@@ -309,3 +309,15 @@ export function isIpv4(ip) {
 
   return reg.test(ip);
 }
+
+export function sanitizeKey(k) {
+  return (k || '').replace(/[^a-z0-9./_-]/ig, '');
+}
+
+export function sanitizeValue(v) {
+  return (v || '').replace(/[^a-z0-9._-]/ig, '');
+}
+
+export function sanitizeIP(v) {
+  return (v || '').replace(/[^a-z0-9.:_-]/ig, '');
+}
