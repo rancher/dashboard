@@ -224,7 +224,7 @@ export default {
 
     &.nav-type:not(.depth-0):not(.depth-1) {
       A {
-        padding-left: 16px;
+        padding-left: 14px;
       }
     }
   }

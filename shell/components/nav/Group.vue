@@ -259,7 +259,6 @@ export default {
             @expand="expandGroup($event)"
             @close="close($event)"
           />
-          {{groups}}
         </li>
         <Type
           v-else-if="!child.overview || group.name === 'starred'"
@@ -341,6 +340,10 @@ export default {
           padding: 10px 10px 9px 7px;
           user-select: none;
         }
+
+        &:has(> a.nuxt-link-active) {
+          background: var(--nav-active);
+        }
       }
 
       > .body {
@@ -420,7 +423,7 @@ export default {
     &.root {
       background: transparent;
       A {
-        padding-left: 16px;
+        padding-left: 14px;
       }
     }
   }
