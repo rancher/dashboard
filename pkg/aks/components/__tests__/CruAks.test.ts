@@ -138,7 +138,7 @@ describe('aks provisioning form', () => {
     await Vue.nextTick();
 
     expect(versionDropdown.exists()).toBe(true);
-    // version dropdown options are validated in another test so we can assume they're properly sorted and filtered such that the first one is the default value
+    // version dropdown options are validated in another test so here we can assume they're properly sorted and filtered such that the first one is the default value
     expect(versionDropdown.props().value).toBe(versionDropdown.props().options[0].value);
   });
 });
