@@ -46,11 +46,6 @@ module.exports = {
   ],
   coverageDirectory: '<rootDir>/coverage/unit',
   coverageReporters: ['json', 'text-summary'],
-  globals:           {
-    'ts-jest': {
-      isolatedModules: true,
-      tsconfig:        'tsconfig.test.json'
-    }
-  },
-  preset: 'ts-jest'
+  globals:           { 'ts-jest': { isolatedModules: true } },
+  preset:            'ts-jest'
 };

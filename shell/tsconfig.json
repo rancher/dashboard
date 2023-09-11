@@ -8,9 +8,17 @@
     ]
   },
   "exclude": [
+    "node_modules",
+    ".nuxt",
+    "dist",
+    "dist-pkg",
+    "cypress",
+    "shell/creators",
+    "shell/scripts",
     "cypress",
     "./cypress.config.ts",
-    "**/*.test.ts",
+    "docusaurus",
+    "script/standalone",
     "**/*.spec.ts"
   ]
 }
