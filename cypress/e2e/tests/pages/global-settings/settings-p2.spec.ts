@@ -111,73 +111,77 @@ describe('Settings', () => {
   it('can update ui-index', { tags: '@adminUser' }, () => {
     // Update setting
     settingsPage.goTo();
-    settingsPage.editSettingsByLabel('ui-index');
+    settingsPage.settingsValue('ui-index').invoke('text').then((originalValue:any) => {
+      settingsPage.editSettingsByLabel('ui-index');
 
-    const settingsEdit = settingsPage.editSettings('_', 'ui-index');
+      const settingsEdit = settingsPage.editSettings('_', 'ui-index');
 
-    settingsEdit.waitForPage();
-    cy.contains('Setting: ui-index').should('be.visible');
-    settingsEdit.settingsInput().set(settings['ui-index'].new);
-    settingsEdit.saveAndWait('ui-index').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['ui-index'].new);
-      expect(response?.body).to.have.property('value', settings['ui-index'].new);
+      settingsEdit.waitForPage();
+      cy.contains('Setting: ui-index').should('be.visible');
+      settingsEdit.settingsInput().set(settings['ui-index'].new);
+      settingsEdit.saveAndWait('ui-index').then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', settings['ui-index'].new);
+        expect(response?.body).to.have.property('value', settings['ui-index'].new);
+      });
+      settingsPage.waitForPage();
+      settingsPage.settingsValue('ui-index').contains(settings['ui-index'].new);
+
+      // Reset
+      settingsPage.goTo();
+      settingsPage.waitForPage();
+      settingsPage.editSettingsByLabel('ui-index');
+
+      settingsEdit.waitForPage();
+      cy.contains('Setting: ui-index').should('be.visible');
+      settingsEdit.useDefaultButton().click();
+      settingsEdit.saveAndWait('ui-index').then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', originalValue);
+        expect(response?.body).to.have.property('value', originalValue);
+      });
+
+      settingsPage.waitForPage();
+      settingsPage.settingsValue('ui-index').contains(originalValue);
     });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-index').contains(settings['ui-index'].new);
-
-    // Reset
-    settingsPage.goTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('ui-index');
-
-    settingsEdit.waitForPage();
-    cy.contains('Setting: ui-index').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('ui-index').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['ui-index'].original);
-      expect(response?.body).to.have.property('value', settings['ui-index'].original);
-    });
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-index').contains(settings['ui-index'].original);
   });
 
   it('can update ui-dashboard-index', { tags: '@adminUser' }, () => {
     // Update setting
     settingsPage.goTo();
-    settingsPage.editSettingsByLabel('ui-dashboard-index');
+    settingsPage.settingsValue('ui-dashboard-index').invoke('text').then((originalValue:any) => {
+      settingsPage.editSettingsByLabel('ui-dashboard-index');
 
-    const settingsEdit = settingsPage.editSettings('_', 'ui-dashboard-index');
+      const settingsEdit = settingsPage.editSettings('_', 'ui-dashboard-index');
 
-    settingsEdit.waitForPage();
-    cy.contains('Setting: ui-dashboard-index').should('be.visible');
-    settingsEdit.settingsInput().set(settings['ui-dashboard-index'].new);
-    settingsEdit.saveAndWait('ui-dashboard-index').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['ui-dashboard-index'].new);
-      expect(response?.body).to.have.property('value', settings['ui-dashboard-index'].new);
+      settingsEdit.waitForPage();
+      cy.contains('Setting: ui-dashboard-index').should('be.visible');
+      settingsEdit.settingsInput().set(settings['ui-dashboard-index'].new);
+      settingsEdit.saveAndWait('ui-dashboard-index').then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', settings['ui-dashboard-index'].new);
+        expect(response?.body).to.have.property('value', settings['ui-dashboard-index'].new);
+      });
+      settingsPage.waitForPage();
+      settingsPage.settingsValue('ui-dashboard-index').contains(settings['ui-dashboard-index'].new);
+
+      // Reset
+      settingsPage.goTo();
+      settingsPage.waitForPage();
+      settingsPage.editSettingsByLabel('ui-dashboard-index');
+
+      settingsEdit.waitForPage();
+      cy.contains('Setting: ui-dashboard-index').should('be.visible');
+      settingsEdit.useDefaultButton().click();
+      settingsEdit.saveAndWait('ui-dashboard-index').then(({ request, response }) => {
+        expect(response?.statusCode).to.eq(200);
+        expect(request.body).to.have.property('value', originalValue);
+        expect(response?.body).to.have.property('value', originalValue);
+      });
+
+      settingsPage.waitForPage();
+      settingsPage.settingsValue('ui-dashboard-index').contains(originalValue);
     });
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-dashboard-index').contains(settings['ui-dashboard-index'].new);
-
-    // Reset
-    settingsPage.goTo();
-    settingsPage.waitForPage();
-    settingsPage.editSettingsByLabel('ui-dashboard-index');
-
-    settingsEdit.waitForPage();
-    cy.contains('Setting: ui-dashboard-index').should('be.visible');
-    settingsEdit.useDefaultButton().click();
-    settingsEdit.saveAndWait('ui-dashboard-index').then(({ request, response }) => {
-      expect(response?.statusCode).to.eq(200);
-      expect(request.body).to.have.property('value', settings['ui-dashboard-index'].original);
-      expect(response?.body).to.have.property('value', settings['ui-dashboard-index'].original);
-    });
-
-    settingsPage.waitForPage();
-    settingsPage.settingsValue('ui-dashboard-index').contains(settings['ui-dashboard-index'].original);
   });
 
   it('can update ui-offline-preferred', { tags: '@adminUser' }, () => {

@@ -40,15 +40,9 @@ export const settings = {
     original: '0 0 * * *',
     new:      '0 9 * * *'
   },
-  'server-url': { new: 'https://e2e-test' },
-  'ui-index':   {
-    original: 'https://releases.rancher.com/ui/latest2/index.html',
-    new:      'https://releases.rancher.com/ui/latest2/index.htmlABC'
-  },
-  'ui-dashboard-index': {
-    original: 'https://releases.rancher.com/dashboard/latest/index.html',
-    new:      'https://releases.rancher.com/dashboard/latest/index.htmlABC'
-  },
+  'server-url':           { new: 'https://e2e-test' },
+  'ui-index':             { new: 'https://e2e-test.html' },
+  'ui-dashboard-index':   { new: 'https://e2e-test.html' },
   'ui-offline-preferred': {
     original: 'Dynamic',
     new:      'Local',
