@@ -207,11 +207,24 @@ export default {
 
     &.nav-type:not(.depth-0) {
       A {
-        font-size: 13px;
+        padding-left: 16px;
       }
 
       ::v-deep .label I {
         padding-right: 2px;
+      }
+    }
+
+    &.nav-type:is(.depth-1) {
+      A {
+        font-size: 13px;
+        padding-left: 23px;
+      }
+    }
+
+    &.nav-type:not(.depth-0):not(.depth-1) {
+      A {
+        padding-left: 14px;
       }
     }
   }

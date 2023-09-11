@@ -552,7 +552,7 @@ export default {
     ::v-deep h6 {
       margin: 0;
       letter-spacing: normal;
-      line-height: initial;
+      line-height: 15px;
 
       A { padding-left: 0; }
     }

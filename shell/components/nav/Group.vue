@@ -300,13 +300,8 @@ export default {
         text-transform: none;
       }
     }
-    &.bg-yellow,
     &.active {
       background-color: var(--nav-active);
-
-      h6 {
-        font-weight: bold;
-      }
     }
   }
 
@@ -345,15 +340,14 @@ export default {
           padding: 10px 10px 9px 7px;
           user-select: none;
         }
+
+        &:has(> a.nuxt-link-active) {
+          background: var(--nav-active);
+        }
       }
 
       > .body {
         margin-left: 0;
-        padding-bottom: 8px;
-
-        &.child {
-          background: yellow;
-        }
       }
     }
 
@@ -390,10 +384,10 @@ export default {
     &.expanded:has(> .active),
     &.expanded:has(> ul li.nuxt-link-active) {
       background: var(--nav-active);
+    }
 
-      > .header h6 {
-        font-weight: bold;
-      }
+    &.expanded:has(> ul li.root) {
+      background: transparent;
     }
   }
 
@@ -425,9 +419,13 @@ export default {
     A:focus {
       outline: none;
     }
+
+    &.root {
+      background: transparent;
+      A {
+        padding-left: 14px;
+      }
+    }
   }
 
-  // .bg-yellow {
-  //   background: yellow;
-  // }
 </style>
