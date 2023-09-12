@@ -1,18 +1,9 @@
-import { RegisterClusterSaveHook, IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
-
-import { CAPI as CAPI_LABELS } from '@shell/config/labels-annotations';
+import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/types';
 import CruAks from './components/CruAks.vue';
-import { configureCredential, mapDriver } from '@shell/store/plugins';
+import { mapDriver } from '@shell/store/plugins';
 import { Component } from 'vue/types/umd';
-import { Route } from 'vue-router';
-
-const RANCHER_CLUSTER = 'provisioning.cattle.io.cluster';
 
 export class AKSProvisioner implements IClusterProvisioner {
-  // on create this needs to overwrite the kontainer driver option with id 'azureaks' to load the extension form
-  // on edit, however, instead of selecting a driver we need to load the extension's form based of status.provisioner which is 'AKS'
-  static OVERWRITE_DRIVER = 'azureaks';
-
   static ID = 'AKS'
 
   constructor(private context: ClusterProvisionerContext) {
@@ -22,14 +13,6 @@ export class AKSProvisioner implements IClusterProvisioner {
 
   get id(): string {
     return AKSProvisioner.ID;
-  }
-
-  get overwriteDriver(): string {
-    return AKSProvisioner.OVERWRITE_DRIVER;
-  }
-
-  get namespaced(): boolean {
-    return true;
   }
 
   get icon(): any {
@@ -58,9 +41,5 @@ export class AKSProvisioner implements IClusterProvisioner {
       events:       false,
       conditions:   false,
     };
-  }
-
-  private debug(...args: any[]) {
-    console.debug('aks provisioner', ...args, this.context);
   }
 }

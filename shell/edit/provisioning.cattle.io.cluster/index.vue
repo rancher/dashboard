@@ -363,13 +363,7 @@ export default {
           component:   ext.component
         };
 
-        const overwrite = out.find((st) => st.id === ext.overwriteDriver);
-
-        if (overwrite) {
-          out.splice(out.indexOf(overwrite), 1, subtype);
-        } else {
-          out.push(subtype);
-        }
+        out.push(subtype);
       }
 
       function addType(id, group, disabled = false, emberLink = null, iconClass = undefined) {
