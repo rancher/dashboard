@@ -5,7 +5,7 @@ import IconOrSvg from '../IconOrSvg';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { mapGetters } from 'vuex';
 import { CAPI, MANAGEMENT } from '@shell/config/types';
-import { mapPref, MENU_MAX_CLUSTERS, PINNED_CLUSTERS } from '@shell/store/prefs';
+import { MENU_MAX_CLUSTERS } from '@shell/store/prefs';
 import { sortBy } from '@shell/utils/sort';
 import { ucFirst } from '@shell/utils/string';
 import { KEY } from '@shell/utils/platform';
