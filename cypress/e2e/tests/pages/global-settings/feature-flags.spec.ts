@@ -124,9 +124,10 @@ describe('Feature Flags', () => {
 
     // Check cluster dashboard
     const clusterDashboard = new ClusterDashboardPagePo('local');
+    const sideNav = new ProductNavPo();
 
     clusterDashboard.goTo();
-    cy.contains('Legacy').should('be.visible');
+    sideNav.groups().contains('Legacy').should('be.visible');
 
     // Deactivate
     featureFlagsPage.goTo();
@@ -138,7 +139,7 @@ describe('Feature Flags', () => {
 
     // Check cluster dashboard
     clusterDashboard.goTo();
-    cy.contains('Legacy').should('not.exist');
+    sideNav.groups().contains('Legacy').should('not.exist');
   });
 
   it('can toggle rke1-custom-node-cleanup feature flag', { tags: '@adminUser' }, () => {
