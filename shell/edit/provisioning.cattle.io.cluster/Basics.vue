@@ -146,10 +146,6 @@ export default {
     }
   },
 
-  data() {
-    return {};
-  },
-
   computed: {
     ...mapGetters({ features: 'features/get' }),
 
