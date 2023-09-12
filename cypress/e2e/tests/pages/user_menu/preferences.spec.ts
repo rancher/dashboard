@@ -11,7 +11,7 @@ const repoListPage = new ReposListPagePo('_', 'manager');
 const repoList = repoListPage.list();
 // const clusterManagerPage = new ClusterManagerListPagePo('_');
 
-describe('User can update their preferences', () => {
+describe.only('User can update their preferences', () => {
   beforeEach(() => {
     cy.login();
   });
