@@ -3,7 +3,7 @@ import { set, get } from '@shell/utils/object';
 import { addParams, QueryParams } from '@shell/utils/url';
 
 // get vm sizes, regions, virtual networks, k8s versions
-export function getAKSOptions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string, resource: string) :Promise<any> | null {
+async function getAKSOptions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string, resource: string) :Promise<any> {
   if (!azureCredentialSecret) {
     return null;
   }
@@ -20,6 +20,22 @@ export function getAKSOptions(ctx: any, azureCredentialSecret: string, resourceL
   const url = addParams(`/meta/${ resource }`, params );
 
   return ctx.$store.dispatch('cluster/request', { url });
+}
+
+export async function getAKSRegions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
+  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksLocations');
+}
+
+export async function getAKSVMSizes(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
+  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksVMSizes');
+}
+
+export async function getAKSKubernetesVersions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
+  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksVersions');
+}
+
+export async function getAKSVirtualNetworks(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
+  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksVirtualNetworks');
 }
 
 /**

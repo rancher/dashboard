@@ -53,6 +53,7 @@ aks:
       addTaint: Add Taint
     mode:
       systemRequired: At least one node pool must use the 'system' mode.
+      label: Mode
   linuxAdminUsername:
     label: Linux Admin Username
     placeholder: azureuser
@@ -117,7 +118,9 @@ aks:
     label: Authorized IP Ranges
   errors:
     regions: 'An error occured while fetching the available regions: {e}'
-    vmSizes: 'An error occured while fetching the available VM sizes: {e}'
+    vmSizes: 
+      fetching: 'An error occured while fetching the available VM sizes: {e}'
+      available: This size is not avaiable in the selected region
     virtualNetworks: 'An error occured while fetching the available virtual networks: {e}'
     kubernetesVersions: 'An error occured while fetching the available kubernetes versions: {e}'
     clusterName: 

@@ -28,7 +28,9 @@ import Tabbed from '@shell/components/Tabbed/index.vue';
 import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
 
 import type { AKSDiskType, AKSNodePool, AKSPoolMode, AKSConfig } from '../types/index';
-import { diffUpstreamSpec, getAKSOptions } from '@pkg/aks/util/aks';
+import {
+  diffUpstreamSpec, getAKSRegions, getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
+} from '@pkg/aks/util/aks';
 import {
   requiredInCluster,
   clusterNameChars,
@@ -485,94 +487,98 @@ export default defineComponent({
       this.errors = [];
     },
 
-    getLocations() {
+    async getLocations() {
       this.loadingLocations = true;
       // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
       this.$set(this.config, 'resourceLocation', '');
 
       const { azureCredentialSecret, resourceLocation } = this.config;
 
-      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksLocations')
-        .then((res: any[]) => {
-          this.locationOptions = res;
-          if (!this.config?.resourceLocation) {
-            if (res.find((r) => r.name === DEFAULT_REGION)) {
-              this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
-            } else {
-              this.$set(this.config, 'resourceLocation', res[0]?.name);
-            }
-          }
-          this.loadingLocations = false;
-        }).catch((err: any) => {
-          this.loadingLocations = false;
-          const parsedError = parseAzureError(err.error || '');
+      try {
+        const res = await getAKSRegions(this, azureCredentialSecret, resourceLocation, this.clusterId);
 
-          this.errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
-        });
+        this.locationOptions = res;
+        if (!this.config?.resourceLocation) {
+          if (res.find((r) => r.name === DEFAULT_REGION)) {
+            this.$set(this.config, 'resourceLocation', DEFAULT_REGION);
+          } else {
+            this.$set(this.config, 'resourceLocation', res[0]?.name);
+          }
+        }
+        this.loadingLocations = false;
+      } catch (err: any) {
+        this.loadingLocations = false;
+        const parsedError = parseAzureError(err.error || '');
+
+        this.errors.push(this.t('aks.errors.regions', { e: parsedError || err }));
+      }
     },
 
-    getAksVersions() {
+    async getAksVersions() {
       this.loadingVersions = true;
       this.allAksVersions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
-      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksVersions')
-        .then((res: string[]) => {
+      try {
+        const res = await getAKSKubernetesVersions(this, azureCredentialSecret, resourceLocation, this.clusterId);
+
         // the default version is set once these are filtered and sorted in computed prop
-          this.allAksVersions = res;
-          this.loadingVersions = false;
-        }).catch((err: any) => {
-          this.loadingVersions = false;
+        this.allAksVersions = res;
+        this.loadingVersions = false;
+      } catch (err:any) {
+        this.loadingVersions = false;
 
-          const parsedError = parseAzureError(err.error || '');
+        const parsedError = parseAzureError(err.error || '');
 
-          this.errors.push(this.t('aks.errors.kubernetesVersions', { e: parsedError || err }));
-        });
+        this.errors.push(this.t('aks.errors.kubernetesVersions', { e: parsedError || err }));
+      }
     },
 
-    getVmSizes() {
+    async getVmSizes() {
       this.loadingVmSizes = true;
       this.vmSizeOptions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
-      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksVMSizes')
-        .then((res: string[]) => {
-          if (isArray(res)) {
-            this.vmSizeOptions = res.sort();
+      try {
+        const res = getAKSVMSizes(this, azureCredentialSecret, resourceLocation, this.clusterId);
 
-            if (!this.vmSizeOptions.includes(this.defaultVmSize)) {
-              this.defaultVmSize = '';
-            }
+        if (isArray(res)) {
+          this.vmSizeOptions = res.sort();
+
+          if (!this.vmSizeOptions.includes(this.defaultVmSize)) {
+            this.defaultVmSize = '';
           }
+        }
 
-          this.loadingVmSizes = false;
-        }).catch((err: any) => {
-          this.loadingVmSizes = false;
+        this.loadingVmSizes = false;
+      } catch (err: any) {
+        this.loadingVmSizes = false;
 
-          const parsedError = parseAzureError(err.error || '');
+        const parsedError = parseAzureError(err.error || '');
 
-          this.errors.push(this.t('aks.errors.vmSizes', { e: parsedError || err }));
-        });
+        this.errors.push(this.t('aks.errors.vmSizes.fetching', { e: parsedError || err }));
+      }
     },
 
-    getVirtualNetworks() {
+    async getVirtualNetworks() {
       this.loadingVirtualNetworks = true;
       this.virtualNetworkOptions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
-      getAKSOptions(this, azureCredentialSecret, resourceLocation, this.clusterId, 'aksVirtualNetworks')
-        .then((res: any) => {
-          if (res && isArray(res)) {
-            this.virtualNetworkOptions = res;
-          }
+      try {
+        const res = getAKSVirtualNetworks(this, azureCredentialSecret, resourceLocation, this.clusterId);
 
-          this.loadingVirtualNetworks = false;
-        }).catch((err: any) => {
-          const parsedError = parseAzureError(err.error || '');
+        if (res && isArray(res)) {
+          this.virtualNetworkOptions = res;
+        }
 
-          this.loadingVirtualNetworks = false;
-          this.errors.push(this.t('aks.errors.virtualNetworks', { e: parsedError || err }));
-        });
+        this.loadingVirtualNetworks = false;
+      } catch (err:any) {
+        const parsedError = parseAzureError(err.error || '');
+
+        this.loadingVirtualNetworks = false;
+        this.errors.push(this.t('aks.errors.virtualNetworks', { e: parsedError || err }));
+      }
     },
 
     addPool() {

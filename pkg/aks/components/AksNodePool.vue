@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import {mapGetters} from 'vuex';
 
 import { _CREATE } from '@shell/config/query-params';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
@@ -78,6 +79,10 @@ export default defineComponent({
     }
   },
 
+  computed:{
+    ...mapGetters({t:'i18n/t'})
+  },
+
   methods: {
     addTaint() {
       this.taints.push({ taint: '', _id: randomStr() });
@@ -118,7 +123,7 @@ export default defineComponent({
           :loading="loadingVmSizes"
           :mode="mode"
           :disabled="!pool._isNewOrUnprovisioned"
-          :rules="[()=>pool._validSize === false ? 'This size is not avaiable in the selected region' : undefined]"
+          :rules="[()=>pool._validSize === false ? t('aks.errors.vmSizes.available') : undefined]"
         />
       </div>
       <div class="col span-3">
@@ -144,7 +149,7 @@ export default defineComponent({
           @input="$emit('validationChanged')"
         >
           <template #label>
-            <span class="text-label">Mode</span>
+            <span class="text-label">{{t('aks.nodePools.mode.label')}}</span>
           </template>
         </RadioGroup>
       </div>
