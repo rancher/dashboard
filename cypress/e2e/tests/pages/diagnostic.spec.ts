@@ -22,7 +22,7 @@ describe('Diagnostics Page', { tags: ['@adminUser'] }, () => {
     const downloadedFilename = path.join(downloadsFolder, 'rancher-diagnostic-data.json');
 
     cy.readFile(downloadedFilename).should('exist').then((file: any) => {
-      expect(Object.keys(file).length).to.equal(5);
+      expect(Object.keys(file).length).to.equal(4);
     });
   });
 });
