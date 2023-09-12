@@ -174,8 +174,8 @@ if (addWorkflowFolder) {
   }
 
   const files = [
-    'build-extension.yml',
-    'build-container.yml'
+    'build-extension-catalog.yml',
+    'build-extension-charts.yml'
   ];
 
   files.forEach((fileName) => {
