@@ -50,7 +50,7 @@ export default {
 
   computed: {
     isGroupActive() {
-      return this.isOverview || (this.hasActiveRoute() && this.isExpanded);
+      return this.isOverview || (this.hasActiveRoute() && this.isExpanded && this.showHeader);
     },
 
     hasChildren() {
@@ -387,15 +387,6 @@ export default {
           padding: 6px 8px 6px 8px;
         }
       }
-    }
-
-    &.expanded:has(> .active),
-    &.expanded:has(> ul li.nuxt-link-active) {
-      background: var(--nav-active);
-    }
-
-    &.expanded:has(> ul li.root) {
-      background: transparent;
     }
   }
 
