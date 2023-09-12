@@ -3,7 +3,6 @@ import difference from 'lodash/difference';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
 import merge from 'lodash/merge';
-import { mapGetters } from 'vuex';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
 import { normalizeName } from '@shell/utils/kube';
@@ -249,16 +248,12 @@ export default {
       busy:                  false,
       machinePoolValidation: {}, // map of validation states for each machine pool
       allNamespaces:         [],
-      initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'],
+      initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'] || '',
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
     };
   },
 
   computed: {
-    ...mapGetters({ allCharts: 'catalog/charts' }),
-    ...mapGetters(['currentCluster']),
-    ...mapGetters({ features: 'features/get' }),
-    ...mapGetters(['namespaces']),
 
     rkeConfig() {
       return this.value.spec.rkeConfig;
@@ -575,7 +570,7 @@ export default {
     },
 
     showCloudProvider() {
-      return this.agentArgs['cloud-provider-name'];
+      return !!this.agentArgs['cloud-provider-name'];
     },
 
     /**
@@ -723,6 +718,14 @@ export default {
       Object.values(this.machinePoolValidation).forEach((v) => (base = base && v));
 
       return validRequiredPools && base;
+    },
+    unsupportedCloudProvider() {
+      // The current cloud provider
+      const cur = this.initialCloudProvider;
+
+      const provider = cur && this.cloudProviderOptions.find((x) => x.value === cur);
+
+      return !!provider?.unsupported;
     },
   },
 
@@ -1991,7 +1994,6 @@ export default {
     handleShowDeprecatedPatchVersionsChanged(value) {
       this.showDeprecatedPatchVersions = value;
     },
-
     /**
      * Track Machine Pool validation status
      */
@@ -2208,6 +2210,16 @@ export default {
             :isHarvesterDriver="isHarvesterDriver"
             :isHarvesterIncompatible="isHarvesterIncompatible"
             :versionOptions="versionOptions"
+            :clusterIsAlreadyCreated="clusterIsAlreadyCreated"
+            :initialCloudProvider="initialCloudProvider"
+            :isElementalCluster="isElementalCluster"
+            :hasPsaTemplates="hasPsaTemplates"
+            :isK3s="isK3s"
+            :haveArgInfo="haveArgInfo"
+            :showCni="showCni"
+            :showCloudProvider="showCloudProvider"
+            :isHarvesterExternalCredential="isHarvesterExternalCredential"
+            :unsupportedCloudProvider="unsupportedCloudProvider"
             @ciliumIpv6Changed="handleCiliumIpv6Changed"
             @enabledSystemServicesChanged="handleEnabledSystemServicesChanged"
             @kubernetesChanged="handleKubernetesChange"

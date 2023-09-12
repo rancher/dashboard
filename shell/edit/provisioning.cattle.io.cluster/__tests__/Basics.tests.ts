@@ -2,7 +2,6 @@ import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
 
 const defaultStubs = {
-  Tab:           { template: '<div><slot></slot></div>' }, // Required to render the slot content
   Banner:        true,
   LabeledSelect: true,
   YamlEditor:    true,
@@ -13,46 +12,46 @@ const defaultComputed = {
   showk8s21LegacyWarning() {
     return false;
   },
-};
-const versionsInfoMock = {
-  allPSPs:      [],
-  allPSAs:      [],
-  rke2Versions: {
-    data: [
-      {
-        id: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
-      },
-      {
-        id: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
-      },
-      {
-        id: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
-      }
-    ]
-  },
-  k3sVersions: {
-    data: [
-      {
-        id: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
-      },
-      {
-        id: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
-      },
-      {
-        id: 'v1.23.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
-      }
-    ]
-  },
-  defaultRke2: 'v1.23.0+rke2r1',
-  defaultK3s:  'v1.23.0+k3s1'
+  profileOptions() {
+    return [{ label: 'anything', value: 'anything' }];
+  }
 };
 
+const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
+const mockServerArgs = { disable: {}, cni: { options: [] } };
+
+const rke2Versions =
+  [
+    {
+      id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    },
+    {
+      id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    },
+    {
+      id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+    }
+  ];
+const k3sVersions = [
+  {
+    id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  },
+  {
+    id: 'v1.23.0+k3s1', value: 'v1.23.0+k3s1', serverArgs: mockServerArgs, agentArgs: mockAgentArgs, charts: {}
+  }
+];
+const mockVersionOptions = [...rke2Versions, ...k3sVersions];
+
 const defaultGetters = {
-  currentStore:           () => 'current_store',
-  'management/schemaFor': jest.fn(),
-  'current_store/all':    jest.fn(),
-  'i18n/t':               jest.fn(),
-  'i18n/withFallback':    jest.fn(),
+  currentStore:                     () => 'current_store',
+  'management/schemaFor':           jest.fn(),
+  'current_store/all':              jest.fn(),
+  'i18n/t':                         jest.fn(),
+  'i18n/withFallback':              jest.fn(),
+  'plugins/cloudProviderForDriver': jest.fn()
 };
 
 const defaultMocks = {
@@ -67,7 +66,7 @@ const defaultSpec = {
   chartValues: {},
 };
 
-describe('component: rke2', () => {
+describe('component: Basics', () => {
   /**
    * DISCLAIMER ***************************************************************************************
    * Logs are prevented to avoid polluting the test output.
@@ -75,19 +74,11 @@ describe('component: rke2', () => {
   */
   // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => { });
   });
 
-  it.each([
-    'v1.25.0+rke2r1',
-    'v1.24.0+rke2r1',
-    'v1.23.0+rke2r1',
-    'v1.25.0+k3s1',
-    'v1.24.0+k3s1',
-    'v1.23.0+k3s1',
-  ])('should display PSA option', (k8s) => {
+  it.each(mockVersionOptions)('should display PSA option', (k8s) => {
     const label = 'whatever';
-    const option = { label, value: label };
     const wrapper = mount(Basics, {
       propsData: {
         mode:  'create',
@@ -95,27 +86,36 @@ describe('component: rke2', () => {
           spec: {
             ...defaultSpec,
             defaultPodSecurityAdmissionConfigurationTemplateName: label,
-            kubernetesVersion:                                    k8s
-          }
+            kubernetesVersion:                                    k8s.value
+          },
+          agentConfig: { 'cloud-provider-name': '' },
         },
-        provider:              'whatever',
-        versionsInfo:          versionsInfoMock,
-        versionInfo:           {},
-        harvesterVersionRange: {},
-        userChartValues:       {},
-        cisOverride:           false,
-        cisPsaChangeBanner:    true
+        provider:                      'whatever',
+        userChartValues:               {},
+        cisOverride:                   false,
+        cisPsaChangeBanner:            true,
+        allPSAs:                       [],
+        needsPSP:                      false,
+        selectedVersion:               k8s,
+        versionOptions:                mockVersionOptions,
+        isHarvesterDriver:             false,
+        isHarvesterIncompatible:       false,
+        showDeprecatedPatchVersions:   false,
+        clusterIsAlreadyCreated:       false,
+        initialCloudProvider:          '',
+        isElementalCluster:            false,
+        hasPsaTemplates:               false,
+        isK3s:                         true,
+        haveArgInfo:                   false,
+        showCni:                       true,
+        showCloudProvider:             true,
+        isHarvesterExternalCredential: false,
+        unsupportedCloudProvider:      false
       },
       computed: defaultComputed,
       mocks:    {
         ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
+        $store: { getters: defaultGetters },
       },
       stubs: defaultStubs
     });
@@ -134,7 +134,6 @@ describe('component: rke2', () => {
     ['v1.23.0+k3s1', 'default'],
   ])('should display for version %p PSA option label %p', (k8s, partialLabel) => {
     const label = `cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ partialLabel }`;
-    const option = { label, value: label };
     const wrapper = mount(Basics, {
       propsData: {
         mode:  'create',
@@ -143,26 +142,35 @@ describe('component: rke2', () => {
             ...defaultSpec,
             defaultPodSecurityAdmissionConfigurationTemplateName: label,
             kubernetesVersion:                                    k8s
-          }
+          },
+          agentConfig: { 'cloud-provider-name': '' },
         },
-        provider:              'whatever',
-        versionsInfo:          versionsInfoMock,
-        versionInfo:           {},
-        harvesterVersionRange: {},
-        userChartValues:       {},
-        cisOverride:           true,
-        cisPsaChangeBanner:    true
+        provider:                      'whatever',
+        userChartValues:               {},
+        cisOverride:                   false,
+        cisPsaChangeBanner:            true,
+        allPSAs:                       [],
+        needsPSP:                      false,
+        selectedVersion:               mockVersionOptions[0],
+        versionOptions:                mockVersionOptions,
+        isHarvesterDriver:             false,
+        isHarvesterIncompatible:       false,
+        showDeprecatedPatchVersions:   false,
+        clusterIsAlreadyCreated:       false,
+        initialCloudProvider:          '',
+        isElementalCluster:            false,
+        hasPsaTemplates:               false,
+        isK3s:                         true,
+        haveArgInfo:                   false,
+        showCni:                       true,
+        showCloudProvider:             true,
+        isHarvesterExternalCredential: false,
+        unsupportedCloudProvider:      false
       },
       computed: defaultComputed,
       mocks:    {
         ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
+        $store: { getters: defaultGetters },
       },
       stubs: defaultStubs
     });
@@ -179,47 +187,48 @@ describe('component: rke2', () => {
   ])('given CIS value as %p and its override as %p, it should set PSA dropdown as disabled %p', (cis, override, disabled) => {
     const label = 'whatever';
     const k8s = 'v1.25.0+rke2r1';
-    const option = { label, value: label };
     const wrapper = mount(Basics, {
       propsData: {
         mode:  'create',
         value: {
-          agentConfig: { profile: cis },
+          agentConfig: { profile: cis, 'cloud-provider-name': '' },
           spec:        {
             ...defaultSpec,
             defaultPodSecurityAdmissionConfigurationTemplateName: label,
             kubernetesVersion:                                    k8s
           }
         },
-        provider:              'custom',
-        versionsInfo:          versionsInfoMock,
-        versionInfo:           {},
-        harvesterVersionRange: {},
-        userChartValues:       {},
-        cisOverride:           override,
-        cisPsaChangeBanner:    true
+        provider:           'custom',
+        userChartValues:    {},
+        cisPsaChangeBanner: true,
+        allPSAs:            [],
+        needsPSP:           false,
+        cisOverride:        override,
+        selectedVersion:    mockVersionOptions[0],
+        versionOptions:     [{
+          value:     k8s,
+          agentArgs: { profile: { options: [cis] } },
+          charts:    {},
+          profile:   { options: [cis] }
+        }],
+        isHarvesterDriver:             false,
+        isHarvesterIncompatible:       false,
+        showDeprecatedPatchVersions:   false,
+        clusterIsAlreadyCreated:       false,
+        initialCloudProvider:          '',
+        isElementalCluster:            false,
+        hasPsaTemplates:               true,
+        isK3s:                         true,
+        haveArgInfo:                   false,
+        showCni:                       true,
+        showCloudProvider:             true,
+        isHarvesterExternalCredential: false,
+        unsupportedCloudProvider:      false
       },
-      computed: {
-        ...defaultComputed,
-        agentArgs:      () => ({ profile: { options: [cis] } }),
-        versionOptions: () => [
-          {
-            value:     k8s,
-            agentArgs: { profile: { options: [cis] } },
-            charts:    {},
-            profile:   { options: [cis] }
-          }
-        ]
-      },
-      mocks: {
+      computed: { ...defaultComputed },
+      mocks:    {
         ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
+        $store: { getters: defaultGetters },
       },
       stubs: defaultStubs
     });

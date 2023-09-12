@@ -46,9 +46,25 @@ const defaultComputed = {
   showForm() {
     return true;
   },
-  showk8s21LegacyWarning() {
-    return false;
-  },
+  versionOptions() {
+    return [
+      {
+        id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+      }
+    ];
+  }
 };
 
 const defaultGetters = {
@@ -80,7 +96,7 @@ describe('component: rke2', () => {
   */
   // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'log').mockImplementation(() => { });
   });
 
   it.each([

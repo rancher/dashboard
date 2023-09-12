@@ -11,7 +11,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { LEGACY } from '@shell/store/features';
 import semver from 'semver';
-import { KIND, ELEMENTAL_CLUSTER_PROVIDER } from '@shell/config/elemental-types';
 
 const HARVESTER = 'harvester';
 
@@ -104,22 +103,55 @@ export default {
     showDeprecatedPatchVersions: {
       type:     Boolean,
       required: true
+    },
+    clusterIsAlreadyCreated: {
+      type:     Boolean,
+      required: true
+    },
+    initialCloudProvider: {
+      type:     String,
+      required: true
+    },
+    isElementalCluster: {
+      type:     Boolean,
+      required: true
+    },
+    hasPsaTemplates: {
+      type:     Boolean,
+      required: true
+    },
+    isK3s: {
+      type:     Boolean,
+      required: true
+    },
+    haveArgInfo: {
+      type:     Boolean,
+      required: true
+    },
+    showCni: {
+      type:     Boolean,
+      required: true
+    },
+    showCloudProvider: {
+      type:     Boolean,
+      required: true
+    },
+    isHarvesterExternalCredential: {
+      type:     Boolean,
+      required: true
+    },
+    unsupportedCloudProvider: {
+      type:     Boolean,
+      required: true
     }
-
   },
 
   data() {
-    return {
-      clusterIsAlreadyCreated: !!this.value.id,
-      initialCloudProvider:    this.value?.agentConfig?.['cloud-provider-name'],
-    };
+    return {};
   },
 
   computed: {
-    ...mapGetters({ allCharts: 'catalog/charts' }),
-    ...mapGetters(['currentCluster']),
     ...mapGetters({ features: 'features/get' }),
-    ...mapGetters(['namespaces']),
 
     /**
      * Check presence of PSPs as template or CLI creation
@@ -127,10 +159,6 @@ export default {
 
     hasPsps() {
       return !!this.psps?.count;
-    },
-
-    isElementalCluster() {
-      return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
     },
 
     serverConfig() {
@@ -150,17 +178,6 @@ export default {
       const isRequiredVersion = version?.length ? +version[0] > 1 || +version[1] >= 23 : false;
 
       return isRequiredVersion;
-    },
-
-    /**
-     * Define introduction of Rancher defined PSA templates
-     */
-    hasPsaTemplates() {
-      return !this.needsPSP;
-    },
-
-    isK3s() {
-      return (this.value?.spec?.kubernetesVersion || '').includes('k3s');
     },
 
     profileOptions() {
@@ -268,7 +285,7 @@ export default {
     },
 
     disableOptions() {
-      return this.serverArgs.disable.options.map((value) => {
+      return (this.serverArgs.disable.options || []).map((value) => {
         return {
           label: this.$store.getters['i18n/withFallback'](`cluster.${ this.isK3s ? 'k3s' : 'rke2' }.systemService."${ value }"`, null, value.replace(/^(rke2|rancher)-/, '')),
           value,
@@ -336,10 +353,6 @@ export default {
       return out;
     },
 
-    haveArgInfo() {
-      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
-    },
-
     serverArgs() {
       return this.selectedVersion?.serverArgs || {};
     },
@@ -405,14 +418,6 @@ export default {
       return name === 'rancher-vsphere';
     },
 
-    showCni() {
-      return !!this.serverArgs.cni;
-    },
-
-    showCloudProvider() {
-      return this.agentArgs['cloud-provider-name'];
-    },
-
     showk8s21LegacyWarning() {
       const isLegacyEnabled = this.features(LEGACY);
 
@@ -434,19 +439,6 @@ export default {
       set(val) {
         this.$emit('ciliumIpv6Changed', val);
       }
-    },
-
-    isHarvesterExternalCredential() {
-      return this.credential?.harvestercredentialConfig?.clusterType === 'external';
-    },
-
-    unsupportedCloudProvider() {
-      // The current cloud provider
-      const cur = this.initialCloudProvider;
-
-      const provider = cur && this.cloudProviderOptions.find((x) => x.value === cur);
-
-      return !!provider?.unsupported;
     },
 
     canNotEditCloudProvider() {
