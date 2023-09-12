@@ -47,14 +47,14 @@ export default {
 
   watch: {
     selectedContainers(neu, old) {
-      const containerNames = neu.map(item => item.name);
+      const containerNames = neu.map((item) => item.name);
 
       this.containers.forEach((container) => {
         if (!containerNames.includes(container.name)) {
           const namePrefix = `host-path-$uid`;
           const volumeMounts = container.volumeMounts || [];
 
-          container.volumeMounts = volumeMounts.filter(mount => mount.name && !mount.name.startsWith(namePrefix));
+          container.volumeMounts = volumeMounts.filter((mount) => mount.name && !mount.name.startsWith(namePrefix));
         }
       });
     }
@@ -68,7 +68,7 @@ export default {
     availableContainerOptions() {
       const selectedContainerNames = this.selectedContainers.map(({ name }) => name);
 
-      return this.value.containers.filter(item => !selectedContainerNames.includes(item.name)).map((item) => {
+      return this.value.containers.filter((item) => !selectedContainerNames.includes(item.name)).map((item) => {
         return {
           label:  item.name,
           action: this.selectContainer,
@@ -112,7 +112,7 @@ export default {
         return containers;
       }
 
-      return containers.filter(container => container.volumeMounts && container.volumeMounts.length && container.volumeMounts.find(item => item.name && item.name.startsWith(namePrefix)));
+      return containers.filter((container) => container.volumeMounts && container.volumeMounts.length && container.volumeMounts.find((item) => item.name && item.name.startsWith(namePrefix)));
     },
 
     removeContainerItem(container) {
@@ -122,7 +122,7 @@ export default {
     },
 
     selectContainer(event) {
-      const selectedContainer = this.value.containers.find(container => container.name === event.value);
+      const selectedContainer = this.value.containers.find((container) => container.name === event.value);
 
       this.selectedContainers.push(selectedContainer);
     },

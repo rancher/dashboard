@@ -52,10 +52,7 @@ export function init(store) {
     name:       'logging-extensions',
     route:      {
       name:   'c-cluster-logging-extension',
-      params: {
-        product:  'logging',
-        resource: 'workload',
-      }
+      params: { product: 'logging' }
     },
     weight: 200,
   });

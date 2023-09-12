@@ -32,11 +32,9 @@ const $loadingResources = ($route, $store) => {
     }
   });
 
-  const allTypes = $route.params.resource === schema.id;
-
   return {
-    loadResources:     allTypes ? allowedResources : [$route.params.resource],
-    loadIndeterminate: allTypes,
+    loadResources:     allowedResources,
+    loadIndeterminate: true,
   };
 };
 
@@ -53,11 +51,7 @@ export default {
   },
 
   async fetch() {
-    if (this.allTypes && this.loadResources.length) {
-      this.$initializeFetchData(this.loadResources[0], this.loadResources);
-    } else {
-      this.$initializeFetchData(this.$route.params.resource);
-    }
+    this.$initializeFetchData(this.loadResources[0], this.loadResources);
 
     try {
       const schema = this.$store.getters[`cluster/schemaFor`](NODE);
@@ -69,19 +63,9 @@ export default {
 
     this.loadHeathResources();
 
-    if ( this.allTypes ) {
-      this.resources = await Promise.all(this.loadResources.map((allowed) => {
-        return this.$fetchType(allowed, this.loadResources);
-      }));
-    } else {
-      const type = this.$route.params.resource;
-
-      if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$fetchType(type);
-
-        this.resources = [resource];
-      }
-    }
+    this.resources = await Promise.all(this.loadResources.map((allowed) => {
+      return this.$fetchType(allowed, this.loadResources);
+    }));
   },
 
   data() {
@@ -101,9 +85,6 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-    allTypes() {
-      return this.$route.params.resource === schema.id;
-    },
     workloadTypesChoices() {
       return worklaodTypes.reduce((prev, type) => {
         prev.push({
@@ -146,7 +127,7 @@ export default {
             continue;
           }
 
-          if (!this.allTypes || !row.ownedByWorkload) {
+          if (!row.ownedByWorkload) {
             const goToEdit = () => {
               const resources = row;
 
@@ -202,23 +183,8 @@ export default {
   methods: {
     loadHeathResources() {
       // Fetch these in the background to populate workload health
-      if ( this.allTypes ) {
-        this.$fetchType(POD);
-        this.$fetchType(WORKLOAD_TYPES.JOB);
-      } else {
-        const type = this.$route.params.resource;
-
-        if (type === WORKLOAD_TYPES.JOB || type === POD) {
-          // Ignore job and pods (we're fetching this anyway, plus they contain their own state)
-          return;
-        }
-
-        if (type === WORKLOAD_TYPES.CRON_JOB) {
-          this.$fetchType(WORKLOAD_TYPES.JOB);
-        } else {
-          this.$fetchType(POD);
-        }
-      }
+      this.$fetchType(POD);
+      this.$fetchType(WORKLOAD_TYPES.JOB);
     },
 
     changeRows(filterRows, searchLabels) {

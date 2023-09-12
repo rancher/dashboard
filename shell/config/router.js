@@ -143,7 +143,7 @@ export const routerOptions = {
     component: () => interopDefault(import('../pages/c/_cluster/logging/index.vue' /* webpackChunkName: "pages/c/_cluster/logging/index" */)),
     name:      'c-cluster-logging'
   }, {
-    path:      '/c/:cluster/logging/:resource/extension',
+    path:      '/c/:cluster/logging/extension',
     component: () => interopDefault(import('../pages/c/_cluster/logging/extension.vue' /* webpackChunkName: "pages/c/_cluster/logging/extension" */)),
     name:      'c-cluster-logging-extension'
   }, {

@@ -9,6 +9,14 @@ import ContainerMountPaths from '@shell/pages/c/_cluster/logging/ContainerMountP
 import jsyaml from 'js-yaml';
 import { clone } from '@shell/utils/object';
 
+const TYPES = {
+  DaemonSet:   'ds',
+  CronJob:     'cj',
+  Deployment:  'deploy',
+  Job:         'job',
+  StatefulSet: 'sts',
+};
+
 export default {
   components: {
     AsyncButton, Card, Banner, ContainerMountPaths
@@ -68,7 +76,7 @@ export default {
       const namePrefix = `host-path-${ this.uid }`;
 
       this.value.volumes = [
-        ...volumes.filter(item => !item.name.includes(namePrefix)),
+        ...volumes.filter((item) => !item.name.includes(namePrefix)),
         ...hosttailerVolumes,
       ];
     },
@@ -157,7 +165,7 @@ export default {
       containers.forEach((container) => {
         const volumeMounts = container.volumeMounts || [];
 
-        if (volumeMounts.find(item => item.name === `host-path-${ uid }-${ container.name }`)) {
+        if (volumeMounts.find((item) => item.name === `host-path-${ uid }-${ container.name }`)) {
           out.push(...[{
             _type:    'hostPath',
             hostPath: {
@@ -174,23 +182,26 @@ export default {
 
     async updateOrCreateHostTailer(hosttailerVolumes) {
       const hosttailers = await this.$store.dispatch('cluster/findAll', { type: LOGGING.HOST_TAILER });
-      const hosttailer = hosttailers.find(hosttailer => hosttailer.id === 'cattle-logging-system/file-hosttailer');
+      const hosttailer = hosttailers.find((hosttailer) => hosttailer.id === 'cattle-logging-system/file-hosttailer');
       const isCreate = !hosttailer;
       const headers = {
         'content-type': 'application/yaml',
         accept:         'application/json'
       };
+      const { namespace, kind, nameDisplay } = this.workload;
+      const namePrefix = `${ namespace }-${ TYPES[kind] }-${ nameDisplay }`;
+
       let data = {};
 
       const fileTailersAll = hosttailer?.spec?.fileTailers || [];
-      const fileTailers = fileTailersAll.filter(fileTailer => !fileTailer.name.startsWith(this.uid));
+      const fileTailers = fileTailersAll.filter((fileTailer) => !fileTailer.name.startsWith(namePrefix));
 
       hosttailerVolumes.forEach((volume) => {
         const path = `${ volume.hostPath.path }/*`;
-        const volumeName = volume.name.replace('host-path-', '');
+        const volumeName = namePrefix + volume.name.replace(`host-path-${ this.uid }`, '');
 
         fileTailers.push({
-          name:     `${ volumeName }-logfile`,
+          name:     volumeName,
           path,
           disabled: false
         }) ;
