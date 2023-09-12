@@ -180,14 +180,9 @@ export default {
     // If the option's label changed in parent but value did not, the label wont be automatically updated here
     // Ensure that the label being shown is still present in the options prop and find the new one if not
     getUpdatedOption(option) {
-      let out;
-      const isOutdated = !this.options.find((opt) => option[this.optionLabel] === opt[this.optionLabel]);
+      const isOutdated = this.options && !this.options.find((opt) => option[this.optionLabel] === opt[this.optionLabel]);
 
-      if (isOutdated && this.options) {
-        out = this.options.find((opt) => isEqual(this.reduce(option), this.reduce(opt)));
-      }
-
-      return out;
+      return isOutdated ? this.options.find((opt) => isEqual(this.reduce(option), this.reduce(opt))) : undefined;
     },
 
     positionDropdown(dropdownList, component, { width }) {
