@@ -625,15 +625,11 @@ export default {
         class="user user-menu"
         data-testid="nav_header_showUserMenu"
         tabindex="0"
-        @blur="showMenu(false)"
-        @click="showMenu(true)"
-        @focus.capture="showMenu(true)"
       >
         <v-popover
           ref="popover"
           placement="bottom-end"
           offset="-10"
-          trigger="manual"
           :delay="{show: 0, hide: 0}"
           :popper-options="{modifiers: { flip: { enabled: false } } }"
           :container="false"

@@ -35,9 +35,6 @@ export default class UserMenuPo extends ComponentPo {
    */
   open(): Cypress.Chainable {
     this.self().click();
-    this.self().click();
-    this.self().click();
-    this.self().click();
   }
 
   /**
