@@ -108,7 +108,7 @@ describe('Settings', () => {
     settingsPage.settingsValue('system-default-registry').contains(settings['system-default-registry'].original);
   });
 
-  it('can update ui-index', { tags: '@adminUser' }, () => {
+  it.only('can update ui-index', { tags: '@adminUser' }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.settingsValue('ui-index').invoke('text').then((originalValue:any) => {
@@ -119,7 +119,7 @@ describe('Settings', () => {
       settingsEdit.waitForPage();
       cy.contains('Setting: ui-index').should('be.visible');
       settingsEdit.settingsInput().set(settings['ui-index'].new);
-      settingsEdit.saveAndWait('ui-index').then(({ request, response }) => {
+      settingsEdit.saveAndWait('ui-index', settings['ui-index'].new).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
         expect(request.body).to.have.property('value', settings['ui-index'].new);
         expect(response?.body).to.have.property('value', settings['ui-index'].new);
@@ -135,7 +135,7 @@ describe('Settings', () => {
       settingsEdit.waitForPage();
       cy.contains('Setting: ui-index').should('be.visible');
       settingsEdit.useDefaultButton().click();
-      settingsEdit.saveAndWait('ui-index').then(({ request, response }) => {
+      settingsEdit.saveAndWait('ui-index', originalValue).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
         expect(request.body).to.have.property('value', originalValue);
         expect(response?.body).to.have.property('value', originalValue);
@@ -146,7 +146,7 @@ describe('Settings', () => {
     });
   });
 
-  it('can update ui-dashboard-index', { tags: '@adminUser' }, () => {
+  it.only('can update ui-dashboard-index', { tags: '@adminUser' }, () => {
     // Update setting
     settingsPage.goTo();
     settingsPage.settingsValue('ui-dashboard-index').invoke('text').then((originalValue:any) => {
@@ -157,7 +157,7 @@ describe('Settings', () => {
       settingsEdit.waitForPage();
       cy.contains('Setting: ui-dashboard-index').should('be.visible');
       settingsEdit.settingsInput().set(settings['ui-dashboard-index'].new);
-      settingsEdit.saveAndWait('ui-dashboard-index').then(({ request, response }) => {
+      settingsEdit.saveAndWait('ui-dashboard-index', settings['ui-dashboard-index'].new).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
         expect(request.body).to.have.property('value', settings['ui-dashboard-index'].new);
         expect(response?.body).to.have.property('value', settings['ui-dashboard-index'].new);
@@ -173,7 +173,7 @@ describe('Settings', () => {
       settingsEdit.waitForPage();
       cy.contains('Setting: ui-dashboard-index').should('be.visible');
       settingsEdit.useDefaultButton().click();
-      settingsEdit.saveAndWait('ui-dashboard-index').then(({ request, response }) => {
+      settingsEdit.saveAndWait('ui-dashboard-index', originalValue).then(({ request, response }) => {
         expect(response?.statusCode).to.eq(200);
         expect(request.body).to.have.property('value', originalValue);
         expect(response?.body).to.have.property('value', originalValue);

@@ -25,7 +25,7 @@ export class SettingsPagePo extends RootClusterPage {
    * @returns
    */
   actionButtonByLabel(label: string) {
-    return this.advancedSettingRow(label).find('.action');
+    return this.advancedSettingRow(label).find('.action > button');
   }
 
   /**
