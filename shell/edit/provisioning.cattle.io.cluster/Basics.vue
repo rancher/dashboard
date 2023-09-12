@@ -65,12 +65,12 @@ export default {
       type:     Boolean,
       required: true
     },
-    allPSPs: {
+    allPsps: {
       type:     Array,
       required: false,
       default:  null
     },
-    allPSAs: {
+    allPsas: {
       type:     Array,
       required: true
     },
@@ -80,7 +80,7 @@ export default {
       required: false,
       default:  null
     },
-    needsPSP: {
+    needsPsp: {
       type:     Boolean,
       required: true
     },
@@ -207,8 +207,8 @@ export default {
         value: ''
       }];
 
-      if ( this.allPSPs ) {
-        for ( const pspt of this.allPSPs ) {
+      if ( this.allPsps ) {
+        for ( const pspt of this.allPsps ) {
           out.push({
             label: pspt.nameDisplay,
             value: pspt.id,
@@ -237,7 +237,7 @@ export default {
      * Get the default label for the PSA template option
      */
     defaultPsaOptionLabel() {
-      const optionCase = !this.needsPSP && !this.isK3s ? 'default' : 'none';
+      const optionCase = !this.needsPsp && !this.isK3s ? 'default' : 'none';
 
       return this.$store.getters['i18n/t'](`cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ optionCase }`);
     },
@@ -254,8 +254,8 @@ export default {
         value: ''
       }];
 
-      if ( this.allPSAs ) {
-        for ( const psa of this.allPSAs ) {
+      if ( this.allPsas ) {
+        for ( const psa of this.allPsas ) {
           out.push({
             label: psa.nameDisplay,
             value: psa.id,
@@ -380,7 +380,7 @@ export default {
       set(neu) {
         const out = difference(this.serverArgs.disable.options, neu);
 
-        this.$emit('enabledSystemServicesChanged', out);
+        this.$emit('enabled-system-services-changed', out);
       },
     },
 
@@ -433,7 +433,7 @@ export default {
         return this.userChartValues[this.chartVersionKey('rke2-cilium')]?.cilium?.ipv6?.enabled || false;
       },
       set(val) {
-        this.$emit('ciliumIpv6Changed', val);
+        this.$emit('cilium-ipv6-changed', val);
       }
     },
 
@@ -484,14 +484,14 @@ export default {
           :mode="mode"
           :options="versionOptions"
           label-key="cluster.kubernetesVersion.label"
-          @input="$emit('kubernetesChanged', $event)"
+          @input="$emit('kubernetes-changed', $event)"
         />
         <Checkbox
           :value="showDeprecatedPatchVersions"
           :label="t('cluster.kubernetesVersion.deprecatedPatches')"
           :tooltip="t('cluster.kubernetesVersion.deprecatedPatchWarning')"
           class="patch-version"
-          @input="$emit('showDeprecatedPatchVersionsChanged', $event)"
+          @input="$emit('show-deprecated-patch-versions-changed', $event)"
         />
       </div>
       <div
@@ -567,12 +567,12 @@ export default {
       {{ t('cluster.rke2.security.header') }}
     </h3>
     <Banner
-      v-if="isEdit && !needsPSP && hasPsps"
+      v-if="isEdit && !needsPsp && hasPsps"
       color="warning"
       :label="t('cluster.banner.invalidPsps')"
     />
     <Banner
-      v-else-if="isCreate && !needsPSP"
+      v-else-if="isCreate && !needsPsp"
       color="info"
       :label="t('cluster.banner.removedPsp')"
     />
@@ -591,7 +591,7 @@ export default {
 
     <div class="row mb-10">
       <div
-        v-if="pspOptions && needsPSP"
+        v-if="pspOptions && needsPsp"
         class="col span-6"
       >
         <!-- PSP template selector -->
@@ -601,7 +601,7 @@ export default {
           :mode="mode"
           :options="pspOptions"
           :label="t('cluster.rke2.defaultPodSecurityPolicyTemplateName.label')"
-          @input="$emit('pspChanged', $event)"
+          @input="$emit('psp-changed', $event)"
         />
       </div>
 
@@ -615,7 +615,7 @@ export default {
           :mode="mode"
           :options="profileOptions"
           :label="t('cluster.rke2.cis.sever')"
-          @input="$emit('cisChanged')"
+          @input="$emit('cis-changed')"
         />
         <LabeledSelect
           v-else-if="agentArgs && agentArgs.profile"
@@ -624,7 +624,7 @@ export default {
           :mode="mode"
           :options="profileOptions"
           :label="t('cluster.rke2.cis.agent')"
-          @input="$emit('cisChanged')"
+          @input="$emit('cis-changed')"
         />
       </div>
     </div>
@@ -634,7 +634,7 @@ export default {
         v-model="cisOverride"
         :mode="mode"
         :label="t('cluster.rke2.cis.override')"
-        @input="$emit('psaDefaultChanged')"
+        @input="$emit('psa-default-changed')"
       />
 
       <Banner
