@@ -67,8 +67,6 @@ export default {
       return this.clusters.length > this.maxClustersToShow;
     },
 
-    pinnedClusters: mapPref(PINNED_CLUSTERS),
-
     clusters() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       let kubeClusters = filterHiddenLocalCluster(filterOnlyKubernetesClusters(all, this.$store), this.$store);
@@ -135,6 +133,13 @@ export default {
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
       return sorted;
+    },
+
+    pinnedClustersHeight() {
+      const pinCount = this.clusters.filter((item) => item.pinned).length;
+      const height = pinCount > 2 ? (pinCount * 43) : 90;
+
+      return `min-height: ${ height }px`;
     },
 
     clusterFilterCount() {
@@ -398,6 +403,7 @@ export default {
             <div
               ref="clusterList"
               class="clusters"
+              :style="pinnedClustersHeight"
             >
               <div
                 v-if="showPinClusters && pinFiltered.length"
@@ -415,7 +421,7 @@ export default {
                     :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c?.label)"
+                      v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
@@ -431,7 +437,7 @@ export default {
                     class="option cluster selector disabled"
                   >
                     <ClusterIconMenu
-                      v-tooltip="getTooltipConfig(c?.label)"
+                      v-tooltip="getTooltipConfig(c.label)"
                       :cluster="c"
                       class="rancher-provider-icon"
                     />
@@ -717,7 +723,7 @@ export default {
       svg {
         width: 25px;
         height: 25px;
-        margin-left: 10px;
+        margin-left: 9px;
       }
     }
     .home-text {
@@ -883,10 +889,6 @@ export default {
 
       .clusters {
         overflow-y: auto;
-
-        @media screen and (max-height: 720px) {
-          min-height: 80px;
-        }
 
          a, span {
           margin: 0;

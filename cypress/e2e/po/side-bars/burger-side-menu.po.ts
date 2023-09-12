@@ -90,25 +90,21 @@ export default class BurgerMenuPo extends ComponentPo {
    * @returns {Cypress.Chainable}
    */
   clusters(): Cypress.Chainable {
-    return this.self().find('.body .clusters .cluster.selector.option');
-  }
-
-  clustersList(): Cypress.Chainable {
     return this.self().find('.body .clustersList .cluster.selector.option');
   }
 
-  pinCluster(): Cypress.Chainable {
-    return this.clustersList().first().trigger('mouseover').find('.pin')
+  pinFirstCluster(): Cypress.Chainable {
+    return this.clusters().first().trigger('mouseover').find('.pin')
       .invoke('show')
       .click();
   }
 
-  pinClustersList(): Cypress.Chainable {
-    return this.self().find('.body .clusters .clustersPinned');
+  clusterPinnedList(): Cypress.Chainable {
+    return this.self().find('.body .clustersPinned .cluster.selector.option');
   }
 
-  unpinClusters(): Cypress.Chainable {
-    return this.self().find('.body .clusters .clustersPinned .cluster.selector.option');
+  unpinFirstCluster(): Cypress.Chainable {
+    return this.clusterPinnedList().first().find('.pin').click();
   }
 
   /**

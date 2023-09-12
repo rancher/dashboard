@@ -24,13 +24,13 @@ describe('Side Menu: main', () => {
     burgerMenuPo.clusters().should('exist');
   });
 
-  it('Pinned and unpinned cluster', { tags: '@adminUser' }, () => {
+  it('Pinned and unpinned cluster', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
 
-    burgerMenuPo.pinCluster();
-    burgerMenuPo.pinClustersList().should('exist');
-    burgerMenuPo.unpinClusters().first().find('.pin').click();
-    burgerMenuPo.pinClustersList().should('not.exist');
+    burgerMenuPo.pinFirstCluster();
+    burgerMenuPo.clusterPinnedList().should('exist');
+    burgerMenuPo.unpinFirstCluster();
+    burgerMenuPo.clusterPinnedList().should('not.exist');
   });
 
   it('Can display at least one menu category label', { tags: ['@adminUser', '@standardUser'] }, () => {
