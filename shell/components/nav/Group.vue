@@ -49,6 +49,10 @@ export default {
   },
 
   computed: {
+    isGroupActive() {
+      return this.isOverview || (this.hasActiveRoute() && this.isExpanded);
+    },
+
     hasChildren() {
       return this.group.children?.length > 0;
     },
@@ -199,7 +203,7 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive}"
   >
     <div
       v-if="showHeader"
@@ -348,6 +352,10 @@ export default {
 
       > .body {
         margin-left: 0;
+      }
+
+      &.group-highlight {
+        background: var(--nav-active);
       }
     }
 

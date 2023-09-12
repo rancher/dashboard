@@ -37,7 +37,7 @@ export default {
 
 <template>
   <div
-    v-if="loading"
+    v-if="!loading"
     class="loading-indicator"
   >
     <div
