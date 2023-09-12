@@ -41,7 +41,7 @@ export default {
     };
   },
 
-  computed: { 
+  computed: {
     themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapGetters(['isRancherInHarvester', 'isSingleProduct', 'isMultiCluster']),
   },
