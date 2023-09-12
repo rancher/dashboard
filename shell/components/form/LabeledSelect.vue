@@ -155,11 +155,9 @@ export default {
         const newOption = this.getUpdatedOption(option);
 
         if (newOption) {
-          if (newOption) {
-            const label = get(newOption, this.optionLabel);
+          const label = get(newOption, this.optionLabel);
 
-            return this.localizedLabel ? this.$store.getters['i18n/t'](label) || label : label;
-          }
+          return this.localizedLabel ? this.$store.getters['i18n/t'](label) || label : label;
         }
       }
 
