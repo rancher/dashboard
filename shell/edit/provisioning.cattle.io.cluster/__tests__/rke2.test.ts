@@ -38,15 +38,33 @@ const defaultStubs = {
   Tabbed:                   true,
   UnitInput:                true,
   YamlEditor:               true,
+  MemberRoles:              true,
+  Basics:                   true
 };
 
 const defaultComputed = {
   showForm() {
     return true;
   },
-  showk8s21LegacyWarning() {
-    return false;
-  },
+  versionOptions() {
+    return [
+      {
+        id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+      },
+      {
+        id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+      }
+    ];
+  }
 };
 
 const defaultGetters = {
@@ -78,142 +96,7 @@ describe('component: rke2', () => {
   */
   // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-  });
-
-  it.each([
-    'v1.25.0+rke2r1',
-    'v1.24.0+rke2r1',
-    'v1.23.0+rke2r1',
-    'v1.25.0+k3s1',
-    'v1.24.0+k3s1',
-    'v1.23.0+k3s1',
-  ])('should display PSA option', (k8s) => {
-    const label = 'whatever';
-    const option = { label, value: label };
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            defaultPodSecurityAdmissionConfigurationTemplateName: label,
-            kubernetesVersion:                                    k8s
-          }
-        },
-        provider: 'whatever',
-      },
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
-      },
-      stubs: defaultStubs
-    });
-
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).options[0].label).toBe(`${ label } (Current)`);
-  });
-
-  it.each([
-    ['v1.25.0+rke2r1', 'none'],
-    ['v1.24.0+rke2r1', 'default'],
-    ['v1.23.0+rke2r1', 'default'],
-    ['v1.25.0+k3s1', 'none'],
-    ['v1.24.0+k3s1', 'default'],
-    ['v1.23.0+k3s1', 'default'],
-  ])('should display for version %p PSA option label %p', (k8s, partialLabel) => {
-    const label = `cluster.rke2.defaultPodSecurityAdmissionConfigurationTemplateName.option.${ partialLabel }`;
-    const option = { label, value: label };
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            defaultPodSecurityAdmissionConfigurationTemplateName: label,
-            kubernetesVersion:                                    k8s
-          }
-        },
-        provider: 'whatever',
-      },
-      computed: defaultComputed,
-      mocks:    {
-        ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
-      },
-      stubs: defaultStubs
-    });
-
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).options[0].label).toStrictEqual(`${ label } (Current)`);
-  });
-
-  it.each([
-    ['anything', false, true],
-    ['', false, false],
-    ['', true, false],
-  ])('given CIS value as %p and its override as %p, it should set PSA dropdown as disabled %p', (cis, override, disabled) => {
-    const label = 'whatever';
-    const k8s = 'v1.25.0+rke2r1';
-    const option = { label, value: label };
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          agentConfig: { profile: cis },
-          spec:        {
-            ...defaultSpec,
-            defaultPodSecurityAdmissionConfigurationTemplateName: label,
-            kubernetesVersion:                                    k8s
-          }
-        },
-        provider: 'custom',
-      },
-      computed: {
-        ...defaultComputed,
-        agentArgs:      () => ({ profile: { options: [cis] } }),
-        versionOptions: () => [
-          {
-            value:     k8s,
-            agentArgs: { profile: { options: [cis] } },
-            charts:    {},
-            profile:   { options: [cis] }
-          }
-        ]
-      },
-      mocks: {
-        ...defaultMocks,
-        $store: {
-          getters:  defaultGetters,
-          dispatch: {
-            'management/find':    jest.fn(),
-            'management/findAll': () => ([option]),
-          }
-        },
-      },
-      stubs: defaultStubs
-    });
-
-    wrapper.setData({ cisOverride: override });
-
-    const select = wrapper.find('[data-testid="rke2-custom-edit-psa"]');
-
-    expect((select.vm as unknown as any).disabled).toBe(disabled);
+    jest.spyOn(console, 'log').mockImplementation(() => { });
   });
 
   it.each([
