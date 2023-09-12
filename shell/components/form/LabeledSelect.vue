@@ -152,12 +152,9 @@ export default {
       // This check is only needed if its possible for an option's label to change without the option's value changing - we can skip this if options are just strings or numbers
       // HOWEVER even if strings are passed to v-select the 'option' in the slot is normalized to {label: <option>} so we have to check the options prop here instead of the 'option' itself
       if (typeof this.options[0] === 'object') {
-        // Force to update the option label if prop has been changed
-        const isOutdated = !this.options.find((opt) => option[this.optionLabel] === opt[this.optionLabel]);
+        const newOption = this.getUpdatedOption(option);
 
-        if (isOutdated && this.options) {
-          const newOption = this.options.find((opt) => isEqual(this.reduce(option), this.reduce(opt)));
-
+        if (newOption) {
           if (newOption) {
             const label = get(newOption, this.optionLabel);
 
@@ -180,6 +177,19 @@ export default {
       } else {
         return option;
       }
+    },
+
+    // If the option's label changed in parent but value did not, the label wont be automatically updated here
+    // Ensure that the label being shown is still present in the options prop and find the new one if not
+    getUpdatedOption(option) {
+      let out;
+      const isOutdated = !this.options.find((opt) => option[this.optionLabel] === opt[this.optionLabel]);
+
+      if (isOutdated && this.options) {
+        out = this.options.find((opt) => isEqual(this.reduce(option), this.reduce(opt)));
+      }
+
+      return out;
     },
 
     positionDropdown(dropdownList, component, { width }) {
