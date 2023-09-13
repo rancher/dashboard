@@ -22,7 +22,6 @@ import IconOrSvg from '@shell/components/IconOrSvg';
 const PAGE_HEADER_ACTION = 'page-action';
 
 export default {
-
   components: {
     NamespaceFilter,
     WorkspaceSwitcher,
