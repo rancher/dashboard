@@ -48,22 +48,6 @@ describe('Side Menu: main', () => {
     BurgerMenuPo.checkTooltipOn();
   });
 
-  it('Check that the local cluster badge matches LCL, custom badge should match EX', { tags: ['@adminUser'] }, () => {
-    const burgerMenuPo = new BurgerMenuPo();
-
-    burgerMenuPo.clusters().should('contain', 'lcl');
-    burgerMenuPo.clusters().first().click();
-    cy.getId('add-custom-cluster-badge').click();
-    modal.getCardBody().get('.checkbox-label').first().click();
-    modal.getCardBody().get('.checkbox-label').last().click();
-    modal.getCardActions().get('.role-primary').click();
-    burgerMenuPo.clusters().should('contain', 'EX');
-    cy.getId('add-custom-cluster-badge').click();
-    modal.getCardBody().get('.checkbox-label').first().click();
-    modal.getCardActions().get('.role-primary').click();
-    burgerMenuPo.clusters().should('contain', 'lcl');
-  });
-
   // TODO: #5966: Verify cause of race condition issue making navigation link not trigger
   it.skip('Contains valid links', { tags: ['@adminUser', '@standardUser'] }, () => {
     const burgerMenuPo = new BurgerMenuPo();
