@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { CATALOG, CLUSTER_BADGE } from '@shell/config/labels-annotations';
 import { NODE, FLEET, MANAGEMENT, CAPI } from '@shell/config/types';
-import { insertAt } from '@shell/utils/array';
+import { insertAt, addObject, removeObject } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
@@ -14,6 +14,7 @@ import { isHarvesterCluster } from '@shell/utils/cluster';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KONTAINER_TO_DRIVER } from './management.cattle.io.kontainerdriver';
+import { PINNED_CLUSTERS } from '@shell/store/prefs';
 
 // See translation file cluster.providers for list of providers
 // If the logo is not named with the provider name, add an override here
@@ -454,5 +455,25 @@ export default class MgmtCluster extends HybridModel {
     }
 
     return findRelationship(verb === 'to' ? 'from' : 'to', CAPI.RANCHER_CLUSTER, this.metadata?.relationships);
+  }
+
+  get pinned() {
+    return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
+  }
+
+  pin() {
+    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+
+    addObject(types, this.id);
+
+    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  }
+
+  unpin() {
+    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+
+    removeObject(types, this.id);
+
+    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
   }
 }

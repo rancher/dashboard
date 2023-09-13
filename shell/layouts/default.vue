@@ -326,6 +326,14 @@ export default {
     }
    }
 
+    &:has(.side-menu) {
+    padding-left: $app-bar-collapsed-width;
+
+    .overlay-content-mode {
+      left: calc(var(--nav-width) + $app-bar-collapsed-width);
+    }
+   }
+
     &.pin-right {
       grid-template-areas:
         "header  header  header"

@@ -1,6 +1,6 @@
 <script>
 import BrandImage from '@shell/components/BrandImage';
-import ClusterProviderIconMenu from '@shell/components/ClusterProviderIconMenu';
+import ClusterIconMenu from '@shell/components/ClusterIconMenu';
 import IconOrSvg from '../IconOrSvg';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { mapGetters } from 'vuex';
@@ -14,13 +14,15 @@ import { LEGACY } from '@shell/store/features';
 import { SETTING } from '@shell/config/settings';
 import { filterOnlyKubernetesClusters, filterHiddenLocalCluster } from '@shell/utils/cluster';
 import { isRancherPrime } from '@shell/config/version';
+import Pinned from '@shell/components/nav/Pinned';
 
 export default {
 
   components: {
     BrandImage,
-    ClusterProviderIconMenu,
-    IconOrSvg
+    ClusterIconMenu,
+    IconOrSvg,
+    Pinned
   },
 
   data() {
@@ -34,7 +36,8 @@ export default {
       clusterFilter:     '',
       hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
-      emptyCluster:      BLANK_CLUSTER
+      emptyCluster:      BLANK_CLUSTER,
+      showPinClusters:   false
     };
   },
 
@@ -95,7 +98,9 @@ export default {
           badge:           x.badge,
           isLocal:         x.isLocal,
           isHarvester:     x.isHarvester,
-          pinned:          true,
+          pinned:          x.pinned,
+          pin:             () => x.pin(),
+          unpin:           () => x.unpin()
         };
       });
     },
@@ -107,11 +112,34 @@ export default {
 
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
-      if (sorted.length >= this.maxClustersToShow) {
-        return sorted.slice(0, this.maxClustersToShow);
-      } else {
+      if (search) {
+        this.showPinClusters = false;
+
         return sorted;
       }
+      this.showPinClusters = true;
+
+      if (sorted.length >= this.maxClustersToShow) {
+        const sortedPinOut = sorted.filter((item) => !item.pinned).slice(0, this.maxClustersToShow);
+
+        return sortedPinOut;
+      } else {
+        return sorted.filter((item) => !item.pinned);
+      }
+    },
+
+    pinFiltered() {
+      const out = this.clusters.filter((item) => item.pinned);
+      const sorted = sortBy(out, ['ready:desc', 'label']);
+
+      return sorted;
+    },
+
+    pinnedClustersHeight() {
+      const pinCount = this.clusters.filter((item) => item.pinned).length;
+      const height = pinCount > 2 ? (pinCount * 43) : 90;
+
+      return `min-height: ${ height }px`;
     },
 
     clusterFilterCount() {
@@ -375,38 +403,97 @@ export default {
             <div
               ref="clusterList"
               class="clusters"
+              :style="pinnedClustersHeight"
             >
               <div
-                v-for="c in clustersFiltered"
-                :key="c.id"
-                @click="hide()"
+                v-if="showPinClusters && pinFiltered.length"
+                class="clustersPinned"
               >
-                <nuxt-link
-                  v-if="c.ready"
-                  :data-testid="`menu-cluster-${ c.id }`"
-                  class="cluster selector option"
-                  :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                <div
+                  v-for="c in pinFiltered"
+                  :key="c.id"
+                  @click="hide()"
                 >
-                  <ClusterProviderIconMenu
-                    v-tooltip="getTooltipConfig(c.label)"
-                    :cluster="c"
-                    class="rancher-provider-icon"
-                  />
-                  <div class="cluster-name">
-                    {{ c.label }}
-                  </div>
-                </nuxt-link>
-                <span
-                  v-else
-                  class="option cluster selector disabled"
+                  <nuxt-link
+                    v-if="c.ready"
+                    :data-testid="`menu-cluster-${ c.id }`"
+                    class="cluster selector option"
+                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                  >
+                    <ClusterIconMenu
+                      v-tooltip="getTooltipConfig(c.label)"
+                      :cluster="c"
+                      class="rancher-provider-icon"
+                    />
+                    <div class="cluster-name">
+                      {{ c.label }}
+                    </div>
+                    <Pinned
+                      :cluster="c"
+                    />
+                  </nuxt-link>
+                  <span
+                    v-else
+                    class="option cluster selector disabled"
+                  >
+                    <ClusterIconMenu
+                      v-tooltip="getTooltipConfig(c.label)"
+                      :cluster="c"
+                      class="rancher-provider-icon"
+                    />
+                    <div class="cluster-name">{{ c.label }}</div>
+                    <Pinned
+                      :cluster="c"
+                    />
+                  </span>
+                </div>
+                <div
+                  class="category-title"
                 >
-                  <ClusterProviderIconMenu
-                    v-tooltip="getTooltipConfig(c.label)"
-                    :cluster="c"
-                    class="rancher-provider-icon"
-                  />
-                  <div class="cluster-name">{{ c.label }}</div>
-                </span>
+                  <hr>
+                </div>
+              </div>
+              <div class="clustersList">
+                <div
+                  v-for="c in clustersFiltered"
+                  :key="c.id"
+                  @click="hide()"
+                >
+                  <nuxt-link
+                    v-if="c.ready"
+                    :data-testid="`menu-cluster-${ c.id }`"
+                    class="cluster selector option"
+                    :to="{ name: 'c-cluster-explorer', params: { cluster: c.id } }"
+                  >
+                    <ClusterIconMenu
+                      v-tooltip="getTooltipConfig(c.label)"
+                      :cluster="c"
+                      class="rancher-provider-icon"
+                    />
+                    <div class="cluster-name">
+                      {{ c.label }}
+                    </div>
+                    <Pinned
+                      :class="{'showPin': c.pinned}"
+                      :cluster="c"
+                    />
+                  </nuxt-link>
+                  <span
+                    v-else
+                    class="option cluster selector disabled"
+                  >
+                    <ClusterIconMenu
+                      v-tooltip="getTooltipConfig(c.label)"
+                      :cluster="c"
+                      class="rancher-provider-icon"
+                    />
+                    <div class="cluster-name">{{ c.label }}</div>
+                    <Pinned
+                      :class="{'showPin': c.pinned}"
+                      :cluster="c"
+                    />
+                  </span>
+                </div>
               </div>
               <div
                 v-if="clustersFiltered.length === 0 && shown"
@@ -636,7 +723,7 @@ export default {
       svg {
         width: 25px;
         height: 25px;
-        margin-left: 10px;
+        margin-left: 9px;
       }
     }
     .home-text {
@@ -664,8 +751,23 @@ export default {
           font-weight: 500;
         }
 
+        .pin {
+          font-size: 16px;
+          margin-left: auto;
+          display: none;
+          color: var(--body-text);
+          &.showPin {
+            display: block;
+          }
+        }
+
         &:hover {
           text-decoration: none;
+
+          .pin {
+            display: block;
+            color: var(--darker-text);
+          }
         }
         &.disabled {
           background: transparent;
@@ -675,6 +777,10 @@ export default {
           .cluster-name {
             filter: grayscale(1);
             color: var(--muted);
+          }
+
+          .pin {
+            cursor: pointer;
           }
         }
 
@@ -729,6 +835,11 @@ export default {
           &.disabled {
             background: transparent;
             color: var(--muted);
+
+            > .pin {
+              color:var(--default-text);
+              display: block;
+            }
           }
         }
 
@@ -749,7 +860,7 @@ export default {
         > input {
           background-color: transparent;
           margin-bottom: 8px;
-          padding-right: 34px;
+          padding-right: 35px;
         }
         > i {
           position: absolute;
@@ -778,10 +889,6 @@ export default {
 
       .clusters {
         overflow-y: auto;
-
-        @media screen and (max-height: 720px) {
-          min-height: 80px;
-        }
 
          a, span {
           margin: 0;
@@ -846,6 +953,24 @@ export default {
         padding: 8px
       }
 
+      .clustersPinned {
+        .category {
+          &-title {
+            margin: 8px 0;
+            margin-left: 16px;
+            hr {
+              margin: 0;
+              width: 94%;
+              transition: all 0.5s ease-in-out;
+              max-width: 100%;
+            }
+          }
+        }
+        .pin {
+          display: block;
+        }
+      }
+
       .category {
         display: flex;
         flex-direction: column;
@@ -907,6 +1032,17 @@ export default {
           }
         }
       }
+
+      .clustersPinned {
+        .category {
+          &-title {
+            hr {
+              width: 40px;
+            }
+          }
+        }
+      }
+
       .footer {
         margin: 20px 15px;
 

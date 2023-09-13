@@ -427,5 +427,4 @@ export default {
       }
     }
   }
-
 </style>
