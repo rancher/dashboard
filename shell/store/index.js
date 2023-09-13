@@ -569,7 +569,7 @@ export const getters = {
   },
 
   showTopLevelMenu(getters) {
-    return getters['isRancherInHarvester'] || getters['isMultiCluster'] || !getters['isSingleProduct']
+    return getters['isRancherInHarvester'] || getters['isMultiCluster'] || !getters['isSingleProduct'];
   },
 
   targetRoute(state) {
