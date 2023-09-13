@@ -49,6 +49,10 @@ export default {
   },
 
   computed: {
+    isGroupActive() {
+      return this.isOverview || (this.hasActiveRoute() && this.isExpanded && this.showHeader);
+    },
+
     hasChildren() {
       return this.group.children?.length > 0;
     },
@@ -199,7 +203,7 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive}"
   >
     <div
       v-if="showHeader"
@@ -349,6 +353,10 @@ export default {
       > .body {
         margin-left: 0;
       }
+
+      &.group-highlight {
+        background: var(--nav-active);
+      }
     }
 
     &.depth-1 {
@@ -379,15 +387,6 @@ export default {
           padding: 6px 8px 6px 8px;
         }
       }
-    }
-
-    &.expanded:has(> .active),
-    &.expanded:has(> ul li.nuxt-link-active) {
-      background: var(--nav-active);
-    }
-
-    &.expanded:has(> ul li.root) {
-      background: transparent;
     }
   }
 

@@ -70,7 +70,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['clusterId', 'currentProduct', 'isRancherInHarvester']),
+    ...mapGetters(['clusterId', 'currentProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
@@ -237,7 +237,7 @@ export default {
     <div
       v-if="managementReady"
       class="dashboard-content"
-      :class="{[pinClass]: true}"
+      :class="{[pinClass]: true, 'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header />
       <SideNav
@@ -318,12 +318,12 @@ export default {
     overflow-y: auto;
     min-height: 0px;
 
-    &:has(.side-menu) {
+    &.dashboard-padding-left {
     padding-left: $app-bar-collapsed-width;
 
-    .overlay-content-mode {
-      left: calc(var(--nav-width) + $app-bar-collapsed-width);
-    }
+      .overlay-content-mode {
+        left: calc(var(--nav-width) + $app-bar-collapsed-width);
+      }
    }
 
     &:has(.side-menu) {

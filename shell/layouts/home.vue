@@ -8,7 +8,7 @@ import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import AzureWarning from '@shell/components/auth/AzureWarning';
 import BrowserTabVisibility from '@shell/mixins/browser-tab-visibility';
 import Inactivity from '@shell/components/Inactivity';
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 
 export default {
 
@@ -36,6 +36,7 @@ export default {
   computed: {
     themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapState(['managementReady']),
+    ...mapGetters(['showTopLevelMenu']),
   },
 
   methods: {
@@ -57,7 +58,10 @@ export default {
     <AwsComplianceBanner />
     <AzureWarning />
 
-    <div class="dashboard-content">
+    <div
+      class="dashboard-content"
+      :class="{'dashboard-padding-left': showTopLevelMenu}"
+    >
       <Header
         v-if="managementReady"
         :simple="true"
