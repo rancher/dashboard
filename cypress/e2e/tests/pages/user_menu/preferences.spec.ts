@@ -3,6 +3,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
 import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
+import { UserMenuItems } from '@/cypress/support/types/menu-actions';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
@@ -23,7 +24,8 @@ describe('User can update their preferences', () => {
     Verify preference page title
     */
     HomePagePo.goToAndWaitForGet();
-    userMenu.clickMenuItem('Preferences');
+    userMenu.open()
+    userMenu.getMenuItemByLabel(UserMenuItems.Preferences).click();
     userMenu.isClosed();
     prefPage.waitForPage();
     prefPage.checkIsCurrentPage();

@@ -1,4 +1,5 @@
 import ComponentPo from '@/cypress/e2e/po/components/component.po';
+import { UserMenuItems } from '@/cypress/support/types/menu-actions';
 
 /**
  * Container PO for the user avatar v-popover
@@ -84,12 +85,16 @@ export default class UserMenuPo extends ComponentPo {
     return this.userMenu().find('li').should('be.visible').and('have.length', 4);
   }
 
+  getMenuItemByLabel(label: UserMenuItems) {
+    return this.getMenuItems().contains(label)
+  }
+
   /**
    * label: 'Preferences', 'Account & API Keys', or 'Log Out'
    * @param label
    * @returns
    */
-  clickMenuItem(label: 'Preferences' | 'Account & API Keys' | 'Log Out') {
+  clickMenuItem(label: UserMenuItems) {
     this.ensureOpen().then(() => {
       return this.getMenuItems().contains(label).click();
     });
