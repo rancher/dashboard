@@ -1,14 +1,23 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
+
+const burgerMenu = new BurgerMenuPo();
 
 /**
  * About page
  */
 export default class AboutPagePo extends PagePo {
   static url = '/about'
+  static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(AboutPagePo.url);
+  }
 
-  constructor(pageUrl = AboutPagePo.url) {
-    AboutPagePo.url = pageUrl;
+  constructor() {
     super(AboutPagePo.url);
+  }
+
+  static navTo() {
+    burgerMenu.about().click();
   }
 
   diagnosticsBtn() {

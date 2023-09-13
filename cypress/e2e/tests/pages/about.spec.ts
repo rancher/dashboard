@@ -1,5 +1,4 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import AboutPagePo from '@/cypress/e2e/po/pages/about.po';
 import DiagnosticsPagePo from '@/cypress/e2e/po/pages/diagnostics.po';
 import * as path from 'path';
@@ -14,16 +13,12 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
 
   it('can navigate to About page', () => {
     HomePagePo.goToAndWaitForGet();
-
-    const burgerMenu = new BurgerMenuPo();
-
-    BurgerMenuPo.toggle();
-    burgerMenu.about().click();
+    AboutPagePo.navTo();
     aboutPage.waitForPage();
   });
 
   it('can navigate to Diagnostics page', () => {
-    aboutPage.goTo();
+    AboutPagePo.navTo();
     aboutPage.waitForPage();
     aboutPage.diagnosticsBtn().click();
 
@@ -33,7 +28,9 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
   });
 
   it('can View release notes', () => {
-    aboutPage.goTo();
+    AboutPagePo.navTo();
+    aboutPage.waitForPage();
+
     aboutPage.clickVersionLink('View release notes');
     cy.origin('https://github.com/rancher/rancher', () => {
       cy.url().should('include', 'https://github.com/rancher/rancher/releases/tag/');
@@ -84,7 +81,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
   });
 
   describe('Image List', () => {
-    beforeEach(() => {
+    before(() => {
       aboutPage.goTo();
     });
 

@@ -304,6 +304,6 @@ Cypress.Commands.add('getUserPreferences', () => {
     }
   })
     .then((resp) => {
-      return resp;
+      expect(resp.status).to.eq(200);
     });
 });
