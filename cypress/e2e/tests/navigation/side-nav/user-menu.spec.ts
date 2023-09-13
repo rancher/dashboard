@@ -17,18 +17,17 @@ describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser'] }
     Verify user remains on login page
     */
     HomePagePo.goToAndWaitForGet();
-    userMenu.open()
-    userMenu.isOpen()
+    userMenu.open();
+    userMenu.isOpen();
 
     const availableItems: UserMenuItems[] = [
       UserMenuItems.Preferences,
       UserMenuItems.LogOut,
       UserMenuItems.AccountApiKeys
-    ]
+    ];
 
     availableItems.forEach((action) => {
       userMenu.getMenuItemByLabel(action).should('exist');
     });
-    
   });
 });

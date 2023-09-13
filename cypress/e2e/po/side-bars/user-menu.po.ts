@@ -86,7 +86,7 @@ export default class UserMenuPo extends ComponentPo {
   }
 
   getMenuItemByLabel(label: UserMenuItems) {
-    return this.getMenuItems().contains(label)
+    return this.getMenuItems().contains(label);
   }
 
   /**
