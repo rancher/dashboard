@@ -37,7 +37,8 @@ export default {
       hasProvCluster,
       maxClustersToShow: MENU_MAX_CLUSTERS,
       emptyCluster:      BLANK_CLUSTER,
-      showPinClusters:   false
+      showPinClusters:   false,
+      searchActive:      false
     };
   },
 
@@ -114,10 +115,12 @@ export default {
 
       if (search) {
         this.showPinClusters = false;
+        this.searchActive = !sorted.length > 0;
 
         return sorted;
       }
       this.showPinClusters = true;
+      this.searchActive = false;
 
       if (sorted.length >= this.maxClustersToShow) {
         const sortedPinOut = sorted.filter((item) => !item.pinned).slice(0, this.maxClustersToShow);
@@ -448,6 +451,7 @@ export default {
                   </span>
                 </div>
                 <div
+                  v-if="clustersFiltered.length != 0 && pinFiltered.length > 0"
                   class="category-title"
                 >
                   <hr>
@@ -496,7 +500,7 @@ export default {
                 </div>
               </div>
               <div
-                v-if="clustersFiltered.length === 0 && shown"
+                v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
                 class="none-matching"
               >
                 {{ t('nav.search.noResults') }}
