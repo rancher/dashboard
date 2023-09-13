@@ -13,8 +13,10 @@
     <div id="app">
         <script>
             (() => {
-                const isDark = document.cookie.includes('R_THEME=auto') ?
-                    // User selected automatic theme, so use pcs (set when ui previously loaded and is either os theme or time of day based
+                // Has the user chosen to auto detect the theme.... or if they haven't chosen anything.. --> check the auto-detected theme via R_PCS
+                // Otherwise check if they've specifically selected a theme --> R_THEME
+                const isDark = document.cookie.includes('R_THEME=auto') || !document.cookie.includes('R_THEME') ?
+                    // User selected automatic theme, so use PCS (set when ui previously loaded and is either os theme or time of day based)
                     document.cookie.includes('R_PCS=dark') :
                     // Otherwise user selected light/dark theme directly
                     document.cookie.includes('R_THEME=dark');

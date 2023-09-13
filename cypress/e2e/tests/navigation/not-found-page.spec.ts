@@ -1,8 +1,8 @@
-import NotFoundPagePo from '@/cypress/e2e/po/pages/not-found-page.po';
 import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
 import WorkloadListPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import NotFoundPagePo from '@/cypress/e2e/po/pages/not-found-page.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 describe('Not found page display', { tags: ['@adminUser', '@standardUser'] }, () => {

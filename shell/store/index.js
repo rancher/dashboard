@@ -568,6 +568,10 @@ export const getters = {
     return getters['isSingleProduct'] && cluster.isHarvester && !getters['isRancherInHarvester'];
   },
 
+  showTopLevelMenu(getters) {
+    return getters['isRancherInHarvester'] || getters['isMultiCluster'] || !getters['isSingleProduct'];
+  },
+
   targetRoute(state) {
     return state.targetRoute;
   },

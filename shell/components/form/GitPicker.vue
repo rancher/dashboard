@@ -347,6 +347,20 @@ export default Vue.extend<Data, any, any, any>({
     branchesRules() {
       return this.hasError.branch ? this.t(`gitPicker.${ this.type }.errors.noBranch`) : null;
     },
+
+    /**
+     * Show the page where the commit is, if any
+     */
+    onCommitsTableMounted() {
+      const commitId = this.$route.query?.commit;
+
+      if (commitId) {
+        const table = this.$refs.commitsTable;
+        const page = table.getPageByRow(commitId, ({ commitId }: commit) => commitId);
+
+        table.setPage(page);
+      }
+    }
   },
 });
 </script>
@@ -413,6 +427,7 @@ export default Vue.extend<Data, any, any, any>({
         class="commits-table mt-20"
       >
         <SortableTable
+          ref="commitsTable"
           :rows="preparedCommits"
           :headers="commitHeaders"
           mode="view"
@@ -422,6 +437,7 @@ export default Vue.extend<Data, any, any, any>({
           :table-actions="false"
           :row-actions="false"
           :rows-per-page="10"
+          @hook:mounted="onCommitsTableMounted"
         >
           <template #cell:index="{row}">
             <RadioButton

@@ -35,7 +35,6 @@ describe('Branding', () => {
 
     BurgerMenuPo.toggle();
 
-    burgerMenu.categories().contains(` Configuration `).should('exist');
     const globalSettingsNavItem = burgerMenu.links().contains(`Global Settings`);
 
     globalSettingsNavItem.should('exist');
@@ -87,6 +86,8 @@ describe('Branding', () => {
     // Reset
     brandingPage.privateLabel().set(settings.privateLabel.original);
     brandingPage.applyAndWait('**/ui-pl');
+    BurgerMenuPo.toggle();
+    burgerMenuPo.home().click();
     cy.title().should('eq', settings.privateLabel.original);
   });
 

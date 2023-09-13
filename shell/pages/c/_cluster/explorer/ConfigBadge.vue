@@ -27,6 +27,7 @@ export default {
     <div>
       <a
         class="badge-install"
+        data-testid="add-custom-cluster-badge"
         @click="customBadgeDialog"
       >
         <i class="icon icon-cluster" />

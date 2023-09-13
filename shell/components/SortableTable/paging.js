@@ -103,6 +103,16 @@ export default {
       }
 
       this.setPage(page);
+    },
+
+    getPageByRow(rowId, getRowId = (x) => x) {
+      const pos = this.filteredRows.map(getRowId).indexOf(rowId);
+
+      if (pos === -1) {
+        return null;
+      }
+
+      return Math.ceil(pos / this.perPage);
     }
   }
 };

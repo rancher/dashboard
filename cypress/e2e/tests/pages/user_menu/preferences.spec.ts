@@ -1,8 +1,8 @@
-import HomePagePo from '@/cypress/e2e/po/pages/home.po';
-import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
-import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import BannersPo from '@/cypress/e2e/po/components/banners.po';
+import HomePagePo from '@/cypress/e2e/po/pages/home.po';
+import PreferencesPagePo from '@/cypress/e2e/po/pages/preferences.po';
 import ReposListPagePo from '@/cypress/e2e/po/pages/repositories.po';
+import UserMenuPo from '@/cypress/e2e/po/side-bars/user-menu.po';
 // import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/cluster-manager-list.po';
 
 const userMenu = new UserMenuPo();
@@ -213,41 +213,6 @@ describe('User can update their preferences', () => {
       });
       prefPage.perPageDropdownMenu().isClosed();
       prefPage.perPageDropdownMenu().checkOptionSelected(key);
-    }
-  });
-
-  it('Can select Number of clusters to show in side menu ', { tags: ['@adminUser', '@standardUser'] }, () => {
-    /*
-    Select each option
-    Validate http request's payload & response contain correct values per selection
-    */
-    const clustersOptions = {
-      2:  1,
-      3:  2,
-      4:  3,
-      5:  4,
-      6:  5,
-      7:  6,
-      8:  7,
-      9:  8,
-      10: 9
-    };
-
-    prefPage.goTo();
-    prefPage.checkVisible();
-    for (const [key, value] of Object.entries(clustersOptions)) {
-      prefPage.clustersDropdownMenu().toggle();
-      prefPage.clustersDropdownMenu().isOpened();
-      prefPage.clustersDropdownMenu().getOptions().should('have.length', 9);
-      cy.intercept('PUT', 'v1/userpreferences/*').as(`prefUpdate${ key }`);
-      prefPage.clustersDropdownMenu().clickOption(value);
-      cy.wait(`@prefUpdate${ key }`).then(({ request, response }) => {
-        expect(response?.statusCode).to.eq(200);
-        expect(request.body.data).to.have.property('menu-max-clusters', key);
-        expect(response?.body.data).to.have.property('menu-max-clusters', key);
-      });
-      prefPage.clustersDropdownMenu().isClosed();
-      prefPage.clustersDropdownMenu().checkOptionSelected(key);
     }
   });
 

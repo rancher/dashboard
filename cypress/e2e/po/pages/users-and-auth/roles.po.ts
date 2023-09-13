@@ -1,10 +1,10 @@
-import PagePo from '@/cypress/e2e/po/pages/page.po';
-import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
-import GlobalRoleEditPo from '@/cypress/e2e/po/edit/management.cattle.io.globalrole.po';
-import RoleTemplateEditPo from '@/cypress/e2e/po/edit/management.cattle.io.roletemplate.po';
 import GlobalRoleDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.globalrole.po';
 import RoleTemplateDetailPo from '@/cypress/e2e/po/detail/management.cattle.io.roletemplate.po';
+import GlobalRoleEditPo from '@/cypress/e2e/po/edit/management.cattle.io.globalrole.po';
+import RoleTemplateEditPo from '@/cypress/e2e/po/edit/management.cattle.io.roletemplate.po';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 import RoleListPo from '@/cypress/e2e/po/lists/role-list.po';
+import PagePo from '@/cypress/e2e/po/pages/page.po';
 
 export default class RolesPo extends PagePo {
   private static createPath(clusterId: string) {

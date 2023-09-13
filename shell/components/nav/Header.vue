@@ -60,8 +60,8 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['clusterReady', 'isExplorer', 'isMultiCluster', 'isRancher', 'currentCluster',
-      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester']),
+    ...mapGetters(['clusterReady', 'isExplorer', 'isRancher', 'currentCluster',
+      'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink', 'pageActions', 'isSingleProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
     ...mapGetters('type-map', ['activeProducts']),
 
     appName() {
@@ -338,7 +338,7 @@ export default {
     data-testid="header"
   >
     <div>
-      <TopLevelMenu v-if="isRancherInHarvester || isMultiCluster || !isSingleProduct" />
+      <TopLevelMenu v-if="showTopLevelMenu" />
     </div>
     <div
       class="menu-spacer"
@@ -715,7 +715,7 @@ export default {
     }
 
     > .menu-spacer {
-      flex: 0 0 calc(var(--header-height) + 10px);
+      flex: 0 0 15px;
 
       &.isSingleProduct  {
         display: flex;
