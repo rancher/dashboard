@@ -1,5 +1,6 @@
 import { ALLOWED_SETTINGS } from '@shell/config/settings';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
+import { httpsKeys } from '@shell/utils/validators/setting';
 
 export default class Setting extends HybridModel {
   get fromEnv() {
@@ -31,12 +32,15 @@ export default class Setting extends HybridModel {
   }
 
   get customValidationRules() {
-    return [
-      {
-        path:           'value',
-        translationKey: 'setting.serverUrl.https',
-        validators:     [`isHttps:${ this.metadata.name }`]
-      },
-    ];
+    const out = [];
+
+    if (httpsKeys.includes(this.metadata.name)) {
+      out.push({
+        path:       'value',
+        validators: ['required', 'https', 'url', 'trailingForwardSlash']
+      });
+    }
+
+    return out;
   }
 }
