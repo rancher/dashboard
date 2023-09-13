@@ -398,6 +398,276 @@ describe('stringList.vue', () => {
     });
   });
 
+  describe('bulk delimiter', () => {
+    const delimiter = /;/;
+
+    describe('add', () => {
+      const items: string[] = [];
+
+      beforeEach(() => {
+        wrapper = mount(StringList, {
+          propsData: {
+            items,
+            bulkAdditionDelimiter: delimiter,
+            errorMessages:         { duplicate: 'error, item is duplicate.' },
+          }
+        });
+      });
+
+      it('should split values if delimiter set', async() => {
+        const value = 'test;test1;test2';
+        const result = ['test', 'test1', 'test2'];
+
+        // activate create mode
+        await wrapper.setData({ isCreateItem: true });
+        const inputField = wrapper.find('[data-testid="item-create"]');
+
+        await inputField.setValue(value);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+
+      it('should show warning if one of the values is a duplicate', async() => {
+        const value = 'test;test1;test2';
+
+        await wrapper.setProps({ items: ['test1'] });
+
+        // activate create mode
+        await wrapper.setData({ isCreateItem: true });
+        const inputField = wrapper.find('[data-testid="item-create"]');
+
+        await inputField.setValue(value);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+
+        expect(isDuplicate).toBe(true);
+      });
+
+      it('should show a warning if the new values are all duplicates', async() => {
+        const value = 'test;test';
+
+        // activate create mode
+        await wrapper.setData({ isCreateItem: true });
+        const inputField = wrapper.find('[data-testid="item-create"]');
+
+        await inputField.setValue(value);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+
+        expect(isDuplicate).toBe(true);
+      });
+
+      it('should not consider empty strings at the beginning', async() => {
+        const value = ';test;test1;test2';
+        const result = ['test', 'test1', 'test2'];
+
+        // activate create mode
+        await wrapper.setData({ isCreateItem: true });
+        const inputField = wrapper.find('[data-testid="item-create"]');
+
+        await inputField.setValue(value);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+
+      it('should not consider empty strings in the middle', async() => {
+        const value = 'test;test1;;test2';
+        const result = ['test', 'test1', 'test2'];
+
+        // activate create mode
+        await wrapper.setData({ isCreateItem: true });
+        const inputField = wrapper.find('[data-testid="item-create"]');
+
+        await inputField.setValue(value);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+
+      it('should not consider empty strings at the end', async() => {
+        const value = 'test;test1;test2;';
+        const result = ['test', 'test1', 'test2'];
+
+        // activate create mode
+        await wrapper.setData({ isCreateItem: true });
+        const inputField = wrapper.find('[data-testid="item-create"]');
+
+        await inputField.setValue(value);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+    });
+
+    describe('edit', () => {
+      const items = ['test1', 'test2'];
+
+      beforeEach(() => {
+        wrapper = mount(StringList, {
+          propsData: {
+            items,
+            bulkAdditionDelimiter: delimiter,
+            errorMessages:         { duplicate: 'error, item is duplicate.' },
+          }
+        });
+      });
+
+      it('should split values if delimiter set', async() => {
+        const newValue = 'test1;new;values';
+        const result = ['test1', 'new', 'values', 'test2'];
+
+        await wrapper.setData({ editedItem: items[0] });
+        const inputField = wrapper.find('[data-testid^="item-edit"]');
+
+        await inputField.setValue(newValue);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+
+      it('should show warning if one of the values is a duplicate', async() => {
+        const newValue = 'test1;test2';
+
+        await wrapper.setData({ editedItem: items[0] });
+        const inputField = wrapper.find('[data-testid^="item-edit"]');
+
+        await inputField.setValue(newValue);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+
+        expect(isDuplicate).toBe(true);
+      });
+
+      it('should show a warning if the new values are all duplicates', async() => {
+        const newValue = 'test;test';
+
+        await wrapper.setData({ editedItem: items[0] });
+        const inputField = wrapper.find('[data-testid^="item-edit"]');
+
+        await inputField.setValue(newValue);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const isDuplicate = (wrapper.emitted('errors') || [])[0][0].duplicate;
+
+        expect(isDuplicate).toBe(true);
+      });
+
+      it('should not consider empty strings at the beginning', async() => {
+        const newValue = ';test1;new;value';
+        const result = ['test1', 'new', 'value', 'test2'];
+
+        await wrapper.setData({ editedItem: items[0] });
+        const inputField = wrapper.find('[data-testid^="item-edit"]');
+
+        await inputField.setValue(newValue);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+
+      it('should not consider empty strings in the middle 1', async() => {
+        const newValue = 'test1; ;new;value';
+        const result = ['test1', 'new', 'value', 'test2'];
+
+        await wrapper.setData({ editedItem: items[0] });
+        const inputField = wrapper.find('[data-testid^="item-edit"]');
+
+        await inputField.setValue(newValue);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+
+      it('should not consider empty strings in the middle 2', async() => {
+        const newValue = 'test1;;new;value';
+        const result = ['test1', 'new', 'value', 'test2'];
+
+        await wrapper.setData({ editedItem: items[0] });
+        const inputField = wrapper.find('[data-testid^="item-edit"]');
+
+        await inputField.setValue(newValue);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+
+      it('should not consider empty strings at the end', async() => {
+        const newValue = 'test1;new;value;';
+        const result = ['test1', 'new', 'value', 'test2'];
+
+        await wrapper.setData({ editedItem: items[0] });
+        const inputField = wrapper.find('[data-testid^="item-edit"]');
+
+        await inputField.setValue(newValue);
+
+        // press enter
+        await inputField.trigger('keydown.enter');
+        await wrapper.vm.$nextTick();
+
+        const itemsResult = (wrapper.emitted('change') || [])[0][0];
+
+        expect(JSON.stringify(itemsResult)).toBe(JSON.stringify(result));
+      });
+    });
+  });
+
   describe('errors handling', () => {
     it('show duplicate warning icon when errorMessages is defined', async() => {
       const items = ['test'];
