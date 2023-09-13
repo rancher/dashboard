@@ -24,9 +24,9 @@ describe('navlink: support labels and iframe', () => {
       }
     });
 
-    const inputWraps = wrapper.findAll('[id="labels"]');
+    const element = wrapper.find('[data-testid="Navlink-label-anno"]');
 
-    expect(inputWraps).toHaveLength(1);
+    expect(element.exists()).toBe(true);
   });
 
   it('support iframe target', () => {
@@ -50,8 +50,7 @@ describe('navlink: support labels and iframe', () => {
       }
     });
 
-    const inputWrap = wrapper.find('[id="target"]');
-    const iframe = inputWrap.findAll('[value="_iframe"]');
+    const iframe = wrapper.findAll('[value="_iframe"]');
 
     expect(iframe).toHaveLength(1);
   });

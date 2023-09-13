@@ -19,6 +19,7 @@ describe('view: ui.cattle.io.navlink should', () => {
           'current_store/all':       jest.fn(),
           'i18n/t':                  (val) => val,
           'i18n/exists':             jest.fn(),
+          'cluster/schemaFor':       jest.fn(),
         }
       },
       $route:  { query: { AS: '' } },

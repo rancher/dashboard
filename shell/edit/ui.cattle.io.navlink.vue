@@ -502,6 +502,7 @@ export default {
       :value="value"
       :mode="mode"
       :display-side-by-side="false"
+      data-testid="Navlink-label-anno"
     />
     <Banner
       v-if="imageError"

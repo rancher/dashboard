@@ -289,7 +289,7 @@ export default {
 
   ::v-deep .vs__actions {
     height: 59px;
-    line-height: 31px;
+    line-height: 18px;
   }
 
   ::v-deep .vs__selected-options {

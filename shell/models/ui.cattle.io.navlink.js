@@ -13,11 +13,11 @@ export default class extends SteveModel {
 
     if (this.isIframe && index > -1) {
       if ( this.spec?.toURL ) {
-        return `/c/${ this.$rootGetters['clusterId'] }/explorer/navLinks?link=${ encodeURIComponent(this.spec.toURL) }`;
+        return `/c/${ this.$rootGetters['clusterId'] }/explorer/navLinks/iframe?link=${ encodeURIComponent(this.spec.toURL) }`;
       } else if ( this.spec?.toService ) {
         const s = this.spec.toService;
 
-        return `/c/${ this.$rootGetters['clusterId'] }/explorer/navLinks?link=${ encodeURIComponent(proxyUrlFromParts(this.$rootGetters['clusterId'], s.namespace, s.name, s.scheme, s.port, s.path)) }`;
+        return `/c/${ this.$rootGetters['clusterId'] }/explorer/navLinks/iframe?link=${ encodeURIComponent(proxyUrlFromParts(this.$rootGetters['clusterId'], s.namespace, s.name, s.scheme, s.port, s.path)) }`;
       } else {
         return null;
       }
