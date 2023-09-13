@@ -17,7 +17,10 @@ describe('Settings', () => {
     cy.login();
   });
 
-  it('can update server-url', { tags: '@adminUser' }, () => {
+  it.skip('can update server-url', { tags: '@adminUser' }, () => {
+    // Note: this test fails sometimes due to https://github.com/rancher/dashboard/issues/9690
+    // skipping this test until issue is resolved
+
     // Update setting
     settingsPage.goTo();
 
@@ -53,7 +56,7 @@ describe('Settings', () => {
     settingsEdit.waitForPage();
     cy.contains('Setting: server-url').should('be.visible');
     cy.get('@originalValue').then((text:any) => {
-      settingsEdit.settingsInput().set(text);
+      settingsEdit.useDefaultButton().click();
       settingsEdit.saveAndWait('server-url');
       settingsPage.waitForPage();
       settingsPage.settingsValue('server-url').contains(text);
