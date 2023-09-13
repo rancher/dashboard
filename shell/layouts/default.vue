@@ -70,7 +70,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['clusterId', 'currentProduct', 'isRancherInHarvester', 'isSingleProduct', 'isMultiCluster']),
+    ...mapGetters(['clusterId', 'currentProduct', 'isRancherInHarvester', 'showTopLevelMenu']),
 
     afterLoginRoute: mapPref(AFTER_LOGIN_ROUTE),
 
@@ -237,7 +237,7 @@ export default {
     <div
       v-if="managementReady"
       class="dashboard-content"
-      :class="{[pinClass]: true, 'dashboard-padding-left': isRancherInHarvester || isMultiCluster || !isSingleProduct}"
+      :class="{[pinClass]: true, 'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header />
       <SideNav

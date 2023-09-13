@@ -36,7 +36,7 @@ export default {
   computed: {
     themeShortcut: mapPref(THEME_SHORTCUT),
     ...mapState(['managementReady']),
-    ...mapGetters(['isRancherInHarvester', 'isSingleProduct', 'isMultiCluster']),
+    ...mapGetters(['showTopLevelMenu']),
   },
 
   methods: {
@@ -60,7 +60,7 @@ export default {
 
     <div
       class="dashboard-content"
-      :class="{'dashboard-padding-left': isRancherInHarvester || isMultiCluster || !isSingleProduct}"
+      :class="{'dashboard-padding-left': showTopLevelMenu}"
     >
       <Header
         v-if="managementReady"
