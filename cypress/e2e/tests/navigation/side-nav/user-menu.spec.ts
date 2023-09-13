@@ -4,12 +4,12 @@ import { UserMenuItems } from '@/cypress/support/types/menu-actions';
 
 const userMenu = new UserMenuPo();
 
-describe('User can logout of Rancher', { tags: ['@adminUser', '@standardUser'] }, () => {
+describe('User menu', { tags: ['@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
 
-  it('Can logout of Rancher successfully', () => {
+  it('Can view user menu items', () => {
     /*
     Logout of Rancher Dashboard
     Verify user lands on login page after logging out
