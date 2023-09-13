@@ -1,13 +1,9 @@
-import ModalWithCardPo from '@/cypress/e2e/po/components/modal-with-card.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 Cypress.config();
 describe('Side Menu: main', () => {
-  let modal;
-
   beforeEach(() => {
-    modal = new ModalWithCardPo();
     cy.login();
     HomePagePo.goTo();
     BurgerMenuPo.toggle();
