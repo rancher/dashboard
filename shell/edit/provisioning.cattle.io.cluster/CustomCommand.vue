@@ -172,6 +172,7 @@ export default {
       />
       <Banner
         v-if="!etcd || !controlPlane || !worker"
+        data-testid="node-role-warning"
         color="warning"
         :label="t('cluster.custom.nodeRole.warning')"
       />
