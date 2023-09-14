@@ -7,7 +7,7 @@ import { getVendor } from '@shell/config/private-label';
 import { SETTING } from '@shell/config/settings';
 import { addParam } from '@shell/utils/url';
 import { isRancherPrime } from '@shell/config/version';
-import { hasCspAdapter } from 'mixins/brand';
+import { hasCspAdapter } from '@shell/mixins/brand';
 import { generateSupportLink } from '@shell/utils/version';
 
 export default {
