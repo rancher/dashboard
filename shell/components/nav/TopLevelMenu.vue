@@ -337,7 +337,6 @@ export default {
                 {{ t('nav.home') }}
               </div>
             </nuxt-link>
-
             <div
               v-if="showClusterSearch"
               class="clusters-search"
@@ -451,7 +450,7 @@ export default {
                   </span>
                 </div>
                 <div
-                  v-if="clustersFiltered.length != 0 && pinFiltered.length > 0"
+                  v-if="clustersFiltered.length > 0"
                   class="category-title"
                 >
                   <hr>
