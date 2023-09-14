@@ -44,7 +44,7 @@ export async function explain(store, route) {
 
     // Fetch the open API data for the cluster
     openAPI.get(cluster?.id, store.dispatch).then((data) => {
-      slideInPanel.update( { data, schema });
+      slideInPanel.update({ data, schema });
     }).catch((e) => {
       slideInPanel.update({ error: e });
     });

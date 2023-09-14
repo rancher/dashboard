@@ -12,7 +12,7 @@ export default function(plugin: IPlugin, internal: IInternal): void {
 
   const store = internal.store;
 
-  plugin.addAction(ActionLocation.HEADER, { product: ['explorer'] }, {
+  plugin.addAction(ActionLocation.HEADER, { product: ['explorer', 'apps', 'monitoring', 'istio'] }, {
     label:  'Explain ...',
     svg:    require('./explain.svg'),
     invoke: (opts, res, globals) => {

@@ -1,11 +1,7 @@
 <script>
 import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
-
-// Regex for more info in descriptions
-// Some kube docs use a common pattern for a URL with more info - we extract these and show a link icon, rather than clogging up the UI
-// with a long URL - this makes it easier to read
-const MORE_INFO_REGEX = /More info:\s*(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))/;
+import { expandDefinition } from './open-api-utils.ts';
 
 export default {
   components: { ExplainPanel },
@@ -76,62 +72,6 @@ export default {
         this.close();
       }
     },
-    extractMoreInfo(property) {
-      const description = property.description || '';
-      const found = description.match(MORE_INFO_REGEX);
-
-      if (found?.length > 0) {
-        let url = found[0];
-        const updated = description.replace(url, '').trim();
-        const index = url.indexOf('http');
-
-        url = url.substr(index);
-
-        if (url.endsWith('.')) {
-          url = url.substr(0, url.length - 1);
-        }
-
-        property.$moreInfo = url;
-        property.description = updated;
-      }
-    },
-
-    parse(property) {
-      this.extractMoreInfo(property);
-    },
-
-    expand(definitions, definition, breadcrumbs = []) {
-      Object.keys(definition?.properties || {}).forEach((propName) => {
-        const prop = definition.properties[propName];
-        const propRef = prop.$ref || prop.items?.$ref;
-
-        if (propRef && propRef.startsWith('#/definitions/')) {
-          const p = propRef.split('/');
-          const id = p[p.length - 1];
-
-          const ref = definitions[id];
-
-          if (ref) {
-            prop.$$ref = ref;
-            prop.$refName = id;
-            prop.$breadcrumbs = [
-              ...breadcrumbs,
-              id,
-            ];
-
-            const parts = prop.$refName.split('.');
-
-            prop.$refNameShort = parts[parts.length - 1];
-
-            this.expand(definitions, ref, prop.$breadcrumbs);
-          } else {
-            console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
-          }
-        }
-
-        this.parse(prop);
-      });
-    },
 
     toggleAll() {
       this.expandAll = !this.expandAll;
@@ -188,7 +128,7 @@ export default {
         this.definitions = data.definitions;
         this.expanded = {};
 
-        this.expand(data.definitions, defn, [name]);
+        expandDefinition(data.definitions, defn, [name]);
 
         this.definition = defn;
       } else {
@@ -233,7 +173,7 @@ export default {
         };
       });
 
-      this.expand(this.definitions, defn, breadcrumbs);
+      expandDefinition(this.definitions, defn, breadcrumbs);
 
       this.definition = defn;
       this.expanded = {};
@@ -257,7 +197,7 @@ export default {
 
       this.navigate(breadcrumbs.map((b) => b.id));
     }
-  },
+  }
 };
 </script>
 
