@@ -270,7 +270,7 @@ export default {
         return {
           content:       this.shown ? null : item,
           placement:     'right',
-          popperOptions: { modifiers: { preventOverflow: { enabled: false } } }
+          popperOptions: { modifiers: { preventOverflow: { enabled: false }, hide: { enabled: false } } }
         };
       } else {
         return { content: undefined };
