@@ -144,7 +144,7 @@ export default {
     peek($event) {
       // Add active class to the current header if click on chevron icon
       $event.target.parentElement.classList.remove('active');
-      if (this.hasActiveRoute()) {
+      if (this.hasActiveRoute() && this.isExpanded) {
         $event.target.parentElement.classList.add('active');
       }
       this.isExpanded = !this.isExpanded;
@@ -288,15 +288,15 @@ export default {
       color: var(--body-text);
       user-select: none;
       text-transform: none;
-      font-size: 16px;
+      font-size: 14px;
     }
 
     > A {
       display: block;
       padding-left: 16px;
       &:hover{
-          text-decoration: none;
-        }
+        text-decoration: none;
+      }
       &:focus{
         outline:none;
       }
@@ -304,21 +304,25 @@ export default {
         text-transform: none;
       }
     }
-    &.active {
-      background-color: var(--nav-active);
-    }
   }
 
   .accordion {
     .header {
-      &:hover:not(.noHover) {
-        background-color: var(--nav-hover);
-      }
+      &.active {
+        color: var(--primary-hover-text);
+        background-color: var(--primary-hover-bg);
 
-      > I {
-        &:hover {
-          background-color: var(--nav-expander-hover);
+        h6 {
+          font-weight: bold;
+          color: var(--primary-hover-text);
         }
+
+        &:hover {
+          background-color: var(--primary-hover-bg);
+        }
+      }
+      &:hover:not(.active) {
+        background-color: var(--nav-hover);
       }
     }
   }
@@ -343,10 +347,6 @@ export default {
           top: 0;
           padding: 10px 10px 9px 7px;
           user-select: none;
-        }
-
-        &:has(> a.nuxt-link-active) {
-          background: var(--nav-active);
         }
       }
 
