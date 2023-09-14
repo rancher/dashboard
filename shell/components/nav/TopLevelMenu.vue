@@ -623,7 +623,6 @@ export default {
           >
             <nuxt-link
               :to="{ name: 'about' }"
-              class="version"
             >
               {{ t('about.title') }}
             </nuxt-link>
