@@ -290,20 +290,3 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
       expect(resp.status).to.eq(200);
     });
 });
-
-/**
- * Get user preferences
- */
-Cypress.Commands.add('getUserPreferences', () => {
-  return cy.request({
-    method:  'GET',
-    url:     `${ Cypress.env('api') }/v1/userpreferences`,
-    headers: {
-      'x-api-csrf': token.value,
-      Accept:       'application/json'
-    }
-  })
-    .then((resp) => {
-      expect(resp.status).to.eq(200);
-    });
-});
