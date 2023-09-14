@@ -34,9 +34,11 @@ export default class AboutPagePo extends PagePo {
 
   clickVersionLink(value: string) {
     this.links(value)
-        .then((el) => { expect(el).to.have.attr('target'); })
-        .invoke('removeAttr', 'target')
-        .click();
+      .then((el) => {
+        expect(el).to.have.attr('target');
+      })
+      .invoke('removeAttr', 'target')
+      .click();
   }
 
   getLinuxDownloadLink() {
