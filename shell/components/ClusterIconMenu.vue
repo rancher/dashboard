@@ -51,7 +51,7 @@ export default {
         break;
       case 2:
 
-        result = `${ segments[0][0] }${ segments[0][segments[0].length - 1] }${ segments[1][segments[1].length - 1] }`;
+        result = segments[0].length >= 2 ? `${ segments[0][0] }${ segments[0][segments[0].length - 1] }${ segments[1][segments[1].length - 1] }` : `${ segments[0][0] }${ segments[1][0] }${ segments[1][segments[1].length - 1] }`;
         break;
       default:
         result = segments.slice(0, 3).map((segment) => segment[0]).join('');
