@@ -2,9 +2,7 @@
 import { mapGetters } from 'vuex';
 import isEmpty from 'lodash/isEmpty';
 
-import {
-  CATALOG, SECRET, SERVICE, UI_PLUGIN, WORKLOAD_TYPES
-} from '@shell/config/types';
+import { CATALOG, SECRET, SERVICE, WORKLOAD_TYPES } from '@shell/config/types';
 import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 import { TYPES as SECRET_TYPES } from '@shell/models/secret';
 import { allHash } from '@shell/utils/promise';
@@ -195,11 +193,15 @@ export default {
             }
 
             if (this.extensionRepo) {
-              // Create uiplugin crd
-              await this.loadPlugin(name, this.extensionUrl, image);
+              btnCb(true);
+              this.closeDialog();
+              this.$store.dispatch('growl/success', {
+                title:   this.t('plugins.manageCatalog.imageLoad.success.title', { name }),
+                message: this.t('plugins.manageCatalog.imageLoad.success.message'),
+                timeout: 4000,
+              }, { root: true });
+              this.$emit('refresh');
             }
-
-            btnCb(true);
           } else {
             throw new Error('Unable to determine image name');
           }
@@ -313,62 +315,6 @@ export default {
       }
     },
 
-    async loadPlugin(name, url, image, btnCb) {
-      // Try and parse version number from the image
-      const version = this.extractImageVersion(image) || 'latest';
-
-      if (!this.extractImageVersion(image)) {
-        this.$store.dispatch('growl/warning', {
-          title:   this.t('plugins.manageCatalog.imageLoad.imageVersion.title'),
-          message: this.t('plugins.manageCatalog.imageLoad.imageVersion.message', { image }),
-          timeout: 4000,
-        }, { root: true });
-      }
-
-      let crdName = name;
-
-      const parts = name.split('-');
-
-      if (parts.length >= 2) {
-        crdName = parts.join('-');
-      }
-
-      this.extensionCrd = await this.$store.dispatch('management/create', {
-        type:     UI_PLUGIN,
-        metadata: {
-          name,
-          namespace: UI_PLUGIN_NAMESPACE,
-          labels:    {
-            [UI_PLUGIN_LABELS.CATALOG_IMAGE]: name,
-            [UI_PLUGIN_LABELS.REPOSITORY]:    this.extensionRepo.metadata.name
-          }
-        },
-        spec: {
-          plugin: {
-            name:     crdName,
-            version,
-            endpoint: url,
-            noCache:  false,
-            metadata: { [UI_PLUGIN_LABELS.CATALOG]: 'true' }
-          }
-        }
-      });
-
-      try {
-        await this.extensionCrd.save({ url: `/v1/${ UI_PLUGIN }`, method: 'POST' });
-
-        this.closeDialog();
-        this.$store.dispatch('growl/success', {
-          title:   this.t('plugins.manageCatalog.imageLoad.success.title', { name }),
-          message: this.t('plugins.manageCatalog.imageLoad.success.message'),
-          timeout: 4000,
-        }, { root: true });
-      } catch (e) {
-        this.handleGrowlError(e, true);
-        btnCb(false);
-      }
-    },
-
     parseDeploymentValues(name) {
       let out = {};
 
@@ -458,9 +404,6 @@ export default {
       }
       if (this.extensionRepo) {
         this.extensionRepo.remove();
-      }
-      if (this.extensionCrd) {
-        this.extensionCrd.remove();
       }
     },
 

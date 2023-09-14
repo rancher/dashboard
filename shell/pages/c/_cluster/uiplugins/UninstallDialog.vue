@@ -2,9 +2,8 @@
 import { mapGetters } from 'vuex';
 
 import AsyncButton from '@shell/components/AsyncButton';
-import { CATALOG, SERVICE, WORKLOAD_TYPES } from '@shell/config/types';
-import { UI_PLUGIN_LABELS, UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
-import { allHash } from '@shell/utils/promise';
+import { CATALOG } from '@shell/config/types';
+import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 
 export default {
   components: { AsyncButton },
@@ -33,7 +32,7 @@ export default {
       this.$emit('update', plugin.name, 'uninstall');
 
       // Delete the CR if this is a developer plugin (there is no Helm App, so need to remove the CRD ourselves)
-      if (plugin.uiplugin?.isDeveloper || (plugin.catalog && plugin.uiplugin)) {
+      if (plugin.uiplugin?.isDeveloper) {
         // Delete the custom resource
         await plugin.uiplugin.remove();
       }
@@ -41,28 +40,13 @@ export default {
       // Find the app for this plugin
       const apps = await this.$store.dispatch('management/findAll', { type: CATALOG.APP });
 
-      const pluginApps = apps.filter((app) => {
-        if (plugin.catalog && app.namespace === UI_PLUGIN_NAMESPACE) {
-          // Find the related apps from the deployed helm repository
-          const charts = this.allCharts.filter((chart) => chart.repoName === plugin.repo?.metadata?.name);
-
-          return charts.some((chart) => chart.chartName === app.metadata.name);
-        }
-
-        if (app.namespace === UI_PLUGIN_NAMESPACE && app.name === plugin.name) {
-          return app;
-        }
-
-        return false;
+      const pluginApp = apps.find((app) => {
+        return app.namespace === UI_PLUGIN_NAMESPACE && app.name === plugin.name;
       });
 
-      if (plugin.catalog) {
-        await this.removePluginImageResources(plugin.uiplugin);
-      }
-
-      if (pluginApps.length) {
+      if (pluginApp) {
         try {
-          pluginApps.forEach((app) => app.remove());
+          await pluginApp.remove();
         } catch (e) {
           this.$store.dispatch('growl/error', {
             title:   this.t('plugins.error.generic'),
@@ -75,28 +59,6 @@ export default {
       }
 
       this.closeDialog(plugin);
-    },
-    async removePluginImageResources(plugin) {
-      const selector = `${ UI_PLUGIN_LABELS.CATALOG_IMAGE }=${ plugin.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] }`;
-      const namespace = UI_PLUGIN_NAMESPACE;
-
-      if (selector) {
-        const hash = await allHash({
-          deployment: this.$store.dispatch('management/findMatching', {
-            type: WORKLOAD_TYPES.DEPLOYMENT, selector, namespace
-          }),
-          service: this.$store.dispatch('management/findMatching', {
-            type: SERVICE, selector, namespace
-          }),
-          repo: this.$store.dispatch('management/findMatching', { type: CATALOG.CLUSTER_REPO, selector })
-        });
-
-        for (const resource of Object.keys(hash)) {
-          if (hash[resource]) {
-            hash[resource].forEach((r) => r.remove());
-          }
-        }
-      }
     }
   }
 };
@@ -118,7 +80,7 @@ export default {
       <div class="mt-10 dialog-panel">
         <div class="dialog-info">
           <p>
-            {{ plugin.catalog ? t('plugins.uninstall.custom') : t('plugins.uninstall.prompt') }}
+            {{ t('plugins.uninstall.prompt') }}
           </p>
         </div>
         <div class="dialog-buttons">

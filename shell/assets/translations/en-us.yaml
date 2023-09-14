@@ -4128,9 +4128,8 @@ plugins:
       image:
         name: images
         label: Deployment Image
-      cacheState:
-        name: cacheState
-        label: Cache State
+      repository:
+        label: Repository Name
   tabs:
     all: All
     available: Available
@@ -4157,7 +4156,7 @@ plugins:
     label: Uninstall
     title: "Uninstall Extension: {name}"
     prompt: "Are you sure that you want to uninstall this Extension?"
-    custom: "Are you sure that you want to uninstall this Extension Image? This will also remove any Extensions provided by this image."
+    catalog: "Are you sure that you want to uninstall this Extension Catalog Image? This will also remove any Extensions provided by this image."
   upgradeAvailable: A newer version of this Extension is available
   reload: Extensions changed - reload required
   safeMode:
