@@ -51,13 +51,13 @@ export default {
     ...mapGetters(['currentCluster']),
 
     fields() {
-      const defn = this.definition?.properties || {};
+      const definition = this.definition?.properties || {};
       const res = [];
 
-      Object.keys(defn).forEach((k) => {
+      Object.keys(definition).forEach((k) => {
         res.push({
           name: k,
-          ...defn[k]
+          ...definition[k]
         });
       });
 
@@ -81,9 +81,10 @@ export default {
 
 <template>
   <div v-if="definition" class="main">
-    <div class="title">
+    <!-- <div class="title">
       Description
-    </div>
+    </div> -->
+    <div class="title-spacer" />
     <div v-if="definition.description">{{ definition.description }}</div>
     <div v-else>No Description</div>
     <div
@@ -110,7 +111,16 @@ export default {
           </div>
           <div v-else class="field-type-panel">
             <span v-if="field.type === 'array'" class="mr-5">[]</span>
-            <div v-if="field.$refName" class="field-type field-expander" @click="expand(field.name)">{{ field.$refNameShort }} <i class="icon icon-sort" /></div>
+            <div v-if="field.$refName" class="field-type field-expander" @click="expand(field.name)">{{ field.$refNameShort }} 
+              <i
+                v-if="!expanded[field.name]"
+                class="icon icon-chevron-down"
+              />
+              <i
+                v-else
+                class="icon icon-chevron-up"
+              />
+            </div>
             <div v-else class="field-type">Object</div>
           </div>
         </div>
@@ -129,6 +139,9 @@ export default {
           class="sub-name"
         >
           <a href="#" class="sub-type-link" @click="goto(field)">{{ field.$refName }}</a>
+          <a href="#" class="sub-type-link" @click="goto(field)">
+            <i class="sub-name-goto icon icon-upload" />
+          </a>
         </div>
         <ExplainPanel
           v-if="expanded[field.name]"
@@ -145,25 +158,42 @@ export default {
 
 <style lang="scss" scoped>
   .main {
-    // margin: 0 10px 10px 10px;
     overflow: scroll;
   }
 
   .embedded {
-    // border-left: 2px solid var(--box-bg);
     border-bottom: 2px solid var(--primary);
     border: 2px solid var(--primary);
     padding-left: 10px;
     display: flex;
     flex-direction: column;
+
+    .title-spacer {
+      margin-top: 10px;
+    }
   }
 
   .sub-name {
-    // background-color: var(--box-bg);
     background-color: var(--primary);
     color: var(--primary-text);
     padding: 4px;
     margin-top: 10px;
+    display: flex;
+
+    :first-child {
+      flex: 1;
+    }
+
+    .sub-type-link {
+      color: var(--primary-text);
+      display: flex;
+    }
+
+    .sub-name-goto {
+      flex: 0;
+      font-size: 16px;
+      padding-right: 2px;
+    }
   }
 
   .title {
@@ -203,10 +233,6 @@ export default {
     display: flex;
   }
 
-  .sub-type-link {
-    color: var(--primary-text);
-  }
-
   .field-type {
     border: 1px solid var(--border);
     padding: 1px 5px;
@@ -230,8 +256,8 @@ export default {
     user-select: none;
 
     > i {
-      font-size: 12px;
-      padding-left: 4px;
+      font-size: 14px;
+      padding-left: 8px;
     }
 
     &:hover {

@@ -1,0 +1,3 @@
+kubectl-explain:
+  title: Kubernetes Explain
+  prompt: Select a Kubernetes resource to get the resource explanation

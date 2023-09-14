@@ -3,6 +3,8 @@ import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
 
 // Regex for more info in descriptions
+// Some kube docs use a common pattern for a URL with more info - we extract these and show a link icon, rather than clogging up the UI
+// with a long URL - this makes it easier to read
 const MORE_INFO_REGEX = /More info:\s*(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))/;
 
 export default {
@@ -17,6 +19,10 @@ export default {
       type:    Object,
       default: () => {}
     },
+    $t: {
+      type:     Object,
+      required: true
+    }
   },
 
   data() {
@@ -38,13 +44,9 @@ export default {
 
   computed: {
     title() {
-      if (this.noResource) {
-        return 'Explain';
-      }
-
-      return this.schema?.attributes?.kind || 'Loading ...';
+      return this.$t ? this.$t('kubectl-explain.title') : '';
     }
-  },
+  },  
 
   methods: {
     open() {
@@ -152,6 +154,17 @@ export default {
 
       const schema = response.schema;
 
+      const id = schema?.attributes?.kind
+
+      this.breadcrumbs = [
+        {
+          name: id,
+          id
+        }
+      ];
+
+      this.expandAll = false;
+
       if (!schema) {
         this.busy = false;
         this.noResource = true;
@@ -174,9 +187,6 @@ export default {
 
         this.definitions = data.definitions;
         this.expanded = {};
-
-        // this.breadcrumbs = [name];
-        // this.expandAll = false;
 
         this.expand(data.definitions, defn, [name]);
 
@@ -223,10 +233,7 @@ export default {
         };
       });
 
-      // this.expand(this.definitions, defn, [goto]);
       this.expand(this.definitions, defn, breadcrumbs);
-
-      // console.log(JSON.parse(JSON.stringify(defn, null, 2)));
 
       this.definition = defn;
       this.expanded = {};
@@ -274,13 +281,14 @@ export default {
         @pointerup="endPanelResize"
       />
       <div class="main-panel">
-        <!-- <div class="glass" /> -->
         <div class="header">
           <div
             v-if="breadcrumbs"
             class="breadcrumbs"
           >
+            <div v-if="noResource">{{ title }}</div>
             <div
+              v-else
               v-for="(b, i) in breadcrumbs"
               :key="b.id"
             >
@@ -288,7 +296,12 @@ export default {
                 v-if="i > 0"
                 class="ml-5 mr-5"
               >&gt;</span>
+              <span
+                v-if="i === breadcrumbs.length - 1"
+              >{{ b.name }}
+              </span>
               <a
+                v-else
                 href="#"
                 class="breadcrumb-link"
                 @click="goto(b.id)"
@@ -297,7 +310,7 @@ export default {
           </div>
           <div v-else @click="scrollTop()">{{ title }}</div>
           <i
-            v-if="!busy"
+            v-if="!busy && !noResource && definition"
             class="icon icon-sort mr-10"
             @click="toggleAll()"
           />
@@ -316,7 +329,7 @@ export default {
         <ExplainPanel
           ref="main"
           :expand-all="expandAll"
-          v-if="definition"
+          v-if="!noResource && definition"
           :definition="definition"
           class="explain-panel"
           @navigate="navigate"
@@ -327,7 +340,7 @@ export default {
         >
           <img src="./explain.svg">
           <div>
-            Select a Kubernetes resource to get the resource explanation
+            {{ $t('kubectl-explain.prompt')}}
           </div>
         </div>
       </div>
