@@ -567,3 +567,8 @@ export interface IPlugin {
    */
   DSL(store: any, productName: string): DSLReturnType;
 }
+
+// Internal interface
+// Built-in extensions may use this, but external extensions should not, as this is subject to change
+// Defined as any for now
+export type IInternal = any;

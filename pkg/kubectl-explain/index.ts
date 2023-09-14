@@ -1,9 +1,9 @@
 import { importTypes } from '@rancher/auto-import';
-import { ActionLocation, IPlugin } from '@shell/core/types';
+import { ActionLocation, IPlugin, IInternal } from '@shell/core/types';
 import { explain } from './slide-in';
 
 // Init the package
-export default function(plugin: IPlugin, internal: any): void {
+export default function(plugin: IPlugin, internal: IInternal): void {
   // Auto-import model, detail, edit from the folders
   importTypes(plugin);
 

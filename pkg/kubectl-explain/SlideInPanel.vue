@@ -46,7 +46,7 @@ export default {
     title() {
       return this.$t ? this.$t('kubectl-explain.title') : '';
     }
-  },  
+  },
 
   methods: {
     open() {
@@ -154,7 +154,7 @@ export default {
 
       const schema = response.schema;
 
-      const id = schema?.attributes?.kind
+      const id = schema?.attributes?.kind;
 
       this.breadcrumbs = [
         {
@@ -255,7 +255,7 @@ export default {
         }
       }
 
-      this.navigate(breadcrumbs.map(b => b.id));
+      this.navigate(breadcrumbs.map((b) => b.id));
     }
   },
 };
@@ -266,7 +266,8 @@ export default {
     <div
       class="slide-in-glass"
       :class="{ 'slide-in-glass-open': isOpen }"
-      @click="close()" />
+      @click="close()"
+    />
     <div
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
@@ -275,7 +276,7 @@ export default {
       <div
         ref="resizer"
         class="panel-resizer"
-        v-bind:style="{ position: resizePosition, left: resizeLeft }"
+        :style="{ position: resizePosition, left: resizeLeft }"
         @pointerdown="startPanelResize"
         @pointermove="doPanelResize"
         @pointerup="endPanelResize"
@@ -286,10 +287,12 @@ export default {
             v-if="breadcrumbs"
             class="breadcrumbs"
           >
-            <div v-if="noResource">{{ title }}</div>
+            <div v-if="noResource">
+              {{ title }}
+            </div>
             <div
-              v-else
               v-for="(b, i) in breadcrumbs"
+              v-else
               :key="b.id"
             >
               <span
@@ -308,7 +311,12 @@ export default {
               >{{ b.name }}</a>
             </div>
           </div>
-          <div v-else @click="scrollTop()">{{ title }}</div>
+          <div
+            v-else
+            @click="scrollTop()"
+          >
+            {{ title }}
+          </div>
           <i
             v-if="!busy && !noResource && definition"
             class="icon icon-sort mr-10"
@@ -319,7 +327,8 @@ export default {
             @click="close"
           />
         </div>
-        <div v-if="busy"
+        <div
+          v-if="busy"
           class="loading panel-loading"
         >
           <div>
@@ -327,9 +336,9 @@ export default {
           </div>
         </div>
         <ExplainPanel
+          v-if="!noResource && definition"
           ref="main"
           :expand-all="expandAll"
-          v-if="!noResource && definition"
           :definition="definition"
           class="explain-panel"
           @navigate="navigate"
@@ -340,7 +349,7 @@ export default {
         >
           <img src="./explain.svg">
           <div>
-            {{ $t('kubectl-explain.prompt')}}
+            {{ $t('kubectl-explain.prompt') }}
           </div>
         </div>
       </div>

@@ -20,7 +20,7 @@ export default {
 
   data() {
     return {
-      isOpen: false,
+      isOpen:   false,
       expanded: {},
     };
   },
@@ -63,7 +63,7 @@ export default {
 
       return res;
     }
-   },
+  },
 
   methods: {
     expand(field) {
@@ -80,20 +80,27 @@ export default {
 </script>
 
 <template>
-  <div v-if="definition" class="main">
+  <div
+    v-if="definition"
+    class="main"
+  >
     <!-- <div class="title">
       Description
     </div> -->
     <div class="title-spacer" />
-    <div v-if="definition.description">{{ definition.description }}</div>
-    <div v-else>No Description</div>
+    <div v-if="definition.description">
+      {{ definition.description }}
+    </div>
     <div
       v-if="fields.length"
       class="title"
     >
       Fields
     </div>
-    <div v-for="field in fields" :key="field.name">
+    <div
+      v-for="field in fields"
+      :key="field.name"
+    >
       <div class="field-section">
         <div class="field">
           {{ field.name }}
@@ -106,51 +113,78 @@ export default {
             <i class="icon icon-external-link" />
           </a>
         </div>
-          <div v-if="field.type && field.type !== 'array'" class="field-type">
-            <div>{{ field.type }}</div>
+        <div
+          v-if="field.type && field.type !== 'array'"
+          class="field-type"
+        >
+          <div>
+            {{ field.type }}
           </div>
-          <div v-else class="field-type-panel">
-            <span v-if="field.type === 'array'" class="mr-5">[]</span>
-            <div v-if="field.$refName" class="field-type field-expander" @click="expand(field.name)">{{ field.$refNameShort }} 
-              <i
-                v-if="!expanded[field.name]"
-                class="icon icon-chevron-down"
-              />
-              <i
-                v-else
-                class="icon icon-chevron-up"
-              />
-            </div>
-            <div v-else class="field-type">Object</div>
+        </div>
+        <div
+          v-else
+          class="field-type-panel"
+        >
+          <span
+            v-if="field.type === 'array'"
+            class="mr-5"
+          >
+            []
+          </span>
+          <div
+            v-if="field.$refName"
+            class="field-type field-expander"
+            @click="expand(field.name)"
+          >
+            {{ field.$refNameShort }}
+            <i
+              v-if="!expanded[field.name]"
+              class="icon icon-chevron-down"
+            />
+            <i
+              v-else
+              class="icon icon-chevron-up"
+            />
+          </div>
+          <div
+            v-else
+            class="field-type"
+          >
+            Object
           </div>
         </div>
         <div class="ml-20">
-          <!-- <div class="field-description">{{ field.description }}</div> -->
           <Markdown
             v-if="field.description"
             v-model="field.description"
           />
-          <!-- <Description
-            v-if="field.description"
-            v-model="field.description"
-          /> -->
-        <div
-          v-if="expanded[field.name]"
-          class="sub-name"
-        >
-          <a href="#" class="sub-type-link" @click="goto(field)">{{ field.$refName }}</a>
-          <a href="#" class="sub-type-link" @click="goto(field)">
-            <i class="sub-name-goto icon icon-upload" />
-          </a>
+          <div
+            v-if="expanded[field.name]"
+            class="sub-name"
+          >
+            <a
+              href="#"
+              class="sub-type-link"
+              @click="goto(field)"
+            >
+              {{ field.$refName }}
+            </a>
+            <a
+              href="#"
+              class="sub-type-link"
+              @click="goto(field)"
+            >
+              <i class="sub-name-goto icon icon-upload" />
+            </a>
+          </div>
+          <ExplainPanel
+            v-if="expanded[field.name]"
+            :expand-all="expandAll"
+            :definition="field.$$ref"
+            class="embedded"
+            @navigate="navigate"
+          />
         </div>
-        <ExplainPanel
-          v-if="expanded[field.name]"
-          :expand-all="expandAll"
-          :definition="field.$$ref"
-          class="embedded"
-          @navigate="navigate"
-        />
-      </div>
       </div>
     </div>
   </div>
@@ -210,7 +244,7 @@ export default {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    margin-top: 10px; 
+    margin-top: 10px;
 
     .field {
       margin-right: 20px;
