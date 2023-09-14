@@ -44,7 +44,7 @@ export default {
 
       switch (segments.length) {
       case 1:
-      // eslint-disable-next-line no-case-declarations
+        // eslint-disable-next-line no-case-declarations
         const word = segments[0];
 
         result = `${ word[0] }${ word[Math.floor(word.length / 2)] }${ word[word.length - 1] }`;
