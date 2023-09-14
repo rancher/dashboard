@@ -40,22 +40,14 @@ export default class AboutPagePo extends PagePo {
   }
 
   getLinuxDownloadLink() {
-    return cy.getId('image_list__about.os.linux');
+    return cy.getId('image_list_download_link__about.os.linux');
   }
 
   getWindowsDownloadLink() {
-    return cy.getId('image_list__about.os.windows');
+    return cy.getId('image_list_download_link__about.os.windows');
   }
 
-  getMacCliDownloadLink() {
-    return cy.getId('cli_downloads__about.os.mac');
-  }
-
-  getLinuxCliDownloadLink() {
-    return cy.getId('cli_downloads__about.os.linux');
-  }
-
-  getWindowsCliDownloadLink() {
-    return cy.getId('cli_downloads__about.os.windows');
+  getCliDownloadLinkByLabel(label: string) {
+    return this.self().contains(label);
   }
 }

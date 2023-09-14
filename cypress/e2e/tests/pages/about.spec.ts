@@ -121,7 +121,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       aboutPage.getLinkDestination('rancher-darwin').then((el) => {
         const macOsVersion = el.split('/')[5];
 
-        aboutPage.getMacCliDownloadLink().then((el: any) => {
+        aboutPage.getCliDownloadLinkByLabel('rancher-darwin').then((el: any) => {
           el.attr('download', '');
         }).click();
         cy.wait('@download').then(({ request, response }) => {
@@ -135,7 +135,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       aboutPage.getLinkDestination('rancher-linux').then((el) => {
         const linuxVersion = el.split('/')[5];
 
-        aboutPage.getLinuxCliDownloadLink().then((el: any) => {
+        aboutPage.getCliDownloadLinkByLabel('rancher-linux').then((el: any) => {
           el.attr('download', '');
         }).click();
         cy.wait('@download').then(({ request, response }) => {
@@ -149,7 +149,7 @@ describe('About Page', { testIsolation: 'off', tags: ['@adminUser', '@standardUs
       aboutPage.getLinkDestination('rancher-windows').then((el) => {
         const windowsVersion = el.split('/')[5];
 
-        aboutPage.getWindowsCliDownloadLink().then((el: any) => {
+        aboutPage.getCliDownloadLinkByLabel('rancher-windows').then((el: any) => {
           el.attr('download', '');
         }).click();
         cy.wait('@download').then(({ request, response }) => {
