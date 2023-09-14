@@ -805,7 +805,7 @@ export default {
         return false;
       }
 
-      const matchingResourceAction = resource.availableActions.find((a) => a.action === this.actionOfInterest.action);
+      const matchingResourceAction = resource.availableActions?.find((a) => a.action === this.actionOfInterest.action);
 
       return matchingResourceAction?.enabled;
     },

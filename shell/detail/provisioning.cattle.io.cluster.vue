@@ -337,9 +337,10 @@ export default {
         pool._clusterSpec = mp;
 
         return {
-          poolId:     pool.id,
-          mainRowKey: 'isFake',
+          poolId:           pool.id,
+          mainRowKey:       'isFake',
           pool,
+          availableActions: []
         };
       });
     },
@@ -359,9 +360,10 @@ export default {
       const emptyNodePools = this.allNodePools.filter((x) => x.spec.clusterName === this.value.mgmtClusterId && x.spec.quantity === 0);
 
       return emptyNodePools.map((np) => ({
-        spec:       { nodePoolName: np.id.replace('/', ':') },
-        mainRowKey: 'isFake',
-        pool:       np,
+        spec:             { nodePoolName: np.id.replace('/', ':') },
+        mainRowKey:       'isFake',
+        pool:             np,
+        availableActions: []
       }));
     },
 
