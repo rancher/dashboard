@@ -3,7 +3,7 @@ import { createLocalVue } from '@vue/test-utils';
 import { ensureSupportLink } from '@shell/config/home-links.js';
 import { getters, state, mutations } from '@shell/store/i18n.js';
 
-jest.mock('@shell/assets/translations/en-us.yaml', () => ({
+jest.mock('@shell/assets/translations-cn/en-us.yaml', () => ({
   locale: {
     'en-us':   'English',
     'zh-hans': '简体中文',

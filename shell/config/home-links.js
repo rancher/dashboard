@@ -10,7 +10,7 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'forums',
-    value:   'https://forums.rancher.cn/',
+    value:   'https://forums.rancher.com/',
     enabled: true,
   },
   {
