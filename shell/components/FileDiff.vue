@@ -2,7 +2,6 @@
 import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim.js';
 
 import { createPatch } from 'diff';
-import DOMPurify from 'dompurify';
 
 export default {
   props: {
@@ -95,10 +94,6 @@ export default {
 
       container.style.height = `${ Math.max(0, desired) }px`;
     },
-  },
-
-  created() {
-    DOMPurify.setConfig({ ADD_ATTR: ['target'] });
   },
 };
 </script>
