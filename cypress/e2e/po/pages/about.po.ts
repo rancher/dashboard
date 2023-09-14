@@ -25,7 +25,7 @@ export default class AboutPagePo extends PagePo {
   }
 
   links(value: string): Cypress.Chainable {
-    return this.self().get('a').contains(value);
+    return this.self().get('.about').find('a').contains(value);
   }
 
   getLinkDestination(value: string): Cypress.Chainable {
@@ -33,10 +33,10 @@ export default class AboutPagePo extends PagePo {
   }
 
   clickVersionLink(value: string) {
-    this.links(value).then((el) => {
-      expect(el).to.have.attr('target');
-    }).invoke('removeAttr', 'target')
-      .click();
+    this.links(value)
+        .then((el) => { expect(el).to.have.attr('target'); })
+        .invoke('removeAttr', 'target')
+        .click();
   }
 
   getLinuxDownloadLink() {
