@@ -1,4 +1,6 @@
 <script>
+import { abbreviateClusterName } from '@shell/utils/cluster';
+
 export default {
   props: {
     cluster: {
@@ -12,13 +14,6 @@ export default {
     },
   },
   methods: {
-    /**
-     * Shortens an input string based on the number of segments it contains.
-     * @param {string} input - The input string to be shortened.
-     * @returns {string} - The shortened string.
-     * @example smallIdentifier('local') => 'lcl'
-     * @example smallIdentifier('word-wide-web') => 'www'
-     */
     smallIdentifier(input) {
       if (this.cluster.badge?.iconText) {
         return this.cluster.badge?.iconText;
@@ -28,38 +23,8 @@ export default {
         return undefined;
       }
 
-      if (!input) {
-        return '';
-      }
-
-      if (input.length <= 3) {
-        return input;
-      }
-
-      const segments = input.match(/([A-Za-z]+|\d+)/g);
-
-      if (!segments) return ''; // In case no valid segments are found
-
-      let result = '';
-
-      switch (segments.length) {
-      case 1:
-        // eslint-disable-next-line no-case-declarations
-        const word = segments[0];
-
-        result = `${ word[0] }${ word[Math.floor(word.length / 2)] }${ word[word.length - 1] }`;
-        break;
-      case 2:
-
-        result = `${ segments[0][0] }${ segments[0].length >= 2 ? segments[0][segments[0].length - 1] : segments[1][0] }${ segments[1][segments[1].length - 1] }`;
-        break;
-      default:
-        result = segments.slice(0, 3).map((segment) => segment[0]).join('');
-      }
-
-      return result;
-    },
-
+      return abbreviateClusterName(input);
+    }
   }
 };
 </script>
