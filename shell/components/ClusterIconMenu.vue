@@ -44,13 +44,14 @@ export default {
 
       switch (segments.length) {
       case 1:
-        // eslint-disable-next-line no-case-declarations
+      // eslint-disable-next-line no-case-declarations
         const word = segments[0];
 
         result = `${ word[0] }${ word[Math.floor(word.length / 2)] }${ word[word.length - 1] }`;
         break;
       case 2:
-        result = `${ segments[0][0] }${ segments[1][0] }${ segments[1][segments[1].length - 1] }`;
+
+        result = `${ segments[0][0] }${ segments[0][segments[0].length - 1] }${ segments[1][segments[1].length - 1] }`;
         break;
       default:
         result = segments.slice(0, 3).map((segment) => segment[0]).join('');
