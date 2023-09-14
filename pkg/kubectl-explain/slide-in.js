@@ -1,32 +1,14 @@
 import Vue from 'vue';
 
 import Panel from './SlideInPanel';
+import { OpenAPI } from './open-api';
 
 const PANEL_ID = 'kubectl-explain';
 
+const openAPI = new OpenAPI();
+
 // Slide in panel component
 let slideInPanel;
-
-let openAPIData;
-let cluster;
-
-function loadOpenAPIData(store, schema) {
-  // Have we got cached API data?
-  if (!openAPIData) {
-    store.dispatch(
-      `cluster/request`,
-      { url: `/k8s/clusters/${ cluster.id }/openapi/v2?timeout=32s` }
-    ).then((response) => {
-      openAPIData = response.data || response;
-      slideInPanel.update( { data: openAPIData, schema });
-    }).catch((e) => {
-      openAPIData = undefined;
-      slideInPanel.update({ error: e });
-    });
-  } else {
-    slideInPanel.update({ data: openAPIData, schema });
-  }
-}
 
 /**
  * Show the slide-in panel with the resource explanation
@@ -34,8 +16,7 @@ function loadOpenAPIData(store, schema) {
 export async function explain(store, route) {
   const typeName = route.params?.resource;
   const schema = typeName ? store.getters[`cluster/schemaFor`](typeName) : undefined;
-
-  cluster = store.getters['currentCluster'];
+  const cluster = store.getters['currentCluster'];
 
   // Create slide-in panel, if this is the first-time it is being shown
   if (!slideInPanel) {
@@ -61,6 +42,11 @@ export async function explain(store, route) {
   setTimeout(() => {
     slideInPanel.open(typeName);
 
-    loadOpenAPIData(store, schema);
+    // Fetch the open API data for the cluster
+    openAPI.get(cluster?.id, store.dispatch).then((data) => {
+      slideInPanel.update( { data, schema });
+    }).catch((e) => {
+      slideInPanel.update({ error: e });
+    });
   }, 0);
 }

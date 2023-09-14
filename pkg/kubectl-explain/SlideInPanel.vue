@@ -20,8 +20,8 @@ export default {
       default: () => {}
     },
     $t: {
-      type:     Object,
-      required: true
+      type:    Object,
+      default: undefined
     }
   },
 
