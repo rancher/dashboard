@@ -27,7 +27,8 @@ describe('fx: fetchLinks', () => {
         doAction:         (t) => t,
         waitForOperation: (t) => t,
       }),
-      'catalog/charts': [{}],
+      'catalog/charts':           [{}],
+      'i18n/selectedLocaleLabel': 'locale.zh-hans', // language is zh-hans
     },
     dispatch: (key) => {
       return new Promise((resolve, reject) => {
@@ -64,7 +65,8 @@ describe('fx: fetchLinks', () => {
     const result = await fetchLinks($store, hasSupport, isSupportPage, localThis.t);
 
     const testCases = [
-      ['forums', 'https://forums.rancher.cn/'],
+      ['cnforums', 'https://forums.rancher.cn/'],
+      ['forums', 'https://forums.rancher.com/'],
       ['mirror', 'https://mirror.rancher.cn/']
     ];
 
