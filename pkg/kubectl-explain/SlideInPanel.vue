@@ -22,6 +22,7 @@ export default {
       isOpen:         false,
       definition:     undefined,
       busy:           true,
+      error:          false,
       expandAll:      false,
       isResizing:     false,
       resizeLeft:     '',
@@ -31,6 +32,7 @@ export default {
       breadcrumbs:    undefined,
       definitions:    {},
       noResource:     false,
+      notFound:       false,
     };
   },
 
@@ -72,21 +74,30 @@ export default {
 
     load(data, schema, error) {
       this.noResource = false;
-
-      if (error || !data) {
-        this.busy = false;
-
-        return;
-      }
+      this.error = false;
+      this.notFound = false;
 
       if (!schema) {
         this.busy = false;
         this.noResource = true;
+        this.notFound = true;
 
         return;
       }
 
-      const name = getSchemaName(schema);
+      if (error || !data) {
+        this.busy = false;
+        this.error = true;
+
+        return;
+      }
+
+      let name = getSchemaName(schema);
+
+      // Schemas like 'ingress' seem to have the wrong group - so try the other one with 'api'
+      if (!data.definitions[name]) {
+        name = name.replace(/io\.k8s\./g, 'io.k8s.api.');
+      }
 
       if (name) {
         this.definitions = data.definitions;
@@ -129,6 +140,14 @@ export default {
       this.definition = this.definitions[goto.id];
       this.expanded = {};
       this.expandAll = false;
+      this.notFound = false;
+
+      if (!this.definition) {
+        this.noResource = true;
+        this.notFound = true;
+
+        return;
+      }
 
       expandDefinition(this.definitions, this.definition, this.breadcrumbs);
 
@@ -222,11 +241,23 @@ export default {
           @navigate="navigate"
         />
         <div
+          v-if="error"
+          class="select-resource"
+        >
+          <i class="icon icon-error" />
+          <div>
+            {{ $t('kubectl-explain.errors.load') }}
+          </div>
+        </div>
+        <div
           v-if="noResource"
           class="select-resource"
         >
           <img src="./explain.svg">
-          <div>
+          <div v-if="notFound">
+            {{ $t('kubectl-explain.errors.notFound') }}
+          </div>
+          <div v-else>
             {{ $t('kubectl-explain.prompt') }}
           </div>
         </div>
@@ -261,11 +292,15 @@ export default {
       margin: 40px;
       text-align: center;
 
-      > img {
+      > img, i {
         margin-bottom: 20px;
         opacity: 0.5;
         height: 64px;
         width: 64px;
+      }
+
+      > i {
+        font-size: 64px;
       }
     }
   }

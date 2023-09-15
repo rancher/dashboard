@@ -5,6 +5,7 @@ import { OpenAPI } from './open-api';
 
 const PANEL_ID = 'kubectl-explain';
 
+// Cache of the Open API Data for a cluster
 const openAPI = new OpenAPI();
 
 // Slide in panel component
@@ -22,6 +23,9 @@ export async function explain(store, route) {
   if (!slideInPanel) {
     const slideInPanelClass = Vue.extend(Panel);
 
+    // Note: because of the way we use Vue.extend and mount the component, the store
+    // does not get injected into the Vue component, so we need to pass in the i18n lookup directly
+    // in order to use it
     slideInPanel = new slideInPanelClass({ propsData: { $t: store.getters['i18n/t'] } });
 
     // Create a DIV that we can mount the slide-in panel component into
@@ -41,7 +45,7 @@ export async function explain(store, route) {
     openAPI.get(cluster?.id, store.dispatch).then((data) => {
       slideInPanel.load(data, schema);
     }).catch((e) => {
-      slideInPanel.load(undefined, undefined, e);
+      slideInPanel.load(undefined, schema, e);
     });
   }, 0);
 }

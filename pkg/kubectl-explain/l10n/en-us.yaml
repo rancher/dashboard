@@ -1,5 +1,8 @@
 kubectl-explain:
+  errors:
+    load: Could load the Open API data from the cluster
+    notFound: Could not find OpenAPI definition for this resource
   fields: Fields
-  title: Kubernetes Explain
   object: Object
   prompt: Select a Kubernetes resource to get the resource explanation
+  title: Kubernetes Explain
