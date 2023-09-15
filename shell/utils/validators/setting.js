@@ -1,6 +1,6 @@
 import isUrl from 'is-url';
 
-export const httpsKeys = ['server-url'];
+export const isServerUrl = (value) => value === 'server-url';
 
 export const isHttps = (value) => value.toLowerCase().startsWith('https://');
 

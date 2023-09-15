@@ -12,7 +12,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import FormValidation from '@shell/mixins/form-validation';
 import { setBrand } from '@shell/config/private-label';
 import { keyBy, mapValues } from 'lodash';
-import { isLocalhost, httpsKeys } from '@shell/utils/validators/setting';
+import { isLocalhost, isServerUrl } from '@shell/utils/validators/setting';
 
 export default {
   components: {
@@ -69,7 +69,7 @@ export default {
     },
 
     showLocalhostWarning() {
-      return httpsKeys.includes(this.value.id) && isLocalhost(this.value.value);
+      return isServerUrl(this.value.id) && isLocalhost(this.value.value);
     },
 
     validationPassed() {
@@ -109,6 +109,11 @@ export default {
       if (ev && ev.srcElement) {
         ev.srcElement.blur();
       }
+
+      if (isServerUrl(this.value.id) && !this.value.default) {
+        return;
+      }
+
       this.value.value = this.value.default;
     }
   }
