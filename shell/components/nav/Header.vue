@@ -635,17 +635,17 @@ export default {
         >
           <div class="user-image text-right hand">
             <button class="btn-reset">
-            <img
-              v-if="principal && principal.avatarSrc"
-              :src="principal.avatarSrc"
-              :class="{'avatar-round': principal.roundAvatar}"
-              width="36"
-              height="36"
-            >
-            <i
-              v-else
-              class="icon icon-user icon-3x avatar"
-            />
+              <img
+                v-if="principal && principal.avatarSrc"
+                :src="principal.avatarSrc"
+                :class="{'avatar-round': principal.roundAvatar}"
+                width="36"
+                height="36"
+              >
+              <i
+                v-else
+                class="icon icon-user icon-3x avatar"
+              />
             </button>
           </div>
           <template
@@ -982,7 +982,6 @@ export default {
     }
   }
 
-  
   .list-unstyled {
     li {
       a {
