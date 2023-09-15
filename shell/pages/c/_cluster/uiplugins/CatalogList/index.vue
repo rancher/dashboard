@@ -13,13 +13,6 @@ import ResourceTable from '@shell/components/ResourceTable';
 export default {
   name: 'CatalogList',
 
-  props: {
-    plugins: {
-      type:     Array,
-      required: true
-    }
-  },
-
   components: { ActionMenu, ResourceTable },
 
   mixins: [ResourceManager],
@@ -27,7 +20,7 @@ export default {
   data() {
     const actions = [
       {
-        action:  'uninstall',
+        action:  'showCatalogUninstallDialog',
         label:   this.t('plugins.uninstall.label'),
         icon:    'icon icon-trash',
         enabled: true,
@@ -57,36 +50,26 @@ export default {
     catalogRows() {
       const rows = [];
 
-      if (this.plugins.length) {
-        // Find the resources associated with the image by the CATALOG_IMAGE label
-        this.plugins.forEach((plugin) => {
-          const resources = [this.namespacedDeployments, this.namespacedServices, this.allRepos];
-          const pluginName = plugin.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE];
+      if ( !isEmpty(this.namespacedDeployments) ) {
+        this.namespacedDeployments.forEach((deploy) => {
+          const resources = [this.namespacedServices, this.allRepos];
+          const deployName = deploy.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE];
 
-          if (pluginName) {
+          if ( deployName ) {
             const out = {
-              uiplugin:        plugin,
-              catalog:         true,
-              name:            pluginName,
-              state:           plugin.metadata?.state?.name,
-              cacheState:      plugin.status?.cacheState,
-              version:         plugin.spec?.plugin?.version,
-              deployment:      null,
-              deploymentImage: null,
-              service:         null,
-              repo:            null
+              name:    deployName,
+              state:   deploy.metadata?.state?.name,
+              image:   deploy.spec?.template?.spec?.containers[0]?.image,
+              service: null,
+              repo:    null
             };
-            const keys = ['deployment', 'service', 'repo'];
+            const keys = ['service', 'repo'];
 
             resources.forEach((resource, i) => {
-              out[keys[i]] = resource?.filter((item) => item.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] === pluginName)[0];
+              out[keys[i]] = resource?.filter((item) => item.metadata?.labels?.[UI_PLUGIN_LABELS.CATALOG_IMAGE] === deployName)[0];
             });
 
-            if (!isEmpty(out?.deployment)) {
-              out.deploymentImage = out.deployment.spec?.template?.spec?.containers[0]?.image;
-
-              rows.push(out);
-            }
+            rows.push(out);
           }
         });
       }
@@ -153,7 +136,7 @@ export default {
             :custom-target-element="menuTargetElement"
             :custom-target-event="menuTargetEvent"
             @close="setMenu(false)"
-            @uninstall="e => $emit('showUninstallDialog', row, e.event)"
+            @showCatalogUninstallDialog="e => $emit('showCatalogUninstallDialog', row, e.event)"
           />
         </template>
       </ResourceTable>
