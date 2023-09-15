@@ -44,6 +44,7 @@ export default class UserMenuPo extends ComponentPo {
    * Check if menu is open
    */
   isOpen() {
+    // These should fail if `visibility: hidden` - https://docs.cypress.io/guides/core-concepts/interacting-with-elements#Visibility
     this.userMenuContainer().should('be.visible');
     this.userMenu().should('be.visible');
   }
@@ -52,12 +53,16 @@ export default class UserMenuPo extends ComponentPo {
     // Check the user avatar icon is there
     this.checkVisible();
 
+    // cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+    this.open();
+
     // Check the v-popper drop down is open, if not open it
     // This isn't a pattern we want to use often, but this area has caused us lots of issues
     // (userMenu can be visible pass checks... but not the parent... making userMenu not visible)
     return this.userMenuContainer().should('have.length.gte', 0)
       .then(($el) => {
         if ($el.length) {
+          // It's meant to be open.... but is it visible? (clicks away from popover will hide it before removing from dom)
           if ($el.attr('style')?.includes('visibility: hidden')) {
             cy.log('User Avatar open but hidden, giving it a nudge');
 
