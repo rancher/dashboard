@@ -50,6 +50,8 @@ jobs:
       
       - name: Prepare build
         run: yarn e2e:pre-prod
+        env:
+          BUILD_DASHBOARD: false
       
       - name: Run admin user tests
         run: |
@@ -60,7 +62,6 @@ jobs:
         env: 
           GREP_TAGS: '@setup'
           TEST_USERNAME: admin
-
 
       - name: Run standard user tests
         if: ${{ success() || failure() }}
