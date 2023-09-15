@@ -6,13 +6,15 @@ import scrollBehavior from '../utils/router.scrollBehavior.js';
 
 const emptyFn = () => {};
 
+export const linkActiveClass = 'nuxt-link-active';
+
 Vue.use(Router);
 
 export const routerOptions = {
   mode:                 'history',
   // Note: router base comes from the ROUTER_BASE env var
   base:                 process.env.routerBase || '/',
-  linkActiveClass:      'nuxt-link-active',
+  linkActiveClass,
   linkExactActiveClass: 'nuxt-link-exact-active',
   scrollBehavior,
 

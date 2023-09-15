@@ -1,6 +1,7 @@
 <script>
 import Favorite from '@shell/components/nav/Favorite';
 import { FAVORITE, USED } from '@shell/store/type-map';
+import { linkActiveClass } from '@shell/config/router';
 
 const showFavoritesFor = [FAVORITE, USED];
 
@@ -27,12 +28,65 @@ export default {
 
   data() {
     return {
-      near: false,
-      over: false,
+      near:     false,
+      over:     false,
+      menuPath: this.type.route ? this.$router.resolve(this.type.route)?.route?.path : undefined,
+      linkActiveClass
     };
   },
 
   computed: {
+    isCurrent() {
+      // This is required to avoid scenarios where fragments break vue routers location matching
+      // For example, the following fails
+      // Curruent Path /c/c-m-hzqf4tqt/explorer/members#project-membership
+      // Menu Path /c/c-m-hzqf4tqt/explorer/members
+      // vue-router exact-path="true" fixes this (https://v3.router.vuejs.org/api/#exact-path),
+      // but fails when the the current path is a child (for instance a resource detail page)
+
+      // Scenarios to consider
+      // - Fragement world
+      //   Curruent Path /c/c-m-hzqf4tqt/explorer/members#project-membership
+      //   Menu Path /c/c-m-hzqf4tqt/explorer/members
+      // - Similar current paths
+      //   /c/c-m-hzqf4tqt/fleet/fleet.cattle.io.bundlenamespacemapping
+      //   /c/c-m-hzqf4tqt/fleet/fleet.cattle.io.bundle
+      // - Other menu items that appear in current menu item
+      //   /c/c-m-hzqf4tqt/fleet
+      //   /c/c-m-hzqf4tqt/fleet/management.cattle.io.fleetworkspace
+
+      // If there's no hash the n-link will determine it's linkActiveClass correctly, so avoid this faff
+      const invalidHash = !this.$route.hash;
+      // Lets be super safe
+      const invalidProps = !this.menuPath || !this.$route.path;
+
+      if (invalidHash || invalidProps) {
+        return false;
+      }
+
+      // We're kind of, but in a fixing way, copying n-link --> vue-router link see vue-router/src/components/link.js & vue-router/src/util/route.js
+      // We're only going to compare the path and ignore query and fragment
+
+      if (this.type.exact) {
+        return this.$route.path === this.menuPath;
+      }
+
+      const currentPath = this.$route.path.split('/');
+      const menuPath = this.menuPath.split('/');
+
+      if (menuPath.length > currentPath.length) {
+        return false;
+      }
+
+      for (let i = 0; i < menuPath.length; i++) {
+        if (menuPath[i] !== currentPath[i]) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
     showFavorite() {
       return ( this.type.mode && this.near && showFavoritesFor.includes(this.type.mode) );
     },
@@ -80,7 +134,7 @@ export default {
     :to="type.route"
     tag="li"
     class="child nav-type"
-    :class="{'root': isRoot, [`depth-${depth}`]: true}"
+    :class="{'root': isRoot, [`depth-${depth}`]: true, [linkActiveClass]: isCurrent}"
     :exact="type.exact"
   >
     <a
