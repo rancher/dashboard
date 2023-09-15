@@ -136,7 +136,7 @@ export default {
         newValsOut = {
           accessModes:      null,
           storageClassName: null,
-          size:             null,
+          size:             '10Gi',
           subPath:          null,
           type:             'pvc',
           annotations:      null,
@@ -148,7 +148,7 @@ export default {
         newValsOut = {
           accessModes:      null,
           storageClassName: null,
-          size:             null,
+          size:             '10Gi',
           subPath:          null,
           type:             'statefulset',
           enabled:          true,
