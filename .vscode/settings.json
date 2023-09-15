@@ -44,13 +44,15 @@
     "projectsnamespaces",
     "protip",
     "PSPS",
+    "PVC",
     "pvcs",
     "shortkey",
+    "storageclass",
     "testid",
     "tolerations",
     "userpreferences",
     "virtualmachine",
     "vuex",
     "whatsnew"
-  ],
+  ]
 }

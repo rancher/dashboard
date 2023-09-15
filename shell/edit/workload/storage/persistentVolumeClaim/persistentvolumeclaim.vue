@@ -9,6 +9,7 @@ import { removeObject, addObject } from '@shell/utils/array';
 import { STORAGE_CLASS, PV } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
+import { _CREATE } from '@shell/config/query-params';
 
 export default {
 
@@ -48,6 +49,7 @@ export default {
 
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
+    this.initCreate();
   },
 
   data() {
@@ -62,7 +64,7 @@ export default {
     return {
       storageClasses:    [],
       persistentVolumes: [],
-      createPV:          true,
+      isCreatePV:        true,
       spec,
       uniqueId:          new Date().getTime() // Allows form state to be individually deleted
     };
@@ -71,6 +73,13 @@ export default {
   computed: {
     storageClassNames() {
       return this.storageClasses.map((sc) => sc.metadata.name);
+    },
+
+    /**
+     * Required to initialize with default SC on creation
+     */
+    defaultStorageClassName() {
+      return this.storageClasses.find((sc) => sc.metadata?.annotations?.['storageclass.beta.kubernetes.io/is-default-class'] || sc.metadata?.annotations?.['storageclass.kubernetes.io/is-default-class'])?.metadata.name;
     },
 
     availablePVs() {
@@ -91,12 +100,11 @@ export default {
   },
 
   watch: {
-    createPV(neu, old) {
+    isCreatePV(neu, old) {
       if (neu) {
         delete this.spec.volumeName;
         this.spec.resources.requests.storage = null;
       } else {
-        this.spec.storageClassName = '';
         this.spec.resources.requests.storage = null;
       }
     },
@@ -116,6 +124,15 @@ export default {
   },
 
   methods: {
+    /**
+     * Initialization for create mode, e.g. after fetch
+     */
+    initCreate() {
+      if (this.mode === _CREATE) {
+        this.$set(this.spec, 'storageClassName', (this.spec.storageClassName || this.defaultStorageClassName));
+      }
+    },
+
     updateMode(mode, enabled) {
       if (enabled) {
         addObject(this.value.spec.accessModes, mode);
@@ -161,8 +178,8 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
-          v-model="createPV"
-          name="createPV"
+          v-model="isCreatePV"
+          name="isCreatePV"
           :options="[true, false]"
           :labels="[t('persistentVolumeClaim.source.options.new'), t('persistentVolumeClaim.source.options.existing')]"
           :mode="mode"
@@ -170,8 +187,9 @@ export default {
       </div>
       <div class="col span-6">
         <LabeledSelect
-          v-if="createPV"
+          v-if="isCreatePV"
           v-model="spec.storageClassName"
+          data-testid="storage-class-name"
           :mode="mode"
           :required="true"
           :label="t('persistentVolumeClaim.storageClass')"
@@ -221,7 +239,7 @@ export default {
         </div>
       </div>
       <div
-        v-if="createPV"
+        v-if="isCreatePV"
         class="col span-6"
       >
         <UnitInput
