@@ -5,7 +5,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 const burgerMenu = new BurgerMenuPo();
 const supportPage = new SupportPagePo();
 
-describe('About Page', { testIsolation: 'off' }, () => {
+describe('Support Page', { testIsolation: 'off' }, () => {
   before(() => {
     cy.login();
   });
@@ -83,6 +83,7 @@ describe('About Page', { testIsolation: 'off' }, () => {
     it('can click on Suse Rancher Support link', () => {
       supportPage.clickExternalSupportLinks(0);
       cy.origin('https://www.suse.com/suse-rancher/support-matrix', () => {
+        cy.on('uncaught:exception', () => false);
         cy.url().should('include', 'suse-rancher/support-matrix');
       });
     });
