@@ -22,7 +22,7 @@ export async function explain(store, route) {
   if (!slideInPanel) {
     const slideInPanelClass = Vue.extend(Panel);
 
-    slideInPanel = new slideInPanelClass();
+    slideInPanel = new slideInPanelClass({ propsData: { $t: store.getters['i18n/t'] } });
 
     // Create a DIV that we can mount the slide-in panel component into
     const div = document.createElement('div');
@@ -34,19 +34,14 @@ export async function explain(store, route) {
   }
 
   // Open the slide-in panel
-  slideInPanel.busy = true;
-  slideInPanel.typeName = typeName;
-  slideInPanel.schema = schema;
-  slideInPanel.$t = store.getters['i18n/t'];
-
   setTimeout(() => {
-    slideInPanel.open(typeName);
+    slideInPanel.open();
 
     // Fetch the open API data for the cluster
     openAPI.get(cluster?.id, store.dispatch).then((data) => {
-      slideInPanel.update({ data, schema });
+      slideInPanel.load(data, schema);
     }).catch((e) => {
-      slideInPanel.update({ error: e });
+      slideInPanel.load(undefined, undefined, e);
     });
   }, 0);
 }

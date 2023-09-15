@@ -15,6 +15,10 @@ export default {
     expandAll: {
       type:     Boolean,
       required: true,
+    },
+    $t: {
+      type:     Function,
+      required: true,
     }
   },
 
@@ -66,14 +70,18 @@ export default {
   },
 
   methods: {
+    /**
+     * Expand a field
+     */
     expand(field) {
       this.$set(this.expanded, field, !this.expanded[field]);
     },
+    /**
+     * Navigate to a field type - this loads it in place of the current definition,
+     * but keeps a breadcrumb trail
+     */
     navigate(breadcrumbs) {
       this.$emit('navigate', breadcrumbs);
-    },
-    goto(field) {
-      this.$emit('navigate', field.$breadcrumbs);
     }
   }
 };
@@ -84,9 +92,6 @@ export default {
     v-if="definition"
     class="main"
   >
-    <!-- <div class="title">
-      Description
-    </div> -->
     <div class="title-spacer" />
     <div v-if="definition.description">
       {{ definition.description }}
@@ -95,7 +100,7 @@ export default {
       v-if="fields.length"
       class="title"
     >
-      Fields
+      {{ $t('kubectl-explain.fields') }}
     </div>
     <div
       v-for="field in fields"
@@ -150,41 +155,42 @@ export default {
             v-else
             class="field-type"
           >
-            Object
+            {{ $t('kubectl-explain.object') }}
           </div>
         </div>
-        <div class="ml-20">
-          <Markdown
-            v-if="field.description"
-            v-model="field.description"
-          />
-          <div
-            v-if="expanded[field.name]"
-            class="sub-name"
+      </div>
+      <div class="ml-20">
+        <Markdown
+          v-if="field.description"
+          v-model="field.description"
+        />
+        <div
+          v-if="expanded[field.name]"
+          class="sub-name"
+        >
+          <a
+            href="#"
+            class="sub-type-link"
+            @click="navigate(field.$breadcrumbs)"
           >
-            <a
-              href="#"
-              class="sub-type-link"
-              @click="goto(field)"
-            >
-              {{ field.$refName }}
-            </a>
-            <a
-              href="#"
-              class="sub-type-link"
-              @click="goto(field)"
-            >
-              <i class="sub-name-goto icon icon-upload" />
-            </a>
-          </div>
-          <ExplainPanel
-            v-if="expanded[field.name]"
-            :expand-all="expandAll"
-            :definition="field.$$ref"
-            class="embedded"
-            @navigate="navigate"
-          />
+            {{ field.$refName }}
+          </a>
+          <a
+            href="#"
+            class="sub-type-link"
+            @click="navigate(field.$breadcrumbs)"
+          >
+            <i class="sub-name-goto icon icon-upload" />
+          </a>
         </div>
+        <ExplainPanel
+          v-if="expanded[field.name]"
+          :expand-all="expandAll"
+          :definition="field.$$ref"
+          :$t="$t"
+          class="embedded"
+          @navigate="navigate"
+        />
       </div>
     </div>
   </div>
@@ -233,7 +239,6 @@ export default {
   .title {
     text-transform: uppercase;
     margin: 10px 0;
-    background-color: var(--primary-light-bg);
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     padding: 6px 0;

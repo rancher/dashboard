@@ -9,7 +9,7 @@ type OpenApIDefinitions = {
 // Regex for more info in descriptions
 // Some kube docs use a common pattern for a URL with more info - we extract these and show a link icon, rather than clogging up the UI
 // with a long URL - this makes it easier to read
-const MORE_INFO_REGEX = /More info:\s*(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))/;
+const MORE_INFO_REGEX = /More info:\s*(https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))/;
 
 function extractMoreInfo(property: any) {
   const description = property.description || '';
@@ -29,6 +29,34 @@ function extractMoreInfo(property: any) {
     property.$moreInfo = url;
     property.description = updated;
   }
+}
+
+export function getSchemaName(schema: OpenApIDefinition): string {
+  if (schema?.attributes) {
+    let group = schema.attributes.group || 'core';
+
+    if (!group.includes('.')) {
+      group = `io.k8s.api.${ group }`;
+    } else {
+      // Reverse the group
+      group = group.split('.').reverse().join('.');
+    }
+
+    const name = `${ group }.${ schema.attributes.version }.${ schema.attributes.kind }`;
+
+    return name;
+  }
+
+  return '';
+}
+
+export function makeBreadcrumb(id: string): any {
+  const name = id.split('.');
+
+  return {
+    name: name[name.length - 1],
+    id,
+  };
 }
 
 /**
@@ -51,22 +79,21 @@ export function expandDefinition(definitions: OpenApIDefinitions, definition: Op
     if (propRef && propRef.startsWith('#/definitions/')) {
       const p = propRef.split('/');
       const id = p[p.length - 1];
-
       const ref = definitions[id];
 
       if (ref) {
-        prop.$$ref = ref;
+        const breadcrumb = makeBreadcrumb(id);
+
+        // Need to make a copy, as some types are used in multiple places and will have different breadcrumbs etc
+        prop.$$ref = JSON.parse(JSON.stringify(ref));
         prop.$refName = id;
         prop.$breadcrumbs = [
           ...breadcrumbs,
-          id,
+          breadcrumb
         ];
+        prop.$refNameShort = breadcrumb.name;
 
-        const parts = prop.$refName.split('.');
-
-        prop.$refNameShort = parts[parts.length - 1];
-
-        expandDefinition(definitions, ref, prop.$breadcrumbs);
+        expandDefinition(definitions, prop.$$ref, prop.$breadcrumbs);
       } else {
         console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
       }

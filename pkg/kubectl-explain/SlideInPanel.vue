@@ -1,23 +1,19 @@
 <script>
 import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
-import { expandDefinition } from './open-api-utils.ts';
+import { expandDefinition, getSchemaName, makeBreadcrumb } from './open-api-utils.ts';
 
 export default {
   components: { ExplainPanel },
 
   props: {
-    typeName: {
-      type:    String,
-      default: ''
-    },
     schema: {
       type:    Object,
       default: () => {}
     },
     $t: {
-      type:    Object,
-      default: undefined
+      type:     Function,
+      required: true,
     }
   },
 
@@ -38,14 +34,9 @@ export default {
     };
   },
 
-  computed: {
-    title() {
-      return this.$t ? this.$t('kubectl-explain.title') : '';
-    }
-  },
-
   methods: {
     open() {
+      this.busy = true;
       this.isOpen = true;
       this.addCloseKeyHandler();
       this.right = '0';
@@ -64,9 +55,11 @@ export default {
     addCloseKeyHandler() {
       document.addEventListener('keyup', this.closeKeyHandler);
     },
+
     removeCloseKeyHandler() {
       document.removeEventListener('keyup', this.closeKeyHandler);
     },
+
     closeKeyHandler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.close();
@@ -77,33 +70,14 @@ export default {
       this.expandAll = !this.expandAll;
     },
 
-    update(response) {
+    load(data, schema, error) {
       this.noResource = false;
 
-      if (response.error) {
+      if (error || !data) {
         this.busy = false;
 
         return;
       }
-
-      const data = response.data;
-
-      if (!data) {
-        return;
-      }
-
-      const schema = response.schema;
-
-      const id = schema?.attributes?.kind;
-
-      this.breadcrumbs = [
-        {
-          name: id,
-          id
-        }
-      ];
-
-      this.expandAll = false;
 
       if (!schema) {
         this.busy = false;
@@ -112,41 +86,30 @@ export default {
         return;
       }
 
-      if (schema?.attributes) {
-        let group = schema.attributes.group || 'core';
+      const name = getSchemaName(schema);
 
-        if (!group.includes('.')) {
-          group = `io.k8s.api.${ group }`;
-        } else {
-          // Reverse the group
-          group = group.split('.').reverse().join('.');
-        }
-
-        const name = `${ group }.${ schema.attributes.version }.${ schema.attributes.kind }`;
-        const defn = data.definitions[name];
-
+      if (name) {
         this.definitions = data.definitions;
-        this.expanded = {};
-
-        expandDefinition(data.definitions, defn, [name]);
-
-        this.definition = defn;
+        this.navigate([makeBreadcrumb(name)]);
       } else {
         this.definition = undefined;
       }
 
       this.busy = false;
     },
+
     startPanelResize(ev) {
       this.isResizing = true;
       this.$refs.resizer.setPointerCapture(ev.pointerId);
     },
+
     doPanelResize(ev) {
       if (this.isResizing) {
         this.resizePosition = 'fixed';
         this.resizeLeft = `${ ev.clientX }px`;
       }
     },
+
     endPanelResize(ev) {
       this.isResizing = false;
       this.$refs.resizer.releasePointerCapture(ev.pointerId);
@@ -158,44 +121,18 @@ export default {
 
       this.width = `${ width }px`;
     },
+
     navigate(breadcrumbs) {
       const goto = breadcrumbs[breadcrumbs.length - 1];
-      const defn = this.definitions[goto];
 
-      this.breadcrumbs = breadcrumbs.map((item) => {
-        let name = item.split('.');
-
-        name = name[name.length - 1];
-
-        return {
-          name,
-          id: item
-        };
-      });
-
-      expandDefinition(this.definitions, defn, breadcrumbs);
-
-      this.definition = defn;
+      this.breadcrumbs = breadcrumbs;
+      this.definition = this.definitions[goto.id];
       this.expanded = {};
       this.expandAll = false;
 
+      expandDefinition(this.definitions, this.definition, this.breadcrumbs);
+
       setTimeout(() => this.scrollTop(), 100);
-    },
-
-    goto(id) {
-      const breadcrumbs = [];
-
-      for (let i = 0; i < this.breadcrumbs.length; i++) {
-        const b = this.breadcrumbs[i];
-
-        breadcrumbs.push(b);
-
-        if (b.id === id) {
-          break;
-        }
-      }
-
-      this.navigate(breadcrumbs.map((b) => b.id));
     }
   }
 };
@@ -228,7 +165,7 @@ export default {
             class="breadcrumbs"
           >
             <div v-if="noResource">
-              {{ title }}
+              {{ $t('kubectl-explain.title') }}
             </div>
             <div
               v-for="(b, i) in breadcrumbs"
@@ -247,7 +184,7 @@ export default {
                 v-else
                 href="#"
                 class="breadcrumb-link"
-                @click="goto(b.id)"
+                @click="navigate(breadcrumbs.slice(0, i + 1))"
               >{{ b.name }}</a>
             </div>
           </div>
@@ -255,7 +192,7 @@ export default {
             v-else
             @click="scrollTop()"
           >
-            {{ title }}
+            {{ $t('kubectl-explain.title') }}
           </div>
           <i
             v-if="!busy && !noResource && definition"
@@ -280,6 +217,7 @@ export default {
           ref="main"
           :expand-all="expandAll"
           :definition="definition"
+          :$t="$t"
           class="explain-panel"
           @navigate="navigate"
         />
@@ -300,18 +238,6 @@ export default {
 <style lang="scss" scoped>
   $header-height: 55px;
   $slidein-width: 33%;
-
-  .breadcrumbs {
-    display: flex;
-
-    .breadcrumb-link {
-      color: var(--text);
-
-      &:hover {
-        color: var(--link);
-      }
-    }
-  }
 
   .panel-resizer {
     position: absolute;
@@ -349,6 +275,19 @@ export default {
     display: flex;
     padding: 4px;
     border-bottom: 1px solid var(--border);
+
+    .breadcrumbs {
+      display: flex;
+      flex-wrap: wrap;
+
+      .breadcrumb-link {
+        color: var(--text);
+
+        &:hover {
+          color: var(--link);
+        }
+      }
+    }
 
     > :first-child {
       flex: 1;
@@ -396,7 +335,7 @@ export default {
     top: $header-height;
     height: calc(100vh - $header-height);
     width: $slidein-width;
-    background-color: #fff;
+    background-color: var(--body-bg);
     right: -$slidein-width;
     transition: right 0.5s;
     border-left: 1px solid var(--border);

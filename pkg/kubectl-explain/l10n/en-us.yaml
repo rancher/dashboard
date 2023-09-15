@@ -1,3 +1,5 @@
 kubectl-explain:
+  fields: Fields
   title: Kubernetes Explain
+  object: Object
   prompt: Select a Kubernetes resource to get the resource explanation
