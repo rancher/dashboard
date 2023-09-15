@@ -101,6 +101,7 @@ export default {
       <n-link
         :to="{ name: 'diagnostic' }"
         class="btn role-primary"
+        data-testid="about__diagnostics_button"
       >
         {{ t('about.diagnostic.title') }}
       </n-link>
@@ -195,6 +196,7 @@ export default {
           <td>
             <a
               v-if="d.imageList"
+              :data-testid="`image_list_download_link__${d.label}`"
               @click="d.imageList"
             >
               {{ t('asyncButton.download.action') }}
