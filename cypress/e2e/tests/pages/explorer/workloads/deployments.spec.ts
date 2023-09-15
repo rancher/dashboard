@@ -89,8 +89,8 @@ describe('Cluster Explorer', () => {
     // This is here because need to delete the workload after the test
     // But need to reuse the same workload for multiple tests
     after(() => {
-      deploymentsListPage.goTo();
-      e2eWorkloads.forEach(({ name, namespace }) => {
+      deploymentsListPage?.goTo();
+      e2eWorkloads?.forEach(({ name, namespace }) => {
         deploymentsListPage.deleteWithKubectl(name, namespace);
       });
     });
