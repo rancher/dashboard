@@ -634,6 +634,7 @@ export default {
           :container="false"
         >
           <div class="user-image text-right hand">
+            <button class="btn-reset">
             <img
               v-if="principal && principal.avatarSrc"
               :src="principal.avatarSrc"
@@ -645,6 +646,7 @@ export default {
               v-else
               class="icon icon-user icon-3x avatar"
             />
+            </button>
           </div>
           <template
             slot="popover"
@@ -980,6 +982,7 @@ export default {
     }
   }
 
+  
   .list-unstyled {
     li {
       a {
@@ -1027,6 +1030,7 @@ export default {
   }
 
   .user-menu {
+
     // Remove the default padding on the popup so that the hover on menu items goes full width of the menu
     ::v-deep .popover-inner {
       padding: 10px 0;
@@ -1034,6 +1038,19 @@ export default {
 
     ::v-deep .v-popover {
       display: flex;
+    }
+
+    .btn-reset {
+
+      border: none;
+      background: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+
+      &:focus {
+        outline: none;
+      }
     }
   }
 
