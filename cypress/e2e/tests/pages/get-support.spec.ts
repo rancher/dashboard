@@ -22,9 +22,8 @@ describe('Support Page', () => {
     burgerMenu.support().should('not.exist');
   });
 
-  describe('Get Support Links section', { tags: '@adminUser' }, () => {
+  describe('Support Links', { tags: '@adminUser' }, () => {
     // Click the support links and verify user lands on the correct page
-    // Note: We need to keep these tests in a separate describe block
     beforeEach(() => {
       cy.login();
       supportPage.goTo();
@@ -32,8 +31,8 @@ describe('Support Page', () => {
 
     it('can click on Suse Rancher Support link', () => {
       supportPage.clickExternalSupportLinks(0);
-      cy.origin('https://www.suse.com/suse-rancher/support-matrix', () => {
-        cy.url().should('include', 'suse-rancher/support-matrix');
+      cy.origin('https://www.suse.com/', () => {
+        cy.url().should('contain', 'suse-rancher/support-matrix');
       });
     });
 
@@ -43,20 +42,9 @@ describe('Support Page', () => {
         cy.url().should('include', 'pricing');
       });
     });
-  });
-
-  describe('Links section', { testIsolation: 'off', tags: '@adminUser' }, () => {
-    // Click the support links and verify user lands on the correct page
-    before(() => {
-      cy.login();
-    });
-
-    beforeEach(() => {
-      supportPage.goTo();
-    });
 
     it.skip('can click on Docs link', () => {
-      supportPage.supportLinks().should('have.length', 6);
+      supportPage.supportLinks().should('have.length', 5);
 
       // click Docs link -- this test will sometimes fail due to https://github.com/rancher/rancher-docs/issues/727
       // skipping this test until issue is resolved
