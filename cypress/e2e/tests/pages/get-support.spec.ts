@@ -6,7 +6,7 @@ const burgerMenu = new BurgerMenuPo();
 const supportPage = new SupportPagePo();
 
 describe('Support Page', () => {
-  before(() => {
+  beforeEach(() => {
     cy.login();
   });
 
@@ -25,7 +25,6 @@ describe('Support Page', () => {
   describe('Support Links', { tags: '@adminUser' }, () => {
     // Click the support links and verify user lands on the correct page
     beforeEach(() => {
-      cy.login();
       supportPage.goTo();
     });
 
