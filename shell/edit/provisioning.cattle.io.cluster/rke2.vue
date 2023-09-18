@@ -38,7 +38,7 @@ import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
 import { Checkbox } from '@components/Form/Checkbox';
-import CruResource from '@shell/components/CruResource';
+import CruResource, { CONTEXT_HOOK_EDIT_YAML } from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import Loading from '@shell/components/Loading';
@@ -1168,7 +1168,11 @@ export default {
       }
     },
 
-    async saveMachinePools() {
+    async saveMachinePools(hookContext) {
+      if (hookContext === CONTEXT_HOOK_EDIT_YAML) {
+        return;
+      }
+
       const finalPools = [];
 
       // If the extension provider wants to do this, let them
