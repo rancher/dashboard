@@ -16,7 +16,7 @@ export default {
 
       return globalRoleBindings
         // Bindings for this group
-        .filter((globalRoleBinding) => globalRoleBinding.groupPrincipalName === principal.id)
+        .filter((globalRoleBinding) => globalRoleBinding.groupPrincipalName === principal?.id)
         // Display name of role associated with binding
         .map((binding) => {
           const role = this.$store.getters['management/byId'](MANAGEMENT.GLOBAL_ROLE, binding.globalRoleName);
