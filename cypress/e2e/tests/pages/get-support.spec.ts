@@ -5,7 +5,7 @@ import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 const burgerMenu = new BurgerMenuPo();
 const supportPage = new SupportPagePo();
 
-describe('Support Page', { testIsolation: 'off' }, () => {
+describe('Support Page', () => {
   before(() => {
     cy.login();
   });
@@ -22,7 +22,30 @@ describe('Support Page', { testIsolation: 'off' }, () => {
     burgerMenu.support().should('not.exist');
   });
 
-  describe('Support Links', { tags: '@adminUser' }, () => {
+  describe('Get Support Links section', { tags: '@adminUser' }, () => {
+    // Click the support links and verify user lands on the correct page
+    // Note: We need to keep these tests in a separate describe block
+    beforeEach(() => {
+      cy.login();
+      supportPage.goTo();
+    });
+
+    it('can click on Suse Rancher Support link', () => {
+      supportPage.clickExternalSupportLinks(0);
+      cy.origin('https://www.suse.com/suse-rancher/support-matrix', () => {
+        cy.url().should('include', 'suse-rancher/support-matrix');
+      });
+    });
+
+    it('can click on Contact us for pricing link', () => {
+      supportPage.clickExternalSupportLinks(1);
+      cy.origin('https://www.rancher.com/pricing', () => {
+        cy.url().should('include', 'pricing');
+      });
+    });
+  });
+
+  describe('Links section', { testIsolation: 'off', tags: '@adminUser' }, () => {
     // Click the support links and verify user lands on the correct page
     before(() => {
       cy.login();
@@ -71,21 +94,6 @@ describe('Support Page', { testIsolation: 'off' }, () => {
     // click Get Started link
       supportPage.clickSupportLink(4);
       cy.url().should('include', 'docs/getting-started');
-    });
-
-    it('can click on Contact us for pricing link', () => {
-      supportPage.clickExternalSupportLinks(1);
-      cy.origin('https://www.rancher.com/pricing', () => {
-        cy.url().should('include', 'pricing');
-      });
-    });
-
-    it('can click on Suse Rancher Support link', () => {
-      supportPage.clickExternalSupportLinks(0);
-      cy.origin('https://www.suse.com/suse-rancher/support-matrix', () => {
-        cy.on('uncaught:exception', () => false);
-        cy.url().should('include', 'suse-rancher/support-matrix');
-      });
     });
   });
 });
