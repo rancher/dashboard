@@ -32,7 +32,7 @@ import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
-import CruResource from '@shell/components/CruResource';
+import CruResource, { CONTEXT_HOOK_EDIT_YAML } from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
