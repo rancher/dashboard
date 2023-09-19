@@ -27,55 +27,42 @@ import {
 import { allHash } from '@shell/utils/promise';
 import { sortBy } from '@shell/utils/sort';
 
-import { camelToTitle } from '@shell/utils/string';
 import { compare, sortable } from '@shell/utils/version';
 import { isHarvesterSatisfiesVersion } from '@shell/utils/cluster';
 
-import ArrayList from '@shell/components/form/ArrayList';
-import ArrayListGrouped from '@shell/components/form/ArrayListGrouped';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
-import { Checkbox } from '@components/Form/Checkbox';
-import CruResource, { CONTEXT_HOOK_EDIT_YAML } from '@shell/components/CruResource';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
-import MatchExpressions from '@shell/components/form/MatchExpressions';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { RadioGroup } from '@components/Form/Radio';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import UnitInput from '@shell/components/form/UnitInput';
-import YamlEditor from '@shell/components/YamlEditor';
-import Questions from '@shell/components/Questions';
 
 import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
-import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret';
 import semver from 'semver';
 
 import { SETTING } from '@shell/config/settings';
 import { base64Encode } from '@shell/utils/crypto';
 import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
-import ACE from './ACE';
 import AgentEnv from './AgentEnv';
-import DrainOptions from './DrainOptions';
 import Labels from './Labels';
 import MachinePool from './MachinePool';
-import RegistryConfigs from './RegistryConfigs';
-import RegistryMirrors from './RegistryMirrors';
-import S3Config from './S3Config';
 import SelectCredential from './SelectCredential';
-import AdvancedSection from '@shell/components/AdvancedSection.vue';
 import { ELEMENTAL_SCHEMA_IDS, KIND, ELEMENTAL_CLUSTER_PROVIDER } from '../../config/elemental-types';
 import AgentConfiguration from './AgentConfiguration';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ExtensionPoint, TabLocation } from '@shell/core/types';
 import MemberRoles from '@shell/edit/provisioning.cattle.io.cluster/MemberRoles';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/Basics';
+import Etcd from '@shell/edit/provisioning.cattle.io.cluster/Etcd';
+import Networking from '@shell/edit/provisioning.cattle.io.cluster/Networking';
+import Upgrade from '@shell/edit/provisioning.cattle.io.cluster/Upgrade';
+import Registries from '@shell/edit/provisioning.cattle.io.cluster/Registries';
+import AddOnConfig from '@shell/edit/provisioning.cattle.io.cluster/AddOnConfig';
+import Advanced from '@shell/edit/provisioning.cattle.io.cluster/Advanced';
 
 const HARVESTER = 'harvester';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
-
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
 /**
@@ -100,37 +87,26 @@ const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 
 export default {
   components: {
-    ACE,
-    AdvancedSection,
     AgentEnv,
-    ArrayList,
-    ArrayListGrouped,
     BadgeState,
     Banner,
-    Checkbox,
     AgentConfiguration,
     CruResource,
-    DrainOptions,
-    LabeledInput,
-    LabeledSelect,
     Labels,
     Loading,
     MachinePool,
-    MatchExpressions,
     NameNsDescription,
-    Questions,
-    RadioGroup,
-    RegistryConfigs,
-    RegistryMirrors,
-    S3Config,
     SelectCredential,
-    SelectOrCreateAuthSecret,
     Tab,
     Tabbed,
-    UnitInput,
-    YamlEditor,
     MemberRoles,
-    Basics
+    Basics,
+    Etcd,
+    Networking,
+    Upgrade,
+    Registries,
+    AddOnConfig,
+    Advanced
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -243,23 +219,12 @@ export default {
   },
 
   computed: {
-
     rkeConfig() {
       return this.value.spec.rkeConfig;
     },
 
-    hostnameTruncationManuallySet() {
-      return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
-    },
-
     isElementalCluster() {
       return this.provider === ELEMENTAL_CLUSTER_PROVIDER || this.value?.machineProvider?.toLowerCase() === KIND.MACHINE_INV_SELECTOR_TEMPLATES.toLowerCase();
-    },
-
-    advancedTitleAlt() {
-      const machineSelectorLength = this.rkeConfig.machineSelectorConfig.length;
-
-      return this.t('cluster.advanced.argInfo.machineSelector.titleAlt', { count: machineSelectorLength });
     },
 
     chartValues() {
@@ -681,13 +646,6 @@ export default {
       return out;
     },
 
-    showIpv6Warning() {
-      const clusterCIDR = this.serverConfig['cluster-cidr'] || '';
-      const serviceCIDR = this.serverConfig['service-cidr'] || '';
-
-      return clusterCIDR.includes(':') || serviceCIDR.includes(':');
-    },
-
     appsOSWarning() {
       if (this.mode !== _EDIT ) {
         return null;
@@ -767,16 +725,6 @@ export default {
   },
 
   watch: {
-    s3Backup(neu) {
-      if ( neu ) {
-        // We need to make sure that s3 doesn't already have an existing value otherwise when editing a cluster with s3 defined this will clear s3.
-        if (isEmpty(this.rkeConfig.etcd?.s3)) {
-          set(this.rkeConfig.etcd, 's3', {});
-        }
-      } else {
-        set(this.rkeConfig.etcd, 's3', null);
-      }
-    },
 
     credentialId(val) {
       if ( val ) {
@@ -1027,8 +975,8 @@ export default {
     /**
      * set instanceNameLimit to 15 to all pool machine if truncateHostnames checkbox is clicked
      */
-    truncateName() {
-      if (this.truncateHostnames) {
+    truncateName(neu) {
+      if (neu) {
         this.value.defaultHostnameLengthLimit = NETBIOS_TRUNCATION_LENGTH;
       } else {
         this.value.removeDefaultHostnameLengthLimit();
@@ -1531,12 +1479,6 @@ export default {
       }
     },
 
-    labelForAddon(name) {
-      const fallback = `${ camelToTitle(name.replace(/^(rke|rke2|rancher)-/, '')) } Configuration`;
-
-      return this.$store.getters['i18n/withFallback'](`cluster.addonChart."${ name }"`, null, fallback);
-    },
-
     showAddons() {
       this.addonsRev++;
       this.addonNames.forEach((name) => {
@@ -1572,10 +1514,6 @@ export default {
 
       this.userChartValues[this.chartVersionKey(name)] = different;
     }, 250, { leading: true }),
-
-    updateQuestions(name) {
-      this.syncChartValues(name);
-    },
 
     initYamlEditor(name) {
       const defaultChartValue = this.versionInfo[name];
@@ -1614,10 +1552,6 @@ export default {
 
     onMembershipUpdate(update) {
       this.$set(this, 'membershipUpdate', update);
-    },
-
-    canRemoveKubeletRow(row, idx) {
-      return idx !== 0;
     },
 
     async initRegistry() {
@@ -1891,7 +1825,8 @@ export default {
       }
       this.setHarvesterDefaultCloudProvider();
     },
-    toggleCustomRegistry(e) {
+    toggleCustomRegistry(neu) {
+      this.showCustomRegistryInput = neu;
       if (this.registryHost) {
         this.registryHost = null;
         this.registrySecret = null;
@@ -2034,6 +1969,20 @@ export default {
       }
 
       this.errors = errors;
+    },
+    handleS3BackupChanged(neu) {
+      this.s3Backup = neu;
+      if ( neu ) {
+        // We need to make sure that s3 doesn't already have an existing value otherwise when editing a cluster with s3 defined this will clear s3.
+        if (isEmpty(this.rkeConfig.etcd?.s3)) {
+          set(this.rkeConfig.etcd, 's3', {});
+        }
+      } else {
+        set(this.rkeConfig.etcd, 's3', null);
+      }
+    },
+    handleConfigEtcdExposeMetricsChanged(neu) {
+      set(this.serverConfig, 'etcd-expose-metrics', neu);
     }
   },
 };
@@ -2243,77 +2192,15 @@ export default {
           name="etcd"
           label-key="cluster.tabs.etcd"
         >
-          <div class="row">
-            <div class="col span-6">
-              <RadioGroup
-                v-model="rkeConfig.etcd.disableSnapshots"
-                name="etcd-disable-snapshots"
-                :options="[true, false]"
-                :label="t('cluster.rke2.etcd.disableSnapshots.label')"
-                :labels="[t('generic.disable'), t('generic.enable')]"
-                :mode="mode"
-              />
-            </div>
-          </div>
-          <div
-            v-if="rkeConfig.etcd.disableSnapshots !== true"
-            class="row"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="rkeConfig.etcd.snapshotScheduleCron"
-                type="cron"
-                placeholder="0 * * * *"
-                :mode="mode"
-                :label="t('cluster.rke2.etcd.snapshotScheduleCron.label')"
-              />
-            </div>
-            <div class="col span-6">
-              <UnitInput
-                v-model="rkeConfig.etcd.snapshotRetention"
-                :mode="mode"
-                :label="t('cluster.rke2.etcd.snapshotRetention.label')"
-                :suffix="t('cluster.rke2.snapshots.suffix')"
-              />
-            </div>
-          </div>
-
-          <template v-if="rkeConfig.etcd.disableSnapshots !== true">
-            <div class="spacer" />
-
-            <RadioGroup
-              v-model="s3Backup"
-              name="etcd-s3"
-              :options="[false, true]"
-              label="Backup Snapshots to S3"
-              :labels="['Disable','Enable']"
-              :mode="mode"
-            />
-
-            <S3Config
-              v-if="s3Backup"
-              v-model="rkeConfig.etcd.s3"
-              :namespace="value.metadata.namespace"
-              :register-before-hook="registerBeforeHook"
-              :mode="mode"
-            />
-          </template>
-
-          <div class="spacer" />
-
-          <div class="row">
-            <div class="col span-6">
-              <RadioGroup
-                v-if="serverArgs['etcd-expose-metrics']"
-                v-model="serverConfig['etcd-expose-metrics']"
-                name="etcd-expose-metrics"
-                :options="[false, true]"
-                :label="t('cluster.rke2.etcd.exportMetric.label')"
-                :labels="[t('cluster.rke2.etcd.exportMetric.false'), t('cluster.rke2.etcd.exportMetric.true')]"
-                :mode="mode"
-              />
-            </div>
-          </div>
+          <Etcd
+            v-model="value"
+            :mode="mode"
+            :s3-backup="s3Backup"
+            :register-before-hook="registerBeforeHook"
+            :selected-version="selectedVersion"
+            @s3-backup-changed="handleS3BackupChanged"
+            @config-etcd-expose-metrics-changed="handleConfigEtcdExposeMetricsChanged"
+          />
         </Tab>
 
         <!-- Networking -->
@@ -2322,120 +2209,13 @@ export default {
           name="networking"
           label-key="cluster.tabs.networking"
         >
-          <h3>
-            {{ t('cluster.rke2.address.header') }}
-            <i
-              v-clean-tooltip="t('cluster.rke2.address.tooltip')"
-              class="icon icon-info"
-            />
-          </h3>
-          <Banner
-            v-if="showIpv6Warning"
-            color="warning"
-          >
-            {{ t('cluster.rke2.address.ipv6.warning') }}
-          </Banner>
-          <div class="row mb-20">
-            <div
-              v-if="serverArgs['cluster-cidr']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['cluster-cidr']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.clusterCidr.label')"
-              />
-            </div>
-            <div
-              v-if="serverArgs['service-cidr']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['service-cidr']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.serviceCidr.label')"
-              />
-            </div>
-          </div>
-
-          <div class="row mb-20">
-            <div
-              v-if="serverArgs['cluster-dns']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['cluster-dns']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.dns.label')"
-              />
-            </div>
-            <div
-              v-if="serverArgs['cluster-domain']"
-              class="col span-6"
-            >
-              <LabeledInput
-                v-model="serverConfig['cluster-domain']"
-                :mode="mode"
-                :disabled="clusterIsAlreadyCreated"
-                :label="t('cluster.rke2.address.domain.label')"
-              />
-            </div>
-          </div>
-
-          <div
-            v-if="serverArgs['service-node-port-range']"
-            class="row mb-20"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="serverConfig['service-node-port-range']"
-                :mode="mode"
-                :label="t('cluster.rke2.address.nodePortRange.label')"
-              />
-            </div>
-            <div
-              class="col span-6"
-            >
-              <Checkbox
-                v-if="!isView || isView && !hostnameTruncationManuallySet"
-                v-model="truncateHostnames"
-                class="mt-20"
-                :disabled="isEdit || isView || hostnameTruncationManuallySet"
-                :mode="mode"
-                :label="t('cluster.rke2.truncateHostnames')"
-                @input="truncateName"
-              />
-              <Banner
-                v-if="hostnameTruncationManuallySet"
-                color="info"
-              >
-                <div class="text">
-                  {{ t('cluster.machinePool.truncationCluster', { limit: truncateLimit }) }}
-                </div>
-              </Banner>
-            </div>
-          </div>
-
-          <div
-            v-if="serverArgs['tls-san']"
-            class="row mb-20"
-          >
-            <div class="col span-6">
-              <ArrayList
-                v-model="serverConfig['tls-san']"
-                :protip="false"
-                :mode="mode"
-                :title="t('cluster.rke2.address.tlsSan.label')"
-              />
-            </div>
-          </div>
-
-          <ACE
+          <Networking
             v-model="value"
             :mode="mode"
+            :is-edit="isEdit"
+            :selected-version="selectedVersion"
+            :cluster-is-already-created="clusterIsAlreadyCreated"
+            :is-view="isView"
           />
         </Tab>
 
@@ -2482,6 +2262,11 @@ export default {
               />
             </div>
           </div>
+          <Upgrade
+            v-model="value"
+            :get="get"
+            :mode="mode"
+          />
         </Tab>
 
         <!-- Registries -->
@@ -2489,83 +2274,18 @@ export default {
           name="registry"
           label-key="cluster.tabs.registry"
         >
-          <div class="row">
-            <h3>{{ t('cluster.privateRegistry.label') }}</h3>
-          </div>
-          <div class="row">
-            <div class="col span-12">
-              <Banner
-                :closable="false"
-                class="cluster-tools-tip"
-                color="info"
-                label-key="cluster.privateRegistry.description"
-              />
-            </div>
-          </div>
-          <div class="row">
-            <Checkbox
-              v-model="showCustomRegistryInput"
-              class="mb-20"
-              :label="t('cluster.privateRegistry.label')"
-              @input="toggleCustomRegistry"
-            />
-          </div>
-          <div
-            v-if="showCustomRegistryInput"
-            class="row"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="registryHost"
-                label-key="catalog.chart.registry.custom.inputLabel"
-                placeholder-key="catalog.chart.registry.custom.placeholder"
-                :min-height="30"
-              />
-              <SelectOrCreateAuthSecret
-                v-model="registrySecret"
-                :register-before-hook="registerBeforeHook"
-                :hook-priority="1"
-                :mode="mode"
-                in-store="management"
-                :allow-ssh="false"
-                :allow-rke="true"
-                :vertical="true"
-                :namespace="value.metadata.namespace"
-                generate-name="registryconfig-auth-"
-              />
-            </div>
-          </div>
-          <template>
-            <div
-              v-if="showCustomRegistryInput"
-              class="row"
-            >
-              <AdvancedSection
-                class="col span-12 advanced"
-                :is-open-by-default="showCustomRegistryAdvancedInput"
-                :mode="mode"
-              >
-                <Banner
-                  :closable="false"
-                  class="cluster-tools-tip"
-                  color="info"
-                  :label-key="isK3s ? 'cluster.privateRegistry.docsLinkK3s' : 'cluster.privateRegistry.docsLinkRke2'"
-                />
-                <RegistryMirrors
-                  v-model="value"
-                  class="mt-20"
-                  :mode="mode"
-                />
-                <RegistryConfigs
-                  v-model="value"
-                  class="mt-20"
-                  :mode="mode"
-                  :cluster-register-before-hook="registerBeforeHook"
-                  @updateConfigs="updateConfigs"
-                />
-              </AdvancedSection>
-            </div>
-          </template>
+          <Registries
+            v-model="value"
+            :mode="mode"
+            :register-before-hook="registerBeforeHook"
+            :show-custom-registry-input="showCustomRegistryInput"
+            :registry-host="registryHost"
+            :registry-secret="registrySecret"
+            :show-custom-registry-advanced-input="showCustomRegistryAdvancedInput"
+            :is-k3s="isK3s"
+            @update-configs-changed="updateConfigs"
+            @custom-registry-changed="toggleCustomRegistry"
+          />
         </Tab>
 
         <!-- Add-on Config -->
@@ -2574,62 +2294,18 @@ export default {
           label-key="cluster.tabs.addons"
           @active="showAddons"
         >
-          <Banner
-            v-if="isEdit"
-            color="warning"
-          >
-            {{ t('cluster.addOns.dependencyBanner') }}
-          </Banner>
-          <div
-            v-if="versionInfo && addonVersions.length"
-            :key="addonsRev"
-          >
-            <div
-              v-for="v in addonVersions"
-              :key="v._key"
-            >
-              <h3>{{ labelForAddon(v.name) }}</h3>
-              <Questions
-                v-if="versionInfo[v.name] && versionInfo[v.name].questions && v.name && userChartValuesTemp[v.name]"
-                v-model="userChartValuesTemp[v.name]"
-                :emit="true"
-                in-store="management"
-                :mode="mode"
-                :tabbed="false"
-                :source="versionInfo[v.name]"
-                :target-namespace="value.metadata.namespace"
-                @updated="updateQuestions(v.name)"
-              />
-              <YamlEditor
-                v-else
-                ref="yaml-values"
-                :value="initYamlEditor(v.name)"
-                :scrolling="true"
-                :as-object="true"
-                :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-                :hide-preview-buttons="true"
-                @input="data => updateValues(v.name, data)"
-              />
-              <div class="spacer" />
-            </div>
-          </div>
-
-          <div>
-            <h3>
-              {{ t('cluster.addOns.additionalManifest.title') }}
-              <i
-                v-clean-tooltip="t('cluster.addOns.additionalManifest.tooltip')"
-                class="icon icon-info"
-              />
-            </h3>
-            <YamlEditor
-              ref="yaml-additional"
-              v-model="rkeConfig.additionalManifest"
-              :editor-mode="mode === 'view' ? 'VIEW_CODE' : 'EDIT_CODE'"
-              initial-yaml-values="# Additional Manifest YAML"
-              class="yaml-editor"
-            />
-          </div>
+          <AddOnConfig
+            v-model="value"
+            :mode="mode"
+            :is-edit="isEdit"
+            :version-info="versionInfo"
+            :addon-versions="addonVersions"
+            :addons-rev="addonsRev"
+            :user-chart-values-temp="userChartValuesTemp"
+            :init-yaml-editor="initYamlEditor"
+            @update-questions="syncChartValues"
+            @update-values="updateValues"
+          />
         </Tab>
 
         <!-- Cluster Agent Configuration -->
@@ -2668,80 +2344,12 @@ export default {
           :weight="-1"
           @active="refreshYamls"
         >
-          <template v-if="haveArgInfo">
-            <h3>{{ t('cluster.advanced.argInfo.title') }}</h3>
-            <ArrayListGrouped
-              v-if="agentArgs['kubelet-arg']"
-              v-model="rkeConfig.machineSelectorConfig"
-              class="mb-20"
-              :add-label="t('cluster.advanced.argInfo.machineSelector.label')"
-              :can-remove="canRemoveKubeletRow"
-              :default-add-value="{machineLabelSelector: { matchExpressions: [], matchLabels: {} }, config: {'kubelet-arg': []}}"
-            >
-              <template #default="{row}">
-                <template v-if="row.value.machineLabelSelector">
-                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.title') }}</h3>
-                  <MatchExpressions
-                    v-model="row.value.machineLabelSelector"
-                    class="mb-20"
-                    :mode="mode"
-                    :show-remove="false"
-                    :initial-empty-row="true"
-                  />
-                  <h3>{{ t('cluster.advanced.argInfo.machineSelector.subTitle') }}</h3>
-                </template>
-                <h3 v-else>
-                  {{ advancedTitleAlt }}
-                </h3>
-
-                <ArrayList
-                  v-model="row.value.config['kubelet-arg']"
-                  :mode="mode"
-                  :add-label="t('cluster.advanced.argInfo.machineSelector.listLabel')"
-                  :initial-empty-row="!!row.value.machineLabelSelector"
-                />
-              </template>
-            </ArrayListGrouped>
-            <Banner
-              v-if="rkeConfig.machineSelectorConfig.length > 1"
-              color="info"
-              :label="t('cluster.advanced.argInfo.machineSelector.bannerLabel')"
-            />
-
-            <ArrayList
-              v-if="serverArgs['kube-controller-manager-arg']"
-              v-model="serverConfig['kube-controller-manager-arg']"
-              :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeControllerManagerTitle')"
-              class="mb-20"
-            />
-            <ArrayList
-              v-if="serverArgs['kube-apiserver-arg']"
-              v-model="serverConfig['kube-apiserver-arg']"
-              :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeApiServerTitle')"
-              class="mb-20"
-            />
-            <ArrayList
-              v-if="serverArgs['kube-scheduler-arg']"
-              v-model="serverConfig['kube-scheduler-arg']"
-              :mode="mode"
-              :title="t('cluster.advanced.argInfo.machineSelector.kubeSchedulerTitle')"
-            />
-          </template>
-          <template v-if="agentArgs['protect-kernel-defaults']">
-            <div class="spacer" />
-
-            <div class="row">
-              <div class="col span-12">
-                <Checkbox
-                  v-model="agentConfig['protect-kernel-defaults']"
-                  :mode="mode"
-                  :label="t('cluster.advanced.agentArgs.label')"
-                />
-              </div>
-            </div>
-          </template>
+          <Advanced
+            v-model="value"
+            :mode="mode"
+            :have-arg-info="haveArgInfo"
+            :selected-version="selectedVersion"
+          />
         </Tab>
 
         <AgentEnv
