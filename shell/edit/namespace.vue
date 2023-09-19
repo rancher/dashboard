@@ -7,7 +7,6 @@ import { MANAGEMENT } from '@shell/config/types';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@shell/config/labels-annotations';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
-import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import CruResource from '@shell/components/CruResource';
