@@ -12,8 +12,6 @@ export default {
     YamlEditor
   },
 
-  mixins: [],
-
   props: {
     mode: {
       type:     String,

@@ -14,8 +14,6 @@ export default {
     UnitInput
   },
 
-  mixins: [],
-
   props: {
     mode: {
       type:     String,
@@ -55,8 +53,6 @@ export default {
     },
 
   },
-
-  methods: {},
 };
 </script>
 

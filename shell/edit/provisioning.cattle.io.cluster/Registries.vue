@@ -20,8 +20,6 @@ export default {
     RegistryMirrors
   },
 
-  mixins: [],
-
   props: {
     registerBeforeHook: {
       type:     Function,

@@ -14,8 +14,6 @@ export default {
     Checkbox
   },
 
-  mixins: [],
-
   props: {
     mode: {
       type:     String,

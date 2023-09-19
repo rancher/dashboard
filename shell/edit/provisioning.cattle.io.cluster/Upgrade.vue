@@ -10,8 +10,6 @@ export default {
     DrainOptions
   },
 
-  mixins: [],
-
   props: {
     mode: {
       type:     String,
@@ -33,8 +31,6 @@ export default {
       return this.value.spec.rkeConfig;
     },
   },
-
-  methods: {},
 };
 </script>
 

@@ -16,8 +16,6 @@ export default {
     ACE
   },
 
-  mixins: [],
-
   props: {
     mode: {
       type:     String,
@@ -73,8 +71,6 @@ export default {
       return this.truncateLimit && this.truncateLimit !== NETBIOS_TRUNCATION_LENGTH;
     },
   },
-
-  methods: {},
 };
 </script>
 
