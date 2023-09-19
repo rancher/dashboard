@@ -68,7 +68,7 @@ export default async function(context) {
         }
       });
     } else {
-      if (reqs.installedPlugins.value._status.code === 404) {
+      if (reqs.installedPlugins?.value?._status.code === 404) {
       // Not found, so extensions operator probably not installed
         console.log('Could not load UI Extensions list (Extensions Operator may not be installed)'); // eslint-disable-line no-console
       } else {
