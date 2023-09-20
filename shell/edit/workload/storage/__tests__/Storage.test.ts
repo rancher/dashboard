@@ -33,7 +33,7 @@ describe('component: Storage', () => {
           t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
           $store: {
             getters: {
-              'i18n/t':      jest.fn(),
+              'i18n/t':      jest.fn().mockImplementation((key: string) => key),
               'i18n/exists': jest.fn()
             }
           }
@@ -63,7 +63,7 @@ describe('component: Storage', () => {
           t:      (text: string) => text, // Mock i18n global function used as alternative to the getter
           $store: {
             getters: {
-              'i18n/t':      jest.fn(),
+              'i18n/t':      jest.fn().mockImplementation((key: string) => key),
               'i18n/exists': jest.fn()
             }
           }
