@@ -14,7 +14,7 @@ import ArrayListSelect from '@shell/components/form/ArrayListSelect';
 import YamlEditor from '@shell/components/YamlEditor';
 import { get, set } from '@shell/utils/object';
 import { integerString, keyValueStrings } from '@shell/utils/computed';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
 const SENTINEL = '__SENTINEL__';
 const VAPP_MODE = {
@@ -136,6 +136,11 @@ function createOptionHelpers(name) {
   };
 }
 
+const errorActions = Object.freeze({
+  CREATE: 'create',
+  DELETE: 'delete',
+});
+
 export default {
   components: {
     ArrayListSelect, Card, KeyValue, Loading, LabeledInput, LabeledSelect, Banner, UnitInput, RadioGroup, YamlEditor
@@ -144,6 +149,10 @@ export default {
   mixins: [CreateEditView],
 
   props: {
+    poolId: {
+      type:    String,
+      default: '',
+    },
     credentialId: {
       type:     String,
       required: true,
@@ -246,6 +255,7 @@ export default {
       vAppOptions,
       vappMode:                 getInitialVappMode(this.value),
       osOptions:                OS_OPTIONS,
+      validationErrors:         {},
     };
   },
 
@@ -347,6 +357,9 @@ export default {
       }
 
       this.updateVappOptions(INITIAL_VAPP_OPTIONS);
+    },
+    validationErrors(value) {
+      this.$emit('error', value);
     }
   },
 
@@ -384,9 +397,17 @@ export default {
       const valueInContent = content.find((c) => c.value === this.value.datacenter );
 
       if (!valueInContent) {
-        set(this.value, 'datacenter', options[0]);
-        set(this.value, 'cloneFrom', undefined);
-        set(this.value, 'useDataStoreCluster', false);
+        if (this.mode === _CREATE) {
+          set(this.value, 'datacenter', options[0]);
+          set(this.value, 'cloneFrom', undefined);
+          set(this.value, 'useDataStoreCluster', false);
+        }
+
+        if ([_EDIT, _VIEW].includes(this.mode)) {
+          this.manageErrors(errorActions.CREATE, 'datacenter');
+        }
+      } else {
+        this.manageErrors(errorActions.DELETE, 'datacenter');
       }
 
       set(this, 'dataCentersResults', content);
@@ -582,11 +603,19 @@ export default {
       };
 
       if (!isValueInContent()) {
-        const value = isArray ? [] : content[0]?.value;
+        if (this.mode === _CREATE) {
+          const value = isArray ? [] : content[0]?.value;
 
-        if (value !== SENTINEL) {
-          set(this.value, key, value);
+          if (value !== SENTINEL) {
+            set(this.value, key, value);
+          }
         }
+
+        if ([_EDIT, _VIEW].includes(this.mode)) {
+          this.manageErrors(errorActions.CREATE, key);
+        }
+      } else {
+        this.manageErrors(errorActions.DELETE, key);
       }
     },
 
@@ -653,6 +682,18 @@ export default {
       set(this.value, 'vappTransport', opts.vappTransport);
       set(this.value, 'vappProperty', opts.vappProperty);
       this.initKeyValueParams('value.vappProperty', 'initVappArray');
+    },
+
+    manageErrors(action = errorActions.CREATE, key) {
+      if (action === errorActions.CREATE) {
+        const keys = [key, ...(this.validationErrors[this.poolId] || [])];
+
+        this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: keys });
+      }
+
+      if (action === errorActions.DELETE && this.validationErrors[this.poolId]) {
+        this.validationErrors = Object.assign({}, this.validationErrors, { [this.poolId]: this.validationErrors[this.poolId].filter((x) => x === key) }) ;
+      }
     },
   }
 };

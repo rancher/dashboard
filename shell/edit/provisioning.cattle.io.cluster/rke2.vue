@@ -247,6 +247,7 @@ export default {
       truncateLimit,
       busy:                  false,
       machinePoolValidation: {}, // map of validation states for each machine pool
+      machinePoolErrors:     {},
       allNamespaces:         [],
       initialCloudProvider:  this.value?.agentConfig?.['cloud-provider-name'] || '',
       extensionTabs:         getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
@@ -2034,6 +2035,41 @@ export default {
     handlePsaDefaultChanged() {
       this.togglePsaDefault();
     },
+    handleMachinePoolError(error) {
+      this.machinePoolErrors = merge(this.machinePoolErrors, error);
+
+      const errors = Object.entries(this.machinePoolErrors)
+        .map((x) => {
+          if (!x[1].length) {
+            return;
+          }
+
+          const formattedFields = (() => {
+            switch (x[1].length) {
+            case 1:
+              return x[1][0];
+            case 2:
+              return `${ x[1][0] } and ${ x[1][1] }`;
+            default: {
+              const [head, ...rest] = x[1];
+
+              return `${ rest.join(', ') }, and ${ head }`;
+            }
+            }
+          })();
+
+          return this.t('cluster.banner.machinePoolError', {
+            count: x[1].length, pool_name: x[0], fields: formattedFields
+          }, true);
+        } )
+        .filter((x) => x);
+
+      if (!errors) {
+        return;
+      }
+
+      this.errors = errors;
+    }
   },
 };
 </script>
@@ -2166,7 +2202,8 @@ export default {
                 :idx="idx"
                 :machine-pools="machinePools"
                 :busy="busy"
-                @error="e=>errors = e"
+                :pool-id="obj.id"
+                @error="handleMachinePoolError"
                 @validationChanged="v=>machinePoolValidationChanged(obj.id, v)"
               />
             </Tab>
