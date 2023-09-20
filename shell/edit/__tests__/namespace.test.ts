@@ -25,9 +25,10 @@ describe('view Namespace should', () => {
         $router: { applyQuery: {} },
         $store:  {
           getters: {
-            'i18n/t':         jest.fn(),
-            'management/all': () => ([project]),
-            currentProduct:   jest.fn(),
+            'i18n/t':              jest.fn(),
+            'management/all':      () => ([project]),
+            currentProduct:        jest.fn(),
+            isStandaloneHarvester: false
           }
         }
       },
@@ -36,6 +37,7 @@ describe('view Namespace should', () => {
         ContainerResourceLimit: { template: '<div data-testid="limits"></div>' }, // Ensure value to be added to component
         NameNsDescription:      true,
         Tab:                    true,
+        ResourceTabs:           true
       }
     });
 

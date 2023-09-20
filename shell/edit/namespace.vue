@@ -7,8 +7,8 @@ import { MANAGEMENT } from '@shell/config/types';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT, PROJECT } from '@shell/config/labels-annotations';
 import ContainerResourceLimit from '@shell/components/ContainerResourceLimit';
 import PodSecurityAdmission from '@shell/components/PodSecurityAdmission';
-import Tabbed from '@shell/components/Tabbed';
 import Tab from '@shell/components/Tabbed/Tab';
+import ResourceTabs from '@shell/components/form/ResourceTabs/index.vue';
 import CruResource from '@shell/components/CruResource';
 import { PROJECT_ID, _VIEW, FLAT_VIEW, _CREATE } from '@shell/config/query-params';
 import MoveModal from '@shell/components/MoveModal';
@@ -30,7 +30,7 @@ export default {
     PodSecurityAdmission,
     ResourceQuota,
     Tab,
-    Tabbed,
+    ResourceTabs,
     MoveModal
   },
 
@@ -198,7 +198,11 @@ export default {
         />
       </template>
     </NameNsDescription>
-    <Tabbed :side-tabs="true">
+    <ResourceTabs
+      v-model="value"
+      :mode="mode"
+      :side-tabs="true"
+    >
       <Tab
         v-if="showResourceQuota"
         :weight="1"
@@ -269,7 +273,7 @@ export default {
           @updateLabels="PSAChanged"
         />
       </Tab>
-    </Tabbed>
+    </ResourceTabs>
     <MoveModal v-if="projects" />
   </CruResource>
 </template>
