@@ -67,7 +67,6 @@ export function init(store) {
     'extensions.istio.io.wasmplugin',
   ], 'Advanced');
 
-
   headers(ISTIO.VIRTUAL_SERVICE, [
     STATE,
     NAME_HEADER,
