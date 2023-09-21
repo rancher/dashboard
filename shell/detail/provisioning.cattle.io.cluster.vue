@@ -517,10 +517,6 @@ export default {
         return this.extDetailTabs.registration;
       }
 
-      if ( this.value.isHostedKubernetesProvider && !this.isClusterReady ) {
-        return this.extDetailTabs.registration;
-      }
-
       return false;
     },
 
