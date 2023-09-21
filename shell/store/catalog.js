@@ -3,14 +3,11 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { addParams } from '@shell/utils/url';
 import { allHash, allHashSettled } from '@shell/utils/promise';
 import { clone } from '@shell/utils/object';
-import { findBy, addObject, filterBy, isArray } from '@shell/utils/array';
+import { findBy, addObject, filterBy } from '@shell/utils/array';
 import { stringify } from '@shell/utils/error';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { sortBy } from '@shell/utils/sort';
 import { importChart } from '@shell/utils/dynamic-importer';
-import { ensureRegex } from '@shell/utils/string';
-import { isPrerelease } from '@shell/utils/version';
-import difference from 'lodash/difference';
 import { lookup } from '@shell/plugins/dashboard-store/model-loader';
 
 const ALLOWED_CATEGORIES = [
@@ -31,9 +28,6 @@ const CERTIFIED_SORTS = {
   [CATALOG_ANNOTATIONS._PARTNER]:      2,
   other:                               3,
 };
-
-export const WINDOWS = 'windows';
-export const LINUX = 'linux';
 
 export const state = function() {
   return {
@@ -583,87 +577,4 @@ function filterCategories(categories) {
 
 function normalizeCategory(c) {
   return c.replace(/\s+/g, '').toLowerCase();
-}
-
-/*
-catalog.cattle.io/deplys-on-os: OS -> requires global.cattle.OS.enabled: true
-  default: nothing
-catalog.cattle.io/permits-os: OS -> will break on clusters containing nodes that are not OS
-  default if not found: catalog.cattle.io/permits-os: linux
-*/
-export function compatibleVersionsFor(chart, os, includePrerelease = true) {
-  const versions = chart.versions;
-
-  if (os && !isArray(os)) {
-    os = [os];
-  }
-
-  return versions.filter((ver) => {
-    const osPermitted = (ver?.annotations?.[CATALOG_ANNOTATIONS.PERMITTED_OS] || LINUX).split(',');
-
-    if ( !includePrerelease && isPrerelease(ver.version) ) {
-      return false;
-    }
-
-    if ( !os || difference(os, osPermitted).length === 0) {
-      return true;
-    }
-
-    return false;
-  });
-}
-
-export function filterAndArrangeCharts(charts, {
-  clusterProvider = '',
-  operatingSystems,
-  category,
-  searchQuery,
-  showDeprecated = false,
-  showHidden = false,
-  showPrerelease = true,
-  hideRepos = [],
-  showRepos = [],
-  showTypes = [],
-  hideTypes = [],
-} = {}) {
-  const out = charts.filter((c) => {
-    if (
-      ( c.deprecated && !showDeprecated ) ||
-      ( c.hidden && !showHidden ) ||
-      ( hideRepos?.length && hideRepos.includes(c.repoKey) ) ||
-      ( showRepos?.length && !showRepos.includes(c.repoKey) ) ||
-      ( hideTypes?.length && hideTypes.includes(c.chartType) ) ||
-      ( showTypes?.length && !showTypes.includes(c.chartType) ) ||
-      (c.chartName === 'rancher-wins-upgrader' && clusterProvider === 'rke2')
-    ) {
-      return false;
-    }
-
-    if (compatibleVersionsFor(c, operatingSystems, showPrerelease).length <= 0) {
-      // There's no versions compatible with the specified os
-      return false;
-    }
-
-    if ( category && !c.categories.includes(category) ) {
-      // The category filter doesn't match
-      return false;
-    }
-
-    if ( searchQuery ) {
-      // The search filter doesn't match
-      const searchTokens = searchQuery.split(/\s*[, ]\s*/).map((x) => ensureRegex(x, false));
-
-      for ( const token of searchTokens ) {
-        const chartDescription = c.chartDescription || '';
-
-        if ( !c.chartNameDisplay.match(token) && !chartDescription.match(token) ) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  });
-
-  return sortBy(out, ['certifiedSort', 'repoName', 'chartNameDisplay']);
 }
