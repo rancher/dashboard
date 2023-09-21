@@ -100,7 +100,7 @@ export default {
   },
 
   watch: {
-    isCreatePV(neu, old) {
+    isCreatePV(neu) {
       if (neu) {
         delete this.spec.volumeName;
         this.spec.resources.requests.storage = null;
