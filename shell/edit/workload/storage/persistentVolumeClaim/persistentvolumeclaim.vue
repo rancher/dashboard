@@ -9,7 +9,6 @@ import { removeObject, addObject } from '@shell/utils/array';
 import { STORAGE_CLASS, PV } from '@shell/config/types';
 import { allHash } from '@shell/utils/promise';
 import { get } from '@shell/utils/object';
-import { _CREATE } from '@shell/config/query-params';
 
 export default {
 
@@ -49,7 +48,7 @@ export default {
 
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
-    this.initCreate();
+    this.$set(this.spec, 'storageClassName', (this.spec.storageClassName || this.defaultStorageClassName));
   },
 
   data() {
@@ -124,15 +123,6 @@ export default {
   },
 
   methods: {
-    /**
-     * Initialization for create mode, e.g. after fetch
-     */
-    initCreate() {
-      if (this.mode === _CREATE) {
-        this.$set(this.spec, 'storageClassName', (this.spec.storageClassName || this.defaultStorageClassName));
-      }
-    },
-
     updateMode(mode, enabled) {
       if (enabled) {
         addObject(this.value.spec.accessModes, mode);
