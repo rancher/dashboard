@@ -198,7 +198,7 @@ export default {
     async principalProperty() {
       const principal = await this.principal;
 
-      return principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+      return principal?.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
     },
 
     onAdd(principalId) {
