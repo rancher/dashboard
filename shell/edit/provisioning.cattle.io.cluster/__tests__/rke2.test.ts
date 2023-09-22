@@ -42,6 +42,8 @@ const defaultStubs = {
   Basics:                   true
 };
 
+const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options: [{ anything: 'yes' }] } } };
+
 const defaultComputed = {
   showForm() {
     return true;
@@ -49,30 +51,31 @@ const defaultComputed = {
   versionOptions() {
     return [
       {
-        id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+        id: 'v1.25.0+rke2r1', value: 'v1.25.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
       },
       {
-        id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+        id: 'v1.24.0+rke2r1', value: 'v1.24.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
       },
       {
-        id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: {}, charts: {}
+        id: 'v1.23.0+rke2r1', value: 'v1.23.0+rke2r1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
       },
       {
-        id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+        id: 'v1.25.0+k3s1', value: 'v1.25.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
       },
       {
-        id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: {}, charts: {}
+        id: 'v1.24.0+k3s1', value: 'v1.24.0+k3s1', serverArgs: {}, agentArgs: mockAgentArgs, charts: {}
       }
     ];
   }
 };
 
 const defaultGetters = {
-  currentStore:           () => 'current_store',
-  'management/schemaFor': jest.fn(),
-  'current_store/all':    jest.fn(),
-  'i18n/t':               jest.fn(),
-  'i18n/withFallback':    jest.fn(),
+  currentStore:                     () => 'current_store',
+  'management/schemaFor':           jest.fn(),
+  'current_store/all':              jest.fn(),
+  'i18n/t':                         jest.fn(),
+  'i18n/withFallback':              jest.fn(),
+  'plugins/cloudProviderForDriver': jest.fn()
 };
 
 const defaultMocks = {
@@ -112,8 +115,10 @@ describe('component: rke2', () => {
             ...defaultSpec,
             kubernetesVersion: k8s,
 
-          }
+          },
+          agentConfig: { 'cloud-provider-name': 'any' }
         },
+        selectedVersion: { agentArgs: mockAgentArgs },
         provider,
       },
       computed: defaultComputed,
@@ -136,7 +141,8 @@ describe('component: rke2', () => {
           spec: {
             ...defaultSpec,
             kubernetesVersion: k8s
-          }
+          },
+          agentConfig: { 'cloud-provider-name': 'any' }
         },
         provider: 'custom'
       },
@@ -158,8 +164,11 @@ describe('component: rke2', () => {
     it('adding default values if none', async() => {
       const wrapper = shallowMount(rke2, {
         propsData: {
-          mode:     'create',
-          value:    { spec: { ...defaultSpec } },
+          mode:  'create',
+          value: {
+            spec:        { ...defaultSpec },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
           provider: 'custom'
         },
         computed: defaultComputed,
@@ -200,8 +209,11 @@ describe('component: rke2', () => {
     it('should display agent configuration tab', async() => {
       const wrapper = shallowMount(rke2, {
         propsData: {
-          mode:     'create',
-          value:    { spec: { ...defaultSpec } },
+          mode:  'create',
+          value: {
+            spec:        { ...defaultSpec },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
           provider: 'custom'
         },
         computed: defaultComputed,
