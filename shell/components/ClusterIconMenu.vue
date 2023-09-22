@@ -12,6 +12,14 @@ export default {
     isEnabled() {
       return !!this.cluster?.ready;
     },
+    showLocalIcon() {
+      return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
+    },
+    badgeLogoBorderBottom() {
+      const { color } = this.cluster.badge;
+
+      return color ? `4px solid ${ color }` : '';
+    }
   },
   methods: {
     smallIdentifier(input) {
@@ -37,7 +45,7 @@ export default {
     <div
       class="cluster-badge-logo"
       :class="{ 'disabled': !isEnabled }"
-      :style="{borderBottom: cluster.badge?.color ? `4px solid ${cluster.badge?.color}` : ''}"
+      :style="{ borderBottom: badgeLogoBorderBottom }"
     >
       <span
         class="cluster-badge-logo-text"
@@ -45,7 +53,7 @@ export default {
         {{ smallIdentifier(cluster.label) }}
       </span>
       <svg
-        v-if="cluster.isLocal && !cluster.isHarvester && !cluster.badge?.iconText"
+        v-if="showLocalIcon"
         class="cluster-local-logo"
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
