@@ -125,11 +125,14 @@ export default class MgmtNode extends HybridModel {
     return false;
   }
 
+  get addresses() {
+    return this.status?.addresses || this.status?.internalNodeStatus?.addresses || [];
+  }
+
   get internalIp() {
     // This shows in the IP address column for RKE1 nodes in the
     // list of nodes in the cluster detail page of Cluster Management.
-
-    const internal = this.status?.addresses?.find(({ type }) => {
+    const internal = this.addresses.find(({ type }) => {
       return type === ADDRESSES.INTERNAL_IP;
     });
 
@@ -147,8 +150,7 @@ export default class MgmtNode extends HybridModel {
   }
 
   get externalIp() {
-    const addresses = this.status?.addresses || [];
-    const statusAddress = findLast(addresses, (address) => address.type === 'ExternalIP')?.address;
+    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
 
     if (statusAddress) {
       return statusAddress;

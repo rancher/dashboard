@@ -92,16 +92,17 @@ export default class ClusterNode extends SteveModel {
     return this.metadata.name;
   }
 
-  get internalIp() {
-    const addresses = this.status?.addresses || [];
+  get addresses() {
+    return this.status?.addresses || [];
+  }
 
-    return findLast(addresses, (address) => address.type === 'InternalIP')?.address;
+  get internalIp() {
+    return findLast(this.addresses, (address) => address.type === 'InternalIP')?.address;
   }
 
   get externalIp() {
-    const addresses = this.status?.addresses || [];
     const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
-    const statusAddress = findLast(addresses, (address) => address.type === 'ExternalIP')?.address;
+    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
 
     return statusAddress || annotationAddress;
   }
