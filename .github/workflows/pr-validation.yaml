@@ -8,9 +8,14 @@ on:
     types:
       - "labeled"
       - "unlabeled"
-      - "opened"
-      - "reopened"
       - "synchronize"
+  workflow_run:
+    branches:
+      - master
+      - 'release-*'
+    workflows: ["zube-integration"]
+    types:
+      - completed
 
 jobs:
   validate:
