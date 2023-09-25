@@ -4,7 +4,7 @@ on:
     paths:
       - 'pkg/rancher-components/**/*'
     branches:
-      - master
+      - mastera
 
 jobs:
   validate-build:
