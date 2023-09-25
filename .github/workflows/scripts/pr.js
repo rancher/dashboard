@@ -35,7 +35,7 @@ function hasLabel(issue, label) {
 }
 
 function removeZubeLabels(labels) {
-    return labels.filter(l => l.name.indexOf('[zube]') === -1);
+    return labels?.filter(l => l.name.indexOf('[zube]') === -1) || [];
 }
 
 async function resetZubeLabels(issue, label) {
