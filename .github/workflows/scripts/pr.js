@@ -251,10 +251,9 @@ async function processOpenOrEditAction() {
     console.warn('organization', JSON.stringify(event.organization))
     console.warn('repository', JSON.stringify(event.repository))
 
-    repository
     // const repo = pr.base.ref
-    const repo =  pr.name
-    const branch = ''
+    const repo =  pr.head.label.replace(':', '/')
+    const branch = pr.base.repo.full_name
     const workflow = 'pr-validation';
 
     const validatePrUrl = `${event.repository.url}/repos/${repo}/actions/workflows/${workflow}/dispatches`;
