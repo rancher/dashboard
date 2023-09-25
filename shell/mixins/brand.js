@@ -146,7 +146,6 @@ export default {
 
         if (brandSetting && brandSetting.value !== '') {
           // 2) There should not be a brand... but there is a brand setting
-          brandSetting.value = '';
           brandSetting.save();
         }
       }
