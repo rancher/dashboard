@@ -12,9 +12,9 @@ on:
       - "unlabeled"
   workflow_run:
     workflows:
-     - zube-integration
+      - zube-integration
     types:
-     - completed
+      - completed
 
 jobs:
   validate:
