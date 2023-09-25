@@ -36,8 +36,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '14.x'
+
+      # See: https://developer.chrome.com/blog/chrome-for-testing/
       - name: Install Chrome 116
-        run: npx @puppeteer/browsers install chrome@116.0.5793.0
+        run: npx -y @puppeteer/browsers install chrome@116.0.5793.0
 
       - name: Install packages
         run: yarn install:ci
