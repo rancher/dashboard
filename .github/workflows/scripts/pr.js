@@ -243,6 +243,19 @@ async function processOpenOrEditAction() {
         console.log('PR is already assigned to milestone ' + keys[0]);
       }
     }
+
+    console.warn('pr', pr.base.repo.ref, pr.url, pr.base.repo)
+    console.warn('pr', JSON.stringify(pr))
+    const repo = pr.base.ref
+    const branch = ''
+    const workflow = 'pr-validation';
+
+    const validatePrUrl = `${event.repository.url}/repos/${repo}/actions/workflows/${workflow}/dispatches`;
+    console.warn(validatePrUrl);
+  
+    await request.post(validatePrUrl, {
+        "ref": branch
+    });
 }
 
 // Debugging

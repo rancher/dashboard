@@ -10,11 +10,11 @@ on:
     types:
       - "labeled"
       - "unlabeled"
-  workflow_run:
-    workflows:
-      - zubeintegration
-    types:
-      - completed
+  workflow_dispatch:
+  # workflow_run:
+  #   workflows: [zubeintegration]
+  #   types:
+  #     - completed
 
 jobs:
   validate:
@@ -26,7 +26,7 @@ jobs:
         with:
           script: |
             core.setFailed( '❌ Pull request must have a Milestone. Assign one and toggle a label to re-run' )
-      - name: Validation for Milestone (workflow_run)
-        if: ${{ !!github.event.workflow_run }}
-        run: |
-          node .github/workflows/scripts/pr-validation.js "${{ secrets.pull_requests }}"
+      # - name: Validation for Milestone (workflow_run)
+      #   if: ${{ !!github.event.workflow_run }}
+      #   run: |
+      #     node .github/workflows/scripts/pr-validation.js "${{ secrets.pull_requests }}"
