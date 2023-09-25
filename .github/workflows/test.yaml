@@ -36,9 +36,11 @@ jobs:
           sudo apt-get install -y wget unzip
           wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/119.0.6028.0/linux64/chrome-linux64.zip
           unzip chrome-linux64.zip
-          sudo rm /usr/bin/google-chrome
+          sudo rm /usr/bin/google-chrome /usr/bin/google-chrome-stable
           sudo ln -s $PWD/chrome-linux64/chrome /usr/bin/google-chrome
-          google-chrome --version    
+          sudo ln -s $PWD/chrome-linux64/chrome /usr/bin/google-chrome-stable
+          google-chrome --version
+          google-chrome-stable --version
       - uses: actions/checkout@v3
         with:
           fetch-depth: 1
