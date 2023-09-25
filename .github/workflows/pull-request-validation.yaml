@@ -13,10 +13,9 @@ on:
       - "synchronize"
 
 jobs:
-  pr-validation:
+  validate:
     runs-on: ubuntu-latest
     steps:
-
       - name: Validation for Milestone
         if: ${{ github.event.pull_request.milestone == null }}
         uses: actions/github-script@v5
