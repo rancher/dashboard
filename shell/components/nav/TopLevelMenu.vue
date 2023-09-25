@@ -30,19 +30,23 @@ export default {
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
-      shown:             false,
+      shown:               false,
       displayVersion,
       fullVersion,
-      clusterFilter:     '',
+      clusterFilter:       '',
       hasProvCluster,
-      maxClustersToShow: MENU_MAX_CLUSTERS,
-      emptyCluster:      BLANK_CLUSTER,
-      showPinClusters:   false,
-      searchActive:      false
+      maxClustersToShow:   MENU_MAX_CLUSTERS,
+      emptyCluster:        BLANK_CLUSTER,
+      showPinClusters:     false,
+      searchActive:        false,
+      bannerStoreSettings: null,
+      bannerConfiguration: null,
     };
   },
 
   fetch() {
+    this.bannerStoreSettings = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
+
     if (this.hasProvCluster) {
       this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     }
@@ -58,6 +62,18 @@ export default {
       get() {
         return this.$store.getters['productId'];
       },
+    },
+
+    fetchBannerSettings() {
+      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
+    },
+
+    handleGlobalBannerMargins() {
+      const calcMargins = (val) => {
+        return val === 'true' ? '28px' : '0px';
+      };
+
+      return { marginTop: calcMargins(this.bannerConfiguration?.showHeader), marginBottom: calcMargins(this.bannerConfiguration?.showFooter) };
     },
 
     legacyEnabled() {
@@ -227,7 +243,11 @@ export default {
   watch: {
     $route() {
       this.shown = false;
-    }
+    },
+
+    bannerStoreSettings() {
+      this.bannersStatus();
+    },
   },
 
   mounted() {
@@ -239,6 +259,20 @@ export default {
   },
 
   methods: {
+    bannersStatus() {
+      this.bannerConfiguration = this.fetchBannerSettings;
+
+      if (this.bannerConfiguration) {
+        const parsed = JSON.parse(this.bannerConfiguration.value);
+        const { showHeader, showFooter } = parsed;
+
+        this.bannerConfiguration = {
+          showHeader,
+          showFooter,
+        };
+      }
+    },
+
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -294,6 +328,7 @@ export default {
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
+        :style="{...handleGlobalBannerMargins}"
         tabindex="-1"
       >
         <div class="title">
@@ -663,25 +698,25 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  .menu {
-    position: absolute;
-    width: $app-bar-collapsed-width;
-    height: 54px;
-    top: 0;
-    grid-area: menu;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .menu-icon {
-      width: 25px;
-      height: 25px;
-      fill: var(--header-btn-text);
-    }
-  }
-
   .side-menu {
+    .menu {
+      position: absolute;
+      width: $app-bar-collapsed-width;
+      height: 54px;
+      top: 0;
+      grid-area: menu;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .menu-icon {
+        width: 25px;
+        height: 25px;
+        fill: var(--header-btn-text);
+      }
+    }
+
     position: fixed;
     top: 0;
     left: 0px;
