@@ -248,7 +248,12 @@ async function processOpenOrEditAction() {
 
     console.warn('pr', pr.base.repo.ref, pr.url, pr.base.repo)
     console.warn('pr', JSON.stringify(pr))
-    const repo = pr.base.ref
+    console.warn('organization', JSON.stringify(event.organization))
+    console.warn('repository', JSON.stringify(event.repository))
+
+    repository
+    // const repo = pr.base.ref
+    const repo =  pr.name
     const branch = ''
     const workflow = 'pr-validation';
 
