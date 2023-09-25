@@ -3,14 +3,17 @@ name: Pull Request Validation
 on:
   pull_request:
     branches:
+      - dev
       - master
       - 'release-*'
     types:
       - "labeled"
       - "unlabeled"
   workflow_run:
-    workflows: ["zube-integration"]
-    types: [completed]
+    workflows:
+     - zube-integration
+    types:
+     - completed
 
 jobs:
   validate:
