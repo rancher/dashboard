@@ -165,7 +165,7 @@
     "babel-plugin-istanbul": "6.1.1",
     "babel-plugin-transform-require-context": "0.1.1",
     "babel-preset-vue": "2.0.2",
-    "core-js": "3.22.2",
+    "core-js": "3.32.2",
     "css-loader": "6.7.3",
     "csv-loader": "3.0.3",
     "cy2": "^4.0.6",
