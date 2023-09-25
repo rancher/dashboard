@@ -4,10 +4,10 @@ env:
 on:
   push:
     branches:
-      - mastera
+      - master
   pull_request:
     branches:
-      - mastera
+      - master
 jobs:
   storybook:
     runs-on: ubuntu-latest
