@@ -45,8 +45,8 @@ jobs:
           unzip chrome-linux64.zip
           sudo rm -f usr/bin/google-chrome
           sudo rm -f usr/bin/google-chrome-stable
-          sudo ln -s $PWD/chrome-linux64/chrome usr/bin/google-chrome-stable
-          sudo ln -s $PWD/chrome-linux64/chrome usr/bin/google-chrome
+          sudo ln -s $PWD/chrome-linux64/chrome /usr/bin/google-chrome-stable
+          sudo ln -s $PWD/chrome-linux64/chrome /usr/bin/google-chrome
           google-chrome-stable --version
 
       - name: Install packages
