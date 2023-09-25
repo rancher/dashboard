@@ -39,7 +39,8 @@ jobs:
 
       # See: https://developer.chrome.com/blog/chrome-for-testing/
       - name: Install Chrome 116
-        run: yes | npx @puppeteer/browsers install chrome@116.0.5793.0
+        run: |
+          yes | npx @puppeteer/browsers install chrome@116.0.5793.0
 
       - name: Install packages
         run: yarn install:ci
