@@ -21,4 +21,4 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            core.setFailed( '❌ Pull request must have a Milestone' )
+            core.setFailed( '❌ Pull request must have a Milestone. Assign one and toggle a label to re-run' )
