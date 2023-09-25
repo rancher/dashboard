@@ -8,22 +8,21 @@ on:
     types:
       - "labeled"
       - "unlabeled"
-      - "synchronize"
   workflow_run:
-    branches:
-      - master
-      - 'release-*'
     workflows: ["zube-integration"]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Validation for Milestone
-        if: ${{ github.event.pull_request.milestone == null }}
+      - name: Validation for Milestone (pull_request)
+        if: ${{ !!github.event.pull_request && github.event.pull_request.milestone == null }}
         uses: actions/github-script@v5
         with:
           script: |
             core.setFailed( '❌ Pull request must have a Milestone. Assign one and toggle a label to re-run' )
+      - name: Validation for Milestone (workflow_run)
+        if: ${{ !!github.event.workflow_run }}
+        run: |
+          node .github/workflows/scripts/pr-validation.js "${{ secrets.pull_requests }}"
