@@ -40,7 +40,14 @@ jobs:
       # See: https://developer.chrome.com/blog/chrome-for-testing/
       - name: Install Chrome 116
         run: |
-          yes | npx @puppeteer/browsers install chrome@116.0.5793.0
+          apt-get install -y wget unzip
+          wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/116.0.5845.96/linux64/chrome-linux64.zip
+          unzip chrome-linux64.zip
+          sudo rm -f usr/bin/google-chrome
+          sudo rm -f usr/bin/google-chrome-stable
+          sudo ln -s $PWD/chrome-linux64/chrome usr/bin/google-chrome-stable
+          sudo ln -s $PWD/chrome-linux64/chrome usr/bin/google-chrome
+          google-chrome-stable --version
 
       - name: Install packages
         run: yarn install:ci
