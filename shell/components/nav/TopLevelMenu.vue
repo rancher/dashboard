@@ -68,7 +68,7 @@ export default {
       return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
     },
 
-    handleGlobalBannerMargins() {
+    dynamicAppBarMargins() {
       const calcMargins = (val) => {
         return val === 'true' ? '28px' : '0px';
       };
@@ -328,7 +328,7 @@ export default {
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
-        :style="{...handleGlobalBannerMargins}"
+        :style="{...dynamicAppBarMargins}"
         tabindex="-1"
       >
         <div class="title">
