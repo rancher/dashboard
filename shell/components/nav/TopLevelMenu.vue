@@ -45,7 +45,7 @@ export default {
   },
 
   fetch() {
-    this.bannerStoreSettings = this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
+    this.bannerStoreSettings = this.fetchBannerSettings;
 
     if (this.hasProvCluster) {
       this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
