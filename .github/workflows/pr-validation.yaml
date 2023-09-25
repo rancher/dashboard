@@ -12,7 +12,7 @@ on:
       - "unlabeled"
   workflow_run:
     workflows:
-      - zube-integration
+      - zubeintegration
     types:
       - completed
 
