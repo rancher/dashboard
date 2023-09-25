@@ -40,7 +40,7 @@ jobs:
       # See: https://developer.chrome.com/blog/chrome-for-testing/
       - name: Install Chrome 116
         run: |
-          apt-get install -y wget unzip
+          sudo apt-get install -y wget unzip
           wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/116.0.5845.96/linux64/chrome-linux64.zip
           unzip chrome-linux64.zip
           sudo rm -f usr/bin/google-chrome
