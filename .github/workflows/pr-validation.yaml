@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - dev
-      - arbasdsad
+      - arbasdsadasd
       - master
       - 'release-*'
     types:
