@@ -2,11 +2,11 @@ name: Tests
 on:
   push:
     branches:
-      - master
+      - mastera
       - 'release-*'
   pull_request:
       branches:
-        - master
+        - mastera
         - 'release-*'
   workflow_dispatch:
     environment:
