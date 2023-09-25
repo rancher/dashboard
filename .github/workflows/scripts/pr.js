@@ -54,8 +54,10 @@ async function resetZubeLabels(issue, label) {
     console.log(`    New Labels    : ${cleanLabels}`);
 
     // Update the labels
-    const labelsAPI = `${issue.url}/labels`;
-    return request.put(labelsAPI, {labels: cleanLabels});
+    if (cleanLabels.length) {
+        const labelsAPI = `${issue.url}/labels`;
+        return request.put(labelsAPI, {labels: cleanLabels});
+    }
 }
 
 async function waitForLabel(issue, label) {
