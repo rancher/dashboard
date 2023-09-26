@@ -4174,7 +4174,7 @@ plugins:
     title: Add Extensions repositories
     prompt: You can install multiple Rancher extension repositories to increase your extensions catalog
   kubeIncompatibility:
-    banner: There are some installed extensions that may not work properly because they are incompatible with the current Kubernetes version of your local cluster.
+    banner: Some installed extensions may not function property as they are incompatible with the Kubernetes version of your 'local' cluster
   setup:
     installed: Already installed
     uninstalled: Already uninstalled

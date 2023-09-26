@@ -454,11 +454,20 @@ export default {
       const installed = this.$store.getters['uiplugins/plugins'];
       const shouldHaveLoaded = (installed || []).filter((p) => !this.uiErrors[p.name] && !p.builtin);
       let changes = 0;
+      let plugin;
+
+      // grab the UIPlugin resource if we did an install of an extension
+      if (this.latestInstalledPlugin?.name) {
+        plugin = neu.find((x) => x.spec?.plugin?.name === this.latestInstalledPlugin?.name) || undefined;
+      }
 
       // An install occured and a plugin was added, let add all annotations to the UIPlugin resource (useful for other checks)
-      if (neu?.length === 1 && !installed.find((x) => neu[0].id === x.id) &&
-      this.latestInstalledPlugin && neu[0].name === this.latestInstalledPlugin.name) {
-        const plugin = neu[0];
+      if (
+        neu.length &&
+        plugin &&
+        !installed.find((x) => plugin.id === x.id) &&
+        this.latestInstalledPlugin &&
+        plugin.name === this.latestInstalledPlugin.name) {
         const installedVersion = this.latestInstalledPlugin?.versions?.find((v) => v.version === plugin.version);
 
         this.latestInstalledPlugin = undefined;

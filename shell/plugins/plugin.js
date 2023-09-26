@@ -32,7 +32,7 @@ export default async function(context) {
     const reqs = await allHashSettled({
       // fetch clusters to get local cluster kube version
       clusters: context.store.dispatch('management/request', {
-        url:                  `v3/clusters`,
+        url:                  `v3/clusters/local`,
         method:               'GET',
         headers:              { accept: 'application/json' },
         redirectUnauthorized: false,
@@ -52,12 +52,13 @@ export default async function(context) {
       let currKubeVersion = '';
 
       if (reqs.clusters.status === 'fulfilled' && reqs.clusters.value._status === 200) {
-        const localCluster = reqs.clusters.value.data.find((c) => c.id === 'local');
+        const localCluster = reqs.clusters.value;
 
         if (localCluster) {
           currKubeVersion = localCluster.k3sConfig?.kubernetesVersion || '';
         }
       }
+
       Object.values(entries).forEach((plugin) => {
         const shouldNotLoad = shouldNotLoadPlugin(plugin, rancherVersion, currKubeVersion, context.store.getters['uiplugins/plugins'] || []); // Error key string or boolean
 
