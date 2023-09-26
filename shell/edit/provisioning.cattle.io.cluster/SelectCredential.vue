@@ -35,13 +35,6 @@ export default {
       default: null
     },
 
-    // revert to showing the credential that would be selected when the form initially loads instead of backing out of the page
-    // used when credentials are being created as part of the provisioning form
-    defaultOnCancel: {
-      type:    Boolean,
-      default: false
-    },
-
     showingForm: {
       type:     Boolean,
       required: true,
@@ -214,10 +207,6 @@ export default {
 
     backToExisting() {
       this.credentialId = _NONE;
-    },
-
-    defaultOrCancel() {
-      this.defaultOnCancel ? this.credentialId = this.filteredCredentials[0]?.id : this.cancel();
     }
   },
 };
@@ -237,7 +226,7 @@ export default {
     class="select-credentials"
     :class="{'select-credentials__showingForm': showingForm}"
     @finish="save"
-    @cancel="defaultOrCancel"
+    @cancel="cancel"
     @error="e=>errors = e"
   >
     <div v-if="isNew">

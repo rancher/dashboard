@@ -332,8 +332,8 @@ export default defineComponent({
       return this.value?.listLocation?.name;
     },
 
-    showForm() {
-      return this.config?.azureCredentialSecret;
+    hasCredential() {
+      return !!this.config?.azureCredentialSecret;
     },
 
     // filter out versions outside ui-k8s-supported-versions-range global setting and versions < current version
@@ -668,19 +668,17 @@ export default defineComponent({
     @error="e=>errors=e"
     @finish="save"
   >
-    <div class="mb-20">
-      <SelectCredential
-        v-model="config.azureCredentialSecret"
-        data-testid="cruaks-select-credential"
-        :mode="isNewOrUnprovisioned ? 'create' : 'view'"
-        provider="azure"
-        :default-on-cancel="true"
-        :showing-form="true"
-        class="mt-20"
-      />
-    </div>
+    <SelectCredential
+      v-model="config.azureCredentialSecret"
+      data-testid="cruaks-select-credential"
+      :mode="isNewOrUnprovisioned ? 'create' : 'view'"
+      provider="azure"
+      :default-on-cancel="true"
+      :showing-form="hasCredential"
+      class="mt-20"
+    />
     <div
-      v-if="showForm"
+      v-if="hasCredential"
       data-testid="cruaks-form"
     >
       <div class="row mb-10">
@@ -1042,6 +1040,12 @@ export default defineComponent({
         </Accordion>
       </template>
     </div>
+    <template
+      v-if="!hasCredential"
+      #form-footer
+    >
+      <div><!-- Hide the outer footer --></div>
+    </template>
   </CruResource>
 </template>
 
