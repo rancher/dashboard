@@ -179,7 +179,6 @@ describe('Home Page', () => {
 
     it('can click on Forums link', () => {
     // click Forums link
-      HomePagePo.goTo();
       homePage.clickSupportLink(1, true);
       cy.origin('https://forums.rancher.com', () => {
         cy.url().should('include', 'forums.rancher.com/');
@@ -188,7 +187,6 @@ describe('Home Page', () => {
 
     it('can click on Slack link', () => {
     // click Slack link
-      HomePagePo.goTo();
       homePage.clickSupportLink(2, true);
       cy.origin('https://slack.rancher.io', () => {
         cy.url().should('include', 'slack.rancher.io/');
