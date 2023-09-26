@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: '14.x'
 
-     - name: Install Chrome 116
+      - name: Install Chrome 116
         run: |
           sudo apt-get install -y wget
           cd /tmp
