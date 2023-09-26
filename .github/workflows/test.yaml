@@ -63,7 +63,6 @@ jobs:
       - name: Run admin user tests
         run: |
           export PATH=/tmp/chrome-linux64:$PATH
-          export DEBUG=cypress:*
           chrome --version
           echo $PATH
           yarn e2e:prod
