@@ -41,13 +41,18 @@ jobs:
       - name: Install Chrome 116
         run: |
           sudo apt-get install -y wget unzip
+          cd /tmp
           wget -q https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/116.0.5845.96/linux64/chrome-linux64.zip
           unzip -q chrome-linux64.zip
           sudo rm -f /usr/bin/google-chrome
           sudo rm -f /usr/bin/google-chrome-stable
-          sudo ln -s $PWD/chrome-linux64/chrome /usr/bin/google-chrome-stable
-          sudo ln -s $PWD/chrome-linux64/chrome /usr/bin/google-chrome
+          sudo ln -s /tmp/chrome-linux64/chrome /usr/bin/chrome
+          sudo ln -s /tmp/chrome-linux64/chrome /usr/bin/google-chrome-stable
+          sudo ln -s /tmp/chrome-linux64/chrome /usr/bin/google-chrome
           google-chrome-stable --version
+          export PATH=/tmp/chrome-linux64:$PATH
+          which chrome
+          chrome --version
 
       - name: Install packages
         run: yarn install:ci
@@ -57,6 +62,7 @@ jobs:
       
       - name: Run admin user tests
         run: |
+          echo $PATH
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
