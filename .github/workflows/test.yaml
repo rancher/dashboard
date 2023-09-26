@@ -37,19 +37,6 @@ jobs:
         with:
           node-version: '14.x'
 
-      # See: https://developer.chrome.com/blog/chrome-for-testing/
-      - name: Install Chrome 116
-        run: |
-          sudo apt-get install -y wget unzip
-          cd /tmp
-          wget -q http://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_116.0.5845.187-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./google-chrome-stable_116.0.5845.187-1_amd64.deb
-          google-chrome --version
-
-          wget -q https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-stable/microsoft-edge-stable_116.0.1938.81-1_amd64.deb
-          sudo apt-get install -y --allow-downgrades ./microsoft-edge-stable_116.0.1938.81-1_amd64.deb
-          microsoft-edge --version
-
       - name: Install packages
         run: yarn install:ci
       
