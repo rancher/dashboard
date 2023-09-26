@@ -31,7 +31,7 @@ function extractMoreInfo(property: any) {
   }
 }
 
-export function getSchemaName(schema: OpenApIDefinition): string {
+export function getOpenAPISchemaName(schema: OpenApIDefinition): string {
   if (schema?.attributes) {
     let group = schema.attributes.group || 'core';
 
@@ -50,7 +50,7 @@ export function getSchemaName(schema: OpenApIDefinition): string {
   return '';
 }
 
-export function makeBreadcrumb(id: string): any {
+export function makeOpenAPIBreadcrumb(id: string): any {
   const name = id.split('.');
 
   return {
@@ -71,7 +71,7 @@ export function makeBreadcrumb(id: string): any {
  * @param definition Definition to expand
  * @param breadcrumbs Current breadcrumbs to use as a breadcrumb path to the definition
  */
-export function expandDefinition(definitions: OpenApIDefinitions, definition: OpenApIDefinition, breadcrumbs = []): void {
+export function expandOpenAPIDefinition(definitions: OpenApIDefinitions, definition: OpenApIDefinition, breadcrumbs = []): void {
   Object.keys(definition?.properties || {}).forEach((propName) => {
     const prop = definition.properties[propName];
     const propRef = prop.$ref || prop.items?.$ref;
@@ -82,7 +82,7 @@ export function expandDefinition(definitions: OpenApIDefinitions, definition: Op
       const ref = definitions[id];
 
       if (ref) {
-        const breadcrumb = makeBreadcrumb(id);
+        const breadcrumb = makeOpenAPIBreadcrumb(id);
 
         // Need to make a copy, as some types are used in multiple places and will have different breadcrumbs etc
         prop.$$ref = JSON.parse(JSON.stringify(ref));
@@ -93,7 +93,7 @@ export function expandDefinition(definitions: OpenApIDefinitions, definition: Op
         ];
         prop.$refNameShort = breadcrumb.name;
 
-        expandDefinition(definitions, prop.$$ref, prop.$breadcrumbs);
+        expandOpenAPIDefinition(definitions, prop.$$ref, prop.$breadcrumbs);
       } else {
         console.warn(`Can not find definition for ${ id }`); // eslint-disable-line no-console
       }

@@ -1,7 +1,7 @@
 <script>
 import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
-import { expandDefinition, getSchemaName, makeBreadcrumb } from './open-api-utils.ts';
+import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
 
 export default {
   components: { ExplainPanel },
@@ -92,7 +92,7 @@ export default {
         return;
       }
 
-      let name = getSchemaName(schema);
+      let name = getOpenAPISchemaName(schema);
 
       // Schemas like 'ingress' seem to have the wrong group - so try the other one with 'api'
       if (!data.definitions[name]) {
@@ -101,7 +101,7 @@ export default {
 
       if (name) {
         this.definitions = data.definitions;
-        this.navigate([makeBreadcrumb(name)]);
+        this.navigate([makeOpenAPIBreadcrumb(name)]);
       } else {
         this.definition = undefined;
       }
@@ -149,7 +149,7 @@ export default {
         return;
       }
 
-      expandDefinition(this.definitions, this.definition, this.breadcrumbs);
+      expandOpenAPIDefinition(this.definitions, this.definition, this.breadcrumbs);
 
       setTimeout(() => this.scrollTop(), 100);
     }
@@ -253,7 +253,7 @@ export default {
           v-if="noResource"
           class="select-resource"
         >
-          <img src="./explain.svg">
+          <img src="../explain.svg">
           <div v-if="notFound">
             {{ $t('kubectl-explain.errors.notFound') }}
           </div>

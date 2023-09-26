@@ -1,5 +1,4 @@
 <script>
-import { mapGetters } from 'vuex';
 import Markdown from '@shell/components/Markdown';
 
 export default {
@@ -52,8 +51,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentCluster']),
-
     fields() {
       const definition = this.definition?.properties || {};
       const res = [];

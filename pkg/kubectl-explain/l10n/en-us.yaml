@@ -1,6 +1,7 @@
 kubectl-explain:
+  action: "Explain ..."
   errors:
-    load: Could load the Open API data from the cluster
+    load: Could not load the Open API data from the cluster
     notFound: Could not find OpenAPI definition for this resource
   fields: Fields
   object: Object

@@ -13,9 +13,9 @@ export default function(plugin: IPlugin, internal: IInternal): void {
   const store = internal.store;
 
   plugin.addAction(ActionLocation.HEADER, { resource: ['*'] }, {
-    label:  'Explain ...',
-    svg:    require('./explain.svg'),
-    invoke: (opts, res, globals) => {
+    labelKey: 'kubectl-explain.action',
+    svg:      require('./explain.svg'),
+    invoke:   (opts, res, globals) => {
       explain(store, globals.$route);
     }
   });
