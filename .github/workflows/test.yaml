@@ -55,7 +55,7 @@ jobs:
           chrome --version
 
           wget -q https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-stable/microsoft-edge-stable_116.0.1938.81-1_amd64.deb
-          sudo apt-get install -y ./microsoft-edge-stable_116.0.1938.81-1_amd64.deb
+          sudo apt-get install -y --allow-downgrades ./microsoft-edge-stable_116.0.1938.81-1_amd64.deb
           microsoft-edge --version
 
       - name: Install packages
