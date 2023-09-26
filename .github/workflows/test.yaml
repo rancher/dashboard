@@ -62,6 +62,8 @@ jobs:
       
       - name: Run admin user tests
         run: |
+          export PATH=/tmp/chrome-linux64:$PATH
+          chrome --version
           echo $PATH
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
