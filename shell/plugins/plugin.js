@@ -1,6 +1,7 @@
 // This plugin loads any UI Plugins at app load time
 import { allHashSettled } from '@shell/utils/promise';
 import { shouldNotLoadPlugin, UI_PLUGIN_BASE_URL } from '@shell/config/uiplugins';
+import { NORMAN, CAPI, MANAGEMENT } from '@shell/config/types';
 
 export default async function(context) {
   if (process.env.excludeOperatorPkg === 'true') {
@@ -55,7 +56,26 @@ export default async function(context) {
         const localCluster = reqs.clusters.value;
 
         if (localCluster) {
-          currKubeVersion = localCluster.k3sConfig?.kubernetesVersion || '';
+          // norman cluster
+          if (localCluster.type === NORMAN.CLUSTER) {
+            currKubeVersion = localCluster.k3sConfig?.kubernetesVersion || localCluster.version?.gitVersion || '';
+          }
+
+          // prov cluster
+          if (localCluster.type === CAPI.RANCHER_CLUSTER) {
+            const fromStatus = localCluster.status?.version?.gitVersion;
+            const fromSpec = localCluster.spec?.kubernetesVersion;
+
+            currKubeVersion = fromStatus || fromSpec || '';
+          }
+
+          // mgmt cluster
+          if (localCluster.type === MANAGEMENT.CLUSTER) {
+            const fromStatus = localCluster.status?.version?.gitVersion;
+            const fromSpec = localCluster.spec?.[`${ localCluster.status?.driver ? localCluster.status.driver : 'imported' }Config`]?.kubernetesVersion;
+
+            currKubeVersion = fromStatus || fromSpec || '';
+          }
         }
       }
 
