@@ -16,7 +16,7 @@ export default {
       return this.cluster.isLocal && !this.cluster.isHarvester && !this.cluster.badge?.iconText;
     },
     badgeLogoBorderBottom() {
-      const { color } = this.cluster.badge;
+      const color = this.cluster.badge?.color;
 
       return color ? `4px solid ${ color }` : '';
     }
