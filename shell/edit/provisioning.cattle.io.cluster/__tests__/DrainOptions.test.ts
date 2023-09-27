@@ -14,7 +14,7 @@ describe('drain options', () => {
     expect(wrapper.emitted('input')?.[0]?.[0]).toStrictEqual({
       deleteEmptyDirData:              true,
       disableEviction:                 false,
-      enabled:                         true,
+      enabled:                         false,
       force:                           false,
       gracePeriod:                     -1,
       ignoreDaemonSets:                true,
@@ -27,7 +27,7 @@ describe('drain options', () => {
     const upgradeStrategy = {
       deleteEmptyDirData: false,
       disableEviction:    false,
-      enabled:            true,
+      enabled:            false,
       force:              true,
       ignoreDaemonSets:   false,
       timeout:            90,
@@ -41,7 +41,7 @@ describe('drain options', () => {
     expect(wrapper.emitted('input')?.[0]?.[0]).toStrictEqual({
       deleteEmptyDirData:              false,
       disableEviction:                 false,
-      enabled:                         true,
+      enabled:                         false,
       force:                           true,
       gracePeriod:                     -1,
       ignoreDaemonSets:                false,

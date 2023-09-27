@@ -7,7 +7,7 @@ import { mapGetters } from 'vuex';
 const DEFAULTS = {
   deleteEmptyDirData:              true, // Show; Kill pods using emptyDir volumes and lose the data
   disableEviction:                 false, // Hide; false = evict pods, true = delete pods
-  enabled:                         true, // Show; true = Nodes must be drained before upgrade; false = YOLO
+  enabled:                         false, // Show; true = Nodes must be drained before upgrade; false = YOLO
   force:                           false, // Show; true = Delete standalone pods, false = fail if there are any
   gracePeriod:                     -1, // Show; Pod shut down time, negative value uses pod default
   ignoreDaemonSets:                true, // Hide; true = work, false = never work because there's always daemonSets

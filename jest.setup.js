@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 import { config } from '@vue/test-utils';
 import { directiveSsr as t } from '@shell/plugins/i18n';
-import { VCleanTooltip } from '@shell/plugins/clean-tooltip-directive';
 import VTooltip from 'v-tooltip';
 import VModal from 'vue-js-modal';
 import vSelect from 'vue-select';

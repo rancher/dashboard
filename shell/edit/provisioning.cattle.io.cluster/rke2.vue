@@ -1159,6 +1159,7 @@ export default {
       }
 
       const name = `pool${ ++this.lastIdx }`;
+
       const pool = {
         id:     name,
         config,
@@ -1179,6 +1180,7 @@ export default {
             kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
+          drainBeforeDelete: true
         },
       };
 
