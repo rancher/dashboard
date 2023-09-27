@@ -12,6 +12,7 @@ import Vue from 'vue';
 
 Vue.config.productionTip = false;
 Vue.use(VTooltip).use(VModal);
+Vue.use(VCleanTooltip);
 Vue.component('v-select', vSelect);
 Vue.component(ClientOnly.name, ClientOnly);
 

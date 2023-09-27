@@ -158,6 +158,34 @@ describe('component: rke2', () => {
     expect((wrapper.vm as any).validationPassed).toBe(true);
   });
 
+  it('should initialize machine pools with drain before delete true', async() => {
+    const k8s = 'v1.25.0+k3s1';
+    const wrapper = mount(rke2, {
+      propsData: {
+        mode:  'create',
+        value: {
+          spec: {
+            ...defaultSpec,
+            kubernetesVersion: k8s
+          },
+          agentConfig: { 'cloud-provider-name': 'any' }
+        },
+        provider: 'custom'
+      },
+      data:     () => ({ credentialId: 'I am authenticated' }),
+      computed: defaultComputed,
+      mocks:    {
+        ...defaultMocks,
+        $store: { getters: defaultGetters },
+      },
+      stubs: defaultStubs
+    });
+
+    await wrapper.vm.initSpecs();
+
+    wrapper.vm.machinePools.forEach((p: any) => expect(p.drainBeforeDelete).toBe(true));
+  });
+
   // TODO: Complete test after implementing fetch https://github.com/rancher/dashboard/issues/9322
   // eslint-disable-next-line jest/no-disabled-tests
   describe.skip('should initialize agent configuration values', () => {

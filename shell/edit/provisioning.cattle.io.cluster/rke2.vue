@@ -1159,6 +1159,7 @@ export default {
       }
 
       const name = `pool${ ++this.lastIdx }`;
+
       const pool = {
         id:     name,
         config,
@@ -1179,6 +1180,7 @@ export default {
             kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
+          drainBeforeDelete: true
         },
       };
 
@@ -2555,7 +2557,7 @@ export default {
             v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')"
             color="warning"
           >
-            {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
+            {{ t('cluster.rke2.drain.deleteEmptyDir.warning', {}, true) }}
           </Banner>
           <div class="row">
             <div class="col span-6">
