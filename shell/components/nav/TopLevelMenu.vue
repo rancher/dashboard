@@ -17,7 +17,6 @@ import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 
 export default {
-
   components: {
     BrandImage,
     ClusterIconMenu,
@@ -30,23 +29,19 @@ export default {
     const hasProvCluster = this.$store.getters[`management/schemaFor`](CAPI.RANCHER_CLUSTER);
 
     return {
-      shown:               false,
+      shown:             false,
       displayVersion,
       fullVersion,
-      clusterFilter:       '',
+      clusterFilter:     '',
       hasProvCluster,
-      maxClustersToShow:   MENU_MAX_CLUSTERS,
-      emptyCluster:        BLANK_CLUSTER,
-      showPinClusters:     false,
-      searchActive:        false,
-      bannerStoreSettings: null,
-      bannerConfiguration: null,
+      maxClustersToShow: MENU_MAX_CLUSTERS,
+      emptyCluster:      BLANK_CLUSTER,
+      showPinClusters:   false,
+      searchActive:      false,
     };
   },
 
   fetch() {
-    this.bannerStoreSettings = this.fetchBannerSettings;
-
     if (this.hasProvCluster) {
       this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER });
     }
@@ -67,13 +62,21 @@ export default {
     fetchBannerSettings() {
       return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
     },
+    bannerConfiguration() {
+      const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+      const bannerSettings = settings.find((s) => s.id === SETTING.BANNERS);
 
-    dynamicAppBarMargins() {
-      const calcMargins = (val) => {
-        return val === 'true' ? '28px' : '0px';
-      };
+      if (bannerSettings) {
+        const parsed = JSON.parse(bannerSettings.value);
+        const { showHeader, showFooter } = parsed;
 
-      return { marginTop: calcMargins(this.bannerConfiguration?.showHeader), marginBottom: calcMargins(this.bannerConfiguration?.showFooter) };
+        return {
+          showHeader: showHeader === 'true',
+          showFooter: showFooter === 'true',
+        };
+      }
+
+      return undefined;
     },
 
     legacyEnabled() {
@@ -259,20 +262,6 @@ export default {
   },
 
   methods: {
-    bannersStatus() {
-      this.bannerConfiguration = this.fetchBannerSettings;
-
-      if (this.bannerConfiguration) {
-        const parsed = JSON.parse(this.bannerConfiguration.value);
-        const { showHeader, showFooter } = parsed;
-
-        this.bannerConfiguration = {
-          showHeader,
-          showFooter,
-        };
-      }
-    },
-
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -327,8 +316,7 @@ export default {
       <div
         data-testid="side-menu"
         class="side-menu"
-        :class="{'menu-open': shown, 'menu-close':!shown}"
-        :style="{...dynamicAppBarMargins}"
+        :class="{'menu-open': shown, 'menu-close':!shown, 'bannerHeader' : bannerConfiguration.showHeader, 'bannerFooter' : bannerConfiguration.showFooter}"
         tabindex="-1"
       >
         <div class="title">
@@ -715,6 +703,14 @@ export default {
         height: 25px;
         fill: var(--header-btn-text);
       }
+    }
+
+    &.bannerHeader {
+      margin-top: 28px;
+    }
+
+    &.bannerFooter {
+      margin-bottom: 28px;
     }
 
     position: fixed;
