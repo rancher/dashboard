@@ -1672,6 +1672,11 @@ cluster:
     haveArgInfo: Configuration information is not available for the selected Kubernetes version.  The options available on this screen will be limited; you may want to use the YAML editor.
     deprecatedPsp: Pod Security Policies are deprecated as of Kubernetes v1.21, and have been removed in Kubernetes v1.25.
     removedPsp: Pod Security Policies have been removed in Kubernetes v1.25. Use Pod Security Admission instead.
+    machinePoolError: |-
+      {count, plural,
+        =1 { {pool_name}: The provided value for {fields} was not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
+        other { {pool_name}: The provided values for {fields} were not found in the list of expected values. This can happen with clusters provisioned outside of Rancher or when options for the provider have changed. }
+      }
   rkeTemplateUpgrade: Template revision {name} available for upgrade
 
   availabilityWarnings:

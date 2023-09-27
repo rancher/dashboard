@@ -43,7 +43,7 @@ export default {
       return metrics.map((metric) => {
         const metricValue = get(metric, camelCase(metric.type));
         const targetType = metricValue?.target?.type;
-        const currentMatch = findBy(currentMetrics, 'type', metric.type);
+        const currentMatch = findBy(currentMetrics, 'resource.name', metric.resource.name);
         const current = currentMatch ? get(currentMatch, `${ camelCase(metric.type) }.current`) : null;
         const currentMetricsKVs = [];
 
@@ -128,7 +128,7 @@ export default {
                 <label class="text-label">
                   <t k="hpa.metrics.headers.value" />:
                 </label>
-                <span>{{ metric.targetValue }}</span>
+                <span :data-testid="`resource-metrics-value-${metric.subRowContent.resourceName}`">{{ metric.targetValue }}</span>
               </div>
               <div v-if="metric.metricSource === 'Object'">
                 <div class="mb-5">
@@ -155,7 +155,7 @@ export default {
                   <label class="text-label">
                     <t k="hpa.metrics.headers.resource" />:
                   </label>
-                  <span>{{ metric.subRowContent.resourceName }}</span>
+                  <span :data-testid="`resource-metrics-name-${metric.subRowContent.resourceName}`">{{ metric.subRowContent.resourceName }}</span>
                 </div>
               </div>
             </div>
@@ -173,7 +173,7 @@ export default {
                     <label class="text-label">
                       {{ current.targetName }}:
                     </label>
-                    <span>{{ current.targetValue }}</span>
+                    <span :data-testid="`current-metrics-${current.targetName}-${metric.subRowContent.resourceName}`">{{ current.targetValue }}</span>
                   </div>
                 </div>
               </div>

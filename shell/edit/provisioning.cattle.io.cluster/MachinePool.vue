@@ -64,6 +64,11 @@ export default {
     busy: {
       type:    Boolean,
       default: false,
+    },
+
+    poolId: {
+      type:     String,
+      required: true,
     }
   },
 
@@ -108,7 +113,7 @@ export default {
     return {
       uuid: randomStr(),
 
-      unhealthyNodeTimeoutInteger: this.value.pool.unhealthyNodeTimeout ? parseDuration(this.value.pool.unhealthyNodeTimeout) : 0
+      unhealthyNodeTimeoutInteger: this.value.pool.unhealthyNodeTimeout ? parseDuration(this.value.pool.unhealthyNodeTimeout) : 0,
     };
   },
 
@@ -151,6 +156,9 @@ export default {
   },
 
   methods: {
+    emitError(e) {
+      this.$emit('error', e);
+    },
     async test() {
       if ( typeof this.$refs.configComponent?.test === 'function' ) {
         let errors = [];
@@ -260,9 +268,10 @@ export default {
       :provider="provider"
       :credential-id="credentialId"
       :pool-index="idx"
+      :pool-id="poolId"
       :machine-pools="machinePools"
       :busy="busy"
-      @error="e=>errors = e"
+      @error="emitError"
       @updateMachineCount="updateMachineCount"
       @expandAdvanced="expandAdvanced"
       @validationChanged="validationChanged"
