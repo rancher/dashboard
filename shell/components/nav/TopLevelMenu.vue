@@ -59,26 +59,24 @@ export default {
       },
     },
 
-    fetchBannerSettings() {
-      return this.$store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.BANNERS);
-    },
-    bannerConfiguration() {
+    globalBannerSettings() {
       const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
       const bannerSettings = settings.find((s) => s.id === SETTING.BANNERS);
 
       if (bannerSettings) {
         const parsed = JSON.parse(bannerSettings.value);
-        const { showHeader, showFooter } = parsed;
+        const {
+          showFooter, showHeader, bannerFooter, bannerHeader
+        } = parsed;
 
         return {
-          showHeader: showHeader === 'true',
-          showFooter: showFooter === 'true',
+          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeader.fontSize) : '0px',
+          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooter.fontSize) : '0px'
         };
       }
 
       return undefined;
     },
-
     legacyEnabled() {
       return this.features(LEGACY);
     },
@@ -246,11 +244,7 @@ export default {
   watch: {
     $route() {
       this.shown = false;
-    },
-
-    bannerStoreSettings() {
-      this.bannersStatus();
-    },
+    }
   },
 
   mounted() {
@@ -262,6 +256,19 @@ export default {
   },
 
   methods: {
+    /**
+     * Converts a pixel value to an em value based on the default font size.
+     * @param {number} elementFontSize - The font size of the element in pixels.
+     * @param {number} [defaultFontSize=14] - The default font size in pixels.
+     * @returns {string} The converted value in em units.
+     */
+    pxToEm(elementFontSize, defaultFontSize = 14) {
+      const lineHeightInPx = 2 * parseInt(elementFontSize);
+      const lineHeightInEm = lineHeightInPx / defaultFontSize;
+
+      return `${ lineHeightInEm }em`;
+    },
+
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -316,7 +323,11 @@ export default {
       <div
         data-testid="side-menu"
         class="side-menu"
-        :class="{'menu-open': shown, 'menu-close':!shown, 'bannerHeader' : bannerConfiguration.showHeader, 'bannerFooter' : bannerConfiguration.showFooter}"
+        :class="{'menu-open': shown, 'menu-close':!shown}"
+        :style="{'marginBottom':
+                   globalBannerSettings?.footerFont,
+                 'marginTop':
+                   globalBannerSettings?.headerFont}"
         tabindex="-1"
       >
         <div class="title">
@@ -705,13 +716,13 @@ export default {
       }
     }
 
-    &.bannerHeader {
-      margin-top: 28px;
-    }
+    // &.bannerHeader {
+    //   margin-top: $app-bar-height-with-global-banner;
+    // }
 
-    &.bannerFooter {
-      margin-bottom: 28px;
-    }
+    // &.bannerFooter {
+    //   margin-bottom: $app-bar-height-with-global-banner;
+    // }
 
     position: fixed;
     top: 0;
