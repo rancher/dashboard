@@ -5727,7 +5727,7 @@ validation:
         required: 'Port Rule [{position}] - Target Port is required'
   setting:
     serverUrl:
-      https: server-url must be https.
+      https: Server URL must be https.
       localhost: If the Server URL is internal to the Rancher server (e.g. localhost) the downstream clusters may not be able to communicate with Rancher.
       trailingForwardSlash: Server URL should not have a trailing forward slash.
       url: Server URL must be an URL.
