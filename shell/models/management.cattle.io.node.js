@@ -166,8 +166,15 @@ export default class MgmtNode extends HybridModel {
   }
 
   get canScaleDown() {
-    const isInOnlyPool = this.pool?.provisioningCluster?.pools?.length === 1;
     const isOnlyNode = this.pool?.nodes?.length === 1;
+    const isEtcdOrControlPlaneNode = this.pool?.spec?.etcd || this.pool?.spec?.controlPlane;
+
+    // Blocking etcd/controlPlane nodes to scale down to zero
+    if (isEtcdOrControlPlaneNode && isOnlyNode) {
+      return false;
+    }
+
+    const isInOnlyPool = this.pool?.provisioningCluster?.pools?.length === 1;
     const hasAction = this.norman?.actions?.scaledown;
 
     return hasAction && (!isInOnlyPool || !isOnlyNode);
