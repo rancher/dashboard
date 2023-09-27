@@ -102,7 +102,7 @@ export type Action = {
   icon?: string;
   multiple?: boolean;
   enabled?: Function | boolean;
-  invoke: (opts: ActionOpts, resources: any[]) => void | boolean | Promise<boolean>;
+  invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 
 /** Definition of a panel (options that can be passed when defining an extension panel enhancement) */
@@ -567,3 +567,8 @@ export interface IPlugin {
    */
   DSL(store: any, productName: string): DSLReturnType;
 }
+
+// Internal interface
+// Built-in extensions may use this, but external extensions should not, as this is subject to change
+// Defined as any for now
+export type IInternal = any;

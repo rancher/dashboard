@@ -49,6 +49,7 @@ export const UI_PLUGIN_CHART_ANNOTATIONS = {
   UI_VERSION:         'catalog.cattle.io/ui-version',
   EXTENSIONS_HOST:    'catalog.cattle.io/ui-extensions-host',
   DISPLAY_NAME:       'catalog.cattle.io/display-name',
+  HIDDEN_BUILTIN:     'catalog.cattle.io/ui-hidden-builtin',
 };
 
 // Extension catalog labels
