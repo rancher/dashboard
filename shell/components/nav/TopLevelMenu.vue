@@ -716,14 +716,6 @@ export default {
       }
     }
 
-    // &.bannerHeader {
-    //   margin-top: $app-bar-height-with-global-banner;
-    // }
-
-    // &.bannerFooter {
-    //   margin-bottom: $app-bar-height-with-global-banner;
-    // }
-
     position: fixed;
     top: 0;
     left: 0px;
