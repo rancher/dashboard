@@ -488,6 +488,9 @@ export default defineComponent({
     },
 
     async getLocations() {
+      if (!this.isNewOrUnprovisioned) {
+        return;
+      }
       this.loadingLocations = true;
       // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
       this.$set(this.config, 'resourceLocation', '');
@@ -540,7 +543,7 @@ export default defineComponent({
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
-        const res = getAKSVMSizes(this, azureCredentialSecret, resourceLocation, this.clusterId);
+        const res = await getAKSVMSizes(this, azureCredentialSecret, resourceLocation, this.clusterId);
 
         if (isArray(res)) {
           this.vmSizeOptions = res.sort();
@@ -566,7 +569,7 @@ export default defineComponent({
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
-        const res = getAKSVirtualNetworks(this, azureCredentialSecret, resourceLocation, this.clusterId);
+        const res = await getAKSVirtualNetworks(this, azureCredentialSecret, resourceLocation, this.clusterId);
 
         if (res && isArray(res)) {
           this.virtualNetworkOptions = res;
@@ -679,6 +682,7 @@ export default defineComponent({
     />
     <div
       v-if="hasCredential"
+      class="mt-10"
       data-testid="cruaks-form"
     >
       <div class="row mb-10">
