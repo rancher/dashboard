@@ -1,5 +1,5 @@
 import {
-  clone, get, getter, isEmpty, toDictionary
+  clone, get, getter, isEmpty, toDictionary, remove
 } from '@shell/utils/object';
 
 describe('fx: get', () => {
@@ -129,7 +129,7 @@ describe('fx: isEmpty', () => {
   });
 });
 
-describe('fX: toDictionary', () => {
+describe('fx: toDictionary', () => {
   it('should return a dictionary from an array', () => {
     const array = ['a', 'b', 'c'];
     const asd = (value: string) => value.toUpperCase();
@@ -140,5 +140,24 @@ describe('fX: toDictionary', () => {
     const result = toDictionary(array, asd);
 
     expect(result).toStrictEqual(expectation);
+  });
+});
+
+describe('fx: remove', () => {
+  it.each([
+    [{}, '', {}],
+    [{}, 'not_there', {}],
+    [{}, 'not.there.again', {}],
+    [{ level1: true }, 'level1', {}],
+    [{ level1: true }, 'not_there', { level1: true }],
+    [{ level1: { level2: true } }, 'level1.level2', { level1: { } }],
+    [{ level1: { level2: true, other: true } }, 'level1.level2', { level1: { other: true } }],
+    [{ level1: { level2: true }, other: true }, 'level1.level2', { level1: { }, other: true }],
+    [{ level1: { level2: true }, other: true }, 'not_there.level1.level2', { level1: { level2: true }, other: true }],
+    [{ level1: { level2: true }, other: true }, 'level1', { other: true }],
+  ])('should evaluate %p as %p', (obj, path, expected) => {
+    const result = remove(obj, path);
+
+    expect(result).toStrictEqual(expected);
   });
 });
