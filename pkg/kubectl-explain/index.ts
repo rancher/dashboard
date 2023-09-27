@@ -14,7 +14,7 @@ export default function(plugin: IPlugin, internal: IInternal): void {
 
   plugin.addAction(ActionLocation.HEADER, {
     resource: ['*'],
-    product: [
+    product:  [
       'explorer',
       'apps',
       'istio',
