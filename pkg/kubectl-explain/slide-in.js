@@ -17,7 +17,7 @@ let slideInPanel;
 export async function explain(store, route) {
   const typeName = route.params?.resource;
   const schema = typeName ? store.getters[`cluster/schemaFor`](typeName) : undefined;
-  const cluster = store.getters['currentCluster'];
+  const cluster = store.getters['currentCluster'] || 'local';
 
   // Create slide-in panel, if this is the first-time it is being shown
   if (!slideInPanel) {
