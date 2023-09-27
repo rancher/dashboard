@@ -6,7 +6,8 @@ describe('component: PodsUsage', () => {
     const wrapper = mount(PodsUsage, {
       propsData: {
         row: {
-          mgmt: {
+          isReady: true,
+          mgmt:    {
             status: {
               requested:   { pods: 10 },
               allocatable: { pods: 20 }
@@ -17,7 +18,7 @@ describe('component: PodsUsage', () => {
       mocks: { $store: { dispatch: { 'management/request': jest.fn() } } }
     });
 
-    const element = wrapper.find('p').element;
+    const { element } = wrapper.find('p');
 
     expect(element.textContent).toBeDefined();
     expect(element.textContent).toBe('10/20');
@@ -26,7 +27,8 @@ describe('component: PodsUsage', () => {
     const wrapper = mount(PodsUsage, {
       propsData: {
         row: {
-          mgmt: {
+          isReady: true,
+          mgmt:    {
             status: {
               requested:   { pods: 10 },
               allocatable: { pods: 0 }
@@ -37,7 +39,15 @@ describe('component: PodsUsage', () => {
       mocks: { $store: { dispatch: { 'management/request': jest.fn() } } }
     });
 
-    const element = wrapper.find('p').element;
+    const { element } = wrapper.find('p');
+
+    expect(element.textContent).toBeDefined();
+    expect(element.textContent).toBe('—');
+  });
+  it('should display a dash when there is no management cluster ti query for status', () => {
+    const wrapper = mount(PodsUsage, { propsData: { row: { isReady: true } } });
+
+    const { element } = wrapper.find('p');
 
     expect(element.textContent).toBeDefined();
     expect(element.textContent).toBe('—');
