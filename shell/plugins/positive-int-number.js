@@ -1,16 +1,13 @@
 import Vue from 'vue';
 
-export default Vue.directive('intNumber', {
+export default Vue.directive('positiveIntNumber', {
   inserted(el) {
     el.addEventListener('keypress', (e) => {
       e = e || window.event;
       const charcode = typeof e.charCode === 'number' ? e.charCode : e.keyCode;
-      const inputChar = String.fromCharCode(charcode);
+      const re = /^\d+$/; // Use regex to match positive numbers
 
-      // Allow digits, minus sign at the beginning, and Ctrl key combinations
-      const re = /^-?\d*$/;
-
-      if (!re.test(inputChar) && charcode > 9 && !e.ctrlKey) {
+      if (!re.test(String.fromCharCode(charcode)) && charcode > 9 && !e.ctrlKey) {
         if (e.preventDefault) {
           e.preventDefault();
         } else {
