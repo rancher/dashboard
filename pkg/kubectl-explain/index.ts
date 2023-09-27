@@ -12,7 +12,16 @@ export default function(plugin: IPlugin, internal: IInternal): void {
 
   const store = internal.store;
 
-  plugin.addAction(ActionLocation.HEADER, { resource: ['*'] }, {
+  plugin.addAction(ActionLocation.HEADER, {
+    resource: ['*'],
+    product: [
+      'explorer',
+      'apps',
+      'istio',
+      'monitoring',
+      'logging',
+    ]
+  }, {
     labelKey:   'kubectl-explain.action',
     tooltipKey: 'kubectl-explain.tooltip',
     svg:        require('./explain.svg'),

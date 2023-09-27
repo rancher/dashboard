@@ -3,6 +3,8 @@ import ExplainPanel from './ExplainPanel';
 import { KEY } from '@shell/utils/platform';
 import { expandOpenAPIDefinition, getOpenAPISchemaName, makeOpenAPIBreadcrumb } from '../open-api-utils.ts';
 
+const HEADER_HEIGHT = 55;
+
 export default {
   components: { ExplainPanel },
 
@@ -34,6 +36,23 @@ export default {
       noResource:     false,
       notFound:       false,
     };
+  },
+
+  computed: {
+    top() {
+      const banner = document.getElementById('banner-header');
+      let height = HEADER_HEIGHT;
+
+      if (banner) {
+        height += banner.clientHeight;
+      }
+
+      return `${ height }px`;
+    },
+
+    height() {
+      return `calc(100vh - ${ this.top })`;
+    }
   },
 
   methods: {
@@ -167,7 +186,7 @@ export default {
     <div
       class="slide-in"
       :class="{ 'slide-in-open': isOpen }"
-      :style="{ width, right }"
+      :style="{ width, right, top, height }"
     >
       <div
         ref="resizer"
@@ -274,7 +293,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $header-height: 55px;
   $slidein-width: 33%;
 
   .panel-resizer {
@@ -379,8 +397,6 @@ export default {
     position: fixed;
     top: 0;
     z-index: 2000;
-    top: $header-height;
-    height: calc(100vh - $header-height);
     width: $slidein-width;
     background-color: var(--body-bg);
     right: -$slidein-width;
