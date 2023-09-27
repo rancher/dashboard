@@ -393,6 +393,18 @@ describe('formRules', () => {
     expect(formRuleResult).toStrictEqual(expectedResult);
   });
 
+  it('"roleTemplateRules" : returns correct message when type is RBAC role rule defines both resources and nonResourceURLs', () => {
+    const testValue: [{}] = [
+      {
+        verbs: ['verb1'], resources: ['resource1'], apiGroups: ['apiGroup1'], nonResourceURLs: ['nonResourceUrl1']
+      }
+    ];
+    const formRuleResult = formRules.roleTemplateRules('rbac.authorization.k8s.io.role')(testValue);
+    const expectedResult = JSON.stringify({ message: 'validation.roleTemplate.roleTemplateRules.noResourceAndNonResource' });
+
+    expect(formRuleResult).toStrictEqual(expectedResult);
+  });
+
   it('"roleTemplateRules" : returns correct message when type is RBAC role and value is missing apiGroups', () => {
     const testValue: [{}] = [
       {
@@ -408,7 +420,7 @@ describe('formRules', () => {
   it('"roleTemplateRules" : returns undefined when type is not RBAC role and value contains valid rules', () => {
     const testValue: [{}] = [
       {
-        verbs: ['verb1'], nonResourceURLs: ['nonResourceURL1'], resources: ['resource1'], apiGroups: ['apiGroup1']
+        verbs: ['verb1'], resources: ['resource1'], apiGroups: ['apiGroup1']
       }
     ];
     const formRuleResult = formRules.roleTemplateRules('nonrbactype')(testValue);
