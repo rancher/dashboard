@@ -2,8 +2,9 @@ import Questions from '@shell/components/Questions';
 import { mount } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 const defaultStubs = {
-  Tab:    true,
-  Tabbed: true,
+  Tab:        true,
+  Tabbed:     true,
+  CodeMirror: true
 };
 const defaultGetters = {
   currentStore:           () => 'current_store',

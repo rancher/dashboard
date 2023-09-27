@@ -8,7 +8,8 @@ describe('component: KeyValue', () => {
     const wrapper = mount(KeyValue, {
       propsData:  { value: { value } },
       mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
-      directives: { t }
+      directives: { t },
+      stubs:      { CodeMirror: true }
     });
 
     const inputValue = wrapper.find('textarea').element as HTMLInputElement;
@@ -24,7 +25,8 @@ describe('component: KeyValue', () => {
         valueMarkdownMultiline: true,
       },
       mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
-      directives: { t }
+      directives: { t },
+      stubs:      { CodeMirror: true }
     });
 
     const inputFieldTextArea = wrapper.find('textarea').element;
@@ -41,7 +43,8 @@ describe('component: KeyValue', () => {
         valueMarkdownMultiline: false,
       },
       mocks:      { $store: { getters: { 'i18n/t': jest.fn() } } },
-      directives: { t }
+      directives: { t },
+      stubs:      { CodeMirror: true }
     });
 
     const inputFieldTextArea = wrapper.find('[data-testid="text-area-auto-grow"]');

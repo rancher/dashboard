@@ -82,7 +82,7 @@ export default {
     },
 
     enableRowActions() {
-      const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.SETTING);
+      const schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.FEATURE);
 
       return schema?.resourceMethods?.includes('PUT');
     },
