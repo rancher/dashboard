@@ -26,7 +26,7 @@ const DEFAULT_LINKS = [
   },
   {
     key:     'getStarted',
-    value:   '/docs/getting-started',
+    value:   'https://ranchermanager.docs.rancher.com/getting-started/overview',
     enabled: true,
   },
 ];
