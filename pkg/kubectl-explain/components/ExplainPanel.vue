@@ -195,7 +195,7 @@ export default {
 
 <style lang="scss" scoped>
   .main {
-    overflow: scroll;
+    overflow: auto;
   }
 
   .embedded {
