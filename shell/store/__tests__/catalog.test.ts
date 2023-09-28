@@ -64,6 +64,11 @@ describe('getters', () => {
               'catalog.cattle.io/ui-source-repo':      'repoName'
             }
           }
+        },
+        {
+          metadata: { name: 'chartName' },
+          repoType: 'repoType',
+          repoName: 'repoName',
         }
       ])('given chart with same name %p', (chart) => {
         const chart1 = {

@@ -107,6 +107,8 @@ export const getters = {
         chartName = chart.metadata?.name;
         preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
         preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
+        repoType = chart.repoType;
+        repoName = chart.repoName;
       }
 
       // Get data as key of the retrieved Charts (currently same as ID)
