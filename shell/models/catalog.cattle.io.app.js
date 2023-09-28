@@ -76,7 +76,7 @@ export default class CatalogApp extends SteveModel {
     const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
     const currentChartVersion = this.spec?.chart?.metadata?.version;
     const versions = !showPreRelease
-      ? matchingChart.versions.filter((v) => !isPrerelease(v.version))
+      ? matchingChart.versions?.filter((v) => !isPrerelease(v.version))
       : compatibleVersionsFor(matchingChart, workerOSs, showPreRelease);
     const newChartVersion = versions?.[0]?.version;
     const isOlder = compare(currentChartVersion, newChartVersion) < 0;
