@@ -327,10 +327,13 @@ export default {
 
     async showPreviewYaml() {
       if ( this.applyHooks ) {
-        await this.applyHooks(
-          BEFORE_SAVE_HOOKS,
-          CONTEXT_HOOK_EDIT_YAML,
-        );
+        try {
+          await this.applyHooks(BEFORE_SAVE_HOOKS, CONTEXT_HOOK_EDIT_YAML);
+        } catch (e) {
+          console.warn('Unablet to show yaml: ', e); // eslint-disable-line no-console
+
+          return;
+        }
       }
 
       const resourceYaml = this.createResourceYaml(this.yamlModifiers);

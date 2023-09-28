@@ -864,7 +864,7 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
@@ -1235,7 +1235,23 @@ export default {
 
     async saveMachinePools(hookContext) {
       if (hookContext === CONTEXT_HOOK_EDIT_YAML) {
-        return;
+        await new Promise((resolve, reject) => {
+          this.$store.dispatch('cluster/promptModal', {
+            component:      'GenericPrompt',
+            componentProps: {
+              title:     this.t('cluster.rke2.modal.editYamlMachinePool.title'),
+              body:      this.t('cluster.rke2.modal.editYamlMachinePool.body'),
+              applyMode: 'editAndContinue',
+              confirm:   (confirmed) => {
+                if (confirmed) {
+                  resolve();
+                } else {
+                  reject(new Error('User Cancelled'));
+                }
+              }
+            },
+          });
+        });
       }
 
       const finalPools = [];
