@@ -79,8 +79,8 @@ describe('Support Page', () => {
 
     it('can click on Get Started link', () => {
     // click Get Started link
-      supportPage.clickSupportLink(4);
-      cy.url().should('include', 'docs/getting-started');
+      supportPage.clickSupportLink(4, true);
+      cy.url().should('include', 'ranchermanager.docs.rancher.com/getting-started/overview');
     });
   });
 });
