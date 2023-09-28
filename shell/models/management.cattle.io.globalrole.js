@@ -144,7 +144,7 @@ export default class GlobalRole extends SteveDescriptionModel {
     const norman = await this.norman;
 
     for (const rule of norman.rules) {
-      if (rule.nonResourceURLs.length) {
+      if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
         delete rule.resources;
         delete rule.apiGroups;
       } else {
