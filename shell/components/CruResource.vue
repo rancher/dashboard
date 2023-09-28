@@ -17,6 +17,8 @@ import {
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
 
+export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
+
 export default {
 
   name: 'CruResource',
@@ -324,7 +326,13 @@ export default {
 
     async showPreviewYaml() {
       if ( this.applyHooks ) {
-        await this.applyHooks(BEFORE_SAVE_HOOKS);
+        try {
+          await this.applyHooks(BEFORE_SAVE_HOOKS, CONTEXT_HOOK_EDIT_YAML);
+        } catch (e) {
+          console.warn('Unablet to show yaml: ', e); // eslint-disable-line no-console
+
+          return;
+        }
       }
 
       const resourceYaml = this.createResourceYaml(this.yamlModifiers);
