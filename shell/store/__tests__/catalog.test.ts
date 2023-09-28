@@ -2,6 +2,12 @@ import { getters } from '../catalog';
 
 describe('getters', () => {
   describe('chart', () => {
+    it('should return nothing if no parameter is passed', () => {
+      const result = (getters.chart as any)({}, {})({});
+
+      expect(result).toBeUndefined();
+    });
+
     describe('should return latest version of matching chart for', () => {
       it('given parameters', () => {
         const options = {
