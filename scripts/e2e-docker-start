@@ -14,7 +14,7 @@ docker run -d --restart=unless-stopped -p 80:80 -p 443:443 \
   -e CATTLE_PASSWORD_MIN_LENGTH=3 \
   --name cypress \
   --privileged \
-  rancher/rancher:v2.7-head
+  rancher/rancher:v2.8-head
 
 docker ps
 
