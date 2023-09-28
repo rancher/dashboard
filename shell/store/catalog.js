@@ -94,19 +94,31 @@ export const getters = {
     return sortBy(out, ['certifiedSort', 'repoName', 'chartName']);
   },
 
+  /**
+   * Returns matching chart for given parameters
+   * @returns
+   */
   chart(state, getters) {
     return ({
-      key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
+      chart, key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
     }) => {
-      if ( key && !repoType && !repoName && !chartName) {
-        const parsed = parseKey(key);
-
-        repoType = parsed.repoType;
-        repoName = parsed.repoName;
-        chartName = parsed.chartName;
+      // Get data from the Chart
+      if ( chart && !key && !repoType && !repoName && !chartName) {
+        chartName = chart.metadata?.name;
+        preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
+        preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
       }
 
-      let matching = filterBy(getters.charts, {
+      // Get data as key of the retrieved Charts (currently same as ID)
+      if ( key && !repoType && !repoName && !chartName) {
+        const keyParts = key.split('/');
+
+        repoType = keyParts[0];
+        repoName = keyParts[1];
+        chartName = keyParts[2];
+      }
+
+      let matchingCharts = filterBy(getters.charts, {
         repoType,
         repoName,
         chartName,
@@ -114,18 +126,18 @@ export const getters = {
       });
 
       if ( includeHidden === false ) {
-        matching = matching.filter((x) => !x.hidden);
+        matchingCharts = matchingCharts.filter((x) => !x.hidden);
       }
 
-      if ( !matching.length ) {
+      if ( !matchingCharts.length ) {
         return;
       }
 
       if ( preferRepoType && preferRepoName ) {
-        preferSameRepo(matching, preferRepoType, preferRepoName);
+        preferSameRepo(matchingCharts, preferRepoType, preferRepoName);
       }
 
-      return matching[0];
+      return matchingCharts[0];
     };
   },
 
@@ -451,16 +463,6 @@ export const actions = {
 
 export function generateKey(repoType, repoName, chartName) {
   return `${ repoType }/${ repoName }/${ chartName }`;
-}
-
-export function parseKey(key) {
-  const parts = key.split('/');
-
-  return {
-    repoType:  parts[0],
-    repoName:  parts[1],
-    chartName: parts[2],
-  };
 }
 
 function addChart(ctx, map, chart, repo) {

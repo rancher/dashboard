@@ -41,23 +41,10 @@ export default class CatalogApp extends SteveModel {
   }
 
   matchingChart(includeHidden) {
-    const chart = this.spec?.chart;
-
-    if ( !chart ) {
-      return;
-    }
-
-    const chartName = chart.metadata?.name;
-    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
-    const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
-    const match = this.$rootGetters['catalog/chart']({
-      chartName,
-      preferRepoType,
-      preferRepoName,
+    return this.$rootGetters['catalog/chart']({
+      chart: this.spec?.chart,
       includeHidden
     });
-
-    return match;
   }
 
   get currentVersion() {
@@ -68,7 +55,7 @@ export default class CatalogApp extends SteveModel {
    * Return possible upgrades
    * false = does not apply (managed by fleet)
    * null = no upgrade found
-   * object = version available to upgrade to
+   * string = version available to upgrade to
    */
   get upgradeAvailable() {
     // Things managed by fleet shouldn't show upgrade available even if there might be.
@@ -79,9 +66,9 @@ export default class CatalogApp extends SteveModel {
       return false;
     }
 
-    const chart = this.matchingChart(false);
+    const matchingChart = this.matchingChart(false);
 
-    if ( !chart ) {
+    if ( !matchingChart ) {
       return null;
     }
 
@@ -89,15 +76,9 @@ export default class CatalogApp extends SteveModel {
     const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
     const currentChartVersion = this.spec?.chart?.metadata?.version;
     const versions = !showPreRelease
-      ? chart.versions.filter((v) => !isPrerelease(v.version))
-      : compatibleVersionsFor(chart, workerOSs, showPreRelease);
-
+      ? matchingChart.versions.filter((v) => !isPrerelease(v.version))
+      : compatibleVersionsFor(matchingChart, workerOSs, showPreRelease);
     const newChartVersion = versions?.[0]?.version;
-
-    if ( !currentChartVersion || !newChartVersion ) {
-      return null;
-    }
-
     const isOlder = compare(currentChartVersion, newChartVersion) < 0;
 
     if ( isOlder ) {
