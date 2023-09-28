@@ -21,6 +21,10 @@ export function sortable(str) {
 }
 
 export function compare(in1, in2) {
+  if (in1 === undefined && in2 === undefined) {
+    return null;
+  }
+
   if ( !in1 ) {
     return 1;
   }
