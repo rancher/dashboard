@@ -43,7 +43,7 @@ export default class CRTB extends HybridModel {
 
   get principalId() {
     // We've either set it ourselves or it's comes from native properties
-    return this.principalName || this.userPrincipalName || this.groupPrincipalName;
+    return this.principalName || this.userPrincipalName || this.groupPrincipalName || '';
   }
 
   get nameDisplay() {
@@ -117,12 +117,12 @@ export default class CRTB extends HybridModel {
   get norman() {
     return (async() => {
       const principal = await this.principal;
-      const principalProperty = principal.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
+      const principalProperty = principal?.principalType === 'group' ? 'groupPrincipalId' : 'userPrincipalId';
 
       return this.$dispatch(`rancher/create`, {
         type:                NORMAN.CLUSTER_ROLE_TEMPLATE_BINDING,
         roleTemplateId:      this.roleTemplateName,
-        [principalProperty]: principal.id,
+        [principalProperty]: principal?.id,
         clusterId:           this.clusterName,
         id:                  this.id?.replace('/', ':')
       }, { root: true });
