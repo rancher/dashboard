@@ -17,7 +17,6 @@ import { isRancherPrime } from '@shell/config/version';
 import Pinned from '@shell/components/nav/Pinned';
 
 export default {
-
   components: {
     BrandImage,
     ClusterIconMenu,
@@ -38,7 +37,7 @@ export default {
       maxClustersToShow: MENU_MAX_CLUSTERS,
       emptyCluster:      BLANK_CLUSTER,
       showPinClusters:   false,
-      searchActive:      false
+      searchActive:      false,
     };
   },
 
@@ -60,6 +59,24 @@ export default {
       },
     },
 
+    globalBannerSettings() {
+      const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
+      const bannerSettings = settings.find((s) => s.id === SETTING.BANNERS);
+
+      if (bannerSettings) {
+        const parsed = JSON.parse(bannerSettings.value);
+        const {
+          showFooter, showHeader, bannerFooter, bannerHeader
+        } = parsed;
+
+        return {
+          headerFont: showHeader === 'true' ? this.pxToEm(bannerHeader.fontSize) : '0px',
+          footerFont: showFooter === 'true' ? this.pxToEm(bannerFooter.fontSize) : '0px'
+        };
+      }
+
+      return undefined;
+    },
     legacyEnabled() {
       return this.features(LEGACY);
     },
@@ -239,6 +256,19 @@ export default {
   },
 
   methods: {
+    /**
+     * Converts a pixel value to an em value based on the default font size.
+     * @param {number} elementFontSize - The font size of the element in pixels.
+     * @param {number} [defaultFontSize=14] - The default font size in pixels.
+     * @returns {string} The converted value in em units.
+     */
+    pxToEm(elementFontSize, defaultFontSize = 14) {
+      const lineHeightInPx = 2 * parseInt(elementFontSize);
+      const lineHeightInEm = lineHeightInPx / defaultFontSize;
+
+      return `${ lineHeightInEm }em`;
+    },
+
     handler(e) {
       if (e.keyCode === KEY.ESCAPE ) {
         this.hide();
@@ -294,6 +324,10 @@ export default {
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
+        :style="{'marginBottom':
+                   globalBannerSettings?.footerFont,
+                 'marginTop':
+                   globalBannerSettings?.headerFont}"
         tabindex="-1"
       >
         <div class="title">
@@ -663,25 +697,25 @@ export default {
   $option-padding-left: 14px;
   $option-height: $icon-size + $option-padding + $option-padding;
 
-  .menu {
-    position: absolute;
-    width: $app-bar-collapsed-width;
-    height: 54px;
-    top: 0;
-    grid-area: menu;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .menu-icon {
-      width: 25px;
-      height: 25px;
-      fill: var(--header-btn-text);
-    }
-  }
-
   .side-menu {
+    .menu {
+      position: absolute;
+      width: $app-bar-collapsed-width;
+      height: 54px;
+      top: 0;
+      grid-area: menu;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .menu-icon {
+        width: 25px;
+        height: 25px;
+        fill: var(--header-btn-text);
+      }
+    }
+
     position: fixed;
     top: 0;
     left: 0px;
