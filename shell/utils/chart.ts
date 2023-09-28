@@ -2,7 +2,7 @@ import difference from 'lodash/difference';
 import { isArray } from '@shell/utils/array';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { LINUX } from '@shell/config/os';
-import { isPrerelease } from 'utils/version';
+import { isPrerelease } from '@shell/utils/version';
 import { ensureRegex } from '@shell/utils/string';
 import { sortBy } from '@shell/utils/sort';
 import { IChart, IChartVersions, IChartOptions } from 'types/catalog';
