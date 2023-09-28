@@ -33,7 +33,7 @@ export const settings = {
     new:      'false'
   },
   'kubeconfig-default-token-ttl-minutes': {
-    original: '0',
+    original: '43200',
     new:      '100'
   },
   'auth-user-info-resync-cron': {
