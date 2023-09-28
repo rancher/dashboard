@@ -170,6 +170,12 @@ export default {
         v-model="worker"
         label-key="model.machine.role.worker"
       />
+      <Banner
+        v-if="!etcd || !controlPlane || !worker"
+        data-testid="node-role-warning"
+        color="warning"
+        :label="t('cluster.custom.nodeRole.warning')"
+      />
     </InfoBox>
 
     <InfoBox
