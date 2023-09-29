@@ -2,6 +2,7 @@
 import Select from '@shell/components/form/Select';
 import UnitInput from '@shell/components/form/UnitInput';
 import { ROW_COMPUTED } from './shared';
+import Vue from 'vue';
 
 export default {
   components: { Select, UnitInput },
@@ -57,10 +58,10 @@ export default {
 
     updateQuotaLimit(prop, type, val) {
       if (!this.value.spec[prop]) {
-        this.value.spec[prop] = { limit: { } };
+        Vue.set(this.value.spec, prop, { limit: { } });
       }
 
-      this.value.spec[prop].limit[type] = val;
+      Vue.set(this.value.spec[prop].limit, type, val);
     }
   },
 };
@@ -75,6 +76,7 @@ export default {
       :mode="mode"
       :value="type"
       :options="types"
+      data-testid="projectrow-type-input"
       @input="updateType($event)"
     />
     <UnitInput
@@ -86,6 +88,7 @@ export default {
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
+      data-testid="projectrow-project-quota-input"
       @input="updateQuotaLimit('resourceQuota', type, $event)"
     />
     <UnitInput
@@ -96,6 +99,7 @@ export default {
       :input-exponent="typeOption.inputExponent"
       :base-unit="typeOption.baseUnit"
       :output-modifier="true"
+      data-testid="projectrow-namespace-quota-input"
       @input="updateQuotaLimit('namespaceDefaultResourceQuota', type, $event)"
     />
   </div>
