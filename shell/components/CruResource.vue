@@ -330,7 +330,7 @@ export default {
         try {
           await this.applyHooks(BEFORE_SAVE_HOOKS, CONTEXT_HOOK_EDIT_YAML);
         } catch (e) {
-          console.warn('Unablet to show yaml: ', e); // eslint-disable-line no-console
+          console.warn('Unable to show yaml: ', e); // eslint-disable-line no-console
 
           return;
         }
