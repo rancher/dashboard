@@ -86,7 +86,7 @@ export default class FleetCluster extends SteveModel {
       return false;
     }
     // https://github.com/rancher/dashboard/issues/9730
-    if (this.isRKE2) {
+    if (this.isRke2) {
       return this.$rootGetters['features/get'](FLEET_WORKSPACE_BACK);
     }
 

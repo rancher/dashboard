@@ -105,7 +105,7 @@ export default {
       }
 
       return kubeClusters.map((x) => {
-        const pCluster = pClusters?.find((c) => c.mgmt.id === x.id);
+        const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
 
         return {
           id:              x.id,
