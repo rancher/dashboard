@@ -1,6 +1,7 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-
+import ClusterBadgePo from '@/cypress/e2e/po/components/cluster-badge.po';
+import EventsListPo from '@/cypress/e2e/po/lists/events-list.po';
 export default class ClusterDashboardPagePo extends PagePo {
   private static createPath(clusterId: string) {
     return `/c/${ clusterId }/explorer`;
@@ -23,5 +24,21 @@ export default class ClusterDashboardPagePo extends PagePo {
 
   clusterToolsButton(): Cypress.Chainable {
     return cy.get('.tools-button').contains('Cluster Tools');
+  }
+
+  addClusterBadge(label: string) {
+    return cy.getId('add-custom-cluster-badge').contains(label);
+  }
+
+  clusterBadge(): ClusterBadgePo {
+    return new ClusterBadgePo();
+  }
+
+  eventslist(): EventsListPo {
+    return new EventsListPo('[data-testid="cluster-list-container"]');
+  }
+
+  fullEventsLink() {
+    return cy.get('.events-table-link').contains('Full events list');
   }
 }
