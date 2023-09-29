@@ -82,9 +82,13 @@ export default class FleetCluster extends SteveModel {
 
   get canChangeWorkspace() {
     // https://github.com/rancher/dashboard/issues/7745
-    if (this.isLocal) return false;
+    if (this.isLocal) {
+      return false;
+    }
     // https://github.com/rancher/dashboard/issues/9730
-    if (this.isRKE2) return this.$rootGetters['features/get'](FLEET_WORKSPACE_BACK);
+    if (this.isRKE2) {
+      return this.$rootGetters['features/get'](FLEET_WORKSPACE_BACK);
+    }
 
     return true;
   }
