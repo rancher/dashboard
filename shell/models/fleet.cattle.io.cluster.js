@@ -5,6 +5,7 @@ import SteveModel from '@shell/plugins/steve/steve-class';
 import { escapeHtml } from '@shell/utils/string';
 import { insertAt } from '@shell/utils/array';
 import jsyaml from 'js-yaml';
+import { FLEET_WORKSPACE_BACK } from '@shell/store/features';
 
 export default class FleetCluster extends SteveModel {
   get _availableActions() {
@@ -80,7 +81,12 @@ export default class FleetCluster extends SteveModel {
   }
 
   get canChangeWorkspace() {
-    return !this.isRke2 && !this.isLocal;
+    // https://github.com/rancher/dashboard/issues/7745
+    if (this.isLocal) return false;
+    // https://github.com/rancher/dashboard/issues/9730
+    if (this.isRKE2) return this.$rootGetters['features/get'](FLEET_WORKSPACE_BACK);
+
+    return true;
   }
 
   get isLocal() {
