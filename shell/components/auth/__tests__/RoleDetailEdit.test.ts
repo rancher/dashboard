@@ -1,7 +1,6 @@
 import { mount } from '@vue/test-utils';
 import RoleDetailEdit from '@shell/components/auth/RoleDetailEdit.vue';
 import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
-import jestConfig from '~/jest.config';
 
 const role = {
   apiVersion:            'management.cattle.io/v3',
