@@ -100,7 +100,11 @@ export const getters = {
    */
   chart(state, getters) {
     return ({
-      chart, key, repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
+      chart, // to extract parameters
+      key, // filtering mode 1
+      repoType, repoName, chartName, // filtering mode 2
+      preferRepoType, preferRepoName, // sorting
+      includeHidden
     }) => {
       // Get data from the Chart
       if ( chart && !key && !repoType && !repoName && !chartName) {
@@ -109,6 +113,11 @@ export const getters = {
         preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
         repoType = chart.repoType;
         repoName = chart.repoName;
+      }
+
+      // Return nothing if cannot filter the charts, to avoid mismatches
+      if (!(key || (repoType && repoName && chartName))) {
+        return;
       }
 
       // Get data as key of the retrieved Charts (currently same as ID)
@@ -135,6 +144,7 @@ export const getters = {
         return;
       }
 
+      // Sorting by preference
       if ( preferRepoType && preferRepoName ) {
         preferSameRepo(matchingCharts, preferRepoType, preferRepoName);
       }

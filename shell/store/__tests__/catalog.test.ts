@@ -2,10 +2,37 @@ import { getters } from '../catalog';
 
 describe('getters', () => {
   describe('chart', () => {
-    it('should return nothing if no parameter is passed', () => {
-      const result = (getters.chart as any)({}, {})({});
+    describe('should return nothing and avoid mismatches', () => {
+      it('if no parameter is passed', () => {
+        const result = (getters.chart as any)({}, {})({});
 
-      expect(result).toBeUndefined();
+        expect(result).toBeUndefined();
+      });
+
+      it.each([
+        {
+          repoType:  'repoType',
+          repoName:  'repoName',
+          chartName: undefined,
+        },
+        {
+          repoType:  undefined,
+          repoName:  'repoName',
+          chartName: 'chartName',
+        },
+        {
+          repoType:  'repoType',
+          repoName:  undefined,
+          chartName: 'chartName',
+        },
+      ])('if missing arguments for filtering', (options) => {
+        const result = (getters.chart as any)({}, {})({
+          key: undefined,
+          ...options
+        });
+
+        expect(result).toBeUndefined();
+      });
     });
 
     describe('should return latest version of matching chart for', () => {
@@ -56,15 +83,6 @@ describe('getters', () => {
       });
 
       it.each([
-        {
-          metadata: {
-            name:        'chartName',
-            annotations: {
-              'catalog.cattle.io/ui-source-repo-type': 'repoType',
-              'catalog.cattle.io/ui-source-repo':      'repoName'
-            }
-          }
-        },
         {
           metadata: { name: 'chartName' },
           repoType: 'repoType',
