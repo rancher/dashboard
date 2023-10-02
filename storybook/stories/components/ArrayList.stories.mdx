@@ -7,10 +7,25 @@ import { _EDIT, _VIEW } from "@shell/config/query-params";
   component={ArrayList}
 />
 
+export const slots = [
+  ['titleSlot', 'title'],
+  ['columnHeadersSlot', 'column-headers'],
+  ['columnsSlot', 'columns'],
+  ['valueSlot', 'value'],
+  ['removeButtonSlot', 'remove-button'],
+  ['emptySlot', 'empty'],
+  ['addSlot', 'add'],
+];
+
+export const textSlotArea = (text) => `<div style="background: red; color: white">${text}</div>`;
+export const getSlots = (list, args) => list.map(([key, name]) => `<template v-if="${key in args}" v-slot:${name}>${args[key]}</template>`).join('\n')
+
 export const Template = (args, { argTypes }) => ({
   components: { ArrayList },
   props:      Object.keys(argTypes),
-  template:   '<ArrayList v-bind="$props" />',
+  template:   `<ArrayList v-bind="$props">
+                  ${getSlots(slots, args)}
+  </ArrayList>`,
 })
 
 # ArrayList
@@ -106,6 +121,7 @@ Add a label to the input. Custom value is set with `valueLabel`.
 </Canvas>
 
 ## Read-only Mode
+
 <Canvas>
   <Story
     name="Disabled"
@@ -120,6 +136,7 @@ Add a label to the input. Custom value is set with `valueLabel`.
 </Canvas>
 
 ## Disable add/remove buttons
+
 <Canvas>
   <Story
     name="Disable add/remove buttons"
@@ -133,6 +150,7 @@ Add a label to the input. Custom value is set with `valueLabel`.
 </Canvas>
 
 ## Custom buttons text
+
 <Canvas>
   <Story
     name="Custom buttons text"
@@ -187,6 +205,108 @@ Allow to automatically add default values on new rows.
     {Template.bind({})}
   </Story>
 </Canvas>
+
+## Slots
+
+### Title Slot
+
+Customize title for complex cases. It requires `title` and will replace its content.
+
+<Canvas>
+  <Story
+    name="Title Slot"
+    args={{
+      title: 'Anything',
+      titleSlot: textSlotArea(`Title`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Column Headers Slot
+
+Customize headers for complex cases. It requires `showHeader` prop to be set to `true`.
+
+<Canvas>
+  <Story
+    name="Column Headers Slot"
+    args={{
+      value: [''],
+      showHeader: true,
+      columnHeadersSlot: textSlotArea(`Column Headers`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Columns Slot
+
+<Canvas>
+  <Story
+    name="Columns Slot"
+    args={{
+      value: [''],
+      columnsSlot: textSlotArea(`Columns`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Value Slot
+
+<Canvas>
+  <Story
+    name="Value Slot"
+    args={{
+      value: [''],
+      valueSlot: textSlotArea(`Value element, usually text`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Remove Button Slot
+
+<Canvas>
+  <Story
+    name="Remove Button Slot"
+    args={{
+      value: [''],
+      removeButtonSlot: textSlotArea(`Remove Button, e.g. custom button`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Empty Slot
+
+Customize displayed values in case of no value, e.g. custom user friendly images.
+
+<Canvas>
+  <Story
+    name="Empty Slot"
+    args={{
+      emptySlot: textSlotArea(`Empty element placeholder`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Add Slot
+
+Customize add button with other elements.
+
+<Canvas>
+  <Story
+    name="Add Slot"
+    args={{
+      value: [''],
+      addSlot: textSlotArea(`Add element, e.g. button`)
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
 
 ### Import 
 <Source
