@@ -9,8 +9,18 @@ export default {
   components: { Banner, Loading },
   async fetch() {
     const inStore = this.$store.getters['currentProduct'].inStore;
-    const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
-    const monitoringVersion = res?.currentVersion;
+    let monitoringVersion = '';
+
+    if (this.$store.getters[`${ inStore }/canList}`](CATALOG.APP)) {
+      try {
+        const res = await this.$store.dispatch(`${ inStore }/find`, { type: CATALOG.APP, id: 'cattle-monitoring-system/rancher-monitoring' });
+
+        monitoringVersion = res?.currentVersion;
+      } catch (err) {
+
+      }
+    }
+
     const leader = await hasLeader(monitoringVersion, this.$store.dispatch, this.currentCluster.id);
 
     this.hasLeader = leader ? this.t('generic.yes') : this.t('generic.no');
