@@ -370,6 +370,10 @@ export default function(t: Translation, { key = 'Value' }: ValidationOptions): {
       return t('validation.roleTemplate.roleTemplateRules.missingVerb');
     }
 
+    if (val.some((rule: any) => rule.resources?.length && rule.nonResourceURLs?.length)) {
+      return t('validation.roleTemplate.roleTemplateRules.noResourceAndNonResource');
+    }
+
     if (type === RBAC.ROLE) {
       if (val.some((rule: any) => isEmpty(rule.resources))) {
         return t('validation.roleTemplate.roleTemplateRules.missingResource');

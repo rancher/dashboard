@@ -93,6 +93,19 @@ export default {
     },
     showAsDialog() {
       return this.consent && !!this.banner.button;
+    },
+
+    // ID to place on the Banner DIV
+    id() {
+      if (this.header) {
+        return 'banner-header';
+      } else if (this.consent) {
+        return 'banner-consent';
+      } else if (this.footer) {
+        return 'banner-footer';
+      }
+
+      return 'banner';
     }
   },
 
@@ -130,7 +143,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="showBanner">
+  <div
+    v-if="showBanner"
+    :id="id"
+  >
     <div
       v-if="!showAsDialog"
       class="banner"

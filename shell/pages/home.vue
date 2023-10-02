@@ -192,7 +192,7 @@ export default {
           label:        this.t('tableHeaders.pods'),
           name:         'pods',
           value:        '',
-          sort:         ['status.allocatable.pods', 'status.available.pods'],
+          sort:         ['status.allocatable.pods', 'status.requested.pods'],
           formatter:    'PodsUsage',
           delayLoading: true
         },

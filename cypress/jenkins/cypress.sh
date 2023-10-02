@@ -7,7 +7,7 @@ pwd
 ls -al
 cd "dashboard"
 
-yarn install
+node -v
 yarn add --dev -W mocha mochawesome mochawesome-merge \
   mochawesome-report-generator cypress-multi-reporters \
   mocha-junit-reporter 

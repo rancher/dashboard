@@ -2,6 +2,8 @@
 import { MANAGEMENT, RBAC } from '@shell/config/types';
 import CruResource from '@shell/components/CruResource';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import FormValidation from '@shell/mixins/form-validation';
+import Error from '@shell/components/form/Error';
 import { RadioGroup } from '@components/Form/Radio';
 import Select from '@shell/components/form/Select';
 import ArrayList from '@shell/components/form/ArrayList';
@@ -58,9 +60,10 @@ export default {
     Tabbed,
     SortableTable,
     Loading,
+    Error
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, FormValidation],
 
   async fetch() {
     // We don't want to get all schemas from the cluster because there are
@@ -109,6 +112,9 @@ export default {
       scopedResources:      SCOPED_RESOURCES,
       defaultValue:         false,
       selectFocused:        null,
+      fvFormRuleSets:       [
+        { path: 'displayName', rules: ['required'] }
+      ],
     };
   },
 
@@ -144,6 +150,10 @@ export default {
         // Map default value back to its own key for given subtype
         this.value[SUBTYPE_MAPPING[this.value.subtype].defaultKey] = !!this.defaultValue;
       });
+    }
+
+    if (this.value?.metadata?.name && !this.value.displayName) {
+      this.$set(this.value, 'displayName', this.value.metadata.name);
     }
 
     this.$nextTick(() => {
@@ -524,7 +534,8 @@ export default {
     :can-yaml="!isCreate"
     :mode="mode"
     :resource="value"
-    :errors="errors"
+    :errors="fvUnreportedValidationErrors"
+    :validation-passed="fvFormIsValid"
     :cancel-event="true"
     @error="e=>errors = e"
     @finish="save"
@@ -568,6 +579,7 @@ export default {
         name-key="displayName"
         description-key="description"
         label="Name"
+        :rules="{ name: fvGetAndReportPathRules('displayName') }"
       />
       <div
         v-if="isRancherType"
@@ -606,6 +618,11 @@ export default {
           :label="t('rbac.roletemplate.tabs.grantResources.label')"
           :weight="1"
         >
+          <Error
+            :value="value.rules"
+            :rules="fvGetAndReportPathRules('rules')"
+            as-banner
+          />
           <ArrayList
             v-model="value.rules"
             label="Resources"

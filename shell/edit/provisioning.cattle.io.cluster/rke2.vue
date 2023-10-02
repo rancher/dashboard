@@ -611,6 +611,68 @@ export default {
       return versions.filter((x) => !!x);
     },
 
+    cloudProviderOptions() {
+      const out = [{
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
+      }];
+
+      if ( !!this.agentArgs['cloud-provider-name']?.options ) {
+        const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
+
+        for ( const opt of this.agentArgs['cloud-provider-name']?.options ) {
+        // If we don't have a preferred provider... show all options
+          const showAllOptions = preferred === undefined;
+          // If we have a preferred provider... only show default, preferred and external
+          const isPreferred = opt === preferred;
+          const isExternal = opt === 'external';
+          let disabled = false;
+
+          if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
+            disabled = true;
+          }
+
+          if (showAllOptions || isPreferred || isExternal) {
+            out.push({
+              label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
+              value: opt,
+              disabled,
+            });
+          }
+        }
+      }
+
+      const cur = this.agentConfig['cloud-provider-name'];
+
+      if (cur && !out.find((x) => x.value === cur)) {
+        // Localization missing
+        // Look up cur in the localization file
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ cur }".label`, null, cur);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       cur,
+          unsupported: true,
+          disabled:    true
+        });
+      }
+
+      const initial = this.initialCloudProvider;
+
+      if (cur !== initial && initial && !out.find((x) => x.value === initial)) {
+        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ initial }".label`, null, initial);
+
+        out.unshift({
+          label:       `${ label } (Current)`,
+          value:       initial,
+          unsupported: true,
+          disabled:    true
+        });
+      }
+
+      return out;
+    },
+
     canManageMembers() {
       return canViewClusterMembershipEditor(this.$store);
     },
@@ -802,7 +864,7 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools');
+    this.registerBeforeHook(this.saveMachinePools, 'save-machine-pools', 1);
     this.registerBeforeHook(this.setRegistryConfig, 'set-registry-config');
     this.registerAfterHook(this.cleanupMachinePools, 'cleanup-machine-pools');
     this.registerAfterHook(this.saveRoleBindings, 'save-role-bindings');
@@ -1097,6 +1159,7 @@ export default {
       }
 
       const name = `pool${ ++this.lastIdx }`;
+
       const pool = {
         id:     name,
         config,
@@ -1117,6 +1180,7 @@ export default {
             kind: this.machineConfigSchema.attributes?.kind,
             name: null,
           },
+          drainBeforeDelete: true
         },
       };
 
@@ -1171,7 +1235,23 @@ export default {
 
     async saveMachinePools(hookContext) {
       if (hookContext === CONTEXT_HOOK_EDIT_YAML) {
-        return;
+        await new Promise((resolve, reject) => {
+          this.$store.dispatch('cluster/promptModal', {
+            component:      'GenericPrompt',
+            componentProps: {
+              title:     this.t('cluster.rke2.modal.editYamlMachinePool.title'),
+              body:      this.t('cluster.rke2.modal.editYamlMachinePool.body'),
+              applyMode: 'editAndContinue',
+              confirm:   (confirmed) => {
+                if (confirmed) {
+                  resolve();
+                } else {
+                  reject(new Error('User Cancelled'));
+                }
+              }
+            },
+          });
+        });
       }
 
       const finalPools = [];
@@ -2252,15 +2332,14 @@ export default {
             :is-harvester-incompatible="isHarvesterIncompatible"
             :version-options="versionOptions"
             :cluster-is-already-created="clusterIsAlreadyCreated"
-            :initial-cloud-provider="initialCloudProvider"
             :is-elemental-cluster="isElementalCluster"
             :has-psa-templates="hasPsaTemplates"
             :is-k3s="isK3s"
             :have-arg-info="haveArgInfo"
             :show-cni="showCni"
             :show-cloud-provider="showCloudProvider"
-            :is-harvester-external-credential="isHarvesterExternalCredential"
             :unsupported-cloud-provider="unsupportedCloudProvider"
+            :cloud-provider-options="cloudProviderOptions"
             @cilium-ipv6-changed="handleCiliumIpv6Changed"
             @enabled-system-services-changed="handleEnabledSystemServicesChanged"
             @kubernetes-changed="handleKubernetesChange"
@@ -2494,7 +2573,7 @@ export default {
             v-if="get(rkeConfig, 'upgradeStrategy.controlPlaneDrainOptions.deleteEmptyDirData')"
             color="warning"
           >
-            {{ t('cluster.rke2.deleteEmptyDir', {}, true) }}
+            {{ t('cluster.rke2.drain.deleteEmptyDir.warning', {}, true) }}
           </Banner>
           <div class="row">
             <div class="col span-6">

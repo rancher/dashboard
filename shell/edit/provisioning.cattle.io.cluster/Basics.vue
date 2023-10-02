@@ -108,10 +108,6 @@ export default {
       type:     Boolean,
       required: true
     },
-    initialCloudProvider: {
-      type:     String,
-      required: true
-    },
     isElementalCluster: {
       type:     Boolean,
       required: true
@@ -136,14 +132,14 @@ export default {
       type:     Boolean,
       required: true
     },
-    isHarvesterExternalCredential: {
-      type:     Boolean,
-      required: true
-    },
     unsupportedCloudProvider: {
       type:     Boolean,
       required: true
-    }
+    },
+    cloudProviderOptions: {
+      type:     Array,
+      required: true
+    },
   },
 
   computed: {
@@ -287,66 +283,6 @@ export default {
           value,
         };
       });
-    },
-
-    cloudProviderOptions() {
-      const out = [{
-        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
-        value: '',
-      }];
-
-      const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
-
-      for ( const opt of this.agentArgs['cloud-provider-name'].options ) {
-        // If we don't have a preferred provider... show all options
-        const showAllOptions = preferred === undefined;
-        // If we have a preferred provider... only show default, preferred and external
-        const isPreferred = opt === preferred;
-        const isExternal = opt === 'external';
-        let disabled = false;
-
-        if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
-          disabled = true;
-        }
-
-        if (showAllOptions || isPreferred || isExternal) {
-          out.push({
-            label: this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ opt }".label`, null, opt),
-            value: opt,
-            disabled,
-          });
-        }
-      }
-
-      const cur = this.agentConfig['cloud-provider-name'];
-
-      if (cur && !out.find((x) => x.value === cur)) {
-        // Localization missing
-        // Look up cur in the localization file
-        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ cur }".label`, null, cur);
-
-        out.unshift({
-          label:       `${ label } (Current)`,
-          value:       cur,
-          unsupported: true,
-          disabled:    true
-        });
-      }
-
-      const initial = this.initialCloudProvider;
-
-      if (cur !== initial && initial && !out.find((x) => x.value === initial)) {
-        const label = this.$store.getters['i18n/withFallback'](`cluster.cloudProvider."${ initial }".label`, null, initial);
-
-        out.unshift({
-          label:       `${ label } (Current)`,
-          value:       initial,
-          unsupported: true,
-          disabled:    true
-        });
-      }
-
-      return out;
     },
 
     serverArgs() {

@@ -6,13 +6,15 @@ import scrollBehavior from '../utils/router.scrollBehavior.js';
 
 const emptyFn = () => {};
 
+export const linkActiveClass = 'nuxt-link-active';
+
 Vue.use(Router);
 
 export const routerOptions = {
   mode:                 'history',
   // Note: router base comes from the ROUTER_BASE env var
   base:                 process.env.routerBase || '/',
-  linkActiveClass:      'nuxt-link-active',
+  linkActiveClass,
   linkExactActiveClass: 'nuxt-link-exact-active',
   scrollBehavior,
 
@@ -73,10 +75,6 @@ export const routerOptions = {
     component: () => interopDefault(import('../pages/auth/verify.vue' /* webpackChunkName: "pages/auth/verify" */)),
     name:      'auth-verify'
   }, {
-    path:      '/docs/toc',
-    component: () => interopDefault(import('../pages/docs/toc.js' /* webpackChunkName: "pages/docs/toc" */)),
-    name:      'docs-toc'
-  }, {
     path:      '/rio/mesh',
     component: () => interopDefault(import('../pages/rio/mesh.vue' /* webpackChunkName: "pages/rio/mesh" */)),
     name:      'rio-mesh'
@@ -84,10 +82,6 @@ export const routerOptions = {
     path:      '/c/:cluster',
     component: () => interopDefault(import('../pages/c/_cluster/index.vue' /* webpackChunkName: "pages/c/_cluster/index" */)),
     name:      'c-cluster'
-  }, {
-    path:      '/docs/:doc?',
-    component: () => interopDefault(import('../pages/docs/_doc.vue' /* webpackChunkName: "pages/docs/_doc" */)),
-    name:      'docs-doc'
   }, {
     path:      '/c/:cluster/apps',
     component: () => interopDefault(import('../pages/c/_cluster/apps/index.vue' /* webpackChunkName: "pages/c/_cluster/apps/index" */)),

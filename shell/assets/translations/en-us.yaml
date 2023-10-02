@@ -653,6 +653,10 @@ asyncButton:
     action: Save
     success: Saved
     waiting: Saving&hellip;
+  editAndContinue:
+    action: Save and Continue
+    success: Saved
+    waiting: Saving&hellip;
   enable:
     action: Enable
     success: Enabled
@@ -760,7 +764,7 @@ backupRestoreOperator:
       warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
   encryption: Encryption
   encryptionConfigName:
-    backuptip: 'Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+    backuptip: 'Any secret in the <code>cattle-resources-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
     label: Encryption Config Secret
     options:
       none: Store the contents of the backup unencrypted
@@ -1137,6 +1141,7 @@ cluster:
     nodeRole:
       label: Node Role
       detail: Choose what roles the node will have in the cluster.  The cluster needs to have at least one node with each role.
+      warning: The cluster needs to have at least one node with each role to be usable.
     advanced:
       label: Advanced
       detail: Additional control over how the node will be registered.  These values will often need to be different for each node registered.
@@ -1840,6 +1845,9 @@ cluster:
       pspChange:
         title: Pod Security Policy deprecation
         body: <p>Kubernetes has removed support for Pod Security Policies (PSPs) starting with version 1.25. If your cluster has PodSecurityPolicy admission controller enabled via "kube-apiserver-arg.enable-admission-plugins" in Cluster YAML, it has to be <i>manually</i> removed before proceeding with the upgrade. Additionally, any PSPs that may be present in the cluster will no longer be available/enforced. Do you want to proceed?</p>
+      editYamlMachinePool:
+        title: Save Machine Configurations
+        body: Machine Configurations define how machines in Pools are deployed.<br><br> They will be saved upfront to ensure valid Cluster YAML can be saved.
     snapshots:
       suffix: Snapshots per node
     systemService:
@@ -1888,8 +1896,20 @@ cluster:
       toolTip: "This can be either a fixed number of nodes (e.g. 1) at a time or a percentage (e.g. 10%)"
     drain:
       label: Drain Nodes
-      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed.
-    deleteEmptyDir: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+      toolTip: Draining preemptively removes the pods on each node so there are no running workloads on the nodes being upgraded.  Upgrading without draining is faster and causes less shuffling around, but pods may still be restarted depending on the upgrade being performed. 
+      deleteEmptyDir: 
+        warning: "By default, pods using emptyDir volumes will be deleted on upgrade. Operations reliant on emptyDir volumes persisting through the pod's lifecycle may be impacted."
+        label: Delete pods using emptyDir volumes
+        tooltip: emptyDir volumes are often used for ephemeral data, but the data will be permanently deleted.  Draining will fail if this is not set and there are pods using emptyDir.
+      force:
+        label: Delete standalone pods
+        tooltip: Delete standalone pods which are not managed by a Workload controller (Deployment, Job, etc).  Draining will fail if this is not set and there are standalone pods.
+      gracePeriod:
+        checkboxLabel: Override pod termination grace periods
+        inputLabel: Grace Period
+      timeout:
+        checkboxLabel: Timeout after
+        inputLabel: Drain Timeout
     truncateHostnames: Truncate hostnames to 15 characters for NetBIOS compatibility.
     address:
       tooltip: Cluster networking values cannot be changed after the cluster is created.
@@ -5712,6 +5732,7 @@ validation:
       missingResource: You must specify a Resource for each resource grant
       missingApiGroup: You must specify an API Group for each resource grant
       missingOneResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
+      noResourceAndNonResource: Each rule may contain Resources or Non-Resource URLs but not both
   service:
     externalName:
       none: External Name is required on an ExternalName Service.

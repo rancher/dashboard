@@ -114,8 +114,8 @@ export default {
     // Detect and resolve conflicts from a 409 response.
     // If they are resolved, return a false-y value
     // Else they can't be resolved, return an array of errors to show to the user.
-    conflict() {
-      return handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters, this.$store);
+    async conflict() {
+      return await handleConflict(this.initialValue.toJSON(), this.value, this.liveValue, this.$store.getters, this.$store, this.storeOverride || this.$store.getters['currentStore'](this.value.type));
     },
 
     async save(buttonDone, url, depth = 0) {
@@ -159,7 +159,7 @@ export default {
       } catch (err) {
         // Conflict, the resource being edited has changed since starting editing
         if ( err.status === 409 && depth === 0 && this.isEdit) {
-          const errors = this.conflict();
+          const errors = await this.conflict();
 
           if ( errors === false ) {
             // It was automatically figured out, save again
