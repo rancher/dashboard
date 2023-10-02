@@ -152,6 +152,10 @@ export default {
       });
     }
 
+    if (this.value?.metadata?.name && !this.value.displayName) {
+      this.$set(this.value, 'displayName', this.value.metadata.name);
+    }
+
     this.$nextTick(() => {
       this.$emit('set-subtype', this.label);
     });
