@@ -42,11 +42,8 @@ describe('Support Page', () => {
       });
     });
 
-    it.skip('can click on Docs link', () => {
+    it('can click on Docs link', () => {
       supportPage.supportLinks().should('have.length', 5);
-
-      // click Docs link -- this test will sometimes fail due to https://github.com/rancher/rancher-docs/issues/727
-      // skipping this test until issue is resolved
       supportPage.clickSupportLink(0, true);
       cy.origin('https://ranchermanager.docs.rancher.com', () => {
         cy.url().should('include', 'ranchermanager.docs.rancher.com');
