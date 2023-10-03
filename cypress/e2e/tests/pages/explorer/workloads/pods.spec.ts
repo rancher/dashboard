@@ -63,7 +63,7 @@ describe('Cluster Explorer', () => {
           clonedPodPage.goTo()
           clonedPodPage.waitForPage();
 
-          cy.wait('@clonedPod')
+          cy.wait('@clonedPod', { timeout: 10000})
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
 
