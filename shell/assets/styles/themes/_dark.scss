@@ -31,6 +31,22 @@
 
   $drag-over: #DCDEE7;
 
+  // Status colors Yaml
+  $cm-meta: #FFFFFF;
+  $cm-string: #5CE6FF;
+  $cm-number: #63F7C1;
+  $cm-keyword: #FF9C9C;
+  $cm-atom: #CC8DBF;
+  $cm-comment: #E78957;
+
+  // Status colors Yaml variables
+  --cm-meta: #{$cm-meta};
+  --cm-string: #{$cm-string};
+  --cm-number: #{$cm-number};
+  --cm-keyword: #{$cm-keyword};
+  --cm-atom: #{$cm-atom};
+  --cm-comment: #{$cm-comment};
+
   --default                    : #{$dark};
   --default-text               : #{$light};
   --default-hover-bg           : #{darken($dark, 10%)};

@@ -42,6 +42,14 @@ $selected: rgba(#3D98D3, .5);
 
 $drag-over: #DCDEE7;
 
+// Status colors Yaml
+$cm-meta: #141419;
+$cm-string: #00529F;
+$cm-number: #005E3B;
+$cm-keyword: #B94545;
+$cm-atom: #921E80;
+$cm-comment: #8F5536;
+
 BODY, .theme-light {
 
   --primary                    : #{$primary};
@@ -54,6 +62,14 @@ BODY, .theme-light {
   --primary-banner-bg          : #{rgba($primary, 0.15)};
   --primary-light-bg           : #{rgba($primary, 0.05)};
 
+
+  // Status colors Yaml variables
+  --cm-meta: #{$cm-meta};
+  --cm-string: #{$cm-string};
+  --cm-number: #{$cm-number};
+  --cm-keyword: #{$cm-keyword};
+  --cm-atom: #{$cm-atom};
+  --cm-comment: #{$cm-comment};
 
   .text-primary {
     color: var(--primary) !important;
@@ -84,7 +100,6 @@ BODY, .theme-light {
   --link-border             : #{$link};
   --link-banner-bg          : #{rgba($link, 0.15)};
   --link-light-bg           : #{rgba($link, 0.05)};
-
 
 
   .text-link {
