@@ -166,7 +166,7 @@ export default {
     .cm-s-base16-light .cm-atom {
       color: var(--cm-atom);
     }
-     
+
     .cm-meta {
       color: var(--cm-meta);
     }

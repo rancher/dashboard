@@ -341,7 +341,7 @@ export default {
         font-weight: bold;
         margin-left: 20px;
       }
-       
+
       .icon {
         margin-right: 10px;
       }

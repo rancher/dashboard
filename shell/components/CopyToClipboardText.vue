@@ -1,5 +1,4 @@
 <script>
-import { VTooltip } from 'v-tooltip';
 export default {
   props: {
     text: {
@@ -23,11 +22,7 @@ export default {
   },
 
   data() {
-    return {
-      copied: false,
-      text: "Copy to invite",
-      copyText: ''
-    };
+    return { copied: false };
   },
 
   methods: {
@@ -38,12 +33,14 @@ export default {
         this.copied = true;
 
         let t = event.target;
+
         if (t.tagName === 'I') {
           t = t.parentElement || t;
         }
+
         setTimeout(() => {
           this.copied = false;
-        }, 1000);
+        }, 800);
       }
     },
     reset() {
@@ -54,38 +51,39 @@ export default {
 </script>
 
 <template>
-  <div>
-    <a
-      class="copy-to-clipboard-text"
-      :class="{ 'copied': copied, 'plain': plain}"
-      href="#"
-      @click="clicked"
+  <a
+    v-tooltip="toolTip ? {content: 'Copy value'} : {content: null}"
+    class="copy-to-clipboard-text"
+    :class="{ 'copied': copied, 'plain': plain}"
+    href="#"
+    @click="clicked"
+  >
+    <span v-if="showLabel">{{ text }}</span>
+    <v-popover
+      popover-class="clipboard-text-copied"
+      placement="top"
+      :trigger="toolTip ? 'click' : ''"
+      :open="copied && toolTip"
     >
-      <span v-if="showLabel">{{ text }}</span>
       <i
         class="icon"
         :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}"
       />
-    </a>
-    <v-popover
-      popover-class="localeSelector"
-      placement="top"
-      @click="clicked"
-      @mouseout="reset" 
-    >
-      {{copied}}
-      <a
-        data-testid="locale-selector"
-        class="locale-chooser"
-      >
-        <i class="icon icon-copy" />
-      </a>
       <template slot="popover">
-        <span>test</span>
+        <span>Value copied!</span>
       </template>
     </v-popover>
-  </div>
+  </a>
 </template>
+<style lang="scss">
+  .clipboard-text-copied {
+    .wrapper {
+      .popover-inner {
+        background: var(--tooltip-bg);
+      }
+    }
+  }
+</style>
 <style lang="scss" scoped>
   .copy-to-clipboard-text {
     &.plain {

@@ -2,13 +2,15 @@
 import { mapGetters } from 'vuex';
 import { asciiLike, nlToBr } from '@shell/utils/string';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
-import CopyToClipboard from '@shell/components/CopyToClipboard';
 import CodeMirror from '@shell/components/CodeMirror';
 import { binarySize } from '@shell/utils/crypto';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 
 export default {
-  components: { CopyToClipboardText, CopyToClipboard, CodeMirror },
+  components: {
+    CopyToClipboardText,
+    CodeMirror
+  },
 
   props: {
     label: {
@@ -155,8 +157,8 @@ export default {
       <CopyToClipboardText
         v-if="copy && !isBinary"
         :text="value"
+        :toolTip="true"
         :showLabel="false"
-        
         action-color=""
       />
       <span
