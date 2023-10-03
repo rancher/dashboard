@@ -43,9 +43,6 @@ export default {
         }, 800);
       }
     },
-    reset() {
-      this.copyText = this.text;
-    }
   }
 };
 </script>

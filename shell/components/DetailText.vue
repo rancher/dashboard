@@ -197,13 +197,9 @@ export default {
 
 <style lang='scss' scoped>
 .with-copy {
-  // border: solid 1px var(--border);
-  // border-radius: var(--border-radius);
   padding: 8px 0;
   position: relative;
   background-color: var(--input-bg);
-  // border-radius: var(--border-radius);
-  // border: solid var(--border-width) var(--input-border);
 
   > button {
     position: absolute;
