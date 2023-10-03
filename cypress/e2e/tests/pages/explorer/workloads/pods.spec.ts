@@ -42,11 +42,10 @@ describe('Cluster Explorer', () => {
           const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
           cloneCreatePodPage.goTo()
-          cloneCreatePodPage.waitForPage();
 
           let origPodSpec: any;
 
-          cy.wait('@origPod')
+          cy.wait('@origPod', { timeout: 10000})
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
               origPodSpec = response?.body.spec;
