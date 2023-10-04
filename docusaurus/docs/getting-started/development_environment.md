@@ -28,12 +28,12 @@ The Dashboard is shipped with the Rancher package which contains the Rancher API
 
 ### Installing Rancher
 
-See <https://rancher.com/docs/rancher/v2.6/en/installation/>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-v2-6-5/
+See <https://ranchermanager.docs.rancher.com/v2.7/pages-for-subheaders/installation-and-upgrade>. Note: Not all Linux distros and versions are supported. To make sure your OS is compatible with Rancher, see the support maintenance terms for the specific Rancher version that you are using: https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-v2-7-6/
 
 The above linked installation docs cover two methods confirmed to work with the Dashboard:
 
-- [Single Docker Container](https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/)
-- [Kube Cluster (via Helm)](https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/)
+- [Single Docker Container](https://ranchermanager.docs.rancher.com/v2.7/pages-for-subheaders/rancher-on-a-single-node-with-docker)
+- [Kube Cluster (via Helm)](https://ranchermanager.docs.rancher.com/v2.7/pages-for-subheaders/install-upgrade-on-a-kubernetes-cluster)
 
 To use the most recent version of Rancher that is actively in development, use the version tag `v2.6-head` when installing Rancher. For example, the Docker installation command would look like this:
 
@@ -63,7 +63,7 @@ You should be able to reach the older Ember UI by navigating to the Rancher API 
 ### Uninstalling Rancher
 
 - Docker - This should be a simple `docker stop` & `docker rm`
-- Kube Cluster -  Use `helm delete` as usual and then the `remove` command from [System Tools](https://rancher.com/docs/rancher/v2.6/en/system-tools/) client
+- Kube Cluster -  Use `helm delete` as usual and then the `remove` command from [System Tools](https://ranchermanager.docs.rancher.com/v2.7/reference-guides/system-tools) client
 
 ## UI Walkthrough
 
@@ -133,7 +133,7 @@ A common mistake is to accidentally work from the wrong Rancher version. Because
 
 ### Upgrading Rancher with Docker
 
-If you want to use a more long-lived Rancher instance, you may need to upgrade Rancher without just killing the container running in Docker. In that case, you can run the script `./scripts/update-docker-image`, or you can follow [these docs](https://rancher.com/docs/rancher/v2.6/en/installation/other-installation-methods/single-node-docker/single-node-upgrades/) to upgrade Rancher with Docker.
+If you want to use a more long-lived Rancher instance, you may need to upgrade Rancher without just killing the container running in Docker. In that case, you can run the script `./scripts/update-docker-image`, or you can follow [these docs](https://ranchermanager.docs.rancher.com/v2.7/getting-started/installation-and-upgrade/other-installation-methods/rancher-on-a-single-node-with-docker/upgrade-docker-installed-rancher) to upgrade Rancher with Docker.
 
 If using the script, you will need to provide 2 arguments:
 

@@ -2,7 +2,7 @@
 
 This page is intended to answer the question "What am I looking at?" for new Rancher UI developers who are navigating Rancher.
 
-This is not an exhaustive guide to Rancher. For more details, see the docs https://rancher.com/docs/rancher/v2.6/en/ or the other pages of these developer docs.
+This is not an exhaustive guide to Rancher. For more details, see the docs https://ranchermanager.docs.rancher.com/v2.7 or the other pages of these developer docs.
 
 ## 1. Home Page
 
@@ -59,7 +59,7 @@ The purpose of a project is mainly to make it easier for admins to give users pe
 
 ## 3. Cluster Provisioning
 
-One of the core features of Rancher is cluster provisioning. Rancher offers a lot of flexibility in how you can install or set up a Kubernetes cluster through the Rancher UI. There are more details in the documentation (https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/) which are too complicated to explain here, because there are many types of clusters that Rancher can manage, and Rancher can manage clusters that integrate with different technology stacks.
+One of the core features of Rancher is cluster provisioning. Rancher offers a lot of flexibility in how you can install or set up a Kubernetes cluster through the Rancher UI. There are more details in the documentation (https://ranchermanager.docs.rancher.com/v2.7/pages-for-subheaders/kubernetes-clusters-in-rancher-setup) which are too complicated to explain here, because there are many types of clusters that Rancher can manage, and Rancher can manage clusters that integrate with different technology stacks.
 
 In a typical use case, Rancher will take your credentials for a cloud infrastructure provider, such as AWS EC2 or Digital Ocean, and it will integrate with the API of that cloud infrastructure provider. Rancher can add new Linux servers in the cloud for you, and the cost of the resources that it provisions will be billed to the user's account associated with the cloud credentials that Rancher is using. Then Rancher installs Kubernetes on those nodes and provide a UI to add users to the cluster through Rancher, or deploy applications on the cluster, along with any other operation supported by upstream Kubernetes.
 
