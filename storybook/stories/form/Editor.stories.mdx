@@ -138,30 +138,6 @@ This is an adopted case were we use CodeMirror to display a function with highli
 </Canvas>
 
 
-#### Options example
-
-This is an adopted case were we use CodeMirror to display a function with highlight syntax.
-
-<Canvas>
-  <Story
-    name="Options"
-    args={{
-      value: `
-      (arg) => {
-        if ('test this') {
-          return true;
-        }
-      }
-      `,
-      mode: 'edit',
-      options: {mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true},
-      asTextArea: false
-    }}>
-    {Template.bind({})}
-  </Story>
-</Canvas>
-
-
 #### Textarea Input
 
 The input version is used mainly for cases where is necessary to display line breaks, e.g. ConfigMap chomping.
