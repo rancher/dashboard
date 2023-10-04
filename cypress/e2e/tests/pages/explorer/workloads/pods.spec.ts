@@ -41,11 +41,11 @@ describe('Cluster Explorer', () => {
         it(`Should have same spec as the original pod`, () => {
           const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
-          cloneCreatePodPage.goTo()
+          cloneCreatePodPage.goTo();
 
           let origPodSpec: any;
 
-          cy.wait('@origPod', { timeout: 10000})
+          cy.wait('@origPod', { timeout: 10000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
               origPodSpec = response?.body.spec;
@@ -60,10 +60,10 @@ describe('Cluster Explorer', () => {
 
           const clonedPodPage = new WorkLoadsPodDetailsPagePo(clonePodName);
 
-          clonedPodPage.goTo()
+          clonedPodPage.goTo();
           clonedPodPage.waitForPage();
 
-          cy.wait('@clonedPod', { timeout: 10000})
+          cy.wait('@clonedPod', { timeout: 10000 })
             .then(({ response }) => {
               expect(response?.statusCode).to.eq(200);
 
