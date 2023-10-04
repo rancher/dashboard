@@ -4,7 +4,7 @@ import { _EDIT, _VIEW } from '@shell/config/query-params';
 import { ExtendedVue, Vue } from 'vue/types/vue';
 import { DefaultProps } from 'vue/types/options';
 
-describe.only('the ArrayList', () => {
+describe('the ArrayList', () => {
   it('is empty', () => {
     const wrapper = mount(ArrayList, {
       propsData: {
