@@ -1,4 +1,4 @@
-import { generateSupportLink } from '@shell/utils/version';
+import { generateSupportLink, isDevBuild } from '@shell/utils/version';
 
 describe('fx: generateSupportLink', () => {
   it('should generate support link corresponding to the installed Rancher version', () => {
@@ -23,6 +23,23 @@ describe('fx: generateSupportLink', () => {
       const result = generateSupportLink(version);
 
       expect(result).toBe(expected);
+    }
+  );
+});
+
+describe('fx: isDevBuild', () => {
+  it.each([
+    'dev',
+    'master',
+    'head',
+    'whatever-head',
+    'whatever-rc1',
+    'whatever-alpha1',
+  ])(
+    'should exclude version type %p', (version: string) => {
+      const result = isDevBuild(version);
+
+      expect(result).toBe(true);
     }
   );
 });
