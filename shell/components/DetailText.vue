@@ -168,7 +168,7 @@ export default {
       <span
         v-else-if="isBinary"
         class="text-italic "
-      >{{ body }}te</span>
+      >{{ body }}</span>
 
       <CodeMirror
         v-else-if="jsonStr"
