@@ -10,14 +10,10 @@ export default {
       type:    Boolean,
       default: false
     },
-    // Show label before copy-to-clipboard icon
+    // If false Show toolTip instead of label before copy-to-clipboard icon
     showLabel: {
       type:    Boolean,
       default: true
-    },
-    toolTip: {
-      type:    Boolean,
-      default: false
     },
   },
 
@@ -42,14 +38,14 @@ export default {
           this.copied = false;
         }, 800);
       }
-    },
+    }
   }
 };
 </script>
 
 <template>
   <a
-    v-tooltip="toolTip ? {content: 'Copy value'} : {content: null}"
+    v-tooltip="!showLabel ? {content: $store.getters['i18n/t']('generic.copyValue')} : {content: null}"
     class="copy-to-clipboard-text"
     :class="{ 'copied': copied, 'plain': plain}"
     href="#"
@@ -59,15 +55,15 @@ export default {
     <v-popover
       popover-class="clipboard-text-copied"
       placement="top"
-      :trigger="toolTip ? 'click' : ''"
-      :open="copied && toolTip"
+      :trigger="!showLabel ? 'click' : ''"
+      :open="copied && !showLabel"
     >
       <i
         class="icon"
         :class="{ 'icon-copy': !copied, 'icon-checkmark': copied}"
       />
       <template slot="popover">
-        <span>Value copied!</span>
+        <span>{{ t('generic.valueCopied') }}</span>
       </template>
     </v-popover>
   </a>

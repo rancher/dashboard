@@ -31,7 +31,9 @@
 
   $drag-over: #DCDEE7;
 
-  // Status colors Yaml
+  // The library that decorates the code blocks in CodeMirror uses the same colours for light and dark themes.
+  // This causes a contrast and accessibility issues.
+  // To fix the issues we have added new colors to the code blocks in CodeMirror for light and dark themes.
   $cm-meta: #FFFFFF;
   $cm-string: #5CE6FF;
   $cm-number: #63F7C1;
@@ -227,4 +229,5 @@
 
   --product-icon               : #{$lighter};
   --product-icon-active        : #{$lightest};
+  --annotations-hover-bg       : #{$darkest};
 }

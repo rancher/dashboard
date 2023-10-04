@@ -157,7 +157,6 @@ export default {
       <CopyToClipboardText
         v-if="copy && !isBinary"
         :text="value"
-        :toolTip="true"
         :showLabel="false"
         action-color=""
       />
@@ -219,7 +218,7 @@ export default {
   padding: 8px 20px;
 
   &:hover {
-    background: var(--sortable-table-header-bg);
+    background: var(--annotations-hover-bg);
   }
 }
 </style>
