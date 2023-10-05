@@ -129,8 +129,14 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     clusterDashboard.goTo();
     cy.getRancherResource('v1', '/nodes', '?exclude=metadata.managedFields').then((resp: Cypress.Response<any>) => {
       const count = resp.body['count'];
+      let text = '';
 
-      simpleBox.simpleBox().eq(1).should('contain.text', count).and('contain.text', 'Nodes');
+      if (count > 1) {
+        text = 'Nodes';
+      } else {
+        text = 'Node';
+      }
+      simpleBox.simpleBox().eq(1).should('contain.text', count).and('contain.text', text);
     }).then((el: any) => {
       el.click();
 
