@@ -61,7 +61,7 @@ export default {
 
     globalBannerSettings() {
       const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
-      const bannerSettings = settings.find((s) => s.id === SETTING.BANNERS);
+      const bannerSettings = settings?.find((s) => s.id === SETTING.BANNERS);
 
       if (bannerSettings) {
         const parsed = JSON.parse(bannerSettings.value);
@@ -534,6 +534,7 @@ export default {
               </div>
               <div
                 v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
+                data-testid="top-level-menu-no-results"
                 class="none-matching"
               >
                 {{ t('nav.search.noResults') }}
