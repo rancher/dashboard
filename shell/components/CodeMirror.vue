@@ -162,6 +162,34 @@ export default {
       height: initial;
       background: none
     }
+    .cm-s-base16-dark .cm-atom,
+    .cm-s-base16-light .cm-atom {
+      color: var(--cm-atom);
+    }
+
+    .cm-meta {
+      color: var(--cm-meta);
+    }
+
+    .cm-s-base16-dark .cm-comment,
+    .cm-s-base16-light .cm-comment {
+      color: var(--cm-meta);
+    }
+
+    .cm-s-base16-dark .cm-string,
+    .cm-s-base16-light .cm-string {
+      color: var(--cm-string);
+    }
+
+    .cm-s-base16-dark span.cm-keyword,
+    .cm-s-base16-light span.cm-keyword {
+      color: var(--cm-keyword);
+    }
+
+    .cm-s-base16-dark span.cm-number,
+    .cm-s-base16-light span.cm-number {
+      color: var(--cm-number);
+    }
 
     &.as-text-area {
       min-height: 40px;
