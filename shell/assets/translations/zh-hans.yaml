@@ -7051,7 +7051,6 @@ advancedSettings:
     'auth-user-session-ttl-minutes': '用户认证会话的自定义 TTL（单位：分钟）。'
     'auth-token-max-ttl-minutes': '所有身份认证 Token 的最大 TTL（单位：分钟）。如果设置为 0，则 Token 永不过期。'
     'kubeconfig-generate-token': '请求 kubeconfig 时自动为用户生成 Token。'
-    'kubeconfig-token-ttl-minutes': '在 CLI 中生成的 Token TTL。已弃用：此设置将被删除，kubeconfig-default-token-ttl-minutes 将用于所有 kubeconfig Token。'
     'kubeconfig-default-token-ttl-minutes': '应用于所有 kubeconfig Token 的 TTL（单位：分钟）。如果设置为 0，则 Token 永不过期。'
     'rke-metadata-config': '配置 RKE 元数据刷新参数。'
     'ui-banners': '分类横幅用于在页眉、页脚或两者中显示自定义的固定横幅。'
