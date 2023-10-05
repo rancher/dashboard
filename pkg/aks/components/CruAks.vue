@@ -654,7 +654,12 @@ export default defineComponent({
 
     async actuallySave() {
       await this.normanCluster.save();
-    }
+    },
+    cancelCredential() {
+      if ( this.$refs.cruresource ) {
+        (this.$refs.cruresource as any).emitOrRoute();
+      }
+    },
   },
 
 });
@@ -662,6 +667,7 @@ export default defineComponent({
 
 <template>
   <CruResource
+    ref="cruresource"
     :resource="value"
     :mode="mode"
     :can-yaml="false"
@@ -679,6 +685,7 @@ export default defineComponent({
       :default-on-cancel="true"
       :showing-form="hasCredential"
       class="mt-20"
+      @cancel="cancelCredential"
     />
     <div
       v-if="hasCredential"

@@ -142,6 +142,11 @@ export default {
     // Custom Providers from extensions - initialize each with the store and the i18n service
     // Wrap in try ... catch, to prevent errors in an extension breaking the page
     try {
+      const ext = this.$plugin.listDynamic('provisioner');
+
+      const extClass = this.$plugin.getDynamic('provisioner', 'AKS');
+
+      debugger;
       const extensionClasses = this.$plugin.listDynamic('provisioner').map((name) => this.$plugin.getDynamic('provisioner', name));
 
       // We can't pass in this.$store as this leads to a circular-reference that causes Vue to freeze,
@@ -325,17 +330,21 @@ export default {
             addType(id, 'rke2', false);
           });
 
-          // Add from extensions
-          this.extensions.forEach((ext) => {
-            addExtensionType(ext, getters);
-          });
-
           addType('custom', 'custom2', false);
 
           if (isElementalActive) {
             addType(ELEMENTAL_CLUSTER_PROVIDER, 'custom2', false);
           }
         }
+
+        // Add from extensions
+        // extension group defaults to 'rke2'
+        this.extensions.forEach((ext) => {
+          if (!this.isRke2 && (ext.group === 'rke2' || !ext.group)) {
+            return;
+          }
+          addExtensionType(ext, getters);
+        });
       }
 
       return out;
