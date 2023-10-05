@@ -47,6 +47,6 @@ We don't recommend using session storage for auth because two tabs will have dif
 
 ## Custom NavLinks
 
-To set up a link to a third-party navigation link in the left navigation bar, we recommend using the NavLink custom resource. For more information on how to configure custom NavLinks, see the [Rancher documentation.](https://rancher.com/docs/rancher/v2.6/en/admin-settings/branding/#custom-navigation-links) NavLinks open in another window or tab. You can define grouped entries in them as well.
+To set up a link to a third-party navigation link in the left navigation bar, we recommend using the NavLink custom resource. For more information on how to configure custom NavLinks, see the [Rancher documentation.](https://ranchermanager.docs.rancher.com/v2.7/how-to-guides/new-user-guides/authentication-permissions-and-global-configuration/custom-branding#custom-navigation-links) NavLinks open in another window or tab. You can define grouped entries in them as well.
 
 A third-party app installed with a Helm chart can deploy the NavLink custom resource along with the app. When this resource is deployed, the link will be hidden for users without access to the proxy.
