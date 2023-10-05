@@ -706,7 +706,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $side-menu-logo-margin-left: 5px;
   // It would be nice to grab this from `Group.vue`, but there's margin, padding and border, which is overkill to var
   $side-menu-group-padding-left: 16px;
 
@@ -724,9 +723,11 @@ export default {
       &.isSingleProduct  {
         display: flex;
         justify-content: center;
+
         // Align the icon with the side nav menu items ($side-menu-group-padding-left)
-        // There's margin already in the icon component, so take that in to account ($side-menu-logo-margin-left)
-        margin-left: $side-menu-group-padding-left - $side-menu-logo-margin-left;
+        .side-menu-logo {
+          margin-left: $side-menu-group-padding-left;
+        }
       }
     }
 
@@ -815,7 +816,7 @@ export default {
       display: flex;
       margin-right: 8px;
       height: 55px;
-      margin-left: $side-menu-logo-margin-left;
+      margin-left: 5px;
       max-width: 200px;
       padding: 12px 0;
     }
