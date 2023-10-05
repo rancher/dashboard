@@ -324,10 +324,10 @@ export default {
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
-        :style="{'marginBottom':
-                   globalBannerSettings?.footerFont,
-                 'marginTop':
-                   globalBannerSettings?.headerFont}"
+        :style="{
+          'marginBottom': globalBannerSettings.footerFont,
+          'marginTop': globalBannerSettings.headerFont
+        }"
         tabindex="-1"
       >
         <div class="title">
