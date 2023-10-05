@@ -26,7 +26,9 @@ export default {
   },
 
   async fetch() {
-    this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
+    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
+      this.allFleet = await this.$store.getters['management/all'](FLEET.CLUSTER);
+    }
   },
 
   data() {
@@ -97,6 +99,11 @@ export default {
       return out;
     },
   },
+  methods: {
+    displayWarning(row) {
+      return !!row.status?.summary && (row.status.summary.desiredReady !== row.status.summary.ready);
+    }
+  }
 };
 </script>
 
@@ -116,11 +123,11 @@ export default {
       >
         <template #cell:deploymentsReady="{row}">
           <span
-            v-if="row.status.summary.desiredReady != row.status.summary.ready"
+            v-if="displayWarning(row)"
             class="text-warning"
           >
             {{ row.status.summary.ready }}/{{ row.status.summary.desiredReady }}</span>
-          <span v-else>{{ row.status.summary.desiredReady }}</span>
+          <span v-else-if="row.status">{{ row.status.summary.desiredReady }}</span>
         </template>
       </ResourceTable>
     </div>
