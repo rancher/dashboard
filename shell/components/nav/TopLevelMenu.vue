@@ -59,6 +59,13 @@ export default {
       },
     },
 
+    sideMenuStyle() {
+      return {
+        marginBottom: this.globalBannerSettings?.footerFont,
+        marginTop:    this.globalBannerSettings?.headerFont
+      };
+    },
+
     globalBannerSettings() {
       const settings = this.$store.getters['management/all'](MANAGEMENT.SETTING);
       const bannerSettings = settings?.find((s) => s.id === SETTING.BANNERS);
@@ -104,7 +111,7 @@ export default {
         kubeClusters = kubeClusters.filter((c) => !!available[c]);
       }
 
-      return kubeClusters.map((x) => {
+      return kubeClusters?.map((x) => {
         const pCluster = pClusters?.find((c) => c.mgmt?.id === x.id);
 
         return {
@@ -120,7 +127,7 @@ export default {
           pin:             () => x.pin(),
           unpin:           () => x.unpin()
         };
-      });
+      }) || [];
     },
 
     clustersFiltered() {
@@ -324,10 +331,7 @@ export default {
         data-testid="side-menu"
         class="side-menu"
         :class="{'menu-open': shown, 'menu-close':!shown}"
-        :style="{
-          'marginBottom': globalBannerSettings.footerFont,
-          'marginTop': globalBannerSettings.headerFont
-        }"
+        :style="sideMenuStyle"
         tabindex="-1"
       >
         <div class="title">
