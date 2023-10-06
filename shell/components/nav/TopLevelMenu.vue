@@ -50,7 +50,6 @@ export default {
   computed: {
     ...mapGetters(['clusterId']),
     ...mapGetters(['clusterReady', 'isRancher', 'currentCluster', 'currentProduct', 'isRancherInHarvester']),
-    ...mapGetters('type-map', ['activeProducts']),
     ...mapGetters({ features: 'features/get' }),
 
     value: {
@@ -210,7 +209,7 @@ export default {
       const cluster = this.clusterId || this.$store.getters['defaultClusterId'];
 
       // TODO plugin routes
-      const entries = this.activeProducts?.map((p) => {
+      const entries = this.$store.getters['type-map/activeProducts']?.map((p) => {
         // Try product-specific index first
         const to = p.to || {
           name:   `c-cluster-${ p.name }`,
