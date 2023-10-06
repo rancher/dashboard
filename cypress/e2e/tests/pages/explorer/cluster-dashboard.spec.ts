@@ -28,18 +28,6 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
     clusterDashboard.waitForPage(undefined, 'cluster-events');
   });
 
-  it('can install monitoring', () => {
-    clusterDashboard.goTo();
-    clusterDashboard.installMonitoring().click();
-
-    /**
-     * TODO: update to use the following code when https://github.com/rancher/dashboard/pull/9749 is merged
-     * clusterTools.waitForPage()
-     * clusterTools.featureChartCards().eq(0).should('contain', 'Alerting Drivers');
-    */
-    cy.contains('Alerting Drivers');
-  });
-
   it('can add cluster badge', () => {
     const settings = {
       description: {
@@ -153,7 +141,7 @@ describe('Cluster Dashboard', { tags: '@adminUser' }, () => {
 
     /**
      * TODO: update to use the following code when https://github.com/rancher/dashboard/pull/9749 is merged
-     * clusterDashboard.installMonitoring().click();
+     * clusterDashboard.clusterToolsButton().click();
      * clusterTools.waitForPage()
      * clusterTools.goToInstall(0);
      * installCharts.waitForPage();
