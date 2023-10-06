@@ -96,12 +96,17 @@ export default {
       const { $store, externalLinks } = this;
 
       this.v1Installed = await haveV1MonitoringWorkloads($store);
-      const hash = await allHash({
-        apps:      $store.dispatch('cluster/findAll', { type: CATALOG.APP }),
-        endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }),
-      });
+      const hash = {};
 
-      if (!isEmpty(hash.endpoints)) {
+      if ($store.getters['cluster/canList'](CATALOG.APP)) {
+        hash.apps = $store.dispatch('cluster/findAll', { type: CATALOG.APP });
+      }
+      if ($store.getters['cluster/schemaFor'](ENDPOINTS)) {
+        hash.endpoints = $store.dispatch('cluster/findAll', { type: ENDPOINTS });
+      }
+      const res = await allHash(hash);
+
+      if (res.endpoints && !isEmpty(res.endpoints)) {
         const amMatch = findBy(externalLinks, 'group', 'alertmanager');
         const grafanaMatch = findBy(externalLinks, 'group', 'grafana');
         const promeMatch = externalLinks.filter(
@@ -110,23 +115,23 @@ export default {
 
         // Generate Grafana link
         const currentCluster = this.$store.getters['currentCluster'];
-        const rancherMonitoring = !isEmpty(hash.apps) ? findBy(hash.apps, 'id', 'cattle-monitoring-system/rancher-monitoring') : '';
+        const rancherMonitoring = !isEmpty(res.apps) ? findBy(res.apps, 'id', 'cattle-monitoring-system/rancher-monitoring') : '';
         const clusterPrefix = getClusterPrefix(rancherMonitoring?.currentVersion || '', currentCluster.id);
 
         grafanaMatch.link = `${ clusterPrefix }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
 
         const alertmanager = findBy(
-          hash.endpoints,
+          res.endpoints,
           'id',
           `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-alertmanager`
         );
         const grafana = findBy(
-          hash.endpoints,
+          res.endpoints,
           'id',
           `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-grafana`
         );
         const prometheus = findBy(
-          hash.endpoints,
+          res.endpoints,
           'id',
           `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-prometheus`
         );
