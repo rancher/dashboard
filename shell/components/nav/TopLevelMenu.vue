@@ -132,7 +132,7 @@ export default {
     clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
 
-      const out = search ? this.clusters.filter((item) => item.label.toLowerCase().includes(search)) : this.clusters;
+      const out = search ? this.clusters.filter((item) => item.label?.toLowerCase().includes(search)) : this.clusters;
 
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
@@ -508,8 +508,9 @@ export default {
               <!-- Clusters Search result -->
               <div class="clustersList">
                 <div
-                  v-for="c in clustersFiltered"
+                  v-for="(c, index) in clustersFiltered"
                   :key="c.id"
+                  :data-testid="`top-level-menu-cluster-${index}`"
                   @click="hide()"
                 >
                   <nuxt-link
