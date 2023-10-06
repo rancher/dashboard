@@ -125,16 +125,3 @@ export async function markReadReleaseNotes(store) {
     await store.dispatch('prefs/set', { key: READ_WHATS_NEW, value: getVersionInfo(store).fullVersion });
   }
 }
-
-export function generateSupportLink(version) {
-  const defaultSupportURL = 'https://rancher.com/support-maintenance-terms';
-
-  if (!version || isDevBuild(version)) {
-    return defaultSupportURL;
-  }
-
-  const baseUrl = 'https://www.suse.com/suse-rancher/support-matrix/all-supported-versions/rancher-';
-  const formattedVersion = version.split('.').join('-');
-
-  return baseUrl + formattedVersion;
-}
