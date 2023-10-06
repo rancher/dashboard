@@ -131,9 +131,7 @@ export default {
 
     clustersFiltered() {
       const search = (this.clusterFilter || '').toLowerCase();
-
       const out = search ? this.clusters.filter((item) => item.label?.toLowerCase().includes(search)) : this.clusters;
-
       const sorted = sortBy(out, ['ready:desc', 'label']);
 
       if (search) {
