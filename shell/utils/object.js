@@ -178,11 +178,12 @@ export function definedKeys(obj) {
     const val = obj[key];
 
     if ( Array.isArray(val) ) {
-      return key;
+      return `"${ key }"`;
     } else if ( isObject(val) ) {
-      return ( definedKeys(val) || [] ).map((subkey) => `${ key }.${ subkey }`);
+      // no need for quotes around the subkey since the recursive call will fill that in via one of the other two statements in the if block
+      return ( definedKeys(val) || [] ).map((subkey) => `"${ key }".${ subkey }`);
     } else {
-      return key;
+      return `"${ key }"`;
     }
   });
 
