@@ -1,4 +1,4 @@
-import ComponentPo from '~/cypress/e2e/po/components/component.po';
+import ComponentPo from '@/cypress/e2e/po/components/component.po';
 import LabeledInputPo from '@/cypress/e2e/po/components/labeled-input.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import ColorInputPo from '@/cypress/e2e/po/components/color-input.po';

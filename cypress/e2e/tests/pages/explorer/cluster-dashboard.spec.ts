@@ -6,7 +6,7 @@ import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 import SimpleBoxPo from '@/cypress/e2e/po/components/simple-box.po';
 import { WorkloadsDeploymentsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
-import { EventsPagePo } from '~/cypress/e2e/po/pages/explorer/events.po';
+import { EventsPagePo } from '@/cypress/e2e/po/pages/explorer/events.po';
 
 const clusterDashboard = new ClusterDashboardPagePo('local');
 const simpleBox = new SimpleBoxPo();
