@@ -321,12 +321,14 @@ export default {
 </script>
 <template>
   <div>
+    <!-- Overlay -->
     <div
       v-if="shown"
       class="side-menu-glass"
       @click="hide()"
     />
     <transition name="fade">
+      <!-- Side menu -->
       <div
         data-testid="side-menu"
         class="side-menu"
@@ -334,6 +336,7 @@ export default {
         :style="sideMenuStyle"
         tabindex="-1"
       >
+        <!-- Logo and name -->
         <div class="title">
           <div
             data-testid="top-level-menu"
@@ -355,8 +358,11 @@ export default {
             <BrandImage file-name="rancher-logo.svg" />
           </div>
         </div>
+
+        <!-- Menu body -->
         <div class="body">
           <div>
+            <!-- Home button -->
             <nuxt-link
               class="option cluster selector home"
               :to="{ name: 'home' }"
@@ -375,6 +381,8 @@ export default {
                 {{ t('nav.home') }}
               </div>
             </nuxt-link>
+
+            <!-- Search bar -->
             <div
               v-if="showClusterSearch"
               class="clusters-search"
@@ -404,6 +412,8 @@ export default {
               </div>
             </div>
           </div>
+
+          <!-- Harvester extras -->
           <template v-if="hciApps.length">
             <div class="category" />
             <div>
@@ -420,7 +430,6 @@ export default {
                 </div>
               </a>
             </div>
-
             <div
               v-for="a in hciApps"
               :key="a.label"
@@ -439,12 +448,14 @@ export default {
             </div>
           </template>
 
+          <!-- Cluster menu -->
           <template v-if="clusters && !!clusters.length">
             <div
               ref="clusterList"
               class="clusters"
               :style="pinnedClustersHeight"
             >
+              <!-- Pinned Clusters -->
               <div
                 v-if="showPinClusters && pinFiltered.length"
                 class="clustersPinned"
@@ -494,6 +505,8 @@ export default {
                   <hr>
                 </div>
               </div>
+
+              <!-- Clusters Search result -->
               <div class="clustersList">
                 <div
                   v-for="c in clustersFiltered"
@@ -536,6 +549,8 @@ export default {
                   </span>
                 </div>
               </div>
+
+              <!-- No clusters message -->
               <div
                 v-if="(clustersFiltered.length === 0 || pinFiltered.length === 0) && searchActive"
                 data-testid="top-level-menu-no-results"
@@ -545,6 +560,7 @@ export default {
               </div>
             </div>
 
+            <!-- See all clusters -->
             <nuxt-link
               v-if="clusters.length > maxClustersToShow"
               class="clusters-all"
@@ -616,6 +632,8 @@ export default {
                 </nuxt-link>
               </div>
             </template>
+
+            <!-- App menu -->
             <template v-if="configurationApps.length">
               <div
                 class="category-title"
@@ -645,6 +663,8 @@ export default {
             </template>
           </div>
         </div>
+
+        <!-- Footer -->
         <div
           class="footer"
         >
