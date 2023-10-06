@@ -23,7 +23,7 @@ describe('class ProvCluster', () => {
     clusterName: 'test', provisioner: 'imported', mgmt: { isLocal: true, spec: { gkeConfig: {} } }, spec: {}
   };
   const doRke2Info = {
-    clusterName: 'test', provisioner: 'rke2', mgmt: { isLocal: false, providerForEmberParam: 'import' }, spec: {rkeConfig: {}}
+    clusterName: 'test', provisioner: 'rke2', mgmt: { isLocal: false, providerForEmberParam: 'import' }, spec: { rkeConfig: {} }
   };
 
   describe('isImported', () => {
@@ -44,7 +44,7 @@ describe('class ProvCluster', () => {
     };
 
     it.each(testCases)('should return the isImported value properly based on the props data', (clusterData: Object, expected: Boolean) => {
-      const cluster = new ProvCluster({spec: clusterData.spec});
+      const cluster = new ProvCluster({ spec: clusterData.spec });
 
       jest.spyOn(cluster, 'mgmt', 'get').mockReturnValue(
         clusterData.mgmt
