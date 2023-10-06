@@ -256,7 +256,7 @@ export default class ProvCluster extends SteveModel {
       // or EKS
       !!this.mgmt?.spec?.eksConfig?.imported;
 
-    return !this.isLocal && (isImportedProvisioner || isImportedSpecialCases);
+    return !this.isLocal && (isImportedProvisioner || (!this.isRke2 && !this.mgmt?.machineProvider && isImportedSpecialCases));
   }
 
   get isCustom() {
