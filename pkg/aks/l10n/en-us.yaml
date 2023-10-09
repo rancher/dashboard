@@ -15,6 +15,11 @@ aks:
     placeholder: aks-node-resource-group
   dnsPrefix:
     label: DNS Prefix
+  outboundType:
+    label: Outbound Type
+    userDefined: User Defined Routing
+    loadbalancer: Loadbalancer (Default)
+    tooltip: User Defined Routing is only available when Load Balancer SKU is set to 'standard'.
   nodePools:
     title: Node Pools
     notNamed: Not Named
@@ -134,3 +139,4 @@ aks:
     authorizedIpRanges: "Authorized IP Ranges must be CIDR notation ipv4 ranges, or single ipv4 addresses."
     ipv4Cidr: "{key} must be a valid CIDR notation ipv4 range."
     ipv4: "{key} must be a valid ipv4 address."
+    outboundType: Load Balancer SKU must be 'standard' to use user defined routing.

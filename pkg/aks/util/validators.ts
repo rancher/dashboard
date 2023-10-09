@@ -114,5 +114,18 @@ export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) =>
   };
 };
 
+export const outboundTypeUserDefined = (ctx: any, labelKey: string, clusterPath: string) => {
+  return () :string | undefined => {
+    const outboundType = get(ctx.normanCluster, clusterPath);
+    const loadBalancerSku = get(ctx.normanCluster, 'aksConfig.loadBalancerSku');
+
+    if (loadBalancerSku !== 'Standard' && outboundType === 'UserDefined') {
+      return ctx.t('aks.errors.outboundType');
+    }
+
+    return undefined;
+  };
+};
+
 // The DNS name can contain only letters, numbers, and hyphens. The name must start and end with a letter or a number.
 // The value is in between 1 and 54 characters long.

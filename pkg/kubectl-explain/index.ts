@@ -20,6 +20,7 @@ export default function(plugin: IPlugin, internal: IInternal): void {
       'istio',
       'monitoring',
       'logging',
+      'auth'
     ]
   }, {
     labelKey:   'kubectl-explain.action',

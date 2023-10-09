@@ -1,9 +1,14 @@
 {
   "name": "aks",
-  "description": "aks provisioning extension",
+  "description": "Create Azure Kubernetes Service clusters in Rancher",
+  "icon": "https://raw.githubusercontent.com/rancher/dashboard/master/pkg/aks/assets/aks.svg",
   "version": "0.1.0",
   "private": false,
-  "rancher": true,
+  "rancher": {
+    "annotations": {
+      "catalog.cattle.io/display-name": "AKS Provisioning"
+    }
+  },
   "scripts": {
     "dev": "./node_modules/.bin/nuxt dev",
     "nuxt": "./node_modules/.bin/nuxt"

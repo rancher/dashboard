@@ -10,7 +10,7 @@ import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { sortable } from '@shell/utils/version';
 import { sortBy } from '@shell/utils/sort';
 import { SETTING } from '@shell/config/settings';
-import { parseAzureError } from '@shell/cloud-credential/azure.vue';
+import { parseAzureError } from '@shell/utils/azure';
 
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
@@ -41,6 +41,7 @@ import {
   resourceGroupLength,
   ipv4WithOrWithoutCidr,
   ipv4WithCidr,
+  outboundTypeUserDefined
 } from '@pkg/aks/util/validators';
 
 import Accordion from '@pkg/aks/components/Accordion.vue';
@@ -72,7 +73,8 @@ const defaultAksConfig = {
   networkPlugin:      'kubenet',
   nodePools:          [{ ...defaultNodePool }],
   privateCluster:     false,
-  tags:               {}
+  tags:               {},
+  outboundType:       'LoadBalancer'
 };
 
 const defaultCluster = {
@@ -234,6 +236,10 @@ export default defineComponent({
         path:  'dockerBridgeCidr',
         rules: ['dockerBridgeCidr']
       },
+      {
+        path:  'outboundType',
+        rules: ['outboundType']
+      },
       ],
     };
   },
@@ -271,6 +277,7 @@ export default defineComponent({
         serviceCidr:             ipv4WithCidr(this, 'aks.serviceCidr.label', 'aksConfig.serviceCidr'),
         podCidr:                 ipv4WithCidr(this, 'aks.podCidr.label', 'aksConfig.podCidr'),
         dockerBridgeCidr:        ipv4WithCidr(this, 'aks.dockerBridgeCidr.label', 'aksConfig.dockerBridgeCidr'),
+        outboundType:            outboundTypeUserDefined(this, 'aks.outboundType.label', 'aksConfig.outboundType'),
 
         vmSizeAvailable: () => {
           if (this.touchedVmSize) {
@@ -293,6 +300,7 @@ export default defineComponent({
 
           return undefined;
         },
+
         k8sVersionAvailable: () => {
           if (this.touchedVersion) {
             if (!this.aksVersionOptions.find((v: any) => v.value === this.config.kubernetesVersion)) {
@@ -302,8 +310,9 @@ export default defineComponent({
 
           return undefined;
         },
+
         networkPolicyAvailable: () => {
-          if (this.touchedVirtualNetwork) {
+          if (this.touchedVirtualNetwork && !!this.config.virtualNetwork) {
             if (!this.virtualNetworkOptions.find((vn) => {
               return ( vn.name === this.config.virtualNetwork && vn.resourceGroup === this.config.virtualNetworkResourceGroup);
             })) {
@@ -313,6 +322,7 @@ export default defineComponent({
 
           return undefined;
         },
+
         systemPoolRequired: () => {
           const systemPool = this.nodePools.find((pool) => pool.mode === 'System');
 
@@ -369,6 +379,19 @@ export default defineComponent({
       }
 
       return sorted;
+    },
+
+    outboundTypeOptions() {
+      const out = [{
+        label: this.t('aks.outboundType.loadbalancer'),
+        value: 'LoadBalancer'
+      }, {
+        label:    this.t('aks.outboundType.userDefined'),
+        value:    'UserDefined',
+        disabled: this.config.loadBalancerSku !== 'Standard'
+      }];
+
+      return out;
     },
 
     canEditLoadBalancerSKU() {
@@ -434,10 +457,7 @@ export default defineComponent({
       if (!neu) {
         if (this.config.networkPolicy === 'azure') {
           this.$set(this.config, 'networkPolicy', undefined);
-          this.touchedVirtualNetwork = false;
         }
-        delete this.config.virtualNetwork;
-        delete this.config.virtualNetworkResourceGroup;
       }
     },
 
@@ -462,7 +482,8 @@ export default defineComponent({
       }
     },
 
-    // a validation error is shown if the region is changed and the below two fields are no longer valid - if the user hasn't set them we should just update to a valid default and not show the error
+    // a validation error is shown if the region is changed and the below two fields are no longer valid -
+    // if the user hasn't set them we should just update to a valid default and not show the error
     'config.virtualNetwork'(neu) {
       if (neu) {
         this.touchedVirtualNetwork = true;
@@ -565,14 +586,14 @@ export default defineComponent({
 
     async getVirtualNetworks() {
       this.loadingVirtualNetworks = true;
-      this.virtualNetworkOptions = [];
+      this.virtualNetworkOptions = [{ name: this.t('generic.none') }];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
         const res = await getAKSVirtualNetworks(this, azureCredentialSecret, resourceLocation, this.clusterId);
 
         if (res && isArray(res)) {
-          this.virtualNetworkOptions = res;
+          this.virtualNetworkOptions.push(...res);
         }
 
         this.loadingVirtualNetworks = false;
@@ -613,8 +634,13 @@ export default defineComponent({
     },
 
     selectNetwork(network: any) {
-      this.$set(this.config, 'virtualNetwork', network.name);
-      this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
+      if (network.name === this.t('generic.none') || network === this.t('generic.none')) {
+        this.$set(this.config, 'virtualNetwork', null);
+        this.$set(this.config, 'virtualNetworkResourceGroup', null);
+      } else {
+        this.$set(this.config, 'virtualNetwork', network.name);
+        this.$set(this.config, 'virtualNetworkResourceGroup', network.resourceGroup);
+      }
     },
 
     setClusterName(name: string) {
@@ -655,6 +681,8 @@ export default defineComponent({
     async actuallySave() {
       await this.normanCluster.save();
     },
+
+    // fires when the 'cancel' button is pressed while the user is creating a new cloud credential
     cancelCredential() {
       if ( this.$refs.cruresource ) {
         (this.$refs.cruresource as any).emitOrRoute();
@@ -896,6 +924,17 @@ export default defineComponent({
                 placeholder-key="aks.dns.placeholder"
               />
             </div>
+            <div class="col span-3">
+              <LabeledSelect
+                v-model="config.outboundType"
+                :mode="mode"
+                label-key="aks.dns.label"
+                :disabled="!isNewOrUnprovisioned"
+                :rules="fvGetAndReportPathRules('outboundType')"
+                :options="outboundTypeOptions"
+                :tooltip="t('aks.outboundType.tooltip')"
+              />
+            </div>
           </div>
           <div class="row mb-10">
             <div class="col span-3">
@@ -919,68 +958,63 @@ export default defineComponent({
                 :disabled="!isNewOrUnprovisioned"
               />
             </div>
-            <template v-if="hasAzureCNI">
-              <div
-                class="col span-3"
-              >
-                <LabeledSelect
-                  :value="config.virtualNetwork"
-                  label-key="aks.virtualNetwork.label"
-                  :mode="mode"
-                  :options="virtualNetworkOptions"
-                  :loading="loadingVirtualNetworks"
-                  option-label="name"
-                  :disabled="!isNewOrUnprovisioned"
-                  :rules="fvGetAndReportPathRules('networkPolicy')"
-                  @selecting="selectNetwork($event)"
-                />
-              </div>
-            </template>
+            <div
+              class="col span-3"
+            >
+              <LabeledSelect
+                :value="config.virtualNetwork || t('generic.none')"
+                label-key="aks.virtualNetwork.label"
+                :mode="mode"
+                :options="virtualNetworkOptions"
+                :loading="loadingVirtualNetworks"
+                option-label="name"
+                :disabled="!isNewOrUnprovisioned"
+                :rules="fvGetAndReportPathRules('networkPolicy')"
+                @selecting="selectNetwork($event)"
+              />
+            </div>
           </div>
 
-          <!-- azure cni configuration -->
-          <template v-if="hasAzureCNI">
-            <div class="row mb-10">
-              <div class="col span-3">
-                <LabeledInput
-                  v-model="config.serviceCidr"
-                  :mode="mode"
-                  label-key="aks.serviceCidr.label"
-                  :tooltip="t('aks.serviceCidr.tooltip')"
-                  :disabled="!isNewOrUnprovisioned"
-                  :rules="fvGetAndReportPathRules('serviceCidr')"
-                />
-              </div>
-              <div class="col span-3">
-                <LabeledInput
-                  v-model="config.podCidr"
-                  :mode="mode"
-                  label-key="aks.podCidr.label"
-                  :disabled="!isNewOrUnprovisioned"
-                  :rules="fvGetAndReportPathRules('podCidr')"
-                />
-              </div>
-              <div class="col span-3">
-                <LabeledInput
-                  v-model="config.dnsServiceIp"
-                  :mode="mode"
-                  label-key="aks.dnsServiceIp.label"
-                  :tooltip="t('aks.dnsServiceIp.tooltip')"
-                  :disabled="!isNewOrUnprovisioned"
-                />
-              </div>
-              <div class="col span-3">
-                <LabeledInput
-                  v-model="config.dockerBridgeCidr"
-                  :mode="mode"
-                  label-key="aks.dockerBridgeCidr.label"
-                  :tooltip="t('aks.dockerBridgeCidr.tooltip')"
-                  :disabled="!isNewOrUnprovisioned"
-                  :rules="fvGetAndReportPathRules('dockerBridgeCidr')"
-                />
-              </div>
+          <div class="row mb-10">
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.serviceCidr"
+                :mode="mode"
+                label-key="aks.serviceCidr.label"
+                :tooltip="t('aks.serviceCidr.tooltip')"
+                :disabled="!isNewOrUnprovisioned"
+                :rules="fvGetAndReportPathRules('serviceCidr')"
+              />
             </div>
-          </template>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.podCidr"
+                :mode="mode"
+                label-key="aks.podCidr.label"
+                :disabled="!isNewOrUnprovisioned"
+                :rules="fvGetAndReportPathRules('podCidr')"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.dnsServiceIp"
+                :mode="mode"
+                label-key="aks.dnsServiceIp.label"
+                :tooltip="t('aks.dnsServiceIp.tooltip')"
+                :disabled="!isNewOrUnprovisioned"
+              />
+            </div>
+            <div class="col span-3">
+              <LabeledInput
+                v-model="config.dockerBridgeCidr"
+                :mode="mode"
+                label-key="aks.dockerBridgeCidr.label"
+                :tooltip="t('aks.dockerBridgeCidr.tooltip')"
+                :disabled="!isNewOrUnprovisioned"
+                :rules="fvGetAndReportPathRules('dockerBridgeCidr')"
+              />
+            </div>
+          </div>
           <div class="row mb-10">
             <div class="networking-checkboxes col span-6">
               <Checkbox
