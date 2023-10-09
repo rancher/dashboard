@@ -78,20 +78,27 @@ describe('Home Links', () => {
     homeLinksPage.addLinkButton().click();
     homeLinksPage.displayTextInput().set(customLinkName);
     homeLinksPage.urlInput().set(customLinkUrl);
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(500);
+
     homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
 
-    // Note: Unfortunetly the custom link is not saved after clicking the Apply button when performing this test via automation (works just fine manually)
-    // so the below assertions will fail which asserts that the newly created link displays on the Home page.
-    // The api request payload associated with this action (ui-custom-links) does not contain custom link's key and value
-    // HomePagePo.goTo();
-    // simpleBox.checkVisible();
-    // homePage.supportLinks().contains(customLinkName).should('have.property', 'href', `${ customLinkUrl }`);
+    HomePagePo.goTo();
+    homePage.supportLinks().contains(customLinkName).should('have.attr', 'href', `${ customLinkUrl }`);
 
     // Remove custom link
+    homeLinksPage.goTo();
     homeLinksPage.removeLinkButton().click();
+
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(500);
+
     homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
     homeLinksPage.displayTextInput().checkNotExists();
     homeLinksPage.removeLinkButton().should('not.exist');
+
+    HomePagePo.goTo();
+    homePage.supportLinks().contains(customLinkName).should('not.exist');
   });
 
   it('standard user has only read access to Home Links page', { tags: '@standardUser' }, () => {
