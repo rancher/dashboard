@@ -36,7 +36,7 @@ import { ignoreVariables } from './install.helpers';
 import { findBy, insertAt } from '@shell/utils/array';
 import Vue from 'vue';
 import { saferDump } from '@shell/utils/create-yaml';
-import { LINUX, WINDOWS } from '@shell/store/catalog';
+import { LINUX, WINDOWS } from '@shell/config/os';
 
 const VALUES_STATE = {
   FORM: 'FORM',
