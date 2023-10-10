@@ -56,11 +56,10 @@ jobs:
           yarn e2e:prod
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e-admin.json
-          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/
+          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e-admin/
         env: 
           GREP_TAGS: '@adminUser'
           TEST_USERNAME: admin
-
 
       - name: Run standard user tests
         if: ${{ success() || failure() }}
@@ -69,6 +68,7 @@ jobs:
           yarn docker:local:stop
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e-user.json
+          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e-user/
         env: 
           GREP_TAGS: '@standardUser'
           TEST_USERNAME: standard_user
