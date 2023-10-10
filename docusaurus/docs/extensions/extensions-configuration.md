@@ -32,10 +32,10 @@ ___`./pkg/my-package/package.json`___
   "version": "0.1.0",
   "rancher": {
     "annotations": {
-      "catalog.cattle.io/kube-version": ">= v1.26.0-0 < v1.28.0-0",
-      "catalog.cattle.io/rancher-version": ">= 2.7.7-0 < 2.8.0-0",
+      "catalog.cattle.io/kube-version": ">= v1.26.0-0 < v1.29.0-0",
+      "catalog.cattle.io/rancher-version": ">= 2.7.7-0 < 2.9.0-0",
       "catalog.cattle.io/ui-extensions-version": ">= 1.1.0",
-      "catalog.cattle.io/ui-version": ">= 2.7.7-0 < 2.8.0-0",
+      "catalog.cattle.io/ui-version": ">= 2.7.7-0 < 2.9.0-0",
       "catalog.cattle.io/display-name": "My Super Great Extension"
     }
   },

@@ -16,6 +16,7 @@ REGISTRY="${3}"
 REGISTRY_ORG="${4}"
 IMAGE_PREFIX="${5}"
 PUSH="${6}"
+PODMAN_CONTAINER="${7}"
 
 PKG_NAME="${PKG}-${PKG_VERSION}"
 
@@ -48,12 +49,15 @@ for d in ${BASE_DIR}/dist-pkg/*; do
   cp -R ${BASE_DIR}/dist-pkg/${pkg} ${TMP}/container/plugin
 done
 
-# Build the docker image
-pushd ${TMP}/container > /dev/null
-echo -e "${CYAN}Building container image ...${RESET}"
+package() {
+  if [ "${PODMAN_CONTAINER}" == "true" ]; then
+    RUNTIME="podman"
+  else
+    RUNTIME="docker"
+  fi
+  echo -e "Container build: ${RUNTIME}"
 
-if [ ! -z "${REGISTRY}" ]; then
-  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} ./scripts/package
+  REGISTRY=${REGISTRY} ORG=${REGISTRY_ORG} REPO=${IMAGE_PREFIX}${PKG} TAG=${PKG_VERSION} RUNTIME=${RUNTIME} ./scripts/package
 
   if [ "${PUSH}" == "--push" ]; then
     echo -e "${CYAN}Pushing container image ...${RESET}"
@@ -61,14 +65,22 @@ if [ ! -z "${REGISTRY}" ]; then
     # Ensure that you do not overwrite production images
     if [[ "${REGISTRY_ORG}" == "rancher" ]]; then
       IMAGE=${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
-      if docker manifest inspect 2>&1 1>/dev/null; then
+      if ${RUNTIME} manifest inspect ${IMAGE} 2>&1 1>/dev/null; then
         echo -e "${RED}${BOLD}Cannot overwrite production image ${IMAGE_PREFIX}${PKG} since it already exists${RESET}"
         exit 1
       fi
     fi
 
-    docker push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
+    ${RUNTIME} push ${REGISTRY}${REGISTRY_ORG}/${IMAGE_PREFIX}${PKG}:${PKG_VERSION}
   fi
+}
+
+# Build the container image
+pushd ${TMP}/container > /dev/null
+echo -e "${CYAN}Building container image ...${RESET}"
+
+if [ ! -z "${REGISTRY}" ]; then
+  package
 fi
 
 popd > /dev/null
