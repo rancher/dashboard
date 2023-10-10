@@ -57,13 +57,9 @@ jobs:
           TYPE=$(echo "${COMMENT_BODY}" | awk '{ print $1 }' | sed -e 's_/__')
           MILESTONE=$(echo "${COMMENT_BODY}" | awk '{ print $2 }')
           NEW_TITLE="[${TYPE}] ${ORIGINAL_TITLE}"
-          # rancher/rancher title
           if [[ $MILESTONE =~ (v[0-9]\.[0-9]+) ]]; then
-              NEW_TITLE="[${TYPE} ${BASH_REMATCH[1]}] ${ORIGINAL_TITLE}"
+              NEW_TITLE="[${TYPE} ${MILESTONE}] ${ORIGINAL_TITLE}"
           fi
-          # rancher/rke2 title
-          # MAJOR_MINOR_MILESTONE=$(echo $MILESTONE | cut -d. -f1,2)
-          # NEW_TITLE="[${TYPE} release-${MAJOR_MINOR_MILESTONE}] ${ORIGINAL_TITLE}"
           ORIGINAL_LABELS=$(gh issue view -R ${GITHUB_REPOSITORY} ${ORIGINAL_ISSUE_NUMBER} --json labels --jq '.labels[].name' | grep -v '^\[zube\]:' | paste -sd "," -)
           if [ -n "$ORIGINAL_LABELS" ]; then
               additional_cmd+=("--label")
