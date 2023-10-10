@@ -30,6 +30,13 @@ env:
 jobs:
   e2e-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    strategy:
+      matrix:
+        include:
+          - role: '@adminUser'
+            username: 'admin'
+          - role: '@standardUser'
+            username: 'standard_user'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -39,6 +46,7 @@ jobs:
         with:
           node-version: '14.x'
 
+      # Installing fixed version of Chrome since latest version does not work
       - name: Install Chrome 116
         run: |
           sudo apt-get install -y wget
@@ -56,39 +64,27 @@ jobs:
       - name: Run admin user tests
         run: |
           yarn e2e:prod
+          yarn docker:local:stop
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e-admin.json
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e-admin/
         env: 
-          GREP_TAGS: '@adminUser'
-          TEST_USERNAME: admin
-
-      - name: Run standard user tests
-        if: ${{ success() || failure() }}
-        run: |
-          yarn e2e:prod
-          yarn docker:local:stop
-          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e-user.json
-          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e-user/
-        env: 
-          GREP_TAGS: '@standardUser'
-          TEST_USERNAME: standard_user
+          GREP_TAGS: ${{ matrix.role }}
+          TEST_USERNAME: ${{ matrix.username }}
         
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         if: env.BUILD_DASHBOARD != 'false'
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-coverage
+          name: ${{github.run_number}}-${{github.run_attempt}}-coverage-${{ matrix.role }}
           path: coverage-artifacts/**/*
           
       - name: Upload screenshots
         uses: actions/upload-artifact@v3
         if: ${{ failure() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots
+          name: ${{github.run_number}}-${{github.run_attempt}}-screenshots-${{ matrix.role }}
           path: cypress/screenshots
 
   unit-test:
