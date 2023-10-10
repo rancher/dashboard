@@ -2,6 +2,10 @@ type AKSPoolMode = 'System' | 'User'
 
 type AKSDiskType = 'Managed' | 'Ephemeral'
 
+type LoadBalancerSku = 'Standard' | 'Basic'
+
+type OutboundType = 'LoadBalancer' | 'UserDefinedRouting'
+
 export interface AKSNodePool {
   availabilityZones?: String[],
   count?: Number,
@@ -38,7 +42,7 @@ export interface AKSConfig {
   imported?: Boolean,
   kubernetesVersion?: String,
   linuxAdminUsername?: String,
-  loadBalancerSku?: String,
+  loadBalancerSku?: LoadBalancerSku,
   logAnalyticsWorkspaceGroup?: String,
   logAnalyticsWorkspaceName?: String,
   monitoring?: Boolean,
@@ -46,7 +50,7 @@ export interface AKSConfig {
   networkPolicy?: String,
   nodePools?: AKSNodePool[],
   nodeResourceGroup?: String,
-  outboundType?: String,
+  outboundType?: OutboundType,
   podCidr?: String,
   privateCluster?: Boolean,
   resourceGroup?: String,
@@ -57,4 +61,15 @@ export interface AKSConfig {
   tags?: Map<string>,
   virtualNetwork?: String,
   virtualNetworkResourceGroup?: String
+}
+
+interface VirtualNetworkSubnet {
+  name: String,
+  addressRange: String
+}
+export interface AKSVirtualNetwork {
+  location: String,
+  name: String,
+  resourceGroup: String,
+  subnets: VirtualNetworkSubnet[]
 }

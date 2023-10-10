@@ -387,7 +387,7 @@ export default defineComponent({
         value: 'LoadBalancer'
       }, {
         label:    this.t('aks.outboundType.userDefined'),
-        value:    'UserDefined',
+        value:    'UserDefinedRouting',
         disabled: this.config.loadBalancerSku !== 'Standard'
       }];
 
@@ -516,10 +516,10 @@ export default defineComponent({
       // this will force the resourceLocation watcher to re-run every time new locations are fetched even if the default one selected hasn't changed
       this.$set(this.config, 'resourceLocation', '');
 
-      const { azureCredentialSecret, resourceLocation } = this.config;
+      const { azureCredentialSecret } = this.config;
 
       try {
-        const res = await getAKSRegions(this, azureCredentialSecret, resourceLocation, this.clusterId);
+        const res = await getAKSRegions(this.$store, azureCredentialSecret, this.clusterId);
 
         this.locationOptions = res;
         if (!this.config?.resourceLocation) {
@@ -544,7 +544,7 @@ export default defineComponent({
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
-        const res = await getAKSKubernetesVersions(this, azureCredentialSecret, resourceLocation, this.clusterId);
+        const res = await getAKSKubernetesVersions(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
         // the default version is set once these are filtered and sorted in computed prop
         this.allAksVersions = res;
@@ -564,7 +564,7 @@ export default defineComponent({
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
-        const res = await getAKSVMSizes(this, azureCredentialSecret, resourceLocation, this.clusterId);
+        const res = await getAKSVMSizes(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
         if (isArray(res)) {
           this.vmSizeOptions = res.sort();
@@ -590,7 +590,7 @@ export default defineComponent({
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
-        const res = await getAKSVirtualNetworks(this, azureCredentialSecret, resourceLocation, this.clusterId);
+        const res = await getAKSVirtualNetworks(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
         if (res && isArray(res)) {
           this.virtualNetworkOptions.push(...res);

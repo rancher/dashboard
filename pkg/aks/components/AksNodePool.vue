@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
-import {mapGetters} from 'vuex';
+import { mapGetters } from 'vuex';
 
 import { _CREATE } from '@shell/config/query-params';
 import type { AKSDiskType, AKSNodePool, AKSPoolMode } from '../types/index';
@@ -72,6 +72,7 @@ export default defineComponent({
         this.$set(this.pool, 'maxCount', 3);
       }
     },
+
     'pool.vmSize'(neu) {
       if (neu) {
         this.$emit('vmSizeSet');
@@ -79,9 +80,7 @@ export default defineComponent({
     }
   },
 
-  computed:{
-    ...mapGetters({t:'i18n/t'})
-  },
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   methods: {
     addTaint() {
@@ -149,7 +148,7 @@ export default defineComponent({
           @input="$emit('validationChanged')"
         >
           <template #label>
-            <span class="text-label">{{t('aks.nodePools.mode.label')}}</span>
+            <span class="text-label">{{ t('aks.nodePools.mode.label') }}</span>
           </template>
         </RadioGroup>
       </div>

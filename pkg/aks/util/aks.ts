@@ -1,9 +1,18 @@
 import { isArray } from '@shell/utils/array';
 import { set, get } from '@shell/utils/object';
 import { addParams, QueryParams } from '@shell/utils/url';
+// eslint-disable-next-line no-unused-vars
+import { AKSVirtualNetwork } from 'types';
 
-// get vm sizes, regions, virtual networks, k8s versions
-async function getAKSOptions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string, resource: string) :Promise<any> {
+/**
+ *
+ * @param store vuex store used to make the GET request
+ * @param azureCredentialSecret id of an azure cloud credential
+ * @param resourceLocation any valid AKS region
+ * @param clusterId (optional) norman cluster id
+ * @param resource AKS resource to be fetched - one of aksLocations, aksVersions, aksVMSizes, aksVirtualNetworks
+ */
+async function getAKSOptions(store: any, azureCredentialSecret: string, resourceLocation: string, resource: string, clusterId?: string) :Promise<any> {
   if (!azureCredentialSecret) {
     return null;
   }
@@ -19,23 +28,55 @@ async function getAKSOptions(ctx: any, azureCredentialSecret: string, resourceLo
 
   const url = addParams(`/meta/${ resource }`, params );
 
-  return ctx.$store.dispatch('cluster/request', { url });
+  return store.dispatch('cluster/request', { url });
 }
 
-export async function getAKSRegions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
-  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksLocations');
+/**
+ * Fetch a list of available AKS regions
+ * @param store vuex store used to make the GET request
+ * @param azureCredentialSecret id of an azure cloud credential
+ * @param clusterId (optional) norman cluster id
+ * @returns Array of regions in the form {name, displayName}
+ */
+
+export async function getAKSRegions(store: any, azureCredentialSecret: string, clusterId?: string) :Promise<any> {
+  return getAKSOptions(store, azureCredentialSecret, '', 'aksLocations', clusterId );
 }
 
-export async function getAKSVMSizes(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
-  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksVMSizes');
+/**
+ * Fetch a list of available VM sizes for a given AKS region. Note that this can push 1k results
+ * @param store vuex store used to make the GET request
+ * @param azureCredentialSecret id of an azure cloud credential
+ * @param resourceLocation any valid AKS region
+ * @param clusterId (optional) norman cluster id
+ * @returns An array of strings
+ */
+export async function getAKSVMSizes(store: any, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+  return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVMSizes', clusterId );
 }
 
-export async function getAKSKubernetesVersions(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
-  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksVersions');
+/**
+ * Fetch a list of the available kubernetes versions for a given region. This may include versions outside of what Rancher supports
+ * @param store vuex store used to make the GET request
+ * @param azureCredentialSecret id of an azure cloud credential
+ * @param resourceLocation any valid AKS region
+ * @param clusterId (optional) norman cluster id
+ * @returns Array of versions
+ */
+export async function getAKSKubernetesVersions(store: any, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+  return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVersions', clusterId );
 }
 
-export async function getAKSVirtualNetworks(ctx: any, azureCredentialSecret: string, resourceLocation: string, clusterId: string) :Promise<any> {
-  return getAKSOptions(ctx, azureCredentialSecret, resourceLocation, clusterId, 'aksVirtualNetworks');
+/**
+ * Fetch available virtual networks in a given region.
+ * @param store vuex store used to make the GET request
+ * @param azureCredentialSecret id of an azure cloud credential
+ * @param resourceLocation any valid AKS region
+ * @param clusterId (optional) norman cluster id
+ * @returns {[AKSVirtualNetwork]}
+ */
+export async function getAKSVirtualNetworks(store: any, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+  return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVirtualNetworks', clusterId );
 }
 
 /**

@@ -4,6 +4,7 @@
  */
 
 import { get } from '@shell/utils/object';
+import { LoadBalancerSku, OutboundType } from 'types';
 
 // no need to try to validate any fields if the user is still selecting a credential and the rest of the form isn't visible
 const needsValidation = (ctx: any) => {
@@ -116,10 +117,10 @@ export const ipv4WithCidr = (ctx: any, labelKey: string, clusterPath: string) =>
 
 export const outboundTypeUserDefined = (ctx: any, labelKey: string, clusterPath: string) => {
   return () :string | undefined => {
-    const outboundType = get(ctx.normanCluster, clusterPath);
-    const loadBalancerSku = get(ctx.normanCluster, 'aksConfig.loadBalancerSku');
+    const outboundType = get(ctx.normanCluster, clusterPath) as OutboundType;
+    const loadBalancerSku = get(ctx.normanCluster, 'aksConfig.loadBalancerSku') as LoadBalancerSku;
 
-    if (loadBalancerSku !== 'Standard' && outboundType === 'UserDefined') {
+    if (loadBalancerSku !== 'Standard' && outboundType === 'UserDefinedRouting') {
       return ctx.t('aks.errors.outboundType');
     }
 
