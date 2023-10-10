@@ -169,6 +169,7 @@ export default Vue.extend({
 
 <template>
   <div>
+    <!-- Label -->
     <div
       v-if="label || labelKey || tooltip || tooltipKey || $slots.label"
       class="radio-group label"
@@ -195,6 +196,8 @@ export default Vue.extend({
         </h3>
       </slot>
     </div>
+
+    <!-- Group -->
     <div
       class="radio-group"
       :class="{'row':row}"
@@ -212,6 +215,7 @@ export default Vue.extend({
           :is-disabled="isDisabled"
           :name="i"
         >
+          <!-- Default input -->
           <RadioButton
             :key="name+'-'+i"
             :name="name"
