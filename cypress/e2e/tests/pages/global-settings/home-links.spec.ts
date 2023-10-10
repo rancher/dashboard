@@ -70,6 +70,7 @@ describe('Home Links', () => {
   });
 
   it('can add and remove custom links', { tags: '@adminUser' }, () => {
+    // Note: need to click 'Apply' button twice in this test due to race condition. Test will fail unexpectedly without it.
     const customLinkName = `${ runPrefix }-custom-link`;
     const customLinkUrl = `https://${ runPrefix }/custom/link/url`;
 
@@ -78,22 +79,20 @@ describe('Home Links', () => {
     homeLinksPage.addLinkButton().click();
     homeLinksPage.displayTextInput().set(customLinkName);
     homeLinksPage.urlInput().set(customLinkUrl);
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
 
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
-
+    cy.intercept('PUT', '/v1/management.cattle.io.settings/ui-custom-links').as('linksUpdated');
+    homeLinksPage.applyButton().apply();
+    homeLinksPage.applyButton().apply();
+    cy.wait(['@linksUpdated', '@linksUpdated']);
     HomePagePo.goTo();
     homePage.supportLinks().contains(customLinkName).should('have.attr', 'href', `${ customLinkUrl }`);
 
     // Remove custom link
     homeLinksPage.goTo();
     homeLinksPage.removeLinkButton().click();
-
-    // eslint-disable-next-line cypress/no-unnecessary-waiting
-    cy.wait(500);
-
-    homeLinksPage.applyAndWait('/v1/management.cattle.io.settings/ui-custom-links');
+    homeLinksPage.applyButton().apply();
+    homeLinksPage.applyButton().apply();
+    cy.wait(['@linksUpdated', '@linksUpdated']);
     homeLinksPage.displayTextInput().checkNotExists();
     homeLinksPage.removeLinkButton().should('not.exist');
 
