@@ -1,32 +1,13 @@
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
+import { getSpecPattern } from '@shell/utils/cypress';
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
-const skipSetup = process.env.TEST_SKIP_SETUP === 'true';
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
+const testDirs = ['setup', 'pages', 'navigation', 'global-ui'];
+const skipSetup = process.env.TEST_SKIP_SETUP === 'true';
 
-/**
- * Filter test spec paths based on env var configuration
- * @returns
- */
-const getSpecPattern = (): string[] => {
-  const optionalPaths = [
-    {
-      path:   'cypress/e2e/tests/setup/**/*.spec.ts',
-      active: !skipSetup
-    }
-  ];
-  const activePaths = optionalPaths.filter(({ active }) => Boolean(active)).map(({ path }) => path);
-
-  // List the test directories to be included
-  const testDirs = ['pages', 'navigation', 'global-ui'].map((dir) => `cypress/e2e/tests/${ dir }/**/*.spec.ts`);
-
-  return [
-    ...activePaths,
-    ...testDirs
-  ];
-};
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
 
 // Default user name, if TEST_USERNAME is not provided
@@ -117,7 +98,7 @@ export default defineConfig({
       return config;
     },
     experimentalSessionAndOrigin: true,
-    specPattern:                  getSpecPattern(),
+    specPattern:                  getSpecPattern(testDirs, process.env),
     baseUrl
   },
   videoCompression:    15,
