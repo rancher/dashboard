@@ -1,7 +1,7 @@
 import { RancherSetupPagePo } from '@/cypress/e2e/po/pages/rancher-setup.po';
 import { RancherSetupAuthVerifyPage } from '@/cypress/e2e/po/pages/rancher-setup-auth-verify.po';
 
-describe('Rancher setup', { tags: ['@adminUser', '@standardUser'] }, () => {
+describe('Rancher setup', { tags: ['@adminUser', '@adminUserSetup', '@standardUserSetup'] }, () => {
   it('Requires initial setup', () => {
     cy.visit('');
 

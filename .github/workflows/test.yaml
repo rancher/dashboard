@@ -67,7 +67,7 @@ jobs:
           yarn docker:local:stop
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
-          GREP_TAGS: ${{ matrix.role }}
+          GREP_TAGS: ${{ matrix.role }}Setup
           TEST_USERNAME: admin
           TEST_SKIP_PAGES: true
           TEST_SKIP_NAVIGATION: true
