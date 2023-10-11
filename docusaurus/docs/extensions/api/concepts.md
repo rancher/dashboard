@@ -64,5 +64,5 @@ With this quick guide on routing for top-level Extension products, we should be 
 
 ## Overview on routing structure for a cluster-level Extension product
 
-The previous chapter covers the basics on routing, which such be more than enough to get you started, but if you are looking for detailed information on routing for a cluster-level product, check this page about [cluster-level product routing](./nav/routing.md#routes-definition-for-an-extension-as-a-cluster-level-product).
+The previous chapter covers the basics on routing, which should be more than enough to get you started, but if you are looking for detailed information on routing for a cluster-level product, check this page about [cluster-level product routing](./nav/routing.md#routes-definition-for-an-extension-as-a-cluster-level-product).
 

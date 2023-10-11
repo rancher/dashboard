@@ -108,11 +108,23 @@ export function init($plugin: IPlugin, store: any) {
 
 One above example we are registering 2 pages: a resource page called `YOUR_K8S_RESOURCE_NAME` and a custom page called `CUSTOM_PAGE_NAME`. These need to be reflected in the routes definition that is provided to the `addRoutes` method.
 
-Please note that for **Top-level product** routing follows a defined pattern of **name** `${ YOUR_PRODUCT_NAME }-c-cluster-something` and that in the **params** part we define **cluster** as `BLANK_CLUSTER`. `BLANK_CLUSTER` is a notion on which Rancher will ignore the context of the cluster the user is browsing, which is the desired effect when creating a product that is "above" the notion of a cluster.
+Please note that for a Top-level product, routing follows a defined pattern:
 
-This pattern is a very important aspect for Top-level products that you should be mindful at all times if your are creating a product of this type.
+```js
+route: {
+  name:   `${ YOUR_PRODUCT_NAME }-c-cluster-${ CUSTOM_PAGE_NAME }`,
+  params: { 
+    product: YOUR_PRODUCT_NAME, 
+    cluster: BLANK_CLUSTER 
+  }
+}
+```
 
-Considering the above, them `/routing/extension-routing.ts` would then have to defined like:
+Within the params property, we define **cluster** as `BLANK_CLUSTER`. `BLANK_CLUSTER` is a notion on which Rancher will ignore the context of the cluster the user is browsing, which is the desired effect when creating a product that is "above" the notion of a cluster.
+
+This pattern is a very important aspect for Top-level products that you should be mindful at all times when creating a product of this type.
+
+Considering the above, `/routing/extension-routing.ts` would then have to be defined like:
 
 ```ts
 // custom pages should be created as VueJS components. Usually stored on the /pages folder on the extension
@@ -220,7 +232,7 @@ const routes = [
 export default routes;
 ```
 
-> Note: Noticed that we didn't need to define the parameter `resource` under `meta`? Since it a wildcarded parameter on the path and it's not mandatory like `cluster` for a top-level product, we don't need to define it on the routes definition.
+> Note: Notice that we didn't need to define the parameter `resource` under `meta`? Since it is a wildcard parameter on the path and it's not mandatory like `cluster` for a top-level product, we don't need to define it on the routes definition.
 
 On the above routes definition for `YOUR_K8S_RESOURCE_NAME` the user will get the default list view automatically wired in to display the list of `YOUR_K8S_RESOURCE_NAME` instances (`${ YOUR_PRODUCT_NAME }-c-cluster-resource`).
 
@@ -232,17 +244,33 @@ Let's then look at an example of this:
 const YOUR_K8S_RESOURCE_NAME = 'your-custom-crd-name';
 ```
 
-if a user wants a custom `list` view for the resource `your-custom-crd-name`, one will need to create a folder called `list` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`. By following this pattern, Rancher Dashboard will take care of the wiring for you.
+If a user wishes to create custom views for the resource `your-custom-crd-name`, there are three types to consider: `list`, `detail`, and `edit`.
 
-For a `detail` view, just create a folder called `detail` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`.
+For a `list` view, follow these steps:
 
-For an `edit` view, just create a folder called `edit` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`. The edit will dub as a `create` view also, so no need to add a `create` folder. It can even dub as a `detail` view if you don't wish to duplicate it. 
+1. Create a folder named `list` inside your extension folder.
+2. Inside the `list` folder, create a file named `your-custom-crd-name.vue` for the Vue component.
+
+For a `detail` view, follow these steps:
+
+1. Create a folder named `detail` inside your extension folder.
+2. Inside the `detail` folder, create a file named `your-custom-crd-name.vue` for the Vue component.
+
+For an `edit` view (which can also serve as a create view), follow these steps:
+
+1. Create a folder named `edit` inside your extension folder.
+2. Inside the `edit` folder, create a file named `your-custom-crd-name.vue` for the Vue component.
+
+> Note: The `edit` view can also be used as a `detail` view if you prefer not to duplicate it.
+
+By adhering to this pattern, Rancher Dashboard will automatically take care of the wiring for you, ensuring a seamless experience for all three view types.
 
 The routing definition on this example for `/routing/extension-routing.ts` is based on Vue Router. Don't forget to check the official documentation [here](https://router.vuejs.org/guide/).
 
 
-## Routes definition for an Extension as a cluster-level product
-Routes definition start very similar as a top-level product with the `index.ts` in your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
+
+## Routes definitions for an Extension as a cluster-level product
+Routes definitions start very similar as a top-level product with the `index.ts` in your root folder, where you define your extension configuration, you can just use the `addRoutes` extension method, such as:
 
 ```ts
 import { importTypes } from '@rancher/auto-import';
@@ -333,13 +361,22 @@ export function init($plugin: IPlugin, store: any) {
 }
 ```
 
-One above example we are registering 2 pages: a resource page called `YOUR_K8S_RESOURCE_NAME` and a custom page called `CUSTOM_PAGE_NAME`. These need to be reflected in the routes definition that is provided to the `addRoutes` method.
+In the above example we are registering 2 pages: a resource page called `YOUR_K8S_RESOURCE_NAME` and a custom page called `CUSTOM_PAGE_NAME`. These need to be reflected in the routes definition that is provided to the `addRoutes` method.
 
-Please note that for **Cluster-level product** routing follows a defined pattern of **name** `c-cluster-${ YOUR_PRODUCT_NAME }-something` and that in the **params** we don't define the **cluster** param. This means that for a Cluster-level product, the context of the cluster the user is browsing is needed, as this type of product only appears on the navigation part of a cluster.
+Please note that for a Cluster-level product, routing follows a defined pattern:
 
-This pattern is a very important aspect for Cluster-level products that you should be mindful at all times if your are creating a product of this type.
+```js
+route: {
+   name:   `c-cluster-${ YOUR_PRODUCT_NAME }-${ CUSTOM_PAGE_NAME }`,
+   params: { product: YOUR_PRODUCT_NAME }
+}
+```
 
-Considering the above, them `/routing/extension-routing.ts` would then have to defined like:
+Within the params property, we do not define the cluster parameter as this is provided by the context in which cluster the user is currently browsing.
+
+This pattern is a very important aspect for Cluster-level products that you should be mindful at all times when creating a product of this type.
+
+Considering the above, `/routing/extension-routing.ts` would then have to be defined like:
 
 ```ts
 // custom pages should be created as VueJS components. Usually stored on the /pages folder on the extension
@@ -372,7 +409,7 @@ On the above example, we are registering the route for our custom page called `C
 
 Just to reinforce the message, it is imperative that the `name` and `path` follow this convention needed for Extension cluster-level products as well.
 
-As you can see, we've added a `meta` parameter with the productname. This is necessary to exist on the routes definition in order to ensure that all the wiring "under the hood" is handled correctly by Rancher Dashboard.
+As you can see, we've added a `meta` parameter with the product name. This is necessary to exist on the routes definition in order to ensure that all the wiring "under the hood" is handled correctly by Rancher Dashboard.
 
 Now, for a resource page like `YOUR_K8S_RESOURCE_NAME`, one can leverage the usage of the default components for a list/create/edit routes used on Rancher Dashboard in such a way:
 
@@ -435,8 +472,6 @@ const routes = [
 export default routes;
 ```
 
-> Note: Noticed that we didn't need to define the parameter `resource` under `meta`? Since it a wildcarded parameter on the path and we haven't defined `cluster` so that the context of the cluster the user is browsing is caught and applied automatically.
-
 On the above routes definition for `YOUR_K8S_RESOURCE_NAME` the user will get the default list view automatically wired in to display the list of `YOUR_K8S_RESOURCE_NAME` instances (`c-cluster-${ YOUR_PRODUCT_NAME }-resource`).
 
 The remaining routes will ensure that all the necessary connections are done for create/edit views, but they will not provide any interfaces for those view types! Those will have to be created by the developer and placed on folders with the correct naming in order to make them work. (`edit`, `detail` folders).
@@ -447,10 +482,25 @@ Let's then look at an example of this:
 const YOUR_K8S_RESOURCE_NAME = 'your-custom-crd-name';
 ```
 
-if a user wants a custom `list` view for the resource `your-custom-crd-name`, one will need to create a folder called `list` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`. By following this pattern, Rancher Dashboard will take care of the wiring for you.
+If a user wishes to create custom views for the resource `your-custom-crd-name`, there are three types to consider: `list`, `detail`, and `edit`.
 
-For a `detail` view, just create a folder called `detail` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`.
+For a `list` view, follow these steps:
 
-For an `edit` view, just create a folder called `edit` inside your extension folder, and the create file there for a vue component called `your-custom-crd-name.vue`. The edit will dub as a `create` view also, so no need to add a `create` folder. It can even dub as a `detail` view if you don't wish to duplicate it. 
+1. Create a folder named `list` inside your extension folder.
+2. Inside the `list` folder, create a file named `your-custom-crd-name.vue` for the Vue component.
+
+For a `detail` view, follow these steps:
+
+1. Create a folder named `detail` inside your extension folder.
+2. Inside the `detail` folder, create a file named `your-custom-crd-name.vue` for the Vue component.
+
+For an `edit` view (which can also serve as a create view), follow these steps:
+
+1. Create a folder named `edit` inside your extension folder.
+2. Inside the `edit` folder, create a file named `your-custom-crd-name.vue` for the Vue component.
+
+> Note: The `edit` view can also be used as a `detail` view if you prefer not to duplicate it.
+
+By adhering to this pattern, Rancher Dashboard will automatically take care of the wiring for you, ensuring a seamless experience for all three view types.
 
 The routing definition on this example for `/routing/extension-routing.ts` is based on Vue Router. Don't forget to check the official documentation [here](https://router.vuejs.org/guide/).

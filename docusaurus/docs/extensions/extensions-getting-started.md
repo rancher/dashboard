@@ -45,7 +45,7 @@ You should be able to open a browser at https://127.0.0.1:8005 and you'll get th
 
 ## Creating an Extension as a top-level-product
 
-The next step is to create an extension. We will use as a Getting Started example a [Top-level product](./usecases/top-level-product) extension, but you can also create a [Cluster-level product](./usecases/cluster-level-product) extension.
+The next step is to create an extension. As a Getting Started example, we'll demonstrate an extension for a [Top-level product](./usecases/top-level-product), but you also have the option to create an extension for a [Cluster-level product](./usecases/cluster-level-product).
 
 ### Creating an Extension
 
@@ -214,6 +214,10 @@ Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav
 
 To enable Developer load in the UI, you should go to the user avatar in the top-right and go to `Preferences`. Under `Advanced Features`, check the `Enable Extension developer features` checkbox.
 
+![Preferences](./screenshots/preferences.png)
+
+![Extension Developer Features](./screenshots/extension-developer-features.png)
+
 Now we need to serve the built package locally by running the following:
 
 ```sh
@@ -232,7 +236,11 @@ Serving packages:
 
 Now jump back into the UI and bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Extensions'.
 
+![Developer Load](./screenshots/dev-load.png)
+
 Go to the three dot menu and select 'Developer load' - you'll get a dialog allowing you to load the extension into the UI.
+
+![Developer Load Modal](./screenshots/dev-load-modal.png)
 
 In the top input box `Extension URL`, enter:
 
@@ -245,8 +253,6 @@ Press 'Load' and the extension will be loaded, you should see a notification tel
 This illustrates dynamically loading an extension.
 
 You'll notice that if you reload the Rancher UI, the extension is not persistent and will need to be added again. You can make it persistent by checking the `Persist extension by creating custom resource` checkbox in the Developer Load dialog.
-
-> Note: In a different Rancher UI, you should be able to follow the steps in the previous section, but instead use the URL from the output above in the Developer Load dialog.
 
 
 ## Creating a Release
