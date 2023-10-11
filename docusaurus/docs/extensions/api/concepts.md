@@ -60,5 +60,9 @@ const routeForATopLevelProductResource = {
 }
 ```
 
-With this quick guide on routing for top-level Extension products, we should be ready to cover the registration of custom pages, resource pages and general route definition. 
+With this quick guide on routing for top-level Extension products, we should be ready to cover the registration of custom pages, resource pages and general route definition. For more detailed information, check this page about [top-level product routing](./nav/routing.md#routes-definition-for-an-extension-as-a-top-level-product).
+
+## Overview on routing structure for a cluster-level Extension product
+
+The previous chapter covers the basics on routing, which such be more than enough to get you started, but if you are looking for detailed information on routing for a cluster-level product, check this page about [cluster-level product routing](./nav/routing.md#routes-definition-for-an-extension-as-a-cluster-level-product).
 

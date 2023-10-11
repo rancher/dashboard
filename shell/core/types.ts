@@ -324,6 +324,11 @@ export interface ConfigureTypeOptions {
   isRemovable?: boolean;
 
   /**
+   * Resources of this type can be edited
+   */
+  isEditable?: boolean;
+
+  /**
    * This type should be grouped by namespaces when displayed in a table
    */
   namespaced?: boolean;
@@ -344,15 +349,17 @@ export interface ConfigureTypeOptions {
   showState?: boolean;
 
   /**
+   * Define where this type/page should navigate to (menu entry routing)
+   */
+  customRoute?: Object;
+
+  /**
    * Leaving these here for completeness but I don't think these should be advertised as useable to plugin creators.
    */
   // alias
-  // customRoute
-  // customRoute
   // depaginate
   // graphConfig
   // hasGraph
-  // isEditable
   // limit
   // listGroups
   // localOnly
@@ -379,7 +386,7 @@ export interface ConfigureVirtualTypeOptions extends ConfigureTypeOptions {
   /**
    * The route that this type should correspond to {@link PluginRouteConfig} {@link RouteConfig}
    */
-  route: PluginRouteConfig | RouteConfig;
+  route: PluginRouteConfig | RouteConfig | Object;
 }
 
 export interface DSLReturnType {

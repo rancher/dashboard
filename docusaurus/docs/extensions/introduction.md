@@ -4,9 +4,10 @@ A Rancher Extension is a packaged Vue library that provides a set of functionali
 
 Developers can author, release and maintain extensions independently of Rancher itself.
 
-Rancher defines a number of extension points (the Extensions API_ which developers can take advantage of, to provide extra functionality, for example:
+Rancher defines a number of extension points - the [**Extensions API**](./api/overview.md) - which developers can take advantage of, to provide extra functionality, for example:
 
-- Add new UI screens to the top-level side navigation  
+- Add new UI screens to the top-level side navigation - [**Top-level product**](./usecases/top-level-product.md)
+- Add new UI screens to the cluster-level side navigation - [**Cluster-level product**](./usecases/cluster-level-product.md)
 - Add new UI screens to the navigation of the Cluster Explorer UI 
 - Add new UI for Kubernetes CRDs 
 - Extend existing views in Rancher Manager by adding panels, tabs and actions 

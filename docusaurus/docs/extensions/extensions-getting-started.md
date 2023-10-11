@@ -45,7 +45,7 @@ You should be able to open a browser at https://127.0.0.1:8005 and you'll get th
 
 ## Creating an Extension as a top-level-product
 
-The next step is to create an extension.
+The next step is to create an extension. We will use as a Getting Started example a [Top-level product](./usecases/top-level-product) extension, but you can also create a [Cluster-level product](./usecases/cluster-level-product) extension.
 
 ### Creating an Extension
 
@@ -75,6 +75,7 @@ Replace the contents of the file `./pkg/test/index.ts` with:
 ```ts
 import { importTypes } from '@rancher/auto-import';
 import { IPlugin } from '@shell/core/types';
+import extensionRouting from './routing/extension-routing';
 
 // Init the package
 export default function(plugin: IPlugin) {
@@ -82,10 +83,14 @@ export default function(plugin: IPlugin) {
   importTypes(plugin);
 
   // Provide extension metadata from package.json
+  // it will grab information such as `name` and `description`
   plugin.metadata = require('./package.json');
 
   // Load a product
   plugin.addProduct(require('./product'));
+
+  // Add Vue Routes
+  plugin.addRoutes(extensionRouting);
 }
 ```
 
@@ -96,15 +101,50 @@ import { IPlugin } from '@shell/core/types';
 
 export function init($plugin: IPlugin, store: any) {
   const YOUR_PRODUCT_NAME = 'myProductName';
+  const BLANK_CLUSTER = '_';
 
   const { product } = $plugin.DSL(store, YOUR_PRODUCT_NAME);
 
   product({
     icon:    'gear',
     inStore: 'management',
-    weight:  100
+    weight:  100,
+    to:      {
+      name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
+      path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster/dashboard`,
+      params:      {
+        product: YOUR_PRODUCT_NAME,
+        cluster: BLANK_CLUSTER,
+        pkg:     YOUR_PRODUCT_NAME
+      }
+    }
   });
 }
+```
+
+And finally create a file + folder `/routing/extension-routing.js` with the content:
+
+```js
+// Don't forget to create a VueJS page called index.vue in the /pages folder!!!
+import Dashboard from '../pages/index.vue';
+
+const BLANK_CLUSTER = '_';
+const YOUR_PRODUCT_NAME = 'myProductName';
+
+const routes = [
+  {
+    name:      `${ YOUR_PRODUCT_NAME }-c-cluster`,
+    path:      `/${ YOUR_PRODUCT_NAME }/c/:cluster`,
+    component: Dashboard,
+    meta:      {
+      product: YOUR_PRODUCT_NAME,
+      cluster: BLANK_CLUSTER,
+      pkg:     YOUR_PRODUCT_NAME
+    }
+  }
+];
+
+export default routes;
 ```
 
 ## Running the App
@@ -143,18 +183,23 @@ This will build the extension as a Vue library and the built extension will be p
 
 ## Loading Into Rancher
 
+### Prevent loading your extension in dev mode
+
 When we run `API=<Rancher Backend URL> yarn dev`, our test extension will be automatically loaded into the application - this allows us to develop
 the extension with hot-reloading. To test loading the extension dynamically, we can update configuration to tell Rancher not to include our extension.
 
-To do this, create a new `.env` file in the root `test-app` folder, and add these contents:
+To do this, edit the file `vue.config.js` in the root `my-app` folder, and add the name of the package you want to exclude, such as:
+
+```js
+const config = require('@rancher/shell/vue.config');
+
+module.exports = config(__dirname, {
+  excludes: ['test'],
+});
 
 ```
-EXCLUDES_PKG='test'
-```
 
-If necessary, bring in the environment variables by running `source .env`.
-
-Now, run the UI with:
+Now restart your app by running the UI again with:
 
 ```sh
 API=<Rancher Backend URL> yarn dev
@@ -164,29 +209,12 @@ Open a web browser to https://127.0.0.1:8005 and you'll see that the Example nav
 
 > Note: You need to be an admin user to test Extensions in the Rancher UI
 
-Go to the user avatar in the top-right and go to 'Preferences'. Under 'Advanced Features', check the `Enable Extension developer features' checkbox.
 
-Now, bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Extensions'.
+### Test built extension by doing a Developer load
 
-Go to the three dot menu and select 'Developer load' - you'll get a dialog allowing you to load the extension into the UI.
+To enable Developer load in the UI, you should go to the user avatar in the top-right and go to `Preferences`. Under `Advanced Features`, check the `Enable Extension developer features` checkbox.
 
-In the top input box `Extension URL`, enter:
-
-```
-https://127.0.0.1:8005/pkg/test-0.1.0/test-0.1.0.umd.min.js
-```
-
-Press 'Load' and the extension will be loaded, you should see a notification telling you the extension was loaded and if you bring in the side menu again, you should see the Example nav item there now.
-
-This illustrates dynamically loading an extension.
-
-> Note that when we started the UI, it serves up any extensions in the `dist-pkg` folder under the `/pkg` route of the app. Also note that when we build extensions they are versioned, so you'll see that reflected in the URL we used.
-
-### Loading into another Rancher Instance
-
-In the steps above, we were able to load the extension into our test application. We can load the extension into any running Rancher instance.
-
-Run the following:
+Now we need to serve the built package locally by running the following:
 
 ```sh
 yarn serve-pkgs
@@ -202,9 +230,24 @@ Serving packages:
   test-0.1.0 available at: http://127.0.0.1:4500/test-0.1.0/test-0.1.0.umd.min.js
 ```
 
-In a different Rancher UI, you should be able to follow the steps in the previous section, but instead use the URL from the output above in the Developer Load dialog.
+Now jump back into the UI and bring in the slide-in menu (click on the hamburger menu in the top-left) and click on 'Extensions'.
+
+Go to the three dot menu and select 'Developer load' - you'll get a dialog allowing you to load the extension into the UI.
+
+In the top input box `Extension URL`, enter:
+
+```
+https://127.0.0.1:8005/pkg/test-0.1.0/test-0.1.0.umd.min.js
+```
+
+Press 'Load' and the extension will be loaded, you should see a notification telling you the extension was loaded and if you bring in the side menu again, you should see the Example nav item there now.
+
+This illustrates dynamically loading an extension.
 
 You'll notice that if you reload the Rancher UI, the extension is not persistent and will need to be added again. You can make it persistent by checking the `Persist extension by creating custom resource` checkbox in the Developer Load dialog.
+
+> Note: In a different Rancher UI, you should be able to follow the steps in the previous section, but instead use the URL from the output above in the Developer Load dialog.
+
 
 ## Creating a Release
 
