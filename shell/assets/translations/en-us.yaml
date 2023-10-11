@@ -111,8 +111,6 @@ generic:
           =1 {Matches 1 of {total, number}: "{sample}"}
           other {Matches {matched, number} of {total, number}, including "{sample}"}
         }
-  copyValue: Copy value
-  valueCopied: Value copied!
 
 locale:
   en-us: English
