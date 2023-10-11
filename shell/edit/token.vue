@@ -227,7 +227,9 @@ export default {
     />
   </div>
   <div v-else>
-    <div>{{ t('accountAndKeys.apiKeys.info.keyCreated') }}</div>
+    <div class="key-created-title">
+      {{ t('accountAndKeys.apiKeys.info.keyCreated') }}
+    </div>
 
     <DetailText
       :value="accessKey"
@@ -240,7 +242,7 @@ export default {
       class="mt-20"
     />
 
-    <p class="mt-20">
+    <p class="mt-20 bearer-token-tip">
       {{ t('accountAndKeys.apiKeys.info.bearerTokenTip') }}
     </p>
 
@@ -285,6 +287,11 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+
+  .key-created-title {
+    padding: 0 0 10px 0;
+  }
+
   .scope-select {
     min-width: 33%;
     width: unset;
@@ -295,6 +302,10 @@ export default {
       flex: 0 0 200px;
       margin-right: 10px;
     }
+  }
+
+  .bearer-token-tip {
+    padding: 8px 0;
   }
 
   .buttons {
