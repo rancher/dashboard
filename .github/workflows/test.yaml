@@ -66,11 +66,8 @@ jobs:
           yarn e2e:prod
           yarn docker:local:stop
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-          mkdir -p coverage-artifacts/coverage
-          cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e-admin.json
-          cp -r coverage/e2e/ coverage-artifacts/coverage/e2e-admin/
         env: 
-          GREP_TAGS: '@adminUser'
+          GREP_TAGS: ${{ matrix.role }}
           TEST_USERNAME: admin
           TEST_SKIP_PAGES: true
           TEST_SKIP_NAVIGATION: true
@@ -79,6 +76,8 @@ jobs:
       - name: Run user tests
         run: |
           yarn e2e:prod
+          yarn docker:local:stop
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
           mkdir -p coverage-artifacts/coverage
           cp coverage/e2e/coverage-final.json coverage-artifacts/coverage/coverage-e2e.json
           cp -r coverage/e2e/ coverage-artifacts/coverage/e2e/

@@ -17,6 +17,9 @@ export const getSpecPattern = (dirs: string[], envs: NodeJS.ProcessEnv): string[
     }))
     .filter(({ active }) => Boolean(active)).map(({ path }) => path);
 
+  // eslint-disable-next-line no-console
+  console.log(`Running tests for paths: ${ activePaths.join(', ') }`);
+
   return [
     ...activePaths,
   ];

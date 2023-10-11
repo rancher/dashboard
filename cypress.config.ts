@@ -1,55 +1,50 @@
+/* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import { removeDirectory } from 'cypress-delete-downloads-folder';
 import { getSpecPattern } from '@shell/utils/cypress';
 // Required for env vars to be available in cypress
 require('dotenv').config();
 
+/**
+ * VARIABLES
+ */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
 const testDirs = ['setup', 'pages', 'navigation', 'global-ui'];
 const skipSetup = process.env.TEST_SKIP_SETUP === 'true';
-
 const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
-
-// Default user name, if TEST_USERNAME is not provided
 const DEFAULT_USERNAME = 'admin';
-
-// Log summary of the environment variables that we have detected (or are going ot use) - we won't show any passwords
-console.log('E2E Test Configuration'); // eslint-disable-line no-console
-console.log(''); // eslint-disable-line no-console
-
-if (process.env.TEST_USERNAME) {
-  console.log(`    Username: ${ process.env.TEST_USERNAME }`); // eslint-disable-line no-console
-} else {
-  console.log(`    Username: ${ DEFAULT_USERNAME } (TEST_USERNAME not set, using default)`); // eslint-disable-line no-console
-}
-
-if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
-  console.log(' ❌ You should not set both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD - CATTLE_BOOTSTRAP_PASSWORD will be used'); // eslint-disable-line no-console
-}
-
-if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
-  console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests'); // eslint-disable-line no-console
-}
-
-if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
-  console.log(' ❌ You must provide one of CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD'); // eslint-disable-line no-console
-}
-
-if (skipSetup && !process.env.TEST_PASSWORD) {
-  console.log(' ❌ You should provide TEST_PASSWORD when running the tests without the setup tests'); // eslint-disable-line no-console
-}
-
-if (skipSetup) {
-  console.log(`    Setup tests will NOT be run`); // eslint-disable-line no-console
-} else {
-  console.log(`    Setup tests will be run`); // eslint-disable-line no-console
-}
-
-console.log(`    Dashboard URL: ${ baseUrl }`); // eslint-disable-line no-console
-
+const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
 
-console.log(`    Rancher API URL: ${ apiUrl }`); // eslint-disable-line no-console
+/**
+ * LOGS:
+ * Summary of the environment variables that we have detected (or are going ot use)
+ * We won't show any passwords
+ */
+console.log('E2E Test Configuration');
+console.log('');
+console.log(`    Username: ${ username }`);
+
+if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
+  console.log(' ❌ You must provide either CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD');
+}
+if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
+  console.log(' ❗ If both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD are provided, the first will be used');
+}
+if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
+  console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests');
+}
+if (skipSetup && !process.env.TEST_PASSWORD) {
+  console.log(' ❌ You must provide TEST_PASSWORD when running the tests without the setup tests');
+}
+
+console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
+console.log(`    Dashboard URL: ${ baseUrl }`);
+console.log(`    Rancher API URL: ${ apiUrl }`);
+
+/**
+ * CONFIGURATION
+ */
 export default defineConfig({
   projectId:             process.env.TEST_PROJECT_ID,
   defaultCommandTimeout: process.env.TEST_TIMEOUT ? +process.env.TEST_TIMEOUT : 60000,
@@ -81,7 +76,7 @@ export default defineConfig({
       ]
     },
     api:               apiUrl,
-    username:          process.env.TEST_USERNAME || DEFAULT_USERNAME,
+    username,
     password:          process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword: process.env.CATTLE_BOOTSTRAP_PASSWORD,
     grepTags:          process.env.GREP_TAGS
