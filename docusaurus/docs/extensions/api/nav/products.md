@@ -67,6 +67,6 @@ The allowed parameters for the `product` function are:
 | --- | --- | --- |
 | `icon` | String | icon name (based on [rancher icons](https://rancher.github.io/icons/)) |
 | `svg` | Module | SVG icon (alernative to above). Typically use the `require` method with a path of an SVG file|
-| `inStore` | String |  Where to navigate when the upper-left logo is clicked |
+| `inStore` | String |  Which store should the product be registered on. Use `management` for a top-level product and `cluster` for a cluster-level product |
 | `weight` | Int |  Side menu ordering (bigger number on top) |
 | `to` | [Vue Router route config](https://v3.router.vuejs.org/api/#routes) |  Route to where the click on the product top-level menu should lead to |
