@@ -19,6 +19,7 @@ describe('Home Page', () => {
     /**
      * Verify changelog banner is hidden after clicking link
      * Verify release notes link is valid github page
+     * Verify correct Rancher version is displayed
      */
 
       homePage.restoreAndWait();
