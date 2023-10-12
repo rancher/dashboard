@@ -212,7 +212,7 @@ Cypress.Commands.add('getProjectByName', (clusterId, projectName) => {
 Cypress.Commands.add('createProject', (projName, clusterId, userId) => {
   return cy.request({
     method:  'POST',
-    url:     `https://localhost:8005/v3/projects`,
+    url:     `${ Cypress.env('api') }/v3/projects`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
@@ -240,7 +240,7 @@ Cypress.Commands.add('createProject', (projName, clusterId, userId) => {
 Cypress.Commands.add('createNamespace', (nsName, projId) => {
   return cy.request({
     method:  'POST',
-    url:     `https://localhost:8005/v1/namespaces`,
+    url:     `${ Cypress.env('api') }/v1/namespaces`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
@@ -316,7 +316,7 @@ Cypress.Commands.add('requestBase64Image', (url: string) => {
 Cypress.Commands.add('getRancherResource', (prefix, resourceType, resourceId?, expectedStatusCode = 200) => {
   return cy.request({
     method:  'GET',
-    url:     resourceId ? `https://localhost:8005/${ prefix }/${ resourceType }/${ resourceId }` : `https://localhost:8005/${ prefix }/${ resourceType }`,
+    url:     resourceId ? `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }` : `${ Cypress.env('api') }/${ prefix }/${ resourceType }`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
@@ -355,7 +355,7 @@ Cypress.Commands.add('setRancherResource', (prefix, resourceType, resourceId, bo
 Cypress.Commands.add('deleteRancherResource', (prefix, resourceType, resourceId) => {
   return cy.request({
     method:  'DELETE',
-    url:     `https://localhost:8005/${ prefix }/${ resourceType }/${ resourceId }`,
+    url:     `${ Cypress.env('api') }/${ prefix }/${ resourceType }/${ resourceId }`,
     headers: {
       'x-api-csrf': token.value,
       Accept:       'application/json'
