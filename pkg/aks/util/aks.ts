@@ -99,68 +99,68 @@ function isEmptyStringOrArray(val: any) {
 }
 
 /**
- *
- * @param lhs aksStatus.upstreamSpec
- * @param rhs aksConfig
+ * this is NOT a generic object diff.
+ * It tries to be as generic as possible but it does make certain assumptions regarding nulls and emtpy arrays/objects
+ * if upstream is null and local aks config is empty we do not count this as a change
+ * additionally null values on the RHS will be ignored as null cant be sent in this case
+ * nodeGroups, nodePools, tags, and labels are not diffed
+ * @param upstream aksStatus.upstreamSpec
+ * @param local aksConfig
  * @returns aksConfig containing only values which differ from upstream spec, excluding null values
  */
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function diffUpstreamSpec(lhs: any, rhs: any): any {
-  // this is NOT a generic object diff.
-  // It tries to be as generic as possible but it does make certain assumptions regarding nulls and emtpy arrays/objects
-  // if LHS (upstream) is null and RHS (aks config) is empty we do not count this as a change
-  // additionally null values on the RHS will be ignored as null cant be sent in this case
+export function diffUpstreamSpec(upstream: any, local: any): any {
   const delta = {};
-  const rhsKeys = Object.keys(rhs);
+  const localKeys = Object.keys(local);
 
-  rhsKeys.forEach((k) => {
-    if (k === 'type') {
+  localKeys.forEach((key) => {
+    if (key === 'type') {
       return;
     }
 
-    const lhsMatch = get(lhs, k);
-    const rhsMatch = get(rhs, k);
+    const upstreamMatch = get(upstream, key);
+    const localMatch = get(local, key);
 
-    if (k !== 'nodeGroups' && k !== 'nodePools') {
+    if (key !== 'nodeGroups' && key !== 'nodePools') {
       try {
-        if (JSON.stringify(lhsMatch) === JSON.stringify(rhsMatch)) {
+        if (JSON.stringify(upstreamMatch) === JSON.stringify(localMatch)) {
           return;
         }
       } catch (e) {}
     }
 
-    if (k === 'nodeGroups' || k === 'nodePools' || k === 'tags' || k === 'labels') {
+    if (key === 'nodeGroups' || key === 'nodePools' || key === 'tags' || key === 'labels') {
       // Node Groups and Node Pools do not require a sync, we can safely send the entire object
       // Tags and Labels (maps) are also included by default because what is present in the config is exactly what should be used on save and any equal maps would have been caught by the JSON isEqual comparison above
-      if (!isEmptyStringOrArray(rhsMatch)) {
+      if (!isEmptyStringOrArray(localMatch)) {
         // node groups need ALL data so short circut and send it all
-        set(delta, k, rhsMatch);
+        set(delta, key, localMatch);
       } else {
         // all node groups were deleted
-        set(delta, k, []);
+        set(delta, key, []);
       }
 
       return;
     }
 
-    if (isEmptyStringOrArray(lhsMatch) || isEmptyObject(lhsMatch)) {
-      if (isEmptyStringOrArray(rhsMatch) || isEmptyObject(rhsMatch)) {
-        if (lhsMatch !== null && (isArray(rhsMatch) || isObject(rhsMatch))) {
-          // Empty Arrays and Empty Maps must be sent as such unless the upstream value is null, then the empty array or obj is just a init value from ember
-          set(delta, k, rhsMatch);
+    if (isEmptyStringOrArray(upstreamMatch) || isEmptyObject(upstreamMatch)) {
+      if (isEmptyStringOrArray(localMatch) || isEmptyObject(localMatch)) {
+        if (upstreamMatch !== null && (isArray(localMatch) || isObject(localMatch))) {
+          // Empty Arrays and Empty Maps must be sent as such unless the upstream value is null, then the empty array or obj is just an init value
+          set(delta, key, localMatch);
         }
       } else {
-        // lhs is empty, rhs is not, just set
-        set(delta, k, rhsMatch);
+        // upstream is empty, local is not, just set
+        set(delta, key, localMatch);
       }
     } else {
-      if (rhsMatch !== null) {
+      if (localMatch !== null) {
         // entry in og obj
-        if (isArray(lhsMatch)) {
-          if (isArray(rhsMatch)) {
-            if (!isEmptyStringOrArray(rhsMatch) && rhsMatch.every((m: any) => isObject(m))) {
+        if (isArray(upstreamMatch)) {
+          if (isArray(localMatch)) {
+            if (!isEmptyStringOrArray(localMatch) && localMatch.every((m: any) => isObject(m))) {
               // You have more diffing to do
-              rhsMatch.forEach((match: any) => {
+              localMatch.forEach((match: any) => {
                 // our most likely candiate for a match is node group name, but lets check the others just incase.
                 const matchId = get(match, 'name') || get(match, 'id') || false;
 
@@ -168,7 +168,7 @@ export function diffUpstreamSpec(lhs: any, rhs: any): any {
                   let lmatchIdx = 0;
 
                   // we have soime kind of identifier to find a match in the upstream, so we can diff and insert to new array
-                  const lMatch = lhsMatch.find((l: any, idx: number) => {
+                  const lMatch = upstreamMatch.find((l: any, idx: number) => {
                     const lmatchId = get(l, 'name') || get(l, 'id');
 
                     if (lmatchId === matchId) {
@@ -182,56 +182,56 @@ export function diffUpstreamSpec(lhs: any, rhs: any): any {
                     // we have a match in the upstream, meaning we've probably made updates to the object itself
                     const diffedMatch = diffUpstreamSpec(lMatch, match);
 
-                    if (!isArray(get(delta, k))) {
-                      set(delta, k, [diffedMatch]);
+                    if (!isArray(get(delta, key))) {
+                      set(delta, key, [diffedMatch]);
                     } else {
-                      const target: any[] = delta[k as keyof typeof delta];
+                      const target: any[] = delta[key as keyof typeof delta];
 
                       // diff and push into new array
                       target.splice(lmatchIdx, 0, diffedMatch);
                     }
                   } else {
                     // no match in upstream, new entry
-                    if (!isArray(get(delta, k))) {
-                      set(delta, k, [match]);
+                    if (!isArray(get(delta, key))) {
+                      set(delta, key, [match]);
                     } else {
-                      const target: any = delta[k as keyof typeof delta];
+                      const target: any = delta[key as keyof typeof delta];
 
                       target.push(match);
                     }
                   }
                 } else {
                   // no match id, all we can do is dumb add
-                  if (!isArray(get(delta, k))) {
-                    set(delta, k, [match]);
+                  if (!isArray(get(delta, key))) {
+                    set(delta, key, [match]);
                   } else {
-                    const target: any = delta[k as keyof typeof delta];
+                    const target: any = delta[key as keyof typeof delta];
 
                     target.push(match);
                   }
                 }
               });
             } else {
-              set(delta, k, rhsMatch);
+              set(delta, key, localMatch);
             }
           } else {
-            set(delta, k, rhsMatch);
+            set(delta, key, localMatch);
           }
-        } else if (isObject(lhsMatch)) {
-          if (!isEmptyStringOrArray(rhsMatch) && !isEmptyObject(rhsMatch)) {
-            if ((Object.keys(lhsMatch) || []).length > 0) {
+        } else if (isObject(upstreamMatch)) {
+          if (!isEmptyStringOrArray(localMatch) && !isEmptyObject(localMatch)) {
+            if ((Object.keys(upstreamMatch) || []).length > 0) {
               // You have more diffing to do
-              set(delta, k, diffUpstreamSpec(lhsMatch, rhsMatch));
-            } else if (isEmptyObject(lhsMatch)) {
+              set(delta, key, diffUpstreamSpec(upstreamMatch, localMatch));
+            } else if (isEmptyObject(upstreamMatch)) {
               // we had a map now we have an empty map
-              set(delta, k, {});
+              set(delta, key, {});
             }
-          } else if (!isEmptyObject(lhsMatch) && isEmptyObject(rhsMatch)) {
+          } else if (!isEmptyObject(upstreamMatch) && isEmptyObject(localMatch)) {
             // we had a map now we have an empty map
-            set(delta, k, {});
+            set(delta, key, {});
           }
-        } else { // lhsMatch not an array or object
-          set(delta, k, rhsMatch);
+        } else { // upstreamMatch not an array or object
+          set(delta, key, localMatch);
         }
       }
     }

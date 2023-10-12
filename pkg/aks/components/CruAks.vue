@@ -713,7 +713,7 @@ export default defineComponent({
       :default-on-cancel="true"
       :showing-form="hasCredential"
       class="mt-20"
-      @cancel="cancelCredential"
+      :cancel="cancelCredential"
     />
     <div
       v-if="hasCredential"
