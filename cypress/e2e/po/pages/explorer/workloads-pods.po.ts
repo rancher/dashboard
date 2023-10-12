@@ -1,4 +1,5 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
+import PodsListPo from '@/cypress/e2e/po/lists/pods-list.po';
 
 export class WorkloadsPodsListPagePo extends PagePo {
   private static createPath(clusterId: string) {
@@ -11,6 +12,19 @@ export class WorkloadsPodsListPagePo extends PagePo {
 
   constructor(clusterId = 'local') {
     super(WorkloadsPodsListPagePo.createPath(clusterId));
+  }
+
+  list(): PodsListPo {
+    return new PodsListPo('[data-testid="cluster-list-container"]');
+  }
+
+  sortableTable() {
+    return this.list().resourceTable().sortableTable();
+  }
+
+  createPod() {
+    return this.list().masthead().actions().eq(0)
+      .click();
   }
 }
 
