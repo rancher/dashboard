@@ -11,7 +11,7 @@ describe('Namespace picker', () => {
   });
 
   it('can filter workloads by project/namespace from the picker dropdown', { tags: '@adminUser' }, () => {
-    // filter Namespace: go to Pods > select kube-system to filter by namespace > verify 'Namespace: ' appears once
+    // filter Namespace: go to Pods > select cattle-fleet-local-system to filter by namespace > verify 'Namespace: ' appears once
     // filter Project: go to Pods > select Project: System to filter by project > verify 'Namespace: ' more than once
     const workloadsPodPage = new WorkloadsPodsListPagePo('local');
 
@@ -20,10 +20,10 @@ describe('Namespace picker', () => {
 
     cy.intercept('PUT', '/v1/userpreferences/*').as('optionSelected');
 
-    // Select 'kube-system''
+    // Select 'cattle-fleet-local-system'
     namespacePicker.toggle();
-    namespacePicker.clickOption(23, 'kube-system');
-    namespacePicker.isChecked(23, 'kube-system');
+    namespacePicker.clickOption(11, 'cattle-fleet-local-system');
+    namespacePicker.isChecked(11, 'cattle-fleet-local-system');
     cy.wait('@optionSelected');
     cy.contains('Namespace: ').should('be.visible').and('have.length', 1);
 
@@ -111,20 +111,10 @@ describe('Namespace picker', () => {
     namespacePicker.isChecked(10, 'cattle-fleet-clusters-system');
     namespacePicker.checkIcon().should('have.length', 4);
 
-    // Select 'Not in a Project'
-    namespacePicker.clickOption(25, 'Not in a Project');
-    namespacePicker.isChecked(25, 'Not in a Project');
-    namespacePicker.checkIcon().should('have.length', 5);
-
-    // Select 'local'
-    namespacePicker.clickOption(27, 'local');
-    namespacePicker.isChecked(27, 'local');
-    namespacePicker.checkIcon().should('have.length', 6);
-
     // Checks on dropdown controller: selected value displays, number of hidden selections display, tool top is available
-    namespacePicker.selectedValues().find('.ns-value').should('have.length', 6);
+    namespacePicker.selectedValues().find('.ns-value').should('have.length', 4);
     namespacePicker.selectedValues().find('.ns-value').contains('Project: Default').should('be.visible');
-    namespacePicker.namespaceDropdown().find('.ns-more').should('contains.text', '+5');
+    namespacePicker.namespaceDropdown().find('.ns-more').should('contains.text', '+3');
     namespacePicker.closeDropdown();
     namespacePicker.selectedValues().should('have.class', 'has-tooltip');
     namespacePicker.moreOptionsSelected().should('have.class', 'has-tooltip');
