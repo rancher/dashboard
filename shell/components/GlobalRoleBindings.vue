@@ -373,7 +373,6 @@ export default {
 
   .deprecation-notice {
     margin: 8px 0 8px 20px;
-    color: var(--error);
   }
   .role-group {
     .type-title {

@@ -17,6 +17,13 @@ const ALLOWED_TAGS = [
   'strong',
 ];
 
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  // set all elements owning target to target=_blank if rel property includes the correct values, making it safe
+  if ('rel' in node && node.rel.includes('noopener') && node.rel.includes('noreferrer') && node.rel.includes('nofollow')) {
+    node.setAttribute('target', '_blank');
+  }
+});
+
 export const purifyHTML = (value) => DOMPurify.sanitize(value, { ALLOWED_TAGS });
 
 export const cleanHtmlDirective = {
